@@ -105,13 +105,7 @@ export default function useContentCtx({ initialData, restaurants }: Props) {
         return (
           <div className="flex items-center gap-4">
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-md" style={{ backgroundColor: bgColor }}>
-              <Image
-                src={createUrlFile(livreur.avatarUrl ?? '', 'backend')}
-                alt="Restaurant cover"
-                className="object-cover"
-                fill
-                unoptimized
-              />
+              {initial}
             </div>
             <div className="font-medium capitalize">{livreur?.nomPrenom}</div>
           </div>
