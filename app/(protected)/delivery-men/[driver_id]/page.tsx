@@ -6,6 +6,11 @@ export const metadata: Metadata = {
     title: 'Delievry Man',
 };
 
+export const viewport = {
+    width: 'device-width',
+    initialScale: 1.0,
+};
+
 export default async function DeliveryManPage({ params }: { params: { driver_id: string } }) {
     const driver = await getDeliveryDetail(params.driver_id ?? "");
     return (

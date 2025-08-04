@@ -15,7 +15,7 @@ import {
 
 import { useRouter } from 'next/navigation';
 import { Restaurant } from '@/types/models';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import { formatTime } from '@/lib/date';
 import { toast } from 'react-toastify';
 import { updateCommission } from '@/src/restaurants/restaurants.actions';

@@ -213,7 +213,6 @@ export async function getToutLivreurStatus(page: number = 0, size: number = 10):
                 size: size.toString()
             }
         });
-        console.log(data)
         return data;
     } catch (error) {
         return null;

@@ -1,7 +1,7 @@
 'use client';
 
 import { DeliveryFee, RestaurantDefini } from '@/types/price-list';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import { Avatar } from '@heroui/react';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';

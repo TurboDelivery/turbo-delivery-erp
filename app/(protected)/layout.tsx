@@ -19,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     const profile = await getProfile();
     const session = await auth();
     if (!profile) redirect('/auth');
-    console.log("session", session);
+    // console.log("session", session);
 
     return (
         <>

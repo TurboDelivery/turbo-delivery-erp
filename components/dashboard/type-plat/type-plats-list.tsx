@@ -6,7 +6,7 @@ import { Collection } from '@/types/models';
 
 import { Avatar, Chip } from "@heroui/react";
 import TypePlatsTools from './type-plats-tools';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import TypePlatAdd from './type-plats-add';
 
 const TypePlatsList = ({ typePlats }: { typePlats: Collection[] }) => {

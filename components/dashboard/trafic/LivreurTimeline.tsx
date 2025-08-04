@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { LivreurDisponible } from '@/types/models';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import { Avatar } from "@heroui/react";
 import DeliveryProgress from './DeliveryProgress';
 

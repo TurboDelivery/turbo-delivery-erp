@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 import { Card } from '@heroui/react';
 import { LivreurDetail } from '@/types/livreur';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import { CreneauID } from '@/types/creneau-byId';
 import RetourButton from '../../retourButton';
 

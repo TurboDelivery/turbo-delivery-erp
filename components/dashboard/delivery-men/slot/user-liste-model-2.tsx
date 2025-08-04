@@ -4,7 +4,7 @@ import { Card, CardHeader, CardBody, CardFooter, Divider, Link, Image, Avatar } 
 import { IconPointFilled } from '@tabler/icons-react';
 import progresseBare from '../progression/progression-barre';
 import DropDownAction from './dropDownAction';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 function UserListeModel2 ({ turboy }:any) {
   return (
     <Card className="max-w-[400px]">

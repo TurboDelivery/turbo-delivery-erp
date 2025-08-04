@@ -9,9 +9,13 @@ export const metadata: Metadata = {
   title: 'Delivery Men',
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1.0,
+};
+
 export default async function DeliveryMen() {
   const toutStatutLivreurs: PaginatedResponse<LivreurStatutVM> | null = await getToutLivreurStatus(0, 10);
   const allRestaurant = await allRestaurants();
-  console.log(toutStatutLivreurs)
   return <Content initialData={toutStatutLivreurs} restaurants={allRestaurant} />;  
 }

@@ -7,7 +7,7 @@ import { IconPointFilled } from '@tabler/icons-react';
 import DropDownAction from './dropDownAction';
 import progresseBare from '../progression/progression-barre';
 import { Avatar } from '@heroui/react';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 
 interface props {
   turboy: LivreurBird;

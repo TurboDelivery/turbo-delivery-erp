@@ -10,7 +10,7 @@ import { SORT_OPTIONS, courses_statuses_filters } from '@/data';
 import DeliveryTools from '../component/deliveryTools';
 import { getPaginationCourseExterneAutreStatus } from '@/src/actions/courses.actions';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import IconPlus from '@/components/icon/icon-plus';
 
 type SortOption = (typeof SORT_OPTIONS)[keyof typeof SORT_OPTIONS];

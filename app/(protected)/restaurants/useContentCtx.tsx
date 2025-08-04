@@ -4,7 +4,7 @@ import RestaurantTools from '@/components/dashboard/restaurants/restaurant-tools
 import { getRestaurants } from '@/src/restaurants/restaurants.actions';
 import { PaginatedResponse } from '@/types';
 import { Restaurant } from '@/types/models';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import { Avatar, Chip } from '@heroui/react';
 import { Key, useCallback, useState } from 'react';
 import { toast } from 'react-toastify';

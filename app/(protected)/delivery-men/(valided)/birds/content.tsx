@@ -19,6 +19,7 @@ import { Pagination, Tooltip } from '@heroui/react';
 import { UpdateDeliveryDialog } from '../../update-delivery/update-delivery';
 import { ConfirmDialog } from '@/components/commons/confirm-dialog';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
+import { getInitials, getColorFromInitial } from '@/utils/createUrlFile';
 
 interface Props {
     initialData: PaginatedResponse<LivreurStatutVM> | null;
@@ -38,12 +39,17 @@ export default function Content({ initialData, restaurants }: Props) {
   
     // Fonction de rendu des cellules
     const renderNonAssignedCell = (item: any, columnKey: string) => {
+        const initial = getInitials(item.nomPrenom);
+        const bgColor = getColorFromInitial(initial);
+
         switch (columnKey) {
         case "nom":
             return (
-                <div className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-full bg-gray-300" />
-                    <span>{item?.nomPrenom ?? "Néant"}</span>
+                <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-md" style={{ backgroundColor: bgColor }}>
+                        {initial}
+                    </div>
+                    <div className="font-medium capitalize">{item?.nomPrenom}</div>
                 </div>
             );
     

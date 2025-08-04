@@ -9,6 +9,10 @@ export const metadata: Metadata = {
     title: 'Delivery Men',
 };
 
+export const viewport = {
+    width: 'device-width',
+    initialScale: 1.0,
+};
 
 export default async function DeliveryMen() {
     const toutStatutLivreurNonAssignes: PaginatedResponse<LivreurStatutVM> | null = await getToutLivreurStatusNonAssigners(0, 10);

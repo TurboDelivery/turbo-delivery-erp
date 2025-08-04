@@ -1,7 +1,7 @@
 'use client';
 
 import { LivreurDisponible } from '@/types/models';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import { Avatar, Divider } from "@heroui/react";
 
 interface LivreursListProps {

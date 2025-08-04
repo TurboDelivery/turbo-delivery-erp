@@ -9,8 +9,7 @@ import { Button, Chip, useDisclosure } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { Key, useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import createUrlFile from '@/utils/createUrlFile';
-import Image from 'next/image';
+import { getInitials, getColorFromInitial } from '@/utils/createUrlFile';
 
 // 🧼 Fonction utilitaire pour nettoyer les données
 const sanitizeLivreurs = (content: any[] | null | undefined): LivreurStatutVM[] =>
@@ -86,13 +85,7 @@ export default function useContentCtx({ initialData, restaurants }: Props) {
     }
   };
 
-  const getInitials = (nomPrenom?: string) => nomPrenom?.charAt(0).toUpperCase() || '?';
-
-  const getColorFromInitial = (initial: string) => {
-    const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF', '#33FFF3', '#FFC733', '#75FF33', '#FF3385', '#33A1FF', '#F333FF'];
-    const index = initial.charCodeAt(0) % colors.length;
-    return colors[index];
-  };
+  
 
   const renderCell = useCallback((livreur: LivreurStatutVM | null, columnKey?: Key) => {
     if (!livreur || !columnKey) return null;

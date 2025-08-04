@@ -16,6 +16,7 @@ import { DemandeAssignationVM, Restaurant } from '@/types/models';
 import ValidateDialog from '@/components/commons/validate-dialog';
 import { ConfirmDialog } from '@/components/commons/confirm-dialog';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
+import { getInitials, getColorFromInitial } from '@/utils/createUrlFile';
 
 export default function Content({ demandeAssignations, allRestaurant }: { demandeAssignations: DemandeAssignationVM[]; allRestaurant: Restaurant[] }) {
   const demandeCtrl = useDemandeAssignationController(demandeAssignations);
@@ -30,12 +31,17 @@ export default function Content({ demandeAssignations, allRestaurant }: { demand
 
   // Rendu dynamique des cellules
   const renderDemandeCell = (item: any, columnKey: string) => {
+    const initial = getInitials(item.nomComplet);
+    const bgColor = getColorFromInitial(initial);
+
     switch (columnKey) {
       case "nom":
         return (
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-full bg-gray-300" />
-            <span>{item.nomComplet}</span>
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-md" style={{ backgroundColor: bgColor }}>
+                {initial}
+            </div>
+            <div className="font-medium capitalize">{item.nomComplet}</div>
           </div>
         );
 

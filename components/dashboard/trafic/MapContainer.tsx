@@ -2,7 +2,7 @@
 
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import { LivreurDisponible } from '@/types/models';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import { useEffect, useState, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import { darkMapStyle } from '@/data';

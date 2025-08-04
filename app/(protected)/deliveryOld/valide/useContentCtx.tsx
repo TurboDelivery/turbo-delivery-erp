@@ -4,7 +4,7 @@ import DeliveryMenTools from '@/components/dashboard/delivery-men/delivery-men-t
 import { getDeliveryMen } from '@/src/actions/delivery-men.actions';
 import { PaginatedResponse } from '@/types';
 import { DeliveryMan } from '@/types/models';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import { Avatar, Chip } from '@heroui/react';
 import { Key, useCallback, useState } from 'react';
 import { toast } from 'react-toastify';

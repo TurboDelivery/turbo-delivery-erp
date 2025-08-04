@@ -2,7 +2,7 @@ import React from 'react';
 import { Receipt, Store, CheckCircle2, XCircle, CircleDot, MessageCircle } from 'lucide-react';
 import { LivreurDisponible } from '@/types/models';
 import Image from 'next/image';
-import createUrlFile from '@/utils/createUrlFile';
+import { createUrlFile } from '@/utils/createUrlFile';
 import { Divider } from "@heroui/react";
 import { motion } from 'framer-motion';
 

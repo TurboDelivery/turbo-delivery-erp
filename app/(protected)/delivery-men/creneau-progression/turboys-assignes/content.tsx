@@ -15,7 +15,7 @@ export default function Content({initialData}:props){
   const {turboysAssignes}=useContentCtx({initialData})
 
 
-  console.log(turboysAssignes);
+  // console.log(turboysAssignes);
   
 
   if(!turboysAssignes||turboysAssignes.length==0){

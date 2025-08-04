@@ -13,17 +13,17 @@ import { UpdateDeliveryDialog } from '../../update-delivery/update-delivery';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { ConfirmDialog } from '@/components/commons/confirm-dialog';
 import { Pagination } from '@heroui/react';
+import { getInitials, getColorFromInitial } from '@/utils/createUrlFile';
 
 interface Props {
     initialData: PaginatedResponse<LivreurStatutVM> | null;
     restaurants: Restaurant[] | null
 }
 
-
-
 export default function Content({ initialData, restaurants }: Props) {
     const livreurAssigneCtrl = useTurboAssigneController(initialData, restaurants);
     const rows = livreurAssigneCtrl.data?.content || [];
+    
 
     // Colonnes de la table
     const columns = [
@@ -31,16 +31,21 @@ export default function Content({ initialData, restaurants }: Props) {
         { uid: "dateInscription", name: "Date d’inscription" },
         { uid: "restaurant", name: "Affectation" },
         { uid: "actions", name: "Actions" },
-    ];
+    ];    
     
     // Fonction de rendu des cellules
     const renderCell = (item: any, columnKey: string) => {
+        const initial = getInitials(item.nomPrenom);
+        const bgColor = getColorFromInitial(initial);
+
         switch (columnKey) {
             case "nom":
                 return (
-                    <div className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-full bg-gray-300" />
-                    <span>{item?.nomPrenom ?? "Néant"}</span>
+                    <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-md" style={{ backgroundColor: bgColor }}>
+                            {initial}
+                        </div>
+                        <div className="font-medium capitalize">{item?.nomPrenom}</div>
                     </div>
                 );
 
