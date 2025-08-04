@@ -60,6 +60,8 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
             const text = await result.text(); // Pour voir le contenu brut
             console.error('Réponse non JSON :', text);
         }
+
+        console.log(json)
     
         if (!result.ok) {
             return {

@@ -14,7 +14,7 @@ export interface FilleAttenteVM {
     statut: string;
 }
 
-interface ILocalDataTime {
+export interface ILocalDataTime {
     hour?: number;
     minute?: number;
     second?: number;

@@ -10,10 +10,7 @@ import { getAllCreneauTurbo } from "@/src/creneau-livreur/creneau-livreur.action
 
 
 export default async function Page(){
-
-
-      const response = await getAllCreneauTurbo();
-      
-        return <Content initialData={response}  />
-    
+  const response = await getAllCreneauTurbo();
+  
+  return <Content initialData={response}  />
 }
