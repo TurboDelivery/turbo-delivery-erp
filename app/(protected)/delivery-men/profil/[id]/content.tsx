@@ -1,7 +1,7 @@
 'use client'
 import RetourButton from "@/components/dashboard/retourButton";
 import { LivreurDetail } from "@/types/livreur";
-import createUrlFile from "@/utils/createUrlFile";
+import { createUrlFile } from "@/utils/createUrlFile";
 import { Button, Card, Input } from "@heroui/react";
 import { Select, SelectItem } from "@heroui/select";
 import { ArrowLeft, Edit } from "lucide-react";
