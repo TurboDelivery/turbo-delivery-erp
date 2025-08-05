@@ -7,7 +7,7 @@ export default function UserRestaurantListeNotCreneau({turboysCreneau} : {turboy
     if(!turboysCreneau||turboysCreneau.length==0){
         return(  
             <div>
-                <h2 className="text-lg font-semibold mb-2">Turboys n'ayant pas des créneaux</h2>
+                <h2 className="text-lg font-semibold mb-2">Restaurant n'ayant pas des créneaux</h2>
                 <EmptyDataTable/>
             </div>
         )
@@ -16,7 +16,7 @@ export default function UserRestaurantListeNotCreneau({turboysCreneau} : {turboy
     return (
         <div className="relative mb-6 text-slate-500">
             <div className="relative mb-6">
-                <h2 className="text-lg font-semibold mb-2">Turboys n'ayant pas des créneaux</h2>
+                <h2 className="text-lg font-semibold mb-2">Restaurant n'ayant pas des créneaux</h2>
                 <div className="relative bg-white flex items-center flex-col gap-1 rounded-lg  overflow-auto">
                     { 
                         turboysCreneau.map((restaurant, index) => {
