@@ -4,6 +4,7 @@ import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { FilleAttenteHistoriqueVM, FilleAttenteVM } from '@/types/file-attente.model';
 import { RefreshCcw } from 'lucide-react';
+import { createUrlFile } from '@/utils/createUrlFile';
 
 interface RestaurantCardsProps {
     fileAttentes: FilleAttenteHistoriqueVM[];
@@ -55,15 +56,17 @@ export default function RestaurantCards({
                                 </div>
 
                                 <div className="flex -space-x-2 mb-4 pt-4 items-center">
-                                    {restaurant.fileAttentes &&
+                                    {
+                                        restaurant.fileAttentes &&
                                         restaurant.fileAttentes.slice(0, 7).map((user: FilleAttenteVM, index) => (
                                             <Avatar key={index} className="w-8 h-8 border-2 border-white">
                                                 <AvatarImage
-                                                    src="https://cdn-icons-png.flaticon.com/512/2499/2499292.png"
+                                                    src={createUrlFile(user?.avatar ?? '', 'backend')}
                                                     alt={`Livreur ${index + 1}`}
                                                 />
                                             </Avatar>
-                                        ))}
+                                        ))
+                                    }
 
                                     <span className="pl-4">
                                         {restaurant.fileAttentes && restaurant.fileAttentes.length > 7 && `+${restaurant.fileAttentes.length - 7}`}
