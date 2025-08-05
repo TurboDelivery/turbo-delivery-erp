@@ -4,7 +4,7 @@ import { CardHeader } from '@/components/commons/card-header';
 import { PageWrapper } from '@/components/commons/page-wrapper';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import RestaurantCards from './restaurant-card/restaurant-card';
 import { RestaurantsTab } from './restaurant-tab/restaurant-tab';
 import { Search, Map } from 'lucide-react';
@@ -12,14 +12,26 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Input } from "@heroui/react";
 import { useFileAttenteController } from '@/components/dashboard/trafic/file-attente/file-attente.controller';
-import { FileAttenteStatistiqueVM } from '@/types/file-attente.model';
+import { fetchStatistiqueFilleAttente } from '@/src/actions/file-attente.actions';
 
-interface Props {
-    statistiqueFileAttentes: FileAttenteStatistiqueVM | null;
-}
-export default function RestaurantContent({ statistiqueFileAttentes }: Props) {
+export default function RestaurantContent() {
     const { fileAttentes, refreshData, onSelectFileAttente, selectedData, setFileAttentSeled, fileAttenteSelected } = useFileAttenteController();
-    
+    const [statistiqueFileAttentes, setStatistiqueFileAttentes] = useState<any>(null);
+
+    const loadData = async () => {
+        const data = await fetchStatistiqueFilleAttente();
+        setStatistiqueFileAttentes(data);
+    };
+
+    useEffect(() => {
+        loadData(); // initial load
+        const interval = setInterval(() => {
+            loadData(); // refresh every 30s
+        }, 30000);
+
+        return () => clearInterval(interval); // cleanup on unmount
+    }, []);
+
     return (
         <PageWrapper>
             <div className="space-y-4">
