@@ -2,60 +2,47 @@
 import { title } from '@/components/primitives';
 import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { PaginatedResponse } from '@/types';
-import { Clock, MapPin, User, Package, CreditCard, Store, ChevronDown, ChevronUp } from 'lucide-react';
-import { Button, Card, CardBody, CardHeader, Chip, Divider, Pagination, Skeleton } from "@heroui/react";
-import { useState, useEffect } from 'react';
+import {
+    Clock, MapPin, User, Package, CreditCard, Store, ChevronDown, ChevronUp
+} from 'lucide-react';
+import {
+    Button, Card, CardBody, CardHeader, Chip, Divider, Pagination, Skeleton
+} from "@heroui/react";
+import { useState, useEffect, useRef } from 'react';
 import { SORT_OPTIONS } from '@/data';
 import DeliveryTools from './component/deliveryTools';
 import { getPaginationCourseExterneEnAttente } from '@/src/actions/courses.actions';
-
 
 type SortOption = (typeof SORT_OPTIONS)[keyof typeof SORT_OPTIONS];
 
 const getStatusColor = (statut: string) => {
     switch (statut?.toUpperCase()) {
-        case 'VALIDER':
-            return 'warning';
-        case 'TERMINER':
-            return 'success';
-        case 'ANNULER':
-            return 'danger';
-        case 'EN_ATTENTE':
-            return 'secondary';
-        default:
-            return 'default';
+        case 'VALIDER': return 'warning';
+        case 'TERMINER': return 'success';
+        case 'ANNULER': return 'danger';
+        case 'EN_ATTENTE': return 'secondary';
+        default: return 'default';
     }
 };
 
 const getCommandeStatusColor = (statut: string) => {
     switch (statut?.toUpperCase()) {
-        case 'EN_ATTENTE_VERSEMENT':
-            return 'warning';
-        case 'TERMINER':
-            return 'success';
-        case 'ANNULER':
-            return 'danger';
+        case 'EN_ATTENTE_VERSEMENT': return 'warning';
+        case 'TERMINER': return 'success';
+        case 'ANNULER': return 'danger';
         case 'RECUPERER':
-            return 'secondary';
-        case 'EN_COURS_LIVRAISON':
-            return 'secondary';
-        default:
-            return 'default';
+        case 'EN_COURS_LIVRAISON': return 'secondary';
+        default: return 'default';
     }
 };
 
 const getStatusBorderClass = (statut: string) => {
     switch (statut?.toUpperCase()) {
-        case 'VALIDER':
-            return 'border-2 border-warning';
-        case 'TERMINER':
-            return 'border-2 border-success';
-        case 'ANNULER':
-            return 'border-2 border-danger';
-        case 'EN_ATTENTE':
-            return 'border-2 border-secondary';
-        default:
-            return 'border border-default';
+        case 'VALIDER': return 'border-2 border-warning';
+        case 'TERMINER': return 'border-2 border-success';
+        case 'ANNULER': return 'border-2 border-danger';
+        case 'EN_ATTENTE': return 'border-2 border-secondary';
+        default: return 'border border-default';
     }
 };
 
@@ -65,7 +52,6 @@ interface Props {
 }
 
 export default function Content({ initialData, delivers }: Props) {
-    // États
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sortBy, setSortBy] = useState<SortOption>(SORT_OPTIONS.DATE_DESC);
@@ -76,33 +62,61 @@ export default function Content({ initialData, delivers }: Props) {
     const [dataFilter, setDataFilter] = useState<CourseExterne[]>(data?.content ?? []);
     const [isLoading, setIsLoading] = useState(!initialData);
 
-    // Rafraîchissement automatique toutes les 30 secondes
+    // 🔊 Audio setup
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const [canPlayAudio, setCanPlayAudio] = useState(false);
+
+    // Autoriser lecture du son après interaction utilisateur
+    useEffect(() => {
+        const unlockAudio = () => {
+            setCanPlayAudio(true);
+            window.removeEventListener('click', unlockAudio);
+            window.removeEventListener('keydown', unlockAudio);
+        };
+        window.addEventListener('click', unlockAudio);
+        window.addEventListener('keydown', unlockAudio);
+        return () => {
+            window.removeEventListener('click', unlockAudio);
+            window.removeEventListener('keydown', unlockAudio);
+        };
+    }, []);
+
+    // Jouer/stopper le son selon dataFilter
+    useEffect(() => {
+        if (!canPlayAudio || !audioRef.current) return;
+
+        if (dataFilter.length > 0) {
+            audioRef.current.loop = true;
+            audioRef.current.play().catch((e) => console.error("Erreur audio :", e));
+        } else {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
+    }, [dataFilter, canPlayAudio]);
+
+    // Refresh auto toutes les 15s
     useEffect(() => {
         const refreshInterval = setInterval(() => {
-            // Rafraîchir les données de la page courante
             fetchDataSilently(currentPage);
-            console.log('Rafraichissement toutes les 30s');
-        }, 15000); // 30 secondes
+            console.log('Rafraichissement toutes les 15s');
+        }, 15000);
 
-        // Nettoyage du timer quand le composant est démonté
         return () => clearInterval(refreshInterval);
-    }, [currentPage]); // Re-créer le timer si la page change
+    }, [currentPage]);
 
     const handleFilter = (status: string, _data?: PaginatedResponse<CourseExterne> | null) => {
         setIsLoading(true);
         setStatusFilter(status);
-
-        if (status == 'all') {
-            setDataFilter(data?.content ?? []);
+        const dd = typeof _data === 'undefined' ? data : _data;
+        if (status === 'all') {
+            setDataFilter(dd?.content ?? []);
         } else {
-            const dd = typeof _data == 'undefined' ? data : _data;
-            const dataFilter = dd?.content.filter((d) => d.statut?.toUpperCase() == status) ?? [];
-            setDataFilter(dataFilter);
+            const filtered = dd?.content.filter((d) => d.statut?.toUpperCase() === status) ?? [];
+            setDataFilter(filtered);
         }
         setIsLoading(false);
     };
 
-    // Fonction de récupération des données (avec loading)
     const fetchData = async (page: number) => {
         setCurrentPage(page);
         setIsLoading(true);
@@ -118,25 +132,21 @@ export default function Content({ initialData, delivers }: Props) {
         }
     };
 
-    // Fonction de récupération des données silencieuse (sans loading pour le rafraîchissement automatique)
     const fetchDataSilently = async (page: number) => {
         try {
             const newData = await getPaginationCourseExterneEnAttente(page - 1, pageSize);
             setData(newData);
-            
-            // Appliquer le filtre actuel aux nouvelles données
             if (statusFilter === 'all') {
                 setDataFilter(newData?.content ?? []);
             } else {
-                const filteredData = newData?.content.filter((d) => d.statut?.toUpperCase() === statusFilter) ?? [];
-                setDataFilter(filteredData);
+                const filtered = newData?.content.filter((d) => d.statut?.toUpperCase() === statusFilter) ?? [];
+                setDataFilter(filtered);
             }
         } catch (error) {
             console.error('Error refreshing data:', error);
         }
     };
 
-    // Handlers
     const handleReset = () => {
         setSearchTerm('');
         setSortBy(SORT_OPTIONS.DATE_DESC);
@@ -147,60 +157,16 @@ export default function Content({ initialData, delivers }: Props) {
         setExpandedDelivery(expandedDelivery === deliveryId ? null : deliveryId);
     };
 
-    console.log("dataFilter", dataFilter)
     return (
         <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">
+            <audio ref={audioRef} src="/assets/sounds/notification.wav" preload="auto" />
+
             <div className="flex items-center justify-between">
                 <h1 className={title({ size: 'h3', class: 'text-primary' })}>Mes Courses</h1>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                {/* <ScrollArea className="w-full whitespace-nowrap pb-2">
-                    {courses_statuses_filters.map((category) => (
-                        <Button
-                            key={category.id}
-                            className="flex-shrink-0 mx-2"
-                            variant={statusFilter === category.id ? 'solid' : 'flat'}
-                            color={statusFilter === category.id ? 'primary' : 'default'}
-                            onPress={() => handleFilter(category.id)}
-                            size="sm"
-                        >
-                            {category.name}
-                        </Button>
-                    ))}
-                    <ScrollBar orientation="horizontal" className="h-0" />
-                </ScrollArea> */}
-
-                {/* <Input
-                    startContent={<Search className="text-gray-500 w-4 h-4" />}
-                    label="Rechercher par code"
-                    variant="bordered"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-sm"
-                    size="sm"
-                /> */}
-                {/* <div className="flex items-center flex-1 gap-4">
-                    <Select label="Filtrer par statut" variant="bordered" selectedKeys={[statusFilter]} onChange={(e) => setStatusFilter(e.target.value)}>
-                        <SelectItem key="all">Tous les statuts</SelectItem>
-                        <SelectItem key={'EN_ATTENTE'}>En Attentes</SelectItem>
-                        <SelectItem key={'VALIDER'}>Validées</SelectItem>
-                        <SelectItem key={'EN_COURS'}>En Cours</SelectItem>
-                        <SelectItem key={'TERMINER'}>Terminées</SelectItem>
-                        <SelectItem key={'ANNULER'}>Annulées</SelectItem>
-                    </Select>
-
-                    <Select label="Trier par" variant="bordered" selectedKeys={[sortBy]} onChange={(e) => setSortBy(e.target.value as SortOption)}>
-                        <SelectItem key={SORT_OPTIONS.DATE_DESC}>Plus récent</SelectItem>
-                        <SelectItem key={SORT_OPTIONS.DATE_ASC}>Plus ancien</SelectItem>
-                        <SelectItem key={SORT_OPTIONS.TOTAL_DESC}>Montant décroissant</SelectItem>
-                        <SelectItem key={SORT_OPTIONS.TOTAL_ASC}>Montant croissant</SelectItem>
-                    </Select>
-
-                    <Button variant="bordered" className="shrink-0" onClick={handleReset}>
-                        Réinitialiser
-                    </Button>
-                </div> */}
+                {/* Ajoute tes filtres ou inputs ici si besoin */}
             </div>
 
             {isLoading ? (
@@ -223,7 +189,6 @@ export default function Content({ initialData, delivers }: Props) {
                                     </div>
                                     <div className="flex gap-2">
                                         <DeliveryTools delivery={delivery} delivers={delivers} />
-
                                         <Button isIconOnly color="primary" variant="light" onClick={() => toggleExpand(delivery.id)}>
                                             {expandedDelivery === delivery.id ? <ChevronUp /> : <ChevronDown />}
                                         </Button>
@@ -295,17 +260,6 @@ export default function Content({ initialData, delivers }: Props) {
                                                         </CardBody>
                                                     </Card>
                                                 ))}
-                                                {/* <MapComponent
-                                                    markers={delivery.commandes.map(
-                                                        (c, index) =>
-                                                            ({
-                                                                start: { lat: c.lieuLivraison.latitude ?? 0, lng: c.lieuLivraison.longitude ?? 0 },
-                                                                end: { lat: c.lieuRecuperation.latitude ?? 0, lng: c.lieuRecuperation.longitude ?? 0 },
-                                                                color: ROUTE_COLORS[index % ROUTE_COLORS.length],
-                                                            }) as MarkerData,
-                                                    )}
-                                                    restaurant={restaurant}
-                                                /> */}
                                             </div>
                                         )}
 
@@ -323,9 +277,18 @@ export default function Content({ initialData, delivers }: Props) {
                             </Card>
                         ))}
                     </div>
+
                     <div className="flex h-fit z-10 justify-center mt-8 fixed bottom-4">
                         <div className="bg-gray-200 absolute inset-0 w-full h-full blur-sm opacity-50"></div>
-                        <Pagination total={data?.totalPages ?? 1} page={currentPage} onChange={fetchData} showControls color="primary" variant="bordered" isDisabled={isLoading} />
+                        <Pagination
+                            total={data?.totalPages ?? 1}
+                            page={currentPage}
+                            onChange={fetchData}
+                            showControls
+                            color="primary"
+                            variant="bordered"
+                            isDisabled={isLoading}
+                        />
                     </div>
                 </>
             ) : (
