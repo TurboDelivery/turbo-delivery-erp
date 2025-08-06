@@ -87,7 +87,11 @@ export default function Content({ initialData, delivers }: Props) {
 
         if (dataFilter.length > 0) {
             audioRef.current.loop = true;
-            audioRef.current.play().catch((e) => console.error("Erreur audio :", e));
+            // audioRef.current.play().catch((e) => console.error("Erreur audio :", e));
+            audioRef.current.play().catch(() => {
+                alert("🔴Nouvelle Course🔴, Cliquez sur OK pour activer 🔔.");
+                audioRef.current?.play();
+            });
         } else {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
