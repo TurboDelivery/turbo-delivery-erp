@@ -1,19 +1,19 @@
 'use client';
 
-import { SelectField } from '@/components/commons/select-field';
-import { Button } from '@/components/ui/button';
-import { Check, PencilIcon, Save, XIcon } from 'lucide-react';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
 import React from 'react';
-import { useTurboAssigneController } from './useTurboAssigneController';
-import { SearchField } from '@/components/commons/form/search-field';
 import { PaginatedResponse } from '@/types';
-import { LivreurStatutVM, Restaurant, TypeEnum } from '@/types/models';
-import { UpdateDeliveryDialog } from '../../update-delivery/update-delivery';
+import { Pagination } from '@heroui/react';
+import { Button } from '@/components/ui/button';
+import { LivreurStatutVM, Restaurant } from '@/types/models';
+import { Check, PencilIcon, Save, XIcon } from 'lucide-react';
+import { SelectField } from '@/components/commons/select-field';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { ConfirmDialog } from '@/components/commons/confirm-dialog';
-import { Pagination } from '@heroui/react';
-import { getInitials, getColorFromInitial } from '@/utils/createUrlFile';
+import { SearchField } from '@/components/commons/form/search-field';
+import { useTurboAssigneController } from './useTurboAssigneController';
+import { UpdateDeliveryDialog } from '../../update-delivery/update-delivery';
+import { createUrlFile } from '@/utils/createUrlFile';
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
 
 interface Props {
     initialData: PaginatedResponse<LivreurStatutVM> | null;
@@ -35,16 +35,16 @@ export default function Content({ initialData, restaurants }: Props) {
     
     // Fonction de rendu des cellules
     const renderCell = (item: any, columnKey: string) => {
-        const initial = getInitials(item.nomPrenom);
-        const bgColor = getColorFromInitial(initial);
 
         switch (columnKey) {
             case "nom":
                 return (
                     <div className="flex items-center gap-4">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold mr-3 shadow-md" style={{ backgroundColor: bgColor }}>
-                            {initial}
-                        </div>
+                        <img
+                            src={item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : '/assets/images/avatar.png'}
+                            alt={item?.nomPrenom}
+                            className="w-8 h-8 rounded-full object-cover mr-3 shadow-md"
+                        />
                         <div className="font-medium capitalize">{item?.nomPrenom}</div>
                     </div>
                 );

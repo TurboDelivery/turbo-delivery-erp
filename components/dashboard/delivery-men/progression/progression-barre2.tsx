@@ -6,7 +6,7 @@ import { Progress } from "@heroui/react"
   const progresseBare2 =(turboys:CreneauProgressionBird)=>{
 
             if(turboys.progression==100){
-            return <Progress label={turboys.progression +'%'}   color="success" className="max-w-md"  value={100} />
+              return <Progress label={turboys.progression +'%'}   color="success" className="max-w-md"  value={100} />
             }
             if(turboys.progression<100 && turboys.progression>=65){
                 return <Progress label={turboys.progression +'%'}   color="warning" className="max-w-md"  value={65} />

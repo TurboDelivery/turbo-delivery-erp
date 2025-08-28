@@ -5,6 +5,5 @@ export default async function Page() {
     const data = (await getTraficLivreurs()) ?? [];
     return (
         <Content data={data} />
-
     );
 }
