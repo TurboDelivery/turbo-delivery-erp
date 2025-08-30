@@ -134,8 +134,6 @@ const currentWeekItems = initialData?.content.filter(item =>
   isInCurrentWeek(item.creneau.debut) || isInCurrentWeek(item.creneau.fin)
 );
 
-console.log({dd:currentWeekItems});
-
   },[])
 
 

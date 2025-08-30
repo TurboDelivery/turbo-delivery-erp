@@ -5,25 +5,18 @@ import UserListPerformanceBird from "@/components/dashboard/delivery-men/perform
 import useContentCtx from "./useContentCtx";
 
 interface Props {
-      initialData:PaginatedResponse<LivreurPerformanceBirdEndTorubo> | null;
-    
+    initialData: PaginatedResponse<LivreurPerformanceBirdEndTorubo> | null;
+
 }
 
-export default function Content({initialData}:Props){
+export default function Content({ initialData }: Props) {
+    const { data } = useContentCtx({ initialData })
 
-  console.log({performance:initialData});
-  
- 
-  const {data}=useContentCtx({initialData})
+    if (!data || data.length == 0) {
+        return <EmptyDataTable />
+    }
 
-
-      if(!data||data.length==0){
-        return <EmptyDataTable/>
-      }
-
-      // const restaurants = data?.content ?? [];
-  
-    return ( 
-        <UserListPerformanceBird data={data}/>
+    return (
+        <UserListPerformanceBird data={data} />
     )
 }

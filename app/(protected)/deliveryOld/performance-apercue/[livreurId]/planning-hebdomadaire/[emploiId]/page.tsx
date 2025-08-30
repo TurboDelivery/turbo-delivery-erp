@@ -241,9 +241,6 @@ export default async function Page({ params }: CreneauIdPageProps){
       const user= await getPerformancePlanning(livreurId,emploiId)
           
 
-      // console.log({userrr:user});
-      
-    
       if (!user) {
         return <EmptyDataTable/>;
       } 

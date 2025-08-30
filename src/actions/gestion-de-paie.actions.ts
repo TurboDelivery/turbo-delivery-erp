@@ -42,7 +42,6 @@ export async function getFichePaieById(fichePaieId: string): Promise<FichePaieDe
         });
         return data;
     } catch (error: any) {
-        console.log("error+++++++++++++++++20", error)
         return null;
     }
 };
@@ -56,7 +55,6 @@ export async function getFichePaieByEmploiAndLivreur(emploiId: string, livreurId
         });
         return data;
     } catch (error: any) {
-        console.log("error+++++++++++++++++20", error)
         return null;
     }
 };

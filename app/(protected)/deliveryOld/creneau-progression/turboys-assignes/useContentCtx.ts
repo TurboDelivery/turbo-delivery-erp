@@ -142,7 +142,6 @@ export default function useContentCtx({initialData}:props){
            } else {
              // Si search est vide, restaurer la liste initiale
              setTurboysAssignes(initialTurboysAssignes||[]);
-             console.log("search vide");
            }
          
          }, [search, textParam, initialTurboysAssignes]);

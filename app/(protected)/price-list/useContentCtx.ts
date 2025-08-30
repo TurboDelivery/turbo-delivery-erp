@@ -28,7 +28,7 @@ export default function useContentCtx(DataUpDate:DeliveryFee|null): DeliveryFees
                 try{
                     data = { ...data, id: DataUpDate.id };
                     result=  await updatePriceList(data)
-                   console.log(result);
+                    
                     toast.success(result.message || 'Bravo ! vous avez réussi');
                    router.refresh();
 

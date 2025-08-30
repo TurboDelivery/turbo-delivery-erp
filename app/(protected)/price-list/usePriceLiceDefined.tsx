@@ -46,8 +46,6 @@ export default function usePriceLiceDefined({ initialData }: Props) {
 
   useEffect(() => {
     let pa = params.get('restoId');
-    console.log({ pa: pa });
-
   }, [])
 
   const handleChangeSelectedKey = (key: string) => {

@@ -35,7 +35,6 @@ export default function useContent({ initialData }: Props) {
     }, []);
 
     // useEffect(() => {
-    //     console.log("textParam", textParam)
     //     // Initialiser search à partir de textParam
     //     setSearch(textParam);
 

@@ -117,8 +117,7 @@ export default function Content({ initialData, delivers }: Props) {
     const toggleExpand = (deliveryId: string) => {
         setExpandedDelivery(expandedDelivery === deliveryId ? null : deliveryId);
     };
-
-    console.log("dataFilter", dataFilter)
+    
     return (
         <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">
             <div className="flex items-center justify-between">

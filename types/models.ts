@@ -240,6 +240,7 @@ export interface DemandeAssignationVM {
     nomComplet?: string;
     statutDemandeAssignation?: StatutDemandeAssignationEnum
     type?: string;
+    avatarUrl?: string,
     date?: string;
 }
 

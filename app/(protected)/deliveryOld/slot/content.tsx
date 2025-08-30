@@ -20,8 +20,6 @@ export default function Content({initialData}:Props){
  
   const {birdCreneau,birdNotCreneau}=useContentCtx({initialData})
 
-  console.log({birdCreneau:birdCreneau});
-
       if(!birdCreneau||birdCreneau.length==0){
         return <EmptyDataTable/>
       }

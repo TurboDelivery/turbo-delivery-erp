@@ -42,8 +42,7 @@ const DeliveryAssign = ({ delivery, delivers, open, setOpen }: { delivery: Cours
             setPending(false);
         }
     };
-
-    console.log("delivery, delivers", delivery, delivers)
+    
     return (
         <Transition appear show={open} as={Fragment}>
             <Dialog as="div" open={open} onClose={() => setOpen(false)} className="relative z-50">

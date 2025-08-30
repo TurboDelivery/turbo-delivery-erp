@@ -11,7 +11,6 @@ const SearchDelivery = () => {
     // Récupérer le paramètre 'text' depuis l'URL
     const urlParams = new URLSearchParams(window.location.search);
     const search = urlParams.get('search');
-    console.log("search", search)
     if (search) {
       setInputValue(search);
       setValue('search', search);

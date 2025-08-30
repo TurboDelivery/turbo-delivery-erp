@@ -21,8 +21,6 @@ interface Props {
 
 export default function Content({data,}:Props){
 
-  console.log(data)
-  
     return (
       <>
           <div>

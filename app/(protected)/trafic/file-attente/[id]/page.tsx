@@ -24,13 +24,6 @@ const data = [
     },
 ];
 export default async function Page() {
-
-    // const { id } = useParams()
-
-    // console.log(id);
-    
-    // const [actRow, setActiveRow] = useState("")
-
     return ( <PageWrapper>
             <div className="">
                 <CardHeader title="File d'attente" />

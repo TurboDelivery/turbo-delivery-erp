@@ -10,7 +10,6 @@ interface Props {
 
 export default function Content({ initialData }: Props) {
 
-    console.log({ performanceTurbo: initialData });
     const { data } = useContentCtx({ initialData })
 
     if (!data || data.length == 0) {

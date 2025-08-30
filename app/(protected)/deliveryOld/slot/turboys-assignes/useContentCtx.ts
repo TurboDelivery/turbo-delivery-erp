@@ -140,7 +140,6 @@ export default function useContentCtx({ initialData }: props) {
   //     // Met à jour l'état avec les résultats filtrés
   //     setInitialTurboysCreneau(filteredData);
 
-  //                console.log({inii:initialTurboysCreneau});
 
   // }
 
@@ -159,8 +158,6 @@ export default function useContentCtx({ initialData }: props) {
     setInitialTurboysCreneau(data || []);
   }
 
-  console.log({ iiiiiiiii: initialTurboysCreneau });
-
   function filterTurboysNotCreneau() {
     let data;
     if (initialData)
@@ -175,7 +172,6 @@ export default function useContentCtx({ initialData }: props) {
       });
 
     // setInitialTurboysNotCreneau(data||[])
-    console.log({ daiii: data });
   }
 
   useEffect(() => {

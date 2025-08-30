@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function DeliveryMen() {
     const demandeAssignations = await getAllDemandeAssignations();
-    const allRestaurant = await allRestaurants();
+    const allRestaurant = await allRestaurants();    
     return (
         <Suspense fallback={<Loading />}>
             <Content demandeAssignations={demandeAssignations} allRestaurant={allRestaurant} />

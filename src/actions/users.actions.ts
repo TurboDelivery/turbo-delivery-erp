@@ -60,8 +60,6 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
             const text = await result.text(); // Pour voir le contenu brut
             console.error('Réponse non JSON :', text);
         }
-
-        console.log(json)
     
         if (!result.ok) {
             return {
@@ -118,7 +116,6 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
 
 //     } catch (error: any) {
 //         if (error?.response?.status === 401) {
-//             console.log("result", error?.response?.data)
 //             if (error?.response?.data?.code == 'LOG10') {
 //                 return {
 //                     status: 'success',
@@ -197,7 +194,6 @@ export async function getProfile(): Promise<User | null> {
 
         return data;
     } catch (error) {
-        console.log("profile++++++++++++", error)
         return null;
     }
 }

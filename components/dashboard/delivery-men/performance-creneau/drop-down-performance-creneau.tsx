@@ -51,14 +51,7 @@ export default function DropDownPerformanceCrenea({open,setOpen,gainsData,jour}:
 
 
 //  const[data,setData]=useState<JourGain|null>(curentItemClick({gainsData,jour})||null)
-
-
-
-//  console.log({gainsDataaa:gainsData});
- 
-
- 
- const handleNext = () => {
+  const handleNext = () => {
     if (gainsData && gainsData.gains.length > 0) {
         setCurrentIndex((prevIndex) =>
           prevIndex < gainsData.gains.length - 1 ? prevIndex + 1 : prevIndex

@@ -159,8 +159,6 @@ export default function FormUpDate({ initialData, restaurantId, typeCm }: { init
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();     
-                    // console.log({data:getValues()});
-                                   
                     createOrUpdateFee(getValues());
                   }}
                   className="flex flex-col gap-4"

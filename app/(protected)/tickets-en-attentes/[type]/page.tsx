@@ -6,8 +6,6 @@ import { getAllRestaurants } from "@/src/restaurants/restaurants.actions";
 
 export default async function Page() {
     const initialData = await getAllBonLivraisonEnAttentes(0, 10, { dates: { start: null, end: null } }, "");
-    console.log(initialData);
-
     const restaurants = await getAllRestaurants();
     return (
         <Content initialData={initialData} restaurants={restaurants} />

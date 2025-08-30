@@ -25,7 +25,7 @@ const deliveryMenEndpoints = {
 
 
     //Demande d'assignation
-    getAllemandeAssignation: { endpoint: `${BASE_URL}/demande-assignation`, method: "GET" },
+    getAllemandeAssignation: { endpoint: `${BASE_URL}/demande-assignation`, method: "GET" },  
     validerDemandeAssignations: { endpoint: `${BASE_URL}/demande-assignation`, method: 'POST' },
     rejeterDemandeAssignations: { endpoint: (id: string) => `${BASE_URL}/demande-assignation/${id}/rejeter`, method: "PUT" },
 
@@ -273,7 +273,7 @@ export async function changerRestaurantLivreur(commande: ChangerRestaurantLivreu
             service: 'backend',
             data: commande
         });
-        console.log("data++++++++++++++++++++++", data)
+        
         return {
             status: 'success',
             message: 'Le restaurant du livreur a été changeé  avec succès',
@@ -339,7 +339,7 @@ export async function getAllDeliveryMan(): Promise<DeliveryMan[]> {
 }
 
 export async function mettreLivreurEnAttente(livreurId: string): Promise<any> {
-    console.log("livreurId: " + livreurId)
+    
     try {
         const data = await apiClientHttp.request<any>({
             endpoint: deliveryMenEndpoints.mettreLivreurEnAttente.endpoint(livreurId),
@@ -352,7 +352,6 @@ export async function mettreLivreurEnAttente(livreurId: string): Promise<any> {
             data: data,
         };
     } catch (error: any) {
-        console.log("erreur+++++++++", error);
         return {
             status: 'error',
             message: error.message || 'Erreur lors de la mise en attente du livreur'

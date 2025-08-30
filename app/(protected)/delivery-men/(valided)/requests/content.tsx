@@ -31,10 +31,10 @@ export default function Content({ demandeAssignations, allRestaurant }: { demand
                     <div className="flex items-center gap-4">
                         <img
                             src={item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : '/assets/images/avatar.png'}
-                            alt={item?.nomPrenom}
+                            alt={item?.nomComplet}
                             className="w-8 h-8 rounded-full object-cover mr-3 shadow-md"
                         />
-                        <div className="font-medium capitalize">{item?.nomPrenom}</div>
+                        <div className="font-medium capitalize">{item?.nomComplet}</div>
                     </div>
                 );
 

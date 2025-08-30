@@ -44,7 +44,6 @@ export const placeDetails = async (placeId: string) => {
         key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
       },
     });
-    console.log(JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
     console.error(error);

@@ -13,26 +13,24 @@ import { PerformanceHebdomadaire } from "@/types/performance-hebdomadaire";
 import BodyInfo from "@/components/dashboard/delivery-men/performance-apercu/planning-hebdomadaire/body-info";
 
 interface Props {
-  data: PerformanceHebdomadaire;
+    data: PerformanceHebdomadaire;
 
-  // PerformanceCreneauId
-    
+    // PerformanceCreneauId
+
 }
 
-export default function Content({data,}:Props){
+export default function Content({ data, }: Props) {
 
-  console.log(data)
-  
     return (
-      <>
-          <div>
-              <div className="flex items-center pb-10">
-                <ButtonRetour/>
-                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Planning hebdomadaire</h1>
-               </div>
+        <>
+            <div>
+                <div className="flex items-center pb-10">
+                    <ButtonRetour />
+                    <h1 className={title({ size: 'h3', class: 'text-primary' })}>Planning hebdomadaire</h1>
+                </div>
                 <HeaderInfo data={data} />
-                <BodyInfo data={data}/>          
-          </div>
-      </>
+                <BodyInfo data={data} />
+            </div>
+        </>
     )
 }

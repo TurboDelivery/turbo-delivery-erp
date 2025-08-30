@@ -3,8 +3,8 @@ import { BirdPerformance } from "@/types/slot";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-interface props{
-  initialData: PaginatedResponse<RestaurantProgressionTurbo> | null
+interface props {
+    initialData: PaginatedResponse<RestaurantProgressionTurbo> | null
 }
 
 
@@ -107,49 +107,46 @@ interface props{
 //   }
 // ];
 
-export default function useContentCtx({initialData}:props){
+export default function useContentCtx({ initialData }: props) {
 
-    const searchParams = useSearchParams(); 
-     const [search,setSearch] = useState<string|null>(null)
-     const textParam = searchParams.get('text');
-      const [initialTurboysAssignes, setInitialTurboysAssignes] = useState<RestaurantProgressionTurbo[]>([]);
-       const [turboysAssignes, setTurboysAssignes] = useState<RestaurantProgressionTurbo[]>([]);
+    const searchParams = useSearchParams();
+    const [search, setSearch] = useState<string | null>(null)
+    const textParam = searchParams.get('text');
+    const [initialTurboysAssignes, setInitialTurboysAssignes] = useState<RestaurantProgressionTurbo[]>([]);
+    const [turboysAssignes, setTurboysAssignes] = useState<RestaurantProgressionTurbo[]>([]);
 
-        // const [data, setData] = useState<RestaurantProgressionTurbo[]|[]>(initialData?.content||[]);
+    // const [data, setData] = useState<RestaurantProgressionTurbo[]|[]>(initialData?.content||[]);
 
-        function filterTurboysAssignes(){
-          let data
-          if(initialData)
-         data=initialData.content.filter(item=>item.nombreLivreur>0)
-      setInitialTurboysAssignes(data||[])
-           }
-
-           useEffect(()=>{
-            filterTurboysAssignes()
-  
-          },[])
-
-         useEffect(() => { 
-           // Initialiser search à partir de textParam
-           setSearch(textParam);
-         
-           // Si search n'est pas vide, filtrer les données
-           if (search !== null && search.trim() !== "") {
-             const filtered = initialTurboysAssignes.filter(item => 
-               item.nomRestaurant.toLowerCase().includes(search.toLowerCase())
-             ) || [];
-             setTurboysAssignes(filtered);
-           } else {
-             // Si search est vide, restaurer la liste initiale
-             setTurboysAssignes(initialTurboysAssignes||[]);
-             console.log("search vide");
-           }
-         
-         }, [search, textParam, initialTurboysAssignes]);
-        
-    
-
-    return {
-      turboysAssignes
+    function filterTurboysAssignes() {
+        let data
+        if (initialData)
+            data = initialData.content.filter(item => item.nombreLivreur > 0)
+        setInitialTurboysAssignes(data || [])
     }
+
+    useEffect(() => {
+        filterTurboysAssignes()
+
+    }, [])
+
+    useEffect(() => {
+        // Initialiser search à partir de textParam
+        setSearch(textParam);
+
+        // Si search n'est pas vide, filtrer les données
+        if (search !== null && search.trim() !== "") {
+            const filtered = initialTurboysAssignes.filter(item =>
+                item.nomRestaurant.toLowerCase().includes(search.toLowerCase())
+            ) || [];
+            setTurboysAssignes(filtered);
+        } else {
+            // Si search est vide, restaurer la liste initiale
+            setTurboysAssignes(initialTurboysAssignes || []);
+        }
+
+    }, [search, textParam, initialTurboysAssignes]);
+
+
+
+    return { turboysAssignes }
 }

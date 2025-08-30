@@ -159,15 +159,8 @@ const dataCreneau={
   
   export default function TableCreneauDetail({initialData}:{initialData:GainDetail[]|[]}) {
 
-    // console.log(initialData);
-    
-         
     const [open, setOpen] = useState<boolean>(false);
-        
-
     const renderCell = React.useCallback((data:GainDetail, columnKey:any) => {
-      // const cellValue = rows[columnKey];
-
       switch (columnKey) {
         case "date":
           return (

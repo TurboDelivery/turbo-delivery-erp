@@ -230,26 +230,23 @@ import EmptyDataTable from '@/components/commons/EmptyDataTable';
 
 
 interface CreneauIdPageProps {
-    params: { livreurId: string,emploiId:string }; // Définit explicitement le type
-  }
+    params: { livreurId: string, emploiId: string }; // Définit explicitement le type
+}
 
-export default async function Page({ params }: CreneauIdPageProps){
+export default async function Page({ params }: CreneauIdPageProps) {
 
-      const { livreurId,emploiId } = params; // Récupère l'ID depuis l'URL
-      // const user = userData.find(item => item.id === id);
-      
-      const user= await getPerformancePlanning(livreurId,emploiId)
-          
+    const { livreurId, emploiId } = params; // Récupère l'ID depuis l'URL
+    // const user = userData.find(item => item.id === id);
 
-      // console.log({userrr:user});
-      
-    
-      if (!user) {
-        return <EmptyDataTable/>;
-      } 
- 
-   
+    const user = await getPerformancePlanning(livreurId, emploiId)
+
+
+    if (!user) {
+        return <EmptyDataTable />;
+    }
+
+
     return (
-             <Content data={user} />
+        <Content data={user} />
     )
 }

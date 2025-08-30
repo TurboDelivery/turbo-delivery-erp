@@ -52,7 +52,6 @@ export async function getRestaurantDefined(): Promise<RestaurantDefini[]> {
         });
         return data;
     } catch (error: any) {
-        console.log("error+++++++++++++++++++++++++++", error)
         return [];
     }
 }
@@ -135,8 +134,6 @@ export async function createDeliveryFee(formData: _deliveryFeeCreateSchema): Pro
 
         // const data=formdata
 
-        console.log(data);
-
         return {
             status: 'success',
             data,
@@ -182,9 +179,6 @@ export async function updatePriceList(formData: _deliveryFeeCreateSchema): Promi
         });
 
         // const data=formdata
-
-        console.log({ data: data });
-
         return {
             status: 'success',
             data,

@@ -102,7 +102,6 @@ export default function Content({ initialData, delivers }: Props) {
     useEffect(() => {
         const refreshInterval = setInterval(() => {
             fetchDataSilently(currentPage);
-            console.log('Rafraichissement toutes les 15s');
         }, 15000);
 
         return () => clearInterval(refreshInterval);

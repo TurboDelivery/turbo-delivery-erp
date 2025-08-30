@@ -52,7 +52,6 @@ export default function ViewTablePriceLiceDefined({ initialData }: Props) {
             item.zone.toLowerCase().includes(search.toLowerCase())
           ) || [];
           setDeliveryFees(filtered);
-          console.log("search non");
         } else {
           // Si search est vide, restaurer la liste initiale
           setDeliveryFees(initialDataPriceList);
@@ -65,9 +64,7 @@ export default function ViewTablePriceLiceDefined({ initialData }: Props) {
         setSelectedKey(key);
         const detailRestaurant= await getDetailRestaurant(key)
         if(detailRestaurant)
-        setTypeCommission(detailRestaurant.typeCommission) 
-         console.log("setTypeCommission :"+typeCommission);
-                 
+            setTypeCommission(detailRestaurant.typeCommission)                  
     };
 
 

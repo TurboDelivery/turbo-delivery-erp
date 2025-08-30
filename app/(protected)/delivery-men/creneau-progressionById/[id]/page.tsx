@@ -1,25 +1,25 @@
 
-export interface Turboys  {
-  id: string;
-  nom: string;
-  prenom: string;
-  dateNaissance: string;
-  telephone: string;
-  domicile: string;
-  email: string;
-  typeDocument: string;
-  numeroDocument: string;
-  type: string;
-  nomVehicule: string;
-  immatriculationVehicule: string;
+export interface Turboys {
+    id: string;
+    nom: string;
+    prenom: string;
+    dateNaissance: string;
+    telephone: string;
+    domicile: string;
+    email: string;
+    typeDocument: string;
+    numeroDocument: string;
+    type: string;
+    nomVehicule: string;
+    immatriculationVehicule: string;
 }
 import { CreneauID } from "@/types/creneau-byId";
 import Content from "./content";
 import { LivreurDetail } from "@/types/livreur";
-import { getInfoLivreurById} from "@/src/livreurInfo/livreur-info.action";
+import { getInfoLivreurById } from "@/src/livreurInfo/livreur-info.action";
 import { getCreneauById } from "@/src/creneau-livreur/creneau-livreur.action";
 interface TurboysPageProps {
-  params: { id: string }; // Définit explicitement le type
+    params: { id: string }; // Définit explicitement le type
 }
 
 
@@ -42,9 +42,9 @@ interface TurboysPageProps {
 //   cniUrlV: "https://example.com/cni_v.jpg",
 //   status: 1 // Par exemple, 1 pour un utilisateur actif
 // };
-  
 
-  const dataCreneau: CreneauID[] = [
+
+const dataCreneau: CreneauID[] = [
     { "id": "1", "debut": "2024-01-08", "fin": "2024-01-12", "semainePassee": true },
     { "id": "2", "debut": "2024-02-05", "fin": "2024-02-09", "semainePassee": true },
     { "id": "3", "debut": "2024-03-04", "fin": "2024-03-08", "semainePassee": true },
@@ -57,51 +57,32 @@ interface TurboysPageProps {
     { "id": "10", "debut": "2024-10-07", "fin": "2024-10-11", "semainePassee": true },
     { "id": "11", "debut": "2024-11-04", "fin": "2024-11-08", "semainePassee": true },
     { "id": "12", "debut": "2024-12-02", "fin": "2024-12-06", "semainePassee": true }
-  ]
-    
+]
 
-// export default async function UserPage({ params }: TurboysPageProps) {
-//   // const { id } = await params; // Récupère l'ID depuis l'URL
-//   const { id } = params;
 
-//   // const user = userData.find(item => item.id === id);
-//   const user= await getInfoLivreurById(id)
-
-//   const dataCreneau = await getCreneauById(id)
-
-//   console.log({dataCreneau:dataCreneau});
-  
-
-//   if (!user) {
-//     return <div>Aucun utilisateur trouvé</div>;
-//   }  
-
-  
-//   return <Content user={user} dataCreneau={dataCreneau}/>;
-// }
 
 export default async function UserPage({ params }: TurboysPageProps) {
-  const { id } = params;  // <-- enlevé l'await qui est incorrect
+    const { id } = params;  // <-- enlevé l'await qui est incorrect
 
-  let user = null;
-  let dataCreneau: CreneauID[] | null = null;
+    let user = null;
+    let dataCreneau: CreneauID[] | null = null;
 
-  try {
-    user = await getInfoLivreurById(id);
-  } catch (error) {
-    console.log("Erreur getInfoLivreurById:", error);
-  }
+    try {
+        user = await getInfoLivreurById(id);
+    } catch (error) {
+        console.log("Erreur getInfoLivreurById:", error);
+    }
 
-  try {
-    dataCreneau = await getCreneauById(id);
-  } catch (error) {
-    console.log("Erreur getCreneauById:", error);
-  }
+    try {
+        dataCreneau = await getCreneauById(id);
+    } catch (error) {
+        console.log("Erreur getCreneauById:", error);
+    }
 
-  if (!user) {
-    return <div>Aucun utilisateur trouvé</div>;
-  }
+    if (!user) {
+        return <div>Aucun utilisateur trouvé</div>;
+    }
 
-  return <Content user={user} dataCreneau={dataCreneau ?? []} />;
+    return <Content user={user} dataCreneau={dataCreneau ?? []} />;
 }
 
