@@ -96,16 +96,14 @@ export default function Content({ initialData, restaurants }: Props) {
                 >
                     <PencilIcon className="h-5 w-5" />
                 </span>
-                <span
-                    className="text-white p-1 bg-gray-400 rounded-full hover:bg-red-500 cursor-pointer"
-                    onClick={() => livreurAssigneCtrl.supprimerLivreur(item)}
+                <span className="text-white p-1 bg-gray-400 rounded-full hover:bg-red-500 cursor-pointer" onClick={() => livreurAssigneCtrl.supprimerLivreur(item)}
                 >
                     <XIcon className="h-5 w-5" />
                 </span>
 
                 {livreurAssigneCtrl.updateLivreurId === item?.livreurId && (
                     <Button variant="outline" className="text-sm h-8" onClick={() => livreurAssigneCtrl.onConfirmStatut(item, "FREE")}>
-                    Modifier le turbo en bird
+                        Modifier le turbo en bird
                     </Button>
                 )}
                 </div>

@@ -7,7 +7,7 @@ export function createUrlFile(path: string, service: 'restaurant' | 'erp' | 'del
     let url: string = '';
     const { folderName, fileName } = getFolderAndFileName(path);
     if (service === 'restaurant') {  
-        base_url = "https://resto.turbodeliveryapp.com";
+        base_url = process.env.NEXT_PUBLIC_API_RESTO_URL ?? '';
         url = base_url + serveFile(folderName, fileName);
     }
     if (service === 'erp') {  
