@@ -1,10 +1,5 @@
-import { Suspense } from 'react';
-
 import Content from './content';
-import Loading from '@/components/layouts/loading';
 
 export default function AuthPage() {
-    return (
-        <Content />
-    );
+    return ( <Content /> );
 }

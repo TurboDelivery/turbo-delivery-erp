@@ -1,8 +1,7 @@
 'use client';
 
-import { use, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CalendarDate, RangeValue } from '@heroui/react';
-import { DateValue } from '@internationalized/date';
 import { getAllChiffreAffaire, getAllRestaurantChiffreAffaire } from '@/src/actions/statistiques.action';
 
 interface PeriodOption {

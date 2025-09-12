@@ -30,6 +30,7 @@ export interface JourTravaille {
 
   export interface Restaurant  {
     nombreLivreur: number;
+    logo?: string;
     nomRestaurant: string;
     livreurs: Livreur[];
   };

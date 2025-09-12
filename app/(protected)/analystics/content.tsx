@@ -1,19 +1,19 @@
 'use client';
 
-import { Card as CardUI } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import useContentCtx from './useContentCtx';
 import { Info, Printer } from 'lucide-react';
-import DashboardChart from '@/components/dashboard/apercu/DashboardChart';
-import SourcesCard from '@/components/dashboard/apercu/SourcesCard';
-import StatsOverview from '@/components/dashboard/apercu/StatsOverview';
+import { Button } from '@/components/ui/button';
 import { formatNumber } from '@/utils/formatNumber';
-import { DateRangePicker, RangeValue, CalendarDate, CardHeader, CardBody, Card, Tooltip } from '@heroui/react';
-import RestaurantList from '@/components/dashboard/apercu/RestaurantList';
+import { Card as CardUI } from '@/components/ui/card';
+import { TbArrowUpRight, TbChartBar } from 'react-icons/tb';
+import SourcesCard from '@/components/dashboard/apercu/SourcesCard';
 import { ChiffreAffaireRestaurant } from '@/types/statistiques.model';
 import DatabaseCards from '@/components/dashboard/apercu/DatabaseCards';
-import useContentCtx from './useContentCtx';
-import { TbArrowUpRight, TbChartBar } from 'react-icons/tb';
-import Link from 'next/link';
+import StatsOverview from '@/components/dashboard/apercu/StatsOverview';
+import DashboardChart from '@/components/dashboard/apercu/DashboardChart';
+import RestaurantList from '@/components/dashboard/apercu/RestaurantList';
+import { DateRangePicker, RangeValue, CalendarDate, CardHeader, CardBody, Card, Tooltip } from '@heroui/react';
 
 export default function Content({ initialItems }: { initialItems: Record<string, any> }) {
   const { items, handleDateChange } = useContentCtx({ initialItems });

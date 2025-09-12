@@ -19,9 +19,7 @@ export function FormLogin() {
       if (result.status === 'error') {
         toast.error(result.message);
         return {
-          data: {
-            changePassword: result?.data?.user?.changePassword ?? true,
-          },
+          data: { changePassword: result?.data?.user?.changePassword ?? true, },
           message: '',
           errors: {},
           status: 'idle',
@@ -34,9 +32,7 @@ export function FormLogin() {
       }
     },
     {
-      data: {
-        changePassword: true,
-      },
+      data: { changePassword: true, },
       message: '',
       errors: {},
       status: 'idle',
