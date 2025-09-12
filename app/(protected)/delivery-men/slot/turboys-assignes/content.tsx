@@ -1,29 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import useContentCtx from './useContentCtx';
 import { PaginatedResponse } from '@/types';
 import { Restaurant } from '@/types/creneau-turbo';
 import { getAllCreneauTurbo } from '@/src/creneau-livreur/creneau-livreur.action';
+import useContentCtx from './useContentCtx';
 import UserRestaurantListe from '@/components/dashboard/delivery-men/slot/assignes/user-restaurant-list';
 import UserRestaurantListeNotCreneau from '@/components/dashboard/delivery-men/slot/assignes/user-restaurant-list-not-creneau';
 
 interface Props {
-  initialData: PaginatedResponse<Restaurant> | null;
+    initialData: PaginatedResponse<Restaurant> | null;
 }
 
 export default function Content({ initialData }: Props) {
-    const { turboysCreneau, turboysNotCreneau } = useContentCtx({ initialData });
-    
     const [page, setPage] = useState(initialData?.number || 0);
     const [data, setData] = useState(initialData);
 
+    // ⚡ on passe toujours "data" au hook
+    const { turboysCreneau, turboysNotCreneau } = useContentCtx({ initialData: data });
+
     const handlePageChange = async (newPage: number) => {
-        // Récupération des données côté serveur
-        const newData = await getAllCreneauTurbo(newPage); // si tu passes la page en paramètre
+        const newData = await getAllCreneauTurbo(newPage);
         setData(newData);
-    
-        // Mise à jour de la page courante
         setPage(newPage);
     };
 
@@ -31,8 +29,8 @@ export default function Content({ initialData }: Props) {
 
     return (
         <div className="p-4 bg-gray-100 min-h-screen rounded-md">
-            <UserRestaurantListe turboysCreneau={turboysCreneau}/>
-            <UserRestaurantListeNotCreneau turboysCreneau={turboysNotCreneau}/>
+            <UserRestaurantListe turboysCreneau={turboysCreneau} />
+            <UserRestaurantListeNotCreneau turboysCreneau={turboysNotCreneau} />
 
             {/* Pagination */}
             <div className="flex justify-center mt-6 space-x-2">

@@ -11,6 +11,7 @@ export default function useContentCtx({ initialData }: Props) {
     const searchParams = useSearchParams();
     const [search, setSearch] = useState<string | null>(null);
     const textParam = searchParams.get('text');
+
     const [initialTurboysCreneau, setInitialTurboysCreneau] = useState<Restaurant[]>([]);
     const [initialTurboysNotCreneau, setInitialTurboysNotCreneau] = useState<Restaurant[]>([]);
     const [turboysCreneau, setTurboysCreneau] = useState<Restaurant[]>([]);
@@ -21,7 +22,6 @@ export default function useContentCtx({ initialData }: Props) {
             setInitialTurboysCreneau([]);
             return;
         }
-        // Garde tous les restaurants ayant au moins un livreur, sans filtrer sur dispo
         const data = initialData.content.filter(
             (restaurant) => restaurant.livreurs && restaurant.livreurs.length > 0
         );
@@ -33,17 +33,17 @@ export default function useContentCtx({ initialData }: Props) {
             setInitialTurboysNotCreneau([]);
             return;
         }
-        // Garde tous les restaurants ayant au moins un livreur, sans filtrer sur dispo
         const data = initialData.content.filter(
             (restaurant) => restaurant.livreurs && restaurant.livreurs.length == 0
         );
         setInitialTurboysNotCreneau(data);
     }
 
+    // ⚡ Se recalculer à chaque changement de "initialData"
     useEffect(() => {
         filterTurboysCreneau();
         filterTurboysNotCreneau();
-    }, []);
+    }, [initialData]); // 👈 ici
 
     useEffect(() => {
         setSearch(textParam);
@@ -64,10 +64,10 @@ export default function useContentCtx({ initialData }: Props) {
 
         if (search !== null && search.trim() !== '') {
             const filtered =
-            initialTurboysNotCreneau.filter((item) =>
+                initialTurboysNotCreneau.filter((item) =>
                     item.nomRestaurant.toLowerCase().includes(search.toLowerCase())
                 ) || [];
-                setTurboysNotCreneau(filtered);
+            setTurboysNotCreneau(filtered);
         } else {
             setTurboysNotCreneau(initialTurboysNotCreneau || []);
         }
