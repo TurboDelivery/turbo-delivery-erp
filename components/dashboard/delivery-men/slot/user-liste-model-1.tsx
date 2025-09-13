@@ -8,6 +8,7 @@ import DropDownAction from './dropDownAction';
 import progresseBare from '../progression/progression-barre';
 import { Avatar } from '@heroui/react';
 import { createUrlFile } from '@/utils/createUrlFile';
+import { formatDate } from '@/utils/date-formate';
 
 interface props {
     turboy: LivreurBird;
@@ -15,17 +16,17 @@ interface props {
 export default function UserListeModel1({ turboy }: props) {
     return (
         <div className="overflow-x-auto overflow-y-hidden hide-scrollbar">
-            <div key={turboy.id} className="w-fulll min-w-[1000px] flex items-center border-2 rounded-2xl">
-                <div className="flex-shrink-0 py-2 px-4 flex-1 flex lg:justify-between gap-2 items-center  rounded-lg">
+            <div key={turboy.id} className="bg-white w-full min-w-[1000px] flex items-center border-2 rounded-md">
+                <div className="flex-shrink-0 py-2 px-4 flex-1 flex lg:justify-between gap-2 items-center rounded-md">
                     <div className="max-w-[300px] flex items-center ww-1/2 gap-2">
-                        <Avatar isBordered radius="full" size="md" src={createUrlFile(turboy?.avatar ?? '', 'backend')} />
+                        <Avatar isBordered radius="full" size="md" src={turboy?.avatar ? createUrlFile(turboy?.avatar ?? '', 'backend') : 'assets/images/avatar.png'} />
                         <p className="font-semibold">{turboy.nomComplet}</p>
                     </div>
-                    <p className="w-1/2 text-sm text-gray-500">Inscrit le : {turboy.dateInscrit}</p>
+                    <p className="w-1/2 text-sm text-gray-500">Inscrit le : {turboy.dateInscrit ? formatDate(turboy.dateInscrit, 'DD/MM/YYYY') : '-'}</p>
                 </div>
 
                 <div className="flex-shrink-0 pr-8 flex-1 flex lg:justify-between items-center">
-                    <p className="text-sm text-gray-500 mr-3">Défini le : {turboy.dateDefiniEmploiTemps}</p>
+                    <p className="text-sm text-gray-500 mr-3">Défini le : {turboy.dateDefiniEmploiTemps ? formatDate(turboy.dateDefiniEmploiTemps, 'DD/MM/YYYY') : '-'}</p>
                     <div className="relative flex gap-2">
                         {progresseBare(turboy)}
                         <span className="relative flex  items-end mt-6">

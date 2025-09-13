@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { getAllCreneauBird } from "@/src/creneau-livreur/creneau-livreur.action";
 
 export const metadata: Metadata = {
-    title: "Liste des Turboys Bird ",
+    title: "LISTE DES TURBOYS",
     description: "Liste Turboys Bird.",
 };
 

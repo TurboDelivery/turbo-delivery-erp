@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import useContentCtx from './useContentCtx';
 import { PaginatedResponse } from '@/types';
 import { Restaurant } from '@/types/creneau-turbo';
 import { getAllCreneauTurbo } from '@/src/creneau-livreur/creneau-livreur.action';
-import useContentCtx from './useContentCtx';
 import UserRestaurantListe from '@/components/dashboard/delivery-men/slot/assignes/user-restaurant-list';
 import UserRestaurantListeNotCreneau from '@/components/dashboard/delivery-men/slot/assignes/user-restaurant-list-not-creneau';
 
@@ -21,7 +21,7 @@ export default function Content({ initialData }: Props) {
 
     const handlePageChange = async (newPage: number) => {
         const newData = await getAllCreneauTurbo(newPage);
-        setData(newData);
+        setData(newData);  
         setPage(newPage);
     };
 
@@ -37,7 +37,7 @@ export default function Content({ initialData }: Props) {
                 <button
                     disabled={data.first}
                     onClick={() => handlePageChange(page - 1)}
-                    className="px-4 py-2 bg-red-200 rounded disabled:opacity-50"
+                    className="px-4 py-2 bg-primary rounded disabled:opacity-50"
                 >
                     Précédent
                 </button>
@@ -49,7 +49,7 @@ export default function Content({ initialData }: Props) {
                 <button
                     disabled={data.last}
                     onClick={() => handlePageChange(page + 1)}
-                    className="px-4 py-2 bg-red-200 rounded disabled:opacity-50"
+                    className="px-4 py-2 bg-primary rounded disabled:opacity-50"
                 >
                     Suivant
                 </button>

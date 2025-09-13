@@ -1,5 +1,3 @@
-type StatusType = "WAITING" | "ACTIVE" | "IN_PROGRESS" | "COMPLETED";
-
 type Gender = "HOMME" ;
 
 export interface LivreurDetail{
