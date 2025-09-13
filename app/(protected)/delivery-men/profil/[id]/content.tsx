@@ -164,12 +164,12 @@ export default function Content({ user }: { user: LivreurDetail }) {
 
             <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 gap-x-16 mb-6">
-                    <Input label="Nom" value={formData.nom} onChange={e => handleChange("nom", e.target.value)} />
-                    <Input label="Prénom" value={formData.prenoms} onChange={e => handleChange("prenoms", e.target.value)} />
-                    <Input label="Date de naissance" value={formData.birthDay} onChange={e => handleChange("birthDay", e.target.value)} />
-                    <Input label="Téléphone" value={formData.telephone} onChange={e => handleChange("telephone", e.target.value)} />
-                    <Input label="Domicile" value={formData.habitation} onChange={e => handleChange("habitation", e.target.value)} />
-                    <Input label="Email" value={formData.email} onChange={e => handleChange("email", e.target.value)} />
+                    <Input label="Nom" type="text" value={formData.nom} onChange={e => handleChange("nom", e.target.value)} />
+                    <Input label="Prénom" type="text" value={formData.prenoms} onChange={e => handleChange("prenoms", e.target.value)} />
+                    <Input label="Date de naissance" type="date" value={formData.birthDay} onChange={e => handleChange("birthDay", e.target.value)} />
+                    <Input label="Téléphone" type="tel" value={formData.telephone} onChange={e => handleChange("telephone", e.target.value)} />
+                    <Input label="Domicile" type="text" value={formData.habitation} onChange={e => handleChange("habitation", e.target.value)} />
+                    <Input label="Email" type="email" value={formData.email} onChange={e => handleChange("email", e.target.value)} />
 
                     <label className="flex flex-col mb-4">
                         <span className="mb-1 font-medium text-gray-700">Type</span>
@@ -182,9 +182,9 @@ export default function Content({ user }: { user: LivreurDetail }) {
                             <option value="FREE">FREE</option>
                         </select>
                     </label>
-                    <Input label="Immatriculation" value={formData.immatriculation} onChange={e => handleChange("immatriculation", e.target.value)} />
-                    <Input label="Document d'identité" value="Carte d'identité (CNI)" isReadOnly />
-                    <Input label="Numéro de la pièce" value={formData.numeroCni} onChange={e => handleChange("numeroCni", e.target.value)} />
+                    <Input label="Immatriculation" type="text" value={formData.immatriculation} onChange={e => handleChange("immatriculation", e.target.value)} />
+                    <Input label="Document d'identité" type="text" value="Carte d'identité (CNI)" isReadOnly />
+                    <Input label="Numéro de la pièce" type="text" value={formData.numeroCni} onChange={e => handleChange("numeroCni", e.target.value)} />
                 </div>
 
 
