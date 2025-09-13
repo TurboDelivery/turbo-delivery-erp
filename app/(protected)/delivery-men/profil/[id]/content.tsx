@@ -22,6 +22,8 @@ export default function Content({ user }: { user: LivreurDetail }) {
         immatriculation: user.immatriculation || "",
         type: user.type || "",
         avatar: null as File | null, // 📌 ajout avatar
+        cniUrlR: null as File | null, // 📌 ajout avatar
+        cniUrlV: null as File | null, // 📌 ajout avatar
     });
 
     const [avatarPreview, setAvatarPreview] = useState<string>(
@@ -69,20 +71,28 @@ export default function Content({ user }: { user: LivreurDetail }) {
     // 📌 Soumission du formulaire
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        // Construction d’un FormData pour envoyer fichiers + texte
+    
         const data = new FormData();
-        Object.entries(formData).forEach(([key, value]) => {
-            if (value !== null) {
-                data.append(key, value as any);
-            }
-        });
-
-        console.log("Formulaire soumis :", formData);
-
-        // 👉 ici tu peux appeler ton API
-        await updateLivreur(user.id, formData);
-    };
+    
+        // Ajouter tous les champs texte
+        data.append("nom", formData.nom);
+        data.append("prenoms", formData.prenoms);
+        data.append("birthDay", formData.birthDay);
+        data.append("telephone", formData.telephone);
+        data.append("habitation", formData.habitation);
+        data.append("email", formData.email);
+        data.append("numeroCni", formData.numeroCni);
+        data.append("immatriculation", formData.immatriculation);
+        data.append("type", formData.type);
+    
+        // Ajouter les fichiers si présents
+        if (formData.avatar) data.append("avatar", formData.avatar);
+        if (formData.cniUrlR) data.append("cniRecto", formData.cniUrlR);
+        if (formData.cniUrlV) data.append("cniVerso", formData.cniUrlV);
+    
+        // ⚡ Envoi au serveur
+        await updateLivreur(user.id, data); // Ici updateLivreur doit accepter FormData
+    };    
 
     return (
         <Card className="py-6 px-4 lg:px-20 bg-gray-50 min-h-screen">
