@@ -162,7 +162,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
             </div>
 
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} encType="multipart/form-data">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 gap-x-16 mb-6">
                     <Input label="Nom" type="text" value={formData.nom} onChange={e => handleChange("nom", e.target.value)} />
                     <Input label="Prénom" type="text" value={formData.prenoms} onChange={e => handleChange("prenoms", e.target.value)} />
