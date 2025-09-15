@@ -10,6 +10,7 @@ interface CreneauVM {
 
 interface Livreur {
   id: string; // Unique identifier for the delivery person
+  avatar: string; // Full name of the delivery person
   nomComplet: string; // Full name of the delivery person
   progression: number; // Progress in some task or metric (percentage or value)
   jour: Jour; // Work and non-work days
@@ -17,6 +18,7 @@ interface Livreur {
 }
 
 interface RestaurantProgressionTurbo {
+  logo: string; // Number of delivery persons
   nombreLivreur: number; // Number of delivery persons
   nomRestaurant: string; // Name of the restaurant
   livreurs: Livreur[];   // List of delivery persons

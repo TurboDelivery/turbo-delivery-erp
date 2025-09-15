@@ -4,82 +4,32 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 
-interface props{
-  initialData: PaginatedResponse<CreneauProgressionBird> | null
+interface props {
+    initialData: PaginatedResponse<CreneauProgressionBird> | null
 }
 
-const bird = [
-  {
-    id: "1a2b3c4d-1234-5678-9101-abcdefabcdef",
-    nomComplet: "Jean Dupont",
-    progression: 75,
-    jour: {
-      jourTravaille: 15,
-      jourNonTravaille: 5
-    },
-    creneauVM: {
-      debut: "2025-04-01",
-      fin: "2025-04-15"
-    }
-  },
-  {
-    id: "1a2b3c1d-1234-5678-9101-abcdefabcdef",
-    nomComplet: "Jean Dupont",
-    progression: 65,
-    jour: {
-      jourTravaille: 5,
-      jourNonTravaille: 2
-    },
-    creneauVM: {
-      debut: "2025-04-11",
-      fin: "2025-04-15"
-    }
-  },
-  {
-    id: "1a2b3c1d-1234-5678-9109-abcdefabcdef",
-    nomComplet: "Jean Dupont",
-    progression: 50,
-    jour: {
-      jourTravaille: 5,
-      jourNonTravaille: 2
-    },
-    creneauVM: {
-      debut: "2025-04-11",
-      fin: "2025-04-16"
-    }
-  },
-  
- 
-];
+export default function useContentCtx({ initialData }: props) {
 
-export default function useContentCtx({initialData}:props){
+    const searchParams = useSearchParams();
+    const textParam = searchParams.get('text');
+    const [search, setSearch] = useState<string | null>(null)
+    const [data, setData] = useState<PaginatedResponse<CreneauProgressionBird> | null>(initialData);
 
-    const searchParams = useSearchParams(); 
-     const [search,setSearch] = useState<string|null>(null)
-     const textParam = searchParams.get('text');
+    useEffect(() => {
+        // Initialiser search à partir de textParam
+        setSearch(textParam);
 
-        const [data, setData] = useState<CreneauProgressionBird[]|[]>(initialData?.content||[]);
+        // Si search n'est pas vide, filtrer les données
+        if (search !== null && search.trim() !== "") {
+            
+        } else {
+            // Si search est vide, restaurer la liste initiale
+            setData(initialData);
+        }
 
-         useEffect(() => { 
-           // Initialiser search à partir de textParam
-           setSearch(textParam);
-         
-           // Si search n'est pas vide, filtrer les données
-           if (search !== null && search.trim() !== "") {
-             const filtered = initialData?.content.filter(item => 
-               item.nomComplet.toLowerCase().includes(search.toLowerCase())
-             ) || [];
-             setData(filtered);
-           } else {
-             // Si search est vide, restaurer la liste initiale
-             setData(initialData?.content||[]);
-           }
-         
-         }, [search, textParam, initialData]);
-        
-    
+    }, [search, textParam, initialData]);
 
-    return {
-        data
-    }
+
+
+    return { data }
 }

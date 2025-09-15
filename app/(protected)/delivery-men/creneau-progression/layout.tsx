@@ -13,8 +13,8 @@ export default function SlotLayout({ children }: { children: React.ReactNode }) 
         href: string;
         label: string;
     }[] = [
-        { id: '/delivery-men/creneau-progression', href: '/delivery-men/creneau-progression', label: 'Flotte performance de Turboys Bird' },
-        { id: '/delivery-men/creneau-progression/turboys-assignes', href: '/delivery-men/creneau-progression/turboys-assignes', label: 'Flotte performance de Turboys Assignés' },
+        { id: '/delivery-men/creneau-progression', href: '/delivery-men/creneau-progression', label: 'PROGRESSEION DES BIRD' },
+        { id: '/delivery-men/creneau-progression/turboys-assignes', href: '/delivery-men/creneau-progression/turboys-assignes', label: 'PROGRESSION DES TURBOYS ASSIGNES' },
     ];
     
     return (

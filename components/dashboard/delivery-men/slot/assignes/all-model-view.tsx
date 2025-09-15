@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { IconLayoutGrid, IconListCheck, IconSearch } from "@tabler/icons-react";
 import UserListeModel2 from "../user-liste-model-2";
 import UserListeModel1 from "../user-liste-model-1";

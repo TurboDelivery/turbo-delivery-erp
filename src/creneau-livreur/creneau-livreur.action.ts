@@ -97,7 +97,7 @@ export async function getAllCreneauPerformanceTurbo(page: number = 0, size: numb
     }
 }
 
-export async function getAllCreneauPerformanceBird(page: number = 0, size: number = 10): Promise<PaginatedResponse<CreneauProgressionBird> | null> {
+export async function getAllCreneauPerformanceBird(page: number = 0, size: number = 10, keysearch: string = ''): Promise<PaginatedResponse<CreneauProgressionBird> | null> {
     try {
         const data = await apiClientHttp.request<PaginatedResponse<CreneauProgressionBird> | null>({
             endpoint: creneauEndpoints.getAllCreneauProgressionBird.endpoint,
@@ -106,6 +106,7 @@ export async function getAllCreneauPerformanceBird(page: number = 0, size: numbe
             params: {
                 page: String(page),
                 size: String(size),
+                keysearch: String(keysearch),
             },
         });
 

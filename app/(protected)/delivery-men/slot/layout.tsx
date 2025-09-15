@@ -21,7 +21,7 @@ export default function SlotLayout({ children }: { children: React.ReactNode }) 
 
     return (
         <div>
-            <SectionHeader/>
+            <SectionHeader/>  
             <Tabs color="primary" variant="underlined" items={tabs} selectedKey={pathname == '/delivery-men/slot' ? '/delivery-men/slot' : pathname == '/delivery-men/slot/turboys-assignes'?'/delivery-men/slot/turboys-assignes':''} className="w-full">
                 {(item) => {
                     return (
