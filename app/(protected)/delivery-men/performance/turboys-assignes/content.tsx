@@ -9,12 +9,10 @@ interface Props {
 }
 
 export default function Content({ initialData }: Props) {
-
     const { data } = useContentCtx({ initialData })
 
     if (!data || data.length == 0) {
         return <EmptyDataTable />
-    }
-    
+    }    
     return (<UserListPerformanceBird data={data} />)
 }

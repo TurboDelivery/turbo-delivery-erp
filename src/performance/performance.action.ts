@@ -7,7 +7,7 @@ import { AxiosError } from 'axios';
 import { PerformanceHebdomadaire } from '@/types/performance-hebdomadaire';
 
 // Configuration
-const BASE_URL = '/api/erp/performance';
+const BASE_URL = '/api/erp/performance';  
 
 const creneauEndpoints = {
     base: {

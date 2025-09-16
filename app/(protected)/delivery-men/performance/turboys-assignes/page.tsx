@@ -64,10 +64,9 @@ import { getAllPerformaneTurbo } from "@/src/performance/performance.action";
 //   }
 // ];
 
-
 export const metadata: Metadata = {
-    title: "Liste des  performance des Turboys Bird ",
-    description: "Liste des performance des Turboys Bird.",
+    title: "PERFORMANCE DES TURBOYS",
+    description: "LISTE DES PERFORMANCES TURBOYS",
 };
 
 
