@@ -9,6 +9,7 @@ export const columns = [
     { name: 'Total Commande en Attente', uid: 'commandeTotalEnAttente' },
     { name: 'Total Frais Livraison Terminée', uid: 'fraisLivraisonTotalTermine' },
     { name: 'Total Frais Livraison en Attente', uid: 'fraisLivraisonTotalEnAttente' },
+    { name: 'Total Commission', uid: 'commissionChiffreAffaire' },
 ];
 
 export default function useRestaurantListCtx() {
@@ -22,6 +23,8 @@ export default function useRestaurantListCtx() {
             case 'fraisLivraisonTotalTermine':
                 return <p>{String(cellValue) + ' FCFA'}</p>;
             case 'fraisLivraisonTotalEnAttente':
+                return <p>{String(cellValue) + ' FCFA'}</p>;
+            case 'commissionCommande':
                 return <p>{String(cellValue) + ' FCFA'}</p>;
             default:
                 return cellValue;

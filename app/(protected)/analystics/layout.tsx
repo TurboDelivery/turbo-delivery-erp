@@ -13,13 +13,13 @@ export default function AnalysticsLayout({ children }: { children: React.ReactNo
         label: string;
     }[] = [
         { id: '/analystics', href: '/analystics', label: 'Aperçu' },
-        { id: '/analystics/pay-slip', href: '/analystics/pay-slip', label: 'Relevé de paie' },
-        { id: '/analystics/bilan', href: '/analystics/pay-slip', label: 'Bilan de paie' },
-        { id: '/analystics/partenaire', href: '/analystics/pay-slip', label: 'Bilan des partenaire' },
-        { id: '/analystics/emprunts', href: '/analystics/pay-slip', label: 'Emprunts' },
-        { id: '/analystics/cautions', href: '/analystics/pay-slip', label: 'Cautions' },
-        { id: '/analystics/voir', href: '/analystics/voir', label: 'Voir' },
-        { id: '/analystics/finance', href: 'https://turbo-finance-backoffice.vercel.app', label: 'Gestion Finance' },
+        // { id: '/analystics/pay-slip', href: '/analystics/pay-slip', label: 'Relevé de paie' },
+        // { id: '/analystics/bilan', href: '/analystics/pay-slip', label: 'Bilan de paie' },
+        // { id: '/analystics/partenaire', href: '/analystics/pay-slip', label: 'Bilan des partenaire' },
+        // { id: '/analystics/emprunts', href: '/analystics/pay-slip', label: 'Emprunts' },
+        // { id: '/analystics/cautions', href: '/analystics/pay-slip', label: 'Cautions' },
+        // { id: '/analystics/voir', href: '/analystics/voir', label: 'Voir' },
+        { id: '/analystics/finance', href: 'https://finance.turbodeliveryapp.com', label: 'Gestion Finance' },
     ];
     const currentTab = tabs.find((tab) => pathname.startsWith(tab.href) && tab.href !== '/analystics');
     return (

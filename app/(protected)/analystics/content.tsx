@@ -172,7 +172,9 @@ export default function Content({ initialItems }: { initialItems: Record<string,
         </div>
         <div className="space-y-6">
           <SourcesCard />
-          <StatsOverview />
+          <a href="https://finance.turbodeliveryapp.com" title="TURBO Finance" target="_blank" rel="noopener noreferrer">
+            <StatsOverview />
+          </a>
         </div>
       </div>
       <div>
