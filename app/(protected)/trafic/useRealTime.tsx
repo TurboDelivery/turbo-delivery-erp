@@ -15,6 +15,7 @@ export default function useRealTime({ data, setData }: { data: LivreurDisponible
 
         function onTraficLivreurEvent(value: any) {
             const newDeliver = JSON.parse(value) as LivreurDisponible;
+            console.log({ nouvelle_position: newDeliver });
             setData((prevData) => {
                 // Si le livreur existe dans la liste
                 const isExist = prevData.find((d) => d.livreurId === newDeliver.livreurId);

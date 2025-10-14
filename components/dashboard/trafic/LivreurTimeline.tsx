@@ -1,57 +1,41 @@
-import React, { useState } from 'react';
-import { LivreurDisponible } from '@/types/models';
-import { createUrlFile } from '@/utils/createUrlFile';
-import { Avatar } from "@heroui/react";
-import DeliveryProgress from './DeliveryProgress';
+'use client';
 
-interface LivreurTimelineProps {
-    livreurs: LivreurDisponible[];
+import { LivreurTrafic } from '@/types/models';
+import { Avatar, Divider } from "@heroui/react";
+import { createUrlFile } from '@/utils/createUrlFile';
+
+interface LivreursListProps {
+    title: string;
+    data: LivreurTrafic[];
     handleCourierSelect: (courierId: string) => void;
 }
 
-export function LivreurTimeline({ livreurs: livreursEnCourse, handleCourierSelect }: LivreurTimelineProps) {
-    const livreursActifs = livreursEnCourse.filter((l) => l.course);
-    const [selectedDeliver, setSelectedDeliver] = useState<LivreurDisponible | null>(null);
+export function LivreurTimeline({ title, data, handleCourierSelect }: LivreursListProps) {
 
     const handleClick = (id: string) => {
         handleCourierSelect(id);
-        const liv = livreursActifs.find((l) => l.livreurId == id);
-
-        if (liv) {
-            if (selectedDeliver?.livreurId == liv.livreurId) {
-                setSelectedDeliver(null);
-            } else {
-                setSelectedDeliver(liv);
-            }
-        }
     };
+
     return (
-        <div className="w-full mx-auto">
-            <h2 className="lg:text-xl font-bold text-primary mb-4">En circulation</h2>
-            <div className="relative mb-8 overflow-auto scrollbar-thin">
-                <div className="absolute inset-0 bg-gray-200 rounded-full h-fit flex flex-nowrap scrollbar-thin" />
-                {/* Base timeline */}
-                <div className="flex flex-nowrap">
-                    {livreursActifs.map((livreur, index) => {
-                        const colors = ['bg-indigo-700', 'bg-rose-500', 'bg-blue-500', 'bg-green-500', 'bg-orange-500'];
+        <div className="w-full mx-auto mt-8">
+            <h2 className="lg:text-xl font-bold text-primary mb-4">{ title }</h2>
 
-                        return (
-                            <div key={livreur.livreurId} onClick={() => handleClick(livreur.livreurId)} className="flex flex-col justify-center gap-2 shrink-0 cursor-pointer">
-                                <div
-                                    className={`h-3 w-10  ${!selectedDeliver ? colors[index % colors.length] : selectedDeliver.livreurId == livreur.livreurId ? 'bg-primary' : 'bg-gray-700'}  rounded-full`}
-                                />
-
-                                <Avatar
-                                    src={createUrlFile(livreur.avatarUrl, 'delivery')}
-                                    alt={livreur.nomComplet}
-                                    className={`w-10 h-10 border-2 ${selectedDeliver && selectedDeliver.livreurId == livreur.livreurId ? 'border-primary' : 'border-white'} shadow-sm`}
-                                />
-                            </div>
-                        );
-                    })}
+            { data.length === 0 ? (
+                <p className="text-gray-500 italic">Aucun livreur</p>
+            ) : (
+                <div className="flex gap-2 flex-nowrap overflow-auto scrollbar-thin">
+                    { data.map((item, index) => (
+                        <div onClick={() => handleClick(item.livreurId)} key={item.livreurId} className="shrink-0 flex items-center gap-2 cursor-pointer">
+                            <Avatar src={createUrlFile(item.avatarUrl, 'backend')}
+                                alt={item.nomComplet} className="w-8 h-8 border-[3px] border-white shadow-[0_2px_8px_rgba(0,0,0,0.15)]"
+                            />
+                            <span className="text-xs font-medium text-gray-800 text-center">{item.nomComplet}</span>
+                            {index !== data.length - 1 && ( <Divider orientation="vertical" /> )}
+                        </div>
+                    )) }
                 </div>
-            </div>
-            {selectedDeliver && <DeliveryProgress livreur={selectedDeliver} />}
+            ) }
         </div>
     );
 }
+
