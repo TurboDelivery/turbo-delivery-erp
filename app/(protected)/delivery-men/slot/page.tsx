@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import { getAllCreneauBird } from "@/src/creneau-livreur/creneau-livreur.action";
 
 export const metadata: Metadata = {
-    title: "LISTE DES TURBOYS",
-    description: "Liste Turboys Bird.",
+    title: "LISTE DES BIRD",
+    description: "Liste des Bird.",
 };
 
 export default async function Page() {
