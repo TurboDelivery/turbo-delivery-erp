@@ -8,8 +8,8 @@ import ProviderComponent from '@/components/layouts/provider-component';
 export const metadata: Metadata = {
     title: {
         template: '%s | Turbo Delivery - management platform',
-        default: 'Turbo Delivery - management platform',
-        absolute: 'Turbo Delivery - management platform',
+        default: 'TURBO DELIVERY - MANAGEMENT PLATFORM',
+        absolute: 'TURBO DELIVERY - MANAGEMENT PLATFORM',
     },
     description: "Turbo Delivery, leader de la livraison de à Abidjan. Spécialistes en livraison de en Côte d'Ivoire. Expertise locale, service personnalisé.",
     icons: {
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
         locale: 'fr_CI',
         url: 'https://www.turbo-delivery.com',
         siteName: 'Turbo Delivery',
-        title: 'Turbo Delivery - management platform',
+        title: 'TURBO DELIVERY - MANAGEMENT PLATFORM',
         description: "Turbo Delivery, leader de la livraison de à Abidjan. Spécialistes en livraison de en Côte d'Ivoire. Expertise locale, service personnalisé.",
         images: [
             {
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         site: '@Turbo Delivery',
         creator: '@Turbo Delivery',
-        title: 'Turbo Delivery - management platform',
+        title: 'TURBO DELIVERY - MANAGEMENT PLATFORM',
         description: "Turbo Delivery, leader de la livraison de à Abidjan. Spécialistes en livraison de en Côte d'Ivoire. Expertise locale, service personnalisé.",
         images: ['https://www.turbo-delivery.com/twitter-image.png'],
     },

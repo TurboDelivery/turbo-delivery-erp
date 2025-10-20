@@ -4,12 +4,9 @@ import { getPaginationCourseExterneAutreStatus } from '@/src/actions/courses.act
 import { getLivreursDisponible } from '@/src/actions/delivery-men.actions';
 
 export default async function DeliveryPage() {
-    const data = await getPaginationCourseExterneAutreStatus(0, 5);
+    const data = await getPaginationCourseExterneAutreStatus(0, 10);
     const delivers = await getLivreursDisponible() ?? [];
 
     if(!data) return <Loading/>
-    
-    return (
-        <Content initialData={data} delivers={delivers} />
-    );
+    return ( <Content initialData={data} delivers={delivers} /> );
 }

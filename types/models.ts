@@ -215,8 +215,10 @@ export interface CourseExterne {
     id: string;
     code: string;
     statut: string;
-    dateHeureDebut: string;
-    dateHeureFin: string;
+    payoutAt: string;
+    pickupAt: string;
+    createdAt: string;
+    deliveredAt: string;
     restaurant: Partial<Restaurant>;
     nombreCommande: number;
     total: number;

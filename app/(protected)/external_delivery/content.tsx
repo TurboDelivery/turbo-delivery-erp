@@ -1,17 +1,16 @@
 'use client';
-import { title } from '@/components/primitives';
-import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { PaginatedResponse } from '@/types';
-import {
-    Clock, MapPin, User, Package, CreditCard, Store, ChevronDown, ChevronUp
-} from 'lucide-react';
-import {
-    Button, Card, CardBody, CardHeader, Chip, Divider, Pagination, Skeleton
-} from "@heroui/react";
+import { title } from '@/components/primitives';
+import { Clock, Package, Store, Link } from 'lucide-react';
+import { CourseExterne, LivreurDisponible } from '@/types/models';
+import { Avatar, Card, CardBody, CardFooter, CardHeader, Chip, Pagination, Skeleton } from "@heroui/react";
 import { useState, useEffect, useRef } from 'react';
 import { SORT_OPTIONS } from '@/data';
 import DeliveryTools from './component/deliveryTools';
 import { getPaginationCourseExterneEnAttente } from '@/src/actions/courses.actions';
+import { createUrlFile } from '@/utils/createUrlFile';
+import dayjs from 'dayjs';
+import EmptyDataTable from '@/components/commons/EmptyDataTable';
 
 type SortOption = (typeof SORT_OPTIONS)[keyof typeof SORT_OPTIONS];
 
@@ -22,6 +21,17 @@ const getStatusColor = (statut: string) => {
         case 'ANNULER': return 'danger';
         case 'EN_ATTENTE': return 'secondary';
         default: return 'default';
+    }
+};
+
+const getStatusTextColor = (statut: string) => {
+    switch (statut?.toUpperCase()) {
+        case 'VALIDER': return 'text-yellow-700';
+        case 'TERMINER': return 'text-green-700';
+        case 'ANNULER': return 'text-red-700';
+        case 'EN_ATTENTE': return 'text-gray-500';
+        case 'PREPARATION': return 'text-orange-600';
+        default: return 'text-gray-600';
     }
 };
 
@@ -57,7 +67,7 @@ export default function Content({ initialData, delivers }: Props) {
     const [sortBy, setSortBy] = useState<SortOption>(SORT_OPTIONS.DATE_DESC);
     const [expandedDelivery, setExpandedDelivery] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(5);
+    const [pageSize] = useState(10);
     const [data, setData] = useState<PaginatedResponse<CourseExterne> | null>(initialData);
     const [dataFilter, setDataFilter] = useState<CourseExterne[]>(data?.content ?? []);
     const [isLoading, setIsLoading] = useState(!initialData);
@@ -87,7 +97,6 @@ export default function Content({ initialData, delivers }: Props) {
 
         if (dataFilter.length > 0) {
             audioRef.current.loop = true;
-            // audioRef.current.play().catch((e) => console.error("Erreur audio :", e));
             audioRef.current.play().catch(() => {
                 alert("🔴Nouvelle Course🔴, Cliquez sur OK pour activer 🔔.");
                 audioRef.current?.play();
@@ -106,19 +115,6 @@ export default function Content({ initialData, delivers }: Props) {
 
         return () => clearInterval(refreshInterval);
     }, [currentPage]);
-
-    const handleFilter = (status: string, _data?: PaginatedResponse<CourseExterne> | null) => {
-        setIsLoading(true);
-        setStatusFilter(status);
-        const dd = typeof _data === 'undefined' ? data : _data;
-        if (status === 'all') {
-            setDataFilter(dd?.content ?? []);
-        } else {
-            const filtered = dd?.content.filter((d) => d.statut?.toUpperCase() === status) ?? [];
-            setDataFilter(filtered);
-        }
-        setIsLoading(false);
-    };
 
     const fetchData = async (page: number) => {
         setCurrentPage(page);
@@ -150,157 +146,101 @@ export default function Content({ initialData, delivers }: Props) {
         }
     };
 
-    const handleReset = () => {
-        setSearchTerm('');
-        setSortBy(SORT_OPTIONS.DATE_DESC);
-        setCurrentPage(1);
-    };
-
-    const toggleExpand = (deliveryId: string) => {
-        setExpandedDelivery(expandedDelivery === deliveryId ? null : deliveryId);
-    };
-
     return (
-        <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">
+        <div className="w-full h-full pb-10">
             <audio ref={audioRef} src="/assets/sounds/notification.wav" preload="auto" />
-
-            <div className="flex items-center justify-between">
-                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Mes Courses</h1>
+            <div className="flex items-center justify-between mb-4">
+                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Nouvelles courses</h1>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                {/* Ajoute tes filtres ou inputs ici si besoin */}
-            </div>
-
-            {isLoading ? (
-                <div className="flex flex-col gap-6">
-                    {[...Array(2)].map((_, index) => (
-                        <Skeleton key={index} className="rounded-lg h-52" />
-                    ))}
-                </div>
-            ) : data?.content.length ? (
-                <>
-                    <div className="grid grid-cols-1 gap-6">
-                        {dataFilter.map((delivery) => (
-                            <Card key={delivery.id} className={`w-full ${getStatusBorderClass(delivery.statut)}`}>
-                                <CardHeader className="flex justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <Chip color={getStatusColor(delivery.statut)} variant="flat">
-                                            {delivery.statut}
-                                        </Chip>
-                                        <span className="text-default-500 font-bold">Code: {delivery.code}</span>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <DeliveryTools delivery={delivery} delivers={delivers} />
-                                        <Button isIconOnly color="primary" variant="light" onClick={() => toggleExpand(delivery.id)}>
-                                            {expandedDelivery === delivery.id ? <ChevronUp /> : <ChevronDown />}
-                                        </Button>
-                                    </div>
-                                </CardHeader>
-
-                                <CardBody>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-2">
-                                            <Store className="text-default-500" />
-                                            <div>
-                                                <p className="text-default-700">{delivery?.restaurant?.nomEtablissement}</p>
-                                                <p className="text-default-500 text-sm">{delivery?.restaurant?.commune}</p>
-                                            </div>
-                                        </div>
-
-                                        <Divider />
-
-                                        <div className="flex justify-between items-center">
-                                            <div className="flex items-center gap-2">
-                                                <Package className="text-default-500" />
-                                                <span>
-                                                    {delivery.nombreCommande} commande{delivery.nombreCommande > 1 ? 's' : ''}
-                                                </span>
-                                            </div>
-                                            <span className="text-large font-semibold">{delivery.total.toFixed(2)} XOF</span>
-                                        </div>
-
-                                        {expandedDelivery === delivery.id && (
-                                            <div className="mt-4 space-y-4">
-                                                {delivery.commandes.map((commande, index) => (
-                                                    <Card key={commande.id} className="w-full">
-                                                        <CardHeader className="flex justify-between">
-                                                            <div className="flex items-center gap-4">
-                                                                <Chip size="sm" variant="flat" color={getCommandeStatusColor(commande.statut)}>
-                                                                    {commande.statut ?? 'EN_ATTENTE'}
-                                                                </Chip>
-                                                                <span className="text-default-500 font-bold">Commande #{index + 1}</span>
-                                                            </div>
-                                                            <div className="flex gap-2">
-                                                                <span className="text-default-500 font-bold">{commande.numero}</span>
-                                                            </div>
-                                                        </CardHeader>
-                                                        <CardBody>
-                                                            <div className="space-y-3">
-                                                                <div className="flex items-start gap-2">
-                                                                    <User className="text-default-500 mt-1" />
-                                                                    <div>
-                                                                        <p className="text-default-700">{commande.destinataire.nomComplet}</p>
-                                                                        <p className="text-default-500">{commande.destinataire.contact}</p>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="flex items-start gap-2">
-                                                                    <MapPin className="text-default-500 mt-1" />
-                                                                    <p className="text-default-600">{`${commande.lieuLivraison.latitude}, ${commande.lieuLivraison.longitude}`}</p>
-                                                                </div>
-
-                                                                <Divider />
-
-                                                                <div className="flex justify-between items-center">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <CreditCard className="text-default-500" />
-                                                                        <span className="text-default-600">{commande.modePaiement}</span>
-                                                                    </div>
-                                                                    <span className="font-semibold">{commande.prix.toFixed(2)} XOF</span>
-                                                                </div>
-                                                            </div>
-                                                        </CardBody>
-                                                    </Card>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        <Divider />
-
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="text-default-500" />
-                                            <div>
-                                                <p className="text-default-600">Début: {delivery.dateHeureDebut}</p>
-                                                <p className="text-default-600">Fin: {delivery.dateHeureFin ?? '---'}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardBody>
-                            </Card>
+            <div>
+                {isLoading ? (
+                    <div className="flex flex-col gap-6">
+                        {[...Array(2)].map((_, index) => (
+                            <Skeleton key={index} className="rounded-lg h-52" />
                         ))}
                     </div>
+                ) : data?.content.length ? (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {dataFilter.map((delivery) => (
+                                <Card key={delivery.id} className={`w-full bg-white ${getStatusBorderClass(delivery.statut)} shadow-md rounded-md`}>
+                                    <CardHeader className="flex justify-between items-center py-3 border-b">
+                                        <div className="flex items-center gap-5">
+                                            <span className={`font-bold text-base ${getStatusTextColor(delivery.statut)}`}>Code: {delivery.code}</span>
+                                            <span className="bg-gray-900 text-white font-semibold rounded px-2 ml-2 py-1">
+                                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(
+                                                    (delivery.commandes?.reduce((sum, cmd) => sum + (cmd.prix ?? 0), 0) || 0) +
+                                                    (delivery.commandes?.reduce((sum, cmd) => sum + (cmd.fraisLivraison ?? 0), 0) || 0)
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-2 items-center">
+                                            <DeliveryTools delivery={delivery} delivers={delivers} />
+                                        </div>
+                                    </CardHeader>
+                                    <CardBody className="py-3">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Package className="text-gray-400" />
+                                            <span className="font-medium">
+                                                {delivery.nombreCommande} commande{delivery.nombreCommande > 1 ? 's' : ''}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Clock className="text-gray-400" />
+                                            <span>Créé le {delivery.createdAt ? dayjs(delivery.createdAt).format('DD/MM/YYYY HH:mm:ss') : '-'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Clock className="text-gray-400" />                                        
 
-                    <div className="flex h-fit z-10 justify-center mt-8 fixed bottom-4">
-                        <div className="bg-gray-200 absolute inset-0 w-full h-full blur-sm opacity-50"></div>
-                        <Pagination
-                            total={data?.totalPages ?? 1}
-                            page={currentPage}
-                            onChange={fetchData}
-                            showControls
-                            color="primary"
-                            variant="bordered"
-                            isDisabled={isLoading}
-                        />
-                    </div>
-                </>
-            ) : (
-                <Card className="min-h-52">
-                    <CardBody className="flex justify-center items-center">
-                        <p className="text-center text-default-500">Aucune course ne correspond à vos critères de recherche. Essayez de modifier vos filtres.</p>
-                    </CardBody>
-                </Card>
-            )}
+                                            {/* Statut */}
+                                            <Chip
+                                                color={getStatusColor(delivery.statut)}
+                                                variant="flat" className="text-sm font-medium px-2 py-0.5 rounded-md">
+                                                {delivery.statut}
+                                            </Chip>
+                                        </div>
+                                    </CardBody>
+                                    <CardFooter>
+                                        <div className="flex items-center justify-between w-full mb-2">
+                                            {/* Partie gauche : infos restaurant */}
+                                            <div className="flex items-center gap-2">
+                                                {delivery?.restaurant?.logo ? (
+                                                    <Avatar src={createUrlFile(delivery.restaurant.logo, 'restaurant')} size="sm" />
+                                                ) : (
+                                                    <Store className="text-gray-400" />
+                                                )}
+                                                <div>
+                                                    <p className="font-semibold text-gray-900">{delivery?.restaurant?.nomEtablissement}</p>
+                                                    <p className="text-gray-500 text-sm">{delivery?.restaurant?.commune}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                        </div>
+                    </>
+                ) : (
+                    <EmptyDataTable
+                        title="Aucune Course Trouvée"
+                        message="Aucune course ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
+                    />
+                )}
+            </div>
+
+            {/* PAGINATION */}
+            <div className="flex justify-center mt-8 w-full">
+                <Pagination
+                    total={data?.totalPages ?? 1}
+                    page={currentPage}
+                    onChange={fetchData}
+                    showControls
+                    color="danger"
+                    variant="flat"
+                    isDisabled={isLoading}
+                />
+            </div>
         </div>
     );
 }
