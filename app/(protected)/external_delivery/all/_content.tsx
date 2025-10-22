@@ -241,8 +241,8 @@ export default function Content({ initialData, delivers }: Props) {
                                         <div className="flex items-center gap-2">
                                             <Clock className="text-default-500" />
                                             <div>
-                                                <p className="text-default-600">Début: {delivery.dateHeureDebut}</p>
-                                                <p className="text-default-600">Fin: {delivery.dateHeureFin ?? '---'}</p>
+                                                <p className="text-default-600">Début: {delivery.createdAt}</p>
+                                                <p className="text-default-600">Fin: {delivery.deliveredAt ?? '---'}</p>
                                             </div>
                                         </div>
                                     </div>
