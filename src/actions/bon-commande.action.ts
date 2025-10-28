@@ -22,21 +22,17 @@ const bonLivraisonEndpoints = {
 };
 
 
-export async function getBonLivraisonAll(page: number, size: number, date?: string | null): Promise<PaginatedResponse<BonLivraison> | null> {
+export async function getBonLivraisonAll(page: number, size: number, { dates: { start, end } } : { dates: RangeValue<string | null> }): Promise<PaginatedResponse<BonLivraison> | null> {
     try {
-        const params: { page: string; size: string; date?: string } = {
-            page: String(page),
-            size: String(size),
-        };
-
-        if (date) {
-            params.date = date; // Ajout de la date si elle est fournie
-        }
-
         const data = await apiClientHttp.request({
             endpoint: bonLivraisonEndpoints.getBonLivraisonAll.endpoint,
             method: bonLivraisonEndpoints.getBonLivraisonAll.method,
-            params: params,
+            params: {
+                page: String(page),
+                size: String(size),
+                debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
+                fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+            },
             service: 'backend',
         });
         return data;
