@@ -6,8 +6,11 @@ import { BonLivraison } from '@/types/bon-livraison.model';
 import { Restaurant } from '@/types/models';
 import { CalendarDate, Chip, RangeValue } from '@heroui/react';
 import dayjs from 'dayjs';
+import isBetween from 'dayjs/plugin/isBetween';
 import { Key, useCallback, useEffect, useState, useMemo } from 'react';
 import { toast } from 'react-toastify';
+
+dayjs.extend(isBetween); // ⚡ important, doit être appelé une seule fois
 
 const getStatusColor = (statut: string) => {
     switch (statut?.toUpperCase()) {
