@@ -100,7 +100,7 @@ function RenderMenu({ menu, currentMenu, toggleMenu, t }: { menu: IMenuData[]; c
     const renderMenuItem = (item: IMenuData, key: number) => {
         return (
             <li key={key} className="menu nav-item">
-                <button type="button" className={`${currentMenu === item.title ? 'active' : ''} nav-link group w-full`} onClick={() => toggleMenu(item.title)}>
+                <button type="button" className={`${currentMenu === item.title ? 'active rounded bg-red-100 text-red-700 font-bold' : ''} nav-link group w-full`} onClick={() => toggleMenu(item.title)}>
                     <div className="flex items-center">
                         {item.icon && <item.icon className="shrink-0 group-hover:!text-primary" />}
                         <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-gray-600 dark:group-hover:text-white-dark">{t(item.title)}</span>

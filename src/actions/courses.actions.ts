@@ -1,12 +1,13 @@
 'use server';
 
 import { ActionResult } from '@/types';
-import { CourseExterne } from '@/types/models';
+import { CourseExterne, Restaurant } from '@/types/models';
 import { PaginatedResponse } from '@/types';
 import { apiClientHttp } from '@/lib/api-client-http';
 
 // Configuration
 const BASE_URL = '/api/erp/course-externe';
+const BASE_URL_RESTAURANT = '/api/restaurant/course-externe';
 
 const courseEndpoints = {
     updateCourseExterne: { endpoint: BASE_URL, method: 'PUT' },
@@ -17,6 +18,14 @@ const courseEndpoints = {
     annulerCourseExterne: { endpoint: `${BASE_URL}/annuler`, method: 'PUT' }, //retirer
     getPaginationCourseExterneEnAttente: {
         endpoint: `${BASE_URL}/en-attente/pagination`,
+        method: 'GET',
+    },
+    getPaginationCourseExterneJournaliere: {
+        endpoint: `${BASE_URL}/journaliere`,
+        method: 'GET',
+    },
+    getPaginationCourseExterne: {
+        endpoint: (idRestaurant: string) => `${BASE_URL_RESTAURANT}/${idRestaurant}/pagination`,
         method: 'GET',
     },
     getPaginationCourseExterneAutreStatus: {
@@ -71,6 +80,25 @@ export async function getPaginationCourseExterneEnAttente(page: number = 0, size
         return null;
     }
 }
+
+export async function getPaginationCourseExterneJournaliere(page: number = 0, size: number = 10): Promise<PaginatedResponse<Restaurant> | null> {
+    try {
+        const data = await apiClientHttp.request<PaginatedResponse<Restaurant>>({
+            endpoint: courseEndpoints.getPaginationCourseExterneJournaliere.endpoint,
+            method: courseEndpoints.getPaginationCourseExterneJournaliere.method,
+            params: {
+                page: String(page),
+                size: String(size),
+            },
+            service: 'backend',
+        });
+
+        return data;
+    } catch (error) {
+        return null;
+    }
+}
+
 export async function getPaginationCourseExterneAutreStatus(page: number = 0, size: number = 10): Promise<PaginatedResponse<CourseExterne> | null> {
     try {
         const data = await apiClientHttp.request<PaginatedResponse<CourseExterne>>({
@@ -96,6 +124,24 @@ export async function getCourseExterne(idCourse: string): Promise<CourseExterne 
             service: 'backend',
         });
 
+        return data;
+    } catch (error) {
+        return null;
+    }
+}
+
+
+export async function getPaginationCourseExterne(idRestaurant: string, page: number = 0, size: number = 10): Promise<PaginatedResponse<CourseExterne> | null> {
+    try {
+        const data = await apiClientHttp.request<PaginatedResponse<CourseExterne>>({
+            endpoint: courseEndpoints.getPaginationCourseExterne.endpoint(idRestaurant),
+            method: courseEndpoints.getPaginationCourseExterne.method,
+            service: 'backend',
+            params: {
+                page: page.toString(),
+                size: size.toString(),
+            },
+        });
         return data;
     } catch (error) {
         return null;

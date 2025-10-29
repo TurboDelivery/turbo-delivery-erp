@@ -3,7 +3,7 @@ import { getPaginationCourseExterneEnAttente } from '@/src/actions/courses.actio
 import { getLivreursDisponible } from '@/src/actions/delivery-men.actions';
 
 export default async function DeliveryPage() {
-    const data = await getPaginationCourseExterneEnAttente(0, 10);
+    const data = await getPaginationCourseExterneEnAttente(0, 10);   
     const delivers = await getLivreursDisponible() ?? [];
 
     return ( <Content initialData={data} delivers={delivers} /> );

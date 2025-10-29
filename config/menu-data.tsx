@@ -44,7 +44,8 @@ const menuData: IMenuData[] = [
         icon: TbTruckDelivery,
         title: 'external_delivery',
         children: [
-            { icon: TbTruckDelivery, title: 'Nouvelles courses', path: '/external_delivery' },
+            // { icon: TbTruckDelivery, title: 'Nouvelles courses', path: '/external_delivery' },
+            { icon: TbTruckDelivery, title: 'Nouvelles courses', path: '/new-deliveries' },
             { icon: TbTruckDelivery, title: 'Toutes les courses', path: '/external_delivery/all' },
             { icon: Ticket, title: 'Tickets', path: '/tickets' },
             // { icon: TbMoneybag, title: 'gestion_de_paie', path: '/external_delivery/gestion_de_paie' },

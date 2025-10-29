@@ -224,7 +224,7 @@ export default function Content({ initialData, delivers }: Props) {
                                         </div>
 
                                         {/* Partie droite : lien */}
-                                        <Link href={`/restaurants/${delivery?.restaurant?.id}/courses`}
+                                        <Link href={`/external_delivery/restaurant/${delivery?.restaurant?.id}`}
                                             className="text-primary text-sm font-medium hover:underline whitespace-nowrap">
                                             Voir toutes les courses du restaurant
                                         </Link>

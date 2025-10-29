@@ -306,3 +306,11 @@ export interface TraficLivreursResponse {
     indisponibles: LivreurCategorie;
     totalLivreurs: number;
 }
+
+export interface Restaurant {
+    restaurantId: string;
+    nomRestaurant: string;
+    logo?: string;
+    coursesEnCours: number;
+    coursesTerminees: number;
+}
