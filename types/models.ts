@@ -310,7 +310,7 @@ export interface TraficLivreursResponse {
 export interface Restaurant {
     restaurantId: string;
     nomRestaurant: string;
-    logo?: string;
+    logo: string;
     coursesEnCours: number;
     coursesTerminees: number;
 }
