@@ -39,7 +39,7 @@ interface Props {
 
 export default function useContentCtx({ initialData, restaurants }: Props) {
     const [pageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
     const [isLoading, setIsLoading] = useState(!initialData);
     const [data, setData] = useState<PaginatedResponse<BonLivraison> | null>(initialData);
 
@@ -161,7 +161,7 @@ export default function useContentCtx({ initialData, restaurants }: Props) {
     return {
         renderCell,
         columns,
-        data: { ...data, content: currentItems }, // seulement les éléments de la page courante
+        data: { ...data, content: currentItems, totalPages }, // seulement les éléments de la page courante
         handlePageChange,
         currentPage,
         isLoading,
