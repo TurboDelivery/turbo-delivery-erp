@@ -1,6 +1,7 @@
 import UserProfile from '@/components/dashboard/settings/profile/profile';
 import { getProfile } from '@/src/actions/users.actions';
 import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
     title: 'Utilisateurs',
@@ -8,9 +9,8 @@ export const metadata: Metadata = {
 
 export default async function Users() {
     const user = await getProfile();
-    if (!user) return null;
+    if (!user) redirect('/auth');;
     return (
         <UserProfile user={user} />
-
     );
 }

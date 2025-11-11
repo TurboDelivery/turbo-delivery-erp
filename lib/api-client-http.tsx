@@ -122,15 +122,15 @@ export class ApiClientHttp {
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 // Log helpful error information
-                console.error('API Request failed:', {
-                    status: error.response?.status,
-                    statusText: error.response?.statusText,
-                    url: error.config?.url,
-                    baseUrl: error.config?.baseURL,
-                    method: error.config?.method,
-                    headers: error.config?.headers,
-                    data: error.response?.data,
-                });
+                // console.error('API Request failed:', {
+                //     status: error.response?.status,
+                //     statusText: error.response?.statusText,
+                //     url: error.config?.url,
+                //     baseUrl: error.config?.baseURL,
+                //     method: error.config?.method,
+                //     headers: error.config?.headers,
+                //     data: error.response?.data,
+                // });
             } else {
                 console.error('API error inconnue:', error);
             }

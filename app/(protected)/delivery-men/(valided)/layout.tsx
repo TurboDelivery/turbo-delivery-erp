@@ -7,7 +7,6 @@ import { usePathname } from 'next/navigation';
 
 export default function DeliveryMenLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
-
     const tabs: {
         id: string;
         href: string;

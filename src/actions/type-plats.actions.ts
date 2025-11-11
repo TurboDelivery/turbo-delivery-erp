@@ -10,7 +10,7 @@ import { apiClientHttp } from '@/lib/api-client-http';
 const BASE_URL = '/api/turbo/erp/collection';
 
 const typePlatsEndpoints = {
-    getAll: { endpoint: BASE_URL, method: 'GET' },
+    getAll: { endpoint: `${BASE_URL}/get`, method: 'GET' },
     add: { endpoint: `${BASE_URL}/add`, method: 'POST' },
     update: { endpoint: (id: string) => `${BASE_URL}/update/${id}`, method: 'POST' },
     delete: { endpoint: (id: string) => `${BASE_URL}/delete/${id}`, method: 'DELETE' },

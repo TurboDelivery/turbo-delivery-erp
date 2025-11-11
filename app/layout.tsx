@@ -65,11 +65,6 @@ export const metadata: Metadata = {
         description: "Turbo Delivery, leader de la livraison de à Abidjan. Spécialistes en livraison de en Côte d'Ivoire. Expertise locale, service personnalisé.",
         images: ['https://www.turbo-delivery.com/twitter-image.png'],
     },
-    viewport: {
-        width: 'device-width',
-        initialScale: 1,
-        maximumScale: 1,
-    },
     robots: {
         index: true,
         follow: true,

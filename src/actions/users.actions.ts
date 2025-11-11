@@ -1,16 +1,14 @@
 'use server';
 
-import { redirect } from 'next/navigation';
-import { signOut as signOutAuth } from '@/auth';
-
-import { processFormData } from '@/utils/formdata-zod.utilities';
-import { ActionResult, PaginatedResponse } from '@/types';
-import { _createUserSchema, changePasswordSchema, createUserSchema, loginSchema } from '../schemas/users.schema';
 import { signIn } from '@/auth';
-import { revalidatePath } from 'next/cache';
 import { User } from '@/types/models';
+import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
+import { signOut as signOutAuth } from '@/auth';
 import { apiClientHttp } from '@/lib/api-client-http';
-// import api from '@/app/(protected)/config';
+import { ActionResult, PaginatedResponse } from '@/types';
+import { processFormData } from '@/utils/formdata-zod.utilities';
+import { _createUserSchema, changePasswordSchema, createUserSchema, loginSchema } from '../schemas/users.schema';
 
 const BASE_URL = '/api/V1/turbo/erp/user';
 
@@ -58,7 +56,6 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
             json = await result.json();
         } else {
             const text = await result.text(); // Pour voir le contenu brut
-            console.error('Réponse non JSON :', text);
         }
     
         if (!result.ok) {
@@ -87,7 +84,6 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
             data: json,
         };
     } catch (err: any) {
-        console.error('Erreur lors de la connexion:', err);
         return {
             status: 'error',
             message: 'Erreur serveur. Veuillez réessayer.',
@@ -95,43 +91,6 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
     }
 }
   
-
-// export async function loginUserV2(formData: FormData): Promise<ActionResult<any>> {
-//     try {
-//         const result = await api.post(usersEndpoints.login.endpoint, formData);
-
-//         if (result.status === 200) {
-//             return {
-//                 status: "success",
-//                 message: "Connexion réussite",
-//                 data: result
-//             }
-//         } else {
-//             return {
-//                 status: "success",
-//                 message: "Une erreur ss'est produite"
-//             }
-//         }
-
-
-//     } catch (error: any) {
-//         if (error?.response?.status === 401) {
-//             if (error?.response?.data?.code == 'LOG10') {
-//                 return {
-//                     status: 'success',
-//                     message: error?.response?.data?.message || error?.response?.data || 'Veuillez modifier votre mot de passe',
-//                     data: error?.response?.data
-//                 };
-//             }
-//         }
-//         return {
-//             status: 'error',
-//             message: error?.response?.data?.detail || error?.response?.data || 'Erreur lors de la connexion',
-//         };
-//     }
-// };
-
-
 export async function changePassword(formData: FormData): Promise<ActionResult<any>> {
     const {
         success,
@@ -169,7 +128,6 @@ export async function changePassword(formData: FormData): Promise<ActionResult<a
             status: "success",
             message: "Mot de passe modifié avec succès"
         }
-        // redirect('/');
     } catch (error: any) {
         return {
             status: 'error',
