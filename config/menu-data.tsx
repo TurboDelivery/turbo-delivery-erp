@@ -17,7 +17,7 @@ import {
     IconUsers,
     IconUsersGroup,
 } from '@tabler/icons-react';
-import { Bell, HandPlatter, SquareUser, Ticket } from 'lucide-react';
+import { Bell, HandPlatter, ShoppingCartIcon, SquareUser, Ticket } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbMoneybag, TbTruckDelivery } from 'react-icons/tb';
 
@@ -39,7 +39,7 @@ const menuData: IMenuData[] = [
             { icon: SquareUser, title: "File d'attente", path: '/trafic/file-attente' },
         ],
     },
-    // { icon: Ticket, title: 'ticket', path: '/tickets' },
+    { icon: ShoppingCartIcon, title: 'Commandes / Client', path: '/commandes' },
     {
         icon: TbTruckDelivery,
         title: 'external_delivery',
