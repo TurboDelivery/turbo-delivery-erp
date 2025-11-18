@@ -1,16 +1,22 @@
 'use server';
 
 import { apiClientHttp } from '@/lib/api-client-http';
-import { Order } from '@/types/models';
-import { PageResponse } from '@/types/page-response';
+import { Order, OrderStats, PageResponse } from '@/types/models';
 
-export async function getAllOrders(page: number = 0, size: number = 10): Promise<PageResponse<Order> | null> {
+export async function getAllOrders(page: number = 0, size: number = 10, restaurantId: string | null = '', start: string | null = '', end: string | null = ''): Promise<PageResponse<Order> | null> {
     try {
         const data = await apiClientHttp.request<PageResponse<Order>>({
-            endpoint: `/api/V1/turbo/customer/commande/all?page=${page}&size=${size}`,
+            endpoint: `/api/V1/turbo/customer/commande/all`,
             method: 'GET',
-            service: 'client'
-        });
+            service: 'client',
+            data: {
+                'page': page,
+                'size': size,
+                'restaurantId': restaurantId,
+                'start': start,
+                'end': end
+            }
+        });  
 
         return data;
     } catch (error) {
@@ -18,33 +24,26 @@ export async function getAllOrders(page: number = 0, size: number = 10): Promise
     }
 }
 
-export async function accepterCommande(orderId: string): Promise<Order | null> {
+export async function getOrdersStats(
+    restaurantId: string | null = '',
+    start: string | null = '',
+    end: string | null = ''
+): Promise<OrderStats | null> {
     try {
-        const data = await apiClientHttp.request<Order>({
-            endpoint: `/api/V1/turbo/customer/commande/accepter`,
-            method: "PUT",
-            service: "client",
-            data: { 'orderId': orderId }
+        const data = await apiClientHttp.request<OrderStats>({
+            endpoint: `/api/V1/turbo/customer/commande/stats`,
+            method: 'GET',
+            service: 'client',
+            data: {
+                restaurantId,
+                start,
+                end
+            }
         });
 
         return data;
     } catch (error) {
-        console.error("Erreur lors de l'acceptation de la commande :", error);
-        return null;
-    }
-}
-
-export async function annulerCommande(orderId: string): Promise<Order | null> {
-    try {
-        const data = await apiClientHttp.request<Order>({
-            endpoint: `/api/V1/turbo/customer/commande/annuler`,
-            method: "PUT",
-            service: "client",
-            data: { 'orderId': orderId }
-        });
-        return data;
-    } catch (error) {
-        console.error("Erreur lors de l'annulation de la commande :", error);
+        console.error('Erreur lors de la récupération des stats des commandes', error);
         return null;
     }
 }

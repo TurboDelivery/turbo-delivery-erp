@@ -1,29 +1,19 @@
 "use client";
 
-import { Order } from "@/types/models";
-import { toast } from "react-toastify";
+import { EyeIcon } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { CheckIcon, EyeIcon, XCircle } from "lucide-react";
-import { accepterCommande, annulerCommande, getAllOrders } from "@/src/actions/commandes.actions";
-
-export type PageResponse<T> = {
-    content: T[];
-    number: number;
-    size: number;
-    totalElements: number;
-    totalPages: number;
-    first?: boolean;
-    last?: boolean;
-    pageable?: any;
-    numberOfElements?: number;
-    sort?: any;
-};
+import { getAllOrders, getOrdersStats } from "@/src/actions/commandes.actions";
+import { SelectField } from "@/components/commons/form/select-field";
+import { CalendarDate, DateRangePicker, RangeValue } from "@heroui/react";
+import { Order, OrderStats, PageResponse, Restaurant } from "@/types/models";
 
 type OrdersProps = {
     commandesInitiales: PageResponse<Order> | null;
+    restaurants: Restaurant[];
+    stats: OrderStats | null;
 };
 
-export default function OrdersPage({ commandesInitiales }: OrdersProps) {
+export default function OrdersPage({ commandesInitiales, restaurants, stats }: OrdersProps) {
     const [commandes, setCommandes] = useState<PageResponse<Order> | null>(commandesInitiales);
     const [selectedCategory, setSelectedCategory] = useState<string>("TOUTES");
     const [currentPage, setCurrentPage] = useState<number>(commandesInitiales?.number ?? 0);
@@ -31,6 +21,12 @@ export default function OrdersPage({ commandesInitiales }: OrdersProps) {
     const [detailOrder, setDetailOrder] = useState<Order | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [loadingPage, setLoadingPage] = useState(false);
+
+    // Filtres
+    const [dates, setDates] = useState<RangeValue<CalendarDate> | null>(null);
+    const [selectedRestaurantId, setSelectedRestaurantId] = useState<string | null>(null);
+
+    const [orderStats, setOrderStats] = useState<OrderStats | null>(stats);
 
     useEffect(() => {
         setCommandes(commandesInitiales);
@@ -85,7 +81,27 @@ export default function OrdersPage({ commandesInitiales }: OrdersProps) {
 
         setLoadingPage(true);
         try {
-            const res = await getAllOrders(page, commandes?.size ?? 10);
+            const startStr = dates?.start
+                ? new Date(dates.start.year, dates.start.month - 1, dates.start.day)
+                    .toISOString()
+                    .split("T")[0]
+                : null;
+
+            const endStr = dates?.end
+                ? new Date(dates.end.year, dates.end.month - 1, dates.end.day)
+                    .toISOString()
+                    .split("T")[0]
+                : null;
+
+            const res = await getAllOrders(
+                page,
+                commandes?.size ?? 10,
+                selectedRestaurantId,
+                startStr,
+                endStr
+            );
+
+
             if (res) {
                 setCommandes(res);
                 setCurrentPage(res.number);
@@ -106,23 +122,102 @@ export default function OrdersPage({ commandesInitiales }: OrdersProps) {
         return counts;
     }, [commandes]);
 
+    // 🔹 Gère le changement de date
+    const handleDateChange = async (value: RangeValue<CalendarDate>) => {
+        setDates(value);
+        console.log("Les valeurs de dates: " + value.start + " | " + value.end)
+
+        const startStr = value?.start
+            ? new Date(value.start.year, value.start.month - 1, value.start.day).toISOString().split("T")[0]
+            : null;
+        const endStr = value?.end
+            ? new Date(value.end.year, value.end.month - 1, value.end.day).toISOString().split("T")[0]
+            : null;
+
+        const res = await getAllOrders(0, commandes?.size ?? 10, selectedRestaurantId, startStr, endStr);
+        const statsRes = await getOrdersStats(selectedRestaurantId, startStr, endStr);
+        setCommandes(res);
+        setCurrentPage(res?.number ?? 0);
+        setOrderStats(statsRes);
+    };
+
+    // 🔹 Gère le changement de restaurant
+    const handleChangeRestaurant = async (restaurantId: string) => {
+        setSelectedRestaurantId(restaurantId);
+
+        const startStr = dates?.start
+            ? new Date(dates.start.year, dates.start.month - 1, dates.start.day).toISOString().split("T")[0]
+            : null;
+        const endStr = dates?.end
+            ? new Date(dates.end.year, dates.end.month - 1, dates.end.day).toISOString().split("T")[0]
+            : null;
+
+        const res = await getAllOrders(0, 10, restaurantId, startStr, endStr);
+        console.log(res)
+        const statsRes = await getOrdersStats(restaurantId, startStr, endStr);
+
+        setOrderStats(statsRes);
+        setCommandes(res);
+        setCurrentPage(res?.number ?? 0);
+    };
+
+    const statItems: { key: keyof OrderStats; label: string }[] = [
+        { key: "total", label: "TOUTES" },
+        { key: "pending", label: "EN COURS" },
+        { key: "completed", label: "ACCEPTEE" },
+        { key: "cancelled", label: "ANNULEE" }
+    ];    
+
     return (
         <div className="p-2 w-full max-w-7xl mx-auto">
-            {/* STATISTICS */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                {["TOUTES", "PENDING", "COMPLETED", "CANCELLED"].map((label) => (
-                    <div
-                        key={label}
-                        className={`p-3 rounded-lg border-l-4 shadow-sm flex flex-col items-center justify-center ${statusColor(label)}`}
-                    >
-                        <div className="text-2xl font-bold">{statusBuckets[label] ?? 0}</div>
-                        <div className="text-xs text-gray-700 mt-1 truncate">{label.replaceAll("_", " ")}</div>
-                        <span className="text-sm mt-1">
-                            {new Intl.NumberFormat("fr-FR").format(statusTotals[label] ?? 0)} Fcfa
-                        </span>
+            <div className="w-full bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 mb-2 sm:p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+                    {/* Filtre période */}
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm font-semibold font-medium text-gray-700">Rechercher par période</label>
+                        <DateRangePicker
+                            aria-label="Période"
+                            className="w-full"
+                            onChange={(value) => handleDateChange(value as RangeValue<CalendarDate>)}
+                        />
                     </div>
-                ))}
+
+                    {/* Filtre restaurant */}
+                    <div className="flex flex-col gap-2">
+                        <label className="text-sm font-semibold font-medium text-gray-700">Sélectionnez un restaurant</label>
+                        <SelectField
+                            options={restaurants}
+                            optionLabel="nomEtablissement"
+                            optionValue="id"
+                            label="nomEtablissement"
+                            setValue={handleChangeRestaurant}
+                        />
+                    </div>
+                </div>
             </div>
+
+            {/* STATISTICS */}
+            {orderStats && (
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                    {
+                    statItems.map(({ key, label }) => {
+                        const stat = orderStats[key];
+
+                        return (
+                            <div
+                                key={label}
+                                className={`p-3 rounded-lg border-l-4 shadow-sm flex flex-col items-center justify-center ${statusColor(key.toUpperCase())}`}
+                            >
+                                <div className="text-2xl font-bold">{stat?.nbre ?? 0}</div>
+                                <div className="text-xs text-gray-700 mt-1 truncate">{label}</div>
+                                <span className="text-sm mt-1">
+                                    {new Intl.NumberFormat("fr-FR").format(stat?.amount ?? 0)} Fcfa
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
 
             {/* LIST */}
             <div className="space-y-4">
@@ -223,29 +318,6 @@ export default function OrdersPage({ commandesInitiales }: OrdersProps) {
                                 <div className={`px-2 py-1 rounded text-xs font-medium border ${statusColor(detailOrder.orderState)}`}>
                                     {detailOrder.orderState}
                                 </div>
-                                {detailOrder.orderState === "PENDING" && (
-                                    <button
-                                        onClick={async () => {
-                                            if (!detailOrder) return;
-                                            try {
-                                                const updated = await accepterCommande(detailOrder.id);
-                                                if (updated) {
-                                                    setCommandes((prev) => {
-                                                        if (!prev) return prev;
-                                                        const newContent = prev.content.map((c) => (c.id === updated.id ? updated : c));
-                                                        return { ...prev, content: newContent };
-                                                    });
-                                                    setDetailOrder(updated);
-                                                }
-                                            } catch (err) {
-                                                console.error("Erreur lors de l'acceptation :", err);
-                                            }
-                                        }}
-                                        className="px-2 sm:px-3 py-1 text-xs sm:text-sm font-semibold rounded-md bg-green-600 text-white hover:bg-green-700 transition"
-                                    >
-                                        Accepter
-                                    </button>
-                                )}
                                 <button onClick={closeDetail} className="px-2 sm:px-3 py-1 text-xs sm:text-sm text-gray-600 rounded-md border">
                                     Fermer
                                 </button>

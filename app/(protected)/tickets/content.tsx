@@ -18,7 +18,7 @@ interface ContentProps {
 export default function Content({ initialData, restaurants }: ContentProps) {
     const { columns, renderCell, data, handlePageChange, handleDateChange, currentPage, isLoading, handleChangeRestaurant } = useContentCtx({ initialData, restaurants });
     return (
-        <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">
+        <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">   
             <div className="flex items-center justify-between">
                 <h1 className={title({ size: 'h3', class: 'text-primary' })}>Les tickets</h1>
             </div>
