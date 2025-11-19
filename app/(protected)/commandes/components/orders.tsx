@@ -15,7 +15,6 @@ type OrdersProps = {
 
 export default function OrdersPage({ commandesInitiales, restaurants, stats }: OrdersProps) {
     const [commandes, setCommandes] = useState<PageResponse<Order> | null>(commandesInitiales);
-    const [selectedCategory, setSelectedCategory] = useState<string>("TOUTES");
     const [currentPage, setCurrentPage] = useState<number>(commandesInitiales?.number ?? 0);
 
     const [detailOrder, setDetailOrder] = useState<Order | null>(null);
@@ -32,23 +31,6 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
         setCommandes(commandesInitiales);
         setCurrentPage(commandesInitiales?.number ?? 0);
     }, [commandesInitiales]);
-
-    const filtered = useMemo(() => {
-        if (!commandes) return [];
-        if (selectedCategory === "TOUTES") return commandes.content;
-        return commandes.content.filter(cmd => (cmd.orderState ?? "").toUpperCase() === selectedCategory);
-    }, [commandes, selectedCategory]);
-
-    const statusTotals = useMemo(() => {
-        const totals: Record<string, number> = { TOUTES: 0 };
-        (commandes?.content ?? []).forEach(c => {
-            const amount = c.totalAmount ?? 0;
-            totals["TOUTES"] += amount;
-            const status = c.orderState ?? "UNKNOWN";
-            totals[status] = (totals[status] ?? 0) + amount;
-        });
-        return totals;
-    }, [commandes]);
 
 
     const statusColor = (status: string) => {
@@ -93,15 +75,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                     .split("T")[0]
                 : null;
 
-            const res = await getAllOrders(
-                page,
-                commandes?.size ?? 10,
-                selectedRestaurantId,
-                startStr,
-                endStr
-            );
-
-
+            const res = await getAllOrders(page, 10, selectedRestaurantId, startStr, endStr);
             if (res) {
                 setCommandes(res);
                 setCurrentPage(res.number);
@@ -110,17 +84,6 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
             setLoadingPage(false);
         }
     };
-
-    const statusBuckets = useMemo(() => {
-        const content = commandes?.content ?? [];
-        const counts: Record<string, number> = {};
-        counts["TOUTES"] = content.length;
-        content.forEach((c) => {
-            const s = c.orderState ?? "UNKNOWN";
-            counts[s] = (counts[s] ?? 0) + 1;
-        });
-        return counts;
-    }, [commandes]);
 
     // 🔹 Gère le changement de date
     const handleDateChange = async (value: RangeValue<CalendarDate>) => {
@@ -134,7 +97,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
             ? new Date(value.end.year, value.end.month - 1, value.end.day).toISOString().split("T")[0]
             : null;
 
-        const res = await getAllOrders(0, commandes?.size ?? 10, selectedRestaurantId, startStr, endStr);
+        const res = await getAllOrders(0, 10, selectedRestaurantId, startStr, endStr);
         const statsRes = await getOrdersStats(selectedRestaurantId, startStr, endStr);
         setCommandes(res);
         setCurrentPage(res?.number ?? 0);
@@ -144,16 +107,14 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
     // 🔹 Gère le changement de restaurant
     const handleChangeRestaurant = async (restaurantId: string) => {
         setSelectedRestaurantId(restaurantId);
-
         const startStr = dates?.start
             ? new Date(dates.start.year, dates.start.month - 1, dates.start.day).toISOString().split("T")[0]
             : null;
         const endStr = dates?.end
             ? new Date(dates.end.year, dates.end.month - 1, dates.end.day).toISOString().split("T")[0]
             : null;
-
+            
         const res = await getAllOrders(0, 10, restaurantId, startStr, endStr);
-        console.log(res)
         const statsRes = await getOrdersStats(restaurantId, startStr, endStr);
 
         setOrderStats(statsRes);
@@ -222,8 +183,8 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
             {/* LIST */}
             <div className="space-y-4">
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-                    {filtered.map((cmd) => (
-                        <article key={cmd.id} className={`bg-white rounded-lg shadow-sm border-l-4 ${statusColor(cmd.orderState)} overflow-hidden w-full`}>
+                    {commandes?.content?.map((cmd) => (
+                        <article key={cmd.id} className={`bg-white rounded-lg shadow-sm border ${statusColor(cmd.orderState)} overflow-hidden w-full`}>
                             <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-wrap">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-3">
