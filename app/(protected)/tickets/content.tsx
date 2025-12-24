@@ -1,148 +1,181 @@
 'use client';
 
+import React from 'react';
 import useContentCtx from './useContentCtx';
 import { PaginatedResponse } from '@/types';
 import { Restaurant } from '@/types/models';
-import { title } from '@/components/primitives';
 import { BonLivraison } from '@/types/bon-livraison.model';
+import { DateRangePicker, RangeValue, CalendarDate } from '@heroui/react';
 import { SelectField } from '@/components/commons/form/select-field';
-import { Calendar, Cherry, CircleFadingPlus, Home, SquareMenu, ToggleRight, User } from 'lucide-react';
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, RangeValue, CalendarDate, DateRangePicker } from '@heroui/react';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 
 interface ContentProps {
     initialData: PaginatedResponse<BonLivraison> | null;
-    restaurants: Restaurant[]
+    restaurants: Restaurant[];
 }
 
 export default function Content({ initialData, restaurants }: ContentProps) {
-    const { columns, renderCell, data, handlePageChange, handleDateChange, currentPage, isLoading, handleChangeRestaurant } = useContentCtx({ initialData, restaurants });
+    const {
+        data,
+        columns,
+        renderCell,
+        handleDateChange,
+        handleChangeRestaurant,
+        handlePageChange,
+        currentPage,
+    } = useContentCtx({ initialData, restaurants });
+
     return (
-        <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">   
-            <div className="flex items-center justify-between">
-                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Les tickets</h1>
-            </div>
-            <div className="w-full bg-white border border-gray-200 shadow-sm rounded-md p-4 sm:p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
-                    {/* Filtre période */}
-                    <div className="flex flex-col gap-1">
-                        <label className="text-sm font-semibold font-medium text-gray-700">Rechercher par période</label>
-                        <DateRangePicker
-                            aria-label="Période"
-                            className="w-full"
-                            onChange={(value) => handleDateChange(value as RangeValue<CalendarDate>)}
-                        />
-                    </div>
+        <section className="flex-1 flex flex-col">
 
-                    {/* Filtre restaurant */}
-                    <div className="flex flex-col gap-2">
-                        <label className="text-sm font-semibold font-medium text-gray-700">Sélectionnez un restaurant</label>
-                        <SelectField
-                            options={restaurants}
-                            optionLabel="nomEtablissement"
-                            optionValue="nomEtablissement"
-                            label="nomEtablissement"
-                            setValue={handleChangeRestaurant}
-                        />
+            {/* Top bar */}
+            <header className="h-16 flex items-center justify-between px-6 border-b bg-white">
+                <div>
+                    <h1 className="text-lg font-semibold">Mes tickets</h1>
+                    <p className="text-xs text-gray-400">
+                        Système de suivi des tickets de livraison
+                    </p>
+                </div>
+
+                <button className="px-4 py-2 rounded-full bg-red-500 text-white text-sm">
+                    Insérer
+                </button>
+            </header>
+
+            <div className="p-6 space-y-6">
+
+                {/* Stats cards */}
+                <div className="grid grid-cols-4 gap-4">
+                    <div className="bg-[#ffb300] rounded-xl p-4 text-white">
+                        <p className="text-xs opacity-80">Revenu Total</p>
+                        <p className="text-2xl font-semibold">—</p>
+                    </div>
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <p className="text-xs text-gray-500">Total Tickets</p>
+                        <p className="text-2xl font-semibold">
+                            {data?.totalElements ?? 0}
+                        </p>
+                    </div>
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <p className="text-xs text-gray-500">Livreurs</p>
+                        <p className="text-2xl font-semibold">—</p>
+                    </div>
+                    <div className="bg-white rounded-xl p-4 shadow-sm">
+                        <p className="text-xs text-gray-500">Partenaires</p>
+                        <p className="text-2xl font-semibold">—</p>
                     </div>
                 </div>
-            </div>
 
-            <div className="w-full overflow-x-auto rounded-md border border-gray-200 shadow-sm bg-white">
-                <Table
-                    aria-label="Table des bons de livraison"
-                    classNames={{
-                        wrapper: "min-w-full",
-                        th: "text-xs sm:text-sm font-bold uppercase tracking-wide text-white bg-red-600 border border-red-700 first:rounded-tl-md last:rounded-tr-md",
-                        td: "text-sm text-gray-700 py-1.5 px-3 sm:py-1.5 sm:px-4 truncate border border-gray-200",
-                        tr: "hover:bg-red-50 data-[selected=true]:bg-red-100 transition-colors duration-150",
-                    }}
-                    isHeaderSticky
-                    removeWrapper
-                    selectionMode="single"
-                    color="primary"
-                >
-                    <TableHeader columns={columns}>
-                        {(column) => (
-                            <TableColumn
-                                key={column.uid}
-                                align={column.uid === 'actions' ? 'center' : 'start'}
-                                className="whitespace-nowrap border border-red-700"
-                            >
-                                <div className="flex items-center gap-2">
-                                    {column.uid === 'reference' ? (
-                                        <CircleFadingPlus size={14} />
-                                    ) : column.uid === 'date' ? (
-                                        <Calendar size={14} />
-                                    ) : column.uid === 'livreur' ? (
-                                        <User size={14} />
-                                    ) : column.uid === 'restaurant' ? (
-                                        <Home size={14} />
-                                    ) : column.uid === 'coutLivraison' ? (
-                                        <Cherry size={14} />
-                                    ) : column.uid === 'coutCommande' ? (
-                                        <SquareMenu size={14} />
-                                    ) : column.uid === 'statut' ? (
-                                        <ToggleRight size={14} />
-                                    ) : null}
-                                    <span>{column.name}</span>
-                                </div>
-                            </TableColumn>
-                        )}
-                    </TableHeader>
+                {/* Filters */}
+                <div className="bg-white rounded-xl shadow-sm p-4 space-y-4 text-xs">
 
-                    <TableBody
-                        items={data?.content ?? []}
-                        emptyContent={
-                            <EmptyDataTable
-                                title="Aucun Bon de Livraison Trouvé"
-                                message="Aucune bon de Livraison ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
+                    <div className="flex gap-4">
+                        <div className="flex-1">
+                            <span className="block mb-1 text-gray-500">Filtrer par Restaurant</span>
+                            <SelectField
+                                options={restaurants}
+                                optionLabel="nomEtablissement"
+                                optionValue="nomEtablissement"
+                                label="Restaurant"
+                                setValue={handleChangeRestaurant}
                             />
-                        }
-                    >
-                        {(item) => (
-                            <TableRow
-                                key={item.commandeId}
-                                className="cursor-pointer even:bg-gray-50 hover:bg-red-50 data-[selected=true]:bg-red-100 data-[selected=true]:text-white transition-all duration-100"
+                        </div>
+
+                        <div className="flex-1">
+                            <span className="block mb-1 text-gray-500">Filtrer par Date</span>
+                            <DateRangePicker
+                                aria-label="Période"
+                                onChange={(v) =>
+                                    handleDateChange(v as RangeValue<CalendarDate>)
+                                }
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                        <span className="text-gray-500">
+                            Total : {data?.totalElements ?? 0} ticket(s)
+                        </span>
+
+                        <div className="space-x-2">
+                            <button className="px-4 py-1 rounded-full border border-green-500 text-green-600">
+                                Enregistrer
+                            </button>
+                            <button className="px-4 py-1 rounded-full border border-red-400 text-red-500">
+                                Annuler
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Table */}
+                <div className="bg-white rounded-xl shadow-sm overflow-x-auto">
+                    <table className="w-full text-xs">
+                        <thead className="bg-gray-50 text-gray-500">
+                            <tr>
+                                {columns.map(col => (
+                                    <th key={col.uid} className="text-left px-4 py-2">
+                                        {col.name}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {!data?.content?.length && (
+                                <tr>
+                                    <td colSpan={columns.length}>
+                                        <EmptyDataTable
+                                            title="Aucun Bon de Livraison"
+                                            message="Aucun ticket ne correspond à vos critères."
+                                        />
+                                    </td>
+                                </tr>
+                            )}
+
+                            {data?.content?.map(item => (
+                                <tr
+                                    key={item.commandeId}
+                                    className="border-t hover:bg-[#ffeec2] transition"
+                                >
+                                    {columns.map(col => (
+                                        <td
+                                            key={col.uid}
+                                            className="px-4 py-2 whitespace-nowrap"
+                                        >
+                                            {renderCell(item, col.uid)}
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    {/* Pagination */}
+                    <div className="flex justify-between items-center px-4 py-3 border-t text-xs">
+                        <span>
+                            Page {currentPage} / {data?.totalPages ?? 1}
+                        </span>
+
+                        <div className="space-x-2">
+                            <button
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage <= 1}
+                                className="px-3 py-1 border rounded-full"
                             >
-                                {(columnKey) => (
-                                    <TableCell className="truncate whitespace-nowrap align-middle max-w-[180px] sm:max-w-[280px] border border-gray-200">
-                                        {renderCell(item, columnKey) as React.ReactNode}
-                                    </TableCell>
-                                )}
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-
-
-            <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 sm:pt-6">
-                {/* Info de page (facultatif, mais UX ++ sur mobile) */}
-                <span className="text-sm text-gray-600 text-center sm:text-left whitespace-nowrap">
-                    Page <span className="font-semibold text-gray-800">{currentPage ?? 1}</span> /{" "}
-                    <span className="font-semibold text-gray-800">{data?.totalPages ?? 1}</span>
-                </span>
-
-
-                {/* Pagination principale */}
-                <div className="flex justify-center sm:justify-end w-full">
-                    <Pagination
-                        total={data?.totalPages ?? 1}
-                        page={currentPage}
-                        onChange={handlePageChange}
-                        showControls
-                        size="md"
-                        color="primary"
-                        classNames={{
-                            item: "rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-red-50 hover:border-red-400 transition-colors duration-150",
-                            cursor: "rounded-md bg-red-600 text-white border-red-600 hover:bg-red-700",
-                            next: "rounded-md bg-gray-50 hover:bg-gray-100",
-                            prev: "rounded-md bg-gray-50 hover:bg-gray-100",
-                        }}
-                    />
+                                Précédent
+                            </button>
+                            <button
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage >= (data?.totalPages ?? 1)}
+                                className="px-3 py-1 border rounded-full"
+                            >
+                                Suivant
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
     );
 }
