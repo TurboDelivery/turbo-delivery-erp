@@ -36,7 +36,7 @@ const menuData: IMenuData[] = [
         title: 'Trafic',
         children: [
             { icon: IconMap, title: 'Localisation des Turboys (Maps)', path: '/trafic' },
-            { icon: SquareUser, title: "File d'attente", path: '/trafic/file-attente' },
+            { icon: SquareUser, title: "File d'attente", path: '/file-attente' },
         ],
     },
     { icon: ShoppingCartIcon, title: 'Commandes / Client', path: '/commandes' },

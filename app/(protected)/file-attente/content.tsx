@@ -1,0 +1,112 @@
+'use client';
+
+import { CardHeader } from '@/components/commons/card-header';
+import { PageWrapper } from '@/components/commons/page-wrapper';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import React, { useEffect, useState } from 'react';
+import RestaurantCards from './restaurant-card/restaurant-card';
+import { RestaurantsTab } from './restaurant-tab/restaurant-tab';
+import { Search, Map } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { Input } from "@heroui/react";
+import { useFileAttenteController } from '@/components/dashboard/trafic/file-attente/file-attente.controller';
+import { fetchStatistiqueFilleAttente } from '@/src/actions/file-attente.actions';
+
+export default function RestaurantContent() {
+    const { fileAttentes, refreshData, onSelectFileAttente, selectedData, setFileAttentSeled, fileAttenteSelected } = useFileAttenteController();
+    const [statistiqueFileAttentes, setStatistiqueFileAttentes] = useState<any>(null);
+
+    const loadData = async () => {
+        const data = await fetchStatistiqueFilleAttente();
+        setStatistiqueFileAttentes(data);
+    };
+
+    useEffect(() => {
+        loadData(); // initial load
+        const interval = setInterval(() => {
+            loadData(); // refresh every 30s
+        }, 30000);
+
+        return () => clearInterval(interval); // cleanup on unmount
+    }, []);
+
+    return (
+        <PageWrapper>
+            <div className="space-y-4">
+                <div className="pb-2">
+                    <div className="h1 text-3xl font-[1000] text-red-500">File d'attente</div>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 w-full">
+                    {/* Recherche */}
+                    <div className="relative w-full flex-1">
+                        <Input
+                            startContent={<Search size={20} />}
+                            placeholder="Rechercher un coursier ou un restaurant"
+                            className="w-full h-11"
+                            classNames={{
+                                inputWrapper: "h-11",
+                                input: "h-11",
+                            }}
+                        />
+                    </div>
+
+                    {/* Maps */}
+                    <Link href="/trafic" className="flex-1">
+                        <Badge className="w-full h-11 rounded-lg cursor-pointer flex items-center justify-center">
+                            <Map className="mr-2" size={20} /> Maps
+                        </Badge>
+                    </Link>
+                </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 w-full">
+                <Card className="bg-slate-200 box-shadow text-center p-4 w-full md:w-1/2 lg:w-1/3">
+                    <div className="text-md mt-2">
+                        {statistiqueFileAttentes ? statistiqueFileAttentes?.coursier : 0} Turboys
+                    </div>
+
+                    <Link href="/delivery-men" className="mt-8 block">
+                        <Button variant="destructive" className="w-full text-md hover:bg-red-300">
+                            Voir la liste
+                        </Button>
+                    </Link>
+                </Card>
+                <Card className="bg-slate-200 box-shadow text-center p-4 w-full md:w-1/2 lg:w-1/3">
+                    <div className="text-md mt-2">{statistiqueFileAttentes ? statistiqueFileAttentes?.restaurant : 0 + " "} Partenaires</div>
+                    <Link href="/restaurants" className="mt-8 block">
+                        <Button variant="destructive" className="w-full text-md hover:bg-red-300">
+                            Voir la liste
+                        </Button>
+                    </Link>
+                </Card>
+                <Card className="bg-slate-200 box-shadow text-center p-4 w-full md:w-1/2 lg:w-1/3">
+                    <div className="text-md mt-2">{statistiqueFileAttentes ? statistiqueFileAttentes?.commandeEnAttente : 0 + " "} commande(s) en attente</div>
+                    <Link href="/external_delivery" className="mt-8 block">
+                        <Button variant="destructive" className="w-full text-md hover:bg-red-300">
+                            Voir la liste
+                        </Button>
+                    </Link>
+                </Card>
+                <Card className="bg-slate-200 box-shadow text-center p-4 w-full md:w-1/2 lg:w-1/3">
+                    <div className="text-md mt-2">{statistiqueFileAttentes ? statistiqueFileAttentes?.commandeTermine : 0 + " "} commande(s) terminée(s)</div>
+                    <Link href="/ticktes-terminers/commande-terminer" className="mt-8 block">
+                        <Button variant="destructive" className="w-full text-md hover:bg-red-300">
+                            Voir la liste
+                        </Button>
+                    </Link>
+                </Card>
+            </div>
+
+            <div className="bg-slate-200 box-shadow rounded-lg p-4">
+                <RestaurantCards fileAttentes={fileAttentes} refreshData={refreshData}
+                    setFileAttentSeled={setFileAttentSeled}
+                    onSelectFileAttente={onSelectFileAttente}
+                    fileAttenteSelected={fileAttenteSelected}
+                />
+                <RestaurantsTab fileAttentes={fileAttentes} accesRapideData={selectedData} fileAttenteSelected={fileAttenteSelected} onSelectFileAttente={onSelectFileAttente} />
+            </div>
+        </PageWrapper>
+    );
+}
