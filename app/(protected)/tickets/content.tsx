@@ -75,8 +75,8 @@ export default function Content({ initialData, restaurants }: ContentProps) {
                             <SelectField
                                 options={restaurants}
                                 optionLabel="nomEtablissement"
-                                optionValue="nomEtablissement"
-                                label="Restaurant"
+                                optionValue="id"
+                                label="nomEtablissement"
                                 setValue={handleChangeRestaurant}
                             />
                         </div>
