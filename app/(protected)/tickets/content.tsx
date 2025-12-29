@@ -25,7 +25,7 @@ interface LivreurStat {
     tickets: Ticket[];
 }
 
-const Content = () => {
+export default function Content() {
     const [activeTab, setActiveTab] = useState('tous');
     const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
     const [clipboard, setClipboard] = useState<Ticket[]>([]);
@@ -801,5 +801,3 @@ const Content = () => {
         </div>
     );
 };
-
-export default Content;
