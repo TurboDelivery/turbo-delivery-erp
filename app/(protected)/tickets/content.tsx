@@ -1,14 +1,18 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
-import { Search, Package, Ticket, ChevronDown, FileText, Clipboard, X, File, Trash, Trash2, Scissors, Copy, CheckSquare, Plus, Pen } from 'lucide-react';
 import Select from 'react-select';
+import React, { useState, useMemo } from 'react';
+import { Restaurant, DeliveryMan } from '@/types/models';
+import { Search, Package, Ticket, ChevronDown, FileText, Clipboard, X, File, Trash, Trash2, Scissors, Copy, CheckSquare, Plus, Pen } from 'lucide-react';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 
 interface Ticket {
     id: string;
+    code: string;
+    livreurId: string;
     livreur: string;
+    restaurantId: string;
     restaurant: string;
     montantCommande: string;
     montantLivraison: string;
@@ -27,7 +31,12 @@ interface LivreurStat {
     tickets: Ticket[];
 }
 
-export default function Content() {
+interface ContentProps {
+    restaurants: Restaurant[];
+    livreurs: DeliveryMan[];
+}
+
+export default function Content({ restaurants, livreurs }: ContentProps) {
     const [insertCount, setInsertCount] = useState<number>(1);
 
     const [activeTab, setActiveTab] = useState('tous');
@@ -43,26 +52,25 @@ export default function Content() {
 
     const [exportOpen, setExportOpen] = useState(false);
 
-
     const [tickets, setTickets] = useState<Ticket[]>([
-        { id: '0130346', livreur: 'ATANDA GANIOU', restaurant: 'CHICKEN NATION', montantCommande: '1,500 CFA', montantLivraison: '1,000 CFA', coutLivraison: '500 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '0139981', livreur: 'ATANDA GANIOU', restaurant: 'HOT BAYTS', montantCommande: '2,000 CFA', montantLivraison: '2,000 CFA', coutLivraison: '1,000 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '0139146', livreur: 'ATANDA GANIOU', restaurant: 'LE PETIT CAFÉ', montantCommande: '1,500 CFA', montantLivraison: '1,500 CFA', coutLivraison: '750 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '0139148', livreur: 'ATANDA GANIOU', restaurant: 'LE PETIT CAFÉ', montantCommande: '1,000 CFA', montantLivraison: '1,000 CFA', coutLivraison: '500 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '0139143', livreur: 'ATANDA GANIOU', restaurant: 'LE PETIT CAFÉ', montantCommande: '1,000 CFA', montantLivraison: '1,000 CFA', coutLivraison: '500 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '1375694', livreur: 'MAGLII CONSETANT', restaurant: 'AGHA', montantCommande: '1,500 CFA', montantLivraison: '1,500 CFA', coutLivraison: '750 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '1375413', livreur: 'MAGLII CONSETANT', restaurant: 'AGHA', montantCommande: '1,000 CFA', montantLivraison: '1,000 CFA', coutLivraison: '500 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '1375415', livreur: 'MAGLII CONSETANT', restaurant: 'AGHA', montantCommande: '5,000 CFA', montantLivraison: '5,000 CFA', coutLivraison: '2,500 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '2234561', livreur: 'AKA Jean', restaurant: 'PIZZA PALACE', montantCommande: '3,000 CFA', montantLivraison: '3,000 CFA', coutLivraison: '1,500 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '2234562', livreur: 'AKA Jean', restaurant: 'BURGER KING', montantCommande: '2,500 CFA', montantLivraison: '2,500 CFA', coutLivraison: '1,250 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '3345671', livreur: 'YANO FRANCK', restaurant: 'SUSHI BAR', montantCommande: '4,000 CFA', montantLivraison: '4,000 CFA', coutLivraison: '2,000 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '3345672', livreur: 'YANO FRANCK', restaurant: 'TACO BELL', montantCommande: '1,800 CFA', montantLivraison: '1,800 CFA', coutLivraison: '900 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '3345673', livreur: 'YANO FRANCK', restaurant: 'PASTA HOUSE', montantCommande: '2,200 CFA', montantLivraison: '2,200 CFA', coutLivraison: '1,100 CFA', date: '2025-01-12', heure: '00:00:00' },
-        { id: '3345674', livreur: 'YANO FRANCK', restaurant: 'STEAK HOUSE', montantCommande: '3,500 CFA', montantLivraison: '3,500 CFA', coutLivraison: '1,750 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '0130346', code: 'TCK-0130346', livreurId: 'L001', livreur: 'ATANDA GANIOU', restaurantId: 'R001', restaurant: 'CHICKEN NATION', montantCommande: '1,500 CFA', montantLivraison: '1,000 CFA', coutLivraison: '500 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '0139981', code: 'TCK-0139981', livreurId: 'L001', livreur: 'ATANDA GANIOU', restaurantId: 'R002', restaurant: 'HOT BAYTS', montantCommande: '2,000 CFA', montantLivraison: '2,000 CFA', coutLivraison: '1,000 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '0139146', code: 'TCK-0139146', livreurId: 'L001', livreur: 'ATANDA GANIOU', restaurantId: 'R003', restaurant: 'LE PETIT CAFÉ', montantCommande: '1,500 CFA', montantLivraison: '1,500 CFA', coutLivraison: '750 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '0139148', code: 'TCK-0139148', livreurId: 'L001', livreur: 'ATANDA GANIOU', restaurantId: 'R003', restaurant: 'LE PETIT CAFÉ', montantCommande: '1,000 CFA', montantLivraison: '1,000 CFA', coutLivraison: '500 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '0139143', code: 'TCK-0139143', livreurId: 'L001', livreur: 'ATANDA GANIOU', restaurantId: 'R003', restaurant: 'LE PETIT CAFÉ', montantCommande: '1,000 CFA', montantLivraison: '1,000 CFA', coutLivraison: '500 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '1375694', code: 'TCK-1375694', livreurId: 'L002', livreur: 'MAGLII CONSETANT', restaurantId: 'R004', restaurant: 'AGHA', montantCommande: '1,500 CFA', montantLivraison: '1,500 CFA', coutLivraison: '750 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '1375413', code: 'TCK-1375413', livreurId: 'L002', livreur: 'MAGLII CONSETANT', restaurantId: 'R004', restaurant: 'AGHA', montantCommande: '1,000 CFA', montantLivraison: '1,000 CFA', coutLivraison: '500 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '1375415', code: 'TCK-1375415', livreurId: 'L002', livreur: 'MAGLII CONSETANT', restaurantId: 'R004', restaurant: 'AGHA', montantCommande: '5,000 CFA', montantLivraison: '5,000 CFA', coutLivraison: '2,500 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '2234561', code: 'TCK-2234561', livreurId: 'L003', livreur: 'AKA Jean', restaurantId: 'R005', restaurant: 'PIZZA PALACE', montantCommande: '3,000 CFA', montantLivraison: '3,000 CFA', coutLivraison: '1,500 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '2234562', code: 'TCK-2234562', livreurId: 'L003', livreur: 'AKA Jean', restaurantId: 'R006', restaurant: 'BURGER KING', montantCommande: '2,500 CFA', montantLivraison: '2,500 CFA', coutLivraison: '1,250 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '3345671', code: 'TCK-3345671', livreurId: 'L004', livreur: 'YANO FRANCK', restaurantId: 'R007', restaurant: 'SUSHI BAR', montantCommande: '4,000 CFA', montantLivraison: '4,000 CFA', coutLivraison: '2,000 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '3345672', code: 'TCK-3345672', livreurId: 'L004', livreur: 'YANO FRANCK', restaurantId: 'R008', restaurant: 'TACO BELL', montantCommande: '1,800 CFA', montantLivraison: '1,800 CFA', coutLivraison: '900 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '3345673', code: 'TCK-3345673', livreurId: 'L004', livreur: 'YANO FRANCK', restaurantId: 'R009', restaurant: 'PASTA HOUSE', montantCommande: '2,200 CFA', montantLivraison: '2,200 CFA', coutLivraison: '1,100 CFA', date: '2025-01-12', heure: '00:00:00' },
+        { id: '3345674', code: 'TCK-3345674', livreurId: 'L004', livreur: 'YANO FRANCK', restaurantId: 'R010', restaurant: 'STEAK HOUSE', montantCommande: '3,500 CFA', montantLivraison: '3,500 CFA', coutLivraison: '1,750 CFA', date: '2025-01-12', heure: '00:00:00' },
     ]);
 
-    const livreurs = useMemo(() => [...new Set(tickets.map(t => t.livreur))], [tickets]);
-    const restaurants = useMemo(() => [...new Set(tickets.map(t => t.restaurant))], [tickets]);
+    const livreurList = useMemo(() => livreurs.map(l => ({ value: l.id, label:  `${l.prenoms} ${l.nom}` })), [restaurants]);
+    const restaurantList = useMemo(() => restaurants.map(r => ({ value: r.id, label: r.nomEtablissement })), [restaurants]);
 
     const filteredTickets = useMemo(() => {
         return tickets.filter(ticket => {
@@ -102,16 +110,6 @@ export default function Content() {
 
         return stats;
     }, [tickets]);
-
-    const livreurOptions = useMemo(
-        () => livreurs.map(l => ({ value: l, label: l })),
-        [livreurs]
-    );
-
-    const restaurantOptions = useMemo(
-        () => restaurants.map(r => ({ value: r, label: r })),
-        [restaurants]
-    );
 
     const filteredLivreurTickets = useMemo(() => {
         if (!selectedLivreur) return [];
@@ -158,25 +156,12 @@ export default function Content() {
         alert(`${selectedTickets.length} ligne(s) coupée(s)`);
     };
 
-    // const handlePaste = () => {
-    //     if (clipboard.length === 0) {
-    //         alert('Presse-papiers vide');
-    //         return;
-    //     }
-    //     const newTickets = clipboard.map(t => ({
-    //         ...t,
-    //         id: Math.random().toString(36).substr(2, 9).toUpperCase()
-    //     }));
-    //     setTickets([...newTickets, ...tickets]);
-    //     alert(`${clipboard.length} ligne(s) collée(s)`);
-    // };
-
     const handlePaste = () => {
         if (clipboard.length === 0) {
             alert('Presse-papiers vide');
             return;
         }
-    
+
         if (selectedRows.size === 0) {
             // Pas de sélection, on ajoute simplement les tickets copiés/coupés
             const newTickets = clipboard.map(t => ({
@@ -188,7 +173,7 @@ export default function Content() {
             alert(`${clipboard.length} ligne(s) collée(s)`);
             return;
         }
-    
+
         // Copier/coller dans les lignes sélectionnées
         setTickets(prev => prev.map(t => {
             if (selectedRows.has(t.id)) {
@@ -207,7 +192,7 @@ export default function Content() {
             }
             return t;
         }));
-    
+
         alert(`${clipboard.length} ligne(s) collée(s) dans les lignes sélectionnées`);
     };
 
@@ -382,64 +367,34 @@ export default function Content() {
     const handleInsert = () => {
         if (insertCount <= 0) return;
 
-        const newTickets: Ticket[] = Array.from({ length: insertCount }).map(() => ({
-            id: Math.random().toString(36).substr(2, 9).toUpperCase(),
-            livreur: '',
-            restaurant: '',
-            montantCommande: '',
-            montantLivraison: '',
-            coutLivraison: '',
-            date: new Date().toISOString().split('T')[0],
-            heure: new Date().toLocaleTimeString('fr-FR'),
-            isNew: true
-        }));
+        const newTickets: Ticket[] = Array.from({ length: insertCount }).map(() => {
+            const id = Array.from({ length: 9 }, () => Math.floor(Math.random() * 10)).join('');
+            return {
+                id,
+                code: `TCK-${id}`,
+                livreurId: '',
+                livreur: '',
+                restaurantId: '',
+                restaurant: '',
+                montantCommande: '',
+                montantLivraison: '',
+                coutLivraison: '',
+                date: new Date().toISOString().split('T')[0],
+                heure: new Date().toLocaleTimeString('fr-FR'),
+                isNew: true,
+                isEditing: true
+            };
+        });
 
         setTickets(prev => [...newTickets, ...prev]);
     };
 
-    const handleNewTicketChange = (id: string, field: keyof Ticket, value: string) => {
-        setTickets(prev =>
-            prev.map(t =>
-                t.id === id ? { ...t, [field]: value } : t
-            )
-        );
-    };
-
-    const handleSaveNewTicket = (id: string) => {
-        setTickets(prev =>
-            prev.map(t =>
-                t.id === id ? { ...t, isNew: false } : t
-            )
-        );
-    };
-
-    const handleCancelNewTicket = (id: string) => {
-        setTickets(prev => prev.filter(t => t.id !== id));
-    };
-
-    const handleEditRow = (id: string) => {
-        setTickets(prev =>
-            prev.map(t =>
-                t.id === id ? { ...t, isEditing: true } : t
-            )
-        );
-    };
-
-    const handleSaveRow = (id: string) => {
-        setTickets(prev =>
-            prev.map(t =>
-                t.id === id ? { ...t, isEditing: false } : t
-            )
-        );
-    };
-
-    const handleCancelEditRow = (id: string) => {
-        setTickets(prev =>
-            prev.map(t =>
-                t.id === id ? { ...t, isEditing: false } : t
-            )
-        );
-    };
+    const handleNewTicketChange = (id: string, field: keyof Ticket, value: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
+    const handleSaveNewTicket = (id: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, isNew: false } : t ));
+    const handleCancelNewTicket = (id: string) => setTickets(prev => prev.filter(t => t.id !== id));
+    const handleEditRow = (id: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, isEditing: true } : t));
+    const handleSaveRow = (id: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, isEditing: false } : t));
+    const handleCancelEditRow = (id: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, isEditing: false } : t));
 
     return (
         <div className="min-h-screen p-2">
@@ -461,7 +416,7 @@ export default function Content() {
                         min={1}
                         value={insertCount}
                         onChange={(e) => setInsertCount(Number(e.target.value))}
-                        className="w-14 px-2 py-1 text-sm text-center border border-gray-300 rounded-md outline-none focus:ring-1 focus:ring-red-500"
+                        className="w-14 px-2 py-0.5 text-sm text-center border border-gray-300 rounded-md outline-none focus:ring-1 focus:ring-red-500"
                     />
                     <button onClick={handleInsert} className="bg-green-500 text-white px-2 py-1 rounded flex items-center gap-1 text-xs hover:bg-green-600">
                         <Plus className="w-3 h-3" />
@@ -529,19 +484,17 @@ export default function Content() {
                                         className="w-full p-1.5 border border-gray-200 rounded-lg text-xs outline-none"
                                     >
                                         <option value="">Tous les livreurs</option>
-                                        {livreurs.map(l => <option key={l} value={l}>{l}</option>)}
+                                        {livreurs.map(l => (<option key={l.id} value={l.id}>{l.prenoms} {l.nom}</option>))}
                                     </select>
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-medium mb-1">Filtrer par Restaurant</label>
-                                    <select
-                                        value={filterRestaurant}
+                                    <select value={filterRestaurant}
                                         onChange={(e) => setFilterRestaurant(e.target.value)}
-                                        className="w-full p-1.5 border border-gray-200 rounded-lg text-xs outline-none"
-                                    >
+                                        className="w-full p-1.5 border border-gray-200 rounded-lg text-xs outline-none">
                                         <option value="">Tous les restaurants</option>
-                                        {restaurants.map(r => <option key={r} value={r}>{r}</option>)}
+                                        {restaurants.map(r => (<option key={r.id} value={r.id}>{r.nomEtablissement}</option>))}
                                     </select>
                                 </div>
 
@@ -591,18 +544,11 @@ export default function Content() {
                                         </thead>
                                         <tbody>
                                             {filteredTickets.map((ticket) => (
-                                                <tr
-                                                    key={ticket.id}
-                                                    className={`${selectedRows.has(ticket.id) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
+                                                <tr key={ticket.id} className={`${selectedRows.has(ticket.id) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                                                     {/* Checkbox */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 sticky left-0 bg-inherit z-10">
                                                         {!ticket.isNew && (
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={selectedRows.has(ticket.id)}
-                                                                onChange={() => handleRowSelect(ticket.id)}
-                                                                className="w-4 h-4"
-                                                            />
+                                                            <input type="checkbox" checked={selectedRows.has(ticket.id)} onChange={() => handleRowSelect(ticket.id)} className="w-4 h-4" />
                                                         )}
                                                     </td>
 
@@ -613,38 +559,23 @@ export default function Content() {
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                                                         {(ticket.isNew || ticket.isEditing) ? (
                                                             <Select
-                                                                options={livreurOptions}
-                                                                value={livreurOptions.find(o => o.value === ticket.livreur) ?? null}
-                                                                onChange={(option) =>
-                                                                    handleNewTicketChange(ticket.id, 'livreur', option?.value ?? '')
-                                                                }
-                                                                placeholder="Sélectionner un livreur"
-                                                                isClearable
-                                                                className="text-xs"
-                                                                classNamePrefix="react-select"
-                                                            />
-                                                        ) : (
-                                                            ticket.livreur
-                                                        )}
+                                                                options={livreurList} 
+                                                                value={livreurList.find(o => o.value === ticket.livreurId) ?? null}
+                                                                onChange={(option) => handleNewTicketChange(ticket.id, 'livreurId', option?.value ?? '')}
+                                                                placeholder="Sélectionner un livreur" isClearable className="text-xs" classNamePrefix="react-select" />                                                        
+                                                        ) : ( ticket.livreur ) }
                                                     </td>
 
                                                     {/* Restaurant */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                                                         {(ticket.isNew || ticket.isEditing) ? (
                                                             <Select
-                                                                options={restaurantOptions}
-                                                                value={restaurantOptions.find(o => o.value === ticket.restaurant) ?? null}
-                                                                onChange={(option) =>
-                                                                    handleNewTicketChange(ticket.id, 'restaurant', option?.value ?? '')
-                                                                }
-                                                                placeholder="Sélectionner un restaurant"
-                                                                isClearable
-                                                                className="text-xs"
-                                                                classNamePrefix="react-select"
-                                                            />
-                                                        ) : (
-                                                            ticket.restaurant
-                                                        )}
+                                                                options={restaurantList} // chaque option doit être { value: string, label: string }
+                                                                value={restaurantList.find(o => o.value === ticket.restaurantId) ?? null}
+                                                                onChange={(option) => handleNewTicketChange(ticket.id, 'restaurantId', option?.value ?? '') }
+                                                                placeholder="Sélectionner un restaurant" isClearable className="text-xs" classNamePrefix="react-select"
+                                                            />                                                        
+                                                        ) : ( ticket.restaurant ) }
                                                     </td>
 
                                                     {/* Montant Livraison */}
@@ -775,7 +706,7 @@ export default function Content() {
                                 className="w-full p-2 sm:p-3 border border-gray-200 rounded-lg text-xs sm:text-sm outline-none"
                             >
                                 <option value="">Tous les livreurs</option>
-                                {livreurs.map(l => <option key={l} value={l}>{l}</option>)}
+                                {livreurs.map(l => <option key={l.id} value={l.id}>{l.prenoms} {l.nom}</option>)}
                             </select>
                         </div>
 

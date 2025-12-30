@@ -27,7 +27,7 @@ const restaurantEndpoints = {
         method: 'GET',
     },
     getAlls: {
-        endpoint: BASE_URL,
+        endpoint: `/api/V1/turbo/restaurant/validated/opsmanager`,
         method: 'GET',
     },
     getAllValidated: {
@@ -91,7 +91,7 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
         const data = await apiClientHttp.request({
             endpoint: restaurantEndpoints.getAlls.endpoint,
             method: restaurantEndpoints.getAlls.method,
-            service: 'backend',
+            service: 'restaurant',
         });
         return data;
     } catch (error) {

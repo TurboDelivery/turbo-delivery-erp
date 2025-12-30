@@ -62,8 +62,9 @@ export interface Restaurant {
     };
     typeCommission: string;
     commission: number;
-
 }
+
+
 export interface Picture {
     id: string;
     status: number;
