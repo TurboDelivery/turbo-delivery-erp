@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Orders from "./components/orders";
 import { title } from "@/components/primitives";
 import { Restaurant, Order, PageResponse, OrderStats } from "@/types/models";

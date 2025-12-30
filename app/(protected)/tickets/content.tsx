@@ -158,17 +158,57 @@ export default function Content() {
         alert(`${selectedTickets.length} ligne(s) coupée(s)`);
     };
 
+    // const handlePaste = () => {
+    //     if (clipboard.length === 0) {
+    //         alert('Presse-papiers vide');
+    //         return;
+    //     }
+    //     const newTickets = clipboard.map(t => ({
+    //         ...t,
+    //         id: Math.random().toString(36).substr(2, 9).toUpperCase()
+    //     }));
+    //     setTickets([...newTickets, ...tickets]);
+    //     alert(`${clipboard.length} ligne(s) collée(s)`);
+    // };
+
     const handlePaste = () => {
         if (clipboard.length === 0) {
             alert('Presse-papiers vide');
             return;
         }
-        const newTickets = clipboard.map(t => ({
-            ...t,
-            id: Math.random().toString(36).substr(2, 9).toUpperCase()
+    
+        if (selectedRows.size === 0) {
+            // Pas de sélection, on ajoute simplement les tickets copiés/coupés
+            const newTickets = clipboard.map(t => ({
+                ...t,
+                id: Math.random().toString(36).substr(2, 9).toUpperCase(),
+                isNew: true // Pour rendre éditable
+            }));
+            setTickets([...newTickets, ...tickets]);
+            alert(`${clipboard.length} ligne(s) collée(s)`);
+            return;
+        }
+    
+        // Copier/coller dans les lignes sélectionnées
+        setTickets(prev => prev.map(t => {
+            if (selectedRows.has(t.id)) {
+                const copiedTicket = clipboard.shift(); // on prend la première ligne du clipboard
+                if (!copiedTicket) return t; // plus rien à coller
+                return {
+                    ...t,
+                    livreur: copiedTicket.livreur,
+                    restaurant: copiedTicket.restaurant,
+                    montantCommande: copiedTicket.montantCommande,
+                    montantLivraison: copiedTicket.montantLivraison,
+                    coutLivraison: copiedTicket.coutLivraison,
+                    date: copiedTicket.date,
+                    heure: copiedTicket.heure
+                };
+            }
+            return t;
         }));
-        setTickets([...newTickets, ...tickets]);
-        alert(`${clipboard.length} ligne(s) collée(s)`);
+    
+        alert(`${clipboard.length} ligne(s) collée(s) dans les lignes sélectionnées`);
     };
 
     const handleClearContent = () => {
@@ -609,7 +649,7 @@ export default function Content() {
 
                                                     {/* Montant Livraison */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                                        {ticket.isNew ? (
+                                                        {(ticket.isNew || ticket.isEditing) ? (
                                                             <input
                                                                 value={ticket.montantLivraison}
                                                                 onChange={(e) => handleNewTicketChange(ticket.id, 'montantLivraison', e.target.value)}
@@ -623,7 +663,7 @@ export default function Content() {
 
                                                     {/* Montant Commande */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                                        {ticket.isNew ? (
+                                                        {(ticket.isNew || ticket.isEditing) ? (
                                                             <input
                                                                 value={ticket.montantCommande}
                                                                 onChange={(e) => handleNewTicketChange(ticket.id, 'montantCommande', e.target.value)}
@@ -634,10 +674,10 @@ export default function Content() {
                                                             ticket.montantCommande
                                                         )}
                                                     </td>
-                                                    
+
                                                     {/* Coût Livraison */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                                        {ticket.isNew ? (
+                                                        {(ticket.isNew || ticket.isEditing) ? (
                                                             <input
                                                                 value={ticket.coutLivraison}
                                                                 onChange={(e) => handleNewTicketChange(ticket.id, 'coutLivraison', e.target.value)}
@@ -651,7 +691,7 @@ export default function Content() {
 
                                                     {/* Date */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                                        {ticket.isNew ? (
+                                                        {(ticket.isNew || ticket.isEditing) ? (
                                                             <input
                                                                 type="date"
                                                                 value={ticket.date}
@@ -665,7 +705,7 @@ export default function Content() {
 
                                                     {/* Heure */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                                        {ticket.isNew ? (
+                                                        {(ticket.isNew || ticket.isEditing) ? (
                                                             <input
                                                                 type="time"
                                                                 value={ticket.heure}
@@ -676,6 +716,7 @@ export default function Content() {
                                                             ticket.heure
                                                         )}
                                                     </td>
+
 
                                                     {/* Actions */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 whitespace-nowrap">

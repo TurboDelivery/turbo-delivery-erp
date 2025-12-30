@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import Content from './content';
 import React, { Suspense } from 'react';
 import Loading from '@/components/layouts/loading';
