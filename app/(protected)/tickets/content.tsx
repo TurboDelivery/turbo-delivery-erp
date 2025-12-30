@@ -539,12 +539,12 @@ export default function Content() {
                                                         checked={selectedRows.size === filteredTickets.length && filteredTickets.length > 0} onChange={handleSelectAll}
                                                         className="w-4 h-4" />
                                                 </th>
-                                                <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Numéro</th>
+                                                <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Code Check</th>
                                                 <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Livreur</th>
-                                                <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Restaurant</th>
-                                                <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant Commande</th>
-                                                <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant Livraison</th>
-                                                <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Coût Livraison</th>
+                                                <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Partner</th>
+                                                <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant de Livraison</th>
+                                                <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant de Commande</th>
+                                                <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Commission</th>
                                                 <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Date</th>
                                                 <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Heure</th>
                                             </tr>
@@ -607,20 +607,6 @@ export default function Content() {
                                                         )}
                                                     </td>
 
-                                                    {/* Montant Commande */}
-                                                    <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                                        {ticket.isNew ? (
-                                                            <input
-                                                                value={ticket.montantCommande}
-                                                                onChange={(e) => handleNewTicketChange(ticket.id, 'montantCommande', e.target.value)}
-                                                                className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
-                                                                placeholder="0 CFA"
-                                                            />
-                                                        ) : (
-                                                            ticket.montantCommande
-                                                        )}
-                                                    </td>
-
                                                     {/* Montant Livraison */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                                                         {ticket.isNew ? (
@@ -635,6 +621,20 @@ export default function Content() {
                                                         )}
                                                     </td>
 
+                                                    {/* Montant Commande */}
+                                                    <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                                        {ticket.isNew ? (
+                                                            <input
+                                                                value={ticket.montantCommande}
+                                                                onChange={(e) => handleNewTicketChange(ticket.id, 'montantCommande', e.target.value)}
+                                                                className="w-full border border-gray-300 rounded px-2 py-1 text-xs"
+                                                                placeholder="0 CFA"
+                                                            />
+                                                        ) : (
+                                                            ticket.montantCommande
+                                                        )}
+                                                    </td>
+                                                    
                                                     {/* Coût Livraison */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                                                         {ticket.isNew ? (
