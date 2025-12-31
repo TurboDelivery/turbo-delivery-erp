@@ -5,7 +5,7 @@ import { getAllRestaurants } from "@/src/restaurants/restaurants.actions";
 
 
 export default async function Page() {
-    const initialData = await getAllBonLivraisonTerminers(0, 10, { dates: { start: null, end: null } }, "");
+    const initialData = await getAllBonLivraisonTerminers(0, 10, { dates: { start: null, end: null } }, "");  
     const restaurants = await getAllRestaurants();
     return (
         <Content initialData={initialData} restaurants={restaurants} />

@@ -42,14 +42,14 @@ export async function getBonLivraisonAll(page: number, size: number, { dates: { 
     }
 }
 
-export async function getAllBonLivraisonTerminers({ dates: { start, end } }: { dates: RangeValue<string | null> }, typeCommsion: string): Promise<BonLivraison[]> {
+export async function getAllBonLivraisonTerminers(page: number, size: number, { dates: { start, end } }: { dates: RangeValue<string | null> }, typeCommsion: string): Promise<BonLivraison[]> {
     try {
         const data = await apiClientHttp.request<BonLivraison[]>({
             endpoint: bonLivraisonEndpoints.bonLivraisonTerminers.endpoint,
             method: bonLivraisonEndpoints.bonLivraisonTerminers.method,
             params: {
-                // page: page.toString(),
-                // size: size.toString(),
+                page: page.toString(),
+                size: size.toString(),
                 debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
                 fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
                 type: typeCommsion
