@@ -1,4 +1,4 @@
-export interface BonLivraison {
+export interface BonLivraisonTerminee {
     commandeId: string;
     reference: string;
     livreurId: string;
@@ -10,6 +10,25 @@ export interface BonLivraison {
     commission?: number;
     date: string;
     heure: string;
+    statut: string;
+}
+
+export interface BonLivraison {
+    commandeId: string;
+    reference: string;
+    livreurId: string;
+    livreur: string;
+    restaurant: string;
+    restaurantId: string;
+    coutLivraison: number;
+    coutCommande: number;
+    commission?: number;
+    date: string;
+    heure: {
+        hour: string;
+        minute: string;
+        second: string;
+    };
     statut: string;
 }
 

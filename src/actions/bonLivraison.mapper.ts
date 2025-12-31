@@ -1,6 +1,6 @@
-import { BonLivraison, Ticket } from "@/types/bon-livraison.model";
+import { BonLivraisonTerminee, Ticket } from "@/types/bon-livraison.model";
 
-export function bonLivraisonToTicket(bon: BonLivraison): Ticket {
+export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
   return {
     id: bon.commandeId,
     code: bon.reference,
