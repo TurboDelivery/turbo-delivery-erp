@@ -440,11 +440,11 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                 </div>
                 <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200">
                     <p className="text-xs sm:text-sm text-gray-500 mb-2">Livreurs</p>
-                    <p className="text-2xl sm:text-3xl font-bold">{livreurs.length}</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{livreurList.length}</p>
                 </div>
                 <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200">
                     <p className="text-xs sm:text-sm text-gray-500 mb-2">Partenaires</p>
-                    <p className="text-2xl sm:text-3xl font-bold">7</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{restaurantList.length}</p>
                 </div>
             </div>
 
