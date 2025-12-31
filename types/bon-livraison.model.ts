@@ -1,18 +1,15 @@
 export interface BonLivraison {
     commandeId: string;
     reference: string;
+    livreurId: string;
     livreur: string;
     restaurant: string;
+    restaurantId: string;
     coutLivraison: number;
     coutCommande: number;
     commission?: number;
     date: string;
-    heure: {
-        hour: number;
-        minute: number;
-        second: number;
-        nano: number;
-    };
+    heure: string;
     statut: string;
 }
 
@@ -25,4 +22,28 @@ export interface ParametreBonLivraisonFacture {
     fin?: string;
     type?: TypeCommission | null
     format: FormatsSupportes
+}
+
+export interface Ticket {
+    id: string;
+    code: string;
+    livreurId: string;
+    livreur: string;
+    restaurantId: string;
+    restaurant: string;
+    montantCommande: string;
+    montantLivraison: string;
+    coutLivraison: string;
+    date: string;
+    heure: string;
+    isNew?: boolean;    // déjà existant
+    isEditing?: boolean; // nouveau champ
+}
+
+export interface LivreurStat {
+    count: number;
+    totalCommandes: number;
+    totalLivraisons: number;
+    commission: number;
+    tickets: Ticket[];
 }
