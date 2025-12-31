@@ -2,7 +2,7 @@
 
 import { apiClientHttp } from '@/lib/api-client-http';
 import { ActionResult } from '@/types';
-import { BonLivraison, ParametreBonLivraisonFacture, BonLivraisonTerminee } from '@/types/bon-livraison.model';
+import { BonLivraison, ParametreBonLivraisonFacture, BonLivraisonTerminee, Ticket } from '@/types/bon-livraison.model';
 import { PaginatedResponse } from '@/types';
 import { formatDate } from '@/utils/date-formate';
 import { RangeValue } from '@heroui/react';
@@ -19,7 +19,9 @@ const bonLivraisonEndpoints = {
     bonLivraisonTerminers: { endpoint: `${BASE_URL}/tous-termines`, method: 'GET' },
     bonLivraisonTerminees: { endpoint: `${BASE_URL}/tous/termines`, method: 'GET' },
     bonLivraisonEnAttentes: { endpoint: `${BASE_URL}/tous-attentes`, method: 'GET' },
-    reportingBonLivraison: { endpoint: `${BASE_URL_2}/facture-bon-livraison`, method: "POST" }
+    reportingBonLivraison: { endpoint: `${BASE_URL_2}/facture-bon-livraison`, method: "POST" },
+    create: { endpoint: `${BASE_URL}/create`, method: 'POST' },
+    update: { endpoint: `${BASE_URL}/update`, method: 'PUT' }
 };
 
 
@@ -121,5 +123,44 @@ export async function reportingBonLivraisonTerminers(parametre: ParametreBonLivr
                 message: "Erreur lors du traitement",
             };
         }
+    }
+}
+
+/**
+ * Créer un nouveau bon de livraison
+ */
+export async function createBonLivraison(ticket: Ticket): Promise<BonLivraisonTerminee | null> {    
+    try {
+        const data = await apiClientHttp.request<BonLivraisonTerminee>({
+            endpoint: bonLivraisonEndpoints.create.endpoint,
+            method: bonLivraisonEndpoints.create.method,
+            service: 'backend',
+            data: ticket
+        });
+        return data;
+    } catch (error: any) {
+        console.error('Erreur lors de la création du bon de livraison:', error);
+        return null;
+    }
+}
+
+/**
+ * Mettre à jour un bon de livraison existant
+ */
+export async function updateBonLivraison(ticketId: string, ticket: Ticket): Promise<BonLivraisonTerminee | null> {
+    try {
+        // On clone ticket sans l'id
+        const { id, ...ticketWithoutId } = ticket;
+
+        const data = await apiClientHttp.request<BonLivraisonTerminee>({
+            endpoint: bonLivraisonEndpoints.update.endpoint,
+            method: bonLivraisonEndpoints.update.method,
+            service: 'backend',
+            data: { id: ticketId, ...ticketWithoutId }
+        });
+        return data;
+    } catch (error: any) {
+        console.error('Erreur lors de la mise à jour du bon de livraison:', error);
+        return null;
     }
 }

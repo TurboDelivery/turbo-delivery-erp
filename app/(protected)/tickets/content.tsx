@@ -1,14 +1,14 @@
 "use client";
 
 import Select from 'react-select';
-import React, { useState, useMemo, useEffect } from 'react';
 import { Restaurant, DeliveryMan } from '@/types/models';
-import { Search, Package, ChevronDown, FileText, Clipboard, X, File, Trash, Trash2, Scissors, Copy, CheckSquare, Plus, Pen } from 'lucide-react';
-import { Ticket, LivreurStat } from '@/types/bon-livraison.model';
+import React, { useState, useMemo, useEffect } from 'react';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { Ticket, LivreurStat } from '@/types/bon-livraison.model';
+import { createBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
+import { Search, Package, ChevronDown, FileText, Clipboard, X, File, Trash, Trash2, Scissors, Copy, CheckSquare, Plus, Pen } from 'lucide-react';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
-
 interface ContentProps {
     restaurants: Restaurant[];
     livreurs: DeliveryMan[];
@@ -357,11 +357,46 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
         setTickets(prev => [...newTickets, ...prev]);
     };
 
+    const handleSaveNewTicket = async (id: string) => {
+        const ticket = tickets.find(t => t.id === id);
+        if (!ticket) return;      
+        try {
+            const created = await createBonLivraison(ticket);      
+            if (created) {      
+                setTickets(prev => prev.map(t => t.id === id ? ticket : t));
+                alert('Ticket créé avec succès');
+            } else {
+                alert('Erreur lors de la création du ticket');
+            }
+        } catch (error) {
+          console.error(error);
+          alert('Erreur lors de la création du ticket');
+        }
+    };      
+    
+    const handleSaveRow = async (id: string) => {
+        const ticket = tickets.find(t => t.id === id);
+        if (!ticket) return;
+    
+        try {
+            const updated = await updateBonLivraison(id, ticket);
+            if (updated) {
+                setTickets(prev => prev.map(t => t.id === id ? { ...ticket, isEditing: false } : t) );
+                alert('Ticket mis à jour avec succès');
+            } else {
+                alert('Erreur lors de la mise à jour du ticket');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Erreur lors de la mise à jour du ticket');
+        }
+    };
+
     const handleNewTicketChange = (id: string, field: keyof Ticket, value: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, [field]: value } : t));
-    const handleSaveNewTicket = (id: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, isNew: false } : t));
+    // const handleSaveNewTicket = (id: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, isNew: false } : t));
     const handleCancelNewTicket = (id: string) => setTickets(prev => prev.filter(t => t.id !== id));
     const handleEditRow = (id: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, isEditing: true } : t));
-    const handleSaveRow = (id: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, isEditing: false } : t));
+    // const handleSaveRow = (id: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, isEditing: false } : t));
     const handleCancelEditRow = (id: string) => setTickets(prev => prev.map(t => t.id === id ? { ...t, isEditing: false } : t));
 
     return (
@@ -495,8 +530,7 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                                         <thead className="bg-orange-50 sticky top-0 z-20">
                                             <tr>
                                                 <th className="p-2 sm:p-3 text-left sticky left-0 bg-orange-50 z-10">
-                                                    <input
-                                                        type="checkbox"
+                                                    <input type="checkbox"
                                                         checked={selectedRows.size === filteredTickets.length && filteredTickets.length > 0} onChange={handleSelectAll}
                                                         className="w-4 h-4" />
                                                 </th>
@@ -521,7 +555,13 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                                                     </td>
 
                                                     {/* Numéro */}
-                                                    <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">{ticket.code}</td>
+                                                    <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                                        {ticket.isEditing ? (
+                                                            <input type="text" value={ticket.code}
+                                                            onChange={(e) => { const newCode = e.target.value; setTickets(prev => prev.map(t => t.id === ticket.id ? { ...t, code: newCode } : t)); }}
+                                                            className="w-full border border-gray-300 rounded px-1 py-0.5 text-xs" />
+                                                        ) : ( ticket.code )}
+                                                    </td>
 
                                                     {/* Livreur */}
                                                     <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
@@ -669,11 +709,7 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                     <div className="p-4 sm:p-6">
                         <div className="mb-6">
                             <label className="block text-xs font-medium mb-2">Sélectionner un livreur</label>
-                            <select
-                                value={selectedLivreur}
-                                onChange={(e) => setSelectedLivreur(e.target.value)}
-                                className="w-full p-2 sm:p-3 border border-gray-200 rounded-lg text-xs sm:text-sm outline-none"
-                            >
+                            <select value={selectedLivreur} onChange={(e) => setSelectedLivreur(e.target.value)} className="w-full p-2 sm:p-3 border border-gray-200 rounded-lg text-xs sm:text-sm outline-none">
                                 <option value="">Tous les livreurs</option>
                                 {livreurs.map(l => <option key={l.id} value={l.id}>{l.prenoms} {l.nom}</option>)}
                             </select>
