@@ -2,7 +2,7 @@
 
 import { apiClientHttp } from '@/lib/api-client-http';
 import { ActionResult } from '@/types';
-import { BonLivraison, ParametreBonLivraisonFacture, Ticket } from '@/types/bon-livraison.model';
+import { BonLivraison, ParametreBonLivraisonFacture, BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import { PaginatedResponse } from '@/types';
 import { formatDate } from '@/utils/date-formate';
 import { RangeValue } from '@heroui/react';
@@ -61,9 +61,9 @@ export async function getAllBonLivraisonTerminers(page: number, size: number, { 
     }
 };
 
-export async function getBonLivraisonTerminees({ dates: { start, end } }: { dates: RangeValue<string | null> }): Promise<BonLivraison[]> {
+export async function getBonLivraisonTerminees({ dates: { start, end } }: { dates: RangeValue<string | null> }): Promise<BonLivraisonTerminee[]> {
     try {
-        const data = await apiClientHttp.request<BonLivraison[]>({
+        const data = await apiClientHttp.request<BonLivraisonTerminee[]>({
             endpoint: bonLivraisonEndpoints.bonLivraisonTerminees.endpoint,
             method: bonLivraisonEndpoints.bonLivraisonTerminees.method,
             params: { debut: start ? formatDate(start, 'YYYY-MM-DD') : '', fin: end ? formatDate(end, 'YYYY-MM-DD') : '' }
