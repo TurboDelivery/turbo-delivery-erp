@@ -2,6 +2,7 @@
 
 import Select from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
+import { useRouter } from 'next/navigation';
 import { Restaurant, DeliveryMan } from '@/types/models';
 import React, { useState, useMemo, useEffect } from 'react';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
@@ -17,6 +18,7 @@ interface ContentProps {
 }
 
 export default function Content({ restaurants, livreurs, data }: ContentProps) {
+    const router = useRouter();
 
     const [dateEnd, setDateEnd] = useState('');
     const [dateStart, setDateStart] = useState('');
@@ -396,6 +398,7 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
             if (created) {      
                 setTickets(prev => prev.map(t => t.id === id ? ticket : t));
                 alert('Ticket créé avec succès');
+                router.refresh();
             } else {
                 alert('Erreur lors de la création du ticket');
             }
