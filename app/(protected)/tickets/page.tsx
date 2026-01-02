@@ -9,6 +9,6 @@ export default async function Page() {
     const restaurants = await getAllRestaurants();
     const data = await getBonLivraisonTerminees({ dates: { start: null, end: null } });
     const tickets = data.map(bonLivraisonToTicket);
-
+    
     return (<Content restaurants={restaurants} livreurs={livreurs} data={tickets} />);
 }

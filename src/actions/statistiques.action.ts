@@ -5,20 +5,24 @@ import { ChiffreAffaire, ChiffreAffaireRestaurant } from '@/types/statistiques.m
 import { formatDate } from '@/utils/date-formate';
 import { RangeValue } from '@heroui/react';
 
-const BASE_URL = '/api/erp/file-attente';
+const BASE_URL = '/api/erp/chiffre-affaire';
 
 const statistiquesEndpoints = {
-    getAllChiffreAffaire: { endpoint: `/api/erp/chiffre-affaire/tous`, method: 'GET' },
-    getAllRestaurantChiffreAffaire: { endpoint: `/api/erp/chiffre-affaire/restaurant`, method: 'GET' },
-    getRestaurantChiffreAffaire: { endpoint: (restaurantID: string) => `/api/erp/chiffre-affaire/restaurant/${restaurantID}`, method: 'GET' },
+    getAllChiffreAffaire: { endpoint: `${BASE_URL}/tous`, method: 'GET' },
+    getAllRestaurantChiffreAffaire: { endpoint: `${BASE_URL}/restaurant`, method: 'GET' },
+    getRestaurantChiffreAffaire: { endpoint: (restaurantID: string) => `${BASE_URL}/restaurant/${restaurantID}`, method: 'GET' },
 };
 
-export async function getAllChiffreAffaire(): Promise<ChiffreAffaire | null> {
+export async function getAllChiffreAffaire({ dates: { start, end } }: { dates: RangeValue<Date | null> }): Promise<ChiffreAffaire | null> {
     try {
         const data = await apiClientHttp.request<ChiffreAffaire>({
             endpoint: statistiquesEndpoints.getAllChiffreAffaire.endpoint,
             method: statistiquesEndpoints.getAllChiffreAffaire.method,
             service: 'backend',
+            params: {
+                dateDebut: start ? formatDate(start, 'YYYY-MM-DD') : '',
+                dateFin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+            },
         });
 
         return data;
@@ -26,8 +30,9 @@ export async function getAllChiffreAffaire(): Promise<ChiffreAffaire | null> {
         return null;
     }
 }
+
 export async function getAllRestaurantChiffreAffaire({ dates: { start, end } }: { dates: RangeValue<Date | null> }): Promise<ChiffreAffaireRestaurant[]> {
-    try {
+    try {        
         const data = await apiClientHttp.request<ChiffreAffaireRestaurant[]>({
             endpoint: statistiquesEndpoints.getAllRestaurantChiffreAffaire.endpoint,
             method: statistiquesEndpoints.getAllRestaurantChiffreAffaire.method,
