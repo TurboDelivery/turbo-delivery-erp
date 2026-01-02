@@ -24,7 +24,6 @@ const bonLivraisonEndpoints = {
     update: { endpoint: `${BASE_URL}/update`, method: 'PUT' }
 };
 
-
 export async function getBonLivraisonAll(page: number, size: number, { dates: { start, end } }: { dates: RangeValue<string | null> }): Promise<PaginatedResponse<BonLivraison> | null> {
     try {
         const data = await apiClientHttp.request({
@@ -131,11 +130,14 @@ export async function reportingBonLivraisonTerminers(parametre: ParametreBonLivr
  */
 export async function createBonLivraison(ticket: Ticket): Promise<BonLivraisonTerminee | null> {    
     try {
+        const { id, code, ...rest } = ticket;
+        const payload = { ...rest, reference: code };
+
         const data = await apiClientHttp.request<BonLivraisonTerminee>({
             endpoint: bonLivraisonEndpoints.create.endpoint,
             method: bonLivraisonEndpoints.create.method,
             service: 'backend',
-            data: ticket
+            data: payload
         });
         return data;
     } catch (error: any) {
@@ -150,13 +152,14 @@ export async function createBonLivraison(ticket: Ticket): Promise<BonLivraisonTe
 export async function updateBonLivraison(ticketId: string, ticket: Ticket): Promise<BonLivraisonTerminee | null> {
     try {
         // On clone ticket sans l'id
-        const { id, ...ticketWithoutId } = ticket;
+        const { id, code, ...ticketWithoutId } = ticket;
+        const payload = { ...ticketWithoutId, reference: code };
 
         const data = await apiClientHttp.request<BonLivraisonTerminee>({
             endpoint: bonLivraisonEndpoints.update.endpoint,
             method: bonLivraisonEndpoints.update.method,
             service: 'backend',
-            data: { id: ticketId, ...ticketWithoutId }
+            data: { id: ticketId, ...payload }
         });
         return data;
     } catch (error: any) {
