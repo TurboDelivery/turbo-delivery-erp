@@ -22,6 +22,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   const router = useRouter();
   const { filters, setFilter, ticketsData } = useTickets();
   const [exportOpen, setExportOpen] = useState(false);
+  const [newTickets, setNewTickets] = useState<Ticket[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [insertCount, setInsertCount] = useState<number>(1);
   const [selectedLivreur, setSelectedLivreur] = useState('');
@@ -30,8 +31,6 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   const [insertRestaurantId, setInsertRestaurantId] = useState<string>('');
   const [insertDate, setInsertDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const activeTab = filters.tab;
-
-  console.log('ticketsData', ticketsData);
 
   // Filtrage unique des livreurs valides
   const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
@@ -262,7 +261,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       };
     });
 
-    setTickets((prev) => [...newTickets, ...prev]);
+    setNewTickets((prev) => [...newTickets, ...prev]);
   };
 
   const handleSaveNewTicket = async (id: string) => {
@@ -549,6 +548,174 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                         </tr>
                       </thead>
                       <tbody>
+                        {newTickets.map((ticket) => (
+                          <tr key={ticket.id} className={`${selectedRows.has(ticket.id) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
+                            {/* Checkbox */}
+                            <td className="px-2 py-1 border-t border-b border-gray-200 sticky left-0 bg-inherit z-2">
+                              <input type="checkbox" checked={selectedRows.has(ticket.id)} onChange={() => handleRowSelect(ticket.id)} className="w-4 h-4" />
+                            </td>
+
+                            {/* Numéro */}
+                            <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                              {ticket.isEditing ? (
+                                <input
+                                  type="text"
+                                  value={ticket.code}
+                                  onChange={(e) => {
+                                    const newCode = e.target.value;
+                                    setTickets((prev) => prev.map((t) => (t.id === ticket.id ? { ...t, code: newCode } : t)));
+                                  }}
+                                  className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
+                                  placeholder="Code CHECK"
+                                />
+                              ) : (
+                                ticket.code
+                              )}
+                            </td>
+
+                            {/* Livreur */}
+                            <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[260px]">
+                              {ticket.isNew || ticket.isEditing ? (
+                                <Select
+                                  options={livreurList}
+                                  value={livreurList.find((o) => o.value === ticket.livreurId) ?? null}
+                                  onChange={(option) => handleNewTicketChange(ticket.id, 'livreurId', option?.value ?? '')}
+                                  placeholder="Sélectionner un livreur"
+                                  isClearable
+                                  className="text-xs rounded px-2 py-1"
+                                  classNamePrefix="react-select"
+                                />
+                              ) : (
+                                ticket.livreur
+                              )}
+                            </td>
+
+                            {/* Restaurant */}
+                            <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[320px]">
+                              {ticket.isNew || ticket.isEditing ? (
+                                <Select
+                                  options={restaurantList}
+                                  value={restaurantList.find((o) => o.value === ticket.restaurantId) ?? null}
+                                  onChange={(option) => handleNewTicketChange(ticket.id, 'restaurantId', option?.value ?? '')}
+                                  placeholder="Sélectionner un restaurant"
+                                  isClearable
+                                  className="text-xs rounded px-2 py-1"
+                                  classNamePrefix="react-select"
+                                />
+                              ) : (
+                                ticket.restaurant
+                              )}
+                            </td>
+
+                            {/* Montant Livraison */}
+                            <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                              {ticket.isNew || ticket.isEditing ? (
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={ticket.montantLivraison}
+                                  onChange={(e) => handleNewTicketChange(ticket.id, 'montantLivraison', e.target.value)}
+                                  placeholder="0 CFA"
+                                  disabled={!ticket.restaurantId}
+                                  className={`w-full h-9 px-2 py-1 text-xs border rounded ${!ticket.restaurantId ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'}`}
+                                />
+                              ) : (
+                                formatCFA(ticket.montantLivraison)
+                              )}
+                            </td>
+
+                            {/* Montant Commande */}
+                            <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                              {ticket.isNew || ticket.isEditing ? (
+                                <input
+                                  value={ticket.montantCommande}
+                                  onChange={(e) => handleNewTicketChange(ticket.id, 'montantCommande', e.target.value)}
+                                  className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
+                                  placeholder="0 CFA"
+                                />
+                              ) : (
+                                formatCFA(ticket.montantCommande)
+                              )}
+                            </td>
+
+                            {/* Commission */}
+                            <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                              {ticket.isNew || ticket.isEditing ? (
+                                <input type="number" value={ticket.coutLivraison} readOnly placeholder="0 CFA" className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded" />
+                              ) : (
+                                formatCFA(calculateCommission(ticket.restaurantId, Number(ticket.montantCommande)))
+                              )}
+                            </td>
+
+                            {/* Date */}
+                            <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                              {ticket.isNew || ticket.isEditing ? (
+                                <input
+                                  type="date"
+                                  value={ticket.date}
+                                  onChange={(e) => handleNewTicketChange(ticket.id, 'date', e.target.value)}
+                                  className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
+                                />
+                              ) : (
+                                formatDateFR(ticket.date)
+                              )}
+                            </td>
+
+                            {/* Heure */}
+                            <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                              {ticket.isNew || ticket.isEditing ? (
+                                <input
+                                  type="time"
+                                  value={ticket.heure}
+                                  onChange={(e) => handleNewTicketChange(ticket.id, 'heure', e.target.value)}
+                                  className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
+                                />
+                              ) : (
+                                formatHoursMinutes(ticket.heure)
+                              )}
+                            </td>
+
+                            {/* Actions */}
+                            <td className="px-2 py-1 border-t border-b border-gray-200 whitespace-nowrap">
+                              {ticket.isNew ? (
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleSaveNewTicket(ticket.id)}
+                                    className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
+                                  >
+                                    <CheckSquare className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleCancelNewTicket(ticket.id)}
+                                    className="px-2 py-1 h-9 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center justify-center"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : ticket.isEditing ? (
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleSaveRow(ticket.id)}
+                                    className="px-2 py-1 h-9 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
+                                  >
+                                    <CheckSquare className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleCancelEditRow(ticket.id)}
+                                    className="px-2 py-1 h-9 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center justify-center"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button onClick={() => handleEditRow(ticket.id)} className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center justify-center">
+                                  <Pen className="w-4 h-4" />
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
                         {ticketsData.map((ticket) => (
                           <tr key={ticket.id} className={`${selectedRows.has(ticket.id) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                             {/* Checkbox */}
