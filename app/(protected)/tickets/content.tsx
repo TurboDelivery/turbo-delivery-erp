@@ -2,39 +2,36 @@
 import Select from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation';
-import { useTicketFilters } from '@/hooks/useTicketFilters';
 import { DeliveryMan, Restaurant } from '@/types/models';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { LivreurStat, Ticket } from '@/types/bon-livraison.model';
 import { createBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
 import { CheckSquare, ChevronDown, File, FileText, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { isAfter } from 'date-fns';
+import useTickets from '@/features/tickets/hooks/useTickets';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 interface ContentProps {
   restaurants: Restaurant[];
   livreurs: DeliveryMan[];
-  data: Ticket[];
 }
 
-export default function Content({ restaurants, livreurs, data }: ContentProps) {
+export default function Content({ restaurants, livreurs }: ContentProps) {
   const router = useRouter();
-
+  const { filters, setFilter, ticketsData } = useTickets();
   const [exportOpen, setExportOpen] = useState(false);
-  const [tickets, setTickets] = useState<Ticket[]>(data);
-  const [clipboard, setClipboard] = useState<Ticket[]>([]);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [insertCount, setInsertCount] = useState<number>(1);
   const [selectedLivreur, setSelectedLivreur] = useState('');
   const [insertLivreurId, setInsertLivreurId] = useState<string>('');
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [insertRestaurantId, setInsertRestaurantId] = useState<string>('');
   const [insertDate, setInsertDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const { filters, setFilter } = useTicketFilters();
   const activeTab = filters.tab;
 
-  useEffect(() => setTickets(data), [data]);
+  console.log('ticketsData', ticketsData);
 
   // Filtrage unique des livreurs valides
   const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
@@ -43,12 +40,12 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
 
   const filteredTickets = useMemo(() => {
     return tickets.filter((ticket) => {
-      if (filters.livreur && ticket.livreur !== filters.livreur) return false;
-      if (filters.restaurant && ticket.restaurant !== filters.restaurant) return false;
-      if (filters.dateStart && isAfter(ticket.date, filters.dateStart)) return false;
-      if (filters.dateEnd && isAfter(ticket.date, filters.dateEnd)) return false;
-      if (filters.q) {
-        const q = filters.q.toLowerCase();
+      if (filters.livreurId && ticket.livreur !== filters.livreurId) return false;
+      if (filters.restaurantId && ticket.restaurant !== filters.restaurantId) return false;
+      if (filters.debut && isAfter(ticket.date, filters.debut)) return false;
+      if (filters.fin && isAfter(ticket.date, filters.fin)) return false;
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
         if (!ticket.id.toLowerCase().includes(q) && !ticket.livreur.toLowerCase().includes(q) && !ticket.restaurant.toLowerCase().includes(q)) {
           return false;
         }
@@ -61,7 +58,7 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
   const livreurStats = useMemo<Record<string, LivreurStat>>(() => {
     const stats: Record<string, LivreurStat> = {};
 
-    tickets.forEach((ticket) => {
+    ticketsData.forEach((ticket) => {
       if (!stats[ticket.livreur]) {
         stats[ticket.livreur] = {
           count: 0,
@@ -80,7 +77,7 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
     });
 
     return stats;
-  }, [tickets]);
+  }, [ticketsData]);
 
   const filteredLivreurTickets = useMemo(() => {
     if (!selectedLivreur) return [];
@@ -476,7 +473,7 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-4 p-1.5 border border-gray-200 rounded-lg">
                 <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                <input value={filters.q} onChange={(e) => setFilter('q', e.target.value)} placeholder="Rechercher" />
+                <input value={filters.search} onChange={(e) => setFilter('search', e.target.value)} placeholder="Rechercher" />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -484,8 +481,8 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                   <label className="block text-xs font-medium mb-1">Filtrer par Livreur</label>
                   <Select
                     options={livreurOptions}
-                    value={livreurOptions.find((o) => o.value === filters.livreur) ?? null}
-                    onChange={(opt) => setFilter('livreur', opt?.value ?? '')}
+                    value={livreurOptions.find((o) => o.value === filters.livreurId) ?? null}
+                    onChange={(opt) => setFilter('livreurId', opt?.value ?? '')}
                     placeholder="Tous les livreurs"
                     isClearable
                     className="text-xs"
@@ -497,8 +494,8 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                   <label className="block text-xs font-medium mb-1">Filtrer par Restaurant</label>
                   <Select
                     options={restaurantOptions}
-                    value={restaurantOptions.find((o) => o.value === filters.restaurant) ?? null}
-                    onChange={(opt) => setFilter('restaurant', opt?.value ?? '')}
+                    value={restaurantOptions.find((o) => o.value === filters.restaurantId) ?? null}
+                    onChange={(opt) => setFilter('restaurantId', opt?.value ?? '')}
                     placeholder="Tous les restaurants"
                     isClearable
                     className="text-xs"
@@ -511,14 +508,14 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                   <div className="flex gap-2">
                     <input
                       type="date"
-                      value={filters.dateStart.toISOString().split('T')[0]}
-                      onChange={(e) => setFilter('dateStart', e.target.value)}
+                      value={filters.debut.toISOString().split('T')[0]}
+                      onChange={(e) => setFilter('debut', e.target.value)}
                       className="flex-1 h-9 p-2 border border-gray-200 rounded text-xs outline-none"
                     />
                     <input
                       type="date"
-                      value={filters.dateEnd.toISOString().split('T')[0]}
-                      onChange={(e) => setFilter('dateEnd', e.target.value)}
+                      value={filters.fin.toISOString().split('T')[0]}
+                      onChange={(e) => setFilter('fin', e.target.value)}
                       className="flex-1 h-9 p-2 border border-gray-200 rounded text-xs outline-none"
                     />
                   </div>
@@ -552,7 +549,7 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredTickets.map((ticket) => (
+                        {ticketsData.map((ticket) => (
                           <tr key={ticket.id} className={`${selectedRows.has(ticket.id) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                             {/* Checkbox */}
                             <td className="px-2 py-1 border-t border-b border-gray-200 sticky left-0 bg-inherit z-2">
@@ -735,8 +732,8 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
               <label className="block text-xs font-medium mb-2">Sélectionner un livreur</label>
               <Select
                 options={livreurOptions}
-                value={livreurOptions.find((o) => o.value === filters.livreur) ?? null}
-                onChange={(opt) => setFilter('livreur', opt?.value ?? '')}
+                value={livreurOptions.find((o) => o.value === filters.livreurId) ?? null}
+                onChange={(opt) => setFilter('livreurId', opt?.value ?? '')}
                 placeholder="Tous les livreurs"
                 isClearable
                 className="text-xsbg-amber-400"
