@@ -1,16 +1,17 @@
 'use client';
-import { useQueryState } from 'nuqs';
 import Select from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
-// import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useTicketFilters } from '@/hooks/useTicketFilters';
-import { createBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { LivreurStat, Ticket } from '@/types/bon-livraison.model';
 import { DeliveryMan, Restaurant } from '@/types/models';
-import { CheckSquare, ChevronDown, Clipboard, Copy, File, FileText, Package, Pen, Plus, Scissors, Search, Trash, Trash2, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
+import { LivreurStat, Ticket } from '@/types/bon-livraison.model';
+import { createBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
+import { CheckSquare, ChevronDown, File, FileText, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { isAfter } from 'date-fns';
+
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 interface ContentProps {
   restaurants: Restaurant[];
@@ -19,7 +20,7 @@ interface ContentProps {
 }
 
 export default function Content({ restaurants, livreurs, data }: ContentProps) {
-  // const router = useRouter();
+  const router = useRouter();
 
   const [exportOpen, setExportOpen] = useState(false);
   const [tickets, setTickets] = useState<Ticket[]>(data);
@@ -40,21 +41,6 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
   const livreurList = useMemo(() => validLivreurs.filter((l) => l.prenoms && l.nom).map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
   const restaurantList = useMemo(() => restaurants.map((r) => ({ value: r.id, label: r.nomEtablissement })), [restaurants]);
 
-  // const filteredTickets = useMemo(() => {
-  //   return tickets.filter((ticket) => {
-  //     const matchLivreur = !filterLivreur || ticket.livreur === filterLivreur;
-  //     const matchRestaurant = !filterRestaurant || ticket.restaurant === filterRestaurant;
-  //     const matchDateStart = !dateStart || ticket.date >= dateStart;
-  //     const matchDateEnd = !dateEnd || ticket.date <= dateEnd;
-  //     const matchSearch =
-  //       !searchTerm ||
-  //       ticket.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       ticket.livreur.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //       ticket.restaurant.toLowerCase().includes(searchTerm.toLowerCase());
-
-  //     return matchLivreur && matchRestaurant && matchDateStart && matchDateEnd && matchSearch;
-  //   });
-  // }, [tickets, filterLivreur, filterRestaurant, dateStart, dateEnd, searchTerm]);
   const filteredTickets = useMemo(() => {
     return tickets.filter((ticket) => {
       if (filters.livreur && ticket.livreur !== filters.livreur) return false;
@@ -121,108 +107,6 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
       newSelected.add(id);
     }
     setSelectedRows(newSelected);
-  };
-
-  const handleCopy = () => {
-    if (selectedRows.size === 0) {
-      alert('Aucune ligne sélectionnée');
-      return;
-    }
-    const selectedTickets = tickets.filter((t) => selectedRows.has(t.id));
-    setClipboard(selectedTickets);
-    alert(`${selectedTickets.length} ligne(s) copiée(s)`);
-  };
-
-  const handleCut = () => {
-    if (selectedRows.size === 0) {
-      alert('Aucune ligne sélectionnée');
-      return;
-    }
-    const selectedTickets = tickets.filter((t) => selectedRows.has(t.id));
-    setClipboard(selectedTickets);
-    setTickets(tickets.filter((t) => !selectedRows.has(t.id)));
-    setSelectedRows(new Set());
-    alert(`${selectedTickets.length} ligne(s) coupée(s)`);
-  };
-
-  const handlePaste = () => {
-    if (clipboard.length === 0) {
-      alert('Presse-papiers vide');
-      return;
-    }
-
-    setTickets((prev) => {
-      const ticketsCopy = [...prev];
-      let clipboardIndex = 0;
-
-      // ✅ CAS 1 : lignes sélectionnées → écrasement avec confirmation
-      if (selectedRows.size > 0) {
-        const confirmOverwrite = window.confirm('Attention : les valeurs existantes des lignes sélectionnées seront écrasées.\n\nSouhaitez-vous continuer ?');
-        if (!confirmOverwrite) return prev;
-
-        // Parcours toutes les lignes
-        const updatedTickets = ticketsCopy.map((ticket) => {
-          if (!selectedRows.has(ticket.id)) return ticket;
-
-          const source = clipboard[clipboardIndex];
-          if (!source) return ticket;
-
-          clipboardIndex++;
-
-          return {
-            ...ticket,
-            code: source.code,
-            livreurId: source.livreurId,
-            livreur: source.livreur,
-            restaurantId: source.restaurantId,
-            restaurant: source.restaurant,
-            montantCommande: source.montantCommande,
-            montantLivraison: source.montantLivraison,
-            coutLivraison: source.coutLivraison,
-            date: source.date,
-            heure: source.heure?.substring(0, 5),
-            isEditing: true,
-          };
-        });
-
-        // S’il reste des lignes dans le clipboard → création de nouvelles lignes
-        const remaining = clipboard.slice(clipboardIndex).map((t) => ({
-          ...t,
-          id: Math.random().toString(36).substring(2, 10).toUpperCase(),
-          isNew: true,
-          isEditing: true,
-        }));
-
-        alert('Collage effectué avec écrasement des valeurs existantes');
-        return [...remaining, ...updatedTickets];
-      }
-
-      // ✅ CAS 2 : aucune sélection → insertion de nouvelles lignes
-      const newTickets = clipboard.map((t) => ({
-        ...t,
-        id: Math.random().toString(36).substring(2, 10).toUpperCase(),
-        isNew: true,
-        isEditing: true,
-      }));
-
-      alert(`${clipboard.length} ligne(s) collée(s)`);
-      return [...newTickets, ...ticketsCopy];
-    });
-  };
-
-  const handleClearContent = () => {
-    if (selectedRows.size === 0) {
-      alert('Aucune ligne sélectionnée');
-      return;
-    }
-    const updatedTickets = tickets.map((t) => {
-      if (selectedRows.has(t.id)) {
-        return { ...t, montantCommande: '0', montantLivraison: '0', coutLivraison: '0' };
-      }
-      return t;
-    });
-    setTickets(updatedTickets);
-    alert('Contenu effacé');
   };
 
   const handleDeleteRows = () => {
@@ -391,14 +275,14 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
       const created = await createBonLivraison(ticket);
       if (created) {
         setTickets((prev) => prev.map((t) => (t.id === id ? ticket : t)));
-        alert('Ticket créé avec succès');
-        // router.refresh();
+        router.refresh();
+        toast.success('Ticket créé avec succès');
       } else {
-        alert('Erreur lors de la création du ticket');
+        toast.error('Erreur lors de la création du ticket');
       }
     } catch (error) {
       console.error(error);
-      alert('Erreur lors de la création du ticket');
+      toast.error('Erreur lors de la création du ticket');
     }
   };
 
@@ -410,24 +294,24 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
       const updated = await updateBonLivraison(id, ticket);
       if (updated) {
         setTickets((prev) => prev.map((t) => (t.id === id ? { ...ticket, isEditing: false } : t)));
-        alert('Ticket mis à jour avec succès');
+        toast.success('Ticket mis à jour avec succès');
       } else {
-        alert('Erreur lors de la mise à jour du ticket');
+        toast.error('Erreur lors de la mise à jour du ticket');
       }
     } catch (error) {
       console.error(error);
-      alert('Erreur lors de la mise à jour du ticket');
+      toast.error('Erreur lors de la mise à jour du ticket');
     }
   };
 
-  const calculateCommission = (restaurantId: string, montantLivraison: number): number => {
+  const calculateCommission = (restaurantId: string, montantCommande: number): number => {
     const restaurant = restaurants.find((r) => r.id === restaurantId);
-    if (!restaurant || !montantLivraison) return 0;
+    if (!restaurant || !montantCommande) return 0;
 
     const commission = Number(restaurant.commission ?? 0);
 
     if (restaurant.typeCommission === 'POURCENTAGE') {
-      const net = montantLivraison * (commission / 100);
+      const net = montantCommande * (commission / 100);
       return Number(net.toFixed(2));
     }
 
@@ -442,8 +326,8 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
         const updatedTicket = { ...t, [field]: value };
 
         // 🔁 recalcul automatique si nécessaire
-        if (field === 'montantLivraison' || field === 'restaurantId') {
-          const montant = Number(updatedTicket.montantLivraison || 0);
+        if (field === 'montantCommande' || field === 'restaurantId') {
+          const montant = Number(updatedTicket.montantCommande || 0);
           updatedTicket.coutLivraison = calculateCommission(updatedTicket.restaurantId, montant).toString();
         }
 
@@ -592,7 +476,7 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-4 p-1.5 border border-gray-200 rounded-lg">
                 <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                <input value={filters.q} onChange={(e) => setFilter('q', e.target.value)} placeholder='Rechercher' />
+                <input value={filters.q} onChange={(e) => setFilter('q', e.target.value)} placeholder="Rechercher" />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -631,7 +515,12 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                       onChange={(e) => setFilter('dateStart', e.target.value)}
                       className="flex-1 h-9 p-2 border border-gray-200 rounded text-xs outline-none"
                     />
-                    <input type="date" value={filters.dateEnd.toISOString().split('T')[0]} onChange={(e) => setFilter('dateEnd', e.target.value)} className="flex-1 h-9 p-2 border border-gray-200 rounded text-xs outline-none" />
+                    <input
+                      type="date"
+                      value={filters.dateEnd.toISOString().split('T')[0]}
+                      onChange={(e) => setFilter('dateEnd', e.target.value)}
+                      className="flex-1 h-9 p-2 border border-gray-200 rounded text-xs outline-none"
+                    />
                   </div>
                 </div>
               </div>
@@ -657,6 +546,9 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Commission</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Date</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Heure</th>
+                          <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">
+                            <span className="sr-only">Actions</span>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -751,12 +643,12 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                               )}
                             </td>
 
-                            {/* Coût Livraison */}
+                            {/* Commission */}
                             <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                               {ticket.isNew || ticket.isEditing ? (
                                 <input type="number" value={ticket.coutLivraison} readOnly placeholder="0 CFA" className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded" />
                               ) : (
-                                formatCFA(calculateCommission(ticket.restaurantId, Number(ticket.coutLivraison)))
+                                formatCFA(calculateCommission(ticket.restaurantId, Number(ticket.montantCommande)))
                               )}
                             </td>
 
@@ -770,7 +662,7 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                                   className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
                                 />
                               ) : (
-                                ticket.date
+                                formatDateFR(ticket.date)
                               )}
                             </td>
 
@@ -784,7 +676,7 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
                                   className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
                                 />
                               ) : (
-                                ticket.heure
+                                formatHoursMinutes(ticket.heure)
                               )}
                             </td>
 
@@ -844,10 +736,10 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
               <Select
                 options={livreurOptions}
                 value={livreurOptions.find((o) => o.value === filters.livreur) ?? null}
-                    onChange={(opt) => setFilter('livreur', opt?.value ?? '')}
+                onChange={(opt) => setFilter('livreur', opt?.value ?? '')}
                 placeholder="Tous les livreurs"
                 isClearable
-                className="text-xs bg-amber-400"
+                className="text-xsbg-amber-400"
                 classNamePrefix="react-select"
               />
             </div>
@@ -930,33 +822,17 @@ export default function Content({ restaurants, livreurs, data }: ContentProps) {
           <button onClick={handleSelectAll} className="px-2 py-1 border border-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-50 flex items-center gap-1">
             <CheckSquare className="w-3 h-3" /> Sélectionner
           </button>
-          <button onClick={handleCopy} className="px-2 py-1 border border-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-50 flex items-center gap-1">
-            <Copy className="w-3 h-3" /> Copier
-          </button>
-          <button onClick={handleCut} className="px-2 py-1 border border-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-50 flex items-center gap-1">
-            <Scissors className="w-3 h-3" /> Couper
-          </button>
-          <button onClick={handleClearContent} className="px-2 py-1 border border-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-50 flex items-center gap-1">
-            <Trash2 className="w-3 h-3" /> Effacer contenu
-          </button>
           <button onClick={handleDeleteRows} className="px-2 py-1 border border-red-300 text-red-500 rounded-full text-xs sm:text-sm hover:bg-red-50 flex items-center gap-1">
             <Trash className="w-3 h-3" /> Supprimer
           </button>
-          <button onClick={() => setSelectedRows(new Set())} className="px-2 py-1 border border-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-50 flex items-center gap-1">
-            <X className="w-3 h-3" /> Désélectionner
-          </button>
+          {selectedRows.size > 0 && (
+            <button onClick={() => setSelectedRows(new Set())} className="px-2 py-1 border border-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-50 flex items-center gap-1">
+              <X className="w-3 h-3" /> Désélectionner
+            </button>
+          )}
 
           {/* Spacer pour pousser les boutons à droite */}
           <div className="ml-auto flex gap-2 items-center">
-            <button
-              onClick={handlePaste}
-              disabled={clipboard.length === 0}
-              className={`px-2 py-1 border rounded-full text-xs sm:text-sm flex items-center gap-1
-                                ${clipboard.length === 0 ? 'border-gray-300 text-gray-400 cursor-not-allowed bg-gray-100' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-            >
-              <Clipboard className="w-3 h-3" /> Coller
-            </button>
-
             {/* Dropdown Export */}
             <div className="relative">
               <button onClick={() => setExportOpen((v) => !v)} className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-full text-xs sm:text-sm hover:bg-green-600">
