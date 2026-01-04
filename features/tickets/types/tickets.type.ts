@@ -1,3 +1,5 @@
+import { Ticket } from '@/types/bon-livraison.model';
+
 export interface ITicketParams {
   page?: number;
   size?: number;
@@ -8,3 +10,29 @@ export interface ITicketParams {
   search?: string;
   tab?: 'tous' | 'termines' | 'attentes';
 }
+
+export interface ITicketsStats {
+  revenus: number;
+  tickets: number;
+  livreurs: number;
+  restaurants: number;
+}
+
+export interface newTicket extends Ticket {
+  coutCommande: number;
+}
+
+export interface TicketsJour {
+  jour: string;
+  montantTotal: number;
+  tickets: newTicket[];
+}
+
+export interface ILivreurTicket {
+  id: string;
+  nom: string;
+  prenom: string;
+  tickets: TicketsJour[];
+}
+
+

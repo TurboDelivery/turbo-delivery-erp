@@ -1,4 +1,4 @@
-import { parseAsString, parseAsIsoDate, SingleParserBuilder } from 'nuqs';
+import { parseAsString, parseAsIsoDate, SingleParserBuilder, parseAsInteger } from 'nuqs';
 import { startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ITicketParams } from '@/features/tickets/types/tickets.type';
@@ -24,6 +24,8 @@ export const ticketFiltersClient: TicketFiltersClient = {
     debut: parseAsIsoDate.withDefault(start),
     fin: parseAsIsoDate.withDefault(end),
     tab: parseAsString.withDefault('tous'),
+    page: parseAsInteger.withDefault(0),
+    size: parseAsInteger.withDefault(20),
   },
   option: {
     clearOnDefault: true,
