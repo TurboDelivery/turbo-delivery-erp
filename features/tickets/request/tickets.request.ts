@@ -1,6 +1,6 @@
 import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import { apiClientHttp } from '@/lib/api-client-http';
-import { ILivreurTicket, ITicketParams, ITicketsStats } from '@/features/tickets/types/tickets.type';
+import { ILivreurSearchParams, ILivreurTicket, ITicketParams, ITicketsStats } from '@/features/tickets/types/tickets.type';
 import { PaginatedResponse } from '@/types/general';
 import { BonLivraisonTermineeSchema, BonLivraisonTermineeType } from '../schema/ticket.schema';
 
@@ -50,16 +50,16 @@ export async function getBonLivraisonStatsRequest(params: ITicketParams) {
   });
 }
 
-export async function getLivreursWithTicketsRequest(params: ITicketParams) {
+export async function getLivreursWithTicketsRequest(params: ILivreurSearchParams) {
   return await apiClientHttp.request<PaginatedResponse<ILivreurTicket>>({
     endpoint: bonLivraisonEndpoints.listeLivreursTickets.endpoint,
     method: bonLivraisonEndpoints.listeLivreursTickets.method,
     params: {
-      search: params.search,
-      restaurantId: params.restaurantId,
-      livreurId: params.livreurId,
-      debut: params.debut?.toISOString()?.split('T')?.[0],
-      fin: params.fin?.toISOString()?.split('T')?.[0],
+      search: params.livreur,
+      restaurantId: params.idRestaurant,
+      livreurId: params.idLivreur,
+      debut: params.creneauDebut?.toISOString()?.split('T')?.[0],
+      fin: params.creneauFin?.toISOString()?.split('T')?.[0],
     },
   });
 }

@@ -1,9 +1,9 @@
 import { NextResponse, NextRequest } from 'next/server';
 
-import { auth } from '@/auth';
+// import { auth } from '@/auth';
 
 export async function middleware(request: NextRequest) {
-    const session = await auth();
+    // const session = await auth();
     const { pathname } = request.nextUrl;
     if (pathname === '/') {
         return NextResponse.redirect(new URL('/analystics', request.url));

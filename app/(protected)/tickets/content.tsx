@@ -1,7 +1,6 @@
 'use client';
 import Select from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
-import { useRouter } from 'next/navigation';
 import { DeliveryMan, Restaurant } from '@/types/models';
 import React, { useMemo, useState } from 'react';
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
@@ -15,7 +14,6 @@ import { Input } from '@heroui/react';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import StatsSection from '@/components/tickets/stats-section';
 import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
-import { useCreateBonLivraison } from '@/features/tickets/tickets.mutation';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 interface ContentProps {
@@ -24,22 +22,19 @@ interface ContentProps {
 }
 
 export default function Content({ restaurants, livreurs }: ContentProps) {
-  const router = useRouter();
   const { filters, setFilter, ticketsData, isLoading, infiniteState } = useTickets();
   const [exportOpen, setExportOpen] = useState(false);
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [insertCount, setInsertCount] = useState<number>(1);
-  const [selectedLivreur, ] = useState('');
+  const [selectedLivreur] = useState('');
   const [insertLivreurId, setInsertLivreurId] = useState<string>('');
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [insertRestaurantId, setInsertRestaurantId] = useState<string>('');
   const [insertDate, setInsertDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const observerTarget = useInfiniteScroll(infiniteState.fetchNextPage, infiniteState.hasNextPage);
-  const { mutateAsync: createBonLivraisonMutate, isPending: isCreating } = useCreateBonLivraison();
 
   const activeTab = filters.tab;
-  console.log(ticketsData);
   // Filtrage unique des livreurs valides
   const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
   const livreurList = useMemo(() => validLivreurs.filter((l) => l.prenoms && l.nom).map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
@@ -302,16 +297,12 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       statut: 'TERMINE',
     };
 
-    console.log('Ticket complet envoyé:', completeTicket);
-
     try {
       const result = await createBonLivraison(completeTicket);
 
       if (!result) {
         throw new Error('Création échouée côté backend');
       }
-
-      console.log('Résultat backend:', result);
 
       setNewTickets((prev) => prev.filter((t) => t.id !== id));
       toast.success('Ticket créé avec succès');
@@ -887,7 +878,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
           </div>
         )}
 
-        {activeTab === 'livreur' && <TicketTabLivreur livreurOptions={livreurOptions} />}
+        {activeTab === 'livreur' && <TicketTabLivreur />}
       </div>
 
       <div className="px-1 py-4">
