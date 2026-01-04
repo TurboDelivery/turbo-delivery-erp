@@ -22,6 +22,7 @@ export function useTicketFilters() {
       debut: filters.debut,
       fin: filters.fin,
       tab: 'tous',
+     
     });
   };
 
