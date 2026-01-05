@@ -22,12 +22,13 @@ function LivreurCard({ livreur }: LivreurCardProps) {
   });
 
   const stats = calculerStatistiquesLivreur(livreur);
+  const fullName = `${livreur.nom} ${livreur.prenom}`;
 
   return (
     <Collapsible className="w-full">
       <CollapsibleTrigger className="w-full border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-          <h3 className="font-bold text-sm sm:text-base">{livreur.nom}</h3>
+          <h3 className="font-bold text-sm sm:text-base">{fullName}</h3>
           <div className="flex items-center justify-between sm:justify-end gap-4 text-xs sm:text-sm">
             <span className="text-gray-600">
               {totalTickets} ticket(s) • <span className="font-bold">{formatCFA(commissionTotale)}</span>
@@ -40,7 +41,7 @@ function LivreurCard({ livreur }: LivreurCardProps) {
         <div className="space-y-6">
           <div className="border border-gray-200 rounded p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-              <h3 className="text-base sm:text-lg font-bold">{livreur.nom}</h3>
+              <h3 className="text-base sm:text-lg font-bold">{fullName}</h3>
               <span className="text-xs sm:text-sm text-gray-600">
                 {totalTickets} ticket(s) • Commission: {formatCFA(commissionTotale)}
               </span>
@@ -64,6 +65,7 @@ function LivreurCard({ livreur }: LivreurCardProps) {
                 <thead className="border-b border-gray-200">
                   <tr>
                     <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">Jour</th>
+                    <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap text-">Code check</th>
                     <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">Restaurant</th>
                     <th className="p-2 sm:p-3 text-right text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">Montant livraison</th>
                     <th className="p-2 sm:p-3 text-right text-xs sm:text-sm font-medium text-gray-600 whitespace-nowrap">Montant Commission</th>
@@ -83,6 +85,7 @@ function LivreurCard({ livreur }: LivreurCardProps) {
                                 {ticketJour.jour}
                               </td>
                             )}
+                            <td className="p-2 sm:p-3 text-xs sm:text-sm text-orange-600 whitespace-nowrap font-medium">{ticket.reference}</td>
                             <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{ticket.restaurant}</td>
                             <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCFA(Number(ticket.coutLivraison ?? 0))}</td>
                             <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCFA(Number(ticket.coutLivraison ?? 0) * 0.6)}</td>

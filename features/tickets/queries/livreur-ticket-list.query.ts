@@ -3,17 +3,17 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ticketsKeyQuery } from './index.query';
 import getQueryClient from '@/lib/get-query-client';
-import { ITicketParams } from '@/features/tickets/types/tickets.type';
+import { ILivreurSearchParams } from '@/features/tickets/types/tickets.type';
 import { toast } from 'react-toastify';
 import { getLivreursWithTicketsRequest } from '@/features/tickets/request/tickets.request';
 
 const queryClient = getQueryClient();
 
-export const livreurTicketsListQueryOption = (ticketsParamsDTO: ITicketParams) => {
+export const livreurTicketsListQueryOption = (livreurParamsDTO: ILivreurSearchParams) => {
   return {
-    queryKey: ticketsKeyQuery('livreur-list', ticketsParamsDTO),
+    queryKey: ticketsKeyQuery('livreur-list', livreurParamsDTO),
     queryFn: async () => {
-      return await getLivreursWithTicketsRequest(ticketsParamsDTO);
+      return await getLivreursWithTicketsRequest(livreurParamsDTO);
     },
     staleTime: 60 * 1000, //60 secondes
     refetchOnWindowFocus: false, //Ne pas refetch lors du focus de la fenetre
@@ -21,8 +21,8 @@ export const livreurTicketsListQueryOption = (ticketsParamsDTO: ITicketParams) =
   };
 };
 
-export const useLivreurTicketsListQuery = (ticketsParamsDTO: ITicketParams) => {
-  const query = useQuery(livreurTicketsListQueryOption(ticketsParamsDTO));
+export const useLivreurTicketsListQuery = (livreurParamsDTO: ILivreurSearchParams) => {
+  const query = useQuery(livreurTicketsListQueryOption(livreurParamsDTO));
 
   // Gestion des erreurs dans le hook
   React.useEffect(() => {
@@ -34,6 +34,6 @@ export const useLivreurTicketsListQuery = (ticketsParamsDTO: ITicketParams) => {
   return query;
 };
 
-export const prefetchLivreurTicketsListQuery = (ticketsParamsDTO: ITicketParams) => {
-  return queryClient.prefetchQuery(livreurTicketsListQueryOption(ticketsParamsDTO));
+export const prefetchLivreurTicketsListQuery = (livreurParamsDTO: ILivreurSearchParams) => {
+  return queryClient.prefetchQuery(livreurTicketsListQueryOption(livreurParamsDTO));
 };

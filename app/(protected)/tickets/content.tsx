@@ -3,20 +3,18 @@ import PriceListSelect from '@/components/tickets/price-list-select';
 import StatsSection from '@/components/tickets/stats-section';
 import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
 import useTickets from '@/features/tickets/hooks/use-tickets';
-import { useCreateBonLivraison } from '@/features/tickets/tickets.mutation';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { createBonLivraison, deleteBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
+import Select from 'react-select';
+import { v4 as uuidv4 } from 'uuid';
+import { DeliveryMan, Restaurant } from '@/types/models';
+import React, { useMemo, useState } from 'react';
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { LivreurStat, Ticket } from '@/types/bon-livraison.model';
-import { DeliveryMan, Restaurant } from '@/types/models';
 import { Input } from '@heroui/react';
 import { isAfter } from 'date-fns';
 import { CheckSquare, ChevronDown, File, FileText, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useMemo, useState } from 'react';
-import Select from 'react-select';
 import { toast } from 'react-toastify';
-import { v4 as uuidv4 } from 'uuid';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 interface ContentProps {
@@ -25,7 +23,6 @@ interface ContentProps {
 }
 
 export default function Content({ restaurants, livreurs }: ContentProps) {
-  const router = useRouter();
   const { filters, setFilter, ticketsData, isLoading, infiniteState } = useTickets();
   const [exportOpen, setExportOpen] = useState(false);
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
@@ -38,7 +35,6 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   const [insertRestaurantId, setInsertRestaurantId] = useState<string>('');
   const [insertDate, setInsertDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const observerTarget = useInfiniteScroll(infiniteState.fetchNextPage, infiniteState.hasNextPage);
-  const { mutateAsync: createBonLivraisonMutate, isPending: isCreating } = useCreateBonLivraison();
 
   const activeTab = filters.tab;
 
@@ -302,22 +298,12 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       return;
     }
 
-    const completeTicket: Ticket = {
-      ...ticket,
-      reference: ticket.code || Math.floor(100000000 + Math.random() * 900000000).toString(),
-      statut: 'TERMINE',
-    };
-
-    console.log('Ticket complet envoyé:', completeTicket);
-
     try {
-      const result = await createBonLivraison(completeTicket);
+      const result = await createBonLivraison(ticket);
 
       if (!result) {
         throw new Error('Création échouée côté backend');
       }
-
-      console.log('Résultat backend:', result);
 
       setNewTickets((prev) => prev.filter((t) => t.id !== id));
       toast.success('Ticket créé avec succès');
@@ -692,7 +678,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               <td className="px-2 py-1 border-t border-b border-gray-200 whitespace-nowrap">
                                 <div className="flex gap-2">
                                   <button
-                                    onClick={() => handleSaveRow(ticket.id)}
+                                    onClick={() => handleSaveNewTicket(ticket.id)}
                                     className="px-2 py-1 h-9 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
                                   >
                                     <CheckSquare className="w-4 h-4" />
@@ -911,7 +897,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
           </div>
         )}
 
-        {activeTab === 'livreur' && <TicketTabLivreur livreurOptions={livreurOptions} />}
+        {activeTab === 'livreur' && <TicketTabLivreur />}
       </div>
 
       <div className="px-1 py-4">
