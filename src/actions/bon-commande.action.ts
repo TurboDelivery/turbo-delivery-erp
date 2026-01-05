@@ -21,9 +21,11 @@ const bonLivraisonEndpoints = {
     bonLivraisonEnAttentes: { endpoint: `${BASE_URL}/tous-attentes`, method: 'GET' },
     reportingBonLivraison: { endpoint: `${BASE_URL_2}/facture-bon-livraison`, method: "POST" },
     create: { endpoint: `${BASE_URL}/create`, method: 'POST' },
-    update: { endpoint: `${BASE_URL}/update`, method: 'PUT' }
-    ,
-    delete: { endpoint: `${BASE_URL}/delete`, method: 'DELETE' },
+    update: { endpoint: `${BASE_URL}/update`, method: 'PUT' },
+  delete: {
+    endpoint: (id: string) => `${BASE_URL}/${id}`,
+    method: 'DELETE',
+  },
 };
 
 export async function getBonLivraisonAll(page: number, size: number, { dates: { start, end } }: { dates: RangeValue<string | null> }): Promise<PaginatedResponse<BonLivraison> | null> {
@@ -175,16 +177,18 @@ export async function updateBonLivraison(ticketId: string, ticket: Ticket): Prom
  * Supprimer un bon de livraison
  */
 export async function deleteBonLivraison(ticketId: string): Promise<boolean> {
-    try {
-        await apiClientHttp.request({
-            endpoint: bonLivraisonEndpoints.delete.endpoint,
-            method: bonLivraisonEndpoints.delete.method,
-            service: 'backend',
-            data: { id: ticketId },
-        });
-        return true;
-    } catch (error: any) {
-        console.error('Erreur lors de la suppression du bon de livraison:', error);
-        return false;
-    }
+  try {
+    await apiClientHttp.request({
+      endpoint: bonLivraisonEndpoints.delete.endpoint(ticketId),
+      method: bonLivraisonEndpoints.delete.method,
+      service: 'backend',
+    });
+
+    // ✅ Si on arrive ici sans exception, la suppression a réussi
+    return true;
+  } catch (error) {
+    console.error('Erreur suppression:', error);
+    return false;
+  }
 }
+     

@@ -1,19 +1,20 @@
 'use client';
+import PriceListSelect from '@/components/tickets/price-list-select';
+import StatsSection from '@/components/tickets/stats-section';
+import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
+import useTickets from '@/features/tickets/hooks/use-tickets';
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
+import { createBonLivraison, deleteBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
 import Select from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 import { DeliveryMan, Restaurant } from '@/types/models';
 import React, { useMemo, useState } from 'react';
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { LivreurStat, Ticket } from '@/types/bon-livraison.model';
-import { createBonLivraison, deleteBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
+import { Input } from '@heroui/react';
+import { isAfter } from 'date-fns';
 import { CheckSquare, ChevronDown, File, FileText, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { isAfter } from 'date-fns';
-import useTickets from '@/features/tickets/hooks/use-tickets';
-import { Input } from '@heroui/react';
-import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
-import StatsSection from '@/components/tickets/stats-section';
-import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 interface ContentProps {
@@ -35,6 +36,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   const observerTarget = useInfiniteScroll(infiniteState.fetchNextPage, infiniteState.hasNextPage);
 
   const activeTab = filters.tab;
+
   // Filtrage unique des livreurs valides
   const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
   const livreurList = useMemo(() => validLivreurs.filter((l) => l.prenoms && l.nom).map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
@@ -116,22 +118,26 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     const confirm = window.confirm(`Supprimer ${selectedRows.size} ticket(s) ?`);
     if (!confirm) return;
 
-    const ids = Array.from(selectedRows);
+    const idsToDelete = Array.from(selectedRows);
 
     try {
-      for (const id of ids) {
-        await deleteBonLivraison(id);
+      for (const id of idsToDelete) {
+        const success = await deleteBonLivraison(id);
+
+        if (!success) {
+          throw new Error(`Échec suppression ticket ${id}`);
+        }
       }
 
-      // UI sync
-      setTickets((prev) => prev.filter((t) => !selectedRows.has(t.id)));
-      setNewTickets((prev) => prev.filter((t) => !selectedRows.has(t.id)));
+      //
+      setTickets((prev) => prev.filter((t) => !idsToDelete.includes(t.id)));
+      setNewTickets((prev) => prev.filter((t) => !idsToDelete.includes(t.id)));
       setSelectedRows(new Set());
 
       toast.success('Suppression réussie');
     } catch (error) {
       console.error(error);
-      toast.error('Erreur lors de la suppression');
+      toast.error('La suppression a échoué — aucune modification appliquée');
     }
   };
 
@@ -291,14 +297,8 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       return;
     }
 
-    const completeTicket: Ticket = {
-      ...ticket,
-      reference: ticket.code || Math.floor(100000000 + Math.random() * 900000000).toString(),
-      statut: 'TERMINE',
-    };
-
     try {
-      const result = await createBonLivraison(completeTicket);
+      const result = await createBonLivraison(ticket);
 
       if (!result) {
         throw new Error('Création échouée côté backend');
@@ -330,7 +330,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     }
   };
 
-  const calculateCommission = (restaurantId: string, montantCommande: number): number => {
+  const calculateCommission = (restaurantId: string, montantCommande: number) => {
     const restaurant = restaurants.find((r) => r.id === restaurantId);
     if (!restaurant || !montantCommande) return 0;
 
@@ -342,7 +342,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     }
 
     // Commission fixe
-    return commission;
+    return null;
   };
 
   const handleNewTicketChange = (id: string, field: keyof Ticket, value: string) => {
@@ -350,11 +350,19 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       prev.map((t) => {
         if (t.id !== id) return t;
         const updatedTicket = { ...t, [field]: value };
-
+        if (field == 'restaurantId') {
+          const rest = restaurants.find((r) => r.id == value);
+          if (rest) {
+            updatedTicket.typeCommission = rest.typeCommission;
+          }
+        }
         // recalcul automatique si nécessaire
         if (field === 'montantCommande' || field === 'restaurantId') {
           const montant = Number(updatedTicket.montantCommande || 0);
-          updatedTicket.coutLivraison = calculateCommission(updatedTicket.restaurantId, montant).toString();
+          const commission = calculateCommission(updatedTicket.restaurantId, montant);
+          if (commission) {
+            updatedTicket.coutLivraison = commission.toString();
+          }
         }
 
         return updatedTicket;
@@ -548,13 +556,14 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Code Check</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[260px]">Livreur</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[320px]">Partner</th>
+                          <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[320px]">Zone</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant de Livraison</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant de Commande</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Commission</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Date</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Heure</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">
-                            <span className="sr-only">Actions</span>
+                            <span className="sr-only">Action</span>
                           </th>
                         </tr>
                       </thead>
@@ -600,10 +609,18 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                   options={restaurantList}
                                   value={restaurantList.find((o) => o.value === ticket.restaurantId) ?? null}
                                   onChange={(option) => handleNewTicketChange(ticket.id, 'restaurantId', option?.value ?? '')}
-                                  placeholder="Sélectionner un restaurant"
+                                  placeholder="Sélectionner un restaurants"
                                   isClearable
                                   className="text-xs rounded px-2 py-1"
                                   classNamePrefix="react-select"
+                                />
+                              </td>
+                              {/* Zone (PriceList) */}
+                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[320px]">
+                                <PriceListSelect
+                                  ticketId={ticket.id}
+                                  restaurantID={ticket.restaurantId}
+                                  handleChange={handleNewTicketChange}
                                 />
                               </td>
 
@@ -660,7 +677,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               <td className="px-2 py-1 border-t border-b border-gray-200 whitespace-nowrap">
                                 <div className="flex gap-2">
                                   <button
-                                    onClick={() => handleSaveRow(ticket.id)}
+                                    onClick={() => handleSaveNewTicket(ticket.id)}
                                     className="px-2 py-1 h-9 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
                                   >
                                     <CheckSquare className="w-4 h-4" />
@@ -734,6 +751,19 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 )}
                               </td>
 
+                              {/* Zone (PriceList) */}
+                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                {ticket.isNew || ticket.isEditing ? (
+                                  <PriceListSelect
+                                    ticketId={ticket.id}
+                                    restaurantID={ticket.restaurantId}
+                                    handleChange={handleNewTicketChange}
+                                  />
+                                ) : (
+                                  <span>{ticket.typeCommission ?? "Inconnue"}</span>
+                                )}
+                              </td>
+
                               {/* Montant Livraison */}
                               <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                                 {ticket.isNew || ticket.isEditing ? (
@@ -771,7 +801,8 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 {ticket.isNew || ticket.isEditing ? (
                                   <input type="number" value={ticket.coutLivraison} readOnly placeholder="0 CFA" className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded" />
                                 ) : (
-                                  formatCFA(calculateCommission(ticket.restaurantId, Number(ticket.montantCommande)))
+                                  // formatCFA(calculateCommission(ticket.restaurantId, Number(ticket.montantCommande)))
+                                  formatCFA(0)
                                 )}
                               </td>
 
@@ -843,7 +874,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               </td>
                             </tr>
                           ))}
-                          <tr ref={observerTarget} className="h-0.5 flex items-center justify-center mt-4">
+                          <tr ref={observerTarget} className="flex items-center justify-center mt-4">
                             {infiniteState.isFetchingNextPage && (
                               <td colSpan={10} className="text-xs text-gray-500">
                                 Chargement des données...
