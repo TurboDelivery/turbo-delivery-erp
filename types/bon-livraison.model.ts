@@ -1,3 +1,4 @@
+
 import { startOfWeek } from 'date-fns';
 export interface BonLivraisonTerminee {
     commandeId: string;
@@ -62,6 +63,7 @@ export interface Ticket {
     isEditing?: boolean; // nouveau champ
     statut: string;
     zoneId?: string;
+    typeCommission?: string;
 }
 
 export interface LivreurStat {

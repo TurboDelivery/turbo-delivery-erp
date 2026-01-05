@@ -345,7 +345,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     }
   };
 
-  const calculateCommission = (restaurantId: string, montantCommande: number): number => {
+  const calculateCommission = (restaurantId: string, montantCommande: number) => {
     const restaurant = restaurants.find((r) => r.id === restaurantId);
     if (!restaurant || !montantCommande) return 0;
 
@@ -357,7 +357,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     }
 
     // Commission fixe
-    return commission;
+    return null;
   };
 
   const handleNewTicketChange = (id: string, field: keyof Ticket, value: string) => {
@@ -365,11 +365,19 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       prev.map((t) => {
         if (t.id !== id) return t;
         const updatedTicket = { ...t, [field]: value };
-
+        if (field == 'restaurantId') {
+          const rest = restaurants.find((r) => r.id == value);
+          if (rest) {
+            updatedTicket.typeCommission = rest.typeCommission;
+          }
+        }
         // recalcul automatique si nécessaire
         if (field === 'montantCommande' || field === 'restaurantId') {
           const montant = Number(updatedTicket.montantCommande || 0);
-          updatedTicket.coutLivraison = calculateCommission(updatedTicket.restaurantId, montant).toString();
+          const commission = calculateCommission(updatedTicket.restaurantId, montant);
+          if (commission) {
+            updatedTicket.coutLivraison = commission.toString();
+          }
         }
 
         console.log('Changement ticket:', updatedTicket.id, 'Champ modifié:', field, 'Nouvelle valeur:', value);
@@ -567,6 +575,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Code Check</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[260px]">Livreur</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[320px]">Partner</th>
+                          <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[320px]">Zone</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant de Livraison</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant de Commande</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Commission</th>
@@ -794,7 +803,8 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 {ticket.isNew || ticket.isEditing ? (
                                   <input type="number" value={ticket.coutLivraison} readOnly placeholder="0 CFA" className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded" />
                                 ) : (
-                                  formatCFA(calculateCommission(ticket.restaurantId, Number(ticket.montantCommande)))
+                                  // formatCFA(calculateCommission(ticket.restaurantId, Number(ticket.montantCommande)))
+                                  formatCFA(0)
                                 )}
                               </td>
 
