@@ -27,7 +27,6 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   const [exportOpen, setExportOpen] = useState(false);
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [selectedZone, setSelectedZone] = useState<string>('');
   const [insertCount, setInsertCount] = useState<number>(1);
   const [selectedLivreur] = useState('');
   const [insertLivreurId, setInsertLivreurId] = useState<string>('');
@@ -366,10 +365,6 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
           }
         }
 
-        console.log('Changement ticket:', updatedTicket.id, 'Champ modifié:', field, 'Nouvelle valeur:', value);
-
-        if (field === 'zoneId') updatedTicket.coutLivraison = value;
-
         return updatedTicket;
       }),
     );
@@ -622,7 +617,11 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               </td>
                               {/* Zone (PriceList) */}
                               <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[320px]">
-                                <PriceListSelect restaurantID={ticket.restaurantId} handleChange={handleNewTicketChange} />
+                                <PriceListSelect
+                                  ticketId={ticket.id}
+                                  restaurantID={ticket.restaurantId}
+                                  handleChange={handleNewTicketChange}
+                                />
                               </td>
 
                               {/* Montant Livraison */}
@@ -752,6 +751,19 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 )}
                               </td>
 
+                              {/* Zone (PriceList) */}
+                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                {ticket.isNew || ticket.isEditing ? (
+                                  <PriceListSelect
+                                    ticketId={ticket.id}
+                                    restaurantID={ticket.restaurantId}
+                                    handleChange={handleNewTicketChange}
+                                  />
+                                ) : (
+                                  <span>{ticket.typeCommission ?? "Inconnue"}</span>
+                                )}
+                              </td>
+
                               {/* Montant Livraison */}
                               <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                                 {ticket.isNew || ticket.isEditing ? (
@@ -862,7 +874,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               </td>
                             </tr>
                           ))}
-                          <tr ref={observerTarget} className="h-0.5 flex items-center justify-center mt-4">
+                          <tr ref={observerTarget} className="flex items-center justify-center mt-4">
                             {infiniteState.isFetchingNextPage && (
                               <td colSpan={10} className="text-xs text-gray-500">
                                 Chargement des données...
