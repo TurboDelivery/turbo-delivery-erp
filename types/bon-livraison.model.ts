@@ -46,6 +46,7 @@ export interface ParametreBonLivraisonFacture {
 
 export interface Ticket {
     reference?: string;
+   
     id: string;
     code?: string;
     livreurId: string;
@@ -60,6 +61,7 @@ export interface Ticket {
     isNew?: boolean;    // déjà existant
     isEditing?: boolean; // nouveau champ
     statut: string;
+    zoneId?: string;
 }
 
 export interface LivreurStat {

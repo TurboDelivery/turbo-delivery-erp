@@ -10,6 +10,7 @@ const BASE_URL = '/api/erp/frais-livraison';
 
 const deliveryFeeEndpoints = {
     createDeliveryFee: { endpoint: `${BASE_URL}`, method: 'POST' },
+    
     updateDeliveryFee: { endpoint: `${BASE_URL}`, method: 'PUT' },
     getAllDeliveryFee: { endpoint: `${BASE_URL}/tous`, method: 'GET' },
     getPaginationDeliveryFee: { endpoint: `${BASE_URL}/pagination`, method: 'GET' },

@@ -1,19 +1,20 @@
 'use client';
+import PriceListSelect from '@/components/tickets/price-list-select';
+import StatsSection from '@/components/tickets/stats-section';
+import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
+import useTickets from '@/features/tickets/hooks/use-tickets';
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
+import { createBonLivraison, deleteBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
 import Select from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 import { DeliveryMan, Restaurant } from '@/types/models';
 import React, { useMemo, useState } from 'react';
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { LivreurStat, Ticket } from '@/types/bon-livraison.model';
-import { createBonLivraison, deleteBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
+import { Input } from '@heroui/react';
+import { isAfter } from 'date-fns';
 import { CheckSquare, ChevronDown, File, FileText, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { isAfter } from 'date-fns';
-import useTickets from '@/features/tickets/hooks/use-tickets';
-import { Input } from '@heroui/react';
-import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
-import StatsSection from '@/components/tickets/stats-section';
-import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 interface ContentProps {
@@ -26,6 +27,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   const [exportOpen, setExportOpen] = useState(false);
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [selectedZone, setSelectedZone] = useState<string>('');
   const [insertCount, setInsertCount] = useState<number>(1);
   const [selectedLivreur] = useState('');
   const [insertLivreurId, setInsertLivreurId] = useState<string>('');
@@ -35,6 +37,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   const observerTarget = useInfiniteScroll(infiniteState.fetchNextPage, infiniteState.hasNextPage);
 
   const activeTab = filters.tab;
+
   // Filtrage unique des livreurs valides
   const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
   const livreurList = useMemo(() => validLivreurs.filter((l) => l.prenoms && l.nom).map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
@@ -116,22 +119,26 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     const confirm = window.confirm(`Supprimer ${selectedRows.size} ticket(s) ?`);
     if (!confirm) return;
 
-    const ids = Array.from(selectedRows);
+    const idsToDelete = Array.from(selectedRows);
 
     try {
-      for (const id of ids) {
-        await deleteBonLivraison(id);
+      for (const id of idsToDelete) {
+        const success = await deleteBonLivraison(id);
+
+        if (!success) {
+          throw new Error(`Échec suppression ticket ${id}`);
+        }
       }
 
-      // UI sync
-      setTickets((prev) => prev.filter((t) => !selectedRows.has(t.id)));
-      setNewTickets((prev) => prev.filter((t) => !selectedRows.has(t.id)));
+      //
+      setTickets((prev) => prev.filter((t) => !idsToDelete.includes(t.id)));
+      setNewTickets((prev) => prev.filter((t) => !idsToDelete.includes(t.id)));
       setSelectedRows(new Set());
 
       toast.success('Suppression réussie');
     } catch (error) {
       console.error(error);
-      toast.error('Erreur lors de la suppression');
+      toast.error('La suppression a échoué — aucune modification appliquée');
     }
   };
 
@@ -351,6 +358,10 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
           updatedTicket.coutLivraison = calculateCommission(updatedTicket.restaurantId, montant).toString();
         }
 
+        console.log('Changement ticket:', updatedTicket.id, 'Champ modifié:', field, 'Nouvelle valeur:', value);
+
+        if (field === 'zoneId') updatedTicket.coutLivraison = value;
+
         return updatedTicket;
       }),
     );
@@ -548,7 +559,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Date</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Heure</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">
-                            <span className="sr-only">Actions</span>
+                            <span className="sr-only">Action</span>
                           </th>
                         </tr>
                       </thead>
@@ -594,11 +605,15 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                   options={restaurantList}
                                   value={restaurantList.find((o) => o.value === ticket.restaurantId) ?? null}
                                   onChange={(option) => handleNewTicketChange(ticket.id, 'restaurantId', option?.value ?? '')}
-                                  placeholder="Sélectionner un restaurant"
+                                  placeholder="Sélectionner un restaurants"
                                   isClearable
                                   className="text-xs rounded px-2 py-1"
                                   classNamePrefix="react-select"
                                 />
+                              </td>
+                              {/* Zone (PriceList) */}
+                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[320px]">
+                                <PriceListSelect restaurantID={ticket.restaurantId} handleChange={handleNewTicketChange} />
                               </td>
 
                               {/* Montant Livraison */}

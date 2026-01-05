@@ -48,7 +48,7 @@ export default function useContentCtx({ initialItems }: { initialItems: Record<s
             },
         });
 
-        console.log(chiffreAffaire)
+       
 
         setItems((state) => ({ ...state, chiffreAffaire, chiffresAffairesRestaurants }));
         setLoader(false);
