@@ -8,7 +8,7 @@ export default async function Page() {
     const livreurs = await getAllDeliveryMan();
     const restaurants = await getAllRestaurants();
     const data = await getBonLivraisonTerminees({ dates: { start: null, end: null } });
-    const tickets = data.map(bonLivraisonToTicket);
+    const tickets = data?.map(bonLivraisonToTicket);
     
     return (<Content restaurants={restaurants} livreurs={livreurs} data={tickets} />);
 }
