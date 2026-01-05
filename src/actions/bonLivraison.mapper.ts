@@ -1,4 +1,4 @@
-import { BonLivraisonTerminee, Ticket } from "@/types/bon-livraison.model";
+import { BonLivraisonTerminee, Ticket } from '@/types/bon-livraison.model';
 
 export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
   return {
@@ -14,12 +14,19 @@ export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
     date: bon.date,
     heure: bon.heure,
     isNew: false,
-    isEditing: false
+    isEditing: false,
   };
 }
 
-{/* Fonction utilitaire pour formater */}
-export function formatCFA (value: number | string) {
+export function formatNumberFR(value: number | string) {
+  const number = typeof value === 'string' ? parseFloat(value) || 0 : value;
+  return new Intl.NumberFormat('fr-FR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(number);
+}
+
+export function formatCFA(value: number | string) {
   const number = typeof value === 'string' ? parseFloat(value) || 0 : value;
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
@@ -27,5 +34,18 @@ export function formatCFA (value: number | string) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(number);
-};
+}
 
+export function formatDateFR(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+}
+
+export function formatHoursMinutes(time: string): string {
+  const [hours, minutes] = time.split(':');
+  return `${hours}h${minutes}`;
+}

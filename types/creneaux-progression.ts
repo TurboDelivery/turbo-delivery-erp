@@ -26,21 +26,6 @@ export interface Creneau {
     livreurs: Livreur[];    // Liste des livreurs associés au restaurant
   }
   
-  // L'interface pour la réponse paginée
-  export interface PaginatedResponse<T> {
-    content: T[];           // Les données de contenu (ici, des restaurants)
-    pageable: Pageable;     // Informations de pagination
-    totalPages: number;     // Nombre total de pages
-    totalElements: number;  // Nombre total d'éléments
-    last: boolean;          // Si c'est la dernière page
-    first: boolean;         // Si c'est la première page
-    size: number;           // Nombre d'éléments par page
-    number: number;         // Numéro de la page actuelle
-    sort: Sort;             // Informations sur le tri
-    numberOfElements: number; // Nombre d'éléments dans la page actuelle
-    empty: boolean;         // Si la page est vide
-  }
-  
   // Interface pour la pagination
   export interface Pageable {
     paged: boolean;         // Si la pagination est activée

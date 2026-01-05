@@ -11,6 +11,7 @@ type ContentProps = {
 };
 
 export default function Content({ commandesInitiales, restaurants, stats }: ContentProps) {
+    
     return (
         <div className="w-full h-full flex flex-col gap-6 mb-4 p-2">
             <div className="flex items-center">
