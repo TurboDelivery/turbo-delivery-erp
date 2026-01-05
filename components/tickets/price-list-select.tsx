@@ -7,11 +7,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { Ticket } from '@/types/bon-livraison.model';
 
 type PriceListSelectProps = {
+  ticketId: string;
   restaurantID: string;
   handleChange: (id: string, field: keyof Ticket, value: string) => void;
 };
 
-const PriceListSelect = ({ restaurantID, handleChange }: PriceListSelectProps) => {
+const PriceListSelect = ({ ticketId ,restaurantID, handleChange }: PriceListSelectProps) => {
   const [priceList, setPriceList] = useState<DeliveryFee[]>([]);
   const [selectedFeeId, setSelectedFeeId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -38,8 +39,7 @@ const PriceListSelect = ({ restaurantID, handleChange }: PriceListSelectProps) =
   const onChange = (option: SingleValue<{ value: string; label: string }>) => {
     setSelectedFeeId(option?.value ?? null);
     const prix = priceList.find((fee) => getId(fee) == option?.value)?.commission ?? 0;
-    console.log('Selected PriceList ID:', option?.value, 'with fee:', prix);
-    handleChange(priceList[0]?.id ?? '', 'zoneId', prix.toString());
+    handleChange(ticketId ?? '', 'coutLivraison', prix.toString());
   };
 
   return (

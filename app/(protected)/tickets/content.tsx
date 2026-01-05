@@ -27,7 +27,6 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   const [exportOpen, setExportOpen] = useState(false);
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [selectedZone, setSelectedZone] = useState<string>('');
   const [insertCount, setInsertCount] = useState<number>(1);
   const [selectedLivreur] = useState('');
   const [insertLivreurId, setInsertLivreurId] = useState<string>('');
@@ -331,7 +330,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     }
   };
 
-  const calculateCommission = (restaurantId: string, montantCommande: number): number => {
+  const calculateCommission = (restaurantId: string, montantCommande: number) => {
     const restaurant = restaurants.find((r) => r.id === restaurantId);
     if (!restaurant || !montantCommande) return 0;
 
@@ -343,7 +342,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     }
 
     // Commission fixe
-    return commission;
+    return null;
   };
 
   const handleNewTicketChange = (id: string, field: keyof Ticket, value: string) => {
@@ -351,16 +350,20 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       prev.map((t) => {
         if (t.id !== id) return t;
         const updatedTicket = { ...t, [field]: value };
-
+        if (field == 'restaurantId') {
+          const rest = restaurants.find((r) => r.id == value);
+          if (rest) {
+            updatedTicket.typeCommission = rest.typeCommission;
+          }
+        }
         // recalcul automatique si nécessaire
         if (field === 'montantCommande' || field === 'restaurantId') {
           const montant = Number(updatedTicket.montantCommande || 0);
-          updatedTicket.coutLivraison = calculateCommission(updatedTicket.restaurantId, montant).toString();
+          const commission = calculateCommission(updatedTicket.restaurantId, montant);
+          if (commission) {
+            updatedTicket.coutLivraison = commission.toString();
+          }
         }
-
-        console.log('Changement ticket:', updatedTicket.id, 'Champ modifié:', field, 'Nouvelle valeur:', value);
-
-        if (field === 'zoneId') updatedTicket.coutLivraison = value;
 
         return updatedTicket;
       }),
@@ -553,6 +556,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Code Check</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[260px]">Livreur</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[320px]">Partner</th>
+                          <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[320px]">Zone</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant de Livraison</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant de Commande</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Commission</th>
@@ -613,7 +617,11 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               </td>
                               {/* Zone (PriceList) */}
                               <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[320px]">
-                                <PriceListSelect restaurantID={ticket.restaurantId} handleChange={handleNewTicketChange} />
+                                <PriceListSelect
+                                  ticketId={ticket.id}
+                                  restaurantID={ticket.restaurantId}
+                                  handleChange={handleNewTicketChange}
+                                />
                               </td>
 
                               {/* Montant Livraison */}
@@ -743,6 +751,19 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 )}
                               </td>
 
+                              {/* Zone (PriceList) */}
+                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                {ticket.isNew || ticket.isEditing ? (
+                                  <PriceListSelect
+                                    ticketId={ticket.id}
+                                    restaurantID={ticket.restaurantId}
+                                    handleChange={handleNewTicketChange}
+                                  />
+                                ) : (
+                                  <span>{ticket.typeCommission ?? "Inconnue"}</span>
+                                )}
+                              </td>
+
                               {/* Montant Livraison */}
                               <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                                 {ticket.isNew || ticket.isEditing ? (
@@ -780,7 +801,8 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 {ticket.isNew || ticket.isEditing ? (
                                   <input type="number" value={ticket.coutLivraison} readOnly placeholder="0 CFA" className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded" />
                                 ) : (
-                                  formatCFA(calculateCommission(ticket.restaurantId, Number(ticket.montantCommande)))
+                                  // formatCFA(calculateCommission(ticket.restaurantId, Number(ticket.montantCommande)))
+                                  formatCFA(0)
                                 )}
                               </td>
 
@@ -852,7 +874,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               </td>
                             </tr>
                           ))}
-                          <tr ref={observerTarget} className="h-0.5 flex items-center justify-center mt-4">
+                          <tr ref={observerTarget} className="flex items-center justify-center mt-4">
                             {infiniteState.isFetchingNextPage && (
                               <td colSpan={10} className="text-xs text-gray-500">
                                 Chargement des données...
