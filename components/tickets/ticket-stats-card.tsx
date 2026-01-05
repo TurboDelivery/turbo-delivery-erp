@@ -15,7 +15,7 @@ export function TicketStatsCard({ title, value, variant = 'default' }: StatsCard
   return (
     <div className={`${base} ${isPrimary ? primary : secondary}`}>
       <p className={`text-xs sm:text-sm mb-2 ${isPrimary ? 'opacity-90' : 'text-gray-500'}`}>{title}</p>
-      <p className="text-2xl sm:text-3xl font-bold break-words">{value}</p>
+      <p className="text-lg sm:text-3xl font-bold break-words">{value}</p>
     </div>
   );
 }

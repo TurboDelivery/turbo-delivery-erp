@@ -1,6 +1,7 @@
 import { BonLivraisonTerminee, Ticket } from '@/types/bon-livraison.model';
 
 export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
+  console.log('Mapping bon de livraison:', bon);
   return {
     id: bon.commandeId,
     code: bon.reference,
@@ -16,6 +17,9 @@ export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
     heure: bon.heure,
     isNew: false,
     isEditing: false,
+    commission: bon.commission ? String(bon.commission) : undefined,
+    nomZone: bon.nomZone,
+    zoneId: bon.zoneId,
   };
 }
 

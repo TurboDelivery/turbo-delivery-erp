@@ -27,6 +27,7 @@ export interface ITicketsStats {
   tickets: number;
   livreurs: number;
   restaurants: number;
+  totalCommissions: number;
 }
 
 export interface newTicket extends Ticket {

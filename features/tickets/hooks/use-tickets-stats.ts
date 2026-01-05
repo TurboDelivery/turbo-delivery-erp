@@ -11,6 +11,7 @@ export function useTicketsStats() {
       totalTickets: data?.tickets || 0,
       totalLivreurs: data?.livreurs || 0,
       totalPartenaires: data?.restaurants || 0,
+      totalCommissions: data?.totalCommissions || 0,
     },
     isLoading,
     isError,

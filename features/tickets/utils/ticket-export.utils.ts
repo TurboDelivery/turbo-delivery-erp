@@ -1,0 +1,64 @@
+import { Ticket } from '@/types/bon-livraison.model';
+
+export function generatePdfTemplate(tickets: Ticket[]): string {
+  const totalRevenu = tickets.reduce((sum, t) => sum + parseFloat(t.montantLivraison.replace(/[^0-9]/g, '')), 0);
+
+  return `
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+      <meta charset="utf-8">
+      <title>Export Tickets PDF</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #ef4444; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th { background-color: #fed7aa; padding: 10px; text-align: left; border: 1px solid #ddd; }
+        td { padding: 8px; border: 1px solid #ddd; }
+        tr:nth-child(even) { background-color: #f9fafb; }
+        .stats { margin: 20px 0; padding: 15px; background: #fef3c7; border-radius: 8px; }
+      </style>
+    </head>
+    <body>
+      <h1>📋 Rapport des Tickets de Livraison</h1>
+      <div class="stats">
+        <p><strong>Date d'export:</strong> ${new Date().toLocaleString('fr-FR')}</p>
+        <p><strong>Nombre total de tickets:</strong> ${tickets.length}</p>
+        <p><strong>Revenu total:</strong> ${totalRevenu.toLocaleString()} CFA</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Code Check</th>
+            <th>Livreur</th>
+            <th>Partner</th>
+            <th>Montant de Livraison</th>
+            <th>Montant de Commande</th>
+            <th>Commission</th>
+            <th>Date</th>
+            <th>Heure</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tickets
+            .map(
+              (t) => `
+            <tr>
+              <td>${t.id}</td>
+              <td>${t.livreur}</td>
+              <td>${t.restaurant}</td>
+              <td>${t.montantLivraison}</td>
+              <td>${t.montantCommande}</td>
+              <td>${t.coutLivraison}</td>
+              <td>${t.date}</td>
+              <td>${t.heure}</td>
+            </tr>
+          `,
+            )
+            .join('')}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `;
+}

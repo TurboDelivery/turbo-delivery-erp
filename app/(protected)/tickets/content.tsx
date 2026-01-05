@@ -4,17 +4,16 @@ import StatsSection from '@/components/tickets/stats-section';
 import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
 import useTickets from '@/features/tickets/hooks/use-tickets';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
-import { updateBonLivraison } from '@/src/actions/bon-commande.action';
 import Select from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 import { DeliveryMan, Restaurant } from '@/types/models';
 import React, { useMemo, useState } from 'react';
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
-import { LivreurStat, Ticket } from '@/types/bon-livraison.model';
+import { Ticket } from '@/types/bon-livraison.model';
 import { Input } from '@heroui/react';
-import { isAfter } from 'date-fns';
 import { CheckSquare, ChevronDown, File, FileText, Loader2, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { generatePdfTemplate } from '@/features/tickets/utils/ticket-export.utils';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 interface ContentProps {
@@ -29,13 +28,13 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     ticketsData,
     isLoading,
     infiniteState,
-    mutations: { createBonLivraisonMutation, isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison },
+    mutations: { createBonLivraisonMutation, isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
+    state: { handleEditRow, editingIds, handleCancelEditRow, tickets, setTickets },
   } = useTickets();
   const [exportOpen, setExportOpen] = useState(false);
+  const [editedTickets, setEditedTickets] = useState<Map<string, Ticket>>(new Map());
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
-  const [tickets, setTickets] = useState<Ticket[]>([]);
   const [insertCount, setInsertCount] = useState<number>(1);
-  const [selectedLivreur] = useState('');
   const [insertLivreurId, setInsertLivreurId] = useState<string>('');
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [insertRestaurantId, setInsertRestaurantId] = useState<string>('');
@@ -48,52 +47,6 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
   const livreurList = useMemo(() => validLivreurs.filter((l) => l.prenoms && l.nom).map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
   const restaurantList = useMemo(() => restaurants.map((r) => ({ value: r.id, label: r.nomEtablissement })), [restaurants]);
-
-  const filteredTickets = useMemo(() => {
-    return tickets.filter((ticket) => {
-      if (filters.livreurId && ticket.livreur !== filters.livreurId) return false;
-      if (filters.restaurantId && ticket.restaurant !== filters.restaurantId) return false;
-      if (filters.debut && isAfter(ticket.date, filters.debut)) return false;
-      if (filters.fin && isAfter(ticket.date, filters.fin)) return false;
-      if (filters.search) {
-        const q = filters.search.toLowerCase();
-        if (!ticket.id.toLowerCase().includes(q) && !ticket.livreur.toLowerCase().includes(q) && !ticket.restaurant.toLowerCase().includes(q)) {
-          return false;
-        }
-      }
-
-      return true;
-    });
-  }, [tickets, filters]);
-
-  const livreurStats = useMemo<Record<string, LivreurStat>>(() => {
-    const stats: Record<string, LivreurStat> = {};
-
-    ticketsData.forEach((ticket) => {
-      if (!stats[ticket.livreur]) {
-        stats[ticket.livreur] = {
-          count: 0,
-          totalCommandes: 0,
-          totalLivraisons: 0,
-          commission: 0,
-          tickets: [],
-        };
-      }
-
-      stats[ticket.livreur].count++;
-      stats[ticket.livreur].totalCommandes += Number(ticket.montantCommande.replace(/\D/g, ''));
-      stats[ticket.livreur].totalLivraisons += Number(ticket.montantLivraison.replace(/\D/g, ''));
-      stats[ticket.livreur].commission += Number(ticket.coutLivraison.replace(/\D/g, ''));
-      stats[ticket.livreur].tickets.push(ticket);
-    });
-
-    return stats;
-  }, [ticketsData]);
-
-  const filteredLivreurTickets = useMemo(() => {
-    if (!selectedLivreur) return [];
-    return livreurStats[selectedLivreur]?.tickets || [];
-  }, [selectedLivreur, livreurStats]);
 
   const livreurOptions = useMemo(() => validLivreurs.map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
   const restaurantOptions = useMemo(() => restaurants.map((r) => ({ value: r.id, label: r.nomEtablissement })), [restaurants]);
@@ -132,12 +85,8 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
         deleteBonLivraisonMutation(id);
       }
 
-      //
-      setTickets((prev) => prev.filter((t) => !idsToDelete.includes(t.id)));
       setNewTickets((prev) => prev.filter((t) => !idsToDelete.includes(t.id)));
       setSelectedRows(new Set());
-
-      toast.success('Suppression réussie');
     } catch (error) {
       console.error(error);
       toast.error('La suppression a échoué — aucune modification appliquée');
@@ -145,7 +94,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   };
 
   const handleExport = (format: ExportFormat) => {
-    const dataToExport = activeTab === 'tous' ? filteredTickets : filteredLivreurTickets;
+    const dataToExport = ticketsData;
 
     if (dataToExport.length === 0) {
       toast.warning('Aucune donnée à exporter');
@@ -188,64 +137,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       toast.success(`${dataToExport.length} ligne(s) exportée(s) en Excel`);
     } else if (format === 'pdf') {
       // Création d'un document HTML pour impression PDF
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="fr">
-        <head>
-          <meta charset="utf-8">
-          <title>Export Tickets PDF</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { color: #ef4444; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { background-color: #fed7aa; padding: 10px; text-align: left; border: 1px solid #ddd; }
-            td { padding: 8px; border: 1px solid #ddd; }
-            tr:nth-child(even) { background-color: #f9fafb; }
-            .stats { margin: 20px 0; padding: 15px; background: #fef3c7; border-radius: 8px; }
-          </style>
-        </head>
-        <body>
-          <h1>📋 Rapport des Tickets de Livraison</h1>
-          <div class="stats">
-            <p><strong>Date d'export:</strong> ${new Date().toLocaleString('fr-FR')}</p>
-            <p><strong>Nombre total de tickets:</strong> ${dataToExport.length}</p>
-            <p><strong>Revenu total:</strong> ${dataToExport.reduce((sum, t) => sum + parseFloat(t.montantLivraison.replace(/[^0-9]/g, '')), 0).toLocaleString()} CFA</p>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Code Check</th>
-                <th>Livreur</th>
-                <th>Partner</th>
-                <th>Montant de Livraison</th>
-                <th>Montant de Commande</th>
-                <th>Commission</th>
-                <th>Date</th>
-                <th>Heure</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${dataToExport
-                .map(
-                  (t) => `
-                <tr>
-                  <td>${t.id}</td>
-                  <td>${t.livreur}</td>
-                  <td>${t.restaurant}</td>
-                  <td>${t.montantLivraison}</td>
-                  <td>${t.montantCommande}</td>
-                  <td>${t.coutLivraison}</td>
-                  <td>${t.date}</td>
-                  <td>${t.heure}</td>
-                </tr>
-              `,
-                )
-                .join('')}
-            </tbody>
-          </table>
-        </body>
-        </html>
-      `;
+      const htmlContent = generatePdfTemplate(dataToExport);
 
       const printWindow = window.open('', '_blank');
 
@@ -312,17 +204,23 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   };
 
   const handleSaveRow = async (id: string) => {
-    const ticket = tickets.find((t) => t.id === id);
+    const ticket = editedTickets.get(id) ?? ticketsData.find((t) => t.id === id);
     if (!ticket) return;
 
     try {
-      const updated = await updateBonLivraison(id, ticket);
-      if (updated) {
-        setTickets((prev) => prev.map((t) => (t.id === id ? { ...ticket, isEditing: false } : t)));
-        toast.success('Ticket mis à jour avec succès');
-      } else {
-        toast.error('Erreur lors de la mise à jour du ticket');
-      }
+      updateBonLivraisonMutation(
+        { ticketId: id, ticket },
+        {
+          onSuccess: () => {
+            setEditedTickets((prev) => {
+              const newMap = new Map(prev);
+              newMap.delete(id);
+              return newMap;
+            });
+            handleCancelEditRow(id);
+          },
+        },
+      );
     } catch (error) {
       console.error(error);
       toast.error('Erreur lors de la mise à jour du ticket');
@@ -334,44 +232,57 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     if (!restaurant || !montantCommande) return 0;
 
     const commission = Number(restaurant.commission ?? 0);
-
-    if (restaurant.typeCommission === 'POURCENTAGE') {
+    if (restaurant.typeCommission == 'POURCENTAGE') {
       const net = montantCommande * (commission / 100);
       return Number(net.toFixed(2));
     }
 
-    // Commission fixe
     return null;
   };
 
-  const handleNewTicketChange = (id: string, field: keyof Ticket, value: string) => {
-    setNewTickets((prev) =>
-      prev.map((t) => {
-        if (t.id !== id) return t;
-        const updatedTicket = { ...t, [field]: value };
-        if (field == 'restaurantId') {
-          const rest = restaurants.find((r) => r.id == value);
-          if (rest) {
-            updatedTicket.typeCommission = rest.typeCommission;
-          }
-        }
-        // recalcul automatique si nécessaire
-        if (field === 'montantCommande' || field === 'restaurantId') {
-          const montant = Number(updatedTicket.montantCommande || 0);
-          const commission = calculateCommission(updatedTicket.restaurantId, montant);
-          if (commission) {
-            updatedTicket.coutLivraison = commission.toString();
-          }
-        }
+  const updateTicketField = (ticket: Ticket, field: keyof Ticket, value: string): Ticket => {
+    const updatedTicket = { ...ticket, [field]: value };
 
-        return updatedTicket;
-      }),
-    );
+    // Mise à jour du typeCommission si restaurantId change
+    if (field === 'restaurantId') {
+      const rest = restaurants.find((r) => r.id === value);
+      if (rest) {
+        updatedTicket.typeCommission = rest.typeCommission;
+      }
+    }
+    // Recalcul automatique de la commission
+    if (field === 'montantCommande' || field === 'restaurantId') {
+      const montant = Number(updatedTicket.montantCommande || 0);
+      const commission = calculateCommission(updatedTicket.restaurantId, montant);
+
+      if (commission) {
+        updatedTicket.coutLivraison = commission.toString();
+      }
+    }
+
+    return updatedTicket;
   };
 
-  const handleCancelNewTicket = (id: string) => setTickets((prev) => prev.filter((t) => t.id !== id));
-  const handleEditRow = (id: string) => setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, isEditing: true } : t)));
-  const handleCancelEditRow = (id: string) => setTickets((prev) => prev.map((t) => (t.id === id ? { ...t, isEditing: false } : t)));
+  const handleTicketChange = (id: string, field: keyof Ticket, value: string) => {
+    const isNewTicket = newTickets.some((t) => t.id === id);
+
+    if (isNewTicket) {
+      setNewTickets((prev) => prev.map((t) => (t.id === id ? updateTicketField(t, field, value) : t)));
+    } else {
+      // Pour les tickets existants, stocker les modifications temporaires
+      const currentTicket = editedTickets.get(id) ?? ticketsData.find((t) => t.id === id);
+      if (currentTicket) {
+        const updated = updateTicketField(currentTicket, field, value);
+        setEditedTickets((prev) => new Map(prev).set(id, updated));
+      }
+    }
+  };
+
+  const getTicketValue = (ticket: Ticket) => {
+    return editedTickets.get(ticket.id) ?? ticket;
+  };
+
+  const handleCancelNewTicket = (id: string) => setNewTickets((prev) => prev.filter((t) => t.id != id));
 
   return (
     <div className="min-h-screen p-2">
@@ -594,7 +505,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 <Select
                                   options={livreurList}
                                   value={livreurList.find((o) => o.value === ticket.livreurId) ?? null}
-                                  onChange={(option) => handleNewTicketChange(ticket.id, 'livreurId', option?.value ?? '')}
+                                  onChange={(option) => handleTicketChange(ticket.id, 'livreurId', option?.value ?? '')}
                                   placeholder="Sélectionner un livreur"
                                   isClearable
                                   className="text-xs rounded px-2 py-1"
@@ -607,7 +518,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 <Select
                                   options={restaurantList}
                                   value={restaurantList.find((o) => o.value === ticket.restaurantId) ?? null}
-                                  onChange={(option) => handleNewTicketChange(ticket.id, 'restaurantId', option?.value ?? '')}
+                                  onChange={(option) => handleTicketChange(ticket.id, 'restaurantId', option?.value ?? '')}
                                   placeholder="Sélectionner un restaurants"
                                   isClearable
                                   className="text-xs rounded px-2 py-1"
@@ -616,7 +527,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               </td>
                               {/* Zone (PriceList) */}
                               <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[320px]">
-                                <PriceListSelect ticketId={ticket.id} restaurantID={ticket.restaurantId} handleChange={handleNewTicketChange} />
+                                <PriceListSelect ticketId={ticket.id} restaurantID={ticket.restaurantId} handleChange={handleTicketChange} />
                               </td>
 
                               {/* Montant Livraison */}
@@ -626,7 +537,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                   min={0}
                                   step="0.01"
                                   value={ticket.montantLivraison}
-                                  onChange={(e) => handleNewTicketChange(ticket.id, 'montantLivraison', e.target.value)}
+                                  onChange={(e) => handleTicketChange(ticket.id, 'montantLivraison', e.target.value)}
                                   placeholder="0 CFA"
                                   disabled={!ticket.restaurantId}
                                   className={`w-full h-9 px-2 py-1 text-xs border rounded ${!ticket.restaurantId ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'}`}
@@ -637,7 +548,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                                 <input
                                   value={ticket.montantCommande}
-                                  onChange={(e) => handleNewTicketChange(ticket.id, 'montantCommande', e.target.value)}
+                                  onChange={(e) => handleTicketChange(ticket.id, 'montantCommande', e.target.value)}
                                   className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
                                   placeholder="0 CFA"
                                 />
@@ -653,7 +564,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 <input
                                   type="date"
                                   value={ticket.date}
-                                  onChange={(e) => handleNewTicketChange(ticket.id, 'date', e.target.value)}
+                                  onChange={(e) => handleTicketChange(ticket.id, 'date', e.target.value)}
                                   className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
                                 />
                               </td>
@@ -663,7 +574,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 <input
                                   type="time"
                                   value={ticket.heure}
-                                  onChange={(e) => handleNewTicketChange(ticket.id, 'heure', e.target.value)}
+                                  onChange={(e) => handleTicketChange(ticket.id, 'heure', e.target.value)}
                                   className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
                                 />
                               </td>
@@ -680,7 +591,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                     {!isCreatingBonLivraison && <CheckSquare className="w-4 h-4" />}
                                   </button>
                                   <button
-                                    onClick={() => handleCancelEditRow(ticket.id)}
+                                    onClick={() => handleCancelNewTicket(ticket.id)}
                                     className="px-2 py-1 h-9 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center justify-center"
                                   >
                                     <X className="w-4 h-4" />
@@ -689,184 +600,197 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               </td>
                             </tr>
                           ))}
-                          {ticketsData.map((ticket) => (
-                            <tr key={ticket.id} className={`${selectedRows.has(ticket.id) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
-                              {/* Checkbox */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 sticky left-0 bg-inherit z-2">
-                                <input type="checkbox" checked={selectedRows.has(ticket.id)} onChange={() => handleRowSelect(ticket.id)} className="w-4 h-4" />
-                              </td>
+                          {ticketsData.map((ticket) => {
+                            const displayTicket = getTicketValue(ticket);
+                            return (
+                              <tr key={displayTicket.id} className={`${selectedRows.has(displayTicket.id) ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
+                                {/* Checkbox */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 sticky left-0 bg-inherit z-2">
+                                  <input type="checkbox" checked={selectedRows.has(displayTicket.id)} onChange={() => handleRowSelect(displayTicket.id)} className="w-4 h-4" />
+                                </td>
 
-                              {/* Numéro */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                {ticket.isEditing ? (
-                                  <input
-                                    type="text"
-                                    value={ticket.code}
-                                    onChange={(e) => {
-                                      const newCode = e.target.value;
-                                      setTickets((prev) => prev.map((t) => (t.id === ticket.id ? { ...t, code: newCode } : t)));
-                                    }}
-                                    className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
-                                    placeholder="Code CHECKoo"
-                                  />
-                                ) : (
-                                  ticket.code
-                                )}
-                              </td>
+                                {/* Numéro */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                  {editingIds.has(displayTicket.id) ? (
+                                    <input
+                                      type="text"
+                                      value={displayTicket.code}
+                                      onChange={(e) => {
+                                        const newCode = e.target.value;
+                                        handleTicketChange(displayTicket.id, 'code', newCode);
+                                      }}
+                                      className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
+                                      placeholder="Code CHECK"
+                                    />
+                                  ) : (
+                                    displayTicket.code
+                                  )}
+                                </td>
 
-                              {/* Livreur */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[260px]">
-                                {ticket.isNew || ticket.isEditing ? (
-                                  <Select
-                                    options={livreurList}
-                                    value={livreurList.find((o) => o.value === ticket.livreurId) ?? null}
-                                    onChange={(option) => handleNewTicketChange(ticket.id, 'livreurId', option?.value ?? '')}
-                                    placeholder="Sélectionner un livreur"
-                                    isClearable
-                                    className="text-xs rounded px-2 py-1"
-                                    classNamePrefix="react-select"
-                                  />
-                                ) : (
-                                  ticket.livreur
-                                )}
-                              </td>
+                                {/* Livreur */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[260px]">
+                                  {displayTicket.isNew || editingIds.has(displayTicket.id) ? (
+                                    <Select
+                                      options={livreurList}
+                                      value={livreurList.find((o) => o.value === displayTicket.livreurId) ?? null}
+                                      onChange={(option) => handleTicketChange(displayTicket.id, 'livreurId', option?.value ?? '')}
+                                      placeholder="Sélectionner un livreur"
+                                      isClearable
+                                      className="text-xs rounded px-2 py-1"
+                                      classNamePrefix="react-select"
+                                    />
+                                  ) : (
+                                    displayTicket.livreur
+                                  )}
+                                </td>
 
-                              {/* Restaurant */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[320px]">
-                                {ticket.isNew || ticket.isEditing ? (
-                                  <Select
-                                    options={restaurantList}
-                                    value={restaurantList.find((o) => o.value === ticket.restaurantId) ?? null}
-                                    onChange={(option) => handleNewTicketChange(ticket.id, 'restaurantId', option?.value ?? '')}
-                                    placeholder="Sélectionner un restaurant"
-                                    isClearable
-                                    className="text-xs rounded px-2 py-1"
-                                    classNamePrefix="react-select"
-                                  />
-                                ) : (
-                                  ticket.restaurant
-                                )}
-                              </td>
+                                {/* Restaurant */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[320px]">
+                                  {displayTicket.isNew || editingIds.has(displayTicket.id) ? (
+                                    <Select
+                                      options={restaurantList}
+                                      value={restaurantList.find((o) => o.value === displayTicket.restaurantId) ?? null}
+                                      onChange={(option) => handleTicketChange(displayTicket.id, 'restaurantId', option?.value ?? '')}
+                                      placeholder="Sélectionner un restaurant"
+                                      isClearable
+                                      className="text-xs rounded px-2 py-1"
+                                      classNamePrefix="react-select"
+                                    />
+                                  ) : (
+                                    displayTicket.restaurant
+                                  )}
+                                </td>
 
-                              {/* Zone (PriceList) */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                {ticket.isNew || ticket.isEditing ? (
-                                  <PriceListSelect ticketId={ticket.id} restaurantID={ticket.restaurantId} handleChange={handleNewTicketChange} />
-                                ) : (
-                                  <span>{ticket.typeCommission ?? 'Inconnue'}</span>
-                                )}
-                              </td>
+                                {/* Zone (PriceList) */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                  {displayTicket.isNew || editingIds.has(displayTicket.id) ? (
+                                    <PriceListSelect ticketId={displayTicket.id} restaurantID={displayTicket.restaurantId} handleChange={handleTicketChange} />
+                                  ) : (
+                                    <span>{displayTicket.nomZone ?? 'Inconnue'}</span>
+                                  )}
+                                </td>
 
-                              {/* Montant Livraison */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                {ticket.isNew || ticket.isEditing ? (
-                                  <input
-                                    type="number"
-                                    min={0}
-                                    step="0.01"
-                                    value={ticket.montantLivraison}
-                                    onChange={(e) => handleNewTicketChange(ticket.id, 'montantLivraison', e.target.value)}
-                                    placeholder="0 CFA"
-                                    disabled={!ticket.restaurantId}
-                                    className={`w-full h-9 px-2 py-1 text-xs border rounded ${!ticket.restaurantId ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'}`}
-                                  />
-                                ) : (
-                                  formatCFA(ticket.montantLivraison)
-                                )}
-                              </td>
+                                {/* Montant Livraison */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                  {displayTicket.isNew || editingIds.has(displayTicket.id) ? (
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      step="0.01"
+                                      value={displayTicket.montantLivraison}
+                                      onChange={(e) => handleTicketChange(displayTicket.id, 'montantLivraison', e.target.value)}
+                                      placeholder="0 CFA"
+                                      disabled={!displayTicket.restaurantId}
+                                      className={`w-full h-9 px-2 py-1 text-xs border rounded ${!displayTicket.restaurantId ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'}`}
+                                    />
+                                  ) : (
+                                    formatCFA(displayTicket.montantLivraison)
+                                  )}
+                                </td>
 
-                              {/* Montant Commande */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                {ticket.isNew || ticket.isEditing ? (
-                                  <input
-                                    value={ticket.montantCommande}
-                                    onChange={(e) => handleNewTicketChange(ticket.id, 'montantCommande', e.target.value)}
-                                    className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
-                                    placeholder="0 CFA"
-                                  />
-                                ) : (
-                                  formatCFA(ticket.montantCommande)
-                                )}
-                              </td>
+                                {/* Montant Commande */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                  {displayTicket.isNew || editingIds.has(displayTicket.id) ? (
+                                    <input
+                                      value={displayTicket.montantCommande}
+                                      onChange={(e) => handleTicketChange(displayTicket.id, 'montantCommande', e.target.value)}
+                                      className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
+                                      placeholder="0 CFA"
+                                    />
+                                  ) : (
+                                    formatCFA(displayTicket.montantCommande)
+                                  )}
+                                </td>
 
-                              {/* Commission */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                {ticket.isNew || ticket.isEditing ? (
-                                  <input type="number" value={ticket.coutLivraison} readOnly placeholder="0 CFA" className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded" />
-                                ) : (
-                                  // formatCFA(calculateCommission(ticket.restaurantId, Number(ticket.montantCommande)))
-                                  formatCFA(0)
-                                )}
-                              </td>
+                                {/* Commission */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                  {displayTicket.isNew || editingIds.has(displayTicket.id) ? (
+                                    <input
+                                      type="number"
+                                      value={displayTicket.coutLivraison}
+                                      readOnly
+                                      placeholder="0 CFA"
+                                      className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded"
+                                    />
+                                  ) : (
+                                    formatCFA(displayTicket?.commission ?? 0)
+                                  )}
+                                </td>
 
-                              {/* Date */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                {ticket.isNew || ticket.isEditing ? (
-                                  <input
-                                    type="date"
-                                    value={ticket.date}
-                                    onChange={(e) => handleNewTicketChange(ticket.id, 'date', e.target.value)}
-                                    className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
-                                  />
-                                ) : (
-                                  formatDateFR(ticket.date)
-                                )}
-                              </td>
+                                {/* Date */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                  {displayTicket.isNew || editingIds.has(displayTicket.id) ? (
+                                    <input
+                                      type="date"
+                                      value={displayTicket.date}
+                                      onChange={(e) => handleTicketChange(displayTicket.id, 'date', e.target.value)}
+                                      className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
+                                    />
+                                  ) : (
+                                    formatDateFR(displayTicket.date)
+                                  )}
+                                </td>
 
-                              {/* Heure */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
-                                {ticket.isNew || ticket.isEditing ? (
-                                  <input
-                                    type="time"
-                                    value={ticket.heure}
-                                    onChange={(e) => handleNewTicketChange(ticket.id, 'heure', e.target.value)}
-                                    className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
-                                  />
-                                ) : (
-                                  formatHoursMinutes(ticket.heure)
-                                )}
-                              </td>
+                                {/* Heure */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
+                                  {displayTicket.isNew || editingIds.has(displayTicket.id) ? (
+                                    <input
+                                      type="time"
+                                      value={displayTicket.heure}
+                                      onChange={(e) => handleTicketChange(displayTicket.id, 'heure', e.target.value)}
+                                      className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
+                                    />
+                                  ) : (
+                                    formatHoursMinutes(displayTicket.heure)
+                                  )}
+                                </td>
 
-                              {/* Actions */}
-                              <td className="px-2 py-1 border-t border-b border-gray-200 whitespace-nowrap">
-                                {ticket.isNew ? (
-                                  <div className="flex gap-2">
+                                {/* Actions */}
+                                <td className="px-2 py-1 border-t border-b border-gray-200 whitespace-nowrap">
+                                  {displayTicket.isNew ? (
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => handleSaveNewTicket(displayTicket.id)}
+                                        className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
+                                      >
+                                        <CheckSquare className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleCancelEditRow(displayTicket.id)}
+                                        className="px-2 py-1 h-9 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center justify-center"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  ) : editingIds.has(displayTicket.id) ? (
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={() => handleSaveRow(displayTicket.id)}
+                                        disabled={isUpdatingBonLivraison}
+                                        className="px-2 py-1 h-9 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
+                                      >
+                                        {isUpdatingBonLivraison && <Loader2 className="size-4 animate-spin" />}
+                                        {!isUpdatingBonLivraison && <CheckSquare className="w-4 h-4" />}
+                                      </button>
+                                      <button
+                                        onClick={() => handleCancelEditRow(displayTicket.id)}
+                                        className="px-2 py-1 h-9 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center justify-center"
+                                      >
+                                        <X className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  ) : (
                                     <button
-                                      onClick={() => handleSaveNewTicket(ticket.id)}
-                                      className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
+                                      onClick={() => handleEditRow(displayTicket.id)}
+                                      className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center justify-center"
                                     >
-                                      <CheckSquare className="w-4 h-4" />
+                                      <Pen className="w-4 h-4" />
                                     </button>
-                                    <button
-                                      onClick={() => handleCancelNewTicket(ticket.id)}
-                                      className="px-2 py-1 h-9 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center justify-center"
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                ) : ticket.isEditing ? (
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => handleSaveRow(ticket.id)}
-                                      className="px-2 py-1 h-9 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
-                                    >
-                                      <CheckSquare className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleCancelEditRow(ticket.id)}
-                                      className="px-2 py-1 h-9 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center justify-center"
-                                    >
-                                      <X className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button onClick={() => handleEditRow(ticket.id)} className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center justify-center">
-                                    <Pen className="w-4 h-4" />
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
                           <tr ref={observerTarget} className="flex items-center justify-center mt-4">
                             {infiniteState.isFetchingNextPage && (
                               <td colSpan={10} className="text-xs text-gray-500">

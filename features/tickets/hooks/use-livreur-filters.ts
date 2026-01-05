@@ -3,7 +3,7 @@
 import { useQueryStates } from 'nuqs';
 import { ILivreurSearchParams } from '@/features/tickets/types/tickets.type';
 import { livreursFiltersClient } from '@/features/tickets/filters/livreurs.filters';
-import { obtenirDatesDepuisSemaine } from '@/features/tickets/date.utils';
+import { obtenirDatesDepuisSemaine } from '@/features/tickets/utils/date.utils';
 
 export function useLivreurFilters() {
   const [filters, setFilters] = useQueryStates(livreursFiltersClient.filters, livreursFiltersClient.option);

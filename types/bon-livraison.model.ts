@@ -1,16 +1,19 @@
 export interface BonLivraisonTerminee {
-    commandeId: string;
-    reference: string;
-    livreurId: string;
-    livreur: string;
-    restaurant: string;
-    restaurantId: string;
-    coutLivraison: number;
-    coutCommande: number;
-    commission?: number;
-    date: string;
-    heure: string;
-    statut: string;
+  commandeId: string;
+  reference: string;
+  livreurId: string;
+  livreur: string;
+  restaurant: string;
+  restaurantId: string;
+  coutLivraison: number;
+  coutCommande: number;
+  commission?: number;
+  date: string;
+  heure: string;
+  statut: string;
+  zoneId?: string;
+  nomZone?: string;
+  typeCommission?: string;
 }
 
 export interface BonLivraison {
@@ -45,7 +48,6 @@ export interface ParametreBonLivraisonFacture {
 
 export interface Ticket {
     reference?: string;
-   
     id: string;
     code?: string;
     livreurId: string;
@@ -61,7 +63,9 @@ export interface Ticket {
     isEditing?: boolean; // nouveau champ
     statut?: string;
     zoneId?: string;
+    nomZone?: string;
     typeCommission?: string;
+    commission?: string;
 }
 
 export interface LivreurStat {

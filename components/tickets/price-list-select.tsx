@@ -32,8 +32,12 @@ const PriceListSelect = ({ ticketId, restaurantID, handleChange }: PriceListSele
     const fee = priceList.find((fee) => getId(fee) == option?.value);
     const livraison = fee?.prix ?? 0;
     const prix = fee?.commission ?? 0;
-    handleChange(ticketId ?? '', 'montantLivraison', livraison.toString());
-    handleChange(ticketId ?? '', 'coutLivraison', prix.toString());
+    if (fee) {
+      handleChange(ticketId ?? '', 'zoneId', getId(fee!));
+      handleChange(ticketId ?? '', 'nomZone', fee.name ?? '');
+      handleChange(ticketId ?? '', 'montantLivraison', livraison.toString());
+      handleChange(ticketId ?? '', 'coutLivraison', prix.toString());
+    }
   };
 
   return (

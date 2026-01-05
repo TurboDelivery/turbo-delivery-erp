@@ -15,7 +15,7 @@ export const ticketsStatsQueryOption = (ticketsParamsDTO: ITicketParams) => {
     queryFn: async () => {
       return await getBonLivraisonStatsRequest(ticketsParamsDTO);
     },
-    staleTime: 60 * 1000, //60 secondes
+    staleTime: 30 * 1000, //30 secondes
     refetchOnWindowFocus: false, //Ne pas refetch lors du focus
     refetchOnMount: true, //Refetch lors du mount
   };
