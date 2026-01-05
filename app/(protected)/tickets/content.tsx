@@ -291,14 +291,8 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       return;
     }
 
-    const completeTicket: Ticket = {
-      ...ticket,
-      reference: ticket.code || Math.floor(100000000 + Math.random() * 900000000).toString(),
-      statut: 'TERMINE',
-    };
-
     try {
-      const result = await createBonLivraison(completeTicket);
+      const result = await createBonLivraison(ticket);
 
       if (!result) {
         throw new Error('Création échouée côté backend');
@@ -660,7 +654,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               <td className="px-2 py-1 border-t border-b border-gray-200 whitespace-nowrap">
                                 <div className="flex gap-2">
                                   <button
-                                    onClick={() => handleSaveRow(ticket.id)}
+                                    onClick={() => handleSaveNewTicket(ticket.id)}
                                     className="px-2 py-1 h-9 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
                                   >
                                     <CheckSquare className="w-4 h-4" />
