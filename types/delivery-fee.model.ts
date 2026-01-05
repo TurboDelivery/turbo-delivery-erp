@@ -1,5 +1,6 @@
 export interface DeliveryFee {
     id?: string;
+    name?: string;
     zone: string;
     restaurantId?: string;
     longitude?: number;

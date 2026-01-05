@@ -12,24 +12,15 @@ type PriceListSelectProps = {
   handleChange: (id: string, field: keyof Ticket, value: string) => void;
 };
 
-const PriceListSelect = ({ ticketId ,restaurantID, handleChange }: PriceListSelectProps) => {
+const PriceListSelect = ({ ticketId, restaurantID, handleChange }: PriceListSelectProps) => {
   const [priceList, setPriceList] = useState<DeliveryFee[]>([]);
   const [selectedFeeId, setSelectedFeeId] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     const fetchPriceList = async () => {
-      setLoading(true);
-      setError(null);
       const result: PaginatedResponse<DeliveryFee> | null = await getPriceListByRestaurant(restaurantID, 0, 100);
-
       if (result) {
         setPriceList(result.content); // ou result.data selon ta structure
-      } else {
-        setError('Impossible de récupérer la liste des prix.');
       }
-
-      setLoading(false);
     };
 
     fetchPriceList();
@@ -38,7 +29,10 @@ const PriceListSelect = ({ ticketId ,restaurantID, handleChange }: PriceListSele
   const opts = useMemo(() => getOptsFees(priceList), [priceList]);
   const onChange = (option: SingleValue<{ value: string; label: string }>) => {
     setSelectedFeeId(option?.value ?? null);
-    const prix = priceList.find((fee) => getId(fee) == option?.value)?.commission ?? 0;
+    const fee = priceList.find((fee) => getId(fee) == option?.value);
+    const livraison = fee?.prix ?? 0;
+    const prix = fee?.commission ?? 0;
+    handleChange(ticketId ?? '', 'montantLivraison', livraison.toString());
     handleChange(ticketId ?? '', 'coutLivraison', prix.toString());
   };
 
@@ -60,7 +54,7 @@ const PriceListSelect = ({ ticketId ,restaurantID, handleChange }: PriceListSele
 function getOptsFees(priceList: DeliveryFee[]) {
   return priceList.map((fee) => ({
     value: getId(fee),
-    label: fee.zone ?? `Zone ${getId(fee)}`,
+    label: fee.name ?? `Zone ${getId(fee)}`,
   }));
 }
 

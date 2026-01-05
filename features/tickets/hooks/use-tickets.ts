@@ -3,6 +3,7 @@ import { ITicketParams } from '@/features/tickets/types/tickets.type';
 import { useMemo } from 'react';
 import { bonLivraisonToTicket } from '@/src/actions/bonLivraison.mapper';
 import { useTicketsInfiniteQuery } from '@/features/tickets/queries/ticket-infinite.query';
+import { useCreateBonLivraison, useDeleteBonLivraison } from '@/features/tickets/queries/tickets.mutation';
 
 export default function useTickets() {
   const { filters, setFilter, resetFilters } = useTicketFilters();
@@ -20,6 +21,16 @@ export default function useTickets() {
   }, [filters]);
 
   const { data, isLoading, status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, isError, error } = useTicketsInfiniteQuery(currentSearchParams);
+
+  const {
+    mutate: createBonLivraisonMutation,
+    isPending: isCreatingBonLivraison,
+  } = useCreateBonLivraison();
+
+  const {
+    mutate: deleteBonLivraisonMutation,
+    isPending: isDeletingBonLivraison,
+  } = useDeleteBonLivraison();
 
   const tickets = [...(data?.pages.flatMap((page) => page.content.map(bonLivraisonToTicket)) || [])];
 
@@ -41,6 +52,12 @@ export default function useTickets() {
       fetchNextPage,
       hasNextPage,
       totalItems,
+    },
+    mutations: {
+      createBonLivraisonMutation,
+      isCreatingBonLivraison,
+      deleteBonLivraisonMutation,
+      isDeletingBonLivraison,
     },
   };
 }

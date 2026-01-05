@@ -4,7 +4,7 @@ import StatsSection from '@/components/tickets/stats-section';
 import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
 import useTickets from '@/features/tickets/hooks/use-tickets';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
-import { createBonLivraison, deleteBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
+import { updateBonLivraison } from '@/src/actions/bon-commande.action';
 import Select from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
 import { DeliveryMan, Restaurant } from '@/types/models';
@@ -13,7 +13,7 @@ import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLi
 import { LivreurStat, Ticket } from '@/types/bon-livraison.model';
 import { Input } from '@heroui/react';
 import { isAfter } from 'date-fns';
-import { CheckSquare, ChevronDown, File, FileText, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
+import { CheckSquare, ChevronDown, File, FileText, Loader2, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
@@ -23,7 +23,14 @@ interface ContentProps {
 }
 
 export default function Content({ restaurants, livreurs }: ContentProps) {
-  const { filters, setFilter, ticketsData, isLoading, infiniteState } = useTickets();
+  const {
+    filters,
+    setFilter,
+    ticketsData,
+    isLoading,
+    infiniteState,
+    mutations: { createBonLivraisonMutation, isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison },
+  } = useTickets();
   const [exportOpen, setExportOpen] = useState(false);
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -122,11 +129,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
 
     try {
       for (const id of idsToDelete) {
-        const success = await deleteBonLivraison(id);
-
-        if (!success) {
-          throw new Error(`Échec suppression ticket ${id}`);
-        }
+        deleteBonLivraisonMutation(id);
       }
 
       //
@@ -298,11 +301,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     }
 
     try {
-      const result = await createBonLivraison(ticket);
-
-      if (!result) {
-        throw new Error('Création échouée côté backend');
-      }
+      createBonLivraisonMutation(ticket);
 
       setNewTickets((prev) => prev.filter((t) => t.id !== id));
       toast.success('Ticket créé avec succès');
@@ -546,7 +545,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
             <div className="overflow-x-auto -mx-4 sm:mx-0">
               <div className="max-h-[420px] overflow-y-auto border border-gray-200 rounded-lg">
                 <div className="inline-block min-w-full align-middle">
-                  <div className="w-full overflow-x-auto">
+                  <div className="w-full overflow-x-auto min-h-[220px]">
                     <table className="min-w-[1600px] border border-gray-200">
                       <thead className="bg-orange-50 sticky top-0 z-2">
                         <tr>
@@ -617,11 +616,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               </td>
                               {/* Zone (PriceList) */}
                               <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[320px]">
-                                <PriceListSelect
-                                  ticketId={ticket.id}
-                                  restaurantID={ticket.restaurantId}
-                                  handleChange={handleNewTicketChange}
-                                />
+                                <PriceListSelect ticketId={ticket.id} restaurantID={ticket.restaurantId} handleChange={handleNewTicketChange} />
                               </td>
 
                               {/* Montant Livraison */}
@@ -678,9 +673,11 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 <div className="flex gap-2">
                                   <button
                                     onClick={() => handleSaveNewTicket(ticket.id)}
+                                    disabled={isCreatingBonLivraison}
                                     className="px-2 py-1 h-9 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
                                   >
-                                    <CheckSquare className="w-4 h-4" />
+                                    {isCreatingBonLivraison && <Loader2 className="size-4 animate-spin" />}
+                                    {!isCreatingBonLivraison && <CheckSquare className="w-4 h-4" />}
                                   </button>
                                   <button
                                     onClick={() => handleCancelEditRow(ticket.id)}
@@ -754,13 +751,9 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               {/* Zone (PriceList) */}
                               <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                                 {ticket.isNew || ticket.isEditing ? (
-                                  <PriceListSelect
-                                    ticketId={ticket.id}
-                                    restaurantID={ticket.restaurantId}
-                                    handleChange={handleNewTicketChange}
-                                  />
+                                  <PriceListSelect ticketId={ticket.id} restaurantID={ticket.restaurantId} handleChange={handleNewTicketChange} />
                                 ) : (
-                                  <span>{ticket.typeCommission ?? "Inconnue"}</span>
+                                  <span>{ticket.typeCommission ?? 'Inconnue'}</span>
                                 )}
                               </td>
 
@@ -920,11 +913,11 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
           </button>
           <button
             onClick={handleDeleteRows}
-            disabled={selectedRows.size === 0}
-            className={`px-2 py-1 border rounded-full text-xs sm:text-sm flex items-center gap-1
-    ${selectedRows.size === 0 ? 'border-gray-300 text-gray-400 cursor-not-allowed' : 'border-red-300 text-red-500 hover:bg-red-50'}`}
+            disabled={selectedRows.size === 0 || isDeletingBonLivraison}
+            className={`px-2 py-1 border rounded-full text-xs sm:text-sm flex items-center gap-1 ${selectedRows.size === 0 ? 'border-gray-300 text-gray-400 cursor-not-allowed' : 'border-red-300 text-red-500 hover:bg-red-50'}`}
           >
-            <Trash className="w-3 h-3" /> Supprimer
+            {isDeletingBonLivraison && <Loader2 className="size-4 animate-spin" />}
+            {!isDeletingBonLivraison && <Trash className="w-3 h-3" />} Supprimer
           </button>
 
           {selectedRows.size > 0 && (
