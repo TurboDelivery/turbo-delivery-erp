@@ -1,8 +1,8 @@
 import { useLivreurTicketsListQuery } from '@/features/tickets/queries/livreur-ticket-list.query';
-import { useTicketFilters } from '@/features/tickets/hooks/use-ticket-filters';
+import { useLivreurFilters } from '@/features/tickets/hooks/use-livreur-filters';
 
 export function useLivreurTicket() {
-  const { filters, setFilter } = useTicketFilters();
+  const { filters, setFilter, setLivreurWeekFilter, setLivreurSearch } = useLivreurFilters();
 
   const { data, isLoading, isError, refetch } = useLivreurTicketsListQuery(filters);
 
@@ -23,5 +23,7 @@ export function useLivreurTicket() {
     isErrorLivreurTickets: isError,
     refetchLivreurTickets: refetch,
     livreurTicketsMeta: meta,
+    setLivreurWeekFilter,
+    setLivreurSearch,
   };
 }

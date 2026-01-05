@@ -1,17 +1,25 @@
 import { Ticket } from '@/types/bon-livraison.model';
 
-import { BonLivraisonTerminee } from "@/types/bon-livraison.model";
-
 export interface ITicketParams {
   page?: number;
   size?: number;
   restaurantId?: string;
   livreurId?: string;
-  debut?:Date,
-  fin?:Date,
+  debut?: Date;
+  fin?: Date;
   search?: string;
   tab?: 'tous' | 'termines' | 'attentes';
   livreur?: string;
+}
+
+export interface ILivreurSearchParams {
+  livreurPage?: number;
+  livreurPageSize?: number;
+  livreur?: string; // search
+  idLivreur?: string; // filtre par livreurId
+  idRestaurant?: string;
+  creneauDebut?: Date; // debut
+  creneauFin?: Date; // fin
 }
 
 export interface ITicketsStats {
@@ -36,11 +44,4 @@ export interface ILivreurTicket {
   nom: string;
   prenom: string;
   tickets: TicketsJour[];
-}
-
-
-
-interface ITicketResponse {
-  data: BonLivraisonTerminee[];
-  total: number;
 }
