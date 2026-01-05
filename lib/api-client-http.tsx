@@ -79,7 +79,7 @@ export class ApiClientHttp {
         endpoint: string;
         method: string;
         data?: any;
-        params?: Record<string, string>;
+        params?: Record<string, any>;
         service?: ServiceType;
         config?: AxiosRequestConfig;
     }): Promise<T> {

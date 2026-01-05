@@ -7,8 +7,7 @@ interface ProvidersProps {
     children: React.ReactNode;
 }
 
+const queryClient = new QueryClient();
 export default function TanStackProvider({ children }: ProvidersProps) {
-    // On instancie le QueryClient une seule fois
-    const [queryClient] = useState(() => new QueryClient());
     return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }

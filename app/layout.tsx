@@ -4,7 +4,7 @@ import { Metadata, Viewport } from 'next';
 import { Lato } from 'next/font/google';
 import NextAuthSessionProvider from '@/providers/next-auth-session.provider';
 import ProviderComponent from '@/components/layouts/provider-component';
-
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 export const metadata: Metadata = {
     title: {
         template: '%s | Turbo Delivery - management platform',
@@ -125,7 +125,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                     <link rel="stylesheet" href="assets/css/leaflet.min.css" />
                 </head>
                 <body className={nunito.variable}>
-                    <ProviderComponent>{children}</ProviderComponent>
+                    <ProviderComponent> <NuqsAdapter>{children}</NuqsAdapter></ProviderComponent>
                 </body>
             </html>
         </NextAuthSessionProvider>
