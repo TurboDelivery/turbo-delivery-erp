@@ -4,6 +4,7 @@ export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
   return {
     id: bon.commandeId,
     code: bon.reference,
+    statut: "TERMINEE",
     livreurId: bon.livreurId ?? '',
     livreur: bon.livreur,
     restaurantId: bon.restaurantId ?? '',
