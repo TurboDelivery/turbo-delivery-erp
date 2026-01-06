@@ -5,7 +5,7 @@ import { PaginatedResponse } from '@/types';
 import { BonLivraison, BonLivraisonTerminee, ParametreBonLivraisonFacture, Ticket } from '@/types/bon-livraison.model';
 import { formatDate } from '@/utils/date-formate';
 import { RangeValue } from '@heroui/react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 // Configuration
 const BASE_URL = '/api/erp/bon-livraison';
 const BASE_URL_2 = '/api/export/reporting';
@@ -48,7 +48,7 @@ export async function getBonLivraisonAll(page: number, size: number, { dates: { 
 
 export async function getAllBonLivraisonTerminers(page: number, size: number, { dates: { start, end } }: { dates: RangeValue<string | null> }, typeCommsion: string): Promise<BonLivraison[]> {
   try {
-    const data = await apiClientHttp.request<BonLivraison[]>({
+    return await apiClientHttp.request<BonLivraison[]>({
       endpoint: bonLivraisonEndpoints.bonLivraisonTerminers.endpoint,
       method: bonLivraisonEndpoints.bonLivraisonTerminers.method,
       params: {
@@ -59,7 +59,6 @@ export async function getAllBonLivraisonTerminers(page: number, size: number, { 
         type: typeCommsion,
       },
     });
-    return data;
   } catch (error) {
     return [] as any;
   }
@@ -67,12 +66,11 @@ export async function getAllBonLivraisonTerminers(page: number, size: number, { 
 
 export async function getBonLivraisonTerminees({ dates: { start, end } }: { dates: RangeValue<string | null> }): Promise<BonLivraisonTerminee[]> {
   try {
-    const data = await apiClientHttp.request<BonLivraisonTerminee[]>({
+    return await apiClientHttp.request<BonLivraisonTerminee[]>({
       endpoint: bonLivraisonEndpoints.bonLivraisonTerminees.endpoint,
       method: bonLivraisonEndpoints.bonLivraisonTerminees.method,
       params: { debut: start ? formatDate(start, 'YYYY-MM-DD') : '', fin: end ? formatDate(end, 'YYYY-MM-DD') : '' },
     });
-    return data;
   } catch (error) {
     return [] as any;
   }
@@ -85,7 +83,7 @@ export async function getAllBonLivraisonEnAttentes(
   typeCommsion: string,
 ): Promise<BonLivraison[]> {
   try {
-    const data = await apiClientHttp.request<BonLivraison[]>({
+    return await apiClientHttp.request<BonLivraison[]>({
       endpoint: bonLivraisonEndpoints.bonLivraisonEnAttentes.endpoint,
       method: bonLivraisonEndpoints.bonLivraisonEnAttentes.method,
       params: {
@@ -96,7 +94,6 @@ export async function getAllBonLivraisonEnAttentes(
         type: typeCommsion,
       },
     });
-    return data;
   } catch (error) {
     return [] as any;
   }
@@ -131,32 +128,33 @@ export async function reportingBonLivraisonTerminers(parametre: ParametreBonLivr
 /**
  * Créer un nouveau bon de livraison
  */
-export async function createBonLivraison(ticket: Ticket): Promise<BonLivraisonTerminee | null> {
+export async function createBonLivraison(ticket: Ticket) {
   try {
     const { id, code, ...rest } = ticket;
     const payload = { ...rest, reference: code, commission: Number(rest.coutLivraison) };
-    console.log('Payload de création du bon de livraison:', payload);
     return await apiClientHttp.request<BonLivraisonTerminee>({
       endpoint: bonLivraisonEndpoints.create.endpoint,
       method: bonLivraisonEndpoints.create.method,
       service: 'backend',
       data: payload,
     });
-  } catch (error: any) {
-    console.error('Erreur lors de la création du bon de livraison:', error);
-    return null;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      const apiMessage = error.response?.data?.message;
+      throw new Error(apiMessage ?? 'Erreur serveur lors de la création du bon');
+    }
+    throw error;
   }
 }
 
 /**
  * Mettre à jour un bon de livraison existant
  */
-export async function updateBonLivraison(ticketId: string, ticket: Ticket): Promise<BonLivraisonTerminee | null> {
+export async function updateBonLivraison(ticketId: string, ticket: Ticket) {
   try {
     // On clone ticket sans l'id
     const { id, code, ...ticketWithoutId } = ticket;
     const payload = { ...ticketWithoutId, reference: code, commission: Number(ticketWithoutId.coutLivraison) };
-    console.log('Payload de mise à jour du bon de livraison:', payload);
 
     return await apiClientHttp.request<BonLivraisonTerminee>({
       endpoint: bonLivraisonEndpoints.update.endpoint,
@@ -164,9 +162,12 @@ export async function updateBonLivraison(ticketId: string, ticket: Ticket): Prom
       service: 'backend',
       data: { id: ticketId, ...payload },
     });
-  } catch (error: any) {
-    console.error('Erreur lors de la mise à jour du bon de livraison:', error);
-    return null;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      const apiMessage = error.response?.data?.message;
+      throw new Error(apiMessage ?? 'Erreur serveur lors de la création du bon');
+    }
+    throw error;
   }
 }
 

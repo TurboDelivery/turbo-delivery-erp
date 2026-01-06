@@ -9,7 +9,7 @@ import { Ticket } from '@/types/bon-livraison.model';
 type PriceListSelectProps = {
   ticketId: string;
   restaurantID: string;
-  handleChange: (id: string, field: keyof Ticket, value: string) => void;
+  handleChange: (id: string, patch: Partial<Ticket>) => void;
 };
 
 const PriceListSelect = ({ ticketId, restaurantID, handleChange }: PriceListSelectProps) => {
@@ -32,11 +32,14 @@ const PriceListSelect = ({ ticketId, restaurantID, handleChange }: PriceListSele
     const fee = priceList.find((fee) => getId(fee) == option?.value);
     const livraison = fee?.prix ?? 0;
     const prix = fee?.commission ?? 0;
+    console.log('Selected fee:', fee?.name, 'Livraison:', livraison, 'Prix:', prix);
     if (fee) {
-      handleChange(ticketId ?? '', 'zoneId', getId(fee!));
-      handleChange(ticketId ?? '', 'nomZone', fee.name ?? '');
-      handleChange(ticketId ?? '', 'montantLivraison', livraison.toString());
-      handleChange(ticketId ?? '', 'coutLivraison', prix.toString());
+      handleChange(ticketId, {
+        zoneId: getId(fee),
+        nomZone: fee.name ?? '',
+        montantLivraison: livraison.toString(),
+        coutLivraison: prix.toString(),
+      });
     }
   };
 

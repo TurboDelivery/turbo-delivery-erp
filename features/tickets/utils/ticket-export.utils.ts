@@ -44,7 +44,7 @@ export function generatePdfTemplate(tickets: Ticket[]): string {
             .map(
               (t) => `
             <tr>
-              <td>${t.id}</td>
+              <td>${t.code}</td>
               <td>${t.livreur}</td>
               <td>${t.restaurant}</td>
               <td>${t.montantLivraison}</td>

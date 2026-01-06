@@ -1,6 +1,6 @@
 import { useTicketFilters } from '@/features/tickets/hooks/use-ticket-filters';
 import { ITicketParams } from '@/features/tickets/types/tickets.type';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { bonLivraisonToTicket } from '@/src/actions/bonLivraison.mapper';
 import { useTicketsInfiniteQuery } from '@/features/tickets/queries/ticket-infinite.query';
 import { useCreateBonLivraison, useDeleteBonLivraison, useUpdateBonLivraison } from '@/features/tickets/queries/tickets.mutation';
@@ -10,7 +10,7 @@ export default function useTickets() {
   const { filters, setFilter, resetFilters } = useTicketFilters();
 
   const [editingIds, setEditingIds] = useState<Set<string>>(new Set());
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [editedTickets, setEditedTickets] = useState<Map<string, Ticket>>(new Map());
 
   const handleEditRow = (id: string) => {
     setEditingIds((prev) => new Set([...prev, id]));
@@ -48,12 +48,6 @@ export default function useTickets() {
 
   const totalItems = data?.pages[0]?.totalElements || 0;
 
-  useEffect(() => {
-    if (ticketsRaw && ticketsRaw.length > 0) {
-      setTickets(ticketsRaw);
-    }
-  }, [ticketsRaw]);
-
   return {
     filters,
     setFilter,
@@ -83,8 +77,8 @@ export default function useTickets() {
       editingIds,
       handleEditRow,
       handleCancelEditRow,
-      tickets,
-      setTickets
+      editedTickets,
+      setEditedTickets,
     },
   };
 }

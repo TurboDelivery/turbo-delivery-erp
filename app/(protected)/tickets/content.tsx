@@ -29,10 +29,9 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     isLoading,
     infiniteState,
     mutations: { createBonLivraisonMutation, isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
-    state: { handleEditRow, editingIds, handleCancelEditRow, tickets, setTickets },
+    state: { handleEditRow, editingIds, handleCancelEditRow, editedTickets, setEditedTickets },
   } = useTickets();
   const [exportOpen, setExportOpen] = useState(false);
-  const [editedTickets, setEditedTickets] = useState<Map<string, Ticket>>(new Map());
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
   const [insertCount, setInsertCount] = useState<number>(1);
   const [insertLivreurId, setInsertLivreurId] = useState<string>('');
@@ -193,10 +192,17 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     }
 
     try {
-      createBonLivraisonMutation(ticket);
-
-      setNewTickets((prev) => prev.filter((t) => t.id !== id));
-      toast.success('Ticket créé avec succès');
+      createBonLivraisonMutation(ticket, {
+        onSuccess: () => {
+          toast.success('Le ticket a été créé avec succès.');
+          setNewTickets((prev) => prev.filter((t) => t.id !== id));
+        },
+        onError: (error) => {
+          console.error('Erreur lors de la création du ticket:', error);
+          const message = error instanceof Error ? error.message : 'Erreur inconnue';
+          toast.error(`Erreur lors de la création du ticket: ${message}`);
+        },
+      });
     } catch (error) {
       console.error('Erreur complète lors de la création:', error);
       toast.error('Erreur lors de la création du ticket');
@@ -218,6 +224,11 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
               return newMap;
             });
             handleCancelEditRow(id);
+          },
+          onError: (error) => {
+            console.error('Erreur lors de la mise à jour du ticket:', error);
+            const message = error instanceof Error ? error.message : 'Erreur inconnue';
+            toast.error(`Erreur lors de la mise à jour du ticket: ${message}`);
           },
         },
       );
@@ -241,8 +252,9 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   };
 
   const updateTicketField = (ticket: Ticket, field: keyof Ticket, value: string): Ticket => {
+    console.log(`Updating field ${field} to value ${value} for ticket ${ticket.id}`);
     const updatedTicket = { ...ticket, [field]: value };
-
+    console.log('Updating ticket:', updatedTicket);
     // Mise à jour du typeCommission si restaurantId change
     if (field === 'restaurantId') {
       const rest = restaurants.find((r) => r.id === value);
@@ -263,16 +275,58 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     return updatedTicket;
   };
 
+  const applyTicketPatch = (ticket: Ticket, patch: Partial<Ticket>, restaurants: Restaurant[]): Ticket => {
+    const updated: Ticket = { ...ticket, ...patch };
+
+    if (patch.restaurantId) {
+      const rest = restaurants.find((r) => r.id === patch.restaurantId);
+      if (rest) {
+        updated.typeCommission = rest.typeCommission;
+      }
+    }
+
+    const shouldRecalculateCommission = patch.montantCommande !== undefined || patch.restaurantId !== undefined;
+
+    if (shouldRecalculateCommission) {
+      const montant = Number(updated.montantCommande || 0);
+      const commission = calculateCommission(updated.restaurantId, montant);
+
+      if (commission !== null && commission !== undefined) {
+        updated.coutLivraison = commission.toString();
+      }
+    }
+
+    return updated;
+  };
+
+  const updateTicket = (id: string, patch: Partial<Ticket>) => {
+    const isNewTicket = newTickets.some((t) => t.id === id);
+
+    if (isNewTicket) {
+      setNewTickets((prev) => prev.map((t) => (t.id === id ? applyTicketPatch(t, patch, restaurants) : t)));
+      return;
+    }
+
+    setEditedTickets((prev) => {
+      const base = prev.get(id) ?? ticketsData.find((t) => t.id === id);
+
+      if (!base) return prev;
+
+      const updated = applyTicketPatch(base, patch, restaurants);
+      return new Map(prev).set(id, updated);
+    });
+  };
+
   const handleTicketChange = (id: string, field: keyof Ticket, value: string) => {
     const isNewTicket = newTickets.some((t) => t.id === id);
 
     if (isNewTicket) {
       setNewTickets((prev) => prev.map((t) => (t.id === id ? updateTicketField(t, field, value) : t)));
     } else {
-      // Pour les tickets existants, stocker les modifications temporaires
       const currentTicket = editedTickets.get(id) ?? ticketsData.find((t) => t.id === id);
       if (currentTicket) {
         const updated = updateTicketField(currentTicket, field, value);
+        console.log('Updated ticket:', updated);
         setEditedTickets((prev) => new Map(prev).set(id, updated));
       }
     }
@@ -466,7 +520,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Code Check</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[260px]">Livreur</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[320px]">Partner</th>
-                          <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[320px]">Zone</th>
+                          <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap min-w-[260px]">Zone</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant de Livraison</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Montant de Commande</th>
                           <th className="p-2 sm:p-3 text-left text-xs sm:text-sm font-medium whitespace-nowrap">Commission</th>
@@ -527,7 +581,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               </td>
                               {/* Zone (PriceList) */}
                               <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap min-w-[320px]">
-                                <PriceListSelect ticketId={ticket.id} restaurantID={ticket.restaurantId} handleChange={handleTicketChange} />
+                                <PriceListSelect ticketId={ticket.id} restaurantID={ticket.restaurantId} handleChange={updateTicket} />
                               </td>
 
                               {/* Montant Livraison */}
@@ -664,7 +718,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                 {/* Zone (PriceList) */}
                                 <td className="px-2 py-1 border-t border-b border-gray-200 text-xs whitespace-nowrap">
                                   {displayTicket.isNew || editingIds.has(displayTicket.id) ? (
-                                    <PriceListSelect ticketId={displayTicket.id} restaurantID={displayTicket.restaurantId} handleChange={handleTicketChange} />
+                                    <PriceListSelect ticketId={displayTicket.id} restaurantID={displayTicket.restaurantId} handleChange={updateTicket} />
                                   ) : (
                                     <span>{displayTicket.nomZone ?? 'Inconnue'}</span>
                                   )}
@@ -681,7 +735,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                       onChange={(e) => handleTicketChange(displayTicket.id, 'montantLivraison', e.target.value)}
                                       placeholder="0 CFA"
                                       disabled={!displayTicket.restaurantId}
-                                      className={`w-full h-9 px-2 py-1 text-xs border rounded ${!displayTicket.restaurantId ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'}`}
+                                      className={`w-full bg-red-500 h-9 px-2 py-1 text-xs border rounded ${!displayTicket.restaurantId ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'}`}
                                     />
                                   ) : (
                                     formatCFA(displayTicket.montantLivraison)

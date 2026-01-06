@@ -1,7 +1,6 @@
 import { BonLivraisonTerminee, Ticket } from '@/types/bon-livraison.model';
 
 export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
-  console.log('Mapping bon de livraison:', bon);
   return {
     id: bon.commandeId,
     code: bon.reference,
