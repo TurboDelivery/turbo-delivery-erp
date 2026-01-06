@@ -735,7 +735,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                                       onChange={(e) => handleTicketChange(displayTicket.id, 'montantLivraison', e.target.value)}
                                       placeholder="0 CFA"
                                       disabled={!displayTicket.restaurantId}
-                                      className={`w-full bg-red-500 h-9 px-2 py-1 text-xs border rounded ${!displayTicket.restaurantId ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'}`}
+                                      className={`w-full h-9 px-2 py-1 text-xs border rounded ${!displayTicket.restaurantId ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'}`}
                                     />
                                   ) : (
                                     formatCFA(displayTicket.montantLivraison)
