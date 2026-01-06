@@ -191,51 +191,30 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       return;
     }
 
-    try {
-      createBonLivraisonMutation(ticket, {
-        onSuccess: () => {
-          toast.success('Le ticket a été créé avec succès.');
-          setNewTickets((prev) => prev.filter((t) => t.id !== id));
-        },
-        onError: (error) => {
-          console.error('Erreur lors de la création du ticket:', error);
-          const message = error instanceof Error ? error.message : 'Erreur inconnue';
-          toast.error(`Erreur lors de la création du ticket: ${message}`);
-        },
-      });
-    } catch (error) {
-      console.error('Erreur complète lors de la création:', error);
-      toast.error('Erreur lors de la création du ticket');
-    }
+    createBonLivraisonMutation(ticket, {
+      onSuccess: () => {
+        setNewTickets((prev) => prev.filter((t) => t.id !== id));
+      },
+    });
   };
 
   const handleSaveRow = async (id: string) => {
     const ticket = editedTickets.get(id) ?? ticketsData.find((t) => t.id === id);
     if (!ticket) return;
 
-    try {
-      updateBonLivraisonMutation(
-        { ticketId: id, ticket },
-        {
-          onSuccess: () => {
-            setEditedTickets((prev) => {
-              const newMap = new Map(prev);
-              newMap.delete(id);
-              return newMap;
-            });
-            handleCancelEditRow(id);
-          },
-          onError: (error) => {
-            console.error('Erreur lors de la mise à jour du ticket:', error);
-            const message = error instanceof Error ? error.message : 'Erreur inconnue';
-            toast.error(`Erreur lors de la mise à jour du ticket: ${message}`);
-          },
+    updateBonLivraisonMutation(
+      { ticketId: id, ticket },
+      {
+        onSuccess: () => {
+          setEditedTickets((prev) => {
+            const newMap = new Map(prev);
+            newMap.delete(id);
+            return newMap;
+          });
+          handleCancelEditRow(id);
         },
-      );
-    } catch (error) {
-      console.error(error);
-      toast.error('Erreur lors de la mise à jour du ticket');
-    }
+      },
+    );
   };
 
   const calculateCommission = (restaurantId: string, montantCommande: number) => {
@@ -252,10 +231,7 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
   };
 
   const updateTicketField = (ticket: Ticket, field: keyof Ticket, value: string): Ticket => {
-    console.log(`Updating field ${field} to value ${value} for ticket ${ticket.id}`);
     const updatedTicket = { ...ticket, [field]: value };
-    console.log('Updating ticket:', updatedTicket);
-    // Mise à jour du typeCommission si restaurantId change
     if (field === 'restaurantId') {
       const rest = restaurants.find((r) => r.id === value);
       if (rest) {
@@ -326,7 +302,6 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
       const currentTicket = editedTickets.get(id) ?? ticketsData.find((t) => t.id === id);
       if (currentTicket) {
         const updated = updateTicketField(currentTicket, field, value);
-        console.log('Updated ticket:', updated);
         setEditedTickets((prev) => new Map(prev).set(id, updated));
       }
     }

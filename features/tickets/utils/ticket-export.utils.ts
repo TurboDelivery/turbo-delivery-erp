@@ -1,4 +1,5 @@
 import { Ticket } from '@/types/bon-livraison.model';
+import { formatDateFR, formatHoursMinutes, formatNumberFR } from '@/src/actions/bonLivraison.mapper';
 
 export function generatePdfTemplate(tickets: Ticket[]): string {
   const totalRevenu = tickets.reduce((sum, t) => sum + parseFloat(t.montantLivraison.replace(/[^0-9]/g, '')), 0);
@@ -47,11 +48,11 @@ export function generatePdfTemplate(tickets: Ticket[]): string {
               <td>${t.code}</td>
               <td>${t.livreur}</td>
               <td>${t.restaurant}</td>
-              <td>${t.montantLivraison}</td>
-              <td>${t.montantCommande}</td>
-              <td>${t.coutLivraison}</td>
-              <td>${t.date}</td>
-              <td>${t.heure}</td>
+              <td>${formatNumberFR(t.montantLivraison ?? 0)}</td>
+              <td>${formatNumberFR(t.montantCommande ?? 0)}</td>
+              <td>${formatNumberFR(t.commission ?? 0)}</td>
+              <td>${formatDateFR(t.date)}</td>
+              <td>${formatHoursMinutes(t.heure)}</td>
             </tr>
           `,
             )

@@ -8,15 +8,25 @@ export const useCreateBonLivraison = (handleSuccess?: () => void, handleError?: 
   const invalidateTicketsQuery = useInvalidateTicketsQuery();
 
   return useMutation({
-    mutationFn: createBonLivraison,
+    mutationFn: async (ticket: Ticket) => {
+      const result = await createBonLivraison(ticket);
+      if (!result.success) {
+        console.error(result.error);
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
     onSuccess: async () => {
       await invalidateTicketsQuery();
       if (handleSuccess) {
+        toast.success('Le ticket a été créé avec succès.');
         handleSuccess();
       }
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('Erreur création bon de livraison:', error);
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors de la création du ticket: ${message}`);
       if (handleError) handleError();
     },
   });
@@ -27,7 +37,12 @@ export const useUpdateBonLivraison = (handleSuccess?: () => void) => {
 
   return useMutation({
     mutationFn: async ({ ticketId, ticket }: { ticketId: string; ticket: Ticket }) => {
-      return await updateBonLivraison(ticketId, ticket);
+      const result = await updateBonLivraison(ticketId, ticket);
+      if (!result.success) {
+        console.error(result.error);
+        throw new Error(result.error);
+      }
+      return result.data;
     },
     onSuccess: async () => {
       await invalidateTicketsQuery();
@@ -36,9 +51,10 @@ export const useUpdateBonLivraison = (handleSuccess?: () => void) => {
         handleSuccess();
       }
     },
-    onError: (error, variables) => {
-      toast.error('Une erreur est survenue lors de la mise à jour du bon de livraison.');
-      console.error(error, variables);
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors de la mise à jour du ticket: ${message}`);
+      console.error(error);
     },
   });
 };

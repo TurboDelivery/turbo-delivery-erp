@@ -26,3 +26,10 @@ export interface PaginatedResponse<T> {
   numberOfElements: number;
   empty: boolean;
 }
+
+export interface ApiResult<T> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
