@@ -21,7 +21,7 @@ export const livreursFiltersClient: LivreursFiltersClient = {
     creneauDebut: parseAsIsoDate.withDefault(startOfWeek(new Date(), { locale: fr })),
     creneauFin: parseAsIsoDate.withDefault(endOfWeek(new Date(), { locale: fr })),
     livreurPage: parseAsInteger.withDefault(0),
-    livreurPageSize: parseAsInteger.withDefault(20),
+    livreurPageSize: parseAsInteger.withDefault(40),
   },
   option: {
     clearOnDefault: false,
