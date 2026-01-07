@@ -68,7 +68,6 @@ export class ApiClientHttp {
     return headers;
   }
 
-<<<<<<< HEAD
   async request<T = any>({
     endpoint,
     method,
@@ -93,12 +92,6 @@ export class ApiClientHttp {
           client: process.env.NEXT_PUBLIC_API_CLIENT_URL,
           backend: process.env.NEXT_PUBLIC_API_BACKEND_URL,
         }[service] || '';
-=======
-        if (service !== 'backend') {
-            console.log(session?.user?.token)
-            headers.set('Authorization', session?.user?.token ? `Bearer ${session.user.token}` : '');
-        }
->>>>>>> 0c15e63 (	modified:   components/auth/form-login.tsx)
 
       const headers = await this.getHeaders(service);
       config = {
