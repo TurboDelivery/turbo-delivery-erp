@@ -33,3 +33,10 @@ export interface ApiResult<T> {
   message?: string;
   error?: string;
 }
+
+export interface PageMeta {
+  totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
+  totalPages: number;
+}

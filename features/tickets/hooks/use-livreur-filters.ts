@@ -12,8 +12,12 @@ export function useLivreurFilters() {
     void setFilters({ [key]: value });
   };
 
-  const setLivreurSearch = (value: string) => {
-    setFilter('livreur', value); // tout passe par le search du backend
+  const setLivreurSearch = (value: string | undefined) => {
+    if (value) {
+      setFilter('idLivreur', value); // tout passe par le search du backend
+    } else {
+      setFilter('idLivreur', '');
+    }
   };
 
   const setLivreurWeekFilter = (semaine: string) => {

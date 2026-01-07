@@ -11,7 +11,7 @@ const queryClient = getQueryClient();
 
 export const livreurTicketsListQueryOption = (livreurParamsDTO: ILivreurSearchParams) => {
   return {
-    queryKey: ticketsKeyQuery('livreur-list', livreurParamsDTO),
+    queryKey: ticketsKeyQuery('livreur-ticket-list', livreurParamsDTO),
     queryFn: async () => {
       return await getLivreursWithTicketsRequest(livreurParamsDTO);
     },

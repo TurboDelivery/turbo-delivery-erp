@@ -60,6 +60,8 @@ export async function getLivreursWithTicketsRequest(params: ILivreurSearchParams
       livreurId: params.idLivreur,
       debut: params.creneauDebut?.toISOString()?.split('T')?.[0],
       fin: params.creneauFin?.toISOString()?.split('T')?.[0],
+      page: params.livreurPage?.toString() || 0,
+      size: params.livreurPageSize?.toString() || 20,
     },
   });
 }

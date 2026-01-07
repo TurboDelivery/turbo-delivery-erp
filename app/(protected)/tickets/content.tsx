@@ -6,7 +6,7 @@ import useTickets from '@/features/tickets/hooks/use-tickets';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import Select from 'react-select';
 import { v4 as uuidv4 } from 'uuid';
-import { DeliveryMan, Restaurant } from '@/types/models';
+import { Restaurant } from '@/types/models';
 import React, { useMemo, useState } from 'react';
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { Ticket } from '@/types/bon-livraison.model';
@@ -14,14 +14,14 @@ import { Input } from '@heroui/react';
 import { CheckSquare, ChevronDown, File, FileText, Loader2, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { generatePdfTemplate } from '@/features/tickets/utils/ticket-export.utils';
+import { useLivreurs } from '@/features/tickets/hooks/use-livreurs';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 interface ContentProps {
   restaurants: Restaurant[];
-  livreurs: DeliveryMan[];
 }
 
-export default function Content({ restaurants, livreurs }: ContentProps) {
+export default function Content({ restaurants }: ContentProps) {
   const {
     filters,
     setFilter,
@@ -31,6 +31,8 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
     mutations: { createBonLivraisonMutation, isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
     state: { handleEditRow, editingIds, handleCancelEditRow, editedTickets, setEditedTickets },
   } = useTickets();
+  const { livreurs } = useLivreurs();
+
   const [exportOpen, setExportOpen] = useState(false);
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
   const [insertCount, setInsertCount] = useState<number>(1);
@@ -820,9 +822,9 @@ export default function Content({ restaurants, livreurs }: ContentProps) {
                               </tr>
                             );
                           })}
-                          <tr ref={observerTarget} className="flex items-center justify-center mt-4">
+                          <tr ref={observerTarget}>
                             {infiniteState.isFetchingNextPage && (
-                              <td colSpan={10} className="text-xs text-gray-500">
+                              <td colSpan={10} className="text-xs text-gray-500 w-full text-center">
                                 Chargement des données...
                               </td>
                             )}
