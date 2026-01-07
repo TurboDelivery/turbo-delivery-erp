@@ -7,7 +7,7 @@ import { livreursToOptions, useLivreurs } from '@/features/tickets/hooks/use-liv
 import Select from 'react-select';
 
 function TicketTabLivreur() {
-  const { filters, livreurTickets, setLivreurWeekFilter, setLivreurSearch, livreurTicketsMeta, handlePageChange } = useLivreurTicket();
+  const { filters, livreurTickets, setLivreurWeekFilter, setLivreurSearch, livreurTicketsMeta, handlePageChange, isLoadingLivreurTickets } = useLivreurTicket();
   const { livreurs, isLoadingLivreurs } = useLivreurs();
   const livreurOptions = useMemo(() => livreursToOptions(livreurs), [livreurs]);
 
@@ -47,9 +47,19 @@ function TicketTabLivreur() {
         </HeroSelect>
       </div>
       <div className="space-y-4">
-        {livreurTickets.map((livreur) => (
-          <LivreurCard key={livreur.id} livreur={livreur} meta={livreurTicketsMeta} onPageChange={handlePageChange} />
-        ))}
+        {!isLoadingLivreurTickets && livreurTickets.map((livreur) => <LivreurCard key={livreur.id} livreur={livreur} meta={livreurTicketsMeta} onPageChange={handlePageChange} />)}
+        {isLoadingLivreurTickets &&
+          Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="w-full border border-gray-200 rounded-lg p-4 bg-white animate-pulse">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <div className="h-4 bg-gray-300 rounded w-3/4 sm:w-1/2"></div>
+                <div className="flex items-center justify-between sm:justify-end gap-4 text-xs sm:text-sm">
+                  <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                  <div className="w-5 h-5 bg-gray-300 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+          ))}
       </div>
     </div>
   );

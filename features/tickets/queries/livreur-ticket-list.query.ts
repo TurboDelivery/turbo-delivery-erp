@@ -13,6 +13,9 @@ export const livreurTicketsListQueryOption = (livreurParamsDTO: ILivreurSearchPa
   return {
     queryKey: ticketsKeyQuery('livreur-ticket-list', livreurParamsDTO),
     queryFn: async () => {
+      if (!livreurParamsDTO.idLivreur?.trim()){
+        throw new Error('Veuillez choisir un livreur.');
+      }
       return await getLivreursWithTicketsRequest(livreurParamsDTO);
     },
     staleTime: 60 * 1000, //60 secondes
@@ -27,7 +30,7 @@ export const useLivreurTicketsListQuery = (livreurParamsDTO: ILivreurSearchParam
   // Gestion des erreurs dans le hook
   React.useEffect(() => {
     if (query.isError && query.error) {
-      toast.error('Erreur lors de la récupération des tickets: ' + (query.error instanceof Error ? query.error.message : 'Erreur inconnue'));
+      toast.error('Erreur lors de la récupération des tickets des livreurs: ' + (query.error instanceof Error ? query.error.message : 'Erreur inconnue'));
     }
   }, [query.isError, query.error]);
 

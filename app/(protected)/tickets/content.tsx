@@ -860,76 +860,78 @@ export default function Content({ restaurants }: ContentProps) {
         {activeTab === 'livreur' && <TicketTabLivreur />}
       </div>
 
-      <div className="px-1 py-4">
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-2 items-center">
-          <button onClick={handleSelectAll} className="px-2  py-1 border border-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-50 flex items-center gap-1">
-            <CheckSquare className="w-3 h-3" /> Sélectionner
-          </button>
-          <button
-            onClick={handleDeleteRows}
-            disabled={selectedRows.size === 0 || isDeletingBonLivraison}
-            className={`px-2 py-1 border rounded-full text-xs sm:text-sm flex items-center gap-1 ${selectedRows.size === 0 ? 'border-gray-300 text-gray-400 cursor-not-allowed' : 'border-red-300 text-red-500 hover:bg-red-50'}`}
-          >
-            {isDeletingBonLivraison && <Loader2 className="size-4 animate-spin" />}
-            {!isDeletingBonLivraison && <Trash className="w-3 h-3" />} Supprimer
-          </button>
-
-          {selectedRows.size > 0 && (
-            <button onClick={() => setSelectedRows(new Set())} className="px-2 py-1 border border-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-50 flex items-center gap-1">
-              <X className="w-3 h-3" /> Désélectionner
+      {activeTab !== 'livreur' && (
+        <div className="px-1 py-4">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2 items-center">
+            <button onClick={handleSelectAll} className="px-2  py-1 border border-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-50 flex items-center gap-1">
+              <CheckSquare className="w-3 h-3" /> Sélectionner
             </button>
-          )}
+            <button
+              onClick={handleDeleteRows}
+              disabled={selectedRows.size === 0 || isDeletingBonLivraison}
+              className={`px-2 py-1 border rounded-full text-xs sm:text-sm flex items-center gap-1 ${selectedRows.size === 0 ? 'border-gray-300 text-gray-400 cursor-not-allowed' : 'border-red-300 text-red-500 hover:bg-red-50'}`}
+            >
+              {isDeletingBonLivraison && <Loader2 className="size-4 animate-spin" />}
+              {!isDeletingBonLivraison && <Trash className="w-3 h-3" />} Supprimer
+            </button>
 
-          {/* Spacer pour pousser les boutons à droite */}
-          <div className="ml-auto flex gap-2 items-center">
-            {/* Dropdown Export */}
-            <div className="relative">
-              <button onClick={() => setExportOpen((v) => !v)} className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-full text-xs sm:text-sm hover:bg-green-600">
-                <FileText className="w-3 h-3" /> Exporter
-                <ChevronDown className="w-4 h-4" />
+            {selectedRows.size > 0 && (
+              <button onClick={() => setSelectedRows(new Set())} className="px-2 py-1 border border-gray-300 rounded-full text-xs sm:text-sm hover:bg-gray-50 flex items-center gap-1">
+                <X className="w-3 h-3" /> Désélectionner
               </button>
-              {exportOpen && (
-                <ul className="absolute right-0 mt-2 w-60 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                  <li>
-                    <button
-                      onClick={() => {
-                        handleExport('pdf');
-                        setExportOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 whitespace-nowrap flex items-center gap-2"
-                    >
-                      <File className="w-3 h-3" /> Exporter la sélection en PDF
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => {
-                        handleExport('excel');
-                        setExportOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 whitespace-nowrap flex items-center gap-2"
-                    >
-                      <File className="w-3 h-3" /> Exporter la sélection en Excel
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      onClick={() => {
-                        handleExport('csv');
-                        setExportOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 whitespace-nowrap flex items-center gap-2"
-                    >
-                      <File className="w-3 h-3" /> Exporter la sélection en CSV
-                    </button>
-                  </li>
-                </ul>
-              )}
+            )}
+
+            {/* Spacer pour pousser les boutons à droite */}
+            <div className="ml-auto flex gap-2 items-center">
+              {/* Dropdown Export */}
+              <div className="relative">
+                <button onClick={() => setExportOpen((v) => !v)} className="flex items-center gap-1 px-3 py-1.5 bg-green-500 text-white rounded-full text-xs sm:text-sm hover:bg-green-600">
+                  <FileText className="w-3 h-3" /> Exporter
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                {exportOpen && (
+                  <ul className="absolute right-0 mt-2 w-60 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    <li>
+                      <button
+                        onClick={() => {
+                          handleExport('pdf');
+                          setExportOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 whitespace-nowrap flex items-center gap-2"
+                      >
+                        <File className="w-3 h-3" /> Exporter la sélection en PDF
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => {
+                          handleExport('excel');
+                          setExportOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 whitespace-nowrap flex items-center gap-2"
+                      >
+                        <File className="w-3 h-3" /> Exporter la sélection en Excel
+                      </button>
+                    </li>
+                    <li>
+                      <button
+                        onClick={() => {
+                          handleExport('csv');
+                          setExportOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 whitespace-nowrap flex items-center gap-2"
+                      >
+                        <File className="w-3 h-3" /> Exporter la sélection en CSV
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

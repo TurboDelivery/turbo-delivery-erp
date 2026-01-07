@@ -34,7 +34,6 @@ function PaginationBlock({ currentPage, totalPages, onPageChange }: PaginationBl
   };
 
   const handlePageChange = (displayPageNumber: number) => {
-    // Convertir le numéro de page UI (1-based) en index backend (0-based)
     const backendPage = displayPageNumber - 1;
     if (backendPage >= 0 && backendPage < totalPages) {
       onPageChange(backendPage);
@@ -47,7 +46,7 @@ function PaginationBlock({ currentPage, totalPages, onPageChange }: PaginationBl
     <Pagination>
       <PaginationContent>
         <PaginationItem>
-          <PaginationPrevious onClick={() => handlePageChange(displayPage - 1)} className={currentPage === 0 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+          <PaginationPrevious href="#" onClick={() => handlePageChange(displayPage - 1)} className={currentPage === 0 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
         </PaginationItem>
 
         {getPageNumbers().map((page, index) => (
@@ -55,7 +54,7 @@ function PaginationBlock({ currentPage, totalPages, onPageChange }: PaginationBl
             {page === 'ellipsis' ? (
               <PaginationEllipsis />
             ) : (
-              <PaginationLink onClick={() => handlePageChange(page as number)} isActive={displayPage === page} className="cursor-pointer">
+              <PaginationLink href="#" onClick={() => handlePageChange(page as number)} isActive={displayPage === page} className="cursor-pointer">
                 {page}
               </PaginationLink>
             )}
@@ -63,7 +62,7 @@ function PaginationBlock({ currentPage, totalPages, onPageChange }: PaginationBl
         ))}
 
         <PaginationItem>
-          <PaginationNext onClick={() => handlePageChange(displayPage + 1)} className={currentPage === totalPages - 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
+          <PaginationNext href="#" onClick={() => handlePageChange(displayPage + 1)} className={currentPage === totalPages - 1 ? 'pointer-events-none' : 'cursor-pointer'} />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
