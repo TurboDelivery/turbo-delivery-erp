@@ -1,6 +1,6 @@
 import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import { apiClientHttp } from '@/lib/api-client-http';
-import { ILivreurSearchParams, ILivreurTicket, ITicketParams, ITicketsStats } from '@/features/tickets/types/tickets.type';
+import { ILivreurSearchParams, ILivreurStats, ILivreurTicket, ITicketParams, ITicketsStats } from '@/features/tickets/types/tickets.type';
 import { PaginatedResponse } from '@/types/general';
 import { BonLivraisonTermineeSchema, BonLivraisonTermineeType } from '../schema/ticket.schema';
 
@@ -16,6 +16,7 @@ const bonLivraisonEndpoints = {
   bonLivraisonEnAttentes: { endpoint: `${BASE_URL}/tous-attentes`, method: 'GET' },
   listeLivreursTickets: { endpoint: `${BASE_URL}/livreurs/tickets`, method: 'GET' },
   stats: { endpoint: `${BASE_URL}/stats`, method: 'GET' },
+  statsLivreur: { endpoint: `${BASE_URL}/prime-hebdo`, method: 'GET' },
   creerBonLivraison: { endpoint: `${BASE_URL}/create`, method: 'POST' },
   supprimerBonLivraison: { endpoint: `${BASE_URL}/supprimer`, method: 'DELETE' },
 };
@@ -43,6 +44,18 @@ export async function getBonLivraisonStatsRequest(params: ITicketParams) {
     params: {
       search: params.search,
       restaurantId: params.restaurantId?.trim() || undefined,
+      livreurId: params.livreurId?.trim() || undefined,
+      debut: params.debut?.toISOString()?.split('T')?.[0],
+      fin: params.fin?.toISOString()?.split('T')?.[0],
+    },
+  });
+}
+
+export async function getLivreurStatsRequest(params: ITicketParams) {
+  return await apiClientHttp.request<ILivreurStats[]>({
+    endpoint: bonLivraisonEndpoints.statsLivreur.endpoint,
+    method: bonLivraisonEndpoints.stats.method,
+    params: {
       livreurId: params.livreurId?.trim() || undefined,
       debut: params.debut?.toISOString()?.split('T')?.[0],
       fin: params.fin?.toISOString()?.split('T')?.[0],

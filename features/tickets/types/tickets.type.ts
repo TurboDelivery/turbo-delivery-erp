@@ -30,6 +30,12 @@ export interface ITicketsStats {
   totalCommissions: number;
 }
 
+export interface ILivreurStats {
+  totalTickets: number;
+  totalLivraisons: number;
+  primeHebdo: boolean;
+}
+
 export interface newTicket extends Ticket {
   coutCommande: number;
 }

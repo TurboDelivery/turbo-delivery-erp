@@ -1,10 +1,8 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { ILivreurTicket } from '@/features/tickets/types/tickets.type';
 import PaginationBlock from '@/components/pagination-block';
 import { PageMeta } from '@/types/general';
-import { useTicketsStatsQuery } from '@/features/tickets/queries/ticket-stats.query';
-import { useLivreurFilters } from '@/features/tickets/hooks/use-livreur-filters';
 import LivreurStats from '@/components/tickets/livreur/livreur-stats';
 
 type LivreurCardProps = {
@@ -14,25 +12,6 @@ type LivreurCardProps = {
 };
 
 function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
-  const { filters } = useLivreurFilters();
-
-  const currentFilters = useMemo(() => {
-    return {
-      livreurId: livreur.id.trim(),
-      debut: filters.creneauDebut,
-      fin: filters.creneauFin,
-      restaurantId: filters.idRestaurant.trim(),
-    };
-  }, [filters, livreur.id]);
-
-  const { data, isLoading: isStatsLoading, isError: isStatsError } = useTicketsStatsQuery(currentFilters);
-
-  const livreurStats = {
-    totalRevenus: data?.revenus || 0,
-    totalTickets: data?.tickets || 0,
-    totalLivreurs: data?.livreurs || 0,
-  };
-
   return (
     <div className="flex flex-col gap-2 w-full">
       <div className="space-y-6">
@@ -40,13 +19,7 @@ function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <h3 className="text-base sm:text-lg font-bold">{livreur.livreur}</h3>
           </div>
-          <LivreurStats
-            isLoading={isStatsLoading}
-            isError={isStatsError}
-            totalTickets={livreurStats.totalTickets}
-            totalLivraison={livreurStats.totalRevenus}
-            primeHebdo={livreur.primeHebdo}
-          />
+          <LivreurStats />
           <div className="overflow-x-auto -mx-4 sm:mx-0">
             <table className="w-full min-w-full">
               <thead className="border-b border-gray-200">
