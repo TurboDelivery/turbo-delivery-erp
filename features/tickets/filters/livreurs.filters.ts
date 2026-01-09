@@ -13,7 +13,7 @@ type LivreursFiltersClient = {
   };
 };
 
-export const livreursFiltersClient: LivreursFiltersClient = {
+export const livreursFiltersClient = {
   filters: {
     livreur: parseAsString.withDefault(''),
     idLivreur: parseAsString.withDefault(''),

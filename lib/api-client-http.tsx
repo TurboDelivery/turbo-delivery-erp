@@ -104,6 +104,13 @@ export class ApiClientHttp {
       };
     }
     try {
+      if (params) {
+        Object.keys(params).forEach((key) => {
+          if (params[key] === undefined || params[key] === null) {
+            delete params[key];
+          }
+        });
+      }
       const queryString = new URLSearchParams(params).toString();
       const url = `${endpoint.trim()}${queryString ? `?${queryString}` : ''}`;
 

@@ -42,8 +42,8 @@ export async function getBonLivraisonStatsRequest(params: ITicketParams) {
     method: bonLivraisonEndpoints.stats.method,
     params: {
       search: params.search,
-      restaurantId: params.restaurantId,
-      livreurId: params.livreurId,
+      restaurantId: params.restaurantId?.trim() || undefined,
+      livreurId: params.livreurId?.trim() || undefined,
       debut: params.debut?.toISOString()?.split('T')?.[0],
       fin: params.fin?.toISOString()?.split('T')?.[0],
     },
