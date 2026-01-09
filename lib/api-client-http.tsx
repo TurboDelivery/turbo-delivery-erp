@@ -51,7 +51,6 @@ export class ApiClientHttp {
   private async setHeaders(): Promise<AxiosHeaders> {
     const session = await this.getSession();
     const headers = new AxiosHeaders();
-
     headers.set('Authorization', session?.user?.token ? `Bearer ${session.user.token}` : '');
 
     return headers;
