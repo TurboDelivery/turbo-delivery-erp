@@ -33,8 +33,6 @@ function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
     totalRevenus: data?.revenus || 0,
     totalTickets: data?.tickets || 0,
     totalLivreurs: data?.livreurs || 0,
-    totalPartenaires: data?.restaurants || 0,
-    totalCommissions: data?.totalCommissions || 0,
   };
 
   return (
@@ -49,7 +47,6 @@ function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
             isError={isStatsError}
             totalTickets={livreurStats.totalTickets}
             totalLivraison={livreurStats.totalRevenus}
-            commissionTotale={livreurStats.totalCommissions}
           />
           <div className="overflow-x-auto -mx-4 sm:mx-0">
             <table className="w-full min-w-full">
