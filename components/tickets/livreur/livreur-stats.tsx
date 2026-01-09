@@ -7,19 +7,22 @@ type LivreurStatsProps = {
   totalLivraison: number;
   isLoading?: boolean;
   isError?: boolean;
+  primeHebdo?: boolean;
 };
 
-function LivreurStats({ totalTickets, totalLivraison, isLoading, isError }: LivreurStatsProps) {
+function LivreurStats({ totalTickets, totalLivraison, isLoading, isError, primeHebdo }: LivreurStatsProps) {
+  const montantPrime = primeHebdo ? (totalLivraison || 0) * 0.1 : 0;
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6">
       {!isLoading && !isError && (
         <>
           <LivreurStatItem label="Total Tickets" value={totalTickets} />
           <LivreurStatItem label="total livraison" value={formatCFA(totalLivraison)} valueColor="text-orange-500" labelColor="text-orange-500" />
           <LivreurStatItem label="commission" value={formatCFA((totalLivraison || 0) * 0.6)} valueColor="text-blue-500" labelColor="text-blue-500" />
+          <LivreurStatItem label="Prime Hebdo" value={formatCFA(montantPrime)} valueColor="text-blue-500" labelColor="text-blue-500" />
         </>
       )}
-      {isLoading && Array.from({ length: 3 }).map((_, index) => <LivreurStatItemSkeleton key={index} />)}
+      {isLoading && Array.from({ length: 4 }).map((_, index) => <LivreurStatItemSkeleton key={index} />)}
       {isError && <div className="col-span-3 text-center text-red-500">Erreur lors du chargement des statistiques.</div>}
     </div>
   );

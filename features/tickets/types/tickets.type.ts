@@ -42,7 +42,7 @@ export interface TicketsJour {
 
 export interface ILivreurTicket {
   id: string;
-  nom: string;
-  prenom: string;
+  livreur: string; // nom du livreur
   tickets: TicketsJour[];
+  primeHebdo?:boolean
 }

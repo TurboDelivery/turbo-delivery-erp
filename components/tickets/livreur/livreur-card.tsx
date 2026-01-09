@@ -14,8 +14,6 @@ type LivreurCardProps = {
 };
 
 function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
-  const fullName = `${livreur.nom} ${livreur.prenom}`;
-
   const { filters } = useLivreurFilters();
 
   const currentFilters = useMemo(() => {
@@ -40,13 +38,14 @@ function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
       <div className="space-y-6">
         <div className="border border-gray-200 rounded p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
-            <h3 className="text-base sm:text-lg font-bold">{fullName}</h3>
+            <h3 className="text-base sm:text-lg font-bold">{livreur.livreur}</h3>
           </div>
           <LivreurStats
             isLoading={isStatsLoading}
             isError={isStatsError}
             totalTickets={livreurStats.totalTickets}
             totalLivraison={livreurStats.totalRevenus}
+            primeHebdo={livreur.primeHebdo}
           />
           <div className="overflow-x-auto -mx-4 sm:mx-0">
             <table className="w-full min-w-full">
