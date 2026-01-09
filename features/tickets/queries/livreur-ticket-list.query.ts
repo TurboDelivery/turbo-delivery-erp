@@ -14,7 +14,7 @@ export const livreurTicketsListQueryOption = (livreurParamsDTO: ILivreurSearchPa
     queryKey: ticketsKeyQuery('livreur-ticket-list', livreurParamsDTO),
     queryFn: async () => {
       if (!livreurParamsDTO.idLivreur?.trim()){
-        throw new Error('Veuillez choisir un livreur.');
+        return { content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 1 } };
       }
       return await getLivreursWithTicketsRequest(livreurParamsDTO);
     },

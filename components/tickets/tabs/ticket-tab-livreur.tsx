@@ -16,7 +16,6 @@ function TicketTabLivreur() {
   return (
     <div className="p-4 sm:p-6">
       <div className="flex items-center space-x-4 mb-4">
-        {/*<Input className="sm:w-2/3" startContent={<Search />} value={filters.livreur} onChange={(e) => setLivreurSearch(e.target.value)} placeholder="Code check" />*/}
         <div className="sm:w-2/3">
           <Select
             options={livreurOptions}
@@ -48,7 +47,8 @@ function TicketTabLivreur() {
       </div>
       <div className="space-y-4">
         {!isLoadingLivreurTickets && livreurTickets.map((livreur) => <LivreurCard key={livreur.id} livreur={livreur} meta={livreurTicketsMeta} onPageChange={handlePageChange} />)}
-        {isLoadingLivreurTickets &&
+        {filters.idLivreur &&
+          isLoadingLivreurTickets &&
           Array.from({ length: 5 }).map((_, index) => (
             <div key={index} className="w-full border border-gray-200 rounded-lg p-4 bg-white animate-pulse">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
@@ -60,6 +60,10 @@ function TicketTabLivreur() {
               </div>
             </div>
           ))}
+        {!filters.idLivreur && <div className="p-4 border border-yellow-300 bg-yellow-50 text-yellow-800 rounded">Veuillez sélectionner un livreur pour afficher ses tickets.</div>}
+        {filters.idLivreur && !isLoadingLivreurTickets && livreurTickets.length === 0 && (
+          <div className="p-4 border border-gray-200 bg-gray-50 text-gray-800 rounded">Aucun ticket trouvé pour le livreur sélectionné sur la période choisie.</div>
+        )}
       </div>
     </div>
   );
