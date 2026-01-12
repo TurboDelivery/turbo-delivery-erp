@@ -21,14 +21,8 @@ export function FormLogin() {
                 toast.error(result.message);
 
                 return {
-                    data: {
-                        changePassword: result?.data?.user?.changePassword === true,
-                        username: result?.data?.user?.username,
-                    },
-                    message: '',
-                    errors: {},
-                    status: 'idle',
-                    code: undefined,
+                    data: { changePassword: result?.data?.user?.changePassword === true, username: result?.data?.user?.username },
+                    message: '', errors: {}, status: 'idle', code: undefined,
                 };
             }
 
@@ -36,16 +30,7 @@ export function FormLogin() {
             router.push('/');
             return result;
         },
-        {
-            data: {
-                changePassword: false,
-                username: undefined,
-            },
-            message: '',
-            errors: {},
-            status: 'idle',
-            code: undefined,
-        }
+        { data: { changePassword: false, username: undefined }, message: '', errors: {}, status: 'idle', code: undefined }
     );
 
 
@@ -53,7 +38,7 @@ export function FormLogin() {
         <>
             {state.data?.changePassword ? (
                 <FormChangePassword userName={state.data?.username} />
-            ) : (
+            ) : (  
                 <form className="space-y-5 dark:text-white" action={formAction}>
                     <div>
                         <label htmlFor="username">Nom d&apos;utilisateur</label>

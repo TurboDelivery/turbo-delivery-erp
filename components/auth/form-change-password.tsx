@@ -1,14 +1,14 @@
 'use client';
 
-import { Input } from "@heroui/react";
-import { useFormState } from 'react-dom';
-import { SubmitButton } from '@/components/ui/form-ui/submit-button';
-import { body, title } from '@/components/primitives';
 import { Lock } from 'lucide-react';
-import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@heroui/react";
-import { changePassword } from '@/src/actions/users.actions';
+import { Input } from "@heroui/react";
 import { toast } from 'react-toastify';
+import { useFormState } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { body, title } from '@/components/primitives';
+import { changePassword } from '@/src/actions/users.actions';
+import { SubmitButton } from '@/components/ui/form-ui/submit-button';
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@heroui/react";
 
 
 export function FormChangePassword({ userName }: {
@@ -52,7 +52,7 @@ export function FormChangePassword({ userName }: {
                             <Input
                                 isRequired
                                 required
-                                errorMessage={state?.errors?.password ?? ''}
+                                errorMessage={state?.errors?.oldPassword ?? ''}
                                 isInvalid={!!state?.errors?.oldPassword}
                                 label="Mot de passe actuel"
                                 name="oldPassword"
@@ -74,16 +74,13 @@ export function FormChangePassword({ userName }: {
                                 radius="sm"
                             />
                             <Input
-                                isRequired
-                                required
+                                isRequired required
                                 errorMessage={state?.errors?.confirm_password ?? ''}
                                 isInvalid={!!state?.errors?.confirm_password}
                                 label="Confirmer le nouveau mot de passe"
                                 name="confirm_password"
                                 startContent={<Lock className="size-4 text-default-400" />}
-                                type="password"
-                                variant="bordered"
-                                radius="sm"
+                                type="password" variant="bordered" radius="sm"
                             />
 
                             <ModalFooter>

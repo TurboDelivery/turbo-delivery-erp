@@ -1,20 +1,21 @@
 'use client';
+
+import Link from 'next/link';
+import { Logo } from '../icons';
+import { IRootState } from '@/store';
+import { User } from '@/types/models';
+import { getTranslation } from '@/i18n';
+import { usePathname } from 'next/navigation';
+import AnimateHeight from 'react-animate-height';
+import IconMinus from '@/components/icon/icon-minus';
+import { useState, useEffect, Fragment } from 'react';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { useDispatch, useSelector } from 'react-redux';
-import Link from 'next/link';
 import { toggleSidebar } from '@/store/themeConfigSlice';
-import AnimateHeight from 'react-animate-height';
-import { IRootState } from '@/store';
-import { useState, useEffect, Fragment } from 'react';
-import IconCaretsDown from '@/components/icon/icon-carets-down';
-import IconCaretDown from '@/components/icon/icon-caret-down';
-import IconMinus from '@/components/icon/icon-minus';
-
-import { usePathname } from 'next/navigation';
-import { getTranslation } from '@/i18n';
-import { Logo } from '../icons';
 import menuData, { IMenuData } from '@/config/menu-data';
-import { User } from '@/types/models';
+import IconCaretDown from '@/components/icon/icon-caret-down';
+import IconCaretsDown from '@/components/icon/icon-carets-down';
+
 
 const Sidebar = ({ profile }: { profile: User }) => {
     const dispatch = useDispatch();
@@ -22,15 +23,97 @@ const Sidebar = ({ profile }: { profile: User }) => {
     const pathname = usePathname();
     const [currentMenu, setCurrentMenu] = useState<string>('');
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
-    const semidark = useSelector((state: IRootState) => state.themeConfig.semidark);
+    const semidark = themeConfig.semidark;
+
     const toggleMenu = (value: string) => {
-        setCurrentMenu((oldValue) => {
-            return oldValue === value ? '' : value;
-        });
+        setCurrentMenu((oldValue) => (oldValue === value ? '' : value));
     };
 
+    // Fonction pour filtrer le menu selon le rôle
+    const getFilteredMenu = (): IMenuData[] => {
+        const role = profile.role.libelle.toLowerCase();
+    
+        // Menus visibles par tous
+        const ALWAYS_VISIBLE = ['dashboard'];
+    
+        if (role === 'standard' || role === "centrale d'appel") {
+            return menuData
+                .filter((item) =>
+                    [
+                        'external_delivery',
+                        'trafic',
+                        'paramètres',
+                        ...ALWAYS_VISIBLE,
+                    ].includes(item.title.toLowerCase())
+                )
+                .map((item) => {
+                    // External delivery → seulement Tickets
+                    if (item.title.toLowerCase() === 'external_delivery') {
+                        return {
+                            ...item,
+                            children: item.children?.filter(
+                                (child) => child.title.toLowerCase() === 'tickets'
+                            ),
+                        };
+                    }
+                    return item;
+                });
+        }
+    
+        if (role === 'comptable' || role === 'ops manager') {
+            return menuData
+                .filter((item) =>
+                    [
+                        'external_delivery',
+                        'livreurs',
+                        'restaurants',
+                        'paramètres',
+                        ...ALWAYS_VISIBLE,
+                    ].includes(item.title.toLowerCase())
+                )
+                .map((item) => {
+                    // External delivery → seulement Tickets
+                    if (item.title.toLowerCase() === 'external_delivery') {
+                        return {
+                            ...item,
+                            children: item.children?.filter(
+                                (child) => child.title.toLowerCase() === 'tickets'
+                            ),
+                        };
+                    }
+    
+                    // Comptable → Livreurs → Liste uniquement
+                    if (role === 'comptable' && item.title.toLowerCase() === 'livreurs') {
+                        return {
+                            ...item,
+                            children: item.children?.filter(
+                                (child) => child.title.toLowerCase() === 'liste'
+                            ),
+                        };
+                    }
+    
+                    // Comptable → Restaurants → Partners validés uniquement
+                    if (role === 'comptable' && item.title.toLowerCase() === 'restaurants') {
+                        return {
+                            ...item,
+                            children: item.children?.filter(
+                                (child) => child.title.toLowerCase() === 'partners validés'
+                            ),
+                        };
+                    }
+    
+                    return item;
+                });
+        }
+    
+        // Admin / super admin → tout voir
+        return menuData;
+    };
+
+    const filteredMenu = getFilteredMenu();
+
     useEffect(() => {
-        const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');        
+        const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
         if (selector) {
             selector.classList.add('active');
             const ul: any = selector.closest('ul.sub-menu');
@@ -54,11 +137,8 @@ const Sidebar = ({ profile }: { profile: User }) => {
     }, [pathname]);
 
     const setActiveRoute = () => {
-        let allLinks = document.querySelectorAll('.sidebar ul a.active');
-        for (let i = 0; i < allLinks.length; i++) {
-            const element = allLinks[i];
-            element?.classList.remove('active');
-        }
+        const allLinks = document.querySelectorAll('.sidebar ul a.active');
+        allLinks.forEach((el) => el.classList.remove('active'));
         const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
         selector?.classList.add('active');
     };
@@ -73,7 +153,6 @@ const Sidebar = ({ profile }: { profile: User }) => {
                         <Link href="/" className="main-logo">
                             <Logo className="w-20 py-2" />
                         </Link>
-
                         <button
                             type="button"
                             className="collapse-icon flex h-8 w-8 items-center rounded-full transition duration-300 hover:bg-gray-500/10 rtl:rotate-180 dark:text-white-light dark:hover:bg-dark-light/10"
@@ -82,10 +161,9 @@ const Sidebar = ({ profile }: { profile: User }) => {
                             <IconCaretsDown className="m-auto rotate-90" />
                         </button>
                     </div>
-                    <div className="p-4 border-b border-muted lg:hidden">{/* <OrganisationDropdown reference={reference} profileOrganisations={profileOrganisations} /> */}</div>
                     <PerfectScrollbar className="relative h-[calc(100vh-80px)]">
                         <ul className="relative space-y-0.5 p-4 py-0 font-semibold">
-                            <RenderMenu menu={menuData} currentMenu={currentMenu} toggleMenu={toggleMenu} t={t} />
+                            <RenderMenu menu={filteredMenu} currentMenu={currentMenu} toggleMenu={toggleMenu} t={t} />
                         </ul>
                     </PerfectScrollbar>
                 </div>

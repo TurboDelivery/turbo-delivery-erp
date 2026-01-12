@@ -113,6 +113,9 @@ export async function changePassword(formData: FormData): Promise<ActionResult<a
             message: 'Mot de passe et la confirmation ne sont pas identique',
         };
     }
+
+    console.log(formData);
+
     try {
         await apiClientHttp.request({
             endpoint: usersEndpoints.changePassword.endpoint,
@@ -129,6 +132,7 @@ export async function changePassword(formData: FormData): Promise<ActionResult<a
             message: "Mot de passe modifié avec succès"
         }
     } catch (error: any) {
+        console.log(error);
         return {
             status: 'error',
             message: error?.response?.data?.message || error?.response?.data || 'Erreur lors du changement de mot de passe',

@@ -13,180 +13,180 @@ const BASE_URL = '/api/erp/bon-livraison';
 const BASE_URL_2 = '/api/export/reporting';
 
 const bonLivraisonEndpoints = {
-  getBonLivraisonAll: {
-    endpoint: `${BASE_URL}/tous`,
-    method: 'GET',
-  },
-  bonLivraisonTerminers: { endpoint: `${BASE_URL}/tous-termines`, method: 'GET' },
-  bonLivraisonTerminees: { endpoint: `${BASE_URL}/tous/termines`, method: 'GET' },
-  bonLivraisonEnAttentes: { endpoint: `${BASE_URL}/tous-attentes`, method: 'GET' },
-  reportingBonLivraison: { endpoint: `${BASE_URL_2}/facture-bon-livraison`, method: 'POST' },
-  create: { endpoint: `${BASE_URL}/create`, method: 'POST' },
-  update: { endpoint: `${BASE_URL}/update`, method: 'PUT' },
-  delete: {
-    endpoint: (id: string) => `${BASE_URL}/${id}`,
-    method: 'DELETE',
-  },
+    getBonLivraisonAll: {
+        endpoint: `${BASE_URL}/tous`,
+        method: 'GET',
+    },
+    bonLivraisonTerminers: { endpoint: `${BASE_URL}/tous-termines`, method: 'GET' },
+    bonLivraisonTerminees: { endpoint: `${BASE_URL}/tous/termines`, method: 'GET' },
+    bonLivraisonEnAttentes: { endpoint: `${BASE_URL}/tous-attentes`, method: 'GET' },
+    reportingBonLivraison: { endpoint: `${BASE_URL_2}/facture-bon-livraison`, method: 'POST' },
+    create: { endpoint: `${BASE_URL}/create`, method: 'POST' },
+    update: { endpoint: `${BASE_URL}/update`, method: 'PUT' },
+    delete: {
+        endpoint: (id: string) => `${BASE_URL}/${id}`,
+        method: 'DELETE',
+    },
 };
 
 export async function getBonLivraisonAll(page: number, size: number, { dates: { start, end } }: { dates: RangeValue<string | null> }): Promise<PaginatedResponse<BonLivraison> | null> {
-  try {
-    return await apiClientHttp.request({
-      endpoint: bonLivraisonEndpoints.getBonLivraisonAll.endpoint,
-      method: bonLivraisonEndpoints.getBonLivraisonAll.method,
-      params: {
-        page: String(page),
-        size: String(size),
-        debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
-        fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
-      },
-      service: 'backend',
-    });
-  } catch (error: any) {
-    return null;
-  }
+    try {
+        return await apiClientHttp.request({
+            endpoint: bonLivraisonEndpoints.getBonLivraisonAll.endpoint,
+            method: bonLivraisonEndpoints.getBonLivraisonAll.method,
+            params: {
+                page: String(page),
+                size: String(size),
+                debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
+                fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+            },
+            service: 'backend',
+        });
+    } catch (error: any) {
+        return null;
+    }
 }
 
 export async function getAllBonLivraisonTerminers(page: number, size: number, { dates: { start, end } }: { dates: RangeValue<string | null> }, typeCommsion: string): Promise<BonLivraison[]> {
-  try {
-    return await apiClientHttp.request<BonLivraison[]>({
-      endpoint: bonLivraisonEndpoints.bonLivraisonTerminers.endpoint,
-      method: bonLivraisonEndpoints.bonLivraisonTerminers.method,
-      params: {
-        page: page.toString(),
-        size: size.toString(),
-        debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
-        fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
-        type: typeCommsion,
-      },
-    });
-  } catch (error) {
-    return [] as any;
-  }
+    try {
+        return await apiClientHttp.request<BonLivraison[]>({
+            endpoint: bonLivraisonEndpoints.bonLivraisonTerminers.endpoint,
+            method: bonLivraisonEndpoints.bonLivraisonTerminers.method,
+            params: {
+                page: page.toString(),
+                size: size.toString(),
+                debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
+                fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+                type: typeCommsion,
+            },
+        });
+    } catch (error) {
+        return [] as any;
+    }
 }
 
 export async function getBonLivraisonTerminees({ dates: { start, end } }: { dates: RangeValue<string | null> }): Promise<BonLivraisonTerminee[]> {
-  try {
-    return await apiClientHttp.request<BonLivraisonTerminee[]>({
-      endpoint: bonLivraisonEndpoints.bonLivraisonTerminees.endpoint,
-      method: bonLivraisonEndpoints.bonLivraisonTerminees.method,
-      params: { debut: start ? formatDate(start, 'YYYY-MM-DD') : '', fin: end ? formatDate(end, 'YYYY-MM-DD') : '' },
-    });
-  } catch (error) {
-    return [] as any;
-  }
+    try {
+        return await apiClientHttp.request<BonLivraisonTerminee[]>({
+            endpoint: bonLivraisonEndpoints.bonLivraisonTerminees.endpoint,
+            method: bonLivraisonEndpoints.bonLivraisonTerminees.method,
+            params: { debut: start ? formatDate(start, 'YYYY-MM-DD') : '', fin: end ? formatDate(end, 'YYYY-MM-DD') : '' },
+        });
+    } catch (error) {
+        return [] as any;
+    }
 }
 
 export async function getAllBonLivraisonEnAttentes(
-  page: number = 0,
-  size: number = 10,
-  { dates: { start, end } }: { dates: RangeValue<string | null> },
-  typeCommsion: string,
+    page: number = 0,
+    size: number = 10,
+    { dates: { start, end } }: { dates: RangeValue<string | null> },
+    typeCommsion: string,
 ): Promise<BonLivraison[]> {
-  try {
-    return await apiClientHttp.request<BonLivraison[]>({
-      endpoint: bonLivraisonEndpoints.bonLivraisonEnAttentes.endpoint,
-      method: bonLivraisonEndpoints.bonLivraisonEnAttentes.method,
-      params: {
-        page: page.toString(),
-        size: size.toString(),
-        debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
-        fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
-        type: typeCommsion,
-      },
-    });
-  } catch (error) {
-    return [] as any;
-  }
+    try {
+        return await apiClientHttp.request<BonLivraison[]>({
+            endpoint: bonLivraisonEndpoints.bonLivraisonEnAttentes.endpoint,
+            method: bonLivraisonEndpoints.bonLivraisonEnAttentes.method,
+            params: {
+                page: page.toString(),
+                size: size.toString(),
+                debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
+                fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+                type: typeCommsion,
+            },
+        });
+    } catch (error) {
+        return [] as any;
+    }
 }
 
 export async function reportingBonLivraisonTerminers(parametre: ParametreBonLivraisonFacture): Promise<any | null> {
-  try {
-    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BACKEND_URL}${bonLivraisonEndpoints.reportingBonLivraison.endpoint}`, parametre, {
-      responseType: 'arraybuffer',
-    });
-    return response.data;
-  } catch (error: any) {
-    if (error?.response?.data && error.response?.data?.message) {
-      return {
-        status: 'error',
-        message: error?.response?.data?.message ?? 'Erreur lors du traitement',
-      };
-    } else if (error?.response?.data?.message) {
-      return {
-        status: 'error',
-        message: error?.response?.data?.message ?? 'Erreur lors du traitement',
-      };
-    } else {
-      return {
-        status: 'error',
-        message: 'Erreur lors du traitement',
-      };
+    try {
+        const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BACKEND_URL}${bonLivraisonEndpoints.reportingBonLivraison.endpoint}`, parametre, {
+            responseType: 'arraybuffer',
+        });
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data && error.response?.data?.message) {
+            return {
+                status: 'error',
+                message: error?.response?.data?.message ?? 'Erreur lors du traitement',
+            };
+        } else if (error?.response?.data?.message) {
+            return {
+                status: 'error',
+                message: error?.response?.data?.message ?? 'Erreur lors du traitement',
+            };
+        } else {
+            return {
+                status: 'error',
+                message: 'Erreur lors du traitement',
+            };
+        }
     }
-  }
 }
 
 /**
  * Créer un nouveau bon de livraison
  */
 export async function createBonLivraison(ticket: Ticket): Promise<ApiResult<BonLivraisonTerminee>> {
-  try {
-    const { id, code, ...rest } = ticket;
-    const payload = { ...rest, reference: code, commission: Number(rest.coutLivraison) };
-    const resp = await apiClientHttp.request<BonLivraisonTerminee>({
-      endpoint: bonLivraisonEndpoints.create.endpoint,
-      method: bonLivraisonEndpoints.create.method,
-      service: 'backend',
-      data: payload,
-    });
-    return {
-      success: true,
-      data: resp,
-      message: 'Ticket créé avec succès',
-    };
-  } catch (error) {
-    return handleApiError(error, 'Erreur lors de la création du bon de livraison');
-  }
+    try {
+        const { id, code, ...rest } = ticket;
+        const payload = { ...rest, reference: code, commission: Number(rest.coutLivraison) };
+        const resp = await apiClientHttp.request<BonLivraisonTerminee>({
+            endpoint: bonLivraisonEndpoints.create.endpoint,
+            method: bonLivraisonEndpoints.create.method,
+            service: 'backend',
+            data: payload,
+        });
+        return {
+            success: true,
+            data: resp,
+            message: 'Ticket créé avec succès',
+        };
+    } catch (error) {
+        return handleApiError(error, 'Erreur lors de la création du bon de livraison');
+    }
 }
 
 /**
  * Mettre à jour un bon de livraison existant
  */
 export async function updateBonLivraison(ticketId: string, ticket: Ticket): Promise<ApiResult<BonLivraisonTerminee>> {
-  try {
-    const { id, code, ...rest } = ticket;
-    const payload = { ...rest, reference: code, commission: Number(rest.coutLivraison) };
-    const resp = await apiClientHttp.request<BonLivraisonTerminee>({
-      endpoint: bonLivraisonEndpoints.update.endpoint,
-      method: bonLivraisonEndpoints.update.method,
-      service: 'backend',
-      data: { id: ticketId, ...payload },
-    });
-    return {
-      success: true,
-      data: resp,
-      message: 'Ticket mis à jour avec succès',
-    };
-  } catch (error) {
-    return handleApiError(error, 'Erreur lors de la mise à jour du bon de livraison');
-  }
+    try {
+        const { id, code, ...rest } = ticket;
+        const payload = { ...rest, reference: code, commission: Number(rest.coutLivraison) };
+        const resp = await apiClientHttp.request<BonLivraisonTerminee>({
+            endpoint: bonLivraisonEndpoints.update.endpoint,
+            method: bonLivraisonEndpoints.update.method,
+            service: 'backend',
+            data: { id: ticketId, ...payload },
+        });
+        return {
+            success: true,
+            data: resp,
+            message: 'Ticket mis à jour avec succès',
+        };
+    } catch (error) {
+        return handleApiError(error, 'Erreur lors de la mise à jour du bon de livraison');
+    }
 }
 
 /**
  * Supprimer un bon de livraison
  */
 export async function deleteBonLivraison(ticketId: string): Promise<boolean> {
-  try {
-    await apiClientHttp.request({
-      endpoint: bonLivraisonEndpoints.delete.endpoint(ticketId),
-      method: bonLivraisonEndpoints.delete.method,
-      service: 'backend',
-    });
+    try {
+        await apiClientHttp.request({
+            endpoint: bonLivraisonEndpoints.delete.endpoint(ticketId),
+            method: bonLivraisonEndpoints.delete.method,
+            service: 'backend',
+        });
 
-    // ✅ Si on arrive ici sans exception, la suppression a réussi
-    return true;
-  } catch (error) {
-    console.error('Erreur suppression:', error);
-    return false;
-  }
+        // ✅ Si on arrive ici sans exception, la suppression a réussi
+        return true;
+    } catch (error) {
+        console.error('Erreur suppression:', error);
+        return false;
+    }
 }
