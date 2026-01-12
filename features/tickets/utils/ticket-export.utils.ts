@@ -1,5 +1,7 @@
 import { Ticket } from '@/types/bon-livraison.model';
 import { formatDateFR, formatHoursMinutes, formatNumberFR } from '@/src/actions/bonLivraison.mapper';
+import * as XLSX from 'xlsx';
+import { newTicket } from '@/features/tickets/types/tickets.type';
 
 export function generatePdfTemplate(tickets: Ticket[]): string {
   const totalRevenu = tickets.reduce((sum, t) => sum + parseFloat(t.montantLivraison.replace(/[^0-9]/g, '')), 0);
@@ -63,3 +65,38 @@ export function generatePdfTemplate(tickets: Ticket[]): string {
     </html>
   `;
 }
+
+export function generateXlsTemplate(tickets: newTicket[]) {
+  const worksheetData = tickets.map((t) => ({
+    'Code Check': t.reference,
+    Partner: t.restaurant,
+    'Montant de Livraison': t.coutLivraison,
+    'Montant de Commande': t.coutCommande,
+    Commission: Number(t.coutLivraison ?? 0) * 0.6,
+    Date: formatDateFR(t.date),
+    Heure: formatHoursMinutes(t.heure),
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+  worksheet['!cols'] = autoFitColumns(worksheetData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Tickets de Livraison');
+
+  return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+}
+
+function autoFitColumns(data: any[]) {
+  const colWidths: number[] = [];
+
+  data.forEach((row) => {
+    Object.values(row).forEach((value, index) => {
+      const cellLength = value ? value.toString().length : 0;
+      colWidths[index] = Math.max(colWidths[index] || 0, cellLength);
+    });
+  });
+
+  return colWidths.map((width) => ({
+    wch: Math.min(width + 2, 40), // marge + limite
+  }));
+}
+

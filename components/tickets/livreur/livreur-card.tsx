@@ -4,6 +4,8 @@ import { ILivreurTicket } from '@/features/tickets/types/tickets.type';
 import PaginationBlock from '@/components/pagination-block';
 import { PageMeta } from '@/types/general';
 import LivreurStats from '@/components/tickets/livreur/livreur-stats';
+import { Button } from '@heroui/react';
+import { generateXlsTemplate } from '@/features/tickets/utils/ticket-export.utils';
 
 type LivreurCardProps = {
   livreur: ILivreurTicket;
@@ -12,12 +14,35 @@ type LivreurCardProps = {
 };
 
 function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
+  const tickets = livreur.tickets.flatMap((tj) => tj.tickets);
+
+  const handleExport = () => {
+    const xlsxData = generateXlsTemplate(tickets);
+
+    const blob = new Blob([xlsxData], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const normalizedLivreurName = livreur.livreur.replace(/\s+/g, '_').toLowerCase();
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${normalizedLivreurName}_tickets_livraison.xlsx`;
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="flex flex-col gap-2 w-full">
       <div className="space-y-6">
         <div className="border border-gray-200 rounded p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 mb-4">
             <h3 className="text-base sm:text-lg font-bold">{livreur.livreur}</h3>
+            <Button onPress={() => handleExport()} color="success" variant="bordered" size="sm">
+              Exporter (1 page)
+            </Button>
           </div>
           <LivreurStats />
           <div className="overflow-x-auto -mx-4 sm:mx-0">
