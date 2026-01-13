@@ -33,6 +33,12 @@ export const ticketsInfiniteQueryOption = (ticketsParamsDTO: ITicketParams) => {
 
 //2- Hook pour récupérer les actualités
 export const useTicketsInfiniteQuery = (ticketsParamsDTO: ITicketParams) => {
+  if (ticketsParamsDTO.search?.trim()) {
+    ticketsParamsDTO.restaurantId = '';
+    ticketsParamsDTO.livreurId = '';
+    ticketsParamsDTO.debut = undefined;
+    ticketsParamsDTO.fin = undefined;
+  }
   const query = useInfiniteQuery(ticketsInfiniteQueryOption(ticketsParamsDTO));
 
   // Gestion des erreurs dans le hook
