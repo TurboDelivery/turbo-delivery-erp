@@ -424,7 +424,7 @@ export default function Content({ restaurants, profile }: ContentProps) {
       </div>
 
       {/* Stats Cards */}
-      <StatsSection />
+      {/*<StatsSection />*/}
 
       {/* Tabs */}
       <div className="bg-white rounded-lg border border-gray-200">
