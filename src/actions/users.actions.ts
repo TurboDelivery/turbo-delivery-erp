@@ -48,26 +48,35 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
             body: JSON.stringify({ username: formdata.username, password: formdata.password }),
             headers: { 'Content-Type': 'application/json' },
         });
-    
-        const contentType = result.headers.get('content-type');
-    
-        let json: any = {};
-        if (contentType && contentType.includes('application/json')) {
-            json = await result.json();
-        } else {
-            const text = await result.text(); // Pour voir le contenu brut
+        
+
+        // 🔥 TOUJOURS lire le JSON
+        const json = await result.json();
+
+        // console.log('Retour connexion:', json);
+        // console.log('HTTP Status:', result.status);
+
+        /**
+         * 🔴 CAS SPÉCIAL : 401 mais user retourné
+         */
+        if (result.status === 401 && json?.user) {
+            return {
+                status: 'error',
+                message: json.message ?? 'Action requise',
+                data: {
+                    user: json.user,
+                    code: json.code,
+                },
+            };
         }
     
+        /**
+         * ❌ Autres erreurs HTTP
+         */
         if (!result.ok) {
             return {
                 status: 'error',
                 message: json?.message ?? 'Identifiants incorrects',
-                data: {
-                    user: {
-                        changePassword: true,
-                        username: '',
-                    }
-                },
             };
         }
   
@@ -113,8 +122,6 @@ export async function changePassword(formData: FormData): Promise<ActionResult<a
             message: 'Mot de passe et la confirmation ne sont pas identique',
         };
     }
-
-    console.log(formData);
 
     try {
         await apiClientHttp.request({

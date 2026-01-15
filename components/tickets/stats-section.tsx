@@ -3,7 +3,7 @@ import React from 'react';
 import { useTicketsStats } from '@/features/tickets/hooks/use-tickets-stats';
 import { formatCFA, formatNumberFR } from '@/src/actions/bonLivraison.mapper';
 import { TicketStatsCard } from '@/components/tickets/ticket-stats-card';
-import TicketStatsSkeleton from '@/components/tickets/ticket-stats-skeleton';
+import TicketStatsSkeleton from '@/components/tickets/ticket-stats-skeleton';   
 
 function StatsSection() {
   const { ticketsStats, isError, isLoading } = useTicketsStats();

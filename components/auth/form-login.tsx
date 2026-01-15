@@ -17,40 +17,45 @@ export function FormLogin() {
         async (_: any, formData: FormData) => {
             const result = await loginUser(formData);
 
-            if (result.status === 'error') {
+            // console.log("Data:", JSON.stringify(result?.data, null, 2))
+
+            if (result.status === 'error'  
+                    && result?.data?.user?.changePassword === false 
+                    && result?.data?.user?.username != '') {
                 toast.error(result.message);
 
                 return {
-                    data: { changePassword: result?.data?.user?.changePassword === true, username: result?.data?.user?.username },
+                    data: { changePassword: result?.data?.user?.changePassword, username: result?.data?.user?.username },
                     message: '', errors: {}, status: 'idle', code: undefined,
                 };
             }
 
-            toast.success(result.message);
-            router.push('/');
-            return result;
+            if (result.status === 'success') {
+                toast.success(result.message);
+                router.push('/');
+                return result;
+            }
+            
+            toast.error("Identifiants Incorrects");
+            return {
+                data: { changePassword: true, username: '' },
+                message: 'Identifiants Incorrects', errors: {}, status: 'idle', code: undefined,
+            };
         },
-        { data: { changePassword: false, username: undefined }, message: '', errors: {}, status: 'idle', code: undefined }
+        { data: { changePassword: true, username: undefined }, message: '', errors: {}, status: 'idle', code: undefined }
     );
 
 
     return (
         <>
-            {state.data?.changePassword ? (
+            {!state.data?.changePassword ? (
                 <FormChangePassword userName={state.data?.username} />
             ) : (  
                 <form className="space-y-5 dark:text-white" action={formAction}>
                     <div>
-                        <label htmlFor="username">Nom d&apos;utilisateur</label>
+                        <label htmlFor="username">Nom Utilisateur</label>
                         <div className="relative">
-                            <input
-                                id="username"
-                                name="username"
-                                type="text"
-                                required
-                                placeholder="Username"
-                                className="form-input ps-10"
-                            />
+                            <input id="username" name="username" type="text" required placeholder="Username" className="form-input ps-10" />
                             <span className="absolute start-4 top-1/2 -translate-y-1/2">
                                 <IconUser />
                             </span>
@@ -58,7 +63,7 @@ export function FormLogin() {
                     </div>
 
                     <div>
-                        <label htmlFor="Password">Password</label>
+                        <label htmlFor="Password">Mot de Passe</label>
                         <div className="relative text-black">
                             <input
                                 id="Password"

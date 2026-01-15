@@ -17,6 +17,7 @@ export function FormChangePassword({ userName }: {
     const router = useRouter();
     const [state, formAction] = useFormState(
         async (_: any, formData: FormData) => {
+
             formData.set('username', userName);
             const result = await changePassword(formData);
 
