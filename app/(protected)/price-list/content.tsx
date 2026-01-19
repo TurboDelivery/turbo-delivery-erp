@@ -2,8 +2,7 @@
 
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { RestaurantDefini } from '@/types/price-list';
-import { Button, Tab, Tabs, Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@heroui/react';
-import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { Pagination, Select, SelectItem, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs } from '@heroui/react';
 import usePriceLiceDefined from './usePriceLiceDefined';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
@@ -18,7 +17,7 @@ const tabsItems = [
 ];
 
 export default function Content({ initialData }: Props) {
-  const { columns, selectedKey, tabs, tabsRef, deliveryFees, renderCell, handleMoveScroll, handleChangeSelectedKey } = usePriceLiceDefined({ initialData });
+  const { columns, selectedKey, tabs, deliveryFees, renderCell, handleChangeSelectedKey, pagination } = usePriceLiceDefined({ initialData });
 
   return (
     <>
@@ -29,27 +28,27 @@ export default function Content({ initialData }: Props) {
 
       {/* Contenu de la page */}
       <div className="flex flex-col mt-4">
-        <div className="relative flex items-center gap-4 border shadow rounded-xl py-1 px-1">
-          <Button onPress={() => handleMoveScroll(-100)} variant="light" isIconOnly className="absolute left-2 z-[2] hidden sm:block">
-            <IconChevronLeft />
-          </Button>
-          <Tabs
-            variant="light"
-            ref={tabsRef}
-            items={tabs}
-            selectedKey={selectedKey || (tabs.length > 0 ? tabs[0].id : '')}
-            onSelectionChange={(key) => handleChangeSelectedKey(key.toString())}
-            color="primary"
-            className="relative w-11/12 mx-auto rounded-md"
+        <div className="flex items-center gap-4 border shadow rounded-xl py-3 px-4">
+          <Select
+            className="max-w-sm"
+            items={tabs.sort((a, b) => a.nomComplet.localeCompare(b.nomComplet))}
+            label="Sélectionner un restaurant"
+            placeholder="Choisir un restaurant"
+            selectedKeys={selectedKey ? [selectedKey] : []}
+            onSelectionChange={(keys) => {
+              const selected = Array.from(keys)[0] as string;
+              if (selected) handleChangeSelectedKey(selected);
+            }}
           >
-            {(item) => <Tab key={item.id} title={item.nomComplet} />}
-          </Tabs>
-          <Button onPress={() => handleMoveScroll(100)} variant="light" isIconOnly className="absolute right-2 z-[2] hidden sm:block">
-            <IconChevronRight />
-          </Button>
+            {(item) => <SelectItem key={item.id}>{item.nomComplet}</SelectItem>}
+          </Select>
         </div>
         {/* Tableau de frais de livraison */}
-        <Table aria-label="Tableau de Frais de livraison" className="mt-4">
+        <Table
+          aria-label="Tableau de Frais de livraison"
+          className="mt-4"
+          bottomContent={<Pagination initialPage={pagination.currentPage} total={pagination.totalPages} onChange={pagination.onPageChange} />}
+        >
           <TableHeader columns={columns}>
             {(column) => (
               <TableColumn key={column.uid} className={column.uid === 'zone' ? 'flex items-center gap-2' : ''} align={column.uid === 'actions' ? 'center' : 'start'}>
