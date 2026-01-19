@@ -3,7 +3,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { getPriceListByRestaurant } from '@/src/price-list/price-list.action';
 import { DeliveryFee, RestaurantDefini } from '@/types/price-list';
 import { Tooltip } from '@heroui/react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import FormUpDate from '@/components/dashboard/price-liste/FormUpDate';
 import PriceListeTools from '@/components/dashboard/price-liste/price-list-tools';
 import { getDetailRestaurant } from '@/src/restaurants/restaurants.actions';
@@ -41,10 +41,6 @@ export default function usePriceLiceDefined({ initialData }: Props) {
     }
   }, [initialData, selectedKey]);
 
-  useEffect(() => {
-    let pa = params.get('restoId');
-  }, []);
-
   const handleChangeSelectedKey = (key: string) => {
     setSelectedKey(key);
     params.set('restoId', key);
@@ -81,8 +77,8 @@ export default function usePriceLiceDefined({ initialData }: Props) {
 
   const handleChangePage = (page: number) => {
     // S'assurer que la page est valide
-    if (page-1 >= 0) {
-      setCurrentPage(page-1);
+    if (page - 1 >= 0) {
+      setCurrentPage(page - 1);
     }
   };
 
@@ -97,16 +93,6 @@ export default function usePriceLiceDefined({ initialData }: Props) {
   const deliveryFees = search
     ? initialDataPriceList.filter((item) => item.name?.toLowerCase().includes(search.toLowerCase()) || item.zone.toLowerCase().includes(search.toLowerCase()))
     : initialDataPriceList;
-
-  const tabsRef = useRef<HTMLDivElement>(null);
-  const handleMoveScroll = (value: number) => {
-    if (tabsRef.current) {
-      tabsRef.current.scrollTo({
-        left: tabsRef.current.scrollLeft + value,
-        behavior: 'smooth',
-      });
-    }
-  };
 
   const renderCell = useCallback(
     (deliveryFee: DeliveryFee, columnKey: string) => {
@@ -148,9 +134,7 @@ export default function usePriceLiceDefined({ initialData }: Props) {
     columns,
     selectedKey,
     tabs,
-    tabsRef,
     deliveryFees,
-    handleMoveScroll,
     handleFetchDeliveryFee,
     handleChangeSelectedKey,
     renderCell,
