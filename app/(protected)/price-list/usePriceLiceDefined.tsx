@@ -23,9 +23,6 @@ export const columns = [
 ];
 
 export default function usePriceLiceDefined({ initialData }: Props) {
-
-
-
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -35,8 +32,8 @@ export default function usePriceLiceDefined({ initialData }: Props) {
   const initialSelectedKey = searchParams.get('restoId') || (initialData.length > 0 ? initialData[0].id : null);
   const [selectedKey, setSelectedKey] = useState<string | null>(initialSelectedKey);
   const [currentRestaurant, setCurrentRestaurant] = useState<Restaurant | null>(null);
-
-
+  const [currentPage, setCurrentPage] = useState(0);
+  const [meta, setMeta] = useState({ totalItems: 0, totalPages: 0 });
 
   useEffect(() => {
     if (!selectedKey && initialData.length > 0) {
@@ -46,7 +43,7 @@ export default function usePriceLiceDefined({ initialData }: Props) {
 
   useEffect(() => {
     let pa = params.get('restoId');
-  }, [])
+  }, []);
 
   const handleChangeSelectedKey = (key: string) => {
     setSelectedKey(key);
@@ -68,11 +65,24 @@ export default function usePriceLiceDefined({ initialData }: Props) {
 
   const [initialDataPriceList, setInitialDataPriceList] = useState<DeliveryFee[]>([]);
 
+  const handleFetchDeliveryFee = useCallback(
+    async (restaurantId: string) => {
+      const data = await getPriceListByRestaurant(restaurantId, currentPage, 10);
+      if (data) {
+        setInitialDataPriceList(data.content);
+        setMeta({
+          totalItems: data.totalElements,
+          totalPages: data.totalPages,
+        });
+      }
+    },
+    [currentPage],
+  );
 
-  const handleFetchDeliveryFee = async (restaurantId: string) => {
-    const data = await getPriceListByRestaurant(restaurantId, 0, 10);
-    if (data) {
-      setInitialDataPriceList(data.content);
+  const handleChangePage = (page: number) => {
+    // S'assurer que la page est valide
+    if (page-1 >= 0) {
+      setCurrentPage(page-1);
     }
   };
 
@@ -80,11 +90,13 @@ export default function usePriceLiceDefined({ initialData }: Props) {
     if (currentRestaurant) {
       handleFetchDeliveryFee(currentRestaurant.id);
     }
-  }, [currentRestaurant]);
+  }, [currentRestaurant, handleFetchDeliveryFee]);
 
   // Recherche
   const search = searchParams.get('search');
-  const deliveryFees = search ? initialDataPriceList.filter((item) => item.name?.toLowerCase().includes(search.toLowerCase()) || item.zone.toLowerCase().includes(search.toLowerCase())) : initialDataPriceList;
+  const deliveryFees = search
+    ? initialDataPriceList.filter((item) => item.name?.toLowerCase().includes(search.toLowerCase()) || item.zone.toLowerCase().includes(search.toLowerCase()))
+    : initialDataPriceList;
 
   const tabsRef = useRef<HTMLDivElement>(null);
   const handleMoveScroll = (value: number) => {
@@ -118,7 +130,7 @@ export default function usePriceLiceDefined({ initialData }: Props) {
           return (
             <div className="relative flex items-center gap-2">
               <Tooltip content="Edit user">
-                <FormUpDate typeCm={currentRestaurant?.typeCommission ?? ""} initialData={deliveryFee} restaurantId={selectedKey || ''} />
+                <FormUpDate typeCm={currentRestaurant?.typeCommission ?? ''} initialData={deliveryFee} restaurantId={selectedKey || ''} />
               </Tooltip>
               <Tooltip color="danger" content="Delete user">
                 <PriceListeTools id={deliveryFee.id || ''} />
@@ -142,5 +154,11 @@ export default function usePriceLiceDefined({ initialData }: Props) {
     handleFetchDeliveryFee,
     handleChangeSelectedKey,
     renderCell,
+    pagination: {
+      currentPage: currentPage + 1,
+      totalPages: meta.totalPages,
+      totalItems: meta.totalItems,
+      onPageChange: handleChangePage,
+    },
   };
 }

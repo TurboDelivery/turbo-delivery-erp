@@ -17,7 +17,7 @@ export default async function Page() {
   return (
     <>
       <SectionHeader />
-      <Content initialData={initialData} />;
+      <Content initialData={initialData} />
     </>
   );
 }

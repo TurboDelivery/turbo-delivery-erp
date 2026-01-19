@@ -2,7 +2,7 @@
 
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { RestaurantDefini } from '@/types/price-list';
-import { Button, Tab, Tabs, Table, TableHeader, TableBody, TableColumn, TableRow, TableCell } from '@heroui/react';
+import { Button, Tab, Tabs, Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Select, Pagination } from '@heroui/react';
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import usePriceLiceDefined from './usePriceLiceDefined';
 import { Search } from 'lucide-react';
@@ -18,7 +18,7 @@ const tabsItems = [
 ];
 
 export default function Content({ initialData }: Props) {
-  const { columns, selectedKey, tabs, tabsRef, deliveryFees, renderCell, handleMoveScroll, handleChangeSelectedKey } = usePriceLiceDefined({ initialData });
+  const { columns, selectedKey, tabs, tabsRef, deliveryFees, renderCell, handleMoveScroll, handleChangeSelectedKey, pagination } = usePriceLiceDefined({ initialData });
 
   return (
     <>
@@ -49,7 +49,11 @@ export default function Content({ initialData }: Props) {
           </Button>
         </div>
         {/* Tableau de frais de livraison */}
-        <Table aria-label="Tableau de Frais de livraison" className="mt-4">
+        <Table
+          aria-label="Tableau de Frais de livraison"
+          className="mt-4"
+          bottomContent={<Pagination initialPage={pagination.currentPage} total={pagination.totalPages} onChange={pagination.onPageChange} />}
+        >
           <TableHeader columns={columns}>
             {(column) => (
               <TableColumn key={column.uid} className={column.uid === 'zone' ? 'flex items-center gap-2' : ''} align={column.uid === 'actions' ? 'center' : 'start'}>
@@ -69,5 +73,5 @@ export default function Content({ initialData }: Props) {
         </Table>
       </div>
     </>
-  );
+  )
 }
