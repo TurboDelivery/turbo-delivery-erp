@@ -147,10 +147,10 @@ export function RelevePaiePdf({ data, period }: { data: IReleveDePaie; period: s
             <Text>Gain</Text>
             <Text>{data.gain} CFA</Text>
           </View>
-          <View style={styles.row}>
-            <Text>Déduction (Crédit TURBO)</Text>
-            <Text>{data.deduction} CFA</Text>
-          </View>
+          {/*<View style={styles.row}>*/}
+          {/*  <Text>Déduction (Crédit TURBO)</Text>*/}
+          {/*  <Text>{data.deduction} CFA</Text>*/}
+          {/*</View>*/}
 
           <View style={[styles.row, { marginTop: 8, borderTop: '1px solid #000', paddingTop: 6 }]}>
             <Text style={styles.net}>Net à payer</Text>

@@ -99,7 +99,7 @@ function calculerStatistiques(ticketsParJour: IReleveDePaieJour[]) {
  * @param {Number} deduction - Montant de la déduction
  * @returns {Object} Données formatées pour le relevé de paie
  */
-export function genererReleveDePaie(livreurData: ILivreurTicket, pourcentageApplicable = 0.6, deduction = 10000): IReleveDePaie {
+export function genererReleveDePaie(livreurData: ILivreurTicket, pourcentageApplicable = 0.6, deduction = 0): IReleveDePaie {
   const ticketsParJour = regrouperTicketsParJourEtRestaurant(livreurData);
   const stats = calculerStatistiques(ticketsParJour);
 
