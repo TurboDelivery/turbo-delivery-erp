@@ -2,7 +2,6 @@ import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import { apiClientHttp } from '@/lib/api-client-http';
 import { ILivreurSearchParams, ILivreurStats, ILivreurTicket, ITicketParams, ITicketsStats } from '@/features/tickets/types/tickets.type';
 import { PaginatedResponse } from '@/types/general';
-import { BonLivraisonTermineeSchema, BonLivraisonTermineeType } from '../schema/ticket.schema';
 
 const BASE_URL = '/api/erp/bon-livraison';
 
@@ -76,21 +75,5 @@ export async function getLivreursWithTicketsRequest(params: ILivreurSearchParams
       page: params.livreurPage?.toString() || 0,
       size: params.livreurPageSize?.toString() || 20,
     },
-  });
-}
-
-export async function createBonLivraisonRequest(data: BonLivraisonTermineeType) {
-  const validatedData = BonLivraisonTermineeSchema.parse(data);
-
-  return apiClientHttp.request({
-    endpoint: bonLivraisonEndpoints.creerBonLivraison.endpoint,
-    method: bonLivraisonEndpoints.creerBonLivraison.method,
-    data: validatedData,
-  });
-}
-export async function deleteBonLivraisonRequest(commandeId: string) {
-  return apiClientHttp.request({
-    endpoint: `${bonLivraisonEndpoints.supprimerBonLivraison.endpoint}/${commandeId}`,
-    method: bonLivraisonEndpoints.supprimerBonLivraison.method,
   });
 }

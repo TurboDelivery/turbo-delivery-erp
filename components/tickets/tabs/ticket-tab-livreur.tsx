@@ -1,14 +1,16 @@
 import React, { useMemo } from 'react';
 import { useLivreurTicket } from '@/features/tickets/hooks/use-livreur-ticket';
 import LivreurCard from '@/components/tickets/livreur/livreur-card';
-import { Select as HeroSelect, SelectItem } from '@heroui/react';
+import { Button, Select as HeroSelect, SelectItem } from '@heroui/react';
 import { genererListeSemaines, obtenirKeySemaine } from '@/features/tickets/utils/date.utils';
 import { livreursToOptions, useLivreurs } from '@/features/tickets/hooks/use-livreurs';
 import Select from 'react-select';
+import useRecapPaieLivreurs from '@/features/tickets/hooks/use-recap-paie-livreurs';
 
 function TicketTabLivreur() {
   const { filters, livreurTickets, setLivreurWeekFilter, setLivreurSearch, livreurTicketsMeta, handlePageChange, isLoadingLivreurTickets } = useLivreurTicket();
   const { livreurs, isLoadingLivreurs } = useLivreurs();
+  const { exportLivreurRecapPaieToExcel, isLoadingLivreurRecapPaie } = useRecapPaieLivreurs();
   const livreurOptions = useMemo(() => livreursToOptions(livreurs), [livreurs]);
 
   const weeks = genererListeSemaines();
@@ -44,6 +46,9 @@ function TicketTabLivreur() {
             </SelectItem>
           ))}
         </HeroSelect>
+        <Button onPress={() => exportLivreurRecapPaieToExcel()} isLoading={isLoadingLivreurRecapPaie} color="success" variant="ghost">
+          Exporter récap. paie
+        </Button>
       </div>
       <div className="space-y-4">
         {!isLoadingLivreurTickets && livreurTickets.map((livreur) => <LivreurCard key={livreur.id} livreur={livreur} meta={livreurTicketsMeta} onPageChange={handlePageChange} />)}
