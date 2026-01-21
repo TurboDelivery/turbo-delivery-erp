@@ -75,6 +75,7 @@ const menuData: IMenuData[] = [
         icon: IconMap,
         title: 'finance',
         children: [
+            { icon: IconMap, title: 'finance dashboard ', path: '/finance/' },
             { icon: IconMap, title: 'Depenses ', path: '/finance/depense' },
             { icon: WalletCards, title: "Revenue", children: [
                 { icon: List, title: "Cumule de revenus globaux", path: '/finance/revenue' },
