@@ -5,6 +5,7 @@ import { RelevePaiePdf } from '@/components/tickets/export/releve-paie-pdf';
 import { saveAs } from 'file-saver';
 import { genererReleveDePaie } from '@/features/tickets/utils/tickets-livreur-export.utils';
 import { format } from 'date-fns';
+import { useLivreurStats } from '@/features/tickets/hooks/use-livreur-stats';
 
 export default function useTicketsLivreurPdf() {
   const { filters } = useLivreurFilters();
@@ -18,10 +19,16 @@ export default function useTicketsLivreurPdf() {
   };
 
   const { data: ticketsData, isLoading: isLoadingTicketsPdf, isError: isErrorTicketsPdf } = useLivreurTicketsListQuery(currentFilters);
+  const {
+    livreurStats: { primeHebdo },
+    isLoading: isLoadingStats,
+    isError: isErrorStats,
+  } = useLivreurStats();
 
   let pdfData = null;
-  if (ticketsData?.content[0]) {
-    pdfData = genererReleveDePaie(ticketsData.content[0]);
+  if (ticketsData?.content[0] && !isLoadingStats && !isErrorStats) {
+    const pourcentageApplicable = primeHebdo ? 0.7 : 0.6;
+    pdfData = genererReleveDePaie(ticketsData.content[0], pourcentageApplicable, 0);
   }
 
   const handleGeneratePdf = async () => {
@@ -33,8 +40,8 @@ export default function useTicketsLivreurPdf() {
   };
 
   return {
-    isLoadingTicketsPdf,
-    isErrorTicketsPdf,
+    isLoadingTicketsPdf: isLoadingTicketsPdf || isLoadingStats,
+    isErrorTicketsPdf: isErrorTicketsPdf || isErrorStats,
     handleGeneratePdf,
   };
 }
