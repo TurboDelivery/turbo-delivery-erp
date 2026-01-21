@@ -52,7 +52,7 @@ function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
               )}
             </div>
           </div>
-          <LivreurStats />
+          <LivreurStats totalTickets={meta.totalItems} />
           <div className="overflow-x-auto -mx-4 sm:mx-0">
             <table className="w-full min-w-full">
               <thead className="border-b border-gray-200">
