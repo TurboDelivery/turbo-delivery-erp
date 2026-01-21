@@ -26,7 +26,7 @@ export function PretTable({ facture, formatMontant }: IPretTableProps) {
             <div className="hidden md:block">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-red-500 hover:bg-red-600">
+                        <TableRow className="bg-green-500 hover:bg-red-600">
                             <TableHead className="font-semibold text-white text-center">Partenaire</TableHead>
                             <TableHead className="font-semibold text-white text-center">frais de livraison</TableHead>
                             <TableHead className="font-semibold text-white text-center">commission </TableHead>

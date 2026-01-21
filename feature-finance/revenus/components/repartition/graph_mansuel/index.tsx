@@ -17,7 +17,7 @@ export default function RevenusQuotidiens({ livraisons = [], commissions = [] }:
     return (
         <div className="w-full px-4 py-6 -mt-6">
             <div className="w-full px-4 py-6 shadow-lg rounded-lg border border-gray-200">
-                <h2 className="text-xl font-bold mb-2 ">Rapport des revenus</h2>
+                <h2 className="text-xl font-bold mb-2 "></h2>
 
                 <Tabs defaultValue="revenus-journaliere" className="w-full">
                     <TabsList className="w-full">

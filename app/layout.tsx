@@ -1,5 +1,6 @@
 import 'react-perfect-scrollbar/dist/css/styles.css';
 import '../styles/tailwind.css';
+import "./globals.css"
 import { Metadata, Viewport } from 'next';
 import { Lato } from 'next/font/google';
 import NextAuthSessionProvider from '@/providers/next-auth-session.provider';
