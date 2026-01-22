@@ -23,7 +23,7 @@ import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
 import { useMemo, useState } from "react"
 import { useLivraisonList } from "@/feature-finance/revenus/hooks/use-livraison-list"
-import { Pagination } from "@heroui/react"
+import { Pagination } from "./pagination"
 
 export default function LivraisonList() {
     // S'assurer que livraisons est toujours un tableau
@@ -148,7 +148,7 @@ export default function LivraisonList() {
 
                     {/* Version Mobile */}
                     <div className="md:hidden space-y-4 p-4">
-                        {livraisons.map((livraison, index) => (
+                        {livraisons.map((livraison: any, index: number) => (
                             <div
                                 key={index}
                                 className="border rounded-lg p-4 shadow-sm bg-card text-card-foreground"
@@ -194,10 +194,10 @@ export default function LivraisonList() {
                     <Pagination
                         currentPage={currentPage}
                         totalPages={filteredTotalPages}
-                        totalElements={filteredLivraisons.length}
-                        pageSize={itemsPerPage}
+                        itemsPerPage={itemsPerPage}
+                        totalItems={filteredLivraisons.length}
                         onPageChange={setCurrentPage}
-                        onPageSizeChange={setItemsPerPage}
+                        onItemsPerPageChange={setItemsPerPage}
                     />
 
                 </CardContent>

@@ -4,7 +4,7 @@
 
 import { useState } from "react"
 import { Pagination } from "./pagination"
-import { Spinner } from "@heroui/spinner"
+import { Spinner } from "@/components/ui/spinner"
 import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvrement"
 import { CreerRecouvrementModal } from "./creer-recouvrement-modal"
 import { RecouvrementListTable } from "./recouvrement-list-table"
@@ -58,7 +58,7 @@ export function RecouvrementList() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-64">
-        <Spinner color="danger" />
+        <Spinner size="large" />
       </div>
     )
   }

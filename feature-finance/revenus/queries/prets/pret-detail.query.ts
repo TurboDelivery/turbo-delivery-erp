@@ -38,7 +38,7 @@ export const usePretQuery = (id: string) => {
     React.useEffect(() => {
         if (query.isError && query.error) {
             toast.error("Erreur lors de la récupération du pret:", {
-                description: query.error.message,
+                description: query.error instanceof Error ? query.error.message : "Erreur inconnue",
             });
         }
     }, [query.isError, query.error]);

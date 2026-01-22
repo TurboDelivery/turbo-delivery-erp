@@ -98,7 +98,7 @@ export default function InvestissementList() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {investissements?.map((investissement) => (
+                                {investissements?.map((investissement: any) => (
                                     <TableRow key={investissement.id} className="transition-colors">
                                         <TableCell className="font-medium text-center border-b-2">
                                             {formatDate(investissement.dateInvestissement)}
@@ -142,7 +142,7 @@ export default function InvestissementList() {
 
                     {/* Version Mobile */}
                     <div className="md:hidden space-y-4 p-4">
-                        {investissements?.map((investissement) => (
+                        {investissements?.map((investissement: any) => (
                             <div key={investissement.id} className="bg-white border rounded-lg p-4 shadow-sm">
                                 <div className="flex justify-between items-start mb-3">
                                     <p className="text-sm text-gray-500">

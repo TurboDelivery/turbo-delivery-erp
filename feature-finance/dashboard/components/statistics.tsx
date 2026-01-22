@@ -21,10 +21,10 @@ export default function Statistics() {
     const depenses = depensesData || [];
     
     // Calcul des sommes
-    const sommeLivraisons = livraisons.reduce((total, livraison) => total + livraison.fraisLivraison, 0);
-    const sommeCommissions = commissionspourcentage.reduce((total, commission) => total + commission.commission, 0);
-    const sommeInvestissements = investissements.reduce((total, investissement) => total + investissement.montant, 0);
-    const sommeDepenses = depenses.reduce((total, depense) => total + depense.montant, 0);
+    const sommeLivraisons = livraisons.reduce((total: number, livraison: any) => total + livraison.fraisLivraison, 0);
+    const sommeCommissions = commissionspourcentage.reduce((total: number, commission: any) => total + commission.commission, 0);
+    const sommeInvestissements = investissements.reduce((total: number, investissement: any) => total + investissement.montant, 0);
+    const sommeDepenses = depenses.reduce((total: number, depense: any) => total + depense.montant, 0);
 
     const revenus = sommeLivraisons + sommeCommissions + sommeInvestissements;
     const comptes = revenus - sommeDepenses;

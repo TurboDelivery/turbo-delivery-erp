@@ -5,7 +5,7 @@ import { useState, useMemo } from "react"
 import { PretTable } from "./pret-list-table"
 import { Pagination } from "./pagination"
 import { usePretList } from "@/feature-finance/revenus/hooks/use-pret-list"
-import { Spinner } from "@heroui/spinner"
+import { Spinner } from "@/components/ui/spinner"
 import RestaurantFiltre from "./restaurant-filtre"
 
 export function PretList() {
@@ -59,7 +59,7 @@ export function PretList() {
         new Intl.NumberFormat("fr-FR").format(montant)
 
     if (isLoading) {
-        return <Spinner color="danger" />
+        return <Spinner size="large" />
     }
 
     if (isError) {

@@ -41,7 +41,7 @@ export const useAjouterCategorieDepenseMutation = () => {
 
         onError: async (error) => {
             toast.error("Erreur lors de l'ajout de la catégorie:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
@@ -73,7 +73,7 @@ export const useModifierCategorieDepenseMutation = () => {
         },
         onError: async (error) => {
             toast.error("Erreur modification catégorie:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
@@ -98,7 +98,7 @@ export const useSupprimerCategorieDepenseMutation = () => {
         },
         onError: async (error) => {
             toast.error("Erreur suppression catégorie:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
