@@ -79,7 +79,7 @@ export function useDepenseList({ columns, initialData = [] }: IDepenseListTableP
             return depenses;
         }
 
-        return depenses.filter(depense => {
+        return depenses.filter((depense: any) => {
             // Filtre par catégorie
             if (filters.categorie && filters.categorie !== "all" && depense.categorie.id !== filters.categorie) {
                 return false;

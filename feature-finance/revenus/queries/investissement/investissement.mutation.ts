@@ -41,7 +41,7 @@ export const useAjouterInvestissementMutation = () => {
 
         onError: async (error) => {
             toast.error("Erreur lors de l'ajout de l'investissement:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
@@ -73,7 +73,7 @@ export const useModifierInvestissementMutation = () => {
         },
         onError: async (error) => {
             toast.error("Erreur modification investissement:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
@@ -98,7 +98,7 @@ export const useSupprimerInvestissementMutation = () => {
         },
         onError: async (error) => {
             toast.error("Erreur suppression investissement:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });

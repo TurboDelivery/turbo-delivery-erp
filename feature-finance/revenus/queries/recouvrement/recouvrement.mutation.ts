@@ -39,7 +39,7 @@ export const useAjouterRecouvrementMutation = () => {
         onError: async (error) => {
             console.error("Erreur dans la mutation:", error);
             toast.error("Erreur lors de l'ajout du recouvrement", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
@@ -78,7 +78,7 @@ export const useModifierRecouvrementMutation = () => {
         },
         onError: async (error) => {
             toast.error("Erreur modification recouvrement:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
@@ -104,7 +104,7 @@ export const useSupprimerRecouvrementMutation = () => {
         },
         onError: async (error) => {
             toast.error("Erreur suppression recouvrement:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });

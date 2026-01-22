@@ -65,7 +65,7 @@ export function RepartitionTooltips() {
       const dateStr = format(monthDate, "yyyy-MM")
 
       // Revenus du mois
-      const revenusMois = livraisons.reduce((total, livraison) => {
+      const revenusMois = livraisons.reduce((total: number, livraison: any) => {
         const livraisonDate = new Date(livraison.createdAt)
         if (livraisonDate >= monthStart && livraisonDate <= monthEnd) {
           return total + (livraison.fraisLivraison || 0)
@@ -74,7 +74,7 @@ export function RepartitionTooltips() {
       }, 0)
 
       // Commissions du mois
-      const commissionsMois = commissionspourcentage.reduce((total, commission) => {
+      const commissionsMois = commissionspourcentage.reduce((total: number, commission: any) => {
         const commissionDate = new Date(commission.createdAt)
         if (commissionDate >= monthStart && commissionDate <= monthEnd) {
           return total + (commission.commission || 0)
@@ -83,7 +83,7 @@ export function RepartitionTooltips() {
       }, 0)
 
       // Investissements du mois
-      const investissementsMois = investissements.reduce((total, investissement) => {
+      const investissementsMois = investissements.reduce((total: number, investissement: any) => {
         const investissementDate = new Date(investissement.dateInvestissement)
         if (investissementDate >= monthStart && investissementDate <= monthEnd) {
           return total + (investissement.montant || 0)
@@ -92,7 +92,7 @@ export function RepartitionTooltips() {
       }, 0)
 
       // Dépenses du mois
-      const depensesMois = depenses.reduce((total, depense) => {
+      const depensesMois = depenses.reduce((total: number, depense: any) => {
         const depenseDate = new Date(depense.createdAt)
         if (depenseDate >= monthStart && depenseDate <= monthEnd) {
           return total + (depense.montant || 0)

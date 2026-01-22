@@ -44,7 +44,7 @@ export const useAjouterDepenseMutation = () => {
 
         onError: async (error) => {
             toast.error("Erreur lors de l'ajout de la dépense:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
@@ -76,7 +76,7 @@ export const useModifierDepenseMutation = () => {
         },
         onError: async (error) => {
             toast.error("Erreur modification depense:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
@@ -101,7 +101,7 @@ export const useSupprimerDepenseMutation = () => {
         },
         onError: async (error) => {
             toast.error("Erreur suppression depense:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });

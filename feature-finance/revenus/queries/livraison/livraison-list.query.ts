@@ -40,7 +40,7 @@ export const useLivraisonListQuery = (
     React.useEffect(() => {
         if (query.isError && query.error) {
             toast.error("Erreur lors de la récupération des livraisons:", {
-                description: query.error.message,
+                description: query.error instanceof Error ? query.error.message : "Erreur inconnue",
             });
         }
     }, [query]);

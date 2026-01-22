@@ -5,7 +5,7 @@ const getQueryClient = cache(() => new QueryClient({
     defaultOptions: {
         queries: {
             staleTime: 60 * 1000, // 1 minute 
-            gcTime: 5 * 60 * 1000, // 5 minutes (anciennement cacheTime)
+            cacheTime: 5 * 60 * 1000, // 5 minutes (anciennement gcTime)
             retry: (failureCount) => {
                 return failureCount < 3;
             },

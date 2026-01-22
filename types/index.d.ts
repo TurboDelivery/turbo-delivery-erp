@@ -53,3 +53,10 @@ export interface PaginatedResponse<T> {
     numberOfElements: number;
     empty: boolean;
 }
+
+export interface ActionResponse<T = any> {
+    success: boolean;
+    data?: T;
+    message?: string;
+    error?: string;
+}

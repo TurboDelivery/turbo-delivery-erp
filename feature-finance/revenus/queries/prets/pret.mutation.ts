@@ -41,7 +41,7 @@ export const useAjouterPretMutation = () => {
 
         onError: async (error) => {
             toast.error("Erreur lors de l'ajout de pret:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
@@ -73,7 +73,7 @@ export const useModifierPretMutation = () => {
         },
         onError: async (error) => {
             toast.error("Erreur modification pret:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });
@@ -98,7 +98,7 @@ export const useSupprimerPretMutation = () => {
         },
         onError: async (error) => {
             toast.error("Erreur suppression pret:", {
-                description: error.message,
+                description: error instanceof Error ? error.message : "Erreur inconnue",
             });
         },
     });

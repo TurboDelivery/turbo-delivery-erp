@@ -42,7 +42,7 @@ export default function LivraisonClient() {
                     <div className="text-center max-w-md">
                         <div className="text-red-500 text-6xl mb-4">⚠️</div>
                         <h3 className="text-lg font-semibold text-red-600 mb-2">Erreur de chargement</h3>
-                        <p className="text-gray-600 mb-4">Impossible de charger les livraisons: {error?.message}</p>
+                        <p className="text-gray-600 mb-4">Impossible de charger les livraisons: {error instanceof Error ? error.message : "Erreur inconnue"}</p>
                         <p className="text-sm text-gray-500">Vérifiez la console pour plus de détails</p>
                     </div>
                 </div>

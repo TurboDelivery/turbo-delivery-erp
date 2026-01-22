@@ -44,7 +44,7 @@ export const useRecouvrementRestaurantsDetailQuery = (
     React.useEffect(() => {
         if (query.isError && query.error) {
             toast.error("Erreur lors de la récupération des recouvrements:", {
-                description: query.error.message,
+                description: query.error instanceof Error ? query.error.message : "Erreur inconnue",
             });
         }
     }, [query]);
@@ -83,9 +83,15 @@ export const useRecouvrementsRestaurantQuery = (restaurantId: string) => {
     // Gestion des erreurs dans le hook
     React.useEffect(() => {
         if (query.isError && query.error) {
-            toast.error("Erreur lors du chargement des recouvrements", {
-                description: query.error.message,
-            });
+            if (query.error instanceof Error) {
+                toast.error("Erreur lors du chargement des recouvrements", {
+                    description: query.error.message,
+                });
+            } else {
+                toast.error("Erreur lors du chargement des recouvrements", {
+                    description: "Erreur inconnue",
+                });
+            }
         }
     }, [query]);
 

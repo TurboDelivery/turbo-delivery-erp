@@ -24,8 +24,8 @@ import {
       useEffect(() => {
           if (investissements && investissements.length > 0) {
               const uniqueInvestisseurs = Array.from(
-                  new Set(investissements.map(inv => inv.nomInvestisseur).filter(Boolean))
-              ).sort()
+                  new Set(investissements.map((inv: any) => inv.nomInvestisseur).filter(Boolean))
+              ).sort() as string[]
               setInvestisseurs(uniqueInvestisseurs)
           }
       }, [investissements])

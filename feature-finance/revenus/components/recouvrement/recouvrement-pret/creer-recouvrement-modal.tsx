@@ -34,7 +34,7 @@ export function CreerRecouvrementModal() {
     const [selectedFacture, setSelectedFacture] = useState<IFacture | null>(null)
 
     // 🧠 factures est maintenant strictement typé
-    const { data: factures = [] } = usePretListQuery<IFacture[]>({})
+    const { data: factures = [] } = usePretListQuery({})
 
     const {
         register,
