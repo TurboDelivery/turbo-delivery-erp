@@ -11,7 +11,7 @@ import {
 import { Bell, ChartNoAxesCombined, Euro, Layers, List, ShoppingCartIcon, SquareUser, Ticket, Truck, WalletCards } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
-
+//import { TbMoneybag } from 'react-icons/tb';
 export interface IMenuData {
     isHeader?: boolean;
     title: string;
