@@ -2,6 +2,7 @@ import { Ticket } from '@/types/bon-livraison.model';
 import { formatDateFR, formatHoursMinutes, formatNumberFR } from '@/src/actions/bonLivraison.mapper';
 import * as XLSX from 'xlsx';
 import { newTicket } from '@/features/tickets/types/tickets.type';
+import { autoFitColumns } from '@/features/tickets/utils/export.utils';
 
 export function generatePdfTemplate(tickets: Ticket[]): string {
   const totalRevenu = tickets.reduce((sum, t) => sum + parseFloat(t.montantLivraison.replace(/[^0-9]/g, '')), 0);
@@ -85,18 +86,5 @@ export function generateXlsTemplate(tickets: newTicket[]) {
   return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 }
 
-function autoFitColumns(data: any[]) {
-  const colWidths: number[] = [];
 
-  data.forEach((row) => {
-    Object.values(row).forEach((value, index) => {
-      const cellLength = value ? value.toString().length : 0;
-      colWidths[index] = Math.max(colWidths[index] || 0, cellLength);
-    });
-  });
-
-  return colWidths.map((width) => ({
-    wch: Math.min(width + 2, 40), // marge + limite
-  }));
-}
 

@@ -3,9 +3,9 @@ import LivreurStatItem from './livreur-stat-item';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { useLivreurStats } from '@/features/tickets/hooks/use-livreur-stats';
 
-function LivreurStats() {
+function LivreurStats({ totalTickets = 0 }: { totalTickets: number }) {
   const {
-    livreurStats: { totalTickets, totalLivraisons, primeHebdo },
+    livreurStats: { totalLivraisons, primeHebdo },
     isLoading,
     isError,
   } = useLivreurStats();
