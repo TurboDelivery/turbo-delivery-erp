@@ -144,31 +144,46 @@ const Sidebar = ({ profile }: { profile: User }) => {
     };
 
     return (
-        <div className={semidark ? 'dark' : ''}>
-            <nav
-                className={`sidebar fixed bottom-0 top-0 z-50 h-full min-h-screen w-[260px] shadow-[5px_0_25px_0_rgba(94,92,154,0.1)] transition-all duration-300 ${semidark ? 'text-white-dark' : ''}`}
-            >
-                <div className="h-full bg-white dark:bg-black">
-                    <div className="flex items-center justify-between px-4 py-3">
-                        <Link href="/" className="main-logo">
-                            <Logo className="w-20 py-2" />
-                        </Link>
-                        <button
-                            type="button"
-                            className="collapse-icon flex h-8 w-8 items-center rounded-full transition duration-300 hover:bg-gray-500/10 rtl:rotate-180 dark:text-white-light dark:hover:bg-dark-light/10"
-                            onClick={() => dispatch(toggleSidebar())}
-                        >
-                            <IconCaretsDown className="m-auto rotate-90" />
-                        </button>
+        <>
+            {/* Bouton flottant pour rouvrir la sidebar quand elle est fermée */}
+            {!themeConfig.sidebar && (
+                <button
+                    type="button"
+                    className="fixed top-4 left-4 z-50 hidden lg:flex items-center justify-center w-10 h-10 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-full shadow-md transition duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => dispatch(toggleSidebar())}
+                >
+                    <IconCaretsDown className="m-auto -rotate-90 h-5 w-5 text-gray-600 dark:text-gray-300" />
+                </button>
+            )}
+
+            <nav className={semidark ? 'dark' : ''}>
+                <div
+                    className={`sidebar fixed bottom-0 top-0 z-50 h-full min-h-screen w-[260px] shadow transition-all duration-300 ${
+                        themeConfig.sidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+                    } lg:ltr:ml-0 lg:rtl:mr-0`}
+                >
+                    <div className="h-full bg-white dark:bg-black">
+                        <div className="flex items-center justify-between px-4 py-3">
+                            <Link href="/" className="main-logo">
+                                <Logo className="w-20 py-2" />
+                            </Link>
+                            <button
+                                type="button"
+                                className="collapse-icon flex h-8 w-8 items-center rounded-full transition duration-300 hover:bg-gray-500/10 rtl:rotate-180 dark:text-white-light dark:hover:bg-dark-light/10"
+                                onClick={() => dispatch(toggleSidebar())}
+                            >
+                                <IconCaretsDown className="m-auto rotate-90" />
+                            </button>
+                        </div>
+                        <PerfectScrollbar className="relative h-[calc(100vh-80px)]">
+                            <ul className="relative space-y-0.5 p-4 py-0 font-semibold">
+                                <RenderMenu menu={filteredMenu} currentMenu={currentMenu} toggleMenu={toggleMenu} t={t} />
+                            </ul>
+                        </PerfectScrollbar>
                     </div>
-                    <PerfectScrollbar className="relative h-[calc(100vh-80px)]">
-                        <ul className="relative space-y-0.5 p-4 py-0 font-semibold">
-                            <RenderMenu menu={filteredMenu} currentMenu={currentMenu} toggleMenu={toggleMenu} t={t} />
-                        </ul>
-                    </PerfectScrollbar>
                 </div>
             </nav>
-        </div>
+        </>
     );
 };
 

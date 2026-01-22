@@ -1,10 +1,12 @@
 import 'react-perfect-scrollbar/dist/css/styles.css';
 import '../styles/tailwind.css';
+import "./globals.css"
 import { Metadata, Viewport } from 'next';
 import { Lato } from 'next/font/google';
 import NextAuthSessionProvider from '@/providers/next-auth-session.provider';
 import ProviderComponent from '@/components/layouts/provider-component';
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
+import { Toaster } from "sonner"
 export const metadata: Metadata = {
     title: {
         template: '%s | Turbo Delivery - management platform',
@@ -126,6 +128,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </head>
                 <body className={nunito.variable}>
                     <ProviderComponent> <NuqsAdapter>{children}</NuqsAdapter></ProviderComponent>
+                    <Toaster />
                 </body>
             </html>
         </NextAuthSessionProvider>
