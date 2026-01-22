@@ -1,0 +1,15 @@
+.dockerignore
+node_modules
+npm-debug.log
+README.md
+.next
+.git
+.env
+.env.*
+.github
+
+.pnpm-store
+.gitignore
+coverage
+.idea
+.DS_Store
