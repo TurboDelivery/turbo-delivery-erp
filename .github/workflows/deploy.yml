@@ -89,17 +89,18 @@ jobs:
 
       - name: Deploy
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-
-            IMAGE="${{ env.IMAGE_NAME }}:latest"
-
+          IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          
+            IMAGE="$IMAGE_NAME:latest"
+          
             echo "Pull latest image..."
-            docker pull $IMAGE
-
+            docker pull \$IMAGE
+          
             echo "Stopping old container..."
             docker stop turbo-erp-front || true
             docker rm turbo-erp-front || true
-
+          
             echo "Starting new container..."
             docker run -d \
               --name turbo-erp-front \
@@ -108,16 +109,14 @@ jobs:
               --cpus="1.0" \
               --env-file /var/www/turbo/prod/turbo-delivery-erp/.env \
               -p 4002:3000 \
-              $IMAGE
-
+              \$IMAGE
+          
             echo "Cleaning unused images..."
             docker image prune -f
-
+          
             echo "Deployment done."
-
+          
           EOF
-
-
   notify_end:
     needs: [ build, deploy ]
     if: always()
