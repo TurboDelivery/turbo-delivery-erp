@@ -69,6 +69,14 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             VERSION=${{ env.VERSION }}
+            NEXT_PUBLIC_BACKEND_PROTOCOL=${{ secrets.NEXT_PUBLIC_BACKEND_PROTOCOL }}
+            NEXT_PUBLIC_API_ERP_URL=${{ secrets.NEXT_PUBLIC_API_ERP_URL }}
+            NEXT_PUBLIC_API_RESTO_URL=${{ secrets.NEXT_PUBLIC_API_RESTO_URL }}
+            NEXT_PUBLIC_API_CLIENT_URL=${{ secrets.NEXT_PUBLIC_API_CLIENT_URL }}
+            NEXT_PUBLIC_API_DELIVERY_URL=${{ secrets.NEXT_PUBLIC_API_DELIVERY_URL }}
+            NEXT_PUBLIC_API_BACKEND_URL=${{ secrets.NEXT_PUBLIC_API_BACKEND_URL }}
+            NEXT_PUBLIC_API_SOCKET_URL=${{ secrets.NEXT_PUBLIC_API_SOCKET_URL }}
+            NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
 
   deploy:
     needs: build
