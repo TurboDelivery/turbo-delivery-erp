@@ -73,7 +73,7 @@ export function PretList() {
     return (
         <div className="w-full px-4 py-6">
             <Card className="shadow-lg border-0">
-                <CardHeader className="bg-blue-50">
+                <CardHeader className="bg-blue-100">
                     <CardTitle>
                         <div className="flex justify-between items-center gap-4 py-2">
                             <h2 className="font-bold text-xl text-blue-800">Liste des factures a recouvrir</h2>

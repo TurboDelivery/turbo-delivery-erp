@@ -1,8 +1,6 @@
 "use client"
 
-import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow
-} from "@/components/ui/table"
+
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
@@ -10,6 +8,8 @@ import {
 import { MoreHorizontal, Eye } from "lucide-react"
 import { IFacture } from "@/feature-finance/revenus/types/recouvrement/prets.types"
 import { PretDetailModal } from "./pret-detail-modal"
+import { Table } from "@/components/ui/table"
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/components-finance/ui/table"
 
 interface IPretTableProps {
     facture: IFacture[]
@@ -23,15 +23,15 @@ export function PretTable({ facture, formatMontant }: IPretTableProps) {
     return (
         <>
             {/* Version Desktop */}
-            <div className="hidden md:block">
+            <div className="hidden md:block ">
                 <Table>
-                    <TableHeader>
-                        <TableRow className="bg-green-500 hover:bg-red-600">
-                            <TableHead className="font-semibold text-white text-center">Partenaire</TableHead>
-                            <TableHead className="font-semibold text-white text-center">frais de livraison</TableHead>
-                            <TableHead className="font-semibold text-white text-center">commission </TableHead>
-                            <TableHead className="font-semibold text-white text-center">total facture</TableHead>
-                            <TableHead className="font-semibold text-white text-center">Actions</TableHead>
+                    <TableHeader  >
+                        <TableRow className="bg-red-900 ">
+                            <TableHead className="font-semibold bg-red-500 text-white hover:bg-red-600  text-center">Partenaire</TableHead>
+                            <TableHead className="font-semibold bg-red-500 text-white hover:bg-red-600 text-center">frais de livraison</TableHead>
+                            <TableHead className="font-semibold bg-red-500 text-white hover:bg-red-600 text-center">commission </TableHead>
+                            <TableHead className="font-semibold bg-red-500 text-white hover:bg-red-600 text-center">total facture</TableHead>
+                            <TableHead className="font-semibold bg-red-500 text-white hover:bg-red-600 text-center">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
