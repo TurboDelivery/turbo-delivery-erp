@@ -20,7 +20,7 @@ export default function RevenusQuotidiens({ livraisons = [], commissions = [] }:
                 <h2 className="text-xl font-bold mb-2 "></h2>
 
                 <Tabs defaultValue="revenus-journaliere" className="w-full">
-                    <TabsList className="w-full">
+                    <TabsList className="grid grid-cols-3 w-full gap-2">
                         <TabsTrigger value="revenus-journaliere" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Jours</TabsTrigger>
                         <TabsTrigger value="revenus-hebdomadaire" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Semaines</TabsTrigger>
                         <TabsTrigger value="revenus-mensuelle" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Mois</TabsTrigger>

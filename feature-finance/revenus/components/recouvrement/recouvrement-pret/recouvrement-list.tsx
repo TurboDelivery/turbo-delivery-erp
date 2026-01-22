@@ -1,7 +1,7 @@
 // RecouvrementList.tsx
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { useState } from "react"
 import { Pagination } from "./pagination"
 import { Spinner } from "@heroui/spinner"
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Filter, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { SearchFiltre } from "./filtres/search-filter"
+import { Card, CardContent, CardHeader } from "@/components/components-finance/ui/card"
 
 export function RecouvrementList() {
   const [currentPage, setCurrentPage] = useState(1)

@@ -17,7 +17,7 @@ export default function DepenseTabs({ depenses, categorie_depenses }: DepenseTab
         <div className="w-full px-4 py-6 -mt-6">
             <div className="w-full px-4 py-6 shadow-lg rounded-lg border border-gray-200">
                 <Tabs defaultValue="depenses-journalieres" className="w-full">
-                    <TabsList className="w-full bg-gray-100 p-1 rounded-lg dark:bg-gray-800">
+                    <TabsList className="grid grid-cols-2 w-full gap-2">
                         <TabsTrigger
                             value="depenses-journalieres"
                             className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white"

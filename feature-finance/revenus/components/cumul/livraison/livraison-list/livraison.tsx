@@ -104,12 +104,12 @@ export default function LivraisonList() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-red-500 hover:bg-red-600">
-                                    <TableHead className="font-semibold text-white text-center hover:text-white capitalize">Reference</TableHead>
-                                    <TableHead className="font-semibold text-white text-center hover:text-white capitalize">Date et heure</TableHead>
-                                    <TableHead className="font-semibold text-white text-center hover:text-white capitalize">Livreur</TableHead>
-                                    <TableHead className="font-semibold text-white text-center hover:text-white capitalize">Coût commande</TableHead>
-                                    <TableHead className="font-semibold text-white text-center hover:text-white capitalize">Commission(%)</TableHead>
-                                    <TableHead className="font-semibold text-white text-center hover:text-white capitalize">Actions</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Reference</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Date et heure</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Livreur</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Coût commande</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Commission(%)</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

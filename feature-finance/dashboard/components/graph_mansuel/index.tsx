@@ -12,8 +12,8 @@ export default function Performance() {
                 <h2 className="text-xl font-bold mb-2 ">Rapport financiers mensuels</h2>
 
                 <Tabs defaultValue="revenus" className="w-full">
-                    <TabsList className="w-full">
-                    <TabsTrigger value="revenus" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Revenus</TabsTrigger>
+                    <TabsList className="grid grid-cols-3 w-full gap-2">
+                    <TabsTrigger value="revenus" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Revenus</TabsTrigger>
                         <TabsTrigger value="depenses" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Depenses</TabsTrigger>
                         <TabsTrigger value="comptes" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Comptes</TabsTrigger>
                     </TabsList>

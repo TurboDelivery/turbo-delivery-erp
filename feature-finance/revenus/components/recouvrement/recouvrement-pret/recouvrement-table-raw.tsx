@@ -46,29 +46,29 @@ export function RecouvrementTableRow({
 
   return (
     <TableRow className="transition-colors hover:bg-gray-50">
-      <TableCell className="text-center text-sm uppercase">{recouv.nomRestaurant}</TableCell>
+      <TableCell className="text-center text-sm uppercase border-b-2">{recouv.nomRestaurant}</TableCell>
 
-      <TableCell className="font-semibold text-center text-sm">
+      <TableCell className="font-semibold text-center text-sm border-b-2">
         {formatMontant(getTotalFacturePourRestaurant(recouv.restaurantId))} FCFA
       </TableCell>
 
-      <TableCell className="font-semibold text-center text-sm text-blue-600">
+      <TableCell className="font-semibold text-center text-sm text-blue-600 border-b-2">
         {formatMontant(getMontantCumuleJusquAPresent(recouv))} FCFA
         <div className="text-xs text-gray-500">
           Avant: {formatMontant(getCumulRecouvrementsAvant(recouv))} FCFA
         </div>
       </TableCell>
 
-      <TableCell className="font-semibold text-center text-sm text-red-600">
+      <TableCell className="font-semibold text-center text-sm text-red-600 border-b-2">
         {formatMontant(getResteApresRecouvrement(recouv))} FCFA
         <div className="text-xs text-gray-500">
           Avant: {formatMontant(getResteAvantRecouvrement(recouv))} FCFA
         </div>
       </TableCell>
 
-      <TableCell className="text-center text-sm">{formatDate(recouv.dateRecouvrement)}</TableCell>
+      <TableCell className="text-center text-sm border-b-2">{formatDate(recouv.dateRecouvrement)}</TableCell>
 
-      <TableCell className="text-center text-sm">
+      <TableCell className="text-center text-sm border-b-2">
         {recouv.preuve ? (
           <div className="flex flex-col items-center space-y-1">
             <div
@@ -92,7 +92,7 @@ export function RecouvrementTableRow({
         )}
       </TableCell>
 
-      <TableCell className="text-center">
+      <TableCell className="text-center border-b-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="sm" variant="outline">

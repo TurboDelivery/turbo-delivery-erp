@@ -26,12 +26,12 @@ export function PretTable({ facture, formatMontant }: IPretTableProps) {
             <div className="hidden md:block ">
                 <Table>
                     <TableHeader  >
-                        <TableRow className="bg-red-900 ">
-                            <TableHead className="font-semibold bg-red-500 text-white hover:bg-red-600  text-center">Partenaire</TableHead>
-                            <TableHead className="font-semibold bg-red-500 text-white hover:bg-red-600 text-center">frais de livraison</TableHead>
-                            <TableHead className="font-semibold bg-red-500 text-white hover:bg-red-600 text-center">commission </TableHead>
-                            <TableHead className="font-semibold bg-red-500 text-white hover:bg-red-600 text-center">total facture</TableHead>
-                            <TableHead className="font-semibold bg-red-500 text-white hover:bg-red-600 text-center">Actions</TableHead>
+                        <TableRow className="bg-[#fb2c36] ">
+                            <TableHead className="font-semibold bg-[#fb2c36] text-white hover:bg-red-600  text-center">Partenaire</TableHead>
+                            <TableHead className="font-semibold bg-[#fb2c36] text-white hover:bg-red-600 text-center">frais de livraison</TableHead>
+                            <TableHead className="font-semibold bg-[#fb2c36] text-white hover:bg-red-600 text-center">commission </TableHead>
+                            <TableHead className="font-semibold bg-[#fb2c36] text-white hover:bg-red-600 text-center">total facture</TableHead>
+                            <TableHead className="font-semibold bg-[#fb2c36] text-white hover:bg-red-600 text-center">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -44,22 +44,22 @@ export function PretTable({ facture, formatMontant }: IPretTableProps) {
 
                             return (
                                 <TableRow key={facture.id} className="transition-colors hover:bg-gray-50">
-                                    <TableCell className="text-center text-sm uppercase">
+                                    <TableCell className="text-center text-sm uppercase border-b-2">
                                         {facture.nomRestaurant}
                                     </TableCell>
 
-                                    <TableCell className="font-semibold text-center text-sm">
+                                    <TableCell className="font-semibold text-center text-sm border-b-2">
                                         {formatMontant(facture.totalFraisLivraisons)} FCFA
                                     </TableCell>
 
-                                    <TableCell className="font-semibold text-center text-sm">
+                                    <TableCell className="font-semibold text-center text-sm border-b-2">
                                         {formatMontant(facture.totalCommission)} FCFA
                                     </TableCell>
 
-                                    <TableCell className="text-center font-semibold text-red-600">
+                                    <TableCell className="text-center font-semibold text-red-600 border-b-2">
                                         {formatMontant(facture.totalFraisLivraisons + facture.totalCommission)} FCFA
                                     </TableCell>
-                                    <TableCell className="text-center">
+                                    <TableCell className="text-center border-b-2">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                                 <Button size="sm" variant="outline">

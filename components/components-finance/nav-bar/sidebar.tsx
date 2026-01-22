@@ -66,6 +66,18 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 />
             )}
 
+            {/* Bouton pour rouvrir la sidebar (desktop) */}
+            {!isOpen && (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSidebar}
+                    className="fixed top-4 left-4 z-50 hidden lg:flex items-center justify-center w-10 h-10 bg-card border shadow-md"
+                >
+                    <ChevronLeft className="h-5 w-5 rotate-180" />
+                </Button>
+            )}
+
             {/* Sidebar */}
             <aside
                 className={cn(
@@ -91,7 +103,6 @@ export default function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                             variant="ghost"
                             size="icon"
                             onClick={toggleSidebar}
-                            className="lg:hidden"
                         >
                             <ChevronLeft className="h-5 w-5" />
                         </Button>

@@ -92,27 +92,27 @@ export function CategorieDepenseList({ categorie_depenses }: CategorieDepensePro
                         <Table>
                             <TableHeader className="">
                                 <TableRow className="bg-red-500 hover:bg-red-600">
-                                    <TableHead className="font-semibold text-gray-700 text-center text-white">Date</TableHead>
-                                    <TableHead className="font-semibold text-gray-700 text-center text-white">Nom </TableHead>
-                                    <TableHead className="font-semibold text-gray-700 text-center text-white">Montant total</TableHead>
-                                    <TableHead className="font-semibold text-gray-700 text-center text-white">Actions</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-gray-700 text-center text-white">Date</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-gray-700 text-center text-white">Nom </TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-gray-700 text-center text-white">Montant total</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-gray-700 text-center text-white">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {categorie_depenses.map((categorie_depense) => (
                                     <TableRow key={categorie_depense.id} className="transition-colors">
-                                        <TableCell className="font-medium text-center">
+                                        <TableCell className="font-medium text-center border-b-2">
                                             {formatDate(categorie_depense.createdAt)}
                                         </TableCell>
-                                        <TableCell className="text-center">
+                                        <TableCell className="text-center border-b-2">
                                             <span className={`font-semibold rounded-full px-2 py-1 text-center ${getCategoriesStyle(categorie_depense.nomCategorie)}`}>
                                                 {categorie_depense.nomCategorie}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="text-center">
+                                        <TableCell className="text-center border-b-2">
                                             {categorie_depense.totalDepense} FCFA
                                         </TableCell>
-                                        <TableCell className="text-center">
+                                        <TableCell className="text-center border-b-2">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button className="bg-red-400 hover:bg-red-600 cursor-pointer">

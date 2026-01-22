@@ -1,6 +1,6 @@
 "use client"
 
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
 import { IRecouvrement } from "@/feature-finance/revenus/types/recouvrement/recouvrement.types"
 import { usePretList } from "@/feature-finance/revenus/hooks/use-pret-list"
 import { useState } from "react"
@@ -8,6 +8,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import Image from "next/image"
 import { RecouvrementTableRow } from "./recouvrement-table-raw"
 import { RecouvrementCardMobile } from "./recouvrement-card-mobile"
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/components-finance/ui/table"
 
 
 interface IPretTableProps {
@@ -80,13 +81,13 @@ export function RecouvrementListTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-red-500 hover:bg-red-600">
-              <TableHead className="font-semibold text-white text-center">Partenaire</TableHead>
-              <TableHead className="font-semibold text-white text-center">Montant total</TableHead>
-              <TableHead className="font-semibold text-white text-center">Montant cumulé</TableHead>
-              <TableHead className="font-semibold text-white text-center">Reste à recouvrir</TableHead>
-              <TableHead className="font-semibold text-white text-center">Date</TableHead>
-              <TableHead className="font-semibold text-white text-center">Preuve</TableHead>
-              <TableHead className="font-semibold text-white text-center">Actions</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center border-b-2">Partenaire</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center border-b-2">Montant total</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center border-b-2">Montant cumulé</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center border-b-2">Reste à recouvrir</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center border-b-2">Date</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center border-b-2">Preuve</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center border-b-2">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

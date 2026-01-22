@@ -13,7 +13,7 @@ export default function LivraisonAnalyseChart({ livraison }: { livraison: ILivra
                 <h2 className="text-xl font-bold mb-2 ">Rapport des revenus</h2>
 
                 <Tabs defaultValue="livraison-journaliere" className="w-full">
-                    <TabsList className="w-full">
+                    <TabsList className="grid grid-cols-3 w-full gap-2">
                         <TabsTrigger value="livraison-journaliere" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Jours</TabsTrigger>
                         <TabsTrigger value="livraison-hebdomadaire" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Semaines</TabsTrigger>
                         <TabsTrigger value="livraison-mensuelle" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Mois</TabsTrigger>

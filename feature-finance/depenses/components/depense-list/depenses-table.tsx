@@ -28,31 +28,31 @@ export function DepensesTable({ depenses, getCategoriesStyle, formatDate, format
         <Table>
           <TableHeader>
             <TableRow className="bg-red-500 hover:bg-red-600">
-              <TableHead className="font-semibold text-white text-center">Date</TableHead>
-              <TableHead className="font-semibold text-white text-center">Libellé</TableHead>
-              <TableHead className="font-semibold text-white text-center">Catégorie</TableHead>
-              <TableHead className="font-semibold text-white text-center">Montant</TableHead>
-              <TableHead className="font-semibold text-white text-center">Actions</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Date</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Libellé</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Catégorie</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Montant</TableHead>
+              <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {depenses.map((depense) => (
               <TableRow key={depense.id} className="transition-colors hover:bg-gray-50">
-                <TableCell className="text-center text-sm">
+                <TableCell className="text-center text-sm border-b-2">
                   {formatDate(depense.dateDepense)}
                 </TableCell>
-                <TableCell className="font-semibold text-center text-sm">
+                <TableCell className="font-medium text-center border-b-2">
                   {depense.libelle}
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center border-b-2">
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getCategoriesStyle(depense.categorie.nomCategorie)}`}>
                     {depense.categorie.nomCategorie}
                   </span>
                 </TableCell>
-                <TableCell className="text-center font-semibold text-red-600">
+                <TableCell className="text-center font-semibold text-red-600 border-b-2">
                   {formatMontant(depense.montant)} FCFA
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center border-b-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button size="sm" className="hover:bg-red-300 bg-red-500">

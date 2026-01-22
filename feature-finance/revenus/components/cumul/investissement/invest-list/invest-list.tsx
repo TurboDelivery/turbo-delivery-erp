@@ -90,31 +90,31 @@ export default function InvestissementList() {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-red-500 hover:bg-red-600">
-                                    <TableHead className="font-semibold text-white text-center">Date</TableHead>
-                                    <TableHead className="font-semibold text-white text-center">Investisseur</TableHead>
-                                    <TableHead className="font-semibold text-white text-center">Montant du pret</TableHead>
-                                    <TableHead className="font-semibold text-white text-center">Echéance</TableHead>
-                                    <TableHead className="font-semibold text-white text-center">Actions</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Date</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Investisseur</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Montant du pret</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Echéance</TableHead>
+                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {investissements?.map((investissement) => (
                                     <TableRow key={investissement.id} className="transition-colors">
-                                        <TableCell className="font-medium text-center">
+                                        <TableCell className="font-medium text-center border-b-2">
                                             {formatDate(investissement.dateInvestissement)}
                                         </TableCell>
-                                        <TableCell className="text-center">
+                                        <TableCell className="text-center border-b-2">
                                             <span className="font-semibold rounded-full px-2 py-1 text-center">
                                                 {investissement.nomInvestisseur}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="text-center">
+                                        <TableCell className="text-center border-b-2">
                                             {investissement.montant} FCFA
                                         </TableCell>
-                                        <TableCell className="text-center">
+                                        <TableCell className="text-center border-b-2">
                                             {formatDate(investissement.deadline)}
                                         </TableCell>
-                                        <TableCell className="text-center">
+                                        <TableCell className="text-center border-b-2">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button className="bg-red-400 hover:bg-red-600 cursor-pointer">
