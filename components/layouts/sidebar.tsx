@@ -16,240 +16,216 @@ import menuData, { IMenuData } from '@/config/menu-data';
 import IconCaretDown from '@/components/icon/icon-caret-down';
 import IconCaretsDown from '@/components/icon/icon-carets-down';
 
-
 const Sidebar = ({ profile }: { profile: User }) => {
-    const dispatch = useDispatch();
-    const { t } = getTranslation();
-    const pathname = usePathname();
-    const [currentMenu, setCurrentMenu] = useState<string>('');
-    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
-    const semidark = themeConfig.semidark;
+  const dispatch = useDispatch();
+  const { t } = getTranslation();
+  const pathname = usePathname();
+  const [currentMenu, setCurrentMenu] = useState<string>('');
+  const themeConfig = useSelector((state: IRootState) => state.themeConfig);
+  const semidark = themeConfig.semidark;
 
-    const toggleMenu = (value: string) => {
-        setCurrentMenu((oldValue) => (oldValue === value ? '' : value));
-    };
+  const toggleMenu = (value: string) => {
+    setCurrentMenu((oldValue) => (oldValue === value ? '' : value));
+  };
 
-    // Fonction pour filtrer le menu selon le rôle
-    const getFilteredMenu = (): IMenuData[] => {
-        const role = profile.role.libelle.toLowerCase();
-    
-        // Menus visibles par tous
-        const ALWAYS_VISIBLE = ['dashboard'];
-    
-        if (role === 'standard' || role === "centrale d'appel") {
-            return menuData
-                .filter((item) =>
-                    [
-                        'external_delivery',
-                        'trafic',
-                        'paramètres',
-                        ...ALWAYS_VISIBLE,
-                    ].includes(item.title.toLowerCase())
-                )
-                .map((item) => {
-                    // External delivery → seulement Tickets
-                    if (item.title.toLowerCase() === 'external_delivery') {
-                        return {
-                            ...item,
-                            children: item.children?.filter(
-                                (child) => child.title.toLowerCase() === 'tickets'
-                            ),
-                        };
-                    }
-                    return item;
-                });
+  // Fonction pour filtrer le menu selon le rôle
+  const getFilteredMenu = (): IMenuData[] => {
+    const role = profile.role.libelle.toLowerCase();
+
+    // Menus visibles par tous
+    const ALWAYS_VISIBLE = ['dashboard'];
+
+    if (role === 'standard' || role === "centrale d'appel") {
+      return menuData
+        .filter((item) => ['external_delivery', 'trafic', 'paramètres', ...ALWAYS_VISIBLE].includes(item.title.toLowerCase()))
+        .map((item) => {
+          // External delivery → seulement Tickets
+          if (item.title.toLowerCase() === 'external_delivery') {
+            return {
+              ...item,
+              children: item.children?.filter((child) => child.title.toLowerCase() === 'tickets'),
+            };
+          }
+          return item;
+        });
+    }
+
+    if (role === 'comptable' || role === 'ops manager') {
+      return menuData
+        .filter((item) => ['external_delivery', 'livreurs', 'restaurants', 'paramètres', ...ALWAYS_VISIBLE].includes(item.title.toLowerCase()))
+        .map((item) => {
+          // External delivery → seulement Tickets
+          if (item.title.toLowerCase() === 'external_delivery') {
+            return {
+              ...item,
+              children: item.children?.filter((child) => child.title.toLowerCase() === 'tickets'),
+            };
+          }
+
+          // Comptable → Livreurs → Liste uniquement
+          if (role === 'comptable' && item.title.toLowerCase() === 'livreurs') {
+            return {
+              ...item,
+              children: item.children?.filter((child) => child.title.toLowerCase() === 'liste'),
+            };
+          }
+
+          // Comptable → Restaurants → Partners validés uniquement
+          if (role === 'comptable' && item.title.toLowerCase() === 'restaurants') {
+            return {
+              ...item,
+              children: item.children?.filter((child) => child.title.toLowerCase() === 'partners validés'),
+            };
+          }
+
+          return item;
+        });
+    }
+
+    // Admin / super admin → tout voir
+    return menuData;
+  };
+
+  const filteredMenu = getFilteredMenu();
+
+  useEffect(() => {
+    const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
+    if (selector) {
+      selector.classList.add('active');
+      const ul: any = selector.closest('ul.sub-menu');
+      if (ul) {
+        let ele: any = ul.closest('li.menu').querySelectorAll('.nav-link') || [];
+        if (ele.length) {
+          ele = ele[0];
+          setTimeout(() => {
+            ele.click();
+          });
         }
-    
-        if (role === 'comptable' || role === 'ops manager') {
-            return menuData
-                .filter((item) =>
-                    [
-                        'external_delivery',
-                        'livreurs',
-                        'restaurants',
-                        'paramètres',
-                        ...ALWAYS_VISIBLE,
-                    ].includes(item.title.toLowerCase())
-                )
-                .map((item) => {
-                    // External delivery → seulement Tickets
-                    if (item.title.toLowerCase() === 'external_delivery') {
-                        return {
-                            ...item,
-                            children: item.children?.filter(
-                                (child) => child.title.toLowerCase() === 'tickets'
-                            ),
-                        };
-                    }
-    
-                    // Comptable → Livreurs → Liste uniquement
-                    if (role === 'comptable' && item.title.toLowerCase() === 'livreurs') {
-                        return {
-                            ...item,
-                            children: item.children?.filter(
-                                (child) => child.title.toLowerCase() === 'liste'
-                            ),
-                        };
-                    }
-    
-                    // Comptable → Restaurants → Partners validés uniquement
-                    if (role === 'comptable' && item.title.toLowerCase() === 'restaurants') {
-                        return {
-                            ...item,
-                            children: item.children?.filter(
-                                (child) => child.title.toLowerCase() === 'partners validés'
-                            ),
-                        };
-                    }
-    
-                    return item;
-                });
-        }
-    
-        // Admin / super admin → tout voir
-        return menuData;
-    };
+      }
+    }
+  }, []);
 
-    const filteredMenu = getFilteredMenu();
+  useEffect(() => {
+    setActiveRoute();
+    if (window.innerWidth < 1024 && themeConfig.sidebar) {
+      dispatch(toggleSidebar());
+    }
+  }, [pathname]);
 
-    useEffect(() => {
-        const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
-        if (selector) {
-            selector.classList.add('active');
-            const ul: any = selector.closest('ul.sub-menu');
-            if (ul) {
-                let ele: any = ul.closest('li.menu').querySelectorAll('.nav-link') || [];
-                if (ele.length) {
-                    ele = ele[0];
-                    setTimeout(() => {
-                        ele.click();
-                    });
-                }
-            }
-        }
-    }, []);
+  const setActiveRoute = () => {
+    const allLinks = document.querySelectorAll('.sidebar ul a.active');
+    allLinks.forEach((el) => el.classList.remove('active'));
+    const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
+    selector?.classList.add('active');
+  };
 
-    useEffect(() => {
-        setActiveRoute();
-        if (window.innerWidth < 1024 && themeConfig.sidebar) {
-            dispatch(toggleSidebar());
-        }
-    }, [pathname]);
+  return (
+    <>
+      {/* Bouton flottant pour rouvrir la sidebar quand elle est fermée */}
+      {(
+        <button
+          type="button"
+          className="fixed top-4 left-4 z-50 flex items-center justify-center w-10 h-10 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-full shadow-md transition duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+          onClick={() => dispatch(toggleSidebar())}
+        >
+          <IconCaretsDown className="m-auto -rotate-90 h-5 w-5 text-gray-600 dark:text-gray-300" />
+        </button>
+      )}
 
-    const setActiveRoute = () => {
-        const allLinks = document.querySelectorAll('.sidebar ul a.active');
-        allLinks.forEach((el) => el.classList.remove('active'));
-        const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
-        selector?.classList.add('active');
-    };
-
-    return (
-        <>
-            {/* Bouton flottant pour rouvrir la sidebar quand elle est fermée */}
-            {!themeConfig.sidebar && (
-                <button
-                    type="button"
-                    className="fixed top-4 left-4 z-50 hidden lg:flex items-center justify-center w-10 h-10 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-full shadow-md transition duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    onClick={() => dispatch(toggleSidebar())}
-                >
-                    <IconCaretsDown className="m-auto -rotate-90 h-5 w-5 text-gray-600 dark:text-gray-300" />
-                </button>
-            )}
-
-            <nav className={semidark ? 'dark' : ''}>
-                <div
-                    className={`sidebar fixed bottom-0 top-0 z-50 h-full min-h-screen w-[260px] shadow transition-all duration-300 ${
-                        themeConfig.sidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-                    } lg:ltr:ml-0 lg:rtl:mr-0`}
-                >
-                    <div className="h-full bg-white dark:bg-black">
-                        <div className="flex items-center justify-between px-4 py-3">
-                            <Link href="/" className="main-logo">
-                                <Logo className="w-20 py-2" />
-                            </Link>
-                            <button
-                                type="button"
-                                className="collapse-icon flex h-8 w-8 items-center rounded-full transition duration-300 hover:bg-gray-500/10 rtl:rotate-180 dark:text-white-light dark:hover:bg-dark-light/10"
-                                onClick={() => dispatch(toggleSidebar())}
-                            >
-                                <IconCaretsDown className="m-auto rotate-90" />
-                            </button>
-                        </div>
-                        <PerfectScrollbar className="relative h-[calc(100vh-80px)]">
-                            <ul className="relative space-y-0.5 p-4 py-0 font-semibold">
-                                <RenderMenu menu={filteredMenu} currentMenu={currentMenu} toggleMenu={toggleMenu} t={t} />
-                            </ul>
-                        </PerfectScrollbar>
-                    </div>
-                </div>
-            </nav>
-        </>
-    );
+      <nav className={semidark ? 'dark' : ''}>
+        <div
+          className={`sidebar fixed bottom-0 top-0 z-50 h-full min-h-screen w-[260px] shadow transition-all duration-300 ${
+            themeConfig.sidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          } lg:ltr:ml-0 lg:rtl:mr-0`}
+        >
+          <div className="h-full bg-white dark:bg-black">
+            <div className="flex items-center justify-between px-4 py-3">
+              <Link href="/" className="main-logo">
+                <Logo className="w-20 py-2" />
+              </Link>
+              <button
+                type="button"
+                className="collapse-icon flex h-8 w-8 items-center rounded-full transition duration-300 hover:bg-gray-500/10 rtl:rotate-180 dark:text-white-light dark:hover:bg-dark-light/10"
+                onClick={() => dispatch(toggleSidebar())}
+              >
+                <IconCaretsDown className="m-auto rotate-90" />
+              </button>
+            </div>
+            <PerfectScrollbar className="relative h-[calc(100vh-80px)]">
+              <ul className="relative space-y-0.5 p-4 py-0 font-semibold">
+                <RenderMenu menu={filteredMenu} currentMenu={currentMenu} toggleMenu={toggleMenu} t={t} />
+              </ul>
+            </PerfectScrollbar>
+          </div>
+        </div>
+      </nav>
+    </>
+  );
 };
 
 export default Sidebar;
 
 function RenderMenu({ menu, currentMenu, toggleMenu, t }: { menu: IMenuData[]; currentMenu: string; toggleMenu: (value: string) => void; t: (value: string) => string }) {
-    const renderMenuItem = (item: IMenuData, key: number) => {
-        return (
-            <li key={key} className="menu nav-item">
-                <button type="button" className={`${currentMenu === item.title ? 'active rounded bg-red-100 text-red-700 font-bold' : ''} nav-link group w-full`} onClick={() => toggleMenu(item.title)}>
-                    <div className="flex items-center">
-                        {item.icon && <item.icon className="shrink-0 group-hover:!text-primary" />}
-                        <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-gray-600 dark:group-hover:text-white-dark">{t(item.title)}</span>
-                    </div>
+  const renderMenuItem = (item: IMenuData, key: number) => {
+    return (
+      <li key={key} className="menu nav-item">
+        <button type="button" className={`${currentMenu === item.title ? 'active rounded bg-red-100 text-red-700 font-bold' : ''} nav-link group w-full`} onClick={() => toggleMenu(item.title)}>
+          <div className="flex items-center">
+            {item.icon && <item.icon className="shrink-0 group-hover:!text-primary" />}
+            <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-gray-600 dark:group-hover:text-white-dark">{t(item.title)}</span>
+          </div>
 
-                    <div className={currentMenu !== item.title ? '-rotate-90 rtl:rotate-90' : ''}>
-                        <IconCaretDown />
-                    </div>
-                </button>
+          <div className={currentMenu !== item.title ? '-rotate-90 rtl:rotate-90' : ''}>
+            <IconCaretDown />
+          </div>
+        </button>
 
-                <AnimateHeight duration={300} height={currentMenu === item.title ? 'auto' : 0}>
-                    <ul className="sub-menu text-gray-500">
-                        {item?.children?.map((child: any, index: number) => (
-                            <li key={index}>
-                                <Link href={`${child.path ?? ''}`}>{t(child.title)}</Link>
-                            </li>
-                        ))}
-                    </ul>
-                </AnimateHeight>
-            </li>
-        );
-    };
+        <AnimateHeight duration={300} height={currentMenu === item.title ? 'auto' : 0}>
+          <ul className="sub-menu text-gray-500">
+            {item?.children?.map((child: any, index: number) => (
+              <li key={index}>
+                <Link href={`${child.path ?? ''}`}>{t(child.title)}</Link>
+              </li>
+            ))}
+          </ul>
+        </AnimateHeight>
+      </li>
+    );
+  };
 
-    const renderItem = (item: IMenuData, key: number) => {
-        return (
-            <li key={key} className="nav-item">
-                <Link href={`${item.path ?? ''}`} className="group">
-                    <div className="flex items-center">
-                        {item.icon && <item.icon className="shrink-0 group-hover:!text-primary" />}
-                        <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-muted-foreground dark:group-hover:text-white-dark">{t(item.title)}</span>
-                    </div>
-                </Link>
-            </li>
-        );
-    };
-    const renderItemMenuHeader = (item: IMenuData, key: number) => {
-        return (
-            <Fragment key={key}>
-                <h2 className="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
-                    <IconMinus className="hidden h-5 w-4 flex-none" />
-                    <span>{t(item.title)}</span>
-                </h2>
-                <li className="nav-item">
-                    <ul>{item?.children?.map((child: any, index: number) => (child.children ? renderMenuItem(child, index) : renderItem(child, index)))}</ul>
-                </li>
-            </Fragment>
-        );
-    };
-    return menu.map((item, index) => {
-        if (!item.isHeader && item.children) {
-            return renderMenuItem(item, index);
-        }
-        if (!item.isHeader) {
-            return renderItem(item, index);
-        } else {
-            return renderItemMenuHeader(item, index);
-        }
-    });
+  const renderItem = (item: IMenuData, key: number) => {
+    return (
+      <li key={key} className="nav-item">
+        <Link href={`${item.path ?? ''}`} className="group">
+          <div className="flex items-center">
+            {item.icon && <item.icon className="shrink-0 group-hover:!text-primary" />}
+            <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-muted-foreground dark:group-hover:text-white-dark">{t(item.title)}</span>
+          </div>
+        </Link>
+      </li>
+    );
+  };
+  const renderItemMenuHeader = (item: IMenuData, key: number) => {
+    return (
+      <Fragment key={key}>
+        <h2 className="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
+          <IconMinus className="hidden h-5 w-4 flex-none" />
+          <span>{t(item.title)}</span>
+        </h2>
+        <li className="nav-item">
+          <ul>{item?.children?.map((child: any, index: number) => (child.children ? renderMenuItem(child, index) : renderItem(child, index)))}</ul>
+        </li>
+      </Fragment>
+    );
+  };
+  return menu.map((item, index) => {
+    if (!item.isHeader && item.children) {
+      return renderMenuItem(item, index);
+    }
+    if (!item.isHeader) {
+      return renderItem(item, index);
+    } else {
+      return renderItemMenuHeader(item, index);
+    }
+  });
 }

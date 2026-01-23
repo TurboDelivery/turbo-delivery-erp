@@ -17,8 +17,8 @@ function TicketTabLivreur() {
   return (
     <div className="p-4 sm:p-6">
       <TabLivreurStats />
-      <div className="flex items-center space-x-4 mb-4">
-        <div className="sm:w-2/3">
+      <div className="flex max-md:flex-wrap items-center gap-2 mb-4">
+        <div className="w-full sm:w-2/3">
           <Select
             options={livreurOptions}
             value={livreurOptions.find((o) => o.value == filters.idLivreur) ?? null}
