@@ -1,16 +1,20 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { getDeliveryMenRecapPayRequest } from '@/features/tickets/request/livreurs.request';
-import { IRecapPaiementLivreurSearchParams } from '@/features/tickets/types/livreur.type';
+import { IRecapPaiementLivreur, IRecapPaiementLivreurSearchParams } from '@/features/tickets/types/livreur.type';
+import { invalidateRecapPaieStatsQuery } from './recap-paie-stats.query';
 
-export const useGetLivreurRecapPaie = (handleSuccess?: () => void, handleError?: () => void) => {
+export const useGetLivreurRecapPaie = (handleSuccess?: (data: IRecapPaiementLivreur[]) => void, handleError?: () => void) => {
   return useMutation({
     mutationFn: async (params: IRecapPaiementLivreurSearchParams) => {
       return await getDeliveryMenRecapPayRequest(params);
     },
-    onSuccess: async () => {
+    onSuccess: async (data, params) => {
+      // Invalider le cache pour synchroniser avec la query
+      await invalidateRecapPaieStatsQuery(params);
+
       if (handleSuccess) {
-        handleSuccess();
+        handleSuccess(data);
       }
     },
     onError: (error) => {
