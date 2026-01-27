@@ -1,19 +1,19 @@
 'use client';
 
-import Link from 'next/link';
-import useContentCtx from './useContentCtx';
-import { Info, Printer } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { formatNumber } from '@/utils/formatNumber';
-import { Card as CardUI } from '@/components/ui/card';
-import { TbArrowUpRight, TbChartBar } from 'react-icons/tb';
-import SourcesCard from '@/components/dashboard/apercu/SourcesCard';
-import { ChiffreAffaireRestaurant } from '@/types/statistiques.model';
-import DatabaseCards from '@/components/dashboard/apercu/DatabaseCards';
-import StatsOverview from '@/components/dashboard/apercu/StatsOverview';
 import DashboardChart from '@/components/dashboard/apercu/DashboardChart';
+import DatabaseCards from '@/components/dashboard/apercu/DatabaseCards';
 import RestaurantList from '@/components/dashboard/apercu/RestaurantList';
-import { DateRangePicker, RangeValue, CalendarDate, CardHeader, CardBody, Card, Tooltip } from '@heroui/react';
+import SourcesCard from '@/components/dashboard/apercu/SourcesCard';
+import StatsOverview from '@/components/dashboard/apercu/StatsOverview';
+import { Button } from '@/components/ui/button';
+import { Card as CardUI } from '@/components/ui/card';
+import { ChiffreAffaireRestaurant } from '@/types/statistiques.model';
+import { formatNumber } from '@/utils/formatNumber';
+import { CalendarDate, Card, CardBody, CardHeader, DateRangePicker, RangeValue, Tooltip } from '@heroui/react';
+import { Info, Printer } from 'lucide-react';
+import Link from 'next/link';
+import { TbArrowUpRight, TbChartBar } from 'react-icons/tb';
+import useContentCtx from './useContentCtx';
 
 export default function Content({ initialItems }: { initialItems: Record<string, any> }) {
     const { items, handleDateChange } = useContentCtx({ initialItems });

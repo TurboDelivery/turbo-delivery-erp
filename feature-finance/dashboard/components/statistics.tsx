@@ -32,7 +32,7 @@ export default function Statistics() {
     
     const stats = [
         {
-            title: "Total des revenus",
+            title: "Chiffre d'affaires",
             value: `${revenus.toLocaleString()}`,
             icon: <Wallet className="w-4 h-4" />,
             color: "text-green-600",
@@ -40,15 +40,15 @@ export default function Statistics() {
             trend: "up" as const,
         },
         {
-            title: "Total des investissements",
-            value: `${sommeInvestissements.toLocaleString()}`,
+            title: "Total livraisons",
+            value: `${sommeLivraisons.toLocaleString()}`,
             icon: <WalletCards className="w-4 h-4" />,
             color: "text-yellow-600",
             bgColor: "bg-yellow-100",
             trend: "down" as const,
         },
         {
-            title: "Total des dépenses",
+            title: "Total revenus",
             value: `${sommeDepenses.toLocaleString()}`,
             icon: <WalletCards className="w-4 h-4" />,
             color: "text-red-600",
@@ -56,7 +56,7 @@ export default function Statistics() {
             trend: "down" as const,
         },
         {
-            title: "Solde des comptes",
+            title: "Solde des comptes   ",
             value: `${Math.abs(comptes).toLocaleString()}`,
             icon: <DollarSign className="w-4 h-4" />,
             color: isGain ? "text-green-600" : "text-red-600",
