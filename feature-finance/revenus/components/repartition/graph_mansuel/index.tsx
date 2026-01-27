@@ -16,15 +16,18 @@ interface RevenusQuotidiensProps {
 export default function RevenusQuotidiens({ livraisons = [], commissions = [] }: RevenusQuotidiensProps) {
     return (
         <div className="w-full px-4 py-6 -mt-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold mb-2 ">Gestion des revenus</h2>
+           <div>
+             <select name="" id="" className="">
+                <option value="">Selectionner une periode que Axel va m'envoyer</option>
+            </select>
+           </div>
+            </div>
             <div className="w-full px-4 py-6 shadow-lg rounded-lg border border-gray-200">
-                <h2 className="text-xl font-bold mb-2 "></h2>
 
                 <Tabs defaultValue="revenus-journaliere" className="w-full">
-                    <TabsList className="grid grid-cols-3 w-full gap-2">
-                        <TabsTrigger value="revenus-journaliere" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Jours</TabsTrigger>
-                        <TabsTrigger value="revenus-hebdomadaire" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Semaines</TabsTrigger>
-                        <TabsTrigger value="revenus-mensuelle" className="data-[state=active]:bg-red-500 data-[state=active]:text-white dark:data-[state=active]:bg-red-600 dark:data-[state=active]:text-white">Mois</TabsTrigger>
-                    </TabsList>
+                   
                     <TabsContent value="revenus-journaliere">
                         <RevenusJournalierChart livraisons={livraisons} commissions={commissions} />
                     </TabsContent>
