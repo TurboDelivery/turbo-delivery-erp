@@ -1,31 +1,30 @@
 'use client';
 
-import PerfectScrollbar from 'react-perfect-scrollbar';
-import { useDispatch, useSelector } from 'react-redux';
-import Link from 'next/link';
-import { toggleSidebar } from '@/store/themeConfigSlice';
-import AnimateHeight from 'react-animate-height';
+
+import { Link } from 'lucide-react';
 import { IRootState } from '@/store';
-import { useState, useEffect } from 'react';
-import IconCaretsDown from '@/components/icon/icon-carets-down';
-import IconCaretDown from '@/components/icon/icon-caret-down';
-
-import { Logo } from '../icons';
 import { User } from '@/types/models';
+import { Button } from '@heroui/react';
 import { getTranslation } from '@/i18n';
+import ThemeSwitch from './themeSwitch';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { IconMenu } from '@tabler/icons-react';
+import AnimateHeight from 'react-animate-height';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleSidebar } from '@/store/themeConfigSlice';
 import menuData, { IMenuData } from '@/config/menu-data';
+import IconCaretDown from '@/components/icon/icon-caret-down';
+import Notifications from '../dashboard/notifications/notifications';
+import { DashboardUserDropdown } from '../dashboard/dashboard-user-dropdown';
 
-const Sidebar = ({ profile }: { profile: User }) => {
-    const dispatch = useDispatch();
-    const { t } = getTranslation();
+const Header = ({ profile }: { profile: User }) => {
     const pathname = usePathname();
 
-    // 🔥 moteur stable pour menus imbriqués
-    const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
+    const dispatch = useDispatch();
+    const { t } = getTranslation();
 
-    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
-    const semidark = useSelector((state: IRootState) => state.themeConfig.semidark);
+    const [openMenus, setOpenMenus] = useState<Set<string>>(new Set());
 
     const toggleMenu = (key: string) => {
         setOpenMenus(prev => {
@@ -35,41 +34,85 @@ const Sidebar = ({ profile }: { profile: User }) => {
         });
     };
 
+
     useEffect(() => {
-        if (window.innerWidth < 1024 && themeConfig.sidebar) {
-            dispatch(toggleSidebar());
+        const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
+        if (selector) {
+            const all: any = document.querySelectorAll('ul.horizontal-menu .nav-link.active');
+            for (let i = 0; i < all.length; i++) {
+                all[0]?.classList.remove('active');
+            }
+
+            let allLinks = document.querySelectorAll('ul.horizontal-menu a.active');
+            for (let i = 0; i < allLinks.length; i++) {
+                const element = allLinks[i];
+                element?.classList.remove('active');
+            }
+            selector?.classList.add('active');
+
+            const ul: any = selector.closest('ul.sub-menu');
+            if (ul) {
+                let ele: any = ul.closest('li.menu').querySelectorAll('.nav-link');
+                if (ele) {
+                    ele = ele[0];
+                    setTimeout(() => {
+                        ele?.classList.add('active');
+                    });
+                }
+            }
         }
     }, [pathname]);
 
-    return (
-        <div className={semidark ? 'dark' : ''}>
-            <nav className="sidebar fixed bottom-0 top-0 z-50 h-full min-h-screen w-[260px] shadow transition-all">
-                <div className="h-full bg-white dark:bg-black flex flex-col">
+    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
 
-                    <div className="flex items-center justify-between px-4 py-3 border-b dark:border-gray-700">
-                        <Logo className="w-20 py-2" />
-                        <button onClick={() => dispatch(toggleSidebar())}>
-                            <IconCaretsDown className="rotate-90" />
-                        </button>
+    return (
+        <>
+            <header className={`z-40 ${themeConfig.semidark && themeConfig.menu === 'horizontal' ? 'dark' : ''}`}>
+                <div className="shadow-sm">
+                    <div className="relative flex w-full items-center bg-white px-5 py-2.5 dark:bg-black">
+                        <div className="horizontal-logo flex items-center justify-between ltr:mr-2 rtl:ml-2">
+                            {/* <Icone className="py-2 shrink-0 mr-2" /> */}
+                            <div className="hidden lg:block">{/* <OrganisationDropdown reference={reference} profileOrganisations={profileOrganisations} /> */}</div>
+
+                            <Button isIconOnly variant="light" onClick={() => dispatch(toggleSidebar())} className="collapse-icon lg:hidden  ltr:ml-2 rtl:mr-2">
+                                <IconMenu className="h-5 w-5" />
+                            </Button>
+                        </div>
+
+                        <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">
+                            {/* <ToolsList /> */}
+                        </div>
+                        <div className="flex items-center space-x-1.5 ltr:ml-auto rtl:mr-auto rtl:space-x-reverse dark:text-[#d0d2d6] sm:flex-1 ltr:sm:ml-0 sm:rtl:mr-0 lg:space-x-2">
+                            <div className="sm:ltr:mr-auto sm:rtl:ml-auto">
+                                {/* <SearchComponent /> */}
+                            </div>
+                            <ThemeSwitch />
+
+                            {/* <LocaleSwitch /> */}
+                            {/* <MessageList /> */}
+                            {/* <NotificationList /> */}
+                            <Notifications /> 
+                            <DashboardUserDropdown profile={profile} />
+                        </div>
                     </div>
 
-                    <PerfectScrollbar className="flex-1">
-                        <ul className="p-3 space-y-1 font-semibold">
-                            <RenderMenu
-                                menu={menuData}
-                                openMenus={openMenus}
-                                toggleMenu={toggleMenu}
-                                t={t}
-                            />
-                        </ul>
-                    </PerfectScrollbar>
+                    {/* horizontal menu */}
+                    <ul className="horizontal-menu hidden border-t border-[#ebedf2] bg-white px-6 py-1.5 font-semibold text-black rtl:space-x-reverse dark:border-[#191e3a] dark:bg-black dark:text-white-dark lg:space-x-1.5 xl:space-x-8">
+                        <RenderMenu
+                            menu={menuData}
+                            openMenus={openMenus}
+                            toggleMenu={toggleMenu}
+                            t={t}
+                        />
+                    </ul>
                 </div>
-            </nav>
-        </div>
+            </header>
+            {/* <Notification isOpen={isOpen} onO /> */}
+        </>
     );
 };
 
-export default Sidebar;
+export default Header;
 
 /* ============================
         MENU RÉCURSIF

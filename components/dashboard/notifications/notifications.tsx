@@ -1,15 +1,17 @@
+'use client';
 
-import Content from './content';
 import { Suspense } from 'react';
 import Loading from '@/app/loading';
-import { auth } from '@/auth';
+import Content from './content';
 
-export async function Notifications({ className }: { className?: string }) {
+function Notifications({ className }: { className?: string }) {
     return (
-        <Suspense fallback={<Loading />}>
-            <Content />
-        </Suspense>
+        <div className={className}>
+            <Suspense fallback={<Loading />}>
+                <Content />
+            </Suspense>
+        </div>
     );
-};
+}
 
 export default Notifications;
