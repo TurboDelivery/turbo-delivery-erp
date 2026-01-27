@@ -10,11 +10,11 @@ import { useState, useEffect } from 'react';
 import IconCaretsDown from '@/components/icon/icon-carets-down';
 import IconCaretDown from '@/components/icon/icon-caret-down';
 
-import { usePathname } from 'next/navigation';
-import { getTranslation } from '@/i18n';
 import { Logo } from '../icons';
-import menuData, { IMenuData } from '@/config/menu-data';
 import { User } from '@/types/models';
+import { getTranslation } from '@/i18n';
+import { usePathname } from 'next/navigation';
+import menuData, { IMenuData } from '@/config/menu-data';
 
 const Sidebar = ({ profile }: { profile: User }) => {
     const dispatch = useDispatch();
@@ -63,7 +63,6 @@ const Sidebar = ({ profile }: { profile: User }) => {
                             />
                         </ul>
                     </PerfectScrollbar>
-
                 </div>
             </nav>
         </div>
