@@ -1,5 +1,3 @@
-import { ICategorieDepense } from "./categorie-depense.type";
-
 export type IDepense = {
   id: string
   libelle: string
@@ -21,6 +19,10 @@ export interface IDepensesParams {
   categorie?: string;
   montant?: number;
   dateDepense?: string;
+  debut?: Date;
+  fin?: Date;
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
 }
 
 export interface IDepenseStatsResponse {
@@ -62,5 +64,3 @@ export interface IDepenseStatsResponse {
     }[];
   };
 }
-
-

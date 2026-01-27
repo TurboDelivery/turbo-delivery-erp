@@ -1,0 +1,73 @@
+import { ColumnDef } from '@tanstack/react-table';
+import { IDepense } from '@/feature-finance/depenses/types/depense.type';
+import { format } from 'date-fns';
+import { MoreHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DepenseDetailModal } from '@/feature-finance/depenses/components/depense-list/detail/depenses-detail';
+import { ModifierDepenseModal } from '@/feature-finance/depenses/components/modifier/modifier-depenses-modal';
+import SupprimerDepenseModal from '@/feature-finance/depenses/components/supprimer/suprime-depense';
+
+export const depenseColumns: ColumnDef<IDepense>[] = [
+  {
+    id: 'date_depense',
+    accessorKey: 'dateDepense',
+    header: 'Date',
+    cell: ({ row }) => {
+      const date = new Date(row.original.dateDepense);
+      return format(date, 'dd/MM/yyyy');
+    },
+    enableSorting: false,
+  },
+  {
+    id: 'description',
+    accessorKey: 'description',
+    header: 'Description',
+    cell: ({ row }) => row.original.description,
+    enableSorting: false,
+  },
+  {
+    id: 'categorie',
+    accessorFn: (row) => row.categorie?.nomCategorie ?? '',
+    header: 'Catégorie',
+    cell: ({ row }) => row.original.categorie?.nomCategorie ?? '-',
+    enableSorting: false,
+  },
+  {
+    id: 'montant',
+    accessorKey: 'montant',
+    header: 'Montant',
+    cell: ({ row }) => {
+      const montant = row.original.montant;
+      return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(montant);
+    },
+    enableSorting: false,
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => {
+      const depense = row.original;
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" variant="outline">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <DepenseDetailModal depense={depense} />
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <ModifierDepenseModal depenses={depense} />
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <SupprimerDepenseModal depense={depense} />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+    enableSorting: false,
+  },
+];
