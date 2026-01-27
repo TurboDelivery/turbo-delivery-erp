@@ -21,7 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return (
         <>
             {(profile && !profile.changePassword) && <FormChangePassword userName={profile.username} />}
-            <ProtectedPage profile={profile}>
+            <ProtectedPage profile={profile!}>
                 {/* BEGIN MAIN CONTAINER */}
                 <div className="relative">
                     <Overlay />
@@ -29,11 +29,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
                     <MainContainer>
                         {/* BEGIN SIDEBAR */}
-                        <Sidebar profile={profile} />
+                        <Sidebar profile={profile!} />
                         {/* END SIDEBAR */}
                         <div className="main-content flex min-h-screen flex-col">
                             {/* BEGIN TOP NAVBAR */}
-                            <Header profile={profile} />
+                            <Header profile={profile!} />
                             {/* END TOP NAVBAR */}
 
                             {/* BEGIN CONTENT AREA */}
