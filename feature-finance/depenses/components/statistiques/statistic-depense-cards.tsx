@@ -1,7 +1,5 @@
 import { Card } from '@/components/ui/card';
 import { Boxes, CalendarClock } from 'lucide-react';
-import { ICategorieDepense } from '@/feature-finance/depenses/types/categorie-depense.type';
-import { IDepense } from '@/feature-finance/depenses/types/depense.type';
 
 export default function StatisticDepenseCards() {
   // Configuration des statistiques à afficher

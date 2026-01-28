@@ -4,9 +4,35 @@ import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { DepenseDetailModal } from '@/feature-finance/depenses/components/depense-list/detail/depenses-detail';
 import { ModifierDepenseModal } from '@/feature-finance/depenses/components/modifier/modifier-depenses-modal';
 import SupprimerDepenseModal from '@/feature-finance/depenses/components/supprimer/suprime-depense';
+import React from 'react';
+
+// Composant mémorisé pour les actions
+const DepenseActions = React.memo(({ depense }: { depense: IDepense }) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" variant="outline">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        {/*<DropdownMenuItem onSelect={(e) => e.preventDefault()}>*/}
+        {/*  <DepenseDetailModal depense={depense} />*/}
+        {/*</DropdownMenuItem>*/}
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          <ModifierDepenseModal depenses={depense} />
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+          <SupprimerDepenseModal depense={depense} />
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+});
+
+DepenseActions.displayName = 'DepenseActions';
 
 export const depenseColumns: ColumnDef<IDepense>[] = [
   {
@@ -45,29 +71,7 @@ export const depenseColumns: ColumnDef<IDepense>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => {
-      const depense = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button size="sm" variant="outline">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <DepenseDetailModal depense={depense} />
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <ModifierDepenseModal depenses={depense} />
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <SupprimerDepenseModal depense={depense} />
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => <DepenseActions depense={row.original} />,
     enableSorting: false,
   },
 ];

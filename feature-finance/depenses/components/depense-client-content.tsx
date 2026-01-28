@@ -3,9 +3,6 @@
 import StatisticDepenseCards from '@/feature-finance/depenses/components/statistiques/statistic-depense-cards';
 import RepartitionDepense from '@/feature-finance/depenses/components/repartition/index';
 import DepenseTabs from '@/components/depenses/depense-table/depense-tabs';
-
-import { useDepensesListQuery } from '@/feature-finance/depenses/queries/depense-list.query';
-import { useCategorieDepensesListQuery } from '../queries/category/categorie-depense.query';
 import DepenseHeader from '@/components/components-finance/depenses/header';
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -15,12 +12,7 @@ import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 
 export default function DepenseClientContent() {
-  const { data: depensesData, isLoading, error } = useDepensesListQuery({ page: 1, limit: 50 });
-  const { data: categorieDepensesData } = useCategorieDepensesListQuery({ params: { page: 1, limit: 50 } });
   const { filters, handleDateChange } = useDepenseDashboardFilters();
-
-  const depenses = depensesData || [];
-  const categorie_depenses = categorieDepensesData || [];
 
   return (
     <div className="flex flex-col gap-6 px-4">
@@ -52,7 +44,7 @@ export default function DepenseClientContent() {
       </Popover>
       <StatisticDepenseCards />
       <RepartitionDepense />
-      <DepenseTabs categorie_depenses={categorie_depenses} />
+      <DepenseTabs />
     </div>
   );
 }

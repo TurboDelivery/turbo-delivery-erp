@@ -1,66 +1,39 @@
 'use client';
 
 import { useDepenseTable } from '@/features/depenses/hooks/use-depense-table';
-import { Card, CardContent } from '@/components/ui/card';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
-import { flexRender } from '@tanstack/react-table';
+import { DataTable } from '@/components/block/data-table';
 import { depenseColumns } from '@/components/depenses/depense-table/depense-columns';
+import { IDepense } from '@/feature-finance/depenses/types/depense.type';
+import { CreerDepenseModal } from '@/feature-finance/depenses/components/depense-list/creer-depense';
+import Select from 'react-select';
+import React from 'react';
+import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 
 export function DepenseTable() {
-  const { table, filters, isLoading, isError, isFetching, pagination } = useDepenseTable();
+  const { isLoading, isError, isFetching, pagination, filters, setSelectedCategories, depenses } = useDepenseTable();
+  const { categories, isLoading: isLoadingCategory } = useCategorieDepense();
+  const categorieOptions = categories.map((cat) => ({ value: cat.id, label: cat.nomCategorie }));
+
   return (
-    <Card>
-      <CardContent className="px-0">
-        <div className="overflow-x-auto">
-          <Table isStriped>
-            <TableHeader>
-              {table.getFlatHeaders().map((header) => (
-                <TableColumn className="text-primary" key={header.id} allowsSorting={header.column.getCanSort()} onClick={header.column.getToggleSortingHandler()}>
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableColumn>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array.from({ length: 10 }).map((_, i) => (
-                  <TableRow key={`skeleton-${i}`}>
-                    {depenseColumns.map((col) => (
-                      <TableCell key={`skeleton-cell-${col.header}`} className="h-12">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : isError ? (
-                <TableRow>
-                  <TableCell colSpan={depenseColumns.length} className="h-24 text-center">
-                    <div className="text-destructive">Erreur lors du chargement des données</div>
-                  </TableCell>
-                </TableRow>
-              ) : table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFetching ? 'opacity-70' : ''}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={depenseColumns.length} className="h-24 text-center">
-                    Aucun résultat trouvé
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        {pagination?.pageCount! > 1 && (
-          <div className="flex justify-center pt-4 sm:pt-6">
-            <Pagination total={pagination?.pageCount ?? 1} page={filters.page + 1} onChange={pagination.handlePageChange} color="primary" />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <div className="flex flex-col gap-4">
+      <div className="flex justify-between py-2">
+        <Select
+          isMulti
+          options={categorieOptions}
+          value={categorieOptions.filter((opt) => filters.categoriesDepense?.includes(opt.value))}
+          isClearable
+          onChange={(opt) => {
+            const selectedIds = opt ? opt.map((o) => o.value) : [];
+            setSelectedCategories(selectedIds);
+          }}
+          placeholder="Choisir une catégorie..."
+          className="text-xs w-full max-w-lg"
+          classNamePrefix="react-select"
+          isLoading={isLoadingCategory}
+        />
+        <CreerDepenseModal />
+      </div>
+      <DataTable<IDepense> columns={depenseColumns} data={depenses} isLoading={isLoading} isError={isError} isFetching={isFetching} pagination={pagination} />
+    </div>
   );
 }

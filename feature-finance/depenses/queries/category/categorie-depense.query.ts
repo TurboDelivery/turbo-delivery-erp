@@ -12,7 +12,7 @@ import getQueryClient from '@/lib/get-query-client';
 const queryClient = getQueryClient();
 
 //1- Option de requête optimisée
-export const categorieDepenseListQueryOption = ({ params }: { params: ICategorieDepenseParams }) => {
+export const categorieDepenseListQueryOption = (params: ICategorieDepenseParams) => {
     return {
         queryKey: categorieDepenseKeyQuery("list"),
         queryFn: async () => {
@@ -22,7 +22,6 @@ export const categorieDepenseListQueryOption = ({ params }: { params: ICategorie
             }
             return result.data!;
         },
-        placeholderData: (previousData: any) => previousData,
         staleTime: 30 * 1000,//30 secondes
         refetchOnWindowFocus: false,//Ne pas refetch lors du focus de la fenetre
         refetchOnMount: true,//Refetch lors du mount
@@ -30,8 +29,8 @@ export const categorieDepenseListQueryOption = ({ params }: { params: ICategorie
 };
 
 //2- Hook pour récupérer les dépenses
-export const useCategorieDepensesListQuery = ({ params }: { params: ICategorieDepenseParams }) => {
-    const query = useQuery(categorieDepenseListQueryOption({ params }));
+export const useCategorieDepensesListQuery = (params: ICategorieDepenseParams) => {
+    const query = useQuery(categorieDepenseListQueryOption(params));
 
     // Gestion des erreurs dans le hook
     React.useEffect(() => {
@@ -46,6 +45,6 @@ export const useCategorieDepensesListQuery = ({ params }: { params: ICategorieDe
 };
 
 //3- Fonction pour précharger les dépenses appelée dans les pages
-export const prefetchCategoriesDepensesListQuery = ({ params }: { params: ICategorieDepenseParams }) => {
-    return queryClient.prefetchQuery(categorieDepenseListQueryOption({ params }));
+export const prefetchCategoriesDepensesListQuery = (params: ICategorieDepenseParams) => {
+    return queryClient.prefetchQuery(categorieDepenseListQueryOption(params));
 }
