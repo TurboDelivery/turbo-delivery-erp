@@ -87,6 +87,9 @@ export function PretList() {
                         facture={currentPrets}
                         formatDate={formatDate}
                         formatMontant={formatMontant}
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={filteredPrets.length}
                     />
 
                     <Pagination
