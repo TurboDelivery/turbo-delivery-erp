@@ -7,7 +7,7 @@ import { Pagination } from "./pagination"
 import { Spinner } from "@/components/ui/spinner"
 import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvrement"
 import { CreerRecouvrementModal } from "./creer-recouvrement-modal"
-import { RecouvrementListTable } from "./recouvrement-list-table"
+import { RecouvrementTableTanStack } from "./recouvrement-table-tanstack"
 import RestaurantFiltre from "./filtres/restaurant-filtre"
 import { Button } from "@/components/ui/button"
 import { Filter, X } from "lucide-react"
@@ -106,7 +106,7 @@ export function RecouvrementList() {
       {/* Tableau des recouvrements */}
       <Card className="shadow-lg border-0">
         <CardContent className="p-0">
-          <RecouvrementListTable
+          <RecouvrementTableTanStack
             recouvrement={currentRecouvrements}
             formatMontant={formatMontant}
             formatDate={formatDate}
