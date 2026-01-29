@@ -11,62 +11,35 @@ import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 
 export function PretList() {
-    const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(10)
-    const [selectedRestaurants, setSelectedRestaurants] = useState<string[]>([])
-    const [filters, setFilters] = useState({
-        id: "",
-        nomRestaurant: "",
-        totalFraisLivraisons: "",
-        totalCommission: "",
-        totalFacture: "",
-    })
+    const { 
+        facture, 
+        isLoading, 
+        isError, 
+        error, 
+        filters, 
+        handleFilterChange,
+        resetFilters 
+    } = usePretList()
 
-    //  On récupère les prêts depuis le hook
-    const { facture, isLoading, isError, error } = usePretList()
+    // Utiliser les filtres de l'URL (nuqs) pour la pagination
+    const currentPage = filters.page
+    const itemsPerPage = filters.limit
+    const selectedRestaurants = filters.selectedRestaurants || []
 
-    // Gestionnaire pour le changement de restaurants
+    // Gestionnaire pour le changement de restaurants (multi-sélection)
     const handleRestaurantChange = (restaurantIds: string[]) => {
-        setSelectedRestaurants(restaurantIds)
-        setCurrentPage(1) // Reset à la première page quand on filtre
+        handleFilterChange('selectedRestaurants', restaurantIds)
     }
 
     // Gestionnaire pour effacer tous les filtres
     const handleClearFilters = () => {
-        setSelectedRestaurants([])
-        setFilters({
-            id: "",
-            nomRestaurant: "",
-            totalFraisLivraisons: "",
-            totalCommission: "",
-            totalFacture: "",
-        })
-        setCurrentPage(1)
+        resetFilters()
     }
 
-    const handleFilterChange = (filterName: string, value: string) => {
-        setFilters((prev) => ({ ...prev, [filterName]: value }))
-        setCurrentPage(1)
-    }
+    //  Filtrage (déjà géré par le hook usePretList avec nuqs)
+    const filteredPrets = facture
 
-    //  Filtrage
-    const filteredPrets = useMemo(() => {
-        return facture.filter((factureItem) => {
-            // Filtre par restaurants (multi-sélection)
-            if (selectedRestaurants.length > 0 && factureItem.nomRestaurant) {
-                if (!selectedRestaurants.includes(factureItem.nomRestaurant)) return false
-            }
-            
-            if (filters.id && factureItem.id !== filters.id) return false
-            if (filters.nomRestaurant && factureItem.nomRestaurant !== filters.nomRestaurant) return false
-            if (filters.totalFraisLivraisons) {
-                const totalFraisLivraisonsValue = parseFloat(filters.totalFraisLivraisons)
-                if (isNaN(totalFraisLivraisonsValue) || factureItem.totalFraisLivraisons !== totalFraisLivraisonsValue) return false
-            }
-            return true
-        })
-    }, [facture, filters, selectedRestaurants])
-
+    // Pagination sur les données déjà filtrées
     const totalPages = Math.ceil(filteredPrets.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const currentPrets = filteredPrets.slice(startIndex, startIndex + itemsPerPage)
@@ -140,10 +113,10 @@ export function PretList() {
                         totalPages={totalPages}
                         itemsPerPage={itemsPerPage}
                         totalItems={filteredPrets.length}
-                        onPageChange={setCurrentPage}
-                        onItemsPerPageChange={(val) => {
-                            setItemsPerPage(val)
-                            setCurrentPage(1)
+                        onPageChange={(page) => handleFilterChange('page', page)}
+                        onItemsPerPageChange={(limit) => {
+                            handleFilterChange('limit', limit)
+                            handleFilterChange('page', 1)
                         }}
                     />
 

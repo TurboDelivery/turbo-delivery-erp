@@ -130,18 +130,18 @@ export function RevenusJournalierChart({ livraisons = [], commissions = [] }: Re
     return (
         <div>
             <div className="pt-0">
-                <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                <ChartContainer config={chartConfig} className="h-[400px] w-full">
                     <AreaChart
                         accessibilityLayer
                         data={chartData}
                         margin={{
-                            top: 5,
-                            right: 5,
-                            left: 0,
-                            bottom: 5,
+                            top: 20,
+                            right: 20,
+                            left: 60,
+                            bottom: 20,
                         }}
                         width={350}
-                        height={300}
+                        height={400}
                     >
                         <CartesianGrid 
                             vertical={false} 
