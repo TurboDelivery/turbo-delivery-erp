@@ -1,13 +1,15 @@
 "use client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import React, { useState, useMemo } from "react"
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
+    useReactTable,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getSortedRowModel,
+    flexRender,
+    type SortingState,
+    type ColumnFiltersState,
+} from '@tanstack/react-table'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,10 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import FilterPeriode from "@/feature-finance/revenus/components/filtres/periode/filter-periode"
 import { LivraisonDetailModal } from "./livraison-detail-modal"
-
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
-import { useMemo, useState } from "react"
 import { useLivraisonList } from "@/feature-finance/revenus/hooks/use-livraison-list"
 import { Pagination } from "./pagination"
 
@@ -31,12 +31,12 @@ export default function LivraisonList() {
 
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(10)
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [globalFilter, setGlobalFilter] = useState('')
     
     // S'assurer que livraisons est un tableau avant de faire les calculs
     const livraisonsArray = Array.isArray(livraisons) ? livraisons : []
-    const totalPages = Math.ceil(livraisonsArray.length / itemsPerPage)
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const currentLivraisons = livraisonsArray.slice(startIndex, startIndex + itemsPerPage)
 
     // Filtrage basé sur les filtres du hook
     const filteredLivraisons = useMemo(() => {
@@ -59,8 +59,6 @@ export default function LivraisonList() {
                 if (livraisonDate < dateLivraison) return false
             }
             
-            
-            
             return true
         })
     }, [livraisonsArray, filters])
@@ -82,6 +80,109 @@ export default function LivraisonList() {
         }
     };
 
+    // Définition des colonnes pour TanStack Table
+    const columns = useMemo(() => [
+        {
+            accessorKey: 'refCommande',
+            header: 'Reference',
+            cell: (info: any) => (
+                <div className="font-medium text-center">
+                    {info.getValue()}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'createdAt',
+            header: 'Date et heure',
+            cell: (info: any) => (
+                <div className="font-medium text-center">
+                    {formatDate(info.getValue())}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'nomLivreur',
+            header: 'Livreur',
+            cell: (info: any) => (
+                <div className="font-medium text-center">
+                    {info.getValue()}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'totalAmount',
+            header: 'Coût commande',
+            cell: (info: any) => (
+                <div className="font-medium text-center">
+                    {info.getValue()}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'fraisLivraison',
+            header: 'Commission(%)',
+            cell: (info: any) => (
+                <div className="font-medium text-center">
+                    {info.getValue()} XOF
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'actions',
+            header: 'Actions',
+            cell: (info: any) => {
+                const livraison = info.row.original
+                return (
+                    <div className="text-center">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button className="bg-red-400 hover:bg-red-600 cursor-pointer">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <LivraisonDetailModal livraison={livraison} />
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                )
+            },
+        },
+    ], [])
+
+    const table = useReactTable({
+        data: filteredCurrentLivraisons,
+        columns,
+        state: {
+            sorting,
+            columnFilters,
+            globalFilter,
+        },
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        onGlobalFilterChange: setGlobalFilter,
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+    })
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center p-8">
+                <p>Chargement des livraisons...</p>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <div className="flex justify-center items-center p-8">
+                <p className="text-red-500">Erreur lors du chargement des livraisons</p>
+            </div>
+        );
+    }
 
     return (
         <div className="">
@@ -101,54 +202,75 @@ export default function LivraisonList() {
                 <CardContent className="p-0">
                     {/* Version Desktop */}
                     <div className="hidden md:block">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-red-500 hover:bg-red-600">
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Reference</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Date et heure</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Livreur</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Coût commande</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Commission(%)</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white capitalize">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredCurrentLivraisons.map((livraison, index) => (
-                                    <TableRow key={index} className="transition-colors">
-                                        <TableCell className="font-medium text-center">{livraison.refCommande}</TableCell>
-                                        <TableCell className="font-medium text-center">{formatDate(livraison.createdAt)}</TableCell>
-                                        <TableCell className="font-medium text-center">
-                                            {livraison.nomLivreur}
-                                        </TableCell>
-                                        <TableCell className="font-medium text-center">
-                                            {livraison.totalAmount}
-                                        </TableCell>
-                                        <TableCell className="font-medium text-center">
-                                            {livraison.fraisLivraison} XOF
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button className="bg-red-400 hover:bg-red-600 cursor-pointer ">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                        <LivraisonDetailModal livraison={livraison} />
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                        <div className="space-y-4">
+                            {/* Barre de recherche globale */}
+                            <div className="mb-4 px-4">
+                                <input
+                                    type="text"
+                                    value={globalFilter ?? ''}
+                                    onChange={(e) => setGlobalFilter(e.target.value)}
+                                    placeholder="Rechercher..."
+                                    className="px-4 py-2 border border-gray-300 rounded-lg w-full max-w-sm focus:outline-none focus:ring-2 ring-1 ring-gray-300 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            {/* Tableau */}
+                            <div className="overflow-x-auto border border-gray-200 rounded-lg shadow bg-white">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-red-500 hover:bg-red-600">
+                                        {table.getHeaderGroups().map((headerGroup) => (
+                                            <tr key={headerGroup.id}>
+                                                {headerGroup.headers.map((header) => (
+                                                    <th
+                                                        key={header.id}
+                                                        className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-red-600 bg-[#fb2c36] hover:text-white capitalize select-none"
+                                                        onClick={header.column.getToggleSortingHandler()}
+                                                    >
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            {flexRender(
+                                                                header.column.columnDef.header,
+                                                                header.getContext()
+                                                            )}
+                                                            {header.column.getIsSorted() === 'asc' && ' 🔼'}
+                                                            {header.column.getIsSorted() === 'desc' && ' 🔽'}
+                                                        </div>
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {table.getRowModel().rows.map((row) => (
+                                            <tr key={row.id} className="transition-colors hover:bg-gray-50">
+                                                {row.getVisibleCells().map((cell) => (
+                                                    <td
+                                                        key={cell.id}
+                                                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                                    >
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Indicateur de pagination */}
+                            <div className="flex justify-between items-center text-sm text-gray-600 px-4">
+                                <span>
+                                    Page <strong>{currentPage}</strong> sur <strong>{filteredTotalPages}</strong>
+                                </span>
+                                <span>
+                                    {filteredLivraisons.length} livraison{filteredLivraisons.length > 1 ? 's' : ''} au total
+                                </span>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Version Mobile */}
                     <div className="md:hidden space-y-4 p-4">
-                        {livraisons.map((livraison: any, index: number) => (
+                        {filteredLivraisons.map((livraison: any, index: number) => (
                             <div
                                 key={index}
                                 className="border rounded-lg p-4 shadow-sm bg-card text-card-foreground"
@@ -190,7 +312,6 @@ export default function LivraisonList() {
                     )}
 
                     {/* Pagination */}
-
                     <Pagination
                         currentPage={currentPage}
                         totalPages={filteredTotalPages}
