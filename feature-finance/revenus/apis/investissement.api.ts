@@ -46,7 +46,7 @@ export const investissementAPI: IInvestissementAPI = {
 
     supprimerInvestissement(id: string): Promise<IInvestissement> {
         return api.request<IInvestissement>({
-            endpoint: `/investissements/${id}`,
+            endpoint: `/finance/investissements/${id}`,
             method: "DELETE",
         });
 
