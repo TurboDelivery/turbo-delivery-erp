@@ -5,6 +5,7 @@ import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
 import { cn } from '@/lib/utils';
 import YearSelect from '@/components/commons/year-select';
+import React from 'react';
 
 const chartData = [
   { month: 'January', desktop: 186, mobile: 80 },
@@ -22,14 +23,17 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function DepenseLineChart({ className }: { className?: string }) {
+  const [year, setYear] = React.useState<string>(new Date().getFullYear().toString());
+
+
   return (
     <Card className={cn('', className)}>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Evolution des dépenses</CardTitle>
-          <CardDescription>January - June 2024</CardDescription>
+          <CardDescription>Année {year}</CardDescription>
         </div>
-        <YearSelect />
+        <YearSelect value={year} onChange={(newYear) => setYear(newYear)} />
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
