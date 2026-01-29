@@ -1,14 +1,16 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import React, { useState, useMemo } from "react"
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
+    useReactTable,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getSortedRowModel,
+    flexRender,
+    type SortingState,
+    type ColumnFiltersState,
+} from '@tanstack/react-table'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Edit, Eye, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,9 +28,23 @@ import InvestisseurNameFilter from "../filtres/filtre-nom-investisseur"
 import InvestissementDateFilter from "../filtres/filtres-par-date"
 import { useInvestissementList } from "@/feature-finance/revenus/hooks/use-investissement-list";
 import SupprimerInvestModal from "../supprimer/supprimer-invest-modal"
+import { Pagination } from "../../livraison/livraison-list/pagination"
 
 export default function InvestissementList() {
     const { investissements, isLoading, isError, error } = useInvestissementList();
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [globalFilter, setGlobalFilter] = useState('')
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
+
+    // S'assurer que investissements est un tableau
+    const investissementsArray = Array.isArray(investissements) ? investissements : []
+
+    // Pagination
+    const totalPages = Math.ceil(investissementsArray.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const currentInvestissements = investissementsArray.slice(startIndex, startIndex + itemsPerPage)
 
     const formatDate = (dateString: string) => {
         if (!dateString) return "";
@@ -52,6 +68,93 @@ export default function InvestissementList() {
             return dateString.split('T')[0];
         }
     }
+
+    // Définition des colonnes pour TanStack Table
+    const columns = useMemo(() => [
+        {
+            accessorKey: 'dateInvestissement',
+            header: 'Date',
+            cell: (info: any) => (
+                <div className="font-medium text-center">
+                    {formatDate(info.getValue())}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'nomInvestisseur',
+            header: 'Investisseur',
+            cell: (info: any) => (
+                <div className="text-center">
+                    <span className="font-semibold rounded-full px-2 py-1 text-center">
+                        {info.getValue()}
+                    </span>
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'montant',
+            header: 'Montant du pret',
+            cell: (info: any) => (
+                <div className="text-center">
+                    {info.getValue()} FCFA
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'deadline',
+            header: 'Echéance',
+            cell: (info: any) => (
+                <div className="text-center">
+                    {formatDate(info.getValue())}
+                </div>
+            ),
+        },
+        {
+            accessorKey: 'actions',
+            header: 'Actions',
+            cell: (info: any) => {
+                const investissement = info.row.original
+                return (
+                    <div className="text-center">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button className="bg-red-400 hover:bg-red-600 cursor-pointer">
+                                    <MoreHorizontal className="h-4 w-4 cursor-pointer" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <InvestDetailModal investissement={investissement} />
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <ModifierInvestModal investissement={investissement} />
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    <SupprimerInvestModal investissement={investissement} />
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                )
+            },
+        },
+    ], [])
+
+    const table = useReactTable({
+        data: investissements || [],
+        columns,
+        state: {
+            sorting,
+            columnFilters,
+            globalFilter,
+        },
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
+        onGlobalFilterChange: setGlobalFilter,
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+    })
 
     if (isLoading) {
         return (
@@ -87,57 +190,60 @@ export default function InvestissementList() {
                 <CardContent className="p-0">
                     {/* Version Desktop */}
                     <div className="hidden md:block">
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-red-500 hover:bg-red-600">
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Date</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Investisseur</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Montant du pret</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Echéance</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {investissements?.map((investissement: any) => (
-                                    <TableRow key={investissement.id} className="transition-colors">
-                                        <TableCell className="font-medium text-center border-b-2">
-                                            {formatDate(investissement.dateInvestissement)}
-                                        </TableCell>
-                                        <TableCell className="text-center border-b-2">
-                                            <span className="font-semibold rounded-full px-2 py-1 text-center">
-                                                {investissement.nomInvestisseur}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-center border-b-2">
-                                            {investissement.montant} FCFA
-                                        </TableCell>
-                                        <TableCell className="text-center border-b-2">
-                                            {formatDate(investissement.deadline)}
-                                        </TableCell>
-                                        <TableCell className="text-center border-b-2">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button className="bg-red-400 hover:bg-red-600 cursor-pointer">
-                                                        <MoreHorizontal className="h-4 w-4 cursor-pointer" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                        <InvestDetailModal investissement={investissement} />
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                        <ModifierInvestModal investissement={investissement} />
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                                        <SupprimerInvestModal investissement={investissement} />
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                        <div className="space-y-4">
+                            {/* Barre de recherche globale */}
+                            <div className="mb-4 px-4">
+                                <input
+                                    type="text"
+                                    value={globalFilter ?? ''}
+                                    onChange={(e) => setGlobalFilter(e.target.value)}
+                                    placeholder="Rechercher..."
+                                    className="px-4 py-2 border border-gray-300 rounded-lg w-full max-w-sm focus:outline-none focus:ring-2 ring-1 ring-gray-300 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            {/* Tableau */}
+                            <div className="overflow-x-auto border border-gray-200 rounded-lg shadow bg-white">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-red-500 hover:bg-red-600">
+                                        {table.getHeaderGroups().map((headerGroup) => (
+                                            <tr key={headerGroup.id}>
+                                                {headerGroup.headers.map((header) => (
+                                                    <th
+                                                        key={header.id}
+                                                        className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-red-600 bg-[#fb2c36] select-none"
+                                                        onClick={header.column.getToggleSortingHandler()}
+                                                    >
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            {flexRender(
+                                                                header.column.columnDef.header,
+                                                                header.getContext()
+                                                            )}
+                                                            {header.column.getIsSorted() === 'asc' && ' 🔼'}
+                                                            {header.column.getIsSorted() === 'desc' && ' 🔽'}
+                                                        </div>
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {table.getRowModel().rows.map((row) => (
+                                            <tr key={row.id} className="transition-colors hover:bg-gray-50">
+                                                {row.getVisibleCells().map((cell) => (
+                                                    <td
+                                                        key={cell.id}
+                                                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b-2"
+                                                    >
+                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Version Mobile */}
