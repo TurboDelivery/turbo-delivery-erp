@@ -19,6 +19,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import FilterPeriode from "@/feature-finance/revenus/components/filtres/periode/filter-periode"
+import { RevenusFilters } from "@/feature-finance/revenus/components/filtres/revenus"
 import { LivraisonDetailModal } from "./livraison-detail-modal"
 import { format, parseISO } from "date-fns"
 import { fr } from "date-fns/locale"
@@ -34,15 +35,33 @@ export default function LivraisonList() {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [globalFilter, setGlobalFilter] = useState('')
+    const [selectedRestaurants, setSelectedRestaurants] = useState<string[]>([])
     
     // S'assurer que livraisons est un tableau avant de faire les calculs
     const livraisonsArray = Array.isArray(livraisons) ? livraisons : []
+
+    // Gestionnaire pour le changement de restaurants
+    const handleRestaurantChange = (restaurantIds: string[]) => {
+        setSelectedRestaurants(restaurantIds)
+        setCurrentPage(1) // Reset à la première page quand on filtre
+    }
+
+    // Gestionnaire pour effacer tous les filtres
+    const handleClearFilters = () => {
+        setSelectedRestaurants([])
+        setCurrentPage(1)
+    }
 
     // Filtrage basé sur les filtres du hook
     const filteredLivraisons = useMemo(() => {
         if (!livraisonsArray.length) return []
         
         return livraisonsArray.filter((livraisonItem) => {
+            // Filtre par restaurants (multi-sélection)
+            if (selectedRestaurants.length > 0 && livraisonItem.nomRestaurant) {
+                if (!selectedRestaurants.includes(livraisonItem.nomRestaurant)) return false
+            }
+            
             // Filtre par nom de livreur
             if (filters.nomLivreur && livraisonItem.nomLivreur && !livraisonItem.nomLivreur.toLowerCase().includes(filters.nomLivreur.toLowerCase())) return false
             
@@ -61,7 +80,7 @@ export default function LivraisonList() {
             
             return true
         })
-    }, [livraisonsArray, filters])
+    }, [livraisonsArray, filters, selectedRestaurants])
     
     // Recalculer la pagination avec les données filtrées
     const filteredTotalPages = Math.ceil(filteredLivraisons.length / itemsPerPage)
@@ -191,11 +210,11 @@ export default function LivraisonList() {
                     <CardTitle>
                         <div className="flex justify-between items-center">
                             <p className="font-bold text-sm md:text-2xl">Liste des livraisons</p>
-                            <div
-                                className="gap-2 font-normal font-exo text-sm"
-                            >
-                                <FilterPeriode />
-                            </div>
+                            <RevenusFilters
+                                onRestaurantChange={handleRestaurantChange}
+                                selectedRestaurants={selectedRestaurants}
+                                onClearFilters={handleClearFilters}
+                            />
                         </div>
                     </CardTitle>
                 </CardHeader>
