@@ -25,8 +25,8 @@ interface PretDetailModalProps {
 }
 
 export function PretDetailModal({ facture }: PretDetailModalProps) {
-    // Utiliser l'id de la facture comme restaurantId puisque restaurantId n'existe pas
-    const restaurantId = facture.id; // L'id de la facture est l'ID du restaurant
+    // Utiliser restaurantId s'il existe, sinon l'id de la facture
+    const restaurantId = facture.restaurantId || facture.id;
     
     // Récupérer les recouvrements pour ce restaurant
     const { data: recouvrements, isLoading, error } = useRecouvrementsRestaurantQuery(restaurantId);
@@ -62,7 +62,7 @@ export function PretDetailModal({ facture }: PretDetailModalProps) {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <Label className="text-sm text-gray-600">ID Restaurant</Label>
-                            <Input value={facture.restaurantId} readOnly className="mt-1" />
+                            <Input value={facture.restaurantId || facture.id || 'Non disponible'} readOnly className="mt-1" />
                         </div>
                         <div>
                             <Label className="text-sm text-gray-600">Nom du restaurant</Label>
