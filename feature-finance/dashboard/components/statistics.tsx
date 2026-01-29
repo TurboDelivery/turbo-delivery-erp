@@ -14,6 +14,7 @@ export default function Statistics() {
     const soldeCompte = revenusEncaisses - sommeDepenses;
     const isSoldePositif = soldeCompte > 0;
     
+
     console.log('Données dashboard:', yearlyTotals);
     
     const stats = [
