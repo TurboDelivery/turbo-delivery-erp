@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select"
 import { useMemo } from "react"
 import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvrement";
+import { usePretList } from "@/feature-finance/revenus/hooks/use-pret-list";
 
 interface RestaurantFiltreProps {
   onFilterChange?: (filterName: string, value: string) => void;
@@ -16,25 +17,26 @@ interface RestaurantFiltreProps {
 
 export default function RestaurantFiltre({ onFilterChange }: RestaurantFiltreProps) {
   const { allRecouvrements, filters, handleFilterChange } = useRecouvrementList();
+  const { facture } = usePretList();
 
-  // Extraire les noms de restaurants uniques à partir de TOUTES les données
+  // Extraire les noms de restaurants uniques à partir des factures
   const restaurants = useMemo(() => {
-    if (!allRecouvrements || allRecouvrements.length === 0) {
+    if (!facture || facture.length === 0) {
       return [];
     }
     
     const uniqueRestaurants = Array.from(
-      new Set(allRecouvrements.map(rec => rec.nomRestaurant).filter(Boolean))
+      new Set(facture.map(f => f.nomRestaurant).filter(Boolean))
     ).sort();
     
     return uniqueRestaurants;
-  }, [allRecouvrements]);
+  }, [facture]);
 
   // Gérer le changement de restaurant
   const handleRestaurantChange = (value: string) => {
     const filterValue = value === 'all' ? '' : value
     
-    // Utiliser la fonction handleFilterChange du hook
+    // Utiliser la fonction handleFilterChange du hook (nuqs)
     handleFilterChange('nomRestaurant', filterValue)
     
     // Callback optionnel

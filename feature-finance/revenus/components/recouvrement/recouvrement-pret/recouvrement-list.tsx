@@ -7,8 +7,8 @@ import { Pagination } from "./pagination"
 import { Spinner } from "@/components/ui/spinner"
 import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvrement"
 import { CreerRecouvrementModal } from "./creer-recouvrement-modal"
-import { RecouvrementListTable } from "./recouvrement-list-table"
-import RestaurantFiltre from "./filtres/restaurant-filtre"
+import { RecouvrementListTable } from "./recouvrement-list-table-new"
+import { RestaurantMultiFilter } from "./filtres/restaurant-multi-filter"
 import { Button } from "@/components/ui/button"
 import { Filter, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -16,9 +16,7 @@ import { SearchFiltre } from "./filtres/search-filter"
 import { Card, CardContent, CardHeader } from "@/components/components-finance/ui/card"
 
 export function RecouvrementList() {
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
-  
+  const [selectedRestaurants, setSelectedRestaurants] = useState<string[]>([])
   const { 
     recouvrement, 
     isLoading, 
@@ -29,14 +27,31 @@ export function RecouvrementList() {
     resetFilters 
   } = useRecouvrementList()
 
-  // Compter le nombre de filtres actifs
+  // Utiliser les filtres de l'URL (nuqs) pour la pagination
+  const currentPage = filters.page
+  const itemsPerPage = filters.limit
+
+  // Gestionnaire pour le changement de restaurants (multi-sélection)
+  const handleRestaurantChange = (restaurantIds: string[]) => {
+    setSelectedRestaurants(restaurantIds)
+    // Mettre à jour le filtre nomRestaurant pour la compatibilité
+    handleFilterChange('nomRestaurant', restaurantIds.join(','))
+  }
+
+  // Gestionnaire pour effacer tous les filtres
+  const handleClearFilters = () => {
+    setSelectedRestaurants([])
+    resetFilters()
+  }
+
+  // Compter le nombre de filtres actifs (exclure page et limit)
   const activeFiltersCount = Object.keys(filters).filter(key => 
     key !== 'page' && key !== 'limit' && 
     filters[key as keyof typeof filters] !== '' && 
     filters[key as keyof typeof filters] !== 0
   ).length
 
-  // Pagination sur les données déjà filtrées par l'API
+  // Pagination sur les données déjà filtrées
   const totalPages = Math.ceil(recouvrement.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const currentRecouvrements = recouvrement.slice(startIndex, startIndex + itemsPerPage)
@@ -89,14 +104,21 @@ export function RecouvrementList() {
             
             <div className="flex items-center gap-2">
               {/* <SearchFiltre /> */}
-              <RestaurantFiltre onFilterChange={handleFilterChange} />
-              {/* <DateFiltre />
-              {activeFiltersCount > 0 && (
-                <Button onClick={resetFilters} variant="outline" size="sm">
-                  <X className="h-4 w-4 mr-1" />
-                  Réinitialiser
+              <RestaurantMultiFilter
+                onRestaurantChange={handleRestaurantChange}
+                selectedRestaurants={selectedRestaurants}
+              />
+              {selectedRestaurants.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClearFilters}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+                >
+                  <X className="h-4 w-4" />
+                  Effacer
                 </Button>
-              )} */}
+              )}
               <CreerRecouvrementModal />
             </div>
           </div>
@@ -120,10 +142,10 @@ export function RecouvrementList() {
               totalPages={totalPages}
               itemsPerPage={itemsPerPage}
               totalItems={recouvrement.length}
-              onPageChange={setCurrentPage}
-              onItemsPerPageChange={(val) => {
-                setItemsPerPage(val)
-                setCurrentPage(1)
+              onPageChange={(page) => handleFilterChange('page', page)}
+              onItemsPerPageChange={(limit) => {
+                handleFilterChange('limit', limit)
+                handleFilterChange('page', 1)
               }}
             />
           )}

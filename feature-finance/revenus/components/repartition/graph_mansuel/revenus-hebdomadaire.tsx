@@ -34,7 +34,7 @@ const getWeekNumber = (date: Date) => {
     return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
 }
 
-// Fonction pour grouper les revenus par semaine
+// Fonction pour grouper les revenus par semaine (pour l'année)
 const groupRevenusByWeek = (livraisons: ILivraison[] = [], commissions: ICommission[] = []) => {
     // Structure initiale pour 52 semaines avec valeur 0
     const semaines: { semaine: number; nom: string; revenus: number }[] = []
@@ -96,9 +96,110 @@ const groupRevenusByWeek = (livraisons: ILivraison[] = [], commissions: ICommiss
     return semainesAvecRevenus.slice(0, 12).map(s => ({ week: s.nom, revenus: s.revenus }))
 }
 
+// Fonction pour grouper les revenus par jour de la semaine (pour la semaine en cours)
+const groupRevenusByDayOfWeek = (livraisons: ILivraison[] = [], commissions: ICommission[] = []) => {
+    // Jours de la semaine en français
+    const joursSemaine = [
+        { jour: 'Lundi', index: 1, revenus: 0 },
+        { jour: 'Mardi', index: 2, revenus: 0 },
+        { jour: 'Mercredi', index: 3, revenus: 0 },
+        { jour: 'Jeudi', index: 4, revenus: 0 },
+        { jour: 'Vendredi', index: 5, revenus: 0 },
+        { jour: 'Samedi', index: 6, revenus: 0 },
+        { jour: 'Dimanche', index: 0, revenus: 0 }
+    ]
+
+    // Obtenir la date actuelle et le début de la semaine
+    const today = new Date()
+    const debutSemaine = new Date(today)
+    debutSemaine.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1))
+    debutSemaine.setHours(0, 0, 0, 0)
+    
+    const finSemaine = new Date(debutSemaine)
+    finSemaine.setDate(debutSemaine.getDate() + 6)
+    finSemaine.setHours(23, 59, 59, 999)
+
+    // Parcourir toutes les livraisons de la semaine en cours
+    livraisons.forEach(livraison => {
+        try {
+            if (!livraison.createdAt) return
+            
+            const date = new Date(livraison.createdAt)
+            if (isNaN(date.getTime())) return
+
+            // Vérifier si la livraison est dans la semaine en cours
+            if (date >= debutSemaine && date <= finSemaine) {
+                const dayOfWeek = date.getDay() // 0 = Dimanche, 1 = Lundi, etc.
+                const jourData = joursSemaine.find(j => j.index === dayOfWeek)
+                if (jourData) {
+                    jourData.revenus += livraison.commission || 0
+                }
+            }
+        } catch (error) {
+            console.warn("Erreur de format de date:", livraison.createdAt)
+        }
+    })
+
+    // Parcourir toutes les commissions de la semaine en cours
+    commissions.forEach(commission => {
+        try {
+            if (!commission.createdAt) return
+            
+            const date = new Date(commission.createdAt)
+            if (isNaN(date.getTime())) return
+
+            // Vérifier si la commission est dans la semaine en cours
+            if (date >= debutSemaine && date <= finSemaine) {
+                const dayOfWeek = date.getDay() // 0 = Dimanche, 1 = Lundi, etc.
+                const jourData = joursSemaine.find(j => j.index === dayOfWeek)
+                if (jourData) {
+                    jourData.revenus += commission.commission || 0
+                }
+            }
+        } catch (error) {
+            console.warn("Erreur de format de date:", commission.createdAt)
+        }
+    })
+
+    // Réorganiser pour commencer par Lundi et finir par Dimanche
+    const joursReorganises = [
+        joursSemaine.find(j => j.jour === 'Lundi'),
+        joursSemaine.find(j => j.jour === 'Mardi'),
+        joursSemaine.find(j => j.jour === 'Mercredi'),
+        joursSemaine.find(j => j.jour === 'Jeudi'),
+        joursSemaine.find(j => j.jour === 'Vendredi'),
+        joursSemaine.find(j => j.jour === 'Samedi'),
+        joursSemaine.find(j => j.jour === 'Dimanche')
+    ].filter(Boolean)
+
+    return joursReorganises.map(j => ({ day: j!.jour, revenus: j!.revenus }))
+}
+
 export function RevenusHebdomadaireChart({ livraisons = [], commissions = [] }: RevenusChartProps) {
     // Transformer les données des revenus en format pour le graphique
     const chartData = useMemo(() => {
+        // Pour la semaine en cours, utiliser les jours de la semaine
+        // Sinon, utiliser les numéros de semaine
+        const today = new Date()
+        const debutSemaine = new Date(today)
+        debutSemaine.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1))
+        
+        const finSemaine = new Date(debutSemaine)
+        finSemaine.setDate(debutSemaine.getDate() + 6)
+        
+        // Vérifier si toutes les données sont dans la semaine en cours
+        const toutesDansSemaine = [...livraisons, ...commissions].every(item => {
+            if (!item.createdAt) return false
+            const date = new Date(item.createdAt)
+            return date >= debutSemaine && date <= finSemaine
+        })
+
+        // Si la plupart des données sont dans la semaine en cours, utiliser les jours
+        if (toutesDansSemaine || livraisons.length + commissions.length <= 50) {
+            return groupRevenusByDayOfWeek(livraisons, commissions)
+        }
+        
+        // Sinon, utiliser les numéros de semaine
         return groupRevenusByWeek(livraisons, commissions)
     }, [livraisons, commissions])
 
@@ -122,21 +223,25 @@ export function RevenusHebdomadaireChart({ livraisons = [], commissions = [] }: 
         )
     }
 
+    // Déterminer si on utilise des jours ou des semaines
+    const useDays = 'day' in chartData[0] || chartData.some(item => 'day' in item)
+    const dataKey = useDays ? "day" : "week"
+
     return (
         <div>
             <div className="pt-0">
-                <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                <ChartContainer config={chartConfig} className="h-[400px] w-full">
                     <AreaChart
                         accessibilityLayer
                         data={chartData}
                         margin={{
-                            top: 5,
-                            right: 5,
-                            left: 0,
-                            bottom: 5,
+                            top: 20,
+                            right: 20,
+                            left: 60,
+                            bottom: 20,
                         }}
                         width={350}
-                        height={300}
+                        height={400}
                     >
                         <CartesianGrid 
                             vertical={false} 
@@ -144,7 +249,7 @@ export function RevenusHebdomadaireChart({ livraisons = [], commissions = [] }: 
                             stroke="#f0f0f0" 
                         />
                         <XAxis
-                            dataKey="week"
+                            dataKey={dataKey}
                             tickLine={false}
                             axisLine={{ stroke: "#d1d5db" }}
                             tickMargin={8}
@@ -184,8 +289,8 @@ export function RevenusHebdomadaireChart({ livraisons = [], commissions = [] }: 
                     </AreaChart>
                 </ChartContainer>
                 <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
-                    <span>Revenus hebdomadaires (FCFA)</span>
-                    <span>Semaine</span>
+                    <span>Revenus {useDays ? 'quotidiens' : 'hebdomadaires'} (FCFA)</span>
+                    <span>{useDays ? 'Jour' : 'Semaine'}</span>
                 </div>
             </div>
         </div>
