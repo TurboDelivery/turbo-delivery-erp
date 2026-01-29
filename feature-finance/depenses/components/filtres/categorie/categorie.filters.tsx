@@ -9,7 +9,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { ICategorieDepense } from "@/feature-finance/depenses/types/categorie-depense.type"
+import { ICategorieDepense } from "@/features/depenses/types/categorie-depense.type"
 
 interface CategorieFiltersProps {
     categorie_depenses: ICategorieDepense[];

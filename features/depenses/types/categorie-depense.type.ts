@@ -16,3 +16,14 @@ export interface ICategorieDepenseParams {
 export interface ICategorieDepenseStatsResponse {
     total: number,
 }
+
+export interface ITopCategorieDepense {
+  id: string;
+  totalmontant: number;
+  nom: string;
+}
+
+export interface ITopCategoriesSearchParams {
+  debut?: Date;
+  fin?: Date;
+}

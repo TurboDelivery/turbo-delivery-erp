@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { IDepense } from '@/feature-finance/depenses/types/depense.type';
+import { IDepense } from '@/features/depenses/types/depense.type';
 import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -13,7 +13,7 @@ import {
 import { useQueryStates } from 'nuqs';
 import { depenseFiltersClient } from '../filters/depense.filter';
 import { useDepensesListQuery } from "../queries/depense-list.query";
-import { IDepense, IDepensesParams } from "../types/depense.type";
+import { IDepense, IDepensesParams } from "@/features/depenses/types/depense.type";
 import { useGlobalFilterListener } from "@/hooks/use-global-filter-listener";
 
 export interface IDepenseListTableProps {

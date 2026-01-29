@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ICategorieDepense } from '@/feature-finance/depenses/types/categorie-depense.type';
+import { ICategorieDepense } from '@/features/depenses/types/categorie-depense.type';
 import { CategorieDetailModal } from '@/feature-finance/depenses/components/depense-list/detail/categorie-detail';
 import { ModifierCategorieModal } from '@/feature-finance/depenses/components/modifier/modifier-categorie-modal';
 import SupprimerCategorieModal from '@/feature-finance/depenses/components/supprimer/supprimer-categorie-modal';

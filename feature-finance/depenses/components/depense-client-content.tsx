@@ -19,7 +19,7 @@ export default function DepenseClientContent() {
       <DepenseHeader />
       <Popover>
         <PopoverTrigger asChild>
-          <Button variant="outline" data-empty={!filters.debut || !filters.fin} className="data-[empty=true]:text-muted-foreground w-full sm:w-[280px] justify-start text-left font-normal">
+          <Button variant="secondary" data-empty={!filters.debut || !filters.fin} className="data-[empty=true]:text-muted-foreground w-full sm:w-[280px] justify-start text-left font-normal">
             <CalendarIcon />
             {filters.debut && filters.fin ? (
               <span className="ml-2">

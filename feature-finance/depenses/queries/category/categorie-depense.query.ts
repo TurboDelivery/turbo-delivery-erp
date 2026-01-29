@@ -6,7 +6,7 @@ import {
 import { obtenirCategoriesDepensesAction } from '../../actions/categorie-depense.action';
 import { categorieDepenseKeyQuery } from './index.query';
 import { toast } from 'sonner';
-import { ICategorieDepenseParams } from '../../types/categorie-depense.type';
+import { ICategorieDepenseParams } from '@/features/depenses/types/categorie-depense.type';
 import getQueryClient from '@/lib/get-query-client';
 
 const queryClient = getQueryClient();

@@ -5,7 +5,7 @@ import { ajouterDepenseAction, modifierDepenseAction, supprimerDepenseAction } f
 import { useInvalidateDepenseQuery } from './index.query';
 import { toast } from 'sonner';
 import { processAndValidateFormData } from 'ak-zod-form-kit';
-import { DepenseCreateDTO, DepenseCreateSchema, DepenseUpdateDTO, DepenseUpdateSchema } from '../schemas/depense.schema';
+import { DepenseCreateDTO, DepenseCreateSchema, DepenseUpdateDTO, DepenseUpdateSchema } from '@/features/depenses/schemas/depense.schema';
 
 export const useAjouterDepenseMutation = () => {
   const invalidateDepenseQuery = useInvalidateDepenseQuery();

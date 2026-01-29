@@ -17,8 +17,8 @@ import { Edit } from "lucide-react"
 import { toast } from "sonner"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ICategorieDepense } from "../../types/categorie-depense.type"
-import { CategorieDepenseUpdateDTO, CategorieDepenseUpdateSchema } from "../../schemas/categorie-depense.schema"
+import { ICategorieDepense } from "@/features/depenses/types/categorie-depense.type"
+import { CategorieDepenseUpdateDTO, CategorieDepenseUpdateSchema } from "@/features/depenses/schemas/categorie-depense.schema"
 import { useModifierCategorieDepenseMutation } from "../../queries/category/categorie-depense-mutation.query"
 
 interface ModdifierDepenseModalProps {

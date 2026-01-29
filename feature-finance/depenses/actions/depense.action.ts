@@ -1,10 +1,10 @@
 'use server';
 
 import { ActionResponse, PaginatedResponse } from '@/types';
-import { depenseAPI } from '../apis/depense.api';
-import { IDepense, IDepensesParams } from '../types/depense.type';
+import { depenseAPI } from '@/features/depenses/apis/depense.api';
+import { IDepense, IDepensesParams, IDepenseStats, IDepenseStatsParams } from '@/features/depenses/types/depense.type';
 import { handleServerActionError } from '@/utils/handleServerActionError';
-import { DepenseCreateDTO, DepenseUpdateDTO } from '../schemas/depense.schema';
+import { DepenseCreateDTO, DepenseUpdateDTO } from '@/features/depenses/schemas/depense.schema';
 
 export const obtenirTousDepensesAction = async (params: IDepensesParams): Promise<ActionResponse<PaginatedResponse<IDepense>>> => {
   try {
@@ -71,15 +71,15 @@ export const supprimerDepenseAction = async (id: string): Promise<ActionResponse
   }
 };
 
-// export const obtenirStatsDepensesAction = async (): Promise<ActionResponse<IDepenseStatsResponse>> => {
-//     try {
-//         const response = await depenseAPI.obtenirStatsDepenses();
-//         return {
-//             success: true,
-//             data: response,
-//             message: "Stats dépenses obtenues avec succès",
-//         }
-//     } catch (error) {
-//         return handleServerActionError(error, "Erreur lors de la récupération des stats dépenses");
-//     }
-// }
+export const obtenirStatsDepensesAction = async (params: IDepenseStatsParams): Promise<ActionResponse<IDepenseStats>> => {
+  try {
+    const response = await depenseAPI.obtenirStatsDepenses(params);
+    return {
+      success: true,
+      data: response,
+      message: 'Stats dépenses obtenues avec succès',
+    };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors de la récupération des stats dépenses');
+  }
+};

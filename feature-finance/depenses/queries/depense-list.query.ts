@@ -3,7 +3,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import getQueryClient from '@/lib/get-query-client';
 import { obtenirTousDepensesAction } from '../actions/depense.action';
-import { IDepensesParams } from '../types/depense.type';
+import { IDepensesParams } from '@/features/depenses/types/depense.type';
 import { depenseKeyQuery } from './index.query';
 import { toast } from 'sonner';
 

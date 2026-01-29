@@ -3,7 +3,7 @@ import { depenseFiltersClient } from '@/features/depenses/filters/depense.filter
 import { DateRange } from 'react-day-picker';
 
 export function useDepenseDashboardFilters() {
-  const [filters, setFilters] = useQueryStates(depenseFiltersClient.filters);
+  const [filters, setFilters] = useQueryStates(depenseFiltersClient.filters, depenseFiltersClient.options);
   const updateFilters = (newFilters: Partial<typeof filters>) => {
     setFilters(newFilters);
   };
@@ -24,9 +24,8 @@ export function useDepenseDashboardFilters() {
     if (value?.from && value?.to) {
       setFilters((prev) => ({
         ...prev,
-        debut: value.from ? new Date(value.from) : undefined,
-        fin: value.to ? new Date(value.to) : undefined,
-        page: depenseFiltersClient.filters.page.defaultValue,
+        debut: value.from,
+        fin: value.to,
       }));
     }
   };

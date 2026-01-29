@@ -11,6 +11,9 @@ export const depenseFiltersClient = {
     orderBy: parseAsString.withDefault('date_depense'),
     orderDirection: parseAsString.withDefault('desc'),
   },
+  options: {
+    shallow: true,
+  },
 };
 
 export const lineChartDepenseFiltersClient = {
