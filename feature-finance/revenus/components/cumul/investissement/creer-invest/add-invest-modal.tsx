@@ -23,7 +23,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { InvestissementCreateDTO, InvestissementCreateSchema } from "@/feature-finance/revenus/schemas/investissement.schema"
 
 export function AddInvestModal() {
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+    const [selectedDateInvestissement, setSelectedDateInvestissement] = useState<Date | undefined>(undefined)
+    const [selectedDeadline, setSelectedDeadline] = useState<Date | undefined>(undefined)
     const [open, setOpen] = useState(false) // État pour contrôler la fermeture du dialogue
 
     // Configuration du formulaire avec react-hook-form et zod
@@ -46,6 +47,13 @@ export function AddInvestModal() {
     // Utilisation de la mutation pour créer un investissement
     const ajouterInvestissementMutation = useAjouterInvestissementMutation()
 
+    // Réinitialiser aussi les états des dates
+    const resetForm = () => {
+        reset()
+        setSelectedDateInvestissement(undefined)
+        setSelectedDeadline(undefined)
+    }
+
     // Gestion de la soumission du formulaire
     const onSubmit = async (data: InvestissementCreateDTO) => {
         console.log("onSubmit appelé avec les données:", data)
@@ -60,7 +68,7 @@ export function AddInvestModal() {
             await ajouterInvestissementMutation.mutateAsync(formData)
 
             // Réinitialiser le formulaire et fermer le dialogue
-            reset()
+            resetForm()
             setOpen(false) // Fermer le dialogue après succès
 
             // Afficher un toast de succès
@@ -75,7 +83,7 @@ export function AddInvestModal() {
     }
 
     return (
-        <Dialog >
+        <Dialog open={open} onOpenChange={setOpen}>
 
             <DialogTrigger asChild>
                 <Button
@@ -98,15 +106,19 @@ export function AddInvestModal() {
                                 <Label htmlFor="dateInvestissement" className="text-sm text-gray-500">
                                     Date de l'investissement
                                 </Label>
-                                <CalendarInput
-                                    value={selectedDate}
-                                    onChange={(date) => {
-                                        setSelectedDate(date)
-                                        if (date) {
-                                            setValue('dateInvestissement', date.toISOString().split('T')[0])
+                                <Input
+                                    type="date"
+                                    {...register('dateInvestissement')}
+                                    className="w-full"
+                                    onChange={(e) => {
+                                        const value = e.target.value
+                                        setValue('dateInvestissement', value)
+                                        if (value) {
+                                            setSelectedDateInvestissement(new Date(value))
+                                        } else {
+                                            setSelectedDateInvestissement(undefined)
                                         }
                                     }}
-                                    placeholder="Sélectionnez une date"
                                 />
                                 {errors.dateInvestissement && (
                                     <p className="text-red-500 text-sm">{errors.dateInvestissement.message}</p>
@@ -156,15 +168,19 @@ export function AddInvestModal() {
                                 <Label htmlFor="deadline" className="text-sm text-gray-500">
                                     Echéance
                                 </Label>
-                                <CalendarInput
-                                    value={selectedDate}
-                                    onChange={(date) => {
-                                        setSelectedDate(date)
-                                        if (date) {
-                                            setValue('deadline', date.toISOString().split('T')[0])
+                                <Input
+                                    type="date"
+                                    {...register('deadline')}
+                                    className="w-full"
+                                    onChange={(e) => {
+                                        const value = e.target.value
+                                        setValue('deadline', value)
+                                        if (value) {
+                                            setSelectedDeadline(new Date(value))
+                                        } else {
+                                            setSelectedDeadline(undefined)
                                         }
                                     }}
-                                    placeholder="Sélectionnez une date"
                                 />
                                 {errors.deadline && (
                                     <p className="text-red-500 text-sm">{errors.deadline.message}</p>
@@ -180,6 +196,7 @@ export function AddInvestModal() {
                             <Button
                                 variant="outline"
                                 className="rounded-full w-full sm:w-auto cursor-pointer"
+                                onClick={() => resetForm()}
                             >
                                 Annuler
                             </Button>

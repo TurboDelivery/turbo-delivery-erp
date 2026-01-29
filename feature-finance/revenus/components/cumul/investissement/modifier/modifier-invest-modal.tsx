@@ -1,5 +1,4 @@
 "use client"
-import { CalendarInput } from "@/components/components-finance/block/dateInput"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -123,17 +122,20 @@ export function ModifierInvestModal({ investissement }: ModifierInvestModalProps
                                 <Label htmlFor="dateInvestissement" className="text-sm text-gray-500">
                                     Date de l'investissement
                                 </Label>
-                                <CalendarInput
-                                    value={dateInvestissement}
-                                    onChange={(date) => {
-                                        setDateInvestissement(date)
-                                        if (date) {
-                                            setValue('dateInvestissement', date.toISOString().split('T')[0], {
-                                                shouldValidate: true
-                                            })
+                                <Input
+                                    type="date"
+                                    {...register('dateInvestissement')}
+                                    className="w-full"
+                                    defaultValue={investissement.dateInvestissement}
+                                    onChange={(e) => {
+                                        const value = e.target.value
+                                        setValue('dateInvestissement', value, { shouldValidate: true })
+                                        if (value) {
+                                            setDateInvestissement(new Date(value))
+                                        } else {
+                                            setDateInvestissement(undefined)
                                         }
                                     }}
-                                    placeholder="Sélectionnez une date"
                                 />
                                 {errors.dateInvestissement && (
                                     <p className="text-red-500 text-sm">{errors.dateInvestissement.message}</p>
@@ -180,17 +182,20 @@ export function ModifierInvestModal({ investissement }: ModifierInvestModalProps
                                 <Label htmlFor="deadline" className="text-sm text-gray-500">
                                     Échéance
                                 </Label>
-                                <CalendarInput
-                                    value={deadlineDate}
-                                    onChange={(date) => {
-                                        setDeadlineDate(date)
-                                        if (date) {
-                                            setValue('deadline', date.toISOString().split('T')[0], {
-                                                shouldValidate: true
-                                            })
+                                <Input
+                                    type="date"
+                                    {...register('deadline')}
+                                    className="w-full"
+                                    defaultValue={investissement.deadline}
+                                    onChange={(e) => {
+                                        const value = e.target.value
+                                        setValue('deadline', value, { shouldValidate: true })
+                                        if (value) {
+                                            setDeadlineDate(new Date(value))
+                                        } else {
+                                            setDeadlineDate(undefined)
                                         }
                                     }}
-                                    placeholder="Sélectionnez une date"
                                 />
                                 {errors.deadline && (
                                     <p className="text-red-500 text-sm">{errors.deadline.message}</p>
