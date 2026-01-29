@@ -6,11 +6,14 @@ import { PretTable } from "./pret-list-table"
 import { Pagination } from "./pagination"
 import { usePretList } from "@/feature-finance/revenus/hooks/use-pret-list"
 import { Spinner } from "@/components/ui/spinner"
-import RestaurantFiltre from "./restaurant-filtre"
+import { RestaurantMultiFilter } from "./restaurant-multi-filter"
+import { Button } from "@/components/ui/button"
+import { X } from "lucide-react"
 
 export function PretList() {
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage, setItemsPerPage] = useState(10)
+    const [selectedRestaurants, setSelectedRestaurants] = useState<string[]>([])
     const [filters, setFilters] = useState({
         id: "",
         nomRestaurant: "",
@@ -22,6 +25,25 @@ export function PretList() {
     //  On récupère les prêts depuis le hook
     const { facture, isLoading, isError, error } = usePretList()
 
+    // Gestionnaire pour le changement de restaurants
+    const handleRestaurantChange = (restaurantIds: string[]) => {
+        setSelectedRestaurants(restaurantIds)
+        setCurrentPage(1) // Reset à la première page quand on filtre
+    }
+
+    // Gestionnaire pour effacer tous les filtres
+    const handleClearFilters = () => {
+        setSelectedRestaurants([])
+        setFilters({
+            id: "",
+            nomRestaurant: "",
+            totalFraisLivraisons: "",
+            totalCommission: "",
+            totalFacture: "",
+        })
+        setCurrentPage(1)
+    }
+
     const handleFilterChange = (filterName: string, value: string) => {
         setFilters((prev) => ({ ...prev, [filterName]: value }))
         setCurrentPage(1)
@@ -30,6 +52,11 @@ export function PretList() {
     //  Filtrage
     const filteredPrets = useMemo(() => {
         return facture.filter((factureItem) => {
+            // Filtre par restaurants (multi-sélection)
+            if (selectedRestaurants.length > 0 && factureItem.nomRestaurant) {
+                if (!selectedRestaurants.includes(factureItem.nomRestaurant)) return false
+            }
+            
             if (filters.id && factureItem.id !== filters.id) return false
             if (filters.nomRestaurant && factureItem.nomRestaurant !== filters.nomRestaurant) return false
             if (filters.totalFraisLivraisons) {
@@ -38,7 +65,7 @@ export function PretList() {
             }
             return true
         })
-    }, [facture, filters])
+    }, [facture, filters, selectedRestaurants])
 
     const totalPages = Math.ceil(filteredPrets.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
@@ -77,7 +104,23 @@ export function PretList() {
                     <CardTitle>
                         <div className="flex justify-between items-center gap-4 py-2">
                             <h2 className="font-bold text-xl text-blue-800">Liste des factures a recouvrir</h2>
-                            <RestaurantFiltre onFilterChange={handleFilterChange}/>
+                            <div className="flex items-center gap-3">
+                                <RestaurantMultiFilter
+                                    onRestaurantChange={handleRestaurantChange}
+                                    selectedRestaurants={selectedRestaurants}
+                                />
+                                {selectedRestaurants.length > 0 && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleClearFilters}
+                                        className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+                                    >
+                                        <X className="h-4 w-4" />
+                                        Effacer
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </CardTitle>
                 </CardHeader>
