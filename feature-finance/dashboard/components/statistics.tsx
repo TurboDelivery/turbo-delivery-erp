@@ -1,67 +1,53 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { useDepensesListQuery } from "@/feature-finance/depenses/queries/depense-list.query";
-import { useCommissionPourcentageList } from "@/feature-finance/revenus/hooks/use-commissionpourcentage-list";
-import { useInvestissementList } from "@/feature-finance/revenus/hooks/use-investissement-list";
-import { useLivraisonList } from "@/feature-finance/revenus/hooks/use-livraison-list";
+import { useDashboardStats } from "@/feature-finance/dashboard/hooks/use-dashboard-stats";
 import { DollarSign, Wallet, WalletCards, ArrowUp, ArrowDown } from "lucide-react";
 
 export default function Statistics() {
-    const { livraisons } = useLivraisonList({ initialData: [] });
-    const { commissionspourcentage } = useCommissionPourcentageList({ initialData: [] });
-    const { investissements } = useInvestissementList({ initialData: [] });
+    const { yearlyTotals, isLoading } = useDashboardStats(2026);
     
-    // Utilisation directe de la query pour les dépenses
-    const { data: depensesData } = useDepensesListQuery({
-        page: 1,
-        limit: 1000, // Limite élevée pour obtenir toutes les dépenses
-    });
+    // Utiliser les données de l'API dashboard
+    const chiffreAffaires = yearlyTotals.totalRevenus; // CA du mois
+    const revenusEncaisses = yearlyTotals.totalRecouvrements + yearlyTotals.totalInvestissements;
+    const sommeDepenses = yearlyTotals.totalDepenses;
+    const soldeCompte = revenusEncaisses - sommeDepenses;
+    const isSoldePositif = soldeCompte > 0;
     
-    const depenses = depensesData || [];
-    
-    // Calcul des sommes
-    const sommeLivraisons = livraisons.reduce((total: number, livraison: any) => total + livraison.fraisLivraison, 0);
-    const sommeCommissions = commissionspourcentage.reduce((total: number, commission: any) => total + commission.commission, 0);
-    const sommeInvestissements = investissements.reduce((total: number, investissement: any) => total + investissement.montant, 0);
-    const sommeDepenses = depenses.reduce((total: number, depense: any) => total + depense.montant, 0);
-
-    const revenus = sommeLivraisons + sommeCommissions + sommeInvestissements;
-    const comptes = revenus - sommeDepenses;
-    const isGain = comptes > 0;
+    console.log('Données dashboard:', yearlyTotals);
     
     const stats = [
         {
-            title: "Chiffre d'affaires",
-            value: `${revenus.toLocaleString()}`,
+            title: "CA du Mois",
+            value: `${chiffreAffaires.toLocaleString()}`,
             icon: <Wallet className="w-4 h-4" />,
             color: "text-green-600",
             bgColor: "bg-green-100",
             trend: "up" as const,
         },
         {
-            title: "Total livraisons",
-            value: `${sommeLivraisons.toLocaleString()}`,
+            title: "Revenus Encaissés",
+            value: `${revenusEncaisses.toLocaleString()}`,
             icon: <WalletCards className="w-4 h-4" />,
-            color: "text-yellow-600",
-            bgColor: "bg-yellow-100",
-            trend: "down" as const,
+            color: "text-blue-600",
+            bgColor: "bg-blue-100",
+            trend: "up" as const,
         },
         {
-            title: "Total revenus",
+            title: "Total Dépenses",
             value: `${sommeDepenses.toLocaleString()}`,
-            icon: <WalletCards className="w-4 h-4" />,
+            icon: <ArrowDown className="w-4 h-4" />,
             color: "text-red-600",
             bgColor: "bg-red-100",
             trend: "down" as const,
         },
         {
-            title: "Solde des comptes   ",
-            value: `${Math.abs(comptes).toLocaleString()}`,
+            title: "Solde de Compte",
+            value: `${Math.abs(soldeCompte).toLocaleString()}`,
             icon: <DollarSign className="w-4 h-4" />,
-            color: isGain ? "text-green-600" : "text-red-600",
-            bgColor: isGain ? "bg-green-100" : "bg-red-100",
-            trend: isGain ? "up" as const : "down" as const,
+            color: isSoldePositif ? "text-green-600" : "text-red-600",
+            bgColor: isSoldePositif ? "bg-green-100" : "bg-red-100",
+            trend: isSoldePositif ? "up" as const : "down" as const,
             isCurrency: true,
         },
     ];
@@ -91,9 +77,9 @@ export default function Statistics() {
                                         </div>
                                     )}
                                 </div>
-                                {stat.title === "Solde des comptes" && (
-                                    <p className={`text-xs font-medium ${isGain ? "text-green-600" : "text-red-600"}`}>
-                                        {isGain ? "Gain" : "Déficit"}
+                                {stat.title === "Solde de Compte" && (
+                                    <p className={`text-xs font-medium ${isSoldePositif ? "text-green-600" : "text-red-600"}`}>
+                                        {isSoldePositif ? "Excédent" : "Déficit"}
                                     </p>
                                 )}
                             </div>
