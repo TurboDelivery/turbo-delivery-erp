@@ -77,13 +77,11 @@ const menuData: IMenuData[] = [
         children: [
             { icon: IconMap, title: 'finance dashboard ', path: '/finance/' },
             { icon: IconMap, title: 'Depenses ', path: '/finance/depense' },
-            { icon: WalletCards, title: "Revenue", children: [
-                { icon: List, title: "Cumule de revenus globaux", path: '/finance/revenue' },
-                { icon: Truck, title: "Cumule des frais de livraison", path: '/finance/revenue/livraison' },
-                // { icon: ChartNoAxesCombined, title: "Cumule des frais de pourcentage (%)", path: '/finance/revenue/commission_pourcentage' },
-                // { icon: Euro, title: "Cumule des frais de commission fixe(fixe)", path: '/finance/revenue/commission_fixe' },
-                { icon: Layers, title: "Cumule des investissements internes", path: '/finance/revenue/investissement' },
-            ] },
+            { icon: List, title: "Cumule de revenus globaux", path: '/finance/revenue' },
+            { icon: Truck, title: "Cumule des frais de livraison", path: '/finance/revenue/livraison' },
+            // { icon: ChartNoAxesCombined, title: "Cumule des frais de pourcentage (%)", path: '/finance/revenue/commission_pourcentage' },
+            // { icon: Euro, title: "Cumule des frais de commission fixe(fixe)", path: '/finance/revenue/commission_fixe' },
+            { icon: Layers, title: "Cumule des investissements internes", path: '/finance/revenue/investissement' },
             { icon: SquareUser, title: "Recouvrements", path: '/finance/recouvrement' },
 
         ],
