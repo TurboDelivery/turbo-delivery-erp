@@ -1,6 +1,6 @@
 "use client"
 
-import { ICategorieDepense } from "@/feature-finance/depenses/types/categorie-depense.type"
+import { ICategorieDepense } from "@/features/depenses/types/categorie-depense.type"
 import { CreerDepenseModal } from "../../depense-list/creer-depense"
 import FilterCategorie from "../categorie/categorie.filters"
 import FilterDepenses from "./depenses.filters"
@@ -24,7 +24,7 @@ export function DepensesFilters({ filters, handleFilterChange, categorie_depense
         handleEnumFilterChange={handleFilterChange}
         value={filters.categorie}
       />
-      <CreerDepenseModal depenses={depenses}/>
+      <CreerDepenseModal />
     </div>
   )
 }

@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, Calendar, User, DollarSign, Hash } from "lucide-react";
-import { IDepense } from "@/feature-finance/depenses/types/depense.type";
+import { IDepense } from "@/features/depenses/types/depense.type";
 import Image from "next/image";
 interface DepenseDetailModalProps {
     depense: IDepense;

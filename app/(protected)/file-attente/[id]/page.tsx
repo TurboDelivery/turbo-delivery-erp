@@ -65,10 +65,10 @@ export default async function Page() {
                     </div>
                 </div>
                 <div className="flex gap-4 ml-auto flex-shrink-0">
-                    <Button variant={'success'} className="h-8 rounded-lg">
+                    <Button variant={'outline'} className="h-8 rounded-lg">
                         Écrire à une turbo
                     </Button>
-                    <Button variant={'success'} className="h-8 rounded-lg ">
+                    <Button variant={'outline'} className="h-8 rounded-lg ">
                         Écrire au partenaire
                     </Button>
                     <Button variant={'destructive'} className="h-8 rouded-full">

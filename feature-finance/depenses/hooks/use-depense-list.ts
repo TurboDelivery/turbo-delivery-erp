@@ -13,7 +13,7 @@ import {
 import { useQueryStates } from 'nuqs';
 import { depenseFiltersClient } from '../filters/depense.filter';
 import { useDepensesListQuery } from "../queries/depense-list.query";
-import { IDepense, IDepensesParams } from "../types/depense.type";
+import { IDepense, IDepensesParams } from "@/features/depenses/types/depense.type";
 import { useGlobalFilterListener } from "@/hooks/use-global-filter-listener";
 
 export interface IDepenseListTableProps {
@@ -71,7 +71,7 @@ export function useDepenseList({ columns, initialData = [] }: IDepenseListTableP
     // Récupération des données filtrées
     const { data, isLoading, isError, error, isFetching } = useDepensesListQuery(currentSearchParams);
 
-    const depenses = data || initialData;
+    const depenses = data?.content || initialData;
 
     // Appliquer les filtres localement pour le tableau
     const filteredData = useMemo(() => {

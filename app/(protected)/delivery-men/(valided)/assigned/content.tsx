@@ -82,7 +82,7 @@ export default function Content({ initialData, restaurants }: Props) {
                     </span>
                     </Button>
                 ) : (
-                    <Button variant="confirm-success" className="h-8">
+                    <Button className="h-8">
                     <span className="flex items-center gap-2">
                         <Check size={18} />
                         Confirmé

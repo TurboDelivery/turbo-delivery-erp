@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, Calendar, User, DollarSign, Hash, Bookmark } from "lucide-react";
-import { ICategorieDepense } from "@/feature-finance/depenses/types/categorie-depense.type";
+import { ICategorieDepense } from "@/features/depenses/types/categorie-depense.type";
 import Image from "next/image";
 interface CategorieDetailModalProps {
     categorie: ICategorieDepense;

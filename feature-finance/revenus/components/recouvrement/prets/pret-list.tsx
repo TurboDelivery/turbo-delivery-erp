@@ -6,40 +6,40 @@ import { PretTable } from "./pret-list-table"
 import { Pagination } from "./pagination"
 import { usePretList } from "@/feature-finance/revenus/hooks/use-pret-list"
 import { Spinner } from "@/components/ui/spinner"
-import RestaurantFiltre from "./restaurant-filtre"
+import { RestaurantMultiFilter } from "./restaurant-multi-filter"
+import { Button } from "@/components/ui/button"
+import { X } from "lucide-react"
 
 export function PretList() {
-    const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(10)
-    const [filters, setFilters] = useState({
-        id: "",
-        nomRestaurant: "",
-        totalFraisLivraisons: "",
-        totalCommission: "",
-        totalFacture: "",
-    })
+    const { 
+        facture, 
+        isLoading, 
+        isError, 
+        error, 
+        filters, 
+        handleFilterChange,
+        resetFilters 
+    } = usePretList()
 
-    //  On récupère les prêts depuis le hook
-    const { facture, isLoading, isError, error } = usePretList()
+    // Utiliser les filtres de l'URL (nuqs) pour la pagination
+    const currentPage = filters.page
+    const itemsPerPage = filters.limit
+    const selectedRestaurants = filters.selectedRestaurants || []
 
-    const handleFilterChange = (filterName: string, value: string) => {
-        setFilters((prev) => ({ ...prev, [filterName]: value }))
-        setCurrentPage(1)
+    // Gestionnaire pour le changement de restaurants (multi-sélection)
+    const handleRestaurantChange = (restaurantIds: string[]) => {
+        handleFilterChange('selectedRestaurants', restaurantIds)
     }
 
-    //  Filtrage
-    const filteredPrets = useMemo(() => {
-        return facture.filter((factureItem) => {
-            if (filters.id && factureItem.id !== filters.id) return false
-            if (filters.nomRestaurant && factureItem.nomRestaurant !== filters.nomRestaurant) return false
-            if (filters.totalFraisLivraisons) {
-                const totalFraisLivraisonsValue = parseFloat(filters.totalFraisLivraisons)
-                if (isNaN(totalFraisLivraisonsValue) || factureItem.totalFraisLivraisons !== totalFraisLivraisonsValue) return false
-            }
-            return true
-        })
-    }, [facture, filters])
+    // Gestionnaire pour effacer tous les filtres
+    const handleClearFilters = () => {
+        resetFilters()
+    }
 
+    //  Filtrage (déjà géré par le hook usePretList avec nuqs)
+    const filteredPrets = facture
+
+    // Pagination sur les données déjà filtrées
     const totalPages = Math.ceil(filteredPrets.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const currentPrets = filteredPrets.slice(startIndex, startIndex + itemsPerPage)
@@ -77,7 +77,23 @@ export function PretList() {
                     <CardTitle>
                         <div className="flex justify-between items-center gap-4 py-2">
                             <h2 className="font-bold text-xl text-blue-800">Liste des factures a recouvrir</h2>
-                            <RestaurantFiltre onFilterChange={handleFilterChange}/>
+                            <div className="flex items-center gap-3">
+                                <RestaurantMultiFilter
+                                    onRestaurantChange={handleRestaurantChange}
+                                    selectedRestaurants={selectedRestaurants}
+                                />
+                                {selectedRestaurants.length > 0 && (
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleClearFilters}
+                                        className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+                                    >
+                                        <X className="h-4 w-4" />
+                                        Effacer
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </CardTitle>
                 </CardHeader>
@@ -97,10 +113,10 @@ export function PretList() {
                         totalPages={totalPages}
                         itemsPerPage={itemsPerPage}
                         totalItems={filteredPrets.length}
-                        onPageChange={setCurrentPage}
-                        onItemsPerPageChange={(val) => {
-                            setItemsPerPage(val)
-                            setCurrentPage(1)
+                        onPageChange={(page) => handleFilterChange('page', page)}
+                        onItemsPerPageChange={(limit) => {
+                            handleFilterChange('limit', limit)
+                            handleFilterChange('page', 1)
                         }}
                     />
 
