@@ -43,7 +43,7 @@ export function RepartitionTooltips() {
   // Récupération des données
   const { livraisons } = useLivraisonList({ initialData: [] })
   const { commissionspourcentage } = useCommissionPourcentageList({ initialData: [] })
-  const { investissements } = useInvestissementList({ initialData: [] })
+  const { investissements } = useInvestissementList()
   const { data: depensesData } = useDepensesListQuery({
     page: 1,
     limit: 1000,
