@@ -1,7 +1,6 @@
 'use client';
 
 import { toast } from 'react-toastify';
-import { useRouter } from 'next/navigation';
 import { Role, User } from '@/types/models';
 import IconX from '@/components/icon/icon-x';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +14,6 @@ import { _createUserSchema, createUserSchema } from '@/src/schemas/users.schema'
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
 
 const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen: (open: boolean) => void }) => {
-    const router = useRouter();
     const { pending } = useFormStatus();
     
     const [state, formAction] = useFormState(
@@ -24,7 +22,7 @@ const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen
 
             if (result.status === 'success') {
                 toast.success(result.message || 'Utilisateur modifié avec succès');
-                router.refresh();
+                window.location.reload();
             } else {
                 toast.error(result.message || "Erreur lors de l'envoi de l'email");
             }
