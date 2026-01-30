@@ -80,6 +80,7 @@ export default function RevenusQuotidiens({}: RevenusQuotidiensProps) {
         })
     }
 
+    
     // État de chargement
     if (isLoading) {
         return (
