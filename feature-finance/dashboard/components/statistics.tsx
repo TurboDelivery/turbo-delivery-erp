@@ -3,9 +3,11 @@
 import { Card } from "@/components/ui/card";
 import { useDashboardStats } from "@/feature-finance/dashboard/hooks/use-dashboard-stats";
 import { DollarSign, Wallet, WalletCards, ArrowUp, ArrowDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Statistics() {
     const { yearlyTotals, isLoading } = useDashboardStats(2026);
+    const router = useRouter();
     
     // Utiliser les données de l'API dashboard
     const chiffreAffaires = yearlyTotals.totalRevenus; // CA du mois
@@ -33,6 +35,8 @@ export default function Statistics() {
             color: "text-blue-600",
             bgColor: "bg-blue-100",
             trend: "up" as const,
+            clickable: true,
+            onClick: () => router.push('/finance/revenus-encaisses')
         },
         {
             title: "Total Dépenses",
@@ -41,6 +45,8 @@ export default function Statistics() {
             color: "text-red-600",
             bgColor: "bg-red-100",
             trend: "down" as const,
+            clickable: true,
+            onClick: () => router.push('/finance/sorties')
         },
         {
             title: "Solde de Compte",
@@ -59,7 +65,10 @@ export default function Statistics() {
                 {stats.map((stat, index) => (
                     <Card
                         key={index}
-                        className="p-6 flex flex-col items-center justify-center rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 bg-white"
+                        className={`p-6 flex flex-col items-center justify-center rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 bg-white ${
+                            stat.clickable ? 'cursor-pointer hover:scale-105' : ''
+                        }`}
+                        onClick={stat.onClick}
                     >
                         <div className="flex justify-between items-start w-full">
                             <div className="flex flex-col items-start gap-2">
