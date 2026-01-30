@@ -7,8 +7,8 @@ import { useInvalidateDepenseQuery } from './index.query';
 import { toast } from "sonner";
 import { processAndValidateFormData } from "ak-zod-form-kit";
 import { ajouterCategorieDepenseAction, modifierCategorieDepenseAction, supprimerCategorieDepenseAction } from '../../actions/categorie-depense.action';
-import { CategorieDepenseCreateDTO, CategorieDepenseUpdateDTO } from '../../schemas/categorie-depense.schema';
-import { CategorieDepenseCreateSchema, CategorieDepenseUpdateSchema } from '../../schemas/categorie-depense.schema';
+import { CategorieDepenseCreateDTO, CategorieDepenseUpdateDTO } from '@/features/depenses/schemas/categorie-depense.schema';
+import { CategorieDepenseCreateSchema, CategorieDepenseUpdateSchema } from '@/features/depenses/schemas/categorie-depense.schema';
 
 export const useAjouterCategorieDepenseMutation = () => {
     const invalidateDepenseQuery = useInvalidateDepenseQuery()

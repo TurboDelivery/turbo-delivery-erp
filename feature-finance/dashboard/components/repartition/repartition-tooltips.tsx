@@ -49,7 +49,7 @@ export function RepartitionTooltips() {
     limit: 1000,
   })
   
-  const depenses = depensesData || []
+  const depenses = depensesData?.content || []
   
   // Génération des données dynamiques pour les 12 derniers mois
   const chartData = useMemo(() => {

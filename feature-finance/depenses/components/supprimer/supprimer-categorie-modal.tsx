@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { ICategorieDepense } from "../../types/categorie-depense.type";
+import { ICategorieDepense } from "@/features/depenses/types/categorie-depense.type";
 import { useSupprimerCategorieDepenseMutation } from "../../queries/category/categorie-depense-mutation.query";
 import { Trash } from "lucide-react";
 
