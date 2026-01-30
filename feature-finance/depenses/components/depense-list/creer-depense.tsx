@@ -51,6 +51,7 @@ export function CreerDepenseModal() {
       categorie: {
         id: data.categorie.id,
       },
+      sourcePaiement: data.sourcePaiement,
     };
 
     ajouterDepenseMutation(formData, {

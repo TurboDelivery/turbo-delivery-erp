@@ -22,9 +22,10 @@ interface DepenseFormProps {
   errors: FieldErrors<any>;
   setValue: UseFormSetValue<any>;
   defaultCategorieId?: string;
+  defaultSource?: string;
 }
 
-export function DepenseForm({ selectedDate, setSelectedDate, categories, categoriesLoading, register, errors, setValue, defaultCategorieId }: DepenseFormProps) {
+export function DepenseForm({ selectedDate, setSelectedDate, categories, categoriesLoading, register, errors, setValue, defaultCategorieId, defaultSource }: DepenseFormProps) {
   return (
     <div className="grid gap-6">
       {/* Date et Montant */}
@@ -56,37 +57,63 @@ export function DepenseForm({ selectedDate, setSelectedDate, categories, categor
         </div>
       </div>
 
-      {/* Catégorie */}
-      <div className="flex flex-col gap-1">
-        <Label htmlFor="categorie.id" className="text-sm text-gray-500">
-          Catégorie de dépenses *
-        </Label>
-        <Select onValueChange={(value) => setValue('categorie.id', value)} defaultValue={defaultCategorieId}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Sélectionnez une catégorie" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Catégories</SelectLabel>
-              {categoriesLoading ? (
-                <SelectItem value="loading" disabled>
-                  Chargement...
-                </SelectItem>
-              ) : categories && categories.length > 0 ? (
-                categories.map((categorie: ICategorieDepense) => (
-                  <SelectItem key={categorie.id} value={categorie.id}>
-                    {categorie.nomCategorie}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Catégorie */}
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="categorie.id" className="text-sm text-gray-500">
+            Catégorie de dépenses *
+          </Label>
+          <Select onValueChange={(value) => setValue('categorie.id', value)} defaultValue={defaultCategorieId}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Sélectionnez une catégorie" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Catégories</SelectLabel>
+                {categoriesLoading ? (
+                  <SelectItem value="loading" disabled>
+                    Chargement...
                   </SelectItem>
-                ))
-              ) : (
-                <SelectItem value="none" disabled>
-                  Aucune catégorie disponible
-                </SelectItem>
-              )}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        {(errors.categorie as any)?.id && <p className="text-red-500 text-sm">{(errors.categorie as any).id.message as string}</p>}
+                ) : categories && categories.length > 0 ? (
+                  categories.map((categorie: ICategorieDepense) => (
+                    <SelectItem key={categorie.id} value={categorie.id}>
+                      {categorie.nomCategorie}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="none" disabled>
+                    Aucune catégorie disponible
+                  </SelectItem>
+                )}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          {(errors.categorie as any)?.id && <p className="text-red-500 text-sm">{(errors.categorie as any).id.message as string}</p>}
+        </div>
+
+        {/* Source */}
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="sourcePaiement" className="text-sm text-gray-500">
+            Source
+          </Label>
+          <Select onValueChange={(value) => setValue('sourcePaiement', value)} defaultValue={defaultSource}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Sélectionnez une source" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Source</SelectLabel>
+                <SelectItem value="especes">Espèces</SelectItem>
+                <SelectItem value="wave">Wave</SelectItem>
+                <SelectItem value="orange-money">Orange Money</SelectItem>
+                <SelectItem value="mtn-momo">MTN MoMo</SelectItem>
+                <SelectItem value="moov-money">Moov money</SelectItem>
+                <SelectItem value="autre">Autre</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          {(errors.categorie as any)?.id && <p className="text-red-500 text-sm">{(errors.categorie as any).id.message as string}</p>}
+        </div>
       </div>
 
       {/* Description */}
