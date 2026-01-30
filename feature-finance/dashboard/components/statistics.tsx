@@ -2,13 +2,29 @@
 
 import { Card } from "@/components/ui/card";
 import { useDashboardStats } from "@/feature-finance/dashboard/hooks/use-dashboard-stats";
+import { useLivraisonList } from "@/feature-finance/revenus/hooks/use-livraison-list";
+import { useCommissionFixeList } from "@/feature-finance/revenus/hooks/use-commissionfixe-list";
+import { useCommissionPourcentageList } from "@/feature-finance/revenus/hooks/use-commissionpourcentage-list";
 import { DollarSign, Wallet, WalletCards, ArrowUp, ArrowDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Statistics() {
     const { yearlyTotals, isLoading } = useDashboardStats(2026);
+    const router = useRouter();
     
-    // Utiliser les données de l'API dashboard
-    const chiffreAffaires = yearlyTotals.totalRevenus; // CA du mois
+    // Récupérer les données pour calculer le CA correctement
+    const { livraisons } = useLivraisonList({ initialData: [] });
+    const { commissionsfixe } = useCommissionFixeList({ initialData: [] });
+    const { commissionspourcentage } = useCommissionPourcentageList({ initialData: [] });
+    
+    // Calculer le CA correct: cumul des frais de livraison + cumul de toutes les commissions
+    const totalFraisLivraison = livraisons?.reduce((sum: number, livraison: any) => sum + (livraison.fraisLivraison || 0), 0) || 0;
+    const totalCommissionFixe = commissionsfixe?.reduce((sum: number, commission: any) => sum + (commission.commission || 0), 0) || 0;
+    const totalCommissionPourcentage = commissionspourcentage?.reduce((sum: number, commission: any) => sum + (commission.commission || 0), 0) || 0;
+    
+    // CA = Frais de livraison + Commission fixe + Commission pourcentage
+    const chiffreAffaires = totalFraisLivraison + totalCommissionFixe + totalCommissionPourcentage;
+    
     const revenusEncaisses = yearlyTotals.totalRecouvrements + yearlyTotals.totalInvestissements;
     const sommeDepenses = yearlyTotals.totalDepenses;
     const soldeCompte = revenusEncaisses - sommeDepenses;
@@ -16,6 +32,8 @@ export default function Statistics() {
     
 
     console.log('Données dashboard:', yearlyTotals);
+    console.log('Calcul CA - Frais livraison:', totalFraisLivraison, 'Commission fixe:', totalCommissionFixe, 'Commission pourcentage:', totalCommissionPourcentage);
+    console.log('CA total calculé:', chiffreAffaires);
     
     const stats = [
         {
@@ -33,6 +51,8 @@ export default function Statistics() {
             color: "text-blue-600",
             bgColor: "bg-blue-100",
             trend: "up" as const,
+            clickable: true,
+            onClick: () => router.push('/finance/revenue')
         },
         {
             title: "Total Dépenses",
@@ -41,6 +61,8 @@ export default function Statistics() {
             color: "text-red-600",
             bgColor: "bg-red-100",
             trend: "down" as const,
+            clickable: true,
+            onClick: () => router.push('/finance/depense')
         },
         {
             title: "Solde de Compte",
@@ -60,7 +82,10 @@ export default function Statistics() {
                 {stats.map((stat, index) => (
                     <Card
                         key={index}
-                        className="p-6 flex flex-col items-center justify-center rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 bg-white"
+                        className={`p-6 flex flex-col items-center justify-center rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 bg-white ${
+                            stat.clickable ? 'cursor-pointer hover:scale-105' : ''
+                        }`}
+                        onClick={stat.onClick}
                     >
                         <div className="flex justify-between items-start w-full">
                             <div className="flex flex-col items-start gap-2">

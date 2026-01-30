@@ -1,293 +1,140 @@
-"use client"
+'use client';
 
-import React, { useState, useMemo } from "react"
-import {
-    useReactTable,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getSortedRowModel,
-    flexRender,
-    type SortingState,
-    type ColumnFiltersState,
-} from '@tanstack/react-table'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Edit, Eye, MoreHorizontal } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { AddInvestModal } from "../creer-invest/add-invest-modal"
-import { InvestDetailModal } from "./invest-detail-modal"
-import { format, parseISO } from "date-fns"
-import { fr } from "date-fns/locale"
-import { ModifierInvestModal } from "../modifier/modifier-invest-modal"
-import InvestisseurNameFilter from "../filtres/filtre-nom-investisseur"
-import InvestissementDateFilter from "../filtres/filtres-par-date"
-import { useInvestissementList } from "@/feature-finance/revenus/hooks/use-investissement-list";
-import SupprimerInvestModal from "../supprimer/supprimer-invest-modal"
-import { Pagination } from "../../livraison/livraison-list/pagination"
+import React, { useMemo, useState } from 'react';
+import { flexRender, getCoreRowModel, getSortedRowModel, type SortingState, useReactTable } from '@tanstack/react-table';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Loader2, MoreHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AddInvestModal } from '../creer-invest/add-invest-modal';
+import { InvestDetailModal } from './invest-detail-modal';
+import { ModifierInvestModal } from '../modifier/modifier-invest-modal';
+import InvestissementDateFilter from '../filtres/filtres-par-date';
+import { useInvestissementList } from '@/feature-finance/revenus/hooks/use-investissement-list';
+import SupprimerInvestModal from '../supprimer/supprimer-invest-modal';
+import { Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { formatCFA, formatDateFR } from '@/src/actions/bonLivraison.mapper';
 
 export default function InvestissementList() {
-    const { investissements, isLoading, isError, error } = useInvestissementList();
-    const [sorting, setSorting] = useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-    const [globalFilter, setGlobalFilter] = useState('')
-    const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage, setItemsPerPage] = useState(10)
+  const { investissements, isLoading, filters, handleFilterChange, pagination } = useInvestissementList();
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-    // S'assurer que investissements est un tableau
-    const investissementsArray = Array.isArray(investissements) ? investissements : []
-
-    // Pagination
-    const totalPages = Math.ceil(investissementsArray.length / itemsPerPage)
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const currentInvestissements = investissementsArray.slice(startIndex, startIndex + itemsPerPage)
-
-    const formatDate = (dateString: string) => {
-        if (!dateString) return "";
-
-        try {
-            const date = parseISO(dateString);
-            return format(date, "dd/MM/yyyy HH:mm", { locale: fr });
-        } catch (error) {
-            console.warn("Erreur de formatage de date:", error);
-            return dateString;
-        }
-    };
-
-    const formatDateForMobile = (dateString: string) => {
-        if (!dateString) return "";
-
-        try {
-            const date = parseISO(dateString);
-            return format(date, "dd/MM/yy", { locale: fr });
-        } catch (error) {
-            return dateString.split('T')[0];
-        }
-    }
-
-    // Définition des colonnes pour TanStack Table
-    const columns = useMemo(() => [
-        {
-            accessorKey: 'dateInvestissement',
-            header: 'Date',
-            cell: (info: any) => (
-                <div className="font-medium text-center">
-                    {formatDate(info.getValue())}
-                </div>
-            ),
-        },
-        {
-            accessorKey: 'nomInvestisseur',
-            header: 'Investisseur',
-            cell: (info: any) => (
-                <div className="text-center">
-                    <span className="font-semibold rounded-full px-2 py-1 text-center">
-                        {info.getValue()}
-                    </span>
-                </div>
-            ),
-        },
-        {
-            accessorKey: 'montant',
-            header: 'Montant du pret',
-            cell: (info: any) => (
-                <div className="text-center">
-                    {info.getValue()} FCFA
-                </div>
-            ),
-        },
-        {
-            accessorKey: 'deadline',
-            header: 'Echéance',
-            cell: (info: any) => (
-                <div className="text-center">
-                    {formatDate(info.getValue())}
-                </div>
-            ),
-        },
-        {
-            accessorKey: 'actions',
-            header: 'Actions',
-            cell: (info: any) => {
-                const investissement = info.row.original
-                return (
-                    <div className="text-center">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button className="bg-red-400 hover:bg-red-600 cursor-pointer">
-                                    <MoreHorizontal className="h-4 w-4 cursor-pointer" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                    <InvestDetailModal investissement={investissement} />
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                    <ModifierInvestModal investissement={investissement} />
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                    <SupprimerInvestModal investissement={investissement} />
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                )
-            },
-        },
-    ], [])
-
-    const table = useReactTable({
-        data: investissements || [],
-        columns,
-        state: {
-            sorting,
-            columnFilters,
-            globalFilter,
-        },
-        onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
-        onGlobalFilterChange: setGlobalFilter,
-        getCoreRowModel: getCoreRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-    })
-
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center p-8">
-                <p>Chargement des investissements...</p>
+  // TODO: Mettre les colonnes dans un fichier séparé
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: 'dateInvestissement',
+        header: 'Date',
+        cell: (info: any) => <div className="font-medium">{formatDateFR(info.getValue())}</div>,
+      },
+      {
+        accessorKey: 'nomInvestisseur',
+        header: 'Investisseur',
+        cell: (info: any) => (
+          <div className="">
+            <span className="font-semibold rounded-full px-2 py-1 ">{info.getValue()}</span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'montant',
+        header: 'Montant du pret',
+        cell: (info) => formatCFA(info.getValue()),
+      },
+      {
+        accessorKey: 'deadline',
+        header: 'Echéance',
+        cell: (info) => formatDateFR(info.getValue()),
+      },
+      {
+        accessorKey: 'actions',
+        header: 'Actions',
+        cell: (info: any) => {
+          const investissement = info.row.original;
+          return (
+            <div className="text-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="h-4 w-4 cursor-pointer" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <InvestDetailModal investissement={investissement} />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <ModifierInvestModal investissement={investissement} />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                    <SupprimerInvestModal investissement={investissement} />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-        );
-    }
+          );
+        },
+      },
+    ],
+    [],
+  );
 
-    if (isError) {
-        return (
-            <div className="flex justify-center items-center p-8">
-                <p className="text-red-500">Erreur lors du chargement des investissements</p>
-            </div>
-        );
-    }
+  const table = useReactTable({
+    data: investissements || [],
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 
-    return (
-        <div className="">
-            <Card className="shadow-lg border-0">
-                <CardHeader>
-                    <CardTitle>
-                        <div className="flex justify-between items-center">
-                            <p className="font-bold text-sm md:text-xl lg:text-2xl">Liste des investissements</p>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 font-normal font-exo text-sm">
-                                <InvestissementDateFilter />
-                                <InvestisseurNameFilter />
-                                <AddInvestModal />
-                            </div>
-                        </div>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                    {/* Version Desktop */}
-                    <div className="hidden md:block">
-                        <div className="space-y-4">
-                            {/* Barre de recherche globale */}
-                            <div className="mb-4 px-4">
-                                <input
-                                    type="text"
-                                    value={globalFilter ?? ''}
-                                    onChange={(e) => setGlobalFilter(e.target.value)}
-                                    placeholder="Rechercher..."
-                                    className="px-4 py-2 border border-gray-300 rounded-lg w-full max-w-sm focus:outline-none focus:ring-2 ring-1 ring-gray-300 focus:ring-blue-500"
-                                />
-                            </div>
-
-                            {/* Tableau */}
-                            <div className="overflow-x-auto border border-gray-200 rounded-lg shadow bg-white">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-red-500 hover:bg-red-600">
-                                        {table.getHeaderGroups().map((headerGroup) => (
-                                            <tr key={headerGroup.id}>
-                                                {headerGroup.headers.map((header) => (
-                                                    <th
-                                                        key={header.id}
-                                                        className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-red-600 bg-[#fb2c36] select-none"
-                                                        onClick={header.column.getToggleSortingHandler()}
-                                                    >
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            {flexRender(
-                                                                header.column.columnDef.header,
-                                                                header.getContext()
-                                                            )}
-                                                            {header.column.getIsSorted() === 'asc' && ' 🔼'}
-                                                            {header.column.getIsSorted() === 'desc' && ' 🔽'}
-                                                        </div>
-                                                    </th>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {table.getRowModel().rows.map((row) => (
-                                            <tr key={row.id} className="transition-colors hover:bg-gray-50">
-                                                {row.getVisibleCells().map((cell) => (
-                                                    <td
-                                                        key={cell.id}
-                                                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-b-2"
-                                                    >
-                                                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Version Mobile */}
-                    <div className="md:hidden space-y-4 p-4">
-                        {investissements?.map((investissement: any) => (
-                            <div key={investissement.id} className="bg-white border rounded-lg p-4 shadow-sm">
-                                <div className="flex justify-between items-start mb-3">
-                                    <p className="text-sm text-gray-500">
-                                        {formatDateForMobile(investissement.dateInvestissement)}
-                                    </p>
-                                    <h3 className="font-semibold rounded-md px-2 text-sm">
-                                        {investissement.nomInvestisseur}
-                                    </h3>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                        <span className="text-gray-600">Montant total :</span>
-                                        <span className="text-black ml-2">{investissement.montant} FCFA</span>
-                                    </div>
-                                    <div>
-                                        <span className="text-gray-600">Echéance :</span>
-                                        <span className="text-black ml-2">{formatDateForMobile(investissement.deadline)}</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <Button variant="default" size="sm">
-                                            <Eye className="h-4 w-4 mr-1" />
-                                        </Button>
-                                        <ModifierInvestModal investissement={investissement} />
-                                        <SupprimerInvestModal investissement={investissement} />
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Message si aucun investissement */}
-                    {!investissements || investissements.length === 0 && (
-                        <div className="p-8 text-center text-gray-500">
-                            <p>Aucun investissement trouvé</p>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <Input className="max-w-sm" type="text" value={filters.nomInvestisseur ?? ''} onChange={(e) => handleFilterChange('nomInvestisseur', e.target.value)} placeholder="Rechercher par nom..." />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <InvestissementDateFilter dateInvestissement={filters.dateInvestissement} onFilterChange={handleFilterChange} />
+          <AddInvestModal />
         </div>
-    )
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="hidden md:block">
+          <div className="space-y-4">
+            {/* Tableau HeroUI */}
+            <div className="overflow-x-auto">
+              <Table
+                isStriped
+                bottomContent={
+                  pagination?.pageCount! > 1 && (
+                    <div className="flex justify-center pt-4 sm:pt-6">
+                      <Pagination total={pagination?.pageCount ?? 1} page={filters.page + 1} onChange={pagination.handlePageChange} color="primary" />
+                    </div>
+                  )
+                }
+              >
+                <TableHeader>
+                  {table.getFlatHeaders().map((header) => (
+                    <TableColumn key={header.id} className="text-primary" allowsSorting={header.column.getCanSort()} onClick={header.column.getToggleSortingHandler()}>
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableColumn>
+                  ))}
+                </TableHeader>
+                <TableBody emptyContent={'Aucun résultat trouvé.'} isLoading={isLoading} loadingContent={<Loader2 className="animate-spin" />}>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }

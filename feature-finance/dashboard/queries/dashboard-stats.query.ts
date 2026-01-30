@@ -23,7 +23,6 @@ export const dashboardStatsQueryOption = (params: DashboardStatsParams) => {
             }
             return result.data;
         },
-        placeholderData: (previousData: any) => previousData,
         staleTime: 5 * 60 * 1000, // 5 minutes
         refetchOnWindowFocus: false,
         refetchOnMount: true,

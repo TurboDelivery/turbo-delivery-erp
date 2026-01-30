@@ -105,9 +105,7 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                                                     <div>Email</div>
                                                 </div>
                                             </div>
-                                            <div className="mt-4">
-                                                
-                                            </div>
+                                            <div className="mt-4"></div>
                                         </div>
                                         <div className="mt-6 grid grid-cols-1 gap-4 ltr:text-left rtl:text-right">
                                             <div className="flex items-center">
