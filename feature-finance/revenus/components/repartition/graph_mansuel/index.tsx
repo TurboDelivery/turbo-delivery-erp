@@ -85,7 +85,7 @@ export default function RevenusQuotidiens({}: RevenusQuotidiensProps) {
         return (
             <div className="w-full px-4 py-6 -mt-6">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-                    <h2 className="text-xl font-bold">Gestion des revenus</h2>
+                 
                 </div>
                 
                 <div className="w-full px-6 py-8 shadow-lg rounded-lg border border-gray-200">
@@ -102,7 +102,7 @@ export default function RevenusQuotidiens({}: RevenusQuotidiensProps) {
         return (
             <div className="w-full px-4 py-6 -mt-6">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-                    <h2 className="text-xl font-bold">Gestion des revenus</h2>
+                  
                 </div>
                 
                 <div className="w-full px-6 py-8 shadow-lg rounded-lg border border-gray-200">
@@ -118,7 +118,7 @@ export default function RevenusQuotidiens({}: RevenusQuotidiensProps) {
     return (
         <div className="w-full px-4 py-6 -mt-6">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
-                <h2 className="text-xl font-bold">Gestion des revenus</h2>
+              
             </div>
             
             <div className="w-full px-6 py-8 shadow-lg rounded-lg border border-gray-200">
