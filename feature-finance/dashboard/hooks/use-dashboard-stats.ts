@@ -38,8 +38,8 @@ export function useDashboardStats(year: number = new Date().getFullYear()) {
                 // Calculer les investissements
                 const investissements = monthData.investissements.montant;
                 
-                // Calculer le cumul des comptes (revenus - dépenses)
-                cumulativeComptes += revenus - depenses;
+                // Calculer le cumul des comptes (recouvrements + investissements - dépenses)
+                cumulativeComptes += recouvrements + investissements - depenses;
                 
                 return {
                     month: MONTH_NAMES[monthNum - 1],
@@ -83,7 +83,7 @@ export function useDashboardStats(year: number = new Date().getFullYear()) {
             totalDepenses,
             totalRecouvrements,
             totalInvestissements,
-            totalComptes: totalRevenus - totalDepenses,
+            totalComptes: totalRecouvrements + totalInvestissements - totalDepenses,
         };
     }, [data, year]);
 
