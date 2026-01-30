@@ -13,11 +13,11 @@ import { useCategorieDepensesListQuery } from '../../queries/category/categorie-
 import { DepenseForm } from '../common/depense-form';
 
 interface ModifierDepenseModalProps {
-  depenses: IDepense;
+  depense: IDepense;
 }
 
-export function ModifierDepenseModal({ depenses }: ModifierDepenseModalProps) {
-  const [dateDepense, setDateDepense] = useState<Date | undefined>(depenses.dateDepense ? new Date(depenses.dateDepense) : new Date());
+export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
+  const [dateDepense, setDateDepense] = useState<Date | undefined>(depense.dateDepense ? new Date(depense.dateDepense) : new Date());
   const [open, setOpen] = useState(false);
   const { data: categories, isLoading: categoriesLoading } = useCategorieDepensesListQuery({});
 
@@ -30,22 +30,22 @@ export function ModifierDepenseModal({ depenses }: ModifierDepenseModalProps) {
   } = useForm<DepenseUpdateDTO>({
     resolver: zodResolver(DepenseUpdateSchema),
     defaultValues: {
-      montant: depenses.montant,
-      description: depenses.description,
-      dateDepense: new Date(depenses.dateDepense),
-      categorie: depenses.categorie,
+      montant: depense.montant,
+      description: depense.description,
+      dateDepense: new Date(depense.dateDepense),
+      categorie: depense.categorie,
     },
   });
 
   // Synchroniser les dates avec le form
   useEffect(() => {
-    if (depenses.dateDepense) {
-      setDateDepense(new Date(depenses.dateDepense));
+    if (depense.dateDepense) {
+      setDateDepense(new Date(depense.dateDepense));
     }
-    setValue('montant', depenses.montant);
-    setValue('description', depenses.description);
-    setValue('categorie.id', depenses.categorie?.id || '');
-  }, [depenses, setValue]);
+    setValue('montant', depense.montant);
+    setValue('description', depense.description);
+    setValue('categorie.id', depense.categorie?.id || '');
+  }, [depense, setValue]);
 
   const modifierDepenseMutation = useModifierDepenseMutation();
 
@@ -57,10 +57,11 @@ export function ModifierDepenseModal({ depenses }: ModifierDepenseModalProps) {
         montant: data.montant,
         dateDepense: dateDepense || data.dateDepense,
         categorie: data.categorie,
+        sourcePaiement: data.sourcePaiement,
       };
 
       await modifierDepenseMutation.mutateAsync({
-        id: depenses.id,
+        id: depense.id,
         data: formData,
       });
 
@@ -101,7 +102,8 @@ export function ModifierDepenseModal({ depenses }: ModifierDepenseModalProps) {
             register={register}
             errors={errors}
             setValue={setValue}
-            defaultCategorieId={depenses.categorie?.id}
+            defaultCategorieId={depense.categorie?.id}
+            defaultSource={depense.sourcePaiement}
           />
 
           <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-2">

@@ -1,17 +1,18 @@
 export type IDepense = {
-  id: string
-  libelle: string
-  montant: number
-  description?: string
-  dateDepense: string
+  id: string;
+  libelle: string;
+  montant: number;
+  description?: string;
+  dateDepense: string;
+  sourcePaiement?: string;
   categorie: {
-    id: string
-    nomCategorie: string
-    description: string
-  }
-  createdAt: string
-  updatedAt: string
-}
+    id: string;
+    nomCategorie: string;
+    description: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+};
 
 export interface IDepensesParams {
   page?: number;

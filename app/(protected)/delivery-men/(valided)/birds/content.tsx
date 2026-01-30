@@ -30,7 +30,7 @@ export default function Content({ initialData, restaurants }: Props) {
   ];
 
   // Fonction de rendu des cellules
-  const renderNonAssignedCell = (item: any, columnKey: string) => {
+  const renderNonAssignedCell = (item: any, columnKey: string) => {7894
     switch (columnKey) {
       case 'nom':
         return (

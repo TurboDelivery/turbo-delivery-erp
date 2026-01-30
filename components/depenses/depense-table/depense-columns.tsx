@@ -22,7 +22,7 @@ const DepenseActions = React.memo(({ depense }: { depense: IDepense }) => {
         {/*  <DepenseDetailModal depense={depense} />*/}
         {/*</DropdownMenuItem>*/}
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-          <ModifierDepenseModal depenses={depense} />
+          <ModifierDepenseModal depense={depense} />
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
           <SupprimerDepenseModal depense={depense} />
