@@ -1,11 +1,7 @@
 'use client';
 import { useCallback, useMemo, useState } from 'react';
-import { IInvestissement, IInvestissementParams } from '../types/revenus.types';
+import { IInvestissementParams } from '../types/revenus.types';
 import { useInvestissementListQuery } from '../queries/investissement/investissement-list.query';
-
-export interface IUseInvestissementListProps {
-  initialData?: IInvestissement[];
-}
 
 export interface InvestissementFilters {
   nomInvestisseur: string;
@@ -21,11 +17,11 @@ const initialFilters: InvestissementFilters = {
   dateInvestissement: '',
   deadline: '',
   montant: 0,
-  page: 1,
+  page: 0,
   limit: 10,
 };
 
-export function useInvestissementList({ initialData = [] }: IUseInvestissementListProps = {}) {
+export function useInvestissementList() {
   // Gestion des filtres avec useState
   const [filters, setFilters] = useState<InvestissementFilters>(initialFilters);
 
@@ -58,6 +54,18 @@ export function useInvestissementList({ initialData = [] }: IUseInvestissementLi
   // Récupération des données via la query
   const { data, isLoading, isError, error, isFetching } = useInvestissementListQuery(currentSearchParams);
 
+  const pagination = {
+    pageCount: data?.totalPages || 0,
+    totalItems: data?.totalElements || 0,
+    page: filters?.page ?? 0,
+    handlePageChange: (page: number) => {
+      setFilters((prev) => ({
+        ...prev,
+        page: page,
+      }));
+    },
+  };
+
   // Fonction pour mettre à jour les filtres
   const updateFilters = useCallback((newFilters: Partial<InvestissementFilters>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
@@ -88,7 +96,7 @@ export function useInvestissementList({ initialData = [] }: IUseInvestissementLi
   );
 
   return {
-    investissements: data || initialData,
+    investissements: data?.content || [],
     isLoading: isLoading || isFetching,
     isError,
     error,
@@ -98,5 +106,6 @@ export function useInvestissementList({ initialData = [] }: IUseInvestissementLi
     handlePageChange: (page: number) => handleFilterChange('page', page),
     handleLimitChange: (limit: number) => handleFilterChange('limit', limit),
     resetFilters: () => setFilters(initialFilters),
+    pagination,
   };
 }

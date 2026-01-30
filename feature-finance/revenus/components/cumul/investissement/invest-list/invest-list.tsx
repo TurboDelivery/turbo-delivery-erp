@@ -16,7 +16,7 @@ import { Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeade
 import { formatCFA, formatDateFR } from '@/src/actions/bonLivraison.mapper';
 
 export default function InvestissementList() {
-  const { investissements, isLoading, filters, handleFilterChange } = useInvestissementList();
+  const { investissements, isLoading, filters, handleFilterChange, pagination } = useInvestissementList();
   const [sorting, setSorting] = useState<SortingState>([]);
 
   // TODO: Mettre les colonnes dans un fichier séparé
@@ -107,9 +107,11 @@ export default function InvestissementList() {
               <Table
                 isStriped
                 bottomContent={
-                  <div className="flex justify-center pt-4 sm:pt-6">
-                    <Pagination total={Math.ceil(investissements.length / filters.limit) || 1} page={filters.page} onChange={(page) => handleFilterChange('page', page)} color="primary" />
-                  </div>
+                  pagination?.pageCount! > 1 && (
+                    <div className="flex justify-center pt-4 sm:pt-6">
+                      <Pagination total={pagination?.pageCount ?? 1} page={filters.page + 1} onChange={pagination.handlePageChange} color="primary" />
+                    </div>
+                  )
                 }
               >
                 <TableHeader>

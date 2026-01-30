@@ -13,8 +13,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { InvestissementCreateDTO, InvestissementCreateSchema } from '@/feature-finance/revenus/schemas/investissement.schema';
 
 export function AddInvestModal() {
-  const [selectedDateInvestissement, setSelectedDateInvestissement] = useState<Date | undefined>(undefined);
-  const [selectedDeadline, setSelectedDeadline] = useState<Date | undefined>(undefined);
   const [open, setOpen] = useState(false); // État pour contrôler la fermeture du dialogue
 
   // Configuration du formulaire avec react-hook-form et zod
@@ -40,8 +38,6 @@ export function AddInvestModal() {
   // Réinitialiser aussi les états des dates
   const resetForm = () => {
     reset();
-    setSelectedDateInvestissement(undefined);
-    setSelectedDeadline(undefined);
   };
 
   // Gestion de la soumission du formulaire
@@ -93,11 +89,6 @@ export function AddInvestModal() {
                   onChange={(e) => {
                     const value = e.target.value;
                     setValue('dateInvestissement', value);
-                    if (value) {
-                      setSelectedDateInvestissement(new Date(value));
-                    } else {
-                      setSelectedDateInvestissement(undefined);
-                    }
                   }}
                 />
                 {errors.dateInvestissement && <p className="text-red-500 text-sm">{errors.dateInvestissement.message}</p>}
@@ -136,11 +127,6 @@ export function AddInvestModal() {
                   onChange={(e) => {
                     const value = e.target.value;
                     setValue('deadline', value);
-                    if (value) {
-                      setSelectedDeadline(new Date(value));
-                    } else {
-                      setSelectedDeadline(undefined);
-                    }
                   }}
                 />
                 {errors.deadline && <p className="text-red-500 text-sm">{errors.deadline.message}</p>}
