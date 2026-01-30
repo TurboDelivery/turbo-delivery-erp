@@ -52,6 +52,7 @@ export default function Statistics() {
             isCurrency: true,
         },
     ];
+    
 
     return (
         <div className="w-full px-4 py-6">
