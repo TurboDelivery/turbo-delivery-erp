@@ -198,7 +198,7 @@ export function ListeDesLivraisons() {
             <div className="flex justify-between flex-wrap mt-20">
                 <div className="flex gap-4">
                     <span> Nombre de jour</span>
-                    <Button className="h-6 pl-4 pr-4">
+                    <Button className="h-6 pl-4 pr-4" variant={'outline'}>
                         {data.length} Jour(s)
                     </Button>
                     <div className="flex gap-4">
@@ -208,8 +208,8 @@ export function ListeDesLivraisons() {
                             {
                                 data.map((item: any) => {
                                     const coutTotal = 0;
-
-                                    return coutTotal + item.cout;
+                                    const cout = coutTotal + item.cout;
+                                    return cout;
                                 })[0]
                             }{' '}
                         </span>{' '}
@@ -217,7 +217,7 @@ export function ListeDesLivraisons() {
                     </div>
                 </div>
                 <div className="flex pt-0 flex-wrap gap-2 sm:pt-4 lg:pt-0 md:pt-0 xl:pt-0">
-                    <Button className="h-8">
+                    <Button className="h-8" variant={'outline'}>
                         <Edit className="mr-2" /> Modifier
                     </Button>
                     <Button className="h-8" variant={'default'}>
