@@ -15,9 +15,8 @@ export default function RevenueGeneralClient() {
         <div>
             <RevenusHeader title="Gestion des revenus"/>
             {/* <FilterRestaurant/> */}
-            <Statistics livraisons={livraisons} 
-            commissions={commissionspourcentage} />   
-            <RevenusQuotidien livraisons={livraisons} commissions={commissionspourcentage} />
+            <Statistics />   
+            <RevenusQuotidien />
             <Recouvrement/>
         </div>
     );

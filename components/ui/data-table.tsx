@@ -402,7 +402,7 @@ const expandColumn = {
   header: () => null,
   cell: ({ row }: any) => (
     <div className="flex items-center w-4">
-      <Button variant="icon" onClick={() => row.toggleExpanded()} aria-label={row.getIsExpanded() ? 'Collapse' : 'Expand'}>
+      <Button variant="outline" onClick={() => row.toggleExpanded()} aria-label={row.getIsExpanded() ? 'Collapse' : 'Expand'}>
         {row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
       </Button>
     </div>

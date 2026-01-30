@@ -24,7 +24,7 @@ export function DepensesFilters({ filters, handleFilterChange, categorie_depense
         handleEnumFilterChange={handleFilterChange}
         value={filters.categorie}
       />
-      <CreerDepenseModal depenses={depenses}/>
+      <CreerDepenseModal />
     </div>
   )
 }

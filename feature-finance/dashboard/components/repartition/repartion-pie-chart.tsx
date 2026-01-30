@@ -52,7 +52,7 @@ export function RepartionPieDonut() {
         limit: 1000,
     })
 
-    const depenses = depensesData || []
+    const depenses = depensesData?.content || []
 
     // Calcul des données dynamiques pour le mois en cours
     const chartData = useMemo(() => {
