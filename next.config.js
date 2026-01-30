@@ -4,6 +4,7 @@ const nextConfig = {
   swcMinify: true,
   eslint: {
     ignoreDuringBuilds: true,
+    
   },
   output: 'standalone',
   images: {
