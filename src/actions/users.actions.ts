@@ -19,7 +19,7 @@ const usersEndpoints = {
     profile: { endpoint: `${BASE_URL}/profile`, method: 'GET' },
     getAll: { endpoint: `${BASE_URL}/get/0`, method: 'GET' },
     getOne: { endpoint: `${BASE_URL}/info`, method: 'GET' },
-    update: { endpoint: `${BASE_URL}/update`, method: 'POST' },
+    update: { endpoint: `${BASE_URL}/update/user`, method: 'POST' },
     disableEnable: { endpoint: (id: string) => `${BASE_URL}/disable/enable/${id}`, method: 'GET' },
     deleteRestaure: { endpoint: (id: string) => `${BASE_URL}/delete/restaured/${id}`, method: 'GET' },
     create: { endpoint: `${BASE_URL}/create`, method: 'POST' },
@@ -216,6 +216,50 @@ export async function createUser(formData: FormData): Promise<ActionResult<{ pas
         };
     }
 }
+
+export async function updateUser(
+    userId: string,
+    formData: FormData
+): Promise<ActionResult<{ user: User }>> {
+    const {
+        success,
+        data: formdata,
+        errorsInArray,
+    } = processFormData(createUserSchema, formData, {
+        useDynamicValidation: true,
+    });
+
+    if (!success && errorsInArray) {
+        return {
+            status: 'error',
+            message: errorsInArray[0].message ?? 'Données manquantes ou mal formatées',
+        };
+    }
+
+    try {
+        const data = await apiClientHttp.request<{ user: User }>({
+            endpoint: `${usersEndpoints.update.endpoint}/${userId}`,
+            method: usersEndpoints.update.method, // généralement PUT ou PATCH
+            data: formdata,
+            service: 'erp',
+        });
+
+        return {
+            status: 'success',
+            message: 'Utilisateur mis à jour avec succès',
+            data,
+        };
+    } catch (error: any) {
+        return {
+            status: 'error',
+            message:
+                error?.response?.data?.message ||
+                error?.response?.data ||
+                "Erreur lors de la mise à jour de l'utilisateur",
+        };
+    }
+}
+
 
 export async function deleteRestaureUser(id: string, deleted: boolean): Promise<ActionResult<any>> {
     try {

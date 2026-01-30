@@ -1,32 +1,33 @@
 'use client';
 
-import IconX from '@/components/icon/icon-x';
-import { getAllRoles } from '@/src/actions/roles.actions';
-import { _createUserSchema, createUserSchema } from '@/src/schemas/users.schema';
+import { toast } from 'react-toastify';
 import { Role, User } from '@/types/models';
-import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
+import IconX from '@/components/icon/icon-x';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Input, Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
-import React, { Fragment, useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
 import { Controller, useForm } from 'react-hook-form';
+import { useFormState, useFormStatus } from 'react-dom';
+import { updateUser } from '@/src/actions/users.actions';
+import { getAllRoles } from '@/src/actions/roles.actions';
+import React, { Fragment, useEffect, useState } from 'react';
+import { Button, Input, Select, SelectItem } from "@heroui/react";
+import { _createUserSchema, createUserSchema } from '@/src/schemas/users.schema';
+import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
 
 const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen: (open: boolean) => void }) => {
     const { pending } = useFormStatus();
-
+    
     const [state, formAction] = useFormState(
         async (_: any, formData: FormData) => {
-            // const result = await changePassword(formData);
+            const result = await updateUser(user.id, formData);
 
-            // if (result.status === 'success') {
-            //     toast.success(result.message || 'Bravo ! vous avez réussi');
-            //     router.refresh();
-            // } else {
-            //     toast.error(result.message || "Erreur lors de l'envoi de l'email");
-            // }
+            if (result.status === 'success') {
+                toast.success(result.message || 'Utilisateur modifié avec succès');
+                window.location.reload();
+            } else {
+                toast.error(result.message || "Erreur lors de l'envoi de l'email");
+            }
 
-            // return result;
-            return _;
+            return result;
         },
         {
             data: null,
