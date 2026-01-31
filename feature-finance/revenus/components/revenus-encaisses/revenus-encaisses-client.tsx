@@ -24,9 +24,7 @@ export default function RevenusEncaissesClient() {
         initialData: []
     });
 
-    const { investissements, isLoading: isLoadingInvestissements } = useInvestissementList({
-        initialData: []
-    });
+    const { investissements, isLoading: isLoadingInvestissements } = useInvestissementList();
 
     // Calculer les totaux
     const totalRecouvrements = recouvrementsData?.reduce((sum: number, rec: any) => sum + (rec.montant || 0), 0) || 0;
@@ -140,8 +138,8 @@ export default function RevenusEncaissesClient() {
         if (!aIsPDG && bIsPDG) return 1;
         
         // Ensuite, trier par date décroissante
-        const dateA = new Date(a.dateInvestissement || a.createdAt || 0);
-        const dateB = new Date(b.dateInvestissement || b.createdAt || 0);
+        const dateA = new Date(a.dateInvestissement || 0);
+        const dateB = new Date(b.dateInvestissement || 0);
         return dateB.getTime() - dateA.getTime();
     });
 
