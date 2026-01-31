@@ -52,7 +52,7 @@ export default function Statistics() {
             bgColor: "bg-blue-100",
             trend: "up" as const,
             clickable: true,
-            onClick: () => router.push('/finance/revenue')
+            onClick: () => router.push('/finance/revenus-encaisses')
         },
         {
             title: "Total Dépenses",
