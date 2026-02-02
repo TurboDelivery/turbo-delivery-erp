@@ -133,7 +133,8 @@ export default function Content({ restaurants, profile }: ContentProps) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
       toast.success(`${dataToExport.length} ligne(s) exportée(s) en CSV`);
-    } else if (format === 'excel') {
+    }
+    else if (format === 'excel') {
       // Simulation d'export Excel (création d'un CSV compatible Excel)
       const xlsxData = generateXlsTickets(dataToExport);
 
@@ -151,7 +152,8 @@ export default function Content({ restaurants, profile }: ContentProps) {
       window.URL.revokeObjectURL(url);
 
       toast.success(`${dataToExport.length} ligne(s) exportée(s) en Excel`);
-    } else if (format === 'pdf') {
+    }
+    else if (format === 'pdf') {
       // Création d'un document HTML pour impression PDF
       const htmlContent = generatePdfTemplate(dataToExport);
 
