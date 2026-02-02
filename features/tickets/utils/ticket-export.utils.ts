@@ -67,6 +67,26 @@ export function generatePdfTemplate(tickets: Ticket[]): string {
   `;
 }
 
+export function generateXlsTickets(tickets: Ticket[]) {
+  const worksheetData = tickets.map((t) => ({
+    'Code Check': t.code,
+    Livreur: t.livreur,
+    Partner: t.restaurant,
+    'Montant de Livraison': t.montantLivraison,
+    'Montant de Commande': t.montantCommande,
+    Commission: t.commission,
+    Date: formatDateFR(t.date),
+    Heure: formatHoursMinutes(t.heure),
+  }));
+
+  const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+  worksheet['!cols'] = autoFitColumns(worksheetData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Tickets de Livraison');
+
+  return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+}
+
 export function generateXlsTemplate(tickets: newTicket[]) {
   const worksheetData = tickets.map((t) => ({
     'Code Check': t.reference,
@@ -85,6 +105,3 @@ export function generateXlsTemplate(tickets: newTicket[]) {
 
   return XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 }
-
-
-

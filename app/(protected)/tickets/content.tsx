@@ -13,7 +13,7 @@ import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { useLivreurs } from '@/features/tickets/hooks/use-livreurs';
 import PriceListSelect from '@/components/tickets/price-list-select';
 import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
-import { generatePdfTemplate } from '@/features/tickets/utils/ticket-export.utils';
+import { generatePdfTemplate, generateXlsTickets } from '@/features/tickets/utils/ticket-export.utils';
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { CheckSquare, ChevronDown, File, FileText, Loader2, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
 
@@ -135,20 +135,21 @@ export default function Content({ restaurants, profile }: ContentProps) {
       toast.success(`${dataToExport.length} ligne(s) exportée(s) en CSV`);
     } else if (format === 'excel') {
       // Simulation d'export Excel (création d'un CSV compatible Excel)
-      const headers = ['Code Check', 'Livreur', 'Partner', 'Montant de Livraison', 'Montant de Commande', 'Commission', 'Date', 'Heure'];
-      const csvContent = [headers.join('\t'), ...dataToExport.map((t) => [t.id, t.livreur, t.restaurant, t.montantLivraison, t.montantCommande, t.coutLivraison, t.date, t.heure].join('\t'))].join(
-        '\n',
-      );
+      const xlsxData = generateXlsTickets(dataToExport);
 
-      const blob = new Blob(['\ufeff' + csvContent], { type: 'application/vnd.ms-excel' });
+      const blob = new Blob([xlsxData], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
       const url = window.URL.createObjectURL(blob);
+
       const a = document.createElement('a');
       a.href = url;
       a.download = `tickets_${new Date().toISOString().split('T')[0]}.xls`;
-      document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+
       window.URL.revokeObjectURL(url);
+
       toast.success(`${dataToExport.length} ligne(s) exportée(s) en Excel`);
     } else if (format === 'pdf') {
       // Création d'un document HTML pour impression PDF
