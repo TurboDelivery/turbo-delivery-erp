@@ -13,6 +13,7 @@ import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvr
 import { useInvestissementList } from "@/feature-finance/revenus/hooks/use-investissement-list"
 import { getAllChiffreAffaire } from "@/src/actions/statistiques.action"
 import { YearFilter } from "./year-filter"
+import { MonthFilter } from "./month-filter"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 // Solution de secours pour le formatage des montants
@@ -54,6 +55,7 @@ const chartConfig = {
 
 export function ChartLineMultiple() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+    const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
     const { chartData, yearlyTotals, isLoading, isError } = useDashboardStats(selectedYear)
     
     // État pour les données de l'API statistiques (même source que le dashboard principal)
@@ -62,6 +64,102 @@ export function ChartLineMultiple() {
     // Hooks pour les données de recouvrements et investissements
     const { recouvrement: recouvrementsData } = useRecouvrementList({ initialData: [] })
     const { investissements } = useInvestissementList()
+    
+    // Fonction pour filtrer les données par mois
+    const filterDataByMonth = (data: any[], dateField: string) => {
+        if (!selectedMonth) return data
+        
+        return data.filter(item => {
+            const date = new Date(item[dateField])
+            return date.getMonth() + 1 === selectedMonth && date.getFullYear() === selectedYear
+        })
+    }
+    
+    // Fonction pour filtrer les revenus totaux par mois (basé sur les données du dashboard)
+    const filterRevenusByMonth = () => {
+        console.log('=== DÉBUT FILTRE REVENUS PAR MOIS ===')
+        console.log('selectedMonth:', selectedMonth)
+        console.log('chartData:', chartData)
+        console.log('chartData.length:', chartData.length)
+        
+        if (!selectedMonth || !chartData.length) {
+            console.log('Pas de mois sélectionné ou pas de données chartData')
+            // Si aucun mois sélectionné, utiliser les totaux complets
+            return {
+                totalFraisLivraison: chiffreAffaireData?.fraisLivraisonTotalTermine || 0,
+                totalCommissions: chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
+            }
+        }
+        
+        // Afficher tous les mois disponibles dans chartData
+        console.log('Mois disponibles dans chartData:')
+        chartData.forEach((item, index) => {
+            console.log(`  ${index}: "${item.month}" -> revenus: ${item.revenus}, depenses: ${item.depenses}`)
+        })
+        
+        // Utiliser les noms abrégés qui correspondent à chartData
+        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc']
+        const selectedMonthName = monthNames[selectedMonth - 1]
+        console.log('Mois recherché:', `"${selectedMonthName}"`)
+        
+        // Chercher le mois correspondant dans les données du graphique
+        const monthData = chartData.find(item => {
+            console.log(`Comparaison: "${item.month}" === "${selectedMonthName}" => ${item.month === selectedMonthName}`)
+            return item.month === selectedMonthName
+        })
+        
+        console.log(`Données du mois ${selectedMonth} (${selectedMonthName}):`, monthData)
+        
+        if (monthData) {
+            // Utiliser les données exactes du graphique pour la cohérence
+            const revenusDuMois = monthData.revenus || 0
+            const depensesDuMois = monthData.depenses || 0
+            
+            console.log(`Revenus du graphique pour le mois: ${revenusDuMois.toLocaleString()}`)
+            console.log(`Dépenses du graphique pour le mois: ${depensesDuMois.toLocaleString()}`)
+            
+            // Pour les revenus totaux, on utilise la valeur "revenus" du graphique
+            // qui correspond au CA du mois (frais livraison + commissions)
+            console.log('=== FIN FILTRE REVENUS PAR MOIS (TROUVÉ) ===')
+            return {
+                totalFraisLivraison: revenusDuMois, // Le CA total du mois
+                totalCommissions: 0 // Pas besoin de séparer car revenus contient déjà le total
+            }
+        }
+        
+        // Fallback : utiliser 0 si pas de données pour ce mois
+        console.log(`Pas de données trouvées pour le mois ${selectedMonth}, utilisation de 0`)
+        console.log('=== FIN FILTRE REVENUS PAR MOIS (NON TROUVÉ) ===')
+        return {
+            totalFraisLivraison: 0,
+            totalCommissions: 0
+        }
+    }
+    
+    // Fonction pour filtrer les dépenses par mois
+    const filterDepensesByMonth = () => {
+        if (!selectedMonth || !chartData.length) {
+            // Si aucun mois sélectionné, utiliser les totaux complets
+            return yearlyTotals.totalDepenses
+        }
+        
+        // Utiliser les noms abrégés qui correspondent à chartData
+        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc']
+        const selectedMonthName = monthNames[selectedMonth - 1]
+        
+        // Chercher le mois correspondant dans les données du graphique
+        const monthData = chartData.find(item => item.month === selectedMonthName)
+        
+        if (monthData) {
+            const depensesDuMois = monthData.depenses || 0
+            console.log(`Dépenses du graphique pour ${selectedMonthName}: ${depensesDuMois.toLocaleString()}`)
+            return depensesDuMois
+        }
+        
+        // Fallback : utiliser 0 si pas de données pour ce mois
+        console.log(`Pas de dépenses trouvées pour ${selectedMonthName}, utilisation de 0`)
+        return 0
+    }
     
     // Récupérer les données des API au chargement du composant
     useEffect(() => {
@@ -87,18 +185,53 @@ export function ChartLineMultiple() {
         fetchData()
     }, [recouvrementsData, investissements])
     
-    // Calculer les revenus corrects avec les données du dashboard principal
-    const totalFraisLivraison = chiffreAffaireData?.fraisLivraisonTotalTermine || 0
-    const totalCommissions = chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
+    // Filtrer les données par mois si un mois est sélectionné
+    const filteredRecouvrements = selectedMonth ? filterDataByMonth(recouvrementsData || [], 'dateRecouvrement') : (recouvrementsData || [])
+    const filteredInvestissements = selectedMonth ? filterDataByMonth(investissements || [], 'dateInvestissement') : (investissements || [])
+    
+    // Calculer les revenus corrects avec filtrage par mois
+    const filteredRevenus = filterRevenusByMonth()
+    const totalFraisLivraison = filteredRevenus.totalFraisLivraison
+    const totalCommissions = filteredRevenus.totalCommissions
     const totalRevenus = totalFraisLivraison + totalCommissions
     
-    // Calculer les revenus encaissés avec les hooks directs
-    const totalRecouvrements = recouvrementsData?.reduce((sum: number, rec: any) => sum + (rec.montant || 0), 0) || 0
-    const totalInvestissements = investissements?.reduce((sum: number, inv: any) => sum + (inv.montant || 0), 0) || 0
+    // Filtrer les dépenses par mois aussi
+    const totalDepensesFiltered = filterDepensesByMonth()
+    
+    // Calculer les revenus encaissés avec les données filtrées
+    const totalRecouvrements = filteredRecouvrements.reduce((sum: number, rec: any) => sum + (rec.montant || 0), 0) || 0
+    const totalInvestissements = filteredInvestissements.reduce((sum: number, inv: any) => sum + (inv.montant || 0), 0) || 0
     const totalRevenusEncaisses = totalRecouvrements + totalInvestissements
     
-    // Calculer le solde
-    const soldeComptes = totalRevenusEncaisses - yearlyTotals.totalDepenses
+    // Calculer le solde avec les dépenses filtrées
+    const soldeComptes = totalRevenusEncaisses - totalDepensesFiltered
+
+    // Filtrer les données du graphique selon le mois sélectionné
+    const getFilteredChartData = () => {
+        if (!selectedMonth || !chartData.length) {
+            return chartData // Afficher toutes les données si "Tous"
+        }
+        
+        // Si un mois est sélectionné, afficher toutes les données mais mettre en évidence le mois sélectionné
+        return chartData.map(item => {
+            const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc']
+            const isSelectedMonth = item.month === monthNames[selectedMonth - 1]
+            
+            return {
+                ...item,
+                // Mettre en évidence le mois sélectionné avec des valeurs plus visibles
+                revenus: isSelectedMonth ? item.revenus : item.revenus * 0.3, // 30% de l'opacité pour les autres mois
+                depenses: isSelectedMonth ? item.depenses : item.depenses * 0.3,
+                recouvrements: isSelectedMonth ? item.recouvrements : item.recouvrements * 0.3,
+                investissements: isSelectedMonth ? item.investissements : item.investissements * 0.3,
+                comptes: isSelectedMonth ? item.comptes : item.comptes * 0.3,
+                // Ajouter une propriété pour identifier le mois sélectionné
+                isSelected: isSelectedMonth
+            }
+        })
+    }
+    
+    const filteredChartData = getFilteredChartData()
 
     if (isError) {
         return (
@@ -119,14 +252,24 @@ export function ChartLineMultiple() {
                     <div>
                         <h3 className="font-bold text-lg">Évolution financière mensuelle</h3>
                         <p className="text-sm text-muted-foreground">
-                            Année {selectedYear}
+                            {selectedMonth 
+                                ? `${['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'][selectedMonth]} ${selectedYear}`
+                                : `Année ${selectedYear}`
+                            }
                         </p>
                     </div>
-                    <YearFilter 
-                        selectedYear={selectedYear}
-                        onYearChange={setSelectedYear}
-                        isLoading={isLoading}
-                    />
+                    <div className="flex gap-2">
+                        <MonthFilter 
+                            selectedMonth={selectedMonth}
+                            onMonthChange={setSelectedMonth}
+                            isLoading={isLoading}
+                        />
+                        <YearFilter 
+                            selectedYear={selectedYear}
+                            onYearChange={setSelectedYear}
+                            isLoading={isLoading}
+                        />
+                    </div>
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -141,7 +284,7 @@ export function ChartLineMultiple() {
                     <div className="text-center p-4 rounded-lg" style={{ backgroundColor: "#ef444420" }}>
                         <p className="text-sm font-medium" style={{ color: "#ef4444" }}>Dépenses totales</p>
                         <p className="text-xl font-bold" style={{ color: "#dc2626" }}>
-                            {formatMontantLocal(yearlyTotals.totalDepenses)}
+                            {formatMontantLocal(totalDepensesFiltered)}
                         </p>
                     </div>
                     <div className="text-center p-4 rounded-lg" style={{ backgroundColor: "#3b82f620" }}>
@@ -176,7 +319,7 @@ export function ChartLineMultiple() {
                         </div>
                     ) : (
                         <ChartContainer config={chartConfig} className="h-full w-full">
-                            <LineChart data={chartData}>
+                            <LineChart data={filteredChartData}>
                                 <CartesianGrid strokeDasharray="3 3" />
                                 <XAxis 
                                     dataKey="month" 
@@ -202,7 +345,13 @@ export function ChartLineMultiple() {
                                     dataKey="revenus"
                                     stroke={chartConfig.revenus.color}
                                     strokeWidth={3}
-                                    dot={{ fill: chartConfig.revenus.color, r: 4 }}
+                                    dot={(props: any) => {
+                                        const { cx, cy, payload } = props
+                                        if (payload.isSelected) {
+                                            return <circle cx={cx} cy={cy} r={8} fill={chartConfig.revenus.color} stroke="#fff" strokeWidth={2} />
+                                        }
+                                        return <circle cx={cx} cy={cy} r={4} fill={chartConfig.revenus.color} />
+                                    }}
                                     activeDot={{ r: 6 }}
                                 />
                                 <Line
@@ -210,7 +359,13 @@ export function ChartLineMultiple() {
                                     dataKey="depenses"
                                     stroke={chartConfig.depenses.color}
                                     strokeWidth={3}
-                                    dot={{ fill: chartConfig.depenses.color, r: 4 }}
+                                    dot={(props: any) => {
+                                        const { cx, cy, payload } = props
+                                        if (payload.isSelected) {
+                                            return <circle cx={cx} cy={cy} r={8} fill={chartConfig.depenses.color} stroke="#fff" strokeWidth={2} />
+                                        }
+                                        return <circle cx={cx} cy={cy} r={4} fill={chartConfig.depenses.color} />
+                                    }}
                                     activeDot={{ r: 6 }}
                                 />
                                 <Line
@@ -218,7 +373,13 @@ export function ChartLineMultiple() {
                                     dataKey="recouvrements"
                                     stroke={chartConfig.recouvrements.color}
                                     strokeWidth={3}
-                                    dot={{ fill: chartConfig.recouvrements.color, r: 4 }}
+                                    dot={(props: any) => {
+                                        const { cx, cy, payload } = props
+                                        if (payload.isSelected) {
+                                            return <circle cx={cx} cy={cy} r={8} fill={chartConfig.recouvrements.color} stroke="#fff" strokeWidth={2} />
+                                        }
+                                        return <circle cx={cx} cy={cy} r={4} fill={chartConfig.recouvrements.color} />
+                                    }}
                                     activeDot={{ r: 6 }}
                                 />
                                 <Line
@@ -226,7 +387,13 @@ export function ChartLineMultiple() {
                                     dataKey="investissements"
                                     stroke={chartConfig.investissements.color}
                                     strokeWidth={3}
-                                    dot={{ fill: chartConfig.investissements.color, r: 4 }}
+                                    dot={(props: any) => {
+                                        const { cx, cy, payload } = props
+                                        if (payload.isSelected) {
+                                            return <circle cx={cx} cy={cy} r={8} fill={chartConfig.investissements.color} stroke="#fff" strokeWidth={2} />
+                                        }
+                                        return <circle cx={cx} cy={cy} r={4} fill={chartConfig.investissements.color} />
+                                    }}
                                     activeDot={{ r: 6 }}
                                 />
                                 <Line
@@ -234,7 +401,13 @@ export function ChartLineMultiple() {
                                     dataKey="comptes"
                                     stroke={chartConfig.comptes.color}
                                     strokeWidth={3}
-                                    dot={{ fill: chartConfig.comptes.color, r: 4 }}
+                                    dot={(props: any) => {
+                                        const { cx, cy, payload } = props
+                                        if (payload.isSelected) {
+                                            return <circle cx={cx} cy={cy} r={8} fill={chartConfig.comptes.color} stroke="#fff" strokeWidth={2} />
+                                        }
+                                        return <circle cx={cx} cy={cy} r={4} fill={chartConfig.comptes.color} />
+                                    }}
                                     activeDot={{ r: 6 }}
                                 />
                             </LineChart>
