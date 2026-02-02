@@ -55,7 +55,8 @@ const chartConfig = {
 
 export function ChartLineMultiple() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
-    const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
+    const currentMonth = new Date().getMonth() + 1
+    const [selectedMonth, setSelectedMonth] = useState<number | null>(currentMonth)
     const { chartData, yearlyTotals, isLoading, isError } = useDashboardStats(selectedYear)
     
     // État pour les données de l'API statistiques (même source que le dashboard principal)
@@ -82,9 +83,18 @@ export function ChartLineMultiple() {
         console.log('chartData:', chartData)
         console.log('chartData.length:', chartData.length)
         
+        if (!selectedMonth && chartData?.length) {
+            // Si aucun mois sélectionné (bouton "Année"), utiliser les données de l'API directement
+            console.log('Utilisation des données de l API pour l année')
+            return {
+                totalFraisLivraison: chiffreAffaireData?.fraisLivraisonTotalTermine || 0,
+                totalCommissions: chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
+            }
+        }
+        
         if (!selectedMonth || !chartData.length) {
             console.log('Pas de mois sélectionné ou pas de données chartData')
-            // Si aucun mois sélectionné, utiliser les totaux complets
+            // Si aucun mois sélectionné, utiliser les données de l'API
             return {
                 totalFraisLivraison: chiffreAffaireData?.fraisLivraisonTotalTermine || 0,
                 totalCommissions: chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
@@ -138,6 +148,13 @@ export function ChartLineMultiple() {
     
     // Fonction pour filtrer les dépenses par mois
     const filterDepensesByMonth = () => {
+        if (!selectedMonth && chartData?.length) {
+            // Si aucun mois sélectionné (bouton "Année"), calculer la somme de toutes les dépenses de l'année
+            const totalDepenses = chartData.reduce((sum, item) => sum + (item.depenses || 0), 0)
+            console.log('Total dépenses annuelles:', totalDepenses)
+            return totalDepenses
+        }
+        
         if (!selectedMonth || !chartData.length) {
             // Si aucun mois sélectionné, utiliser les totaux complets
             return yearlyTotals.totalDepenses

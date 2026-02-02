@@ -17,9 +17,11 @@ export default function Statistics() {
     const { yearlyTotals, isLoading, chartData } = useDashboardStats(2026);
     const router = useRouter();
     
-    // État pour le filtre par mois - par défaut, sélectionner le mois en cours (février 2026)
+    // État pour le filtre par mois - par défaut, mois en cours
+    const currentYear = new Date().getFullYear(); // 2026
     const currentMonth = new Date().getMonth() + 1; // Février = 2
     const [selectedMonth, setSelectedMonth] = useState<number | null>(currentMonth);
+    const [selectedYear, setSelectedYear] = useState<number>(currentYear);
     
     // État pour les données de l'API statistiques (même source que le dashboard principal)
     const [chiffreAffaireData, setChiffreAffaireData] = useState<any>(null);
@@ -64,8 +66,16 @@ export default function Statistics() {
     
     // Fonction pour filtrer les revenus totaux par mois (basé sur les données du dashboard)
     const filterRevenusByMonth = () => {
+        if (!selectedMonth && chartData?.length) {
+            // Si aucun mois sélectionné (bouton "Année"), utiliser les données de l'API directement
+            return {
+                totalFraisLivraison: chiffreAffaireData?.fraisLivraisonTotalTermine || 0,
+                totalCommissions: chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
+            }
+        }
+        
         if (!selectedMonth || !chartData?.length) {
-            // Si aucun mois sélectionné, utiliser les totaux complets
+            // Fallback : utiliser les données de l'API si pas de données du graphique
             return {
                 totalFraisLivraison: chiffreAffaireData?.fraisLivraisonTotalTermine || 0,
                 totalCommissions: chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
@@ -105,6 +115,12 @@ export default function Statistics() {
     
     // Fonction pour filtrer les dépenses par mois
     const filterDepensesByMonth = () => {
+        if (!selectedMonth && chartData?.length) {
+            // Si aucun mois sélectionné (bouton "Année"), calculer la somme de toutes les dépenses de l'année
+            const totalDepenses = chartData.reduce((sum, item) => sum + (item.depenses || 0), 0)
+            return totalDepenses
+        }
+        
         if (!selectedMonth || !chartData?.length) {
             // Si aucun mois sélectionné, utiliser les totaux complets
             return yearlyTotals.totalDepenses
@@ -199,9 +215,9 @@ export default function Statistics() {
                 />
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                {/* Carte CA du Mois agrandie et décomposée */}
-                <Card className="col-span-1 sm:col-span-2 md:col-span-2 p-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="grid grid-cols-1 gap-6">
+                {/* Carte CA du Mois sur toute la largeur */}
+                <Card className="p-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300">
                     <div className="flex justify-between items-start h-full">
                         {/* Partie 1 : CA du Mois - inchangé */}
                         <div className="flex flex-col justify-between h-full">
@@ -221,31 +237,31 @@ export default function Statistics() {
                         {/* Séparateur vertical */}
                         <div className="w-px bg-green-200 mx-4" />
                         
-                        {/* Partie 2 : Décomposition du CA */}
-                        <div className="flex flex-col justify-between h-full flex-1">
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-blue-100 rounded-full">
-                                            <Receipt className="w-3 h-3 text-blue-600" />
-                                        </div>
-                                        <span className="text-xs font-medium text-gray-700">Frais Livraison</span>
+                        {/* Partie 2 : Décomposition du CA - déplacée vers la droite */}
+                        <div className="flex items-center gap-4">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-blue-100 rounded-full">
+                                        <Receipt className="w-3 h-3 text-blue-600" />
                                     </div>
-                                    <span className="text-sm font-bold text-blue-600">
-                                        {totalFraisLivraison.toLocaleString()} FCFA
-                                    </span>
+                                    <div>
+                                        <span className="text-xs font-medium text-gray-700">Frais Livraison</span>
+                                        <div className="text-sm font-bold text-blue-600">
+                                            {totalFraisLivraison.toLocaleString()} FCFA
+                                        </div>
+                                    </div>
                                 </div>
                                 
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="p-2 bg-purple-100 rounded-full">
-                                            <TrendingUp className="w-3 h-3 text-purple-600" />
-                                        </div>
-                                        <span className="text-xs font-medium text-gray-700">Commissions</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="p-2 bg-purple-100 rounded-full">
+                                        <TrendingUp className="w-3 h-3 text-purple-600" />
                                     </div>
-                                    <span className="text-sm font-bold text-purple-600">
-                                        {totalCommissions.toLocaleString()} FCFA
-                                    </span>
+                                    <div>
+                                        <span className="text-xs font-medium text-gray-700">Commissions</span>
+                                        <div className="text-sm font-bold text-purple-600">
+                                            {totalCommissions.toLocaleString()} FCFA
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -259,47 +275,49 @@ export default function Statistics() {
                     </div>
                 </Card>
                 
-                {/* Les autres cartes */}
-                {stats.slice(1).map((stat, index) => (
-                    <Card
-                        key={index + 1}
-                        className={`p-6 flex flex-col items-center justify-center rounded-xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 bg-white ${
-                            stat.clickable ? 'cursor-pointer hover:scale-105' : ''
-                        }`}
-                        onClick={stat.onClick}
-                    >
-                        <div className="flex justify-between items-start w-full">
-                            <div className="flex flex-col items-start gap-2">
-                                <h3 className="text-sm font-medium text-gray-600">{stat.title}</h3>
-                                <div className="flex items-center gap-2">
-                                    <p className={`text-md font-bold ${stat.color}`} mt-2>
-                                        {stat.value} {stat.isCurrency !== false && "FCFA"}
-                                    </p>
-                                    {stat.trend && (
-                                        <div className={`flex items-center justify-center w-6 h-6 rounded-full ${stat.trend === "up" ? "bg-green-100" : "bg-red-100"}`}>
-                                            {stat.trend === "up" ? (
-                                                <ArrowUp className="w-4 h-4 text-green-600" />
-                                            ) : (
-                                                <ArrowDown className="w-4 h-4 text-red-600" />
-                                            )}
-                                        </div>
+                {/* Les 3 autres cartes sur la ligne du dessous */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {stats.slice(1).map((stat, index) => (
+                        <Card
+                            key={index + 1}
+                            className={`p-6 flex flex-col items-center justify-center rounded-xl border border-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 bg-white ${
+                                stat.clickable ? 'cursor-pointer hover:scale-105' : ''
+                            }`}
+                            onClick={stat.onClick}
+                        >
+                            <div className="flex justify-between items-start w-full">
+                                <div className="flex flex-col items-start gap-2">
+                                    <h3 className="text-sm font-medium text-gray-600">{stat.title}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <p className={`text-md font-bold ${stat.color}`} mt-2>
+                                            {stat.value} {stat.isCurrency !== false && "FCFA"}
+                                        </p>
+                                        {stat.trend && (
+                                            <div className={`flex items-center justify-center w-6 h-6 rounded-full ${stat.trend === "up" ? "bg-green-100" : "bg-red-100"}`}>
+                                                {stat.trend === "up" ? (
+                                                    <ArrowUp className="w-4 h-4 text-green-600" />
+                                                ) : (
+                                                    <ArrowDown className="w-4 h-4 text-red-600" />
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                    {stat.title === "Solde de Compte" && (
+                                        <p className={`text-xs font-medium ${isSoldePositif ? "text-green-600" : "text-red-600"}`}>
+                                            {isSoldePositif ? "Excédent" : "Déficit"}
+                                        </p>
                                     )}
                                 </div>
-                                {stat.title === "Solde de Compte" && (
-                                    <p className={`text-xs font-medium ${isSoldePositif ? "text-green-600" : "text-red-600"}`}>
-                                        {isSoldePositif ? "Excédent" : "Déficit"}
-                                    </p>
-                                )}
-                            </div>
 
-                            <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                                <div className={stat.color}>
-                                    {stat.icon}
+                                <div className={`p-3 rounded-full ${stat.bgColor}`}>
+                                    <div className={stat.color}>
+                                        {stat.icon}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </Card>
-                ))}
+                        </Card>
+                    ))}
+                </div>
             </div>
         </div>
     );
