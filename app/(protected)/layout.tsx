@@ -1,5 +1,4 @@
 import React from 'react';
-import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import Portals from '@/components/portals';
 import Footer from '@/components/layouts/footer';
@@ -14,41 +13,41 @@ import ContentAnimation from '@/components/layouts/content-animation';
 import { FormChangePassword } from '@/components/auth/form-change-password';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const profile = await getProfile();
-    // const session = await auth();
-    if (!profile) redirect('/auth');
+  const profile = await getProfile();
+  // const session = await auth();
+  if (!profile) redirect('/auth');
 
-    return (
-        <>
-            {(profile && !profile.changePassword) && <FormChangePassword userName={profile.username} />}
-            <ProtectedPage profile={profile!}>
-                {/* BEGIN MAIN CONTAINER */}
-                <div className="relative">
-                    <Overlay />
-                    <ScrollToTop />
+  return (
+    <>
+      {profile && !profile.changePassword && <FormChangePassword userName={profile.username} />}
+      <ProtectedPage profile={profile!}>
+        {/* BEGIN MAIN CONTAINER */}
+        <div className="relative">
+          <Overlay />
+          <ScrollToTop />
 
-                    <MainContainer>
-                        {/* BEGIN SIDEBAR */}
-                        <Sidebar profile={profile!} />
-                        {/* END SIDEBAR */}
-                        <div className="main-content flex min-h-screen flex-col">
-                            {/* BEGIN TOP NAVBAR */}
-                            <Header profile={profile!} />
-                            {/* END TOP NAVBAR */}
+          <MainContainer>
+            {/* BEGIN SIDEBAR */}
+            <Sidebar profile={profile!} />
+            {/* END SIDEBAR */}
+            <div className="main-content flex min-h-screen flex-col">
+              {/* BEGIN TOP NAVBAR */}
+              <Header profile={profile!} />
+              {/* END TOP NAVBAR */}
 
-                            {/* BEGIN CONTENT AREA */}
-                            <ContentAnimation>{children}</ContentAnimation>
-                            {/* END CONTENT AREA */}
+              {/* BEGIN CONTENT AREA */}
+              <ContentAnimation>{children}</ContentAnimation>
+              {/* END CONTENT AREA */}
 
-                            {/* BEGIN FOOTER */}
-                            <Footer />
-                            {/* END FOOTER */}
+              {/* BEGIN FOOTER */}
+              <Footer />
+              {/* END FOOTER */}
 
-                            <Portals />
-                        </div>
-                    </MainContainer>
-                </div>
-            </ProtectedPage>                        
-        </>
-    );
+              <Portals />
+            </div>
+          </MainContainer>
+        </div>
+      </ProtectedPage>
+    </>
+  );
 }

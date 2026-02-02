@@ -1,89 +1,70 @@
-// RecouvrementList.tsx
-"use client"
-
-
-import { useState } from "react"
-import { Pagination } from "./pagination"
-import { Spinner } from "@/components/ui/spinner"
-import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvrement"
-import { CreerRecouvrementModal } from "./creer-recouvrement-modal"
-import { RecouvrementListTable } from "./recouvrement-list-table-new"
-import { RestaurantMultiFilter } from "./filtres/restaurant-multi-filter"
-import { Button } from "@/components/ui/button"
-import { Filter, X } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { SearchFiltre } from "./filtres/search-filter"
-import { Card, CardContent, CardHeader } from "@/components/components-finance/ui/card"
+'use client';
+import { useState } from 'react';
+import { Pagination } from './pagination';
+import { Spinner } from '@/components/ui/spinner';
+import { useRecouvrementList } from '@/feature-finance/revenus/hooks/use-recouvrement';
+import { CreerRecouvrementModal } from './creer-recouvrement-modal';
+import { RecouvrementListTable } from './recouvrement-list-table-new';
+import { RestaurantMultiFilter } from './filtres/restaurant-multi-filter';
+import { Button } from '@/components/ui/button';
+import { Filter, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@/components/components-finance/ui/card';
 
 export function RecouvrementList() {
-  const [selectedRestaurants, setSelectedRestaurants] = useState<string[]>([])
-  const { 
-    recouvrement, 
-    isLoading, 
-    isError, 
-    error, 
-    filters, 
-    handleFilterChange,
-    resetFilters 
-  } = useRecouvrementList()
+  const [selectedRestaurants, setSelectedRestaurants] = useState<string[]>([]);
+  const { recouvrement, isLoading, isError, error, filters, handleFilterChange, resetFilters } = useRecouvrementList();
 
   // Utiliser les filtres de l'URL (nuqs) pour la pagination
-  const currentPage = filters.page
-  const itemsPerPage = filters.limit
+  const currentPage = filters.page;
+  const itemsPerPage = filters.limit;
 
   // Gestionnaire pour le changement de restaurants (multi-sélection)
   const handleRestaurantChange = (restaurantIds: string[]) => {
-    setSelectedRestaurants(restaurantIds)
+    setSelectedRestaurants(restaurantIds);
     // Mettre à jour le filtre nomRestaurant pour la compatibilité
-    handleFilterChange('nomRestaurant', restaurantIds.join(','))
-  }
+    handleFilterChange('nomRestaurant', restaurantIds.join(','));
+  };
 
   // Gestionnaire pour effacer tous les filtres
   const handleClearFilters = () => {
-    setSelectedRestaurants([])
-    resetFilters()
-  }
+    setSelectedRestaurants([]);
+    resetFilters();
+  };
 
   // Compter le nombre de filtres actifs (exclure page et limit)
-  const activeFiltersCount = Object.keys(filters).filter(key => 
-    key !== 'page' && key !== 'limit' && 
-    filters[key as keyof typeof filters] !== '' && 
-    filters[key as keyof typeof filters] !== 0
-  ).length
+  const activeFiltersCount = Object.keys(filters).filter(
+    (key) => key !== 'page' && key !== 'limit' && filters[key as keyof typeof filters] !== '' && filters[key as keyof typeof filters] !== 0,
+  ).length;
 
   // Pagination sur les données déjà filtrées
-  const totalPages = Math.ceil(recouvrement.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const currentRecouvrements = recouvrement.slice(startIndex, startIndex + itemsPerPage)
+  const totalPages = Math.ceil(recouvrement.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentRecouvrements = recouvrement.slice(startIndex, startIndex + itemsPerPage);
 
   const formatDate = (dateString: string) => {
-    if (!dateString) return ""
+    if (!dateString) return '';
     try {
-      const date = new Date(dateString)
-      if (isNaN(date.getTime())) return dateString
-      return date.toLocaleDateString("fr-FR")
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString;
+      return date.toLocaleDateString('fr-FR');
     } catch {
-      return dateString
+      return dateString;
     }
-  }
+  };
 
-  const formatMontant = (montant: number) =>
-    new Intl.NumberFormat("fr-FR").format(montant)
+  const formatMontant = (montant: number) => new Intl.NumberFormat('fr-FR').format(montant);
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-64">
         <Spinner size="large" />
       </div>
-    )
+    );
   }
 
   if (isError) {
-    return (
-      <div className="p-8 text-center text-red-500">
-        Erreur : {String(error)}
-      </div>
-    )
+    return <div className="p-8 text-center text-red-500">Erreur : {String(error)}</div>;
   }
 
   return (
@@ -101,20 +82,12 @@ export function RecouvrementList() {
                 </Badge>
               )}
             </div>
-            
+
             <div className="flex items-center gap-2">
               {/* <SearchFiltre /> */}
-              <RestaurantMultiFilter
-                onRestaurantChange={handleRestaurantChange}
-                selectedRestaurants={selectedRestaurants}
-              />
+              <RestaurantMultiFilter onRestaurantChange={handleRestaurantChange} selectedRestaurants={selectedRestaurants} />
               {selectedRestaurants.length > 0 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearFilters}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-800"
-                >
+                <Button variant="outline" size="sm" onClick={handleClearFilters} className="flex items-center gap-2 text-gray-600 hover:text-gray-800">
                   <X className="h-4 w-4" />
                   Effacer
                 </Button>
@@ -128,12 +101,7 @@ export function RecouvrementList() {
       {/* Tableau des recouvrements */}
       <Card className="shadow-lg border-0">
         <CardContent className="p-0">
-          <RecouvrementListTable
-            recouvrement={currentRecouvrements}
-            formatMontant={formatMontant}
-            formatDate={formatDate}
-            handleFilterChange={handleFilterChange}
-          />
+          <RecouvrementListTable recouvrement={currentRecouvrements} formatMontant={formatMontant} formatDate={formatDate} handleFilterChange={handleFilterChange} />
 
           {/* Pagination */}
           {recouvrement.length > 0 && (
@@ -144,8 +112,8 @@ export function RecouvrementList() {
               totalItems={recouvrement.length}
               onPageChange={(page) => handleFilterChange('page', page)}
               onItemsPerPageChange={(limit) => {
-                handleFilterChange('limit', limit)
-                handleFilterChange('page', 1)
+                handleFilterChange('limit', limit);
+                handleFilterChange('page', 1);
               }}
             />
           )}
@@ -157,23 +125,17 @@ export function RecouvrementList() {
               {activeFiltersCount > 0 ? (
                 <p className="text-sm">
                   Essayez de modifier vos critères de recherche ou{' '}
-                  <Button 
-                    variant="link" 
-                    onClick={resetFilters}
-                    className="p-0 h-auto"
-                  >
+                  <Button variant="link" onClick={resetFilters} className="p-0 h-auto">
                     réinitialiser les filtres
                   </Button>
                 </p>
               ) : (
-                <p className="text-sm">
-                  Aucune donnée disponible pour le moment
-                </p>
+                <p className="text-sm">Aucune donnée disponible pour le moment</p>
               )}
             </div>
           )}
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
