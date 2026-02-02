@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import {
     ChartConfig,
     ChartContainer,
@@ -9,6 +9,9 @@ import {
 } from "@/components/ui/chart"
 import { Line, LineChart, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
 import { useDashboardStats } from "../hooks/use-dashboard-stats"
+import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvrement"
+import { useInvestissementList } from "@/feature-finance/revenus/hooks/use-investissement-list"
+import { getAllChiffreAffaire } from "@/src/actions/statistiques.action"
 import { YearFilter } from "./year-filter"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -52,6 +55,50 @@ const chartConfig = {
 export function ChartLineMultiple() {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
     const { chartData, yearlyTotals, isLoading, isError } = useDashboardStats(selectedYear)
+    
+    // État pour les données de l'API statistiques (même source que le dashboard principal)
+    const [chiffreAffaireData, setChiffreAffaireData] = useState<any>(null)
+    
+    // Hooks pour les données de recouvrements et investissements
+    const { recouvrement: recouvrementsData } = useRecouvrementList({ initialData: [] })
+    const { investissements } = useInvestissementList()
+    
+    // Récupérer les données des API au chargement du composant
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                // Données de l'API statistiques
+                const chiffreAffaire = await getAllChiffreAffaire({
+                    dates: {
+                        start: null,
+                        end: null,
+                    }
+                })
+                setChiffreAffaireData(chiffreAffaire)
+                
+                console.log('Données chiffreAffaire dans ChartLineMultiple:', chiffreAffaire)
+                console.log('Données recouvrements dans ChartLineMultiple:', recouvrementsData)
+                console.log('Données investissements dans ChartLineMultiple:', investissements)
+            } catch (error) {
+                console.error('Erreur lors de la récupération des données:', error)
+            }
+        }
+        
+        fetchData()
+    }, [recouvrementsData, investissements])
+    
+    // Calculer les revenus corrects avec les données du dashboard principal
+    const totalFraisLivraison = chiffreAffaireData?.fraisLivraisonTotalTermine || 0
+    const totalCommissions = chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
+    const totalRevenus = totalFraisLivraison + totalCommissions
+    
+    // Calculer les revenus encaissés avec les hooks directs
+    const totalRecouvrements = recouvrementsData?.reduce((sum: number, rec: any) => sum + (rec.montant || 0), 0) || 0
+    const totalInvestissements = investissements?.reduce((sum: number, inv: any) => sum + (inv.montant || 0), 0) || 0
+    const totalRevenusEncaisses = totalRecouvrements + totalInvestissements
+    
+    // Calculer le solde
+    const soldeComptes = totalRevenusEncaisses - yearlyTotals.totalDepenses
 
     if (isError) {
         return (
@@ -88,7 +135,7 @@ export function ChartLineMultiple() {
                     <div className="text-center p-4 rounded-lg" style={{ backgroundColor: "#10b98120" }}>
                         <p className="text-sm font-medium" style={{ color: "#10b981" }}>Revenus totaux</p>
                         <p className="text-xl font-bold" style={{ color: "#047857" }}>
-                            {formatMontantLocal(yearlyTotals.totalRevenus)}
+                            {formatMontantLocal(totalRevenus)}
                         </p>
                     </div>
                     <div className="text-center p-4 rounded-lg" style={{ backgroundColor: "#ef444420" }}>
@@ -100,19 +147,19 @@ export function ChartLineMultiple() {
                     <div className="text-center p-4 rounded-lg" style={{ backgroundColor: "#3b82f620" }}>
                         <p className="text-sm font-medium" style={{ color: "#3b82f6" }}>Recouvrements</p>
                         <p className="text-xl font-bold" style={{ color: "#2563eb" }}>
-                            {formatMontantLocal(yearlyTotals.totalRecouvrements)}
+                            {formatMontantLocal(totalRecouvrements)}
                         </p>
                     </div>
                     <div className="text-center p-4 rounded-lg" style={{ backgroundColor: "#f59e0b20" }}>
                         <p className="text-sm font-medium" style={{ color: "#f59e0b" }}>Investissements</p>
                         <p className="text-xl font-bold" style={{ color: "#d97706" }}>
-                            {formatMontantLocal(yearlyTotals.totalInvestissements)}
+                            {formatMontantLocal(totalInvestissements)}
                         </p>
                     </div>
                     <div className="text-center p-4 rounded-lg" style={{ backgroundColor: "#8b5cf620" }}>
                         <p className="text-sm font-medium" style={{ color: "#8b5cf6" }}>Solde comptes</p>
                         <p className="text-xl font-bold" style={{ color: "#7c3aed" }}>
-                            {formatMontantLocal(yearlyTotals.totalComptes)}
+                            {formatMontantLocal(soldeComptes)}
                         </p>
                     </div>
                 </div>
