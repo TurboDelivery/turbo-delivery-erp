@@ -9,14 +9,21 @@ import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvr
 import { CreerRecouvrementModal } from "./creer-recouvrement-modal"
 import { RecouvrementListTable } from "./recouvrement-list-table-new"
 import { RestaurantMultiFilter } from "./filtres/restaurant-multi-filter"
+import { DeleteRecouvrementModal } from "./delete-recouvrement-modal"
 import { Button } from "@/components/ui/button"
 import { Filter, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { SearchFiltre } from "./filtres/search-filter"
 import { Card, CardContent, CardHeader } from "@/components/components-finance/ui/card"
+import { IRecouvrement } from "@/feature-finance/revenus/types/recouvrement/recouvrement.types"
+import { toast } from "sonner"
+import { useDeleteRecouvrement } from "@/feature-finance/revenus/hooks/use-delete-recouvrement"
+import { useUpdateRecouvrement } from "@/feature-finance/revenus/hooks/use-update-recouvrement"
 
 export function RecouvrementList() {
   const [selectedRestaurants, setSelectedRestaurants] = useState<string[]>([])
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [recouvrementToDelete, setRecouvrementToDelete] = useState<IRecouvrement | null>(null)
   const { 
     recouvrement, 
     isLoading, 
@@ -26,6 +33,43 @@ export function RecouvrementList() {
     handleFilterChange,
     resetFilters 
   } = useRecouvrementList()
+
+  // Hooks pour la suppression et mise à jour
+  const deleteRecouvrement = useDeleteRecouvrement()
+  const updateRecouvrement = useUpdateRecouvrement()
+
+  // Gestionnaire pour la suppression
+  const handleDelete = (recouv: IRecouvrement) => {
+    setRecouvrementToDelete(recouv)
+    setIsDeleteModalOpen(true)
+  }
+
+  // Confirmer la suppression
+  const confirmDelete = async () => {
+    if (!recouvrementToDelete) return
+    
+    try {
+      await deleteRecouvrement.mutateAsync(recouvrementToDelete.id)
+      toast.success("Recouvrement supprimé avec succès")
+      setIsDeleteModalOpen(false)
+      setRecouvrementToDelete(null)
+    } catch (error) {
+      toast.error("Erreur lors de la suppression du recouvrement")
+    }
+  }
+
+  // Annuler la suppression
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false)
+    setRecouvrementToDelete(null)
+  }
+
+  // Gestionnaire pour la mise à jour
+  const handleUpdate = (recouv: IRecouvrement) => {
+    // Pour l'instant, on affiche un message. 
+    // Vous pouvez implémenter une modal de mise à jour ici
+    toast.info("Fonction de mise à jour à implémenter")
+  }
 
   // Utiliser les filtres de l'URL (nuqs) pour la pagination
   const currentPage = filters.page
@@ -133,6 +177,8 @@ export function RecouvrementList() {
             formatMontant={formatMontant}
             formatDate={formatDate}
             handleFilterChange={handleFilterChange}
+            onUpdate={handleUpdate}
+            onDelete={handleDelete}
           />
 
           {/* Pagination */}
@@ -174,6 +220,15 @@ export function RecouvrementList() {
           )}
         </CardContent>
       </Card>
+
+      {/* Modal de suppression */}
+      <DeleteRecouvrementModal
+        isOpen={isDeleteModalOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        recouvrement={recouvrementToDelete}
+        isLoading={deleteRecouvrement.isPending}
+      />
     </div>
   )
 }

@@ -154,10 +154,26 @@ export default function RevenusEncaissesClient() {
                             Consultez l'historique complet des recouvrements et investissements
                         </p>
                     </div>
-                    <Button className="flex items-center gap-2">
-                        <Download className="w-4 h-4" />
-                        Exporter
-                    </Button>
+                    <div className="flex items-center gap-3">
+                        <Button 
+                            className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                            onClick={() => window.location.href = '/finance/recouvrement'}
+                        >
+                            <TrendingUp className="w-5 h-5" />
+                            Gestion Recouvrement
+                        </Button>
+                        <Button 
+                            className="flex items-center gap-2 bg-green-600 text-white hover:bg-green-700 px-4 py-2 font-medium shadow-md hover:shadow-lg transition-all duration-200"
+                            onClick={() => window.location.href = '/finance/revenue/investissement'}
+                        >
+                            <DollarSign className="w-5 h-5" />
+                            Gestion Investissement
+                        </Button>
+                        {/* <Button className="flex items-center gap-2 px-4 py-2 font-medium shadow-md hover:shadow-lg transition-all duration-200">
+                            <Download className="w-5 h-5" />
+                            Exporter
+                        </Button> */}
+                    </div>
                 </div>
 
                 {/* Cartes de statistiques */}

@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Eye, Download, Trash2 } from "lucide-react"
+import { MoreHorizontal, Eye, Download, Trash2, Edit } from "lucide-react"
 import { IRecouvrement } from "@/feature-finance/revenus/types/recouvrement/recouvrement.types"
 import { usePretList } from "@/feature-finance/revenus/hooks/use-pret-list"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
@@ -26,6 +26,8 @@ interface IRecouvrementTableProps {
     formatMontant: (montant: number) => string
     formatDate: (dateString: string) => string
     onViewDetails?: (recouvrement: IRecouvrement) => void
+    onUpdate?: (recouvrement: IRecouvrement) => void
+    onDelete?: (recouvrement: IRecouvrement) => void
     handleFilterChange: (filterName: string, value: string) => void
 }
 
@@ -34,6 +36,8 @@ export function RecouvrementListTable({
     formatMontant,
     formatDate,
     onViewDetails,
+    onUpdate,
+    onDelete,
     handleFilterChange
 }: IRecouvrementTableProps) {
     const { facture } = usePretList()
@@ -201,13 +205,31 @@ export function RecouvrementListTable({
                                         Voir les détails
                                     </DropdownMenuItem>
                                 )}
+                                {onUpdate && (
+                                    <DropdownMenuItem
+                                        onClick={() => onUpdate(recouv)}
+                                        className="cursor-pointer"
+                                    >
+                                        <Edit className="h-4 w-4 mr-2" />
+                                        Mettre à jour
+                                    </DropdownMenuItem>
+                                )}
+                                {onDelete && (
+                                    <DropdownMenuItem
+                                        onClick={() => onDelete(recouv)}
+                                        className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Supprimer
+                                    </DropdownMenuItem>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
                 )
             },
         },
-    ], [formatMontant, formatDate, facture, recouvrement, onViewDetails])
+    ], [formatMontant, formatDate, facture, recouvrement, onViewDetails, onUpdate, onDelete])
 
     const table = useReactTable({
         data: recouvrement,
