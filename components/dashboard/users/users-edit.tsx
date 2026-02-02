@@ -15,7 +15,7 @@ import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/re
 
 const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen: (open: boolean) => void }) => {
     const { pending } = useFormStatus();
-    
+
     const [state, formAction] = useFormState(
         async (_: any, formData: FormData) => {
             const result = await updateUser(user.id, formData);
@@ -58,6 +58,7 @@ const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen
     const {
         formState: { errors },
         control,
+        watch,
     } = useForm<_createUserSchema>({
         resolver: zodResolver(createUserSchema),
         defaultValues: {
@@ -68,6 +69,8 @@ const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen
             role: String(user.role.id),
         },
     });
+
+    const watchedRole = watch("role");
 
     return (
         <Transition appear show={open} as={Fragment}>
@@ -96,6 +99,7 @@ const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen
                                 </button>
                                 <div className="bg-[#fbfbfb] py-3 text-lg font-medium ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5 dark:bg-[#121c2c] text-primary">Ajouter un utilisateur</div>
                                 <form action={formAction}>
+                                    <input type="hidden" name="role" value={watchedRole ?? ''} />
                                     <div className="grid gap-4 p-5">
                                         <Controller
                                             control={control}
