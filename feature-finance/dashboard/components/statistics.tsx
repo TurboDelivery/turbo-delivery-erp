@@ -162,10 +162,13 @@ export default function Statistics() {
     const soldeCompte = revenusEncaisses - sommeDepenses
     const isSoldePositif = soldeCompte > 0
     
+    // Titre dynamique pour la carte CA
+    const caTitle = selectedMonth ? "CA du Mois" : "CA de l'Année";
+    
     const stats = [
         {
-            title: "CA du Mois",
-            value: `${chiffreAffaires.toLocaleString()}`,
+            title: caTitle,
+            value: `${chiffreAffaires.toLocaleString('fr-FR')} FCFA`,
             icon: <Wallet className="w-4 h-4" />,
             color: "text-green-600",
             bgColor: "bg-green-100",
@@ -173,7 +176,7 @@ export default function Statistics() {
         },
         {
             title: "Revenus Encaissés",
-            value: `${revenusEncaisses.toLocaleString()}`,
+            value: `${revenusEncaisses.toLocaleString('fr-FR')} FCFA`,
             icon: <WalletCards className="w-4 h-4" />,
             color: "text-blue-600",
             bgColor: "bg-blue-100",
@@ -222,7 +225,7 @@ export default function Statistics() {
                         {/* Partie 1 : CA du Mois - inchangé */}
                         <div className="flex flex-col justify-between h-full">
                             <div>
-                                <h3 className="text-sm font-medium text-gray-600">CA du Mois</h3>
+                                <h3 className="text-sm font-medium text-gray-600">{caTitle}</h3>
                                 <div className="flex items-center gap-2 mt-2">
                                     <p className="text-2xl font-bold text-green-600">
                                         {chiffreAffaires.toLocaleString()} FCFA
@@ -321,5 +324,4 @@ export default function Statistics() {
             </div>
         </div>
     );
-    
 }
