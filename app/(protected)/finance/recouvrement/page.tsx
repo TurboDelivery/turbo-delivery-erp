@@ -1,24 +1,15 @@
+import { RestaurantsTable } from '@/components/finance/recouvrements/restaurants/restaurants-table';
+import { getRestaurantDefined } from '@/src/price-list/price-list.action';
 
-import { PretList } from "@/feature-finance/revenus/components/recouvrement/prets/pret-list";
-import { prefetchPretListQuery } from "@/feature-finance/revenus/queries/prets/pret-list.query";
-import { RecouvrementList } from "@/feature-finance/revenus/components/recouvrement/recouvrement-pret/recouvrement-list";
-import { prefetchRecouvrementListQuery } from "@/feature-finance/revenus/queries/recouvrement/recouvrement-list.query";
-
-export default function Recouvrement() {
-
-
-    prefetchPretListQuery({
-        page: 1,
-        limit: 10,
-    })
-    prefetchRecouvrementListQuery({
-        page: 1,
-        limit: 10,
-    })
-    return (
-        <div>
-            <PretList/>
-            <RecouvrementList/>
-        </div>
-    )
+export default async function RecouvrementsPage() {
+  const restaurants = await getRestaurantDefined();
+  const restaurantOpts = restaurants.map((restaurant) => ({
+    label: restaurant.nomEtablissement,
+    value: restaurant.id,
+  }));
+  return (
+    <>
+      <RestaurantsTable restoOpts={restaurantOpts} />
+    </>
+  );
 }

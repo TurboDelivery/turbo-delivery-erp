@@ -57,7 +57,7 @@ export const depenseColumns: ColumnDef<ICategorieDepense>[] = [
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="bg-red-400 hover:bg-red-600 cursor-pointer">
+            <Button size="icon" variant="outline">
               <MoreHorizontal className="h-4 w-4 cursor-pointer" />
             </Button>
           </DropdownMenuTrigger>

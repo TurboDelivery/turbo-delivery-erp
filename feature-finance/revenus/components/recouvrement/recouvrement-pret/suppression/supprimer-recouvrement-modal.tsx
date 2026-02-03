@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Trash } from "lucide-react";
 import { IRecouvrement } from "@/feature-finance/revenus/types/recouvrement/recouvrement.types";
-import { useSupprimerRecouvrementMutation } from "@/feature-finance/revenus/queries/recouvrement/recouvrement.mutation";
+import { useSupprimerRecouvrementMutation } from "@/features/recouvrements/queries/recouvrement.mutation";
 
 type Props = {
     recouvrement: IRecouvrement | null;
