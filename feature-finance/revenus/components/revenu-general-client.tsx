@@ -1,4 +1,3 @@
-
 "use client";
 
 import Statistics from "./statistques/statistics";
@@ -19,6 +18,3 @@ export default function RevenueGeneralClient() {
         </div>
     );
 }
-
-
-
