@@ -73,6 +73,7 @@ export default function Statistics() {
                 totalCommissions: chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
             }
         }
+       
         
         if (!selectedMonth || !chartData?.length) {
             // Fallback : utiliser les données de l'API si pas de données du graphique
