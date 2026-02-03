@@ -12,6 +12,7 @@ export default function RevenuePage() {
         page: 1,
         limit: 50
     }),
+    
     <div>
       <RevenueGeneralClient/>   
     </div>
