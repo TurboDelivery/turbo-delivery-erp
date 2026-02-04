@@ -18,6 +18,17 @@ export interface IFactureParams {
   sort?: string;
   type?: string;
   statut?: string;
-  periodeDebut?: string;
-  periodeFin?: string;
+  periodeDebut?: Date;
+  periodeFin?: Date;
+}
+
+export interface IFactureSummary {
+  nombreFacturesARecouvrir: number;
+  montantTotalARecouvrir: number;
+  montantDejaRecouvre: number;
+}
+
+export interface IFactureSummaryParams {
+  debut?: string;
+  fin?: string;
 }

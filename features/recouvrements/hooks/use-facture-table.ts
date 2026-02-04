@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { IFactureParams } from '@/features/recouvrements/types/facture.types';
 import { useQueryStates } from 'nuqs';
 import { factureFiltersClient } from '@/features/recouvrements/filters/facture.filter';
+import { subMonths } from 'date-fns';
 
 interface UseFactureTableProps {
   restaurantId?: string; // Optionnel - peut être fourni en prop ou récupéré des filtres
@@ -88,11 +89,11 @@ function useFactureTable({ restaurantId: propRestaurantId }: UseFactureTableProp
     setFilters({ statut: statut || '', page: 0 });
   };
 
-  const handlePeriodeFilterChange = (debut?: string, fin?: string) => {
+  const handlePeriodeFilterChange = (debut?: Date, fin?: Date) => {
     setFilters({
-      periodeDebut: debut || '',
-      periodeFin: fin || '',
-      page: 0
+      periodeDebut: debut ? new Date(debut) : subMonths(new Date(), 1),
+      periodeFin: fin ? new Date(fin) : new Date(),
+      page: 0,
     });
   };
 
@@ -117,6 +118,3 @@ function useFactureTable({ restaurantId: propRestaurantId }: UseFactureTableProp
 }
 
 export default useFactureTable;
-
-
-

@@ -16,17 +16,27 @@ const formatDate = (dateString: string) => {
 };
 const getStatutBadgeVariant = (statut: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
   switch (statut?.toUpperCase()) {
-    case 'PAYEE':
     case 'PAID':
       return 'default';
-    case 'EN_ATTENTE':
-    case 'PENDING':
+    case 'NOT_PAID':
       return 'secondary';
-    case 'ANNULEE':
-    case 'CANCELLED':
+    case 'DRAFT':
       return 'destructive';
     default:
       return 'outline';
+  }
+};
+
+const getStatutLabel = (statut: string) => {
+  switch (statut?.toUpperCase()) {
+    case 'PAID':
+      return 'Payée';
+    case 'NOT_PAID':
+      return 'Non payée';
+    case 'DRAFT':
+      return 'Brouillon';
+    default:
+      return statut || 'Inconnu';
   }
 };
 export const factureTableColumns: ColumnDef<IFacture>[] = [
@@ -60,7 +70,7 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
     header: 'Statut',
     cell: ({ row }) => (
       <Badge variant={getStatutBadgeVariant(row.original.statut)} className="capitalize">
-        {row.original.statut}
+        {getStatutLabel(row.original.statut)}
       </Badge>
     ),
   },
