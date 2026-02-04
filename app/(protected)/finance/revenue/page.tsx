@@ -15,7 +15,7 @@ export default function RevenuePage() {
     }),
     
     <div>
-      <RevenueGeneralClient/>
+      {/* <RevenueGeneralClient/> */}
       <div className="mt-8">
         <RevenuePeriodChart/>
       </div>

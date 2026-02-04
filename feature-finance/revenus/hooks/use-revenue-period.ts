@@ -40,16 +40,20 @@ interface RevenueResponse {
 interface UseRevenuePeriodProps {
   period: Period;
   date?: string;
+  startDate?: string;
+  endDate?: string;
   initialData?: RevenueResponse | null;
 }
 
 // Fonction pour appeler l'API
-async function fetchRevenueByPeriod(period: Period, date?: string): Promise<RevenueResponse> {
+async function fetchRevenueByPeriod(period: Period, date?: string, startDate?: string, endDate?: string): Promise<RevenueResponse> {
   // Utiliser la route API locale Next.js comme proxy
   const baseUrl = "/api/revenue/analytics";
   let url = `${baseUrl}?period=${period}`;
   
-  if (date) {
+  if (startDate && endDate) {
+    url += `&startDate=${startDate}&endDate=${endDate}`;
+  } else if (date) {
     url += `&date=${date}`;
   }
   
@@ -62,7 +66,7 @@ async function fetchRevenueByPeriod(period: Period, date?: string): Promise<Reve
   return response.json();
 }
 
-export function useRevenuePeriod({ period, date, initialData = null }: UseRevenuePeriodProps) {
+export function useRevenuePeriod({ period, date, startDate, endDate, initialData = null }: UseRevenuePeriodProps) {
   const {
     data: revenueData = initialData,
     isLoading,
@@ -70,8 +74,8 @@ export function useRevenuePeriod({ period, date, initialData = null }: UseRevenu
     error,
     refetch
   } = useQuery({
-    queryKey: ["revenue-period", period, date],
-    queryFn: () => fetchRevenueByPeriod(period, date),
+    queryKey: ["revenue-period", period, date, startDate, endDate],
+    queryFn: () => fetchRevenueByPeriod(period, date, startDate, endDate),
     enabled: !!period,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2

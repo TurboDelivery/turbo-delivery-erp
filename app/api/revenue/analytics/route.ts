@@ -5,8 +5,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period');
     const date = searchParams.get('date');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
 
-    console.log('API Revenue Analytics - Params:', { period, date });
+    console.log('API Revenue Analytics - Params:', { period, date, startDate, endDate });
 
     if (!period) {
       return NextResponse.json(
@@ -19,7 +21,10 @@ export async function GET(request: NextRequest) {
     const baseUrl = "http://backend-prod.turbodeliveryapp.com/api/finance/revenues/analytics";
     let url = `${baseUrl}?period=${period}`;
     
-    if (date) {
+    // Priorité aux plages de dates personnalisées
+    if (startDate && endDate) {
+      url += `&startDate=${startDate}&endDate=${endDate}`;
+    } else if (date) {
       url += `&date=${date}`;
     }
 
