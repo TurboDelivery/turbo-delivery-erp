@@ -1,3 +1,4 @@
+"use client";
 import { AlertCircle, CheckCircle, FileText } from 'lucide-react';
 import { StatCard } from './recouvrement-stat-card';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
