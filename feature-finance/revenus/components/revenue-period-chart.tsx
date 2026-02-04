@@ -451,6 +451,7 @@ export default function RevenuePeriodChart() {
   }
 
   return (
+    
     <div className="space-y-6">
       {/* En-tête avec sélecteur de période et dates */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
