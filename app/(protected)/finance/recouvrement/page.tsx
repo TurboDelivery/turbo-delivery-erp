@@ -1,10 +1,10 @@
-import RecouvrementGraphs from '@/feature-finance/revenus/components/recouvrement/recouvrement';
 import RecouvrementContentTabs from '@/components/finance/recouvrements/recouvrement-content-tabs';
+import RecouvrementStatsBar from '@/components/finance/recouvrements/stats/recouvrement-stats-bar';
 
 export default function RecouvrementsPage() {
   return (
     <div className="flex flex-col gap-6">
-      <RecouvrementGraphs />
+      <RecouvrementStatsBar />
       <RecouvrementContentTabs />
     </div>
   );
