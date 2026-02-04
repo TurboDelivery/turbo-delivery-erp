@@ -10,6 +10,7 @@ import { IDepense } from '@/features/depenses/types/depense.type';
 import { DepenseUpdateDTO, DepenseUpdateSchema } from '@/features/depenses/schemas/depense.schema';
 import { useModifierDepenseMutation } from '../../queries/depense.mutation';
 import { useCategorieDepensesListQuery } from '../../queries/category/categorie-depense.query';
+import { useInvestissementList } from '../../../revenus/hooks/use-investissement-list';
 import { DepenseForm } from '../common/depense-form';
 
 interface ModifierDepenseModalProps {
@@ -20,6 +21,7 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
   const [dateDepense, setDateDepense] = useState<Date | undefined>(depense.dateDepense ? new Date(depense.dateDepense) : new Date());
   const [open, setOpen] = useState(false);
   const { data: categories, isLoading: categoriesLoading } = useCategorieDepensesListQuery({});
+  const { investissements, isLoading: investissementsLoading } = useInvestissementList();
 
   const {
     register,
@@ -99,6 +101,8 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
             setSelectedDate={setDateDepense}
             categories={categories}
             categoriesLoading={categoriesLoading}
+            investissements={investissements}
+            investissementsLoading={investissementsLoading}
             register={register}
             errors={errors}
             setValue={setValue}

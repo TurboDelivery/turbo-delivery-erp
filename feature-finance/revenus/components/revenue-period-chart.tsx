@@ -5,8 +5,14 @@ import { Card } from "@/components/ui/card";
 import { Calendar, DollarSign, BarChart3, ArrowRight } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { useRevenuePeriod } from "../hooks/use-revenue-period";
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { DateRange } from 'react-day-picker';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
-type Period = "DAY" | "WEEK" | "MONTH" | "YEAR";
+type Period = "WEEK" | "MONTH" | "YEAR";
 
 interface RevenueData {
   label: string;
@@ -43,7 +49,6 @@ interface RevenueResponse {
 }
 
 const periodLabels = {
-  DAY: "Jour",
   WEEK: "Semaine", 
   MONTH: "Mois",
   YEAR: "Année"
@@ -55,6 +60,18 @@ export default function RevenuePeriodChart() {
   const [customStartDate, setCustomStartDate] = useState<string>("");
   const [customEndDate, setCustomEndDate] = useState<string>("");
   const [useCustomRange, setUseCustomRange] = useState<boolean>(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  
+  // Fonction pour gérer le changement de plage de dates
+  const handleDateRangeChange = (value: DateRange | undefined) => {
+    setDateRange(value);
+    if (value?.from && value?.to) {
+      setCustomStartDate(value.from.toISOString().split('T')[0]);
+      setCustomEndDate(value.to.toISOString().split('T')[0]);
+      setUseCustomRange(true);
+      setSelectedPeriod("MONTH"); // Forcer MONTH pour les plages personnalisées
+    }
+  };
   
   // Fonction pour déterminer si on doit envoyer la date à l'API
   const apiDate = useMemo(() => {
@@ -63,11 +80,6 @@ export default function RevenuePeriodChart() {
     }
     
     if (!customDate) return undefined;
-    
-    // Pour DAY, on envoie la date exacte
-    if (selectedPeriod === "DAY") {
-      return customDate;
-    }
     
     // Pour WEEK, MONTH, YEAR, on envoie le premier jour de la période
     const date = new Date(customDate);
@@ -147,10 +159,6 @@ export default function RevenuePeriodChart() {
           return dayNum >= startDay && dayNum <= endDay;
         });
         
-      } else if (apiPeriodForCall === "DAY") {
-        // Pour DAY, si c'est une plage d'un jour, garder toutes les données horaires
-        // Sinon, si c'est un seul jour, garder toutes les données horaires
-        filteredData = revenueData.data;
       }
 
       // Calculer à partir des données filtrées
@@ -269,11 +277,8 @@ export default function RevenuePeriodChart() {
     if (customDate) {
       const date = new Date(customDate);
       switch (selectedPeriod) {
-        case "DAY":
-          return `Jour du ${date.toLocaleDateString('fr-FR')}`;
         case "WEEK":
-          // Pour une semaine, on affiche la semaine de la date sélectionnée
-          return `Semaine du ${date.toLocaleDateString('fr-FR')}`;
+          return `Semaine du ${date.toLocaleDateString('fr-FR')} au ${new Date(date.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR')}`;
         case "MONTH":
           return `Mois de ${date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`;
         case "YEAR":
@@ -285,8 +290,6 @@ export default function RevenuePeriodChart() {
     
     // Sinon, utiliser les données de l'API
     switch (revenueData.period) {
-      case "day":
-        return revenueData.date ? `Jour du ${new Date(revenueData.date).toLocaleDateString('fr-FR')}` : "Aujourd'hui";
       case "week":
         if (revenueData.startDate && revenueData.endDate) {
           const start = new Date(revenueData.startDate);
@@ -305,8 +308,6 @@ export default function RevenuePeriodChart() {
 
   const getDateInputType = () => {
     switch (selectedPeriod) {
-      case "DAY":
-        return "date";
       case "WEEK":
         return "week"; 
       case "MONTH":
@@ -320,8 +321,6 @@ export default function RevenuePeriodChart() {
 
   const getDatePlaceholder = () => {
     switch (selectedPeriod) {
-      case "DAY":
-        return "Sélectionner un jour";
       case "WEEK":
         return "Sélectionner une semaine";
       case "MONTH":
@@ -392,11 +391,62 @@ export default function RevenuePeriodChart() {
     
     // Pour les plages personnalisées avec MONTH, filtrer les jours
     if (useCustomRange && customStartDate && customEndDate && apiPeriodForCall === "MONTH") {
-      return revenueData.data.filter(item => {
+      const filtered = revenueData.data.filter(item => {
         const dayNum = parseInt(item.label);
         const startDay = new Date(customStartDate).getDate();
         const endDay = new Date(customEndDate).getDate();
+        const startMonth = new Date(customStartDate).getMonth();
+        const endMonth = new Date(customEndDate).getMonth();
+        const startYear = new Date(customStartDate).getFullYear();
+        const endYear = new Date(customEndDate).getFullYear();
+        
+        // Vérifier si c'est le même mois et année pour les plages d'un seul jour
+        const isSameMonth = startMonth === endMonth;
+        const isSameYear = startYear === endYear;
+        
+        // Si c'est une plage d'un seul jour dans le même mois/année, filtrer précisément
+        if (isSameMonth && isSameYear && startDay === endDay) {
+          return dayNum === startDay;
+        }
+        
+        // Sinon, filtrer par plage de jours normale
         return dayNum >= startDay && dayNum <= endDay;
+      });
+      
+      // Si aucun jour ne correspond pour une plage d'un jour, créer un item avec valeur 0
+      if (filtered.length === 0 && useCustomRange && customStartDate === customEndDate) {
+        const day = new Date(customStartDate).getDate();
+        return [{
+          label: day.toString(),
+          value: 0,
+          date: customStartDate,
+          month: new Date(customStartDate).getMonth() + 1
+        }];
+      }
+      
+      return filtered;
+    }
+    
+    // Pour les plages personnalisées avec WEEK, filtrer aussi
+    if (useCustomRange && customStartDate && customEndDate && apiPeriodForCall === "WEEK") {
+      const filtered = revenueData.data.filter(item => {
+        // Pour les données hebdomadaires, le label contient le nom du jour
+        const itemDate = new Date(item.date || '');
+        const startDate = new Date(customStartDate);
+        const endDate = new Date(customEndDate);
+        return itemDate >= startDate && itemDate <= endDate;
+      });
+      
+      return filtered;
+    }
+    
+    // Pour les plages personnalisées avec YEAR, filtrer par mois
+    if (useCustomRange && customStartDate && customEndDate && apiPeriodForCall === "YEAR") {
+      return revenueData.data.filter(item => {
+        const itemMonth = parseInt(item.label);
+        const startMonth = new Date(customStartDate).getMonth() + 1;
+        const endMonth = new Date(customEndDate).getMonth() + 1;
+        return itemMonth >= startMonth && itemMonth <= endMonth;
       });
     }
     
@@ -457,6 +507,29 @@ export default function RevenuePeriodChart() {
         <h2 className="text-2xl font-bold text-gray-800">Revenus par période</h2>
         
         <div className="flex flex-col gap-4">
+          {/* Filtre de plage de dates */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="secondary" data-empty={!dateRange?.from || !dateRange?.to} className="data-[empty=true]:text-muted-foreground w-full sm:w-[280px] justify-start text-left font-normal">
+                <Calendar />
+                {dateRange?.from && dateRange?.to ? (
+                  <span className="ml-2">
+                    {format(new Date(dateRange.from), 'dd/MM/yyyy')} - {format(new Date(dateRange.to), 'dd/MM/yyyy')}
+                  </span>
+                ) : (
+                  <span className="ml-2">Sélectionner une plage de dates</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <CalendarComponent
+                mode="range"
+                selected={dateRange}
+                onSelect={handleDateRangeChange}
+              />
+            </PopoverContent>
+          </Popover>
+
           {/* Sélecteur de périodes */}
           <div className="flex flex-wrap gap-2 mb-4">
             {Object.entries(periodLabels).map(([period, label]) => (
@@ -468,6 +541,7 @@ export default function RevenuePeriodChart() {
                   setCustomStartDate("");
                   setCustomEndDate("");
                   setUseCustomRange(false);
+                  setDateRange(undefined);
                 }}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   selectedPeriod === period && !useCustomRange
@@ -479,152 +553,34 @@ export default function RevenuePeriodChart() {
               </button>
             ))}
           </div>
-          
-          {/* Options de date personnalisée */}
-          <div className="flex flex-col gap-3">
-            {/* Toggle pour plage personnalisée */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleRangeToggle}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
-                  useCustomRange
-                    ? "bg-purple-600 text-white shadow-lg"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
-              >
-                {useCustomRange ? "Plage personnalisée" : "Date simple"}
-              </button>
-            </div>
-            
-            {useCustomRange ? (
-              /* Sélecteurs de plage de dates */
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={customStartDate}
-                    onChange={handleStartDateChange}
-                    min={getMinDate()}
-                    max={getMaxDate()}
-                    placeholder="Date de début"
-                    className="px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-                <span className="text-gray-500">au</span>
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={customEndDate}
-                    onChange={handleEndDateChange}
-                    min={customStartDate || getMinDate()}
-                    max={getMaxDate()}
-                    placeholder="Date de fin"
-                    className="px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-                {customStartDate && (
-                  <button
-                    onClick={clearCustomRange}
-                    className="px-2 py-1 text-red-600 hover:bg-red-50 rounded-lg text-sm"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            ) : (
-              /* Sélecteur de date simple */
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <input
-                    type="date"
-                    value={customDate}
-                    onChange={handleDateChange}
-                    min={getMinDate()}
-                    max={getMaxDate()}
-                    placeholder={getDatePlaceholder()}
-                    className="px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  {customDate && (
-                    <button
-                      onClick={clearCustomDate}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-                <span className="text-sm text-gray-500 whitespace-nowrap">
-                  {customDate ? "Date personnalisée" : "Période actuelle"}
-                </span>
-              </div>
-            )}
-            
-            {/* Validation de la plage de dates */}
-            {useCustomRange && customStartDate && customEndDate && !isDateRangeValid() && (
-              <div className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">
-                La date de fin doit être après la date de début
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
-      {/* Section d'information pour les dates personnalisées */}
-      {(customDate || (useCustomRange && customStartDate && customEndDate)) && (
-        <Card className="p-4 bg-blue-50 border-blue-200">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <Calendar className="w-4 h-4 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-blue-800 mb-1">
-                {useCustomRange ? "Période personnalisée" : "Date personnalisée"}
-              </h4>
-              <p className="text-xs text-blue-600">
-                Vous consultez les revenus pour {getPeriodDisplay().toLowerCase()}. 
-                Pour revenir à la période actuelle, cliquez sur le bouton "×" à côté du sélecteur de date.
+      {/* Message d'information si aucune donnée pour le jour sélectionné */}
+      {useCustomRange && customStartDate === customEndDate && getFilteredChartData.length === 1 && getFilteredChartData[0].value === 0 && (
+        <Card className="p-4 bg-yellow-50 border-yellow-200">
+          <div className="flex items-center gap-3">
+            <Calendar className="w-5 h-5 text-yellow-600" />
+            <div>
+              <h4 className="text-sm font-semibold text-yellow-800">Aucune donnée pour ce jour</h4>
+              <p className="text-xs text-yellow-600">
+                Il n'y a pas de revenus enregistrés pour le {format(new Date(customStartDate), 'dd/MM/yyyy')}. 
+                Essayez de sélectionner une autre date ou une période plus large.
               </p>
-              {useCustomRange && apiPeriodForCall !== selectedPeriod && (
-                <div className="mt-2 p-2 bg-orange-50 rounded border border-orange-200">
-                  <p className="text-xs text-orange-700">
-                    <strong>Auto-ajustement :</strong> La période "{periodLabels[selectedPeriod]}" a été automatiquement ajustée à "{periodLabels[apiPeriodForCall]}" pour mieux correspondre à la durée de votre plage ({Math.ceil((new Date(customEndDate!).getTime() - new Date(customStartDate!).getTime()) / (1000 * 60 * 60 * 24))} jours).
-                  </p>
-                  {apiPeriodForCall === "MONTH" && (
-                    <p className="text-xs text-orange-600 mt-1">
-                      💡 Les plages personnalisées utilisent "Mois" pour obtenir les données journalières (plus fiable que les données horaires).
-                    </p>
-                  )}
-                </div>
-              )}
-              
-                          </div>
+            </div>
           </div>
         </Card>
       )}
 
-      {/* Carte de résumé du revenu */}
+      {/* Graphique des revenus */}
       <Card className="p-6 bg-gradient-to-r from-red-50 to-red-100 border-red-200 shadow-lg">
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="w-5 h-5 text-red-600" />
               <h3 className="text-lg font-semibold text-gray-800">
-                Revenu {useCustomRange ? periodLabels[apiPeriodForCall] : periodLabels[selectedPeriod]}
+                Revenu {periodLabels[selectedPeriod]}
               </h3>
-              {(customDate || (useCustomRange && customStartDate && customEndDate)) && (
-                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  useCustomRange 
-                    ? "bg-purple-100 text-purple-700" 
-                    : "bg-red-100 text-red-700"
-                }`}>
-                  {useCustomRange ? "Plage" : "Personnalisé"}
-                </span>
-              )}
-              {useCustomRange && apiPeriodForCall !== selectedPeriod && (
-                <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
-                  Auto-ajusté
-                </span>
-              )}
             </div>
             <p className="text-sm text-gray-600 mb-4">{getPeriodDisplay()}</p>
             <div className="flex items-baseline gap-3">
