@@ -320,7 +320,7 @@ export default function RevenusEncaissesClient() {
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2">
-                                                            <h3 className="font-semibold">{recouvrement.id}</h3>
+                                                            {/* <h3 className="font-semibold">{recouvrement.id}</h3> */}
                                                             <Badge variant="outline" className="text-blue-600 border-blue-200">
                                                                 Validé
                                                             </Badge>
@@ -335,9 +335,7 @@ export default function RevenusEncaissesClient() {
                                                     <p className="font-bold text-lg text-blue-600">
                                                         {recouvrement.montant?.toLocaleString()} FCFA
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
-                                                        Restaurant ID: {recouvrement.restaurantId}
-                                                    </p>
+                                                    
                                                 </div>
                                             </div>
                                         </CardContent>
@@ -372,7 +370,7 @@ export default function RevenusEncaissesClient() {
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2">
-                                                            <h3 className="font-semibold">{investissement.id}</h3>
+                                                           
                                                             {investissement.nomInvestisseur?.toLowerCase().includes('pdg') || 
                                                              investissement.nomInvestisseur?.toLowerCase().includes('président') ||
                                                              investissement.nomInvestisseur?.toLowerCase().includes('directeur général') ? (

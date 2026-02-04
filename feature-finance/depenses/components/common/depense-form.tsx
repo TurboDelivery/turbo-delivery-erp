@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { ICategorieDepense } from '@/features/depenses/types/categorie-depense.type';
+import { IInvestissement } from '../../../revenus/types/revenus.types';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { fr } from 'date-fns/locale';
+import { DepenseCreateDTO } from '@/features/depenses/schemas/depense.schema';
 import { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 
 interface DepenseFormProps {
@@ -18,6 +20,8 @@ interface DepenseFormProps {
   setSelectedDate: (date: Date | undefined) => void;
   categories: ICategorieDepense[] | undefined;
   categoriesLoading: boolean;
+  investissements: IInvestissement[];
+  investissementsLoading: boolean;
   register: UseFormRegister<any>;
   errors: FieldErrors<any>;
   setValue: UseFormSetValue<any>;
@@ -25,7 +29,7 @@ interface DepenseFormProps {
   defaultSource?: string;
 }
 
-export function DepenseForm({ selectedDate, setSelectedDate, categories, categoriesLoading, register, errors, setValue, defaultCategorieId, defaultSource }: DepenseFormProps) {
+export function DepenseForm({ selectedDate, setSelectedDate, categories, categoriesLoading, investissements, investissementsLoading, register, errors, setValue, defaultCategorieId, defaultSource }: DepenseFormProps) {
   return (
     <div className="grid gap-6">
       {/* Date et Montant */}
@@ -123,6 +127,42 @@ export function DepenseForm({ selectedDate, setSelectedDate, categories, categor
         </Label>
         <Textarea id="description" placeholder="Description" {...register('description')} />
         {errors.description && <p className="text-red-500 text-sm">{errors.description.message as string}</p>}
+      </div>
+
+      {/* Investisseur */}
+      <div className="grid gap-3">
+        <Label htmlFor="investisseur" className="text-sm text-gray-500">
+          Investisseur (optionnel)
+        </Label>
+        <Select onValueChange={(value) => setValue('investisseur', value === 'none' ? '' : value)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Sélectionnez un investisseur" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Investisseurs</SelectLabel>
+              {investissementsLoading ? (
+                <SelectItem value="loading" disabled>
+                  Chargement...
+                </SelectItem>
+              ) : investissements && investissements.length > 0 ? (
+                <>
+                  <SelectItem value="none">Aucun investisseur</SelectItem>
+                  {investissements.map((investissement: IInvestissement) => (
+                    <SelectItem key={investissement.id} value={investissement.nomInvestisseur}>
+                      {investissement.nomInvestisseur} - {investissement.montant.toLocaleString()} FCFA
+                    </SelectItem>
+                  ))}
+                </>
+              ) : (
+                <SelectItem value="none" disabled>
+                  Aucun investisseur disponible
+                </SelectItem>
+              )}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        {errors.investisseur && <p className="text-red-500 text-sm">{errors.investisseur.message as string}</p>}
       </div>
     </div>
   );

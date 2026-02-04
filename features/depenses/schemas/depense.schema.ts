@@ -8,6 +8,7 @@ export const DepenseCreateSchema = z.object({
     id: z.string().uuid('ID de catégorie invalide'),
   }),
   sourcePaiement: z.string().min(1, 'La source obligatoire'),
+  investisseur: z.string().optional(),
 });
 
 export type DepenseCreateDTO = z.infer<typeof DepenseCreateSchema>;

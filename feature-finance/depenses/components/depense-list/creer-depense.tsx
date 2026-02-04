@@ -9,6 +9,7 @@ import { useForm } from 'react-hook-form';
 import { Plus } from 'lucide-react';
 import { useAjouterDepenseMutation } from '../../queries/depense.mutation';
 import { useCategorieDepensesListQuery } from '../../queries/category/categorie-depense.query';
+import { useInvestissementListQuery } from '../../../revenus/queries/investissement/investissement-list.query';
 import { DepenseForm } from '../common/depense-form';
 
 export function CreerDepenseModal() {
@@ -16,6 +17,7 @@ export function CreerDepenseModal() {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: categories, isLoading: categoriesLoading } = useCategorieDepensesListQuery({});
+  const { data: investissementsData, isLoading: investissementsLoading } = useInvestissementListQuery({});
 
   const {
     register,
@@ -26,12 +28,14 @@ export function CreerDepenseModal() {
   } = useForm<DepenseCreateDTO>({
     resolver: zodResolver(DepenseCreateSchema),
     defaultValues: {
-      montant: 0,
       description: '',
+      montant: 0,
       dateDepense: new Date(),
       categorie: {
         id: '',
       },
+      sourcePaiement: '',
+      investisseur: '',
     },
   });
 
@@ -79,6 +83,8 @@ export function CreerDepenseModal() {
             setSelectedDate={setSelectedDate}
             categories={categories}
             categoriesLoading={categoriesLoading}
+            investissements={investissementsData?.content || []}
+            investissementsLoading={investissementsLoading}
             register={register}
             errors={errors}
             setValue={setValue}
