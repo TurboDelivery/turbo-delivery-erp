@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { factureAPI } from '../apis/facture.api';
 import { IFactureParams } from '../types/facture.types';
+import { useMemo } from 'react';
 
 // Clés de query
 export const factureKeys = {
@@ -34,12 +35,21 @@ export const useFactureQuery = (id: string) => {
   });
 };
 
-// Hook pour récupérer les factures d'un restaurant
-export const useFacturesParRestaurantQuery = (restaurantId: string, params?: IFactureParams) => {
+// Hook pour récupérer les factures d'un restaurant ou toutes les factures
+export const useFacturesParRestaurantQuery = (restaurantId?: string, params?: IFactureParams) => {
+  const searchParams = useMemo(() => {
+    return {
+      ...params,
+      ...(restaurantId && { restaurantId }),
+    };
+  }, [restaurantId, params]);
+
   return useQuery({
-    queryKey: factureKeys.byRestaurant(restaurantId, params),
-    queryFn: () => factureAPI.obtenirFacturesParRestaurant(restaurantId, params),
-    enabled: !!restaurantId,
+    queryKey: restaurantId ? factureKeys.byRestaurant(restaurantId, params) : factureKeys.list(params),
+    queryFn: () => restaurantId
+      ? factureAPI.obtenirFacturesParRestaurant(restaurantId, searchParams)
+      : factureAPI.obtenirFactures(searchParams),
+    enabled: true, // Toujours enabled, même si restaurantId est vide
     staleTime: 5 * 60 * 1000,
   });
 };

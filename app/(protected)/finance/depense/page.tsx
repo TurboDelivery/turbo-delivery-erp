@@ -1,4 +1,4 @@
-import DepenseClientContent from '@/feature-finance/depenses/components/depense-client-content';
+import DepensePageContent from '@/feature-finance/depenses/components/depense-page-content';
 import { prefetchDepensesListQuery } from '@/feature-finance/depenses/queries/depense-list.query';
 import { prefetchCategoriesDepensesListQuery } from '@/feature-finance/depenses/queries/category/categorie-depense.query';
 
@@ -14,5 +14,5 @@ export default async function DepensePage() {
     }),
   ]);
 
-  return <DepenseClientContent />;
+  return <DepensePageContent />;
 }

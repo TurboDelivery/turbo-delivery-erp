@@ -6,7 +6,7 @@ import { IFacture, IFactureParams } from '../types/facture.types';
 export interface IFactureApi {
   obtenirFactures(params?: IFactureParams): Promise<PaginatedResponse<IFacture>>;
   obtenirFacture(id: string): Promise<IFacture>;
-  obtenirFacturesParRestaurant(restaurantId: string, params?: IFactureParams): Promise<PaginatedResponse<IFacture>>;
+  obtenirFacturesParRestaurant(restaurantId?: string, params?: IFactureParams): Promise<PaginatedResponse<IFacture>>;
 }
 
 export const factureAPI: IFactureApi = {
@@ -25,13 +25,13 @@ export const factureAPI: IFactureApi = {
     });
   },
 
-  obtenirFacturesParRestaurant(restaurantId: string, params?: IFactureParams): Promise<PaginatedResponse<IFacture>> {
+  obtenirFacturesParRestaurant(restaurantId?: string, params?: IFactureParams): Promise<PaginatedResponse<IFacture>> {
     return api.request<PaginatedResponse<IFacture>>({
       endpoint: 'erp/factures',
       method: 'GET',
       searchParams: {
         ...params,
-        restaurantId,
+        ...(restaurantId && { restaurantId }),
       } as SearchParams,
     });
   },
