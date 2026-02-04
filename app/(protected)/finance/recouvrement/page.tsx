@@ -1,5 +1,6 @@
 import { RestaurantsTable } from '@/components/finance/recouvrements/restaurants/restaurants-table';
 import { getRestaurantDefined } from '@/src/price-list/price-list.action';
+import RecouvrementGraphs from '@/feature-finance/revenus/components/recouvrement/recouvrement';
 
 export default async function RecouvrementsPage() {
   const restaurants = await getRestaurantDefined();
@@ -9,6 +10,7 @@ export default async function RecouvrementsPage() {
   }));
   return (
     <>
+      <RecouvrementGraphs />
       <RestaurantsTable restoOpts={restaurantOpts} />
     </>
   );
