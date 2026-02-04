@@ -18,15 +18,25 @@ export async function GET(request: NextRequest) {
     }
 
     // Construire l'URL de l'API backend
-    const baseUrl = "http://backend-prod.turbodeliveryapp.com/api/finance/revenues/analytics";
-    let url = `${baseUrl}?period=${period}`;
+    let url = "http://backend-prod.turbodeliveryapp.com/api/finance/revenues/analytics/periode";
     
-    // Priorité aux plages de dates personnalisées
+    // Ajouter les paramètres selon le type de période
+    const params = new URLSearchParams();
+    
     if (startDate && endDate) {
-      url += `&startDate=${startDate}&endDate=${endDate}`;
+      // Pour les plages personnalisées - utiliser des paramètres séparés
+      params.append('startDate', startDate);
+      params.append('endDate', endDate);
     } else if (date) {
-      url += `&date=${date}`;
+      // Pour une date spécifique
+      params.append('date', date);
     }
+    
+    // Toujours ajouter la période - convertir en majuscules pour l'enum Java
+    const periodValue = period.toUpperCase();
+    params.append('period', periodValue);
+    
+    url += `?${params.toString()}`;
 
     console.log('API Revenue Analytics - Backend URL:', url);
 
@@ -43,11 +53,13 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('API Revenue Analytics - Backend Error:', errorText);
+      console.error('API Revenue Analytics - Response Headers:', Object.fromEntries(response.headers.entries()));
       throw new Error(`Erreur de l'API backend: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
     console.log('API Revenue Analytics - Success, data keys:', Object.keys(data));
+    console.log('API Revenue Analytics - Sample data:', JSON.stringify(data).substring(0, 200) + '...');
 
     // Retourner les données au client
     return NextResponse.json(data);
