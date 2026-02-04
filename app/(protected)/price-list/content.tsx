@@ -2,10 +2,11 @@
 
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { RestaurantDefini } from '@/types/price-list';
-import { Pagination, Select, SelectItem, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs } from '@heroui/react';
+import { Pagination, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs } from '@heroui/react';
 import usePriceLiceDefined from './usePriceLiceDefined';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
+import Select from 'react-select';
 
 interface Props {
   initialData: RestaurantDefini[];
@@ -19,6 +20,11 @@ const tabsItems = [
 export default function Content({ initialData }: Props) {
   const { columns, selectedKey, tabs, deliveryFees, renderCell, handleChangeSelectedKey, pagination } = usePriceLiceDefined({ initialData });
 
+  // Préparer les options pour react-select
+  const restaurantOptions = tabs
+    .map((tab) => ({ value: tab.id, label: tab.nomComplet }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
   return (
     <>
       {/* Onglets de navigation globale */}
@@ -30,18 +36,33 @@ export default function Content({ initialData }: Props) {
       <div className="flex flex-col mt-4">
         <div className="flex items-center gap-4 border shadow rounded-xl py-3 px-4">
           <Select
-            className="max-w-sm"
-            items={tabs.sort((a, b) => a.nomComplet.localeCompare(b.nomComplet))}
-            label="Sélectionner un restaurant"
-            placeholder="Choisir un restaurant"
-            selectedKeys={selectedKey ? [selectedKey] : []}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0] as string;
-              if (selected) handleChangeSelectedKey(selected);
+            options={restaurantOptions}
+            value={restaurantOptions.find((o) => o.value === selectedKey) ?? null}
+            onChange={(opt) => {
+              if (opt?.value) handleChangeSelectedKey(opt.value);
             }}
-          >
-            {(item) => <SelectItem key={item.id}>{item.nomComplet}</SelectItem>}
-          </Select>
+            placeholder="Sélectionner un restaurant"
+            isClearable
+            className="text-xs w-full max-w-sm"
+            classNamePrefix="react-select"
+            styles={{
+              control: (base) => ({
+                ...base,
+                minHeight: '36px',
+                height: '36px',
+                width: '100%',
+              }),
+              valueContainer: (base) => ({
+                ...base,
+                height: '36px',
+                padding: '0 8px',
+              }),
+              indicatorsContainer: (base) => ({
+                ...base,
+                height: '36px',
+              }),
+            }}
+          />
         </div>
         {/* Tableau de frais de livraison */}
         <Table

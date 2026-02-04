@@ -6,7 +6,7 @@ import {
 import getQueryClient from '@/lib/get-query-client';
 import { toast } from 'sonner';
 import { recouvrementKeyQuery } from './index.query';
-import { obtenirRecouvrementDetailAction } from '../../actions/recouvrement/recouvrement.action';
+import { obtenirRecouvrementDetailAction } from '@/feature-finance/revenus/actions/recouvrement/recouvrement.action';
 
 const queryClient = getQueryClient();
 
