@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
-type Period = "WEEK" | "MONTH" | "YEAR";
+type Period = "WEEK" | "MONTH";
 
 interface RevenueData {
   label: string;
@@ -50,8 +50,7 @@ interface RevenueResponse {
 
 const periodLabels = {
   WEEK: "Semaine", 
-  MONTH: "Mois",
-  YEAR: "Année"
+  MONTH: "Mois"
 };
 
 export default function RevenuePeriodChart() {
@@ -81,7 +80,7 @@ export default function RevenuePeriodChart() {
     
     if (!customDate) return undefined;
     
-    // Pour WEEK, MONTH, YEAR, on envoie le premier jour de la période
+    // Pour WEEK, MONTH, on envoie le premier jour de la période
     const date = new Date(customDate);
     switch (selectedPeriod) {
       case "WEEK":
@@ -93,9 +92,6 @@ export default function RevenuePeriodChart() {
       case "MONTH":
         // Premier jour du mois
         return new Date(date.getFullYear(), date.getMonth(), 1).toISOString().split('T')[0];
-      case "YEAR":
-        // Premier jour de l'année
-        return new Date(date.getFullYear(), 0, 1).toISOString().split('T')[0];
       default:
         return customDate;
     }
@@ -118,7 +114,7 @@ export default function RevenuePeriodChart() {
     } else if (daysDiff <= 90) {
       return "MONTH";
     } else {
-      return "YEAR";
+      return "MONTH"; // Pour les longues périodes, utiliser MONTH aussi
     }
   }, [useCustomRange, customStartDate, customEndDate, selectedPeriod]);
   
@@ -281,8 +277,6 @@ export default function RevenuePeriodChart() {
           return `Semaine du ${date.toLocaleDateString('fr-FR')} au ${new Date(date.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR')}`;
         case "MONTH":
           return `Mois de ${date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`;
-        case "YEAR":
-          return `Année ${date.getFullYear()}`;
         default:
           return "";
       }
@@ -299,8 +293,6 @@ export default function RevenuePeriodChart() {
         return "Cette semaine";
       case "month":
         return `Mois de ${new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`;
-      case "year":
-        return `Année ${new Date().getFullYear()}`;
       default:
         return "";
     }
@@ -312,8 +304,6 @@ export default function RevenuePeriodChart() {
         return "week"; 
       case "MONTH":
         return "month";
-      case "YEAR":
-        return "year";
       default:
         return "date";
     }
@@ -325,8 +315,6 @@ export default function RevenuePeriodChart() {
         return "Sélectionner une semaine";
       case "MONTH":
         return "Sélectionner un mois";
-      case "YEAR":
-        return "Sélectionner une année";
       default:
         return "Sélectionner une date";
     }
@@ -440,16 +428,6 @@ export default function RevenuePeriodChart() {
       return filtered;
     }
     
-    // Pour les plages personnalisées avec YEAR, filtrer par mois
-    if (useCustomRange && customStartDate && customEndDate && apiPeriodForCall === "YEAR") {
-      return revenueData.data.filter(item => {
-        const itemMonth = parseInt(item.label);
-        const startMonth = new Date(customStartDate).getMonth() + 1;
-        const endMonth = new Date(customEndDate).getMonth() + 1;
-        return itemMonth >= startMonth && itemMonth <= endMonth;
-      });
-    }
-    
     // Sinon, retourner toutes les données
     return revenueData.data;
   }, [revenueData, useCustomRange, customStartDate, customEndDate, apiPeriodForCall]);
@@ -531,8 +509,8 @@ export default function RevenuePeriodChart() {
             </PopoverContent>
           </Popover>
 
-          {/* Sélecteur de périodes */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          {/* Sélecteur de périodes - Masqué */}
+          <div className="hidden mb-4">
             {Object.entries(periodLabels).map(([period, label]) => (
               <button
                 key={period}
