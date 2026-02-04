@@ -107,14 +107,16 @@ export default function RevenuePeriodChart() {
     const end = new Date(customEndDate);
     const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Logique optimisée : toujours utiliser MONTH pour les plages personnalisées car DAY retourne des données horaires vides
-    // Même pour un seul jour, MONTH donnera les données journalières correctes
-    if (daysDiff <= 31) {
-      return "MONTH"; // Pour toutes les plages personnalisées, utiliser MONTH pour obtenir les données journalières
+    // Logique optimisée : utiliser WEEK pour les périodes courtes afin d'obtenir les dates complètes
+    // MONTH retourne date: null, mais WEEK retourne les dates complètes
+    if (daysDiff <= 7) {
+      return "WEEK"; // Pour les périodes très courtes, utiliser WEEK pour avoir les dates
+    } else if (daysDiff <= 31) {
+      return "WEEK"; // Pour toutes les plages personnalisées courtes, utiliser WEEK pour obtenir les dates complètes
     } else if (daysDiff <= 90) {
-      return "MONTH";
+      return "WEEK"; // Pour les périodes moyennes, utiliser WEEK aussi
     } else {
-      return "MONTH"; // Pour les longues périodes, utiliser MONTH aussi
+      return "WEEK"; // Pour les longues périodes, utiliser WEEK pour avoir les dates
     }
   }, [useCustomRange, customStartDate, customEndDate, selectedPeriod]);
   
@@ -144,15 +146,37 @@ export default function RevenuePeriodChart() {
       // Filtrer les données selon la période
       let filteredData = revenueData.data;
       
-      if (apiPeriodForCall === "MONTH") {
-        // Définir les jours avant le filtrage pour le debugging
-        const startDay = new Date(customStartDate).getDate();
-        const endDay = new Date(customEndDate).getDate();
-        
-        // Filtrer les données journalières pour ne garder que les jours dans la plage
+      if (apiPeriodForCall === "WEEK") {
+        // Pour les données WEEK, utiliser directement les dates complètes de l'API
         filteredData = revenueData.data.filter(item => {
+          const itemDate = new Date(item.date || '');
+          const startDate = new Date(customStartDate);
+          const endDate = new Date(customEndDate);
+          
+          // Filtrer par date complète
+          return itemDate >= startDate && itemDate <= endDate;
+        });
+        
+      } else if (apiPeriodForCall === "MONTH") {
+        // Pour les données MONTH (date: null), reconstruire les dates à partir du label
+        filteredData = revenueData.data.filter(item => {
+          // Reconstruire la date à partir du label (jour) et de la période sélectionnée
           const dayNum = parseInt(item.label);
-          return dayNum >= startDay && dayNum <= endDay;
+          const startDate = new Date(customStartDate);
+          const endDate = new Date(customEndDate);
+          
+          // Créer une date pour chaque item en utilisant le jour du label
+          // On commence par le mois de début
+          let itemDate = new Date(startDate.getFullYear(), startDate.getMonth(), dayNum);
+          
+          // Si le jour est supérieur au nombre de jours du mois de début, essayer le mois suivant
+          if (itemDate.getMonth() !== startDate.getMonth()) {
+            // Essayer avec le mois de fin
+            itemDate = new Date(endDate.getFullYear(), endDate.getMonth(), dayNum);
+          }
+          
+          // Vérifier si la date reconstruite est dans la plage
+          return itemDate >= startDate && itemDate <= endDate;
         });
         
       }
@@ -377,28 +401,48 @@ export default function RevenuePeriodChart() {
   const getFilteredChartData = useMemo(() => {
     if (!revenueData?.data) return [];
     
+    // Pour les plages personnalisées avec WEEK, utiliser les dates complètes
+    if (useCustomRange && customStartDate && customEndDate && apiPeriodForCall === "WEEK") {
+      const filtered = revenueData.data.filter(item => {
+        // Pour les données WEEK, utiliser directement les dates complètes de l'API
+        const itemDate = new Date(item.date || '');
+        const startDate = new Date(customStartDate);
+        const endDate = new Date(customEndDate);
+        return itemDate >= startDate && itemDate <= endDate;
+      });
+      
+      return filtered;
+    }
+    
     // Pour les plages personnalisées avec MONTH, filtrer les jours
     if (useCustomRange && customStartDate && customEndDate && apiPeriodForCall === "MONTH") {
       const filtered = revenueData.data.filter(item => {
+        // Reconstruire la date à partir du label (jour) et de la période sélectionnée
         const dayNum = parseInt(item.label);
-        const startDay = new Date(customStartDate).getDate();
-        const endDay = new Date(customEndDate).getDate();
-        const startMonth = new Date(customStartDate).getMonth();
-        const endMonth = new Date(customEndDate).getMonth();
-        const startYear = new Date(customStartDate).getFullYear();
-        const endYear = new Date(customEndDate).getFullYear();
+        const startDate = new Date(customStartDate);
+        const endDate = new Date(customEndDate);
         
-        // Vérifier si c'est le même mois et année pour les plages d'un seul jour
-        const isSameMonth = startMonth === endMonth;
-        const isSameYear = startYear === endYear;
+        // Vérifier si c'est une plage d'un seul jour
+        const isSameDay = customStartDate === customEndDate;
         
-        // Si c'est une plage d'un seul jour dans le même mois/année, filtrer précisément
-        if (isSameMonth && isSameYear && startDay === endDay) {
-          return dayNum === startDay;
+        if (isSameDay) {
+          // Pour une plage d'un seul jour, vérifier si le jour correspond
+          const targetDay = startDate.getDate();
+          return dayNum === targetDay;
         }
         
-        // Sinon, filtrer par plage de jours normale
-        return dayNum >= startDay && dayNum <= endDay;
+        // Créer une date pour chaque item en utilisant le jour du label
+        // On commence par le mois de début
+        let itemDate = new Date(startDate.getFullYear(), startDate.getMonth(), dayNum);
+        
+        // Si le jour est supérieur au nombre de jours du mois de début, essayer le mois suivant
+        if (itemDate.getMonth() !== startDate.getMonth()) {
+          // Essayer avec le mois de fin
+          itemDate = new Date(endDate.getFullYear(), endDate.getMonth(), dayNum);
+        }
+        
+        // Vérifier si la date reconstruite est dans la plage
+        return itemDate >= startDate && itemDate <= endDate;
       });
       
       // Si aucun jour ne correspond pour une plage d'un jour, créer un item avec valeur 0
