@@ -131,11 +131,15 @@ export function RepartitionPret() {
         ) : isError ? (
           <div className="h-[400px] flex flex-col items-center justify-center">
             <div className="text-red-500 mb-2">Erreur lors du chargement des données</div>
-            {error && (
+            {error && typeof error === 'object' && error !== null ? (
               <div className="text-sm text-red-400 text-center max-w-md">
                 {error instanceof Error ? error.message : String(error)}
               </div>
-            )}
+            ) : error ? (
+              <div className="text-sm text-red-400 text-center max-w-md">
+                {String(error)}
+              </div>
+            ) : null}
           </div>
         ) : chartData.length === 0 ? (
           <div className="h-[400px] flex items-center justify-center">
