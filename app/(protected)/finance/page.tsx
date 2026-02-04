@@ -1,18 +1,23 @@
 
-import StatisticsWrapper from "@/feature-finance/dashboard/components/statistics-wrapper";
+"use client";
+
+import FinanceQueryProvider from "./finance-query-provider";
+import Statistics from "@/feature-finance/dashboard/components/statistics";
 import DashboardHeader from "@/components/components-finance/dashboard/header";
 import { ChartLineMultiple } from "@/feature-finance/dashboard/components/chart-line-multiple";
 
 export default function Home() {
   return (
-    <div >
-      <DashboardHeader />
-      <StatisticsWrapper />
-      {/* <Repartition /> */}
-      {/* <GraphMansuel /> */}
-      <div>
-        <ChartLineMultiple />
+    <FinanceQueryProvider>
+      <div >
+        <DashboardHeader />
+        <Statistics />
+        {/* <Repartition /> */}
+        {/* <GraphMansuel /> */}
+        <div>
+          <ChartLineMultiple />
+        </div>
       </div>
-    </div>
+    </FinanceQueryProvider>
   );
 }

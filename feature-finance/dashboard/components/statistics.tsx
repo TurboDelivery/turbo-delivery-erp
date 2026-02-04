@@ -1,18 +1,19 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { useDashboardStats } from "@/feature-finance/dashboard/hooks/use-dashboard-stats";
+import React, { useState, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { ArrowUp, Download, Receipt, TrendingUp, Wallet, WalletCards, DollarSign, ArrowDown } from 'lucide-react';
+import { useDashboardStats } from '@/feature-finance/dashboard/hooks/use-dashboard-stats';
+import { useCAExport } from '@/feature-finance/dashboard/hooks/use-ca-export';
+import { startOfMonth, endOfMonth } from 'date-fns';
+import { useRouter } from "next/navigation";
 import { useLivraisonList } from "@/feature-finance/revenus/hooks/use-livraison-list";
 import { useCommissionFixeList } from "@/feature-finance/revenus/hooks/use-commissionfixe-list";
 import { useCommissionPourcentageList } from "@/feature-finance/revenus/hooks/use-commissionpourcentage-list";
 import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvrement";
 import { useInvestissementList } from "@/feature-finance/revenus/hooks/use-investissement-list";
 import { getAllChiffreAffaire } from "@/src/actions/statistiques.action";
-import { DollarSign, Wallet, WalletCards, ArrowUp, ArrowDown, Receipt, TrendingUp, Download } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
 import { MonthFilter } from "./month-filter";
-import { useCAExport } from "@/feature-finance/dashboard/hooks/use-ca-export";
 
 export default function Statistics() {
     const { yearlyTotals, isLoading, chartData } = useDashboardStats(2026);
