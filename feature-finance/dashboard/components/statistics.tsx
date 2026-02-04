@@ -8,10 +8,11 @@ import { useCommissionPourcentageList } from "@/feature-finance/revenus/hooks/us
 import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvrement";
 import { useInvestissementList } from "@/feature-finance/revenus/hooks/use-investissement-list";
 import { getAllChiffreAffaire } from "@/src/actions/statistiques.action";
-import { DollarSign, Wallet, WalletCards, ArrowUp, ArrowDown, Receipt, TrendingUp } from "lucide-react";
+import { DollarSign, Wallet, WalletCards, ArrowUp, ArrowDown, Receipt, TrendingUp, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { MonthFilter } from "./month-filter";
+import { useCAExport } from "@/feature-finance/dashboard/hooks/use-ca-export";
 
 export default function Statistics() {
     const { yearlyTotals, isLoading, chartData } = useDashboardStats(2026);
@@ -166,6 +167,34 @@ export default function Statistics() {
     // Titre dynamique pour la carte CA
     const caTitle = selectedMonth ? "CA du Mois" : "CA de l'Année";
     
+    // Hook pour l'exportation Excel du CA
+    const { exportCAToExcel, isLoadingCAExport } = useCAExport();
+    
+    // Fonction pour télécharger les détails du CA en Excel
+    const handleDownloadDetails = () => {
+        // Calculer les dates pour la période
+        let debut: Date | undefined;
+        let fin: Date | undefined;
+        
+        if (selectedMonth) {
+            // Période mensuelle
+            debut = new Date(selectedYear, selectedMonth - 1, 1);
+            fin = new Date(selectedYear, selectedMonth, 0); // Dernier jour du mois
+        } else {
+            // Période annuelle
+            debut = new Date(selectedYear, 0, 1);
+            fin = new Date(selectedYear, 11, 31);
+        }
+        
+        // Appeler l'exportation Excel
+        exportCAToExcel({
+            debut,
+            fin,
+            selectedMonth,
+            selectedYear
+        });
+    };
+    
     const stats = [
         {
             title: caTitle,
@@ -205,7 +234,6 @@ export default function Statistics() {
             isCurrency: true,
         },
     ];
-    
 
     return (
         <div className="w-full px-4 py-6">
@@ -223,7 +251,7 @@ export default function Statistics() {
                 {/* Carte CA du Mois sur toute la largeur */}
                 <Card className="p-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg hover:shadow-xl transition-all duration-300">
                     <div className="flex justify-between items-start h-full">
-                        {/* Partie 1 : CA du Mois - inchangé */}
+                        {/* Partie 1 : CA du Mois */}
                         <div className="flex flex-col justify-between h-full">
                             <div>
                                 <h3 className="text-sm font-medium text-gray-600">{caTitle}</h3>
@@ -235,13 +263,31 @@ export default function Statistics() {
                                         <ArrowUp className="w-4 h-4 text-green-600" />
                                     </div>
                                 </div>
+                                {/* Bouton Télécharger les détails */}
+                                <button
+                                    onClick={handleDownloadDetails}
+                                    disabled={isLoadingCAExport}
+                                    className="mt-3 flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-xs font-medium rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md disabled:shadow-sm disabled:cursor-not-allowed"
+                                >
+                                    {isLoadingCAExport ? (
+                                        <>
+                                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                            Téléchargement...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Download className="w-3 h-3" />
+                                            Télécharger les détails
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </div>
                         
                         {/* Séparateur vertical */}
                         <div className="w-px bg-green-200 mx-4" />
                         
-                        {/* Partie 2 : Décomposition du CA - déplacée vers la droite */}
+                        {/* Partie 2 : Décomposition du CA */}
                         <div className="flex items-center gap-4">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
@@ -325,5 +371,4 @@ export default function Statistics() {
             </div>
         </div>
     );
-    
 }

@@ -2,12 +2,9 @@ import React from 'react';
 import {
     useQuery,
 } from '@tanstack/react-query';
-import getQueryClient from '@/lib/get-query-client';
 import { toast } from 'sonner';
 import { DashboardStatsParams } from '../types/dashboard.types';
 import { getDashboardStatsAction } from '../actions/dashboard.action';
-
-const queryClient = getQueryClient();
 
 // Clé de query pour les statistiques dashboard
 export const dashboardStatsQueryKey = (params: DashboardStatsParams) => ['dashboard-stats', params];
@@ -43,9 +40,4 @@ export const useDashboardStatsQuery = (params: DashboardStatsParams) => {
     }, [query]);
 
     return query;
-};
-
-// Fonction pour précharger les statistiques dashboard
-export const prefetchDashboardStatsQuery = (params: DashboardStatsParams) => {
-    return queryClient.prefetchQuery(dashboardStatsQueryOption(params));
 };
