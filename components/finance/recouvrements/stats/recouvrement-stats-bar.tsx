@@ -1,66 +1,59 @@
 import { AlertCircle, CheckCircle, FileText } from 'lucide-react';
-import { IRecouvrement } from '@/feature-finance/revenus/types/recouvrement/recouvrement.types';
-import { IFacture } from '@/feature-finance/revenus/types/recouvrement/prets.types';
 import { StatCard } from './recouvrement-stat-card';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import useRecouvrementDashboard from '@/features/recouvrements/hooks/use-recouvrement-dashboard';
+import { useFactureStats } from '@/features/recouvrements/hooks/use-facture-stats';
 
-interface DetailRecouvrementProps {
-  recouvrements: IRecouvrement[];
-  factures: IFacture[];
-}
-
-export default function RecouvrementStatsBar({ recouvrements, factures }: DetailRecouvrementProps) {
+export default function RecouvrementStatsBar() {
   const { filters, handleDateChange } = useRecouvrementDashboard();
-  // Calculer le total à recouvrir à partir des factures
-  const totalARecouvrir = factures.reduce((total, facture) => {
-    return total + facture.totalFraisLivraisons + facture.totalCommission;
-  }, 0);
+  const { summary, isLoading } = useFactureStats(filters.debut, filters.fin);
 
-  // Calculer le total payé à partir des recouvrements
-  const totalPayes = recouvrements.reduce((total, recouvrement) => {
-    return total + recouvrement.montant;
-  }, 0);
-
-  // Calculer le reste à recouvrir
-  const totalResteARecouvrir = totalARecouvrir - totalPayes;
-
-  const recouvrementsData = [
-    {
-      title: 'Nombre de recouvrements',
-      value: recouvrements.length,
-      icon: <FileText className="h-5 w-5" />,
-      colorVariant: 'blue' as const,
-      formatValue: (value: number | string) => value.toLocaleString(),
-    },
-    {
-      title: 'Total à recouvrir',
-      value: totalARecouvrir,
-      icon: <FileText className="h-5 w-5" />,
-      colorVariant: 'purple' as const,
-    },
-    {
-      title: 'Total payé',
-      value: totalPayes,
-      icon: <CheckCircle className="h-5 w-5" />,
-      colorVariant: 'green' as const,
-    },
-    {
-      title: 'Reste à recouvrir',
-      value: totalResteARecouvrir,
-      icon: <AlertCircle className="h-5 w-5" />,
-      colorVariant: 'amber' as const,
-    },
-  ];
+  const montantRestant = (summary?.montantTotalARecouvrir || 0) - (summary?.montantDejaRecouvre || 0);
 
   return (
     <div className="flex flex-col gap-4">
       <DateFilterInput filters={filters} handleDateChange={handleDateChange} />
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {recouvrementsData.map((stat, index) => (
-          <StatCard key={index} title={stat.title} value={stat.value} icon={stat.icon} colorVariant={stat.colorVariant} formatValue={stat.formatValue || formatCFA} />
-        ))}
+        {isLoading ? (
+          <>
+            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          </>
+        ) : (
+          <>
+            <StatCard
+              title="Factures à recouvrir"
+              value={summary?.nombreFacturesARecouvrir || 0}
+              icon={<FileText className="h-5 w-5" />}
+              colorVariant="blue"
+              formatValue={(value) => value.toLocaleString()}
+            />
+            <StatCard
+              title="Montant total à recouvrir"
+              value={summary?.montantTotalARecouvrir || 0}
+              icon={<FileText className="h-5 w-5" />}
+              colorVariant="purple"
+              formatValue={formatCFA}
+            />
+            <StatCard
+              title="Montant déjà recouvré"
+              value={summary?.montantDejaRecouvre || 0}
+              icon={<CheckCircle className="h-5 w-5" />}
+              colorVariant="green"
+              formatValue={formatCFA}
+            />
+            <StatCard
+              title="Reste à recouvrir"
+              value={montantRestant}
+              icon={<AlertCircle className="h-5 w-5" />}
+              colorVariant="amber"
+              formatValue={formatCFA}
+            />
+          </>
+        )}
       </div>
     </div>
   );

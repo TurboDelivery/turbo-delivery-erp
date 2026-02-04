@@ -5,6 +5,7 @@ import { flexRender } from '@tanstack/react-table';
 import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import useFactureTable from '@/features/recouvrements/hooks/use-facture-table';
 import { FactureFilters } from './facture-filters';
+import { subMonths } from 'date-fns';
 
 interface FactureTableProps {
   restaurantId?: string;
@@ -12,7 +13,7 @@ interface FactureTableProps {
 }
 
 export function FactureTable({ restaurantId, showFilters = true }: FactureTableProps) {
-  const { factureTable, isFactureLoading, isFactureFetching, isFactureError, pagination, filters, setFilters, handleTypeFilterChange, handleStatutFilterChange, handlePeriodeFilterChange } =
+  const { factureTable, isFactureLoading, isFactureFetching, pagination, filters, setFilters, handleTypeFilterChange, handleStatutFilterChange, handlePeriodeFilterChange } =
     useFactureTable({
       restaurantId,
     });
@@ -23,8 +24,8 @@ export function FactureTable({ restaurantId, showFilters = true }: FactureTableP
     setFilters({
       type: '',
       statut: '',
-      periodeDebut: '',
-      periodeFin: '',
+      periodeDebut: subMonths(new Date(), 1),
+      periodeFin: new Date(),
       page: 0,
     });
   };
@@ -61,31 +62,23 @@ export function FactureTable({ restaurantId, showFilters = true }: FactureTableP
             ))}
           </TableHeader>
           <TableBody emptyContent="Aucune facture trouvée">
-            {isFactureLoading ? (
-              Array.from({ length: 10 }).map((_, i) => (
-                <TableRow key={`skeleton-${i}`}>
-                  {Array.from({ length: colsCount }).map((_, j) => (
-                    <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : isFactureError ? (
-              <TableRow>
-                <TableCell colSpan={colsCount} className="h-24 text-center">
-                  <div className="text-destructive">Erreur lors du chargement des factures</div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              factureTable.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFactureFetching ? 'opacity-70' : ''}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )}
+            {isFactureLoading
+              ? Array.from({ length: 10 }).map((_, i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    {Array.from({ length: colsCount }).map((_, j) => (
+                      <TableCell key={`skeleton-cell-${j}`} className="h-12">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : factureTable.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFactureFetching ? 'opacity-70' : ''}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
       </div>

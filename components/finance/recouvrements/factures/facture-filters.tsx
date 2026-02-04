@@ -9,36 +9,32 @@ interface FactureFiltersProps {
   filters: {
     type: string;
     statut: string;
-    periodeDebut: string;
-    periodeFin: string;
+    periodeDebut: Date;
+    periodeFin: Date;
   };
   handleTypeFilterChange: (type?: string | null) => void;
   handleStatutFilterChange: (statut?: string | null) => void;
-  handlePeriodeFilterChange: (debut?: string, fin?: string) => void;
+  handlePeriodeFilterChange: (debut?: Date, fin?: Date) => void;
   onReset?: () => void;
 }
-const typeOptions = [
-  { key: 'LIVRAISON', label: 'Livraison' },
-  { key: 'COMMISSION', label: 'Commission' },
-  { key: 'MENSUELLE', label: 'Mensuelle' },
-];
+
 const statutOptions = [
-  { key: 'PAYEE', label: 'Payée' },
-  { key: 'EN_ATTENTE', label: 'En attente' },
-  { key: 'ANNULEE', label: 'Annulée' },
+  { key: 'PAID', label: 'Payée' },
+  { key: 'NOT_PAID', label: 'Non payée' },
+  { key: 'DRAFT', label: 'Brouillon' },
 ];
+
 export function FactureFilters({
   filters,
-  handleTypeFilterChange,
   handleStatutFilterChange,
   handlePeriodeFilterChange,
   onReset,
 }: FactureFiltersProps) {
   const handleDebutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handlePeriodeFilterChange(e.target.value, filters.periodeFin);
+    handlePeriodeFilterChange(new Date(e.target.value), filters.periodeFin);
   };
   const handleFinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handlePeriodeFilterChange(filters.periodeDebut, e.target.value);
+    handlePeriodeFilterChange(filters.periodeDebut, new Date(e.target.value));
   };
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-background">
@@ -51,25 +47,7 @@ export function FactureFilters({
           </Button>
         )}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="type-filter">Type</Label>
-          <Select
-            id="type-filter"
-            placeholder="Sélectionner un type"
-            selectedKeys={filters.type ? [filters.type] : []}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0] as string;
-              handleTypeFilterChange(selected || null);
-            }}
-          >
-            {typeOptions.map((option) => (
-              <SelectItem key={option.key} value={option.key}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </Select>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="statut-filter">Statut</Label>
           <Select
@@ -93,7 +71,7 @@ export function FactureFilters({
           <Input
             id="debut-filter"
             type="date"
-            value={filters.periodeDebut || ''}
+            value={filters.periodeDebut.toISOString().split('T')[0] || ''}
             onChange={handleDebutChange}
           />
         </div>
@@ -102,7 +80,7 @@ export function FactureFilters({
           <Input
             id="fin-filter"
             type="date"
-            value={filters.periodeFin || ''}
+            value={filters.periodeFin.toISOString().split('T')[0] || ''}
             onChange={handleFinChange}
           />
         </div>

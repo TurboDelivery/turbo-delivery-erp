@@ -1,13 +1,14 @@
-import { parseAsInteger, parseAsString } from 'nuqs';
+import { parseAsInteger, parseAsIsoDate, parseAsString } from 'nuqs';
+import { subMonths } from 'date-fns';
 export const factureFiltersClient = {
   filter: {
     restaurantId: parseAsString.withDefault(''),
     type: parseAsString.withDefault(''),
     statut: parseAsString.withDefault(''),
-    periodeDebut: parseAsString.withDefault(''),
-    periodeFin: parseAsString.withDefault(''),
+    periodeDebut: parseAsIsoDate.withDefault(subMonths(new Date(),1)),
+    periodeFin: parseAsIsoDate.withDefault(new Date()),
     page: parseAsInteger.withDefault(0),
-    size: parseAsInteger.withDefault(10),
+    size: parseAsInteger.withDefault(20),
     sort: parseAsString.withDefault(''),
   },
   option: {
