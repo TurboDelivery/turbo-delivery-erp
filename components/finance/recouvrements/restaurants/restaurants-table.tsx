@@ -12,9 +12,10 @@ export type restaurantsTableProps = {
     label: string;
     value: string;
   }[];
+  isOptionsLoading?: boolean;
 };
 
-export function RestaurantsTable({ restoOpts }: restaurantsTableProps) {
+export function RestaurantsTable({ restoOpts, isOptionsLoading = false }: restaurantsTableProps) {
   const { restaurantTable, isRestaurantLoading, isRestaurantFetching, pagination, filters, handleRestaurantFilterChange } = useRestaurantRecouvrementTable();
   return (
     <Card className="flex flex-col gap-4">
@@ -27,6 +28,8 @@ export function RestaurantsTable({ restoOpts }: restaurantsTableProps) {
             onChange={(opt) => handleRestaurantFilterChange(opt?.value)}
             placeholder="Restaurant"
             isClearable
+            isLoading={isOptionsLoading}
+            isDisabled={isOptionsLoading}
             className="text-xs w-full max-w-md"
             classNamePrefix="react-select"
             styles={{

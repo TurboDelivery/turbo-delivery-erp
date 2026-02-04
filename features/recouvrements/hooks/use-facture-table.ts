@@ -7,11 +7,14 @@ import { useQueryStates } from 'nuqs';
 import { factureFiltersClient } from '@/features/recouvrements/filters/facture.filter';
 
 interface UseFactureTableProps {
-  restaurantId: string;
+  restaurantId?: string; // Optionnel - peut être fourni en prop ou récupéré des filtres
 }
 
-function useFactureTable({ restaurantId }: UseFactureTableProps) {
+function useFactureTable({ restaurantId: propRestaurantId }: UseFactureTableProps = {}) {
   const [filters, setFilters] = useQueryStates(factureFiltersClient.filter, factureFiltersClient.option);
+
+  // Utiliser le restaurantId du prop si fourni, sinon celui des filtres
+  const restaurantId = propRestaurantId || filters.restaurantId;
 
   const currentSearchParams: IFactureParams = useMemo(() => {
     return {
@@ -26,6 +29,7 @@ function useFactureTable({ restaurantId }: UseFactureTableProps) {
     };
   }, [restaurantId, filters]);
 
+  // Utiliser la query avec restaurantId (qui peut être vide)
   const { data: facturesData, isLoading, isFetching, isError } = useFacturesParRestaurantQuery(restaurantId, currentSearchParams);
 
   // Gérer le tri
@@ -72,6 +76,10 @@ function useFactureTable({ restaurantId }: UseFactureTableProps) {
     setFilters({ size: newSize, page: 0 }); // Reset to first page when changing size
   };
 
+  const handleRestaurantFilterChange = (id?: string | null) => {
+    setFilters({ restaurantId: id || '', page: 0 });
+  };
+
   const handleTypeFilterChange = (type?: string | null) => {
     setFilters({ type: type || '', page: 0 });
   };
@@ -99,7 +107,9 @@ function useFactureTable({ restaurantId }: UseFactureTableProps) {
     setSorting,
     filters,
     setFilters,
+    restaurantId,
     handleSizeChange,
+    handleRestaurantFilterChange,
     handleTypeFilterChange,
     handleStatutFilterChange,
     handlePeriodeFilterChange,
@@ -107,3 +117,6 @@ function useFactureTable({ restaurantId }: UseFactureTableProps) {
 }
 
 export default useFactureTable;
+
+
+

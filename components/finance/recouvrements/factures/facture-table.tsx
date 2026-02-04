@@ -7,10 +7,11 @@ import useFactureTable from '@/features/recouvrements/hooks/use-facture-table';
 import { FactureFilters } from './facture-filters';
 
 interface FactureTableProps {
-  restaurantId: string;
+  restaurantId?: string;
+  showFilters?: boolean;
 }
 
-export function FactureTable({ restaurantId }: FactureTableProps) {
+export function FactureTable({ restaurantId, showFilters = true }: FactureTableProps) {
   const { factureTable, isFactureLoading, isFactureFetching, isFactureError, pagination, filters, setFilters, handleTypeFilterChange, handleStatutFilterChange, handlePeriodeFilterChange } =
     useFactureTable({
       restaurantId,
@@ -30,13 +31,15 @@ export function FactureTable({ restaurantId }: FactureTableProps) {
 
   return (
     <div className="space-y-4">
-      <FactureFilters
-        filters={filters}
-        handleTypeFilterChange={handleTypeFilterChange}
-        handleStatutFilterChange={handleStatutFilterChange}
-        handlePeriodeFilterChange={handlePeriodeFilterChange}
-        onReset={handleResetFilters}
-      />
+      {showFilters && (
+        <FactureFilters
+          filters={filters}
+          handleTypeFilterChange={handleTypeFilterChange}
+          handleStatutFilterChange={handleStatutFilterChange}
+          handlePeriodeFilterChange={handlePeriodeFilterChange}
+          onReset={handleResetFilters}
+        />
+      )}
 
       <div className="overflow-x-auto">
         <Table
