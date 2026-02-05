@@ -110,7 +110,7 @@ const Sidebar = ({ profile }: { profile: User }) => {
     if (window.innerWidth < 1024 && themeConfig.sidebar) {
       dispatch(toggleSidebar());
     }
-  }, [pathname]);
+  }, [dispatch, pathname, themeConfig.sidebar]);
 
   const setActiveRoute = () => {
     const allLinks = document.querySelectorAll('.sidebar ul a.active');
@@ -122,15 +122,15 @@ const Sidebar = ({ profile }: { profile: User }) => {
   return (
     <>
       {/* Bouton flottant pour rouvrir la sidebar quand elle est fermée */}
-      {(
-        <button
-          type="button"
-          className="fixed top-4 left-4 z-50 flex items-center justify-center w-10 h-10 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-full shadow-md transition duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-          onClick={() => dispatch(toggleSidebar())}
-        >
-          <IconCaretsDown className="m-auto -rotate-90 h-5 w-5 text-gray-600 dark:text-gray-300" />
-        </button>
-      )}
+      {/*{(*/}
+      {/*  <button*/}
+      {/*    type="button"*/}
+      {/*    className="fixed top-4 left-4 z-50 flex items-center justify-center w-10 h-10 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-full shadow-md transition duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"*/}
+      {/*    onClick={() => dispatch(toggleSidebar())}*/}
+      {/*  >*/}
+      {/*    <IconCaretsDown className="m-auto -rotate-90 h-5 w-5 text-gray-600 dark:text-gray-300" />*/}
+      {/*  </button>*/}
+      {/*)}*/}
 
       <nav className={semidark ? 'dark' : ''}>
         <div

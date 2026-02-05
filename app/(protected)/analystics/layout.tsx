@@ -19,7 +19,6 @@ export default function AnalysticsLayout({ children }: { children: React.ReactNo
         // { id: '/analystics/emprunts', href: '/analystics/pay-slip', label: 'Emprunts' },
         // { id: '/analystics/cautions', href: '/analystics/pay-slip', label: 'Cautions' },
         // { id: '/analystics/voir', href: '/analystics/voir', label: 'Voir' },
-        { id: '/analystics/finance', href: 'https://finance.turbodeliveryapp.com', label: 'Gestion Finance' },
     ];
     const currentTab = tabs.find((tab) => pathname.startsWith(tab.href) && tab.href !== '/analystics');
     return (
