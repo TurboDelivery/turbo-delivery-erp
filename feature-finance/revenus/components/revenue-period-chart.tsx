@@ -65,7 +65,7 @@ export default function RevenuePeriodChart() {
   const currentMonth = new Date();
   const apiDate = dateRange?.from ? dateRange.from.toISOString().split('T')[0] : currentMonth.toISOString().split('T')[0];
   
-  const { revenueData, isLoading, isError, error } = useRevenuePeriod({ 
+  const { revenueData, monthlyChartData, isLoading, isError, error } = useRevenuePeriod({ 
     period: selectedPeriod,
     date: apiDate,
     startDate: dateRange?.from ? dateRange.from.toISOString().split('T')[0] : undefined,
@@ -160,8 +160,8 @@ export default function RevenuePeriodChart() {
   };
 
 
-  // Utiliser directement les données de l'API
-  const chartData = revenueData?.data || [];
+  // Utiliser les données mensuelles pour le graphique (toujours le mois complet)
+  const chartData = monthlyChartData?.data || revenueData?.data || [];
 
   if (isLoading) {
     return (
@@ -293,7 +293,7 @@ export default function RevenuePeriodChart() {
       {/* Graphique */}
       <Card className="p-6 shadow-lg">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Évolution des revenus - {dateRange ? "Période personnalisée" : periodLabels[selectedPeriod]}
+          Évolution des revenus - Mois de {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
         </h3>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={chartData}>
