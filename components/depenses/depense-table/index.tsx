@@ -9,9 +9,10 @@ import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-dep
 import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
 import { Card, CardContent } from '@/components/ui/card';
+import DateFilterInput from '@/components/finance/date-filter-input';
 
 export function DepenseTable() {
-  const { table, isLoading, isFetching, pagination, filters, setSelectedCategories } = useDepenseTable();
+  const { table, isLoading, isFetching, pagination, filters, setSelectedCategories, handleDateChange } = useDepenseTable();
   const { categories, isLoading: isLoadingCategory } = useCategorieDepense();
   const categorieOptions = categories.map((cat) => ({ value: cat.id, label: cat.nomCategorie }));
 
@@ -23,6 +24,11 @@ export function DepenseTable() {
             isStriped
             topContent={
               <div className="flex justify-between py-2">
+                <DateFilterInput
+                  filters={filters}
+                  handleDateChange={handleDateChange}
+                  variant="outline"
+                />
                 <Select
                   isMulti
                   options={categorieOptions}
