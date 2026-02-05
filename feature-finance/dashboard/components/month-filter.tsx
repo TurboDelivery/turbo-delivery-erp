@@ -39,7 +39,6 @@ export function MonthFilter({ selectedMonth, onMonthChange, isLoading = false }:
                 >
                     Tous
                 </Button>
-                {/* Mois individuels commentés
                 {months.map((month) => (
                     <Button
                         key={month.value}
@@ -52,7 +51,6 @@ export function MonthFilter({ selectedMonth, onMonthChange, isLoading = false }:
                         {month.label.slice(0, 3)}
                     </Button>
                 ))}
-                */}
             </div>
         </div>
     )

@@ -48,13 +48,16 @@ interface UseRevenuePeriodProps {
 // Fonction pour appeler l'API
 async function fetchRevenueByPeriod(period: Period, date?: string, startDate?: string, endDate?: string): Promise<RevenueResponse> {
   // Utiliser la route API locale Next.js comme proxy
-  const baseUrl = "/api/revenue/analytics";
-  let url = `${baseUrl}?period=${period}`;
+  let url = "/api/revenue/analytics";
   
   if (startDate && endDate) {
-    url += `&startDate=${startDate}&endDate=${endDate}`;
+    // Utiliser le vrai endpoint qui fonctionne correctement
+    url = "/api/revenue/analytics/dates";
+    url += `?debut=${startDate}&fin=${endDate}`;
   } else if (date) {
-    url += `&date=${date}`;
+    url += `?period=${period}&date=${date}`;
+  } else {
+    url += `?period=${period}`;
   }
   
   const response = await fetch(url);
@@ -67,6 +70,9 @@ async function fetchRevenueByPeriod(period: Period, date?: string, startDate?: s
 }
 
 export function useRevenuePeriod({ period, date, startDate, endDate, initialData = null }: UseRevenuePeriodProps) {
+  // Pour le graphique, toujours utiliser l'endpoint mensuel
+  const isForChart = period === "MONTH" && !startDate && !endDate;
+  
   const {
     data: revenueData = initialData,
     isLoading,
@@ -81,8 +87,22 @@ export function useRevenuePeriod({ period, date, startDate, endDate, initialData
     retry: 2
   });
 
+  // Appel séparé pour le graphique mensuel si on a une plage personnalisée
+  const {
+    data: monthlyChartData = null,
+    isLoading: isMonthlyChartLoading,
+    isError: isMonthlyChartError
+  } = useQuery({
+    queryKey: ["revenue-monthly-chart"],
+    queryFn: () => fetchRevenueByPeriod("MONTH", undefined, undefined, undefined),
+    enabled: isForChart || (!!startDate && !!endDate), // Activer pour le graphique ou quand on a une plage
+    staleTime: 5 * 60 * 1000,
+    retry: 2
+  });
+
   return {
     revenueData,
+    monthlyChartData,
     isLoading,
     isError,
     error,
