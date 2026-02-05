@@ -119,6 +119,7 @@ export default function RevenuePeriodChart() {
       return selectedPeriod;
     }
     
+    
     const start = new Date(customStartDate);
     const end = new Date(customEndDate);
     const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
