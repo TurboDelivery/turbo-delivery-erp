@@ -13,7 +13,9 @@ export default function DepensePageContent() {
   return (
     <div className="flex flex-col gap-6 px-4">
       <DepenseHeader />
-      <DateFilterInput filters={filters} handleDateChange={handleDateChange} />
+      <div className="flex justify-end gap-4">
+        <DateFilterInput filters={filters} handleDateChange={handleDateChange} />
+      </div>
       <StatisticDepenseCards />
       <RepartitionDepense />
       <DepenseTabs />

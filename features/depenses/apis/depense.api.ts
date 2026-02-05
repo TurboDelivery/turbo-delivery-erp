@@ -18,7 +18,11 @@ export const depenseAPI: IDepenseAPI = {
     return await api.request<PaginatedResponse<IDepense>>({
       endpoint: `/finance/depenses/pagination`,
       method: 'GET',
-      searchParams: params as SearchParams,
+      searchParams: {
+        ...params,
+        debut: params.debut ? params.debut.toISOString().split('T')[0] : undefined,
+        fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
+      } as SearchParams,
     });
   },
 
