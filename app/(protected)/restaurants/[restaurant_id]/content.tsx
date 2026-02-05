@@ -176,6 +176,31 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
                     />
                   )}
                 </div>
+                <Select
+                 
+                    label="Choisissez la periode de payement"
+                    defaultSelectedKeys={[type]}
+                    labelPlacement="outside"
+                    variant="bordered"
+                    isDisabled={isLoading}
+                    onChange={handleTypeChange}
+                  >
+                    <SelectItem key="mensuelle" value="mensuelle">
+                      Mensuelle
+                    </SelectItem>
+                    <SelectItem key="hebdomadaire" value="hebdomadaire">
+                      Hebdomadaire
+                    </SelectItem>
+                    <SelectItem key="journaliere" value="journaliere">
+                      Journalière
+                    </SelectItem>
+                    <SelectItem key="quinzaine" value="quinzaine">
+                      Quinzaine
+                    </SelectItem>
+                    <SelectItem key="deux-semaines" value="deux-semaines">
+                      Deux semaines
+                    </SelectItem>
+                  </Select>
 
                 <div className="flex flex-col justify-end">
                 <Button onClick={handleSubmit} color="primary" isLoading={isLoading} disabled={isLoading} className="mt-4 self-end">

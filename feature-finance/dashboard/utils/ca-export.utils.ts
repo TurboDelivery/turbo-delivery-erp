@@ -10,12 +10,18 @@ export function generateCAExcelTemplate(
   console.log('📊 Excel Generation - Data reçue:', data);
   console.log('📊 Excel Generation - Content:', data.content);
   console.log('📊 Excel Generation - Content length:', data.content?.length);
+  console.log('🔍 Excel Generation - Mois sélectionné:', params.selectedMonth, 'Année:', params.selectedYear);
   
   // Créer le classeur Excel
   const wb = XLSX.utils.book_new();
 
+  // Utiliser directement les données retournées par l'API (déjà filtrées par période)
+  const filteredData = data.content;
+
+  console.log('🔍 Excel Generation - Données utilisées:', filteredData.length);
+
   // Feuille principale avec les données du tableau restaurants
-  if (data.content && data.content.length > 0) {
+  if (filteredData && filteredData.length > 0) {
     // En-têtes exacts comme dans le tableau
     const headers = [
       'Partenaire',
@@ -25,16 +31,18 @@ export function generateCAExcelTemplate(
     ];
 
     // Préparer les données exactement comme dans le tableau
-    const tableData = data.content.map((item: IRestaurantRecouvrement) => {
+    const tableData = filteredData.map((item: IRestaurantRecouvrement) => {
       console.log('🔍 Restaurant item:', item);
-      console.log('📊 totalFacture:', item.totalFacture);
-      console.log('📊 totalCommande:', item.totalCommande);
+      
+      // Vérifications robustes des propriétés
+      const totalFacture = (item as any).totalFacture || 0;
+      const totalCommande = (item as any).totalCommande || 0;
       
       return [
         item.nomRestaurant || '',
         item.totalFraisLivraisons || 0,
         item.totalCommission || 0,
-        item.totalFacture || 0 // Utiliser seulement totalFacture (sera 0 pour le moment)
+        totalFacture // Utiliser seulement totalFacture (sera 0 pour le moment)
       ];
     });
 

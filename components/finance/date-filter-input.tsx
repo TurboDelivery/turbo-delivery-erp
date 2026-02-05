@@ -10,8 +10,8 @@ import { DateRange } from 'react-day-picker';
 
 type DateFilterInputProps = {
   filters: {
-    debut?: Date;
-    fin?: Date;
+    debut?: Date | undefined;
+    fin?: Date | undefined;
   };
   handleDateChange: (value: DateRange | undefined) => void;
   variant?: 'outline' | 'secondary';
@@ -21,7 +21,7 @@ function DateFilterInput({filters, handleDateChange, variant="secondary"}: DateF
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant={variant} data-empty={!filters.debut || !filters.fin} className="data-[empty=true]:text-muted-foreground w-full sm:w-[280px] justify-start text-left font-normal">
+        <Button variant={variant} data-empty={!filters.debut || !filters.fin} className="data-[empty=true]:text-muted-foreground w-full sm:w-[280px] justify-start text-left font-normal bg-yellow-100 hover:bg-yellow-200 border-yellow-300">
           <CalendarIcon />
           {filters.debut && filters.fin ? (
             <span className="ml-2">
@@ -32,7 +32,7 @@ function DateFilterInput({filters, handleDateChange, variant="secondary"}: DateF
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="range"
           buttonVariant="ghost"
@@ -41,6 +41,9 @@ function DateFilterInput({filters, handleDateChange, variant="secondary"}: DateF
             to: filters.fin,
           }}
           onSelect={(value) => handleDateChange(value)}
+          defaultMonth={filters.debut}
+          numberOfMonths={2}
+          disabled={{ before: new Date(2025, 0, 1) }}
         />
       </PopoverContent>
     </Popover>

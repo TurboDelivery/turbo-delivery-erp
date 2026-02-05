@@ -5,27 +5,28 @@ import { Card } from '@/components/ui/card';
 import { ArrowUp, Download, Receipt, TrendingUp, Wallet, WalletCards, DollarSign, ArrowDown } from 'lucide-react';
 import { useDashboardStats } from '@/feature-finance/dashboard/hooks/use-dashboard-stats';
 import { useCAExport } from '@/feature-finance/dashboard/hooks/use-ca-export';
-import { startOfMonth, endOfMonth } from 'date-fns';
 import { useRouter } from "next/navigation";
 import { useLivraisonList } from "@/feature-finance/revenus/hooks/use-livraison-list";
+import DateFilterInput from '@/components/finance/date-filter-input';
+import { DateRange } from 'react-day-picker';
+import { startOfMonth } from 'date-fns';
 import { useCommissionFixeList } from "@/feature-finance/revenus/hooks/use-commissionfixe-list";
 import { useCommissionPourcentageList } from "@/feature-finance/revenus/hooks/use-commissionpourcentage-list";
 import { useRecouvrementList } from "@/feature-finance/revenus/hooks/use-recouvrement";
 import { useInvestissementList } from "@/feature-finance/revenus/hooks/use-investissement-list";
 import { getAllChiffreAffaire } from "@/src/actions/statistiques.action";
-import { MonthFilter } from "./month-filter";
 
 export default function Statistics() {
     const { yearlyTotals, isLoading, chartData } = useDashboardStats(2026);
     const router = useRouter();
     
-    // État pour le filtre par mois - par défaut, mois en cours
-    const currentYear = new Date().getFullYear(); // 2026
-    const currentMonth = new Date().getMonth() + 1; // Février = 2
-    const [selectedMonth, setSelectedMonth] = useState<number | null>(currentMonth);
-    const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+    // État pour le filtre par plage de dates
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: startOfMonth(new Date()),
+        to: new Date()
+    });
     
-    // État pour les données de l'API statistiques (même source que le dashboard principal)
+    // État pour les données de l'API statistiques
     const [chiffreAffaireData, setChiffreAffaireData] = useState<any>(null);
     
     // Récupérer les données de l'API statistiques au chargement du composant
@@ -34,8 +35,8 @@ export default function Statistics() {
             try {
                 const data = await getAllChiffreAffaire({
                     dates: {
-                        start: null, // Pas de filtre de date pour avoir tout le mois
-                        end: null,
+                        start: dateRange?.from as Date || null,
+                        end: dateRange?.to as Date || null,
                     }
                 });
                 setChiffreAffaireData(data);
@@ -45,154 +46,64 @@ export default function Statistics() {
         };
         
         fetchChiffreAffaire();
-    }, []);
+    }, [dateRange]);
     
     // Récupérer les données pour calculer le CA correctement
     const { livraisons } = useLivraisonList({ initialData: [] });
     const { commissionsfixe } = useCommissionFixeList({ initialData: [] });
     const { commissionspourcentage } = useCommissionPourcentageList({ initialData: [] });
     
-    // Récupérer les données pour les revenus encaissés (même source que la page de détail)
+    // Récupérer les données pour les revenus encaissés
     const { recouvrement: recouvrementsData } = useRecouvrementList({ initialData: [] });
     const { investissements } = useInvestissementList();
     
-    // Fonction pour filtrer les données par mois
-    const filterDataByMonth = (data: any[], dateField: string) => {
-        if (!selectedMonth) return data
+    // Fonction pour filtrer les données par plage de dates
+    const filterDataByDateRange = (data: any[], dateField: string) => {
+        if (!dateRange?.from || !dateRange?.to) return data
         
         return data.filter(item => {
             const date = new Date(item[dateField])
-            return date.getMonth() + 1 === selectedMonth && date.getFullYear() === 2026
+            return date >= dateRange.from! && date <= dateRange.to!
         })
     }
     
-    // Fonction pour filtrer les revenus totaux par mois (basé sur les données du dashboard)
-    const filterRevenusByMonth = () => {
-        if (!selectedMonth && chartData?.length) {
-            // Si aucun mois sélectionné (bouton "Année"), utiliser les données de l'API directement
-            return {
-                totalFraisLivraison: chiffreAffaireData?.fraisLivraisonTotalTermine || 0,
-                totalCommissions: chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
-            }
-        }
-       
-        
-        if (!selectedMonth || !chartData?.length) {
-            // Fallback : utiliser les données de l'API si pas de données du graphique
-            return {
-                totalFraisLivraison: chiffreAffaireData?.fraisLivraisonTotalTermine || 0,
-                totalCommissions: chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
-            }
-        }
-        
-        // Utiliser les noms abrégés qui correspondent à chartData
-        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc']
-        const selectedMonthName = monthNames[selectedMonth - 1]
-        
-        // Chercher le mois correspondant dans les données du graphique
-        const monthData = chartData.find(item => item.month === selectedMonthName)
-        
-        if (monthData) {
-            // Utiliser les données exactes du graphique pour la cohérence
-            const revenusDuMois = monthData.revenus || 0
-            const depensesDuMois = monthData.depenses || 0
-            
-            // Pour janvier, si les revenus sont 25058899.99 et les dépenses sont 0,
-            // on considère que les commissions sont incluses dans les revenus
-            // On va séparer approximativement : 80% frais livraison, 20% commissions
-            const proportionFraisLivraison = 0.8
-            const proportionCommissions = 0.2
-            
-            return {
-                totalFraisLivraison: revenusDuMois * proportionFraisLivraison,
-                totalCommissions: revenusDuMois * proportionCommissions
-            }
-        }
-        
-        // Fallback : utiliser 0 si pas de données pour ce mois
-        return {
-            totalFraisLivraison: 0,
-            totalCommissions: 0
-        }
-    }
-    
-    // Fonction pour filtrer les dépenses par mois
-    const filterDepensesByMonth = () => {
-        if (!selectedMonth && chartData?.length) {
-            // Si aucun mois sélectionné (bouton "Année"), calculer la somme de toutes les dépenses de l'année
-            const totalDepenses = chartData.reduce((sum, item) => sum + (item.depenses || 0), 0)
-            return totalDepenses
-        }
-        
-        if (!selectedMonth || !chartData?.length) {
-            // Si aucun mois sélectionné, utiliser les totaux complets
-            return yearlyTotals.totalDepenses
-        }
-        
-        // Utiliser les noms abrégés qui correspondent à chartData
-        const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc']
-        const selectedMonthName = monthNames[selectedMonth - 1]
-        
-        // Chercher le mois correspondant dans les données du graphique
-        const monthData = chartData.find(item => item.month === selectedMonthName)
-        
-        if (monthData) {
-            const depensesDuMois = monthData.depenses || 0
-            return depensesDuMois
-        }
-        
-        // Fallback : utiliser 0 si pas de données pour ce mois
-        return 0
-    }
-    
-    // Filtrer les données par mois si un mois est sélectionné
-    const filteredRecouvrements = selectedMonth ? filterDataByMonth(recouvrementsData || [], 'dateRecouvrement') : (recouvrementsData || [])
-    const filteredInvestissements = selectedMonth ? filterDataByMonth(investissements || [], 'dateInvestissement') : (investissements || [])
-    
-    // Calculer les revenus corrects avec filtrage par mois
-    const filteredRevenus = filterRevenusByMonth()
-    const totalFraisLivraison = filteredRevenus.totalFraisLivraison
-    const totalCommissions = filteredRevenus.totalCommissions
-    const chiffreAffaires = totalFraisLivraison + totalCommissions
+    // Filtrer les données par plage de dates
+    const filteredRecouvrements = filterDataByDateRange(recouvrementsData || [], 'dateRecouvrement')
+    const filteredInvestissements = filterDataByDateRange(investissements || [], 'dateInvestissement')
     
     // Calculer les revenus encaissés avec les données filtrées
     const totalRecouvrements = filteredRecouvrements.reduce((sum: number, rec: any) => sum + (rec.montant || 0), 0) || 0
     const totalInvestissements = filteredInvestissements.reduce((sum: number, inv: any) => sum + (inv.montant || 0), 0) || 0
     const revenusEncaisses = totalRecouvrements + totalInvestissements
     
-    // Filtrer les dépenses par mois aussi
-    const sommeDepenses = filterDepensesByMonth()
+    // Utiliser les données de l'API pour le CA
+    const totalFraisLivraison = chiffreAffaireData?.fraisLivraisonTotalTermine || 0
+    const totalCommissions = chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0
+    const chiffreAffaires = totalFraisLivraison + totalCommissions
+    
+    // Utiliser les totaux complets pour les dépenses
+    const sommeDepenses = yearlyTotals.totalDepenses
     const soldeCompte = revenusEncaisses - sommeDepenses
     const isSoldePositif = soldeCompte > 0
     
     // Titre dynamique pour la carte CA
-    const caTitle = selectedMonth ? "CA du Mois" : "CA de l'Année";
+    const caTitle = dateRange ? "CA de la Période" : "CA du Mois";
     
     // Hook pour l'exportation Excel du CA
     const { exportCAToExcel, isLoadingCAExport } = useCAExport();
     
     // Fonction pour télécharger les détails du CA en Excel
     const handleDownloadDetails = () => {
-        // Calculer les dates pour la période
-        let debut: Date | undefined;
-        let fin: Date | undefined;
-        
-        if (selectedMonth) {
-            // Période mensuelle
-            debut = new Date(selectedYear, selectedMonth - 1, 1);
-            fin = new Date(selectedYear, selectedMonth, 0); // Dernier jour du mois
-        } else {
-            // Période annuelle
-            debut = new Date(selectedYear, 0, 1);
-            fin = new Date(selectedYear, 11, 31);
-        }
+        // Utiliser la plage de dates sélectionnée
+        const debut = dateRange?.from;
+        const fin = dateRange?.to;
         
         // Appeler l'exportation Excel
         exportCAToExcel({
             debut,
             fin,
-            selectedMonth,
-            selectedYear
+            selectedMonth: null,
+            selectedYear: debut?.getFullYear() || new Date().getFullYear()
         });
     };
     
@@ -241,10 +152,12 @@ export default function Statistics() {
             {/* En-tête avec filtre */}
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Tableau de bord financier</h2>
-                <MonthFilter 
-                    selectedMonth={selectedMonth}
-                    onMonthChange={setSelectedMonth}
-                    isLoading={isLoading}
+                <DateFilterInput 
+                    filters={{
+                        debut: dateRange?.from,
+                        fin: dateRange?.to
+                    }}
+                    handleDateChange={setDateRange}
                 />
             </div>
             

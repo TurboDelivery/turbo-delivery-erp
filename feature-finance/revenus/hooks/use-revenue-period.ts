@@ -48,13 +48,16 @@ interface UseRevenuePeriodProps {
 // Fonction pour appeler l'API
 async function fetchRevenueByPeriod(period: Period, date?: string, startDate?: string, endDate?: string): Promise<RevenueResponse> {
   // Utiliser la route API locale Next.js comme proxy
-  const baseUrl = "/api/revenue/analytics";
-  let url = `${baseUrl}?period=${period}`;
+  let url = "/api/revenue/analytics";
   
   if (startDate && endDate) {
-    url += `&startDate=${startDate}&endDate=${endDate}`;
+    // Utiliser le vrai endpoint qui fonctionne correctement
+    url = "/api/revenue/analytics/dates";
+    url += `?debut=${startDate}&fin=${endDate}`;
   } else if (date) {
-    url += `&date=${date}`;
+    url += `?period=${period}&date=${date}`;
+  } else {
+    url += `?period=${period}`;
   }
   
   const response = await fetch(url);
