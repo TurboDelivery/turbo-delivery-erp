@@ -59,6 +59,7 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
           restoId: restaurant.id,
           type,
           commission: commissionValue,
+          paymentPeriod, // Ajouter la période de paiement
         },
       });
 
@@ -73,7 +74,7 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
     } finally {
       setIsLoading(false);
     }
-  }, [restaurant, type, commissionValue]); // ✅ Ajouté commissionValue ici
+  }, [restaurant, type, commissionValue, paymentPeriod]); // ✅ Ajouté paymentPeriod ici
 
   return (
     <div className="min-h-screen">
