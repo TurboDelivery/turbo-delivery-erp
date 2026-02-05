@@ -13,4 +13,5 @@ export interface IRestaurantRecouvrementSearchParams {
   restaurantId?: string;
   page?: number;
   limit?: number;
+  periode?: 'JOUR' | 'SEMAINE' | 'MOIS' | 'TRIMESTRE' | 'SEMESTRE' | 'ANNEE';
 }
