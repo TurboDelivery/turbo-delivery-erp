@@ -56,10 +56,26 @@ const periodLabels = {
 export default function RevenuePeriodChart() {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>("MONTH");
   const [customDate, setCustomDate] = useState<string>("");
-  const [customStartDate, setCustomStartDate] = useState<string>("");
-  const [customEndDate, setCustomEndDate] = useState<string>("");
-  const [useCustomRange, setUseCustomRange] = useState<boolean>(false);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [customStartDate, setCustomStartDate] = useState<string>(() => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    return firstDay.toISOString().split('T')[0];
+  });
+  const [customEndDate, setCustomEndDate] = useState<string>(() => {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return lastDay.toISOString().split('T')[0];
+  });
+  const [useCustomRange, setUseCustomRange] = useState<boolean>(true); // Activer par défaut pour utiliser la plage de dates
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return {
+      from: firstDay,
+      to: lastDay
+    };
+  });
   
   // Fonction pour gérer le changement de plage de dates
   const handleDateRangeChange = (value: DateRange | undefined) => {
