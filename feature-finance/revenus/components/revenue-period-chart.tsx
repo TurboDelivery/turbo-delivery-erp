@@ -65,7 +65,7 @@ export default function RevenuePeriodChart() {
   const currentMonth = new Date();
   const apiDate = dateRange?.from ? dateRange.from.toISOString().split('T')[0] : currentMonth.toISOString().split('T')[0];
   
-  const { revenueData, monthlyChartData, isLoading, isError, error } = useRevenuePeriod({ 
+  const { revenueData, monthlyChartData, isLoading, isError, error } = useRevenuePeriod({
     period: selectedPeriod,
     date: apiDate,
     startDate: dateRange?.from ? dateRange.from.toISOString().split('T')[0] : undefined,
@@ -142,7 +142,7 @@ export default function RevenuePeriodChart() {
       const end = new Date(dateRange.to);
       return `Période du ${start.toLocaleDateString('fr-FR')} au ${end.toLocaleDateString('fr-FR')}`;
     }
-    
+
     // Sinon, utiliser les données de l'API
     switch (revenueData.period) {
       case "week":
@@ -215,7 +215,7 @@ export default function RevenuePeriodChart() {
         <h2 className="text-2xl font-bold text-gray-800">Revenus par période</h2>
         
         {/* Sélecteur de plage de dates */}
-        <DateFilterInput 
+        <DateFilterInput
           filters={{
             debut: dateRange?.from,
             fin: dateRange?.to
@@ -232,7 +232,7 @@ export default function RevenuePeriodChart() {
             <div>
               <h4 className="text-sm font-semibold text-yellow-800">Aucune donnée disponible</h4>
               <p className="text-xs text-yellow-600">
-                Il n'y a pas de revenus enregistrés pour cette période.
+                Il n&#39;y a pas de revenus enregistrés pour cette période.
               </p>
             </div>
           </div>
