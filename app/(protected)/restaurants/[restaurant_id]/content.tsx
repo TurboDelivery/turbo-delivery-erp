@@ -22,6 +22,7 @@ import { updateCommission } from '@/src/restaurants/restaurants.actions';
 import { useCallback, useState } from 'react';
 
 export type CommissionType = 'FIXE' | 'POURCENTAGE';
+export type PaymentPeriod = 'mensuelle' | 'hebdomadaire' | 'journaliere' | 'quinzaine' | 'deux-semaines';
 
 export default function Content({ restaurant }: { restaurant: Restaurant }) {
   const router = useRouter();
@@ -30,11 +31,16 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
   const sortedHours = [...restaurant.openingHours].sort((a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek));
 
   const [type, setType] = useState<string>(restaurant.typeCommission);
+  const [paymentPeriod, setPaymentPeriod] = useState<string>('mensuelle');
   const [isLoading, setIsLoading] = useState(false);
   const [commissionValue, setCommissionValue] = useState<number>(restaurant.commission);
 
   const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setType(e.target.value);
+  }, []);
+
+  const handlePaymentPeriodChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPaymentPeriod(e.target.value);
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -177,14 +183,13 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
                   )}
                 </div>
                 <Select
-                 
-                    label="Choisissez la periode de payement"
-                    defaultSelectedKeys={[type]}
-                    labelPlacement="outside"
-                    variant="bordered"
-                    isDisabled={isLoading}
-                    onChange={handleTypeChange}
-                  >
+                  label="Choisissez la periode de payement"
+                  defaultSelectedKeys={[paymentPeriod]}
+                  labelPlacement="outside"
+                  variant="bordered"
+                  isDisabled={isLoading}
+                  onChange={handlePaymentPeriodChange}
+                >
                     <SelectItem key="mensuelle" value="mensuelle">
                       Mensuelle
                     </SelectItem>
