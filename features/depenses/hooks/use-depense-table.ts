@@ -4,6 +4,7 @@ import { depenseColumns } from '@/components/depenses/depense-table/depense-colu
 import React, { useMemo, useState } from 'react';
 import { getCoreRowModel, SortingState, useReactTable } from '@tanstack/react-table';
 import { startOfMonth } from 'date-fns';
+import { DateRange } from 'react-day-picker';
 
 interface DepenseFilters extends GenericTableFilters {
   debut?: Date;
@@ -23,7 +24,7 @@ export const useDepenseTable = () => {
   const [filters, setFilters] = useState<DepenseFilters>({
     ...initialFilters,
     debut: startOfMonth(new Date()),
-    fin: startOfMonth(new Date()),
+    fin: new Date(),
   });
 
   const [sorting, setSorting] = React.useState<SortingState>(() => {
@@ -85,6 +86,16 @@ export const useDepenseTable = () => {
     }));
   };
 
+  const handleDateChange = (value: DateRange | undefined) => {
+    if (value?.from && value?.to) {
+      setFilters((prev) => ({
+        ...prev,
+        debut: value.from,
+        fin: value.to,
+      }));
+    }
+  };
+
   const table = useReactTable({
     columns: depenseColumns,
     data: depenses,
@@ -133,5 +144,6 @@ export const useDepenseTable = () => {
     filters,
     setSelectedCategories,
     pagination,
+    handleDateChange,
   };
 };

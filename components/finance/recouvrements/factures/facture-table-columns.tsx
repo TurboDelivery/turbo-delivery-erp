@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Eye } from 'lucide-react';
+import FacturePdfViewer from '@/components/finance/recouvrements/factures/pdf/facture-pdf-viewer';
 const formatDate = (dateString: string) => {
   try {
     return format(new Date(dateString), 'dd MMM yyyy', { locale: fr });
@@ -90,9 +91,8 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem>
-            <Eye className="h-4 w-4 mr-2" />
-            <span>Voir détails</span>
+          <DropdownMenuItem asChild>
+            <FacturePdfViewer/>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
