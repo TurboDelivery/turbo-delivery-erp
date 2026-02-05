@@ -25,14 +25,22 @@ export const recouvrementAPI: IRecouvrementAPI = {
   },
 
   obtenirRestaurantRecouvrements(params: IRestaurantRecouvrementSearchParams): Promise<PaginatedResponse<IRestaurantRecouvrement>> {
+    // Construire les paramètres de recherche
+    const searchParams: any = {
+      ...params,
+      debut: params.debut ? params.debut.toISOString().split('T')[0] : undefined,
+      fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
+    };
+    
+    // Ajouter le paramètre periode s'il existe
+    if (params.periode) {
+      searchParams.periode = params.periode;
+    }
+
     return api.request<PaginatedResponse<IRestaurantRecouvrement>>({
       endpoint: `/erp/factures/pagination`,
       method: 'GET',
-      searchParams: {
-        ...params,
-        debut: params.debut ? params.debut.toISOString().split('T')[0] : undefined,
-        fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
-      } as SearchParams,
+      searchParams: searchParams,
     });
   },
 

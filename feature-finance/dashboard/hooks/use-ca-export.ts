@@ -16,19 +16,29 @@ export type { UseCAExportParams };
 export function useCAExport() {
   const { mutate: exportCAData, isPending: isLoadingCAExport, isError: isErrorCAExport, data: caExportData } = useMutation(
     async (params: UseCAExportParams) => {
-      // Préparer les paramètres exactement comme dans useRestaurantRecouvrementTable
-      // Utiliser les mêmes valeurs par défaut que restaurantsRecouvrementFiltersClient
+      // Déterminer la période en fonction du mois sélectionné
+      let periode: 'JOUR' | 'SEMAINE' | 'MOIS' | 'TRIMESTRE' | 'SEMESTRE' | 'ANNEE' = 'ANNEE';
+      
+      if (params.selectedMonth) {
+        periode = 'MOIS';
+      } else {
+        periode = 'ANNEE';
+      }
+
+      // Préparer les paramètres avec la période
       const searchParams: IRestaurantRecouvrementSearchParams = {
-        debut: params.debut || startOfMonth(new Date()), // Date par défaut : début du mois
-        fin: params.fin || new Date(), // Date par défaut : aujourd'hui
-        page: 0, // page commence à 0 dans l'API mais à 1 dans les filtres
-        limit: 1000, // Augmenter pour récupérer toutes les données
-        restaurantId: undefined, // Pas de filtre de restaurant pour avoir tout
+        debut: params.debut,
+        fin: params.fin,
+        page: 0,
+        limit: 1000,
+        restaurantId: undefined,
+        periode: periode // Utiliser le paramètre période
       };
 
       try {
         // Utiliser la même fonction que le tableau restaurants
         console.log('🔍 CA Export - Params envoyés à l\'API:', searchParams);
+        console.log('🔍 CA Export - Période utilisée:', periode);
         
         // Récupérer la première page pour connaître le nombre total de pages
         const firstResult = await obtenirRestaurantRecouvrementsRequest({
@@ -41,7 +51,7 @@ export function useCAExport() {
           throw new Error(firstResult.error || 'Aucune donnée récupérée');
         }
         
-        console.log('� CA Export - Première page:', firstResult.data.totalPages, 'pages totales');
+        console.log('📊 CA Export - Première page:', firstResult.data.totalPages, 'pages totales');
         
         // Récupérer toutes les pages si nécessaire
         let allData = [...firstResult.data.content];
@@ -59,7 +69,7 @@ export function useCAExport() {
             
             if (pageResult.success && pageResult.data?.content) {
               allData = [...allData, ...pageResult.data.content];
-              console.log(`� CA Export - Page ${page + 1}/${totalPages} récupérée`);
+              console.log(`📊 CA Export - Page ${page + 1}/${totalPages} récupérée`);
             }
           }
         }

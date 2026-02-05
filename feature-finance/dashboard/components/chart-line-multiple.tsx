@@ -276,11 +276,12 @@ export function ChartLineMultiple() {
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <MonthFilter 
+                        {/* Filtre de mois désactivé - on utilise les données annuelles complètes */}
+                        {/* <MonthFilter 
                             selectedMonth={selectedMonth}
                             onMonthChange={setSelectedMonth}
                             isLoading={isLoading}
-                        />
+                        /> */}
                         <YearFilter 
                             selectedYear={selectedYear}
                             onYearChange={setSelectedYear}
