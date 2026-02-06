@@ -2,16 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Input,
-  Select,
-  SelectItem,
-  Textarea
-} from '@heroui/react';
+import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Textarea } from '@heroui/react';
 
 import { useRouter } from 'next/navigation';
 import { Restaurant } from '@/types/models';
@@ -20,9 +11,7 @@ import { formatTime } from '@/lib/date';
 import { toast } from 'react-toastify';
 import { updateCommission } from '@/src/restaurants/restaurants.actions';
 import { useCallback, useState } from 'react';
-
-export type CommissionType = 'FIXE' | 'POURCENTAGE';
-export type PaymentPeriod = 'mensuelle' | 'hebdomadaire' | 'journaliere' | 'quinzaine' | 'deux-semaines';
+import { restaurantUpdateCommission } from '@/types/restaurants.model';
 
 export default function Content({ restaurant }: { restaurant: Restaurant }) {
   const router = useRouter();
@@ -31,7 +20,7 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
   const sortedHours = [...restaurant.openingHours].sort((a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek));
 
   const [type, setType] = useState<string>(restaurant.typeCommission);
-  const [paymentPeriod, setPaymentPeriod] = useState<string>('mensuelle');
+  const [paymentPeriod, setPaymentPeriod] = useState<restaurantUpdateCommission['methodRecouvrement']>('MENSUEL');
   const [isLoading, setIsLoading] = useState(false);
   const [commissionValue, setCommissionValue] = useState<number>(restaurant.commission);
 
@@ -40,7 +29,7 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
   }, []);
 
   const handlePaymentPeriodChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPaymentPeriod(e.target.value);
+    setPaymentPeriod(e.target.value as restaurantUpdateCommission['methodRecouvrement']);
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -59,14 +48,14 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
           restoId: restaurant.id,
           type,
           commission: commissionValue,
-          paymentPeriod, // Ajouter la période de paiement
+          methodRecouvrement: paymentPeriod, // Ajouter la période de paiement
         },
       });
 
       if (res.status === 'success') {
         toast.success('Bravo, votre action a été prise en compte');
       } else {
-        toast.error('Désolé, votre action n\'a pas été prise en compte');
+        toast.error("Désolé, votre action n'a pas été prise en compte");
       }
     } catch (error) {
       console.error(error);
@@ -84,9 +73,7 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
             <div onClick={() => router.back()} className="text-gray-600 dark:text-white hover:text-primary cursor-pointer">
               <ArrowLeft className="h-6 w-6" />
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white capitalize">
-              {restaurant?.nomEtablissement}
-            </h1>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white capitalize">{restaurant?.nomEtablissement}</h1>
           </div>
         </div>
       </header>
@@ -94,28 +81,14 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
       <main className="container mx-auto lg:px-4 py-8">
         <div>
           <div className="relative h-64 w-full mb-8 rounded-lg overflow-hidden">
-            <Image
-              src={createUrlFile(restaurant.pictures[0]?.pictureUrl ?? '', 'restaurant')}
-              alt="Restaurant cover"
-              className="object-cover"
-              fill
-              unoptimized
-            />
+            <Image src={createUrlFile(restaurant.pictures[0]?.pictureUrl ?? '', 'restaurant')} alt="Restaurant cover" className="object-cover" fill unoptimized />
             <div className="absolute left-8 bottom-8 bg-white p-2 rounded-lg">
-              <Image
-                src={createUrlFile(restaurant.logo_Url ?? '', 'restaurant')}
-                alt="Restaurant logo"
-                width={80}
-                height={80}
-                className="rounded"
-                unoptimized
-              />
+              <Image src={createUrlFile(restaurant.logo_Url ?? '', 'restaurant')} alt="Restaurant logo" width={80} height={80} className="rounded" unoptimized />
             </div>
           </div>
 
           <div className="space-y-6">
-
-          <Card>
+            <Card>
               <CardHeader>
                 <h2 className="text-xl font-semibold text-red-600 mb-6">Informations Générales</h2>
               </CardHeader>
@@ -184,34 +157,31 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
                   )}
                 </div>
                 <Select
-                  label="Choisissez la periode de payement"
-                  defaultSelectedKeys={[paymentPeriod]}
+                  label="Choisissez la periode de paiement"
+                  defaultSelectedKeys={[paymentPeriod as string]}
                   labelPlacement="outside"
                   variant="bordered"
                   isDisabled={isLoading}
                   onChange={handlePaymentPeriodChange}
                 >
-                    <SelectItem key="mensuelle" value="mensuelle">
-                      Mensuelle
-                    </SelectItem>
-                    <SelectItem key="hebdomadaire" value="hebdomadaire">
-                      Hebdomadaire
-                    </SelectItem>
-                    <SelectItem key="journaliere" value="journaliere">
-                      Journalière
-                    </SelectItem>
-                    <SelectItem key="quinzaine" value="quinzaine">
-                      Quinzaine
-                    </SelectItem>
-                    <SelectItem key="deux-semaines" value="deux-semaines">
-                      Deux semaines
-                    </SelectItem>
-                  </Select>
+                  <SelectItem key="MENSUEL" value="MENSUEL">
+                    Mensuelle
+                  </SelectItem>
+                  <SelectItem key="QUINZAINE" value="QUINZAINE">
+                    Bi-hebdomadaire
+                  </SelectItem>
+                  <SelectItem key="HEBDOMADAIRE" value="HEBDOMADAIRE">
+                    Hebdomadaire
+                  </SelectItem>
+                  <SelectItem key="QUOTIDIEN" value="QUOTIDIEN">
+                    Journalière
+                  </SelectItem>
+                </Select>
 
                 <div className="flex flex-col justify-end">
-                <Button onClick={handleSubmit} color="primary" isLoading={isLoading} disabled={isLoading} className="mt-4 self-end">
-                  Valider mon choix
-                </Button>
+                  <Button onPress={handleSubmit} color="primary" isLoading={isLoading} disabled={isLoading} className="mt-4 self-end">
+                    Valider mon choix
+                  </Button>
                 </div>
               </CardBody>
             </Card>
@@ -260,12 +230,7 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
               </CardHeader>
               <CardBody>
                 {sortedHours.map((hour, index) => (
-                  <div
-                    key={hour.id}
-                    className={`flex justify-between py-1 px-2 transition-all border hover:border-red-500 ${
-                      index % 2 ? 'bg-red-50' : 'bg-white'
-                    }`}
-                  >
+                  <div key={hour.id} className={`flex justify-between py-1 px-2 transition-all border hover:border-red-500 ${index % 2 ? 'bg-red-50' : 'bg-white'}`}>
                     <span className="font-medium">{hour.dayOfWeek}</span>
                     {hour.closed ? (
                       <span>Fermé</span>
@@ -287,12 +252,7 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
                 <div className="grid grid-cols-4 gap-4">
                   {restaurant?.pictures?.map((picture) => (
                     <div key={picture.id} className="relative aspect-square rounded-lg overflow-hidden">
-                      <Image
-                        src={createUrlFile(picture.pictureUrl ?? '', 'restaurant')}
-                        alt={`Restaurant photo ${picture.id}`}
-                        fill
-                        className="object-cover"
-                      />
+                      <Image src={createUrlFile(picture.pictureUrl ?? '', 'restaurant')} alt={`Restaurant photo ${picture.id}`} fill className="object-cover" />
                     </div>
                   ))}
                 </div>

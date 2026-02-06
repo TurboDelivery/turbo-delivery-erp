@@ -1,11 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { Calendar } from '@/components/ui/calendar';
+import { DateRangePicker, RangeValue } from '@heroui/react';
+import { parseDate } from '@internationalized/date';
+import type { DateValue } from '@internationalized/date';
 import { DateRange } from 'react-day-picker';
 
 type DateFilterInputProps = {
@@ -17,36 +15,50 @@ type DateFilterInputProps = {
   variant?: 'outline' | 'secondary';
 };
 
-function DateFilterInput({filters, handleDateChange, variant="secondary"}: DateFilterInputProps) {
+function DateFilterInput({ filters, handleDateChange, variant = "secondary" }: DateFilterInputProps) {
+  // Convertir Date vers DateValue pour HeroUI
+  const convertToDateValue = (date: Date | undefined): DateValue | null => {
+    if (!date) return null;
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return parseDate(`${year}-${month}-${day}`);
+  };
+
+  // Convertir DateValue vers Date pour la callback
+  const handleHeroUIChange = (value: RangeValue<DateValue> | null) => {
+    if (!value || !value.start || !value.end) {
+      handleDateChange(undefined);
+      return;
+    }
+
+    const fromDate = new Date(value.start.year, value.start.month - 1, value.start.day);
+    const toDate = new Date(value.end.year, value.end.month - 1, value.end.day);
+
+    handleDateChange({
+      from: fromDate,
+      to: toDate,
+    });
+  };
+
+  const heroUIValue = filters.debut && filters.fin
+    ? {
+        start: convertToDateValue(filters.debut),
+        end: convertToDateValue(filters.fin),
+      }
+    : null;
+
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant={variant} data-empty={!filters.debut || !filters.fin} className="data-[empty=true]:text-muted-foreground w-full sm:w-[280px] justify-start text-left font-normal bg-yellow-100 hover:bg-yellow-200 border-yellow-300">
-          <CalendarIcon />
-          {filters.debut && filters.fin ? (
-            <span className="ml-2">
-              {format(new Date(filters.debut), 'dd/MM/yyyy')} - {format(new Date(filters.fin), 'dd/MM/yyyy')}
-            </span>
-          ) : (
-            <span className="ml-2">Sélectionner une plage de dates</span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="range"
-          buttonVariant="ghost"
-          selected={{
-            from: filters.debut,
-            to: filters.fin,
-          }}
-          onSelect={(value) => handleDateChange(value)}
-          defaultMonth={filters.debut}
-          numberOfMonths={2}
-          disabled={{ before: new Date(2025, 0, 1) }}
-        />
-      </PopoverContent>
-    </Popover>
+    <DateRangePicker
+      className="max-w-xs w-full sm:w-[280px]"
+      label="Période"
+      value={heroUIValue as any}
+      onChange={handleHeroUIChange}
+      visibleMonths={2}
+      color={variant === 'outline' ? 'default' : 'primary'}
+      variant="bordered"
+    />
   );
 }
 
