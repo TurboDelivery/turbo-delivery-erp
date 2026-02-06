@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { ArrowUp, Download, Receipt, TrendingUp, Wallet, WalletCards, DollarSign, ArrowDown } from 'lucide-react';
 import { useDashboardStats } from '@/feature-finance/dashboard/hooks/use-dashboard-stats';
 import { useCAExport } from '@/feature-finance/dashboard/hooks/use-ca-export';
+import { useGlobalStats } from '@/feature-finance/dashboard/queries/global-stats.query';
 import { useRouter } from "next/navigation";
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { DateRange } from 'react-day-picker';
@@ -20,34 +21,11 @@ export default function Statistics() {
         to: new Date()
     });
     
-    // État pour les données de l'API statistiques globales
-    const [globalStats, setGlobalStats] = useState<any>(null);
-    
-    // Récupérer les données de l'API statistiques globales au chargement du composant
-    useEffect(() => {
-        const fetchGlobalStats = async () => {
-            try {
-                const baseUrl = '/api/finance/global/stats';
-                const searchParams = new URLSearchParams();
-                
-                if (dateRange?.from) {
-                    searchParams.append('debut', dateRange.from.toISOString().split('T')[0]);
-                }
-                if (dateRange?.to) {
-                    searchParams.append('fin', dateRange.to.toISOString().split('T')[0]);
-                }
-                
-                const url = `${baseUrl}?${searchParams.toString()}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                setGlobalStats(data);
-            } catch (error) {
-                console.error('Erreur lors de la récupération des données globales:', error);
-            }
-        };
-        
-        fetchGlobalStats();
-    }, [dateRange]);
+    // Utiliser React Query pour les données globales
+    const { data: globalStats, isLoading: isLoadingGlobalStats } = useGlobalStats({
+        debut: dateRange?.from,
+        fin: dateRange?.to
+    });
     
     // Utiliser les données de l'API globale pour les statistiques
     const chiffreAffaires = globalStats?.chiffreAffaire || 0;

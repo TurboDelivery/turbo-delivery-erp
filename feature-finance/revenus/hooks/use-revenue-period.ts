@@ -70,9 +70,6 @@ async function fetchRevenueByPeriod(period: Period, date?: string, startDate?: s
 }
 
 export function useRevenuePeriod({ period, date, startDate, endDate, initialData = null }: UseRevenuePeriodProps) {
-  // Pour le graphique, toujours utiliser l'endpoint mensuel
-  const isForChart = period === "MONTH" && !startDate && !endDate;
-  
   const {
     data: revenueData = initialData,
     isLoading,
@@ -84,6 +81,7 @@ export function useRevenuePeriod({ period, date, startDate, endDate, initialData
     queryFn: () => fetchRevenueByPeriod(period, date, startDate, endDate),
     enabled: !!period,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false, // Éviter le rechargement au focus
     retry: 2
   });
 
@@ -95,8 +93,8 @@ export function useRevenuePeriod({ period, date, startDate, endDate, initialData
   } = useQuery({
     queryKey: ["revenue-monthly-chart"],
     queryFn: () => fetchRevenueByPeriod("MONTH", undefined, undefined, undefined),
-    enabled: isForChart || (!!startDate && !!endDate), // Activer pour le graphique ou quand on a une plage
     staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false, // Éviter le rechargement au focus
     retry: 2
   });
 
