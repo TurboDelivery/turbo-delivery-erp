@@ -142,8 +142,9 @@ export function generateCAExcelTemplate(
       });
     });
   }
-  
+
 
   // Générer le fichier Excel
   return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
 }
+
