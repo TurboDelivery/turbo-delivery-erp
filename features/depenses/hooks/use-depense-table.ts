@@ -67,7 +67,7 @@ export const useDepenseTable = () => {
     handlePageChange: (page: number) => {
       setFilters((prev) => ({
         ...prev,
-        page: page,
+        page: page - 1,
       }));
     },
   };

@@ -2,21 +2,20 @@
 import { useCallback, useMemo, useState } from 'react';
 import { IInvestissementParams } from '../types/revenus.types';
 import { useInvestissementListQuery } from '../queries/investissement/investissement-list.query';
+import { startOfMonth, endOfMonth } from 'date-fns';
 
 export interface InvestissementFilters {
   nomInvestisseur: string;
-  dateInvestissement: string;
-  deadline: string;
-  montant: number;
+  debut?: Date;
+  fin?: Date;
   page: number;
   limit: number;
 }
 
 const initialFilters: InvestissementFilters = {
   nomInvestisseur: '',
-  dateInvestissement: '',
-  deadline: '',
-  montant: 0,
+  debut: startOfMonth(new Date()),
+  fin: endOfMonth(new Date()),
   page: 0,
   limit: 10,
 };
@@ -37,17 +36,14 @@ export function useInvestissementList() {
       params.nomInvestisseur = filters.nomInvestisseur;
     }
 
-    if (filters.dateInvestissement && filters.dateInvestissement.trim() !== '') {
-      params.dateInvestissement = filters.dateInvestissement;
+    if (filters.debut) {
+      params.debut = filters.debut;
     }
 
-    if (filters.deadline && filters.deadline.trim() !== '') {
-      params.deadline = filters.deadline;
+    if (filters.fin) {
+      params.fin = filters.fin;
     }
 
-    if (filters.montant && filters.montant > 0) {
-      params.montant = filters.montant;
-    }
     return params;
   }, [filters]);
 
@@ -79,7 +75,7 @@ export function useInvestissementList() {
       // Vérifier le type attendu pour chaque propriété
       let typedValue: string | number;
 
-      if (filterName === 'page' || filterName === 'limit' || filterName === 'montant') {
+      if (filterName === 'page' || filterName === 'limit') {
         // Convertir en nombre si nécessaire
         typedValue = typeof value === 'string' ? Number(value) : value;
       } else {
@@ -89,8 +85,22 @@ export function useInvestissementList() {
 
       updateFilters({
         [filterName]: typedValue,
-        page: filterName !== 'page' ? 1 : typeof value === 'string' ? Number(value) : value,
+        page: filterName !== 'page' ? 0 : typeof value === 'string' ? Number(value) : value,
       });
+    },
+    [updateFilters],
+  );
+
+  // Fonction pour gérer les changements de dates
+  const handleDateChange = useCallback(
+    (value: { from?: Date; to?: Date } | undefined) => {
+      if (value?.from && value?.to) {
+        updateFilters({
+          debut: value.from,
+          fin: value.to,
+          page: 0,
+        });
+      }
     },
     [updateFilters],
   );
@@ -102,6 +112,7 @@ export function useInvestissementList() {
     error,
     filters,
     handleFilterChange,
+    handleDateChange,
     updateFilters,
     handlePageChange: (page: number) => handleFilterChange('page', page),
     handleLimitChange: (limit: number) => handleFilterChange('limit', limit),

@@ -13,10 +13,9 @@ export interface IInvestissementParams {
     page?: number;
     limit?: number;
     search?: string;
-    dateInvestissement?: string;
-    deadline?: string;
     nomInvestisseur?: string;
-    montant?: number;
+    debut?: Date;
+    fin?: Date;
 }
 
 export interface CommissionFixe {
