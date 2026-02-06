@@ -108,12 +108,27 @@ export function useCAExport() {
         const link = document.createElement('a');
         link.href = downloadUrl;
         
-        // Nom de fichier dynamique
-        const period = params.selectedMonth ? 
-          `mois_${params.selectedMonth}_${params.selectedYear}` : 
-          `annee_${params.selectedYear}`;
-        const dateStr = new Date().toISOString().split('T')[0];
-        link.setAttribute('download', `ca_${period}_${dateStr}.xlsx`);
+        // Nom de fichier personnalisé avec plage de dates et heure
+        let fileName = '';
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/:/g, '-');
+        
+        if (params.debut && params.fin) {
+          // Plage personnalisée
+          const debutStr = params.debut.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+          const finStr = params.fin.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+          fileName = `ca_${debutStr}_au_${finStr}_${timeStr}.xlsx`;
+        } else if (params.selectedMonth) {
+          // Mois spécifique
+          const monthNames = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre'];
+          const monthName = monthNames[params.selectedMonth - 1];
+          fileName = `ca_${monthName}_${params.selectedYear}_${timeStr}.xlsx`;
+        } else {
+          // Année complète
+          fileName = `ca_annee_${params.selectedYear}_${timeStr}.xlsx`;
+        }
+        
+        link.setAttribute('download', fileName);
         
         document.body.appendChild(link);
         link.click();
