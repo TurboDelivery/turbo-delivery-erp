@@ -1,117 +1,137 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Eye, Calendar, User, DollarSign, Percent, Hash } from "lucide-react";
-import { IInvestissement } from "@/feature-finance/revenus/types/revenus.types";
-import Image from "next/image";
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Calendar, DollarSign, Eye, User, Clock } from 'lucide-react';
+import { IInvestissement } from '@/feature-finance/revenus/types/revenus.types';
+import Image from 'next/image';
+import { formatCFA, formatDateFR } from '@/src/actions/bonLivraison.mapper';
+import { differenceInDays } from 'date-fns';
+
 interface InvestDetailModalProps {
-    investissement: IInvestissement;
+  investissement: IInvestissement;
 }
 
+// Fonction pour déterminer la couleur et le statut de l'échéance
+const getDeadlineStatus = (deadline: string) => {
+  const deadlineDate = new Date(deadline);
+  const today = new Date();
+  const daysUntilDeadline = differenceInDays(deadlineDate, today);
+
+  if (daysUntilDeadline < 0) {
+    return {
+      color: 'text-red-600 bg-red-50',
+      status: 'Échéance dépassée',
+      days: `${Math.abs(daysUntilDeadline)} jour(s) de retard`,
+    };
+  } else if (daysUntilDeadline < 7) {
+    return {
+      color: 'text-red-600 bg-red-50',
+      status: 'Échéance imminente',
+      days: `${daysUntilDeadline} jour(s) restant(s)`,
+    };
+  } else if (daysUntilDeadline < 30) {
+    return {
+      color: 'text-orange-600 bg-orange-50',
+      status: 'Échéance proche',
+      days: `${daysUntilDeadline} jour(s) restant(s)`,
+    };
+  } else {
+    return {
+      color: 'text-green-600 bg-green-50',
+      status: 'Échéance éloignée',
+      days: `${daysUntilDeadline} jour(s) restant(s)`,
+    };
+  }
+};
+
 export function InvestDetailModal({ investissement }: InvestDetailModalProps) {
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <button className="flex items-center gap-2 cursor-pointer hover:text-blue-800 transition-colors">
-                    <Eye className="h-5 w-5 text-red-500" />
-                    <span className="hidden md:flex text-sm font-medium">Voir détails</span>
-                </button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 ">
-                        <Image
-                            src="/assets/images/logo_turbo.jpg"
-                            alt="logo_turbo"
-                            width={50}
-                            height={50}
-                            className="rounded-lg"
-                        />
-                        Détails de l'investissement <span className="font-bold text-red-500">REF-{investissement.id}</span>
-                    </DialogTitle>
-                </DialogHeader>
+  const deadlineStatus = getDeadlineStatus(investissement.deadline);
 
-                <div className="grid gap-6 py-4">
-                    {/* Ligne Référence */}
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="reference" className="text-right flex items-center gap-2">
-                            <Hash className="h-4 w-4" />
-                            Référence
-                        </Label>
-                        <Input
-                            id="reference"
-                            defaultValue={"REF-" + investissement.id}
-                            className="col-span-3"
-                            readOnly
-                        />
-                    </div>
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button className="flex items-center gap-2 cursor-pointer hover:text-blue-800 transition-colors">
+          <Eye className="h-5 w-5 text-red-500" />
+          <span className="hidden md:flex text-sm font-medium">Voir détails</span>
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[550px]">
+        <DialogHeader>
+          <div>
+            <DialogTitle className="text-xl">Détails de l'investissement</DialogTitle>
+            <p className="text-sm text-muted-foreground mt-1">Informations complètes</p>
+          </div>
+        </DialogHeader>
 
-                    {/* Ligne Date */}
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="date" className="text-right flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            Date
-                        </Label>
-                        <Input
-                            id="date"
-                            defaultValue={investissement.dateInvestissement}
-                            className="col-span-3"
-                            readOnly
-                        />
-                    </div>
+        <div className="space-y-4 py-4">
+          {/* Investisseur */}
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+            <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
+              <User className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Investisseur</p>
+              <p className="font-semibold text-lg">{investissement.nomInvestisseur}</p>
+            </div>
+          </div>
 
-                    {/* Ligne Livreur */}
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="investisseur" className="text-right flex items-center gap-2">
-                            <User className="h-4 w-4" />
-                            Investisseur
-                        </Label>
-                        <Input
-                            id="investisseur"
-                            defaultValue={'investisseur'}
-                            className="col-span-3"
-                            readOnly
-                        />
-                    </div>
+          {/* Montant */}
+          <div className="flex items-start gap-3 p-4 rounded-lg bg-green-50 dark:bg-green-950/20">
+            <div className="p-2 rounded-full bg-green-100 dark:bg-green-900">
+              <DollarSign className="h-5 w-5 text-green-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground">Montant du prêt</p>
+              <p className="font-bold text-2xl text-green-600">{formatCFA(investissement.montant)}</p>
+            </div>
+          </div>
 
-                    {/* Ligne Coût Livraison */}
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="coutLivraison" className=" flex items-center gap-2 text-red-500">
-                            <DollarSign className="h-4 w-4" />
-                            Montant du pret
-                        </Label>
-                        <Input
-                            id="coutLivraison"
-                            defaultValue={`${investissement.montant} FCFA`}
-                            className="col-span-3 text-red-500"
-                            readOnly
-                        />
-                    </div>
+          {/* Dates */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Date d'investissement */}
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-900">
+              <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-800">
+                <Calendar className="h-5 w-5 text-gray-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Date d'investissement</p>
+                <p className="font-medium">{formatDateFR(investissement.dateInvestissement)}</p>
+              </div>
+            </div>
 
+            {/* Échéance */}
+            <div className={`flex items-start gap-3 p-4 rounded-lg ${deadlineStatus.color}`}>
+              <div className="p-2 rounded-full bg-white/50">
+                <Clock className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs opacity-75">Échéance</p>
+                <p className="font-medium">{formatDateFR(investissement.deadline)}</p>
+              </div>
+            </div>
+          </div>
 
+          {/* Statut de l'échéance */}
+          <div className={`p-4 rounded-lg ${deadlineStatus.color} border-2 border-current/20`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold">{deadlineStatus.status}</p>
+                <p className="text-sm opacity-75">{deadlineStatus.days}</p>
+              </div>
+              <Clock className="h-8 w-8 opacity-50" />
+            </div>
+          </div>
+        </div>
 
-                </div>
-
-                <DialogFooter>
-                    <DialogClose asChild>
-                        <Button variant="outline" className="cursor-pointer">Fermer</Button>
-                    </DialogClose>
-                    <Button type="button" onClick={() => window.print()} variant="destructive" className="cursor-pointer">
-                        Imprimer
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
+        <DialogFooter className="flex flex-col sm:flex-row gap-2">
+          <DialogClose asChild>
+            <Button variant="outline" className="cursor-pointer flex-1">
+              Fermer
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
