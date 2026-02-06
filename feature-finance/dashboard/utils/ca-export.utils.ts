@@ -1,10 +1,8 @@
 import * as XLSX from 'xlsx';
-import { PaginatedResponse } from '@/types';
-import { IRestaurantRecouvrement } from '@/features/recouvrements/types/restaurant-recouvrement.types';
 import { UseCAExportParams } from '../hooks/use-ca-export';
 
 export function generateCAExcelTemplate(
-  data: PaginatedResponse<IRestaurantRecouvrement>, 
+  data: any, // Changé pour accepter les données de l'API factures
   params: UseCAExportParams
 ): ArrayBuffer {
   console.log('📊 Excel Generation - Data reçue:', data);
@@ -15,69 +13,59 @@ export function generateCAExcelTemplate(
   // Créer le classeur Excel
   const wb = XLSX.utils.book_new();
 
-  // Utiliser directement les données retournées par l'API (déjà filtrées par période)
-  const filteredData = data.content;
+  // Utiliser directement les données retournées par l'API factures
+  const facturesData = data.content;
 
-  console.log('🔍 Excel Generation - Données utilisées:', filteredData.length);
+  console.log('🔍 Excel Generation - Données utilisées:', facturesData.length);
 
-  // Feuille principale avec les données du tableau restaurants
-  if (filteredData && filteredData.length > 0) {
-    // En-têtes exacts comme dans le tableau
+  // Feuille principale avec les données des factures
+  if (facturesData && facturesData.length > 0) {
+    // En-têtes selon les données de l'API factures (sans Total Commande)
     const headers = [
-      'Partenaire',
-      'Total Livraison',
-      'Total Commission', 
-      'Total Facture'
+      'Nom Restaurant',
+      'Total Frais Livraisons', 
+      'Total Commission',
+      'Total'
     ];
 
-    // Préparer les données exactement comme dans le tableau
-    const tableData = filteredData.map((item: IRestaurantRecouvrement) => {
-      console.log('🔍 Restaurant item:', item);
+    // Préparer les données avec les champs de l'API factures
+    const tableData = facturesData.map((item: any) => {
+      console.log('🔍 Facture item:', item);
       
-      // Vérifications robustes des propriétés
-      const totalFacture = (item as any).totalFacture || 0;
-      const totalCommande = (item as any).totalCommande || 0;
+      const totalCA = (item.totalFraisLivraisons || 0) + (item.totalCommission || 0);
       
       return [
         item.nomRestaurant || '',
         item.totalFraisLivraisons || 0,
         item.totalCommission || 0,
-        totalFacture // Utiliser seulement totalFacture (sera 0 pour le moment)
+        totalCA
       ];
     });
 
     // Calculer les totaux pour chaque colonne
-    const tableTotals = data.content.reduce((acc, item: IRestaurantRecouvrement) => ({
-      totalLivraison: acc.totalLivraison + (item.totalFraisLivraisons || 0),
-      totalCommission: acc.totalCommission + (item.totalCommission || 0),
-      totalFacture: acc.totalFacture + (item.totalFacture || 0) // Utiliser seulement totalFacture (sera 0 pour le moment)
-    }), { totalLivraison: 0, totalCommission: 0, totalFacture: 0 });
+    const tableTotals = facturesData.reduce((acc: any, item: any) => {
+      const totalCA = (item.totalFraisLivraisons || 0) + (item.totalCommission || 0);
+      return {
+        totalFraisLivraisons: acc.totalFraisLivraisons + (item.totalFraisLivraisons || 0),
+        totalCommission: acc.totalCommission + (item.totalCommission || 0),
+        totalCA: acc.totalCA + totalCA
+      };
+    }, { totalFraisLivraisons: 0, totalCommission: 0, totalCA: 0 });
 
     // Ajouter la ligne des totaux
     const totalRow = [
       'TOTAL',
-      tableTotals.totalLivraison,
+      tableTotals.totalFraisLivraisons,
       tableTotals.totalCommission,
-      tableTotals.totalFacture
+      tableTotals.totalCA
     ];
 
-    // Calculer le Total Revenue (somme des trois colonnes)
-    const totalRevenue = tableTotals.totalLivraison + tableTotals.totalCommission + tableTotals.totalFacture;
-    
-    // Ajouter la ligne Total Revenue
-    const totalRevenueRow = [
-      'TOTAL REVENUE',
-      totalRevenue,
-      '', // Laisser vide pour Total Commission
-      ''  // Laisser vide pour Total Facture
-    ];
-
-    // Combiner en-têtes, données, ligne de totaux et ligne Total Revenue
-    const fullData = [headers, ...tableData, totalRow, totalRevenueRow];
+    // Combiner en-têtes, données et ligne de totaux
+    const fullData = [headers, ...tableData, totalRow];
     const wsTable = XLSX.utils.aoa_to_sheet(fullData);
 
-    // Mettre en gras la ligne TOTAL (avant-dernière ligne)
-    const totalRowIndex = fullData.length - 2;
+    // Mettre en gras la ligne TOTAL (dernière ligne)
+    const totalRowIndex = fullData.length - 1;
     for (let col = 0; col < 4; col++) {
       const cellAddress = XLSX.utils.encode_cell({ r: totalRowIndex, c: col });
       if (!wsTable[cellAddress]) wsTable[cellAddress] = {};
@@ -87,48 +75,51 @@ export function generateCAExcelTemplate(
       };
     }
 
-    // Mettre en gras la ligne TOTAL REVENUE (dernière ligne) avec une couleur différente
-    const totalRevenueRowIndex = fullData.length - 1;
-    for (let col = 0; col < 4; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: totalRevenueRowIndex, c: col });
-      if (!wsTable[cellAddress]) wsTable[cellAddress] = {};
-      wsTable[cellAddress].s = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: "FF90EE90" } } // Fond vert clair
-      };
-    }
-
     // Ajuster la largeur des colonnes
     const colWidths = [
-      { wch: 30 }, // Partenaire
-      { wch: 20 }, // Total Livraison
+      { wch: 35 }, // Nom Restaurant
+      { wch: 25 }, // Total Frais Livraisons
       { wch: 20 }, // Total Commission
-      { wch: 20 }, // Total Facture
+      { wch: 25 }, // Total CA
     ];
     wsTable['!cols'] = colWidths;
 
-    XLSX.utils.book_append_sheet(wb, wsTable, 'Liste des restaurants');
+    XLSX.utils.book_append_sheet(wb, wsTable, 'Détails Factures');
 
-    // Feuille de totaux globaux
-    const totals = data.content.reduce((acc, item: IRestaurantRecouvrement) => ({
-      totalLivraison: acc.totalLivraison + (item.totalFraisLivraisons || 0),
-      totalCommission: acc.totalCommission + (item.totalCommission || 0),
-      totalFacture: acc.totalFacture + (item.totalFacture || 0) // Utiliser seulement totalFacture (sera 0 pour le moment)
-    }), { totalLivraison: 0, totalCommission: 0, totalFacture: 0 });
-
-    const totalsData = [
-      ['TOTAUX GLOBAUX'],
+    // Ajouter le résumé directement sur la même feuille
+    const summaryStartRow = fullData.length + 3; // Laisser 2 lignes vides après les données
+    
+    // Données de résumé
+    const summaryData = [
+      ['RÉSUMÉ'],
       [],
-      ['Total Livraison', totals.totalLivraison + ' FCFA'],
-      ['Total Commission', totals.totalCommission + ' FCFA'],
-      ['Total Facture', totals.totalFacture + ' FCFA'],
+      ['Période', `${params.debut?.toISOString().split('T')[0] || 'Début'} au ${params.fin?.toISOString().split('T')[0] || 'Fin'}`],
+      ['Nombre de restaurants', facturesData.length],
       [],
-      ['Pourcentage Commission / Total Facture', totals.totalFacture > 0 ? ((totals.totalCommission / totals.totalFacture) * 100).toFixed(2) + '%' : '0%'],
-      ['Pourcentage Livraison / Total Facture', totals.totalFacture > 0 ? ((totals.totalLivraison / totals.totalFacture) * 100).toFixed(2) + '%' : '0%'],
+      ['Total Frais Livraisons', tableTotals.totalFraisLivraisons + ' FCFA'],
+      ['Total Commissions', tableTotals.totalCommission + ' FCFA'],
+      ['TOTAL', tableTotals.totalCA + ' FCFA'],
+      [],
+      ['% Frais Livraison / Total', tableTotals.totalCA > 0 ? ((tableTotals.totalFraisLivraisons / tableTotals.totalCA) * 100).toFixed(2) + '%' : '0%'],
+      ['% Commission / Total', tableTotals.totalCA > 0 ? ((tableTotals.totalCommission / tableTotals.totalCA) * 100).toFixed(2) + '%' : '0%'],
     ];
 
-    const wsTotals = XLSX.utils.aoa_to_sheet(totalsData);
-    XLSX.utils.book_append_sheet(wb, wsTotals, 'Totaux globaux');
+    // Ajouter le résumé à la feuille existante
+    summaryData.forEach((row, index) => {
+      const rowIndex = summaryStartRow + index;
+      row.forEach((cell, colIndex) => {
+        const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+        if (!wsTable[cellAddress]) wsTable[cellAddress] = {};
+        wsTable[cellAddress].v = cell;
+        
+        // Mettre en gras les en-têtes du résumé
+        if (index === 0 || (index >= 4 && index <= 6)) {
+          if (!wsTable[cellAddress].s) wsTable[cellAddress].s = {};
+          wsTable[cellAddress].s.font = { bold: true };
+          wsTable[cellAddress].s.fill = { fgColor: { rgb: "FF90EE90" } }; // Fond vert clair
+        }
+      });
+    });
   }
 
   // Générer le fichier Excel
