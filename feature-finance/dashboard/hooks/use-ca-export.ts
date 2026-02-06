@@ -36,47 +36,62 @@ export function useCAExport() {
       };
 
       try {
-        // Utiliser la même fonction que le tableau restaurants
-        console.log('🔍 CA Export - Params envoyés à l\'API:', searchParams);
-        console.log('🔍 CA Export - Période utilisée:', periode);
+        // Utiliser le nouvel endpoint API factures
+        console.log('🔍 CA Export - Plage de dates:', params.debut, 'à', params.fin);
         
-        // Récupérer la première page pour connaître le nombre total de pages
-        const firstResult = await obtenirRestaurantRecouvrementsRequest({
-          ...searchParams,
-          page: 0,
-          limit: 1000
-        });
+        // Construire l'URL pour l'API locale (proxy)
+        const baseUrl = '/api/factures/pagination';
+        const searchParams = new URLSearchParams();
         
-        if (!firstResult.success || !firstResult.data) {
-          throw new Error(firstResult.error || 'Aucune donnée récupérée');
+        if (params.debut) {
+          searchParams.append('debut', params.debut.toISOString().split('T')[0]);
+        }
+        if (params.fin) {
+          searchParams.append('fin', params.fin.toISOString().split('T')[0]);
         }
         
-        console.log('📊 CA Export - Première page:', firstResult.data.totalPages, 'pages totales');
+        searchParams.append('date', 'MOIS');
+        searchParams.append('page', '0');
+        searchParams.append('size', '1000');
+        
+        const apiUrl = `${baseUrl}?${searchParams.toString()}`;
+        console.log('🔍 CA Export - URL appelée:', apiUrl);
+        
+        // Récupérer la première page
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          throw new Error(`Erreur HTTP: ${response.status} - ${response.statusText}`);
+        }
+        
+        const firstResult = await response.json();
+        console.log('📊 CA Export - Première page:', firstResult.totalPages, 'pages totales');
         
         // Récupérer toutes les pages si nécessaire
-        let allData = [...firstResult.data.content];
-        const totalPages = firstResult.data.totalPages;
+        let allData = [...firstResult.content];
+        const totalPages = firstResult.totalPages;
         
         if (totalPages > 1) {
           console.log(`🔄 CA Export - Récupération des ${totalPages} pages...`);
           
           for (let page = 1; page < totalPages; page++) {
-            const pageResult = await obtenirRestaurantRecouvrementsRequest({
-              ...searchParams,
-              page,
-              limit: 1000
-            });
+            const pageSearchParams = new URLSearchParams(searchParams.toString());
+            pageSearchParams.set('page', page.toString());
+            const pageUrl = `${baseUrl}?${pageSearchParams.toString()}`;
+            const pageResponse = await fetch(pageUrl);
             
-            if (pageResult.success && pageResult.data?.content) {
-              allData = [...allData, ...pageResult.data.content];
-              console.log(`📊 CA Export - Page ${page + 1}/${totalPages} récupérée`);
+            if (pageResponse.ok) {
+              const pageResult = await pageResponse.json();
+              if (pageResult.content) {
+                allData = [...allData, ...pageResult.content];
+                console.log(`📊 CA Export - Page ${page + 1}/${totalPages} récupérée`);
+              }
             }
           }
         }
         
         // Combiner toutes les données
         const combinedData = {
-          ...firstResult.data,
+          ...firstResult,
           content: allData,
           totalElements: allData.length
         };
@@ -89,9 +104,9 @@ export function useCAExport() {
         
         // Créer le blob et télécharger
         const blob = new Blob([xlsxData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        const url = window.URL.createObjectURL(blob);
+        const downloadUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = url;
+        link.href = downloadUrl;
         
         // Nom de fichier dynamique
         const period = params.selectedMonth ? 
@@ -103,7 +118,7 @@ export function useCAExport() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
+        window.URL.revokeObjectURL(downloadUrl);
         
         return combinedData;
       } catch (error) {
