@@ -5,18 +5,11 @@ export function generateCAExcelTemplate(
   data: any, // Changé pour accepter les données de l'API factures
   params: UseCAExportParams
 ): ArrayBuffer {
-  console.log('📊 Excel Generation - Data reçue:', data);
-  console.log('📊 Excel Generation - Content:', data.content);
-  console.log('📊 Excel Generation - Content length:', data.content?.length);
-  console.log('🔍 Excel Generation - Mois sélectionné:', params.selectedMonth, 'Année:', params.selectedYear);
-  
   // Créer le classeur Excel
   const wb = XLSX.utils.book_new();
 
   // Utiliser directement les données retournées par l'API factures
   const facturesData = data.content;
-
-  console.log('🔍 Excel Generation - Données utilisées:', facturesData.length);
 
   // Feuille principale avec les données des factures
   if (facturesData && facturesData.length > 0) {
@@ -40,8 +33,6 @@ export function generateCAExcelTemplate(
 
     // Préparer les données avec les champs de l'API factures
     const tableData = facturesData.map((item: any) => {
-      console.log('🔍 Facture item:', item);
-      
       const totalCA = (item.totalFraisLivraisons || 0) + (item.totalCommission || 0);
       
       return [
