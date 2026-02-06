@@ -20,6 +20,16 @@ export function generateCAExcelTemplate(
 
   // Feuille principale avec les données des factures
   if (facturesData && facturesData.length > 0) {
+    // Ajouter la période en haut du fichier
+    const periodeData = [
+      ['PÉRIODE SÉLECTIONNÉE'],
+      [],
+      ['Du', params.debut?.toISOString().split('T')[0] || 'Début'],
+      ['Au', params.fin?.toISOString().split('T')[0] || 'Fin'],
+      [],
+      []
+    ];
+    
     // En-têtes selon les données de l'API factures (sans Total Commande)
     const headers = [
       'Nom Restaurant',
@@ -60,9 +70,29 @@ export function generateCAExcelTemplate(
       tableTotals.totalCA
     ];
 
-    // Combiner en-têtes, données et ligne de totaux
-    const fullData = [headers, ...tableData, totalRow];
+    // Combiner en-têtes, données et ligne de totaux (avec la période en haut)
+    const fullData = [...periodeData, headers, ...tableData, totalRow];
     const wsTable = XLSX.utils.aoa_to_sheet(fullData);
+
+    // Mettre en gras la période et les en-têtes
+    // Mettre en gras "PÉRIODE SÉLECTIONNÉE"
+    const periodeCellAddress = XLSX.utils.encode_cell({ r: 0, c: 0 });
+    if (!wsTable[periodeCellAddress]) wsTable[periodeCellAddress] = {};
+    wsTable[periodeCellAddress].s = {
+      font: { bold: true },
+      fill: { fgColor: { rgb: "FFD3D3D3" } } // Fond gris clair
+    };
+
+    // Mettre en gras les en-têtes du tableau
+    const headerRowIndex = periodeData.length;
+    for (let col = 0; col < 4; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: headerRowIndex, c: col });
+      if (!wsTable[cellAddress]) wsTable[cellAddress] = {};
+      wsTable[cellAddress].s = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: "FFE6F3" } } // Fond bleu très clair
+      };
+    }
 
     // Mettre en gras la ligne TOTAL (dernière ligne)
     const totalRowIndex = fullData.length - 1;
