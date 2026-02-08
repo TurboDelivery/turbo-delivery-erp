@@ -1,11 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { DateRange } from 'react-day-picker';
 
 interface GlobalStatsResponse {
   chiffreAffaire: number;
   depenses: number;
   revenuEncaisse: number;
   solde: number;
+  commission: number;
+  fraisLivraison: number;
+  investissement: number;
 }
 
 interface GlobalStatsParams {
