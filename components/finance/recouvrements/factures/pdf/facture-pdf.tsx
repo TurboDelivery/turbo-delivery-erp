@@ -1,112 +1,13 @@
 'use client';
 import React from 'react';
 import { Document, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { IFactureDetail } from '@/features/recouvrements/types/facture.types';
-
-type LigneFacture = {
-  date: Date;
-  nombreLivraison: number;
-  montantLivraison: number;
-  montantCommandes: number;
-  totalCommission: number;
-};
-
-type Facture = {
-  numero?: string;
-  client: string;
-  dateFacture: Date;
-  periode: {
-    debut: Date;
-    fin: Date;
-  };
-  cyclePaiement: 'journalier' | 'hebdomadaire';
-  lignes: LigneFacture[];
-  totaux: {
-    montantLivraison: number;
-    montantCommandes: number;
-    montantCommissions: number;
-    factureAPayer: number;
-  };
-};
 
 interface FacturePdfProps {
   factureDetail: IFactureDetail;
 }
-
-
-export const facture: Facture = {
-  numero: 'FAC-2025-02-02',
-  client: 'VILLA DI SORENTO',
-  dateFacture: new Date(2025, 1, 2), // 02 février 2025 (mois commence à 0)
-
-  periode: {
-    debut: new Date(2025, 0, 11),
-    fin: new Date(2025, 0, 17),
-  },
-
-  cyclePaiement: 'hebdomadaire',
-
-  lignes: [
-    {
-      date: new Date(2025, 0, 11),
-      nombreLivraison: 11,
-      montantLivraison: 11000,
-      montantCommandes: 107000,
-      totalCommission: 3300,
-    },
-    {
-      date: new Date(2025, 0, 12),
-      nombreLivraison: 17,
-      montantLivraison: 17000,
-      montantCommandes: 205500,
-      totalCommission: 5500,
-    },
-    {
-      date: new Date(2025, 0, 13),
-      nombreLivraison: 23,
-      montantLivraison: 23000,
-      montantCommandes: 221000,
-      totalCommission: 6900,
-    },
-    {
-      date: new Date(2025, 0, 14),
-      nombreLivraison: 23,
-      montantLivraison: 23000,
-      montantCommandes: 107000,
-      totalCommission: 6900,
-    },
-    {
-      date: new Date(2025, 0, 15),
-      nombreLivraison: 23,
-      montantLivraison: 23000,
-      montantCommandes: 107000,
-      totalCommission: 6900,
-    },
-    {
-      date: new Date(2025, 0, 16),
-      nombreLivraison: 23,
-      montantLivraison: 23000,
-      montantCommandes: 107000,
-      totalCommission: 6900,
-    },
-    {
-      date: new Date(2025, 0, 17),
-      nombreLivraison: 23,
-      montantLivraison: 23000,
-      montantCommandes: 107000,
-      totalCommission: 6900,
-    },
-  ],
-
-  totaux: {
-    montantLivraison: 143000,
-    montantCommandes: 961000,
-    montantCommissions: 43300,
-    factureAPayer: 437050,
-  },
-};
 
 const styles = StyleSheet.create({
   page: {
@@ -223,35 +124,35 @@ const styles = StyleSheet.create({
   },
 });
 
-function formatDate(date: Date) {
-  return format(date, 'dd/MM/yyyy', { locale: fr });
+// Fonction pour formater une date depuis une chaîne ISO
+function formatDate(dateString: string) {
+  try {
+    return format(parseISO(dateString), 'dd/MM/yyyy', { locale: fr });
+  } catch {
+    return dateString;
+  }
 }
 
 const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
-  // TODO: Adapter le template PDF pour utiliser les vraies données de factureDetail
-  // Une fois que le backend renverra le bon format avec les lignes de détails
-  // Pour l'instant, on utilise les données mockées
-  console.log('Facture Detail reçu:', factureDetail);
-
   return (
-    <Document>
+    <Document title={factureDetail.code}>
       <Page style={styles.page}>
         <View style={styles.container}>
           <View style={styles.header}>
             <View>
               <Text style={styles.title}>Facture</Text>
-              <Text style={styles.subtitle}>{facture.numero}</Text>
+              <Text style={styles.subtitle}>{factureDetail.code}</Text>
             </View>
             {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <Image src="/assets/images/logo.png" style={styles.logo} />
           </View>
           <View>
-            <Text style={styles.restaurantName}>{facture.client}</Text>
+            <Text style={styles.restaurantName}>{factureDetail.restaurant}</Text>
           </View>
           <View style={styles.periodBox}>
             <Text style={styles.periodText}>Période</Text>
             <Text style={styles.periodDate}>
-              {formatDate(facture.periode.debut)} - {formatDate(facture.periode.fin)}
+              {formatDate(factureDetail.periode.debut)} - {formatDate(factureDetail.periode.fin)}
             </Text>
           </View>
           <View style={styles.infoRow}>
@@ -264,7 +165,7 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
               >
                 Fréquence de facturation:{' '}
               </Text>
-              <Text>{facture.cyclePaiement}</Text>
+              <Text>{factureDetail.cyclePaiement}</Text>
             </View>
           </View>
 
@@ -277,7 +178,7 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
             <Text style={styles.colCommission}>Commission</Text>
           </View>
 
-          {facture.lignes.map((ligne, index) => (
+          {factureDetail.lignes.map((ligne, index) => (
             <View key={index} style={styles.tableRow}>
               <Text style={styles.colDate}>{formatDate(ligne.date)}</Text>
               <Text style={styles.colNombre}>{ligne.nombreLivraison}</Text>
@@ -291,19 +192,19 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
           <View style={styles.totauxBox} wrap={false}>
             <View style={styles.totauxRow}>
               <Text style={styles.totauxLabel}>Total Montant Livraisons</Text>
-              <Text style={styles.totauxValue}>{facture.totaux.montantLivraison} CFA</Text>
+              <Text style={styles.totauxValue}>{factureDetail.totaux.montantLivraison}</Text>
             </View>
             <View style={styles.totauxRow}>
               <Text style={styles.totauxLabel}>Total Montant Commandes</Text>
-              <Text style={styles.totauxValue}>{facture.totaux.montantCommandes} CFA</Text>
+              <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommandes}</Text>
             </View>
             <View style={styles.totauxRow}>
               <Text style={styles.totauxLabel}>Total Commissions</Text>
-              <Text style={styles.totauxValue}>{facture.totaux.montantCommissions} CFA</Text>
+              <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommissions}</Text>
             </View>
             <View style={[styles.totauxRow, { marginTop: 10, paddingTop: 10, borderTop: '2px solid #000' }]}>
               <Text style={styles.totalFinal}>MONTANT TOTAL À PAYER</Text>
-              <Text style={styles.totalFinal}>{facture.totaux.factureAPayer} CFA</Text>
+              <Text style={styles.totalFinal}>{factureDetail.totaux.factureAPayer}</Text>
             </View>
           </View>
         </View>

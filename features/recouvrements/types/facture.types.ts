@@ -34,9 +34,36 @@ export interface IFactureSummaryParams {
   fin?: string;
 }
 
-// Type temporaire pour les détails de facture
-// À remplacer par le type réel quand le backend sera prêt
-export interface IFactureDetail extends IFacture {
-  // Champs supplémentaires qui seront ajoutés plus tard
+// Ligne de détail d'une facture
+export interface IFactureLigne {
+  date: string;
+  nombreLivraison: number;
+  montantLivraison: number;
+  montantCommandes: number;
+  totalCommission: number;
+}
+
+// Période de facturation
+export interface IFacturePeriode {
+  debut: string;
+  fin: string;
+}
+
+// Totaux de la facture
+export interface IFactureTotaux {
+  montantLivraison: number;
+  montantCommandes: number;
+  montantCommissions: number;
+  factureAPayer: number;
+}
+
+// Détails complets d'une facture retournés par le backend
+export interface IFactureDetail {
+  code: string;
+  restaurant: string;
+  periode: IFacturePeriode;
+  cyclePaiement: string;
+  lignes: IFactureLigne[];
+  totaux: IFactureTotaux;
 }
 

@@ -13,7 +13,6 @@ interface FacturePdfViewerProps {
 function FacturePdfViewer({ factureId }: FacturePdfViewerProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
-  // Récupérer les détails de la facture uniquement quand le drawer est ouvert
   const { data: factureDetail, isLoading, isError, error } = useFactureDetailQuery(factureId, isOpen);
 
   const onOpen = () => setIsOpen(true);

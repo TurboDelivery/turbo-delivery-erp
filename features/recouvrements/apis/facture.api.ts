@@ -30,7 +30,7 @@ export const factureAPI: IFactureApi = {
 
   obtenirFacture(id: string): Promise<IFactureDetail> {
     return api.request<IFactureDetail>({
-      endpoint: `erp/factures/${id}`,
+      endpoint: `erp/factures/${id}/details`,
       method: 'GET',
     });
   },
