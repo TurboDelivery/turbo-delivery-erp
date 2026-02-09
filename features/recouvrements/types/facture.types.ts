@@ -1,5 +1,6 @@
 export interface IFacture {
   id: string;
+  code: string;
   restaurantId: string;
   restaurantName: string;
   type: string;

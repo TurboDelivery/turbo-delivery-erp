@@ -12,9 +12,8 @@ function FacturePdfViewer() {
   const onClose = () => setIsOpen(false);
   return (
     <>
-      <Button onClick={onOpen} variant="link">
-        <Eye className="h-4 w-4 mr-2" />
-        <span>Voir détails</span>
+      <Button size="icon" onClick={onOpen} variant="outline">
+        <Eye className="size-4" />
       </Button>
       <Drawer open={isOpen} onClose={onClose} direction="right">
         <DrawerContent className="h-[95vh]">

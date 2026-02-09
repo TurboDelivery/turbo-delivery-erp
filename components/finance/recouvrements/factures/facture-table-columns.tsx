@@ -4,10 +4,14 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Eye } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import FacturePdfViewer from '@/components/finance/recouvrements/factures/pdf/facture-pdf-viewer';
+import { ValiderFactureDialog } from '@/components/finance/recouvrements/factures/valider-facture-dialog';
+import React, { useState } from 'react';
+import { Tooltip } from '@heroui/react';
+import { getStatutBadgeVariant, getStatutLabel } from '@/features/recouvrements/utils/facture.utils';
+
 const formatDate = (dateString: string) => {
   try {
     return format(new Date(dateString), 'dd MMM yyyy', { locale: fr });
@@ -15,36 +19,40 @@ const formatDate = (dateString: string) => {
     return dateString;
   }
 };
-const getStatutBadgeVariant = (statut: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-  switch (statut?.toUpperCase()) {
-    case 'PAID':
-      return 'default';
-    case 'NOT_PAID':
-      return 'secondary';
-    case 'DRAFT':
-      return 'destructive';
-    default:
-      return 'outline';
-  }
+
+// Composant pour les actions de facture
+const FactureActions = ({ facture }: { facture: IFacture }) => {
+  const [showValidateDialog, setShowValidateDialog] = useState(false);
+  const canValidate = facture.statut?.toUpperCase() === 'DRAFT';
+
+  return (
+    <>
+      <div className="flex items-center space-x-2">
+        <FacturePdfViewer />
+        {canValidate && (
+          <Tooltip content="Valider la facture">
+            <Button size={'icon'} onClick={() => setShowValidateDialog(true)} variant="secondary">
+              <CheckCircle className="size-4" />
+            </Button>
+          </Tooltip>
+        )}
+      </div>
+
+      <ValiderFactureDialog facture={facture} open={showValidateDialog} onOpenChange={setShowValidateDialog} />
+    </>
+  );
 };
 
-const getStatutLabel = (statut: string) => {
-  switch (statut?.toUpperCase()) {
-    case 'PAID':
-      return 'Payée';
-    case 'NOT_PAID':
-      return 'Non payée';
-    case 'DRAFT':
-      return 'Brouillon';
-    default:
-      return statut || 'Inconnu';
-  }
-};
 export const factureTableColumns: ColumnDef<IFacture>[] = [
   {
     accessorKey: 'restaurantName',
     header: 'Restaurant',
     cell: ({ row }) => <span className="font-semibold">{row.original.restaurantName}</span>,
+  },
+  {
+    accessorKey: 'code',
+    header: 'Référence',
+    cell: ({ row }) => <span>{row.original.code}</span>,
   },
   {
     accessorKey: 'type',
@@ -82,21 +90,8 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
   },
   {
     id: 'actions',
-    header: 'Actions',
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button size="icon" variant="outline">
-            <MoreHorizontal className="h-4 w-4 cursor-pointer" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-            <FacturePdfViewer/>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    header: '',
+    cell: ({ row }) => <FactureActions facture={row.original} />,
     enableSorting: false,
   },
 ];
