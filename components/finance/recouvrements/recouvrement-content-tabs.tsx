@@ -20,9 +20,6 @@ function RecouvrementContentTabs() {
           <TabsTrigger value="factures" className="bg-red-300">
             Toutes les factures
           </TabsTrigger>
-          {/*<TabsTrigger value="recouvrements" className="bg-green-300">*/}
-          {/*  Liste des Recouvrements*/}
-          {/*</TabsTrigger>*/}
           <TabsTrigger value="restaurants" className="bg-blue-300">
             Liste des restaurants
           </TabsTrigger>
@@ -30,9 +27,6 @@ function RecouvrementContentTabs() {
         <TabsContent value="factures">
           <FactureTabsContent restoOpts={restoOpts} />
         </TabsContent>
-        {/*<TabsContent value="recouvrements">*/}
-        {/*  <div className="p-4">Contenu des factures à implémenter</div>*/}
-        {/*</TabsContent>*/}
         <TabsContent value="restaurants">
           <RestaurantsTable restoOpts={restoOpts} isOptionsLoading={isRestaurantsLoading} />
         </TabsContent>

@@ -1,14 +1,10 @@
 import { Metadata } from 'next';
 import Content from './content';
-import { getRestaurants } from '@/src/restaurants/restaurants.actions';
 
 export const metadata: Metadata = {
-    title: 'Restaurants',
+  title: 'Restaurants',
 };
 
-export default async function Restaurants() {
-    const restaurants = await getRestaurants(0);
-    return (
-        <Content initialData={restaurants} />
-    );
+export default function Restaurants() {
+  return <Content />;
 }

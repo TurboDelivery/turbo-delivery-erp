@@ -6,6 +6,7 @@ import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, Tabl
 import useFactureTable from '@/features/recouvrements/hooks/use-facture-table';
 import { FactureFilters } from './facture-filters';
 import { subMonths } from 'date-fns';
+import { CreerRecouvrementModal } from '@/feature-finance/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';
 
 interface FactureTableProps {
   restaurantId?: string;
@@ -13,10 +14,9 @@ interface FactureTableProps {
 }
 
 export function FactureTable({ restaurantId, showFilters = true }: FactureTableProps) {
-  const { factureTable, isFactureLoading, isFactureFetching, pagination, filters, setFilters, handleTypeFilterChange, handleStatutFilterChange, handlePeriodeFilterChange } =
-    useFactureTable({
-      restaurantId,
-    });
+  const { factureTable, isFactureLoading, isFactureFetching, pagination, filters, setFilters, handleTypeFilterChange, handleStatutFilterChange, handlePeriodeFilterChange } = useFactureTable({
+    restaurantId,
+  });
 
   const colsCount = factureTable.getAllColumns().length;
 
@@ -41,6 +41,9 @@ export function FactureTable({ restaurantId, showFilters = true }: FactureTableP
           onReset={handleResetFilters}
         />
       )}
+      <div className="flex justify-end py-1.5">
+        <CreerRecouvrementModal />
+      </div>
 
       <div className="overflow-x-auto">
         <Table

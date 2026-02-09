@@ -1,0 +1,114 @@
+'use client';
+
+import React, { useMemo } from 'react';
+import { getCoreRowModel, SortingState, useReactTable } from '@tanstack/react-table';
+import { restaurantColumns } from '@/components/restaurants/table/restaurant-table-columns';
+import { useRestaurantsListQuery } from '@/features/restaurants/queries/restaurant-list.query';
+import { useRestaurantFilters } from '@/features/restaurants/hooks/use-restaurant-filters';
+
+export const useRestaurantTable = () => {
+  const { filters, setFilters } = useRestaurantFilters();
+
+  const [sorting, setSorting] = React.useState<SortingState>(() => {
+    const orderBy = filters.orderBy;
+    const orderDirection = filters.orderDirection ?? 'asc';
+    return orderBy ? [{ id: orderBy, desc: orderDirection === 'desc' }] : [];
+  });
+
+  // Synchroniser le sorting avec les filtres
+  React.useEffect(() => {
+    const orderBy = filters.orderBy;
+    const orderDirection = filters.orderDirection ?? 'asc';
+    const next = orderBy ? [{ id: orderBy, desc: orderDirection === 'desc' }] : [];
+    setSorting((prev) => {
+      const prevFirst = prev[0];
+      const nextFirst = next[0];
+      if (prevFirst?.id === nextFirst?.id && prevFirst?.desc === nextFirst?.desc) return prev;
+      return next;
+    });
+  }, [filters.orderBy, filters.orderDirection]);
+
+  const currentSearchParams = useMemo(() => {
+    return {
+      page: filters.page ?? 0,
+      limit: filters.limit ?? 10,
+      search: filters.search || undefined,
+      orderBy: filters.orderBy || undefined,
+      orderDirection: filters.orderDirection as 'asc' | 'desc' | undefined,
+    };
+  }, [filters.page, filters.limit, filters.search, filters.orderBy, filters.orderDirection]);
+
+  const { data: restaurantsData, isLoading, error, isError, isFetching } = useRestaurantsListQuery(currentSearchParams);
+  const restaurants = restaurantsData?.content || [];
+
+  const pagination = {
+    pageCount: restaurantsData?.totalPages || 0,
+    totalItems: restaurantsData?.totalElements || 0,
+    page: filters.page ?? 0,
+    handlePageChange: (page: number) => {
+      setFilters((prev) => ({
+        ...prev,
+        page: page - 1,
+      }));
+    },
+  };
+
+  const table = useReactTable({
+    columns: restaurantColumns,
+    data: restaurants,
+    getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    manualSorting: true,
+    state: {
+      pagination: {
+        pageIndex: pagination.page,
+        pageSize: filters.limit ?? 10,
+      },
+      sorting,
+    },
+    onSortingChange: (updater) => {
+      setSorting((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        const first = next[0];
+        setFilters((prevFilters) => ({
+          ...prevFilters,
+          orderBy: first?.id ?? 'nomEtablissement',
+          orderDirection: first ? (first.desc ? 'desc' : 'asc') : 'asc',
+          page: 0,
+        }));
+        return next;
+      });
+    },
+    onPaginationChange: (updater) => {
+      const newState = typeof updater === 'function' ? updater(table.getState().pagination) : updater;
+      setFilters((prev) => ({
+        ...prev,
+        page: newState.pageIndex,
+        limit: newState.pageSize,
+      }));
+    },
+  });
+
+  const setSearch = (search: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      search,
+      page: 0, // Reset to first page when searching
+    }));
+  };
+
+  return {
+    table,
+    isLoading,
+    isError,
+    isFetching,
+    setFilters,
+    restaurants,
+    restaurantsData,
+    error,
+    filters,
+    pagination,
+    setSearch,
+  };
+};
+

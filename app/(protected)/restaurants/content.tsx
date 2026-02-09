@@ -1,99 +1,73 @@
 'use client';
 
-import { useState } from 'react';
-import { Input } from '@heroui/react';
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination } from '@heroui/react';
+import React from 'react';
+import { flexRender } from '@tanstack/react-table';
+import { Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { Search } from 'lucide-react';
 import { title } from '@/components/primitives';
-import useContentCtx from './useContentCtx';
-import { PaginatedResponse } from '@/types';
-import { Restaurant } from '@/types/models';
-import EmptyDataTable from '@/components/commons/EmptyDataTable';
+import { useRestaurantTable } from '@/features/restaurants/hooks/use-restaurant-table';
 
-interface ContentProps {
-    initialData: PaginatedResponse<Restaurant> | null;
-}
+export default function Content() {
+  const { table, isLoading, pagination, filters, setSearch } = useRestaurantTable();
 
-export default function Content({ initialData }: ContentProps) {
-    const {
-        columns,
-        renderCell,
-        renderCols,
-        data,
-        fetchData,
-        currentPage,
-        isLoading,
-        filteredData,
-        setFilteredData,
-    } = useContentCtx({ initialData });
+  const colsCount = table.getAllColumns().length;
 
-    const [searchName, setSearchName] = useState('');
+  return (
+    <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h1 className={title({ size: 'h3', class: 'text-primary' })}>Restaurants</h1>
+      </div>
 
-    const handleSearchChange = (value: string) => {
-        setSearchName(value);
+      {/* Champ de recherche */}
+      <Input
+        startContent={<Search className="text-gray-500 w-4 h-4" />}
+        placeholder="Rechercher par nom de restaurant..."
+        value={filters.search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-1/2 mb-4"
+      />
 
-        if (!value.trim()) {
-            setFilteredData(null);
-            return;
-        }
-
-        // Filtrer sur nom exact de la propriété
-        const filtered = data?.content.filter((restaurant) =>
-            restaurant.nomEtablissement.toLowerCase().includes(value.toLowerCase())
-        );
-        setFilteredData(filtered ?? []);
-    };
-
-    return (
-        <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Restaurants</h1>
-            </div>
-
-            {/* Champ de recherche */}
-            <Input
-                startContent={<Search className="text-gray-500 w-4 h-4" />}
-                label="Rechercher par nom"
-                variant="bordered"
-                placeholder="Entrez le nom du restaurant"
-                value={searchName}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-1/2 mb-4"
-                size="sm"
-            />
-
-            <Table aria-label="Liste des restaurants">
-                <TableHeader columns={columns}>
-                    {(column) => (
-                        <TableColumn key={column.uid} align={'start'}>
-                            {renderCols(column)}
-                        </TableColumn>
-                    )}
-                </TableHeader>
-                <TableBody
-                    items={filteredData ?? data?.content ?? []}
-                    emptyContent={<EmptyDataTable title="Aucun Restaurant" />}
-                >
-                    {(item) => (
-                        <TableRow key={item.id}>
-                            {(columnKey) => <TableCell>{renderCell(item, columnKey) as React.ReactNode}</TableCell>}
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-
-            <div className="relative flex justify-center mt-8">
-                <div className="absolute bottom-0 w-full h-12 bg-gray-200 blur-sm opacity-50 rounded-xl" />
-                <Pagination
-                    total={data?.totalPages ?? 1}
-                    page={currentPage}
-                    onChange={fetchData}
-                    showControls
-                    color="primary"
-                    variant="bordered"
-                    isDisabled={isLoading || filteredData !== null} // désactive pagination pendant filtre
-                />
-            </div>
-        </div>
-    );
+      <div className="overflow-x-auto">
+        <Table
+          aria-label="Liste des restaurants"
+          isStriped
+          bottomContent={
+            pagination &&
+            pagination.pageCount > 1 && (
+              <div className="flex justify-center mt-8">
+                <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} isDisabled={isLoading} />
+              </div>
+            )
+          }
+        >
+          <TableHeader>
+            {table.getFlatHeaders().map((header) => (
+              <TableColumn key={header.id} className="text-primary" allowsSorting={header.column.getCanSort()} onClick={header.column.getToggleSortingHandler()}>
+                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+              </TableColumn>
+            ))}
+          </TableHeader>
+          <TableBody emptyContent={'Aucun restaurant trouvé.'}>
+            {isLoading
+              ? Array.from({ length: 10 }).map((_, i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    {Array.from({ length: colsCount }).map((_, j) => (
+                      <TableCell key={`skeleton-cell-${j}`} className="h-12">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
 }
