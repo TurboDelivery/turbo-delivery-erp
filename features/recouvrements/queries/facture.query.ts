@@ -37,6 +37,16 @@ export const useFactureQuery = (id: string) => {
   });
 };
 
+// Hook pour récupérer les détails d'une facture (alias pour plus de clarté)
+export const useFactureDetailQuery = (id: string, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: factureKeys.detail(id),
+    queryFn: () => factureAPI.obtenirFacture(id),
+    enabled: !!id && enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 // Hook pour récupérer les factures d'un restaurant ou toutes les factures
 export const useFacturesParRestaurantQuery = (restaurantId?: string, params?: IFactureParams) => {
   const searchParams = useMemo(() => {

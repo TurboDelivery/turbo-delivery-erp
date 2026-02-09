@@ -1,11 +1,11 @@
 import { PaginatedResponse } from '@/types';
 import { api } from '@/lib/api';
 import { SearchParams } from 'ak-api-http';
-import { IFacture, IFactureParams, IFactureSummary, IFactureSummaryParams } from '../types/facture.types';
+import { IFacture, IFactureParams, IFactureSummary, IFactureSummaryParams, IFactureDetail } from '../types/facture.types';
 
 export interface IFactureApi {
   obtenirFactures(params?: IFactureParams): Promise<PaginatedResponse<IFacture>>;
-  obtenirFacture(id: string): Promise<IFacture>;
+  obtenirFacture(id: string): Promise<IFactureDetail>;
   obtenirFacturesParRestaurant(restaurantId?: string, params?: IFactureParams): Promise<PaginatedResponse<IFacture>>;
   obtenirSummaryRecouvrements(params?: IFactureSummaryParams): Promise<IFactureSummary>;
   validerFacture(id: string): Promise<IFacture>;
@@ -28,8 +28,8 @@ export const factureAPI: IFactureApi = {
     });
   },
 
-  obtenirFacture(id: string): Promise<IFacture> {
-    return api.request<IFacture>({
+  obtenirFacture(id: string): Promise<IFactureDetail> {
+    return api.request<IFactureDetail>({
       endpoint: `erp/factures/${id}`,
       method: 'GET',
     });
@@ -62,7 +62,7 @@ export const factureAPI: IFactureApi = {
 
   validerFacture(id: string): Promise<IFacture> {
     return api.request<IFacture>({
-      endpoint: `erp/factures/valider`,
+      endpoint: `erp/factures/${id}/valider`,
       method: 'POST',
       data: { id },
     });

@@ -6,10 +6,25 @@ export const getStatutBadgeVariant = (statut: string): 'default' | 'secondary' |
       return 'secondary';
     case 'DRAFT':
       return 'destructive';
-    case 'VALIDER':
+    case 'VALIDATED':
       return 'default';
     default:
       return 'outline';
+  }
+};
+
+export const getStatutColor = (statut: string): string => {
+  switch (statut?.toUpperCase()) {
+    case 'PAID':
+      return 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300';
+    case 'NOT_PAID':
+      return 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300';
+    case 'DRAFT':
+      return 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300';
+    case 'VALIDATED':
+      return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300';
+    default:
+      return '';
   }
 };
 
@@ -21,7 +36,7 @@ export const getStatutLabel = (statut: string) => {
       return 'Non payée';
     case 'DRAFT':
       return 'Brouillon';
-    case 'VALIDER':
+    case 'VALIDATED':
       return 'Validée';
     default:
       return statut || 'Inconnu';

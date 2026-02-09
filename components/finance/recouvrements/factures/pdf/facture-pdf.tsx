@@ -3,6 +3,7 @@ import React from 'react';
 import { Document, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { IFactureDetail } from '@/features/recouvrements/types/facture.types';
 
 type LigneFacture = {
   date: Date;
@@ -29,6 +30,11 @@ type Facture = {
     factureAPayer: number;
   };
 };
+
+interface FacturePdfProps {
+  factureDetail: IFactureDetail;
+}
+
 
 export const facture: Facture = {
   numero: 'FAC-2025-02-02',
@@ -221,7 +227,12 @@ function formatDate(date: Date) {
   return format(date, 'dd/MM/yyyy', { locale: fr });
 }
 
-function FacturePdf() {
+const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
+  // TODO: Adapter le template PDF pour utiliser les vraies données de factureDetail
+  // Une fois que le backend renverra le bon format avec les lignes de détails
+  // Pour l'instant, on utilise les données mockées
+  console.log('Facture Detail reçu:', factureDetail);
+
   return (
     <Document>
       <Page style={styles.page}>
@@ -306,6 +317,6 @@ function FacturePdf() {
       </Page>
     </Document>
   );
-}
+};
 
 export default FacturePdf;

@@ -10,7 +10,8 @@ import FacturePdfViewer from '@/components/finance/recouvrements/factures/pdf/fa
 import { ValiderFactureDialog } from '@/components/finance/recouvrements/factures/valider-facture-dialog';
 import React, { useState } from 'react';
 import { Tooltip } from '@heroui/react';
-import { getStatutBadgeVariant, getStatutLabel } from '@/features/recouvrements/utils/facture.utils';
+import { getStatutBadgeVariant, getStatutColor, getStatutLabel } from '@/features/recouvrements/utils/facture.utils';
+import { cn } from '@/lib/utils';
 
 const formatDate = (dateString: string) => {
   try {
@@ -28,7 +29,7 @@ const FactureActions = ({ facture }: { facture: IFacture }) => {
   return (
     <>
       <div className="flex items-center space-x-2">
-        <FacturePdfViewer />
+        <FacturePdfViewer factureId={facture.id} />
         {canValidate && (
           <Tooltip content="Valider la facture">
             <Button size={'icon'} onClick={() => setShowValidateDialog(true)} variant="secondary">
@@ -78,7 +79,7 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
     accessorKey: 'statut',
     header: 'Statut',
     cell: ({ row }) => (
-      <Badge variant={getStatutBadgeVariant(row.original.statut)} className="capitalize">
+      <Badge variant={getStatutBadgeVariant(row.original.statut)} className={cn('capitalize', getStatutColor(row.original.statut))}>
         {getStatutLabel(row.original.statut)}
       </Badge>
     ),
