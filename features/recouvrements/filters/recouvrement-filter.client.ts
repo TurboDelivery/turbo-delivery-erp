@@ -1,4 +1,6 @@
 import { createSearchParamsCache, parseAsInteger, parseAsString } from 'nuqs/server';
+import { parseAsIsoDate } from 'nuqs';
+import { startOfMonth } from 'date-fns';
 
 export const recouvrementFiltersClient = {
   filter: {
@@ -7,6 +9,8 @@ export const recouvrementFiltersClient = {
     sort: parseAsString.withDefault('dateRecouvrement,desc'),
     search: parseAsString.withDefault(''),
     restaurantId: parseAsString.withDefault(''),
+    debut: parseAsIsoDate.withDefault(startOfMonth(new Date())),
+    fin: parseAsIsoDate.withDefault(new Date()),
   },
   option: {
     urlKeys: {

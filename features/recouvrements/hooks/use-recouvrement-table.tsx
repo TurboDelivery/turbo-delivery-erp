@@ -9,7 +9,7 @@ import { recouvrementColumns } from '../columns/recouvrement-columns';
 
 export function useRecouvrementTable() {
   const [filters, setFilters] = useQueryStates(recouvrementFiltersClient.filter, recouvrementFiltersClient.option);
-  
+
   const currentSearchParams = useMemo(() => {
     return {
       page: filters.page,
@@ -17,11 +17,12 @@ export function useRecouvrementTable() {
       sort: filters.sort,
       search: filters.search,
       restaurantId: filters.restaurantId || undefined,
+      debut: filters.debut.toISOString().split('T')[0],
+      fin: filters.fin.toISOString().split('T')[0],
     };
   }, [filters]);
 
   const { data, isLoading, isError, isFetching } = useRecouvrementListQuery(currentSearchParams);
-
 
   const tableData = data?.content || [];
 
@@ -58,6 +59,3 @@ export function useRecouvrementTable() {
     colsCount: recouvrementColumns.length,
   };
 }
-
-
-

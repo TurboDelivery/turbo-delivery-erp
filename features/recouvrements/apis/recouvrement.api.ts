@@ -18,7 +18,7 @@ export interface IRecouvrementAPI {
 export const recouvrementAPI: IRecouvrementAPI = {
   obtenirTousRecouvrements(params: IRecouvrementParams): Promise<PaginatedResponse<IRecouvrement>> {
     return api.request<PaginatedResponse<IRecouvrement>>({
-      endpoint: `finance/recouvrements`,
+      endpoint: `finance/recouvrements/pagination`,
       method: 'GET',
       searchParams: params as SearchParams,
     });

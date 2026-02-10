@@ -60,7 +60,7 @@ export function useRecouvrementList({ initialData = [] }: IUseRecouvrementProps 
   const { data: queryData, isLoading, isError, error, isFetching } = useQuery(recouvrementListQueryOption(apiParams));
 
   // Toutes les données (non filtrées) - garantir que c'est un tableau
-  const allRecouvrements: IRecouvrement[] = Array.isArray(queryData) ? queryData : queryData?.data || initialData;
+  const allRecouvrements: IRecouvrement[] = Array.isArray(queryData) ? queryData : queryData?.content || initialData;
 
   // Filtrage côté client
   const recouvrement = useMemo(() => {
