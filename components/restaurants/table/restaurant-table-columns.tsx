@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Restaurant } from '@/features/restaurants/types/restaurant.type';
+import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import React from 'react';
@@ -10,7 +10,7 @@ import { Avatar, Badge } from '@heroui/react';
 import { createUrlFile } from '@/utils/createUrlFile';
 
 // Composant mémorisé pour les actions
-const RestaurantActions = React.memo(({ restaurant }: { restaurant: Restaurant }) => {
+const RestaurantActions = React.memo(({ restaurant }: { restaurant: IRestaurant }) => {
   return (
     <Button size="icon" variant="ghost" asChild>
       <Link href={`/restaurants/${restaurant.id}`}>
@@ -30,7 +30,7 @@ const getAccountStatus = (status: number) => {
   return { label: 'Inconnu', variant: 'secondary' as const };
 };
 
-export const restaurantColumns: ColumnDef<Restaurant>[] = [
+export const restaurantColumns: ColumnDef<IRestaurant>[] = [
   {
     id: 'nomEtablissement',
     accessorKey: 'nomEtablissement',

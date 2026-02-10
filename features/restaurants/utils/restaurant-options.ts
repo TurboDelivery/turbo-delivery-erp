@@ -1,12 +1,12 @@
 import { RestaurantDefini } from '@/types/price-list';
-import { Restaurant } from '@/features/restaurants/types/restaurant.type';
+import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 
 export type RestaurantOption = {
   label: string;
   value: string;
 };
 
-export const toRestaurantOptions = (restaurants: RestaurantDefini[] | Restaurant[]): RestaurantOption[] => {
+export const toRestaurantOptions = (restaurants: RestaurantDefini[] | IRestaurant[]): RestaurantOption[] => {
   return restaurants
     .map((restaurant) => ({
       label: restaurant.nomEtablissement,

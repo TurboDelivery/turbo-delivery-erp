@@ -5,22 +5,22 @@ import Image from 'next/image';
 import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Textarea } from '@heroui/react';
 
 import { useRouter } from 'next/navigation';
-import { Restaurant } from '@/types/models';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { formatTime } from '@/lib/date';
 import { toast } from 'react-toastify';
 import { updateCommission } from '@/src/restaurants/restaurants.actions';
 import { useCallback, useState } from 'react';
-import { restaurantUpdateCommission } from '@/types/restaurants.model';
+import { IRestaurant } from '@/features/restaurants';
+import { MethodRecouvrementType } from '@/features/restaurants/types/restaurant.type';
 
-export default function Content({ restaurant }: { restaurant: Restaurant }) {
+export default function Content({ restaurant }: { restaurant: IRestaurant }) {
   const router = useRouter();
 
   const dayOrder = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
   const sortedHours = [...restaurant.openingHours].sort((a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek));
 
   const [type, setType] = useState<string>(restaurant.typeCommission);
-  const [paymentPeriod, setPaymentPeriod] = useState<restaurantUpdateCommission['methodRecouvrement']>('MENSUEL');
+  const [paymentPeriod, setPaymentPeriod] = useState<MethodRecouvrementType>(restaurant.methodRecouvrement || 'MENSUEL');
   const [isLoading, setIsLoading] = useState(false);
   const [commissionValue, setCommissionValue] = useState<number>(restaurant.commission);
 
@@ -29,7 +29,7 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
   }, []);
 
   const handlePaymentPeriodChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPaymentPeriod(e.target.value as restaurantUpdateCommission['methodRecouvrement']);
+    setPaymentPeriod(e.target.value as MethodRecouvrementType);
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -157,7 +157,7 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
                   )}
                 </div>
                 <Select
-                  label="Choisissez la periode de paiement"
+                  label="Choisissez la periode de recouvrement"
                   defaultSelectedKeys={[paymentPeriod as string]}
                   labelPlacement="outside"
                   variant="bordered"
@@ -186,37 +186,6 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
               </CardBody>
             </Card>
 
-            {/* <Card>
-              <CardHeader>
-                <h2 className="text-xl font-semibold text-red-600 mb-6">Type de commission</h2>
-              </CardHeader>
-              <CardBody>
-                <div className="flex gap-16 items-centerr">
-                  <Select
-                    className="max-w-lg"
-                    id="commission-type-select"
-                    label="Choisissez le type de commission"
-                    defaultSelectedKeys={[type]}
-                    labelPlacement="outside"
-                    variant="bordered"
-                    isDisabled={isLoading}
-                    onChange={handleTypeChange}
-                  >
-                    <SelectItem key="FIXE" value="FIXE">
-                      Fixe
-                    </SelectItem>
-                    <SelectItem key="POURCENTAGE" value="POURCENTAGE">
-                      Pourcentage
-                    </SelectItem>
-                  </Select>
-                </div>
-
-                <Button onClick={handleSubmit} isLoading={isLoading} disabled={isLoading} className="mt-4">
-                  Valider mon choix
-                </Button>
-              </CardBody>
-            </Card> */}
-
             <Card>
               <CardHeader>
                 <h2 className="text-xl font-semibold text-red-600 mb-6">Type de Cuisines</h2>
@@ -233,7 +202,9 @@ export default function Content({ restaurant }: { restaurant: Restaurant }) {
                   <div key={hour.id} className={`flex justify-between py-1 px-2 transition-all border hover:border-red-500 ${index % 2 ? 'bg-red-50' : 'bg-white'}`}>
                     <span className="font-medium">{hour.dayOfWeek}</span>
                     {hour.closed ? (
-                      <span>Fermé</span>
+                      <span>
+                        Fermé
+                      </span>
                     ) : (
                       <span>
                         {formatTime(hour.openingTime)} - {formatTime(hour.closingTime)}

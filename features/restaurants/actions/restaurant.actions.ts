@@ -1,7 +1,7 @@
 'use server';
 
 import { apiClientHttp } from '@/lib/api-client-http';
-import { Restaurant, IRestaurantParams } from '@/features/restaurants/types/restaurant.type';
+import { IRestaurant, IRestaurantParams } from '@/features/restaurants/types/restaurant.type';
 import { PaginatedResponse } from '@/types/general';
 
 // Base URL pour la pagination des restaurants
@@ -11,7 +11,7 @@ const RESTAURANT_DETAIL_ENDPOINT = '/api/V1/turbo/restaurant';
 /**
  * Récupère la liste paginée des restaurants
  */
-export async function getRestaurantsPaginated(params: IRestaurantParams): Promise<PaginatedResponse<Restaurant>> {
+export async function getRestaurantsPaginated(params: IRestaurantParams): Promise<PaginatedResponse<IRestaurant>> {
   try {
     // Construire les paramètres de requête
     const queryParams: Record<string, any> = {
@@ -24,7 +24,7 @@ export async function getRestaurantsPaginated(params: IRestaurantParams): Promis
       queryParams.nomEtablissement = params.search;
     }
 
-    return await apiClientHttp.request<PaginatedResponse<Restaurant>>({
+    return await apiClientHttp.request<PaginatedResponse<IRestaurant>>({
       endpoint: RESTAURANT_PAGINATION_ENDPOINT,
       method: 'GET',
       params: queryParams,
@@ -39,9 +39,9 @@ export async function getRestaurantsPaginated(params: IRestaurantParams): Promis
 /**
  * Récupère les détails d'un restaurant par son ID
  */
-export async function getRestaurantById(id: string): Promise<Restaurant> {
+export async function getRestaurantById(id: string): Promise<IRestaurant> {
   try {
-    return await apiClientHttp.request<Restaurant>({
+    return await apiClientHttp.request<IRestaurant>({
       endpoint: `${RESTAURANT_DETAIL_ENDPOINT}/${id}`,
       method: 'GET',
       service: 'restaurant',

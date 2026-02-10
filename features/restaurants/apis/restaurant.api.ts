@@ -1,15 +1,15 @@
-import { IRestaurantParams, Restaurant } from '@/features/restaurants/types/restaurant.type';
+import { IRestaurantParams, IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { PaginatedResponse } from '@/types/general';
 import { apiClientHttp } from '@/lib/api-client-http';
 
 export interface IRestaurantAPI {
-  obtenirTousRestaurants(params: IRestaurantParams): Promise<PaginatedResponse<Restaurant>>;
-  obtenirRestaurant(id: string): Promise<Restaurant>;
+  obtenirTousRestaurants(params: IRestaurantParams): Promise<PaginatedResponse<IRestaurant>>;
+  obtenirRestaurant(id: string): Promise<IRestaurant>;
 }
 
 export const restaurantAPI: IRestaurantAPI = {
-  async obtenirTousRestaurants(params: IRestaurantParams): Promise<PaginatedResponse<Restaurant>> {
-    return await apiClientHttp.request<PaginatedResponse<Restaurant>>({
+  async obtenirTousRestaurants(params: IRestaurantParams): Promise<PaginatedResponse<IRestaurant>> {
+    return await apiClientHttp.request<PaginatedResponse<IRestaurant>>({
       endpoint: `/api/erp/restaurant`,
       method: 'GET',
       params: params,
@@ -17,8 +17,8 @@ export const restaurantAPI: IRestaurantAPI = {
     });
   },
 
-  async obtenirRestaurant(id: string): Promise<Restaurant> {
-    return await apiClientHttp.request<Restaurant>({
+  async obtenirRestaurant(id: string): Promise<IRestaurant> {
+    return await apiClientHttp.request<IRestaurant>({
       endpoint: `/api/erp/restaurant/${id}`,
       method: 'GET',
       service: 'restaurant',

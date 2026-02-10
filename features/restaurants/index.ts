@@ -1,5 +1,5 @@
 // Types
-export type { Restaurant, IRestaurantParams, Picture, OpeningHour } from './types/restaurant.type';
+export type { IRestaurant, IRestaurantParams, IPicture, IOpeningHour } from './types/restaurant.type';
 
 // APIs
 export { restaurantAPI } from './apis/restaurant.api';

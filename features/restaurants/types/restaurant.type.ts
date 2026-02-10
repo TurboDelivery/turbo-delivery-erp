@@ -1,18 +1,20 @@
-export interface Picture {
+export interface IPicture {
   id: string;
-  url: string;
+  pictureUrl: string;
   description?: string;
 }
 
-export interface OpeningHour {
+export interface IOpeningHour {
   id: string;
   dayOfWeek: string;
-  openTime: string;
-  closeTime: string;
-  isClosed: boolean;
+  openingTime: string;
+  closingTime: string;
+  closed: boolean;
 }
 
-export interface Restaurant {
+export type MethodRecouvrementType = 'QUOTIDIEN' | 'HEBDOMADAIRE' | 'QUINZAINE' | 'MENSUEL';
+
+export interface IRestaurant {
   id: string;
   status: number;
   deleted: boolean;
@@ -34,15 +36,15 @@ export interface Restaurant {
   longitude: number | null;
   latitude: number | null;
   idLocation: string | null;
-  pictures: Picture[];
-  openingHours: OpeningHour[];
+  pictures: IPicture[];
+  openingHours: IOpeningHour[];
   position?: {
     longitude: number;
     latitude: number;
   };
   typeCommission: string;
   commission: number;
-  methodRecouvrement: string;
+  methodRecouvrement: MethodRecouvrementType;
 }
 
 export interface IRestaurantParams {
