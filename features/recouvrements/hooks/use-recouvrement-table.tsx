@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
-import { recouvrementFiltersClient } from '../filters/recouvrement-filter.client';
+import { recouvrementFiltersClient } from '@/features/recouvrements/filters';
 import { useRecouvrementListQuery } from '../queries/recouvrement-list.query';
 import { useMemo, useState } from 'react';
 import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table';
