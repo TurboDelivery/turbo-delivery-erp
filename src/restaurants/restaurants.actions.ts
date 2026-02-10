@@ -4,6 +4,7 @@ import { ActionResult, PaginatedResponse } from '@/types';
 import { Restaurant } from '@/types/models';
 import { apiClientHttp } from '@/lib/api-client-http';
 import { restaurantUpdateCommission } from '@/types/restaurants.model';
+import { IRestaurant } from '@/features/restaurants';
 
 // Configuration
 const BASE_URL = '/api/erp/restaurant';
@@ -61,15 +62,13 @@ const restaurantEndpoints = {
   },
 };
 
-export async function getDetailRestaurant(idRestaurant: string): Promise<Restaurant | null> {
+export async function getDetailRestaurant(idRestaurant: string): Promise<IRestaurant | null> {
   try {
-    const data = await apiClientHttp.request<Restaurant>({
+    return await apiClientHttp.request<IRestaurant>({
       endpoint: restaurantEndpoints.getDetailRestaurant.endpoint(idRestaurant),
       method: restaurantEndpoints.getDetailRestaurant.method,
       service: 'restaurant',
     });
-
-    return data;
   } catch (error) {
     console.error(error);
     return null;
