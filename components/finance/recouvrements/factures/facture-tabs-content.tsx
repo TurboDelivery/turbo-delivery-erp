@@ -5,7 +5,7 @@ import { useQueryStates } from 'nuqs';
 import { factureFiltersClient } from '@/features/recouvrements/filters/facture.filter';
 import { FactureTable } from './facture-table';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import Select from 'react-select';
+import { RestaurantSelect } from '../common/restaurant-select';
 
 interface FactureTabsContentProps {
   restoOpts: {
@@ -30,33 +30,12 @@ export function FactureTabsContent({ restoOpts, isOptionsLoading }: FactureTabsC
     <Card className="flex flex-col gap-4">
       <CardHeader className="flex flex-wrap">
         <h2 className="text-lg font-medium">Factures</h2>
-        <Select
+        <RestaurantSelect
+          value={filters.restaurantId}
+          onChange={handleRestaurantFilterChange}
           options={restoOpts}
-          value={restoOpts.find((o) => o.value === filters.restaurantId) ?? null}
-          onChange={(opt) => handleRestaurantFilterChange(opt?.value)}
-          placeholder="Restaurant"
-          isClearable
           isLoading={isOptionsLoading}
-          isDisabled={isOptionsLoading}
-          className="text-xs w-full max-w-md"
-          classNamePrefix="react-select"
-          styles={{
-            control: (base) => ({
-              ...base,
-              minHeight: '36px',
-              height: '36px',
-              width: '100%',
-            }),
-            valueContainer: (base) => ({
-              ...base,
-              height: '36px',
-              padding: '0 8px',
-            }),
-            indicatorsContainer: (base) => ({
-              ...base,
-              height: '36px',
-            }),
-          }}
+          placeholder="Restaurant"
         />
       </CardHeader>
       <CardContent className="space-y-4">

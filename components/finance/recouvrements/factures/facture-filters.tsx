@@ -22,6 +22,7 @@ const statutOptions = [
   { key: 'PAID', label: 'Payée' },
   { key: 'NOT_PAID', label: 'Non payée' },
   { key: 'DRAFT', label: 'Brouillon' },
+  { key: 'VALIDATED', label: 'Validée' },
 ];
 
 export function FactureFilters({

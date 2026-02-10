@@ -20,7 +20,6 @@ export const recouvrementListQueryOption = (recouvrementParamsDTO: IRecouvrement
       }
       return result.data!;
     },
-    placeholderData: (previousData: any) => previousData,
     staleTime: 30 * 1000, //30 secondes
     refetchOnWindowFocus: false, //Ne pas refetch lors du focus de la fenetre
     refetchOnMount: true, //Refetch lors du mount
