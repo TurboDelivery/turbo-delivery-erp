@@ -10,6 +10,11 @@ export type IDepense = {
     nomCategorie: string;
     description: string;
   };
+  investissement?: {
+    id: string;
+    nomInvestisseur: string;
+    montant: number;
+  };
   createdAt: string;
   updatedAt: string;
 };

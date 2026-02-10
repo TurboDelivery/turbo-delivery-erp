@@ -12,8 +12,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { fr } from 'date-fns/locale';
-import { DepenseCreateDTO } from '@/features/depenses/schemas/depense.schema';
 import { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 interface DepenseFormProps {
   selectedDate: Date | undefined;
@@ -27,9 +27,23 @@ interface DepenseFormProps {
   setValue: UseFormSetValue<any>;
   defaultCategorieId?: string;
   defaultSource?: string;
+  defaultInvestissementId?: string;
 }
 
-export function DepenseForm({ selectedDate, setSelectedDate, categories, categoriesLoading, investissements, investissementsLoading, register, errors, setValue, defaultCategorieId, defaultSource }: DepenseFormProps) {
+export function DepenseForm({
+  selectedDate,
+  setSelectedDate,
+  categories,
+  categoriesLoading,
+  investissements,
+  investissementsLoading,
+  register,
+  errors,
+  setValue,
+  defaultCategorieId,
+  defaultSource,
+  defaultInvestissementId,
+}: DepenseFormProps) {
   return (
     <div className="grid gap-6">
       {/* Date et Montant */}
@@ -64,10 +78,10 @@ export function DepenseForm({ selectedDate, setSelectedDate, categories, categor
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Catégorie */}
         <div className="flex flex-col gap-1">
-          <Label htmlFor="categorie.id" className="text-sm text-gray-500">
+          <Label htmlFor="categorieDepense" className="text-sm text-gray-500">
             Catégorie de dépenses *
           </Label>
-          <Select onValueChange={(value) => setValue('categorie.id', value)} defaultValue={defaultCategorieId}>
+          <Select onValueChange={(value) => setValue('categorieDepense', value)} defaultValue={defaultCategorieId}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Sélectionnez une catégorie" />
             </SelectTrigger>
@@ -92,7 +106,7 @@ export function DepenseForm({ selectedDate, setSelectedDate, categories, categor
               </SelectGroup>
             </SelectContent>
           </Select>
-          {(errors.categorie as any)?.id && <p className="text-red-500 text-sm">{(errors.categorie as any).id.message as string}</p>}
+          {errors.categorieDepense && <p className="text-red-500 text-sm">{errors.categorieDepense.message as string}</p>}
         </div>
 
         {/* Source */}
@@ -116,7 +130,7 @@ export function DepenseForm({ selectedDate, setSelectedDate, categories, categor
               </SelectGroup>
             </SelectContent>
           </Select>
-          {(errors.categorie as any)?.id && <p className="text-red-500 text-sm">{(errors.categorie as any).id.message as string}</p>}
+          {errors.sourcePaiement && <p className="text-red-500 text-sm">{errors.sourcePaiement.message as string}</p>}
         </div>
       </div>
 
@@ -132,11 +146,11 @@ export function DepenseForm({ selectedDate, setSelectedDate, categories, categor
       {/* Investisseur */}
       <div className="grid gap-3">
         <Label htmlFor="investisseur" className="text-sm text-gray-500">
-          Investisseur (optionnel)
+          Investissement (optionnel)
         </Label>
-        <Select onValueChange={(value) => setValue('investisseur', value === 'none' ? '' : value)}>
+        <Select onValueChange={(value) => setValue('investissementId', value === 'none' ? '' : value)} defaultValue={defaultInvestissementId}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Sélectionnez un investisseur" />
+            <SelectValue placeholder="Sélectionnez un investissement" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -149,20 +163,20 @@ export function DepenseForm({ selectedDate, setSelectedDate, categories, categor
                 <>
                   <SelectItem value="none">Aucun investisseur</SelectItem>
                   {investissements.map((investissement: IInvestissement) => (
-                    <SelectItem key={investissement.id} value={investissement.nomInvestisseur}>
-                      {investissement.nomInvestisseur} - {investissement.montant.toLocaleString()} FCFA
+                    <SelectItem key={investissement.id} value={investissement.id}>
+                      {investissement.nomInvestisseur} - {formatCFA(investissement.montant)}
                     </SelectItem>
                   ))}
                 </>
               ) : (
                 <SelectItem value="none" disabled>
-                  Aucun investisseur disponible
+                  Aucun investissement
                 </SelectItem>
               )}
             </SelectGroup>
           </SelectContent>
         </Select>
-        {errors.investisseur && <p className="text-red-500 text-sm">{errors.investisseur.message as string}</p>}
+        {errors.investissementId && <p className="text-red-500 text-sm">{errors.investissementId.message as string}</p>}
       </div>
     </div>
   );

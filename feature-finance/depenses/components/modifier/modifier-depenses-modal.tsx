@@ -35,7 +35,7 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
       montant: depense.montant,
       description: depense.description,
       dateDepense: new Date(depense.dateDepense),
-      categorie: depense.categorie,
+      categorieDepense: depense.categorie.id,
     },
   });
 
@@ -46,7 +46,7 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
     }
     setValue('montant', depense.montant);
     setValue('description', depense.description);
-    setValue('categorie.id', depense.categorie?.id || '');
+    setValue('categorieDepense', depense.categorie?.id || '');
   }, [depense, setValue]);
 
   const modifierDepenseMutation = useModifierDepenseMutation();
@@ -55,11 +55,8 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
   const onSubmit = async (data: DepenseUpdateDTO) => {
     try {
       const formData = {
-        description: data.description,
-        montant: data.montant,
+        ...data,
         dateDepense: dateDepense || data.dateDepense,
-        categorie: data.categorie,
-        sourcePaiement: data.sourcePaiement,
       };
 
       await modifierDepenseMutation.mutateAsync({
@@ -108,6 +105,7 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
             setValue={setValue}
             defaultCategorieId={depense.categorie?.id}
             defaultSource={depense.sourcePaiement}
+            defaultInvestissementId={depense.investissement?.id}
           />
 
           <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-2">

@@ -31,11 +31,9 @@ export function CreerDepenseModal() {
       description: '',
       montant: 0,
       dateDepense: new Date(),
-      categorie: {
-        id: '',
-      },
+      categorieDepense: '',
       sourcePaiement: '',
-      investisseur: '',
+      investissementId: '',
     },
   });
 
@@ -52,10 +50,6 @@ export function CreerDepenseModal() {
     const formData = {
       ...data,
       dateDepense: selectedDate || new Date(),
-      categorie: {
-        id: data.categorie.id,
-      },
-      sourcePaiement: data.sourcePaiement,
     };
 
     ajouterDepenseMutation(formData, {
