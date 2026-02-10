@@ -17,12 +17,11 @@ import { useAjouterRecouvrementMutation } from '@/features/recouvrements/queries
 import { usePretListQuery } from '@/feature-finance/revenus/queries/prets/pret-list.query';
 import { IFacture } from '@/feature-finance/revenus/types/recouvrement/prets.types';
 
-export function CreerRecouvrementModal({ restaurantId }: { restaurantId?: string }) {
+export function CreerRecouvrementModal({ restaurantId, variant="ghost" }: { restaurantId?: string, variant?: 'ghost' | 'outline' }) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // 🧠 factures est maintenant strictement typé
   const { data: factures = [] } = usePretListQuery({});
 
   const {
@@ -96,7 +95,7 @@ export function CreerRecouvrementModal({ restaurantId }: { restaurantId?: string
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost">
+        <Button variant={variant}>
           <Plus size={18} />
           Effectuer un recouvrement
         </Button>

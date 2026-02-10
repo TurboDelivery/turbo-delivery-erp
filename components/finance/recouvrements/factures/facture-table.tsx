@@ -42,7 +42,7 @@ export function FactureTable({ restaurantId, showFilters = true }: FactureTableP
         />
       )}
       <div className="flex justify-end py-1.5">
-        <CreerRecouvrementModal />
+        <CreerRecouvrementModal variant="outline" />
       </div>
 
       <div className="overflow-x-auto">
