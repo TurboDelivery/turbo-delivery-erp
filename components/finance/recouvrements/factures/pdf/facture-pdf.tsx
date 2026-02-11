@@ -15,6 +15,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'Helvetica',
     color: '#111',
+    paddingBottom: 60,
   },
   container: {
     padding: 20,
@@ -124,6 +125,15 @@ const styles = StyleSheet.create({
   },
 });
 
+// Fonction pour diviser les lignes en groupes (par exemple, 15 lignes par page)
+function groupLignes(lignes: any[], itemsPerPage: number = 15) {
+  const groups = [];
+  for (let i = 0; i < lignes.length; i += itemsPerPage) {
+    groups.push(lignes.slice(i, i + itemsPerPage));
+  }
+  return groups;
+}
+
 // Fonction pour formater une date depuis une chaîne ISO
 function formatDate(dateString: string) {
   try {
@@ -134,8 +144,12 @@ function formatDate(dateString: string) {
 }
 
 const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
+  const ligneGroups = groupLignes(factureDetail.lignes, 20);
+  const isFirstPage = ligneGroups.length > 0;
+
   return (
     <Document title={factureDetail.code}>
+      {/* PREMIÈRE PAGE - AVEC HEADER ET PREMIÈRE PARTIE DU TABLEAU */}
       <Page style={styles.page}>
         <View style={styles.container}>
           <View style={styles.header}>
@@ -169,44 +183,48 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
             </View>
           </View>
 
-          {/* TABLEAU DES LIGNES */}
-          <View style={styles.tableHeader}>
-            <Text style={styles.colDate}>Date</Text>
-            <Text style={styles.colNombre}>Nb Livr.</Text>
-            <Text style={styles.colMontantLiv}>Montant Livr.</Text>
-            <Text style={styles.colMontantCmd}>Montant Cmd</Text>
-            <Text style={styles.colCommission}>Commission</Text>
+          {/* TABLEAU DES LIGNES - PREMIER BLOC */}
+          <View style={{ marginBottom: 20 }}>
+            <View style={styles.tableHeader}>
+              <Text style={styles.colDate}>Date</Text>
+              <Text style={styles.colNombre}>Nb Livr.</Text>
+              <Text style={styles.colMontantLiv}>Montant Livr.</Text>
+              <Text style={styles.colMontantCmd}>Montant Cmd</Text>
+              <Text style={styles.colCommission}>Commission</Text>
+            </View>
+
+            {ligneGroups[0]?.map((ligne, index) => (
+              <View key={index} style={styles.tableRow}>
+                <Text style={styles.colDate}>{formatDate(ligne.date)}</Text>
+                <Text style={styles.colNombre}>{ligne.nombreLivraison}</Text>
+                <Text style={styles.colMontantLiv}>{ligne.montantLivraison}</Text>
+                <Text style={styles.colMontantCmd}>{ligne.montantCommandes}</Text>
+                <Text style={styles.colCommission}>{ligne.totalCommission}</Text>
+              </View>
+            ))}
           </View>
 
-          {factureDetail.lignes.map((ligne, index) => (
-            <View key={index} style={styles.tableRow}>
-              <Text style={styles.colDate}>{formatDate(ligne.date)}</Text>
-              <Text style={styles.colNombre}>{ligne.nombreLivraison}</Text>
-              <Text style={styles.colMontantLiv}>{ligne.montantLivraison}</Text>
-              <Text style={styles.colMontantCmd}>{ligne.montantCommandes}</Text>
-              <Text style={styles.colCommission}>{ligne.totalCommission}</Text>
+          {/* TOTAUX - SEULEMENT SI C'EST LA DERNIÈRE PAGE */}
+          {ligneGroups.length === 1 && (
+            <View style={styles.totauxBox} wrap={false}>
+              <View style={styles.totauxRow}>
+                <Text style={styles.totauxLabel}>Total Montant Livraisons</Text>
+                <Text style={styles.totauxValue}>{factureDetail.totaux.montantLivraison}</Text>
+              </View>
+              <View style={styles.totauxRow}>
+                <Text style={styles.totauxLabel}>Total Montant Commandes</Text>
+                <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommandes}</Text>
+              </View>
+              <View style={styles.totauxRow}>
+                <Text style={styles.totauxLabel}>Total Commissions</Text>
+                <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommissions}</Text>
+              </View>
+              <View style={[styles.totauxRow, { marginTop: 10, paddingTop: 10, borderTop: '2px solid #000' }]}>
+                <Text style={styles.totalFinal}>MONTANT TOTAL À PAYER</Text>
+                <Text style={styles.totalFinal}>{factureDetail.totaux.factureAPayer}</Text>
+              </View>
             </View>
-          ))}
-
-          {/* RECTANGLE DES TOTAUX */}
-          <View style={styles.totauxBox} wrap={false}>
-            <View style={styles.totauxRow}>
-              <Text style={styles.totauxLabel}>Total Montant Livraisons</Text>
-              <Text style={styles.totauxValue}>{factureDetail.totaux.montantLivraison}</Text>
-            </View>
-            <View style={styles.totauxRow}>
-              <Text style={styles.totauxLabel}>Total Montant Commandes</Text>
-              <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommandes}</Text>
-            </View>
-            <View style={styles.totauxRow}>
-              <Text style={styles.totauxLabel}>Total Commissions</Text>
-              <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommissions}</Text>
-            </View>
-            <View style={[styles.totauxRow, { marginTop: 10, paddingTop: 10, borderTop: '2px solid #000' }]}>
-              <Text style={styles.totalFinal}>MONTANT TOTAL À PAYER</Text>
-              <Text style={styles.totalFinal}>{factureDetail.totaux.factureAPayer}</Text>
-            </View>
-          </View>
+          )}
         </View>
 
         {/* PIED DE PAGE */}
@@ -216,6 +234,73 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
           <Text>RCN°CI - ABJ - 2019 - B - 18005</Text>
         </View>
       </Page>
+
+      {/* PAGES SUPPLÉMENTAIRES POUR LES LIGNES RESTANTES */}
+      {ligneGroups.map((group, pageIndex) => {
+        if (pageIndex === 0) return null; // Skip first group as it's on page 1
+        const isLastPage = pageIndex === ligneGroups.length - 1;
+
+        return (
+          <Page key={pageIndex} style={styles.page}>
+            <View style={styles.container}>
+              {/* HEADER SIMPLIFIÉ */}
+              <View style={{ marginBottom: 20 }}>
+                <Text style={styles.restaurantName}>{factureDetail.restaurant}</Text>
+              </View>
+
+              {/* TABLEAU DES LIGNES - BLOCS SUIVANTS */}
+              <View style={{ marginBottom: 20 }}>
+                <View style={styles.tableHeader}>
+                  <Text style={styles.colDate}>Date</Text>
+                  <Text style={styles.colNombre}>Nb Livr.</Text>
+                  <Text style={styles.colMontantLiv}>Montant Livr.</Text>
+                  <Text style={styles.colMontantCmd}>Montant Cmd</Text>
+                  <Text style={styles.colCommission}>Commission</Text>
+                </View>
+
+                {group.map((ligne, index) => (
+                  <View key={index} style={styles.tableRow}>
+                    <Text style={styles.colDate}>{formatDate(ligne.date)}</Text>
+                    <Text style={styles.colNombre}>{ligne.nombreLivraison}</Text>
+                    <Text style={styles.colMontantLiv}>{ligne.montantLivraison}</Text>
+                    <Text style={styles.colMontantCmd}>{ligne.montantCommandes}</Text>
+                    <Text style={styles.colCommission}>{ligne.totalCommission}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* TOTAUX - SEULEMENT SUR LA DERNIÈRE PAGE */}
+              {isLastPage && (
+                <View style={styles.totauxBox} wrap={false}>
+                  <View style={styles.totauxRow}>
+                    <Text style={styles.totauxLabel}>Total Montant Livraisons</Text>
+                    <Text style={styles.totauxValue}>{factureDetail.totaux.montantLivraison}</Text>
+                  </View>
+                  <View style={styles.totauxRow}>
+                    <Text style={styles.totauxLabel}>Total Montant Commandes</Text>
+                    <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommandes}</Text>
+                  </View>
+                  <View style={styles.totauxRow}>
+                    <Text style={styles.totauxLabel}>Total Commissions</Text>
+                    <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommissions}</Text>
+                  </View>
+                  <View style={[styles.totauxRow, { marginTop: 10, paddingTop: 10, borderTop: '2px solid #000' }]}>
+                    <Text style={styles.totalFinal}>MONTANT TOTAL À PAYER</Text>
+                    <Text style={styles.totalFinal}>{factureDetail.totaux.factureAPayer}</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {/* PIED DE PAGE */}
+            <View style={styles.footer} fixed>
+              <Text>TURBO DELIVERY. SARL, sis à la rue Paul Langevin Prolongé</Text>
+              <Text style={styles.pageNumber} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
+              <Text>RCN°CI - ABJ - 2019 - B - 18005</Text>
+            </View>
+          </Page>
+        );
+      })}
     </Document>
   );
 };
