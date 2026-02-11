@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from 'react';
 import FormUpDate from '@/components/dashboard/price-liste/FormUpDate';
 import PriceListeTools from '@/components/dashboard/price-liste/price-list-tools';
 import { getDetailRestaurant } from '@/src/restaurants/restaurants.actions';
-import { Restaurant } from '@/types/models';
+import { IRestaurant } from '@/features/restaurants';
 
 interface Props {
   initialData: RestaurantDefini[];
@@ -31,7 +31,7 @@ export default function usePriceLiceDefined({ initialData }: Props) {
   const tabs = initialData.map((resto) => ({ id: resto.id, nomComplet: resto.nomEtablissement }));
   const initialSelectedKey = searchParams.get('restoId') || (initialData.length > 0 ? initialData[0].id : null);
   const [selectedKey, setSelectedKey] = useState<string | null>(initialSelectedKey);
-  const [currentRestaurant, setCurrentRestaurant] = useState<Restaurant | null>(null);
+  const [currentRestaurant, setCurrentRestaurant] = useState<IRestaurant | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [meta, setMeta] = useState({ totalItems: 0, totalPages: 0 });
 
