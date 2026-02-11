@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/turbo-delivery-erp.iml" filepath="$PROJECT_DIR$/.idea/turbo-delivery-erp.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../turbo-delivery-partner/.idea/turbo-delivery-partner.iml" filepath="$PROJECT_DIR$/../turbo-delivery-partner/.idea/turbo-delivery-partner.iml" />
     </modules>
   </component>
 </project>
