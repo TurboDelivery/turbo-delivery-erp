@@ -145,7 +145,6 @@ function formatDate(dateString: string) {
 
 const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
   const ligneGroups = groupLignes(factureDetail.lignes, 20);
-  const isFirstPage = ligneGroups.length > 0;
 
   return (
     <Document title={factureDetail.code}>
