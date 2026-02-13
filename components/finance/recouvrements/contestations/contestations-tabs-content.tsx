@@ -33,7 +33,6 @@ export function ContestationsTabsContent({ restoOpts, isOptionsLoading }: Contes
       page: currentPage - 1,
       size: pageSize,
     },
-    !!filters.restaurantId
   );
 
   // Filtrer les contestations par statut si sélectionné
