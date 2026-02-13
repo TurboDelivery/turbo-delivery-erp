@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 import FacturePdfViewer from '@/components/finance/recouvrements/factures/pdf/facture-pdf-viewer';
 import { ValiderFactureDialog } from '@/components/finance/recouvrements/factures/valider-facture-dialog';
 import React, { useState } from 'react';
@@ -78,11 +78,24 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
   {
     accessorKey: 'statut',
     header: 'Statut',
-    cell: ({ row }) => (
-      <Badge variant={getStatutBadgeVariant(row.original.statut)} className={cn('capitalize', getStatutColor(row.original.statut))}>
-        {getStatutLabel(row.original.statut)}
-      </Badge>
-    ),
+    cell: ({ row }) => {
+      const hasContestation = row.original.contestationActive > 0;
+      return (
+        <div className="flex items-center gap-2">
+          <Badge variant={getStatutBadgeVariant(row.original.statut)} className={cn('capitalize', getStatutColor(row.original.statut))}>
+            {getStatutLabel(row.original.statut)}
+          </Badge>
+          {hasContestation && (
+            <Tooltip content={`${row.original.contestationActive} contestation${row.original.contestationActive > 1 ? 's' : ''} active${row.original.contestationActive > 1 ? 's' : ''}`}>
+              <div className="flex items-center gap-1 text-red-600 cursor-pointer">
+                <AlertCircle className="size-4" />
+                <span className="text-xs font-semibold">{row.original.contestationActive}</span>
+              </div>
+            </Tooltip>
+          )}
+        </div>
+      );
+    },
   },
   {
     accessorKey: 'createdAt',

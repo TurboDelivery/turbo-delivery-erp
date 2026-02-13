@@ -75,13 +75,23 @@ export function FactureTable({ restaurantId, showFilters = true }: FactureTableP
                     ))}
                   </TableRow>
                 ))
-              : factureTable.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFactureFetching ? 'opacity-70' : ''}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                    ))}
-                  </TableRow>
-                ))}
+              : factureTable.getRowModel().rows.map((row) => {
+                  const hasContestation = row.original.contestationActive && row.original.contestationActive > 0;
+                  return (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                      className={`
+                        ${isFactureFetching ? 'opacity-70' : ''}
+                        ${hasContestation ? 'bg-red-50 hover:bg-red-100 border-l-4 border-l-red-500' : ''}
+                      `}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })}
           </TableBody>
         </Table>
       </div>

@@ -10,6 +10,7 @@ export interface IFacture {
   statut: string;
   createdAt: string;
   updatedAt: string;
+  contestationActive: number;
 }
 
 export interface IFactureParams {
@@ -66,4 +67,3 @@ export interface IFactureDetail {
   lignes: IFactureLigne[];
   totaux: IFactureTotaux;
 }
-
