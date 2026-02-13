@@ -8,6 +8,13 @@ export const recouvrementKeyQuery = (...params: any[]) => {
     return ['recouvrement', ...params];
 };
 
+export const contestationsKeyQuery = (...params: any[]) => {
+  if (params.length === 0) {
+    return ['contestations'];
+  }
+  return ['contestations', ...params];
+};
+
 // 2. Créez un hook personnalisé pour l'invalidation
 export const useInvalidateRecouvrementQuery = () => {
     const queryClient = useQueryClient();
@@ -23,4 +30,20 @@ export const useInvalidateRecouvrementQuery = () => {
             type: 'active'
         });
     };
+};
+
+export const useInvalidateContestationsQuery = () => {
+  const queryClient = useQueryClient();
+
+  return async (...params: any[]) => {
+    await queryClient.invalidateQueries({
+      queryKey: contestationsKeyQuery(...params),
+      exact: false,
+    });
+
+    await queryClient.refetchQueries({
+      queryKey: contestationsKeyQuery(),
+      type: 'active',
+    });
+  };
 };

@@ -1,10 +1,13 @@
 import { parseAsIsoDate, parseAsStringEnum } from 'nuqs';
 import { startOfMonth } from 'date-fns';
 
-export const recouvrementDashboardFilterClient = {
+export const contestationsDashboardFilterClient = {
   filters: {
     debut: parseAsIsoDate.withDefault(startOfMonth(new Date())),
     fin: parseAsIsoDate.withDefault(new Date()),
-    tab: parseAsStringEnum(['factures', 'recouvrements', 'restaurants', 'contestations']).withDefault('factures')
+    restaurantId: parseAsStringEnum([''] as const).withDefault(''),
+    status: parseAsStringEnum(['', 'ACTIVE', 'RESOLUE'] as const).withDefault(''),
   },
-}
+};
+
+

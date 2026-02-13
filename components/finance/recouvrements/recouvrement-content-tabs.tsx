@@ -8,6 +8,7 @@ import { useDefinedRestaurantsQuery } from '@/features/restaurants/queries/resta
 import { toRestaurantOptions } from '@/features/restaurants/utils/restaurant-options';
 import { FactureTabsContent } from '@/components/finance/recouvrements/factures/facture-tabs-content';
 import { RecouvrementTable } from '@/components/finance/recouvrements/recouvrements/recouvrement-table';
+import { ContestationsTabsContent } from '@/components/finance/recouvrements/contestations/contestations-tabs-content';
 
 function RecouvrementContentTabs() {
   const { filters, handleTabChange } = useRecouvrementDashboard();
@@ -17,7 +18,7 @@ function RecouvrementContentTabs() {
   return (
     <>
       <Tabs defaultValue="factures" className="w-full" value={filters.tab} onValueChange={(value) => handleTabChange(value as RecouvrementTabsType)}>
-        <TabsList className="grid grid-cols-3 w-full gap-2">
+        <TabsList className="grid grid-cols-4 w-full gap-2">
           <TabsTrigger value="factures" className="bg-red-300">
             Toutes les factures
           </TabsTrigger>
@@ -26,6 +27,9 @@ function RecouvrementContentTabs() {
           </TabsTrigger>
           <TabsTrigger value="restaurants" className="bg-blue-300">
             Liste des restaurants
+          </TabsTrigger>
+          <TabsTrigger value="contestations" className="bg-yellow-300">
+            Contestations
           </TabsTrigger>
         </TabsList>
         <TabsContent value="factures">
@@ -36,6 +40,9 @@ function RecouvrementContentTabs() {
         </TabsContent>
         <TabsContent value="restaurants">
           <RestaurantsTable restoOpts={restoOpts} isOptionsLoading={isRestaurantsLoading} />
+        </TabsContent>
+        <TabsContent value="contestations">
+          <ContestationsTabsContent restoOpts={restoOpts} isOptionsLoading={isRestaurantsLoading} />
         </TabsContent>
       </Tabs>
     </>
