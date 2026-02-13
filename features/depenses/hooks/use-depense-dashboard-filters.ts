@@ -30,5 +30,13 @@ export function useDepenseDashboardFilters() {
     }
   };
 
-  return { filters, updateFilters, clearFilters, handleDateChange, setFilters };
+  const handleCategoriesChange = (categoryIds: string[] | null) => {
+    setFilters((prev) => ({
+      ...prev,
+      categoriesDepense: categoryIds || [],
+      page: 0, // Reset to first page when filters change
+    }));
+  };
+
+  return { filters, updateFilters, clearFilters, handleDateChange, handleCategoriesChange, setFilters };
 }

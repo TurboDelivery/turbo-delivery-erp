@@ -3,18 +3,15 @@
 import { useDepenseTable } from '@/features/depenses/hooks/use-depense-table';
 import { depenseColumns } from '@/components/depenses/depense-table/depense-columns';
 import { CreerDepenseModal } from '@/feature-finance/depenses/components/depense-list/creer-depense';
-import Select from 'react-select';
 import React from 'react';
-import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
 import { Card, CardContent } from '@/components/ui/card';
 import DateFilterInput from '@/components/finance/date-filter-input';
+import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
 
 export function DepenseTable() {
   const { table, isLoading, isFetching, pagination, filters, setSelectedCategories, handleDateChange } = useDepenseTable();
-  const { categories, isLoading: isLoadingCategory } = useCategorieDepense();
-  const categorieOptions = categories.map((cat) => ({ value: cat.id, label: cat.nomCategorie }));
 
   return (
     <Card className="flex flex-col gap-4">
@@ -29,19 +26,9 @@ export function DepenseTable() {
                   handleDateChange={handleDateChange}
                   variant="outline"
                 />
-                <Select
-                  isMulti
-                  options={categorieOptions}
-                  value={categorieOptions.filter((opt) => filters.categoriesDepense?.includes(opt.value))}
-                  isClearable
-                  onChange={(opt) => {
-                    const selectedIds = opt ? opt.map((o) => o.value) : [];
-                    setSelectedCategories(selectedIds);
-                  }}
-                  placeholder="Choisir une catégorie..."
-                  className="text-xs w-full max-w-lg"
-                  classNamePrefix="react-select"
-                  isLoading={isLoadingCategory}
+                <CategoriesSelectFilter
+                  selectedCategories={filters.categoriesDepense || []}
+                  onCategoriesChange={setSelectedCategories}
                 />
                 <CreerDepenseModal />
               </div>

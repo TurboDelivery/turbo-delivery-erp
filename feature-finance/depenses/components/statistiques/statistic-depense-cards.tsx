@@ -1,6 +1,7 @@
 import { Boxes, CalendarClock } from 'lucide-react';
 import { useDepenseStats } from '@/features/depenses/hooks/use-depense-stats';
 import StatisticDepenseCard from '@/components/depenses/stats/statistic-depense-card';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 export default function StatisticDepenseCards() {
   const { data, isLoading } = useDepenseStats();
@@ -17,7 +18,14 @@ export default function StatisticDepenseCards() {
           bgColor="bg-yellow-100"
           icon={<CalendarClock className="h-5 w-5" />}
         />
-        <StatisticDepenseCard isLoading={isLoading} title="Dépenses" value={data?.montant_total} color="text-green-600" bgColor="bg-green-100" icon={<CalendarClock className="h-5 w-5" />} />
+        <StatisticDepenseCard
+          isLoading={isLoading}
+          title="Dépenses"
+          value={formatCFA(data?.montant_total || 0)}
+          color="text-green-600"
+          bgColor="bg-green-100"
+          icon={<CalendarClock className="h-5 w-5" />}
+        />
       </div>
     </div>
   );
