@@ -210,7 +210,13 @@ export default function Content({ restaurants, profile }: ContentProps) {
       return;
     }
 
-    createBonLivraisonMutation(ticket, {
+    const restaurant = restaurants.find((r) => r.id === ticket.restaurantId);
+    const restaurantInfo = restaurant ? {
+      typeCommission: restaurant.typeCommission,
+      commission: Number(restaurant.commission ?? 0)
+    } : undefined;
+
+    createBonLivraisonMutation({ ticket, restaurant: restaurantInfo }, {
       onSuccess: () => {
         setNewTickets((prev) => prev.filter((t) => t.id !== id));
       },
@@ -221,8 +227,15 @@ export default function Content({ restaurants, profile }: ContentProps) {
     const ticket = editedTickets.get(id) ?? ticketsData.find((t) => t.id === id);
     if (!ticket) return;
 
+    // ✅ Récupérer les informations du restaurant pour le calcul correct de la commission
+    const restaurant = restaurants.find((r) => r.id === ticket.restaurantId);
+    const restaurantInfo = restaurant ? {
+      typeCommission: restaurant.typeCommission,
+      commission: Number(restaurant.commission ?? 0)
+    } : undefined;
+
     updateBonLivraisonMutation(
-      { ticketId: id, ticket },
+      { ticketId: id, ticket, restaurant: restaurantInfo },
       {
         onSuccess: () => {
           setEditedTickets((prev) => {

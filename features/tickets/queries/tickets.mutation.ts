@@ -8,8 +8,8 @@ export const useCreateBonLivraison = (handleSuccess?: () => void, handleError?: 
   const invalidateTicketsQuery = useInvalidateTicketsQuery();
 
   return useMutation({
-    mutationFn: async (ticket: Ticket) => {
-      const result = await createBonLivraison(ticket);
+    mutationFn: async ({ ticket, restaurant }: { ticket: Ticket; restaurant?: { typeCommission: string; commission: number } }) => {
+      const result = await createBonLivraison(ticket, restaurant);
       if (!result.success) {
         console.error(result.error);
         throw new Error(result.error);
@@ -36,8 +36,8 @@ export const useUpdateBonLivraison = (handleSuccess?: () => void) => {
   const invalidateTicketsQuery = useInvalidateTicketsQuery();
 
   return useMutation({
-    mutationFn: async ({ ticketId, ticket }: { ticketId: string; ticket: Ticket }) => {
-      const result = await updateBonLivraison(ticketId, ticket);
+    mutationFn: async ({ ticketId, ticket, restaurant }: { ticketId: string; ticket: Ticket; restaurant?: { typeCommission: string; commission: number } }) => {
+      const result = await updateBonLivraison(ticketId, ticket, restaurant);
       if (!result.success) {
         console.error(result.error);
         throw new Error(result.error);
