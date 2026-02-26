@@ -4,10 +4,80 @@ import { ColumnDef } from '@tanstack/react-table';
 import { IRecouvrement } from '@/feature-finance/revenus/types/recouvrement/recouvrement.types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Download } from 'lucide-react';
+import { Download, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { createUrlFile } from '@/utils/createUrlFile';
+import { useState } from 'react';
+import { ModifierRecouvrementModal } from '@/feature-finance/revenus/components/recouvrement/recouvrement-pret/modifier-recouvrement-modal';
+import { useSupprimerRecouvrementMutation } from '@/features/recouvrements/queries/recouvrement.mutation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
+function ActionsCell({ recouvrement }: { recouvrement: IRecouvrement }) {
+  const [openEdit, setOpenEdit] = useState(false);
+  const { mutate: supprimerMutation, isPending: isDeleting } = useSupprimerRecouvrementMutation();
+
+  const handleDownload = () => {
+    if (recouvrement.preuve) {
+      const url = createUrlFile(recouvrement.preuve, 'backend');
+      window.open(url, '_blank');
+    }
+  };
+
+  const handleDelete = () => {
+    supprimerMutation(recouvrement.id);
+  };
+
+  return (
+    <>
+      <div className="flex gap-2">
+        <Button variant="outline" size="icon" onClick={() => setOpenEdit(true)}>
+          <Pencil className="size-4" />
+        </Button>
+
+        <Button variant="outline" size="sm" onClick={handleDownload} disabled={!recouvrement.preuve}>
+          <Download className="size-4" />
+          <span>Preuve</span>
+        </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="icon" disabled={isDeleting}>
+              {isDeleting ? <Loader2 className="animate-spin duration-300"/> : <Trash2 className="size-4" />}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Supprimer le recouvrement ?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Cette action est irréversible. Le recouvrement de <strong>{formatCFA(recouvrement.montant)}</strong> du{' '}
+                <strong>{format(new Date(recouvrement.dateRecouvrement), 'dd MMM yyyy', { locale: fr })}</strong> sera définitivement supprimé.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Supprimer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+
+      <ModifierRecouvrementModal recouvrement={recouvrement} open={openEdit} onOpenChange={setOpenEdit} />
+    </>
+  );
+}
 
 export const recouvrementColumns: ColumnDef<IRecouvrement>[] = [
   {
@@ -31,24 +101,6 @@ export const recouvrementColumns: ColumnDef<IRecouvrement>[] = [
   {
     id: 'actions',
     header: '',
-    cell: ({ row }) => {
-      const preuveUrl = row.original.preuve;
-
-      const handleDownload = () => {
-        if (preuveUrl) {
-          const url = createUrlFile(preuveUrl, 'backend');
-          window.open(url, '_blank');
-        }
-      };
-
-      return (
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleDownload} disabled={!preuveUrl}>
-            <Download className="size-4" />
-            <span>Preuve</span>
-          </Button>
-        </div>
-      );
-    },
+    cell: ({ row }) => <ActionsCell recouvrement={row.original} />,
   },
 ];

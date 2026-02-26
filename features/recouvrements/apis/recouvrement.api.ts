@@ -31,7 +31,7 @@ export const recouvrementAPI: IRecouvrementAPI = {
       debut: params.debut ? params.debut.toISOString().split('T')[0] : undefined,
       fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
     };
-    
+
     // Ajouter le paramètre periode s'il existe
     if (params.periode) {
       searchParams.periode = params.periode;
@@ -83,12 +83,6 @@ export const recouvrementAPI: IRecouvrementAPI = {
       endpoint: `finance/recouvrements/${id}`,
       method: 'PUT',
       data: formData,
-      // Important: ne pas définir Content-Type pour FormData, le navigateur le fait automatiquement
-      config: {
-        headers: {
-          // Laisser le navigateur définir le Content-Type avec le boundary correct
-        },
-      },
     });
   },
 

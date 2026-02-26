@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from 
 import { Pagination } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
 import { RestaurantSelect } from '../common/restaurant-select';
+import { CreerRecouvrementModal } from '@/feature-finance/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';
 
 interface RecouvrementTableProps {
   restoOpts: Array<{ value: string; label: string }>;
@@ -18,7 +19,7 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
   return (
     <div className="space-y-4">
       {/* Filtres */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
         <RestaurantSelect
           value={filters.restaurantId}
           onChange={(value) => setFilters({ restaurantId: value || '', page: 0 })}
@@ -27,6 +28,7 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
           placeholder="Tous les restaurants"
           className="w-full sm:w-[280px]"
         />
+        <CreerRecouvrementModal variant="ghost" />
       </div>
 
       {/* Tableau */}
@@ -39,26 +41,24 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent={"Aucun résultat trouvé"}>
-            {isLoading ? (
-              Array.from({ length: 10 }).map((_, i) => (
-                <TableRow key={`skeleton-${i}`}>
-                  {Array.from({ length: colsCount }).map((_, j) => (
-                    <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFetching ? 'opacity-70' : ''}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )}
+          <TableBody emptyContent={'Aucun résultat trouvé'}>
+            {isLoading
+              ? Array.from({ length: 10 }).map((_, i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    {Array.from({ length: colsCount }).map((_, j) => (
+                      <TableCell key={`skeleton-cell-${j}`} className="h-12">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFetching ? 'opacity-70' : ''}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
       </div>

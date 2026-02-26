@@ -14,6 +14,15 @@ export const recouvrementFormSchema = z.object({
 
 export type RecouvrementCreateDTO = z.infer<typeof recouvrementFormSchema>;
 
-// Schéma pour la mise à jour d'une dépense
+export const recouvrementEditSchema = recouvrementFormSchema.extend({
+  preuve: z
+    .instanceof(File)
+    .refine((file) => file.size > 0, 'Le fichier ne peut pas être vide')
+    .refine((file) => file.size <= 5 * 1024 * 1024, 'Le fichier ne doit pas dépasser 5MB')
+    .optional(),
+});
+export type RecouvrementEditDTO = z.infer<typeof recouvrementEditSchema>;
+
+// Schéma partiel générique
 export const RecouvrementUpdateSchema = recouvrementFormSchema.partial();
 export type RecouvrementUpdateDTO = z.infer<typeof RecouvrementUpdateSchema>;
