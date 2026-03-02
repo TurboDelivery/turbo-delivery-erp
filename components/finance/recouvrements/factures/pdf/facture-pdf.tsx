@@ -3,7 +3,7 @@ import React from 'react';
 import { Document, Image, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { IFactureDetail } from '@/features/recouvrements/types/facture.types';
+import { IFactureDetail, IFactureLigne } from '@/features/recouvrements/types/facture.types';
 
 interface FacturePdfProps {
   factureDetail: IFactureDetail;
@@ -87,6 +87,15 @@ const styles = StyleSheet.create({
   colMontantLiv: { width: '20%', textAlign: 'right' },
   colMontantCmd: { width: '20%', textAlign: 'right' },
   colCommission: { width: '20%', textAlign: 'right' },
+  subtotalRow: {
+    flexDirection: 'row',
+    paddingVertical: 5,
+    paddingHorizontal: 5,
+    borderTop: '1.5px solid #000',
+    backgroundColor: '#f0f0f0',
+    fontWeight: 'bold',
+    fontSize: 10,
+  },
   totauxBox: {
     marginTop: 20,
     padding: 15,
@@ -153,6 +162,19 @@ function formatNumber(value: number | string): string {
   return decPart ? `${formattedInt},${decPart}` : formattedInt;
 }
 
+// Calcule les sous-totaux d'un groupe de lignes
+function computeSubtotals(lignes: IFactureLigne[]) {
+  return lignes.reduce(
+    (acc, l) => ({
+      nombreLivraison: acc.nombreLivraison + (l.nombreLivraison ?? 0),
+      montantLivraison: acc.montantLivraison + (l.montantLivraison ?? 0),
+      montantCommandes: acc.montantCommandes + (l.montantCommandes ?? 0),
+      totalCommission: acc.totalCommission + (l.totalCommission ?? 0),
+    }),
+    { nombreLivraison: 0, montantLivraison: 0, montantCommandes: 0, totalCommission: 0 },
+  );
+}
+
 const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
   const ligneGroups = groupLignes(factureDetail.lignes, 20);
 
@@ -211,6 +233,20 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
                 <Text style={styles.colCommission}>{formatNumber(ligne.totalCommission)}</Text>
               </View>
             ))}
+
+            {/* SOUS-TOTAUX PAGE 1 */}
+            {(() => {
+              const sub = computeSubtotals(ligneGroups[0] ?? []);
+              return (
+                <View style={styles.subtotalRow}>
+                  <Text style={styles.colDate}>Sous-total</Text>
+                  <Text style={styles.colNombre}>{formatNumber(sub.nombreLivraison)}</Text>
+                  <Text style={styles.colMontantLiv}>{formatNumber(sub.montantLivraison)}</Text>
+                  <Text style={styles.colMontantCmd}>{formatNumber(sub.montantCommandes)}</Text>
+                  <Text style={styles.colCommission}>{formatNumber(sub.totalCommission)}</Text>
+                </View>
+              );
+            })()}
           </View>
 
           {/* TOTAUX - SEULEMENT SI C'EST LA DERNIÈRE PAGE */}
@@ -276,6 +312,20 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
                     <Text style={styles.colCommission}>{formatNumber(ligne.totalCommission)}</Text>
                   </View>
                 ))}
+
+                {/* SOUS-TOTAUX PAR PAGE */}
+                {(() => {
+                  const sub = computeSubtotals(group);
+                  return (
+                    <View style={styles.subtotalRow}>
+                      <Text style={styles.colDate}>Sous-total</Text>
+                      <Text style={styles.colNombre}>{formatNumber(sub.nombreLivraison)}</Text>
+                      <Text style={styles.colMontantLiv}>{formatNumber(sub.montantLivraison)}</Text>
+                      <Text style={styles.colMontantCmd}>{formatNumber(sub.montantCommandes)}</Text>
+                      <Text style={styles.colCommission}>{formatNumber(sub.totalCommission)}</Text>
+                    </View>
+                  );
+                })()}
               </View>
 
               {/* TOTAUX - SEULEMENT SUR LA DERNIÈRE PAGE */}
