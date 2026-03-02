@@ -336,10 +336,6 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
                     <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantLivraison)}</Text>
                   </View>
                   <View style={styles.totauxRow}>
-                    <Text style={styles.totauxLabel}>Total Montant Commandes</Text>
-                    <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantCommandes)}</Text>
-                  </View>
-                  <View style={styles.totauxRow}>
                     <Text style={styles.totauxLabel}>Total Commissions</Text>
                     <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantCommissions)}</Text>
                   </View>
