@@ -25,7 +25,7 @@ export const ticketFiltersClient: TicketFiltersClient = {
     fin: parseAsIsoDate.withDefault(end),
     tab: parseAsString.withDefault('tous'),
     page: parseAsInteger.withDefault(0),
-    size: parseAsInteger.withDefault(150),
+    size: parseAsInteger.withDefault(50),
   },
   option: {
     clearOnDefault: true,

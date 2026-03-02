@@ -51,7 +51,7 @@ const PriceListSelect = ({ ticketId, restaurantID, handleChange }: PriceListSele
         onChange={(option) => onChange(option)}
         placeholder="Sélectionner une zone"
         isClearable
-        className="text-xs rounded px-2 py-1"
+        className="text-xs text-wrap min-w-52 rounded px-2 py-1"
         classNamePrefix="react-select"
       />
     </div>

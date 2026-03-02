@@ -158,14 +158,19 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
 
       // ✅ Récupérer les informations du restaurant pour le calcul correct de la commission
       const restaurant = restaurants.find((r) => r.id === ticket.restaurantId);
-      const restaurantInfo = restaurant ? {
-        typeCommission: restaurant.typeCommission,
-        commission: Number(restaurant.commission ?? 0)
-      } : undefined;
+      const restaurantInfo = restaurant
+        ? {
+            typeCommission: restaurant.typeCommission,
+            commission: Number(restaurant.commission ?? 0),
+          }
+        : undefined;
 
-      createBonLivraisonMutation({ ticket, restaurant: restaurantInfo }, {
-        onSuccess: () => setNewTickets((prev) => prev.filter((t) => t.id !== id)),
-      });
+      createBonLivraisonMutation(
+        { ticket, restaurant: restaurantInfo },
+        {
+          onSuccess: () => setNewTickets((prev) => prev.filter((t) => t.id !== id)),
+        },
+      );
     },
     [newTickets, createBonLivraisonMutation, restaurants],
   );
@@ -177,10 +182,12 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
 
       // ✅ Récupérer les informations du restaurant pour le calcul correct de la commission
       const restaurant = restaurants.find((r) => r.id === ticket.restaurantId);
-      const restaurantInfo = restaurant ? {
-        typeCommission: restaurant.typeCommission,
-        commission: Number(restaurant.commission ?? 0)
-      } : undefined;
+      const restaurantInfo = restaurant
+        ? {
+            typeCommission: restaurant.typeCommission,
+            commission: Number(restaurant.commission ?? 0),
+          }
+        : undefined;
 
       updateBonLivraisonMutation(
         { ticketId: id, ticket, restaurant: restaurantInfo },
@@ -233,15 +240,6 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
 
   // Selection state via React Table
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
-
-  const selectedRowIds = useMemo(() => {
-    return new Set(
-      Object.entries(rowSelection)
-        .filter(([, selected]) => selected)
-        .map(([index]) => allTickets[Number(index)]?.id)
-        .filter(Boolean),
-    );
-  }, [rowSelection, allTickets]);
 
   // Columns
   const columns = useMemo(() => createTicketColumns(), []);
@@ -299,15 +297,20 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
     getRowId: (row) => row.id,
   });
 
+  const selectedRowIds = table
+    .getFilteredSelectedRowModel()
+    .rows.map((r) => r.id)
+    .filter((id) => !newTicketIds.has(id));
+
   const colsCount = table.getAllColumns().length;
 
   // Delete handlers
   const handleDeleteRows = useCallback(async () => {
-    if (selectedRowIds.size === 0) {
+    if (selectedRowIds.length === 0) {
       toast.warning('Aucune ligne sélectionnée');
       return;
     }
-    const confirm = window.confirm(`Supprimer ${selectedRowIds.size} ticket(s) ?`);
+    const confirm = window.confirm(`Supprimer ${selectedRowIds.length} ticket(s) ?`);
     if (!confirm) return;
     const idsToDelete = Array.from(selectedRowIds);
     try {
@@ -321,14 +324,6 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
       toast.error('La suppression a échoué — aucune modification appliquée');
     }
   }, [selectedRowIds, deleteBonLivraisonMutation]);
-
-  const handleSelectAll = useCallback(() => {
-    if (table.getIsAllRowsSelected()) {
-      table.toggleAllRowsSelected(false);
-    } else {
-      table.toggleAllRowsSelected(true);
-    }
-  }, [table]);
 
   return (
     <div className="min-h-screen p-2">
@@ -443,15 +438,11 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
 
             {/* Table */}
             <div className="overflow-x-auto -mx-4 sm:mx-0">
-              <div className="max-h-[420px] overflow-y-auto border border-gray-200 rounded-lg">
+              <div className="max-h-[420px] overflow-y-auto">
                 <Table isStriped>
                   <TableHeader>
                     {table.getFlatHeaders().map((header) => (
-                      <TableColumn
-                        key={header.id}
-                        className="text-xs sm:text-sm font-medium whitespace-nowrap bg-orange-50"
-                        style={header.column.getSize() ? { minWidth: header.column.getSize() } : undefined}
-                      >
+                      <TableColumn key={header.id} className="text-xs sm:text-sm font-medium whitespace-nowrap">
                         {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </TableColumn>
                     ))}
@@ -497,9 +488,7 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
           selectedRows={selectedRowIds}
           permissions={permissions}
           isDeletingBonLivraison={isDeletingBonLivraison}
-          onSelectAll={handleSelectAll}
           onDeleteRows={handleDeleteRows}
-          onDeselectAll={() => setRowSelection({})}
         />
       )}
     </div>

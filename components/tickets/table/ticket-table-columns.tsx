@@ -8,6 +8,7 @@ import Select from 'react-select';
 import PriceListSelect from '@/components/tickets/price-list-select';
 import { CheckSquare, Loader2, Pen, X } from 'lucide-react';
 import { Tooltip } from '@heroui/react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export interface TicketColumnMeta {
   livreurOptions: { value: string; label: string }[];
@@ -39,10 +40,16 @@ const isNew = (ticket: Ticket, meta: TicketColumnMeta): boolean => {
 export const createTicketColumns = (): ColumnDef<Ticket>[] => [
   {
     id: 'select',
-    header: ({ table }) => <input type="checkbox" className="w-4 h-4" checked={table.getIsAllRowsSelected()} onChange={table.getToggleAllRowsSelectedHandler()} />,
-    cell: ({ row }) => <input type="checkbox" className="w-4 h-4" checked={row.getIsSelected()} disabled={row.original.isNew} onChange={row.getToggleSelectedHandler()} />,
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />,
     enableSorting: false,
-    size: 40,
+    enableHiding: false,
   },
   {
     accessorKey: 'code',
@@ -56,7 +63,7 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
             type="text"
             value={ticket.code ?? ''}
             onChange={(e) => meta.onTicketChange(ticket.id, 'code', e.target.value)}
-            className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
+            className="w-full min-w-xs h-9 border border-gray-300 rounded px-2 py-1 text-xs"
             placeholder="Code CHECK"
           />
         );
@@ -79,7 +86,7 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
             onChange={(option) => meta.onTicketChange(ticket.id, 'livreurId', option?.value ?? '')}
             placeholder="Sélectionner un livreur"
             isClearable
-            className="text-xs"
+            className="text-xs min-w-52"
             classNamePrefix="react-select"
           />
         );
@@ -102,7 +109,7 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
             onChange={(option) => meta.onTicketChange(ticket.id, 'restaurantId', option?.value ?? '')}
             placeholder="Sélectionner un restaurant"
             isClearable
-            className="text-xs"
+            className="text-xs min-w-52"
             classNamePrefix="react-select"
           />
         );
@@ -176,7 +183,7 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
       const meta = table.options.meta as TicketColumnMeta;
       const ticket = meta.getDisplayTicket(row.original);
       if (isEditing(ticket, meta)) {
-        return <input type="number" value={ticket.coutLivraison} readOnly placeholder="0 CFA" className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded bg-gray-50" />;
+        return <input type="number" value={ticket.commission} readOnly placeholder="0 CFA" className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded bg-gray-50" />;
       }
       return <span className="text-xs">{formatCFA(ticket?.commission ?? 0)}</span>;
     },

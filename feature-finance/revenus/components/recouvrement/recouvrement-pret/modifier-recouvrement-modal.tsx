@@ -54,7 +54,7 @@ export function ModifierRecouvrementModal({ recouvrement, open, onOpenChange }: 
   }, [open, recouvrement, reset]);
 
   const onSubmitForm = async (data: RecouvrementCreateDTO) => {
-    const facture = factures.find((f: IFacture) => f.id === data.restaurantId);
+    const facture = factures.find((f: IFacture) => f.id == data.restaurantId);
     if (!facture) {
       form.setError('restaurantId', { message: 'Facture sélectionnée introuvable' });
       return;
@@ -64,7 +64,6 @@ export function ModifierRecouvrementModal({ recouvrement, open, onOpenChange }: 
       {
         id: recouvrement.id,
         data: { ...data, preuve: selectedFile ?? undefined },
-        factureDetails: facture,
       },
       {
         onSuccess: () => {
@@ -110,7 +109,9 @@ export function ModifierRecouvrementModal({ recouvrement, open, onOpenChange }: 
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" type="button">Annuler</Button>
+              <Button variant="outline" type="button">
+                Annuler
+              </Button>
             </DialogClose>
             <Button type="submit" variant="secondary" disabled={isLoading}>
               {isLoading ? 'Enregistrement...' : 'Enregistrer'}
@@ -121,4 +122,3 @@ export function ModifierRecouvrementModal({ recouvrement, open, onOpenChange }: 
     </Dialog>
   );
 }
-
