@@ -3,6 +3,16 @@ name: Deploy to Production
 on:
   push:
     branches: [ "Yamoussa" ]
+    paths-ignore:
+      - ".idea"
+      - "**/*.md"
+      - ".github/**"
+      - "README.md"
+      - "docs/**"
+
+concurrency:
+  group: "deploy-${{ github.ref }}"
+  cancel-in-progress: true
 
 permissions:
   contents: read
