@@ -234,9 +234,9 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
               </View>
             ))}
 
-            {/* SOUS-TOTAUX PAGE 1 */}
-            {(() => {
-              const sub = computeSubtotals(ligneGroups[0] ?? []);
+            {/* SOUS-TOTAUX - EN BAS DU TABLEAU (page 1 = dernière page) */}
+            {ligneGroups.length === 1 && (() => {
+              const sub = computeSubtotals(factureDetail.lignes);
               return (
                 <View style={styles.subtotalRow}>
                   <Text style={styles.colDate}>Sous-total</Text>
@@ -255,10 +255,6 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
               <View style={styles.totauxRow}>
                 <Text style={styles.totauxLabel}>Total Montant Livraisons</Text>
                 <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantLivraison)}</Text>
-              </View>
-              <View style={styles.totauxRow}>
-                <Text style={styles.totauxLabel}>Total Montant Commandes</Text>
-                <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantCommandes)}</Text>
               </View>
               <View style={styles.totauxRow}>
                 <Text style={styles.totauxLabel}>Total Commissions</Text>
@@ -313,9 +309,9 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
                   </View>
                 ))}
 
-                {/* SOUS-TOTAUX PAR PAGE */}
-                {(() => {
-                  const sub = computeSubtotals(group);
+                {/* SOUS-TOTAUX - EN BAS DU TABLEAU (dernière page uniquement) */}
+                {isLastPage && (() => {
+                  const sub = computeSubtotals(factureDetail.lignes);
                   return (
                     <View style={styles.subtotalRow}>
                       <Text style={styles.colDate}>Sous-total</Text>
