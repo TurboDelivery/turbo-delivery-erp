@@ -143,6 +143,16 @@ function formatDate(dateString: string) {
   }
 }
 
+// Fonction pour formater un nombre avec séparateur de milliers
+// N'utilise pas toLocaleString/Intl car react-pdf ne supporte pas ces APIs
+function formatNumber(value: number | string): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value;
+  if (isNaN(num)) return String(value);
+  const [intPart, decPart] = num.toFixed(0).split('.');
+  const formattedInt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00A0');
+  return decPart ? `${formattedInt},${decPart}` : formattedInt;
+}
+
 const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
   const ligneGroups = groupLignes(factureDetail.lignes, 20);
 
@@ -195,10 +205,10 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
             {ligneGroups[0]?.map((ligne, index) => (
               <View key={index} style={styles.tableRow}>
                 <Text style={styles.colDate}>{formatDate(ligne.date)}</Text>
-                <Text style={styles.colNombre}>{ligne.nombreLivraison}</Text>
-                <Text style={styles.colMontantLiv}>{ligne.montantLivraison}</Text>
-                <Text style={styles.colMontantCmd}>{ligne.montantCommandes}</Text>
-                <Text style={styles.colCommission}>{ligne.totalCommission}</Text>
+                <Text style={styles.colNombre}>{formatNumber(ligne.nombreLivraison)}</Text>
+                <Text style={styles.colMontantLiv}>{formatNumber(ligne.montantLivraison)}</Text>
+                <Text style={styles.colMontantCmd}>{formatNumber(ligne.montantCommandes)}</Text>
+                <Text style={styles.colCommission}>{formatNumber(ligne.totalCommission)}</Text>
               </View>
             ))}
           </View>
@@ -208,19 +218,19 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
             <View style={styles.totauxBox} wrap={false}>
               <View style={styles.totauxRow}>
                 <Text style={styles.totauxLabel}>Total Montant Livraisons</Text>
-                <Text style={styles.totauxValue}>{factureDetail.totaux.montantLivraison}</Text>
+                <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantLivraison)}</Text>
               </View>
               <View style={styles.totauxRow}>
                 <Text style={styles.totauxLabel}>Total Montant Commandes</Text>
-                <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommandes}</Text>
+                <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantCommandes)}</Text>
               </View>
               <View style={styles.totauxRow}>
                 <Text style={styles.totauxLabel}>Total Commissions</Text>
-                <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommissions}</Text>
+                <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantCommissions)}</Text>
               </View>
               <View style={[styles.totauxRow, { marginTop: 10, paddingTop: 10, borderTop: '2px solid #000' }]}>
                 <Text style={styles.totalFinal}>MONTANT TOTAL À PAYER</Text>
-                <Text style={styles.totalFinal}>{factureDetail.totaux.factureAPayer}</Text>
+                <Text style={styles.totalFinal}>{formatNumber(factureDetail.totaux.factureAPayer)}</Text>
               </View>
             </View>
           )}
@@ -260,10 +270,10 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
                 {group.map((ligne, index) => (
                   <View key={index} style={styles.tableRow}>
                     <Text style={styles.colDate}>{formatDate(ligne.date)}</Text>
-                    <Text style={styles.colNombre}>{ligne.nombreLivraison}</Text>
-                    <Text style={styles.colMontantLiv}>{ligne.montantLivraison}</Text>
-                    <Text style={styles.colMontantCmd}>{ligne.montantCommandes}</Text>
-                    <Text style={styles.colCommission}>{ligne.totalCommission}</Text>
+                    <Text style={styles.colNombre}>{formatNumber(ligne.nombreLivraison)}</Text>
+                    <Text style={styles.colMontantLiv}>{formatNumber(ligne.montantLivraison)}</Text>
+                    <Text style={styles.colMontantCmd}>{formatNumber(ligne.montantCommandes)}</Text>
+                    <Text style={styles.colCommission}>{formatNumber(ligne.totalCommission)}</Text>
                   </View>
                 ))}
               </View>
@@ -273,19 +283,19 @@ const FacturePdf: React.FC<FacturePdfProps> = ({ factureDetail }) => {
                 <View style={styles.totauxBox} wrap={false}>
                   <View style={styles.totauxRow}>
                     <Text style={styles.totauxLabel}>Total Montant Livraisons</Text>
-                    <Text style={styles.totauxValue}>{factureDetail.totaux.montantLivraison}</Text>
+                    <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantLivraison)}</Text>
                   </View>
                   <View style={styles.totauxRow}>
                     <Text style={styles.totauxLabel}>Total Montant Commandes</Text>
-                    <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommandes}</Text>
+                    <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantCommandes)}</Text>
                   </View>
                   <View style={styles.totauxRow}>
                     <Text style={styles.totauxLabel}>Total Commissions</Text>
-                    <Text style={styles.totauxValue}>{factureDetail.totaux.montantCommissions}</Text>
+                    <Text style={styles.totauxValue}>{formatNumber(factureDetail.totaux.montantCommissions)}</Text>
                   </View>
                   <View style={[styles.totauxRow, { marginTop: 10, paddingTop: 10, borderTop: '2px solid #000' }]}>
                     <Text style={styles.totalFinal}>MONTANT TOTAL À PAYER</Text>
-                    <Text style={styles.totalFinal}>{factureDetail.totaux.factureAPayer}</Text>
+                    <Text style={styles.totalFinal}>{formatNumber(factureDetail.totaux.factureAPayer)}</Text>
                   </View>
                 </View>
               )}
