@@ -34,7 +34,7 @@ export default function Statistics() {
   const soldeCompte = globalStats?.solde || 0;
   const fraisLivraison = globalStats?.fraisLivraison || 0;
   const commissions = globalStats?.commission || 0;
-  const investissement = globalStats?.investissement || 0;
+//   const investissement = globalStats?.investissement || 0;
   const isSoldePositif = soldeCompte > 0;
 
   // Titre dynamique pour la carte CA
@@ -79,7 +79,7 @@ export default function Statistics() {
           totalAmount={chiffreAffaires}
           fraisLivraison={fraisLivraison}
           commissions={commissions}
-          investissement={investissement}
+          // investissement={investissement}
           isLoading={isLoading}
           isLoadingExport={isLoadingCAExport}
           onDownload={handleDownloadDetails}

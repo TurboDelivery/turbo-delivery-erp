@@ -10,13 +10,12 @@ interface CACardProps {
   totalAmount: number;
   fraisLivraison: number;
   commissions: number;
-  investissement: number;
   isLoading: boolean;
   isLoadingExport?: boolean;
   onDownload?: () => void;
 }
 
-export default function CACard({ title, totalAmount, fraisLivraison, commissions, investissement, isLoading, isLoadingExport = false, onDownload }: CACardProps) {
+export default function CACard({ title, totalAmount, fraisLivraison, commissions, isLoading, isLoadingExport = false, onDownload }: CACardProps) {
   if (isLoading) {
     return (
       <Card className="p-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200">
@@ -129,7 +128,7 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <div className="p-2 bg-orange-100 rounded-full">
                 <Coins className="w-3 h-3 text-orange-600" />
               </div>
@@ -137,7 +136,7 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
                 <span className="text-xs font-medium text-gray-700">Investissements</span>
                 <div className="text-sm font-bold text-orange-600">{formatCFA(investissement)}</div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
