@@ -6,7 +6,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
 
   },
-  // output: 'standalone', // Temporairement désactivé pour résoudre les problèmes de symlinks
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
