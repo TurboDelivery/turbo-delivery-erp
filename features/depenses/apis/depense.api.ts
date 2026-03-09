@@ -11,6 +11,7 @@ export interface IDepenseAPI {
   modifierDepense(id: string, data: DepenseUpdateDTO): Promise<IDepense>;
   supprimerDepense(id: string): Promise<IDepense>;
   obtenirStatsDepenses(params: IDepenseStatsParams): Promise<IDepenseStats>;
+  exporterDepensesExcel(params: IDepensesParams): Promise<Blob>;
 }
 
 export const depenseAPI: IDepenseAPI = {
@@ -62,6 +63,18 @@ export const depenseAPI: IDepenseAPI = {
       endpoint: `/finance/depenses/stats`,
       method: 'GET',
       searchParams: {
+        debut: params.debut ? params.debut.toISOString().split('T')[0] : undefined,
+        fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
+      } as SearchParams,
+    });
+  },
+
+  async exporterDepensesExcel(params: IDepensesParams): Promise<Blob> {
+    return await api.request<Blob>({
+      endpoint: `/finance/depenses/export`,
+      method: 'GET',
+      searchParams: {
+        ...params,
         debut: params.debut ? params.debut.toISOString().split('T')[0] : undefined,
         fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
       } as SearchParams,

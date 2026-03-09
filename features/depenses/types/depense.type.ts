@@ -23,6 +23,7 @@ export interface IDepensesParams {
   page?: number;
   limit?: number;
   categorie?: string;
+  categoriesDepense?: string[]; // Ajouté pour supporter plusieurs catégories
   montant?: number;
   dateDepense?: string;
   debut?: Date;
