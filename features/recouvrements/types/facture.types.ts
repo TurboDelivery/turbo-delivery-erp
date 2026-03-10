@@ -7,6 +7,8 @@ export interface IFacture {
   periodeDebut: string;
   periodeFin: string;
   montant: number;
+  montantRegle: number; // ✅ AJOUTÉ: Montant déjà réglé
+  montantRestant: number; // ✅ AJOUTÉ: Montant restant à payer
   statut: string;
   createdAt: string;
   updatedAt: string;
@@ -14,7 +16,7 @@ export interface IFacture {
 }
 
 export interface IFactureParams {
-  restaurantId?: string;
+  restaurantId?: string; // ✅ AJOUTÉ: Filtre par restaurant
   page?: number;
   size?: number;
   sort?: string;

@@ -36,6 +36,8 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
       description: depense.description,
       dateDepense: new Date(depense.dateDepense),
       categorieDepense: depense.categorie.id,
+      typeDepense: depense.typeDepense,
+      sourcePaiement: depense.sourcePaiement,
     },
   });
 
@@ -47,6 +49,8 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
     setValue('montant', depense.montant);
     setValue('description', depense.description);
     setValue('categorieDepense', depense.categorie?.id || '');
+    setValue('typeDepense', depense.typeDepense);
+    setValue('sourcePaiement', depense.sourcePaiement);
   }, [depense, setValue]);
 
   const modifierDepenseMutation = useModifierDepenseMutation();
@@ -106,6 +110,7 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
             defaultCategorieId={depense.categorie?.id}
             defaultSource={depense.sourcePaiement}
             defaultInvestissementId={depense.investissement?.id}
+            defaultTypeDepense={depense.typeDepense}
           />
 
           <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-2">

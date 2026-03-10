@@ -4,6 +4,7 @@ export type IDepense = {
   montant: number;
   description?: string;
   dateDepense: string;
+  typeDepense: string;
   sourcePaiement?: string;
   categorie: {
     id: string;
@@ -25,6 +26,7 @@ export interface IDepensesParams {
   categorie?: string;
   categoriesDepense?: string[]; // Ajouté pour supporter plusieurs catégories
   montant?: number;
+  typeDepense?: string;
   dateDepense?: string;
   debut?: Date;
   fin?: Date;
@@ -41,4 +43,16 @@ export interface IDepenseStats {
 export interface IDepenseStatsParams {
   debut?: Date;
   fin?: Date;
+  categoriesDepense?: string[]; // ✅ AJOUTÉ: Supporter le filtrage par catégories pour les stats
+}
+
+export interface IDepenseSummary {
+  totalRecurrentes: number;
+  totalNonRecurrentes: number;
+}
+
+export interface IDepenseSummaryParams {
+  debut?: Date;
+  fin?: Date;
+  categoriesDepense?: string[]; // ✅ AJOUTÉ: Supporter le filtrage par catégories pour le summary
 }

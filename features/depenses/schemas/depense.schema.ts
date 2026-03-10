@@ -4,6 +4,7 @@ export const DepenseCreateSchema = z.object({
   description: z.string().min(1, 'La description est obligatoire'),
   montant: z.number().min(1, 'Le montant doit être supérieur à 0'),
   dateDepense: z.date({ message: 'La date de dépense est obligatoire' }),
+  typeDepense: z.string().min(1, 'Le type de dépense est obligatoire'),
   categorieDepense: z.string({ message: 'La catégorie est obligatoire' }),
   sourcePaiement: z
     .string({

@@ -42,7 +42,7 @@ export default function SupprimerDepenseModal({ depense }: Props) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{`Supprimer ${depense?.id} ?`}</DialogTitle>
+          <DialogTitle>{`Supprimer ${depense?.description || 'la dépense'} ?`}</DialogTitle>
           <DialogDescription>
             Êtes-vous sûr de vouloir supprimer cette dépense ?
             <br />

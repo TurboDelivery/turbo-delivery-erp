@@ -39,7 +39,10 @@ export function FactureTabsContent({ restoOpts, isOptionsLoading }: FactureTabsC
         />
       </CardHeader>
       <CardContent className="space-y-4">
-        <FactureTable />
+        <FactureTable 
+          restaurants={restoOpts} // ✅ AJOUTÉ: Passer les restaurants
+          restaurantsLoading={isOptionsLoading} // ✅ AJOUTÉ: Passer le loading
+        />
       </CardContent>
     </Card>
   );

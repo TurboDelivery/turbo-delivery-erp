@@ -18,7 +18,15 @@ export const depensesListQueryOption = (depensesParamsDTO: IDepensesParams) => {
       if (!result.success) {
         throw new Error(result.error);
       }
+      console.log('📋 Liste des dépenses récupérées:', result.data);
+      console.log('📊 Nombre de dépenses:', result.data?.content?.length);
+      console.log('📄 Pagination:', {
+        page: result.data?.number,
+        totalPages: result.data?.totalPages,
+        totalElements: result.data?.totalElements
+      });
       return result.data!;
+      
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 30 * 60 * 1000, // 30 minutes

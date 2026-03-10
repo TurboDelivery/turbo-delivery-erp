@@ -11,10 +11,17 @@ import { CreerRecouvrementModal } from '@/feature-finance/revenus/components/rec
 interface FactureTableProps {
   restaurantId?: string;
   showFilters?: boolean;
+  restaurants?: Array<{ label: string; value: string }>; // ✅ AJOUTÉ: Options restaurants
+  restaurantsLoading?: boolean; // ✅ AJOUTÉ: Loading restaurants
 }
 
-export function FactureTable({ restaurantId, showFilters = true }: FactureTableProps) {
-  const { factureTable, isFactureLoading, isFactureFetching, pagination, filters, setFilters, handleTypeFilterChange, handleStatutFilterChange, handlePeriodeFilterChange } = useFactureTable({
+export function FactureTable({ 
+  restaurantId, 
+  showFilters = true, 
+  restaurants,
+  restaurantsLoading 
+}: FactureTableProps) {
+  const { factureTable, isFactureLoading, isFactureFetching, pagination, filters, setFilters, handleTypeFilterChange, handleStatutFilterChange, handlePeriodeFilterChange, handleRestaurantFilterChange } = useFactureTable({
     restaurantId,
   });
 
@@ -38,7 +45,10 @@ export function FactureTable({ restaurantId, showFilters = true }: FactureTableP
           handleTypeFilterChange={handleTypeFilterChange}
           handleStatutFilterChange={handleStatutFilterChange}
           handlePeriodeFilterChange={handlePeriodeFilterChange}
+          handleRestaurantFilterChange={handleRestaurantFilterChange} // ✅ AJOUTÉ: Handler restaurant
           onReset={handleResetFilters}
+          restaurants={restaurants} // ✅ AJOUTÉ: Options restaurants
+          restaurantsLoading={restaurantsLoading} // ✅ AJOUTÉ: Loading restaurants
         />
       )}
       <div className="flex justify-end py-1.5">

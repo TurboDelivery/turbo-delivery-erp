@@ -5,17 +5,23 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import { RestaurantSelect } from '../common/restaurant-select';
+
 interface FactureFiltersProps {
   filters: {
     type: string;
     statut: string;
     periodeDebut: Date;
     periodeFin: Date;
+    restaurantId?: string;
   };
   handleTypeFilterChange: (type?: string | null) => void;
   handleStatutFilterChange: (statut?: string | null) => void;
   handlePeriodeFilterChange: (debut?: Date, fin?: Date) => void;
+  handleRestaurantFilterChange?: (restaurantId?: string | null) => void;
   onReset?: () => void;
+  restaurants?: Array<{ label: string; value: string }>;
+  restaurantsLoading?: boolean;
 }
 
 const statutOptions = [
@@ -29,7 +35,10 @@ export function FactureFilters({
   filters,
   handleStatutFilterChange,
   handlePeriodeFilterChange,
+  handleRestaurantFilterChange,
   onReset,
+  restaurants,
+  restaurantsLoading,
 }: FactureFiltersProps) {
   const handleDebutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handlePeriodeFilterChange(new Date(e.target.value), filters.periodeFin);
@@ -48,7 +57,19 @@ export function FactureFilters({
           </Button>
         )}
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* ✅ AJOUTÉ: Filtre par restaurant */}
+        <div className="space-y-2">
+          <Label htmlFor="restaurant-filter">Restaurant</Label>
+          <RestaurantSelect
+            value={filters.restaurantId}
+            onChange={(value?: string) => handleRestaurantFilterChange?.(value)}
+            options={restaurants || []}
+            isLoading={restaurantsLoading}
+            placeholder="Sélectionner un restaurant"
+          />
+        </div>
+        
         <div className="space-y-2">
           <Label htmlFor="statut-filter">Statut</Label>
           <Select
@@ -67,6 +88,7 @@ export function FactureFilters({
             ))}
           </Select>
         </div>
+        
         <div className="space-y-2">
           <Label htmlFor="debut-filter">Période Début</Label>
           <Input
@@ -76,6 +98,7 @@ export function FactureFilters({
             onChange={handleDebutChange}
           />
         </div>
+        
         <div className="space-y-2">
           <Label htmlFor="fin-filter">Période Fin</Label>
           <Input

@@ -32,6 +32,7 @@ export function CreerDepenseModal() {
       montant: 0,
       dateDepense: new Date(),
       categorieDepense: '',
+      typeDepense: '',
       sourcePaiement: '',
       investissementId: '',
     },
@@ -52,8 +53,27 @@ export function CreerDepenseModal() {
       dateDepense: selectedDate || new Date(),
     };
 
+    console.log('📤 Données envoyées au backend (création dépense):', formData);
+    console.log('📋 Détail des données:', {
+      libelle: formData.description,
+      description: formData.description,
+      montant: formData.montant,
+      dateDepense: formData.dateDepense,
+      typeDepense: formData.typeDepense,
+      categorieDepense: formData.categorieDepense,
+      sourcePaiement: formData.sourcePaiement,
+      investissementId: formData.investissementId
+    });
+
     ajouterDepenseMutation(formData, {
-      onSuccess: () => handleOpenChange(false),
+      onSuccess: (response) => {
+        console.log('✅ Dépense créée avec succès:', response);
+        console.log('📥 Réponse du backend:', response);
+        handleOpenChange(false);
+      },
+      onError: (error) => {
+        console.error('❌ Erreur lors de la création de la dépense:', error);
+      }
     });
   };
 

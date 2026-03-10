@@ -28,6 +28,7 @@ interface DepenseFormProps {
   defaultCategorieId?: string;
   defaultSource?: string;
   defaultInvestissementId?: string;
+  defaultTypeDepense?: string;
 }
 
 export function DepenseForm({
@@ -43,7 +44,9 @@ export function DepenseForm({
   defaultCategorieId,
   defaultSource,
   defaultInvestissementId,
+  defaultTypeDepense,
 }: DepenseFormProps) {
+  console.log("selectedDate", selectedDate)
   return (
     <div className="grid gap-6">
       {/* Date et Montant */}
@@ -75,7 +78,28 @@ export function DepenseForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Type de dépense */}
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="typeDepense" className="text-sm text-gray-500">
+            Type de dépense *
+          </Label>
+          <Select onValueChange={(value) => setValue('typeDepense', value)} defaultValue={defaultTypeDepense}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Sélectionnez un type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Type de dépense</SelectLabel>
+                <SelectItem value="QUOTIDIEN">Quotidien</SelectItem>
+                <SelectItem value="HEBDOMADAIRE">Hebdomadaire</SelectItem>
+                <SelectItem value="MENSUEL">Mensuel</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          {errors.typeDepense && <p className="text-red-500 text-sm">{errors.typeDepense.message as string}</p>}
+        </div>
+
         {/* Catégorie */}
         <div className="flex flex-col gap-1">
           <Label htmlFor="categorieDepense" className="text-sm text-gray-500">

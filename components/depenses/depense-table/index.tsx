@@ -9,13 +9,57 @@ import { flexRender } from '@tanstack/react-table';
 import { Card, CardContent } from '@/components/ui/card';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
+import { useDepenseStats } from '@/features/depenses/hooks/use-depense-stats';
+import { useDepenseStatsQuery } from '@/feature-finance/depenses/queries/depense-stats.query'; // ✅ AJOUTÉ: Import manquant
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { TrendingUp, DollarSign } from 'lucide-react';
+import { DepenseSummaryPieChartTable } from '@/components/depenses/charts/depense-summary-pie-chart-table';
 
 export function DepenseTable() {
   const { table, isLoading, isFetching, pagination, filters, setSelectedCategories, handleDateChange } = useDepenseTable();
+  
+  // ✅ AJOUTÉ: Utiliser les filtres du tableau pour les stats
+  const currentSearchParams = {
+    debut: filters.debut,
+    fin: filters.fin,
+    categoriesDepense: filters.categoriesDepense || undefined, // ✅ Convertir null en undefined
+  };
+
+  // ✅ AJOUTÉ: Utiliser les mêmes filtres pour les stats
+  const { data: statsData, isLoading: statsLoading } = useDepenseStatsQuery(currentSearchParams);
 
   return (
-    <Card className="flex flex-col gap-4">
-      <CardContent>
+    <div className="space-y-6">
+      {/* ✅ AJOUTÉ: Carte de statistiques pour le montant total filtré */}
+      <Card className="flex flex-col gap-4">
+        <CardContent>
+          <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-full">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">Montant Total</p>
+                  <p className="text-2xl font-bold text-green-700">
+                    {formatCFA(statsData?.montant_total || 0)}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-green-600">
+                  {(statsData?.nombre_depenses || 0)} dépense{(statsData?.nombre_depenses || 0) > 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tableau des dépenses */}
+      <Card className="flex flex-col gap-4">
+        <CardContent>
+
         <div className="overflow-x-auto">
           <Table
             isStriped
@@ -54,7 +98,7 @@ export function DepenseTable() {
                     <TableRow key={`skeleton-${i}`}>
                       {depenseColumns.map((col) => (
                         <TableCell key={`skeleton-cell-${col.header}`} className="h-12">
-                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
                         </TableCell>
                       ))}
                     </TableRow>
@@ -71,5 +115,13 @@ export function DepenseTable() {
         </div>
       </CardContent>
     </Card>
+
+      {/* ✅ AJOUTÉ: Pie Chart pour la répartition des dépenses */}
+      <DepenseSummaryPieChartTable 
+        debut={filters.debut}
+        fin={filters.fin}
+        categoriesDepense={filters.categoriesDepense}
+      />
+    </div>
   );
 }

@@ -12,22 +12,34 @@ export const useAjouterDepenseMutation = () => {
 
   return useMutation({
     mutationFn: async (data: DepenseCreateDTO) => {
+      console.log('🔍 Mutation - Données reçues:', data);
+      
       // Validation des données
       const validation = processAndValidateFormData(DepenseCreateSchema, data, {
         outputFormat: 'object',
       });
 
+      console.log('✅ Validation - Résultat:', validation);
+
       if (!validation.success) {
+        console.error('❌ Validation - Erreurs:', validation.errorsInString);
         throw new Error(validation.errorsInString || 'Une erreur est survenue lors de la validation des données.');
       }
+
+      console.log('📤 Appel API - Données validées:', validation.data);
 
       // Appel de l'API avec l'action
       const result = await ajouterDepenseAction(validation.data as DepenseCreateDTO);
 
+      console.log('📥 Réponse API brute:', result);
+      console.log('📊 Données de retour:', result.data);
+
       if (!result.success) {
+        console.error('❌ Erreur API:', result.error);
         throw new Error(result.error || "Erreur lors de l'ajout de la dépense");
       }
 
+      console.log('✅ Succès - Données finales:', result.data);
       return result.data!;
     },
     onSuccess: async () => {

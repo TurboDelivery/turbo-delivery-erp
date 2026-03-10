@@ -72,8 +72,31 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
   },
   {
     accessorKey: 'montant',
-    header: 'Montant',
+    header: 'Montant Total',
     cell: ({ row }) => <span className="font-bold">{formatCFA(row.original.montant || 0)}</span>,
+  },
+  {
+    accessorKey: 'montantRegle',
+    header: 'Montant Réglé',
+    cell: ({ row }) => (
+      <span className="font-semibold text-green-600">
+        {formatCFA(row.original.montantRegle || 0)}
+      </span>
+    ),
+  },
+  {
+    accessorKey: 'montantRestant',
+    header: 'Montant Restant',
+    cell: ({ row }) => {
+      const montantRestant = (row.original.montant || 0) - (row.original.montantRegle || 0);
+      const isFullyPaid = montantRestant <= 0;
+      
+      return (
+        <span className={`font-bold ${isFullyPaid ? 'text-green-600' : 'text-red-600'}`}>
+          {formatCFA(Math.max(0, montantRestant))}
+        </span>
+      );
+    },
   },
   {
     accessorKey: 'statut',
