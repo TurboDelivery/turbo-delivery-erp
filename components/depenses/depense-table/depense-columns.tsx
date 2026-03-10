@@ -7,6 +7,25 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { ModifierDepenseModal } from '@/feature-finance/depenses/components/modifier/modifier-depenses-modal';
 import SupprimerDepenseModal from '@/feature-finance/depenses/components/supprimer/suprime-depense';
 import React from 'react';
+import { Badge } from '@/components/ui/badge';
+
+// Fonction pour formater le type de dépense
+const formatTypeDepense = (typeDepense: string | null | undefined) => {
+  if (!typeDepense) return { label: 'Non défini', variant: 'secondary' as const };
+  
+  switch (typeDepense.toUpperCase()) {
+    case 'QUOTIDIEN':
+      return { label: 'Quotidien', variant: 'default' as const };
+    case 'HEBDOMADAIRE':
+      return { label: 'Hebdomadaire', variant: 'secondary' as const };
+    case 'MENSUEL':
+      return { label: 'Mensuel', variant: 'outline' as const };
+    case 'ANNUEL':
+      return { label: 'Annuel', variant: 'destructive' as const };
+    default:
+      return { label: typeDepense, variant: 'secondary' as const };
+  }
+};
 
 // Composant mémorisé pour les actions
 const DepenseActions = React.memo(({ depense }: { depense: IDepense }) => {
@@ -57,6 +76,20 @@ export const depenseColumns: ColumnDef<IDepense>[] = [
     accessorFn: (row) => row.categorie?.nomCategorie ?? '',
     header: 'Catégorie',
     cell: ({ row }) => row.original.categorie?.nomCategorie ?? '-',
+    enableSorting: false,
+  },
+  {
+    id: 'typeDepense',
+    accessorKey: 'typeDepense',
+    header: 'Type de dépense',
+    cell: ({ row }) => {
+      const typeInfo = formatTypeDepense(row.original.typeDepense);
+      return (
+        <Badge variant={typeInfo.variant}>
+          {typeInfo.label}
+        </Badge>
+      );
+    },
     enableSorting: false,
   },
   {
