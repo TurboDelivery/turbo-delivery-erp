@@ -6,7 +6,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
 
   },
-  output: 'standalone', // Réactivé pour le build Docker
+  // output: 'standalone', // Temporairement désactivé pour résoudre les erreurs de symlinks
   images: {
     remotePatterns: [
       {

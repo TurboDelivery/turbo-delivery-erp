@@ -89,8 +89,9 @@ export const depenseAPI: IDepenseAPI = {
     }
     
     if (params.categoriesDepense && params.categoriesDepense.length > 0) {
+      // Essayer le format avec des crochets (plus standard pour les tableaux)
       params.categoriesDepense.forEach(category => {
-        searchParams.append('categoriesDepense', category);
+        searchParams.append('categoriesDepense[]', category);
       });
     }
     

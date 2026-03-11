@@ -20,12 +20,15 @@ const initialFilters: DepenseFilters = {
   orderDirection: 'desc',
 };
 
-export const useDepenseTable = () => {
+export const useDepenseTable = (externalFilters?: DepenseFilters) => {
   const [filters, setFilters] = useState<DepenseFilters>({
     ...initialFilters,
     debut: startOfMonth(new Date()),
     fin: new Date(),
   });
+
+  // Utiliser les filtres externes s'ils sont fournis, sinon utiliser les filtres locaux
+  const currentFilters = externalFilters || filters;
 
   const [sorting, setSorting] = React.useState<SortingState>(() => {
     const orderBy = filters?.orderBy;
@@ -47,30 +50,88 @@ export const useDepenseTable = () => {
 
   const currentSearchParams = useMemo(() => {
     return {
-      page: filters?.page ?? 0,
-      limit: filters?.limit ?? 20,
-      debut: filters.debut,
-      fin: filters.fin,
-      categorieIds: filters.categoriesDepense,
-      orderBy: filters.orderBy,
-      orderDirection: filters.orderDirection as 'asc' | 'desc' | undefined,
+      page: currentFilters?.page ?? 0,
+      limit: currentFilters?.limit ?? 20,
+      debut: currentFilters.debut,
+      fin: currentFilters.fin,
+      // Ne pas envoyer les catégories au backend (il ne filtre pas correctement)
+      // categoriesDepense: currentFilters.categoriesDepense || undefined,
+      orderBy: currentFilters.orderBy,
+      orderDirection: currentFilters.orderDirection as 'asc' | 'desc' | undefined,
     };
-  }, [filters?.page, filters?.limit, filters.debut, filters.fin, filters.categoriesDepense, filters.orderBy, filters.orderDirection]);
+  }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.orderBy, currentFilters.orderDirection]);
 
-  const { data: depensesData, isLoading, error, isError, isFetching } = useDepensesListQuery(currentSearchParams);
-  const depenses = depensesData?.content || [];
+  // Récupérer toutes les dépenses (sans filtre de catégories) pour le filtrage local
+  const allDepensesSearchParams = useMemo(() => {
+    return {
+      page: 0,
+      limit: 1000, // Beaucoup pour avoir toutes les données
+      debut: currentFilters.debut,
+      fin: currentFilters.fin,
+      orderBy: currentFilters.orderBy,
+      orderDirection: currentFilters.orderDirection as 'asc' | 'desc' | undefined,
+    };
+  }, [currentFilters.debut, currentFilters.fin, currentFilters.orderBy, currentFilters.orderDirection]);
 
-  const pagination = {
-    pageCount: depensesData?.totalPages || 0,
-    totalItems: depensesData?.totalElements || 0,
-    page: filters?.page ?? 0,
-    handlePageChange: (page: number) => {
-      setFilters((prev) => ({
-        ...prev,
-        page: page - 1,
-      }));
-    },
-  };
+  const { data: allDepensesData, isLoading: allDepensesLoading, error, isError, isFetching } = useDepensesListQuery(allDepensesSearchParams);
+  const allDepenses = allDepensesData?.content || [];
+
+  // Filtrer localement par catégories si nécessaire
+  const filteredDepenses = useMemo(() => {
+    if (!currentFilters.categoriesDepense || currentFilters.categoriesDepense.length === 0) {
+      return allDepenses; // Pas de filtre de catégories
+    }
+    return allDepenses.filter(depense => 
+      currentFilters.categoriesDepense?.includes(depense.categorie?.id || '')
+    );
+  }, [allDepenses, currentFilters.categoriesDepense]);
+
+  // Simuler la pagination pour les données filtrées
+  const paginatedFilteredDepenses = useMemo(() => {
+    const startIndex = (currentFilters?.page ?? 0) * (currentFilters?.limit ?? 20);
+    const endIndex = startIndex + (currentFilters?.limit ?? 20);
+    return filteredDepenses.slice(startIndex, endIndex);
+  }, [filteredDepenses, currentFilters?.page, currentFilters?.limit]);
+
+  // Recalculer la pagination pour les données filtrées
+  const filteredPagination = useMemo(() => {
+    const totalItems = filteredDepenses.length;
+    const pageSize = currentFilters?.limit ?? 20;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    
+    return {
+      pageCount: totalPages,
+      totalItems,
+      page: currentFilters?.page ?? 0,
+      handlePageChange: (page: number) => {
+        if (!externalFilters) {
+          setFilters((prev) => ({
+            ...prev,
+            page: page - 1,
+          }));
+        }
+      },
+    };
+  }, [filteredDepenses, currentFilters?.page, currentFilters?.limit, externalFilters, setFilters]);
+
+  // Utiliser la pagination filtrée si filtre de catégories, sinon pagination API
+  const pagination = (currentFilters.categoriesDepense && currentFilters.categoriesDepense.length > 0) 
+    ? filteredPagination 
+    : {
+        pageCount: allDepensesData?.totalPages || 0,
+        totalItems: allDepensesData?.totalElements || 0,
+        page: currentFilters?.page ?? 0,
+        handlePageChange: (page: number) => {
+          if (!externalFilters) {
+            setFilters((prev) => ({
+              ...prev,
+              page: page - 1,
+            }));
+          }
+        },
+      };
+
+  const isLoading = allDepensesLoading;
 
   // Synchroniser les filtres locaux avec les filtres globaux
   const syncedSetFilters = (fn: (prev: DepenseFilters) => DepenseFilters) => {
@@ -98,7 +159,7 @@ export const useDepenseTable = () => {
 
   const table = useReactTable({
     columns: depenseColumns,
-    data: depenses,
+    data: (currentFilters.categoriesDepense && currentFilters.categoriesDepense.length > 0) ? paginatedFilteredDepenses : allDepenses,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualSorting: true,
@@ -138,10 +199,10 @@ export const useDepenseTable = () => {
     isError,
     isFetching,
     setFilters: syncedSetFilters,
-    depenses,
-    depensesData,
+    depenses: (currentFilters.categoriesDepense && currentFilters.categoriesDepense.length > 0) ? paginatedFilteredDepenses : allDepenses,
+    depensesData: allDepensesData,
     error,
-    filters,
+    filters: currentFilters,
     setSelectedCategories,
     pagination,
     handleDateChange,

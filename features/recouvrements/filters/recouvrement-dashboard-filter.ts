@@ -5,6 +5,6 @@ export const recouvrementDashboardFilterClient = {
   filters: {
     debut: parseAsIsoDate.withDefault(startOfMonth(new Date())),
     fin: parseAsIsoDate.withDefault(new Date()),
-    tab: parseAsStringEnum(['factures', 'recouvrements', 'restaurants', 'contestations']).withDefault('factures')
+    tab: parseAsStringEnum(['factures', 'recouvrements', 'restaurants', 'contestations', 'accompte']).withDefault('factures')
   },
 }
