@@ -155,6 +155,7 @@ export default function Content({ initialItems }: { initialItems: Record<string,
                             </CardBody>
                         </Card>
                     </div>
+                    
 
                     <CardUI className="p-6 bg-white shadow-none">
                         <DatabaseCards
