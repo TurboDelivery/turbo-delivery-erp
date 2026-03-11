@@ -20,6 +20,7 @@ interface ModifierDepenseModalProps {
 export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
   const [dateDepense, setDateDepense] = useState<Date | undefined>(depense.dateDepense ? new Date(depense.dateDepense) : new Date());
   const [open, setOpen] = useState(false);
+  const [showTypeDepense, setShowTypeDepense] = useState<boolean>(!!depense.typeDepense);
   const { data: categories, isLoading: categoriesLoading } = useCategorieDepensesListQuery({});
   const { investissements, isLoading: investissementsLoading } = useInvestissementList();
 
@@ -61,6 +62,7 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
       const formData = {
         ...data,
         dateDepense: dateDepense || data.dateDepense,
+        typeDepense: showTypeDepense ? data.typeDepense : null,
       };
 
       await modifierDepenseMutation.mutateAsync({
@@ -111,6 +113,8 @@ export function ModifierDepenseModal({ depense }: ModifierDepenseModalProps) {
             defaultSource={depense.sourcePaiement}
             defaultInvestissementId={depense.investissement?.id}
             defaultTypeDepense={depense.typeDepense}
+            showTypeDepense={showTypeDepense}
+            onShowTypeDepenseChange={setShowTypeDepense}
           />
 
           <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-2">

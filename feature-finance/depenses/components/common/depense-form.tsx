@@ -14,6 +14,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { fr } from 'date-fns/locale';
 import { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { Switch } from '@/components/ui/switch';
 
 interface DepenseFormProps {
   selectedDate: Date | undefined;
@@ -29,6 +30,8 @@ interface DepenseFormProps {
   defaultSource?: string;
   defaultInvestissementId?: string;
   defaultTypeDepense?: string;
+  showTypeDepense?: boolean;
+  onShowTypeDepenseChange?: (checked: boolean) => void;
 }
 
 export function DepenseForm({
@@ -45,8 +48,9 @@ export function DepenseForm({
   defaultSource,
   defaultInvestissementId,
   defaultTypeDepense,
+  showTypeDepense = false,
+  onShowTypeDepenseChange,
 }: DepenseFormProps) {
-  console.log("selectedDate", selectedDate)
   return (
     <div className="grid gap-6">
       {/* Date et Montant */}
@@ -57,7 +61,11 @@ export function DepenseForm({
           </Label>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" data-empty={!selectedDate} className="data-[empty=true]:text-muted-foreground w-full justify-between text-left font-normal">
+              <Button
+                variant="outline"
+                data-empty={!selectedDate}
+                className="data-[empty=true]:text-muted-foreground w-full justify-between text-left font-normal"
+              >
                 {selectedDate ? format(selectedDate, 'PPP', { locale: fr }) : <span>Choisissez une date</span>}
                 <CalendarIcon />
               </Button>
@@ -78,29 +86,8 @@ export function DepenseForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {/* Type de dépense */}
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="typeDepense" className="text-sm text-gray-500">
-            Type de dépense *
-          </Label>
-          <Select onValueChange={(value) => setValue('typeDepense', value)} defaultValue={defaultTypeDepense}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Sélectionnez un type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Type de dépense</SelectLabel>
-                <SelectItem value="QUOTIDIEN">Quotidien</SelectItem>
-                <SelectItem value="HEBDOMADAIRE">Hebdomadaire</SelectItem>
-                <SelectItem value="MENSUEL">Mensuel</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          {errors.typeDepense && <p className="text-red-500 text-sm">{errors.typeDepense.message as string}</p>}
-        </div>
-
-        {/* Catégorie */}
+      {/* Catégorie + Source */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <Label htmlFor="categorieDepense" className="text-sm text-gray-500">
             Catégorie de dépenses *
@@ -133,7 +120,6 @@ export function DepenseForm({
           {errors.categorieDepense && <p className="text-red-500 text-sm">{errors.categorieDepense.message as string}</p>}
         </div>
 
-        {/* Source */}
         <div className="flex flex-col gap-1">
           <Label htmlFor="sourcePaiement" className="text-sm text-gray-500">
             Source
@@ -167,12 +153,52 @@ export function DepenseForm({
         {errors.description && <p className="text-red-500 text-sm">{errors.description.message as string}</p>}
       </div>
 
+      {/* Dépense récurrente */}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <Switch
+            id="toggle-type-depense"
+            checked={showTypeDepense}
+            onCheckedChange={(checked) => {
+              onShowTypeDepenseChange?.(checked);
+              if (!checked) {
+                setValue('typeDepense', null);
+              }
+            }}
+          />
+          <Label htmlFor="toggle-type-depense" className="text-sm text-gray-500 cursor-pointer">
+            Dépense récurrente (fixe)
+          </Label>
+        </div>
+        {showTypeDepense && (
+          <div className="flex flex-col gap-1">
+            <Select onValueChange={(value) => setValue('typeDepense', value)} defaultValue={defaultTypeDepense ?? undefined}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Sélectionnez une fréquence" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Fréquence</SelectLabel>
+                  <SelectItem value="QUOTIDIEN">Quotidien</SelectItem>
+                  <SelectItem value="HEBDOMADAIRE">Hebdomadaire</SelectItem>
+                  <SelectItem value="MENSUEL">Mensuel</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            {errors.typeDepense && <p className="text-red-500 text-sm">{errors.typeDepense.message as string}</p>}
+          </div>
+        )}
+      </div>
+
       {/* Investisseur */}
       <div className="grid gap-3">
         <Label htmlFor="investisseur" className="text-sm text-gray-500">
           Investissement (optionnel)
         </Label>
-        <Select onValueChange={(value) => setValue('investissementId', value === 'none' ? '' : value)} defaultValue={defaultInvestissementId}>
+        <Select
+          onValueChange={(value) => setValue('investissementId', value === 'none' ? '' : value)}
+          defaultValue={defaultInvestissementId}
+        >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Sélectionnez un investissement" />
           </SelectTrigger>

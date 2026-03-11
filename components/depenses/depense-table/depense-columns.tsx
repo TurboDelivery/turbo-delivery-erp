@@ -10,20 +10,23 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 
 // Fonction pour formater le type de dépense
-const formatTypeDepense = (typeDepense: string | null | undefined) => {
-  if (!typeDepense) return { label: 'Non défini', variant: 'secondary' as const };
-  
+const formatTypeDepense = (typeDepense: string | null | undefined): {
+  label: string;
+  variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'square' | null | undefined;
+} => {
+  if (!typeDepense) return { label: 'Variable', variant: 'outline' };
+
   switch (typeDepense.toUpperCase()) {
     case 'QUOTIDIEN':
-      return { label: 'Quotidien', variant: 'default' as const };
+      return { label: 'Quotidien', variant: 'destructive' };
     case 'HEBDOMADAIRE':
-      return { label: 'Hebdomadaire', variant: 'secondary' as const };
+      return { label: 'Hebdomadaire', variant: 'default' };
     case 'MENSUEL':
-      return { label: 'Mensuel', variant: 'outline' as const };
+      return { label: 'Mensuel', variant: 'secondary' };
     case 'ANNUEL':
-      return { label: 'Annuel', variant: 'destructive' as const };
+      return { label: 'Annuel', variant: 'square' };
     default:
-      return { label: typeDepense, variant: 'secondary' as const };
+      return { label: typeDepense, variant: 'secondary' };
   }
 };
 

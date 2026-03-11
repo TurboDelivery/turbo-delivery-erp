@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { type ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Pie, PieChart } from 'recharts';
 import { cn } from '@/lib/utils';
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
@@ -11,7 +11,18 @@ import { useTop4CategorieDepenseQuery } from '@/feature-finance/depenses/queries
 import { ITopCategorieDepense } from '@/features/depenses/types/categorie-depense.type';
 import { useMemo } from 'react';
 
-const COLORS = ['#4f46e5', '#22c55e', '#f59e0b', '#06b6d4'];
+const COLORS = [
+  '#e6194b', // rouge
+  '#3cb44b', // vert
+  '#ffe119', // jaune
+  '#4363d8', // bleu
+  '#f58231', // orange
+  '#911eb4', // violet
+  '#46f0f0', // cyan
+  '#f032e6', // magenta
+  '#bcf60c', // lime
+  '#fabebe', // rose clair
+];
 
 function generateChartData(categoriesDepense: ITopCategorieDepense[]) {
   return categoriesDepense.map((cat, index) => ({
@@ -72,21 +83,9 @@ export default function RepartitionDepensePieChart({ className }: { className?: 
         ) : chartData.length > 0 ? (
           <ChartContainer config={chartConfig} className="mx-auto aspect-square px-0">
             <PieChart>
-              <ChartTooltip content={<ChartTooltipContent nameKey="montant" hideLabel />} />
-              <Pie
-                data={chartData}
-                dataKey="montant"
-                labelLine={false}
-                label={({ payload, ...props }) => {
-                  return (
-                    <text cx={props.cx} cy={props.cy} x={props.x} y={props.y} textAnchor={props.textAnchor} dominantBaseline={props.dominantBaseline} fill="hsla(var(--foreground))">
-                      {payload.montant}
-                    </text>
-                  );
-                }}
-                nameKey="category"
-              />
-              <ChartLegend content={<ChartLegendContent nameKey="category" />} className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center text-xs" />
+              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+              <Pie data={chartData} dataKey="montant" labelLine={false} nameKey="category" />
+              {/*<ChartLegend content={<ChartLegendContent nameKey="category" />} className="-translate-y-2 flex-wrap gap-2 *:basis-1/4 *:justify-center text-xs" />*/}
             </PieChart>
           </ChartContainer>
         ) : (
@@ -96,7 +95,7 @@ export default function RepartitionDepensePieChart({ className }: { className?: 
         )}
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium">Top 4 catégories</div>
+        <div className="flex items-center gap-2 leading-none font-medium">Top 10 catégories</div>
         <div className="text-muted-foreground leading-none">Comment les dépenses sont distribuées entre les catégories.</div>
       </CardFooter>
     </Card>

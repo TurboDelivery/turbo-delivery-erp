@@ -15,6 +15,7 @@ import { DepenseForm } from '../common/depense-form';
 export function CreerDepenseModal() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [isOpen, setIsOpen] = useState(false);
+  const [showTypeDepense, setShowTypeDepense] = useState(false);
 
   const { data: categories, isLoading: categoriesLoading } = useCategorieDepensesListQuery({});
   const { data: investissementsData, isLoading: investissementsLoading } = useInvestissementListQuery({});
@@ -44,6 +45,7 @@ export function CreerDepenseModal() {
   const handleOpenChange = (open: boolean) => {
     reset();
     setSelectedDate(new Date());
+    setShowTypeDepense(false);
     setIsOpen(open);
   };
 
@@ -51,6 +53,7 @@ export function CreerDepenseModal() {
     const formData = {
       ...data,
       dateDepense: selectedDate || new Date(),
+      typeDepense: showTypeDepense ? data.typeDepense : null,
     };
 
     console.log('📤 Données envoyées au backend (création dépense):', formData);
@@ -102,6 +105,8 @@ export function CreerDepenseModal() {
             register={register}
             errors={errors}
             setValue={setValue}
+            showTypeDepense={showTypeDepense}
+            onShowTypeDepenseChange={setShowTypeDepense}
           />
 
           <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-2">
