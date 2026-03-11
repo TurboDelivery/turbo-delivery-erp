@@ -3,12 +3,12 @@
 import { CalendarInput } from '@/components/components-finance/block/dateInput';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RecouvrementCreateDTO } from '@/feature-finance/revenus/schemas/recouvrement/recouvrement.schema';
 import { IFacture } from '@/feature-finance/revenus/types/recouvrement/prets.types';
-import { Controller, UseFormReturn } from 'react-hook-form';
+import { UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
+import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
 
 interface RecouvrementFormProps {
   form: UseFormReturn<RecouvrementCreateDTO>;
@@ -50,27 +50,16 @@ export function RecouvrementForm({
       {/* Sélection facture / restaurant */}
       <div>
         <Label>Restaurant *</Label>
-        <Controller
-          name="restaurantId"
-          control={control}
-          render={() => (
-            <Select
-              disabled={disableRestaurant}
-              value={watchedRestaurantId}
-              onValueChange={(value) => setValue('restaurantId', value, { shouldValidate: true })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionnez un restaurant" />
-              </SelectTrigger>
-              <SelectContent>
-                {factures.map((facture: IFacture) => (
-                  <SelectItem key={facture.id} value={facture.id}>
-                    {facture.nomRestaurant}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+        <RestaurantSelect
+          value={watchedRestaurantId}
+          onChange={(value) => setValue('restaurantId', value || '', { shouldValidate: true })}
+          options={factures.map((facture: IFacture) => ({
+            label: facture.nomRestaurant,
+            value: facture.id,
+          }))}
+          isLoading={false}
+          placeholder="Sélectionnez ou recherchez un restaurant"
+          className="w-full"
         />
         {errors.restaurantId && <small className="text-red-500 text-sm">{errors.restaurantId.message}</small>}
       </div>
