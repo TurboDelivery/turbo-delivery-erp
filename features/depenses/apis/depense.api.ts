@@ -89,9 +89,8 @@ export const depenseAPI: IDepenseAPI = {
     }
     
     if (params.categoriesDepense && params.categoriesDepense.length > 0) {
-      // Essayer le format avec des crochets (plus standard pour les tableaux)
-      params.categoriesDepense.forEach(category => {
-        searchParams.append('categoriesDepense[]', category);
+      params.categoriesDepense.forEach((category) => {
+        searchParams.append('categorieIds', category);
       });
     }
     
@@ -105,8 +104,6 @@ export const depenseAPI: IDepenseAPI = {
   },
 
   obtenirDepensesSummary(params: IDepenseSummaryParams): Promise<IDepenseSummary> {
-    console.log('🌐 API - Appel obtenirDepensesSummary avec:', params);
-    
     const searchParams = new URLSearchParams();
     
     if (params.debut) {
@@ -119,7 +116,7 @@ export const depenseAPI: IDepenseAPI = {
     
     if (params.categoriesDepense && params.categoriesDepense.length > 0) {
       params.categoriesDepense.forEach((category: string) => { // ✅ Type explicite
-        searchParams.append('categoriesDepense', category);
+        searchParams.append('categorieIds', category);
       });
     }
     

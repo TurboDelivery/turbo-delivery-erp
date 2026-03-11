@@ -58,9 +58,19 @@ DepenseActions.displayName = 'DepenseActions';
 
 export const depenseColumns: ColumnDef<IDepense>[] = [
   {
+    id: 'date_ajout',
+    accessorKey: 'createdAt',
+    header: 'Date d\'ajout',
+    cell: ({ row }) => {
+      const date = new Date(row.original.dateDepense);
+      return format(date, 'dd/MM/yyyy');
+    },
+    enableSorting: false,
+  },
+  {
     id: 'date_depense',
     accessorKey: 'dateDepense',
-    header: 'Date',
+    header: 'Date de comptabilisation',
     cell: ({ row }) => {
       const date = new Date(row.original.dateDepense);
       return format(date, 'dd/MM/yyyy');

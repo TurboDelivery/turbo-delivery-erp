@@ -9,15 +9,13 @@ import { flexRender } from '@tanstack/react-table';
 import { Card, CardContent } from '@/components/ui/card';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
-import { useDepenseStats } from '@/features/depenses/hooks/use-depense-stats';
 import { useDepenseStatsQuery } from '@/feature-finance/depenses/queries/depense-stats.query'; // ✅ AJOUTÉ: Import manquant
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { TrendingUp, DollarSign } from 'lucide-react';
-import { DepenseSummaryPieChartTable } from '@/components/depenses/charts/depense-summary-pie-chart-table';
+import { DollarSign } from 'lucide-react';
 
 export function DepenseTable() {
   const { table, isLoading, isFetching, pagination, filters, setSelectedCategories, handleDateChange } = useDepenseTable();
-  
+
   // ✅ AJOUTÉ: Utiliser les filtres du tableau pour les stats
   const currentSearchParams = {
     debut: filters.debut,
@@ -41,14 +39,12 @@ export function DepenseTable() {
                 </div>
                 <div>
                   <p className="text-sm text-green-600 font-medium">Montant Total</p>
-                  <p className="text-2xl font-bold text-green-700">
-                    {formatCFA(statsData?.montant_total || 0)}
-                  </p>
+                  <p className="text-2xl font-bold text-green-700">{formatCFA(statsData?.montant_total || 0)}</p>
                 </div>
               </div>
               <div className="text-right">
                 <p className="text-xs text-green-600">
-                  {(statsData?.nombre_depenses || 0)} dépense{(statsData?.nombre_depenses || 0) > 1 ? 's' : ''}
+                  {statsData?.nombre_depenses || 0} dépense{(statsData?.nombre_depenses || 0) > 1 ? 's' : ''}
                 </p>
               </div>
             </div>
@@ -59,69 +55,54 @@ export function DepenseTable() {
       {/* Tableau des dépenses */}
       <Card className="flex flex-col gap-4">
         <CardContent>
-
-        <div className="overflow-x-auto">
-          <Table
-            isStriped
-            topContent={
-              <div className="flex justify-between py-2">
-                <DateFilterInput
-                  filters={filters}
-                  handleDateChange={handleDateChange}
-                  variant="outline"
-                />
-                <CategoriesSelectFilter
-                  selectedCategories={filters.categoriesDepense || []}
-                  onCategoriesChange={setSelectedCategories}
-                />
-                <CreerDepenseModal />
-              </div>
-            }
-            bottomContent={
-              pagination?.pageCount! > 1 && (
-                <div className="flex justify-center pt-4 sm:pt-6">
-                  <Pagination total={pagination?.pageCount ?? 1} page={filters.page + 1} onChange={pagination.handlePageChange} color="primary" />
+          <div className="overflow-x-auto">
+            <Table
+              isStriped
+              topContent={
+                <div className="flex justify-between py-2">
+                  <DateFilterInput filters={filters} handleDateChange={handleDateChange} variant="outline" />
+                  <CategoriesSelectFilter selectedCategories={filters.categoriesDepense || []} onCategoriesChange={setSelectedCategories} />
+                  <CreerDepenseModal />
                 </div>
-              )
-            }
-          >
-            <TableHeader>
-              {table.getFlatHeaders().map((header) => (
-                <TableColumn className="text-primary" key={header.id} allowsSorting={header.column.getCanSort()} onClick={header.column.getToggleSortingHandler()}>
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableColumn>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {isLoading
-                ? Array.from({ length: 10 }).map((_, i) => (
-                    <TableRow key={`skeleton-${i}`}>
-                      {depenseColumns.map((col) => (
-                        <TableCell key={`skeleton-cell-${col.header}`} className="h-12">
-                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                : table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFetching ? 'opacity-70' : ''}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-
-      {/* ✅ AJOUTÉ: Pie Chart pour la répartition des dépenses */}
-      <DepenseSummaryPieChartTable 
-        debut={filters.debut}
-        fin={filters.fin}
-        categoriesDepense={filters.categoriesDepense}
-      />
+              }
+              bottomContent={
+                pagination?.pageCount! > 1 && (
+                  <div className="flex justify-center pt-4 sm:pt-6">
+                    <Pagination total={pagination?.pageCount ?? 1} page={filters.page + 1} onChange={pagination.handlePageChange} color="primary" />
+                  </div>
+                )
+              }
+            >
+              <TableHeader>
+                {table.getFlatHeaders().map((header) => (
+                  <TableColumn className="text-primary" key={header.id} allowsSorting={header.column.getCanSort()} onClick={header.column.getToggleSortingHandler()}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableColumn>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {isLoading
+                  ? Array.from({ length: 10 }).map((_, i) => (
+                      <TableRow key={`skeleton-${i}`}>
+                        {depenseColumns.map((col) => (
+                          <TableCell key={`skeleton-cell-${col.header}`} className="h-12">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  : table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFetching ? 'opacity-70' : ''}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

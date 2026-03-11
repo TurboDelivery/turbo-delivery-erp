@@ -26,4 +26,5 @@ export interface ITopCategorieDepense {
 export interface ITopCategoriesSearchParams {
   debut?: Date;
   fin?: Date;
+  categorieIds?: string[];
 }

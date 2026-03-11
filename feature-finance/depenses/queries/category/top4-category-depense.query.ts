@@ -25,8 +25,8 @@ export const top4CategorieDepenseQueryOption = (params: ITopCategoriesSearchPara
   };
 };
 
-// 2- Hook pour récupérer le top 4
-export const useTop4CategorieDepenseQuery = (params: ITopCategoriesSearchParams) => {
+// 2- Hook pour récupérer le top des catégories de dépenses
+export const useTopCategorieDepenseQuery = (params: ITopCategoriesSearchParams) => {
   const query = useQuery(top4CategorieDepenseQueryOption(params));
 
   // Gestion des erreurs dans le hook

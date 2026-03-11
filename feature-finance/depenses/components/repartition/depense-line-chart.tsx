@@ -84,7 +84,7 @@ export default function DepenseLineChart({ className }: { className?: string }) 
               <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
               <Line
                 dataKey="montant"
-                type="natural"
+                type="linear"
                 stroke="var(--color-montant)"
                 strokeWidth={2}
                 dot={{

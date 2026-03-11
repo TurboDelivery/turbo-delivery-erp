@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDepenseSummary } from '@/features/depenses/hooks/use-depense-summary';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { TrendingUp, Calendar } from 'lucide-react';
+import { Scale, TrendingUp } from 'lucide-react';
 
 interface DepenseSummaryPieChartProps {
   className?: string;
@@ -19,18 +19,20 @@ export function DepenseSummaryPieChart({ className }: DepenseSummaryPieChartProp
     nonRecurrentes: '#f59e0b', // amber-500
   };
 
-  const dataForChart = data ? [
-    {
-      name: 'Récurrentes',
-      value: data.totalRecurrentes,
-      color: COLORS.recurrentes,
-    },
-    {
-      name: 'Non Récurrentes',
-      value: data.totalNonRecurrentes,
-      color: COLORS.nonRecurrentes,
-    },
-  ] : [];
+  const dataForChart = data
+    ? [
+        {
+          name: 'Récurrentes',
+          value: data.totalRecurrentes,
+          color: COLORS.recurrentes,
+        },
+        {
+          name: 'Non Récurrentes',
+          value: data.totalNonRecurrentes,
+          color: COLORS.nonRecurrentes,
+        },
+      ]
+    : [];
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -55,14 +57,7 @@ export function DepenseSummaryPieChart({ className }: DepenseSummaryPieChartProp
     if (percent < 0.05) return null; // Ne pas afficher si < 5%
 
     return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        className="font-semibold text-sm"
-      >
+      <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" className="font-semibold text-sm">
         {`${(percent * 100).toFixed(0)}%`}
       </text>
     );
@@ -73,7 +68,7 @@ export function DepenseSummaryPieChart({ className }: DepenseSummaryPieChartProp
       <Card className={className}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
+            <Scale className="h-5 w-5" />
             Répartition des Dépenses
           </CardTitle>
         </CardHeader>
@@ -110,7 +105,7 @@ export function DepenseSummaryPieChart({ className }: DepenseSummaryPieChartProp
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
+          <Scale className="size-5" />
           Répartition des Dépenses
         </CardTitle>
       </CardHeader>
@@ -118,23 +113,14 @@ export function DepenseSummaryPieChart({ className }: DepenseSummaryPieChartProp
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie
-                data={dataForChart}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={CustomLabel}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
+              <Pie data={dataForChart} cx="50%" cy="50%" labelLine={false} label={CustomLabel} outerRadius={100} fill="#8884d8" dataKey="value">
                 {dataForChart.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                verticalAlign="bottom" 
+              <Legend
+                verticalAlign="bottom"
                 height={36}
                 formatter={(value, entry: any) => (
                   <span style={{ color: entry.color }}>
@@ -145,26 +131,18 @@ export function DepenseSummaryPieChart({ className }: DepenseSummaryPieChartProp
             </PieChart>
           </ResponsiveContainer>
         </div>
-        
+
         {/* Résumé des montants */}
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-green-50 rounded-lg">
             <p className="text-sm text-green-600 font-medium">Récurrentes</p>
-            <p className="text-lg font-bold text-green-700">
-              {formatCFA(data.totalRecurrentes)}
-            </p>
-            <p className="text-xs text-green-600">
-              {total > 0 ? ((data.totalRecurrentes / total) * 100).toFixed(1) : 0}%
-            </p>
+            <p className="text-lg font-bold text-green-700">{formatCFA(data.totalRecurrentes)}</p>
+            <p className="text-xs text-green-600">{total > 0 ? ((data.totalRecurrentes / total) * 100).toFixed(1) : 0}%</p>
           </div>
           <div className="text-center p-3 bg-amber-50 rounded-lg">
             <p className="text-sm text-amber-600 font-medium">Non Récurrentes</p>
-            <p className="text-lg font-bold text-amber-700">
-              {formatCFA(data.totalNonRecurrentes)}
-            </p>
-            <p className="text-xs text-amber-600">
-              {total > 0 ? ((data.totalNonRecurrentes / total) * 100).toFixed(1) : 0}%
-            </p>
+            <p className="text-lg font-bold text-amber-700">{formatCFA(data.totalNonRecurrentes)}</p>
+            <p className="text-xs text-amber-600">{total > 0 ? ((data.totalNonRecurrentes / total) * 100).toFixed(1) : 0}%</p>
           </div>
         </div>
       </CardContent>

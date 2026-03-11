@@ -27,7 +27,7 @@ export default function DepensePageContent() {
       <DepenseHeader />
       <div className="flex items-center justify-end gap-4">
         <Button 
-          color="primary" 
+          color="success"
           variant="flat"
           isLoading={isLoadingDepenseExport}
           onPress={handleExport}

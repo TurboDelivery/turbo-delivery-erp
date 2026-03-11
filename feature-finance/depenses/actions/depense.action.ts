@@ -94,17 +94,8 @@ export const supprimerDepenseAction = async (id: string): Promise<ActionResponse
 
 export const obtenirStatsDepensesAction = async (params: IDepenseStatsParams): Promise<ActionResponse<IDepenseStats>> => {
   try {
-    console.log('📊 Stats Action - Paramètres reçus:', params);
-    console.log('📅 Date début:', params.debut);
-    console.log('📅 Date fin:', params.fin);
-    console.log('🏷️ Catégories:', params.categoriesDepense);
     
     const response = await depenseAPI.obtenirStatsDepenses(params);
-    
-    console.log('📥 Réponse Stats API:', response);
-    console.log('💰 Montant total:', response.montant_total);
-    console.log('📊 Nombre dépenses:', response.nombre_depenses);
-    
     return {
       success: true,
       data: response,
@@ -118,17 +109,7 @@ export const obtenirStatsDepensesAction = async (params: IDepenseStatsParams): P
 
 export const obtenirDepensesSummaryAction = async (params: IDepenseSummaryParams): Promise<ActionResponse<IDepenseSummary>> => {
   try {
-    console.log('📊 Summary Action - Paramètres reçus:', params);
-    console.log('📅 Date début:', params.debut);
-    console.log('📅 Date fin:', params.fin);
-    console.log('🏷️ Catégories:', params.categoriesDepense);
-    
     const response = await depenseAPI.obtenirDepensesSummary(params);
-    
-    console.log('📥 Réponse Summary API:', response);
-    console.log('💰 Total récurrentes:', response.totalRecurrentes);
-    console.log('💰 Total non récurrentes:', response.totalNonRecurrentes);
-    
     return {
       success: true,
       data: response,

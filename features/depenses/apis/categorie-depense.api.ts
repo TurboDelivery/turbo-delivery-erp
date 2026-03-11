@@ -73,6 +73,7 @@ export const categorieDepenseAPI: ICategorieDepenseAPI = {
       endpoint: `/finance/depenses/top-categories`,
       method: 'GET',
       searchParams: {
+        categorieIds: params.categorieIds ? params.categorieIds.join(',') : undefined,
         debut: params.debut ? params.debut.toISOString().split('T')[0] : undefined,
         fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
       } as SearchParams,

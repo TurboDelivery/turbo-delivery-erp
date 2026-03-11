@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useTop4CategorieDepenseQuery } from '@/feature-finance/depenses/queries/category/top4-category-depense.query';
+import { useTopCategorieDepenseQuery } from '@/feature-finance/depenses/queries/category/top4-category-depense.query';
 import { ITopCategorieDepense } from '@/features/depenses/types/categorie-depense.type';
 import { useMemo } from 'react';
 
@@ -53,9 +53,10 @@ export default function RepartitionDepensePieChart({ className }: { className?: 
     data: categoriesDepense,
     isLoading,
     isError,
-  } = useTop4CategorieDepenseQuery({
+  } = useTopCategorieDepenseQuery({
     debut: filters.debut,
     fin: filters.fin,
+    categorieIds: filters.categoriesDepense,
   });
 
   const chartData = useMemo(() => generateChartData(categoriesDepense || []), [categoriesDepense]);

@@ -57,7 +57,7 @@ export function DepenseForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
           <Label htmlFor="dateDepense" className="text-sm text-gray-500">
-            Date de la dépense *
+            Date de comptabilisation *
           </Label>
           <Popover>
             <PopoverTrigger asChild>
