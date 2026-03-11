@@ -6,7 +6,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
 
   },
-  // output: 'standalone', // Temporairement désactivé pour résoudre les erreurs de symlinks Windows
+  // output: 'standalone', // Désactivé temporairement - problème symlinks Windows
   images: {
     remotePatterns: [
       {
