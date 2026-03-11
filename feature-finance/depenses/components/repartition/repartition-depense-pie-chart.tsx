@@ -68,7 +68,7 @@ export default function RepartitionDepensePieChart({ className }: { className?: 
         <CardTitle>Répartition des dépenses</CardTitle>
         {filters.debut && filters.fin && (
           <CardDescription>
-            {format(filters.debut, 'd LLL Y', { locale: fr })} - {format(filters.fin, 'd LLL Y', { locale: fr })}
+            {format(filters.debut, 'd LLL y', { locale: fr })} - {format(filters.fin, 'd LLL y', { locale: fr })}
           </CardDescription>
         )}
       </CardHeader>

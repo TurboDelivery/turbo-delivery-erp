@@ -15,7 +15,8 @@ type DateFilterInputProps = {
   variant?: 'outline' | 'secondary';
 };
 
-function DateFilterInput({ filters, handleDateChange, variant = "secondary" }: DateFilterInputProps) {
+const DateFilterInput = React.forwardRef<HTMLDivElement, DateFilterInputProps>(
+function DateFilterInput({ filters, handleDateChange, variant = "secondary" }, ref) {
   // Convertir Date vers DateValue pour HeroUI
   const convertToDateValue = (date: Date | undefined): DateValue | null => {
     if (!date) return null;
@@ -51,6 +52,7 @@ function DateFilterInput({ filters, handleDateChange, variant = "secondary" }: D
 
   return (
     <DateRangePicker
+      ref={ref}
       className="max-w-xs w-full sm:w-[280px]"
       label="Période"
       value={heroUIValue as any}
@@ -60,6 +62,8 @@ function DateFilterInput({ filters, handleDateChange, variant = "secondary" }: D
       variant="bordered"
     />
   );
-}
+});
+
+DateFilterInput.displayName = 'DateFilterInput';
 
 export default DateFilterInput;

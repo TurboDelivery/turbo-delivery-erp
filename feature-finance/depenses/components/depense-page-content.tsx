@@ -37,7 +37,7 @@ export default function DepensePageContent() {
         <CategoriesSelectFilter selectedCategories={filters.categoriesDepense || []} onCategoriesChange={handleCategoriesChange} />
         <DateFilterInput filters={filters} handleDateChange={handleDateChange} />
       </div>
-      <StatisticDepenseCards filters={filters} />
+      <StatisticDepenseCards />
       <RepartitionDepense />
       <DepenseTabs />
     </div>

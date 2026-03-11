@@ -36,28 +36,19 @@ export const depenseAPI: IDepenseAPI = {
   },
 
   ajouterDepense(data: DepenseCreateDTO): Promise<IDepense> {
-    console.log('🌐 API - Appel ajouterDepense avec:', data);
-    console.log('📤 URL: /finance/depenses');
-    console.log('📋 Méthode: POST');
-    console.log('🔍 Données complètes:', JSON.stringify(data, null, 2));
-    
-    return api.request<IDepense>({
-      endpoint: `/finance/depenses`,
-      method: 'POST',
-      data,
-    }).then(response => {
-      console.log('📥 Réponse API brute:', response);
-      console.log('📊 Type de la réponse:', typeof response);
-      console.log('🔑 Champs de la réponse:', Object.keys(response));
-      console.log('💰 Montant retourné:', response.montant);
-      console.log('📝 TypeDepense retourné:', response.typeDepense);
-      console.log('📅 DateDepense retournée:', response.dateDepense);
-      console.log('🆔 ID retourné:', response.id);
-      return response;
-    }).catch(error => {
-      console.error('❌ Erreur API ajouterDepense:', error);
-      throw error;
-    });
+    return api
+      .request<IDepense>({
+        endpoint: `/finance/depenses`,
+        method: 'POST',
+        data,
+      })
+      .then((response) => {
+        return response;
+      })
+      .catch((error) => {
+        console.error('❌ Erreur API ajouterDepense:', error);
+        throw error;
+      });
   },
 
   modifierDepense(id: string, data: DepenseUpdateDTO): Promise<IDepense> {
@@ -76,27 +67,24 @@ export const depenseAPI: IDepenseAPI = {
   },
 
   obtenirStatsDepenses(params: IDepenseStatsParams): Promise<IDepenseStats> {
-    console.log('🌐 API - Appel obtenirStatsDepenses avec:', params);
-    
     const searchParams = new URLSearchParams();
-    
+
     if (params.debut) {
       searchParams.append('debut', params.debut.toISOString().split('T')[0]);
     }
-    
+
     if (params.fin) {
       searchParams.append('fin', params.fin.toISOString().split('T')[0]);
     }
-    
+
     if (params.categoriesDepense && params.categoriesDepense.length > 0) {
       params.categoriesDepense.forEach((category) => {
         searchParams.append('categorieIds', category);
       });
     }
-    
+
     const url = `/finance/depenses/stats${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    console.log('📤 URL Stats:', url);
-    
+
     return api.request<IDepenseStats>({
       endpoint: url,
       method: 'GET',
@@ -105,24 +93,25 @@ export const depenseAPI: IDepenseAPI = {
 
   obtenirDepensesSummary(params: IDepenseSummaryParams): Promise<IDepenseSummary> {
     const searchParams = new URLSearchParams();
-    
+
     if (params.debut) {
       searchParams.append('debut', params.debut.toISOString().split('T')[0]);
     }
-    
+
     if (params.fin) {
       searchParams.append('fin', params.fin.toISOString().split('T')[0]);
     }
-    
+
     if (params.categoriesDepense && params.categoriesDepense.length > 0) {
-      params.categoriesDepense.forEach((category: string) => { // ✅ Type explicite
+      params.categoriesDepense.forEach((category: string) => {
+        // ✅ Type explicite
         searchParams.append('categorieIds', category);
       });
     }
-    
+
     const url = `/finance/depenses/summary${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     console.log('📤 URL Summary:', url);
-    
+
     return api.request<IDepenseSummary>({
       endpoint: url,
       method: 'GET',

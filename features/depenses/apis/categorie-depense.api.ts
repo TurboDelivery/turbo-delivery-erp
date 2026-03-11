@@ -11,7 +11,7 @@ export interface ICategorieDepenseAPI {
   findOne(id: string): Promise<ICategorieDepense>;
   update(id: string, dto: CategorieDepenseUpdateDTO): Promise<ICategorieDepense>;
   remove(id: string): Promise<ICategorieDepense>;
-  top4CategoriesDepenses(params: ITopCategoriesSearchParams): Promise<ITopCategorieDepense[]>;
+  topCategoriesDepenses(params: ITopCategoriesSearchParams): Promise<ITopCategorieDepense[]>;
 }
 
 export const categorieDepenseAPI: ICategorieDepenseAPI = {
@@ -68,8 +68,9 @@ export const categorieDepenseAPI: ICategorieDepenseAPI = {
     });
   },
 
-  async top4CategoriesDepenses(params: ITopCategoriesSearchParams): Promise<ITopCategorieDepense[]> {
-    return await api.request<ITopCategorieDepense[]>({
+  async topCategoriesDepenses(params: ITopCategoriesSearchParams): Promise<ITopCategorieDepense[]> {
+    console.log('Récupération du top des catégories de dépenses avec les paramètres:', params);
+    const resp = await api.request<ITopCategorieDepense[]>({
       endpoint: `/finance/depenses/top-categories`,
       method: 'GET',
       searchParams: {
@@ -78,5 +79,7 @@ export const categorieDepenseAPI: ICategorieDepenseAPI = {
         fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
       } as SearchParams,
     });
+    console.log('Top catégories de dépenses:', resp);
+    return resp;
   },
 };

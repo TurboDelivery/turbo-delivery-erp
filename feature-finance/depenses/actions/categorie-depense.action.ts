@@ -70,15 +70,16 @@ export const supprimerCategorieDepenseAction = async (id: string): Promise<Actio
   }
 };
 
-export const obtenirTop4CategoriesDepensesAction = async (params: ITopCategoriesSearchParams): Promise<ActionResponse<ITopCategorieDepense[]>> => {
+export const obtenirTopCategoriesDepensesAction = async (params: ITopCategoriesSearchParams): Promise<ActionResponse<ITopCategorieDepense[]>> => {
   try {
-    const response = await categorieDepenseAPI.top4CategoriesDepenses(params);
+    console.log("Appel de l'action pour obtenir le top des catégories de dépenses avec les paramètres:", params);
+    const response = await categorieDepenseAPI.topCategoriesDepenses(params);
     return {
       success: true,
       data: response,
-      message: 'Top 4 catégories de dépenses obtenues avec succès',
+      message: 'Top catégories de dépenses obtenues avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération du top 4 des catégories de dépenses');
+    return handleServerActionError(error, 'Erreur lors de la récupération du top des catégories de dépenses');
   }
 };
