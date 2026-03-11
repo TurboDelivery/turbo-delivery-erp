@@ -156,13 +156,13 @@ export default function Content({ initialItems }: { initialItems: Record<string,
                         </Card>
                     </div>
 
-                    <CardUI className="p-6 shadow-lg bg-white">
+                    <CardUI className="p-6 bg-white shadow-none">
                         <DatabaseCards
                             items={[
-                                { label: 'Total Personnel', value: items?.users?.totalElements ?? 0 },
-                                { label: 'Total Partenaire', value: items?.restaurants?.totalElements ?? 0 },
-                                { label: 'Total Livreur', value: items?.deliveryMen?.totalElements ?? 0 },
-                                { label: 'Total Type de plat', value: items?.typePlats?.length ?? 0 },
+                                { label: 'Partenaire Actif', value: items?.restaurants?.totalElements ?? 0 },
+                                { label: 'Turboys', value: items?.deliveryMen?.totalElements ?? 0 },
+                                { label: 'Personnel Turbo', value: items?.users?.totalElements ?? 0 },
+                                { label: 'Utilisateurs Actifs', value: items?.typePlats?.length ?? 0 },
                             ]}
                         />
                     </CardUI>
