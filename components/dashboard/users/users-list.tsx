@@ -68,6 +68,7 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                                 <TableHead>Date d&apos;entrée</TableHead>
                                 <TableHead>Statut</TableHead>
                                 <TableHead className="text-center">Actions</TableHead>
+                                
                             </TableRow>
                         </TableHeader>
                         <TableBody>
