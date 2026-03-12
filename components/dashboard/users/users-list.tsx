@@ -6,10 +6,18 @@ import IconSearch from '@/components/icon/icon-search';
 import React, { useState } from 'react';
 import { User } from '@/types/models';
 import { PaginatedResponse } from '@/types';
-
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import UsersAdd from './users-add';
 import UsersTools from './users-tools';
 import { Chip } from "@heroui/react";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 
 const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
     const [value, setValue] = useState<'list' | 'grid'>('list');
@@ -47,42 +55,48 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                 </div>
             </div>
             {value === 'list' && (
-                <div className="panel mt-5 overflow-hidden border-0 p-0">
-                    <div className="table-responsive">
-                        <table className="table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Nom</th>
-                                    <th>Email</th>
-                                    <th>Nom d&apos;utilisateur</th>
-                                    <th>Rôle</th>
-                                    <th>Statut</th>
-                                    <th className="!text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredItems.map((user: User) => {
-                                    return (
-                                        <tr key={user.id}>
-                                            <td>
-                                                <div className="flex w-max items-center">
-                                                    <div className="grid h-8 w-8 place-content-center rounded-full bg-primary text-sm font-semibold text-white ltr:mr-2 rtl:ml-2">{user.nom[0]}</div>
-                                                    <div>{`${user.nom} ${user.prenoms}`}</div>
-                                                </div>
-                                            </td>
-                                            <td>{user.email}</td>
-                                            <td>{user.username}</td>
-                                            <td>{user.role.libelle}</td>
-                                            <td>{user.status === 1 ? <Chip color="success">Actif</Chip> : <Chip color="warning">Inactif</Chip>}</td>
-                                            <td>
-                                                <UsersTools user={user} value="list" />
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                <div className="mt-5">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Nom</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead>Nom d&apos;utilisateur</TableHead>
+                                <TableHead>Rôle</TableHead>
+                                <TableHead>Département</TableHead>
+                                <TableHead>Salaire</TableHead>
+                                <TableHead>Date d&apos;entrée</TableHead>
+                                <TableHead>Statut</TableHead>
+                                <TableHead className="text-center">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredItems.map((user: User) => (
+                                <TableRow key={user.id}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-8 w-8 rounded-full bg-primary text-sm font-semibold text-white flex items-center justify-center">
+                                                {user.nom[0]}
+                                            </div>
+                                            <div>{`${user.nom} ${user.prenoms}`}</div>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell>{user.username}</TableCell>
+                                    <TableCell>{user.role.libelle}</TableCell>
+                                    <TableCell>{user.departement || '-'}</TableCell>
+                                    <TableCell>{user.salaire ? formatCFA(user.salaire) : '-'}</TableCell>
+                                    <TableCell>{user.dateEntree ? new Date(user.dateEntree).toLocaleDateString('fr-FR') : '-'}</TableCell>
+                                    <TableCell>
+                                        {user.status === 1 ? <Chip color="success">Actif</Chip> : <Chip color="warning">Inactif</Chip>}
+                                    </TableCell>
+                                    <TableCell>
+                                        <UsersTools user={user} value="list" />
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </div>
             )}
 
@@ -104,6 +118,18 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                                                     <div className="text-info">{user.email}</div>
                                                     <div>Email</div>
                                                 </div>
+                                                <div className="flex-auto">
+                                                    <div className="flex-none ltr:mr-2 rtl:ml-2">Département :</div>
+                                                    <div className="">{user.departement || '-'}</div>
+                                                </div>
+                                                <div className="flex-auto">
+                                                    <div className="flex-none ltr:mr-2 rtl:ml-2">Salaire :</div>
+                                                    <div className="">{user.salaire ? formatCFA(user.salaire) : '-'}</div>
+                                                </div>
+                                                <div className="flex-auto">
+                                                    <div className="flex-none ltr:mr-2 rtl:ml-2">Date d&apos;entrée :</div>
+                                                    <div className="">{user.dateEntree ? new Date(user.dateEntree).toLocaleDateString('fr-FR') : '-'}</div>
+                                                </div>
                                             </div>
                                             <div className="mt-4"></div>
                                         </div>
@@ -111,6 +137,12 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                                             <div className="flex items-center">
                                                 <div className="flex-none ltr:mr-2 rtl:ml-2">Nom d&apos;utilisateur :</div>
                                                 <div className="">{user.username}</div>
+                                            </div>
+                                            <div className="flex items-center">
+                                                <div className="flex-none ltr:mr-2 rtl:ml-2">Statut :</div>
+                                                <div className="">
+                                                    {user.status === 1 ? <Chip color="success">Actif</Chip> : <Chip color="warning">Inactif</Chip>}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

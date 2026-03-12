@@ -29,6 +29,9 @@ export interface User {
     passwordExpired: string;
     dateOfInactivity: string;
     role: Role;
+    departement?: string;
+    salaire?: number;
+    dateEntree?: string;
 }
 
 export interface Restaurant {
@@ -401,6 +404,13 @@ export interface Pageable {
         unsorted: boolean;
         empty: boolean;
     };
+    totalPages?: number;
+    totalElements?: number;
+    numberOfElements?: number;
+    first: boolean;
+    last: boolean;
+    size: number;
+    empty: boolean;
 }
 
 export interface PageResponse<T> {
