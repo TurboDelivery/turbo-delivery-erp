@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { flexRender } from '@tanstack/react-table';
-import { Card, CardBody, Chip, Pagination, Select, SelectItem, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Card, CardBody, Chip, Pagination, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { Users } from 'lucide-react';
 import { TurboyType } from '@/features/turboys/types/turboys.types';
 import { useTurboyTable } from '@/features/turboys/hooks/use-turboy-table';
@@ -13,7 +13,7 @@ const TURBOY_TYPES: { value: TurboyType; label: string }[] = [
 ];
 
 export function TurboyTable() {
-  const { table, isLoading, isFetching, turboysData, filters, setFilters } = useTurboyTable();
+  const { table, isLoading, turboysData, filters, setFilters } = useTurboyTable();
 
   const handleTypeFilterChange = (keys: any) => {
     const selected = Array.from(keys)[0] as TurboyType;
@@ -22,8 +22,6 @@ export function TurboyTable() {
       typeLivreur: selected || undefined,
     }));
   };
-
-  const colsCount = table.getAllColumns().length;
 
   return (
     <div className="min-h-screen p-2 sm:p-4">
@@ -47,7 +45,7 @@ export function TurboyTable() {
 
       {/* Table Card */}
       <Card>
-        <CardBody className="p-0">
+        <CardBody>
           <div className="overflow-x-auto">
             <Table
               isStriped
@@ -95,7 +93,7 @@ export function TurboyTable() {
                 {isLoading
                   ? Array.from({ length: 10 }).map((_, i) => (
                       <TableRow key={`skeleton-${i}`}>
-                        {Array.from({ length: colsCount }).map((_, j) => (
+                        {Array.from({ length: table.getAllColumns().length }).map((_, j) => (
                           <TableCell key={`skeleton-cell-${j}`} className="h-12">
                             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
                           </TableCell>
@@ -114,13 +112,6 @@ export function TurboyTable() {
               </TableBody>
             </Table>
           </div>
-
-          {/* Loading indicator */}
-          {isFetching && !isLoading && (
-            <div className="flex justify-center items-center h-8 border-t border-gray-200">
-              <Spinner size="sm" color="primary" />
-            </div>
-          )}
         </CardBody>
       </Card>
     </div>

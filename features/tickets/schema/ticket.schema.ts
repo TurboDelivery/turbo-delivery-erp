@@ -1,7 +1,7 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const BonLivraisonTermineeSchema = z.object({
-    code: z.string().optional(),
+  code: z.string().optional(),
   commandeId: z.string().optional(),
   reference: z.string().optional(),
   livreurId: z.string().optional(),

@@ -6,6 +6,7 @@ export interface ITurboy {
   prenoms: string;
   telephone: string | null;
   avatarUrl: string | null;
+  salaire?: number;
   email: string | null;
   birthDay: string | null;
   gender: 'HOMME' | 'FEMME';
@@ -27,4 +28,10 @@ export interface ITurboyParams {
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
   typeLivreur?: TurboyType;
+}
+
+export interface IUpdateTurboyTypePayload {
+  id: string;
+  typeLivreur: TurboyType;
+  salaire?: number; // Pour les journaliers
 }

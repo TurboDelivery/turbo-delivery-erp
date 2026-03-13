@@ -110,7 +110,7 @@ const Sidebar = ({ profile }: { profile: User }) => {
     if (window.innerWidth < 1024 && themeConfig.sidebar) {
       dispatch(toggleSidebar());
     }
-  }, [dispatch, pathname, themeConfig.sidebar]);
+  }, [pathname]);
 
   const setActiveRoute = () => {
     const allLinks = document.querySelectorAll('.sidebar ul a.active');

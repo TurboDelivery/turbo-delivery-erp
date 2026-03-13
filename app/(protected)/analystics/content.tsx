@@ -1,13 +1,9 @@
 'use client';
 
-import DashboardChart from '@/components/dashboard/apercu/DashboardChart';
 import DatabaseCards from '@/components/dashboard/apercu/DatabaseCards';
-import RestaurantList from '@/components/dashboard/apercu/RestaurantList';
 import SourcesCard from '@/components/dashboard/apercu/SourcesCard';
-import StatsOverview from '@/components/dashboard/apercu/StatsOverview';
 import { Button } from '@/components/ui/button';
 import { Card as CardUI } from '@/components/ui/card';
-import { ChiffreAffaireRestaurant } from '@/types/statistiques.model';
 import { formatNumber } from '@/utils/formatNumber';
 import { CalendarDate, Card, CardBody, CardHeader, DateRangePicker, RangeValue, Tooltip } from '@heroui/react';
 import { Info, Printer } from 'lucide-react';
@@ -155,7 +151,6 @@ export default function Content({ initialItems }: { initialItems: Record<string,
               </CardBody>
             </Card>
           </div>
-
           <DatabaseCards
             items={[
               { label: 'Partenaire Actif', value: items?.restaurants?.totalElements ?? 0 },
@@ -164,19 +159,10 @@ export default function Content({ initialItems }: { initialItems: Record<string,
               { label: 'Utilisateurs Actifs', value: items?.typePlats?.length ?? 0 },
             ]}
           />
-          <CardUI className="p-6 shadow-lg bg-white">
-            <DashboardChart />
-          </CardUI>
         </div>
         <div className="space-y-6">
           <SourcesCard />
-          <a href="https://finance.turbodeliveryapp.com" title="TURBO Finance" target="_blank" rel="noopener noreferrer">
-            <StatsOverview />
-          </a>
         </div>
-      </div>
-      <div>
-        <RestaurantList data={items?.chiffresAffairesRestaurants as ChiffreAffaireRestaurant[]} />
       </div>
     </div>
   );
