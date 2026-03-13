@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from '@heroui/react';
 import { Input } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/select';
-import { Employee, Department, Function } from '../../features/personnel/types';
+import { Employee, Department, Function } from '../../features/personnel/types/types';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;

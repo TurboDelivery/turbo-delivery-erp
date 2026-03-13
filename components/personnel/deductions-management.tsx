@@ -7,8 +7,8 @@ import { Card, CardBody, CardHeader } from '@heroui/react';
 import { Input } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/select';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
-import { Deduction, DeductionStats, Employee } from './types';
+import { DeductionTable } from './deduction-table';
+import { Deduction, DeductionStats, Employee } from '../../features/personnel/types/types';
 
 interface DeductionsManagementProps {
   deductions: Deduction[];
@@ -74,24 +74,6 @@ export function DeductionsManagement({
     }));
   };
 
-  const getStatusColor = (status: Deduction['status']) => {
-    switch (status) {
-      case 'Appliquée': return 'success';
-      case 'En attente': return 'warning';
-      default: return 'default';
-    }
-  };
-
-  const getTypeColor = (type: Deduction['type']) => {
-    switch (type) {
-      case 'Retard': return 'warning';
-      case 'Absence injustifiée': return 'danger';
-      case 'Dommage matériel': return 'secondary';
-      case 'Avance sur salaire': return 'primary';
-      default: return 'default';
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -125,50 +107,7 @@ export function DeductionsManagement({
       </div>
 
       {/* Tableau des déductions */}
-      <Table aria-label="Liste des déductions">
-        <TableHeader>
-          <TableColumn>Employé</TableColumn>
-          <TableColumn>Type de déduction</TableColumn>
-          <TableColumn>Montant</TableColumn>
-          <TableColumn>Date</TableColumn>
-          <TableColumn>Motif</TableColumn>
-          <TableColumn>Statut</TableColumn>
-          <TableColumn>Durée de remboursement</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {deductions.map((deduction) => (
-            <TableRow key={deduction.id}>
-              <TableCell>
-                <div className="font-medium">{deduction.employeeName}</div>
-              </TableCell>
-              <TableCell>
-                <Badge 
-                  color={getTypeColor(deduction.type)} 
-                  variant="flat"
-                  className="capitalize"
-                >
-                  {deduction.type}
-                </Badge>
-              </TableCell>
-              <TableCell>{deduction.amount.toLocaleString()} F</TableCell>
-              <TableCell>{deduction.date}</TableCell>
-              <TableCell>
-                <div className="max-w-xs truncate" title={deduction.reason}>
-                  {deduction.reason}
-                </div>
-              </TableCell>
-              <TableCell>
-                <Badge color={getStatusColor(deduction.status)} variant="flat">
-                  {deduction.status}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {deduction.repaymentDuration ? `${deduction.repaymentDuration} mois` : '-'}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <DeductionTable deductions={deductions} />
 
       {/* Modal création déduction */}
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl">
