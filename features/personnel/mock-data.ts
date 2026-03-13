@@ -1,4 +1,4 @@
-import { Employee, LeaveRequest, Deduction, Department, Function, LeaveStats, RequestStats, DeductionStats } from './types';
+import { Employee, LeaveRequest, Deduction, Department, Function, LeaveStats, RequestStats, DeductionStats } from './types/types';
 
 export const mockDepartments: Department[] = [
   { id: '1', name: 'Livraison' },
