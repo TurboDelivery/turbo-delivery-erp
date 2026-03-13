@@ -65,6 +65,11 @@ const menuData: IMenuData[] = [
     children: [{ icon: IconUsersGroup, title: 'users', path: '/users' }],
   },
   {
+    icon: IconUsers,
+    title: 'Personnel',
+    children: [{ icon: IconUsersGroup, title: 'Personnel', path: '/personnel' }],
+  },
+  {
     icon: IconMap,
     title: 'Finance',
     children: [
