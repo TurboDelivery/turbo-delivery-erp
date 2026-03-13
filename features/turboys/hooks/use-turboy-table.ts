@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { turboyColumns } from '@/components/turboys/table/turboy-table-columns';
+import { turboyTableColumns } from '@/components/turboys/table/turboy-table-columns';
 import { useTurboysByTypeQuery } from '@/features/turboys/queries/turboy-list.query';
 import { useTurboyFilters } from '@/features/turboys/hooks/use-turboy-filters';
 
@@ -24,7 +24,7 @@ export const useTurboyTable = () => {
   const turboys = turboysData?.content || [];
 
   const table = useReactTable({
-    columns: turboyColumns,
+    columns: turboyTableColumns,
     data: turboys,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,

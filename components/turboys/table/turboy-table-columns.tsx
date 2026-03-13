@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ITurboy } from '@/features/turboys/types/turboys.types';
-import { Avatar, Chip } from '@heroui/react';
-import { Mail, Phone } from 'lucide-react';
+import { Avatar, Button, Chip } from '@heroui/react';
+import { Edit2, Mail, Phone } from 'lucide-react';
+import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
 
 const getTypeColor = (type: string) => {
   switch (type) {
@@ -14,6 +15,17 @@ const getTypeColor = (type: string) => {
       return 'secondary';
     default:
       return 'default';
+  }
+};
+
+const getTypeLabel = (type: string) => {
+  switch (type) {
+    case 'INDEPENDANT':
+      return 'Indépendant';
+    case 'JOURNALIER':
+      return 'Journalier';
+    default:
+      return type;
   }
 };
 
@@ -29,7 +41,21 @@ const getStatusLabel = (status: number) => {
   return 'Inconnu';
 };
 
-export const turboyColumns: ColumnDef<ITurboy>[] = [
+function ActionsCell({ turboy }: { turboy: ITurboy }) {
+  const [openEdit, setOpenEdit] = useState(false);
+
+  return (
+    <>
+      <Button isIconOnly className="bg-blue-500 hover:bg-blue-600 text-white" size="sm" title="Modifier le type" onPress={() => setOpenEdit(true)}>
+        <Edit2 className="w-4 h-4" />
+      </Button>
+
+      <UpdateTurboyTypeModal isOpen={openEdit} onOpenChange={setOpenEdit} turboy={turboy} />
+    </>
+  );
+}
+
+export const turboyTableColumns: ColumnDef<ITurboy>[] = [
   {
     accessorKey: 'prenoms',
     header: 'Nom',
@@ -39,7 +65,7 @@ export const turboyColumns: ColumnDef<ITurboy>[] = [
       const tel = row.original.telephone || '-';
       return (
         <div className="flex items-center gap-3">
-          <Avatar isBordered as="button" className="transition-transform" color="secondary" name={`${turboy.prenoms} ${turboy.nom}`} size="sm" src={turboy.avatarUrl ?? undefined} />
+          <Avatar isBordered name={`${turboy.prenoms} ${turboy.nom}`} size="sm" src={turboy.avatarUrl ?? undefined} />
           <div className="flex flex-col">
             <span className="text-sm font-medium">
               {turboy.prenoms} {turboy.nom}
@@ -55,59 +81,32 @@ export const turboyColumns: ColumnDef<ITurboy>[] = [
       );
     },
   },
-  // {
-  //   accessorKey: 'type',
-  //   header: 'Type',
-  //   cell: ({ row }) => {
-  //     const type = row.original.type;
-  //     return (
-  //       <Chip
-  //         size="sm"
-  //         variant="flat"
-  //         color={getTypeColor(type)}
-  //         className="capitalize"
-  //       >
-  //         {type}
-  //       </Chip>
-  //     );
-  //   },
-  // },
-  // {
-  //   accessorKey: 'telephone',
-  //   header: 'Téléphone',
-  //   cell: ({ row }) => {
-  //     const telephone = row.original.telephone;
-  //     return (
-  //       <div className="flex items-center gap-2">
-  //         <Phone className="w-4 h-4 text-gray-400" />
-  //         <span className="text-sm">{telephone || '-'}</span>
-  //       </div>
-  //     );
-  //   },
-  // },
-  // {
-  //   accessorKey: 'email',
-  //   header: 'Email',
-  //   cell: ({ row }) => {
-  //     const email = row.original.email;
-  //     return (
-  //       <div className="flex items-center gap-2">
-  //         <Mail className="w-4 h-4 text-gray-400" />
-  //         <span className="text-sm">{email || '-'}</span>
-  //       </div>
-  //     );
-  //   },
-  // },
   {
     accessorKey: 'gender',
     header: 'Genre',
     cell: ({ row }) => {
       const gender = row.original.gender;
+      return <span className="text-sm">{gender || '-'}</span>;
+    },
+  },
+  {
+    accessorKey: 'type',
+    header: 'Type',
+    cell: ({ row }) => {
+      const type = row.original.type;
       return (
-        <span className="text-sm">
-          {gender === 'HOMME' ? '🧑' : '👩'} {gender}
-        </span>
+        <Chip color={getTypeColor(type)} size="sm" variant="flat">
+          {getTypeLabel(type)}
+        </Chip>
       );
+    },
+  },
+  {
+    accessorKey: 'salaire',
+    header: 'Salaire',
+    cell: ({ row }) => {
+      const salaire = row.original.salaire;
+      return <span className="text-sm font-mono">{salaire ? `${salaire.toLocaleString('fr-FR')} FCFA` : '-'}</span>;
     },
   },
   {
@@ -126,37 +125,21 @@ export const turboyColumns: ColumnDef<ITurboy>[] = [
       return <span className="text-sm font-mono">{matricule || '-'}</span>;
     },
   },
-  // {
-  //   accessorKey: 'status',
-  //   header: 'Statut',
-  //   cell: ({ row }) => {
-  //     const status = row.original.status;
-  //     return (
-  //       <Chip
-  //         size="sm"
-  //         variant="flat"
-  //         color={getStatusColor(status)}
-  //       >
-  //         {getStatusLabel(status)}
-  //       </Chip>
-  //     );
-  //   },
-  // },
   {
-    accessorKey: 'deleted',
-    header: 'Supprimé',
+    accessorKey: 'status',
+    header: 'Statut',
     cell: ({ row }) => {
-      const deleted = row.original.deleted;
+      const status = row.original.status;
       return (
-        <Chip
-          size="sm"
-          variant="flat"
-          color={deleted ? 'danger' : 'success'}
-        >
-          {deleted ? 'Oui' : 'Non'}
+        <Chip color={getStatusColor(status)} size="sm" variant="flat">
+          {getStatusLabel(status)}
         </Chip>
       );
     },
   },
+  {
+    id: 'actions',
+    header: 'Actions',
+    cell: ({ row }) => <ActionsCell turboy={row.original} />,
+  },
 ];
-
