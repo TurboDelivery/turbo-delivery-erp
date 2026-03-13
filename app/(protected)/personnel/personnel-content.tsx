@@ -115,9 +115,9 @@ export default function PersonnelContent() {
       <Tabs defaultValue="employees" className=" ">
         <TabsList className="grid max-w-2xl grid-cols-4 rounded-full">
           <TabsTrigger value="employees">Employés</TabsTrigger>
-          <TabsTrigger value="leaves">Congés</TabsTrigger>
+          {/* <TabsTrigger value="leaves">Congés</TabsTrigger>
           <TabsTrigger value="requests">Demande</TabsTrigger>
-          <TabsTrigger value="deductions">Déductions</TabsTrigger>
+          <TabsTrigger value="deductions">Déductions</TabsTrigger> */}
         </TabsList>
 
         <TabsContent value="employees" className="mt-6">
