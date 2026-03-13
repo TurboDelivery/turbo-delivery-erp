@@ -23,6 +23,28 @@ export default function PersonnelContent() {
   const modifierEmployeMutation = useModifierEmployeMutation();
   const supprimerEmployeMutation = useSupprimerEmployeMutation();
 
+  // Données de départements et positions
+  const departments = [
+    { id: '1', name: 'Direction Générale' },
+    { id: '2', name: 'Marketing & Développement' },
+    { id: '3', name: 'Opérations & Logistique' },
+    { id: '4', name: 'Ressources Humaines' },
+    { id: '5', name: 'Finance & Comptabilité' }
+  ];
+
+  const postes = [
+    'Directeur Général',
+    'Chef de Projet',
+    'Développeur Senior',
+    'Développeur Junior',
+    'Chef d\'Équipe',
+    'Analyste Business',
+    'Designer UX/UI',
+    'Product Manager',
+    'Data Scientist',
+    'DevOps Engineer'
+  ];
+
   const handleAddEmployee = (newEmployee: EmployeeCreateDTO) => {
     ajouterEmployeMutation.mutate(newEmployee);
   };
@@ -101,8 +123,8 @@ export default function PersonnelContent() {
         <TabsContent value="employees" className="mt-6">
           <EmployeeList
             employees={employees}
-            departments={[]}
-            postes={[]}
+            departments={departments}
+            postes={postes}
             onAddEmployee={() => setIsAddModalOpen(true)}
             onEditPosition={handleEditPosition}
             onDeactivate={handleDeactivate}
@@ -142,8 +164,8 @@ export default function PersonnelContent() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onAddEmployee={handleAddEmployee}
-        departments={[]}
-        postes={[]}
+        departments={departments}
+        postes={postes}
       />
     </div>
   );

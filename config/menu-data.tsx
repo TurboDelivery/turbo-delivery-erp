@@ -1,5 +1,5 @@
 'use client';
-import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconUsers, IconUsersGroup } from '@tabler/icons-react';
+import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconUser, IconUsers } from '@tabler/icons-react';
 import { Bell, Layers, List, ShoppingCartIcon, SquareUser, Ticket } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
@@ -36,10 +36,9 @@ const menuData: IMenuData[] = [
     ],
   },
   // { icon: AiOutlineDollarCircle, title: 'price-list', path: '/price-list' },
-
   {
     icon: IconBuildingSkyscraper,
-    title: 'restaurants',
+    title: 'Partenaires',
     children: [
       { icon: IconBuildingSkyscraper, title: 'Partners validés', path: '/restaurants' },
       { icon: IconBuildingSkyscraper, title: 'Partners partiellement validés', path: '/restaurants/valide' },
@@ -50,7 +49,7 @@ const menuData: IMenuData[] = [
 
   {
     icon: IconMotorbike,
-    title: 'Livreurs',
+    title: 'Turboys',
     children: [
       { icon: IconMotorbike, title: 'Liste', path: '/delivery-men' },
       // { icon: IconBuildingSkyscraper, title: 'Créneaux', path: '/delivery-men/slot' },
@@ -58,16 +57,15 @@ const menuData: IMenuData[] = [
       { icon: IconBuildingSkyscraper, title: 'performance', path: '/delivery-men/performance' },
     ],
   },
-
   {
-    icon: IconUsers,
-    title: 'users',
-    children: [{ icon: IconUsersGroup, title: 'users', path: '/users' }],
+    icon: IconUser,
+    title: 'Personnel TURBO',
+    path: '/personnel',
   },
   {
     icon: IconUsers,
-    title: 'Personnel',
-    children: [{ icon: IconUsersGroup, title: 'Personnel', path: '/personnel' }],
+    title: 'Utilisateurs actif',
+    path: '/users',
   },
   {
     icon: IconMap,
