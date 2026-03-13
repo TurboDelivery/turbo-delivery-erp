@@ -172,7 +172,7 @@ export function AddEmployeeModal({
                 Annuler
               </Button>
               <Button color="primary" onPress={handleSubmit}>
-                Ajouter l'employé
+                Ajouter l&#39;employé
               </Button>
             </ModalFooter>
           </>

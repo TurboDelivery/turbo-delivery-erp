@@ -1,1 +1,1 @@
-export { getTurboysByType, getTurboyById, updateTurboyType } from './turboy.actions';
+export { getTurboysByType, getTurboyById } from './turboy.actions';
