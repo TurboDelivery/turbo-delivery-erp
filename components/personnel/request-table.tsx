@@ -12,8 +12,8 @@ interface RequestTableProps {
 }
 
 export function RequestTable({ requests, onApproveRequest, onRejectRequest }: RequestTableProps) {
-  const getStatusColor = (status: LeaveRequest['status']) => {
-    switch (status) {
+  const getStatusColor = (statut: LeaveRequest['statut']) => {
+    switch (statut) {
       case 'En attente': return 'warning';
       case 'Approuvée': return 'success';
       case 'Rejetée': return 'danger';
@@ -56,12 +56,15 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest }: Re
               </div>
             </TableCell>
             <TableCell>
-              <Badge color={getStatusColor(request.status)} variant="flat">
-                {request.status}
+              <Badge 
+                color={getStatusColor(request.statut)}
+                variant="flat"
+              >
+                {request.statut}
               </Badge>
             </TableCell>
             <TableCell>
-              {request.status === 'En attente' && (
+              {request.statut === 'En attente' && (
                 <div className="flex gap-2">
                   <Button 
                     size="sm" 

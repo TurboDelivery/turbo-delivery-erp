@@ -1,74 +1,89 @@
 'use client';
 
-import { useState } from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
+import { useState, useEffect } from 'react';
 import { Button } from '@heroui/react';
 import { Input } from '@heroui/react';
-import { Select, SelectItem } from '@heroui/react';
-import { EmployeeCreateDTO, EmployeeCreateSchema } from '@/features/personnel/schemas/employee.schema';
-import { processAndValidateFormData } from 'ak-zod-form-kit';
-import { toast } from 'sonner';
+import { Select, SelectItem } from '@heroui/select';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
+import { Employee } from '../../features/personnel/types/types';
+import { useModifierEmployeMutation } from '../../features/personnel/mutations/employee.mutation';
 
-interface AddEmployeeModalProps {
+interface EditEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddEmployee: (employee: EmployeeCreateDTO) => void;
+  employee: Employee | null;
   departments: Array<{ name: string; id: string }>;
   postes: string[];
 }
 
-export function AddEmployeeModal({ 
+export function EditEmployeeModal({ 
   isOpen, 
   onClose, 
-  onAddEmployee, 
+  employee,
   departments, 
   postes 
-}: AddEmployeeModalProps) {
+}: EditEmployeeModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     position: '',
     department: '',
-    salary: 0,
-    entryDate: new Date().toISOString().split('T')[0], // Date du jour par défaut
-    statut: 'Actif'
+    salary: '',
+    entryDate: '',
+    statut: 'Actif' as Employee['statut']
   });
 
+  const modifierEmployeMutation = useModifierEmployeMutation();
+
+  useEffect(() => {
+    if (employee) {
+      setFormData({
+        name: employee.name,
+        email: employee.email,
+        position: employee.position,
+        department: employee.department,
+        salary: employee.salary.toString(),
+        entryDate: employee.entryDate,
+        statut: employee.statut
+      });
+    }
+  }, [employee]);
+
   const handleSubmit = () => {
-    console.log('handleSubmit - formData:', formData);
-    
-    // Validation des données avec Zod
-    const validation = processAndValidateFormData(EmployeeCreateSchema, formData, {
-      outputFormat: 'object',
-    });
-
-    console.log('Validation - Résultat:', validation);
-
-    if (!validation.success) {
-      console.error('Validation - Erreurs:', validation.errorsInString);
-      toast.error(validation.errorsInString || 'Veuillez remplir tous les champs correctement');
+    if (!formData.name || !formData.email || !formData.position || !formData.department || !formData.salary || !formData.entryDate) {
+      alert('Veuillez remplir tous les champs');
       return;
     }
 
-    console.log('Appel onAddEmployee avec données validées:', validation.data);
-    onAddEmployee(validation.data as EmployeeCreateDTO);
+    if (!employee) return;
 
-    // Reset du formulaire
+    modifierEmployeMutation.mutate({
+      id: employee.id,
+      data: {
+        name: formData.name,
+        email: formData.email,
+        position: formData.position,
+        department: formData.department,
+        salary: parseInt(formData.salary),
+        statut: formData.statut,
+        entryDate: formData.entryDate
+      }
+    });
+
     setFormData({
       name: '',
       email: '',
       position: '',
       department: '',
-      salary: 0,
-      entryDate: new Date().toISOString().split('T')[0],
+      salary: '',
+      entryDate: '',
       statut: 'Actif'
     });
 
     onClose();
   };
 
-  const handleInputChange = (field: string, value: string | number) => {
-    console.log('handleInputChange:', field, '=', value);
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -83,7 +98,7 @@ export function AddEmployeeModal({
         {(onClose) => (
           <>
             <ModalHeader className="flex flex-col gap-1">
-              Ajouter un nouvel employé
+              Modifier l'employé
             </ModalHeader>
             <ModalBody>
               <div className="space-y-4">
@@ -113,9 +128,9 @@ export function AddEmployeeModal({
                     onSelectionChange={(keys) => handleInputChange('position', Array.from(keys)[0] as string)}
                     variant="bordered"
                   >
-                    {postes.map((poste) => (
-                      <SelectItem key={poste} value={poste}>
-                        {poste.toLowerCase()}
+                    {postes.map((position) => (
+                      <SelectItem key={position} value={position}>
+                        {position.toLowerCase()}
                       </SelectItem>
                     ))}
                   </Select>
@@ -137,11 +152,11 @@ export function AddEmployeeModal({
 
                 <div className="grid grid-cols-2 gap-4">
                   <Input
-                    label="Salaire"
+                    label="Salaire mensuel"
                     type="number"
                     placeholder="Entrez le salaire"
-                    value={formData.salary.toString()}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('salary', parseInt(e.target.value))}
+                    value={formData.salary}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('salary', e.target.value)}
                     variant="bordered"
                     endContent="F"
                   />
@@ -155,7 +170,7 @@ export function AddEmployeeModal({
                 </div>
 
                 <Select
-                  label="Statut initial"
+                  label="Statut"
                   placeholder="Sélectionnez le statut"
                   selectedKeys={[formData.statut]}
                   onSelectionChange={(keys) => handleInputChange('statut', Array.from(keys)[0] as string)}
@@ -172,7 +187,7 @@ export function AddEmployeeModal({
                 Annuler
               </Button>
               <Button color="primary" onPress={handleSubmit}>
-                Ajouter l'employé
+                Modifier l'employé
               </Button>
             </ModalFooter>
           </>

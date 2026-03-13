@@ -132,7 +132,7 @@ export default function Content({ initialItems }: { initialItems: Record<string,
                         <Card className="bg-gradient-to-br from-purple-500 to-purple-700 text-white shadow-xl hover:shadow-2xl transition-all duration-200">
                             <CardHeader className="pb-0 pt-4 px-6">
                                 <div className="flex gap-2 items-center">
-                                    <h4 className="text-lg font-medium opacity-90">Commission par Commande</h4>
+                                    <h4 className="text-lg font-medium opacity-90">frais de service</h4>
                                     <Tooltip content="Commission en type fixe" className="bg-yellow-200 font-bold">
                                         <Info size={20} className="cursor-pointer" />
                                     </Tooltip>
@@ -145,7 +145,7 @@ export default function Content({ initialItems }: { initialItems: Record<string,
                                             <TbChartBar className="w-8 h-8" />
                                         </div>
                                         <div>
-                                            <p className="text-3xl font-bold">{items?.chiffreAffaire?.commissionCommande?.toLocaleString()} XOF</p>
+                                            <p className="text-3xl font-bold">{items?.chiffreAffaire?.commissionChiffreAffaire?.toLocaleString()} XOF</p>
                                         </div>
                                     </div>
                                     <Link href="/ticktes-terminers/FIXE">

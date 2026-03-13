@@ -10,8 +10,8 @@ interface LeaveTableProps {
 }
 
 export function LeaveTable({ leaveRequests }: LeaveTableProps) {
-  const getStatusColor = (status: LeaveRequest['status']) => {
-    switch (status) {
+  const getStatusColor = (statut: LeaveRequest['statut']) => {
+    switch (statut) {
       case 'En cours': return 'warning';
       case 'Terminé': return 'success';
       case 'En attente': return 'default';
@@ -61,10 +61,10 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
             <TableCell>{leave.duration} jours</TableCell>
             <TableCell>
               <Badge 
-                color={getStatusColor(leave.status)} 
+                color={getStatusColor(leave.statut)} 
                 variant="flat"
               >
-                {leave.status}
+                {leave.statut}
               </Badge>
             </TableCell>
             <TableCell>

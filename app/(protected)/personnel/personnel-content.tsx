@@ -3,34 +3,28 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/commons/tabs';
 import { EmployeeList } from '@/components/personnel/employee-list';
-import { LeaveManagement } from '@/components/personnel/leave-management';
-import { RequestManagement } from '@/components/personnel/request-management';
-import { DeductionsManagement } from '@/components/personnel/deductions-management';
+// import { LeaveManagement } from '@/components/personnel/leave-management';
+// import { RequestManagement } from '@/components/personnel/request-management';
+// import { DeductionsManagement } from '@/components/personnel/deductions-management';
 import { AddEmployeeModal } from '@/components/personnel/add-employee-modal';
-import { 
-  mockEmployees, 
-  mockLeaveRequests, 
-  mockDeductions, 
-  mockDepartments, 
-  mockFunctions,
-  mockLeaveStats,
-  mockRequestStats,
-  mockDeductionStats 
-} from '@/features/personnel/mock-data';
 import { Employee, LeaveRequest, Deduction } from '@/features/personnel/types/types';
+import { EmployeeCreateDTO } from '@/features/personnel/schemas/employee.schema';
+import { useAjouterEmployeMutation, useModifierEmployeMutation, useSupprimerEmployeMutation } from '@/features/personnel/mutations/employee.mutation';
+import { useEmployeeListQuery } from '@/features/personnel/queries/employee-list.query';
 
 export default function PersonnelContent() {
-  const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
-  const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>(mockLeaveRequests);
-  const [deductions, setDeductions] = useState<Deduction[]>(mockDeductions);
+//   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+//   const [deductions, setDeductions] = useState<Deduction[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  const handleAddEmployee = (newEmployee: Omit<Employee, 'id'>) => {
-    const employee: Employee = {
-      ...newEmployee,
-      id: Date.now().toString()
-    };
-    setEmployees(prev => [...prev, employee]);
+  const { data: employeesData, isLoading, isError } = useEmployeeListQuery({});
+  const employees = employeesData?.content || [];
+  const ajouterEmployeMutation = useAjouterEmployeMutation();
+  const modifierEmployeMutation = useModifierEmployeMutation();
+  const supprimerEmployeMutation = useSupprimerEmployeMutation();
+
+  const handleAddEmployee = (newEmployee: EmployeeCreateDTO) => {
+    ajouterEmployeMutation.mutate(newEmployee);
   };
 
   const handleEditPosition = (employee: Employee) => {
@@ -39,55 +33,58 @@ export default function PersonnelContent() {
   };
 
   const handleDeactivate = (employee: Employee) => {
-    setEmployees(prev => 
-      prev.map(emp => 
-        emp.id === employee.id 
-          ? { ...emp, status: 'Inactif' as Employee['status'] }
-          : emp
-      )
-    );
+    modifierEmployeMutation.mutate({
+      id: employee.id,
+      data: {
+        ...employee,
+        statut: employee.statut === 'Actif' ? 'Inactif' : 'Actif'
+      }
+    });
   };
 
   const handleRemove = (employee: Employee) => {
-    setEmployees(prev => prev.filter(emp => emp.id !== employee.id));
+    if (confirm(`Êtes-vous sûr de vouloir supprimer ${employee.name} ?`)) {
+      supprimerEmployeMutation.mutate(employee.id);
+    }
   };
 
-  const handleApproveRequest = (requestId: string) => {
-    setLeaveRequests(prev =>
-      prev.map(req =>
-        req.id === requestId
-          ? { ...req, status: 'Approuvée' as LeaveRequest['status'] }
-          : req
-      )
-    );
-  };
+  // Commenté temporairement pour éviter les erreurs de build
+  // const handleApproveRequest = (requestId: string) => {
+  //   setLeaveRequests(prev =>
+  //     prev.map(req =>
+  //       req.id === requestId
+  //         ? { ...req, statut: 'Approuvée' as LeaveRequest['statut'] }
+  //         : req
+  //     )
+  //   );
+  // };
 
-  const handleRejectRequest = (requestId: string) => {
-    setLeaveRequests(prev =>
-      prev.map(req =>
-        req.id === requestId
-          ? { ...req, status: 'Rejetée' as LeaveRequest['status'] }
-          : req
-      )
-    );
-  };
+  // const handleRejectRequest = (requestId: string) => {
+  //   setLeaveRequests(prev =>
+  //     prev.map(req =>
+  //       req.id === requestId
+  //         ? { ...req, statut: 'Rejetée' as LeaveRequest['statut'] }
+  //         : req
+  //     )
+  //   );
+  // };
 
-  const handleSubmitRequest = (newRequest: Omit<LeaveRequest, 'id' | 'status'>) => {
-    const request: LeaveRequest = {
-      ...newRequest,
-      id: Date.now().toString(),
-      status: 'En attente'
-    };
-    setLeaveRequests(prev => [...prev, request]);
-  };
+  // const handleSubmitRequest = (newRequest: Omit<LeaveRequest, 'id' | 'statut'>) => {
+  //   const request: LeaveRequest = {
+  //     ...newRequest,
+  //     id: Date.now().toString(),
+  //     statut: 'En attente'
+  //   };
+  //   setLeaveRequests(prev => [...prev, request]);
+  // };
 
-  const handleCreateDeduction = (newDeduction: Omit<Deduction, 'id'>) => {
-    const deduction: Deduction = {
-      ...newDeduction,
-      id: Date.now().toString()
-    };
-    setDeductions(prev => [...prev, deduction]);
-  };
+  // const handleCreateDeduction = (newDeduction: Omit<Deduction, 'id'>) => {
+  //   const deduction: Deduction = {
+  //     ...newDeduction,
+  //     id: Date.now().toString()
+  //   };
+  //   setDeductions(prev => [...prev, deduction]);
+  // };
 
   return (
     <div className="container mx-auto p-6">
@@ -104,6 +101,8 @@ export default function PersonnelContent() {
         <TabsContent value="employees" className="mt-6">
           <EmployeeList
             employees={employees}
+            departments={[]}
+            postes={[]}
             onAddEmployee={() => setIsAddModalOpen(true)}
             onEditPosition={handleEditPosition}
             onDeactivate={handleDeactivate}
@@ -112,30 +111,30 @@ export default function PersonnelContent() {
         </TabsContent>
 
         <TabsContent value="leaves" className="mt-6">
-          <LeaveManagement
+          {/* <LeaveManagement
             leaveRequests={leaveRequests}
-            leaveStats={mockLeaveStats}
-          />
+            leaveStats={[]}
+          /> */}
         </TabsContent>
 
         <TabsContent value="requests" className="mt-6">
-          <RequestManagement
-            requests={leaveRequests.filter(req => req.status === 'En attente' || req.status === 'Approuvée' || req.status === 'Rejetée')}
-            requestStats={mockRequestStats}
+          {/* <RequestManagement
+            requests={leaveRequests.filter(req => req.statut === 'En attente' || req.statut === 'Approuvée' || req.statut === 'Rejetée')}
+            requestStats={[]}
             employees={employees}
             onApproveRequest={handleApproveRequest}
             onRejectRequest={handleRejectRequest}
             onSubmitRequest={handleSubmitRequest}
-          />
+          /> */}
         </TabsContent>
 
         <TabsContent value="deductions" className="mt-6">
-          <DeductionsManagement
+          {/* <DeductionsManagement
             deductions={deductions}
-            deductionStats={mockDeductionStats}
+            deductionStats={[]}
             employees={employees}
             onCreateDeduction={handleCreateDeduction}
-          />
+          /> */}
         </TabsContent>
       </Tabs>
 
@@ -143,8 +142,8 @@ export default function PersonnelContent() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onAddEmployee={handleAddEmployee}
-        departments={mockDepartments}
-        functions={mockFunctions}
+        departments={[]}
+        postes={[]}
       />
     </div>
   );

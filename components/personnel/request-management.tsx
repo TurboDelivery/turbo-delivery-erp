@@ -16,7 +16,7 @@ interface RequestManagementProps {
   employees: Employee[];
   onApproveRequest: (requestId: string) => void;
   onRejectRequest: (requestId: string) => void;
-  onSubmitRequest: (request: Omit<LeaveRequest, 'id' | 'status'>) => void;
+  onSubmitRequest: (request: Omit<LeaveRequest, 'id' | 'statut'>) => void;
 }
 
 export function RequestManagement({ 

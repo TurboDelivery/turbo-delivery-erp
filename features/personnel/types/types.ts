@@ -2,10 +2,10 @@ export interface Employee {
   id: string;
   name: string;
   email: string;
-  function: string;
+  position: string;
   department: string;
   salary: number;
-  status: 'Actif' | 'Inactif' | 'Congé';
+  statut: 'Actif' | 'Inactif' | 'Congé';
   entryDate: string;
 }
 
@@ -17,7 +17,7 @@ export interface LeaveRequest {
   startDate: string;
   endDate: string;
   duration: number;
-  status: 'En cours' | 'Terminé' | 'En attente' | 'Approuvée' | 'Rejetée';
+  statut: 'En cours' | 'Terminé' | 'En attente' | 'Approuvée' | 'Rejetée';
   reason?: string;
 }
 
@@ -29,7 +29,7 @@ export interface Deduction {
   amount: number;
   reason: string;
   date: string;
-  status: 'Appliquée' | 'En attente';
+  statut: 'Appliquée' | 'En attente';
   repaymentDuration?: number;
 }
 

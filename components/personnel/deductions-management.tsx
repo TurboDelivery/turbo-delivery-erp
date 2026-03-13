@@ -1,14 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { Badge } from '@heroui/react';
-import { Button } from '@heroui/react';
-import { Card, CardBody, CardHeader } from '@heroui/react';
-import { Input } from '@heroui/react';
+import { Button, Card, CardBody, CardHeader, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/select';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
-import { DeductionTable } from './deduction-table';
+import { useState } from 'react';
 import { Deduction, DeductionStats, Employee } from '../../features/personnel/types/types';
+import { DeductionTable } from './deduction-table';
 
 interface DeductionsManagementProps {
   deductions: Deduction[];
@@ -49,7 +45,7 @@ export function DeductionsManagement({
       amount: parseInt(newDeduction.amount),
       reason: newDeduction.reason,
       date: new Date().toISOString().split('T')[0],
-      status: 'En attente',
+      statut: 'En attente',
       repaymentDuration: newDeduction.type === 'Avance sur salaire' ? parseInt(newDeduction.repaymentDuration) : undefined
     });
 

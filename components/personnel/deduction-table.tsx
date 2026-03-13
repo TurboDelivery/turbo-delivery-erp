@@ -9,8 +9,8 @@ interface DeductionTableProps {
 }
 
 export function DeductionTable({ deductions }: DeductionTableProps) {
-  const getStatusColor = (status: Deduction['status']) => {
-    switch (status) {
+  const getStatusColor = (statut: Deduction['statut']) => {
+    switch (statut) {
       case 'Appliquée': return 'success';
       case 'En attente': return 'warning';
       default: return 'default';
@@ -61,8 +61,8 @@ export function DeductionTable({ deductions }: DeductionTableProps) {
               </div>
             </TableCell>
             <TableCell>
-              <Badge color={getStatusColor(deduction.status)} variant="flat">
-                {deduction.status}
+              <Badge color={getStatusColor(deduction.statut)} variant="flat">
+                {deduction.statut}
               </Badge>
             </TableCell>
             <TableCell>
