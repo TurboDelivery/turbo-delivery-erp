@@ -25,6 +25,10 @@ const menuData: IMenuData[] = [
   },
   { icon: ShoppingCartIcon, title: 'Commandes / Client', path: '/commandes' },
   {
+    icon: IconMotorbike,
+    title: 'Turboys',
+  },
+  {
     icon: TbTruckDelivery,
     title: 'external_delivery',
     children: [
@@ -36,7 +40,6 @@ const menuData: IMenuData[] = [
     ],
   },
   // { icon: AiOutlineDollarCircle, title: 'price-list', path: '/price-list' },
-
   {
     icon: IconBuildingSkyscraper,
     title: 'restaurants',
