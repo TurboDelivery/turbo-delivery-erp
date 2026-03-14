@@ -78,6 +78,7 @@ jobs:
         run: bun x tsc --noEmit --pretty
 
   build:
+    needs: typecheck
     runs-on: ubuntu-latest
 
     steps:
