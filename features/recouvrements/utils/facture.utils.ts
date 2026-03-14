@@ -37,7 +37,7 @@ export const getStatutLabel = (statut: string) => {
     case 'DRAFT':
       return 'Brouillon';
     case 'VALIDATED':
-      return 'Validée';
+      return 'Validée - non payée';
     default:
       return statut || 'Inconnu';
   }

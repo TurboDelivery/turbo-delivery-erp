@@ -7,7 +7,6 @@ export default function Content() {
       <div className="absolute bg-primary inset-0">
         <Image
           src="/assets/images/photos/galaxy.png"
-          placeholder="blur"
           priority
           className="h-full w-full object-cover opacity-30"
           alt="Login background"

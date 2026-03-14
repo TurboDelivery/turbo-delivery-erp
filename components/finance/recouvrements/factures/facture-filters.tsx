@@ -26,9 +26,8 @@ interface FactureFiltersProps {
 
 const statutOptions = [
   { key: 'PAID', label: 'Payée' },
-  { key: 'NOT_PAID', label: 'Non payée' },
   { key: 'DRAFT', label: 'Brouillon' },
-  { key: 'VALIDATED', label: 'Validée' },
+  { key: 'VALIDATED', label: 'Validée - non payée' },
 ];
 
 export function FactureFilters({

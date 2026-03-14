@@ -105,7 +105,7 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
       const hasContestation = row.original.contestationActive > 0;
       return (
         <div className="flex items-center gap-2">
-          <Badge variant={getStatutBadgeVariant(row.original.statut)} className={cn('capitalize', getStatutColor(row.original.statut))}>
+          <Badge variant={getStatutBadgeVariant(row.original.statut)} className={cn('capitalize text-nowrap', getStatutColor(row.original.statut))}>
             {getStatutLabel(row.original.statut)}
           </Badge>
           {hasContestation && (
