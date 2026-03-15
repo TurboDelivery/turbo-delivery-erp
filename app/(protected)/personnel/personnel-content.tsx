@@ -25,24 +25,34 @@ export default function PersonnelContent() {
 
   // Données de départements et positions
   const departments = [
-    { id: '1', name: 'Direction Générale' },
-    { id: '2', name: 'Marketing & Développement' },
-    { id: '3', name: 'Opérations & Logistique' },
-    { id: '4', name: 'Ressources Humaines' },
-    { id: '5', name: 'Finance & Comptabilité' }
+    { id: '1', name: 'RESSOURCES HUMAINES' },
+    { id: '2', name: 'COMMUNICATION - MARKETING' },
+    { id: '3', name: 'DEVELOPPEMENT' },
+    { id: '4', name: 'COMMERCIAL' },
+    { id: '5', name: 'OPERATIONS' },
+    { id: '6', name: 'DIRECTION' },
+    { id: '7', name: 'TECHNIQUE' },
+    { id: '8', name: 'LOGISTIQUE' },
+    { id: '9', name: 'INFORMATIQUE' }
   ];
 
   const postes = [
-    'Directeur Général',
-    'Chef de Projet',
-    'Développeur Senior',
-    'Développeur Junior',
-    'Chef d\'Équipe',
-    'Analyste Business',
-    'Designer UX/UI',
-    'Product Manager',
-    'Data Scientist',
-    'DevOps Engineer'
+    'DIRECTEUR GENERAL',
+    'DIRECTEUR GENERAL ADJOINT',
+    'RESPONSABLE DES OPERATIONS',
+    'RESPONSABLE COMPTABLE',
+    'RESPONSABLE DES RECOUVREMENTS',
+    'CHEF AUX OPERATIONS',
+    'STANDARDISTE',
+    'AGENT DE LA CENTRALE D\'APPEL',
+    'SUPERVISEURS',
+    'DISPATCHERS',
+    'DISPACTHEUSES',
+    'SERVICE AUTHENTIFICATION ET VERIFICATION DE COUPONS',
+    'DEVELOPPEUR',
+    'CM - MARKETING',
+    'SECRETAIRE DE DIRECTION',
+    'Turboy Journalier'
   ];
 
   const handleAddEmployee = (newEmployee: EmployeeCreateDTO) => {

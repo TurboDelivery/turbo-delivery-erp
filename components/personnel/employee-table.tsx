@@ -1,13 +1,15 @@
 'use client';
 
+import React from 'react';
 import { Button } from '@heroui/react';
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
+import { useReactTable, getCoreRowModel, flexRender, createColumnHelper } from '@tanstack/react-table';
 import { Employee } from '../../features/personnel/types/types';
 import { cn } from '@/lib/utils';
 import { useModifierEmployeMutation, useSupprimerEmployeMutation } from '../../features/personnel/mutations/employee.mutation';
 import { EditEmployeeModal } from './edit-employee-modal';
 import { useState } from 'react';
+import { MoreVertical } from 'lucide-react';
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -17,6 +19,8 @@ interface EmployeeTableProps {
   onDeactivate: (employee: Employee) => void;
   onRemove: (employee: Employee) => void;
 }
+
+const columnHelper = createColumnHelper<Employee>();
 
 export function EmployeeTable({ employees, departments, postes, onEditPosition, onDeactivate, onRemove }: EmployeeTableProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -59,92 +63,137 @@ export function EmployeeTable({ employees, departments, postes, onEditPosition, 
     }
   };
 
+  const columns = [
+    columnHelper.accessor('name', {
+      header: 'NOM',
+      cell: (info) => (
+        <div>
+          <div className="font-medium">{info.getValue()}</div>
+        </div>
+      ),
+    }),
+    columnHelper.accessor('email', {
+      header: 'EMAIL',
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor('position', {
+      header: 'POSTE',
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor('department', {
+      header: 'DÉPARTEMENT',
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor('salary', {
+      header: 'SALAIRE',
+      cell: (info) => `${info.getValue().toLocaleString()} F`,
+    }),
+    columnHelper.accessor('statut', {
+      header: 'STATUT',
+      cell: (info) => (
+        <span 
+          className={cn(
+            getStatusClasses(info.getValue())
+          )}
+          style={{
+            backgroundColor: info.getValue() === 'Actif' ? '#dcfce7' : 
+                           info.getValue() === 'Inactif' ? '#fee2e2' : 
+                           info.getValue() === 'Congé' ? '#fef3c7' : '#f3f4f6',
+            color: info.getValue() === 'Actif' ? '#166534' : 
+                   info.getValue() === 'Inactif' ? '#991b1b' : 
+                   info.getValue() === 'Congé' ? '#a16207' : '#374151',
+            padding: '4px 8px',
+            borderRadius: '9999px',
+            fontSize: '12px',
+            fontWeight: '500'
+          }}
+        >
+          {info.getValue()}
+        </span>
+      ),
+    }),
+    columnHelper.display({
+      id: 'actions',
+      header: 'ACTIONS',
+      cell: (info) => (
+        <div className="relative flex justify-center">
+          <Dropdown>
+            <DropdownTrigger>
+              <Button 
+                isIconOnly 
+                size="sm" 
+                variant="light"
+                className="text-gray-500"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Actions">
+              <DropdownItem 
+                key="edit"
+                onPress={() => handleEdit(info.row.original)}
+              >
+                Modifier
+              </DropdownItem>
+              <DropdownItem 
+                key="deactivate"
+                onPress={() => handleDeactivate(info.row.original)}
+              >
+                {info.row.original.statut === 'Actif' ? 'Désactiver' : 'Activer'}
+              </DropdownItem>
+              <DropdownItem 
+                key="delete" 
+                className="text-danger"
+                onPress={() => handleDelete(info.row.original)}
+              >
+                Supprimer
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </div>
+      ),
+    }),
+  ];
+
+  const table = useReactTable({
+    data: employees,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+  
   return (
     <>
-      <Table aria-label="Liste des employés">
-        <TableHeader>
-          <TableColumn>NOM</TableColumn>
-          <TableColumn>EMAIL</TableColumn>
-          <TableColumn>POSTE</TableColumn>
-          <TableColumn>DÉPARTEMENT</TableColumn>
-          <TableColumn>SALAIRE</TableColumn>
-          <TableColumn>STATUT</TableColumn>
-          <TableColumn>ACTIONS</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {employees.map((employee) => {
-            console.log('🔍 Employee dans tableau:', employee);
-            return (
-            <TableRow key={employee.id}>
-              <TableCell>{employee.name}</TableCell>
-              <TableCell>{employee.email}</TableCell>
-              <TableCell>{employee.position}</TableCell>
-              <TableCell>{employee.department}</TableCell>
-              <TableCell>{employee.salary.toLocaleString()} F</TableCell>
-              <TableCell>
-                <span 
-                  className={cn(
-                    getStatusClasses(employee.statut)
-                  )}
-                  style={{
-                    backgroundColor: employee.statut === 'Actif' ? '#dcfce7' : 
-                                   employee.statut === 'Inactif' ? '#fee2e2' : 
-                                   employee.statut === 'Congé' ? '#fef3c7' : '#f3f4f6',
-                    color: employee.statut === 'Actif' ? '#166534' : 
-                           employee.statut === 'Inactif' ? '#991b1b' : 
-                           employee.statut === 'Congé' ? '#a16207' : '#374151',
-                    padding: '4px 8px',
-                    borderRadius: '9999px',
-                    fontSize: '12px',
-                    fontWeight: '500'
-                  }}
-                >
-                  {employee.statut}
-                </span>
-              </TableCell>
-              <TableCell>
-                <div className="relative flex justify-center">
-                  <Dropdown>
-                    <DropdownTrigger>
-                      <Button 
-                        isIconOnly 
-                        size="sm" 
-                        variant="light"
-                        className="text-gray-500"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                        </svg>
-                      </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu aria-label="Actions">
-                      <DropdownItem 
-                        key="edit"
-                        onPress={() => handleEdit(employee)}
-                      >
-                        Modifier
-                      </DropdownItem>
-                      <DropdownItem 
-                        key="deactivate"
-                        onPress={() => handleDeactivate(employee)}
-                      >
-                        {employee.statut === 'Actif' ? 'Désactiver' : 'Activer'}
-                      </DropdownItem>
-                      <DropdownItem 
-                        key="delete" 
-                        className="text-danger"
-                        onPress={() => handleDelete(employee)}
-                      >
-                        Supprimer
-                      </DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
-                </div>
-              </TableCell>
-            </TableRow>
-          )})}
-        </TableBody>
-      </Table>
+      <div className="rounded-md border bg-white">
+        <table className="w-full">
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id} className="border-b">
+                {headerGroup.headers.map((header) => (
+                  <th key={header.id} className="px-4 py-3 text-left text-sm font-medium text-gray-700 bg-gray-50">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id} className="border-b hover:bg-gray-50">
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className="px-4 py-3 text-sm">
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <EditEmployeeModal
         isOpen={isEditModalOpen}
