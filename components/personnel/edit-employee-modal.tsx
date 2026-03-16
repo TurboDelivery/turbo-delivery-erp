@@ -93,12 +93,24 @@ export function EditEmployeeModal({
       onClose={onClose}
       size="2xl"
       scrollBehavior="inside"
+      isDismissable={false}
+      hideCloseButton
     >
       <ModalContent>
         {(onClose) => (
           <>
             <ModalHeader className="flex flex-col gap-1">
-              Modifier l'employé
+              <div className="flex justify-between items-center">
+                <span>Modifier l'employé</span>
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  onPress={onClose}
+                >
+                  ✕
+                </Button>
+              </div>
             </ModalHeader>
             <ModalBody>
               <div className="space-y-4">

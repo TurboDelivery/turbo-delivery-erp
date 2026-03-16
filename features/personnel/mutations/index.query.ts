@@ -3,9 +3,9 @@ import { useQueryClient } from '@tanstack/react-query';
 // 1- Clé de cache pour les employés
 export const employeeKeyQuery = (...params: any[]) => {
   if (params.length === 0) {
-    return ['employee'];
+    return ['employees'];
   }
-  return ['employee', ...params];
+  return ['employees', ...params];
 };
 
 // 2- Clé de cache pour les demandes de congé
