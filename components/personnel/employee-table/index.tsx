@@ -20,6 +20,7 @@ interface EmployeeTableProps {
   onAddEmployee: () => void;
 }
 
+
 export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAddEmployee }: EmployeeTableProps) {
   // Données de départements et positions
   const departments = [
