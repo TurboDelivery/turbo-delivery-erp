@@ -2,17 +2,14 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { DollarSign, TrendingUp, Calendar, Users } from 'lucide-react';
+import { Calendar, DollarSign, TrendingUp, Users } from 'lucide-react';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { RestaurantSelect } from '../common/restaurant-select';
-import DateFilterInput from '@/components/finance/date-filter-input';
 import { useAccompteQuery } from '@/features/recouvrements/queries/accompte.query';
 import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
-import { flexRender } from '@tanstack/react-table';
+import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { accompteColumns } from '@/features/recouvrements/columns/accompte-columns';
 import { DateRange } from 'react-day-picker';
-import { IAccompte } from '@/features/recouvrements/types/accompte.types';
 
 interface AccompteTabsContentProps {
   restoOpts?: Array<{ label: string; value: string }>;
@@ -26,9 +23,17 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
     from: new Date('2026-03-01'),
     to: new Date('2026-03-31'),
   });
-  
+  const [filters, setFilters] = useState({
+    page: 0,
+    size: 10,
+  });
+
   // Utiliser l'API réelle avec tous les filtres
-  const { data: accomptesData, isLoading, error } = useAccompteQuery({
+  const {
+    data: accomptesData,
+    isLoading,
+    isFetching,
+  } = useAccompteQuery({
     page: 0,
     limit: 20,
     restaurantId: selectedRestaurant || undefined,
@@ -37,24 +42,39 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
     statuts: selectedStatuts.length > 0 ? selectedStatuts : undefined,
   });
 
+  const pagination = {
+    pageCount: accomptesData?.totalPages || 1,
+    page: filters.page,
+    pageSize: filters.size,
+    handlePageChange: (newPage: number) => setFilters({ page: newPage - 1, size: 10 }),
+  };
+
+  const table = useReactTable({
+    data: accomptesData?.content || [],
+    columns: accompteColumns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    pageCount: pagination?.pageCount ?? -1,
+  });
+
   const accomptes = accomptesData?.content || [];
-  const pagination = accomptesData?.pageable;
 
   // Calcul des statistiques à partir des données réelles
   const stats = {
     totalAccompte: accomptes.reduce((sum, a) => sum + a.montant, 0),
     nombreAccomptes: accomptes.length,
-    accompteValides: accomptes.filter(a => a.montant > 0).reduce((sum, a) => sum + a.montant, 0),
-    accompteEnAttente: accomptes.filter(a => a.montant === 0).length,
+    accompteValides: accomptes.filter((a) => a.montant > 0).reduce((sum, a) => sum + a.montant, 0),
+    accompteEnAttente: accomptes.filter((a) => a.montant === 0).length,
   };
 
-  const handleDateChange = (value: DateRange | undefined) => {
-    setDateRange(value);
-  };
-
-  const handleStatutsChange = (statuts: string[] | null) => {
-    setSelectedStatuts(statuts || []);
-  };
+  // const handleDateChange = (value: DateRange | undefined) => {
+  //   setDateRange(value);
+  // };
+  //
+  // const handleStatutsChange = (statuts: string[] | null) => {
+  //   setSelectedStatuts(statuts || []);
+  // };
 
   return (
     <div className="space-y-6">
@@ -77,9 +97,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Accompte</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {formatCFA(stats.totalAccompte)}
-                </p>
+                <p className="text-2xl font-bold text-green-600">{formatCFA(stats.totalAccompte)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-600" />
             </div>
@@ -90,10 +108,8 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Nombre d'Accomptes</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {stats.nombreAccomptes}
-                </p>
+                <p className="text-sm font-medium text-gray-600">Nombre d&#39;Accomptes</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.nombreAccomptes}</p>
               </div>
               <Users className="h-8 w-8 text-blue-600" />
             </div>
@@ -105,9 +121,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Accomptes Validés</p>
-                <p className="text-2xl font-bold text-purple-600">
-                  {formatCFA(stats.accompteValides)}
-                </p>
+                <p className="text-2xl font-bold text-purple-600">{formatCFA(stats.accompteValides)}</p>
               </div>
               <Calendar className="h-8 w-8 text-purple-600" />
             </div>
@@ -119,9 +133,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">En attente</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {stats.accompteEnAttente}
-                </p>
+                <p className="text-2xl font-bold text-orange-600">{stats.accompteEnAttente}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-orange-600" />
             </div>
@@ -136,40 +148,44 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <Table>
+            <Table
+              bottomContent={
+                pagination &&
+                pagination.pageCount > 1 && (
+                  <div className="flex justify-center pt-4 sm:pt-6">
+                    <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} color="primary" />
+                  </div>
+                )
+              }
+            >
               <TableHeader>
-                {accompteColumns.map((column) => (
-                  <TableColumn className="text-primary" key={column.id} allowsSorting={column.enableSorting}>
-                    {column.header as string}
+                {table.getFlatHeaders().map((header) => (
+                  <TableColumn key={header.id} className="text-primary" allowsSorting={header.column.getCanSort()} onClick={header.column.getToggleSortingHandler()}>
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableColumn>
                 ))}
               </TableHeader>
-              <TableBody>
+              <TableBody emptyContent={'Aucun résultat trouvé'}>
                 {isLoading
                   ? Array.from({ length: 10 }).map((_, i) => (
                       <TableRow key={`skeleton-${i}`}>
-                        {accompteColumns.map((col) => (
-                          <TableCell key={`skeleton-cell-${col.id}`} className="h-12">
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                        {Array.from({ length: table.getAllColumns().length }).map((_, j) => (
+                          <TableCell key={`skeleton-cell-${j}`} className="h-12">
+                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
                           </TableCell>
                         ))}
                       </TableRow>
                     ))
-                  : accomptes.map((accompte: any) => (
-                      <TableRow key={accompte.id}>
-                        {accompteColumns.map((column) => (
-                          <TableCell key={column.id}>
-                            {column.cell && typeof column.cell === 'function' 
-                              ? column.cell({ original: accompte } as any) 
-                              : column.id && accompte[column.id as keyof IAccompte]
-                            }
-                          </TableCell>
+                  : table.getRowModel().rows.map((row) => (
+                      <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFetching ? 'opacity-70' : ''}>
+                        {row.getVisibleCells().map((cell) => (
+                          <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                         ))}
                       </TableRow>
                     ))}
               </TableBody>
             </Table>
-            
+
             {/* Pagination */}
             {accomptesData && accomptesData.totalPages > 1 && (
               <div className="flex justify-center pt-4">
@@ -191,7 +207,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
                     if (currentSearchParams.debut) params.append('debut', currentSearchParams.debut.toISOString().split('T')[0]);
                     if (currentSearchParams.fin) params.append('fin', currentSearchParams.fin.toISOString().split('T')[0]);
                     if (currentSearchParams.statuts) {
-                      currentSearchParams.statuts.forEach(statut => params.append('statuts', statut));
+                      currentSearchParams.statuts.forEach((statut) => params.append('statuts', statut));
                     }
                     params.append('page', (page - 1).toString());
                     params.append('limit', '10');

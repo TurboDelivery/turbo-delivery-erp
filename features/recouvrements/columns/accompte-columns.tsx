@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import React from 'react';
 
 // Composant mémorisé pour les actions
@@ -38,7 +37,8 @@ export const accompteColumns: ColumnDef<IAccompte>[] = [
     accessorKey: 'dateAccompte',
     header: 'Date',
     cell: ({ row }) => {
-      const date = new Date(row.original.dateAccompte);
+      console.log(row.original);
+      const date = new Date(row.getValue('dateAccompte'));
       return format(date, 'dd/MM/yyyy');
     },
     enableSorting: false,
@@ -48,60 +48,58 @@ export const accompteColumns: ColumnDef<IAccompte>[] = [
     accessorKey: 'montant',
     header: 'Montant',
     cell: ({ row }) => {
-      const montant = row.original.montant;
+      const montant = row.getValue('montant') as number;
       return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(montant);
     },
     enableSorting: false,
   },
   {
-    id: 'commentaire',
-    accessorKey: 'commentaire',
-    header: 'Commentaire',
-    cell: ({ row }) => row.original.commentaire || '-',
-    enableSorting: false,
+    id: 'nomRestaurant',
+    accessorKey: 'nomRestaurant',
+    header: 'Partenaire',
   },
-  {
-    id: 'statut',
-    header: 'Statut',
-    cell: ({ row }) => {
-      // Le statut peut être déduit du montant (0 = en attente, > 0 = validé)
-      const montant = row.original.montant;
-      let statut: string;
-      
-      if (montant > 0) {
-        statut = 'validé';
-      } else if (montant === 0) {
-        statut = 'en_attente';
-      } else {
-        statut = 'inconnu';
-      }
-      
-      const getStatutVariant = (statutValue: string) => {
-        switch (statutValue) {
-          case 'validé':
-            return 'default' as const;
-          case 'en_attente':
-            return 'secondary' as const;
-          case 'rejeté':
-            return 'destructive' as const;
-          default:
-            return 'secondary' as const;
-        }
-      };
-
-      return (
-        <Badge variant={getStatutVariant(statut)}>
-          {statut === 'validé' ? 'Validé' : 
-           statut === 'en_attente' ? 'En attente' : 
-           statut === 'rejeté' ? 'Rejeté' : statut}
-        </Badge>
-      );
-    },
-    enableSorting: false,
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => <AccompteActions accompte={row.original} />,
-    enableSorting: false,
-  },
+  // {
+  //   id: 'statut',
+  //   header: 'Statut',
+  //   cell: ({ row }) => {
+  //     // Le statut peut être déduit du montant (0 = en attente, > 0 = validé)
+  //     const montant = row.getValue('montant') as number;
+  //     let statut: string;
+  //
+  //     if (montant > 0) {
+  //       statut = 'validé';
+  //     } else if (montant === 0) {
+  //       statut = 'en_attente';
+  //     } else {
+  //       statut = 'inconnu';
+  //     }
+  //
+  //     const getStatutVariant = (statutValue: string) => {
+  //       switch (statutValue) {
+  //         case 'validé':
+  //           return 'default' as const;
+  //         case 'en_attente':
+  //           return 'secondary' as const;
+  //         case 'rejeté':
+  //           return 'destructive' as const;
+  //         default:
+  //           return 'secondary' as const;
+  //       }
+  //     };
+  //
+  //     return (
+  //       <Badge variant={getStatutVariant(statut)}>
+  //         {statut === 'validé' ? 'Validé' :
+  //          statut === 'en_attente' ? 'En attente' :
+  //          statut === 'rejeté' ? 'Rejeté' : statut}
+  //       </Badge>
+  //     );
+  //   },
+  //   enableSorting: false,
+  // },
+  // {
+  //   id: 'actions',
+  //   cell: ({ row }) => <AccompteActions accompte={row.original} />,
+  //   enableSorting: false,
+  // },
 ];

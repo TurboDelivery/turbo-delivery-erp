@@ -3,6 +3,7 @@ export interface IAccompte {
   createdAt: string;
   updatedAt: string;
   restaurantId: string;
+  nomRestaurant: string;
   montant: number;
   dateAccompte: string;
   commentaire: string;
