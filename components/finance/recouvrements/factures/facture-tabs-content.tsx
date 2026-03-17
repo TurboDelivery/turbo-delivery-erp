@@ -30,13 +30,6 @@ export function FactureTabsContent({ restoOpts, isOptionsLoading }: FactureTabsC
     <Card className="flex flex-col gap-4">
       <CardHeader className="flex flex-wrap">
         <h2 className="text-lg font-medium">Factures</h2>
-        <RestaurantSelect
-          value={filters.restaurantId}
-          onChange={handleRestaurantFilterChange}
-          options={restoOpts}
-          isLoading={isOptionsLoading}
-          placeholder="Restaurant"
-        />
       </CardHeader>
       <CardContent className="space-y-4">
         <FactureTable 

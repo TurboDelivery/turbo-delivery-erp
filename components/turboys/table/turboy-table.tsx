@@ -12,6 +12,18 @@ const TURBOY_TYPES: { value: TurboyType; label: string }[] = [
   { value: 'JOURNALIER', label: 'Journalier' },
 ];
 
+const getRowTypeClass = (typeLivreur?: TurboyType) => {
+  if (typeLivreur === 'INDEPENDANT') {
+    return 'bg-violet-50/70 dark:bg-violet-900/20 hover:bg-violet-100/70 dark:hover:bg-violet-900/30';
+  }
+
+  if (typeLivreur === 'JOURNALIER') {
+    return 'bg-sky-50/70 dark:bg-sky-900/20 hover:bg-sky-100/70 dark:hover:bg-sky-900/30';
+  }
+
+  return 'hover:bg-gray-50 dark:hover:bg-gray-800/40';
+};
+
 export function TurboyTable() {
   const { table, isLoading, turboysData, filters, setFilters } = useTurboyTable();
 
@@ -101,7 +113,7 @@ export function TurboyTable() {
                       </TableRow>
                     ))
                   : table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id} className="hover:bg-gray-50">
+                      <TableRow key={row.id} className={getRowTypeClass(row.original.typeLivreur)}>
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id} className="px-2 py-1 text-xs whitespace-nowrap">
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
