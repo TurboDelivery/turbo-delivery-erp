@@ -90,10 +90,10 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
     },
   },
   {
-    accessorKey: 'type',
+    accessorKey: 'typeLivreur',
     header: 'Type',
     cell: ({ row }) => {
-      const type = row.original.type;
+      const type = row.original.typeLivreur;
       return (
         <Chip color={getTypeColor(type)} size="sm" variant="flat">
           {getTypeLabel(type)}

@@ -42,7 +42,7 @@ export function UpdateTurboyTypeModal({ isOpen, onOpenChange, turboy }: UpdateTu
     mode: 'onChange',
     defaultValues: {
       id: turboy?.id || '',
-      typeLivreur: turboy?.type,
+      typeLivreur: turboy?.typeLivreur,
       salaire: turboy?.salaire,
     },
   });
@@ -65,7 +65,7 @@ export function UpdateTurboyTypeModal({ isOpen, onOpenChange, turboy }: UpdateTu
   useEffect(() => {
     if (turboy && isOpen) {
       setValue('id', turboy.id);
-      setValue('typeLivreur', turboy.type);
+      setValue('typeLivreur', turboy.typeLivreur);
       setValue('salaire', turboy.salaire);
     }
   }, [turboy, isOpen, setValue]);

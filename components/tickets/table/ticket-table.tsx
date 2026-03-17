@@ -149,7 +149,13 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
     [newTickets, ticketsData, applyTicketPatch, setEditedTickets],
   );
 
-  const getDisplayTicket = useCallback((ticket: Ticket): Ticket => editedTickets.get(ticket.id) ?? ticket, [editedTickets]);
+  const getDisplayTicket = useCallback(
+    (ticket: Ticket): Ticket => {
+      if (!editingIds.has(ticket.id)) return ticket;
+      return editedTickets.get(ticket.id) ?? ticket;
+    },
+    [editingIds, editedTickets],
+  );
 
   const handleSaveNewTicket = useCallback(
     (id: string) => {

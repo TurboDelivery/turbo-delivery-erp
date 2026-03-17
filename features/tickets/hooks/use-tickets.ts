@@ -22,6 +22,14 @@ export default function useTickets() {
       newSet.delete(id);
       return newSet;
     });
+
+    // Drop draft values when user cancels edit mode.
+    setEditedTickets((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Map(prev);
+      next.delete(id);
+      return next;
+    });
   };
 
   const currentSearchParams: ITicketParams = useMemo(() => {

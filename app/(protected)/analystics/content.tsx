@@ -151,14 +151,7 @@ export default function Content({ initialItems }: { initialItems: Record<string,
               </CardBody>
             </Card>
           </div>
-          <DatabaseCards
-            items={[
-              { label: 'Partenaire Actif', value: items?.restaurants?.totalElements ?? 0 },
-              { label: 'Turboys', value: items?.deliveryMen?.totalElements ?? 0 },
-              { label: 'Personnel TURBO', value: items?.users?.totalElements ?? 0 },
-              { label: 'Utilisateurs Actifs', value: items?.typePlats?.length ?? 0 },
-            ]}
-          />
+          <DatabaseCards />
         </div>
         <div className="space-y-6">
           <SourcesCard />

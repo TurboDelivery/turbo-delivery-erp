@@ -15,7 +15,7 @@ export interface ITurboy {
   immatriculation: string | null;
   matricule: string | null;
   deleted: boolean;
-  type: TurboyType;
+  typeLivreur: TurboyType;
   cniUrlR: string | null;
   cniUrlV: string | null;
   status: number;
