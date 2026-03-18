@@ -29,6 +29,7 @@ export const useInvalidateEmployeeQuery = () => {
   const queryClient = useQueryClient();
 
   return async (...params: any[]) => {
+    // Invalider les queries des employés
     await queryClient.invalidateQueries({
       queryKey: employeeKeyQuery(...params),
       exact: false
@@ -37,6 +38,18 @@ export const useInvalidateEmployeeQuery = () => {
     await queryClient.refetchQueries({
       queryKey: employeeKeyQuery(),
       type: 'active'
+    });
+
+    // Invalider les statistiques de salaire
+    await queryClient.invalidateQueries({
+      queryKey: ['employee-salary-stats'],
+      exact: false
+    });
+
+    // Invalider les statistiques filtrées
+    await queryClient.invalidateQueries({
+      queryKey: ['employee-stats'],
+      exact: false
     });
   };
 };
