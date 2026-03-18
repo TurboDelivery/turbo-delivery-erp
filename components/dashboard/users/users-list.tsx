@@ -11,18 +11,32 @@ import UsersAdd from './users-add';
 import UsersTools from './users-tools';
 import { Chip } from '@heroui/react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import PaginationBlock from '@/components/pagination-block';
 
 const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
   const [value, setValue] = useState<'list' | 'grid'>('list');
-
+  const [currentPage, setCurrentPage] = useState<number>(0);
   const [search, setSearch] = useState<string>('');
 
+  // Filtrer les utilisateurs selon la recherche
   const filteredItems = users?.content.filter((user) => user.nom.toLowerCase().includes(search.toLowerCase()) || user.prenoms.toLowerCase().includes(search.toLowerCase())) || [];
+
+  // Calculer les informations de pagination pour les données filtrées
+  const totalFilteredItems = filteredItems.length;
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(totalFilteredItems / itemsPerPage);
+  const startIndex = currentPage * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalFilteredItems);
+  const paginatedItems = filteredItems.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-xl">Utilisateurs : {filteredItems.length}</h2>
+        <h2 className="text-xl">Utilisateurs : {totalFilteredItems} (Page {currentPage + 1} sur {totalPages})</h2>
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
           <div className="flex gap-3">
             <div>
@@ -41,7 +55,7 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
           </div>
           <div className="relative">
             <input type="text" placeholder="Rechercher des utilisateurs" className="peer form-input py-2 ltr:pr-11 rtl:pl-11" value={search} onChange={(e) => setSearch(e.target.value)} />
-            <button type="button" className="absolute top-1/2 -translate-y-1/2 peer-focus:text-primary ltr:right-[11px] rtl:left-[11px]">
+            <button type="button" className="absolute top-1/2 -translate-y-1/2 peer-focus:text-primary ltr:right-[11px] rtl:left-[11px]" disabled>
               <IconSearch className="mx-auto" />
             </button>
           </div>
@@ -61,7 +75,7 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredItems.map((user: User) => (
+              {paginatedItems.map((user: User) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -85,7 +99,7 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
 
       {value === 'grid' && (
         <div className="mt-5 grid w-full grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {filteredItems.map((user: User) => {
+          {paginatedItems.map((user: User) => {
             return (
               <div className="relative overflow-hidden rounded-md bg-white text-center shadow dark:bg-[#1c232f]" key={user.id}>
                 <div className="relative overflow-hidden rounded-md bg-white text-center shadow dark:bg-[#1c232f]">
@@ -132,6 +146,17 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
               </div>
             );
           })}
+        </div>
+      )}
+      
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex justify-center">
+          <PaginationBlock 
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
         </div>
       )}
     </div>
