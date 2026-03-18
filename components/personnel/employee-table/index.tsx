@@ -51,7 +51,8 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
     'DEVELOPPEUR',
     'CM - MARKETING',
     'SECRETAIRE DE DIRECTION',
-    'Turboy Journalier'
+    'Turboy Journalier',
+    "ménagère"
   ];
 
   const { table, isLoading, isFetching, pagination, filters, setSelectedDepartments, setSelectedStatuts, setSelectedPostes, handleSearchChange } = useEmployeeTableNew({
