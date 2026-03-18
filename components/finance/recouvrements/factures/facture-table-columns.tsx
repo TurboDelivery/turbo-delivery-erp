@@ -76,16 +76,7 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
     cell: ({ row }) => <span className="font-bold">{formatCFA(row.original.montant || 0)}</span>,
   },
   {
-    accessorKey: 'montantRegle',
-    header: 'Montant Réglé',
-    cell: ({ row }) => (
-      <span className="font-semibold text-green-600">
-        {formatCFA(row.original.montantRegle || 0)}
-      </span>
-    ),
-  },
-  {
-    accessorKey: 'montantRestant',
+    accessorKey: 'restant',
     header: 'Montant Restant',
     cell: ({ row }) => {
       const montantRestant = (row.original.montant || 0) - (row.original.montantRegle || 0);
