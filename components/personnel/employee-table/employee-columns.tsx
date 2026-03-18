@@ -12,29 +12,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useModifierEmployeMutation, useSupprimerEmployeMutation } from '@/features/personnel/mutations/employee.mutation';
+import { useModifierEmployeMutation, useSupprimerEmployeMutation, useChangeStatusMutation } from '@/features/personnel/mutations/employee.mutation';
 import { Employee } from '@/features/personnel/types/types';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 import React from 'react';
-
-// Fonction pour formater le statut
-const formatStatut = (statut: Employee['statut']): {
-  label: string;
-  variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'square' | null | undefined;
-} => {
-  switch (statut) {
-    case 'Actif':
-      return { label: 'Actif', variant: 'default' };
-    case 'Inactif':
-      return { label: 'Inactif', variant: 'destructive' };
-    case 'Congé':
-      return { label: 'Congé', variant: 'secondary' };
-    default:
-      return { label: statut, variant: 'outline' };
-  }
-};
 
 // Composant mémorisé pour les actions
 const EmployeeActions = React.memo(({ 
@@ -50,20 +33,22 @@ const EmployeeActions = React.memo(({
 }) => {
   const modifierEmployeMutation = useModifierEmployeMutation();
   const supprimerEmployeMutation = useSupprimerEmployeMutation();
+  const changeStatusMutation = useChangeStatusMutation();
 
   const handleEdit = () => {
     onEdit(employee);
   };
 
   const handleDeactivate = () => {
-    onDeactivate(employee);
-    modifierEmployeMutation.mutate({
+    const newStatus = employee.statut === 'Actif' ? 'Inactif' : 'Actif';
+    
+    // Utiliser la mutation changeStatus au lieu de modifierEmploye
+    changeStatusMutation.mutate({
       id: employee.id,
-      data: {
-        ...employee,
-        statut: employee.statut === 'Actif' ? 'Inactif' : 'Actif'
-      }
+      status: newStatus
     });
+    
+    onDeactivate(employee);
   };
 
   const handleRemove = () => {
@@ -103,6 +88,9 @@ const EmployeeActions = React.memo(({
             onClick={handleDeactivate}
           >
             <span>{employee.statut === 'Actif' ? 'Désactiver' : 'Activer'}</span>
+            {changeStatusMutation.isPending && (
+              <span className="ml-2 text-xs text-gray-500">...</span>
+            )}
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
@@ -194,11 +182,28 @@ export const employeeColumns: ColumnDef<Employee>[] = [
     accessorKey: 'statut',
     header: 'Statut',
     cell: ({ row }) => {
-      const statutInfo = formatStatut(row.original.statut);
+      const statut = row.original.statut;
+      let badgeClass = '';
+      let label = statut;
+
+      switch (statut) {
+        case 'Actif':
+          badgeClass = 'bg-green-600 text-white border-green-300';
+          break;
+        case 'Inactif':
+          badgeClass = 'bg-primary text-white border-primary';
+          break;
+        case 'Congé':
+          badgeClass = 'bg-yellow-500 text-white border-yellow-200';
+          break;
+        default:
+          badgeClass = 'bg-gray-100 text-gray-800 border-gray-200';
+      }
+
       return (
-        <Badge variant={statutInfo.variant}>
-          {statutInfo.label}
-        </Badge>
+        <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${badgeClass}`}>
+          {label}
+        </div>
       );
     },
     enableSorting: false,

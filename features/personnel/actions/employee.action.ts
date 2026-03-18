@@ -56,3 +56,21 @@ export const supprimerEmployeAction = async (id: string) => {
     };
   }
 };
+
+export const changeStatusAction = async (id: string, status: string) => {
+  try {
+    const result = await employeeAPI.changeStatus(id, status);
+    return {
+      success: true,
+      data: result,
+      error: null
+    };
+  } catch (error) {
+    console.error('Erreur changeStatusAction:', error);
+    return {
+      success: false,
+      data: null,
+      error: error instanceof Error ? error.message : 'Erreur inconnue'
+    };
+  }
+};

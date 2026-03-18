@@ -13,6 +13,7 @@ export interface IEmployeeAPI {
   obtenirStatsEmployes(params: IEmployeeStatsParams): Promise<IEmployeeStats>;
   exporterEmployesExcel(params: IEmployeeParams): Promise<Blob>;
   employesStats(): Promise<IEmployeeSalaryStats>;
+  changeStatus(id: string, status: string): Promise<Employee>;
 }
 
 export interface IEmployeeParams {
@@ -158,6 +159,14 @@ export const employeeAPI: IEmployeeAPI = {
     return api.request<IEmployeeSalaryStats>({
       endpoint: `/erp/employees/stats`,
       method: 'GET',
+    });
+  },
+  
+  async changeStatus(id: string, status: string): Promise<Employee> {
+    return api.request<Employee>({
+      endpoint: `/erp/employees/${id}/status`,
+      method: 'PATCH',
+      data: { status },
     });
   },
 };

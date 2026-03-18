@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { ajouterEmployeAction, modifierEmployeAction, supprimerEmployeAction } from '../actions/employee.action';
+import { ajouterEmployeAction, modifierEmployeAction, supprimerEmployeAction, changeStatusAction } from '../actions/employee.action';
 
 import { toast } from 'sonner';
 import { processAndValidateFormData } from 'ak-zod-form-kit';
@@ -79,9 +79,9 @@ export const useModifierEmployeMutation = () => {
       toast.success('Employé modifié avec succès');
     },
     onError: async (error) => {
-      toast.error('Erreur modification employé:', {
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
-      });
+      // toast.error('Erreur modification employé:', {
+      //   description: error instanceof Error ? error.message : 'Erreur inconnue',
+      // });
     },
   });
 };
@@ -105,6 +105,35 @@ export const useSupprimerEmployeMutation = () => {
     },
     onError: async (error) => {
       toast.error('Erreur suppression employé:', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+export const useChangeStatusMutation = () => {
+  const invalidateEmployeeQuery = useInvalidateEmployeeQuery();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      if (!id) {
+        throw new Error("L'identifiant de l'employé est requis.");
+      }
+      if (!status) {
+        throw new Error("Le statut est requis.");
+      }
+      const result = await changeStatusAction(id, status);
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors du changement de statut de l\'employé');
+      }
+      return result.data!;
+    },
+    onSuccess: async (_, variables) => {
+      await invalidateEmployeeQuery();
+      const statusText = variables.status === 'Actif' ? 'activé' : 'désactivé';
+      toast.success(`Employé ${statusText} avec succès`);
+    },
+    onError: async (error) => {
+      toast.error('Erreur changement de statut:', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },
