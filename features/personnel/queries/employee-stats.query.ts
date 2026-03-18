@@ -51,7 +51,9 @@ export const useEmployeeStatsQuery = (params: EmployeeStatsParams) => {
         // Filtrer par postes
         if (params.postes && params.postes.length > 0) {
           filteredEmployees = filteredEmployees.filter(employee => 
-            params.postes!.includes(employee.position || '')
+            params.postes!.some(poste => 
+              poste.toLowerCase() === (employee.position || '').toLowerCase()
+            )
           );
         }
         

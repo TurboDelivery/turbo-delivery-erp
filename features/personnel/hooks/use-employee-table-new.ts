@@ -56,71 +56,39 @@ export const useEmployeeTableNew = (externalFilters?: EmployeeFilters) => {
   }, [filters?.orderBy, filters?.orderDirection]);
 
   const currentSearchParams = useMemo(() => {
-    return {
+    // Utiliser les filtres côté serveur directement
+    const params = {
       page: currentFilters?.page ?? 0,
       limit: currentFilters?.limit ?? 20,
       debut: currentFilters.debut,
       fin: currentFilters.fin,
       orderBy: currentFilters.orderBy,
       orderDirection: currentFilters.orderDirection as 'asc' | 'desc' | undefined,
+      // Ajouter les filtres pour l'API
+      position: currentFilters.postes?.length ? currentFilters.postes[0] : undefined, // L'API semble prendre un seul poste
+      department: currentFilters.departments?.length ? currentFilters.departments[0] : undefined, // L'API semble prendre un seul département
+      search: currentFilters.search,
     };
-  }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.orderBy, currentFilters.orderDirection]);
+    
+    console.log('🔍 Debug - Paramètres API avec filtres:', params);
+    
+    return params;
+  }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.orderBy, currentFilters.orderDirection, currentFilters.departments, currentFilters.statuts, currentFilters.postes, currentFilters.search]);
 
   const { data: employeesData, isLoading: employeesLoading, error, isError, isFetching } = useEmployeeListQuery(currentSearchParams);
   const employees = employeesData?.content || [];
 
-  // Filtrer les employés selon les filtres appliqués
+  // Plus besoin de filtrer localement, l'API s'en charge
   const filteredEmployees = useMemo(() => {
-    let filtered = employees;
+    console.log('🔍 Debug - Total employés chargés depuis API:', employees.length);
+    return employees;
+  }, [employees]);
 
-    // Filtrer par recherche
-    if (currentFilters.search && currentFilters.search.trim()) {
-      const searchTerm = currentFilters.search.toLowerCase().trim();
-      filtered = filtered.filter(employee => 
-        employee.name?.toLowerCase().includes(searchTerm) ||
-        employee.email?.toLowerCase().includes(searchTerm) ||
-        employee.position?.toLowerCase().includes(searchTerm) ||
-        employee.department?.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    if (currentFilters.departments && currentFilters.departments.length > 0) {
-      filtered = filtered.filter(employee => 
-        currentFilters.departments?.includes(employee.department || '')
-      );
-    }
-
-    if (currentFilters.statuts && currentFilters.statuts.length > 0) {
-      filtered = filtered.filter(employee => 
-        currentFilters.statuts?.includes(employee.statut || '')
-      );
-    }
-
-    if (currentFilters.postes && currentFilters.postes.length > 0) {
-      filtered = filtered.filter(employee => 
-        currentFilters.postes?.includes(employee.position || '')
-      );
-    }
-
-    return filtered;
-  }, [employees, currentFilters.search, currentFilters.departments, currentFilters.statuts, currentFilters.postes]);
-
-  // Simuler la pagination pour les données filtrées
-  const paginatedFilteredEmployees = useMemo(() => {
-    const startIndex = (currentFilters?.page ?? 0) * (currentFilters?.limit ?? 20);
-    const endIndex = startIndex + (currentFilters?.limit ?? 20);
-    return filteredEmployees.slice(startIndex, endIndex);
-  }, [filteredEmployees, currentFilters?.page, currentFilters?.limit]);
-
-  // Recalculer la pagination pour les données filtrées
-  const filteredPagination = useMemo(() => {
-    const totalItems = filteredEmployees.length;
-    const pageSize = currentFilters?.limit ?? 20;
-    const totalPages = Math.ceil(totalItems / pageSize);
-    
+  // Utiliser directement la pagination de l'API
+  const pagination = useMemo(() => {
     return {
-      pageCount: totalPages,
-      totalItems,
+      pageCount: employeesData?.totalPages || 0,
+      totalItems: employeesData?.totalElements || 0,
       page: currentFilters?.page ?? 0,
       handlePageChange: (page: number) => {
         setFilters((prev) => ({
@@ -129,22 +97,7 @@ export const useEmployeeTableNew = (externalFilters?: EmployeeFilters) => {
         }));
       },
     };
-  }, [filteredEmployees, currentFilters?.page, currentFilters?.limit]);
-
-  // Utiliser la pagination filtrée si filtres locaux, sinon pagination API
-  const pagination = (currentFilters.departments || currentFilters.statuts || currentFilters.postes || currentFilters.search) 
-    ? filteredPagination 
-    : {
-        pageCount: employeesData?.totalPages || 0,
-        totalItems: employeesData?.totalElements || 0,
-        page: currentFilters?.page ?? 0,
-        handlePageChange: (page: number) => {
-          setFilters((prev) => ({
-            ...prev,
-            page: page - 1,
-          }));
-        },
-      };
+  }, [employeesData, currentFilters?.page]);
 
   const isLoading = employeesLoading;
 
@@ -197,7 +150,7 @@ export const useEmployeeTableNew = (externalFilters?: EmployeeFilters) => {
 
   const table = useReactTable({
     columns: employeeColumns,
-    data: (currentFilters.departments || currentFilters.statuts || currentFilters.postes || currentFilters.search) ? paginatedFilteredEmployees : employees,
+    data: employees, // Utiliser directement les données de l'API (déjà filtrées)
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualSorting: true,
@@ -243,7 +196,7 @@ export const useEmployeeTableNew = (externalFilters?: EmployeeFilters) => {
     isError,
     isFetching,
     setFilters: syncedSetFilters,
-    employees: (currentFilters.departments || currentFilters.statuts || currentFilters.postes || currentFilters.search) ? paginatedFilteredEmployees : employees,
+    employees: employees, // Utiliser directement les données de l'API
     employeesData,
     error,
     filters: currentFilters,
