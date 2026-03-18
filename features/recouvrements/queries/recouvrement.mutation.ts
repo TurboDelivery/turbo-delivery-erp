@@ -24,15 +24,10 @@ export const useAjouterRecouvrementMutation = () => {
     mutationFn: async (data: RecouvrementSubmissionData) => {
       const formData = new FormData();
 
-      const dto = {
-        montant: data.montant,
-        dateRecouvrement: data.dateRecouvrement.toISOString().split('T')[0],
-        restaurantId: data.factureDetails.id,
-        nomRestaurant: data.factureDetails.nomRestaurant,
-        preuve: '',
-      };
-
-      formData.append('dto', new Blob([JSON.stringify(dto)], { type: 'application/json' }));
+      formData.append('montant', data.montant.toString());
+      formData.append('dateRecouvrement', data.dateRecouvrement.toISOString().split('T')[0]);
+      formData.append('restaurantId', data.factureDetails.id);
+      formData.append('nomRestaurant', data.factureDetails.nomRestaurant);
       formData.append('preuve', data.preuve, data.preuve.name);
 
       return await recouvrementAPI.ajouterRecouvrement(formData);
@@ -58,13 +53,9 @@ export const useModifierRecouvrementMutation = () => {
 
       const formData = new FormData();
 
-      const dto: Record<string, unknown> = {
-        montant: data.montant,
-        dateRecouvrement: data.dateRecouvrement.toISOString().split('T')[0],
-        restaurantId: data.restaurantId,
-      };
-
-      formData.append('dto', new Blob([JSON.stringify(dto)], { type: 'application/json' }));
+      formData.append('montant', data.montant.toString());
+      formData.append('dateRecouvrement', data.dateRecouvrement.toISOString().split('T')[0]);
+      formData.append('restaurantId', data.restaurantId);
 
       if (data.preuve) {
         formData.append('preuve', data.preuve, data.preuve.name);
