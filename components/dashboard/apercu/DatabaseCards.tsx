@@ -2,10 +2,11 @@ import { title } from '@/components/primitives';
 import { Card, CardBody, CardHeader, Divider, Skeleton } from '@heroui/react';
 import { TurboysButton } from '@/components/dashboard/apercu/TurboysButton';
 import { usePersonnelStatsQuery } from '@/features/dashboard/queries/personnel-stats.query';
+import { useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
 
 export default function DatabaseCards() {
   const { data, isLoading, isError } = usePersonnelStatsQuery({});
-
+const { data: salaryStatsData, isLoading: salaryStatsLoading } = useEmployeeSalaryStatsQuery();
   if (isLoading) {
     return (
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -45,7 +46,7 @@ export default function DatabaseCards() {
   const statsItems = [
     { label: 'Partenaire Actif', value: data?.partenaireActif ?? 0 },
     { label: 'Turboys', value: data?.turboys ?? 0 },
-    { label: 'Personnel TURBO', value: data?.personnel ?? 0 },
+    { label: 'Personnel TURBO', value: salaryStatsData?.totalEmployees ?? 0 },
     { label: 'Utilisateurs Actifs', value: data?.utilisateurs ?? 0 },
   ];
 
