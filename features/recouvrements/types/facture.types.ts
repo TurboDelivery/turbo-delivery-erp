@@ -8,7 +8,7 @@ export interface IFacture {
   periodeFin: string;
   montant: number;
   montantRegle: number; // ✅ AJOUTÉ: Montant déjà réglé
-  montantRestant: number; // ✅ AJOUTÉ: Montant restant à payer
+  restant: number; // ✅ AJOUTÉ: Montant restant à payer
   statut: string;
   createdAt: string;
   updatedAt: string;

@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Controller, useForm } from 'react-hook-form';
 import { Button } from '@heroui/react';
 import { Input } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/select';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
-import { Employee } from '../../features/personnel/types/types';
-import { useModifierEmployeMutation } from '../../features/personnel/mutations/employee.mutation';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
+import { Employee } from '@/features/personnel/types/types';
+import { useModifierEmployeMutation } from '@/features/personnel/mutations/employee.mutation';
+import { EmployeeSchema, type EmployeeDTO } from '@/features/personnel/schemas/employee.schema';
 
 interface EditEmployeeModalProps {
   isOpen: boolean;
@@ -16,6 +19,16 @@ interface EditEmployeeModalProps {
   postes: string[];
 }
 
+const DEFAULT_VALUES: EmployeeDTO = {
+  name: '',
+  email: '',
+  position: '',
+  department: '',
+  salary: 0,
+  entryDate: '',
+  statut: 'Actif',
+};
+
 export function EditEmployeeModal({ 
   isOpen, 
   onClose, 
@@ -23,68 +36,48 @@ export function EditEmployeeModal({
   departments, 
   postes 
 }: EditEmployeeModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    position: '',
-    department: '',
-    salary: '',
-    entryDate: '',
-    statut: 'Actif' as Employee['statut']
+  const modifierEmployeMutation = useModifierEmployeMutation();
+  const form = useForm<EmployeeDTO>({
+    resolver: zodResolver(EmployeeSchema),
+    defaultValues: DEFAULT_VALUES,
   });
 
-  const modifierEmployeMutation = useModifierEmployeMutation();
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = form;
 
   useEffect(() => {
-    if (employee) {
-      setFormData({
+    if (isOpen && employee) {
+      reset({
         name: employee.name,
         email: employee.email,
         position: employee.position,
         department: employee.department,
-        salary: employee.salary.toString(),
+        salary: employee.salary,
         entryDate: employee.entryDate,
-        statut: employee.statut
+        statut: employee.statut,
       });
-    }
-  }, [employee]);
-
-  const handleSubmit = () => {
-    if (!formData.name || !formData.email || !formData.position || !formData.department || !formData.salary || !formData.entryDate) {
-      alert('Veuillez remplir tous les champs');
       return;
     }
+    reset(DEFAULT_VALUES);
+  }, [employee, isOpen, reset]);
 
+  const onSubmit = async (data: EmployeeDTO) => {
     if (!employee) return;
 
-    modifierEmployeMutation.mutate({
-      id: employee.id,
-      data: {
-        name: formData.name,
-        email: formData.email,
-        position: formData.position,
-        department: formData.department,
-        salary: parseInt(formData.salary),
-        statut: formData.statut,
-        entryDate: formData.entryDate
-      }
-    });
-
-    setFormData({
-      name: '',
-      email: '',
-      position: '',
-      department: '',
-      salary: '',
-      entryDate: '',
-      statut: 'Actif'
-    });
-
-    onClose();
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    try {
+      await modifierEmployeMutation.mutateAsync({
+        id: employee.id,
+        data,
+      });
+      onClose();
+    } catch {
+      // Le toast d'erreur est déjà géré dans la mutation.
+    }
   };
 
   return (
@@ -101,7 +94,7 @@ export function EditEmployeeModal({
           <>
             <ModalHeader className="flex flex-col gap-1">
               <div className="flex justify-between items-center">
-                <span>Modifier l'employé</span>
+                <span>Modifier l&apos;employé</span>
                 <Button
                   isIconOnly
                   size="sm"
@@ -113,93 +106,143 @@ export function EditEmployeeModal({
               </div>
             </ModalHeader>
             <ModalBody>
-              <div className="space-y-4">
+              <form id="edit-employee-form" className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
                 <div className="grid grid-cols-2 gap-4">
                   <Input
                     label="Nom complet"
                     placeholder="Entrez le nom complet"
-                    value={formData.name}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('name', e.target.value)}
+                    {...register('name')}
                     variant="bordered"
+                    isInvalid={!!errors.name}
+                    errorMessage={errors.name?.message}
                   />
                   <Input
                     label="Email"
                     type="email"
                     placeholder="Entrez l'email"
-                    value={formData.email}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('email', e.target.value)}
+                    {...register('email')}
                     variant="bordered"
+                    isInvalid={!!errors.email}
+                    errorMessage={errors.email?.message}
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Select
-                    label="Fonction"
-                    placeholder="Sélectionnez une fonction"
-                    selectedKeys={formData.position ? [formData.position] : []}
-                    onSelectionChange={(keys) => handleInputChange('position', Array.from(keys)[0] as string)}
-                    variant="bordered"
-                  >
-                    {postes.map((position) => (
-                      <SelectItem key={position} value={position}>
-                        {position.toLowerCase()}
-                      </SelectItem>
-                    ))}
-                  </Select>
+                  <Controller
+                    name="position"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        label="Fonction"
+                        placeholder="Sélectionnez une fonction"
+                        selectedKeys={field.value ? [field.value] : []}
+                        onSelectionChange={(keys) => {
+                          const firstKey = Array.from(keys as Set<string>)[0];
+                          field.onChange(firstKey ? String(firstKey) : '');
+                        }}
+                        variant="bordered"
+                        isInvalid={!!errors.position}
+                        errorMessage={errors.position?.message}
+                      >
+                        {postes.map((position) => (
+                          <SelectItem key={position} value={position}>
+                            {position.toLowerCase()}
+                          </SelectItem>
+                        ))}
+                      </Select>
+                    )}
+                  />
 
-                  <Select
-                    label="Département"
-                    placeholder="Sélectionnez un département"
-                    selectedKeys={formData.department ? [formData.department] : []}
-                    onSelectionChange={(keys) => handleInputChange('department', Array.from(keys)[0] as string)}
-                    variant="bordered"
-                  >
-                    {departments.map((dept) => (
-                      <SelectItem key={dept.name} value={dept.name}>
-                        {dept.name}
-                      </SelectItem>
-                    ))}
-                  </Select>
+                  <Controller
+                    name="department"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        label="Département"
+                        placeholder="Sélectionnez un département"
+                        selectedKeys={field.value ? [field.value] : []}
+                        onSelectionChange={(keys) => {
+                          const firstKey = Array.from(keys as Set<string>)[0];
+                          field.onChange(firstKey ? String(firstKey) : '');
+                        }}
+                        variant="bordered"
+                        isInvalid={!!errors.department}
+                        errorMessage={errors.department?.message}
+                      >
+                        {departments.map((dept) => (
+                          <SelectItem key={dept.name} value={dept.name}>
+                            {dept.name}
+                          </SelectItem>
+                        ))}
+                      </Select>
+                    )}
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Salaire mensuel"
-                    type="number"
-                    placeholder="Entrez le salaire"
-                    value={formData.salary}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('salary', e.target.value)}
-                    variant="bordered"
-                    endContent="F"
+                  <Controller
+                    name="salary"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        label="Salaire mensuel"
+                        type="number"
+                        placeholder="Entrez le salaire"
+                        value={field.value ? String(field.value) : ''}
+                        onChange={(e) => field.onChange(Number(e.target.value || 0))}
+                        variant="bordered"
+                        endContent="CFA"
+                        isInvalid={!!errors.salary}
+                        errorMessage={errors.salary?.message}
+                      />
+                    )}
                   />
                   <Input
                     label="Date d'entrée"
                     type="date"
-                    value={formData.entryDate}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('entryDate', e.target.value)}
+                    {...register('entryDate')}
                     variant="bordered"
+                    isInvalid={!!errors.entryDate}
+                    errorMessage={errors.entryDate?.message}
                   />
                 </div>
 
-                <Select
-                  label="Statut"
-                  placeholder="Sélectionnez le statut"
-                  selectedKeys={[formData.statut]}
-                  onSelectionChange={(keys) => handleInputChange('statut', Array.from(keys)[0] as string)}
-                  variant="bordered"
-                >
-                  <SelectItem key="Actif" value="Actif">Actif</SelectItem>
-                  <SelectItem key="Inactif" value="Inactif">Inactif</SelectItem>
-                  <SelectItem key="Congé" value="Congé">Congé</SelectItem>
-                </Select>
-              </div>
+                <Controller
+                  name="statut"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      label="Statut"
+                      placeholder="Sélectionnez le statut"
+                      selectedKeys={field.value ? [field.value] : []}
+                      onSelectionChange={(keys) => {
+                        const firstKey = Array.from(keys as Set<string>)[0];
+                        field.onChange(firstKey ? (firstKey as Employee['statut']) : 'Actif');
+                      }}
+                      variant="bordered"
+                      isInvalid={!!errors.statut}
+                      errorMessage={errors.statut?.message}
+                    >
+                      <SelectItem key="Actif" value="Actif">Actif</SelectItem>
+                      <SelectItem key="Inactif" value="Inactif">Inactif</SelectItem>
+                      <SelectItem key="Congé" value="Congé">Congé</SelectItem>
+                    </Select>
+                  )}
+                />
+              </form>
             </ModalBody>
             <ModalFooter>
-              <Button color="danger" variant="light" onPress={onClose}>
+              <Button color="danger" variant="light" onPress={onClose} disabled={isSubmitting || modifierEmployeMutation.isPending}>
                 Annuler
               </Button>
-              <Button color="primary" onPress={handleSubmit}>
-                Modifier l'employé
+              <Button
+                color="primary"
+                type="submit"
+                form="edit-employee-form"
+                isLoading={isSubmitting || modifierEmployeMutation.isPending}
+                disabled={isSubmitting || modifierEmployeMutation.isPending}
+              >
+                {isSubmitting || modifierEmployeMutation.isPending ? 'Modification...' : 'Modifier l\'employé'}
               </Button>
             </ModalFooter>
           </>
