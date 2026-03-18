@@ -48,7 +48,8 @@ export default function PersonnelContent() {
     'DEVELOPPEUR',
     'CM - MARKETING',
     'SECRETAIRE DE DIRECTION',
-    'Turboy Journalier'
+    'Turboy Journalier',
+    'ménagère'
   ];
 
   const handleAddEmployee = (newEmployee: EmployeeCreateDTO) => {

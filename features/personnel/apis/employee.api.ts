@@ -12,6 +12,7 @@ export interface IEmployeeAPI {
   supprimerEmploye(id: string): Promise<Employee>;
   obtenirStatsEmployes(params: IEmployeeStatsParams): Promise<IEmployeeStats>;
   exporterEmployesExcel(params: IEmployeeParams): Promise<Blob>;
+  employesStats(): Promise<IEmployeeSalaryStats>;
 }
 
 export interface IEmployeeParams {
@@ -33,7 +34,11 @@ export interface IEmployeeStats {
   salaire_moyen: number;
   nombre_departements: number;
 }
-
+export interface IEmployeeSalaryStats {
+  totalEmployees: number;
+  totalSalary: number;
+  totalActiveEmployees: number;
+}
 export interface IEmployeeStatsParams {
   debut?: Date;
   fin?: Date;
@@ -146,6 +151,13 @@ export const employeeAPI: IEmployeeAPI = {
       searchParams: {
         ...params,
       } as SearchParams,
+    });
+  },
+  
+  async employesStats(): Promise<IEmployeeSalaryStats> {
+    return api.request<IEmployeeSalaryStats>({
+      endpoint: `/erp/employees/stats`,
+      method: 'GET',
     });
   },
 };

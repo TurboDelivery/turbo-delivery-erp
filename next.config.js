@@ -6,7 +6,7 @@ const nextConfig = {
     ignoreDuringBuilds: true,
 
   },
-  output: 'standalone', // Réactivé pour le build Docker
+  // output: 'standalone', // Désactivé temporairement pour le build local
   images: {
     remotePatterns: [
       {

@@ -3,7 +3,7 @@
 import { employeeColumns } from '@/components/personnel/employee-table/employee-columns';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEmployeeTableNew } from '@/features/personnel/hooks/use-employee-table-new';
-import { useEmployeeStatsQuery } from '@/features/personnel/queries';
+import { useEmployeeStatsQuery, useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { Button, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
@@ -62,7 +62,7 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
     limit: 50,
     search: '',
   });
-
+const { data: salaryStatsData, isLoading: salaryStatsLoading } = useEmployeeSalaryStatsQuery();
   // Utiliser les filtres du tableau pour les stats
   const currentSearchParams = {
     debut: filters.debut,
@@ -75,6 +75,7 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
 
   // Utiliser les mêmes filtres pour les stats
   const { data: statsData, isLoading: statsLoading } = useEmployeeStatsQuery(currentSearchParams);
+  
 
   return (
     <div className="space-y-6">
@@ -88,7 +89,7 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
               </div>
               <div>
                 <p className="text-sm text-blue-600 font-medium">Total Employés</p>
-                <p className="text-2xl font-bold text-blue-700">{statsData?.total_employees || 0}</p>
+                <p className="text-2xl font-bold text-blue-700">{salaryStatsData?.totalEmployees || 0}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -97,7 +98,7 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
               </div>
               <div>
                 <p className="text-sm text-green-600 font-medium">Masse Salariale</p>
-                <p className="text-2xl font-bold text-green-700">{formatCFA(statsData?.total_salary || 0)}</p>
+                <p className="text-2xl font-bold text-green-700">{formatCFA(salaryStatsData?.totalSalary || 0)}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -106,7 +107,7 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
               </div>
               <div>
                 <p className="text-sm text-purple-600 font-medium">Employés Actifs</p>
-                <p className="text-2xl font-bold text-purple-700">{statsData?.active_employees || 0}</p>
+                <p className="text-2xl font-bold text-purple-700">{salaryStatsData?.totalActiveEmployees || 0}</p>
               </div>
             </div>
           </div>
