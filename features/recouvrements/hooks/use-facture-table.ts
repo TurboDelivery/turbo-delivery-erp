@@ -1,4 +1,4 @@
-import { getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from '@tanstack/react-table';
+import { getCoreRowModel, SortingState, useReactTable } from '@tanstack/react-table';
 import { factureTableColumns } from '@/components/finance/recouvrements/factures/facture-table-columns';
 import { useFacturesParRestaurantQuery } from '@/features/recouvrements/queries/facture.query';
 import { useMemo } from 'react';
@@ -55,8 +55,6 @@ function useFactureTable({ restaurantId: propRestaurantId }: UseFactureTableProp
     data: facturesData?.content || [],
     columns: factureTableColumns,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
     state: {
       sorting,
     },

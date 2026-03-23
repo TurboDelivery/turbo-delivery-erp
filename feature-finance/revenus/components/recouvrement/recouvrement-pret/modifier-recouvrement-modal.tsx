@@ -5,10 +5,9 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { RecouvrementCreateDTO, recouvrementEditSchema } from '@/feature-finance/revenus/schemas/recouvrement/recouvrement.schema';
+import { RecouvrementEditDTO, recouvrementEditSchema } from '@/feature-finance/revenus/schemas/recouvrement/recouvrement.schema';
 import { useModifierRecouvrementMutation } from '@/features/recouvrements/queries/recouvrement.mutation';
 import { usePretListQuery } from '@/feature-finance/revenus/queries/prets/pret-list.query';
-import { IFacture } from '@/feature-finance/revenus/types/recouvrement/prets.types';
 import { IRecouvrement } from '@/feature-finance/revenus/types/recouvrement/recouvrement.types';
 import { RecouvrementForm } from './recouvrement-form';
 import { createUrlFile } from '@/utils/createUrlFile';
@@ -25,18 +24,35 @@ export function ModifierRecouvrementModal({ recouvrement, open, onOpenChange }: 
 
   const { data: factures = [] } = usePretListQuery({});
 
-  const form = useForm<RecouvrementCreateDTO>({
+  const form = useForm<RecouvrementEditDTO>({
     resolver: zodResolver(recouvrementEditSchema),
     defaultValues: {
       montant: recouvrement.montant,
       dateRecouvrement: new Date(recouvrement.dateRecouvrement),
       restaurantId: recouvrement.restaurantId,
+      factureId: '',
       preuve: undefined,
     },
   });
 
   const { handleSubmit, reset, setValue } = form;
   const { mutateAsync: modifierMutation, isPending: isLoading } = useModifierRecouvrementMutation();
+
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      reset({
+        montant: 0,
+        dateRecouvrement: new Date(),
+        restaurantId: '',
+        factureId: '',
+        preuve: undefined,
+      });
+      setSelectedDate(new Date());
+      setSelectedFile(null);
+    }
+
+    onOpenChange(nextOpen);
+  };
 
   // Réinitialiser le formulaire à chaque ouverture avec les données du recouvrement
   useEffect(() => {
@@ -48,18 +64,13 @@ export function ModifierRecouvrementModal({ recouvrement, open, onOpenChange }: 
         montant: recouvrement.montant,
         dateRecouvrement: date,
         restaurantId: recouvrement.restaurantId,
+        factureId: '',
         preuve: undefined,
       });
     }
   }, [open, recouvrement, reset]);
 
-  const onSubmitForm = async (data: RecouvrementCreateDTO) => {
-    const facture = factures.find((f: IFacture) => f.id == data.restaurantId);
-    if (!facture) {
-      form.setError('restaurantId', { message: 'Facture sélectionnée introuvable' });
-      return;
-    }
-
+  const onSubmitForm = async (data: RecouvrementEditDTO) => {
     await modifierMutation(
       {
         id: recouvrement.id,
@@ -67,7 +78,7 @@ export function ModifierRecouvrementModal({ recouvrement, open, onOpenChange }: 
       },
       {
         onSuccess: () => {
-          onOpenChange(false);
+          handleDialogOpenChange(false);
         },
       },
     );
@@ -88,7 +99,7 @@ export function ModifierRecouvrementModal({ recouvrement, open, onOpenChange }: 
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Modifier le recouvrement</DialogTitle>

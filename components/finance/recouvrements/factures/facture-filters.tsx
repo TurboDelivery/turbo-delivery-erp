@@ -27,18 +27,11 @@ interface FactureFiltersProps {
 const statutOptions = [
   { key: 'PAID', label: 'Payée' },
   { key: 'DRAFT', label: 'Brouillon' },
+  { key: 'PARTIAL', label: 'Partiellement payée' },
   { key: 'VALIDATED', label: 'Validée - non payée' },
 ];
 
-export function FactureFilters({
-  filters,
-  handleStatutFilterChange,
-  handlePeriodeFilterChange,
-  handleRestaurantFilterChange,
-  onReset,
-  restaurants,
-  restaurantsLoading,
-}: FactureFiltersProps) {
+export function FactureFilters({ filters, handleStatutFilterChange, handlePeriodeFilterChange, handleRestaurantFilterChange, onReset, restaurants, restaurantsLoading }: FactureFiltersProps) {
   const handleDebutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handlePeriodeFilterChange(new Date(e.target.value), filters.periodeFin);
   };
@@ -68,7 +61,7 @@ export function FactureFilters({
             placeholder="Sélectionner un restaurant"
           />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="statut-filter">Statut</Label>
           <Select
@@ -87,25 +80,15 @@ export function FactureFilters({
             ))}
           </Select>
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="debut-filter">Période Début</Label>
-          <Input
-            id="debut-filter"
-            type="date"
-            value={filters.periodeDebut.toISOString().split('T')[0] || ''}
-            onChange={handleDebutChange}
-          />
+          <Input id="debut-filter" type="date" value={filters.periodeDebut.toISOString().split('T')[0] || ''} onChange={handleDebutChange} />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="fin-filter">Période Fin</Label>
-          <Input
-            id="fin-filter"
-            type="date"
-            value={filters.periodeFin.toISOString().split('T')[0] || ''}
-            onChange={handleFinChange}
-          />
+          <Input id="fin-filter" type="date" value={filters.periodeFin.toISOString().split('T')[0] || ''} onChange={handleFinChange} />
         </div>
       </div>
     </div>

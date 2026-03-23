@@ -3,18 +3,17 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useInvalidateRecouvrementQuery } from './index.query';
-import { RecouvrementCreateDTO } from '@/feature-finance/revenus/schemas/recouvrement/recouvrement.schema';
+import { RecouvrementCreateDTO, RecouvrementEditDTO } from '@/feature-finance/revenus/schemas/recouvrement/recouvrement.schema';
 import { supprimerRecouvrementAction } from '@/feature-finance/revenus/actions/recouvrement/recouvrement.action';
-import { IFacture } from '@/feature-finance/revenus/types/recouvrement/prets.types';
 import { recouvrementAPI } from '../apis/recouvrement.api';
 
 interface RecouvrementSubmissionData extends RecouvrementCreateDTO {
-  factureDetails: IFacture;
+  nomRestaurant?: string;
 }
 
 interface RecouvrementModificationData {
   id: string;
-  data: Omit<RecouvrementCreateDTO, 'preuve'> & { preuve?: File };
+  data: Omit<RecouvrementEditDTO, 'preuve'> & { preuve?: File; nomRestaurant?: string };
 }
 
 export const useAjouterRecouvrementMutation = () => {
@@ -26,8 +25,11 @@ export const useAjouterRecouvrementMutation = () => {
 
       formData.append('montant', data.montant.toString());
       formData.append('dateRecouvrement', data.dateRecouvrement.toISOString().split('T')[0]);
-      formData.append('restaurantId', data.factureDetails.id);
-      formData.append('nomRestaurant', data.factureDetails.nomRestaurant);
+      formData.append('restaurantId', data.restaurantId);
+      formData.append('factureId', data.factureId);
+      if (data.nomRestaurant) {
+        formData.append('nomRestaurant', data.nomRestaurant);
+      }
       formData.append('preuve', data.preuve, data.preuve.name);
 
       return await recouvrementAPI.ajouterRecouvrement(formData);
@@ -56,16 +58,17 @@ export const useModifierRecouvrementMutation = () => {
       formData.append('montant', data.montant.toString());
       formData.append('dateRecouvrement', data.dateRecouvrement.toISOString().split('T')[0]);
       formData.append('restaurantId', data.restaurantId);
+      if (data.factureId) {
+        formData.append('factureId', data.factureId);
+      }
+      if (data.nomRestaurant) {
+        formData.append('nomRestaurant', data.nomRestaurant);
+      }
 
       if (data.preuve) {
         formData.append('preuve', data.preuve, data.preuve.name);
       }
 
-      const dtoBlob = formData.get('dto') as Blob;
-      dtoBlob?.text().then((text) => {
-        console.log('FormData dto avant action:', text);
-        console.log('FormData preuve avant action:', formData.get('preuve'));
-      });
 
       return await recouvrementAPI.modifierRecouvrement(id, formData);
     },

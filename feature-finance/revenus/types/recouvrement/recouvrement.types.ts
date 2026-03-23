@@ -4,6 +4,7 @@ export interface IRecouvrement {
     montant: number;
     dateRecouvrement: string;
     preuve: string;
+    factureId?: string;
     restaurantId: string;
     nomRestaurant: string;
 }

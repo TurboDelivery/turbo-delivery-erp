@@ -2,7 +2,7 @@ export const getStatutBadgeVariant = (statut: string): 'default' | 'secondary' |
   switch (statut?.toUpperCase()) {
     case 'PAID':
       return 'default';
-    case 'NOT_PAID':
+    case 'PARTIAL':
       return 'secondary';
     case 'DRAFT':
       return 'destructive';
@@ -17,7 +17,7 @@ export const getStatutColor = (statut: string): string => {
   switch (statut?.toUpperCase()) {
     case 'PAID':
       return 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300';
-    case 'NOT_PAID':
+    case 'PARTIAL':
       return 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300';
     case 'DRAFT':
       return 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300';
@@ -32,8 +32,8 @@ export const getStatutLabel = (statut: string) => {
   switch (statut?.toUpperCase()) {
     case 'PAID':
       return 'Payée';
-    case 'NOT_PAID':
-      return 'Non payée';
+    case 'PARTIAL':
+      return 'Partiellement payée';
     case 'DRAFT':
       return 'Brouillon';
     case 'VALIDATED':

@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { RecouvrementCreateDTO, recouvrementFormSchema } from '@/feature-finance/revenus/schemas/recouvrement/recouvrement.schema';
 import { useAjouterRecouvrementMutation } from '@/features/recouvrements/queries/recouvrement.mutation';
 import { usePretListQuery } from '@/feature-finance/revenus/queries/prets/pret-list.query';
-import { IFacture } from '@/feature-finance/revenus/types/recouvrement/prets.types';
 import { RecouvrementForm } from './recouvrement-form';
 
 export function CreerRecouvrementModal({ restaurantId, variant = 'ghost' }: { restaurantId?: string; variant?: 'ghost' | 'outline' }) {
@@ -26,6 +25,7 @@ export function CreerRecouvrementModal({ restaurantId, variant = 'ghost' }: { re
       montant: 0,
       dateRecouvrement: new Date(),
       restaurantId: restaurantId || '',
+      factureId: '',
       preuve: undefined,
     },
   });
@@ -34,26 +34,36 @@ export function CreerRecouvrementModal({ restaurantId, variant = 'ghost' }: { re
 
   const { mutateAsync: recouvrementCreateMutation, isPending: isLoading } = useAjouterRecouvrementMutation();
 
+  const resetFormState = () => {
+    reset({
+      montant: 0,
+      dateRecouvrement: new Date(),
+      restaurantId: restaurantId || '',
+      factureId: '',
+      preuve: undefined,
+    });
+    setSelectedDate(new Date());
+    setSelectedFile(null);
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      resetFormState();
+    }
+    setOpen(nextOpen);
+  };
+
   const onSubmitForm = async (data: RecouvrementCreateDTO) => {
     if (!selectedFile) {
       toast.error('Veuillez sélectionner un fichier de preuve');
       return;
     }
 
-    const facture = factures.find((f: IFacture) => f.id === data.restaurantId);
-    if (!facture) {
-      toast.error('Facture sélectionnée introuvable');
-      return;
-    }
-
     await recouvrementCreateMutation(
-      { ...data, preuve: selectedFile, factureDetails: facture },
+      { ...data, preuve: selectedFile },
       {
         onSuccess: () => {
-          reset();
-          setSelectedDate(new Date());
-          setSelectedFile(null);
-          setOpen(false);
+          handleOpenChange(false);
         },
       },
     );
@@ -73,7 +83,7 @@ export function CreerRecouvrementModal({ restaurantId, variant = 'ghost' }: { re
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant={variant}>
           <Plus size={18} />

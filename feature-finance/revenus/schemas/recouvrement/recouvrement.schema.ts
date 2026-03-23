@@ -6,6 +6,7 @@ export const recouvrementFormSchema = z.object({
     message: 'La date de recouvrement est requise',
   }),
   restaurantId: z.string().min(1, "La sélection d'un restaurant est requise"),
+  factureId: z.string().min(1, 'La sélection d\'une facture est requise'),
   preuve: z
     .instanceof(File, { message: 'La preuve de paiement est requise' })
     .refine((file) => file.size > 0, 'Le fichier ne peut pas être vide')
@@ -15,6 +16,7 @@ export const recouvrementFormSchema = z.object({
 export type RecouvrementCreateDTO = z.infer<typeof recouvrementFormSchema>;
 
 export const recouvrementEditSchema = recouvrementFormSchema.extend({
+  factureId: z.string().optional(),
   preuve: z
     .instanceof(File)
     .refine((file) => file.size > 0, 'Le fichier ne peut pas être vide')
