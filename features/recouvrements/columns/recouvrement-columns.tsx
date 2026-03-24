@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { IFacture } from '@/features/recouvrements/types';
 
 function ActionsCell({ recouvrement }: { recouvrement: IRecouvrement }) {
   const [openEdit, setOpenEdit] = useState(false);
@@ -53,7 +54,7 @@ function ActionsCell({ recouvrement }: { recouvrement: IRecouvrement }) {
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" size="icon" disabled={isDeleting}>
-              {isDeleting ? <Loader2 className="animate-spin duration-300"/> : <Trash2 className="size-4" />}
+              {isDeleting ? <Loader2 className="animate-spin duration-300" /> : <Trash2 className="size-4" />}
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
@@ -92,6 +93,17 @@ export const recouvrementColumns: ColumnDef<IRecouvrement>[] = [
     accessorKey: 'nomRestaurant',
     header: 'Restaurant',
     cell: ({ row }) => row.getValue('nomRestaurant') || '-',
+  },
+  {
+    accessorKey: 'factures',
+    header: 'Factures',
+    cell: ({ row }) => {
+      const factures = row.getValue('factures') as IFacture[];
+      if (factures && factures.length > 0) {
+        return factures.map((f) => f.code).join(', ');
+      }
+      return '-';
+    },
   },
   {
     accessorKey: 'montant',
