@@ -21,32 +21,62 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest }: Re
     }
   };
 
+  const getEmployeeInitials = (name: string) => {
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  const getLeaveTypeLabel = (type: LeaveRequest['type']) => {
+    switch (type) {
+      case 'annuel': return 'Congé annuel';
+      case 'maladie': return 'Congé maladie';
+      case 'sans solde': return 'Congé sans solde';
+      default: return type;
+    }
+  };
+
   return (
     <Table aria-label="Liste des demandes">
       <TableHeader>
-        <TableColumn>Employé</TableColumn>
-        <TableColumn>Type de congé</TableColumn>
-        <TableColumn>Dates</TableColumn>
-        <TableColumn>Durée</TableColumn>
-        <TableColumn>Motif</TableColumn>
-        <TableColumn>Statut</TableColumn>
-        <TableColumn>Actions</TableColumn>
+        <TableColumn>EMPLOYÉ</TableColumn>
+        <TableColumn>TYPE</TableColumn>
+        <TableColumn>PÉRIODE</TableColumn>
+        <TableColumn>DURÉE</TableColumn>
+        <TableColumn>MOTIF</TableColumn>
+        <TableColumn>STATUT</TableColumn>
+        <TableColumn>ACTIONS</TableColumn>
       </TableHeader>
       <TableBody>
         {requests.map((request) => (
           <TableRow key={request.id}>
             <TableCell>
-              <div className="font-medium">{request.employeeName}</div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-semibold">
+                  {getEmployeeInitials(request.employeeName)}
+                </div>
+                <div>
+                  <div className="font-medium">{request.employeeName}</div>
+                  <div className="text-sm text-gray-500">Demande créée le {new Date(request.createdAt || request.startDate).toLocaleDateString('fr-FR')}</div>
+                </div>
+              </div>
             </TableCell>
             <TableCell>
-              <Badge color="primary" variant="flat" className="capitalize">
-                {request.type}
-              </Badge>
+              <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
+                request.type === 'annuel' ? 'bg-blue-600 text-white border-blue-300' :
+                request.type === 'maladie' ? 'bg-red-600 text-white border-red-300' :
+                request.type === 'sans solde' ? 'bg-yellow-500 text-white border-yellow-200' :
+                'bg-gray-100 text-gray-800 border-gray-200'
+              }`}>
+                {getLeaveTypeLabel(request.type)}
+              </div>
             </TableCell>
             <TableCell>
               <div className="text-sm">
-                <div>Du: {request.startDate}</div>
-                <div>Au: {request.endDate}</div>
+                <div>{request.startDate}</div>
+                <div>{request.endDate}</div>
               </div>
             </TableCell>
             <TableCell>{request.duration} jours</TableCell>
@@ -56,12 +86,14 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest }: Re
               </div>
             </TableCell>
             <TableCell>
-              <Badge 
-                color={getStatusColor(request.statut)}
-                variant="flat"
-              >
+              <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
+                request.statut === 'En attente' ? 'bg-yellow-500 text-white border-yellow-200' :
+                request.statut === 'Approuvée' ? 'bg-green-600 text-white border-green-300' :
+                request.statut === 'Rejetée' ? 'bg-red-600 text-white border-red-300' :
+                'bg-gray-100 text-gray-800 border-gray-200'
+              }`}>
                 {request.statut}
-              </Badge>
+              </div>
             </TableCell>
             <TableCell>
               {request.statut === 'En attente' && (
@@ -83,6 +115,24 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest }: Re
                     Rejeter
                   </Button>
                 </div>
+              )}
+              {request.statut === 'Approuvée' && (
+                <Button 
+                  size="sm" 
+                  color="default" 
+                  variant="flat"
+                >
+                  Activer
+                </Button>
+              )}
+              {request.statut === 'Rejetée' && (
+                <Button 
+                  size="sm" 
+                  color="default" 
+                  variant="flat"
+                >
+                  Attente
+                </Button>
               )}
             </TableCell>
           </TableRow>

@@ -19,6 +19,7 @@ export interface LeaveRequest {
   duration: number;
   statut: 'En cours' | 'Terminé' | 'En attente' | 'Approuvée' | 'Rejetée';
   reason?: string;
+  createdAt?: string;
 }
 
 export interface Deduction {
@@ -58,4 +59,24 @@ export interface RequestStats {
 export interface DeductionStats {
   totalThisMonth: number;
   pendingValidation: number;
+}
+
+export interface Loan {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  type: 'Avance sur salaire' | 'Prêt personnel' | 'Aide d\'urgence';
+  amount: number;
+  reason: string;
+  date: string;
+  statut: 'En attente' | 'Approuvé' | 'Rejeté' | 'En cours' | 'Terminé';
+  repaymentDuration?: number;
+  status?: 'En attente' | 'Approuvé' | 'Rejeté' | 'En cours' | 'Terminé';
+}
+
+export interface LoanStats {
+  totalLoans: number;
+  pendingApproval: number;
+  activeLoans: number;
+  totalAmount: number;
 }
