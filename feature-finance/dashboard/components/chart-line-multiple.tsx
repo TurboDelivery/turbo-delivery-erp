@@ -59,11 +59,6 @@ export function ChartLineMultiple() {
 
   // Fonction pour filtrer les revenus totaux par mois (basé sur les données du dashboard)
   const filterRevenusByMonth = () => {
-    console.log('=== DÉBUT FILTRE REVENUS PAR MOIS ===');
-    console.log('selectedMonth:', selectedMonth);
-    console.log('chartData:', chartData);
-    console.log('chartData.length:', chartData.length);
-
     if (!selectedMonth && chartData?.length) {
       // Si aucun mois sélectionné (bouton "Année"), utiliser les données de l'API directement
       console.log('Utilisation des données de l API pour l année');
@@ -272,7 +267,7 @@ export function ChartLineMultiple() {
           </div>
           <div className="text-center p-4 rounded-lg" style={{ backgroundColor: '#3b82f620' }}>
             <p className="text-sm font-medium" style={{ color: '#3b82f6' }}>
-              Recouvrements
+              Revenus encaissés
             </p>
             <p className="text-xl font-bold" style={{ color: '#2563eb' }}>
               {formatCFA(totalRecouvrements)}
@@ -288,7 +283,7 @@ export function ChartLineMultiple() {
           </div>
           <div className="text-center p-4 rounded-lg" style={{ backgroundColor: '#8b5cf620' }}>
             <p className="text-sm font-medium" style={{ color: '#8b5cf6' }}>
-              Solde comptes
+              En cours
             </p>
             <p className="text-xl font-bold" style={{ color: '#7c3aed' }}>
               {formatCFA(soldeComptes)}
@@ -312,11 +307,7 @@ export function ChartLineMultiple() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} tickLine={{ stroke: 'hsl(var(--muted-foreground))' }} />
                 <YAxis tick={{ fontSize: 12 }} tickLine={{ stroke: 'hsl(var(--muted-foreground))' }} tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                  cursor={false}
-                  defaultIndex={1}
-                />
+                <ChartTooltip content={<ChartTooltipContent />} cursor={false} defaultIndex={1} />
                 <Legend />
                 <Line
                   type="monotone"

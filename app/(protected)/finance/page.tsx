@@ -1,22 +1,17 @@
+'use client';
 
-"use client";
-
-import FinanceQueryProvider from "./finance-query-provider";
-import Statistics from "@/feature-finance/dashboard/components/statistics";
-import DashboardHeader from "@/components/components-finance/dashboard/header";
-import { ChartLineMultiple } from "@/feature-finance/dashboard/components/chart-line-multiple";
+import FinanceQueryProvider from './finance-query-provider';
+import DashboardFinanceStatistics from '@/feature-finance/dashboard/components/dashboardFinanceStatistics';
+import DashboardHeader from '@/components/components-finance/dashboard/header';
+import { ChartLineMultiple } from '@/feature-finance/dashboard/components/chart-line-multiple';
 
 export default function Home() {
   return (
     <FinanceQueryProvider>
-      <div >
+      <div>
         <DashboardHeader />
-        <Statistics />
-        {/* <Repartition /> */}
-        {/* <GraphMansuel /> */}
-        <div>
-          <ChartLineMultiple />
-        </div>
+        <DashboardFinanceStatistics />
+        <ChartLineMultiple />
       </div>
     </FinanceQueryProvider>
   );
