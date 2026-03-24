@@ -1,24 +1,22 @@
 export enum CongeType {
-  ANNUEL = "annuel",
-  MALADIE = "maladie",
-  SANS_SOLDE = "sans solde",
-  MATERNITE = "maternité",
-  
+  ANNUEL = 'annuel',
+  MALADIE = 'maladie',
+  SANS_SOLDE = 'sans solde',
 }
 
 export enum CongeStatut {
-  EN_COURS = "En cours",
-  TERMINE = "Terminé",
-  EN_ATTENTE = "En attente",
-  APPROUVEE = "Approuvée",
-  REJETEE = "Rejetée",
+  EN_ATTENTE = 'En attente',
+  APPROUVEE = 'Approuvée',
+  EN_COURS = 'En cours',
+  TERMINE = 'Terminé',
+  REJETEE = 'Rejetée',
 }
 
 export enum DurationType {
-  MOIS = "mois",
-  QUINZAINE = "quinzaine",
-  SEMAINE = "semaine",
-  PERSONNALISE = "personnalise",
+  MOIS = 'mois',
+  QUINZAINE = 'quinzaine',
+  SEMAINE = 'semaine',
+  PERSONNALISE = 'personnalise',
 }
 
 export interface IConge {
@@ -31,38 +29,41 @@ export interface IConge {
   duration: number;
   statut: CongeStatut;
   reason?: string;
-  durationType?: DurationType;
+  durationType: DurationType;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface ICongesParams {
-  employeeId?: string;
-  type?: CongeType;
-  statut?: CongeStatut;
   page?: number;
   limit?: number;
+  type?: CongeType;
+  statut?: CongeStatut;
+  employeeId?: string;
   startDate?: string;
   endDate?: string;
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
+  search?: string;
 }
 
-export interface ICongeAddUpdateResponse extends Pick<IConge,
-  'id' | 'employeeId' | 'employeeName' | 'type' | 'startDate' | 'endDate' 
-  | 'duration' | 'statut' | 'reason' | 'durationType' | 'createdAt' | 'updatedAt'
-> {
-  generatedPassword?: string
+export interface ICongeAddUpdateResponse {
+  success: boolean;
+  data: IConge;
+  message?: string;
 }
 
 export interface ICongeDeleteResponse {
-  success: true;
-  message: string;
+  success: boolean;
+  message?: string;
 }
 
-export interface ICongeStats {
-  currentlyOnLeave: number;
-  takenThisMonth: number;
-  completedLeaves: number;
-  pendingRequests: number;
-  approvedRequests: number;
-  rejectedRequests: number;
+export interface ICongesStats {
+  totalConges: number;
+  congesEnAttente: number;
+  congesApprouves: number;
+  congesEnCours: number;
+  congesTermines: number;
+  congesRejetes: number;
+  joursTotalCeMois: number;
 }

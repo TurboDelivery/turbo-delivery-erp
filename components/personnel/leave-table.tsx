@@ -7,7 +7,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
 import { MoreVertical } from 'lucide-react';
 import { LeaveRequest } from '../../features/personnel/types/types';
+import { IConge } from '../../features/conge/types/conge.type';
 import { cn } from '@/lib/utils';
+import { useCongesQuery } from '@/features/conge/queries/conge.query';
 
 interface LeaveTableProps {
   leaveRequests: LeaveRequest[];
@@ -15,7 +17,11 @@ interface LeaveTableProps {
 
 export function LeaveTable({ leaveRequests }: LeaveTableProps) {
   const [selectedLeave, setSelectedLeave] = useState<string | null>(null);
+  const { data: congesData, isLoading: congesLoading, error: congesError } = useCongesQuery({});
+  console.log("Congés data:", congesData);
 
+  // Utiliser les données de l'API si disponibles, sinon les données mockées
+  const displayData = congesData?.content || leaveRequests;
   const getStatusColor = (statut: LeaveRequest['statut']) => {
     switch (statut) {
       case 'En cours': return 'secondary';
@@ -90,7 +96,7 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
         <TableColumn>Actions</TableColumn>
       </TableHeader>
       <TableBody>
-        {leaveRequests.map((leave) => (
+        {displayData.map((leave: LeaveRequest | IConge) => (
           <TableRow key={leave.id}>
             <TableCell>
               <div className="flex items-center gap-3">

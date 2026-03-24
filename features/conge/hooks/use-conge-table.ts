@@ -1,104 +1,116 @@
 import { useState, useMemo } from 'react';
-import { IConge, CongeType, CongeStatut } from '../types/conge.type';
+import { IConge, ICongesParams, CongeType, CongeStatut } from '../types/conge.type';
+import { congeQueryKeys } from '../queries/conge.query';
 
-export const useCongeTable = (conges: IConge[] = []) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<CongeType | 'all'>('all');
-  const [filterStatut, setFilterStatut] = useState<CongeStatut | 'all'>('all');
-  const [currentPage, setCurrentPage] = useState(0);
-  const [itemsPerPage] = useState(10);
+export interface UseCongeTableParams {
+  initialParams?: ICongesParams;
+  itemsPerPage?: number;
+}
 
-  // Filter conges based on search and filters
-  const filteredConges = useMemo(() => {
-    return conges.filter((conge) => {
-      // Search filter
-      const matchesSearch = searchTerm === '' || 
-        conge.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        conge.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (conge.reason && conge.reason.toLowerCase().includes(searchTerm.toLowerCase()));
+export const useCongeTable = ({ 
+  initialParams = {}, 
+  itemsPerPage = 10 
+}: UseCongeTableParams = {}) => {
+  const [params, setParams] = useState<ICongesParams>({
+    page: 0,
+    limit: itemsPerPage,
+    orderBy: 'createdAt',
+    orderDirection: 'desc',
+    ...initialParams,
+  });
 
-      // Type filter
-      const matchesType = filterType === 'all' || conge.type === filterType;
+  const [selectedConges, setSelectedConges] = useState<string[]>([]);
+  const [filters, setFilters] = useState({
+    search: '',
+    type: '' as CongeType | '',
+    statut: '' as CongeStatut | '',
+  });
 
-      // Status filter
-      const matchesStatut = filterStatut === 'all' || conge.statut === filterStatut;
+  // Computed values
+  const computedParams = useMemo(() => {
+    const newParams: ICongesParams = { ...params };
+    
+    // Appliquer les filtres
+    if (filters.search) {
+      newParams.search = filters.search;
+    }
+    if (filters.type) {
+      newParams.type = filters.type;
+    }
+    if (filters.statut) {
+      newParams.statut = filters.statut;
+    }
+    
+    return newParams;
+  }, [params, filters]);
 
-      return matchesSearch && matchesType && matchesStatut;
+  // Actions
+  const updateParams = (newParams: Partial<ICongesParams>) => {
+    setParams(prev => ({ ...prev, ...newParams }));
+  };
+
+  const updateFilters = (newFilters: Partial<typeof filters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+    // Reset page to 0 when filters change
+    updateParams({ page: 0 });
+  };
+
+  const nextPage = () => {
+    updateParams({ page: (params.page || 0) + 1 });
+  };
+
+  const prevPage = () => {
+    updateParams({ page: Math.max(0, (params.page || 0) - 1) });
+  };
+
+  const toggleCongeSelection = (congeId: string) => {
+    setSelectedConges(prev => 
+      prev.includes(congeId) 
+        ? prev.filter(id => id !== congeId)
+        : [...prev, congeId]
+    );
+  };
+
+  const selectAllConges = (congeIds: string[]) => {
+    setSelectedConges(congeIds);
+  };
+
+  const clearSelection = () => {
+    setSelectedConges([]);
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      search: '',
+      type: '' as CongeType | '',
+      statut: '' as CongeStatut | '',
     });
-  }, [conges, searchTerm, filterType, filterStatut]);
-
-  // Pagination
-  const paginatedConges = useMemo(() => {
-    const startIndex = currentPage * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredConges.slice(startIndex, endIndex);
-  }, [filteredConges, currentPage, itemsPerPage]);
-
-  const totalPages = Math.ceil(filteredConges.length / itemsPerPage);
-
-  // Stats
-  const stats = useMemo(() => {
-    const currentlyOnLeave = conges.filter(c => c.statut === CongeStatut.EN_COURS).length;
-    const takenThisMonth = conges.filter(c => {
-      const start = new Date(c.startDate);
-      const now = new Date();
-      return start.getMonth() === now.getMonth() && 
-             start.getFullYear() === now.getFullYear() &&
-             [CongeStatut.APPROUVEE, CongeStatut.TERMINE].includes(c.statut);
-    }).length;
-    const completedLeaves = conges.filter(c => c.statut === CongeStatut.TERMINE).length;
-    const pendingRequests = conges.filter(c => c.statut === CongeStatut.EN_ATTENTE).length;
-    const approvedRequests = conges.filter(c => c.statut === CongeStatut.APPROUVEE).length;
-    const rejectedRequests = conges.filter(c => c.statut === CongeStatut.REJETEE).length;
-
-    return {
-      currentlyOnLeave,
-      takenThisMonth,
-      completedLeaves,
-      pendingRequests,
-      approvedRequests,
-      rejectedRequests,
-    };
-  }, [conges]);
-
-  // Reset pagination when filters change
-  const handleSearchChange = (value: string) => {
-    setSearchTerm(value);
-    setCurrentPage(0);
-  };
-
-  const handleTypeFilterChange = (value: CongeType | 'all') => {
-    setFilterType(value);
-    setCurrentPage(0);
-  };
-
-  const handleStatutFilterChange = (value: CongeStatut | 'all') => {
-    setFilterStatut(value);
-    setCurrentPage(0);
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    updateParams({ page: 0 });
   };
 
   return {
-    // Data
-    filteredConges,
-    paginatedConges,
-    stats,
-    
     // State
-    searchTerm,
-    filterType,
-    filterStatut,
-    currentPage,
-    totalPages,
-    itemsPerPage,
+    params,
+    computedParams,
+    selectedConges,
+    filters,
+    
+    // Computed
+    currentPage: params.page || 0,
+    totalPages: 0, // Will be calculated from API response
+    totalItems: 0, // Will be calculated from API response
     
     // Actions
-    setSearchTerm: handleSearchChange,
-    setFilterType: handleTypeFilterChange,
-    setFilterStatut: handleStatutFilterChange,
-    setCurrentPage: handlePageChange,
+    updateParams,
+    updateFilters,
+    nextPage,
+    prevPage,
+    toggleCongeSelection,
+    selectAllConges,
+    clearSelection,
+    resetFilters,
+    
+    // Query key for React Query
+    queryKey: congeQueryKeys.list(computedParams),
   };
 };

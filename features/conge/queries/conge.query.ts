@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { congeAPI, ICongeAPI } from '../apis/conge.api';
+import { congeAPI } from '../apis/conge.api';
 import { IConge, ICongesParams } from '../types/conge.type';
-import { CongeAddDTO, CongeUpdateDTO, CongeStatusUpdateDTO } from '../schema';
+import { CongeAddDTO, CongeUpdateDTO, CongeStatusUpdateDTO } from '../schemas/conge.schema';
+import React from 'react';
 
 // Query keys
 export const congeQueryKeys = {
@@ -15,95 +16,69 @@ export const congeQueryKeys = {
 
 // Get all conges
 export const useCongesQuery = (params: ICongesParams = {}) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: congeQueryKeys.list(params),
-    queryFn: () => congeAPI.obtenirTousConges(params),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    queryFn: async () => {
+      return await congeAPI.obtenirTousConges(params);
+    },
+    placeholderData: (previousData: any) => previousData,
+    staleTime: 30 * 1000, //30 secondes
+    refetchOnMount: true, //Refetch lors du mount
   });
+
+  // Gestion des erreurs dans le hook
+  React.useEffect(() => {
+    if (query.isError && query.error) {
+      console.error("Erreur lors de la récupération des congés:", query.error);
+      // TODO: Ajouter notification toast quand disponible
+    }
+  }, [query]);
+
+  return query;
 };
 
 // Get single conge
 export const useCongeQuery = (id: string) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: congeQueryKeys.detail(id),
-    queryFn: () => congeAPI.obtenirConge(id),
+    queryFn: async () => {
+      if (!id) throw new Error("L'identifiant du congé est requis");
+      return await congeAPI.obtenirConge(id);
+    },
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Gestion des erreurs dans le hook
+  React.useEffect(() => {
+    if (query.isError && query.error) {
+      console.error("Erreur lors de la récupération du congé:", query.error);
+      // TODO: Ajouter notification toast quand disponible
+    }
+  }, [query.isError, query.error]);
+
+  return query;
 };
 
 // Get conges by employee
 export const useCongesByEmployeeQuery = (employeeId: string) => {
-  return useQuery({
+  const query = useQuery({
     queryKey: congeQueryKeys.employee(employeeId),
-    queryFn: () => congeAPI.obtenirCongesParEmploye(employeeId),
+    queryFn: async () => {
+      if (!employeeId) throw new Error("L'identifiant de l'employé est requis");
+      return await congeAPI.obtenirCongesParEmploye(employeeId);
+    },
     enabled: !!employeeId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
-};
 
-// Create conge mutation
-export const useCreateCongeMutation = () => {
-  const queryClient = useQueryClient();
+  // Gestion des erreurs dans le hook
+  React.useEffect(() => {
+    if (query.isError && query.error) {
+      console.error("Erreur lors de la récupération des congés de l'employé:", query.error);
+      // TODO: Ajouter notification toast quand disponible
+    }
+  }, [query.isError, query.error]);
 
-  return useMutation({
-    mutationFn: (data: CongeAddDTO) => congeAPI.ajouterConge(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: congeQueryKeys.lists() });
-    },
-  });
-};
-
-// Update conge mutation
-export const useUpdateCongeMutation = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: CongeUpdateDTO }) => 
-      congeAPI.modifierConge(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: congeQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: congeQueryKeys.detail(id) });
-    },
-  });
-};
-
-// Delete conge mutation
-export const useDeleteCongeMutation = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => congeAPI.supprimerConge(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: congeQueryKeys.lists() });
-    },
-  });
-};
-
-// Approve conge mutation
-export const useApproveCongeMutation = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data?: CongeStatusUpdateDTO }) => 
-      congeAPI.approuverConge(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: congeQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: congeQueryKeys.detail(id) });
-    },
-  });
-};
-
-// Reject conge mutation
-export const useRejectCongeMutation = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data?: CongeStatusUpdateDTO }) => 
-      congeAPI.rejeterConge(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: congeQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: congeQueryKeys.detail(id) });
-    },
-  });
+  return query;
 };

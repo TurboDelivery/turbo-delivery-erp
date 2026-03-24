@@ -12,6 +12,7 @@ import { Employee, LeaveRequest, LeaveStats, RequestStats, Loan, LoanStats } fro
 import { useAjouterEmployeMutation, useModifierEmployeMutation, useSupprimerEmployeMutation } from '@/features/personnel/mutations/employee.mutation';
 import { EmployeeTableNew } from '@/components/personnel/employee-table/index';
 import { EmployeeCreateDTO } from '@/features/personnel/schemas/employee.schema';
+import { useCongesQuery } from '@/features/conge/queries/conge.query';
 
 export default function PersonnelContent() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -21,6 +22,9 @@ export default function PersonnelContent() {
   const ajouterEmployeMutation = useAjouterEmployeMutation();
   const modifierEmployeMutation = useModifierEmployeMutation();
   const supprimerEmployeMutation = useSupprimerEmployeMutation();
+
+  // Utiliser le hook pour récupérer tous les congés
+
 
   // Données de départements et positions
   const departments = [
@@ -55,7 +59,6 @@ export default function PersonnelContent() {
     'ménagère'
   ];
 
-  // Données de démonstration pour les congés
   const leaveRequests: LeaveRequest[] = [
     {
       id: '1',

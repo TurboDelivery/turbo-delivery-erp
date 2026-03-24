@@ -1,13 +1,8 @@
-import {
-  IConge,
-  ICongeAddUpdateResponse,
-  ICongeDeleteResponse,
-  ICongesParams
-} from "../types/conge.type";
-import {PaginatedResponse} from "@/types/api.type";
-import {SearchParams} from "ak-api-http";
-import {CongeAddDTO, CongeUpdateDTO, CongeStatusUpdateDTO} from "../schema/conge.schema";
-import {apiClient} from "@/lib/api.client";
+import { IConge, ICongeAddUpdateResponse, ICongeDeleteResponse, ICongesParams } from "../types/conge.type";
+import { PaginatedResponse } from "@/types/api.type";
+import { SearchParams } from "ak-api-http";
+import { CongeAddDTO, CongeUpdateDTO, CongeStatusUpdateDTO } from "../schemas/conge.schema";
+import { api } from "@/lib/api";
 
 export interface ICongeAPI {
   obtenirTousConges(params: ICongesParams): Promise<PaginatedResponse<IConge>>;
@@ -29,71 +24,69 @@ export interface ICongeAPI {
 
 export const congeAPI: ICongeAPI = {
   obtenirTousConges(params: ICongesParams): Promise<PaginatedResponse<IConge>> {
-    return apiClient.request<PaginatedResponse<IConge>>({
-      endpoint: `/conges`,
+    return api.request<PaginatedResponse<IConge>>({
+      endpoint: `erp/conges`,
       method: "GET",
       searchParams: params as SearchParams,
-      service: "private",
+      service:'private'
     });
   },
 
   obtenirConge(id: string): Promise<IConge> {
-    return apiClient.request<IConge>({
-      endpoint: `/conges/${id}`,
+    return api.request<IConge>({
+      endpoint: `erp/conges/${id}`,
       method: "GET",
-      service: "private",
+      
     });
   },
 
   ajouterConge(data: CongeAddDTO): Promise<ICongeAddUpdateResponse> {
-    return apiClient.request<ICongeAddUpdateResponse>({
-      endpoint: `/conges`,
+    return api.request<ICongeAddUpdateResponse>({
+      endpoint: `/erp/conges`,
       method: "POST",
-      data,
-      service: "private",
+      data: {
+        ...data,
+        statut: 'EN_COURS' // Forcer le statut pour éviter l'erreur NOT NULL
+      },
+      service: 'private'
     });
   },
 
   modifierConge(id: string, data: CongeUpdateDTO): Promise<ICongeAddUpdateResponse> {
-    return apiClient.request<ICongeAddUpdateResponse>({
-      endpoint: `/conges/${id}`,
-      method: "PATCH",
+    return api.request<ICongeAddUpdateResponse>({
+      endpoint: `erp/conges/${id}`,
+      method: "PUT", 
       data,
-      service: "private",
     });
   },
 
   supprimerConge(id: string): Promise<ICongeDeleteResponse> {
-    return apiClient.request<ICongeDeleteResponse>({
-      endpoint: `/conges/${id}`,
+    return api.request<ICongeDeleteResponse>({
+      endpoint: `erp/conges/${id}`,
       method: "DELETE",
-      service: "private",
     });
   },
 
   approuverConge(id: string, data?: CongeStatusUpdateDTO): Promise<ICongeAddUpdateResponse> {
-    return apiClient.request<ICongeAddUpdateResponse>({
-      endpoint: `/conges/${id}/approve`,
-      method: "POST",
+    return api.request<ICongeAddUpdateResponse>({
+      endpoint: `erp/conges/${id}/statut?statut=APPROUVEE`,
+      method: "PATCH",
       data: data || {},
-      service: "private",
     });
   },
 
   rejeterConge(id: string, data?: CongeStatusUpdateDTO): Promise<ICongeAddUpdateResponse> {
-    return apiClient.request<ICongeAddUpdateResponse>({
-      endpoint: `/conges/${id}/reject`,
-      method: "POST",
+    return api.request<ICongeAddUpdateResponse>({
+      endpoint: `erp/conges/${id}/statut?statut=REJETEE`,
+      method: "PATCH",
       data: data || {},
-      service: "private",
     });
   },
 
   obtenirCongesParEmploye(employeeId: string): Promise<IConge[]> {
-    return apiClient.request<IConge[]>({
+    return api.request<IConge[]>({
       endpoint: `/conges/employee/${employeeId}`,
       method: "GET",
-      service: "private",
     });
   },
 };

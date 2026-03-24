@@ -1,76 +1,22 @@
-import { IConge, CongeType, DurationType } from '../types/conge.type';
+import { IConge, CongeType, CongeStatut, DurationType } from '../types/conge.type';
 
 export class CongeUtils {
-  // Calculate duration between two dates
-  static calculateDuration(startDate: string, endDate: string): number {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    return diffDays;
-  }
-
-  // Calculate end date based on start date and duration type
-  static calculateEndDate(startDate: string, durationType: DurationType): string {
-    const start = new Date(startDate);
-    let daysToAdd = 0;
-    
-    switch (durationType) {
-      case DurationType.MOIS:
-        daysToAdd = 30;
-        break;
-      case DurationType.QUINZAINE:
-        daysToAdd = 15;
-        break;
-      case DurationType.SEMAINE:
-        daysToAdd = 7;
-        break;
-      case DurationType.PERSONNALISE:
-        // For custom duration, we'll need the end date to be provided
-        return startDate;
-      default:
-        daysToAdd = 30;
-    }
-    
-    const end = new Date(start);
-    end.setDate(start.getDate() + daysToAdd - 1);
-    return end.toISOString().split('T')[0];
-  }
-
-  // Format date for display
+  // Formater une date
   static formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
-  }
-
-  // Format date range for display
-  static formatDateRange(startDate: string, endDate: string): string {
-    const start = this.formatDate(startDate);
-    const end = this.formatDate(endDate);
-    return `${start} - ${end}`;
-  }
-
-  // Get duration type label
-  static getDurationTypeLabel(durationType: DurationType): string {
-    switch (durationType) {
-      case DurationType.MOIS:
-        return 'Mois (30j)';
-      case DurationType.QUINZAINE:
-        return 'Quinzaine (15j)';
-      case DurationType.SEMAINE:
-        return 'Semaine (7j)';
-      case DurationType.PERSONNALISE:
-        return 'Personnalisé';
-      default:
-        return 'Personnalisé';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    } catch (error) {
+      console.error('Erreur formatDate:', error);
+      return dateString;
     }
   }
 
-  // Get conge type label
+  // Obtenir le libellé du type de congé
   static getCongeTypeLabel(type: CongeType): string {
     switch (type) {
       case CongeType.ANNUEL:
@@ -84,101 +30,206 @@ export class CongeUtils {
     }
   }
 
-  // Get status color for UI
-  static getStatusColor(statut: string): string {
+  // Obtenir le libellé du statut
+  static getCongeStatutLabel(statut: CongeStatut): string {
     switch (statut) {
-      case 'En cours':
-        return 'orange';
-      case 'Terminé':
-        return 'green';
-      case 'En attente':
-        return 'yellow';
-      case 'Approuvée':
-        return 'blue';
-      case 'Rejetée':
-        return 'red';
+      case CongeStatut.EN_ATTENTE:
+        return 'En attente';
+      case CongeStatut.APPROUVEE:
+        return 'Approuvée';
+      case CongeStatut.EN_COURS:
+        return 'En cours';
+      case CongeStatut.TERMINE:
+        return 'Terminé';
+      case CongeStatut.REJETEE:
+        return 'Rejetée';
       default:
-        return 'gray';
+        return statut;
     }
   }
 
-  // Check if date is in the past
-  static isDateInPast(dateString: string): boolean {
-    const date = new Date(dateString);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date < today;
+  // Obtenir la couleur du statut
+  static getCongeStatutColor(statut: CongeStatut): string {
+    switch (statut) {
+      case CongeStatut.EN_ATTENTE:
+        return 'text-yellow-600 bg-yellow-50';
+      case CongeStatut.APPROUVEE:
+        return 'text-green-600 bg-green-50';
+      case CongeStatut.EN_COURS:
+        return 'text-blue-600 bg-blue-50';
+      case CongeStatut.TERMINE:
+        return 'text-gray-600 bg-gray-50';
+      case CongeStatut.REJETEE:
+        return 'text-red-600 bg-red-50';
+      default:
+        return 'text-gray-600 bg-gray-50';
+    }
   }
 
-  // Check if date is in the future
-  static isDateInFuture(dateString: string): boolean {
-    const date = new Date(dateString);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return date > today;
+  // Calculer la durée en jours
+  static calculateDuration(startDate: string, endDate: string): number {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    } catch (error) {
+      console.error('Erreur calculateDuration:', error);
+      return 0;
+    }
   }
 
-  // Check if date is today
-  static isDateToday(dateString: string): boolean {
-    const date = new Date(dateString);
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
+  // Calculer les dates en fonction du type de durée
+  static calculateDatesFromDuration(durationType: DurationType, startDate?: Date): { startDate: Date; endDate: Date } {
+    const now = startDate || new Date();
+    let startDateCalc = new Date(now);
+    let endDateCalc = new Date(now);
+
+    switch (durationType) {
+      case DurationType.MOIS:
+        // 30 jours à partir de maintenant
+        endDateCalc = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
+        break;
+        
+      case DurationType.QUINZAINE:
+        // 15 jours à partir de maintenant
+        endDateCalc = new Date(now.getTime() + (15 * 24 * 60 * 60 * 1000));
+        break;
+        
+      case DurationType.SEMAINE:
+        // 7 jours à partir de maintenant
+        endDateCalc = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+        break;
+        
+      case DurationType.PERSONNALISE:
+        // Ne change pas les dates
+        break;
+        
+      default:
+        break;
+    }
+
+    return {
+      startDate: startDateCalc,
+      endDate: endDateCalc
+    };
   }
 
-  // Check if conge is currently active
-  static isCongeActive(conge: IConge): boolean {
-    const today = new Date();
+  // Vérifier si un congé est en cours
+  static isCongeEnCours(conge: IConge): boolean {
+    const now = new Date();
     const start = new Date(conge.startDate);
     const end = new Date(conge.endDate);
-    return today >= start && today <= end;
+    return now >= start && now <= end && conge.statut === CongeStatut.APPROUVEE;
   }
 
-  // Check if conge is upcoming
-  static isCongeUpcoming(conge: IConge): boolean {
-    const today = new Date();
+  // Vérifier si un congé est à venir
+  static isCongeAVenir(conge: IConge): boolean {
+    const now = new Date();
     const start = new Date(conge.startDate);
-    return start > today;
+    return now < start && conge.statut === CongeStatut.APPROUVEE;
   }
 
-  // Check if conge is completed
-  static isCongeCompleted(conge: IConge): boolean {
-    const today = new Date();
-    const end = new Date(conge.endDate);
-    return today > end;
-  }
-
-  // Calculate remaining days from leave balance
-  static calculateRemainingBalance(totalBalance: number, usedDays: number): number {
-    return Math.max(0, totalBalance - usedDays);
-  }
-
-  // Validate date range
-  static validateDateRange(startDate: string, endDate: string): { isValid: boolean; error?: string } {
-    if (!startDate || !endDate) {
-      return { isValid: false, error: 'Les dates de début et de fin sont requises' };
+  // Obtenir les initiales de l'employé
+  static getEmployeeInitials(name: string): string {
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     }
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const today = new Date();
-
-    if (start > end) {
-      return { isValid: false, error: 'La date de début doit être antérieure à la date de fin' };
-    }
-
-    if (start < today) {
-      return { isValid: false, error: 'La date de début ne peut être dans le passé' };
-    }
-
-    return { isValid: true };
+    return name.substring(0, 2).toUpperCase();
   }
 
-  // Generate a summary string for conge
-  static generateSummary(conge: IConge): string {
-    const typeLabel = this.getCongeTypeLabel(conge.type);
-    const dateRange = this.formatDateRange(conge.startDate, conge.endDate);
-    const duration = conge.duration;
-    
-    return `${typeLabel} - ${dateRange} (${duration} jour${duration > 1 ? 's' : ''})`;
+  // Valider les dates
+  static validateDates(startDate: string, endDate: string): { isValid: boolean; error?: string } {
+    try {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return { isValid: false, error: 'Dates invalides' };
+      }
+      
+      if (start >= end) {
+        return { isValid: false, error: 'La date de fin doit être après la date de début' };
+      }
+      
+      if (start < new Date(new Date().setHours(0, 0, 0, 0))) {
+        return { isValid: false, error: 'La date de début ne peut être dans le passé' };
+      }
+      
+      return { isValid: true };
+    } catch (error) {
+      return { isValid: false, error: 'Erreur lors de la validation des dates' };
+    }
+  }
+
+  // Filtrer les congés
+  static filterConges(conges: IConge[], filters: {
+    search?: string;
+    type?: CongeType;
+    statut?: CongeStatut;
+  }): IConge[] {
+    return conges.filter(conge => {
+      // Filtre de recherche
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        const matchesSearch = 
+          conge.employeeName.toLowerCase().includes(searchTerm) ||
+          conge.type.toLowerCase().includes(searchTerm) ||
+          (conge.reason && conge.reason.toLowerCase().includes(searchTerm));
+        
+        if (!matchesSearch) return false;
+      }
+      
+      // Filtre de type
+      if (filters.type && conge.type !== filters.type) {
+        return false;
+      }
+      
+      // Filtre de statut
+      if (filters.statut && conge.statut !== filters.statut) {
+        return false;
+      }
+      
+      return true;
+    });
+  }
+
+  // Trier les congés
+  static sortConges(conges: IConge[], sortBy: string, direction: 'asc' | 'desc' = 'desc'): IConge[] {
+    return [...conges].sort((a, b) => {
+      let aValue: any = a[sortBy as keyof IConge];
+      let bValue: any = b[sortBy as keyof IConge];
+
+      if (aValue === undefined || bValue === undefined) {
+        return 0;
+      }
+
+      let comparison = 0;
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.localeCompare(bValue);
+      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        comparison = aValue - bValue;
+      } else if (aValue instanceof Date && bValue instanceof Date) {
+        comparison = aValue.getTime() - bValue.getTime();
+      } else {
+        comparison = String(aValue).localeCompare(String(bValue));
+      }
+
+      return direction === 'asc' ? comparison : -comparison;
+    });
+  }
+
+  // Obtenir les types uniques
+  static getUniqueTypes(conges: IConge[]): CongeType[] {
+    const types = conges.map(conge => conge.type);
+    return [...new Set(types)];
+  }
+
+  // Obtenir les statuts uniques
+  static getUniqueStatuts(conges: IConge[]): CongeStatut[] {
+    const statuts = conges.map(conge => conge.statut);
+    return [...new Set(statuts)];
   }
 }

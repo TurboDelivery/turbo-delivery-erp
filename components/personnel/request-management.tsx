@@ -7,8 +7,13 @@ import { Card, CardBody, CardHeader } from '@heroui/react';
 import { Input } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/select';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
+import { toast } from 'react-toastify';
 import { RequestTable } from './request-table';
 import { LeaveRequest, RequestStats, Employee } from '../../features/personnel/types/types';
+import { useAjouterCongeMutation, useSupprimerCongeMutation, useModifierCongeMutation, useApprouverCongeMutation, useRejeterCongeMutation } from '../../features/conge/mutations/conge.mutation';
+import { CongeType, DurationType } from '../../features/conge/types/conge.type';
+import { useEmployeeListQuery } from '../../features/personnel/queries/employee-list.query';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface RequestManagementProps {
   requests: LeaveRequest[];
@@ -19,15 +24,40 @@ interface RequestManagementProps {
   onSubmitRequest: (request: Omit<LeaveRequest, 'id' | 'statut'>) => void;
 }
 
-export function RequestManagement({ 
-  requests, 
-  requestStats, 
-  employees, 
-  onApproveRequest, 
-  onRejectRequest, 
-  onSubmitRequest 
+export function RequestManagement({
+  requests,
+  requestStats,
+  employees,
+  onApproveRequest,
+  onRejectRequest,
+  onSubmitRequest
 }: RequestManagementProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
+  // Utiliser la mutation pour ajouter un congé
+  const ajouterCongeMutation = useAjouterCongeMutation();
+
+  // Utiliser la mutation pour supprimer un congé
+  const supprimerCongeMutation = useSupprimerCongeMutation();
+
+  // Utiliser la mutation pour modifier un congé
+  const modifierCongeMutation = useModifierCongeMutation();
+
+  // Utiliser la mutation pour approuver un congé
+  const approuverCongeMutation = useApprouverCongeMutation();
+
+  // Utiliser la mutation pour rejeter un congé
+  const rejeterCongeMutation = useRejeterCongeMutation();
+
+  // Initialiser le query client pour invalider les queries
+  const queryClient = useQueryClient();
+
+  // Récupérer la liste des employés depuis l'API
+  const { data: employeesData, isLoading: employeesLoading } = useEmployeeListQuery({});
+  console.log("Employés data:", employeesData);
+
+  // Utiliser les données de l'API si disponibles, sinon les données mockées
+  const displayEmployees = employeesData?.content || employees;
   const [newRequest, setNewRequest] = useState({
     employeeId: '',
     employeeName: '',
@@ -39,42 +69,116 @@ export function RequestManagement({
     reason: ''
   });
 
+  // État pour savoir si on est en mode modification
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
+
   const [leaveBalance, setLeaveBalance] = useState(30);
   const [isEligible, setIsEligible] = useState(true);
   const [eligibilityDate, setEligibilityDate] = useState('15/06/2024');
 
   const handleSubmitRequest = () => {
-    if (!newRequest.employeeId || !newRequest.startDate || !newRequest.endDate || !newRequest.reason) {
-      alert('Veuillez remplir tous les champs');
+    console.log("handleSubmitRequest - newRequest:", newRequest);
+
+    if (!newRequest.employeeId || !newRequest.startDate || !newRequest.endDate) {
+      alert('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    const employee = employees.find(emp => emp.id === newRequest.employeeId);
-    if (!employee) return;
-
-    const duration = calculateDuration(newRequest.startDate, newRequest.endDate);
-
-    onSubmitRequest({
+    // Préparer les données pour l'API
+    const employee = displayEmployees.find(emp => emp.id === newRequest.employeeId);
+    const congeData = {
       employeeId: newRequest.employeeId,
-      employeeName: employee.name,
-      type: newRequest.type,
+      employeeName: employee?.name || '', // Utiliser le nom réel de l'employé
+      type: newRequest.type === 'annuel' ? CongeType.ANNUEL :
+        newRequest.type === 'maladie' ? CongeType.MALADIE : CongeType.SANS_SOLDE, // Utiliser les enums TypeScript
       startDate: newRequest.startDate,
       endDate: newRequest.endDate,
-      duration,
-      reason: newRequest.reason
-    });
+      duration: calculateDuration(newRequest.startDate, newRequest.endDate),
+      durationType: newRequest.durationType === 'mois' ? DurationType.MOIS :
+        newRequest.durationType === 'quinzaine' ? DurationType.QUINZAINE :
+          newRequest.durationType === 'semaine' ? DurationType.SEMAINE : DurationType.PERSONNALISE, // Utiliser les enums
+      reason: newRequest.reason,
+      statut: 'EN_ATTENTE' // Utiliser EN_ATTENTE au lieu de EN_COURS
+    };
 
-    setNewRequest({
-      employeeId: '',
-      employeeName: '',
-      type: 'annuel',
-      startDate: '',
-      endDate: '',
-      duration: 0,
-      durationType: 'mois',
-      reason: ''
-    });
+    console.log("Données à envoyer à l'API:", congeData);
 
+    if (isEditMode && editingRequestId) {
+      // Mode modification : envoyer toutes les données comme le curl PUT
+      const employee = displayEmployees.find(emp => emp.id === newRequest.employeeId);
+      
+      // Mapper les types manuellement
+      let typeValue: CongeType;
+      let durationTypeValue: DurationType;
+      
+      switch(newRequest.type) {
+        case 'annuel':
+          typeValue = CongeType.ANNUEL;
+          break;
+        case 'maladie':
+          typeValue = CongeType.MALADIE;
+          break;
+        default:
+          typeValue = CongeType.SANS_SOLDE;
+      }
+      
+      switch(newRequest.durationType) {
+        case 'mois':
+          durationTypeValue = DurationType.MOIS;
+          break;
+        case 'quinzaine':
+          durationTypeValue = DurationType.QUINZAINE;
+          break;
+        case 'semaine':
+          durationTypeValue = DurationType.SEMAINE;
+          break;
+        default:
+          durationTypeValue = DurationType.PERSONNALISE;
+      }
+      
+      const updateData = {
+        employeeId: newRequest.employeeId,
+        employeeName: employee?.name || newRequest.employeeName || '', 
+        type: typeValue, // Utiliser l'enum TypeScript
+        startDate: newRequest.startDate,
+        endDate: newRequest.endDate,
+        duration: calculateDuration(newRequest.startDate, newRequest.endDate),
+        durationType: durationTypeValue, // Utiliser l'enum TypeScript
+        reason: newRequest.reason,
+        statut: 'EN_COURS' 
+      };
+
+      console.log("Données de modification PUT:", updateData);
+      modifierCongeMutation.mutate({ id: editingRequestId, data: updateData });
+    } else {
+      // Mode création : utiliser la mutation d'ajout
+      ajouterCongeMutation.mutate(congeData, {
+        onSuccess: (data) => {
+          console.log('✅ Succès - Données sauvegardées:', data);
+          toast.success('Demande de congé créée avec succès');
+
+          // Invalider les queries pour forcer le rechargement des données
+          queryClient.invalidateQueries({ queryKey: ['conges'] });
+
+          setNewRequest({
+            employeeId: '',
+            employeeName: '',
+            type: 'annuel',
+            startDate: '',
+            endDate: '',
+            duration: 0,
+            durationType: 'mois',
+            reason: ''
+          });
+
+          onOpenChange();
+        }
+      });
+    }
+
+    setIsEditMode(false);
+    setEditingRequestId(null);
     onOpenChange();
   };
 
@@ -83,13 +187,13 @@ export function RequestManagement({
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    return diffDays;
+    return Math.max(1, diffDays); // S'assurer que la durée est au moins 1 jour
   };
 
   const calculateEndDate = (startDate: string, durationType: string): string => {
     const start = new Date(startDate);
     let daysToAdd = 0;
-    
+
     switch (durationType) {
       case 'mois':
         daysToAdd = 30;
@@ -101,14 +205,52 @@ export function RequestManagement({
         daysToAdd = 7;
         break;
       case 'personnalise':
-        return newRequest.endDate;
-      default:
-        daysToAdd = 30;
+        daysToAdd = newRequest.duration || 1;
+        break;
     }
-    
+
     const end = new Date(start);
-    end.setDate(start.getDate() + daysToAdd - 1);
+    end.setDate(end.getDate() + daysToAdd);
     return end.toISOString().split('T')[0];
+  };
+
+  const handleDeleteRequest = (requestId: string) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette demande ?')) {
+      supprimerCongeMutation.mutate(requestId);
+    }
+  };
+
+  const handleApproveRequest = (requestId: string) => {
+    approuverCongeMutation.mutate({
+      id: requestId,
+      data: { reason: 'Approuvé automatiquement' } // Utiliser le champ reason au lieu de statut
+    });
+  };
+
+  const handleRejectRequest = (requestId: string) => {
+    rejeterCongeMutation.mutate({
+      id: requestId,
+      data: { reason: 'Rejeté automatiquement' }
+    });
+  };
+
+  const handleEditRequest = (request: LeaveRequest) => {
+    // Remplir le formulaire avec les données de la demande existante
+    setNewRequest({
+      employeeId: request.employeeId,
+      employeeName: request.employeeName, // Garder le nom original
+      type: request.type,
+      startDate: request.startDate,
+      endDate: request.endDate,
+      duration: request.duration,
+      durationType: 'mois', // Par défaut, car LeaveRequest n'a pas de durationType
+      reason: request.reason || ''
+    });
+
+    // Activer le mode édition
+    setIsEditMode(true);
+    setEditingRequestId(request.id);
+    onOpen(); // Ouvrir le modal
   };
 
   const getRemainingBalance = (): number => {
@@ -201,10 +343,12 @@ export function RequestManagement({
       </div>
 
       {/* Tableau des demandes */}
-      <RequestTable 
-        requests={requests} 
-        onApproveRequest={onApproveRequest}
-        onRejectRequest={onRejectRequest}
+      <RequestTable
+        requests={requests}
+        onApproveRequest={handleApproveRequest}
+        onRejectRequest={handleRejectRequest}
+        onDeleteRequest={handleDeleteRequest}
+        onEditRequest={handleEditRequest}
       />
 
       {/* Modal nouvelle demande */}
@@ -213,7 +357,7 @@ export function RequestManagement({
           {(onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
-                Nouvelle demande de congé
+                {isEditMode ? 'Modifier la demande de congé' : 'Nouvelle demande de congé'}
               </ModalHeader>
               <ModalBody>
                 <div className="space-y-6">
@@ -228,7 +372,7 @@ export function RequestManagement({
                         trigger: "h-12",
                       }}
                     >
-                      {employees.map((employee) => (
+                      {displayEmployees.map((employee) => (
                         <SelectItem key={employee.id} value={employee.id}>
                           {employee.name}
                         </SelectItem>
@@ -344,6 +488,19 @@ export function RequestManagement({
                     </div>
                   </div>
 
+                  {/* Reason Input */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Motif du congé</label>
+                    <Input
+                      placeholder="Veuillez saisir le motif"
+                      value={newRequest.reason}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewRequest(prev => ({ ...prev, reason: e.target.value }))}
+                      classNames={{
+                        input: "h-12",
+                      }}
+                    />
+                  </div>
+
                   {/* Summary */}
                   {newRequest.duration > 0 && (
                     <div className="bg-gray-50 rounded-lg p-4 space-y-2">
@@ -363,7 +520,7 @@ export function RequestManagement({
                   Annuler
                 </Button>
                 <Button color="primary" onPress={handleSubmitRequest}>
-                  Créer la demande
+                  {isEditMode ? 'Modifier la demande' : 'Créer la demande'}
                 </Button>
               </ModalFooter>
             </>
