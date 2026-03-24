@@ -56,7 +56,7 @@ export default function FinanceHighlightCard({
   );
 
   const className = cn(
-    'flex items-center justify-between rounded-xl w-full md:max-w-[50%] py-5 px-4',
+    'flex max-md:flex-col md:items-center justify-between rounded-xl w-full md:max-w-[50%] py-5 px-4 gap-4',
     style.container,
     href && 'transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer'
   );

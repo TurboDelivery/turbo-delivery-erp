@@ -61,7 +61,6 @@ export function ChartLineMultiple() {
   const filterRevenusByMonth = () => {
     if (!selectedMonth && chartData?.length) {
       // Si aucun mois sélectionné (bouton "Année"), utiliser les données de l'API directement
-      console.log('Utilisation des données de l API pour l année');
       return {
         totalFraisLivraison: chiffreAffaireData?.fraisLivraisonTotalTermine || 0,
         totalCommissions: chiffreAffaireData?.commissionChiffreAffaire || chiffreAffaireData?.commissionCommande || 0,
@@ -69,7 +68,6 @@ export function ChartLineMultiple() {
     }
 
     if (!selectedMonth || !chartData.length) {
-      console.log('Pas de mois sélectionné ou pas de données chartData');
       // Si aucun mois sélectionné, utiliser les données de l'API
       return {
         totalFraisLivraison: chiffreAffaireData?.fraisLivraisonTotalTermine || 0,
@@ -77,45 +75,26 @@ export function ChartLineMultiple() {
       };
     }
 
-    // Afficher tous les mois disponibles dans chartData
-    console.log('Mois disponibles dans chartData:');
-    chartData.forEach((item, index) => {
-      console.log(`  ${index}: "${item.month}" -> revenus: ${item.revenus}, depenses: ${item.depenses}`);
-    });
-
     // Utiliser les noms abrégés qui correspondent à chartData
     const monthNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'];
     const selectedMonthName = monthNames[selectedMonth - 1];
-    console.log('Mois recherché:', `"${selectedMonthName}"`);
 
     // Chercher le mois correspondant dans les données du graphique
     const monthData = chartData.find((item) => {
-      console.log(`Comparaison: "${item.month}" === "${selectedMonthName}" => ${item.month === selectedMonthName}`);
       return item.month === selectedMonthName;
     });
 
-    console.log(`Données du mois ${selectedMonth} (${selectedMonthName}):`, monthData);
 
     if (monthData) {
       // Utiliser les données exactes du graphique pour la cohérence
       const revenusDuMois = monthData.revenus || 0;
-      const depensesDuMois = monthData.depenses || 0;
 
-      console.log(`Revenus du graphique pour le mois: ${revenusDuMois.toLocaleString()}`);
-      console.log(`Dépenses du graphique pour le mois: ${depensesDuMois.toLocaleString()}`);
-
-      // Pour les revenus totaux, on utilise la valeur "revenus" du graphique
-      // qui correspond au CA du mois (frais livraison + commissions)
-      console.log('=== FIN FILTRE REVENUS PAR MOIS (TROUVÉ) ===');
       return {
         totalFraisLivraison: revenusDuMois, // Le CA total du mois
         totalCommissions: 0, // Pas besoin de séparer car revenus contient déjà le total
       };
     }
 
-    // Fallback : utiliser 0 si pas de données pour ce mois
-    console.log(`Pas de données trouvées pour le mois ${selectedMonth}, utilisation de 0`);
-    console.log('=== FIN FILTRE REVENUS PAR MOIS (NON TROUVÉ) ===');
     return {
       totalFraisLivraison: 0,
       totalCommissions: 0,
@@ -126,9 +105,8 @@ export function ChartLineMultiple() {
   const filterDepensesByMonth = () => {
     if (!selectedMonth && chartData?.length) {
       // Si aucun mois sélectionné (bouton "Année"), calculer la somme de toutes les dépenses de l'année
-      const totalDepenses = chartData.reduce((sum, item) => sum + (item.depenses || 0), 0);
-      console.log('Total dépenses annuelles:', totalDepenses);
-      return totalDepenses;
+
+      return chartData.reduce((sum, item) => sum + (item.depenses || 0), 0);
     }
 
     if (!selectedMonth || !chartData.length) {
@@ -144,13 +122,11 @@ export function ChartLineMultiple() {
     const monthData = chartData.find((item) => item.month === selectedMonthName);
 
     if (monthData) {
-      const depensesDuMois = monthData.depenses || 0;
-      console.log(`Dépenses du graphique pour ${selectedMonthName}: ${depensesDuMois.toLocaleString()}`);
-      return depensesDuMois;
+
+      return monthData.depenses || 0;
     }
 
     // Fallback : utiliser 0 si pas de données pour ce mois
-    console.log(`Pas de dépenses trouvées pour ${selectedMonthName}, utilisation de 0`);
     return 0;
   };
 
@@ -248,7 +224,7 @@ export function ChartLineMultiple() {
       </CardHeader>
       <CardContent>
         {/* Cartes de résumé */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid md:grid-cols-5 gap-4 mb-6">
           <div className="text-center p-4 rounded-lg" style={{ backgroundColor: '#10b98120' }}>
             <p className="text-sm font-medium" style={{ color: '#10b981' }}>
               Revenus totaux

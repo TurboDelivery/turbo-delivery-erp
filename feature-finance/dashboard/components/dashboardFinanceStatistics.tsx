@@ -24,10 +24,7 @@ export default function DashboardFinanceStatistics() {
 
   const debut = dateRange?.from;
   const fin = dateRange?.to;
-  const queryParams = useMemo(
-    () => ({ debut, fin }),
-    [debut, fin]
-  );
+  const queryParams = useMemo(() => ({ debut, fin }), [debut, fin]);
 
   // Utiliser React Query pour les données globales
   const { data: globalStats, isLoading } = useGlobalStats(queryParams);
@@ -44,9 +41,7 @@ export default function DashboardFinanceStatistics() {
   const marge = chiffreAffaires - sommeDepenses;
   const isDeficit = marge < 0;
   const margeStateLabel = isDeficit ? 'Déficit' : 'Excédent';
-  const margeStateClassName = isDeficit
-    ? 'bg-red-50 border-red-200 text-red-700'
-    : 'bg-green-50 border-green-200 text-green-700';
+  const margeStateClassName = isDeficit ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700';
   const formattedDepenses = formatCFA(sommeDepenses);
   const formattedMarge = formatCFA(marge);
   const formattedRecurrentes = formatCFA(totalRecurrentes);
@@ -79,7 +74,7 @@ export default function DashboardFinanceStatistics() {
       debut,
       fin,
     }),
-    [debut, fin]
+    [debut, fin],
   );
 
   return (
@@ -87,10 +82,7 @@ export default function DashboardFinanceStatistics() {
       {/* En-tête avec filtre */}
       <div className="flex justify-between items-center mb-6 bg-white">
         <h2 className="text-2xl font-bold text-gray-800">Tableau de bord financier</h2>
-        <DateFilterInput
-          filters={dateFilters}
-          handleDateChange={setDateRange}
-        />
+        <DateFilterInput filters={dateFilters} handleDateChange={setDateRange} />
       </div>
 
       <div className="grid grid-cols-1 gap-6">
@@ -101,6 +93,8 @@ export default function DashboardFinanceStatistics() {
           fraisLivraison={fraisLivraison}
           commissions={commissions}
           // investissement={investissement}
+          commissionFixe={globalStats?.commissionFixe ?? 0}
+          commissionPourcentage={globalStats?.commissionPourcentage ?? 0}
           isLoading={isLoading}
           isLoadingExport={isLoadingCAExport}
           onDownload={handleDownloadDetails}
