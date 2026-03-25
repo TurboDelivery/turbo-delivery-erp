@@ -39,11 +39,8 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
     }
   };
 
-  const getLeaveTypeColor = (type: LeaveRequest['type']) => {
-    // Convertir l'enum en string si nécessaire
-    const typeString = typeof type === 'string' ? type : String(type);
-    
-    switch (typeString) {
+  const getLeaveTypeColor = (type: string) => {
+    switch (type) {
       case 'annuel': 
       case 'ANNUEL': 
         return 'bg-blue-600 text-white border-blue-300';
@@ -53,7 +50,10 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
       case 'sans solde': 
       case 'SANS_SOLDE': 
         return 'bg-orange-500 text-white border-orange-200';
+      case 'maternite': 
       case 'MATERNITE': 
+      case 'maternité': 
+      case 'MATERNITÉ': 
         return 'bg-purple-600 text-white border-purple-300';
       default: 
         return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -74,7 +74,10 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
       case 'sans solde': 
       case 'SANS_SOLDE': 
         return 'Congé sans solde';
+      case 'maternite': 
       case 'MATERNITE': 
+      case 'maternité': 
+      case 'MATERNITÉ': 
         return 'Congé maternité';
       default: 
         return typeString;

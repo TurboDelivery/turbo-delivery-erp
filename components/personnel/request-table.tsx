@@ -112,12 +112,11 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
   };
 
   const canEdit = (statut: string) => {
-    return statut === 'En attente' || statut === 'EN_ATTENTE';
+    return true; // Modification toujours disponible
   };
 
   const canDelete = (statut: string) => {
-    return statut === 'En attente' || statut === 'EN_ATTENTE' || 
-           statut === 'Rejetée' || statut === 'REJETEE';
+    return true; // Suppression toujours disponible
   };
 
   const getLeaveTypeColor = (type: string) => {
@@ -131,7 +130,10 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
       case 'sans solde': 
       case 'SANS_SOLDE': 
         return 'bg-orange-500 text-white border-orange-200';
+      case 'maternite': 
       case 'MATERNITE': 
+      case 'maternité': 
+      case 'MATERNITÉ': 
         return 'bg-purple-600 text-white border-purple-300';
       default: 
         return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -149,7 +151,10 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
       case 'sans solde': 
       case 'SANS_SOLDE': 
         return 'Congé sans solde';
+      case 'maternite': 
       case 'MATERNITE': 
+      case 'maternité': 
+      case 'MATERNITÉ': 
         return 'Congé maternité';
       default: 
         return type;
