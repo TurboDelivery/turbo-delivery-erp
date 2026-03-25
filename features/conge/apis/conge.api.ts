@@ -44,10 +44,7 @@ export const congeAPI: ICongeAPI = {
     return api.request<ICongeAddUpdateResponse>({
       endpoint: `/erp/conges`,
       method: "POST",
-      data: {
-        ...data,
-        statut: 'EN_COURS' // Forcer le statut pour éviter l'erreur NOT NULL
-      },
+      data: data, // Ne pas forcer le statut, utiliser celui envoyé
       service: 'private'
     });
   },
@@ -69,7 +66,7 @@ export const congeAPI: ICongeAPI = {
 
   approuverConge(id: string, data?: CongeStatusUpdateDTO): Promise<ICongeAddUpdateResponse> {
     return api.request<ICongeAddUpdateResponse>({
-      endpoint: `erp/conges/${id}/statut?statut=APPROUVEE`,
+      endpoint: `erp/conges/${id}/statut?statut=EN_COURS`,
       method: "PATCH",
       data: data || {},
     });

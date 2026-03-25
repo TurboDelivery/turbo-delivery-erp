@@ -15,6 +15,40 @@ import { CongeType, DurationType } from '../../features/conge/types/conge.type';
 import { useEmployeeListQuery } from '../../features/personnel/queries/employee-list.query';
 import { useQueryClient } from '@tanstack/react-query';
 
+// Hook pour la modal de confirmation
+const useConfirmDialog = () => {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [message, setMessage] = useState('');
+  const [onConfirm, setOnConfirm] = useState<(() => void) | null>(null);
+
+  const openDialog = (msg: string, confirmCallback: () => void) => {
+    setMessage(msg);
+    setOnConfirm(() => confirmCallback);
+    onOpen();
+  };
+
+  const confirm = () => {
+    if (onConfirm) {
+      onConfirm();
+    }
+    onOpenChange();
+  };
+
+  const cancel = () => {
+    onOpenChange();
+  };
+
+  return {
+    isOpen,
+    onOpen,
+    onOpenChange,
+    message,
+    openDialog,
+    confirm,
+    cancel
+  };
+};
+
 interface RequestManagementProps {
   requests: LeaveRequest[];
   requestStats: RequestStats;
@@ -32,25 +66,32 @@ export function RequestManagement({
   onRejectRequest,
   onSubmitRequest
 }: RequestManagementProps) {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
-
+  
   // Utiliser la mutation pour ajouter un congé
   const ajouterCongeMutation = useAjouterCongeMutation();
-
+  
   // Utiliser la mutation pour supprimer un congé
   const supprimerCongeMutation = useSupprimerCongeMutation();
-
+  
   // Utiliser la mutation pour modifier un congé
   const modifierCongeMutation = useModifierCongeMutation();
-
+  
   // Utiliser la mutation pour approuver un congé
   const approuverCongeMutation = useApprouverCongeMutation();
-
+  
   // Utiliser la mutation pour rejeter un congé
   const rejeterCongeMutation = useRejeterCongeMutation();
-
+  
   // Initialiser le query client pour invalider les queries
   const queryClient = useQueryClient();
+  
+  // Hook pour la modal de confirmation
+  const { isOpen, onOpen, onOpenChange, message, openDialog, confirm, cancel } = useConfirmDialog();
+
+  // Modal pour nouvelle/modification de demande
+  const { isOpen: isFormOpen, onOpen: onFormOpen, onOpenChange: onFormOpenChange } = useDisclosure();
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
 
   // Récupérer la liste des employés depuis l'API
   const { data: employeesData, isLoading: employeesLoading } = useEmployeeListQuery({});
@@ -61,17 +102,13 @@ export function RequestManagement({
   const [newRequest, setNewRequest] = useState({
     employeeId: '',
     employeeName: '',
-    type: 'annuel' as LeaveRequest['type'],
+    type: 'ANNUEL' as LeaveRequest['type'],
     startDate: '',
     endDate: '',
     duration: 0,
-    durationType: 'mois' as 'mois' | 'quinzaine' | 'semaine' | 'personnalise',
+    durationType: 'mois',
     reason: ''
   });
-
-  // État pour savoir si on est en mode modification
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
 
   const [leaveBalance, setLeaveBalance] = useState(30);
   const [isEligible, setIsEligible] = useState(true);
@@ -87,17 +124,44 @@ export function RequestManagement({
 
     // Préparer les données pour l'API
     const employee = displayEmployees.find(emp => emp.id === newRequest.employeeId);
+    
+    // Mapper les types manuellement pour la création
+    let typeValue: CongeType;
+    let durationTypeValue: DurationType;
+    
+    switch(newRequest.type) {
+      case 'annuel':
+        typeValue = CongeType.ANNUEL;
+        break;
+      case 'maladie':
+        typeValue = CongeType.MALADIE;
+        break;
+      default:
+        typeValue = CongeType.SANS_SOLDE;
+    }
+    
+    switch(newRequest.durationType) {
+      case 'mois':
+        durationTypeValue = DurationType.MOIS;
+        break;
+      case 'quinzaine':
+        durationTypeValue = DurationType.QUINZAINE;
+        break;
+      case 'semaine':
+        durationTypeValue = DurationType.SEMAINE;
+        break;
+      default:
+        durationTypeValue = DurationType.PERSONNALISE;
+    }
+    
     const congeData = {
       employeeId: newRequest.employeeId,
       employeeName: employee?.name || '', // Utiliser le nom réel de l'employé
-      type: newRequest.type === 'annuel' ? CongeType.ANNUEL :
-        newRequest.type === 'maladie' ? CongeType.MALADIE : CongeType.SANS_SOLDE, // Utiliser les enums TypeScript
+      type: typeValue, // Utiliser l'enum TypeScript
       startDate: newRequest.startDate,
       endDate: newRequest.endDate,
       duration: calculateDuration(newRequest.startDate, newRequest.endDate),
-      durationType: newRequest.durationType === 'mois' ? DurationType.MOIS :
-        newRequest.durationType === 'quinzaine' ? DurationType.QUINZAINE :
-          newRequest.durationType === 'semaine' ? DurationType.SEMAINE : DurationType.PERSONNALISE, // Utiliser les enums
+      durationType: durationTypeValue, // Utiliser l'enum TypeScript
       reason: newRequest.reason,
       statut: 'EN_ATTENTE' // Utiliser EN_ATTENTE au lieu de EN_COURS
     };
@@ -172,14 +236,14 @@ export function RequestManagement({
             reason: ''
           });
 
-          onOpenChange();
+          onFormOpenChange();
         }
       });
     }
 
     setIsEditMode(false);
     setEditingRequestId(null);
-    onOpenChange();
+    onFormOpenChange();
   };
 
   const calculateDuration = (startDate: string, endDate: string): number => {
@@ -215,9 +279,12 @@ export function RequestManagement({
   };
 
   const handleDeleteRequest = (requestId: string) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette demande ?')) {
-      supprimerCongeMutation.mutate(requestId);
-    }
+    openDialog(
+      'Êtes-vous sûr de vouloir supprimer cette demande de congé ?',
+      () => {
+        supprimerCongeMutation.mutate(requestId);
+      }
+    );
   };
 
   const handleApproveRequest = (requestId: string) => {
@@ -351,8 +418,26 @@ export function RequestManagement({
         onEditRequest={handleEditRequest}
       />
 
+      {/* Modal de confirmation */}
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          <ModalHeader>Confirmation</ModalHeader>
+          <ModalBody>
+            {message}
+          </ModalBody>
+          <ModalFooter>
+            <Button color="danger" variant="light" onPress={cancel}>
+              Annuler
+            </Button>
+            <Button color="primary" onPress={confirm}>
+              Confirmer
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
       {/* Modal nouvelle demande */}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl">
+      <Modal isOpen={isFormOpen} onOpenChange={onFormOpenChange} size="2xl">
         <ModalContent>
           {(onClose) => (
             <>
