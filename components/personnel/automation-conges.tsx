@@ -8,7 +8,7 @@ import { IConge, CongeStatut } from '@/features/conge/types/conge.type';
 
 // Fonction pour calculer l'ancienneté
 const calculateSeniority = (entryDate: string): { years: number; months: number; label: string } => {
-  console.log('Calcul ancienneté pour:', entryDate);
+
   const entry = new Date(entryDate);
   const today = new Date();
   
@@ -112,7 +112,7 @@ export default function AutomatisationConges() {
     
     const isOnLeave = !!currentLeave;
     
-    console.log('Employé', employee.name, '- Droits:', rights, 'Pris:', pris, 'Restant:', restant, 'En congé:', isOnLeave);
+
     
     // Alerte uniquement si : 
     // 1. L'employé a des droits de congés (>= 5 jours)
@@ -136,8 +136,7 @@ export default function AutomatisationConges() {
     };
   });
 
-  console.log('📊 Final employees data:', employeesWithLeaveData);
-  console.log('🏖️ Employees on leave:', employeesWithLeaveData.filter(emp => emp.isOnLeave).map(emp => emp.name));
+
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">

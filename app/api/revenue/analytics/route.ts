@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    console.log('API Revenue Analytics - Params:', { period, date, startDate, endDate });
+   
 
     if (!period) {
       return NextResponse.json(
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     
     url += `?${params.toString()}`;
 
-    console.log('API Revenue Analytics - Backend URL:', url);
+
 
     // Faire l'appel à l'API backend
     const response = await fetch(url, {
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log('API Revenue Analytics - Backend Response Status:', response.status);
+
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -58,8 +58,6 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('API Revenue Analytics - Success, data keys:', Object.keys(data));
-    console.log('API Revenue Analytics - Sample data:', JSON.stringify(data).substring(0, 200) + '...');
 
     // Retourner les données au client
     return NextResponse.json(data);

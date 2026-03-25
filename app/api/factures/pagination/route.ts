@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     
     // Récupérer les données
     const data = await response.json();
-    console.log('✅ Proxy API - Données récupérées:', data.content?.length, 'éléments');
+
     
     // Retourner les données avec headers CORS
     return NextResponse.json(data, {

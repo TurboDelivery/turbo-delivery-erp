@@ -154,7 +154,7 @@ export function RequestManagement({ requests, requestStats, employees}: RequestM
       duration: calculateDuration(newRequest.startDate, newRequest.endDate),
       durationType: durationTypeValue, // Utiliser l'enum TypeScript
       reason: newRequest.reason,
-      statut: 'EN_ATTENTE', // Utiliser EN_ATTENTE au lieu de EN_COURS
+      statut: 'EN_ATTENTE', // Toujours EN_ATTENTE pour la création
     };
 
     console.log("Données à envoyer à l'API:", congeData);
@@ -225,7 +225,7 @@ export function RequestManagement({ requests, requestStats, employees}: RequestM
           setNewRequest({
             employeeId: '',
             employeeName: '',
-            type: 'annuel',
+            type: 'ANNUEL' as LeaveRequest['type'],
             startDate: '',
             endDate: '',
             duration: 0,
