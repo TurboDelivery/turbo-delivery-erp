@@ -14,9 +14,11 @@ import PlanningConges from './planning-conges';
 import { LeaveRequest, RequestStats, Employee } from '../../features/personnel/types/types';
 import { useAjouterCongeMutation, useSupprimerCongeMutation, useModifierCongeMutation, useApprouverCongeMutation, useRejeterCongeMutation } from '../../features/conge/mutations/conge.mutation';
 import { CongeType, DurationType } from '../../features/conge/types/conge.type';
-import { useEmployeeListQuery } from '../../features/personnel/queries/employee-list.query';
+import { useEmployeeListQuery } from '@/features/personnel/queries/employee-list.query';
+import { eligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
 import { useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, MaterialTabsList, MaterialTabsTrigger } from '@/components/commons/tabs';
+
 // Hook pour la modal de confirmation
 const useConfirmDialog = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -95,12 +97,13 @@ export function RequestManagement({
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
 
-  // Récupérer la liste des employés depuis l'API
-  const { data: employeesData, isLoading: employeesLoading } = useEmployeeListQuery({});
-  console.log("Employés data:", employeesData);
+  // Récupérer la liste des employés éligibles depuis l'API
+  const { data: employeesData, isLoading: employeesLoading } = eligibleEmployeeQuery({ limit: 1000 });
+  console.log("Employés éligibles data:", employeesData);
 
   // Utiliser les données de l'API si disponibles, sinon les données mockées
-  const displayEmployees = employeesData?.content || employees;
+  const displayEmployees = Array.isArray(employeesData) ? employeesData : employees;
+  
   const [newRequest, setNewRequest] = useState({
     employeeId: '',
     employeeName: '',
@@ -125,7 +128,7 @@ export function RequestManagement({
     }
 
     // Préparer les données pour l'API
-    const employee = displayEmployees.find(emp => emp.id === newRequest.employeeId);
+    const employee = displayEmployees.find((emp: Employee) => emp.id === newRequest.employeeId);
     
     // Mapper les types manuellement pour la création
     let typeValue: CongeType;
@@ -175,7 +178,7 @@ export function RequestManagement({
 
     if (isEditMode && editingRequestId) {
       // Mode modification : envoyer toutes les données comme le curl PUT
-      const employee = displayEmployees.find(emp => emp.id === newRequest.employeeId);
+      const employee = displayEmployees.find((emp: Employee) => emp.id === newRequest.employeeId);
       
       // Mapper les types manuellement
       let typeValue: CongeType;
@@ -489,7 +492,7 @@ export function RequestManagement({
                         trigger: "h-12",
                       }}
                     >
-                      {displayEmployees.map((employee) => (
+                      {displayEmployees.map((employee: Employee) => (
                         <SelectItem key={employee.id} value={employee.id}>
                           {employee.name}
                         </SelectItem>

@@ -20,6 +20,7 @@ export interface ICongeAPI {
   rejeterConge(id: string, data?: CongeStatusUpdateDTO): Promise<ICongeAddUpdateResponse>;
 
   obtenirCongesParEmploye(employeeId: string): Promise<IConge[]>;
+  obtenirEmployeEligible(params: ICongesParams): Promise<PaginatedResponse<IConge>>;
 }
 
 export const congeAPI: ICongeAPI = {
@@ -86,4 +87,13 @@ export const congeAPI: ICongeAPI = {
       method: "GET",
     });
   },
+  
+  obtenirEmployeEligible(params: ICongesParams): Promise<PaginatedResponse<IConge>> {
+    return api.request<PaginatedResponse<IConge>>({
+      endpoint: `erp/employees/eligible-conge`,
+      method: "GET",
+      searchParams: params as SearchParams,
+      service:'private'
+    });
+  }
 };
