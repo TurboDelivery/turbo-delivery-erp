@@ -5,7 +5,7 @@ const socket = io("http://localhost:3009", {
 });
 
 socket.on("connect", () => {
-    console.log("Connecté au serveur Socket.IO !");
+  
 
     // Simuler l'envoi d'une position
     socket.emit("/notification/livreur/position", {
@@ -14,9 +14,9 @@ socket.on("connect", () => {
         longitude: -4.024429,
     });
 
-    console.log("Position envoyée au serveur !");
+ 
 });
 
 socket.on("/notification/livreur/position", (data) => {
-    console.log("Position reçue:", data);
+  
 });

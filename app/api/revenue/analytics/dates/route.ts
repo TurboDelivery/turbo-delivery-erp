@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const debut = searchParams.get('debut');
     const fin = searchParams.get('fin');
 
-    console.log('API Revenue Dates - Params:', { debut, fin });
+ 
 
     if (!debut || !fin) {
       return NextResponse.json(
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     // Construire l'URL de l'API backend
     const url = `http://backend-prod.turbodeliveryapp.com/api/finance/revenues/analytics/dates?debut=${debut}&fin=${fin}`;
     
-    console.log('API Revenue Dates - Backend URL:', url);
+
 
     // Faire l'appel à l'API backend
     const response = await fetch(url, {
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log('API Revenue Dates - Backend Response Status:', response.status);
+   
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('API Revenue Dates - Success, data keys:', Object.keys(data));
+   
 
     // Retourner les données au client
     return NextResponse.json(data);

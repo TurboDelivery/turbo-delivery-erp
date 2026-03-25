@@ -112,7 +112,8 @@ export function RequestManagement({
     endDate: '',
     duration: 0,
     durationType: 'mois',
-    reason: ''
+    reason: '',
+    statut: 'EN_ATTENTE' as string
   });
 
   const [leaveBalance, setLeaveBalance] = useState(30);
@@ -171,7 +172,7 @@ export function RequestManagement({
       duration: calculateDuration(newRequest.startDate, newRequest.endDate),
       durationType: durationTypeValue, // Utiliser l'enum TypeScript
       reason: newRequest.reason,
-      statut: 'EN_ATTENTE' // Utiliser EN_ATTENTE au lieu de EN_COURS
+      statut: 'EN_ATTENTE' // Toujours EN_ATTENTE pour la création
     };
 
     console.log("Données à envoyer à l'API:", congeData);
@@ -224,7 +225,7 @@ export function RequestManagement({
         duration: calculateDuration(newRequest.startDate, newRequest.endDate),
         durationType: durationTypeValue, // Utiliser l'enum TypeScript
         reason: newRequest.reason,
-        statut: 'EN_COURS' 
+        statut: newRequest.statut === 'APPROUVEE' ? 'EN_COURS' : newRequest.statut // Si approuvé, passer en cours
       };
 
       console.log("Données de modification PUT:", updateData);
@@ -242,12 +243,13 @@ export function RequestManagement({
           setNewRequest({
             employeeId: '',
             employeeName: '',
-            type: 'annuel',
+            type: 'ANNUEL' as LeaveRequest['type'],
             startDate: '',
             endDate: '',
             duration: 0,
             durationType: 'mois',
-            reason: ''
+            reason: '',
+            statut: 'EN_ATTENTE'
           });
 
           onFormOpenChange();
@@ -325,7 +327,8 @@ export function RequestManagement({
       endDate: request.endDate,
       duration: request.duration,
       durationType: 'mois', // Par défaut, car LeaveRequest n'a pas de durationType
-      reason: request.reason || ''
+      reason: request.reason || '',
+      statut: request.statut || 'EN_ATTENTE' // Inclure le statut existant
     });
 
     // Activer le mode édition
@@ -621,6 +624,27 @@ export function RequestManagement({
                       }}
                     />
                   </div>
+
+                  {/* Status Selection - Only in edit mode */}
+                  {isEditMode && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Statut du congé</label>
+                      <Select
+                        placeholder="Sélectionnez le statut"
+                        selectedKeys={[newRequest.statut]}
+                        onSelectionChange={(keys) => setNewRequest(prev => ({ ...prev, statut: Array.from(keys)[0] as string }))}
+                        classNames={{
+                          trigger: "h-12",
+                        }}
+                      >
+                        <SelectItem key="EN_ATTENTE" value="EN_ATTENTE">En attente</SelectItem>
+                        <SelectItem key="APPROUVEE" value="APPROUVEE">Approuvée</SelectItem>
+                        <SelectItem key="EN_COURS" value="EN_COURS">En cours</SelectItem>
+                        <SelectItem key="TERMINE" value="TERMINE">Terminé</SelectItem>
+                        <SelectItem key="REJETEE" value="REJETEE">Rejetée</SelectItem>
+                      </Select>
+                    </div>
+                  )}
 
                   {/* Summary */}
                   {newRequest.duration > 0 && (
