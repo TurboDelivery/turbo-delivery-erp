@@ -82,3 +82,24 @@ export const useCongesByEmployeeQuery = (employeeId: string) => {
 
   return query;
 };
+
+export const eligibleEmployeeQuery = (params: ICongesParams) => {
+  const query = useQuery({
+    queryKey: ['eligible', params],
+    queryFn: async () => {
+      return await congeAPI.obtenirEmployeEligible(params);
+    },
+    staleTime: 30 * 1000, //30 secondes
+    refetchOnMount: true, //Refetch lors du mount
+  });
+
+  // Gestion des erreurs dans le hook
+  React.useEffect(() => {
+    if (query.isError && query.error) {
+      console.error("Erreur lors de la récupération des employés éligibles:", query.error);
+      // TODO: Ajouter notification toast quand disponible
+    }
+  }, [query.isError, query.error]);
+
+  return query;
+};
