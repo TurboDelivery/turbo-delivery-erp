@@ -36,10 +36,11 @@ export const useAjouterCongeMutation = () => {
         endDate: data.endDate,
         duration: calculateDuration(data.startDate, data.endDate),
         durationType: data.durationType,
-        reason: data.reason || ''
+        reason: data.reason || '',
+        statut: 'EN_ATTENTE'
       };
       
-      console.log('📤 Appel API - Données préparées:', JSON.stringify(congeData, null, 2));
+      console.log('📤 Appel API - Données préparées 3:', JSON.stringify(congeData, null, 2));
       
       // Appel direct à l'action
       return await ajouterCongeAction(congeData);
@@ -125,7 +126,7 @@ export const useApprouverCongeMutation = () => {
       // Envoyer directement les données
       const validatedData = data || {};
       
-      console.log('📤 Appel API - Données préparées:', validatedData);
+      console.log('📤 Appel API - Données préparées 2:', validatedData);
       
       return await approuverCongeAction(id, validatedData);
     },
@@ -152,7 +153,7 @@ export const useRejeterCongeMutation = () => {
       // Envoyer directement les données
       const validatedData = data || {};
       
-      console.log('📤 Appel API - Données préparées:', validatedData);
+      console.log('📤 Appel API - Données préparées 1:', validatedData);
       
       return await rejeterCongeAction(id, validatedData);
     },

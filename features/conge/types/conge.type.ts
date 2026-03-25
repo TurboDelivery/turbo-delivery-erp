@@ -1,7 +1,8 @@
 export enum CongeType {
-  ANNUEL = 'annuel',
-  MALADIE = 'maladie',
-  SANS_SOLDE = 'sans solde',
+  ANNUEL = 'ANNUEL',
+  MALADIE = 'MALADIE',
+  SANS_SOLDE = 'SANS_SOLDE',
+  MATERNITE = 'MATERNITE',
 }
 
 export enum CongeStatut {
@@ -13,10 +14,10 @@ export enum CongeStatut {
 }
 
 export enum DurationType {
-  MOIS = 'mois',
-  QUINZAINE = 'quinzaine',
-  SEMAINE = 'semaine',
-  PERSONNALISE = 'personnalise',
+  MOIS = 'MOIS',
+  QUINZAINE = 'QUINZAINE',
+  SEMAINE = 'SEMAINE',
+  PERSONNALISE = 'PERSONNALISE',
 }
 
 export interface IConge {
