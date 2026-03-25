@@ -1,19 +1,19 @@
-import { Employee } from '@/features/personnel/types/types';
+import { IEmployee } from '@/features/personnel/types/types';
 import { EmployeeCreateDTO, EmployeeUpdateDTO } from '@/features/personnel/schemas/employee.schema';
 import { SearchParams } from 'ak-api-http';
 import { api } from '@/lib/api';
 import { PaginatedResponse } from '@/types/general';
 
 export interface IEmployeeAPI {
-  obtenirTousEmployes(params: IEmployeeParams): Promise<PaginatedResponse<Employee>>;
-  obtenirEmploye(id: string): Promise<Employee>;
-  ajouterEmploye(data: EmployeeCreateDTO): Promise<Employee>;
-  modifierEmploye(id: string, data: EmployeeUpdateDTO): Promise<Employee>;
-  supprimerEmploye(id: string): Promise<Employee>;
+  obtenirTousEmployes(params: IEmployeeParams): Promise<PaginatedResponse<IEmployee>>;
+  obtenirEmploye(id: string): Promise<IEmployee>;
+  ajouterEmploye(data: EmployeeCreateDTO): Promise<IEmployee>;
+  modifierEmploye(id: string, data: EmployeeUpdateDTO): Promise<IEmployee>;
+  supprimerEmploye(id: string): Promise<IEmployee>;
   obtenirStatsEmployes(params: IEmployeeStatsParams): Promise<IEmployeeStats>;
   exporterEmployesExcel(params: IEmployeeParams): Promise<Blob>;
   employesStats(): Promise<IEmployeeSalaryStats>;
-  changeStatus(id: string, status: string): Promise<Employee>;
+  changeStatus(id: string, status: string): Promise<IEmployee>;
 }
 
 export interface IEmployeeParams {
@@ -48,8 +48,8 @@ export interface IEmployeeStatsParams {
 }
 
 export const employeeAPI: IEmployeeAPI = {
-  async obtenirTousEmployes(params: IEmployeeParams): Promise<PaginatedResponse<Employee>> {
-    return await api.request<PaginatedResponse<Employee>>({
+  async obtenirTousEmployes(params: IEmployeeParams): Promise<PaginatedResponse<IEmployee>> {
+    return await api.request<PaginatedResponse<IEmployee>>({
       endpoint: `/erp/employees`,
       method: 'GET',
       searchParams: {
@@ -58,14 +58,14 @@ export const employeeAPI: IEmployeeAPI = {
     });
   },
 
-  async obtenirEmploye(id: string): Promise<Employee> {
-    return await api.request<Employee>({
+  async obtenirEmploye(id: string): Promise<IEmployee> {
+    return await api.request<IEmployee>({
       endpoint: `/erp/employees/${id}`,
       method: 'GET',
     });
   },
 
-  async ajouterEmploye(data: EmployeeCreateDTO): Promise<Employee> {
+  async ajouterEmploye(data: EmployeeCreateDTO): Promise<IEmployee> {
     console.log('🌐 API - Appel ajouterEmploye avec:', data);
     
     // Ajouter les timestamps requis par la base de données
@@ -77,7 +77,7 @@ export const employeeAPI: IEmployeeAPI = {
     
     console.log('📤 Données envoyées à l\'API:', employeeData);
     
-    return api.request<Employee>({
+    return api.request<IEmployee>({
       endpoint: `/erp/employees`,
       method: 'POST',
       data: employeeData,
@@ -90,22 +90,22 @@ export const employeeAPI: IEmployeeAPI = {
     });
   },
 
-  async modifierEmploye(id: string, data: EmployeeUpdateDTO): Promise<Employee> {
+  async modifierEmploye(id: string, data: EmployeeUpdateDTO): Promise<IEmployee> {
     // Ajouter le timestamp de mise à jour
     const employeeData = {
       ...data,
       updated_at: new Date().toISOString(),
     };
     
-    return api.request<Employee>({
+    return api.request<IEmployee>({
       endpoint: `/erp/employees/${id}`,
       method: 'PUT',
       data: employeeData,
     });
   },
 
-  async supprimerEmploye(id: string): Promise<Employee> {
-    return api.request<Employee>({
+  async supprimerEmploye(id: string): Promise<IEmployee> {
+    return api.request<IEmployee>({
       endpoint: `/erp/employees/${id}`,
       method: 'DELETE',
     });
@@ -162,8 +162,8 @@ export const employeeAPI: IEmployeeAPI = {
     });
   },
   
-  async changeStatus(id: string, status: string): Promise<Employee> {
-    return api.request<Employee>({
+  async changeStatus(id: string, status: string): Promise<IEmployee> {
+    return api.request<IEmployee>({
       endpoint: `/erp/employees/${id}/status`,
       method: 'PATCH',
       data: { status },

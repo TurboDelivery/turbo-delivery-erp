@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { Employee } from '@/features/personnel/types/types';
 
 export const EmployeeSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
@@ -7,8 +6,8 @@ export const EmployeeSchema = z.object({
   position: z.string().min(1, 'Le poste est requis'),
   department: z.string().min(1, 'Le département est requis'),
   salary: z.number().min(1, 'Le salaire est requis'),
-  entryDate: z.string().min(1, 'La date d\'entrée est requise'),
-  statut: z.enum(['Actif', 'Inactif', 'Congé']).default('Actif')
+  entryDate: z.string().min(1, "La date d'entrée est requise"),
+  statut: z.enum(['Actif', 'Inactif', 'Congé']).default('Actif'),
 });
 
 export const EmployeeCreateSchema = EmployeeSchema.extend({

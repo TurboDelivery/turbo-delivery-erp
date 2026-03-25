@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { employeeAPI, IEmployeeParams, IEmployeeSalaryStats } from '@/features/personnel/apis/employee.api';
-import { Employee } from '@/features/personnel/types/types';
+import { IEmployee } from '@/features/personnel/types/types';
 import { PaginatedResponse } from '@/types/general';
 
 export const useEmployeeListQuery = (params: IEmployeeParams) => {
-  return useQuery<PaginatedResponse<Employee>>({
+  return useQuery<PaginatedResponse<IEmployee>>({
     queryKey: ['employees', params],
     queryFn: () => employeeAPI.obtenirTousEmployes(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -13,7 +13,7 @@ export const useEmployeeListQuery = (params: IEmployeeParams) => {
 };
 
 export const useEmployeeQuery = (id: string) => {
-  return useQuery<Employee>({
+  return useQuery<IEmployee>({
     queryKey: ['employee', id],
     queryFn: () => employeeAPI.obtenirEmploye(id),
     enabled: !!id,

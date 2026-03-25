@@ -1,28 +1,28 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useEmployeeListQuery } from '@/features/personnel/queries/employee-list.query';
 import { useCongesQuery } from '@/features/conge/queries/conge.query';
-import { Employee } from '@/features/personnel/types/types';
+import { IEmployee } from '@/features/personnel/types/types';
 import { IConge } from '@/features/conge/types/conge.type';
 
 export default function PlanningConges() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  
+
   // Navigation entre les mois
   const previousMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
   };
-  
+
   const nextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
-  
+
   // Obtenir le nombre de jours dans le mois
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
   };
-  
+
   const days = Array.from({ length: getDaysInMonth(currentMonth) }, (_, i) => i + 1);
 
   // Récupérer les données réelles
@@ -33,35 +33,38 @@ export default function PlanningConges() {
   const conges = congesData?.content || [];
 
   // Grouper les employés par département
-  const employeesByDepartment = employees.reduce((acc, employee) => {
-    const dept = employee.department || 'Non spécifié';
-    if (!acc[dept]) acc[dept] = [];
-    acc[dept].push(employee);
-    return acc;
-  }, {} as Record<string, Employee[]>);
+  const employeesByDepartment = employees.reduce(
+    (acc, employee) => {
+      const dept = employee.department || 'Non spécifié';
+      if (!acc[dept]) acc[dept] = [];
+      acc[dept].push(employee);
+      return acc;
+    },
+    {} as Record<string, IEmployee[]>,
+  );
 
   // Fonction pour vérifier si un employé est en congé un jour donné
-  const isOnLeave = (employee: Employee, day: number) => {
+  const isOnLeave = (employee: IEmployee, day: number) => {
     const employeeConges = conges.filter((conge: IConge) => conge.employeeId === employee.id);
-    
+
     return employeeConges.some((conge: IConge) => {
       const startDate = new Date(conge.startDate);
       const endDate = new Date(conge.endDate);
       const currentDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-      
+
       return currentDate >= startDate && currentDate <= endDate;
     });
   };
 
   // Fonction pour obtenir le type de congé
-  const getLeaveType = (employee: Employee, day: number) => {
+  const getLeaveType = (employee: IEmployee, day: number) => {
     const employeeConges = conges.filter((conge: IConge) => conge.employeeId === employee.id);
-    
+
     for (const conge of employeeConges) {
       const startDate = new Date(conge.startDate);
       const endDate = new Date(conge.endDate);
       const currentDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-      
+
       if (currentDate >= startDate && currentDate <= endDate) {
         return conge.type;
       }
@@ -72,7 +75,6 @@ export default function PlanningConges() {
   // Couleur selon le type de congé
   const getLeaveColor = (type: string) => {
     switch (type?.toLowerCase()) {
-      case 'annuel':
       case 'annuel':
         return 'bg-red-400';
       case 'maladie':
@@ -106,23 +108,13 @@ export default function PlanningConges() {
           <div className="flex items-center gap-4">
             {/* Navigation entre les mois */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={previousMonth}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                title="Mois précédent"
-              >
+              <button onClick={previousMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Mois précédent">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <span className="text-sm font-medium text-gray-600 min-w-[150px] text-center">
-                {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
-              </span>
-              <button
-                onClick={nextMonth}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                title="Mois suivant"
-              >
+              <span className="text-sm font-medium text-gray-600 min-w-[150px] text-center">{currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
+              <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Mois suivant">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -136,18 +128,10 @@ export default function PlanningConges() {
           <div className="w-[200px] font-medium text-gray-500 flex-shrink-0">Employé</div>
           <div className="flex flex-1">
             {days.map((day) => {
-              const isToday = 
-                new Date().getDate() === day &&
-                new Date().getMonth() === currentMonth.getMonth() &&
-                new Date().getFullYear() === currentMonth.getFullYear();
-              
+              const isToday = new Date().getDate() === day && new Date().getMonth() === currentMonth.getMonth() && new Date().getFullYear() === currentMonth.getFullYear();
+
               return (
-                <div
-                  key={day}
-                  className={`w-8 text-center flex-shrink-0 ${
-                    isToday ? "bg-red-100 text-red-500 rounded font-bold" : ""
-                  }`}
-                >
+                <div key={day} className={`w-8 text-center flex-shrink-0 ${isToday ? 'bg-red-100 text-red-500 rounded font-bold' : ''}`}>
                   {day}
                 </div>
               );
@@ -159,9 +143,7 @@ export default function PlanningConges() {
         {Object.entries(employeesByDepartment).map(([department, deptEmployees]) => (
           <div key={department}>
             {/* Section département */}
-            <div className="text-xs text-gray-400 font-semibold mb-1 mt-4">
-              {department.toUpperCase()}
-            </div>
+            <div className="text-xs text-gray-400 font-semibold mb-1 mt-4">{department.toUpperCase()}</div>
 
             {/* Lignes des employés */}
             {deptEmployees.map((employee) => (
@@ -172,12 +154,7 @@ export default function PlanningConges() {
                 <div className="flex flex-1">
                   {days.map((day) => (
                     <div key={day} className="w-8 h-6 flex items-center flex-shrink-0">
-                      {isOnLeave(employee, day) && (
-                        <div 
-                          className={`w-full h-3 rounded ${getLeaveColor(getLeaveType(employee, day) || '')}`}
-                          title={`${getLeaveType(employee, day)} - Jour ${day}`}
-                        />
-                      )}
+                      {isOnLeave(employee, day) && <div className={`w-full h-3 rounded ${getLeaveColor(getLeaveType(employee, day) || '')}`} title={`${getLeaveType(employee, day)} - Jour ${day}`} />}
                     </div>
                   ))}
                 </div>
@@ -214,21 +191,15 @@ export default function PlanningConges() {
               <div className="text-xs text-gray-500">Total employés</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-red-600">
-                {conges.filter((c: IConge) => c.type?.toLowerCase().includes('annuel')).length}
-              </div>
+              <div className="text-2xl font-bold text-red-600">{conges.filter((c: IConge) => c.type?.toLowerCase().includes('annuel')).length}</div>
               <div className="text-xs text-gray-500">Congés annuels</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-orange-600">
-                {conges.filter((c: IConge) => c.type?.toLowerCase().includes('maladie')).length}
-              </div>
+              <div className="text-2xl font-bold text-orange-600">{conges.filter((c: IConge) => c.type?.toLowerCase().includes('maladie')).length}</div>
               <div className="text-xs text-gray-500">Congés maladie</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-blue-600">
-                {conges.filter((c: IConge) => c.type?.toLowerCase().includes('maternite')).length}
-              </div>
+              <div className="text-2xl font-bold text-blue-600">{conges.filter((c: IConge) => c.type?.toLowerCase().includes('maternite')).length}</div>
               <div className="text-xs text-gray-500">Congés maternité</div>
             </div>
           </div>
