@@ -122,6 +122,9 @@ export function RequestManagement({ requests, requestStats, employees}: RequestM
       case 'maladie':
         typeValue = CongeType.MALADIE;
         break;
+      case 'MATERNITE':
+        typeValue = CongeType.MATERNITE;
+        break;
       default:
         typeValue = CongeType.SANS_SOLDE;
     }
@@ -163,11 +166,17 @@ export function RequestManagement({ requests, requestStats, employees}: RequestM
       let durationTypeValue: DurationType;
 
       switch (newRequest.type) {
-        case 'annuel':
+        case 'ANNUEL':
           typeValue = CongeType.ANNUEL;
           break;
-        case 'maladie':
+        case 'MALADIE':
           typeValue = CongeType.MALADIE;
+          break;
+        case 'MATERNITE':
+          typeValue = CongeType.MATERNITE;
+          break;
+        case 'SANS_SOLDE':
+          typeValue = CongeType.SANS_SOLDE;
           break;
         default:
           typeValue = CongeType.SANS_SOLDE;
@@ -483,15 +492,16 @@ export function RequestManagement({ requests, requestStats, employees}: RequestM
                         trigger: 'h-12',
                       }}
                     >
-                      <SelectItem key="annuel" value="annuel">
+                      <SelectItem key="ANNUEL" value="ANNUEL">
                         Congé annuel
                       </SelectItem>
-                      <SelectItem key="maladie" value="maladie">
+                      <SelectItem key="MALADIE" value="MALADIE">
                         Congé maladie
                       </SelectItem>
-                      <SelectItem key="sans solde" value="sans solde">
+                      <SelectItem key="SANS_SOLDE" value="SANS_SOLDE">
                         Congé sans solde
                       </SelectItem>
+                      <SelectItem key="MATERNITE" value="MATERNITE">Congé maternité</SelectItem>
                     </Select>
                   </div>
 

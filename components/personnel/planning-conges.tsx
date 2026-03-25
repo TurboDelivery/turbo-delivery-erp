@@ -199,7 +199,7 @@ export default function PlanningConges() {
               <div className="text-xs text-gray-500">Congés maladie</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-blue-600">{conges.filter((c: IConge) => c.type?.toLowerCase().includes('maternite')).length}</div>
+              <div className="text-2xl font-bold text-blue-600">{conges.filter((c: IConge) => c.type?.toLowerCase().includes('maternite') || c.type?.toLowerCase().includes('maternité')).length}</div>
               <div className="text-xs text-gray-500">Congés maternité</div>
             </div>
           </div>
