@@ -11,6 +11,7 @@ import { IEmployee, LeaveRequest, RequestStats } from '@/features/personnel/type
 import { useAjouterCongeMutation, useApprouverCongeMutation, useModifierCongeMutation, useRejeterCongeMutation, useSupprimerCongeMutation } from '@/features/conge/mutations/conge.mutation';
 import { CongeType, DurationType } from '@/features/conge/types/conge.type';
 import { useEmployeeListQuery } from '@/features/personnel/queries';
+import { eligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
 import { useQueryClient } from '@tanstack/react-query';
 import { MaterialTabsList, MaterialTabsTrigger, Tabs, TabsContent } from '@/components/commons/tabs';
 // Hook pour la modal de confirmation
@@ -80,12 +81,13 @@ export function RequestManagement({ requests, requestStats, employees}: RequestM
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
 
-  // Récupérer la liste des employés depuis l'API
-  const { data: employeesData } = useEmployeeListQuery({});
-  console.log('Employés data:', employeesData);
+  // Récupérer la liste des employés éligibles depuis l'API
+  const { data: employeesData } = eligibleEmployeeQuery({ limit: 1000 });
+  console.log('Employés éligibles data:', employeesData);
 
   // Utiliser les données de l'API si disponibles, sinon les données mockées
-  const displayEmployees = employeesData?.content || employees;
+  const displayEmployees = Array.isArray(employeesData) ? employeesData : employees;
+
   const [newRequest, setNewRequest] = useState({
     employeeId: '',
     employeeName: '',
@@ -456,7 +458,7 @@ export function RequestManagement({ requests, requestStats, employees}: RequestM
                         trigger: 'h-12',
                       }}
                     >
-                      {displayEmployees.map((employee) => (
+                      {displayEmployees.map((employee: IEmployee) => (
                         <SelectItem key={employee.id} value={employee.id}>
                           {employee.name}
                         </SelectItem>

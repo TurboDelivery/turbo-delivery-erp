@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
 import { useEmployeeListQuery } from '@/features/personnel/queries';
+import { eligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
 import { useCongesQuery } from '@/features/conge/queries/conge.query';
 import { IEmployee } from '@/features/personnel/types/types';
 import { IConge, CongeStatut } from '@/features/conge/types/conge.type';
@@ -77,12 +78,11 @@ const formatDate = (dateString: string): string => {
 export default function AutomatisationConges() {
   console.log('🚀 AutomatisationConges component mounted');
   
-  const { data: employeesData } = useEmployeeListQuery({ limit: 1000 });
+  const { data: employeesData } = eligibleEmployeeQuery({ limit: 1000 });
   const { data: congesData } = useCongesQuery({ limit: 1000 });
 
-  const employees = employeesData?.content || [];
-  console.log('Employés reçus pour les congés:', employees);
-  console.log('Pagination employés - Total:', employeesData?.totalElements, 'Page:', employeesData?.number, 'Taille:', employeesData?.size);
+  const employees = Array.isArray(employeesData) ? employeesData : [];
+  console.log('Employés éligibles reçus pour les congés:', employees);
   const conges = congesData?.content || [];
   console.log('Congés reçus:', conges);
   console.log('Pagination congés - Total:', congesData?.totalElements, 'Page:', congesData?.number, 'Taille:', congesData?.size);
@@ -104,25 +104,15 @@ export default function AutomatisationConges() {
     const pris = employeeConges.reduce((total: number, conge: IConge) => total + (conge.duration || 0), 0);
     const restant = Math.max(0, rights - pris);
     
-    // Vérifier si l'employé est actuellement en congé (essayer plusieurs comparaisons)
-    const currentLeave1 = employeeConges.find((conge: IConge) => conge.statut === CongeStatut.EN_COURS);
-    const currentLeave2 = employeeConges.find((conge: IConge) => conge.statut === 'En cours');
-    const currentLeave3 = employeeConges.find((conge: IConge) => String(conge.statut) === 'En cours');
-    const currentLeave4 = employeeConges.find((conge: IConge) => String(conge.statut).toLowerCase().includes('cours'));
-    const currentLeave5 = employeeConges.find((conge: IConge) => String(conge.statut).toLowerCase().includes('en'));
+    // Vérifier si l'employé est actuellement en congé
+    const currentLeave = employeeConges.find((conge: IConge) =>
+      conge.statut === CongeStatut.EN_COURS ||
+      String(conge.statut).toLowerCase().includes('cours')
+    );
     
-    console.log('Tests pour', employee.name, ':');
-    console.log('- CongeStatut.EN_COURS:', CongeStatut.EN_COURS);
-    console.log('- currentLeave1 (enum):', currentLeave1);
-    console.log('- currentLeave2 (string):', currentLeave2);
-    console.log('- currentLeave3 (string cast):', currentLeave3);
-    console.log('- currentLeave4 (contains cours):', currentLeave4);
-    console.log('- currentLeave5 (contains en):', currentLeave5);
+    const isOnLeave = !!currentLeave;
     
-    const isOnLeave = !!(currentLeave1 || currentLeave2 || currentLeave3 || currentLeave4 || currentLeave5);
-    const currentLeave = currentLeave1 || currentLeave2 || currentLeave3 || currentLeave4 || currentLeave5;
-    
-    console.log('Calcul pour', employee.name, '- Droits:', rights, 'Pris:', pris, 'Restant:', restant, 'En congé:', isOnLeave);
+    console.log('Employé', employee.name, '- Droits:', rights, 'Pris:', pris, 'Restant:', restant, 'En congé:', isOnLeave);
     
     // Alerte uniquement si : 
     // 1. L'employé a des droits de congés (>= 5 jours)
@@ -143,7 +133,6 @@ export default function AutomatisationConges() {
       warning: warning,
       notEligible: notEligible,
       isOnLeave: isOnLeave,
-      currentLeave: currentLeave,
     };
   });
 
@@ -206,7 +195,14 @@ export default function AutomatisationConges() {
                   Doit prendre des congés rapidement
                 </div>
               )}
-              
+
+              {emp.restant >= 20 && (
+                <div className="mt-3 flex items-center gap-2 bg-blue-100 text-blue-600 text-xs px-3 py-2 rounded-lg">
+                  <AlertTriangle size={14} />
+                  Doit prendre ses congés cette année
+                </div>
+              )}
+
               {emp.notEligible && (
                 <div className="mt-3 flex items-center gap-2 bg-blue-100 text-blue-600 text-xs px-3 py-2 rounded-lg">
                   <AlertTriangle size={14} />
