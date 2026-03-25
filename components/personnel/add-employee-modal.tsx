@@ -35,14 +35,14 @@ export function AddEmployeeModal({
   });
 
   const handleSubmit = () => {
-    console.log('handleSubmit - formData:', formData);
+   
     
     // Validation des données avec Zod
     const validation = processAndValidateFormData(EmployeeCreateSchema, formData, {
       outputFormat: 'object',
     });
 
-    console.log('Validation - Résultat:', validation);
+  
 
     if (!validation.success) {
       console.error('Validation - Erreurs:', validation.errorsInString);

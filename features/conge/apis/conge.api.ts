@@ -21,6 +21,7 @@ export interface ICongeAPI {
 
   obtenirCongesParEmploye(employeeId: string): Promise<IConge[]>;
   obtenirEmployeEligible(params: ICongesParams): Promise<PaginatedResponse<IConge>>;
+  
 }
 
 export const congeAPI: ICongeAPI = {

@@ -30,13 +30,13 @@ export default async function UserPage({ params }: TurboysPageProps) {
     try {
         user = await getInfoLivreurById(id);
     } catch (error) {
-        console.log("Erreur getInfoLivreurById:", error);
+       
     }
 
     try {
         dataCreneau = await getCreneauById(id);
     } catch (error) {
-        console.log("Erreur getCreneauById:", error);
+        
     }
 
     if (!user) {

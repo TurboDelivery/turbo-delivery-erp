@@ -229,23 +229,23 @@ export default function PersonnelContent() {
   };
 
   const handleApproveRequest = (requestId: string) => {
-    console.log('Approuver demande:', requestId);
+
   };
 
   const handleRejectRequest = (requestId: string) => {
-    console.log('Rejeter demande:', requestId);
+  
   };
 
   const handleSubmitRequest = (request: Omit<LeaveRequest, 'id' | 'statut'>) => {
-    console.log('Soumettre demande:', request);
+   
   };
 
   const handleAddLoan = (loan: Omit<Loan, 'id'>) => {
-    console.log('Ajouter prêt:', loan);
+ 
   };
 
   const handleUpdateLoanStatus = (loanId: string, action: 'hold' | 'extend') => {
-    console.log('Mettre à jour prêt:', loanId, action);
+    
   };
 
   return (

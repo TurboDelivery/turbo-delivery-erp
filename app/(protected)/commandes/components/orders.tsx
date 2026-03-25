@@ -88,7 +88,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
     // 🔹 Gère le changement de date
     const handleDateChange = async (value: RangeValue<CalendarDate>) => {
         setDates(value);
-        console.log("Les valeurs de dates: " + value.start + " | " + value.end)
+       
 
         const startStr = value?.start
             ? new Date(value.start.year, value.start.month - 1, value.start.day).toISOString().split("T")[0]
