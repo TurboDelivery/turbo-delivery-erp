@@ -9,12 +9,14 @@ import { Select, SelectItem } from '@heroui/select';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
 import { toast } from 'react-toastify';
 import { RequestTable } from './request-table';
+import AutomatisationConges from './automation-conges';
+import PlanningConges from './planning-conges';
 import { LeaveRequest, RequestStats, Employee } from '../../features/personnel/types/types';
 import { useAjouterCongeMutation, useSupprimerCongeMutation, useModifierCongeMutation, useApprouverCongeMutation, useRejeterCongeMutation } from '../../features/conge/mutations/conge.mutation';
 import { CongeType, DurationType } from '../../features/conge/types/conge.type';
 import { useEmployeeListQuery } from '../../features/personnel/queries/employee-list.query';
 import { useQueryClient } from '@tanstack/react-query';
-
+import { Tabs, TabsContent, MaterialTabsList, MaterialTabsTrigger } from '@/components/commons/tabs';
 // Hook pour la modal de confirmation
 const useConfirmDialog = () => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
@@ -408,8 +410,18 @@ export function RequestManagement({
           </CardBody>
         </Card>
       </div>
+     <div className=' flex justify-end'>
+       <Tabs defaultValue="conge" className="w-full">
+        <MaterialTabsList className="grid max-w-2xl grid-cols-4 rounded-full">
+          
+           <MaterialTabsTrigger value="conge">Congé</MaterialTabsTrigger>
+           <MaterialTabsTrigger value="employe">Employé</MaterialTabsTrigger>
+           <MaterialTabsTrigger value="planning-calendrier">Planning Calendrier</MaterialTabsTrigger>
+        </MaterialTabsList>
 
-      {/* Tableau des demandes */}
+
+        <TabsContent value="conge" className="mt-6">
+          {/* Tableau des demandes */}
       <RequestTable
         requests={requests}
         onApproveRequest={handleApproveRequest}
@@ -417,6 +429,17 @@ export function RequestManagement({
         onDeleteRequest={handleDeleteRequest}
         onEditRequest={handleEditRequest}
       />
+        </TabsContent>
+        <TabsContent value="employe" className="mt-6">
+          <AutomatisationConges />
+        </TabsContent>
+        <TabsContent value="planning-calendrier" className="mt-6">
+          <PlanningConges />
+        </TabsContent>
+      </Tabs>
+     </div>
+
+    
 
       {/* Modal de confirmation */}
       <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
