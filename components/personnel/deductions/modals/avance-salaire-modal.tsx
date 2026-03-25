@@ -1,17 +1,13 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from '@heroui/react';
-import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { EmployeeSelect } from '@/components/personnel/common/employee-select';
 import { Label } from '@/components/ui/label';
-import { deductionAPI } from '@/features/personnel/apis/deduction.api';
-import { deductionKeys } from '@/features/personnel/queries/deduction-list.query';
-import { createAvanceSchema, CreateAvanceDTO } from '@/features/personnel/schemas/deduction.schema';
-import { IDeduction } from '@/features/personnel/types/deduction.types';
+import { useEmployeeListQuery } from '@/features/personnel/queries';
+import { AvanceSalaireFormValues, avanceSalaireSchema } from '@/features/personnel/schemas/avance-salaire.schema';
 
 const getTodayDateInput = (): string => {
   const today = new Date();
@@ -21,35 +17,58 @@ const getTodayDateInput = (): string => {
   return `${year}-${month}-${day}`;
 };
 
+export type AvanceSalairePayload = {
+  employeeId: string;
+  montant: number;
+  dateDemande: string;
+  motif: string;
+};
+
 interface AvanceSalaireModalProps {
   isOpen: boolean;
   onClose: () => void;
-  deduction?: IDeduction | null;
-  onSubmit?: (args: { mode: 'create' | 'update'; id?: string; dto: CreateAvanceDTO }) => Promise<void> | void;
+  onSubmit?: (data: AvanceSalairePayload) => Promise<void> | void;
 }
 
-const DEFAULT_VALUES: CreateAvanceDTO = {
+const DEFAULT_VALUES: AvanceSalaireFormValues = {
   employeeId: '',
-  amount: 0,
-  date: getTodayDateInput(),
+  salaire: 0,
+  montant: 0,
+  dateDemande: getTodayDateInput(),
   motif: '',
 };
 
-function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSalaireModalProps) {
-  const queryClient = useQueryClient();
-  const isEditMode = Boolean(deduction?.id);
-
-  const form = useForm<CreateAvanceDTO>({
-    resolver: zodResolver(createAvanceSchema),
+function AvanceSalaireModal({ isOpen, onClose, onSubmit }: AvanceSalaireModalProps) {
+  const form = useForm<AvanceSalaireFormValues>({
+    resolver: zodResolver(avanceSalaireSchema),
     defaultValues: DEFAULT_VALUES,
   });
 
   const {
     control,
+    register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
+    trigger,
     formState: { errors, isSubmitting },
   } = form;
+
+  const { data: employeesData, isLoading: isEmployeesLoading } = useEmployeeListQuery({
+    page: 0,
+    limit: 500,
+  });
+
+  const employeesById = useMemo(() => {
+    const map = new Map<string, number>();
+    (employeesData?.content ?? []).forEach((employee) => {
+      map.set(employee.id, employee.salary ?? 0);
+    });
+    return map;
+  }, [employeesData?.content]);
+
+  const selectedSalary = watch('salaire');
 
   useEffect(() => {
     if (!isOpen) {
@@ -57,42 +76,37 @@ function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSala
       return;
     }
 
-    if (deduction) {
-      reset({
-        employeeId: deduction.employee?.id || '',
-        amount: deduction.amount || 0,
-        date: getTodayDateInput(),
-        motif: deduction.description || '',
-      });
-      return;
-    }
+    reset({
+      ...DEFAULT_VALUES,
+      dateDemande: getTodayDateInput(),
+    });
+  }, [isOpen, reset]);
 
-    reset({ ...DEFAULT_VALUES, date: getTodayDateInput() });
-  }, [deduction, isOpen, reset]);
+  const handleEmployeeChange = (employeeId?: string) => {
+    const nextEmployeeId = employeeId || '';
+    const salary = nextEmployeeId ? (employeesById.get(nextEmployeeId) ?? 0) : 0;
 
-  const submitForm = async (values: CreateAvanceDTO) => {
-    const dto: CreateAvanceDTO = {
+    setValue('employeeId', nextEmployeeId, { shouldValidate: true, shouldDirty: true });
+    setValue('salaire', salary, { shouldValidate: true, shouldDirty: true });
+    // Demande metier: pre-remplir le montant avec le salaire selectionne.
+    setValue('montant', salary, { shouldValidate: true, shouldDirty: true });
+    void trigger('montant');
+  };
+
+  const submitForm = async (values: AvanceSalaireFormValues) => {
+    const payload: AvanceSalairePayload = {
       employeeId: values.employeeId,
-      amount: values.amount,
-      date: values.date,
+      montant: values.montant,
+      dateDemande: values.dateDemande,
       motif: values.motif,
     };
 
-    try {
-      if (onSubmit) {
-        await onSubmit({ mode: isEditMode ? 'update' : 'create', id: deduction?.id, dto });
-      } else {
-        await deductionAPI.createAvance(dto);
-      }
-
-      await queryClient.invalidateQueries({ queryKey: deductionKeys.all });
-      toast.success(isEditMode ? 'Avance modifiee avec succes' : 'Avance enregistree avec succes');
-      onClose();
-      reset(DEFAULT_VALUES);
-    } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de l'enregistrement de l'avance");
+    if (onSubmit) {
+      await onSubmit(payload);
     }
+
+    onClose();
+    reset(DEFAULT_VALUES);
   };
 
   return (
@@ -100,7 +114,7 @@ function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSala
       <ModalContent>
         {(closeModal) => (
           <>
-            <ModalHeader>{isEditMode ? 'Modifier une avance' : 'Nouvelle avance sur salaire'}</ModalHeader>
+            <ModalHeader>Nouvelle avance sur salaire</ModalHeader>
             <ModalBody>
               <form id="avance-salaire-form" className="space-y-4" onSubmit={handleSubmit(submitForm)}>
                 <div>
@@ -108,75 +122,61 @@ function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSala
                   <Controller
                     name="employeeId"
                     control={control}
-                    render={({ field }) => <EmployeeSelect value={field.value} onChange={(value) => field.onChange(value || '')} className="text-xs w-full" />}
+                    render={({ field }) => <EmployeeSelect value={field.value} onChange={handleEmployeeChange} isLoading={isEmployeesLoading} className="text-xs w-full" />}
                   />
                   {errors.employeeId && <small className="text-sm text-red-500">{errors.employeeId.message}</small>}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <Controller
-                    name="amount"
+                    name="montant"
                     control={control}
                     render={({ field }) => (
                       <div className="space-y-2">
-                        <Label htmlFor="amount">Montant</Label>
+                        <Label htmlFor="montant">Montant</Label>
                         <Input
-                          id="amount"
+                          id="montant"
                           type="number"
                           value={String(field.value ?? 0)}
                           onChange={(e) => field.onChange(Number(e.target.value || 0))}
                           variant="bordered"
                           endContent="FCFA"
-                          isInvalid={!!errors.amount}
-                          errorMessage={errors.amount?.message}
+                          isInvalid={!!errors.montant}
+                          errorMessage={errors.montant?.message}
                         />
                       </div>
                     )}
                   />
+
+                  <div className="space-y-2">
+                    <Label htmlFor="salaire">Salaire</Label>
+                    <Input id="salaire" type="number" value={String(selectedSalary || 0)} variant="bordered" endContent="FCFA" isReadOnly />
+                  </div>
                 </div>
 
-                <Controller
-                  name="date"
-                  control={control}
-                  render={({ field }) => (
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Date de la demande</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={field.value || ''}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        variant="bordered"
-                        isInvalid={!!errors.date}
-                        errorMessage={errors.date?.message}
-                      />
-                    </div>
-                  )}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="dateDemande">Date de la demande</Label>
+                  <Input id="dateDemande" type="date" {...register('dateDemande')} variant="bordered" isInvalid={!!errors.dateDemande} errorMessage={errors.dateDemande?.message} />
+                </div>
 
-                <Controller
-                  name="motif"
-                  control={control}
-                  render={({ field }) => (
-                    <div className="space-y-2">
-                      <Label htmlFor="motif">Motif</Label>
-                      <Textarea
-                        id="motif"
-                        value={field.value || ''}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        placeholder="Saisissez le motif"
-                        variant="bordered"
-                        minRows={3}
-                        isInvalid={!!errors.motif}
-                        errorMessage={errors.motif?.message}
-                      />
-                    </div>
-                  )}
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="motif">Motif</Label>
+                  <Textarea
+                    id="motif"
+                    placeholder="Saisissez le motif de l'avance"
+                    {...register('motif')}
+                    variant="bordered"
+                    minRows={3}
+                    isInvalid={!!errors.motif}
+                    errorMessage={errors.motif?.message}
+                  />
+                </div>
 
                 <div className="rounded-md border border-yellow-400 bg-yellow-100 p-3">
-                  <p className="font-semibold text-red-600">Important</p>
-                  <p className="mt-1 text-sm text-red-600">L&#39;avance sur salaire sera deduite integralement du salaire du mois prochain.</p>
+                  <p className="font-semibold text-red-600">⚠️ Important</p>
+                  <p className="mt-1 text-sm text-red-600">
+                    L&apos;avance sur salaire sera deduite integralement du salaire du mois prochain. Assurez-vous que l&apos;employe est informe de cette deduction.
+                  </p>
                 </div>
               </form>
             </ModalBody>

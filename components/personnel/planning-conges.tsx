@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { eligibleEmployeeQuery, useCongesQuery } from '@/features/conge/queries/conge.query';
 import { IEmployee } from '@/features/personnel/types/types';
-import { IConge, CongeStatut } from '@/features/conge/types/conge.type';
+import { IConge } from '@/features/conge/types/conge.type';
 
 export default function PlanningConges() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -28,54 +28,40 @@ export default function PlanningConges() {
   const { data: employeesData, isLoading: employeesLoading } = eligibleEmployeeQuery({ limit: 1000 });
   const { data: congesData, isLoading: congesLoading } = useCongesQuery({ limit: 1000 });
 
-  console.log("🔍 Debug - Employees loading:", employeesLoading);
-  console.log("🔍 Debug - Employees data:", employeesData);
-  console.log("conge data", congesData);
-
   const employees = Array.isArray(employeesData) ? employeesData : [];
   const conges = congesData?.content || [];
-  console.log("🔍 Debug - Congés loading:", congesLoading);
-  console.log("🔍 Debug - Congés data:", conges);
-
-  // Log détaillé de tous les congés avec leur statut
-  console.log("🔍 Analyse détaillée des congés:");
   conges.forEach((conge: IConge, index: number) => {
-    console.log(`  ${index + 1}. ${conge.employeeName} - statut: "${conge.statut}" - type: "${conge.type}" - EN_COURS: ${(conge.statut as string) === 'EN_COURS'} - APPROUVEE: ${(conge.statut as string) === 'APPROUVEE'}`);
+    console.log(
+      `  ${index + 1}. ${conge.employeeName} - statut: "${conge.statut}" - type: "${conge.type}" - EN_COURS: ${(conge.statut as string) === 'EN_COURS'} - APPROUVEE: ${(conge.statut as string) === 'APPROUVEE'}`,
+    );
   });
 
   // Extraire uniquement les employés qui sont en congé
   const employeesOnLeave = conges
     .filter((conge: IConge) => {
-
       return (conge.statut as string) === 'EN_COURS' || (conge.statut as string) === 'APPROUVEE';
     })
-    .map((conge: IConge) => ({
-      id: conge.employeeId,
-      name: conge.employeeName,
-      department: 'Non spécifié',
-      email: '',
-      position: ''
-    } as Employee));
+    .map(
+      (conge: IConge) =>
+        ({
+          id: conge.employeeId,
+          name: conge.employeeName,
+          department: 'Non spécifié',
+          email: '',
+          position: '',
+        }) as IEmployee,
+    );
 
-  console.log("🔍 Employees on leave after filtering:", employeesOnLeave);
-
-  // Supprimer les doublons
-  const uniqueEmployeesOnLeave = employeesOnLeave.filter((employee: Employee, index: number, self: Employee[]) =>
-    index === self.findIndex((e: Employee) => e.id === employee.id)
-  );
-
-  console.log("🔍 Unique employees on leave:", uniqueEmployeesOnLeave);
-
-  const eligibleEmployees = uniqueEmployeesOnLeave;
+  const eligibleEmployees = employeesOnLeave.filter((employee: IEmployee, index: number, self: IEmployee[]) => index === self.findIndex((e: IEmployee) => e.id === employee.id));
 
   // Grouper les employés par département
   const employeesByDepartment = eligibleEmployees.reduce(
-    (acc: Record<string, Employee[]>, employee: Employee) => {
+    (acc: Record<string, IEmployee[]>, employee: IEmployee) => {
       const dept = employee.department || 'Non spécifié';
       if (!acc[dept]) acc[dept] = [];
       acc[dept].push(employee);
-      return acc;
-    },
+      return acc;},
+
     {} as Record<string, IEmployee[]>,
   );
 
@@ -93,9 +79,9 @@ export default function PlanningConges() {
       const startDate = new Date(conge.startDate);
       const endDate = new Date(conge.endDate);
       const currentDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-
-      console.log(`  - Checking date range: ${currentDate.toDateString()} between ${startDate.toDateString()} and ${endDate.toDateString()} - In range: ${currentDate >= startDate && currentDate <= endDate}`);
-
+      console.log(
+        `  - Checking date range: ${currentDate.toDateString()} between ${startDate.toDateString()} and ${endDate.toDateString()} - In range: ${currentDate >= startDate && currentDate <= endDate}`,
+);
       return currentDate >= startDate && currentDate <= endDate;
     });
   };
@@ -186,13 +172,13 @@ export default function PlanningConges() {
         </div>
 
         {/* Afficher les employés par département */}
-        {(Object.entries(employeesByDepartment) as [string, Employee[]][]).map(([department, deptEmployees]) => (
+        {(Object.entries(employeesByDepartment) as [string, IEmployee[]][]).map(([department, deptEmployees]) => (
           <div key={department}>
             {/* Section département */}
             <div className="text-xs text-gray-400 font-semibold mb-1 mt-4">{department.toUpperCase()}</div>
 
             {/* Lignes des employés */}
-            {deptEmployees.map((employee: Employee) => (
+            {deptEmployees.map((employee: IEmployee) => (
               <div key={employee.id} className="flex items-center mb-2 overflow-x-auto scrollbar-hide">
                 <div className="w-[200px] text-sm text-gray-600 truncate flex-shrink-0" title={employee.name}>
                   {employee.name}
@@ -237,32 +223,31 @@ export default function PlanningConges() {
               <div className="text-xs text-gray-500">Total employés</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-red-600">{conges.filter((c: IConge) =>
-                  c.type?.toLowerCase().includes('annuel') &&
-                  ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')
-                ).length}</div>
+              <div className="text-2xl font-bold text-red-600">
+                {conges.filter((c: IConge) => c.type?.toLowerCase().includes('annuel') && ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')).length}
+              </div>
               <div className="text-xs text-gray-500">Congés annuels</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-orange-600">{conges.filter((c: IConge) =>
-                  c.type?.toLowerCase().includes('maladie') &&
-                  ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')
-                ).length}</div>
+              <div className="text-2xl font-bold text-orange-600">
+                {conges.filter((c: IConge) => c.type?.toLowerCase().includes('maladie') && ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')).length}
+              </div>
               <div className="text-xs text-gray-500">Congés maladie</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-blue-600">{conges.filter((c: IConge) =>
-                  (c.type?.toLowerCase().includes('maternite') || c.type?.toLowerCase().includes('maternité')) &&
-                  ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')
-                ).length}</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {
+                  conges.filter(
+                    (c: IConge) =>
+                      (c.type?.toLowerCase().includes('maternite') || c.type?.toLowerCase().includes('maternité')) && ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS'),
+                  ).length
+                }
+              </div>
               <div className="text-xs text-gray-500">Congés maternité</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-yellow-600">
-                {conges.filter((c: IConge) =>
-                  c.type?.toLowerCase().includes('sans_solde') &&
-                  ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')
-                ).length}
+                {conges.filter((c: IConge) => c.type?.toLowerCase().includes('sans_solde') && ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')).length}
               </div>
               <div className="text-xs text-gray-500">Congés sans solde</div>
             </div>
