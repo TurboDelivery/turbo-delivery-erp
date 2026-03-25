@@ -4,70 +4,41 @@ import React, { useState } from 'react';
 
 import DeductionStatsOverview from '@/components/personnel/deductions/stats/deduction-stats-overview';
 import DeductionAddBar from '@/components/personnel/deductions/deduction-add-bar';
-import { DeductionTable } from '@/components/personnel/deductions/deductions/deduction-table';
+import { AbsenceTable } from '@/components/personnel/deductions/absences/absence-table';
 import AbsenceModal from '@/components/personnel/deductions/modals/absence-modal';
 import AvanceSalaireModal from '@/components/personnel/deductions/modals/avance-salaire-modal';
-import { IDeduction } from '@/features/personnel/types/deduction.types';
-import { toast } from 'sonner';
+import { IAbsence } from '@/features/personnel/types/absence.types';
 
 function DeductionTabContents() {
   const [isAbsenceModalOpen, setIsAbsenceModalOpen] = useState(false);
   const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
-  const [selectedAbsenceDeduction, setSelectedAbsenceDeduction] = useState<IDeduction | null>(null);
-  const [selectedAdvanceDeduction, setSelectedAdvanceDeduction] = useState<IDeduction | null>(null);
+  const [selectedAbsence, setSelectedAbsence] = useState<IAbsence | null>(null);
 
   const handleOpenCreateAbsenceModal = () => {
-    setSelectedAbsenceDeduction(null);
+    setSelectedAbsence(null);
     setIsAbsenceModalOpen(true);
   };
 
   const handleCloseAbsenceModal = () => {
     setIsAbsenceModalOpen(false);
-    setSelectedAbsenceDeduction(null);
+    setSelectedAbsence(null);
   };
 
   const handleOpenAdvanceModal = () => {
-    setSelectedAdvanceDeduction(null);
     setIsAdvanceModalOpen(true);
   };
 
   const handleCloseAdvanceModal = () => {
     setIsAdvanceModalOpen(false);
-    setSelectedAdvanceDeduction(null);
-  };
-
-  const handleEditDeduction = (deduction: IDeduction) => {
-    if (deduction.typeDeduction === 'ABSENCE' || deduction.typeDeduction === 'RETARD') {
-      setSelectedAbsenceDeduction(deduction);
-      setIsAbsenceModalOpen(true);
-      return;
-    }
-
-    if (deduction.typeDeduction === 'AVANCE') {
-      setSelectedAdvanceDeduction(deduction);
-      setIsAdvanceModalOpen(true);
-      return;
-    }
-
-    toast.info('Le modal de pret sera ajoute ensuite.');
-  };
-
-  const handleDeleteDeduction = (deduction: IDeduction) => {
-    if (deduction.typeDeduction === 'PRET') {
-      toast.info('Suppression indisponible pour les prets pour le moment.');
-      return;
-    }
-
-    toast.info('Suppression a brancher sur endpoint des que disponible.');
   };
 
   return (
     <div className="space-y-8">
       <DeductionStatsOverview />
       <DeductionAddBar onAddAbsence={handleOpenCreateAbsenceModal} onAddAdvance={handleOpenAdvanceModal} />
-      <DeductionTable onEditDeduction={handleEditDeduction} onDeleteDeduction={handleDeleteDeduction} />
-      <AbsenceModal isOpen={isAbsenceModalOpen} onClose={handleCloseAbsenceModal} deduction={selectedAbsenceDeduction} />
-      <AvanceSalaireModal isOpen={isAdvanceModalOpen} onClose={handleCloseAdvanceModal} deduction={selectedAdvanceDeduction} />
+      <AbsenceTable />
+      <AbsenceModal isOpen={isAbsenceModalOpen} onClose={handleCloseAbsenceModal} absence={selectedAbsence} />
+      <AvanceSalaireModal isOpen={isAdvanceModalOpen} onClose={handleCloseAdvanceModal} />
     </div>
   );
 }
