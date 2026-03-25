@@ -34,20 +34,44 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
   };
 
   const getLeaveTypeColor = (type: LeaveRequest['type']) => {
-    switch (type) {
-      case 'annuel': return 'default';
-      case 'maladie': return 'destructive';
-      case 'sans solde': return 'secondary';
-      default: return 'outline';
+    // Convertir l'enum en string si nécessaire
+    const typeString = typeof type === 'string' ? type : String(type);
+    
+    switch (typeString) {
+      case 'annuel': 
+      case 'ANNUEL': 
+        return 'default';
+      case 'maladie': 
+      case 'MALADIE': 
+        return 'destructive';
+      case 'sans solde': 
+      case 'SANS_SOLDE': 
+        return 'secondary';
+      case 'MATERNITE': 
+        return 'warning';
+      default: 
+        return 'outline';
     }
   };
 
   const getLeaveTypeLabel = (type: LeaveRequest['type']) => {
-    switch (type) {
-      case 'annuel': return 'Congé annuel';
-      case 'maladie': return 'Congé maladie';
-      case 'sans solde': return 'Congé sans solde';
-      default: return type;
+    // Convertir l'enum en string si nécessaire
+    const typeString = typeof type === 'string' ? type : String(type);
+    
+    switch (typeString) {
+      case 'annuel': 
+      case 'ANNUEL': 
+        return 'Congé annuel';
+      case 'maladie': 
+      case 'MALADIE': 
+        return 'Congé maladie';
+      case 'sans solde': 
+      case 'SANS_SOLDE': 
+        return 'Congé sans solde';
+      case 'MATERNITE': 
+        return 'Congé maternité';
+      default: 
+        return typeString;
     }
   };
 
@@ -108,9 +132,10 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
             </TableCell>
             <TableCell>
               <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
-                leave.type === 'annuel' ? 'bg-blue-600 text-white border-blue-300' :
-                leave.type === 'maladie' ? 'bg-red-600 text-white border-red-300' :
-                leave.type === 'sans solde' ? 'bg-yellow-500 text-white border-yellow-200' :
+                (leave.type === 'ANNUEL') ? 'bg-blue-600 text-white border-blue-300' :
+                (leave.type === 'MALADIE') ? 'bg-red-600 text-white border-red-300' :
+                (leave.type === 'SANS_SOLDE') ? 'bg-yellow-500 text-white border-yellow-200' :
+                (leave.type === 'MATERNITE') ? 'bg-purple-500 text-white border-purple-300' :
                 'bg-gray-100 text-gray-800 border-gray-200'
               }`}>
                 {getLeaveTypeLabel(leave.type)}

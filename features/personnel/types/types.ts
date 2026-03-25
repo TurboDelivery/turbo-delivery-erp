@@ -13,7 +13,7 @@ export interface LeaveRequest {
   id: string;
   employeeId: string;
   employeeName: string;
-  type: 'annuel' | 'maladie' | 'sans solde';
+  type: 'annuel' | 'maladie' | 'sans solde' | 'ANNUEL' | 'MALADIE' | 'SANS_SOLDE' | 'MATERNITE';
   startDate: string;
   endDate: string;
   duration: number;
