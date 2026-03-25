@@ -317,7 +317,7 @@ export function RequestManagement({
     // Activer le mode édition
     setIsEditMode(true);
     setEditingRequestId(request.id);
-    onOpen(); // Ouvrir le modal
+    onFormOpen(); // Ouvrir le modal
   };
 
   const getRemainingBalance = (): number => {
@@ -371,7 +371,7 @@ export function RequestManagement({
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Demandes de congé</h2>
-        <Button color="primary" onPress={onOpen}>
+        <Button color="primary" onPress={onFormOpen}>
           Nouvelle demande
         </Button>
       </div>
