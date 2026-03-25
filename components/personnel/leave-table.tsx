@@ -24,12 +24,18 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
   const displayData = congesData?.content || leaveRequests;
   const getStatusColor = (statut: LeaveRequest['statut']) => {
     switch (statut) {
-      case 'En cours': return 'secondary';
-      case 'Terminé': return 'default';
-      case 'En attente': return 'outline';
-      case 'Approuvée': return 'default';
-      case 'Rejetée': return 'destructive';
-      default: return 'outline';
+      case 'En cours': 
+        return 'bg-yellow-500 text-white border-yellow-200';
+      case 'Terminé': 
+        return 'bg-green-600 text-white border-green-300';
+      case 'En attente': 
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'Approuvée': 
+        return 'bg-green-600 text-white border-green-300';
+      case 'Rejetée': 
+        return 'bg-red-600 text-white border-red-300';
+      default: 
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -40,17 +46,17 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
     switch (typeString) {
       case 'annuel': 
       case 'ANNUEL': 
-        return 'default';
+        return 'bg-blue-600 text-white border-blue-300';
       case 'maladie': 
       case 'MALADIE': 
-        return 'destructive';
+        return 'bg-red-600 text-white border-red-300';
       case 'sans solde': 
       case 'SANS_SOLDE': 
-        return 'secondary';
+        return 'bg-orange-500 text-white border-orange-200';
       case 'MATERNITE': 
-        return 'warning';
+        return 'bg-purple-600 text-white border-purple-300';
       default: 
-        return 'outline';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -131,13 +137,7 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
               </div>
             </TableCell>
             <TableCell>
-              <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
-                (leave.type === 'ANNUEL') ? 'bg-blue-600 text-white border-blue-300' :
-                (leave.type === 'MALADIE') ? 'bg-red-600 text-white border-red-300' :
-                (leave.type === 'SANS_SOLDE') ? 'bg-yellow-500 text-white border-yellow-200' :
-                (leave.type === 'MATERNITE') ? 'bg-purple-500 text-white border-purple-300' :
-                'bg-gray-100 text-gray-800 border-gray-200'
-              }`}>
+              <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors ${getLeaveTypeColor(leave.type)}`}>
                 {getLeaveTypeLabel(leave.type)}
               </div>
             </TableCell>
@@ -150,14 +150,7 @@ export function LeaveTable({ leaveRequests }: LeaveTableProps) {
               </span>
             </TableCell>
             <TableCell>
-              <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
-                leave.statut === 'En cours' ? 'bg-yellow-500 text-white border-yellow-200' :
-                leave.statut === 'Terminé' ? 'bg-green-600 text-white border-green-300' :
-                leave.statut === 'En attente' ? 'bg-gray-100 text-gray-800 border-gray-200' :
-                leave.statut === 'Approuvée' ? 'bg-green-600 text-white border-green-300' :
-                leave.statut === 'Rejetée' ? 'bg-red-600 text-white border-red-300' :
-                'bg-gray-100 text-gray-800 border-gray-200'
-              }`}>
+              <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors ${getStatusColor(leave.statut)}`}>
                 {leave.statut}
               </div>
             </TableCell>

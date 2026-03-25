@@ -255,9 +255,9 @@ export default function PersonnelContent() {
       <Tabs defaultValue="employees" className=" ">
         <TabsList className="grid max-w-2xl grid-cols-4 rounded-full">
           <TabsTrigger value="employees">Employés</TabsTrigger>
-           <TabsTrigger value="conge">Congé</TabsTrigger>
-           <TabsTrigger value="demande">Demande</TabsTrigger>
-           <TabsTrigger value="deduction">Deduction</TabsTrigger>
+           {/* <TabsTrigger value="demande">Demandes</TabsTrigger> */}
+           <TabsTrigger value="conge">Congés</TabsTrigger>
+           <TabsTrigger value="deduction">Deductions</TabsTrigger>
         </TabsList>
 
 
@@ -269,10 +269,10 @@ export default function PersonnelContent() {
             onAddEmployee={() => setIsAddModalOpen(true)}
           />
         </TabsContent>
-        <TabsContent value="conge" className="mt-6">
+        {/* <TabsContent value="demande" className="mt-6">
           <LeaveManagement leaveRequests={leaveRequests} leaveStats={leaveStats} />
-        </TabsContent>
-        <TabsContent value="demande" className="mt-6">
+        </TabsContent> */}
+        <TabsContent value="conge" className="mt-6">
           <RequestManagement 
             requests={requests} 
             requestStats={requestStats}

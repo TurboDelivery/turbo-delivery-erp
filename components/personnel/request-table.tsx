@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { Badge } from '@heroui/react';
 import { Button } from '@heroui/react';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
 import { LeaveRequest } from '../../features/personnel/types/types';
 import { IConge, CongeStatut } from '../../features/conge/types/conge.type';
@@ -16,6 +18,9 @@ interface RequestTableProps {
 }
 
 export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDeleteRequest, onEditRequest }: RequestTableProps) {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | IConge | null>(null);
+  
   // Utiliser le hook pour récupérer les demandes de congés
   const { data: congesData, isLoading: congesLoading, error: congesError } = useCongesQuery({
     // statut: CongeStatut.EN_ATTENTE // Filtrer les demandes en attente
@@ -34,20 +39,146 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
   
   const getStatusColor = (statut: string) => {
     switch (statut) {
-      case 'En attente': return 'warning';
-      case 'Approuvée': return 'success';
-      case 'Rejetée': return 'danger';
-      default: return 'default';
+      case 'En attente': 
+      case 'EN_ATTENTE':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'Approuvée': 
+      case 'APPROUVEE':
+        return 'bg-green-600 text-white border-green-300';
+      case 'Rejetée': 
+      case 'REJETEE':
+        return 'bg-red-600 text-white border-red-300';
+      case 'En cours': 
+      case 'EN_COURS':
+        return 'bg-yellow-500 text-white border-yellow-200';
+      case 'Terminé': 
+      case 'TERMINE':
+        return 'bg-green-600 text-white border-green-300';
+      default: 
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getStatusIcon = (statut: string) => {
+    switch (statut) {
+      case 'En attente': 
+      case 'EN_ATTENTE':
+        return '⏳';
+      case 'Approuvée': 
+      case 'APPROUVEE':
+        return '✅';
+      case 'Rejetée': 
+      case 'REJETEE':
+        return '❌';
+      case 'En cours': 
+      case 'EN_COURS':
+        return '🔄';
+      case 'Terminé': 
+      case 'TERMINE':
+        return '✨';
+      default: 
+        return '📋';
+    }
+  };
+
+  const getStatusDescription = (statut: string) => {
+    switch (statut) {
+      case 'En attente': 
+      case 'EN_ATTENTE':
+        return 'En attente de validation';
+      case 'Approuvée': 
+      case 'APPROUVEE':
+        return 'Demande approuvée';
+      case 'Rejetée': 
+      case 'REJETEE':
+        return 'Demande rejetée';
+      case 'En cours': 
+      case 'EN_COURS':
+        return 'Congé en cours';
+      case 'Terminé': 
+      case 'TERMINE':
+        return 'Congé terminé';
+      default: 
+        return 'Statut inconnu';
+    }
+  };
+
+  const canApprove = (statut: string) => {
+    return statut === 'En attente' || statut === 'EN_ATTENTE';
+  };
+
+  const canReject = (statut: string) => {
+    return statut === 'En attente' || statut === 'EN_ATTENTE';
+  };
+
+  const canEdit = (statut: string) => {
+    return statut === 'En attente' || statut === 'EN_ATTENTE';
+  };
+
+  const canDelete = (statut: string) => {
+    return statut === 'En attente' || statut === 'EN_ATTENTE' || 
+           statut === 'Rejetée' || statut === 'REJETEE';
+  };
+
+  const getLeaveTypeColor = (type: string) => {
+    switch (type) {
+      case 'annuel': 
+      case 'ANNUEL': 
+        return 'bg-blue-600 text-white border-blue-300';
+      case 'maladie': 
+      case 'MALADIE': 
+        return 'bg-red-600 text-white border-red-300';
+      case 'sans solde': 
+      case 'SANS_SOLDE': 
+        return 'bg-orange-500 text-white border-orange-200';
+      case 'MATERNITE': 
+        return 'bg-purple-600 text-white border-purple-300';
+      default: 
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getLeaveTypeLabel = (type: string) => {
     switch (type) {
-      case 'annuel': return 'Congé annuel';
-      case 'maladie': return 'Congé maladie';
-      case 'sans solde': return 'Congé sans solde';
-      default: return type;
+      case 'annuel': 
+      case 'ANNUEL': 
+        return 'Congé annuel';
+      case 'maladie': 
+      case 'MALADIE': 
+        return 'Congé maladie';
+      case 'sans solde': 
+      case 'SANS_SOLDE': 
+        return 'Congé sans solde';
+      case 'MATERNITE': 
+        return 'Congé maternité';
+      default: 
+        return type;
     }
+  };
+
+  const handleActionClick = (request: LeaveRequest | IConge) => {
+    setSelectedRequest(request);
+    onOpen();
+  };
+
+  const handleModalAction = (action: string) => {
+    if (!selectedRequest) return;
+    
+    switch (action) {
+      case 'edit':
+        onEditRequest(selectedRequest);
+        break;
+      case 'approve':
+        onApproveRequest(selectedRequest.id);
+        break;
+      case 'reject':
+        onRejectRequest(selectedRequest.id);
+        break;
+      case 'delete':
+        onDeleteRequest(selectedRequest.id);
+        break;
+    }
+    onOpenChange();
   };
 
   const getEmployeeInitials = (name: string) => {
@@ -80,7 +211,8 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
   }
 
   return (
-    <Table aria-label="Liste des demandes">
+    <>
+      <Table aria-label="Liste des demandes">
       <TableHeader>
         <TableColumn>EMPLOYÉ</TableColumn>
         <TableColumn>TYPE</TableColumn>
@@ -108,12 +240,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
                 </div>
               </TableCell>
               <TableCell>
-                <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${
-                  request.type === 'annuel' ? 'bg-blue-600 text-white border-blue-300' :
-                  request.type === 'maladie' ? 'bg-red-600 text-white border-red-300' :
-                  request.type === 'sans solde' ? 'bg-yellow-500 text-white border-yellow-200' :
-                  'bg-gray-100 text-gray-800 border-gray-200'
-                }`}>
+                <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors ${getLeaveTypeColor(request.type)}`}>
                   {getLeaveTypeLabel(request.type)}
                 </div>
               </TableCell>
@@ -130,45 +257,22 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
                 </div>
               </TableCell>
               <TableCell>
-                <Badge color={getStatusColor(request.statut)}>
+                <div className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors ${getStatusColor(request.statut)}`}
+                     title={getStatusDescription(request.statut)}>
+                  <span className="text-xs">{getStatusIcon(request.statut)}</span>
                   {request.statut}
-                </Badge>
+                </div>
               </TableCell>
               <TableCell>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    color="primary"
-                    variant="flat"
-                    onPress={() => onEditRequest(request)}
-                  >
-                    Modifier
-                  </Button>
-                  <Button
-                    size="sm"
-                    color="success"
-                    variant="flat"
-                    onPress={() => onApproveRequest(request.id)}
-                  >
-                    Approuver
-                  </Button>
-                  <Button
-                    size="sm"
-                    color="danger"
-                    variant="flat"
-                    onPress={() => onRejectRequest(request.id)}
-                  >
-                    Rejeter
-                  </Button>
-                  <Button
-                    size="sm"
-                    color="default"
-                    variant="flat"
-                    onPress={() => onDeleteRequest(request.id)}
-                  >
-                    Supprimer
-                  </Button>
-                </div>
+                <Button
+                  size="sm"
+                  color="primary"
+                  variant="flat"
+                  onPress={() => handleActionClick(request)}
+                  className="min-w-20"
+                >
+                  Actions
+                </Button>
               </TableCell>
             </TableRow>
           ))
@@ -183,5 +287,136 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
         )}
       </TableBody>
     </Table>
+
+    {/* Modal d'actions */}
+    <Modal 
+      isOpen={isOpen} 
+      onOpenChange={onOpenChange}
+      size="2xl"
+      scrollBehavior="inside"
+      placement="center"
+    >
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex flex-col gap-1">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-semibold">
+                  {selectedRequest ? getEmployeeInitials(selectedRequest.employeeName) : ''}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">Actions pour la demande</h3>
+                  <p className="text-sm text-gray-600">
+                    {selectedRequest ? selectedRequest.employeeName : ''}
+                  </p>
+                </div>
+              </div>
+            </ModalHeader>
+            <ModalBody>
+              {selectedRequest && (
+                <div className="space-y-4">
+                  {/* Détails de la demande */}
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h4 className="font-semibold mb-3">Détails de la demande</h4>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-gray-600">Type :</span>
+                        <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors ml-2 ${getLeaveTypeColor(selectedRequest.type)}`}>
+                          {getLeaveTypeLabel(selectedRequest.type)}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Statut :</span>
+                        <div className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors ml-2 ${getStatusColor(selectedRequest.statut)}`}
+                             title={getStatusDescription(selectedRequest.statut)}>
+                          <span className="text-xs">{getStatusIcon(selectedRequest.statut)}</span>
+                          {selectedRequest.statut}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Période :</span>
+                        <span className="ml-2">{selectedRequest.startDate} - {selectedRequest.endDate}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Durée :</span>
+                        <span className="ml-2">{selectedRequest.duration} jours</span>
+                      </div>
+                    </div>
+                    {selectedRequest.reason && (
+                      <div className="mt-3">
+                        <span className="text-gray-600">Motif :</span>
+                        <p className="mt-1 text-sm">{selectedRequest.reason}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions disponibles */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold">Actions disponibles</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        color="primary"
+                        variant="flat"
+                        onPress={() => handleModalAction('edit')}
+                        isDisabled={!canEdit(selectedRequest.statut)}
+                        className="w-full"
+                      >
+                        ✏️ Modifier la demande
+                      </Button>
+                      <Button
+                        color="success"
+                        variant="flat"
+                        onPress={() => handleModalAction('approve')}
+                        isDisabled={!canApprove(selectedRequest.statut)}
+                        className="w-full"
+                      >
+                        ✅ Approuver
+                      </Button>
+                      <Button
+                        color="danger"
+                        variant="flat"
+                        onPress={() => handleModalAction('reject')}
+                        isDisabled={!canReject(selectedRequest.statut)}
+                        className="w-full"
+                      >
+                        ❌ Rejeter
+                      </Button>
+                      <Button
+                        color="default"
+                        variant="flat"
+                        onPress={() => handleModalAction('delete')}
+                        isDisabled={!canDelete(selectedRequest.statut)}
+                        className="w-full"
+                      >
+                        🗑️ Supprimer
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Informations sur les permissions */}
+                  {!canEdit(selectedRequest.statut) && !canApprove(selectedRequest.statut) && !canReject(selectedRequest.statut) && !canDelete(selectedRequest.statut) && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <p className="text-sm text-yellow-800">
+                        ⚠️ Aucune action n'est disponible pour ce statut. La demande est probablement déjà en cours ou terminée.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                color="default"
+                variant="flat"
+                onPress={onClose}
+              >
+                Fermer
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+  </>
   );
 }
