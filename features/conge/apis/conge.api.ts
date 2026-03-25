@@ -90,7 +90,7 @@ export const congeAPI: ICongeAPI = {
       method: "GET",
     });
   },
-  
+
   obtenirEmployeEligible(params: ICongesParams): Promise<PaginatedResponse<IConge>> {
     return api.request<PaginatedResponse<IConge>>({
       endpoint: `erp/employees/eligible-conge`,
@@ -107,7 +107,7 @@ export const congeAPI: ICongeAPI = {
       service:'private'
     });
   },
-  
+
   obtenirStatistiquesConges(): Promise<any> {
     return api.request<any>({
       endpoint: `erp/conges/global/stats`,

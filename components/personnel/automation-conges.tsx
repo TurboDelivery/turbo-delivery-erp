@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
 import { useEmployeeListQuery } from '@/features/personnel/queries';
 import { eligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
+import { eligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
 import { useCongesQuery } from '@/features/conge/queries/conge.query';
 import { IEmployee } from '@/features/personnel/types/types';
 import { IConge, CongeStatut } from '@/features/conge/types/conge.type';
@@ -111,8 +112,6 @@ export default function AutomatisationConges() {
     );
     
     const isOnLeave = !!currentLeave;
-    
-
     
     // Alerte uniquement si : 
     // 1. L'employé a des droits de congés (>= 5 jours)
