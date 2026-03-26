@@ -37,7 +37,7 @@ export function RequestManagement({
 
   // Utiliser les données de l'API si disponibles, sinon les données mockées
   const displayEmployees = Array.isArray(employeesData) ? employeesData : employees;
-  
+
   // Hook personnalisé pour la gestion des demandes
   const {
     isFormOpen,
@@ -51,10 +51,10 @@ export function RequestManagement({
     handleEditRequest,
     handleNewRequest
   } = useRequestManagement(displayEmployees);
-  
+
   // Hook pour la modal de confirmation
   const { isOpen, onOpen, onOpenChange: onConfirmDialogOpenChange, message, openDialog, confirm, cancel } = useConfirmDialog();
-  
+
   // État pour la demande en cours d'édition
   const [editingRequest, setEditingRequest] = useState<Partial<LeaveRequest>>({});
 
@@ -77,41 +77,41 @@ export function RequestManagement({
       <RequestHeader onNewRequest={handleNewRequest} />
 
       {/* Statistiques de traitement */}
-      <RequestStatsComponent 
+      <RequestStatsComponent
         pending={requestStats.pending}
         approved={requestStats.approved}
         rejected={requestStats.rejected}
       />
-     <div className=' flex justify-end'>
-       <Tabs defaultValue="conge" className="w-full">
-        <MaterialTabsList className="grid max-w-2xl grid-cols-4 rounded-full">
-          
-           <MaterialTabsTrigger value="conge">Congé</MaterialTabsTrigger>
-           <MaterialTabsTrigger value="employe">Employé</MaterialTabsTrigger>
-           <MaterialTabsTrigger value="planning-calendrier">Planning Calendrier</MaterialTabsTrigger>
-        </MaterialTabsList>
+      <div className=' flex justify-end'>
+        <Tabs defaultValue="conge" className="w-full">
+          <MaterialTabsList className="grid max-w-2xl grid-cols-4 rounded-full">
+
+            <MaterialTabsTrigger value="conge">Congé</MaterialTabsTrigger>
+            <MaterialTabsTrigger value="employe">Employé</MaterialTabsTrigger>
+            <MaterialTabsTrigger value="planning-calendrier">Planning Calendrier</MaterialTabsTrigger>
+          </MaterialTabsList>
 
 
-        <TabsContent value="conge" className="mt-6">
-          {/* Tableau des demandes */}
-      <RequestTable
-        requests={requests}
-        onApproveRequest={handleApproveRequest}
-        onRejectRequest={handleRejectRequest}
-        onDeleteRequest={handleDeleteWithConfirmation}
-        onEditRequest={handleEditRequestWithForm}
-      />
-        </TabsContent>
-        <TabsContent value="employe" className="mt-6">
-          <AutomatisationConges />
-        </TabsContent>
-        <TabsContent value="planning-calendrier" className="mt-6">
-          <PlanningConges />
-        </TabsContent>
-      </Tabs>
-     </div>
+          <TabsContent value="conge" className="mt-6">
+            {/* Tableau des demandes */}
+            <RequestTable
+              requests={requests}
+              onApproveRequest={handleApproveRequest}
+              onRejectRequest={handleRejectRequest}
+              onDeleteRequest={handleDeleteWithConfirmation}
+              onEditRequest={handleEditRequestWithForm}
+            />
+          </TabsContent>
+          <TabsContent value="employe" className="mt-6">
+            <AutomatisationConges />
+          </TabsContent>
+          <TabsContent value="planning-calendrier" className="mt-6">
+            <PlanningConges />
+          </TabsContent>
+        </Tabs>
+      </div>
 
-    
+
 
       {/* Modal nouvelle demande */}
       <RequestForm

@@ -22,6 +22,7 @@ export const useRequestManagement = (employees: Employee[]) => {
   const { isOpen: isFormOpen, onOpen: onFormOpen, onOpenChange } = useDisclosure();
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingRequestId, setEditingRequestId] = useState<string | null>(null);
+  const [editingRequest, setEditingRequest] = useState<Partial<LeaveRequest>>({});
 
   // Wrapper pour onOpenChange qui accepte un paramètre booléen
   const handleFormOpenChange = (open: boolean) => {
@@ -69,7 +70,15 @@ export const useRequestManagement = (employees: Employee[]) => {
   };
 
   const handleSubmitRequest = (requestData: any) => {
+    console.log("🔍 handleSubmitRequest - requestData reçu:", requestData);
     const employee = employees.find((emp: Employee) => emp.id === requestData.employeeId);
+    console.log("🔍 handleSubmitRequest - employee trouvé:", employee);
+    
+    // Validation pour s'assurer que employeeId n'est pas vide
+    if (!requestData.employeeId || requestData.employeeId.trim() === '') {
+      console.error("❌ Erreur: employeeId est vide ou null");
+      return;
+    }
     
     const congeData = {
       employeeId: requestData.employeeId,
@@ -84,6 +93,12 @@ export const useRequestManagement = (employees: Employee[]) => {
     };
 
     if (isEditMode && editingRequestId) {
+      // Validation pour s'assurer que employeeId n'est pas vide
+      if (!requestData.employeeId || requestData.employeeId.trim() === '') {
+        console.error("❌ Erreur: employeeId est vide ou null en mode édition");
+        return;
+      }
+      
       const updateData = {
         employeeId: requestData.employeeId,
         employeeName: employee?.name || requestData.employeeName || '',
@@ -96,6 +111,7 @@ export const useRequestManagement = (employees: Employee[]) => {
         statut: requestData.statut === 'APPROUVEE' ? 'EN_COURS' : requestData.statut
       };
 
+      console.log("🔍 handleSubmitRequest - updateData pour modification:", updateData);
       modifierCongeMutation.mutate({ id: editingRequestId, data: updateData });
     } else {
       ajouterCongeMutation.mutate(congeData, {
@@ -131,14 +147,18 @@ export const useRequestManagement = (employees: Employee[]) => {
   };
 
   const handleEditRequest = (request: LeaveRequest) => {
+    console.log("🔍 handleEditRequest - request reçu:", request);
     setIsEditMode(true);
     setEditingRequestId(request.id);
+    setEditingRequest(request); // Ajouter cette ligne pour pré-remplir le formulaire
+    console.log("🔍 handleEditRequest - editingRequest mis à jour:", request);
     onFormOpen();
   };
 
   const handleNewRequest = () => {
     setIsEditMode(false);
     setEditingRequestId(null);
+    setEditingRequest({}); // Réinitialiser editingRequest
     onFormOpen();
   };
 
@@ -148,6 +168,7 @@ export const useRequestManagement = (employees: Employee[]) => {
     onOpenChange: handleFormOpenChange,
     isEditMode,
     editingRequestId,
+    editingRequest,
     
     // Actions
     handleSubmitRequest,

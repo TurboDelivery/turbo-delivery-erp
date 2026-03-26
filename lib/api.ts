@@ -3,7 +3,7 @@ import { baseURL } from "@/config";
 
 export const api = new Api({
   baseUrl: baseURL, // Base URL de l'API
-  timeout: 10000, // Timeout de la requête
+  timeout: 30000, // Timeout de la requête augmenté à 30s
 //   headers: {
 //     "Content-Type": "application/json", // En-têtes par défaut
 //   },
