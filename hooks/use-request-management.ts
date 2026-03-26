@@ -73,13 +73,13 @@ export const useRequestManagement = (employees: IEmployee[]) => {
     console.log("🔍 handleSubmitRequest - requestData reçu:", requestData);
     const employee = employees.find((emp: IEmployee) => emp.id === requestData.employeeId);
     console.log("🔍 handleSubmitRequest - employee trouvé:", employee);
-    
+
     // Validation pour s'assurer que employeeId n'est pas vide
     if (!requestData.employeeId || requestData.employeeId.trim() === '') {
       console.error("❌ Erreur: employeeId est vide ou null");
       return;
     }
-    
+
     const congeData = {
       employeeId: requestData.employeeId,
       employeeName: employee?.name || '',
@@ -98,7 +98,7 @@ export const useRequestManagement = (employees: IEmployee[]) => {
         console.error("❌ Erreur: employeeId est vide ou null en mode édition");
         return;
       }
-      
+
       const updateData = {
         employeeId: requestData.employeeId,
         employeeName: employee?.name || requestData.employeeName || '',
@@ -169,7 +169,7 @@ export const useRequestManagement = (employees: IEmployee[]) => {
     isEditMode,
     editingRequestId,
     editingRequest,
-    
+
     // Actions
     handleSubmitRequest,
     handleDeleteRequest,
