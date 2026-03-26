@@ -122,3 +122,23 @@ export const useStatistiquesCongesQuery = () => {
 
   return query;
 };
+export const useStatistiquesCongesQuery = () => {
+  const query = useQuery({
+    queryKey: ['statistiques-conges'],
+    queryFn: async () => {
+      return await congeAPI.obtenirStatistiquesConges();
+    },
+    staleTime: 30 * 1000, //30 secondes
+    refetchOnMount: true, //Refetch lors du mount
+  });
+
+  // Gestion des erreurs dans le hook
+  React.useEffect(() => {
+    if (query.isError && query.error) {
+      console.error("Erreur lors de la récupération des statistiques des congés:", query.error);
+      // TODO: Ajouter notification toast quand disponible
+    }
+  }, [query.isError, query.error]);
+
+  return query;
+};

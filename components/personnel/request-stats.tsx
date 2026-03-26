@@ -3,13 +3,7 @@
 import { Card, CardBody, CardHeader } from '@heroui/react';
 import { useStatistiquesCongesQuery } from '@/features/conge/queries/conge.query';
 
-interface RequestStatsProps {
-  pending: number;
-  approved: number;
-  rejected: number;
-}
-
-export function RequestStats({ pending, approved, rejected }: RequestStatsProps) {
+export function RequestStats() {
   const { data: statsData, isLoading: statsLoading } = useStatistiquesCongesQuery();
   console.log('statistique data', statsData);
 
