@@ -15,6 +15,14 @@ export interface MonthlyStats {
     count: number;
     montant: number;
   };
+  factures_validees: {
+    count: number;
+    montant: number;
+  };
+  factures_non_validees: {
+    count: number;
+    montant: number;
+  };
 }
 
 export interface YearlyStats {

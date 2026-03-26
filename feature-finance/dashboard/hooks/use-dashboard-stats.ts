@@ -1,91 +1,47 @@
 import { useMemo } from 'react';
 import { useDashboardStatsQuery } from '../queries/dashboard-stats.query';
-import { DashboardStatsParams, ChartDataPoint, MonthlyStats } from '../types/dashboard.types';
-
-const MONTH_NAMES = [
-    'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
-    'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'
-];
+import { DashboardStatsParams } from '../types/dashboard.types';
+import { getChartDataPointByMonth, getMonthlyStatsByYearMonth, toMonthlyChartData } from '@/features/dashboard/utils/graphe.utils';
 
 export function useDashboardStats(year: number = new Date().getFullYear()) {
     const params: DashboardStatsParams = { annee: year };
     const { data, isLoading, isError, error } = useDashboardStatsQuery(params);
 
-    // Transformer les données du backend pour le graphique
     const chartData = useMemo(() => {
-        if (!data || !data[year.toString()]) {
+        if (!data) {
             return [];
         }
 
-        const yearData = data[year.toString()];
-        let cumulativeComptes = 0;
-
-        return Object.keys(yearData)
-            .sort((a, b) => parseInt(a) - parseInt(b))
-            .map((month) => {
-                const monthNum = parseInt(month);
-                const monthData: MonthlyStats = yearData[month];
-                
-                // Calculer les revenus (chiffre d'affaires)
-                const revenus = monthData.chiffre_affaire.montant;
-                
-                // Calculer les dépenses
-                const depenses = monthData.depenses.montant;
-                
-                // Calculer les recouvrements
-                const recouvrements = monthData.recouvrements.montant;
-                
-                // Calculer les investissements
-                const investissements = monthData.investissements.montant;
-                
-                // Calculer le cumul des comptes (recouvrements + investissements - dépenses)
-                cumulativeComptes += recouvrements + investissements - depenses;
-                
-                return {
-                    month: MONTH_NAMES[monthNum - 1],
-                    revenus: revenus,
-                    depenses: depenses,
-                    recouvrements: recouvrements,
-                    investissements: investissements,
-                    comptes: cumulativeComptes,
-                };
-            });
+        return toMonthlyChartData(data, year);
     }, [data, year]);
 
-    // Calculer les totaux annuels
     const yearlyTotals = useMemo(() => {
-        if (!data || !data[year.toString()]) {
-            return {
-                totalRevenus: 0,
-                totalDepenses: 0,
-                totalRecouvrements: 0,
-                totalInvestissements: 0,
-                totalComptes: 0,
-            };
-        }
-
-        const yearData = data[year.toString()];
-        let totalRevenus = 0;
-        let totalDepenses = 0;
-        let totalRecouvrements = 0;
-        let totalInvestissements = 0;
-
-        Object.values(yearData).forEach((monthData) => {
-            const data = monthData as MonthlyStats;
-            totalRevenus += data.chiffre_affaire.montant;
-            totalDepenses += data.depenses.montant;
-            totalRecouvrements += data.recouvrements.montant;
-            totalInvestissements += data.investissements.montant;
-        });
+        const totalRevenus = chartData.reduce((sum, item) => sum + (item.revenus || 0), 0);
+        const totalDepenses = chartData.reduce((sum, item) => sum + (item.depenses || 0), 0);
+        const totalRecouvrements = chartData.reduce((sum, item) => sum + (item.recouvrements || 0), 0);
+        const totalInvestissements = chartData.reduce((sum, item) => sum + (item.investissements || 0), 0);
+        const totalComptes = chartData.reduce((sum, item) => sum + (item.comptes || 0), 0);
 
         return {
             totalRevenus,
             totalDepenses,
             totalRecouvrements,
             totalInvestissements,
-            totalComptes: totalRecouvrements + totalInvestissements - totalDepenses,
+            totalComptes,
         };
-    }, [data, year]);
+    }, [chartData]);
+
+    const getMonthStats = (month: number) => {
+        if (!data) {
+            return null;
+        }
+
+        return getMonthlyStatsByYearMonth(data, year, month);
+    };
+
+    const getMonthChartData = (month: number) => {
+        return getChartDataPointByMonth(chartData, month);
+    };
 
     return {
         chartData,
@@ -93,6 +49,8 @@ export function useDashboardStats(year: number = new Date().getFullYear()) {
         isLoading,
         isError,
         error,
+        getMonthStats,
+        getMonthChartData,
         rawData: data,
     };
 }

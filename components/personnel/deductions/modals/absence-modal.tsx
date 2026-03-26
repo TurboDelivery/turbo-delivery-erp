@@ -4,7 +4,6 @@ import { useEffect, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from '@heroui/react';
-import { z } from 'zod';
 import { isValid, parseISO } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -12,7 +11,7 @@ import { EmployeeSelect } from '@/components/personnel/common/employee-select';
 import { Label } from '@/components/ui/label';
 import { deductionAPI } from '@/features/personnel/apis/deduction.api';
 import { deductionKeys } from '@/features/personnel/queries/deduction-list.query';
-import { createAbsenceDeductionSchema, CreateAbsenceDeductionDTO } from '@/features/personnel/schemas/deduction.schema';
+import { absenceDeductionFormSchema, AbsenceDeductionFormValues, createAbsenceDeductionSchema, CreateAbsenceDeductionDTO } from '@/features/personnel/schemas/deduction.schema';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
 import { IAbsence } from '@/features/personnel/types/absence.types';
 
@@ -23,21 +22,6 @@ type AbsenceModalProps = {
   deduction?: IDeduction | null;
   onSubmit?: (args: { mode: 'create' | 'update'; id?: string; dto: CreateAbsenceDeductionDTO; motif?: string }) => Promise<void> | void;
 };
-
-const absenceDeductionFormSchema = z
-  .object({
-    employeeId: z.string().min(1, "L'employe est requis"),
-    dateDebut: z.string().min(1, 'La date de debut est requise'),
-    dateFin: z.string().min(1, 'La date de fin est requise'),
-    motif: z.string().trim().optional().default(''),
-  })
-  .superRefine((value, ctx) => {
-    if (value.dateFin < value.dateDebut) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['dateFin'], message: 'La date de fin doit etre apres la date de debut' });
-    }
-  });
-
-type AbsenceDeductionFormValues = z.infer<typeof absenceDeductionFormSchema>;
 
 const DEFAULT_VALUES: AbsenceDeductionFormValues = {
   employeeId: '',
@@ -121,6 +105,7 @@ export default function AbsenceModal({ isOpen, onClose, absence, deduction, onSu
       employeeId: values.employeeId,
       days: calculateDaysInclusive(values.dateDebut, values.dateFin),
       date: values.dateDebut,
+      motif: values.motif,
     });
 
     try {

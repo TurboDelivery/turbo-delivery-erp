@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from '@heroui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { EmployeeSelect } from '@/components/personnel/common/employee-select';
@@ -32,6 +32,7 @@ const DEFAULT_VALUES: CreateAvanceDTO = {
   employeeId: '',
   amount: 0,
   date: getTodayDateInput(),
+  motif: '',
 };
 
 function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSalaireModalProps) {
@@ -61,6 +62,7 @@ function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSala
         employeeId: deduction.employee?.id || '',
         amount: deduction.amount || 0,
         date: getTodayDateInput(),
+        motif: deduction.description || '',
       });
       return;
     }
@@ -73,6 +75,7 @@ function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSala
       employeeId: values.employeeId,
       amount: values.amount,
       date: values.date,
+      motif: values.motif,
     };
 
     try {
@@ -146,6 +149,26 @@ function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSala
                         variant="bordered"
                         isInvalid={!!errors.date}
                         errorMessage={errors.date?.message}
+                      />
+                    </div>
+                  )}
+                />
+
+                <Controller
+                  name="motif"
+                  control={control}
+                  render={({ field }) => (
+                    <div className="space-y-2">
+                      <Label htmlFor="motif">Motif</Label>
+                      <Textarea
+                        id="motif"
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        placeholder="Saisissez le motif"
+                        variant="bordered"
+                        minRows={3}
+                        isInvalid={!!errors.motif}
+                        errorMessage={errors.motif?.message}
                       />
                     </div>
                   )}
