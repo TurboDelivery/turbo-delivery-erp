@@ -1,38 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Button } from '@heroui/react';
-import { Input } from '@heroui/react';
+import { useEffect, useState } from 'react';
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/select';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
-import { LeaveRequest, Employee } from '../../features/personnel/types/types';
-import { CongeType, DurationType } from '../../features/conge/types/conge.type';
+import { IEmployee, LeaveRequest } from '@/features/personnel/types/types';
 
 interface RequestFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   isEditMode: boolean;
   editingRequestId: string | null;
-  employees: Employee[];
+  employees: IEmployee[];
   initialRequest: Partial<LeaveRequest>;
   onSubmit: (request: any) => void;
   onCancel: () => void;
 }
 
-export function RequestForm({
-  isOpen,
-  onOpenChange,
-  isEditMode,
-  editingRequestId,
-  employees,
-  initialRequest,
-  onSubmit,
-  onCancel
-}: RequestFormProps) {
-  console.log("🔍 RequestForm - initialRequest reçu:", initialRequest);
-  console.log("🔍 RequestForm - isEditMode:", isEditMode);
-  console.log("🔍 RequestForm - editingRequestId:", editingRequestId);
-  
+export function RequestForm({ isOpen, onOpenChange, isEditMode, editingRequestId, employees, initialRequest, onSubmit }: RequestFormProps) {
+  console.log('🔍 RequestForm - initialRequest reçu:', initialRequest);
+  console.log('🔍 RequestForm - isEditMode:', isEditMode);
+  console.log('🔍 RequestForm - editingRequestId:', editingRequestId);
+
   const [request, setRequest] = useState({
     employeeId: '',
     employeeName: '',
@@ -43,7 +31,7 @@ export function RequestForm({
     durationType: 'mois',
     reason: '',
     statut: 'EN_ATTENTE' as string,
-    ...initialRequest
+    ...initialRequest,
   });
 
   const [leaveBalance] = useState(30);
@@ -51,11 +39,11 @@ export function RequestForm({
 
   // Synchroniser le formulaire avec initialRequest quand il change
   useEffect(() => {
-    console.log("🔍 useEffect - initialRequest changé:", initialRequest);
+    console.log('🔍 useEffect - initialRequest changé:', initialRequest);
     if (Object.keys(initialRequest).length > 0) {
-      setRequest(prev => ({
+      setRequest((prev) => ({
         ...prev,
-        ...initialRequest
+        ...initialRequest,
       }));
     }
   }, [initialRequest, isEditMode]);
@@ -97,11 +85,11 @@ export function RequestForm({
   };
 
   const handleEmployeeChange = (employeeId: string) => {
-    const employee = employees.find(emp => emp.id === employeeId);
-    setRequest(prev => ({
+    const employee = employees.find((emp) => emp.id === employeeId);
+    setRequest((prev) => ({
       ...prev,
       employeeId,
-      employeeName: employee?.name || ''
+      employeeName: employee?.name || '',
     }));
   };
 
@@ -109,10 +97,10 @@ export function RequestForm({
     if (request.startDate && request.durationType !== 'personnalise') {
       const endDate = calculateEndDate(request.startDate, request.durationType);
       const duration = calculateDuration(request.startDate, endDate);
-      setRequest(prev => ({
+      setRequest((prev) => ({
         ...prev,
         endDate,
-        duration
+        duration,
       }));
     }
   }, [request.startDate, request.durationType]);
@@ -122,11 +110,11 @@ export function RequestForm({
       const today = new Date().toISOString().split('T')[0];
       const endDate = calculateEndDate(today, request.durationType);
       const duration = calculateDuration(today, endDate);
-      setRequest(prev => ({
+      setRequest((prev) => ({
         ...prev,
         startDate: today,
         endDate,
-        duration
+        duration,
       }));
     }
   }, [request.durationType]);
@@ -134,7 +122,7 @@ export function RequestForm({
   useEffect(() => {
     if (request.startDate && request.endDate) {
       const duration = calculateDuration(request.startDate, request.endDate);
-      setRequest(prev => ({ ...prev, duration }));
+      setRequest((prev) => ({ ...prev, duration }));
     }
   }, [request.startDate, request.endDate]);
 
@@ -147,9 +135,7 @@ export function RequestForm({
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">
-              {isEditMode ? 'Modifier la demande de congé' : 'Nouvelle demande de congé'}
-            </ModalHeader>
+            <ModalHeader className="flex flex-col gap-1">{isEditMode ? 'Modifier la demande de congé' : 'Nouvelle demande de congé'}</ModalHeader>
             <ModalBody>
               <div className="space-y-6">
                 {/* Employee Selection */}
@@ -160,10 +146,10 @@ export function RequestForm({
                     selectedKeys={request.employeeId ? [request.employeeId] : []}
                     onSelectionChange={(keys) => handleEmployeeChange(Array.from(keys)[0] as string)}
                     classNames={{
-                      trigger: "h-12",
+                      trigger: 'h-12',
                     }}
                   >
-                    {employees.map((employee: Employee) => (
+                    {employees.map((employee: IEmployee) => (
                       <SelectItem key={employee.id} value={employee.id}>
                         {employee.name}
                       </SelectItem>
@@ -176,12 +162,8 @@ export function RequestForm({
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-green-800">
-                          Éligible au congé annuel (ancienneté &gt; 1 an depuis le {eligibilityDate})
-                        </p>
-                        <p className="text-xs text-green-600 mt-1">
-                          {leaveBalance} jours à partir du 01/04/2026
-                        </p>
+                        <p className="text-sm font-medium text-green-800">Éligible au congé annuel (ancienneté &gt; 1 an depuis le {eligibilityDate})</p>
+                        <p className="text-xs text-green-600 mt-1">{leaveBalance} jours à partir du 01/04/2026</p>
                       </div>
                       <div className="bg-green-100 rounded-full p-2">
                         <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,15 +180,23 @@ export function RequestForm({
                   <Select
                     placeholder="Sélectionnez le type"
                     selectedKeys={[request.type]}
-                    onSelectionChange={(keys) => setRequest(prev => ({ ...prev, type: Array.from(keys)[0] as LeaveRequest['type'] }))}
+                    onSelectionChange={(keys) => setRequest((prev) => ({ ...prev, type: Array.from(keys)[0] as LeaveRequest['type'] }))}
                     classNames={{
-                      trigger: "h-12",
+                      trigger: 'h-12',
                     }}
                   >
-                    <SelectItem key="ANNUEL" value="ANNUEL">Congé annuel</SelectItem>
-                    <SelectItem key="MALADIE" value="MALADIE">Congé maladie</SelectItem>
-                    <SelectItem key="SANS_SOLDE" value="SANS_SOLDE">Congé sans solde</SelectItem>
-                    <SelectItem key="MATERNITE" value="MATERNITE">Congé maternité</SelectItem>
+                    <SelectItem key="ANNUEL" value="ANNUEL">
+                      Congé annuel
+                    </SelectItem>
+                    <SelectItem key="MALADIE" value="MALADIE">
+                      Congé maladie
+                    </SelectItem>
+                    <SelectItem key="SANS_SOLDE" value="SANS_SOLDE">
+                      Congé sans solde
+                    </SelectItem>
+                    <SelectItem key="MATERNITE" value="MATERNITE">
+                      Congé maternité
+                    </SelectItem>
                   </Select>
                 </div>
 
@@ -218,7 +208,7 @@ export function RequestForm({
                       variant={request.durationType === 'mois' ? 'solid' : 'bordered'}
                       color={request.durationType === 'mois' ? 'primary' : 'default'}
                       size="sm"
-                      onClick={() => setRequest(prev => ({ ...prev, durationType: 'mois' }))}
+                      onPress={() => setRequest((prev) => ({ ...prev, durationType: 'mois' }))}
                       className="h-12 text-xs"
                     >
                       Mois (30j)
@@ -227,7 +217,7 @@ export function RequestForm({
                       variant={request.durationType === 'quinzaine' ? 'solid' : 'bordered'}
                       color={request.durationType === 'quinzaine' ? 'primary' : 'default'}
                       size="sm"
-                      onClick={() => setRequest(prev => ({ ...prev, durationType: 'quinzaine' }))}
+                      onPress={() => setRequest((prev) => ({ ...prev, durationType: 'quinzaine' }))}
                       className="h-12 text-xs"
                     >
                       Quinzaine (15j)
@@ -236,7 +226,7 @@ export function RequestForm({
                       variant={request.durationType === 'semaine' ? 'solid' : 'bordered'}
                       color={request.durationType === 'semaine' ? 'primary' : 'default'}
                       size="sm"
-                      onClick={() => setRequest(prev => ({ ...prev, durationType: 'semaine' }))}
+                      onPress={() => setRequest((prev) => ({ ...prev, durationType: 'semaine' }))}
                       className="h-12 text-xs"
                     >
                       Semaine (7j)
@@ -245,7 +235,7 @@ export function RequestForm({
                       variant={request.durationType === 'personnalise' ? 'solid' : 'bordered'}
                       color={request.durationType === 'personnalise' ? 'primary' : 'default'}
                       size="sm"
-                      onClick={() => setRequest(prev => ({ ...prev, durationType: 'personnalise' }))}
+                      onPress={() => setRequest((prev) => ({ ...prev, durationType: 'personnalise' }))}
                       className="h-12 text-xs"
                     >
                       Personnalisé
@@ -260,9 +250,9 @@ export function RequestForm({
                     <Input
                       type="date"
                       value={request.startDate}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRequest(prev => ({ ...prev, startDate: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRequest((prev) => ({ ...prev, startDate: e.target.value }))}
                       classNames={{
-                        input: "h-12",
+                        input: 'h-12',
                       }}
                     />
                   </div>
@@ -271,10 +261,10 @@ export function RequestForm({
                     <Input
                       type="date"
                       value={request.endDate}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRequest(prev => ({ ...prev, endDate: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRequest((prev) => ({ ...prev, endDate: e.target.value }))}
                       disabled={request.durationType !== 'personnalise'}
                       classNames={{
-                        input: "h-12",
+                        input: 'h-12',
                       }}
                     />
                   </div>
@@ -286,9 +276,9 @@ export function RequestForm({
                   <Input
                     placeholder="Veuillez saisir le motif"
                     value={request.reason}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRequest(prev => ({ ...prev, reason: e.target.value }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRequest((prev) => ({ ...prev, reason: e.target.value }))}
                     classNames={{
-                      input: "h-12",
+                      input: 'h-12',
                     }}
                   />
                 </div>
@@ -300,16 +290,26 @@ export function RequestForm({
                     <Select
                       placeholder="Sélectionnez le statut"
                       selectedKeys={[request.statut]}
-                      onSelectionChange={(keys) => setRequest(prev => ({ ...prev, statut: Array.from(keys)[0] as string }))}
+                      onSelectionChange={(keys) => setRequest((prev) => ({ ...prev, statut: Array.from(keys)[0] as string }))}
                       classNames={{
-                        trigger: "h-12",
+                        trigger: 'h-12',
                       }}
                     >
-                      <SelectItem key="EN_ATTENTE" value="EN_ATTENTE">En attente</SelectItem>
-                      <SelectItem key="APPROUVEE" value="APPROUVEE">Approuvée</SelectItem>
-                      <SelectItem key="EN_COURS" value="EN_COURS">En cours</SelectItem>
-                      <SelectItem key="TERMINE" value="TERMINE">Terminé</SelectItem>
-                      <SelectItem key="REJETEE" value="REJETEE">Rejetée</SelectItem>
+                      <SelectItem key="EN_ATTENTE" value="EN_ATTENTE">
+                        En attente
+                      </SelectItem>
+                      <SelectItem key="APPROUVEE" value="APPROUVEE">
+                        Approuvée
+                      </SelectItem>
+                      <SelectItem key="EN_COURS" value="EN_COURS">
+                        En cours
+                      </SelectItem>
+                      <SelectItem key="TERMINE" value="TERMINE">
+                        Terminé
+                      </SelectItem>
+                      <SelectItem key="REJETEE" value="REJETEE">
+                        Rejetée
+                      </SelectItem>
                     </Select>
                   </div>
                 )}
@@ -320,9 +320,7 @@ export function RequestForm({
                     <h4 className="text-sm font-medium text-gray-700">Résumé</h4>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">{request.duration} jours de congé</span>
-                      <span className="text-sm font-medium text-gray-800">
-                        Solde restant après ce congé : {getRemainingBalance()} jours
-                      </span>
+                      <span className="text-sm font-medium text-gray-800">Solde restant après ce congé : {getRemainingBalance()} jours</span>
                     </div>
                   </div>
                 )}

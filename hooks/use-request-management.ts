@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { useDisclosure } from '@heroui/react';
-import { LeaveRequest, Employee } from '@/features/personnel/types/types';
+import { LeaveRequest, IEmployee } from '@/features/personnel/types/types';
 import { useAjouterCongeMutation, useSupprimerCongeMutation, useModifierCongeMutation, useApprouverCongeMutation, useRejeterCongeMutation } from '@/features/conge/mutations/conge.mutation';
 import { CongeType, DurationType } from '@/features/conge/types/conge.type';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 
-export const useRequestManagement = (employees: Employee[]) => {
+export const useRequestManagement = (employees: IEmployee[]) => {
   const queryClient = useQueryClient();
   
   // Mutations
@@ -71,7 +71,7 @@ export const useRequestManagement = (employees: Employee[]) => {
 
   const handleSubmitRequest = (requestData: any) => {
     console.log("🔍 handleSubmitRequest - requestData reçu:", requestData);
-    const employee = employees.find((emp: Employee) => emp.id === requestData.employeeId);
+    const employee = employees.find((emp: IEmployee) => emp.id === requestData.employeeId);
     console.log("🔍 handleSubmitRequest - employee trouvé:", employee);
     
     // Validation pour s'assurer que employeeId n'est pas vide

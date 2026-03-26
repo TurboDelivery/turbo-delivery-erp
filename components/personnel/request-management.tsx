@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { RequestTable } from './request-table';
 import AutomatisationConges from './automation-conges';
 import PlanningConges from './planning-conges';
-import { LeaveRequest, RequestStats, Employee } from '../../features/personnel/types/types';
+import { LeaveRequest, RequestStats, IEmployee } from '@/features/personnel/types/types';
 import { eligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
 import { Tabs, TabsContent, MaterialTabsList, MaterialTabsTrigger } from '@/components/commons/tabs';
 import { RequestHeader } from './request-header';
@@ -17,22 +17,16 @@ import { useRequestManagement } from '@/hooks/use-request-management';
 interface RequestManagementProps {
   requests: LeaveRequest[];
   requestStats: RequestStats;
-  employees: Employee[];
-  onApproveRequest: (requestId: string) => void;
-  onRejectRequest: (requestId: string) => void;
-  onSubmitRequest: (request: Omit<LeaveRequest, 'id' | 'statut'>) => void;
+  employees: IEmployee[];
 }
 
 export function RequestManagement({
   requests,
   requestStats,
   employees,
-  onApproveRequest,
-  onRejectRequest,
-  onSubmitRequest
 }: RequestManagementProps) {
   // Récupérer la liste des employés éligibles depuis l'API
-  const { data: employeesData, isLoading: employeesLoading } = eligibleEmployeeQuery({ limit: 1000 });
+  const { data: employeesData } = eligibleEmployeeQuery({ limit: 1000 });
   console.log("Employés éligibles data:", employeesData);
 
   // Utiliser les données de l'API si disponibles, sinon les données mockées
@@ -53,7 +47,7 @@ export function RequestManagement({
   } = useRequestManagement(displayEmployees);
 
   // Hook pour la modal de confirmation
-  const { isOpen, onOpen, onOpenChange: onConfirmDialogOpenChange, message, openDialog, confirm, cancel } = useConfirmDialog();
+  const { isOpen, onOpenChange: onConfirmDialogOpenChange, message, openDialog, confirm } = useConfirmDialog();
 
   // État pour la demande en cours d'édition
   const [editingRequest, setEditingRequest] = useState<Partial<LeaveRequest>>({});

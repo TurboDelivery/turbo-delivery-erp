@@ -2,7 +2,7 @@ import { IConge, ICongeAddUpdateResponse, ICongeDeleteResponse, ICongesParams } 
 import { PaginatedResponse } from "@/types/api.type";
 import { SearchParams } from "ak-api-http";
 import { CongeAddDTO, CongeUpdateDTO, CongeStatusUpdateDTO } from "../schemas/conge.schema";
-import { Employee } from '@/features/personnel/types/types';
+import { IEmployee } from '@/features/personnel/types/types';
 import { api } from "@/lib/api";
 
 export interface ICongeAPI {
@@ -22,7 +22,7 @@ export interface ICongeAPI {
 
   obtenirCongesParEmploye(employeeId: string): Promise<IConge[]>;
   obtenirEmployeEligible(params: ICongesParams): Promise<PaginatedResponse<IConge>>;
-  obtenirEmployesEligiblesConge(): Promise<Employee[]>; // Nouvelle API pour les employés éligibles
+  obtenirEmployesEligiblesConge(): Promise<IEmployee[]>; // Nouvelle API pour les employés éligibles
   obtenirStatistiquesConges(): Promise<any>;
 }
 
@@ -100,8 +100,8 @@ export const congeAPI: ICongeAPI = {
     });
   },
 
-  obtenirEmployesEligiblesConge(): Promise<Employee[]> {
-    return api.request<Employee[]>({
+  obtenirEmployesEligiblesConge(): Promise<IEmployee[]> {
+    return api.request<IEmployee[]>({
       endpoint: `erp/employees/eligible-conge-list`,
       method: "GET",
       service:'private'
