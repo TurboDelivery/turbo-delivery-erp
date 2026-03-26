@@ -29,6 +29,10 @@ export function RequestForm({
   onSubmit,
   onCancel
 }: RequestFormProps) {
+  console.log("🔍 RequestForm - initialRequest reçu:", initialRequest);
+  console.log("🔍 RequestForm - isEditMode:", isEditMode);
+  console.log("🔍 RequestForm - editingRequestId:", editingRequestId);
+  
   const [request, setRequest] = useState({
     employeeId: '',
     employeeName: '',
@@ -44,6 +48,17 @@ export function RequestForm({
 
   const [leaveBalance] = useState(30);
   const [eligibilityDate] = useState('15/06/2024');
+
+  // Synchroniser le formulaire avec initialRequest quand il change
+  useEffect(() => {
+    console.log("🔍 useEffect - initialRequest changé:", initialRequest);
+    if (Object.keys(initialRequest).length > 0) {
+      setRequest(prev => ({
+        ...prev,
+        ...initialRequest
+      }));
+    }
+  }, [initialRequest, isEditMode]);
 
   const calculateDuration = (startDate: string, endDate: string): number => {
     const start = new Date(startDate);

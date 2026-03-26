@@ -13,7 +13,7 @@ export const CongeAddSchema = z.object({
 });
 
 export const CongeUpdateSchema = z.object({
-  employeeId: z.string().min(1, "L'ID de l'employé est requis").optional(),
+  employeeId: z.string().min(1, "L'ID de l'employé est requis"),
   employeeName: z.string().optional(),
   type: z.nativeEnum(CongeType, { errorMap: () => ({ message: "Type de congé invalide" }) }).optional(),
   startDate: z.string().min(1, "La date de début est requise").optional(),
