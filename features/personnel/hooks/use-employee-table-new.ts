@@ -57,7 +57,7 @@ export const useEmployeeTableNew = (externalFilters?: EmployeeFilters) => {
 
   const currentSearchParams = useMemo(() => {
     // Utiliser les filtres côté serveur directement
-    const params = {
+    return {
       page: currentFilters?.page ?? 0,
       limit: currentFilters?.limit ?? 20,
       debut: currentFilters.debut,
@@ -69,8 +69,6 @@ export const useEmployeeTableNew = (externalFilters?: EmployeeFilters) => {
       department: currentFilters.departments?.length ? currentFilters.departments[0] : undefined, // L'API semble prendre un seul département
       search: currentFilters.search,
     };
-
-    return params;
   }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.orderBy, currentFilters.orderDirection, currentFilters.departments, currentFilters.statuts, currentFilters.postes, currentFilters.search]);
 
   const { data: employeesData, isLoading: employeesLoading, error, isError, isFetching } = useEmployeeListQuery(currentSearchParams);
