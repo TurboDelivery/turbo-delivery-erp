@@ -69,20 +69,12 @@ export const useEmployeeTableNew = (externalFilters?: EmployeeFilters) => {
       department: currentFilters.departments?.length ? currentFilters.departments[0] : undefined, // L'API semble prendre un seul département
       search: currentFilters.search,
     };
-    
-    console.log('🔍 Debug - Paramètres API avec filtres:', params);
-    
+
     return params;
   }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.orderBy, currentFilters.orderDirection, currentFilters.departments, currentFilters.statuts, currentFilters.postes, currentFilters.search]);
 
   const { data: employeesData, isLoading: employeesLoading, error, isError, isFetching } = useEmployeeListQuery(currentSearchParams);
   const employees = employeesData?.content || [];
-
-  // Plus besoin de filtrer localement, l'API s'en charge
-  const filteredEmployees = useMemo(() => {
-    console.log('🔍 Debug - Total employés chargés depuis API:', employees.length);
-    return employees;
-  }, [employees]);
 
   // Utiliser directement la pagination de l'API
   const pagination = useMemo(() => {

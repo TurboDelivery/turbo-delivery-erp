@@ -19,7 +19,7 @@ interface EmployeeListProps {
   onPressAdd?: (e: any) => void;
 }
 
-export function EmployeeList({ employees, departments, postes, onAddEmployee, onEditPosition, onDeactivate, onRemove, onSearchChange, onClickAdd }: EmployeeListProps) {
+export function EmployeeList({ employees, departments, postes, onAddEmployee, onSearchChange, onClickAdd }: EmployeeListProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredEmployees = (employees || []).filter(
@@ -56,7 +56,7 @@ export function EmployeeList({ employees, departments, postes, onAddEmployee, on
         />
       </div>
 
-      <EmployeeTable employees={filteredEmployees} departments={departments} postes={postes} onEditPosition={onEditPosition} onDeactivate={onDeactivate} onRemove={onRemove} />
+      <EmployeeTable employees={filteredEmployees} departments={departments} postes={postes} />
     </div>
   );
 }

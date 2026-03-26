@@ -1,10 +1,10 @@
-import { z } from 'zod';
+import z from 'zod';
 
 export const absenceFormSchema = z
   .object({
-    employeeId: z.string().min(1, "L'employe est requis"),
-    type: z.enum(['ABSENCE', 'RETARD']),
-    motif: z.string().trim().min(2, 'Le motif est requis'),
+    employeeId: z.string({ required_error: "L'identifiant de l'employe est requis" }).min(1, "L'employe est requis"),
+    type: z.enum(['ABSENCE', 'RETARD'], { required_error: 'Le type est requis' }),
+    motif: z.string({ required_error: 'Le motif est requis' }).trim().min(2, 'Le motif est requis'),
     dateDebut: z.string().optional(),
     dateFin: z.string().optional(),
     retardDate: z.string().optional(),

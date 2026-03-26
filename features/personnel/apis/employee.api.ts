@@ -54,6 +54,7 @@ export const employeeAPI: IEmployeeAPI = {
       method: 'GET',
       searchParams: {
         ...params,
+        size: params.limit,
       } as SearchParams,
     });
   },
@@ -66,28 +67,29 @@ export const employeeAPI: IEmployeeAPI = {
   },
 
   async ajouterEmploye(data: EmployeeCreateDTO): Promise<IEmployee> {
-    console.log('🌐 API - Appel ajouterEmploye avec:', data);
-    
     // Ajouter les timestamps requis par la base de données
     const employeeData = {
       ...data,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    
-    console.log('📤 Données envoyées à l\'API:', employeeData);
-    
-    return api.request<IEmployee>({
-      endpoint: `/erp/employees`,
-      method: 'POST',
-      data: employeeData,
-    }).then(response => {
-      console.log('📥 Réponse API ajouterEmploye:', response);
-      return response;
-    }).catch(error => {
-      console.error('❌ Erreur API ajouterEmploye:', error);
-      throw error;
-    });
+
+    console.log("📤 Données envoyées à l'API:", employeeData);
+
+    return api
+      .request<IEmployee>({
+        endpoint: `/erp/employees`,
+        method: 'POST',
+        data: employeeData,
+      })
+      .then((response) => {
+        console.log('📥 Réponse API ajouterEmploye:', response);
+        return response;
+      })
+      .catch((error) => {
+        console.error('❌ Erreur API ajouterEmploye:', error);
+        throw error;
+      });
   },
 
   async modifierEmploye(id: string, data: EmployeeUpdateDTO): Promise<IEmployee> {
@@ -96,7 +98,7 @@ export const employeeAPI: IEmployeeAPI = {
       ...data,
       updated_at: new Date().toISOString(),
     };
-    
+
     return api.request<IEmployee>({
       endpoint: `/erp/employees/${id}`,
       method: 'PUT',
@@ -113,32 +115,32 @@ export const employeeAPI: IEmployeeAPI = {
 
   async obtenirStatsEmployes(params: IEmployeeStatsParams): Promise<IEmployeeStats> {
     console.log('🌐 API - Appel obtenirStatsEmployes avec:', params);
-    
+
     const searchParams = new URLSearchParams();
-    
+
     if (params.debut) {
       searchParams.append('debut', params.debut.toISOString().split('T')[0]);
     }
-    
+
     if (params.fin) {
       searchParams.append('fin', params.fin.toISOString().split('T')[0]);
     }
-    
+
     if (params.departments && params.departments.length > 0) {
       params.departments.forEach((department) => {
         searchParams.append('departmentIds', department);
       });
     }
-    
+
     if (params.statuts && params.statuts.length > 0) {
       params.statuts.forEach((statut) => {
         searchParams.append('statuts', statut);
       });
     }
-    
+
     const url = `/personnel/employes/stats${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
     console.log('📤 URL Stats:', url);
-    
+
     return api.request<IEmployeeStats>({
       endpoint: url,
       method: 'GET',
@@ -154,14 +156,14 @@ export const employeeAPI: IEmployeeAPI = {
       } as SearchParams,
     });
   },
-  
+
   async employesStats(): Promise<IEmployeeSalaryStats> {
     return api.request<IEmployeeSalaryStats>({
       endpoint: `/erp/employees/stats`,
       method: 'GET',
     });
   },
-  
+
   async changeStatus(id: string, status: string): Promise<IEmployee> {
     return api.request<IEmployee>({
       endpoint: `/erp/employees/${id}/status`,
