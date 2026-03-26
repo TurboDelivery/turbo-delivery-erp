@@ -5,7 +5,6 @@ import { useStatistiquesCongesQuery } from '@/features/conge/queries/conge.query
 
 export function RequestStats() {
   const { data: statsData, isLoading: statsLoading } = useStatistiquesCongesQuery();
-  console.log('statistique data', statsData);
 
   return (
     <div className="mt-6">
