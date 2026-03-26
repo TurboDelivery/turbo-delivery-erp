@@ -2,16 +2,25 @@
 
 import { useMemo } from 'react';
 import { useFacturesParRestaurantQuery } from '@/features/recouvrements/queries/facture.query';
+import { subYears } from 'date-fns';
 
 interface UseRestaurantFacturesOptions {
   restaurantId?: string;
 }
 
 export function useRestaurantFactures({ restaurantId }: UseRestaurantFacturesOptions) {
-  const { data, isLoading, isFetching, isError, error } = useFacturesParRestaurantQuery(restaurantId, {
-    page: 0,
-    size: 100,
-  });
+  const queryParams = useMemo(() => {
+    const now = new Date();
+
+    return {
+      page: 0,
+      size: 500,
+      periodeDebut: subYears(now, 12),
+      periodeFin: now,
+    };
+  }, []);
+
+  const { data, isLoading, isFetching, isError, error } = useFacturesParRestaurantQuery(restaurantId, queryParams);
 
   const factureOptions = useMemo(
     () =>

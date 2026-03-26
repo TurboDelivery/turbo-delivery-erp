@@ -1,154 +1,100 @@
+import { SearchParams } from 'ak-api-http';
+import { api } from '@/lib/api';
+import { PaginatedResponse } from '@/types/general';
+import { CreateAbsenceDeductionDTO, CreateAvanceDTO, CreatePretDTO } from '@/features/personnel/schemas/deduction.schema';
+import {
+  ICreateAbsenceDeductionResponse,
+  ICreateAvanceResponse,
+  ICreatePretResponse,
+  IDeduction,
+  IDeductionParams,
+} from '@/features/personnel/types/deduction.types';
 
-// import { SearchParams } from 'ak-api-http';
-// import { api } from '@/lib/api';
-// import { PaginatedResponse } from '@/types/general';
-// import { DeductionCreateDTO, DeductionUpdateDTO } from '../schemas/deduction.schema';
-// import { Deduction } from '../types/types';
+export interface IDeductionAPI {
+  obtenirDeductions(params?: IDeductionParams): Promise<PaginatedResponse<IDeduction>>;
+  payMonthlyDeductions(data: { employeeId: string; year: number; month: number }): Promise<IDeduction[]>;
+  createPret(data: CreatePretDTO): Promise<ICreatePretResponse>;
+  createAvance(data: CreateAvanceDTO): Promise<ICreateAvanceResponse>;
+  createAbsenceDeduction(data: CreateAbsenceDeductionDTO): Promise<ICreateAbsenceDeductionResponse>;
+}
 
-// export interface IDeductionAPI {
-//   obtenirToutesDeductions(params: IDeductionParams): Promise<PaginatedResponse<Deduction>>;
-//   obtenirDeduction(id: string): Promise<Deduction>;
-//   ajouterDeduction(data: DeductionCreateDTO): Promise<Deduction>;
-//   modifierDeduction(id: string, data: DeductionUpdateDTO): Promise<Deduction>;
-//   supprimerDeduction(id: string): Promise<Deduction>;
-//   appliquerDeduction(id: string): Promise<Deduction>;
-//   obtenirStatsDeductions(params: IDeductionStatsParams): Promise<IDeductionStats>;
-//   exporterDeductionsExcel(params: IDeductionParams): Promise<Blob>;
-// }
+const resolveYearMonth = (raw: unknown): { year: number; month: number } => {
+  const data = raw as { year?: number; month?: number; date?: string };
 
-// export interface IDeductionParams {
-//   page?: number;
-//   limit?: number;
-//   employeeId?: string;
-//   type?: string;
-//   statut?: string;
-//   date?: string;
-//   dateDebut?: string;
-//   dateFin?: string;
-//   orderBy?: string;
-//   orderDirection?: 'asc' | 'desc';
-// }
+  if (typeof data?.year === 'number' && typeof data?.month === 'number') {
+    return { year: data.year, month: data.month };
+  }
 
-// export interface IDeductionStats {
-//   nombre_total: number;
-//   montant_total_ce_mois: number;
-//   montant_en_attente: number;
-//   nombre_appliquees: number;
-//   nombre_en_attente: number;
-//   montant_total_applique: number;
-// }
+  if (typeof data?.date === 'string' && data.date) {
+    const parsed = new Date(`${data.date}T00:00:00`);
+    if (!Number.isNaN(parsed.getTime())) {
+      return { year: parsed.getFullYear(), month: parsed.getMonth() + 1 };
+    }
+  }
 
-// export interface IDeductionStatsParams {
-//   debut?: Date;
-//   fin?: Date;
-//   employeeIds?: string[];
-//   types?: string[];
-//   statuts?: string[];
-// }
+  const now = new Date();
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
+};
 
-// export const deductionAPI: IDeductionAPI = {
-//   async obtenirToutesDeductions(params: IDeductionParams): Promise<PaginatedResponse<Deduction>> {
-//     return await api.request<PaginatedResponse<Deduction>>({
-//       endpoint: `/personnel/deductions/pagination`,
-//       method: 'GET',
-//       searchParams: {
-//         ...params,
-//       } as SearchParams,
-//     });
-//   },
+const buildQueryString = (params: Record<string, string | number>) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(params).forEach(([key, value]) => {
+    searchParams.append(key, String(value));
+  });
+  return searchParams.toString();
+};
 
-//   async obtenirDeduction(id: string): Promise<Deduction> {
-//     return await api.request<Deduction>({
-//       endpoint: `/personnel/deductions/${id}`,
-//       method: 'GET',
-//     });
-//   },
+export const deductionAPI: IDeductionAPI = {
+  obtenirDeductions(params?: IDeductionParams): Promise<PaginatedResponse<IDeduction>> {
+    const year = (params as { year?: number } | undefined)?.year ?? new Date().getFullYear();
+    const month = (params as { month?: number } | undefined)?.month ?? new Date().getMonth() + 1;
 
-//   async ajouterDeduction(data: DeductionCreateDTO): Promise<Deduction> {
-//     console.log('🌐 API - Appel ajouterDeduction avec:', data);
-    
-//     return api.request<Deduction>({
-//       endpoint: `/personnel/deductions`,
-//       method: 'POST',
-//       data,
-//     }).then(response => {
-//       console.log('📥 Réponse API ajouterDeduction:', response);
-//       return response;
-//     }).catch(error => {
-//       console.error('❌ Erreur API ajouterDeduction:', error);
-//       throw error;
-//     });
-//   },
+    return api.request<PaginatedResponse<IDeduction>>({
+      endpoint: '/erp/deductions/monthly',
+      method: 'GET',
+      searchParams: {
+        employeeId: params?.employeeId,
+        year,
+        month,
+      } as SearchParams,
+    });
+  },
 
-//   async modifierDeduction(id: string, data: DeductionUpdateDTO): Promise<Deduction> {
-//     return api.request<Deduction>({
-//       endpoint: `/personnel/deductions/${id}`,
-//       method: 'PUT',
-//       data,
-//     });
-//   },
+  payMonthlyDeductions(data: { employeeId: string; year: number; month: number }): Promise<IDeduction[]> {
+    const query = buildQueryString({
+      employeeId: data.employeeId,
+      year: data.year,
+      month: data.month,
+    });
 
-//   async supprimerDeduction(id: string): Promise<Deduction> {
-//     return api.request<Deduction>({
-//       endpoint: `/personnel/deductions/${id}`,
-//       method: 'DELETE',
-//     });
-//   },
+    return api.request<IDeduction[]>({
+      endpoint: `/erp/deductions/pay/${data.employeeId}?${query}`,
+      method: 'PATCH',
+    });
+  },
 
-//   async appliquerDeduction(id: string): Promise<Deduction> {
-//     return api.request<Deduction>({
-//       endpoint: `/personnel/deductions/${id}/appliquer`,
-//       method: 'POST',
-//     });
-//   },
+  createPret(data: CreatePretDTO): Promise<ICreatePretResponse> {
+    return api.request<ICreatePretResponse>({
+      endpoint: `/erp/deductions/pret`,
+      method: 'POST',
+      data
+    });
+  },
 
-//   async obtenirStatsDeductions(params: IDeductionStatsParams): Promise<IDeductionStats> {
-//     console.log('🌐 API - Appel obtenirStatsDeductions avec:', params);
-    
-//     const searchParams = new URLSearchParams();
-    
-//     if (params.debut) {
-//       searchParams.append('debut', params.debut.toISOString().split('T')[0]);
-//     }
-    
-//     if (params.fin) {
-//       searchParams.append('fin', params.fin.toISOString().split('T')[0]);
-//     }
-    
-//     if (params.employeeIds && params.employeeIds.length > 0) {
-//       params.employeeIds.forEach((employeeId) => {
-//         searchParams.append('employeeIds', employeeId);
-//       });
-//     }
-    
-//     if (params.types && params.types.length > 0) {
-//       params.types.forEach((type) => {
-//         searchParams.append('types', type);
-//       });
-//     }
-    
-//     if (params.statuts && params.statuts.length > 0) {
-//       params.statuts.forEach((statut) => {
-//         searchParams.append('statuts', statut);
-//       });
-//     }
-    
-//     const url = `/personnel/deductions/stats${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-//     console.log('📤 URL Stats:', url);
-    
-//     return api.request<IDeductionStats>({
-//       endpoint: url,
-//       method: 'GET',
-//     });
-//   },
+  createAvance(data: CreateAvanceDTO): Promise<ICreateAvanceResponse> {
+    return api.request<ICreateAvanceResponse>({
+      endpoint: `/erp/deductions/avance`,
+      method: 'POST',
+      data,
+    });
+  },
 
-//   async exporterDeductionsExcel(params: IDeductionParams): Promise<Blob> {
-//     return await api.request<Blob>({
-//       endpoint: `/personnel/deductions/export`,
-//       method: 'GET',
-//       searchParams: {
-//         ...params,
-//       } as SearchParams,
-//     });
-//   },
-// };
+  createAbsenceDeduction(data: CreateAbsenceDeductionDTO): Promise<ICreateAbsenceDeductionResponse> {
+    console.log('Creating absence deduction with data:', data);
+    return api.request<ICreateAbsenceDeductionResponse>({
+      endpoint: `/erp/deductions/absence`,
+      method: 'POST',
+      data,
+    });
+  },
+};

@@ -1,30 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@heroui/react';
-import { Card, CardBody, CardHeader } from '@heroui/react';
-import { Input } from '@heroui/react';
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/select';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
 import { LoanTable } from './loan-table';
-import { Loan, LoanStats, Employee } from '../../features/personnel/types/types';
+import { IEmployee, Loan, LoanStats } from '@/features/personnel/types/types';
 
 interface LoanManagementProps {
   loans: Loan[];
   loanStats: LoanStats;
-  employees: Employee[];
+  employees: IEmployee[];
   onAddLoan: (loan: Omit<Loan, 'id'>) => void;
   onUpdateLoanStatus: (loanId: string, action: 'hold' | 'extend') => void;
   onDeleteLoan?: (loanId: string) => void;
 }
 
-export function LoanManagement({ 
-  loans, 
-  loanStats, 
-  employees, 
-  onAddLoan, 
-  onUpdateLoanStatus 
-}: LoanManagementProps) {
+export function LoanManagement({ loans, employees, onAddLoan, onUpdateLoanStatus }: LoanManagementProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [newLoan, setNewLoan] = useState({
     employeeId: '',
@@ -33,7 +24,7 @@ export function LoanManagement({
     amount: 0,
     reason: '',
     repaymentDuration: 3,
-    status: 'En attente' as Loan['status']
+    status: 'En attente' as Loan['status'],
   });
 
   const handleSubmitLoan = () => {
@@ -42,7 +33,7 @@ export function LoanManagement({
       return;
     }
 
-    const employee = employees.find(emp => emp.id === newLoan.employeeId);
+    const employee = employees.find((emp) => emp.id === newLoan.employeeId);
     if (!employee) return;
 
     onAddLoan({
@@ -53,7 +44,7 @@ export function LoanManagement({
       reason: newLoan.reason,
       date: new Date().toISOString().split('T')[0],
       statut: newLoan.status || 'En attente',
-      repaymentDuration: newLoan.repaymentDuration
+      repaymentDuration: newLoan.repaymentDuration,
     });
 
     setNewLoan({
@@ -63,7 +54,7 @@ export function LoanManagement({
       amount: 0,
       reason: '',
       repaymentDuration: 3,
-      status: 'En attente'
+      status: 'En attente',
     });
 
     onOpenChange();
@@ -74,11 +65,11 @@ export function LoanManagement({
   };
 
   const handleEmployeeChange = (employeeId: string) => {
-    const employee = employees.find(emp => emp.id === employeeId);
-    setNewLoan(prev => ({
+    const employee = employees.find((emp) => emp.id === employeeId);
+    setNewLoan((prev) => ({
       ...prev,
       employeeId,
-      employeeName: employee?.name || ''
+      employeeName: employee?.name || '',
     }));
   };
 
@@ -96,9 +87,7 @@ export function LoanManagement({
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">
-                Nouveau prêt
-              </ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">Nouveau prêt</ModalHeader>
               <ModalBody>
                 <div className="space-y-4">
                   <Select
@@ -118,11 +107,17 @@ export function LoanManagement({
                     label="Type de prêt"
                     placeholder="Sélectionnez le type"
                     selectedKeys={[newLoan.type]}
-                    onSelectionChange={(keys) => setNewLoan(prev => ({ ...prev, type: Array.from(keys)[0] as Loan['type'] }))}
+                    onSelectionChange={(keys) => setNewLoan((prev) => ({ ...prev, type: Array.from(keys)[0] as Loan['type'] }))}
                   >
-                    <SelectItem key="Avance sur salaire" value="Avance sur salaire">Avance sur salaire</SelectItem>
-                    <SelectItem key="Prêt personnel" value="Prêt personnel">Prêt personnel</SelectItem>
-                    <SelectItem key="Aide d'urgence" value="Aide d'urgence">Aide d'urgence</SelectItem>
+                    <SelectItem key="Avance sur salaire" value="Avance sur salaire">
+                      Avance sur salaire
+                    </SelectItem>
+                    <SelectItem key="Prêt personnel" value="Prêt personnel">
+                      Prêt personnel
+                    </SelectItem>
+                    <SelectItem key="Aide d'urgence" value="Aide d'urgence">
+                      Aide d&#39;urgence
+                    </SelectItem>
                   </Select>
 
                   <Input
@@ -130,7 +125,7 @@ export function LoanManagement({
                     label="Montant"
                     placeholder="Entrez le montant"
                     value={newLoan.amount.toString()}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewLoan(prev => ({ ...prev, amount: parseInt(e.target.value) || 0 }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewLoan((prev) => ({ ...prev, amount: parseInt(e.target.value) || 0 }))}
                     startContent={<span className="text-gray-500">FCFA</span>}
                   />
 
@@ -139,7 +134,7 @@ export function LoanManagement({
                     label="Durée de remboursement (mois)"
                     placeholder="Nombre de mois"
                     value={newLoan.repaymentDuration.toString()}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewLoan(prev => ({ ...prev, repaymentDuration: parseInt(e.target.value) || 1 }))}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewLoan((prev) => ({ ...prev, repaymentDuration: parseInt(e.target.value) || 1 }))}
                   />
 
                   <Select
@@ -149,26 +144,34 @@ export function LoanManagement({
                     onSelectionChange={(keys) => {
                       const selectedKey = Array.from(keys)[0];
                       if (selectedKey) {
-                        setNewLoan(prev => ({ ...prev, status: selectedKey as Loan['status'] }));
+                        setNewLoan((prev) => ({ ...prev, status: selectedKey as Loan['status'] }));
                       }
                     }}
                   >
-                    <SelectItem key="En attente" value="En attente">En attente</SelectItem>
-                    <SelectItem key="Approuvé" value="Approuvé">Approuvé</SelectItem>
-                    <SelectItem key="Rejeté" value="Rejeté">Rejeté</SelectItem>
-                    <SelectItem key="En cours" value="En cours">En cours</SelectItem>
-                    <SelectItem key="Terminé" value="Terminé">Terminé</SelectItem>
+                    <SelectItem key="En attente" value="En attente">
+                      En attente
+                    </SelectItem>
+                    <SelectItem key="Approuvé" value="Approuvé">
+                      Approuvé
+                    </SelectItem>
+                    <SelectItem key="Rejeté" value="Rejeté">
+                      Rejeté
+                    </SelectItem>
+                    <SelectItem key="En cours" value="En cours">
+                      En cours
+                    </SelectItem>
+                    <SelectItem key="Terminé" value="Terminé">
+                      Terminé
+                    </SelectItem>
                   </Select>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      Motif
-                    </label>
+                    <label className="text-sm font-medium text-gray-700">Motif</label>
                     <textarea
                       className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                       placeholder="Décrivez le motif du prêt"
                       value={newLoan.reason}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewLoan(prev => ({ ...prev, reason: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewLoan((prev) => ({ ...prev, reason: e.target.value }))}
                     />
                   </div>
                 </div>
@@ -187,11 +190,7 @@ export function LoanManagement({
       </Modal>
 
       {/* Tableau des prêts */}
-      <LoanTable 
-        loans={loans} 
-        onUpdateLoanStatus={onUpdateLoanStatus}
-        onDeleteLoan={handleDeleteLoan}
-      />
+      <LoanTable loans={loans} onUpdateLoanStatus={onUpdateLoanStatus} onDeleteLoan={handleDeleteLoan} />
     </div>
   );
 }

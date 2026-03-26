@@ -3,13 +3,13 @@
 import { Button, Card, CardBody, CardHeader, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/select';
 import { useState } from 'react';
-import { Deduction, DeductionStats, Employee } from '../../features/personnel/types/types';
+import { Deduction, DeductionStats, IEmployee } from '@/features/personnel/types/types';
 import { DeductionTable } from './deduction-table';
 
 interface DeductionsManagementProps {
   deductions: Deduction[];
   deductionStats: DeductionStats;
-  employees: Employee[];
+  employees: IEmployee[];
   onCreateDeduction: (deduction: Omit<Deduction, 'id'>) => void;
 }
 

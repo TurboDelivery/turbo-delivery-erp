@@ -1,10 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
-import { useEmployeeListQuery } from '@/features/personnel/queries/employee-list.query';
+import { useEmployeeListQuery } from '@/features/personnel/queries';
 import { eligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
-import { useCongesQuery } from '../../features/conge/queries/conge.query';
-import { Employee } from '../../features/personnel/types/types';
-import { IConge, CongeStatut } from '../../features/conge/types/conge.type';
+import { eligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
+import { useCongesQuery } from '@/features/conge/queries/conge.query';
+import { IEmployee } from '@/features/personnel/types/types';
+import { IConge, CongeStatut } from '@/features/conge/types/conge.type';
 
 // Fonction pour calculer l'ancienneté
 const calculateSeniority = (entryDate: string): { years: number; months: number; label: string } => {
@@ -78,8 +79,8 @@ const formatDate = (dateString: string): string => {
 export default function AutomatisationConges() {
   console.log('🚀 AutomatisationConges component mounted');
   
-  const { data: employeesData, isLoading: employeesLoading } = eligibleEmployeeQuery({ limit: 1000 });
-  const { data: congesData, isLoading: congesLoading } = useCongesQuery({ limit: 1000 });
+  const { data: employeesData } = eligibleEmployeeQuery({ limit: 1000 });
+  const { data: congesData } = useCongesQuery({ limit: 1000 });
 
   const employees = Array.isArray(employeesData) ? employeesData : [];
   console.log('Employés éligibles reçus pour les congés:', employees);
@@ -88,7 +89,7 @@ export default function AutomatisationConges() {
   console.log('Pagination congés - Total:', congesData?.totalElements, 'Page:', congesData?.number, 'Taille:', congesData?.size);
 
   // Préparer les données des employés avec calculs
-  const employeesWithLeaveData = employees.map((employee: Employee) => {
+  const employeesWithLeaveData = employees.map((employee: IEmployee) => {
     console.log('Traitement employé:', employee.name, 'ID:', employee.id);
     const seniority = calculateSeniority(employee.entryDate);
     const rights = calculateLeaveRights(seniority.years, seniority.months);
@@ -105,14 +106,12 @@ export default function AutomatisationConges() {
     const restant = Math.max(0, rights - pris);
     
     // Vérifier si l'employé est actuellement en congé
-    const currentLeave = employeeConges.find((conge: IConge) => 
-      conge.statut === CongeStatut.EN_COURS || 
+    const currentLeave = employeeConges.find((conge: IConge) =>
+      conge.statut === CongeStatut.EN_COURS ||
       String(conge.statut).toLowerCase().includes('cours')
     );
     
     const isOnLeave = !!currentLeave;
-    
-
     
     // Alerte uniquement si : 
     // 1. L'employé a des droits de congés (>= 5 jours)
@@ -144,10 +143,10 @@ export default function AutomatisationConges() {
       <div className="bg-gray-200 rounded-xl p-4 mb-6">
         <h1 className="text-lg font-semibold mb-1">Automatisation des congés</h1>
         <p className="text-sm text-gray-600">
-          Le système calcule automatiquement les droits aux congés basé sur la date d'embauche :
+          Le système calcule automatiquement les droits aux congés basé sur la date d&#39;embauche :
         </p>
         <ul className="text-sm text-gray-700 mt-2 list-disc ml-5">
-          <li><strong>Après 1 an d'ancienneté :</strong> 30 jours de congés annuels</li>
+          <li><strong>Après 1 an d&#39;ancienneté :</strong> 30 jours de congés annuels</li>
           <li><strong>Première année :</strong> 2,5 jours par mois travaillé (proratisé)</li>
         </ul>
       </div>
@@ -194,18 +193,18 @@ export default function AutomatisationConges() {
                   Doit prendre des congés rapidement
                 </div>
               )}
-              
+
               {emp.restant >= 20 && (
                 <div className="mt-3 flex items-center gap-2 bg-blue-100 text-blue-600 text-xs px-3 py-2 rounded-lg">
                   <AlertTriangle size={14} />
                   Doit prendre ses congés cette année
                 </div>
               )}
-              
+
               {emp.notEligible && (
                 <div className="mt-3 flex items-center gap-2 bg-blue-100 text-blue-600 text-xs px-3 py-2 rounded-lg">
                   <AlertTriangle size={14} />
-                  En période d'éligibilité ({emp.anciennete})
+                  En période d&#39;éligibilité ({emp.anciennete})
                 </div>
               )}
             </CardContent>

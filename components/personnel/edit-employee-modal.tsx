@@ -7,14 +7,14 @@ import { Button } from '@heroui/react';
 import { Input } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/select';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
-import { Employee } from '@/features/personnel/types/types';
+import { IEmployee } from '@/features/personnel/types/types';
 import { useModifierEmployeMutation } from '@/features/personnel/mutations/employee.mutation';
 import { EmployeeSchema, type EmployeeDTO } from '@/features/personnel/schemas/employee.schema';
 
 interface EditEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  employee: Employee | null;
+  employee: IEmployee | null;
   departments: Array<{ name: string; id: string }>;
   postes: string[];
 }
@@ -217,7 +217,7 @@ export function EditEmployeeModal({
                       selectedKeys={field.value ? [field.value] : []}
                       onSelectionChange={(keys) => {
                         const firstKey = Array.from(keys as Set<string>)[0];
-                        field.onChange(firstKey ? (firstKey as Employee['statut']) : 'Actif');
+                        field.onChange(firstKey ? (firstKey as IEmployee['statut']) : 'Actif');
                       }}
                       variant="bordered"
                       isInvalid={!!errors.statut}
