@@ -23,6 +23,7 @@ export interface ICongeAPI {
   obtenirCongesParEmploye(employeeId: string): Promise<IConge[]>;
   obtenirEmployeEligible(params: ICongesParams): Promise<PaginatedResponse<IConge>>;
   obtenirEmployesEligiblesConge(): Promise<Employee[]>; // Nouvelle API pour les employés éligibles
+  obtenirStatistiquesConges(): Promise<any>;
 }
 
 export const congeAPI: ICongeAPI = {
@@ -102,6 +103,14 @@ export const congeAPI: ICongeAPI = {
   obtenirEmployesEligiblesConge(): Promise<Employee[]> {
     return api.request<Employee[]>({
       endpoint: `erp/employees/eligible-conge-list`,
+      method: "GET",
+      service:'private'
+    });
+  },
+  
+  obtenirStatistiquesConges(): Promise<any> {
+    return api.request<any>({
+      endpoint: `erp/conges/global/stats`,
       method: "GET",
       service:'private'
     });

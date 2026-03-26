@@ -37,6 +37,12 @@ export default function PlanningConges() {
   console.log("🔍 Debug - Congés loading:", congesLoading);
   console.log("🔍 Debug - Congés data:", conges);
 
+  // Log détaillé de tous les congés avec leur statut
+  console.log("🔍 Analyse détaillée des congés:");
+  conges.forEach((conge: IConge, index: number) => {
+    console.log(`  ${index + 1}. ${conge.employeeName} - statut: "${conge.statut}" - type: "${conge.type}" - EN_COURS: ${(conge.statut as string) === 'EN_COURS'} - APPROUVEE: ${(conge.statut as string) === 'APPROUVEE'}`);
+  });
+
   // Extraire uniquement les employés qui sont en congé
   const employeesOnLeave = conges
     .filter((conge: IConge) => {
@@ -227,7 +233,7 @@ export default function PlanningConges() {
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <div className="grid grid-cols-4 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-gray-800">{employees.length}</div>
+              <div className="text-2xl font-bold text-gray-800">{congesData?.content?.length || 0}</div>
               <div className="text-xs text-gray-500">Total employés</div>
             </div>
             <div>
@@ -250,6 +256,15 @@ export default function PlanningConges() {
                   ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')
                 ).length}</div>
               <div className="text-xs text-gray-500">Congés maternité</div>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-yellow-600">
+                {conges.filter((c: IConge) =>
+                  c.type?.toLowerCase().includes('sans_solde') &&
+                  ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')
+                ).length}
+              </div>
+              <div className="text-xs text-gray-500">Congés sans solde</div>
             </div>
           </div>
         </div>
