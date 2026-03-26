@@ -65,7 +65,7 @@ export function RequestStats({ pending, approved, rejected }: RequestStatsProps)
             </CardBody>
           </Card>
 
-          <Card>
+          {/* <Card>
             <CardHeader className="pb-2">
               <h4 className="text-sm font-medium text-gray-600">Demandes approuvées</h4>
             </CardHeader>
@@ -75,7 +75,7 @@ export function RequestStats({ pending, approved, rejected }: RequestStatsProps)
               </div>
               <p className="text-sm text-gray-500">Validées</p>
             </CardBody>
-          </Card>
+          </Card> */}
 
           <Card>
             <CardHeader className="pb-2">
