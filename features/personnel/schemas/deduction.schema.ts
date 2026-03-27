@@ -1,5 +1,7 @@
 import z from 'zod';
 
+const deductionStatusSchema = z.enum(['PENDING', 'PAID', 'CANCELLED']);
+
 export const createPretSchema = z.object({
   employeeId: z.string({ required_error: "L'identifiant de l'employe est requis" }),
   totalAmount: z.number({ required_error: 'Le montant total est requis' }).positive('Le montant total doit etre superieur a 0'),
@@ -39,9 +41,15 @@ export const absenceDeductionFormSchema = z
     }
   });
 
-export const updatePretSchema = createPretSchema.partial();
-export const updateAvanceSchema = createAvanceSchema.partial();
-export const updateAbsenceDeductionSchema = createAbsenceDeductionSchema.partial();
+export const updatePretSchema = createPretSchema.partial().extend({
+  status: deductionStatusSchema.optional(),
+});
+export const updateAvanceSchema = createAvanceSchema.partial().extend({
+  status: deductionStatusSchema.optional(),
+});
+export const updateAbsenceDeductionSchema = createAbsenceDeductionSchema.partial().extend({
+  status: deductionStatusSchema.optional(),
+});
 
 export type CreatePretDTO = z.infer<typeof createPretSchema>;
 export type CreateAvanceDTO = z.infer<typeof createAvanceSchema>;

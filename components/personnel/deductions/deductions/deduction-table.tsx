@@ -10,10 +10,10 @@ import { IDeduction } from '@/features/personnel/types/deduction.types';
 interface DeductionTableProps {
   showFilters?: boolean;
   onEditDeduction?: (deduction: IDeduction) => void;
-  onDeleteDeduction?: (deduction: IDeduction) => void;
+  onCancelDeduction?: (deduction: IDeduction) => void;
 }
 
-export function DeductionTable({ showFilters = true, onEditDeduction, onDeleteDeduction }: DeductionTableProps) {
+export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDeduction }: DeductionTableProps) {
   const {
     deductionTable,
     isDeductionLoading,
@@ -24,7 +24,7 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onDeleteDe
     handleEmployeeFilterChange,
     handleYearFilterChange,
     handleMonthFilterChange,
-  } = useDeductionTable({ onEditDeduction, onDeleteDeduction });
+  } = useDeductionTable({ onEditDeduction, onCancelDeduction });
 
   const colsCount = deductionTable.getAllColumns().length;
 

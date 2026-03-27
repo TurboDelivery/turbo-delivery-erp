@@ -10,7 +10,8 @@ export interface IAbsence {
   employeeId?: string;
   employee: IEmployee
   dateDebut: Date | string;
-  dateFin: Date | string;
+  dateFin?: Date | string;
+  days?: number;
   motif: string;
   type: AbsenceTypeEnum;
 }

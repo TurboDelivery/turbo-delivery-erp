@@ -48,6 +48,20 @@ const toDateInputValue = (value: unknown): string => {
   return `${year}-${month}-${day}`;
 };
 
+const computeEndDateFromDays = (dateDebut: unknown, days: unknown): string => {
+  const startDate = toDate(dateDebut);
+  const daysNumber = typeof days === 'number' ? days : Number(days);
+
+  if (!startDate || Number.isNaN(daysNumber) || daysNumber <= 0) {
+    return '';
+  }
+
+  const endDate = new Date(startDate);
+  // Date fin inclusive: debut + (jours - 1)
+  endDate.setDate(endDate.getDate() + daysNumber - 1);
+  return toDateInputValue(endDate);
+};
+
 const calculateDaysInclusive = (dateDebut: string, dateFin: string): number => {
   const start = new Date(`${dateDebut}T00:00:00`);
   const end = new Date(`${dateFin}T00:00:00`);
@@ -81,7 +95,7 @@ export default function AbsenceModal({ isOpen, onClose, absence, deduction, onSu
 
     const employeeId = deduction?.employee?.id || absence?.employeeId || absence?.employee?.id || '';
     const fallbackDate = deduction?.deductionDate || absence?.dateDebut;
-    const fallbackEndDate = absence?.dateFin || deduction?.deductionDate;
+    const fallbackEndDate = absence?.dateFin || computeEndDateFromDays(absence?.dateDebut, absence?.days) || deduction?.deductionDate;
 
     return {
       employeeId,

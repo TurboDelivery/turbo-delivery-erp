@@ -1,7 +1,14 @@
 import { SearchParams } from 'ak-api-http';
 import { api } from '@/lib/api';
 import { PaginatedResponse } from '@/types/general';
-import { CreateAbsenceDeductionDTO, CreateAvanceDTO, CreatePretDTO } from '@/features/personnel/schemas/deduction.schema';
+import {
+  CreateAbsenceDeductionDTO,
+  CreateAvanceDTO,
+  CreatePretDTO,
+  UpdateAbsenceDeductionDTO,
+  UpdateAvanceDTO,
+  UpdatePretDTO,
+} from '@/features/personnel/schemas/deduction.schema';
 import {
   ICreateAbsenceDeductionResponse,
   ICreateAvanceResponse,
@@ -16,25 +23,10 @@ export interface IDeductionAPI {
   createPret(data: CreatePretDTO): Promise<ICreatePretResponse>;
   createAvance(data: CreateAvanceDTO): Promise<ICreateAvanceResponse>;
   createAbsenceDeduction(data: CreateAbsenceDeductionDTO): Promise<ICreateAbsenceDeductionResponse>;
+  updateAvance(deductionId: string, data: UpdateAvanceDTO): Promise<ICreateAvanceResponse>;
+  updatePret(referenceId: string, data: UpdatePretDTO): Promise<ICreatePretResponse>;
+  updateAbsenceDeduction(deductionId: string, data: UpdateAbsenceDeductionDTO): Promise<ICreateAbsenceDeductionResponse>;
 }
-
-const resolveYearMonth = (raw: unknown): { year: number; month: number } => {
-  const data = raw as { year?: number; month?: number; date?: string };
-
-  if (typeof data?.year === 'number' && typeof data?.month === 'number') {
-    return { year: data.year, month: data.month };
-  }
-
-  if (typeof data?.date === 'string' && data.date) {
-    const parsed = new Date(`${data.date}T00:00:00`);
-    if (!Number.isNaN(parsed.getTime())) {
-      return { year: parsed.getFullYear(), month: parsed.getMonth() + 1 };
-    }
-  }
-
-  const now = new Date();
-  return { year: now.getFullYear(), month: now.getMonth() + 1 };
-};
 
 const buildQueryString = (params: Record<string, string | number>) => {
   const searchParams = new URLSearchParams();
@@ -90,10 +82,33 @@ export const deductionAPI: IDeductionAPI = {
   },
 
   createAbsenceDeduction(data: CreateAbsenceDeductionDTO): Promise<ICreateAbsenceDeductionResponse> {
-    console.log('Creating absence deduction with data:', data);
     return api.request<ICreateAbsenceDeductionResponse>({
       endpoint: `/erp/deductions/absence`,
       method: 'POST',
+      data,
+    });
+  },
+
+  updateAvance(deductionId: string, data: UpdateAvanceDTO): Promise<ICreateAvanceResponse> {
+    return api.request<ICreateAvanceResponse>({
+      endpoint: `/erp/deductions/avance/${deductionId}`,
+      method: 'PUT',
+      data,
+    });
+  },
+
+  updatePret(referenceId: string, data: UpdatePretDTO): Promise<ICreatePretResponse> {
+    return api.request<ICreatePretResponse>({
+      endpoint: `/erp/deductions/pret/${referenceId}`,
+      method: 'PUT',
+      data,
+    });
+  },
+
+  updateAbsenceDeduction(deductionId: string, data: UpdateAbsenceDeductionDTO): Promise<ICreateAbsenceDeductionResponse> {
+    return api.request<ICreateAbsenceDeductionResponse>({
+      endpoint: `/erp/deductions/absence/${deductionId}`,
+      method: 'PUT',
       data,
     });
   },

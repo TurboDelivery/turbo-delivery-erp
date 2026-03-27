@@ -2,12 +2,12 @@ import { ColumnDef } from '@tanstack/react-table';
 import { format, isValid, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Button } from '@heroui/react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, XCircle } from 'lucide-react';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
 
 type CreateDeductionTableColumnsOptions = {
   onEditDeduction?: (deduction: IDeduction) => void;
-  onDeleteDeduction?: (deduction: IDeduction) => void;
+  onCancelDeduction?: (deduction: IDeduction) => void;
 };
 
 const toDate = (value: unknown): Date | null => {
@@ -92,7 +92,7 @@ const getStatusClassName = (status: IDeduction['status']) => {
   }
 };
 
-export const createDeductionTableColumns = ({ onEditDeduction, onDeleteDeduction }: CreateDeductionTableColumnsOptions = {}): ColumnDef<IDeduction>[] => [
+export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction }: CreateDeductionTableColumnsOptions = {}): ColumnDef<IDeduction>[] => [
   {
     accessorKey: 'employee',
     header: 'Employe',
@@ -153,14 +153,32 @@ export const createDeductionTableColumns = ({ onEditDeduction, onDeleteDeduction
     header: 'Actions',
     enableSorting: false,
     cell: ({ row }) => {
+      const isPret = row.original.typeDeduction === 'PRET';
+      const isCancelled = row.original.status === 'CANCELLED';
 
       return (
         <div className="flex items-center gap-1">
-          <Button size="sm" variant="light" color="primary" isIconOnly onPress={() => onEditDeduction?.(row.original)} title="Modifier">
+          <Button
+            size="sm"
+            variant="light"
+            color="primary"
+            isIconOnly
+            isDisabled={isPret}
+            onPress={() => onEditDeduction?.(row.original)}
+            title={isPret ? 'Modification du pret desactivee' : 'Modifier'}
+          >
             <Pencil className="size-4" />
           </Button>
-          <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => onDeleteDeduction?.(row.original)} title="Supprimer">
-            <Trash2 className="size-4" />
+          <Button
+            size="sm"
+            variant="light"
+            color="danger"
+            isIconOnly
+            isDisabled={isCancelled}
+            onPress={() => onCancelDeduction?.(row.original)}
+            title={isCancelled ? 'Deduction deja annulee' : 'Annuler'}
+          >
+            <XCircle className="size-4" />
           </Button>
         </div>
       );
