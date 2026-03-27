@@ -153,11 +153,6 @@ export const createDeductionTableColumns = ({ onEditDeduction, onDeleteDeduction
     header: 'Actions',
     enableSorting: false,
     cell: ({ row }) => {
-      const isPret = row.original.typeDeduction === 'PRET';
-
-      if (isPret) {
-        return <span className="text-xs text-gray-500">Bientot</span>;
-      }
 
       return (
         <div className="flex items-center gap-1">
