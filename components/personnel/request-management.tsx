@@ -21,13 +21,8 @@ interface RequestManagementProps {
 
 export function RequestManagement({ requests, employees }: RequestManagementProps) {
   // Récupérer la liste des employés éligibles depuis l'API
-<<<<<<< HEAD
-  const { data: employeesData, isLoading: employeesLoading } = useEligibleEmployeeQuery({ limit: 1000 });
-  console.log("Employés éligibles data:", employeesData);
-=======
-  const { data: employeesData } = eligibleEmployeeQuery({ limit: 1000 });
+  const { data: employeesData } = useEligibleEmployeeQuery({ limit: 1000 });
   console.log('Employés éligibles data:', employeesData);
->>>>>>> d63dff9c2987e1a4bdf1ba0b5aa8602b833de03e
 
   // Utiliser les données de l'API si disponibles, sinon les données mockées
   const displayEmployees = Array.isArray(employeesData) ? employeesData : employees;
