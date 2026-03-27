@@ -1,7 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { congeAPI } from '../apis/conge.api';
-import { IConge, ICongesParams } from '../types/conge.type';
-import { CongeAddDTO, CongeUpdateDTO, CongeStatusUpdateDTO } from '../schemas/conge.schema';
+import { ICongesParams } from '../types/conge.type';
 import React from 'react';
 
 // Query keys
@@ -29,7 +28,7 @@ export const useCongesQuery = (params: ICongesParams = {}) => {
   // Gestion des erreurs dans le hook
   React.useEffect(() => {
     if (query.isError && query.error) {
-      console.error("Erreur lors de la récupération des congés:", query.error);
+      console.error('Erreur lors de la récupération des congés:', query.error);
       // TODO: Ajouter notification toast quand disponible
     }
   }, [query]);
@@ -52,7 +51,7 @@ export const useCongeQuery = (id: string) => {
   // Gestion des erreurs dans le hook
   React.useEffect(() => {
     if (query.isError && query.error) {
-      console.error("Erreur lors de la récupération du congé:", query.error);
+      console.error('Erreur lors de la récupération du congé:', query.error);
       // TODO: Ajouter notification toast quand disponible
     }
   }, [query.isError, query.error]);
@@ -96,13 +95,14 @@ export const useEligibleEmployeeQuery = (params: ICongesParams) => {
   // Gestion des erreurs dans le hook
   React.useEffect(() => {
     if (query.isError && query.error) {
-      console.error("Erreur lors de la récupération des employés éligibles:", query.error);
+      console.error('Erreur lors de la récupération des employés éligibles:', query.error);
       // TODO: Ajouter notification toast quand disponible
     }
   }, [query.isError, query.error]);
 
   return query;
 };
+
 export const useStatistiquesCongesQuery = () => {
   const query = useQuery({
     queryKey: ['statistiques-conges'],

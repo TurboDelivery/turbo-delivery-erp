@@ -1,5 +1,6 @@
+"use client";
 import { title } from '@/components/primitives';
-import { Card, CardBody, CardHeader, Divider, Skeleton } from '@heroui/react';
+import { Card, CardBody, CardHeader, Divider, Link, Skeleton } from '@heroui/react';
 import { TurboysButton } from '@/components/dashboard/apercu/TurboysButton';
 import { usePersonnelStatsQuery } from '@/features/dashboard/queries/personnel-stats.query';
 
@@ -42,16 +43,16 @@ export default function DatabaseCards() {
   }
 
   const statsItems = [
-    { label: 'Partenaire Actif', value: data?.partenaireActif ?? 0 },
+    { label: 'Partenaire Actif', value: data?.partenaireActif ?? 0, href: '/restaurants' },
     { label: 'Turboys', value: data?.turboys ?? 0 },
-    { label: 'Personnel TURBO', value: data?.personnel ?? 0 },
-    { label: 'Utilisateurs Actifs', value: data?.utilisateurs ?? 0 },
+    { label: 'Personnel TURBO', value: data?.personnel ?? 0, href: '/personnel' },
+    { label: 'Utilisateurs Actifs', value: data?.utilisateurs ?? 0, href: 'users' },
   ];
 
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
       {statsItems.map((item) => (
-        <Card key={item.label}>
+        <Card as={Link} key={item.label} href={item.href ?? '#'}>
           <CardHeader>
             <h3 className={title({ size: 'h6', class: 'text-primary' })}>{item.label}</h3>
           </CardHeader>

@@ -1,54 +1,40 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@heroui/react';
-import { Input } from '@heroui/react';
+import { Button, Input } from '@heroui/react';
 import { EmployeeTable } from './employee-table';
-import { Employee } from '../../features/personnel/types/types';
-import { EmployeeCreateSchema, EmployeeCreateDTO } from '../../features/personnel/schemas/employee.schema';
+import { IEmployee } from '@/features/personnel/types/types';
+import { EmployeeCreateDTO } from '@/features/personnel/schemas/employee.schema';
 
 interface EmployeeListProps {
-  employees: Employee[];
+  employees: IEmployee[];
   departments: Array<{ name: string; id: string }>;
   postes: string[];
   onAddEmployee: (employee: EmployeeCreateDTO) => void;
-  onEditPosition: (employee: Employee) => void;
-  onDeactivate: (employee: Employee) => void;
-  onRemove: (employee: Employee) => void;
+  onEditPosition: (employee: IEmployee) => void;
+  onDeactivate: (employee: IEmployee) => void;
+  onRemove: (employee: IEmployee) => void;
   onSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onClickAdd?: () => void;
   onPressAdd?: (e: any) => void;
 }
 
-export function EmployeeList({ 
-  employees, 
-  departments,
-  postes,
-  onAddEmployee, 
-  onEditPosition, 
-  onDeactivate, 
-  onRemove,
-  onSearchChange,
-  onClickAdd 
-}: EmployeeListProps) {
+export function EmployeeList({ employees, departments, postes, onAddEmployee,  onSearchChange, onClickAdd }: EmployeeListProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredEmployees = (employees || []).filter((employee: Employee) =>
-    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.department.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredEmployees = (employees || []).filter(
+    (employee: IEmployee) =>
+      employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employee.department.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Liste des employés</h2>
-        <Button 
-          color="primary" 
-          onPress={onClickAdd || (() => onAddEmployee({} as EmployeeCreateDTO))}
-          className="bg-primary text-white"
-        >
+        <Button color="primary" onPress={onClickAdd || (() => onAddEmployee({} as EmployeeCreateDTO))} className="bg-primary text-white">
           + Ajouter un employé
         </Button>
       </div>
@@ -70,14 +56,7 @@ export function EmployeeList({
         />
       </div>
 
-      <EmployeeTable
-        employees={filteredEmployees}
-        departments={departments}
-        postes={postes}
-        onEditPosition={onEditPosition}
-        onDeactivate={onDeactivate}
-        onRemove={onRemove}
-      />
+      <EmployeeTable employees={filteredEmployees} departments={departments} postes={postes}  />
     </div>
   );
 }

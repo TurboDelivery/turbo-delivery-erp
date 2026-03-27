@@ -1,10 +1,13 @@
 // Dans recouvrement.types.ts
+import { IFacture } from '@/features/recouvrements/types';
+
 export interface IRecouvrement {
     id: string;
     montant: number;
     dateRecouvrement: string;
     preuve: string;
     factureId?: string;
+    factures: IFacture[];
     restaurantId: string;
     nomRestaurant: string;
 }

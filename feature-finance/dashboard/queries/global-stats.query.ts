@@ -8,6 +8,8 @@ interface GlobalStatsResponse {
   commission: number;
   fraisLivraison: number;
   investissement: number;
+  commissionFixe: number;
+  commissionPourcentage: number;
 }
 
 interface GlobalStatsParams {

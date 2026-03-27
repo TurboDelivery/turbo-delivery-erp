@@ -1,56 +1,51 @@
 'use client';
 
-import React from 'react';
-import { Button } from '@heroui/react';
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@heroui/react';
-import { useReactTable, getCoreRowModel, flexRender, createColumnHelper } from '@tanstack/react-table';
-import { Employee } from '../../features/personnel/types/types';
+import React, { useState } from 'react';
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
+import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { IEmployee } from '@/features/personnel/types/types';
 import { cn } from '@/lib/utils';
-import { useModifierEmployeMutation, useSupprimerEmployeMutation } from '../../features/personnel/mutations/employee.mutation';
+import { useModifierEmployeMutation, useSupprimerEmployeMutation } from '@/features/personnel/mutations';
 import { EditEmployeeModal } from './edit-employee-modal';
-import { useState } from 'react';
 import { MoreVertical } from 'lucide-react';
 
 interface EmployeeTableProps {
-  employees: Employee[];
+  employees: IEmployee[];
   departments: Array<{ name: string; id: string }>;
   postes: string[];
-  onEditPosition: (employee: Employee) => void;
-  onDeactivate: (employee: Employee) => void;
-  onRemove: (employee: Employee) => void;
 }
 
-const columnHelper = createColumnHelper<Employee>();
+const columnHelper = createColumnHelper<IEmployee>();
 
-export function EmployeeTable({ employees, departments, postes, onEditPosition, onDeactivate, onRemove }: EmployeeTableProps) {
+export function EmployeeTable({ employees, departments, postes }: EmployeeTableProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
-  
+  const [selectedEmployee, setSelectedEmployee] = useState<IEmployee | null>(null);
+
   const modifierEmployeMutation = useModifierEmployeMutation();
   const supprimerEmployeMutation = useSupprimerEmployeMutation();
 
-  const handleEdit = (employee: Employee) => {
+  const handleEdit = (employee: IEmployee) => {
     setSelectedEmployee(employee);
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = (employee: Employee) => {
+  const handleDelete = (employee: IEmployee) => {
     if (confirm(`Êtes-vous sûr de vouloir supprimer ${employee.name} ?`)) {
       supprimerEmployeMutation.mutate(employee.id);
     }
   };
 
-  const handleDeactivate = (employee: Employee) => {
+  const handleDeactivate = (employee: IEmployee) => {
     modifierEmployeMutation.mutate({
       id: employee.id,
       data: {
         ...employee,
-        statut: employee.statut === 'Actif' ? 'Inactif' : 'Actif'
-      }
+        statut: employee.statut === 'Actif' ? 'Inactif' : 'Actif',
+      },
     });
   };
 
-  const getStatusClasses = (statut: Employee['statut']) => {
+  const getStatusClasses = (statut: IEmployee['statut']) => {
     switch (statut) {
       case 'Actif':
         return 'bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium';
@@ -91,21 +86,15 @@ export function EmployeeTable({ employees, departments, postes, onEditPosition, 
     columnHelper.accessor('statut', {
       header: 'STATUT',
       cell: (info) => (
-        <span 
-          className={cn(
-            getStatusClasses(info.getValue())
-          )}
+        <span
+          className={cn(getStatusClasses(info.getValue()))}
           style={{
-            backgroundColor: info.getValue() === 'Actif' ? '#dcfce7' : 
-                           info.getValue() === 'Inactif' ? '#fee2e2' : 
-                           info.getValue() === 'Congé' ? '#fef3c7' : '#f3f4f6',
-            color: info.getValue() === 'Actif' ? '#166534' : 
-                   info.getValue() === 'Inactif' ? '#991b1b' : 
-                   info.getValue() === 'Congé' ? '#a16207' : '#374151',
+            backgroundColor: info.getValue() === 'Actif' ? '#dcfce7' : info.getValue() === 'Inactif' ? '#fee2e2' : info.getValue() === 'Congé' ? '#fef3c7' : '#f3f4f6',
+            color: info.getValue() === 'Actif' ? '#166534' : info.getValue() === 'Inactif' ? '#991b1b' : info.getValue() === 'Congé' ? '#a16207' : '#374151',
             padding: '4px 8px',
             borderRadius: '9999px',
             fontSize: '12px',
-            fontWeight: '500'
+            fontWeight: '500',
           }}
         >
           {info.getValue()}
@@ -119,33 +108,18 @@ export function EmployeeTable({ employees, departments, postes, onEditPosition, 
         <div className="relative flex justify-center">
           <Dropdown>
             <DropdownTrigger>
-              <Button 
-                isIconOnly 
-                size="sm" 
-                variant="light"
-                className="text-gray-500"
-              >
+              <Button isIconOnly size="sm" variant="light" className="text-gray-500">
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownTrigger>
             <DropdownMenu aria-label="Actions">
-              <DropdownItem 
-                key="edit"
-                onPress={() => handleEdit(info.row.original)}
-              >
+              <DropdownItem key="edit" onPress={() => handleEdit(info.row.original)}>
                 Modifier
               </DropdownItem>
-              <DropdownItem 
-                key="deactivate"
-                onPress={() => handleDeactivate(info.row.original)}
-              >
+              <DropdownItem key="deactivate" onPress={() => handleDeactivate(info.row.original)}>
                 {info.row.original.statut === 'Actif' ? 'Désactiver' : 'Activer'}
               </DropdownItem>
-              <DropdownItem 
-                key="delete" 
-                className="text-danger"
-                onPress={() => handleDelete(info.row.original)}
-              >
+              <DropdownItem key="delete" className="text-danger" onPress={() => handleDelete(info.row.original)}>
                 Supprimer
               </DropdownItem>
             </DropdownMenu>
@@ -160,7 +134,7 @@ export function EmployeeTable({ employees, departments, postes, onEditPosition, 
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
-  
+
   return (
     <>
       <div className="rounded-md border bg-white">
@@ -170,12 +144,7 @@ export function EmployeeTable({ employees, departments, postes, onEditPosition, 
               <tr key={headerGroup.id} className="border-b">
                 {headerGroup.headers.map((header) => (
                   <th key={header.id} className="px-4 py-3 text-left text-sm font-medium text-gray-700 bg-gray-50">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 ))}
               </tr>

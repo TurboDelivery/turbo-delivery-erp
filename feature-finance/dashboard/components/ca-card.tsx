@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { ArrowUp, Download, Receipt, TrendingUp, Wallet, Coins } from 'lucide-react';
+import { ArrowUp, Download, Receipt, TrendingUp, Wallet } from 'lucide-react';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import CommissionBadge from './commission-badge';
 
 interface CACardProps {
   title: string;
@@ -13,13 +14,20 @@ interface CACardProps {
   isLoading: boolean;
   isLoadingExport?: boolean;
   onDownload?: () => void;
+  commissionFixe?: number;
+  commissionPourcentage?: number;
 }
 
-export default function CACard({ title, totalAmount, fraisLivraison, commissions, isLoading, isLoadingExport = false, onDownload }: CACardProps) {
+export default function CACard({ title, totalAmount, fraisLivraison, commissions, commissionFixe = 0, commissionPourcentage = 0, isLoading, isLoadingExport = false, onDownload }: CACardProps) {
+  const commissionItems = [
+    { label: 'Commission fixe', amount: commissionFixe },
+    { label: 'Commission pourcentage', amount: commissionPourcentage },
+  ];
+
   if (isLoading) {
     return (
       <Card className="p-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-        <div className="flex justify-between items-start h-full">
+        <div className="flex max-md:flex-col justify-between items-start h-full">
           {/* Skeleton pour la partie CA */}
           <div className="flex flex-col justify-between h-full space-y-3">
             <div className="h-4 bg-green-200 rounded w-32 animate-pulse" />
@@ -68,7 +76,7 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
 
   return (
     <Card className="p-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-      <div className="flex justify-between items-start h-full">
+      <div className="flex max-md:flex-col justify-between items-start h-full gap-4">
         {/* Partie 1 : CA */}
         <div className="flex flex-col justify-between h-full">
           <div>
@@ -128,20 +136,16 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
               </div>
             </div>
 
-            {/* <div className="flex items-center gap-2">
-              <div className="p-2 bg-orange-100 rounded-full">
-                <Coins className="w-3 h-3 text-orange-600" />
-              </div>
-              <div>
-                <span className="text-xs font-medium text-gray-700">Investissements</span>
-                <div className="text-sm font-bold text-orange-600">{formatCFA(investissement)}</div>
-              </div>
-            </div> */}
+            <div className="flex max-md:flex-col items-center gap-2">
+              {commissionItems.map((item) => (
+                <CommissionBadge key={item.label} label={item.label} amount={item.amount} />
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Icône principale */}
-        <div className="p-3 bg-green-200 rounded-full">
+        <div className="p-3 bg-green-200 rounded-full hidden md:block">
           <div className="text-green-700">
             <Wallet className="w-6 h-6" />
           </div>

@@ -1,22 +1,20 @@
-// import { useQuery } from '@tanstack/react-query';
-// import { deductionAPI, IDeductionParams } from '@/features/personnel/apis/deduction.api';
-// import { Deduction } from '@/features/personnel/types/types';
-// import { PaginatedResponse } from '@/types/general';
+'use client';
 
-// export const useDeductionListQuery = (params: IDeductionParams) => {
-//   return useQuery<PaginatedResponse<Deduction>>({
-//     queryKey: ['deductions', params],
-//     queryFn: () => deductionAPI.obtenirToutesDeductions(params),
-//     staleTime: 5 * 60 * 1000, // 5 minutes
-//     refetchOnWindowFocus: false,
-//   });
-// };
+import { useQuery } from '@tanstack/react-query';
+import { deductionAPI } from '@/features/personnel/apis/deduction.api';
+import { IDeductionParams } from '@/features/personnel/types/deduction.types';
 
-// export const useDeductionQuery = (id: string) => {
-//   return useQuery<Deduction>({
-//     queryKey: ['deduction', id],
-//     queryFn: () => deductionAPI.obtenirDeduction(id),
-//     enabled: !!id,
-//     staleTime: 5 * 60 * 1000, // 5 minutes
-//   });
-// };
+export const deductionKeys = {
+  all: ['deductions'] as const,
+  lists: () => [...deductionKeys.all, 'list'] as const,
+  list: (params?: IDeductionParams) => [...deductionKeys.lists(), params] as const,
+};
+
+export const useDeductionListQuery = (params?: IDeductionParams) => {
+  return useQuery({
+    queryKey: deductionKeys.list(params),
+    queryFn: () => deductionAPI.obtenirDeductions(params),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+};

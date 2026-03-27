@@ -4,65 +4,46 @@ import { useState } from 'react';
 import { RequestTable } from './request-table';
 import AutomatisationConges from './automation-conges';
 import PlanningConges from './planning-conges';
-import { LeaveRequest, RequestStats, Employee } from '../../features/personnel/types/types';
+import { IEmployee, LeaveRequest, RequestStats } from '@/features/personnel/types/types';
 import { useEligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
-import { Tabs, TabsContent, MaterialTabsList, MaterialTabsTrigger } from '@/components/commons/tabs';
+import { MaterialTabsList, MaterialTabsTrigger, Tabs, TabsContent } from '@/components/commons/tabs';
 import { RequestHeader } from './request-header';
 import { RequestStats as RequestStatsComponent } from './request-stats';
 import { RequestForm } from './request-form';
 import { ConfirmDialog, useConfirmDialog } from './confirm-dialog';
 import { useRequestManagement } from '@/hooks/use-request-management';
 
-
 interface RequestManagementProps {
   requests: LeaveRequest[];
   requestStats: RequestStats;
-  employees: Employee[];
-  onApproveRequest: (requestId: string) => void;
-  onRejectRequest: (requestId: string) => void;
-  onSubmitRequest: (request: Omit<LeaveRequest, 'id' | 'statut'>) => void;
+  employees: IEmployee[];
 }
 
-export function RequestManagement({
-  requests,
-  requestStats,
-  employees,
-  onApproveRequest,
-  onRejectRequest,
-  onSubmitRequest
-}: RequestManagementProps) {
+export function RequestManagement({ requests, employees }: RequestManagementProps) {
   // Récupérer la liste des employés éligibles depuis l'API
+<<<<<<< HEAD
   const { data: employeesData, isLoading: employeesLoading } = useEligibleEmployeeQuery({ limit: 1000 });
   console.log("Employés éligibles data:", employeesData);
+=======
+  const { data: employeesData } = eligibleEmployeeQuery({ limit: 1000 });
+  console.log('Employés éligibles data:', employeesData);
+>>>>>>> d63dff9c2987e1a4bdf1ba0b5aa8602b833de03e
 
   // Utiliser les données de l'API si disponibles, sinon les données mockées
   const displayEmployees = Array.isArray(employeesData) ? employeesData : employees;
 
   // Hook personnalisé pour la gestion des demandes
-  const {
-    isFormOpen,
-    onOpenChange,
-    isEditMode,
-    editingRequestId,
-    handleSubmitRequest,
-    handleDeleteRequest,
-    handleApproveRequest,
-    handleRejectRequest,
-    handleEditRequest,
-    handleNewRequest
-  } = useRequestManagement(displayEmployees);
+  const { isFormOpen, onOpenChange, isEditMode, editingRequestId, handleSubmitRequest, handleDeleteRequest, handleApproveRequest, handleRejectRequest, handleEditRequest, handleNewRequest } =
+    useRequestManagement(displayEmployees);
 
   // Hook pour la modal de confirmation
-  const { isOpen, onOpen, onOpenChange: onConfirmDialogOpenChange, message, openDialog, confirm, cancel } = useConfirmDialog();
+  const { isOpen, onOpenChange: onConfirmDialogOpenChange, message, openDialog, confirm } = useConfirmDialog();
 
   // État pour la demande en cours d'édition
   const [editingRequest, setEditingRequest] = useState<Partial<LeaveRequest>>({});
 
   const handleDeleteWithConfirmation = (requestId: string) => {
-    openDialog(
-      'Êtes-vous sûr de vouloir supprimer cette demande de congé ?',
-      () => handleDeleteRequest(requestId)
-    );
+    openDialog('Êtes-vous sûr de vouloir supprimer cette demande de congé ?', () => handleDeleteRequest(requestId));
   };
 
   const handleEditRequestWithForm = (request: LeaveRequest) => {
@@ -70,27 +51,19 @@ export function RequestManagement({
     handleEditRequest(request);
   };
 
-
-
   return (
     <div className="space-y-6">
       <RequestHeader onNewRequest={handleNewRequest} />
 
       {/* Statistiques de traitement */}
-      <RequestStatsComponent
-        pending={requestStats.pending}
-        approved={requestStats.approved}
-        rejected={requestStats.rejected}
-      />
-      <div className=' flex justify-end'>
+      <RequestStatsComponent />
+      <div className=" flex justify-end">
         <Tabs defaultValue="conge" className="w-full">
           <MaterialTabsList className="grid max-w-2xl grid-cols-4 rounded-full">
-
             <MaterialTabsTrigger value="conge">Congé</MaterialTabsTrigger>
             <MaterialTabsTrigger value="employe">Employé</MaterialTabsTrigger>
             <MaterialTabsTrigger value="planning-calendrier">Planning Calendrier</MaterialTabsTrigger>
           </MaterialTabsList>
-
 
           <TabsContent value="conge" className="mt-6">
             {/* Tableau des demandes */}
@@ -111,8 +84,6 @@ export function RequestManagement({
         </Tabs>
       </div>
 
-
-
       {/* Modal nouvelle demande */}
       <RequestForm
         isOpen={isFormOpen}
@@ -126,12 +97,7 @@ export function RequestManagement({
       />
 
       {/* Modal de confirmation */}
-      <ConfirmDialog
-        message={message}
-        onConfirm={confirm}
-        isOpen={isOpen}
-        onOpenChange={onConfirmDialogOpenChange}
-      />
+      <ConfirmDialog message={message} onConfirm={confirm} isOpen={isOpen} onOpenChange={onConfirmDialogOpenChange} />
     </div>
   );
 }
