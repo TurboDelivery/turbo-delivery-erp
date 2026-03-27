@@ -11,6 +11,7 @@ import { useAjouterEmployeMutation, useModifierEmployeMutation, useSupprimerEmpl
 import { EmployeeTableNew } from '@/components/personnel/employee-table/index';
 import { EmployeeCreateDTO } from '@/features/personnel/schemas/employee.schema';
 import DeductionTabContents from '@/components/personnel/deductions/deduction-tab-contents';
+ import PayrollTable from '@/components/personnel/payroll/table/payroll-table';
 
 export default function PersonnelContent() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -144,11 +145,12 @@ export default function PersonnelContent() {
       <h1 className="text-2xl font-bold mb-6 text-primary ">Personnel TURBO</h1>
 
       <Tabs defaultValue="employees">
-        <TabsList className="grid max-w-2xl grid-cols-3 rounded-full">
+        <TabsList className="grid max-w-2xl grid-cols-4 rounded-full">
           <TabsTrigger value="employees">Employés</TabsTrigger>
           {/* <TabsTrigger value="demande">Demandes</TabsTrigger> */}
           <TabsTrigger value="conge">Congés</TabsTrigger>
           <TabsTrigger value="deduction">Deductions</TabsTrigger>
+          <TabsTrigger value="payroll">Paiements</TabsTrigger>
         </TabsList>
 
         <TabsContent value="employees" className="mt-6">
@@ -162,6 +164,9 @@ export default function PersonnelContent() {
         </TabsContent>
         <TabsContent value="deduction" className="mt-6">
           <DeductionTabContents />
+        </TabsContent>
+        <TabsContent value="payroll" className="mt-6">
+          <PayrollTable />
         </TabsContent>
       </Tabs>
 
