@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle } from 'lucide-react';
-import { eligibleEmployeeQuery, useCongesQuery } from '@/features/conge/queries/conge.query';
+import { useEligibleEmployeeQuery, useCongesQuery } from '@/features/conge/queries/conge.query';
 import { IEmployee } from '@/features/personnel/types/types';
 import { CongeStatut, IConge } from '@/features/conge/types/conge.type';
 
@@ -75,7 +75,7 @@ const formatDate = (dateString: string): string => {
 export default function AutomatisationConges() {
   console.log('🚀 AutomatisationConges component mounted');
 
-  const { data: employeesData } = eligibleEmployeeQuery({ limit: 1000 });
+  const { data: employeesData } = useEligibleEmployeeQuery({ limit: 1000 });
   const { data: congesData } = useCongesQuery({ limit: 1000 });
 
   const employees = Array.isArray(employeesData) ? employeesData : [];

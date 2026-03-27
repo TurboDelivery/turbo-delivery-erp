@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { eligibleEmployeeQuery, useCongesQuery } from '@/features/conge/queries/conge.query';
+import { useEligibleEmployeeQuery, useCongesQuery } from '@/features/conge/queries/conge.query';
 import { IEmployee } from '@/features/personnel/types/types';
 import { IConge } from '@/features/conge/types/conge.type';
 
@@ -25,7 +25,7 @@ export default function PlanningConges() {
   const days = Array.from({ length: getDaysInMonth(currentMonth) }, (_, i) => i + 1);
 
   // Récupérer les données réelles
-  const { data: employeesData, isLoading: employeesLoading } = eligibleEmployeeQuery({ limit: 1000 });
+  const { data: employeesData, isLoading: employeesLoading } = useEligibleEmployeeQuery({ limit: 1000 });
   const { data: congesData, isLoading: congesLoading } = useCongesQuery({ limit: 1000 });
 
   const employees = Array.isArray(employeesData) ? employeesData : [];

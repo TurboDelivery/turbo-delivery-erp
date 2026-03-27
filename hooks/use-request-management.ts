@@ -112,13 +112,21 @@ export const useRequestManagement = (employees: IEmployee[]) => {
       };
 
       console.log("🔍 handleSubmitRequest - updateData pour modification:", updateData);
-      modifierCongeMutation.mutate({ id: editingRequestId, data: updateData });
+      modifierCongeMutation.mutate({ id: editingRequestId, data: updateData }, {
+        onSuccess: (data) => {
+          console.log('✅ Succès - Données modifiées:', data);
+          toast.success('Demande de congé modifiée avec succès');
+          queryClient.invalidateQueries({ queryKey: ['conges'] });
+          queryClient.invalidateQueries({ queryKey: ['statistiques-conges'] }); // Corriger la clé des stats
+        }
+      });
     } else {
       ajouterCongeMutation.mutate(congeData, {
         onSuccess: (data) => {
           console.log('✅ Succès - Données sauvegardées:', data);
           toast.success('Demande de congé créée avec succès');
           queryClient.invalidateQueries({ queryKey: ['conges'] });
+          queryClient.invalidateQueries({ queryKey: ['statistiques-conges'] }); // Corriger la clé des stats
         }
       });
     }
@@ -129,13 +137,27 @@ export const useRequestManagement = (employees: IEmployee[]) => {
   };
 
   const handleDeleteRequest = (requestId: string) => {
-    supprimerCongeMutation.mutate(requestId);
+    supprimerCongeMutation.mutate(requestId, {
+      onSuccess: (data) => {
+        console.log('✅ Succès - Congé supprimé:', data);
+        toast.success('Congé supprimé avec succès');
+        queryClient.invalidateQueries({ queryKey: ['conges'] });
+        queryClient.invalidateQueries({ queryKey: ['statistiques-conges'] }); // Corriger la clé des stats
+      }
+    });
   };
 
   const handleApproveRequest = (requestId: string) => {
     approuverCongeMutation.mutate({
       id: requestId,
       data: { reason: 'Approuvé automatiquement' }
+    }, {
+      onSuccess: (data) => {
+        console.log('✅ Succès - Congé approuvé:', data);
+        toast.success('Congé approuvé avec succès');
+        queryClient.invalidateQueries({ queryKey: ['conges'] });
+        queryClient.invalidateQueries({ queryKey: ['statistiques-conges'] }); // Corriger la clé des stats
+      }
     });
   };
 
@@ -143,6 +165,13 @@ export const useRequestManagement = (employees: IEmployee[]) => {
     rejeterCongeMutation.mutate({
       id: requestId,
       data: { reason: 'Rejeté automatiquement' }
+    }, {
+      onSuccess: (data) => {
+        console.log('✅ Succès - Congé rejeté:', data);
+        toast.success('Congé rejeté avec succès');
+        queryClient.invalidateQueries({ queryKey: ['conges'] });
+        queryClient.invalidateQueries({ queryKey: ['statistiques-conges'] }); // Corriger la clé des stats
+      }
     });
   };
 
