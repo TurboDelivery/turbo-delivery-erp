@@ -83,7 +83,7 @@ export const useCongesByEmployeeQuery = (employeeId: string) => {
   return query;
 };
 
-export const eligibleEmployeeQuery = (params: ICongesParams) => {
+export const useEligibleEmployeeQuery = (params: ICongesParams) => {
   const query = useQuery({
     queryKey: ['eligible', params],
     queryFn: async () => {

@@ -5,7 +5,7 @@ import { RequestTable } from './request-table';
 import AutomatisationConges from './automation-conges';
 import PlanningConges from './planning-conges';
 import { LeaveRequest, RequestStats, Employee } from '../../features/personnel/types/types';
-import { eligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
+import { useEligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
 import { Tabs, TabsContent, MaterialTabsList, MaterialTabsTrigger } from '@/components/commons/tabs';
 import { RequestHeader } from './request-header';
 import { RequestStats as RequestStatsComponent } from './request-stats';
@@ -32,7 +32,7 @@ export function RequestManagement({
   onSubmitRequest
 }: RequestManagementProps) {
   // Récupérer la liste des employés éligibles depuis l'API
-  const { data: employeesData, isLoading: employeesLoading } = eligibleEmployeeQuery({ limit: 1000 });
+  const { data: employeesData, isLoading: employeesLoading } = useEligibleEmployeeQuery({ limit: 1000 });
   console.log("Employés éligibles data:", employeesData);
 
   // Utiliser les données de l'API si disponibles, sinon les données mockées

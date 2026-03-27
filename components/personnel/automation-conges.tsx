@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
 import { useEmployeeListQuery } from '@/features/personnel/queries/employee-list.query';
-import { eligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
+import { useEligibleEmployeeQuery } from '@/features/conge/queries/conge.query';
 import { useCongesQuery } from '../../features/conge/queries/conge.query';
 import { Employee } from '../../features/personnel/types/types';
 import { IConge, CongeStatut } from '../../features/conge/types/conge.type';
@@ -78,7 +78,7 @@ const formatDate = (dateString: string): string => {
 export default function AutomatisationConges() {
   console.log('🚀 AutomatisationConges component mounted');
   
-  const { data: employeesData, isLoading: employeesLoading } = eligibleEmployeeQuery({ limit: 1000 });
+  const { data: employeesData, isLoading: employeesLoading } = useEligibleEmployeeQuery({ limit: 1000 });
   const { data: congesData, isLoading: congesLoading } = useCongesQuery({ limit: 1000 });
 
   const employees = Array.isArray(employeesData) ? employeesData : [];
