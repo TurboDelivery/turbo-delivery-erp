@@ -32,6 +32,8 @@ export interface IDeductionParams {
   size?: number;
   sort?: string;
   employeeId?: string;
+  year?: number;
+  month?: number;
   typeDeduction?: DeductionTypeEnum | '';
   status?: DeductionStatusEnum | '';
   deductionDateStart?: string;
@@ -43,3 +45,8 @@ export type ICreatePretResponse = IDeduction[];
 export type ICreateAvanceResponse = IDeduction;
 export type ICreateAbsenceDeductionResponse = IDeduction;
 
+export interface IDeductionStats {
+  masseBrute: number;
+  totalDeductions: number;
+  pendingDeductions: number;
+}

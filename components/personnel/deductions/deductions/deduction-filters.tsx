@@ -67,7 +67,7 @@ export function DeductionFilters({ filters, handleEmployeeFilterChange, handleYe
           >
             {years.map((year) => (
               <SelectItem key={String(year)} value={String(year)}>
-                {year}
+                {String(year)}
               </SelectItem>
             ))}
           </Select>
