@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { ajouterDepenseAction, modifierDepenseAction, supprimerDepenseAction } from '../actions/depense.action';
+import { ajouterDepenseAction, modifierDepenseAction, supprimerDepenseAction, modifierStatutDepenseAction, obtenirDepensesFixesAction } from '../actions/depense.action';
 import { useInvalidateDepenseQuery } from './index.query';
 import { toast } from 'sonner';
 import { processAndValidateFormData } from 'ak-zod-form-kit';
@@ -104,6 +104,63 @@ export const useSupprimerDepenseMutation = () => {
     },
     onError: async (error) => {
       toast.error('Erreur suppression depense:', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+export const useModifierStatutDepenseMutation = () => {
+  const invalidateDepenseQuery = useInvalidateDepenseQuery();
+  
+  return useMutation({
+    mutationFn: async ({ id, statut }: { id: string; statut: string }) => {
+      if (!id) {
+        throw new Error("L'identifiant de la dépense est requis.");
+      }
+      if (!statut) {
+        throw new Error("Le statut est requis.");
+      }
+      
+      console.log('🔍 Mutation - Modification statut:', { id, statut });
+      
+      const result = await modifierStatutDepenseAction(id, statut);
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de la modification du statut de la dépense');
+      }
+      return result.data!;
+    },
+    onSuccess: async () => {
+      await invalidateDepenseQuery();
+      toast.success('Statut de la dépense modifié avec succès');
+    },
+    onError: async (error) => {
+      toast.error('Erreur modification statut:', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+export const useObtenirDepensesFixesMutation = () => {
+  const invalidateDepenseQuery = useInvalidateDepenseQuery();
+  
+  return useMutation({
+    mutationFn: async (params?: { debut?: Date; fin?: Date }) => {
+      console.log('🔍 Mutation - Obtention dépenses fixes:', params);
+      
+      const result = await obtenirDepensesFixesAction(params);
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de la récupération des dépenses fixes');
+      }
+      return result.data!;
+    },
+    onSuccess: async () => {
+      await invalidateDepenseQuery();
+      toast.success('Dépenses fixes récupérées avec succès');
+    },
+    onError: async (error) => {
+      toast.error('Erreur récupération dépenses fixes:', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },

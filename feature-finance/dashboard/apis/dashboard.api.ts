@@ -15,3 +15,6 @@ export const dashboardAPI: IDashboardAPI = {
         });
     },
 };
+export const rapportFinancierAPI = {
+   
+};

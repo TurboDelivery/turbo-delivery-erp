@@ -1,12 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { ArrowLeft, Wallet, CheckCircle, Clock, Calendar, ChevronDown } from 'lucide-react';
 import { Button } from '@heroui/react';
 import { Card, CardBody } from '@heroui/react';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/react';
 import { Chip } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/react';
-import { useState } from 'react';
+import { usePaymentStatusQuery } from '@/feature-finance/depenses/queries/depense-status.query';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { useModifierStatutDepenseMutation } from '@/feature-finance/depenses/queries/depense.mutation';
+import { useModifierDepenseMutation } from '@/feature-finance/depenses/queries/depense.mutation';
 
 interface Payment {
   id: string;
@@ -20,6 +24,40 @@ interface Payment {
 export default function PaymentManagement() {
   const [selectedMonth, setSelectedMonth] = useState('2026-03');
 
+  const modifierStatutDepenseMutation = useModifierStatutDepenseMutation();
+
+  // Convertir le mois sélectionné en dates de début et fin
+  const getMonthDates = (monthKey: string) => {
+    const [year, month] = monthKey.split('-').map(Number);
+    const debut = new Date(year, month - 1, 1); // 1er jour du mois
+    const fin = new Date(year, month, 0); // Dernier jour du mois
+    return { debut, fin };
+  };
+
+  const { debut, fin } = getMonthDates(selectedMonth);
+
+  const { data: paymentStatus, isLoading } = usePaymentStatusQuery({ debut, fin });
+
+  // Fonction pour marquer une dépense comme payée
+  const handleMarkAsPaid = async (paymentId: string) => {
+    try {
+      console.log('🚀 Marquer comme payé:', paymentId);
+      
+      await modifierStatutDepenseMutation.mutateAsync({
+        id: paymentId,
+        statut: 'PAID'
+      });
+      
+      console.log('✅ Statut modifié avec succès');
+    } catch (error) {
+      console.error('❌ Erreur lors du marquage comme payé:', error);
+    }
+  };
+
+  // Debug: Afficher les données de l'API
+  console.log('Données de l\'API PaymentStatus:', paymentStatus);
+  console.log('Filtre appliqué:', { debut, fin, selectedMonth });
+
   const months = [
     { key: '2026-01', label: 'Janvier 2026' },
     { key: '2026-02', label: 'Février 2026' },
@@ -29,19 +67,38 @@ export default function PaymentManagement() {
     { key: '2026-06', label: 'Juin 2026' },
   ];
 
-  const pendingPayments: Payment[] = [
-    { id: '1', designation: 'Internet & Téléphone', month: '2026-03', amount: '45 000 FCFA', status: 'pending' },
-    { id: '2', designation: 'Masse Salariale', month: '2026-03', amount: '1 200 000 FCFA', status: 'pending' },
-  ];
+  // Transformer les données de l'API pour correspondre à l'interface
+  const pendingPayments = paymentStatus?.pending?.map(payment => ({
+    id: payment.id,
+    designation: payment.description,
+    month: new Date(payment.dateDepense).toLocaleDateString('fr-FR', { year: 'numeric', month: '2-digit' }),
+    amount: formatCFA(payment.montant),
+    status: 'pending' as const,
+    paymentDate: payment.dateDepense,
+  })) || [];
 
-  const paidPayments: Payment[] = [
-    { id: '3', designation: 'Loyer Bureau', month: '2026-02', amount: '350 000 FCFA', status: 'paid', paymentDate: '2026-02-28' },
-  ];
+  const paidPayments = paymentStatus?.paid?.map(payment => ({
+    id: payment.id,
+    designation: payment.description,
+    month: new Date(payment.dateDepense).toLocaleDateString('fr-FR', { year: 'numeric', month: '2-digit' }),
+    amount: formatCFA(payment.montant),
+    status: 'paid' as const,
+    paymentDate: payment.dateDepense,
+  })) || [];
 
   const stats = {
-    pending: { amount: '0 FCFA', count: 0 },
-    paid: { amount: '625 000 FCFA', count: 3 },
-    total: { amount: '625 000 FCFA', count: 3 },
+    pending: { 
+      amount: formatCFA(paymentStatus?.totalPending || 0), 
+      count: paymentStatus?.pending?.length || 0 
+    },
+    paid: { 
+      amount: formatCFA(paymentStatus?.totalPaid || 0), 
+      count: paymentStatus?.paid?.length || 0 
+    },
+    total: { 
+      amount: formatCFA(paymentStatus?.total || 0), 
+      count: (paymentStatus?.pending?.length || 0) + (paymentStatus?.paid?.length || 0) 
+    },
   };
 
   return (
@@ -154,11 +211,13 @@ export default function PaymentManagement() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Button 
-                        color="danger"
+                        color="success"
                         size="sm"
                         startContent={<CheckCircle className="w-4 h-4" />}
+                        onClick={() => handleMarkAsPaid(payment.id)}
+                        disabled={modifierStatutDepenseMutation.isPending}
                       >
-                        Marquer payé
+                        {modifierStatutDepenseMutation.isPending ? 'En cours...' : 'Marquer payé'}
                       </Button>
                     </TableCell>
                   </TableRow>

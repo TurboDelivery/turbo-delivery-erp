@@ -13,6 +13,8 @@ export interface IDepenseAPI {
   obtenirStatsDepenses(params: IDepenseStatsParams): Promise<IDepenseStats>;
   obtenirDepensesSummary(params: IDepenseSummaryParams): Promise<IDepenseSummary>; // ✅ AJOUTÉ: Interface pour le summary
   exporterDepensesExcel(params: IDepensesParams): Promise<Blob>;
+  modifierStatutDepense(id: string, statut: string): Promise<IDepense>; // ✅ AJOUTÉ: Interface pour modifier le statut
+  obtenirDepensesFixes(params?: IDepensesParams): Promise<{ depensesFixes: IDepense[], totalFixes: number, totalVariables: number }>; // ✅ AJOUTÉ: Interface pour les dépenses fixes
 }
 
 export const depenseAPI: IDepenseAPI = {
@@ -138,6 +140,54 @@ export const depenseAPI: IDepenseAPI = {
         debut: params.debut ? params.debut.toISOString().split('T')[0] : undefined,
         fin: params.fin ? params.fin.toISOString().split('T')[0] : undefined,
       } as SearchParams,
+    });
+  },
+
+  async obtenirDepensesFixes(params?: IDepensesParams): Promise<{ depensesFixes: IDepense[], totalFixes: number, totalVariables: number }> {
+    console.log('🌐 API - Appel obtenirDepensesFixes avec:', params);
+    
+    const searchParams = new URLSearchParams();
+    
+    if (params?.debut) {
+      searchParams.append('debut', params.debut.toISOString().split('T')[0]);
+    }
+    
+    if (params?.fin) {
+      searchParams.append('fin', params.fin.toISOString().split('T')[0]);
+    }
+    
+    const url = `/finance/depenses/fixes${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    console.log('📤 URL Fixes:', url);
+    
+    return api.request<{ depensesFixes: IDepense[], totalFixes: number, totalVariables: number }>({
+      endpoint: url,
+      method: 'GET',
+    }).then(response => {
+      console.log('📥 Réponse API obtenirDepensesFixes:', response);
+      return response;
+    }).catch(error => {
+      console.error('❌ Erreur API obtenirDepensesFixes:', error);
+      throw error;
+    });
+  },
+
+  modifierStatutDepense(id: string, statut: string): Promise<IDepense> {
+    console.log('🌐 API - Appel modifierStatutDepense:', { id, statut });
+    console.log('📤 URL: /finance/depenses/${id}/pay');
+    console.log('📋 Méthode: PUT');
+    console.log('🔍 Données envoyées:', { statut });
+    
+    return api.request<IDepense>({
+      endpoint: `/finance/depenses/${id}/pay`,
+      method: 'PUT',
+      data: { statut },
+    }).then(response => {
+      console.log('📥 Réponse API modifierStatutDepense:', response);
+      console.log('📊 Statut mis à jour:', response.statut);
+      return response;
+    }).catch(error => {
+      console.error('❌ Erreur API modifierStatutDepense:', error);
+      throw error;
     });
   },
 };
