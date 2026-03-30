@@ -40,7 +40,7 @@ export function toMonthlyChartData(yearlyStats: YearlyStats, year: number | stri
       depenses: monthStats.depenses.montant,
       recouvrements: monthStats.recouvrements.montant,
       investissements: monthStats.investissements.montant,
-      comptes: monthStats.factures_validees.montant + monthStats.factures_non_validees.montant,
+      comptes: (monthStats.factures_validees?.montant || 0) + (monthStats.factures_non_validees?.montant || 0),
     };
   });
 }

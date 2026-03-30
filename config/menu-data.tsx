@@ -84,6 +84,7 @@ const menuData: IMenuData[] = [
       // { icon: Euro, title: "Cumule des frais de commission fixe(fixe)", path: '/finance/revenue/commission_fixe' },
       { icon: Layers, title: 'Cumule des investissements internes', path: '/finance/revenue/investissement' },
       { icon: SquareUser, title: 'Recouvrements', path: '/finance/recouvrement' },
+      { icon: BarChart, title: 'Dashboard Performance', path: '/finance/rapports-performance/dashboard-performance' },
     ],
   },
 
