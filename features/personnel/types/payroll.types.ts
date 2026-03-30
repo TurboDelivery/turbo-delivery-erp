@@ -16,6 +16,6 @@ export interface IPayroll {
 }
 
 export interface IPayrollParams {
-  month: number;
+  month: string;
 }
 

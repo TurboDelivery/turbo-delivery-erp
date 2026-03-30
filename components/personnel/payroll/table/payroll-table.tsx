@@ -23,25 +23,46 @@ const MONTHS = [
 ];
 
 function PayrollTable() {
-  const { payrollTable, isPayrollLoading, isPayrollFetching, filters, handleMonthFilterChange } = usePayrollTable();
+  const { payrollTable, isPayrollLoading, isPayrollFetching, filters, handleMonthFilterChange, handleYearFilterChange } = usePayrollTable();
   const colsCount = payrollTable.getAllColumns().length;
+  const currentYear = new Date().getFullYear();
+  const startYear = 2024;
+  const yearOptions = Array.from({ length: Math.max(currentYear - startYear + 1, 1) }, (_, index) => startYear + index);
 
   return (
     <div className="space-y-4">
-      <div className="w-full max-w-xs space-y-2">
-        <Label htmlFor="payroll-month">Mois</Label>
-        <Select value={String(filters.month)} onValueChange={(value) => handleMonthFilterChange(Number(value))}>
-          <SelectTrigger id="payroll-month">
-            <SelectValue placeholder="Selectionner un mois" />
-          </SelectTrigger>
-          <SelectContent>
-            {MONTHS.map((month) => (
-              <SelectItem key={month.value} value={String(month.value)}>
-                {month.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="flex w-full flex-col gap-4 sm:flex-row">
+        <div className="w-full max-w-xs space-y-2">
+          <Label htmlFor="payroll-year">Annee</Label>
+          <Select value={String(filters.year)} onValueChange={(value) => handleYearFilterChange(Number(value))}>
+            <SelectTrigger id="payroll-year">
+              <SelectValue placeholder="Selectionner une annee" />
+            </SelectTrigger>
+            <SelectContent>
+              {yearOptions.map((year) => (
+                <SelectItem key={year} value={String(year)}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="w-full max-w-xs space-y-2">
+          <Label htmlFor="payroll-month">Mois</Label>
+          <Select value={String(filters.month)} onValueChange={(value) => handleMonthFilterChange(Number(value))}>
+            <SelectTrigger id="payroll-month">
+              <SelectValue placeholder="Selectionner un mois" />
+            </SelectTrigger>
+            <SelectContent>
+              {MONTHS.map((month) => (
+                <SelectItem key={month.value} value={String(month.value)}>
+                  {month.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
