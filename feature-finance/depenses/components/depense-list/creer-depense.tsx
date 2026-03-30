@@ -36,6 +36,7 @@ export function CreerDepenseModal() {
       typeDepense: '',
       sourcePaiement: '',
       investissementId: '',
+      statut: 'PAID',
     },
   });
 
@@ -54,6 +55,8 @@ export function CreerDepenseModal() {
       ...data,
       dateDepense: selectedDate || new Date(),
       typeDepense: showTypeDepense ? data.typeDepense : null,
+      statut: data.statut || "PENDING",
+      periodicite: showTypeDepense ? data.periodicite : null,
     };
 
     console.log('📤 Données envoyées au backend (création dépense):', formData);
@@ -63,6 +66,8 @@ export function CreerDepenseModal() {
       montant: formData.montant,
       dateDepense: formData.dateDepense,
       typeDepense: formData.typeDepense,
+      periodicite: formData.periodicite,
+      statut: formData.statut,
       categorieDepense: formData.categorieDepense,
       sourcePaiement: formData.sourcePaiement,
       investissementId: formData.investissementId
@@ -107,6 +112,7 @@ export function CreerDepenseModal() {
             setValue={setValue}
             showTypeDepense={showTypeDepense}
             onShowTypeDepenseChange={setShowTypeDepense}
+            defaultStatut="PENDING"
           />
 
           <DialogFooter className="mt-4 flex flex-col sm:flex-row gap-2">

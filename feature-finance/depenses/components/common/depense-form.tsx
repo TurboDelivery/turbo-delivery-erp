@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -30,6 +32,7 @@ interface DepenseFormProps {
   defaultSource?: string;
   defaultInvestissementId?: string;
   defaultTypeDepense?: string;
+  defaultStatut?: string;
   showTypeDepense?: boolean;
   onShowTypeDepenseChange?: (checked: boolean) => void;
 }
@@ -48,9 +51,18 @@ export function DepenseForm({
   defaultSource,
   defaultInvestissementId,
   defaultTypeDepense,
+  defaultStatut,
   showTypeDepense = false,
   onShowTypeDepenseChange,
 }: DepenseFormProps) {
+  const [selectedStatut, setSelectedStatut] = useState(defaultStatut || "PENDING");
+
+  useEffect(() => {
+    if (defaultStatut) {
+      setSelectedStatut(defaultStatut);
+      setValue('statut', defaultStatut);
+    }
+  }, [defaultStatut, setValue]);
   return (
     <div className="grid gap-6">
       {/* Date et Montant */}
@@ -81,9 +93,47 @@ export function DepenseForm({
           <Label htmlFor="montant" className="text-sm text-gray-500">
             Montant de la dépense *
           </Label>
-          <Input id="montant" placeholder="Montant" type="number" step="0.01" {...register('montant', { valueAsNumber: true })} />
+          <Input 
+            id="montant" 
+            placeholder="Montant" 
+            type="number" 
+            step="0.01" 
+            {...register('montant', { 
+              valueAsNumber: true,
+              onChange: (e) => {
+                const value = parseFloat(e.target.value);
+                setValue('montant', isNaN(value) ? 0 : value);
+              }
+            })} 
+          />
           {errors.montant && <p className="text-red-500 text-sm">{errors.montant.message as string}</p>}
         </div>
+      </div>
+
+      {/* Statut */}
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="statut" className="text-sm text-gray-500">
+          Statut de la dépense *
+        </Label>
+        <Select 
+          value={selectedStatut}
+          onValueChange={(value) => {
+            setSelectedStatut(value);
+            setValue('statut', value);
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Sélectionnez le statut" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Statut</SelectLabel>
+              <SelectItem value="PAID">Payée</SelectItem>
+              <SelectItem value="PENDING">En attente</SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        {errors.statut && <p className="text-red-500 text-sm">{errors.statut.message as string}</p>}
       </div>
 
       {/* Catégorie + Source */}
@@ -163,6 +213,7 @@ export function DepenseForm({
               onShowTypeDepenseChange?.(checked);
               if (!checked) {
                 setValue('typeDepense', null);
+                setValue('periodicite', null);
               }
             }}
           />
@@ -171,21 +222,40 @@ export function DepenseForm({
           </Label>
         </div>
         {showTypeDepense && (
-          <div className="flex flex-col gap-1">
-            <Select onValueChange={(value) => setValue('typeDepense', value)} defaultValue={defaultTypeDepense ?? undefined}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Sélectionnez une fréquence" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Fréquence</SelectLabel>
-                  <SelectItem value="QUOTIDIEN">Quotidien</SelectItem>
-                  <SelectItem value="HEBDOMADAIRE">Hebdomadaire</SelectItem>
-                  <SelectItem value="MENSUEL">Mensuel</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {errors.typeDepense && <p className="text-red-500 text-sm">{errors.typeDepense.message as string}</p>}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <Select onValueChange={(value) => setValue('typeDepense', value)} defaultValue={defaultTypeDepense ?? undefined}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Type de dépense" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Type</SelectLabel>
+                    <SelectItem value="FIXE">Fixe</SelectItem>
+                    <SelectItem value="VARIABLE">Variable</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {errors.typeDepense && <p className="text-red-500 text-sm">{errors.typeDepense.message as string}</p>}
+            </div>
+            
+            <div className="flex flex-col gap-1">
+              <Select onValueChange={(value) => setValue('periodicite', value)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Période" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Périodicité</SelectLabel>
+                    <SelectItem value="QUOTIDIEN">Quotidien</SelectItem>
+                    <SelectItem value="HEBDOMADAIRE">Hebdomadaire</SelectItem>
+                    <SelectItem value="MENSUEL">Mensuel</SelectItem>
+                    <SelectItem value="ANNUEL">Annuel</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {errors.periodicite && <p className="text-red-500 text-sm">{errors.periodicite.message as string}</p>}
+            </div>
           </div>
         )}
       </div>

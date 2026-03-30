@@ -120,3 +120,45 @@ export const obtenirDepensesSummaryAction = async (params: IDepenseSummaryParams
     return handleServerActionError(error, 'Erreur lors de la récupération du summary dépenses');
   }
 };
+
+export const modifierStatutDepenseAction = async (id: string, statut: string): Promise<ActionResponse<IDepense>> => {
+  try {
+    console.log('🚀 Action Serveur - Modification statut dépense:', { id, statut });
+    
+    const response = await depenseAPI.modifierStatutDepense(id, statut);
+    
+    console.log('📥 Réponse API (modifierStatutDepense):', response);
+    console.log('📊 Statut mis à jour:', response.statut);
+    
+    return {
+      success: true,
+      data: response,
+      message: 'Statut de la dépense modifié avec succès',
+    };
+  } catch (error) {
+    console.error('❌ Erreur Action Serveur (modifierStatutDepense):', error);
+    return handleServerActionError(error, 'Erreur lors de la modification du statut de la dépense');
+  }
+};
+
+export const obtenirDepensesFixesAction = async (params?: IDepensesParams): Promise<ActionResponse<{ depensesFixes: IDepense[], totalFixes: number, totalVariables: number }>> => {
+  try {
+    console.log('🚀 Action Serveur - Obtention dépenses fixes:', params);
+    
+    const response = await depenseAPI.obtenirDepensesFixes(params);
+    
+    console.log('📥 Réponse API (obtenirDepensesFixes):', response);
+    console.log('📊 Nombre de dépenses fixes:', response.depensesFixes.length);
+    console.log('💰 Total fixes:', response.totalFixes);
+    console.log('💰 Total variables:', response.totalVariables);
+    
+    return {
+      success: true,
+      data: response,
+      message: 'Dépenses fixes obtenues avec succès',
+    };
+  } catch (error) {
+    console.error('❌ Erreur Action Serveur (obtenirDepensesFixes):', error);
+    return handleServerActionError(error, 'Erreur lors de la récupération des dépenses fixes');
+  }
+};

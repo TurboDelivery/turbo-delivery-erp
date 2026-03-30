@@ -8,6 +8,7 @@ import RevenueExpenseChart from './RevenueExpenseChart';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { useGlobalStats } from '@/feature-finance/dashboard/queries/global-stats.query';
 import { useDepenseSummaryQuery } from '@/feature-finance/depenses/queries/depense-summary.query';
+import { useDepensesFixesQuery } from '@/feature-finance/depenses/queries/depenses-fixes.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { startOfMonth, endOfMonth } from 'date-fns';
 
@@ -38,12 +39,22 @@ export default function AnalyseRentabiliteContent() {
     fin: filters.fin,
   });
 
+  const { data: depensesFixesData, isLoading: isLoadingDepensesFixes } = useDepensesFixesQuery({
+    debut: filters.debut,
+    fin: filters.fin,
+  });
+
   // Calculer les statistiques
   const stats = useMemo(() => {
     const chiffreAffaires = globalStats?.chiffreAffaire ?? 0;
     const totalRecurrentes = depenseSummary?.totalRecurrentes ?? 0;
     const totalNonRecurrentes = depenseSummary?.totalNonRecurrentes ?? 0;
     const totalDepenses = globalStats?.depenses ?? 0;
+    
+    // Utiliser directement les valeurs de l'API
+    const totalFixes = depensesFixesData?.totalFixes ?? 0;
+    const totalVariables = depensesFixesData?.totalVariables ?? 0;
+    
     const marge = chiffreAffaires - totalDepenses;
     const tauxMarge = chiffreAffaires > 0 ? (marge / chiffreAffaires) * 100 : 0;
     const isDeficit = marge < 0;
@@ -56,13 +67,17 @@ export default function AnalyseRentabiliteContent() {
       isDeficit,
       totalRecurrentes,
       totalNonRecurrentes,
+      totalFixes,
+      totalVariables,
       formattedChiffreAffaires: formatCFA(chiffreAffaires),
       formattedTotalDepenses: formatCFA(totalDepenses),
       formattedMarge: formatCFA(marge),
       formattedRecurrentes: formatCFA(totalRecurrentes),
       formattedNonRecurrentes: formatCFA(totalNonRecurrentes),
+      formattedTotalFixes: formatCFA(totalFixes),
+      formattedTotalVariables: formatCFA(totalVariables),
     };
-  }, [globalStats, depenseSummary]);
+  }, [globalStats, depenseSummary, depensesFixesData]);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -147,46 +162,28 @@ export default function AnalyseRentabiliteContent() {
             </h3>
 
             <ul className="space-y-2 text-sm">
-              <li className="flex justify-between">
-                <span>Loyer Bureau</span>
-                <span>120 968 FCFA</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Internet & Téléphone</span>
-                <span>20 161 FCFA</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Salaires</span>
-                <span>362 903 FCFA</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Maintenance Véhicule</span>
-                <span>35 000 FCFA</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Fournitures Bureau</span>
-                <span>8 500 FCFA</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Essence Livraison</span>
-                <span>15 000 FCFA</span>
-              </li>
+              {depensesFixesData?.depensesFixes?.map((depense: any, index: number) => (
+                <li key={depense.id} className="flex justify-between">
+                  <span>{depense.description}</span>
+                  <span>{formatCFA(depense.montant)}</span>
+                </li>
+              ))}
             </ul>
 
             <div className="border-t mt-4 pt-4 text-sm">
               <div className="flex justify-between font-semibold text-red-500">
                 <span>TOTAL</span>
-                <span>{isLoadingDepenses ? 'Chargement...' : stats.formattedTotalDepenses}</span>
+                <span>{isLoadingDepensesFixes ? 'Chargement...' : stats.formattedTotalDepenses}</span>
               </div>
 
               <div className="mt-3 flex justify-between text-blue-500">
                 <span>Charges Fixes</span>
-                <span>{isLoadingDepenses ? 'Chargement...' : stats.formattedRecurrentes}</span>
+                <span>{isLoadingDepensesFixes ? 'Chargement...' : stats.formattedTotalFixes}</span>
               </div>
 
               <div className="flex justify-between text-purple-500">
                 <span>Dépenses Variables</span>
-                <span>{isLoadingDepenses ? 'Chargement...' : stats.formattedNonRecurrentes}</span>
+                <span>{isLoadingDepensesFixes ? 'Chargement...' : stats.formattedTotalVariables}</span>
               </div>
             </div>
           </CardBody>

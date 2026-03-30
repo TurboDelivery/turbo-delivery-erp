@@ -5,6 +5,22 @@ import { Button } from '@heroui/react';
 import { Card, CardBody } from '@heroui/react';
 import { Progress } from '@heroui/react';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/react';
+import DateFilterInput from '@/components/finance/date-filter-input';
+import { useState, useMemo } from 'react';
+import { endOfMonth, startOfMonth } from 'date-fns';
+import { useRapportFinancier } from '@/feature-finance/dashboard/queries/global-stats.query';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+
+interface RapportFinancierResponse {
+  chiffreAffaire: number;
+  depensesFixes: number;
+  depensesVariables: number;
+  totalDepenses: number;
+  benefice: number;
+  tauxMarge: number;
+  coutJournalierMoyen: number;
+  caJournalierMoyen: number;
+}
 
 interface FinancialMetric {
   label: string;
@@ -31,19 +47,78 @@ interface VariableExpense {
 }
 
 export default function FinancialReport() {
-  const metrics: FinancialMetric[] = [
-    { label: "Chiffre d'Affaires", value: '850 000 FCFA' },
-    { label: 'Charges Fixes (Prorata)', value: '504 032 FCFA' },
-    { label: 'Dépenses Variables', value: '58 500 FCFA' },
-    { label: 'Total Dépenses', value: '562 532 FCFA', highlight: 'warning' },
-    { label: 'Bénéfice', value: '287 468 FCFA', highlight: 'success' },
-  ];
+  const [filters, setFilters] = useState(() => {
+    const now = new Date();
+    return {
+      debut: startOfMonth(now),
+      fin: endOfMonth(now),
+    };
+  });
 
-  const kpis: KPI[] = [
-    { label: 'Taux de Marge', value: '33.82%' },
-    { label: 'Coût Journalier Moyen', value: '23 439', unit: 'FCFA' },
-    { label: 'CA Journalier Moyen', value: '35 417', unit: 'FCFA' },
-  ];
+  const handleDateChange = (value: any) => {
+    setFilters({
+      debut: value?.from,
+      fin: value?.to,
+    });
+  };
+
+  // Récupérer les données de l'API avec le hook useRapportFinancier
+  const { data: rapportData, isLoading } = useRapportFinancier({
+    debut: filters.debut,
+    fin: filters.fin,
+  }) as { data: RapportFinancierResponse | undefined; isLoading: boolean };
+
+  // Debug: Afficher les données du hook
+  console.log('Données du hook useRapportFinancier:', rapportData);
+
+  // Calculs dynamiques basés sur les données du rapport financier
+  const metrics = useMemo(() => {
+    if (!rapportData) {
+      return [
+        { label: "Chiffre d'Affaires", value: '0 FCFA' },
+        { label: 'Dépenses Fixes', value: '0 FCFA' },
+        { label: 'Dépenses Variables', value: '0 FCFA' },
+        { label: 'Total Dépenses', value: '0 FCFA', highlight: 'warning' as const },
+        { label: 'Bénéfice', value: '0 FCFA', highlight: 'success' as const },
+      ];
+    }
+
+    // Utiliser la structure exacte de l'API
+    const chiffreAffaire = rapportData.chiffreAffaire || 0;
+    const depensesFixes = rapportData.depensesFixes || 0;
+    const depensesVariables = rapportData.depensesVariables || 0;
+    const totalDepenses = rapportData.totalDepenses || 0;
+    const benefice = rapportData.benefice || 0;
+    
+    return [
+      { label: "Chiffre d'Affaires", value: formatCFA(chiffreAffaire) },
+      { label: 'Dépenses Fixes', value: formatCFA(depensesFixes) },
+      { label: 'Dépenses Variables', value: formatCFA(depensesVariables) },
+      { label: 'Total Dépenses', value: formatCFA(totalDepenses), highlight: 'warning' as const },
+      { label: 'Bénéfice', value: formatCFA(benefice), highlight: 'success' as const },
+    ];
+  }, [rapportData]);
+
+  const kpis = useMemo(() => {
+    if (!rapportData) {
+      return [
+        { label: 'Taux de Marge', value: '0.00%' },
+        { label: 'Coût Journalier Moyen', value: '0', unit: 'FCFA' },
+        { label: 'CA Journalier Moyen', value: '0', unit: 'FCFA' },
+      ];
+    }
+
+    // Utiliser les valeurs directement de l'API
+    const tauxMarge = rapportData.tauxMarge || 0;
+    const coutJournalierMoyen = rapportData.coutJournalierMoyen || 0;
+    const caJournalierMoyen = rapportData.caJournalierMoyen || 0;
+    
+    return [
+      { label: 'Taux de Marge', value: `${tauxMarge.toFixed(2)}%` },
+      { label: 'Coût Journalier Moyen', value: Math.round(coutJournalierMoyen).toString(), unit: 'FCFA' },
+      { label: 'CA Journalier Moyen', value: Math.round(caJournalierMoyen).toString(), unit: 'FCFA' },
+    ];
+  }, [rapportData]);
 
   const fixedCosts: FixedCost[] = [
     { label: 'Loyer Bureau', percentage: 24, amount: '150 000 FCFA' },
@@ -84,12 +159,12 @@ export default function FinancialReport() {
 
         {/* Period Selector */}
         <div className="mt-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-md">
-            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span className="text-sm text-gray-600">Période</span>
-            <span className="text-sm font-medium text-gray-900">01/03/2026 - 25/03/2026</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5">
+
+            <DateFilterInput 
+              filters={filters} 
+              handleDateChange={handleDateChange}
+            />
           </div>
         </div>
       </div>
