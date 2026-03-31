@@ -9,6 +9,7 @@ export const payrollKeys = {
   lists: () => [...payrollKeys.all, 'list'] as const,
   list: (params: IPayrollParams) => [...payrollKeys.lists(), params] as const,
   statsDetails: (month: string) => [...payrollKeys.all, 'stats-details', month] as const,
+  pay: () => [...payrollKeys.all, 'pay'] as const,
 };
 
 export const usePayrollsQuery = (params: IPayrollParams) => {

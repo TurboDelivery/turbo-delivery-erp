@@ -10,6 +10,7 @@ export interface IPayroll {
   totalDeductionsPaid: number;
   netToPay: number;
   statut: string;
+  salary_status: 'PAID' | 'NOT_PAID';
   entryDate: string;
   createdAt: string;
   updatedAt: string;
@@ -17,5 +18,12 @@ export interface IPayroll {
 
 export interface IPayrollParams {
   month: string;
+}
+
+export interface IPayPayrollParams {
+  employeeId: string;
+  montant: number;
+  mois: number;
+  annee: number;
 }
 

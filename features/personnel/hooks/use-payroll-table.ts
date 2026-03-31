@@ -1,9 +1,10 @@
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useQueryStates } from 'nuqs';
 import { createPayrollTableColumns } from '@/components/personnel/payroll/table/payroll-table-columns';
 import { payrollFiltersClient } from '@/features/personnel/filters/payroll.filter';
 import { usePayrollsQuery } from '@/features/personnel/queries/payroll.query';
+import { usePayPayrollMutation } from '@/features/personnel/mutations/payroll.mutation';
 import { IPayroll } from '@/features/personnel/types/payroll.types';
 
 type PayrollFilters = {
@@ -20,6 +21,8 @@ type UsePayrollTableReturn = {
   filters: PayrollFilters;
   handleMonthFilterChange: (month: number) => void;
   handleYearFilterChange: (year: number) => void;
+  handlePayPayroll: (payroll: IPayroll) => void;
+  isPayingPayroll: boolean;
 };
 
 const clampMonth = (month: number): number => {
@@ -60,6 +63,7 @@ const extractYearMonth = (rawMonth: unknown, rawYear: unknown): PayrollFilters =
 
 export function usePayrollTable(): UsePayrollTableReturn {
   const [rawFilters, rawSetFilters] = useQueryStates(payrollFiltersClient.filter, payrollFiltersClient.option);
+  const { mutate: payPayroll, isPending: isPayingPayroll } = usePayPayrollMutation();
 
   const filters = useMemo(() => {
     return extractYearMonth((rawFilters as { month?: unknown }).month, (rawFilters as { year?: unknown }).year);
@@ -74,9 +78,23 @@ export function usePayrollTable(): UsePayrollTableReturn {
 
   const { data: payrollsData, isLoading, isFetching, isError } = usePayrollsQuery(currentSearchParams);
 
+  const handlePayPayroll = useCallback(
+    (payroll: IPayroll) => {
+      payPayroll({
+        employeeId: payroll.employeeId,
+        montant: payroll.netToPay,
+        mois: filters.month,
+        annee: filters.year,
+      });
+    },
+    [payPayroll, filters.year, filters.month],
+  );
+
+  const columns = useMemo(() => createPayrollTableColumns(handlePayPayroll), [handlePayPayroll]);
+
   const table = useReactTable({
     data: payrollsData || [],
-    columns: createPayrollTableColumns(),
+    columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -109,6 +127,8 @@ export function usePayrollTable(): UsePayrollTableReturn {
     filters,
     handleMonthFilterChange,
     handleYearFilterChange,
+    handlePayPayroll,
+    isPayingPayroll,
   };
 }
 

@@ -2,6 +2,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { format, isValid, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { IPayroll } from '@/features/personnel/types/payroll.types';
 
@@ -49,7 +50,14 @@ const getStatusClassName = (status: string) => {
   return 'bg-gray-100 text-gray-700';
 };
 
-export const createPayrollTableColumns = (): ColumnDef<IPayroll>[] => [
+const getSalaryStatusClassName = (status: string) => {
+  if (status === 'PAID') {
+    return 'bg-green-100 text-green-700';
+  }
+  return 'bg-red-100 text-red-700';
+};
+
+export const createPayrollTableColumns = (onPayClick?: (payroll: IPayroll) => void): ColumnDef<IPayroll>[] => [
   {
     accessorKey: 'name',
     header: 'Employe',
@@ -91,6 +99,15 @@ export const createPayrollTableColumns = (): ColumnDef<IPayroll>[] => [
     cell: ({ row }) => <span className="font-semibold">{formatCfa(row.original.netToPay)}</span>,
   },
   {
+    accessorKey: 'salary_status',
+    header: 'Statut paiement',
+    cell: ({ row }) => (
+      <Badge className={cn('capitalize text-nowrap', getSalaryStatusClassName(row.original.salary_status))}>
+        {row.original.salary_status === 'PAID' ? 'Payé' : 'Non payé'}
+      </Badge>
+    ),
+  },
+  {
     accessorKey: 'statut',
     header: 'Statut',
     cell: ({ row }) => (
@@ -106,6 +123,22 @@ export const createPayrollTableColumns = (): ColumnDef<IPayroll>[] => [
     accessorKey: 'updatedAt',
     header: 'Derniere maj',
     cell: ({ row }) => <span>{formatDateFr(row.original.updatedAt, 'dd MMM yyyy HH:mm')}</span>,
+  },
+  {
+    id: 'actions',
+    header: 'Actions',
+    cell: ({ row }) => (
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          variant={row.original.salary_status === 'PAID' ? 'outline' : 'default'}
+          disabled={row.original.salary_status === 'PAID'}
+          onClick={() => onPayClick?.(row.original)}
+        >
+          {row.original.salary_status === 'PAID' ? 'Payé' : 'Payer'}
+        </Button>
+      </div>
+    ),
   },
 ];
 
