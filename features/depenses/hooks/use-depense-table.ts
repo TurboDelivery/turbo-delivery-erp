@@ -54,54 +54,21 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
       limit: currentFilters?.limit ?? 20,
       debut: currentFilters.debut,
       fin: currentFilters.fin,
-      // Ne pas envoyer les catégories au backend (il ne filtre pas correctement)
-      // categoriesDepense: currentFilters.categoriesDepense || undefined,
+      // Envoyer les filtres de catégories au backend
+      categoriesDepense: currentFilters.categoriesDepense || undefined,
       orderBy: currentFilters.orderBy,
       orderDirection: currentFilters.orderDirection as 'asc' | 'desc' | undefined,
     };
-  }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.orderBy, currentFilters.orderDirection]);
+  }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.categoriesDepense, currentFilters.orderBy, currentFilters.orderDirection]);
 
-  // Récupérer toutes les dépenses (sans filtre de catégories) pour le filtrage local
-  const allDepensesSearchParams = useMemo(() => {
-    return {
-      page: 0,
-      limit: 1000, // Beaucoup pour avoir toutes les données
-      debut: currentFilters.debut,
-      fin: currentFilters.fin,
-      orderBy: currentFilters.orderBy,
-      orderDirection: currentFilters.orderDirection as 'asc' | 'desc' | undefined,
-    };
-  }, [currentFilters.debut, currentFilters.fin, currentFilters.orderBy, currentFilters.orderDirection]);
-
-  const { data: allDepensesData, isLoading: allDepensesLoading, error, isError, isFetching } = useDepensesListQuery(allDepensesSearchParams);
+  const { data: allDepensesData, isLoading: allDepensesLoading, error, isError, isFetching } = useDepensesListQuery(currentSearchParams);
   const allDepenses = allDepensesData?.content || [];
 
-  // Filtrer localement par catégories si nécessaire
-  const filteredDepenses = useMemo(() => {
-    if (!currentFilters.categoriesDepense || currentFilters.categoriesDepense.length === 0) {
-      return allDepenses; // Pas de filtre de catégories
-    }
-    return allDepenses.filter(depense => 
-      currentFilters.categoriesDepense?.includes(depense.categorie?.id || '')
-    );
-  }, [allDepenses, currentFilters.categoriesDepense]);
-
-  // Simuler la pagination pour les données filtrées
-  const paginatedFilteredDepenses = useMemo(() => {
-    const startIndex = (currentFilters?.page ?? 0) * (currentFilters?.limit ?? 20);
-    const endIndex = startIndex + (currentFilters?.limit ?? 20);
-    return filteredDepenses.slice(startIndex, endIndex);
-  }, [filteredDepenses, currentFilters?.page, currentFilters?.limit]);
-
-  // Recalculer la pagination pour les données filtrées
-  const filteredPagination = useMemo(() => {
-    const totalItems = filteredDepenses.length;
-    const pageSize = currentFilters?.limit ?? 20;
-    const totalPages = Math.ceil(totalItems / pageSize);
-    
+  // Utiliser toujours la pagination API (pas de pagination locale)
+  const pagination = useMemo(() => {
     return {
-      pageCount: totalPages,
-      totalItems,
+      pageCount: allDepensesData?.totalPages || 0,
+      totalItems: allDepensesData?.totalElements || 0,
       page: currentFilters?.page ?? 0,
       handlePageChange: (page: number) => {
         if (!externalFilters) {
@@ -112,24 +79,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
         }
       },
     };
-  }, [filteredDepenses, currentFilters?.page, currentFilters?.limit, externalFilters, setFilters]);
-
-  // Utiliser la pagination filtrée si filtre de catégories, sinon pagination API
-  const pagination = (currentFilters.categoriesDepense && currentFilters.categoriesDepense.length > 0) 
-    ? filteredPagination 
-    : {
-        pageCount: allDepensesData?.totalPages || 0,
-        totalItems: allDepensesData?.totalElements || 0,
-        page: currentFilters?.page ?? 0,
-        handlePageChange: (page: number) => {
-          if (!externalFilters) {
-            setFilters((prev) => ({
-              ...prev,
-              page: page - 1,
-            }));
-          }
-        },
-      };
+  }, [allDepensesData, currentFilters?.page, externalFilters, setFilters]);
 
   const isLoading = allDepensesLoading;
 
@@ -159,7 +109,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
 
   const table = useReactTable({
     columns: depenseColumns,
-    data: (currentFilters.categoriesDepense && currentFilters.categoriesDepense.length > 0) ? paginatedFilteredDepenses : allDepenses,
+    data: allDepenses,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualSorting: true,
@@ -199,7 +149,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
     isError,
     isFetching,
     setFilters: syncedSetFilters,
-    depenses: (currentFilters.categoriesDepense && currentFilters.categoriesDepense.length > 0) ? paginatedFilteredDepenses : allDepenses,
+    depenses: allDepenses,
     depensesData: allDepensesData,
     error,
     filters: currentFilters,

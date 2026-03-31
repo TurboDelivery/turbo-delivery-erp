@@ -1,16 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { ArrowLeft, Wallet, CheckCircle, Clock, Calendar, ChevronDown } from 'lucide-react';
-import { Button } from '@heroui/react';
-import { Card, CardBody } from '@heroui/react';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/react';
-import { Chip } from '@heroui/react';
-import { Select, SelectItem } from '@heroui/react';
-import { usePaymentStatusQuery } from '@/feature-finance/depenses/queries/depense-status.query';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { useDepensesParStatutQuery } from '@/feature-finance/depenses/queries/depenses-par-statut.query';
 import { useModifierStatutDepenseMutation } from '@/feature-finance/depenses/queries/depense.mutation';
-import { useModifierDepenseMutation } from '@/feature-finance/depenses/queries/depense.mutation';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { Button, Card, CardBody, Chip, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { CheckCircle, Clock, Wallet } from 'lucide-react';
+import { useState } from 'react';
 
 interface Payment {
   id: string;
@@ -22,12 +17,29 @@ interface Payment {
 }
 
 export default function PaymentManagement() {
-  const [selectedMonth, setSelectedMonth] = useState('2026-03');
+  // Obtenir le mois en cours comme date par défaut
+  const getCurrentMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
+
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
 
   const modifierStatutDepenseMutation = useModifierStatutDepenseMutation();
 
   // Convertir le mois sélectionné en dates de début et fin
   const getMonthDates = (monthKey: string) => {
+    if (!monthKey) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      const debut = new Date(year, month - 1, 1);
+      const fin = new Date(year, month, 0);
+      return { debut, fin };
+    }
+    
     const [year, month] = monthKey.split('-').map(Number);
     const debut = new Date(year, month - 1, 1); // 1er jour du mois
     const fin = new Date(year, month, 0); // Dernier jour du mois
@@ -36,7 +48,11 @@ export default function PaymentManagement() {
 
   const { debut, fin } = getMonthDates(selectedMonth);
 
-  const { data: paymentStatus, isLoading } = usePaymentStatusQuery({ debut, fin });
+  const { data: paymentStatus, isLoading, error } = useDepensesParStatutQuery({ debut, fin });
+
+  // Debug: Afficher les données du hook useDepensesParStatutQuery
+  console.log('🔍 Données du hook useDepensesParStatutQuery:', paymentStatus);
+  console.log('❌ Erreur hook:', error);
 
   // Fonction pour marquer une dépense comme payée
   const handleMarkAsPaid = async (paymentId: string) => {
@@ -55,7 +71,7 @@ export default function PaymentManagement() {
   };
 
   // Debug: Afficher les données de l'API
-  console.log('Données de l\'API PaymentStatus:', paymentStatus);
+  console.log('Données de l\'API DepensesParStatut:', paymentStatus);
   console.log('Filtre appliqué:', { debut, fin, selectedMonth });
 
   const months = [
@@ -85,6 +101,30 @@ export default function PaymentManagement() {
     status: 'paid' as const,
     paymentDate: payment.dateDepense,
   })) || [];
+
+  // Afficher un message d'erreur si l'utilisateur n'est pas connecté
+  if (error && (error as any)?.message?.includes('Unauthorized')) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <Card>
+          <CardBody className="p-6 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Authentification requise</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Vous devez être connecté pour accéder à la gestion des paiements.
+            </p>
+            <Button color="primary" onClick={() => window.location.href = '/login'}>
+              Se connecter
+            </Button>
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
 
   const stats = {
     pending: { 
