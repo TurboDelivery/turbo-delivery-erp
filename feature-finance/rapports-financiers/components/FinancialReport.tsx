@@ -9,6 +9,7 @@ import DateFilterInput from '@/components/finance/date-filter-input';
 import { useState, useMemo } from 'react';
 import { endOfMonth, startOfMonth } from 'date-fns';
 import { useRapportFinancier } from '@/feature-finance/dashboard/queries/global-stats.query';
+import { useDepensesFixesQuery } from '@/feature-finance/depenses/queries/depenses-fixes.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 interface RapportFinancierResponse {
@@ -68,6 +69,12 @@ export default function FinancialReport() {
     fin: filters.fin,
   }) as { data: RapportFinancierResponse | undefined; isLoading: boolean };
 
+  // Récupérer les dépenses fixes avec le hook useDepensesFixesQuery
+  const { data: depensesFixesData, isLoading: isLoadingDepensesFixes } = useDepensesFixesQuery({
+    debut: filters.debut,
+    fin: filters.fin,
+  });
+
   // Debug: Afficher les données du hook
   console.log('Données du hook useRapportFinancier:', rapportData);
 
@@ -120,11 +127,24 @@ export default function FinancialReport() {
     ];
   }, [rapportData]);
 
-  const fixedCosts: FixedCost[] = [
-    { label: 'Loyer Bureau', percentage: 24, amount: '150 000 FCFA' },
-    { label: 'Internet & Téléphonie', percentage: 4, amount: '25 000 FCFA' },
-    { label: 'Salaires', percentage: 72, amount: '450 000 FCFA' },
-  ];
+  // Transformer les dépenses fixes en données pour le graphique
+  const fixedCosts: FixedCost[] = useMemo(() => {
+    if (!depensesFixesData?.depensesFixes || depensesFixesData.depensesFixes.length === 0) {
+      return [
+        { label: 'Loyer Bureau', percentage: 24, amount: '150 000 FCFA' },
+        { label: 'Internet & Téléphonie', percentage: 4, amount: '25 000 FCFA' },
+        { label: 'Salaires', percentage: 72, amount: '450 000 FCFA' },
+      ];
+    }
+
+    const totalFixes = depensesFixesData.totalFixes || 0;
+    
+    return depensesFixesData.depensesFixes.map((depense) => ({
+      label: depense.description || 'Dépense Fixe',
+      percentage: totalFixes > 0 ? Math.round((depense.montant / totalFixes) * 100) : 0,
+      amount: formatCFA(depense.montant),
+    }));
+  }, [depensesFixesData]);
 
   const variableExpenses: VariableExpense[] = [
     { date: '20/03/2026', designation: 'Maintenance Véhicule', amount: '35 000 FCFA' },

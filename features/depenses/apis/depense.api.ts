@@ -15,6 +15,7 @@ export interface IDepenseAPI {
   exporterDepensesExcel(params: IDepensesParams): Promise<Blob>;
   modifierStatutDepense(id: string, statut: string): Promise<IDepense>; // ✅ AJOUTÉ: Interface pour modifier le statut
   obtenirDepensesFixes(params?: IDepensesParams): Promise<{ depensesFixes: IDepense[], totalFixes: number, totalVariables: number }>; // ✅ AJOUTÉ: Interface pour les dépenses fixes
+  obtenirDepensesParStatut(params?: IDepensesParams): Promise<{ pending: IDepense[], paid: IDepense[], totalPending: number, totalPaid: number, total: number }>; // ✅ AJOUTÉ: Interface pour les dépenses par statut
 }
 
 export const depenseAPI: IDepenseAPI = {
@@ -187,6 +188,34 @@ export const depenseAPI: IDepenseAPI = {
       return response;
     }).catch(error => {
       console.error('❌ Erreur API modifierStatutDepense:', error);
+      throw error;
+    });
+  },
+
+  async obtenirDepensesParStatut(params?: IDepensesParams): Promise<{ pending: IDepense[], paid: IDepense[], totalPending: number, totalPaid: number, total: number }> {
+    console.log('🌐 API - Appel obtenirDepensesParStatut:', params);
+    
+    const searchParams = new URLSearchParams();
+    
+    if (params?.debut) {
+      searchParams.append('debut', params.debut.toISOString().split('T')[0]);
+    }
+    
+    if (params?.fin) {
+      searchParams.append('fin', params.fin.toISOString().split('T')[0]);
+    }
+    
+    const url = `/finance/depenses/fixe/status${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+    console.log('📤 URL Status:', url);
+    
+    return api.request<{ pending: IDepense[], paid: IDepense[], totalPending: number, totalPaid: number, total: number }>({
+      endpoint: url,
+      method: 'GET',
+    }).then(response => {
+      console.log('📥 Réponse API obtenirDepensesParStatut:', response);
+      return response;
+    }).catch(error => {
+      console.error('❌ Erreur API obtenirDepensesParStatut:', error);
       throw error;
     });
   },
