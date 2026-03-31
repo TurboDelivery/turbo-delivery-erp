@@ -11,6 +11,7 @@ import { endOfMonth, startOfMonth } from 'date-fns';
 import { useRapportFinancier } from '@/feature-finance/dashboard/queries/global-stats.query';
 import { useDepensesFixesQuery } from '@/feature-finance/depenses/queries/depenses-fixes.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { useDepensesVariables } from '@/feature-finance/rapports-financiers/hooks/use-depenses-variables';
 
 interface RapportFinancierResponse {
   chiffreAffaire: number;
@@ -146,10 +147,16 @@ export default function FinancialReport() {
     }));
   }, [depensesFixesData]);
 
-  const variableExpenses: VariableExpense[] = [
-    { date: '20/03/2026', designation: 'Maintenance Véhicule', amount: '35 000 FCFA' },
-    { date: '18/03/2026', designation: 'Fournitures Bureau', amount: '8 500 FCFA' },
-  ];
+  const { items: variableExpensesRaw, isLoading: isLoadingVariables } = useDepensesVariables({
+    debut: filters.debut,
+    fin: filters.fin,
+  });
+
+  const variableExpenses: VariableExpense[] = variableExpensesRaw.map((item) => ({
+    date: item.dateDepense,
+    designation: item.description,
+    amount: formatCFA(item.montant),
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
