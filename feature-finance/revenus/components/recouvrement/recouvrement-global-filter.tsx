@@ -46,7 +46,7 @@
 // export default function RecouvrementGlobalFilter({ 
 //   onFiltersChange, 
 //   className = "" 
-// }: RecouvrementGlobalFilterProps) {
+// }: FacturesProps) {
 //   const { data: restaurants = [] } = useQuery({
 //     queryKey: ['restaurants'],
 //     queryFn: fetchRestaurants,

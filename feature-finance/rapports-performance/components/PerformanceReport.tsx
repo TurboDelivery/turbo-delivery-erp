@@ -26,7 +26,11 @@ import {
   CartesianGrid
 } from 'recharts';
 import { Card, CardBody } from '@heroui/react';
+import RestaurantFiltre from '@/feature-finance/revenus/components/recouvrement/recouvrement-pret/filtres/restaurant-filtre';
 import { Button } from '@heroui/react';
+import { useState } from 'react';
+import DateFilterInput from '@/components/finance/date-filter-input';
+import { DateRange } from 'react-day-picker';
 
 const geographicData = [
   { name: 'Marcory', value: 36, deliveries: 128, color: '#3B82F6' },
@@ -47,6 +51,21 @@ const weeklyActivityData = [
 ];
 
 export default function PerformanceReport() {
+  const [selectedRestaurant, setSelectedRestaurant] = useState('La Terrasse');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(2026, 2, 1), // 1 mars 2026
+    to: new Date(2026, 2, 31), // 31 mars 2026
+  });
+
+  const handleRestaurantChange = (filterName: string, value: string) => {
+    if (filterName === 'nomRestaurant') {
+      setSelectedRestaurant(value || 'La Terrasse');
+    }
+  };
+
+  const handleDateChange = (value: DateRange | undefined) => {
+    setDateRange(value);
+  };
   const renderDonutChart = () => (
     <ResponsiveContainer width="100%" height={250}>
       <PieChart>
@@ -121,22 +140,26 @@ export default function PerformanceReport() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl font-bold text-red-600">Rapport de Performance</h1>
-              <p className="text-sm text-gray-500 mt-1">Restaurant La Terrasse</p>
+              <p className="text-sm text-gray-500 mt-1">Restaurant {selectedRestaurant || 'Tous'} </p>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold">
-                C
-              </div>
               
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm font-medium">La Terrasse</span>
+              
+              <div className="hidden sm:flex items-center gap-2 px-5 w-64 py-1.5 bg-red-50 text-red-600 rounded-lg">
+               
+                <RestaurantFiltre onFilterChange={handleRestaurantChange}  />
               </div>
 
               <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
-                <Calendar className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-gray-700">01 mars - 31 mars 2026</span>
+                <DateFilterInput 
+                  filters={{
+                    debut: dateRange?.from,
+                    fin: dateRange?.to
+                  }}
+                  handleDateChange={handleDateChange}
+                  variant="outline"
+                />
               </div>
 
               <Button 
