@@ -19,10 +19,7 @@ const ThemeSwitch = ({ className, size }: { className?: string; size?: ButtonPro
                 <Button
                     isIconOnly
                     size={size}
-                    className={`${
-                        themeConfig.theme === 'light' &&
-                        `flex items-center rounded-full bg-white-light/40 p-2 hover:bg-white-light/90 hover:text-primary dark:bg-dark/40 dark:hover:bg-dark/60 ${className}`
-                    }`}
+                    className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
                     onClick={() => {
                         dispatch(toggleTheme('dark'));
                         setTheme('dark');
@@ -37,10 +34,7 @@ const ThemeSwitch = ({ className, size }: { className?: string; size?: ButtonPro
                 <Button
                     isIconOnly
                     size={size}
-                    className={`${
-                        themeConfig.theme === 'dark' &&
-                        `flex items-center rounded-full bg-white-light/40 p-2 hover:bg-white-light/90 hover:text-primary dark:bg-dark/40 dark:hover:bg-dark/60 ${className}`
-                    }`}
+                    className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
                     onClick={() => {
                         dispatch(toggleTheme('system'));
                         setTheme('system');
@@ -53,10 +47,7 @@ const ThemeSwitch = ({ className, size }: { className?: string; size?: ButtonPro
                 <Button
                     isIconOnly
                     size={size}
-                    className={`${
-                        themeConfig.theme === 'system' &&
-                        `flex items-center rounded-full bg-white-light/40 p-2 hover:bg-white-light/90 hover:text-primary dark:bg-dark/40 dark:hover:bg-dark/60 ${className}`
-                    }`}
+                    className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
                     onClick={() => {
                         dispatch(toggleTheme('light'));
                         setTheme('light');

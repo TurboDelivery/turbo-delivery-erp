@@ -15,6 +15,7 @@ import menuData, { IMenuData } from '@/config/menu-data';
 import IconCaretDown from '@/components/icon/icon-caret-down';
 import Notifications from '../dashboard/notifications/notifications';
 import { DashboardUserDropdown } from '../dashboard/dashboard-user-dropdown';
+import ThemeSwitch from '@/components/layouts/themeSwitch';
 
 const Header = ({ profile }: { profile: User }) => {
   const pathname = usePathname();
@@ -87,7 +88,7 @@ const Header = ({ profile }: { profile: User }) => {
             <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{/* <ToolsList /> */}</div>
             <div className="flex items-center space-x-1.5 ltr:ml-auto rtl:mr-auto rtl:space-x-reverse dark:text-[#d0d2d6] sm:flex-1 ltr:sm:ml-0 sm:rtl:mr-0 lg:space-x-2">
               <div className="sm:ltr:mr-auto sm:rtl:ml-auto">{/* <SearchComponent /> */}</div>
-              {/*<ThemeSwitch />*/}
+              <ThemeSwitch />
 
               {/* <LocaleSwitch /> */}
               {/* <MessageList /> */}
