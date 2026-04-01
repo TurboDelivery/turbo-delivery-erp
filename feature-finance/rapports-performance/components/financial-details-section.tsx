@@ -41,8 +41,8 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
           <div className="flex justify-between items-center py-4">
             <span className="text-gray-700 font-medium">Facture total à regler au compte du mois en cours </span>
             <span className="text-xl font-bold text-green-600">
-              {financialDetails?.partnerNetRevenue
-                ? formatCFA(Math.round(financialDetails.partnerNetRevenue))
+              {financialDetails?.totalFacture
+                ? formatCFA(Math.round(financialDetails.totalFacture))
                 : '0 FCFA'}
             </span>
           </div>

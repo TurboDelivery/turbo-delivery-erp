@@ -34,7 +34,7 @@ export interface IFinancialDetails {
   totalOrderAmount: number;
   deliveryFeesCollected: number;
   turboDeliveryServiceFees: number;
-  partnerNetRevenue: number;
+  totalFacture: number;
 }
 
 /**

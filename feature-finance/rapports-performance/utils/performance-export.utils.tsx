@@ -140,7 +140,7 @@ function PerformancePdfDocument({ mainKPIs, secondaryKPIs, financialDetails, sel
         </View>
         <View style={s.tableRowTotal}>
           <Text style={[s.colLabel, s.totalText]}>Facture totale a regler au compte du mois en cours</Text>
-          <Text style={[s.colValue, s.totalText]}>{fmtPdf(financialDetails?.partnerNetRevenue)}</Text>
+          <Text style={[s.colValue, s.totalText]}>{fmtPdf(financialDetails?.totalFacture)}</Text>
         </View>
 
         <Text style={s.footer}>Genere par Turbo Delivery ERP - {now}</Text>

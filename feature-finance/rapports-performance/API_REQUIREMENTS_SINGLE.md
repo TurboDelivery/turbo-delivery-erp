@@ -51,7 +51,7 @@ interface PerformanceReportResponse {
     totalOrderAmount: number;           // Montant total des commandes en FCFA
     deliveryFeesCollected: number;      // Montant total des frais de livraison collectés en FCFA
     turboDeliveryServiceFees: number;  // Frais de service Turbo Delivery (10% du totalOrderAmount) en FCFA
-    partnerNetRevenue: number;          // Revenu net du partenaire après déduction des frais en FCFA
+    totalFacture: number;          // Revenu net du partenaire après déduction des frais en FCFA
   };
 }
 ```
@@ -145,7 +145,7 @@ interface PerformanceReportResponse {
     "totalOrderAmount": 3745243,
     "deliveryFeesCollected": 360347,
     "turboDeliveryServiceFees": 374363,
-    "partnerNetRevenue": 3000533
+    "totalFacture": 3000533
   }
 }
 ```
@@ -185,7 +185,7 @@ interface PerformanceReportResponse {
     totalOrderAmount: number;
     deliveryFeesCollected: number;
     turboDeliveryServiceFees: number;
-    partnerNetRevenue: number;
+    totalFacture: number;
   };
 }
 
@@ -235,7 +235,7 @@ secondaryKPIs?.averageItemsPerOrder // 3.2
 financialDetails?.totalOrderAmount          // 3745243
 financialDetails?.deliveryFeesCollected     // 360347
 financialDetails?.turboDeliveryServiceFees   // 374363
-financialDetails?.partnerNetRevenue         // 3000533
+financialDetails?.totalFacture         // 3000533
 ```
 
 ---
