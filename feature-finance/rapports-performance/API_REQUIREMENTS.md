@@ -166,7 +166,7 @@ interface FinancialDetailsResponse {
   totalOrderAmount: number;           // Montant total des commandes
   deliveryFeesCollected: number;      // Frais de livraison collectés
   turboDeliveryServiceFees: number;  // Frais de service Turbo Delivery (10%)
-  partnerNetRevenue: number;          // Revenu net du partenaire
+  totalFacture: number;          // Revenu net du partenaire
 }
 ```
 
@@ -176,7 +176,7 @@ interface FinancialDetailsResponse {
   "totalOrderAmount": 3745243,
   "deliveryFeesCollected": 360347,
   "turboDeliveryServiceFees": 374363,
-  "partnerNetRevenue": 3000533
+  "totalFacture": 3000533
 }
 ```
 
@@ -223,7 +223,7 @@ interface FinancialDetailsResponse {
   totalOrderAmount: number;
   deliveryFeesCollected: number;
   turboDeliveryServiceFees: number;
-  partnerNetRevenue: number;
+  totalFacture: number;
 }
 
 // Hooks
@@ -355,7 +355,7 @@ GET https://backend-prod.turbodeliveryapp.com/api/analytics/performance/financia
 - **Performance**: Prévoir des indexes sur les tables de livraisons pour optimiser les requêtes
 - **Calculs**: 
   - `turboDeliveryServiceFees` = 10% du `totalOrderAmount`
-  - `partnerNetRevenue` = `totalOrderAmount` - `deliveryFeesCollected` - `turboDeliveryServiceFees`
+  - `totalFacture` = `totalOrderAmount` - `deliveryFeesCollected` - `turboDeliveryServiceFees`
 
 ---
 
