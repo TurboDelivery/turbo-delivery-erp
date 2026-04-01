@@ -10,6 +10,7 @@ import { ChartsSection } from './charts-section';
 import { MiddleStatsSection } from './middle-stats-section';
 import { FinancialDetailsSection } from './financial-details-section';
 import { PerformanceSummarySection } from './performance-summary-section';
+import { exportPerformancePdf } from '../utils/performance-export.utils';
 
 export default function PerformanceReport() {
   const { data } = usePerformanceStats();
@@ -28,6 +29,17 @@ export default function PerformanceReport() {
     handleRestaurantChange(value ?? null);
   };
 
+  const handleExportPdf = async () => {
+    await exportPerformancePdf({
+      mainKPIs,
+      secondaryKPIs,
+      financialDetails,
+      selectedRestaurant,
+      debut: filters.debut,
+      fin: filters.fin,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <PerformanceHeader
@@ -37,6 +49,7 @@ export default function PerformanceReport() {
         fin={filters.fin}
         onDateChange={handleDateChange}
         onRestaurantChange={onRestaurantFilterChange}
+        onExportPdf={handleExportPdf}
       />
 
       <div className="space-y-6">

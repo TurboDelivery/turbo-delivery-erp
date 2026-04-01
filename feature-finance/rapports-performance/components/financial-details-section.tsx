@@ -15,7 +15,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
         <h2 className="text-lg font-semibold text-gray-900 mb-6">Détails Financiers</h2>
         <div className="space-y-4">
           <div className="flex justify-between items-center py-3 border-b border-gray-100">
-            <span className="text-gray-600">Montant total des commandes</span>
+            <span className="text-gray-600">Grâce à nos livraisons, le partenaire a vendu </span>
             <span className="font-semibold text-gray-900">
               {financialDetails?.totalOrderAmount
                 ? formatCFA(Math.round(financialDetails.totalOrderAmount))
@@ -23,7 +23,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
             </span>
           </div>
           <div className="flex justify-between items-center py-3 border-b border-gray-100">
-            <span className="text-gray-600">Frais de livraison collectés</span>
+            <span className="text-gray-600">Les frais de livraison générés sur l'ensemble des courses ce mois</span>
             <span className="font-semibold text-gray-900">
               {financialDetails?.deliveryFeesCollected
                 ? formatCFA(Math.round(financialDetails.deliveryFeesCollected))
@@ -31,7 +31,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
             </span>
           </div>
           <div className="flex justify-between items-center py-3 border-b border-gray-100">
-            <span className="text-gray-600">Frais de service Turbo Delivery (10%)</span>
+            <span className="text-gray-600">Frais de service TURBO DELIVERY obtenu</span>
             <span className="font-semibold text-orange-600">
               {financialDetails?.turboDeliveryServiceFees
                 ? formatCFA(Math.round(financialDetails.turboDeliveryServiceFees))
@@ -39,7 +39,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
             </span>
           </div>
           <div className="flex justify-between items-center py-4">
-            <span className="text-gray-700 font-medium">Revenu net du partenaire</span>
+            <span className="text-gray-700 font-medium">Facture total à regler au compte du mois en cours </span>
             <span className="text-xl font-bold text-green-600">
               {financialDetails?.partnerNetRevenue
                 ? formatCFA(Math.round(financialDetails.partnerNetRevenue))

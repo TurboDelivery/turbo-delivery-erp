@@ -2,6 +2,7 @@ export interface IMainKPIs {
   totalDeliveries: number;
   totalOrderValue: number;
   successRate: number;
+  chiffreAffaires: number;
 }
 
 export interface IGeographicLocation {
