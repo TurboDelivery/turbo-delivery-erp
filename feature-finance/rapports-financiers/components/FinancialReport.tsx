@@ -12,6 +12,8 @@ import { useRapportFinancier } from '@/feature-finance/dashboard/queries/global-
 import { useDepensesFixesQuery } from '@/feature-finance/depenses/queries/depenses-fixes.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { useDepensesVariables } from '@/feature-finance/rapports-financiers/hooks/use-depenses-variables';
+import { exportFinancialReportCsv } from '@/feature-finance/rapports-financiers/utils/financial-report-export.utils';
+import { exportFinancialReportPdf } from '@/feature-finance/rapports-financiers/utils/financial-report-pdf.utils';
 
 interface RapportFinancierResponse {
   chiffreAffaire: number;
@@ -147,6 +149,28 @@ export default function FinancialReport() {
     }));
   }, [depensesFixesData]);
 
+  const handleExportCsv = () => {
+    exportFinancialReportCsv({
+      metrics,
+      kpis,
+      fixedCosts,
+      variableExpenses,
+      debut: filters.debut,
+      fin: filters.fin,
+    });
+  };
+
+  const handleExportPdf = async () => {
+    await exportFinancialReportPdf({
+      metrics,
+      kpis,
+      fixedCosts,
+      variableExpenses,
+      debut: filters.debut,
+      fin: filters.fin,
+    });
+  };
+
   const { items: variableExpensesRaw, isLoading: isLoadingVariables } = useDepensesVariables({
     debut: filters.debut,
     fin: filters.fin,
@@ -175,13 +199,24 @@ export default function FinancialReport() {
             </div>
           </div>
 
-          <Button 
-            color="primary"
-            className="bg-purple-600"
-            startContent={<Download className="w-4 h-4" />}
-          >
-            Exporter CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              color="primary"
+              className="bg-purple-600"
+              startContent={<Download className="w-4 h-4" />}
+              onPress={handleExportCsv}
+            >
+              Exporter CSV
+            </Button>
+            <Button
+              color="secondary"
+              variant="bordered"
+              startContent={<Download className="w-4 h-4" />}
+              onPress={handleExportPdf}
+            >
+              Exporter PDF
+            </Button>
+          </div>
         </div>
 
         {/* Period Selector */}
