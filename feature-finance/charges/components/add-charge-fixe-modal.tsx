@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Modal,
   ModalContent,
@@ -13,23 +13,34 @@ import {
   SelectItem,
   Badge,
 } from '@heroui/react';
-import { Check, Plus } from 'lucide-react';
+import { Check, Plus, Save } from 'lucide-react';
+import {
+  useAjouterChargeFixeMutation,
+  useModifierChargeFixeMutation,
+} from '@/feature-finance/charges/queries/charge-fixe.mutation';
+import { CyclePaiement, IChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
+import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 
 interface AddChargeFixeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (charge: any) => void;
+  onAdd?: (charge: any) => void;
+  chargeToEdit?: IChargeFixe | null;
 }
 
-const categories = [
-  { value: 'loyer', label: 'Loyer' },
-  { value: 'administratif', label: 'Administratif' },
-  { value: 'logistique', label: 'Logistique' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'communication', label: 'Communication' },
-  { value: 'assurance', label: 'Assurance' },
-  { value: 'autre', label: 'Autre' },
-];
+const CYCLE_MAP: Record<string, CyclePaiement> = {
+  mensuel:      'MENSUEL',
+  trimestriel:  'TRIMESTRIEL',
+  semestriel:   'SEMESTRIEL',
+  annuel:       'ANNUEL',
+};
+
+const CYCLE_REVERSE: Record<CyclePaiement, string> = {
+  MENSUEL:      'mensuel',
+  TRIMESTRIEL:  'trimestriel',
+  SEMESTRIEL:   'semestriel',
+  ANNUEL:       'annuel',
+};
 
 const cycles = [
   { value: 'mensuel', label: 'Tous les mois' },
@@ -38,21 +49,47 @@ const cycles = [
   { value: 'annuel', label: 'Tous les ans' },
 ];
 
+const EMPTY_FORM = {
+  name: '',
+  category: '',
+  cycle: 'mensuel',
+  amount: '',
+  dueDate: '01',
+  description: '',
+};
+
 export default function AddChargeFixeModal({
   isOpen,
   onClose,
   onAdd,
+  chargeToEdit,
 }: AddChargeFixeModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    category: '',
-    cycle: 'mensuel',
-    amount: '',
-    dueDate: '01',
-    description: '',
-  });
+  const isEditMode = !!chargeToEdit;
 
-  // ✅ Validation formulaire
+  const { mutate: ajouterChargeFixe, isPending: isAdding } = useAjouterChargeFixeMutation();
+  const { mutate: modifierChargeFixe, isPending: isUpdating } = useModifierChargeFixeMutation();
+  const isPending = isAdding || isUpdating;
+
+  const { categories, isLoading: isLoadingCategories } = useCategorieDepense();
+
+  const [formData, setFormData] = useState(EMPTY_FORM);
+
+  // Pré-remplir le formulaire en mode édition
+  useEffect(() => {
+    if (isOpen && chargeToEdit) {
+      setFormData({
+        name: chargeToEdit.designation,
+        category: chargeToEdit.categorie?.id ?? '',
+        cycle: CYCLE_REVERSE[chargeToEdit.cyclePaiement] ?? 'mensuel',
+        amount: String(chargeToEdit.montant),
+        dueDate: String(chargeToEdit.echeanceJour),
+        description: '',
+      });
+    } else if (isOpen && !chargeToEdit) {
+      setFormData(EMPTY_FORM);
+    }
+  }, [isOpen, chargeToEdit]);
+
   const isFormValid = useMemo(() => {
     return (
       formData.name.trim() !== '' &&
@@ -64,31 +101,40 @@ export default function AddChargeFixeModal({
   const handleSubmit = () => {
     if (!isFormValid) return;
 
-    const newCharge = {
-      id: Date.now().toString(),
-      ...formData,
-      status: 'Actif',
-      isAutomatic: false,
+    const cyclePaiement = CYCLE_MAP[formData.cycle] ?? 'MENSUEL';
+    const payload = {
+      designation: formData.name.trim(),
+      categorieId: formData.category,
+      cyclePaiement,
+      montant: parseInt(formData.amount, 10),
+      echeanceJour: parseInt(formData.dueDate, 10),
+      automatique: false,
     };
 
-    onAdd(newCharge);
-    onClose();
-
-    setFormData({
-      name: '',
-      category: '',
-      cycle: 'mensuel',
-      amount: '',
-      dueDate: '01',
-      description: '',
-    });
+    if (isEditMode && chargeToEdit) {
+      modifierChargeFixe(
+        { id: chargeToEdit.id, data: payload },
+        {
+          onSuccess: () => {
+            onClose();
+          },
+        },
+      );
+    } else {
+      ajouterChargeFixe(payload, {
+        onSuccess: (data) => {
+          onAdd?.(data);
+          onClose();
+          setFormData(EMPTY_FORM);
+        },
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // 🎯 Composant Step
   const Step = ({
     label,
     sub,
@@ -117,12 +163,11 @@ export default function AddChargeFixeModal({
     <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
       <ModalContent>
         <ModalHeader className="text-blue-600 text-xl font-semibold">
-          Ajouter une charge fixe
+          {isEditMode ? 'Modifier la charge fixe' : 'Ajouter une charge fixe'}
         </ModalHeader>
 
         <ModalBody>
           <div className="space-y-6">
-            {/* Form */}
             <Input
               label="Désignation"
               placeholder="Ex: Loyer Bureau, Internet..."
@@ -138,9 +183,10 @@ export default function AddChargeFixeModal({
                 handleInputChange('category', Array.from(keys)[0] as string)
               }
               variant="bordered"
+              isLoading={isLoadingCategories}
             >
               {categories.map((cat) => (
-                <SelectItem key={cat.value}>{cat.label}</SelectItem>
+                <SelectItem key={cat.id}>{cat.nomCategorie}</SelectItem>
               ))}
             </Select>
 
@@ -180,7 +226,7 @@ export default function AddChargeFixeModal({
               ))}
             </Select>
 
-            {/* ✅ Steps validation */}
+            {/* Steps validation */}
             <div className="flex items-center justify-between pt-6">
               <Step label="Comptable" sub="Saisie" active={isFormValid} />
 
@@ -202,10 +248,7 @@ export default function AddChargeFixeModal({
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="font-semibold">{formData.name}</p>
                 <Badge color="primary" variant="flat">
-                  {
-                    categories.find((c) => c.value === formData.category)
-                      ?.label
-                  }
+                  {categories.find((c) => c.id === formData.category)?.nomCategorie}
                 </Badge>
                 <p className="text-blue-600 font-bold mt-2">
                   {parseInt(formData.amount).toLocaleString()} FCFA
@@ -223,10 +266,20 @@ export default function AddChargeFixeModal({
           <Button
             color="primary"
             onPress={handleSubmit}
-            isDisabled={!isFormValid}
+            isDisabled={!isFormValid || isPending}
+            isLoading={isPending}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Enregistrer
+            {isEditMode ? (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Enregistrer les modifications
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4 mr-2" />
+                Enregistrer
+              </>
+            )}
           </Button>
         </ModalFooter>
       </ModalContent>

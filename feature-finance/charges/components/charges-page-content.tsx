@@ -9,102 +9,30 @@ import {
   TrendingUp, 
   Activity,
   Plus,
-  MoreVertical,
-  FileText,
   Info,
-  Building2,
-  Wifi,
-  Zap,
-  Car,
-  Users
 } from 'lucide-react';
 import AddChargeFixeModal from './add-charge-fixe-modal';
 import AddDepenseVariableModal from './add-depense-variable-modal';
 import ChargesFixesTable from './charges-fixes-table';
+import { useChargesFixesQuery } from '../queries/charges-fixes.query';
+import { useSupprimerChargeFixeMutation } from '../queries/charge-fixe.mutation';
+import { IChargeFixe } from '../types/charge-fixe.type';
 import DepensesVariablesTable from './depenses-variables-table';
-import { Button } from '@heroui/react';
+import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
 import { Card, CardBody } from '@heroui/react';
-import { Chip } from '@heroui/react';
-import { Switch } from '@heroui/react';
 
 export default function ChargesPageContent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDepenseVariableModalOpen, setIsDepenseVariableModalOpen] = useState(false);
-  
-  // Données pour les charges fixes structurées pour React Table
-  const chargesFixesData = [
-    {
-      id: '1',
-      name: 'Masse Salariale',
-      description: 'Calculée automatiquement depuis le module RH',
-      category: 'RH',
-      categoryColor: 'bg-green-100 text-green-700',
-      cycle: 'Tous les mois',
-      amount: '605 000',
-      tauxJournalier: '19 516 FCFA/j',
-      cumulMensuel: 'Cumule depuis Janvier (58 548 F)',
-      dueDate: '05',
-      status: 'Automatique',
-      statusColor: 'bg-green-100 text-green-700',
-      isAutomatic: true,
-    },
-    {
-      id: '2',
-      name: 'Loyer Bureau Principal',
-      category: 'Loyer',
-      categoryColor: 'bg-purple-100 text-purple-700',
-      cycle: 'Tous les mois',
-      amount: '350 000',
-      tauxJournalier: '11 290 FCFA/j',
-      cumulMensuel: 'Cumule depuis Janvier (33 870 F)',
-      dueDate: '01',
-      status: 'Actif',
-      statusColor: 'bg-blue-100 text-blue-700',
-      isAutomatic: false,
-    },
-    {
-      id: '3',
-      name: 'Abonnement Internet Fibre',
-      category: 'Administratif',
-      categoryColor: 'bg-gray-100 text-gray-700',
-      cycle: 'Tous les mois',
-      amount: '45 000',
-      tauxJournalier: '1 452 FCFA/j',
-      cumulMensuel: 'Cumule depuis Janvier (4 356 F)',
-      dueDate: '05',
-      status: 'Actif',
-      statusColor: 'bg-blue-100 text-blue-700',
-      isAutomatic: false,
-    },
-    {
-      id: '4',
-      name: 'Électricité',
-      category: 'Administratif',
-      categoryColor: 'bg-gray-100 text-gray-700',
-      cycle: 'Tous les mois',
-      amount: '85 000',
-      tauxJournalier: '2 742 FCFA/j',
-      cumulMensuel: 'Cumule depuis Janvier (8 226 F)',
-      dueDate: '10',
-      status: 'Actif',
-      statusColor: 'bg-blue-100 text-blue-700',
-      isAutomatic: false,
-    },
-    {
-      id: '5',
-      name: 'Assurance Véhicules',
-      category: 'Logistique',
-      categoryColor: 'bg-blue-100 text-blue-700',
-      cycle: 'Trimestriel',
-      amount: '450 000',
-      tauxJournalier: '14 516 FCFA/j',
-      cumulMensuel: 'Cumule depuis Janvier (43 548 F)',
-      dueDate: '15',
-      status: 'Actif',
-      statusColor: 'bg-blue-100 text-blue-700',
-      isAutomatic: false,
-    },
-  ];
+  const [chargeToEdit, setChargeToEdit] = useState<IChargeFixe | null>(null);
+  const [chargeToDelete, setChargeToDelete] = useState<IChargeFixe | null>(null);
+
+  const { mutate: supprimerChargeFixe, isPending: isDeleting } = useSupprimerChargeFixeMutation();
+
+  const { data: chargesFixesData, isLoading: isLoadingChargesFixees } = useChargesFixesQuery({
+    page: 0,
+    size: 50,
+  });
 
   // Données pour les dépenses variables
   const depensesVariablesData = [
@@ -127,15 +55,32 @@ export default function ChargesPageContent() {
   ];
   
   const handleOpenModal = () => {
+    setChargeToEdit(null);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setChargeToEdit(null);
+  };
+
+  const handleEditCharge = (charge: IChargeFixe) => {
+    setChargeToEdit(charge);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteRequest = (charge: IChargeFixe) => {
+    setChargeToDelete(charge);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!chargeToDelete) return;
+    supprimerChargeFixe(chargeToDelete.id, {
+      onSuccess: () => setChargeToDelete(null),
+    });
   };
 
   const handleAddCharge = (newCharge: any) => {
-    // Logique pour ajouter la nouvelle charge
     console.log('Nouvelle charge ajoutée:', newCharge);
   };
 
@@ -241,7 +186,12 @@ export default function ChargesPageContent() {
         </div>
 
         <div className="overflow-x-auto">
-          <ChargesFixesTable data={chargesFixesData} />
+          <ChargesFixesTable
+            data={chargesFixesData?.content ?? []}
+            isLoading={isLoadingChargesFixees}
+            onEdit={handleEditCharge}
+            onDelete={handleDeleteRequest}
+          />
         </div>
       </Card>
 
@@ -288,12 +238,42 @@ export default function ChargesPageContent() {
         </CardBody>
       </Card>
 
-      {/* Modal d'ajout de charge fixe */}
+      {/* Modal add/edit charge fixe */}
       <AddChargeFixeModal 
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onAdd={handleAddCharge}
+        chargeToEdit={chargeToEdit}
       />
+
+      {/* Modal confirmation suppression */}
+      <Modal
+        isOpen={!!chargeToDelete}
+        onClose={() => setChargeToDelete(null)}
+        size="sm"
+      >
+        <ModalContent>
+          <ModalHeader className="text-red-600">Supprimer la charge fixe</ModalHeader>
+          <ModalBody>
+            <p className="text-gray-700 text-sm">
+              Voulez-vous vraiment supprimer{' '}
+              <span className="font-semibold">{chargeToDelete?.designation}</span> ? Cette action est irréversible.
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="bordered" onPress={() => setChargeToDelete(null)}>
+              Annuler
+            </Button>
+            <Button
+              color="danger"
+              onPress={handleConfirmDelete}
+              isLoading={isDeleting}
+            >
+              Supprimer
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
       {/* Modal d'ajout de dépense variable */}
       <AddDepenseVariableModal 
