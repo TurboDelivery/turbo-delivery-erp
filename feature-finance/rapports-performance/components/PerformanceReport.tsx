@@ -2,6 +2,8 @@
 
 import { usePerformanceStats } from '@/feature-finance/rapports-performance/hooks/use-performance-stats';
 import { usePerformanceFilters } from '@/feature-finance/rapports-performance/hooks/use-performance-filters';
+import { useDefinedRestaurantsQuery } from '@/features/restaurants/queries/restaurants.query';
+import { toRestaurantOptions } from '@/features/restaurants';
 import { PerformanceHeader } from './performance-header';
 import { TopStatsSection } from './top-stats-section';
 import { ChartsSection } from './charts-section';
@@ -12,13 +14,15 @@ import { PerformanceSummarySection } from './performance-summary-section';
 export default function PerformanceReport() {
   const { data } = usePerformanceStats();
   const { filters, handleDateChange, handleRestaurantChange } = usePerformanceFilters();
+  const { data: restaurants = [] } = useDefinedRestaurantsQuery();
+  const restoOpts = toRestaurantOptions(restaurants);
 
   const geographicData = data?.geographicData ?? [];
   const weeklyActivityData = data?.weeklyActivity ?? [];
   const mainKPIs = data?.mainKPIs;
   const secondaryKPIs = data?.secondaryKPIs;
   const financialDetails = data?.financialDetails;
-  const selectedRestaurant = filters.restaurantId || 'Tous';
+  const selectedRestaurant = restoOpts.find((o) => o.value === filters.restaurantId)?.label || 'Tous';
 
   const onRestaurantFilterChange = (value?: string) => {
     handleRestaurantChange(value ?? null);

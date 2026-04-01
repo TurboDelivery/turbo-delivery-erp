@@ -3,6 +3,8 @@
 import { Package, DollarSign, CheckCircle } from 'lucide-react';
 import { Card, CardBody } from '@heroui/react';
 import { IMainKPIs } from '@/feature-finance/rapports-performance/types/performance.type';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatNumber } from '@/utils/formatNumber';
 
 interface TopStatsSectionProps {
   mainKPIs?: IMainKPIs;
@@ -16,7 +18,7 @@ export function TopStatsSection({ mainKPIs }: TopStatsSectionProps) {
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 mb-1">Nombre de Livraisons</p>
-              <p className="text-3xl font-bold text-gray-900 mb-2">{mainKPIs?.totalDeliveries ?? 0}</p>
+              <p className="text-3xl font-bold text-gray-900 mb-2">{formatNumber(mainKPIs?.totalDeliveries ?? 0)}</p>
               <p className="text-sm text-gray-500">Moyenne: 12.1 livraisons/jour</p>
               <p className="text-sm text-green-600 font-medium mt-1">+12% vs mois précédent</p>
             </div>
@@ -36,7 +38,7 @@ export function TopStatsSection({ mainKPIs }: TopStatsSectionProps) {
                 {mainKPIs?.totalOrderValue ? `${(mainKPIs.totalOrderValue / 1000000).toFixed(2)}M` : '0'}
               </p>
               <p className="text-sm text-gray-500">
-                {mainKPIs?.totalOrderValue ? `${mainKPIs.totalOrderValue.toLocaleString()} FCFA` : '0 FCFA'}
+                {mainKPIs?.totalOrderValue ? formatCFA(Math.round(mainKPIs.totalOrderValue)) : '0 FCFA'}
               </p>
             </div>
             <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">

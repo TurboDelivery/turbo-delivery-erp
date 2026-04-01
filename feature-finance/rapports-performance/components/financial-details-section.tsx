@@ -2,6 +2,7 @@
 
 import { Card, CardBody } from '@heroui/react';
 import { IFinancialDetails } from '@/feature-finance/rapports-performance/types/performance.type';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 interface FinancialDetailsSectionProps {
   financialDetails?: IFinancialDetails;
@@ -17,7 +18,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
             <span className="text-gray-600">Montant total des commandes</span>
             <span className="font-semibold text-gray-900">
               {financialDetails?.totalOrderAmount
-                ? `${financialDetails.totalOrderAmount.toLocaleString()} FCFA`
+                ? formatCFA(Math.round(financialDetails.totalOrderAmount))
                 : '0 FCFA'}
             </span>
           </div>
@@ -25,7 +26,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
             <span className="text-gray-600">Frais de livraison collectés</span>
             <span className="font-semibold text-gray-900">
               {financialDetails?.deliveryFeesCollected
-                ? `${financialDetails.deliveryFeesCollected.toLocaleString()} FCFA`
+                ? formatCFA(Math.round(financialDetails.deliveryFeesCollected))
                 : '0 FCFA'}
             </span>
           </div>
@@ -33,7 +34,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
             <span className="text-gray-600">Frais de service Turbo Delivery (10%)</span>
             <span className="font-semibold text-orange-600">
               {financialDetails?.turboDeliveryServiceFees
-                ? `${financialDetails.turboDeliveryServiceFees.toLocaleString()} FCFA`
+                ? formatCFA(Math.round(financialDetails.turboDeliveryServiceFees))
                 : '0 FCFA'}
             </span>
           </div>
@@ -41,7 +42,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
             <span className="text-gray-700 font-medium">Revenu net du partenaire</span>
             <span className="text-xl font-bold text-green-600">
               {financialDetails?.partnerNetRevenue
-                ? `${financialDetails.partnerNetRevenue.toLocaleString()} FCFA`
+                ? formatCFA(Math.round(financialDetails.partnerNetRevenue))
                 : '0 FCFA'}
             </span>
           </div>
