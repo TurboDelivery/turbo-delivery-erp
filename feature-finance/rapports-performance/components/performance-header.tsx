@@ -13,6 +13,7 @@ interface PerformanceHeaderProps {
   fin: Date | undefined;
   onDateChange: (value: DateRange | undefined) => void;
   onRestaurantChange: (value?: string) => void;
+  onExportPdf: () => void;
 }
 
 export function PerformanceHeader({
@@ -22,6 +23,7 @@ export function PerformanceHeader({
   fin,
   onDateChange,
   onRestaurantChange,
+  onExportPdf,
 }: PerformanceHeaderProps) {
   return (
     <div className="mb-6 bg-white rounded-lg shadow">
@@ -48,6 +50,7 @@ export function PerformanceHeader({
             <Button
               color="primary"
               className="bg-orange-500"
+              onPress={onExportPdf}
               startContent={<Download className="w-4 h-4" />}
             >
               Exporter PDF
