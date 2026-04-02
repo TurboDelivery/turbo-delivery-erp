@@ -19,8 +19,12 @@ import {
   Pencil,
 } from 'lucide-react';
 import { Spinner } from '@heroui/react';
-// import { useDepensesListQuery } from '@/feature-finance/depenses/queries/depense-list.query';
-import { useModifierStatutDepenseMutation } from '@/feature-finance/depenses/queries/depense.mutation';
+import { useSession } from 'next-auth/react';
+import { useActionChargeVariableMutation, ActionWorkflow } from '@/feature-finance/charges/queries/charge-variable.mutation';
+import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
+import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
+import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
+import { IChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { IDepense } from '@/features/depenses/types/depense.type';
 import { format } from 'date-fns';
@@ -39,87 +43,66 @@ const S_REJETE_DG      = 'Rejeté par DG';
 // Statuts terminaux (plus rien à faire)
 const STATUTS_TERMINAUX = [S_DECAISSE, S_VUE_DGA, S_REJETE_DGA, S_REJETE_DG];
 
-// ─── Fake data (à remplacer par l'API) ─────────────────────────────────────────
-const FAKE_DEPENSES: IDepense[] = [
-  {
-    id: '1',
-    libelle: 'Fournitures de bureau - Papeterie',
-    montant: 28500,
-    description: 'Achat fournitures Q1 2026',
-    dateDepense: '2026-03-28',
-    typeDepense: 'VARIABLE',
-    sourcePaiement: 'Caisse',
-    statut: S_REJETE_DGA,
-    categorie: { id: 'c1', nomCategorie: 'Fournitures de bureau', description: '' },
-    createdAt: '2026-03-28T08:00:00Z',
-    updatedAt: '2026-03-28T08:00:00Z',
-  },
-  {
-    id: '2',
-    libelle: 'Loyer Bureaux Mars 2026',
-    montant: 350000,
-    description: '',
-    dateDepense: '2026-03-28',
-    typeDepense: 'PAIE',
-    sourcePaiement: 'Virement',
-    statut: S_VUE_DGA,
-    categorie: { id: 'c2', nomCategorie: 'Loyer', description: '' },
-    createdAt: '2026-03-28T09:00:00Z',
-    updatedAt: '2026-03-28T09:00:00Z',
-  },
-  {
-    id: '3',
-    libelle: 'Réparation Climatisation Salle Réunion',
-    montant: 45000,
-    description: 'Facture réparation climatisation',
-    dateDepense: '2026-03-30',
-    typeDepense: 'VARIABLE',
-    sourcePaiement: 'Caisse',
-    statut: S_EN_ATTENTE_DGA,
-    categorie: { id: 'c3', nomCategorie: 'Réparation', description: '' },
-    createdAt: '2026-03-30T10:00:00Z',
-    updatedAt: '2026-03-30T10:00:00Z',
-  },
-  {
-    id: '4',
-    libelle: 'Salaires Equipe Mars 2026',
-    montant: 1250000,
-    description: '',
-    dateDepense: '2026-03-27',
-    typeDepense: 'PAIE',
-    sourcePaiement: 'Virement',
-    statut: S_APPROUVE,
-    categorie: { id: 'c4', nomCategorie: 'Salaires', description: '' },
-    createdAt: '2026-03-27T08:00:00Z',
-    updatedAt: '2026-03-27T08:00:00Z',
-  },
-  {
-    id: '5',
-    libelle: 'Fournitures de bureau - Papeterie',
-    montant: 28500,
-    description: 'Commande papeterie mars',
-    dateDepense: '2026-03-29',
-    typeDepense: 'VARIABLE',
-    sourcePaiement: 'Caisse',
-    statut: S_VERIFIE_DGA,
-    categorie: { id: 'c1', nomCategorie: 'Fournitures de bureau', description: '' },
-    createdAt: '2026-03-29T11:00:00Z',
-    updatedAt: '2026-03-29T11:00:00Z',
-  },
-  {
-    id: '6',
-    libelle: 'Internet Fibre Mars 2026',
-    montant: 35000,
-    description: '',
-    dateDepense: '2026-03-28',
-    typeDepense: 'FIXE',
-    sourcePaiement: 'Prélèvement',
-    statut: S_DECAISSE,
-    categorie: { id: 'c5', nomCategorie: 'Internet', description: '' },
-    createdAt: '2026-03-28T07:00:00Z',
-    updatedAt: '2026-03-28T07:00:00Z',
-  },
-];
+// ─── Mapping API statut → statut page ─────────────────────────────────────────
+const CV_STATUT_TO_PAGE: Record<string, string> = {
+  PENDING:        S_EN_ATTENTE_DGA,
+  EN_ATTENTE_DGA: S_EN_ATTENTE_DGA,
+  VALIDE_DGA:     S_EN_ATTENTE_DG,
+  REJETE_DGA:     S_REJETE_DGA,
+  APPROUVE_DG:    S_APPROUVE,
+  REJETE_DG:      S_REJETE_DG,
+  DECAISSE:       S_DECAISSE,
+};
+
+// Mapping role → ActionWorkflow
+const ROLE_ACCEPT_ACTION: Record<string, ActionWorkflow> = {
+  comptable: 'decaisser',
+  dga:       'valider-dga',
+  dg:        'approuver-dg',
+};
+const ROLE_REJECT_ACTION: Record<string, ActionWorkflow> = {
+  comptable: 'rejeter-dg',
+  dga:       'rejeter-dga',
+  dg:        'rejeter-dg',
+};
+
+// ─── Mappers ───────────────────────────────────────────────────────────────────
+function chargeVariableToDepense(cv: IChargeVariable): IDepense {
+  return {
+    id:            cv.id,
+    libelle:       cv.designation,
+    montant:       cv.montant,
+    description:   cv.description,
+    dateDepense:   cv.createdAt.split('T')[0],
+    typeDepense:   'VARIABLE',
+    sourcePaiement: undefined,
+    statut:        CV_STATUT_TO_PAGE[cv.statut] ?? cv.statut,
+    categorie:     cv.categorie
+      ? { id: cv.categorie.id, nomCategorie: cv.categorie.nomCategorie, description: cv.categorie.description ?? '' }
+      : { id: '', nomCategorie: '—', description: '' },
+    createdAt: cv.createdAt,
+    updatedAt: cv.updatedAt,
+  };
+}
+
+function chargeFixeToDepense(cf: IChargeFixe): IDepense {
+  return {
+    id:            cf.id,
+    libelle:       cf.designation,
+    montant:       cf.montant,
+    description:   undefined,
+    dateDepense:   cf.createdAt.split('T')[0],
+    typeDepense:   'FIXE',
+    sourcePaiement: 'Prélèvement automatique',
+    statut:        CV_STATUT_TO_PAGE[cf.statut] ?? cf.statut,
+    categorie:     cf.categorie
+      ? { id: cf.categorie.id, nomCategorie: cf.categorie.nomCategorie, description: cf.categorie.description ?? '' }
+      : { id: '', nomCategorie: '—', description: '' },
+    createdAt: cf.createdAt,
+    updatedAt: cf.updatedAt,
+  };
+}
+
 
 type Role    = 'comptable' | 'dga' | 'dg';
 type SubTab  = 'validation' | 'historique';
@@ -492,13 +475,23 @@ export default function ValidationPageContent() {
   const [activeTab, setActiveTab] = useState<SubTab>('validation');
   const [currentIdx, setCurrentIdx] = useState(0);
 
-  // ── TODO: remplacer FAKE_DEPENSES par le vrai hook quand l'endpoint est prêt ──
-  // const { data: depensesData, isLoading } = useDepensesListQuery({ page: 1, limit: 100 });
-  // const allDepenses: IDepense[] = depensesData?.content ?? [];
-  const isLoading = false;
-  const modifierStatutMutation = useModifierStatutDepenseMutation();
+  // ── Récupération des données réelles ─────────────────────────────────────────
+  const { data: chargesVariablesData, isLoading: isLoadingVariables } =
+    useChargesVariablesQuery({ page: 0, size: 100 });
+  const { data: chargesFixesData, isLoading: isLoadingFixes } =
+    useChargesFixesQuery({ page: 0, size: 100 });
 
-  const [allDepenses, setAllDepenses] = useState<IDepense[]>(FAKE_DEPENSES);
+  const isLoading = isLoadingVariables || isLoadingFixes;
+
+  const { data: session } = useSession();
+  const actionMutation = useActionChargeVariableMutation();
+
+  // Combiner les deux sources en IDepense[] pour les helpers existants
+  const allDepenses = useMemo<IDepense[]>(() => {
+    const variables = (chargesVariablesData?.content ?? []).map(chargeVariableToDepense);
+    const fixes     = (chargesFixesData?.content     ?? []).map(chargeFixeToDepense);
+    return [...variables, ...fixes];
+  }, [chargesVariablesData, chargesFixesData]);
 
   // ── Statistiques ─────────────────────────────────────────────────────────────
   const now = new Date();
@@ -537,8 +530,6 @@ export default function ValidationPageContent() {
   }, [allDepenses]);
 
   // ── Dépenses à afficher dans la ValidationCard ────────────────────────────────
-  // On montre les pendantes EN PREMIER, puis les non-terminales pour que le
-  // card ne soit jamais vide si des dépenses existent.
   const validationList = useMemo(() => {
     if (userRole === 'comptable') {
       const pending  = allDepenses.filter(d => isComptablePending(d.statut));
@@ -558,7 +549,6 @@ export default function ValidationPageContent() {
     return allDepenses;
   }, [userRole, allDepenses]);
 
-  // Nombre d'items vraiment en attente d'action (pour le badge du tab)
   const pendingCount = useMemo(() => {
     if (userRole === 'comptable') return allDepenses.filter(d => isComptablePending(d.statut)).length;
     if (userRole === 'dga')      return allDepenses.filter(d => isDGAPending(d.statut)).length;
@@ -569,7 +559,6 @@ export default function ValidationPageContent() {
   const safeIdx    = Math.min(currentIdx, Math.max(0, validationList.length - 1));
   const currentDep = validationList[safeIdx];
 
-  // Est-ce que la dépense courante nécessite une action du rôle actif ?
   const canAct = !!currentDep && (
     (userRole === 'comptable' && isComptablePending(currentDep.statut)) ||
     (userRole === 'dga'       && isDGAPending(currentDep.statut))       ||
@@ -579,18 +568,21 @@ export default function ValidationPageContent() {
   const acceptLabel: Record<Role, string> = { comptable: 'Décaisser', dga: 'Viser', dg: 'Approuver' };
 
   const handleAccept = (id: string) => {
-    const newStatut = userRole === 'comptable' ? S_DECAISSE : userRole === 'dga' ? S_EN_ATTENTE_DG : S_APPROUVE;
-    setAllDepenses(prev => prev.map(d => d.id === id ? { ...d, statut: newStatut } : d));
-    // modifierStatutMutation.mutate({ id, statut: newStatut });
+    actionMutation.mutate({
+      id,
+      action: ROLE_ACCEPT_ACTION[userRole],
+      dto: { par: session?.user?.name ?? 'Inconnu', commentaire: '' },
+    });
   };
   const handleReject = (id: string) => {
-    const newStatut = userRole === 'dga' ? S_REJETE_DGA : S_REJETE_DG;
-    setAllDepenses(prev => prev.map(d => d.id === id ? { ...d, statut: newStatut } : d));
-    // modifierStatutMutation.mutate({ id, statut: newStatut });
+    actionMutation.mutate({
+      id,
+      action: ROLE_REJECT_ACTION[userRole],
+      dto: { par: session?.user?.name ?? 'Inconnu', commentaire: '' },
+    });
   };
-  const handleModifier = (id: string, updates: Partial<IDepense>) => {
-    setAllDepenses(prev => prev.map(d => d.id === id ? { ...d, ...updates } : d));
-    // TODO: appeler l'API de modification quand l'endpoint est prêt
+  const handleModifier = (_id: string, _updates: Partial<IDepense>) => {
+    // TODO: appeler l'API de modification de charge variable quand l'endpoint est prêt
   };
 
   // ── Stats renderer ───────────────────────────────────────────────────────────
@@ -723,7 +715,7 @@ export default function ValidationPageContent() {
                   acceptLabel={acceptLabel[userRole]}
                   canAct={canAct}
                   isDGA={userRole === 'dga'}
-                  isPending={modifierStatutMutation.isPending}
+                  isPending={actionMutation.isPending}
                 />
               )
             ) : (

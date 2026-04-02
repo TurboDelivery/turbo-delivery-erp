@@ -4,6 +4,7 @@ import {
   IChargeVariableCreateDTO,
   IChargeVariableUpdateDTO,
   IChargeVariableParams,
+  IWorkflowDecisionDto,
 } from '../types/charge-variable.type';
 import { PaginatedResponse } from '@/types/general';
 
@@ -12,6 +13,11 @@ export interface IChargeVariableAPI {
   ajouterChargeVariableFormData(data: FormData): Promise<IChargeVariable>;
   modifierChargeVariable(id: string, data: IChargeVariableUpdateDTO): Promise<IChargeVariable>;
   modifierChargeVariableFormData(id: string, data: FormData): Promise<IChargeVariable>;
+  validerDGAChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable>;
+  approuverDGChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable>;
+  rejeterDGAChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable>;
+  rejeterDGChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable>;
+  decaisserChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable>;
   supprimerChargeVariable(id: string): Promise<void>;
   obtenirChargesVariablesPagination(params: IChargeVariableParams): Promise<PaginatedResponse<IChargeVariable>>;
 }
@@ -56,6 +62,46 @@ export const chargeVariableAPI: IChargeVariableAPI = {
           'Content-Type': 'multipart/form-data',
         },
       },
+    });
+  },
+
+  validerDGAChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable> {
+    return api.request<IChargeVariable>({
+      endpoint: `/erp/charges-variables/${id}/valider-dga`,
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  approuverDGChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable> {
+    return api.request<IChargeVariable>({
+      endpoint: `/erp/charges-variables/${id}/approuver-dg`,
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  rejeterDGAChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable> {
+    return api.request<IChargeVariable>({
+      endpoint: `/erp/charges-variables/${id}/rejeter-dga`,
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  rejeterDGChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable> {
+    return api.request<IChargeVariable>({
+      endpoint: `/erp/charges-variables/${id}/rejeter-dg`,
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  decaisserChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable> {
+    return api.request<IChargeVariable>({
+      endpoint: `/erp/charges-variables/${id}/decaisser`,
+      method: 'POST',
+      data: dto,
     });
   },
 
