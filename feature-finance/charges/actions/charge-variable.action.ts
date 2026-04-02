@@ -7,6 +7,7 @@ import {
   IChargeVariableCreateDTO,
   IChargeVariableUpdateDTO,
   IChargeVariableParams,
+  IWorkflowDecisionDto,
 } from '../types/charge-variable.type';
 import { PaginatedResponse } from '@/types/general';
 import { handleServerActionError } from '@/utils/handleServerActionError';
@@ -84,6 +85,66 @@ export const supprimerChargeVariableAction = async (
     };
   } catch (error) {
     return handleServerActionError(error, 'Erreur lors de la suppression de la charge variable');
+  }
+};
+
+export const validerDGAChargeVariableAction = async (
+  id: string,
+  dto: IWorkflowDecisionDto,
+): Promise<ActionResponse<IChargeVariable>> => {
+  try {
+    const response = await chargeVariableAPI.validerDGAChargeVariable(id, dto);
+    return { success: true, data: response, message: 'Charge variable visée par le DGA' };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors de la validation DGA');
+  }
+};
+
+export const approuverDGChargeVariableAction = async (
+  id: string,
+  dto: IWorkflowDecisionDto,
+): Promise<ActionResponse<IChargeVariable>> => {
+  try {
+    const response = await chargeVariableAPI.approuverDGChargeVariable(id, dto);
+    return { success: true, data: response, message: 'Charge variable approuvée par le DG' };
+  } catch (error) {
+    return handleServerActionError(error, "Erreur lors de l'approbation DG");
+  }
+};
+
+export const rejeterDGAChargeVariableAction = async (
+  id: string,
+  dto: IWorkflowDecisionDto,
+): Promise<ActionResponse<IChargeVariable>> => {
+  try {
+    const response = await chargeVariableAPI.rejeterDGAChargeVariable(id, dto);
+    return { success: true, data: response, message: 'Charge variable rejetée par le DGA' };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors du rejet DGA');
+  }
+};
+
+export const rejeterDGChargeVariableAction = async (
+  id: string,
+  dto: IWorkflowDecisionDto,
+): Promise<ActionResponse<IChargeVariable>> => {
+  try {
+    const response = await chargeVariableAPI.rejeterDGChargeVariable(id, dto);
+    return { success: true, data: response, message: 'Charge variable rejetée par le DG' };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors du rejet DG');
+  }
+};
+
+export const decaisserChargeVariableAction = async (
+  id: string,
+  dto: IWorkflowDecisionDto,
+): Promise<ActionResponse<IChargeVariable>> => {
+  try {
+    const response = await chargeVariableAPI.decaisserChargeVariable(id, dto);
+    return { success: true, data: response, message: 'Charge variable décaissée' };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors du décaissement');
   }
 };
 
