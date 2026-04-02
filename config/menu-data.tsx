@@ -1,6 +1,6 @@
 'use client';
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconUser, IconUsers, IconReceipt } from '@tabler/icons-react';
-import { Bell, Layers, List, ShoppingCartIcon, SquareUser, Ticket, Receipt, TrendingUp, FileText, Wallet, BarChart } from 'lucide-react';
+import { Bell, Layers, List, ShoppingCartIcon, SquareUser, Ticket, Receipt, TrendingUp, FileText, Wallet, BarChart, CheckCircle } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
 
@@ -75,6 +75,7 @@ const menuData: IMenuData[] = [
       { icon: IconMap, title: 'Tableau de bord ', path: '/finance/' },
       { icon: IconMap, title: 'Depenses ', path: '/finance/depense' },
       { icon: Receipt, title: 'Charges', path: '/finance/charges' },
+      { icon: CheckCircle, title: 'Validation', path: '/finance/validation' },
       { icon: TrendingUp, title: 'Analyse de Rentabilité', path: '/finance/analyse-rentabilite' },
       { icon: FileText, title: 'Rapports Financiers', path: '/finance/rapports-financiers' },
       { icon: Wallet, title: 'Gestion des Paiements', path: '/finance/gestion-paiements' },
