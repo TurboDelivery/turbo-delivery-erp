@@ -1,149 +1,93 @@
-'use client';
+﻿'use client';
 
-import { useDepensesParStatutQuery } from '@/feature-finance/depenses/queries/depenses-par-statut.query';
-import { useModifierStatutDepenseMutation } from '@/feature-finance/depenses/queries/depense.mutation';
+import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
+import { useActionChargeFixeMutation } from '@/feature-finance/charges/queries/charge-fixe.mutation';
+import { IChargeFixe, StatutChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { Button, Card, CardBody, Chip, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { CheckCircle, Clock, Wallet } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 
-interface Payment {
-  id: string;
-  designation: string;
-  month: string;
-  amount: string;
-  status: 'pending' | 'paid';
-  paymentDate?: string;
+const CYCLE_TO_LABEL: Record<string, string> = {
+  MENSUEL: 'Mensuel',
+  TRIMESTRIEL: 'Trimestriel',
+  SEMESTRIEL: 'Semestriel',
+  ANNUEL: 'Annuel',
+};
+
+const STATUT_LABEL: Record<StatutChargeFixe, string> = {
+  PENDING: 'En attente',
+  EN_ATTENTE_DGA: 'Attente DGA',
+  VALIDE_DGA: 'Validé DGA',
+  REJETE_DGA: 'Rejeté DGA',
+  APPROUVE_DG: 'Approuvé DG',
+  REJETE_DG: 'Rejeté DG',
+  DECAISSE: 'Décaissé',
+  PAID: 'Payé',
+};
+
+const STATUT_COLOR: Record<StatutChargeFixe, 'warning' | 'primary' | 'success' | 'danger' | 'default'> = {
+  PENDING: 'warning',
+  EN_ATTENTE_DGA: 'warning',
+  VALIDE_DGA: 'primary',
+  REJETE_DGA: 'danger',
+  APPROUVE_DG: 'primary',
+  REJETE_DG: 'danger',
+  DECAISSE: 'success',
+  PAID: 'success',
+};
+
+const PENDING_STATUTS: StatutChargeFixe[] = ['PENDING', 'EN_ATTENTE_DGA', 'VALIDE_DGA', 'APPROUVE_DG'];
+
+function getEffectiveStatut(charge: IChargeFixe): StatutChargeFixe {
+  if (charge.statut === 'PENDING' || charge.statut === 'EN_ATTENTE_DGA' || charge.statut === 'VALIDE_DGA') {
+    if (charge.approuvePar && charge.dateApprobationDG) return 'APPROUVE_DG';
+    if (charge.validePar && charge.dateValidationDGA) return 'VALIDE_DGA';
+  }
+  return charge.statut;
 }
 
 export default function PaymentManagement() {
-  // Obtenir le mois en cours comme date par défaut
-  const getCurrentMonth = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
+  const { data: session } = useSession();
+  const [selectedCycle, setSelectedCycle] = useState<string>('all');
+
+  const { data: chargesFixesPage, isLoading } = useChargesFixesQuery({ page: 0, size: 200 });
+  const actionMutation = useActionChargeFixeMutation();
+
+  const allCharges: IChargeFixe[] = chargesFixesPage?.content ?? [];
+
+  const filteredCharges =
+    selectedCycle === 'all'
+      ? allCharges
+      : allCharges.filter((c) => c.cyclePaiement === selectedCycle);
+
+  const pendingCharges = filteredCharges.filter((c) => PENDING_STATUTS.includes(getEffectiveStatut(c)));
+  const decaisseCharges = filteredCharges.filter((c) => { const s = getEffectiveStatut(c); return s === 'DECAISSE' || s === 'PAID'; });
+  const rejectedCharges = filteredCharges.filter((c) => { const s = getEffectiveStatut(c); return s === 'REJETE_DGA' || s === 'REJETE_DG'; });
+
+  const totalPending = pendingCharges.reduce((sum, c) => sum + c.montant, 0);
+  const totalDecaisse = decaisseCharges.reduce((sum, c) => sum + c.montant, 0);
+  const totalAll = filteredCharges.reduce((sum, c) => sum + c.montant, 0);
+
+  const handleDecaisser = (charge: IChargeFixe) => {
+    actionMutation.mutate({
+      id: charge.id,
+      action: 'decaisser',
+      dto: { par: session?.user?.name ?? 'Inconnu' },
+    });
   };
 
-  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
-
-  const modifierStatutDepenseMutation = useModifierStatutDepenseMutation();
-
-  // Convertir le mois sélectionné en dates de début et fin
-  const getMonthDates = (monthKey: string) => {
-    if (!monthKey) {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth() + 1;
-      const debut = new Date(year, month - 1, 1);
-      const fin = new Date(year, month, 0);
-      return { debut, fin };
-    }
-    
-    const [year, month] = monthKey.split('-').map(Number);
-    const debut = new Date(year, month - 1, 1); // 1er jour du mois
-    const fin = new Date(year, month, 0); // Dernier jour du mois
-    return { debut, fin };
-  };
-
-  const { debut, fin } = getMonthDates(selectedMonth);
-
-  const { data: paymentStatus, isLoading, error } = useDepensesParStatutQuery({ debut, fin });
-
-  // Debug: Afficher les données du hook useDepensesParStatutQuery
-  console.log('🔍 Données du hook useDepensesParStatutQuery:', paymentStatus);
-  console.log('❌ Erreur hook:', error);
-
-  // Fonction pour marquer une dépense comme payée
-  const handleMarkAsPaid = async (paymentId: string) => {
-    try {
-      console.log('🚀 Marquer comme payé:', paymentId);
-      
-      await modifierStatutDepenseMutation.mutateAsync({
-        id: paymentId,
-        statut: 'PAID'
-      });
-      
-      console.log('✅ Statut modifié avec succès');
-    } catch (error) {
-      console.error('❌ Erreur lors du marquage comme payé:', error);
-    }
-  };
-
-  // Debug: Afficher les données de l'API
-  console.log('Données de l\'API DepensesParStatut:', paymentStatus);
-  console.log('Filtre appliqué:', { debut, fin, selectedMonth });
-
-  const months = [
-    { key: '2026-01', label: 'Janvier 2026' },
-    { key: '2026-02', label: 'Février 2026' },
-    { key: '2026-03', label: 'Mars 2026' },
-    { key: '2026-04', label: 'Avril 2026' },
-    { key: '2026-05', label: 'Mai 2026' },
-    { key: '2026-06', label: 'Juin 2026' },
+  const cycles = [
+    { key: 'all', label: 'Tous les cycles' },
+    { key: 'MENSUEL', label: 'Mensuel' },
+    { key: 'TRIMESTRIEL', label: 'Trimestriel' },
+    { key: 'SEMESTRIEL', label: 'Semestriel' },
+    { key: 'ANNUEL', label: 'Annuel' },
   ];
-
-  // Transformer les données de l'API pour correspondre à l'interface
-  const pendingPayments = paymentStatus?.pending?.map(payment => ({
-    id: payment.id,
-    designation: payment.description,
-    month: new Date(payment.dateDepense).toLocaleDateString('fr-FR', { year: 'numeric', month: '2-digit' }),
-    amount: formatCFA(payment.montant),
-    status: 'pending' as const,
-    paymentDate: payment.dateDepense,
-  })) || [];
-
-  const paidPayments = paymentStatus?.paid?.map(payment => ({
-    id: payment.id,
-    designation: payment.description,
-    month: new Date(payment.dateDepense).toLocaleDateString('fr-FR', { year: 'numeric', month: '2-digit' }),
-    amount: formatCFA(payment.montant),
-    status: 'paid' as const,
-    paymentDate: payment.dateDepense,
-  })) || [];
-
-  // Afficher un message d'erreur si l'utilisateur n'est pas connecté
-  if (error && (error as any)?.message?.includes('Unauthorized')) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <Card>
-          <CardBody className="p-6 text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Authentification requise</h2>
-            <p className="text-sm text-gray-600 mb-4">
-              Vous devez être connecté pour accéder à la gestion des paiements.
-            </p>
-            <Button color="primary" onClick={() => window.location.href = '/login'}>
-              Se connecter
-            </Button>
-          </CardBody>
-        </Card>
-      </div>
-    );
-  }
-
-  const stats = {
-    pending: { 
-      amount: formatCFA(paymentStatus?.totalPending || 0), 
-      count: paymentStatus?.pending?.length || 0 
-    },
-    paid: { 
-      amount: formatCFA(paymentStatus?.totalPaid || 0), 
-      count: paymentStatus?.paid?.length || 0 
-    },
-    total: { 
-      amount: formatCFA(paymentStatus?.total || 0), 
-      count: (paymentStatus?.pending?.length || 0) + (paymentStatus?.paid?.length || 0) 
-    },
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
       <Card className="mb-6">
         <CardBody className="p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -153,19 +97,18 @@ export default function PaymentManagement() {
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Gestion des Paiements</h1>
-                <p className="text-sm text-gray-500">Suivez et validez les décaissements</p>
+                <p className="text-sm text-gray-500">Suivez et validez les décaissements des charges fixes</p>
               </div>
             </div>
-
             <Select
-              label="Mois"
-              selectedKeys={[selectedMonth]}
-              onSelectionChange={(keys) => setSelectedMonth(Array.from(keys)[0] as string)}
+              label="Cycle de paiement"
+              selectedKeys={[selectedCycle]}
+              onSelectionChange={(keys) => setSelectedCycle(Array.from(keys)[0] as string)}
               className="max-w-xs"
             >
-              {months.map((month) => (
-                <SelectItem key={month.key} value={month.key}>
-                  {month.label}
+              {cycles.map((cycle) => (
+                <SelectItem key={cycle.key} value={cycle.key}>
+                  {cycle.label}
                 </SelectItem>
               ))}
             </Select>
@@ -173,142 +116,193 @@ export default function PaymentManagement() {
         </CardBody>
       </Card>
 
-      {/* Main Content */}
       <div className="space-y-6">
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* En Attente */}
           <Card>
             <CardBody className="p-6">
               <div className="flex items-center gap-2 mb-3">
                 <Clock className="w-5 h-5 text-orange-500" />
                 <span className="text-sm font-medium text-orange-600">En Attente</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900 mb-1">{stats.pending.amount}</p>
-              <p className="text-sm text-gray-600">{stats.pending.count} paiement(s)</p>
+              <p className="text-2xl font-bold text-gray-900 mb-1">{formatCFA(totalPending)}</p>
+              <p className="text-sm text-gray-600">{pendingCharges.length} charge(s)</p>
             </CardBody>
           </Card>
 
-          {/* Payé */}
           <Card>
             <CardBody className="p-6">
               <div className="flex items-center gap-2 mb-3">
                 <CheckCircle className="w-5 h-5 text-green-500" />
-                <span className="text-sm font-medium text-green-600">Payé</span>
+                <span className="text-sm font-medium text-green-600">Décaissé</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900 mb-1">{stats.paid.amount}</p>
-              <p className="text-sm text-gray-600">{stats.paid.count} paiement(s)</p>
+              <p className="text-2xl font-bold text-gray-900 mb-1">{formatCFA(totalDecaisse)}</p>
+              <p className="text-sm text-gray-600">{decaisseCharges.length} charge(s)</p>
             </CardBody>
           </Card>
 
-          {/* Total */}
           <Card>
             <CardBody className="p-6">
               <div className="flex items-center gap-2 mb-3">
                 <Wallet className="w-5 h-5 text-gray-400" />
                 <span className="text-sm font-medium text-gray-600">Total</span>
               </div>
-              <p className="text-2xl font-bold text-gray-900 mb-1">{stats.total.amount}</p>
-              <p className="text-sm text-gray-600">{stats.total.count} paiement(s)</p>
+              <p className="text-2xl font-bold text-gray-900 mb-1">{formatCFA(totalAll)}</p>
+              <p className="text-sm text-gray-600">{filteredCharges.length} charge(s)</p>
             </CardBody>
           </Card>
         </div>
 
-        {/* Pending Payments Section */}
         <Card>
           <CardBody className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-orange-500" />
-                <h2 className="text-lg font-semibold text-gray-900">En attente ({pendingPayments.length})</h2>
-              </div>
+            <div className="flex items-center gap-2 mb-4">
+              <Clock className="w-5 h-5 text-orange-500" />
+              <h2 className="text-lg font-semibold text-gray-900">
+                En attente de décaissement ({pendingCharges.length})
+              </h2>
             </div>
-
-            <Table aria-label="Paiements en attente">
-              <TableHeader>
-                <TableColumn>DÉSIGNATION</TableColumn>
-                <TableColumn>MOIS</TableColumn>
-                <TableColumn>MONTANT</TableColumn>
-                <TableColumn>STATUT</TableColumn>
-                <TableColumn className="text-right">ACTION</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {pendingPayments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="text-sm font-medium text-gray-900">
-                      {payment.designation}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {payment.month}
-                    </TableCell>
-                    <TableCell className="text-sm font-semibold text-gray-900">
-                      {payment.amount}
-                    </TableCell>
-                    <TableCell>
-                      <Chip color="warning" variant="flat" size="sm">
-                        Pending
-                      </Chip>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        color="success"
-                        size="sm"
-                        startContent={<CheckCircle className="w-4 h-4" />}
-                        onClick={() => handleMarkAsPaid(payment.id)}
-                        disabled={modifierStatutDepenseMutation.isPending}
-                      >
-                        {modifierStatutDepenseMutation.isPending ? 'En cours...' : 'Marquer payé'}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            {isLoading ? (
+              <p className="text-sm text-gray-500 py-4 text-center">Chargement...</p>
+            ) : pendingCharges.length === 0 ? (
+              <p className="text-sm text-gray-500 py-4 text-center">Aucune charge en attente</p>
+            ) : (
+              <Table aria-label="Charges fixes en attente de décaissement">
+                <TableHeader>
+                  <TableColumn>DÉSIGNATION</TableColumn>
+                  <TableColumn>CYCLE</TableColumn>
+                  <TableColumn>MONTANT</TableColumn>
+                  <TableColumn>STATUT</TableColumn>
+                  <TableColumn className="text-right">ACTION</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {pendingCharges.map((charge) => (
+                    <TableRow key={charge.id}>
+                      <TableCell className="text-sm font-medium text-gray-900">
+                        {charge.designation}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {CYCLE_TO_LABEL[charge.cyclePaiement] ?? charge.cyclePaiement}
+                      </TableCell>
+                      <TableCell className="text-sm font-semibold text-gray-900">
+                        {formatCFA(charge.montant)}
+                      </TableCell>
+                      <TableCell>
+                        <Chip color={STATUT_COLOR[getEffectiveStatut(charge)]} variant="flat" size="sm">
+                          {STATUT_LABEL[getEffectiveStatut(charge)]}
+                        </Chip>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {getEffectiveStatut(charge) === 'APPROUVE_DG' ? (
+                          <Button
+                            color="success"
+                            size="sm"
+                            startContent={<CheckCircle className="w-4 h-4" />}
+                            onClick={() => handleDecaisser(charge)}
+                            isLoading={actionMutation.isPending}
+                          >
+                            Décaisser
+                          </Button>
+                        ) : (
+                          <span className="text-xs text-gray-400">En cours de validation</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardBody>
         </Card>
 
-        {/* Paid History Section */}
         <Card>
           <CardBody className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <CheckCircle className="w-5 h-5 text-green-500" />
-              <h2 className="text-lg font-semibold text-gray-900">Historique payés ({paidPayments.length})</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Historique décaissements ({decaisseCharges.length})
+              </h2>
             </div>
-
-            <Table aria-label="Historique des paiements">
-              <TableHeader>
-                <TableColumn>DÉSIGNATION</TableColumn>
-                <TableColumn>MOIS</TableColumn>
-                <TableColumn>MONTANT</TableColumn>
-                <TableColumn>DATE PAIEMENT</TableColumn>
-                <TableColumn>STATUT</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {paidPayments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell className="text-sm font-medium text-gray-900">
-                      {payment.designation}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {payment.month}
-                    </TableCell>
-                    <TableCell className="text-sm font-semibold text-gray-900">
-                      {payment.amount}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {payment.paymentDate}
-                    </TableCell>
-                    <TableCell>
-                      <Chip color="success" variant="flat" size="sm">
-                        Payé
-                      </Chip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            {isLoading ? (
+              <p className="text-sm text-gray-500 py-4 text-center">Chargement...</p>
+            ) : decaisseCharges.length === 0 ? (
+              <p className="text-sm text-gray-500 py-4 text-center">Aucun décaissement enregistré</p>
+            ) : (
+              <Table aria-label="Historique des décaissements">
+                <TableHeader>
+                  <TableColumn>DÉSIGNATION</TableColumn>
+                  <TableColumn>CYCLE</TableColumn>
+                  <TableColumn>MONTANT</TableColumn>
+                  <TableColumn>DATE DÉCAISSEMENT</TableColumn>
+                  <TableColumn>STATUT</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {decaisseCharges.map((charge) => (
+                    <TableRow key={charge.id}>
+                      <TableCell className="text-sm font-medium text-gray-900">
+                        {charge.designation}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {CYCLE_TO_LABEL[charge.cyclePaiement] ?? charge.cyclePaiement}
+                      </TableCell>
+                      <TableCell className="text-sm font-semibold text-gray-900">
+                        {formatCFA(charge.montant)}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {charge.dateDecaissement
+                          ? new Date(charge.dateDecaissement).toLocaleDateString('fr-FR')
+                          : '—'}
+                      </TableCell>
+                      <TableCell>
+                        <Chip color="success" variant="flat" size="sm">
+                          Décaissé
+                        </Chip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardBody>
         </Card>
+
+        {rejectedCharges.length > 0 && (
+          <Card>
+            <CardBody className="p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-danger text-sm font-semibold">
+                  Charges rejetées ({rejectedCharges.length})
+                </span>
+              </div>
+              <Table aria-label="Charges rejetées">
+                <TableHeader>
+                  <TableColumn>DÉSIGNATION</TableColumn>
+                  <TableColumn>CYCLE</TableColumn>
+                  <TableColumn>MONTANT</TableColumn>
+                  <TableColumn>STATUT</TableColumn>
+                </TableHeader>
+                <TableBody>
+                  {rejectedCharges.map((charge) => (
+                    <TableRow key={charge.id}>
+                      <TableCell className="text-sm font-medium text-gray-900">
+                        {charge.designation}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-600">
+                        {CYCLE_TO_LABEL[charge.cyclePaiement] ?? charge.cyclePaiement}
+                      </TableCell>
+                      <TableCell className="text-sm font-semibold text-gray-900">
+                        {formatCFA(charge.montant)}
+                      </TableCell>
+                      <TableCell>
+                        <Chip color="danger" variant="flat" size="sm">
+                          {STATUT_LABEL[getEffectiveStatut(charge)]}
+                        </Chip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardBody>
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -7,7 +7,8 @@ export type StatutChargeFixe =
   | 'REJETE_DGA'
   | 'APPROUVE_DG'
   | 'REJETE_DG'
-  | 'DECAISSE';
+  | 'DECAISSE'
+  | 'PAID';
 
 export interface IChargeFixe {
   id: string;
@@ -40,4 +41,10 @@ export interface IChargeFixeParams {
   designation?: string;
   page?: number;
   size?: number;
+  statut?: StatutChargeFixe;
+}
+
+export interface IWorkflowDecisionDtoFixe {
+  commentaire?: string;
+  par: string;
 }
