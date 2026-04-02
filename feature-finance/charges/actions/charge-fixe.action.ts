@@ -1,13 +1,13 @@
 'use server';
 
-import { ActionResponse } from '@/types';
+import { ActionResponse, PaginatedResponse } from '@/types';
 import { chargeFixeAPI } from '../apis/charge-fixe.api';
-import { IChargeFixe, IChargeFixeCreateDTO, IChargeFixeUpdateDTO, IChargeFixeParams, IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
-import { PaginatedResponse } from '@/types/general';
+import { IChargeFixe, IChargeFixeParams, IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
 import { handleServerActionError } from '@/utils/handleServerActionError';
+import { ChargeFixeCreateDTO, ChargeFixeUpdateDTO } from '../schemas/charge-fixe.schema';
 
 export const ajouterChargeFixeAction = async (
-  data: IChargeFixeCreateDTO,
+  data: ChargeFixeCreateDTO,
 ): Promise<ActionResponse<IChargeFixe>> => {
   try {
     const response = await chargeFixeAPI.ajouterChargeFixe(data);
@@ -23,7 +23,7 @@ export const ajouterChargeFixeAction = async (
 
 export const modifierChargeFixeAction = async (
   id: string,
-  data: IChargeFixeUpdateDTO,
+  data: ChargeFixeUpdateDTO,
 ): Promise<ActionResponse<IChargeFixe>> => {
   try {
     const response = await chargeFixeAPI.modifierChargeFixe(id, data);
@@ -55,7 +55,7 @@ export const obtenirChargesFixesAction = async (
   params: IChargeFixeParams,
 ): Promise<ActionResponse<PaginatedResponse<IChargeFixe>>> => {
   try {
-    const response = await chargeFixeAPI.obtenirChargesFixesPagination(params);
+    const response = await chargeFixeAPI.obtenirChargesFixes(params);
     return {
       success: true,
       data: response,

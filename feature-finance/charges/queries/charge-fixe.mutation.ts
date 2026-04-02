@@ -12,8 +12,9 @@ import {
   decaisserChargeFixeAction,
 } from '../actions/charge-fixe.action';
 import { useInvalidateChargeFixeQuery } from './index.query';
-import { IChargeFixeCreateDTO, IChargeFixeUpdateDTO, IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
+import { IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
 import { toast } from 'sonner';
+import { ChargeFixeCreateDTO, ChargeFixeUpdateDTO } from '../schemas/charge-fixe.schema';
 
 export type ActionWorkflowFixe = 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser';
 
@@ -21,7 +22,7 @@ export const useAjouterChargeFixeMutation = () => {
   const invalidateChargeFixeQuery = useInvalidateChargeFixeQuery();
 
   return useMutation({
-    mutationFn: async (data: IChargeFixeCreateDTO) => {
+    mutationFn: async (data: ChargeFixeCreateDTO) => {
       const result = await ajouterChargeFixeAction(data);
 
       if (!result.success) {
@@ -46,7 +47,7 @@ export const useModifierChargeFixeMutation = () => {
   const invalidateChargeFixeQuery = useInvalidateChargeFixeQuery();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: IChargeFixeUpdateDTO }) => {
+    mutationFn: async ({ id, data }: { id: string; data: ChargeFixeUpdateDTO }) => {
       const result = await modifierChargeFixeAction(id, data);
 
       if (!result.success) {

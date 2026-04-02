@@ -17,8 +17,8 @@ export interface IChargeFixe {
   categorie?: {
     id: string;
     nomCategorie: string;
-    description?: string;
-    totalDepense?: number;
+    description: string;
+    totalDepense: number;
   };
   cyclePaiement: CyclePaiement;
   montant: number;
@@ -37,28 +37,10 @@ export interface IChargeFixe {
   updatedAt: string;
 }
 
-export interface IChargeFixeCreateDTO {
-  designation: string;
-  categorieId: string;
-  cyclePaiement: CyclePaiement;
-  montant: number;
-  echeanceJour: number;
-  automatique: boolean;
-}
-
-export interface IChargeFixeUpdateDTO {
-  designation: string;
-  categorieId: string;
-  cyclePaiement: CyclePaiement;
-  montant: number;
-  echeanceJour: number;
-  automatique: boolean;
-}
-
 export interface IChargeFixeParams {
+  designation?: string;
   page?: number;
   size?: number;
-  designation?: string;
   statut?: StatutChargeFixe;
 }
 
