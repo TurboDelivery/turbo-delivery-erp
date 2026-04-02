@@ -15,8 +15,11 @@ import AddChargeFixeModal from './add-charge-fixe-modal';
 import AddDepenseVariableModal from './add-depense-variable-modal';
 import ChargesFixesTable from './charges-fixes-table';
 import { useChargesFixesQuery } from '../queries/charges-fixes.query';
+import { useChargesVariablesQuery } from '../queries/charges-variables.query';
 import { useSupprimerChargeFixeMutation } from '../queries/charge-fixe.mutation';
+import { useSupprimerChargeVariableMutation } from '../queries/charge-variable.mutation';
 import { IChargeFixe } from '../types/charge-fixe.type';
+import { IChargeVariable } from '../types/charge-variable.type';
 import DepensesVariablesTable from './depenses-variables-table';
 import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
 import { Card, CardBody } from '@heroui/react';
@@ -26,33 +29,21 @@ export default function ChargesPageContent() {
   const [isDepenseVariableModalOpen, setIsDepenseVariableModalOpen] = useState(false);
   const [chargeToEdit, setChargeToEdit] = useState<IChargeFixe | null>(null);
   const [chargeToDelete, setChargeToDelete] = useState<IChargeFixe | null>(null);
+  const [chargeVariableToEdit, setChargeVariableToEdit] = useState<IChargeVariable | null>(null);
+  const [chargeVariableToDelete, setChargeVariableToDelete] = useState<IChargeVariable | null>(null);
 
   const { mutate: supprimerChargeFixe, isPending: isDeleting } = useSupprimerChargeFixeMutation();
+  const { mutate: supprimerChargeVariable, isPending: isDeletingVariable } = useSupprimerChargeVariableMutation();
 
   const { data: chargesFixesData, isLoading: isLoadingChargesFixees } = useChargesFixesQuery({
     page: 0,
     size: 50,
   });
 
-  // Données pour les dépenses variables
-  const depensesVariablesData = [
-    {
-      id: '1',
-      date: '20/03/2026',
-      designation: 'Maintenance Véhicule',
-      amount: '35 000 FCFA',
-      justificatif: '---',
-      enabled: true,
-    },
-    {
-      id: '2',
-      date: '15/03/2026',
-      designation: 'Essence Livraison',
-      amount: '15 000 FCFA',
-      justificatif: '---',
-      enabled: true,
-    },
-  ];
+  const { data: chargesVariablesData, isLoading: isLoadingChargesVariables } = useChargesVariablesQuery({
+    page: 0,
+    size: 50,
+  });
   
   const handleOpenModal = () => {
     setChargeToEdit(null);
@@ -85,15 +76,32 @@ export default function ChargesPageContent() {
   };
 
   const handleOpenDepenseVariableModal = () => {
+    setChargeVariableToEdit(null);
     setIsDepenseVariableModalOpen(true);
   };
 
   const handleCloseDepenseVariableModal = () => {
     setIsDepenseVariableModalOpen(false);
+    setChargeVariableToEdit(null);
   };
 
-  const handleAddDepenseVariable = (newDepense: any) => {
-    // Logique pour ajouter la nouvelle dépense variable
+  const handleEditChargeVariable = (charge: IChargeVariable) => {
+    setChargeVariableToEdit(charge);
+    setIsDepenseVariableModalOpen(true);
+  };
+
+  const handleDeleteChargeVariable = (charge: IChargeVariable) => {
+    setChargeVariableToDelete(charge);
+  };
+
+  const handleConfirmDeleteVariable = () => {
+    if (!chargeVariableToDelete) return;
+    supprimerChargeVariable(chargeVariableToDelete.id, {
+      onSuccess: () => setChargeVariableToDelete(null),
+    });
+  };
+
+  const handleAddDepenseVariable = (newDepense: IChargeVariable) => {
     console.log('Nouvelle dépense variable ajoutée:', newDepense);
   };
 
@@ -210,7 +218,12 @@ export default function ChargesPageContent() {
         </div>
 
         <div className="overflow-x-auto">
-          <DepensesVariablesTable data={depensesVariablesData} />
+          <DepensesVariablesTable
+            data={chargesVariablesData?.content ?? []}
+            isLoading={isLoadingChargesVariables}
+            onEdit={handleEditChargeVariable}
+            onDelete={handleDeleteChargeVariable}
+          />
         </div>
 
         <div className="p-4 border-t border-gray-200 bg-gray-50/50 text-center">
@@ -275,12 +288,42 @@ export default function ChargesPageContent() {
         </ModalContent>
       </Modal>
 
-      {/* Modal d'ajout de dépense variable */}
+      {/* Modal d'ajout/édition de dépense variable */}
       <AddDepenseVariableModal 
         isOpen={isDepenseVariableModalOpen}
         onClose={handleCloseDepenseVariableModal}
         onAdd={handleAddDepenseVariable}
+        chargeToEdit={chargeVariableToEdit}
       />
+
+      {/* Modal confirmation suppression dépense variable */}
+      <Modal
+        isOpen={!!chargeVariableToDelete}
+        onClose={() => setChargeVariableToDelete(null)}
+        size="sm"
+      >
+        <ModalContent>
+          <ModalHeader className="text-red-600">Supprimer la dépense variable</ModalHeader>
+          <ModalBody>
+            <p className="text-gray-700 text-sm">
+              Voulez-vous vraiment supprimer{' '}
+              <span className="font-semibold">{chargeVariableToDelete?.designation}</span> ? Cette action est irréversible.
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="bordered" onPress={() => setChargeVariableToDelete(null)}>
+              Annuler
+            </Button>
+            <Button
+              color="danger"
+              onPress={handleConfirmDeleteVariable}
+              isLoading={isDeletingVariable}
+            >
+              Supprimer
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }
