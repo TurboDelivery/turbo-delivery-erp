@@ -7,11 +7,11 @@ import { Progress } from '@heroui/react';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/react';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { useState, useMemo } from 'react';
-import { endOfMonth, startOfMonth } from 'date-fns';
+import { endOfMonth, startOfMonth, format } from 'date-fns';
 import { useRapportFinancier } from '@/feature-finance/dashboard/queries/global-stats.query';
-import { useDepensesFixesQuery } from '@/feature-finance/depenses/queries/depenses-fixes.query';
+import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { useDepensesVariables } from '@/feature-finance/rapports-financiers/hooks/use-depenses-variables';
+import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
 import { exportFinancialReportCsv } from '@/feature-finance/rapports-financiers/utils/financial-report-export.utils';
 import { exportFinancialReportPdf } from '@/feature-finance/rapports-financiers/utils/financial-report-pdf.utils';
 
@@ -72,14 +72,10 @@ export default function FinancialReport() {
     fin: filters.fin,
   }) as { data: RapportFinancierResponse | undefined; isLoading: boolean };
 
-  // Récupérer les dépenses fixes avec le hook useDepensesFixesQuery
-  const { data: depensesFixesData, isLoading: isLoadingDepensesFixes } = useDepensesFixesQuery({
-    debut: filters.debut,
-    fin: filters.fin,
+  // Récupérer les charges fixes
+  const { data: chargesFixesData, isLoading: isLoadingChargesFixes } = useChargesFixesQuery({
+    size: 100,
   });
-
-  // Debug: Afficher les données du hook
-  console.log('Données du hook useRapportFinancier:', rapportData);
 
   // Calculs dynamiques basés sur les données du rapport financier
   const metrics = useMemo(() => {
@@ -132,22 +128,17 @@ export default function FinancialReport() {
 
   // Transformer les dépenses fixes en données pour le graphique
   const fixedCosts: FixedCost[] = useMemo(() => {
-    if (!depensesFixesData?.depensesFixes || depensesFixesData.depensesFixes.length === 0) {
-      return [
-        { label: 'Loyer Bureau', percentage: 24, amount: '150 000 FCFA' },
-        { label: 'Internet & Téléphonie', percentage: 4, amount: '25 000 FCFA' },
-        { label: 'Salaires', percentage: 72, amount: '450 000 FCFA' },
-      ];
-    }
+    const content = chargesFixesData?.content;
+    if (!content || content.length === 0) return [];
 
-    const totalFixes = depensesFixesData.totalFixes || 0;
-    
-    return depensesFixesData.depensesFixes.map((depense) => ({
-      label: depense.description || 'Dépense Fixe',
-      percentage: totalFixes > 0 ? Math.round((depense.montant / totalFixes) * 100) : 0,
-      amount: formatCFA(depense.montant),
+    const totalFixes = content.reduce((sum, c) => sum + (c.montant || 0), 0);
+
+    return content.map((charge) => ({
+      label: charge.designation,
+      percentage: totalFixes > 0 ? Math.round((charge.montant / totalFixes) * 100) : 0,
+      amount: formatCFA(charge.montant),
     }));
-  }, [depensesFixesData]);
+  }, [chargesFixesData]);
 
   const handleExportCsv = () => {
     exportFinancialReportCsv({
@@ -171,16 +162,18 @@ export default function FinancialReport() {
     });
   };
 
-  const { items: variableExpensesRaw, isLoading: isLoadingVariables } = useDepensesVariables({
-    debut: filters.debut,
-    fin: filters.fin,
+  const { data: chargesVariablesData, isLoading: isLoadingVariables } = useChargesVariablesQuery({
+    size: 100,
   });
 
-  const variableExpenses: VariableExpense[] = variableExpensesRaw.map((item) => ({
-    date: item.dateDepense,
-    designation: item.description,
-    amount: formatCFA(item.montant),
-  }));
+  const variableExpenses: VariableExpense[] = (chargesVariablesData?.content ?? []).map((charge) => {
+    const rawDate = charge.dateDecaissement ?? charge.createdAt;
+    return {
+      date: rawDate ? format(new Date(rawDate), 'dd/MM/yyyy') : '-',
+      designation: charge.designation,
+      amount: formatCFA(charge.montant),
+    };
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
