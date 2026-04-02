@@ -7,14 +7,14 @@ import {
   supprimerChargeFixeAction,
 } from '../actions/charge-fixe.action';
 import { useInvalidateChargeFixeQuery } from './index.query';
-import { IChargeFixeCreateDTO, IChargeFixeUpdateDTO } from '../types/charge-fixe.type';
 import { toast } from 'sonner';
+import { ChargeFixeCreateDTO, ChargeFixeUpdateDTO } from '../schemas/charge-fixe.schema';
 
 export const useAjouterChargeFixeMutation = () => {
   const invalidateChargeFixeQuery = useInvalidateChargeFixeQuery();
 
   return useMutation({
-    mutationFn: async (data: IChargeFixeCreateDTO) => {
+    mutationFn: async (data: ChargeFixeCreateDTO) => {
       const result = await ajouterChargeFixeAction(data);
 
       if (!result.success) {
@@ -39,7 +39,7 @@ export const useModifierChargeFixeMutation = () => {
   const invalidateChargeFixeQuery = useInvalidateChargeFixeQuery();
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: IChargeFixeUpdateDTO }) => {
+    mutationFn: async ({ id, data }: { id: string; data: ChargeFixeUpdateDTO }) => {
       const result = await modifierChargeFixeAction(id, data);
 
       if (!result.success) {

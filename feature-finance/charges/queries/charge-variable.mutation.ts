@@ -3,22 +3,19 @@
 import { useMutation } from '@tanstack/react-query';
 import {
   ajouterChargeVariableFormDataAction,
-  modifierChargeVariableFormDataAction,
-  supprimerChargeVariableAction,
-  validerDGAChargeVariableAction,
   approuverDGChargeVariableAction,
+  decaisserChargeVariableAction,
+  modifierChargeVariableFormDataAction,
   rejeterDGAChargeVariableAction,
   rejeterDGChargeVariableAction,
-  decaisserChargeVariableAction,
+  supprimerChargeVariableAction,
+  validerDGAChargeVariableAction,
 } from '../actions/charge-variable.action';
 import { useInvalidateChargeVariableQuery } from './index-charge-variable.query';
 import { IChargeVariable, IChargeVariableCreateDTO, IChargeVariableUpdateDTO, IWorkflowDecisionDto } from '../types/charge-variable.type';
 import { toast } from 'sonner';
 
-function buildChargeVariableFormData(
-  data: IChargeVariableCreateDTO,
-  file?: File | null,
-): FormData {
+function buildChargeVariableFormData(data: IChargeVariableCreateDTO, file?: File | null): FormData {
   const fd = new FormData();
   fd.append('designation', data.designation);
   fd.append('categorieId', data.categorieId);
@@ -110,22 +107,19 @@ export const useSupprimerChargeVariableMutation = () => {
 export type ActionWorkflow = 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser';
 
 const ACTION_LABELS: Record<ActionWorkflow, string> = {
-  'valider-dga':  'visée par le DGA',
+  'valider-dga': 'visée par le DGA',
   'approuver-dg': 'approuvée par le DG',
-  'rejeter-dga':  'rejetée par le DGA',
-  'rejeter-dg':   'rejetée par le DG',
-  'decaisser':    'décaissée',
+  'rejeter-dga': 'rejetée par le DGA',
+  'rejeter-dg': 'rejetée par le DG',
+  decaisser: 'décaissée',
 };
 
-const ACTION_FN: Record<
-  ActionWorkflow,
-  (id: string, dto: IWorkflowDecisionDto) => Promise<import('@/types').ActionResponse<IChargeVariable>>
-> = {
-  'valider-dga':  validerDGAChargeVariableAction,
+const ACTION_FN: Record<ActionWorkflow, (id: string, dto: IWorkflowDecisionDto) => Promise<import('@/types').ActionResponse<IChargeVariable>>> = {
+  'valider-dga': validerDGAChargeVariableAction,
   'approuver-dg': approuverDGChargeVariableAction,
-  'rejeter-dga':  rejeterDGAChargeVariableAction,
-  'rejeter-dg':   rejeterDGChargeVariableAction,
-  'decaisser':    decaisserChargeVariableAction,
+  'rejeter-dga': rejeterDGAChargeVariableAction,
+  'rejeter-dg': rejeterDGChargeVariableAction,
+  decaisser: decaisserChargeVariableAction,
 };
 
 export const useActionChargeVariableMutation = () => {
