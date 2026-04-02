@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  ArrowLeft, 
-  Calendar, 
-  ChevronDown, 
-  Wallet, 
-  TrendingUp, 
+import {
+  ArrowLeft,
+  Calendar,
+  ChevronDown,
+  Wallet,
+  TrendingUp,
   Activity,
   Plus,
   Info,
@@ -14,11 +14,10 @@ import {
 import AddChargeFixeModal from './add-charge-fixe-modal';
 import AddDepenseVariableModal from './add-depense-variable-modal';
 import ChargesFixesTable from './charges-fixes-table';
-import { useChargesFixesQuery } from '../queries/charges-fixes.query';
 import { useSupprimerChargeFixeMutation } from '../queries/charge-fixe.mutation';
 import { IChargeFixe } from '../types/charge-fixe.type';
 import DepensesVariablesTable from './depenses-variables-table';
-import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
 import { Card, CardBody } from '@heroui/react';
 
 export default function ChargesPageContent() {
@@ -29,17 +28,26 @@ export default function ChargesPageContent() {
 
   const { mutate: supprimerChargeFixe, isPending: isDeleting } = useSupprimerChargeFixeMutation();
 
-  const { data: chargesFixesData, isLoading: isLoadingChargesFixees } = useChargesFixesQuery({
-    page: 0,
-    size: 50,
-  });
+  const handleEditCharge = (charge: IChargeFixe) => {
+    setChargeToEdit(charge);
+    setIsModalOpen(true);
+  };
 
-  // Données pour les dépenses variables
+  const handleDeleteRequest = (charge: IChargeFixe) => {
+    setChargeToDelete(charge);
+  };
+
+  const stats = {
+    totalMontant: 0,
+    totalTauxJournalier: 0,
+    activeCount: 0,
+  };
+
   const depensesVariablesData = [
     {
       id: '1',
       date: '20/03/2026',
-      designation: 'Maintenance Véhicule',
+      designation: 'Maintenance Vehicule',
       amount: '35 000 FCFA',
       justificatif: '---',
       enabled: true,
@@ -53,7 +61,7 @@ export default function ChargesPageContent() {
       enabled: true,
     },
   ];
-  
+
   const handleOpenModal = () => {
     setChargeToEdit(null);
     setIsModalOpen(true);
@@ -64,26 +72,6 @@ export default function ChargesPageContent() {
     setChargeToEdit(null);
   };
 
-  const handleEditCharge = (charge: IChargeFixe) => {
-    setChargeToEdit(charge);
-    setIsModalOpen(true);
-  };
-
-  const handleDeleteRequest = (charge: IChargeFixe) => {
-    setChargeToDelete(charge);
-  };
-
-  const handleConfirmDelete = () => {
-    if (!chargeToDelete) return;
-    supprimerChargeFixe(chargeToDelete.id, {
-      onSuccess: () => setChargeToDelete(null),
-    });
-  };
-
-  const handleAddCharge = (newCharge: any) => {
-    console.log('Nouvelle charge ajoutée:', newCharge);
-  };
-
   const handleOpenDepenseVariableModal = () => {
     setIsDepenseVariableModalOpen(true);
   };
@@ -92,9 +80,15 @@ export default function ChargesPageContent() {
     setIsDepenseVariableModalOpen(false);
   };
 
-  const handleAddDepenseVariable = (newDepense: any) => {
-    // Logique pour ajouter la nouvelle dépense variable
-    console.log('Nouvelle dépense variable ajoutée:', newDepense);
+  const handleAddDepenseVariable = (_newDepense: unknown) => {
+    // TODO: brancher la creation reelle des depenses variables.
+  };
+
+  const handleConfirmDelete = () => {
+    if (!chargeToDelete) return;
+    supprimerChargeFixe(chargeToDelete.id, {
+      onSuccess: () => setChargeToDelete(null),
+    });
   };
 
   return (
@@ -137,7 +131,7 @@ export default function ChargesPageContent() {
               </div>
               <span className="text-blue-100 text-sm font-medium">Total Charges Mensuelles</span>
             </div>
-            <p className="text-3xl font-bold mb-1">1 450 000 FCFA</p>
+            <p className="text-3xl font-bold mb-1">{stats.totalMontant.toLocaleString('fr-FR')} FCFA</p>
             <p className="text-blue-100 text-xs">Toutes charges confondues</p>
           </CardBody>
         </Card>
@@ -151,7 +145,7 @@ export default function ChargesPageContent() {
               </div>
               <span className="text-orange-100 text-sm font-medium">Point Mort Quotidien</span>
             </div>
-            <p className="text-3xl font-bold mb-1">48 333 FCFA</p>
+            <p className="text-3xl font-bold mb-1">{stats.totalTauxJournalier.toLocaleString('fr-FR')} FCFA</p>
             <p className="text-orange-100 text-xs">Coût par jour (Total ÷ 30)</p>
           </CardBody>
         </Card>
@@ -165,7 +159,7 @@ export default function ChargesPageContent() {
               </div>
               <span className="text-green-100 text-sm font-medium">Charges Actives</span>
             </div>
-            <p className="text-3xl font-bold mb-1">7</p>
+            <p className="text-3xl font-bold mb-1">{stats.activeCount}</p>
             <p className="text-green-100 text-xs">Lignes configurées</p>
           </CardBody>
         </Card>
@@ -186,12 +180,7 @@ export default function ChargesPageContent() {
         </div>
 
         <div className="overflow-x-auto">
-          <ChargesFixesTable
-            data={chargesFixesData?.content ?? []}
-            isLoading={isLoadingChargesFixees}
-            onEdit={handleEditCharge}
-            onDelete={handleDeleteRequest}
-          />
+          <ChargesFixesTable onEdit={handleEditCharge} onDelete={handleDeleteRequest} />
         </div>
       </Card>
 
@@ -232,7 +221,7 @@ export default function ChargesPageContent() {
           </div>
           <div>
             <p className="text-blue-900 text-sm">
-              <span className="font-semibold">Astuce :</span> La masse salariale est calculée automatiquement depuis le module "Personnel TURBO". Seuls les employés actifs sont comptabilisés.
+              <span className="font-semibold">Astuce :</span> La masse salariale est calculée automatiquement depuis le module &quot;Personnel TURBO&quot;. Seuls les employés actifs sont comptabilisés.
             </p>
           </div>
         </CardBody>
@@ -242,7 +231,6 @@ export default function ChargesPageContent() {
       <AddChargeFixeModal 
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onAdd={handleAddCharge}
         chargeToEdit={chargeToEdit}
       />
 

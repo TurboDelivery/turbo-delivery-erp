@@ -1,16 +1,17 @@
 import { api } from '@/lib/api';
-import { IChargeFixe, IChargeFixeCreateDTO, IChargeFixeUpdateDTO, IChargeFixeParams } from '../types/charge-fixe.type';
-import { PaginatedResponse } from '@/types/general';
+import { PaginatedResponse } from '@/types';
+import { IChargeFixe, IChargeFixeParams } from '../types/charge-fixe.type';
+import { ChargeFixeCreateDTO, ChargeFixeUpdateDTO } from '../schemas/charge-fixe.schema';
 
 export interface IChargeFixeAPI {
-  ajouterChargeFixe(data: IChargeFixeCreateDTO): Promise<IChargeFixe>;
-  modifierChargeFixe(id: string, data: IChargeFixeUpdateDTO): Promise<IChargeFixe>;
+  ajouterChargeFixe(data: ChargeFixeCreateDTO): Promise<IChargeFixe>;
+  modifierChargeFixe(id: string, data: ChargeFixeUpdateDTO): Promise<IChargeFixe>;
   supprimerChargeFixe(id: string): Promise<void>;
-  obtenirChargesFixesPagination(params: IChargeFixeParams): Promise<PaginatedResponse<IChargeFixe>>;
+  obtenirChargesFixes(params: IChargeFixeParams): Promise<PaginatedResponse<IChargeFixe>>;
 }
 
 export const chargeFixeAPI: IChargeFixeAPI = {
-  ajouterChargeFixe(data: IChargeFixeCreateDTO): Promise<IChargeFixe> {
+  ajouterChargeFixe(data: ChargeFixeCreateDTO): Promise<IChargeFixe> {
     return api.request<IChargeFixe>({
       endpoint: `/erp/charges-fixes`,
       method: 'POST',
@@ -18,7 +19,7 @@ export const chargeFixeAPI: IChargeFixeAPI = {
     });
   },
 
-  modifierChargeFixe(id: string, data: IChargeFixeUpdateDTO): Promise<IChargeFixe> {
+  modifierChargeFixe(id: string, data: ChargeFixeUpdateDTO): Promise<IChargeFixe> {
     return api.request<IChargeFixe>({
       endpoint: `/erp/charges-fixes/${id}`,
       method: 'PUT',
@@ -33,11 +34,11 @@ export const chargeFixeAPI: IChargeFixeAPI = {
     });
   },
 
-  obtenirChargesFixesPagination(params: IChargeFixeParams): Promise<PaginatedResponse<IChargeFixe>> {
+  obtenirChargesFixes(params: IChargeFixeParams): Promise<PaginatedResponse<IChargeFixe>> {
     const searchParams: Record<string, string> = {};
-    if (params.page !== undefined) searchParams['page'] = String(params.page);
-    if (params.size !== undefined) searchParams['size'] = String(params.size);
     if (params.designation) searchParams['designation'] = params.designation;
+    if (typeof params.page === 'number') searchParams['page'] = String(params.page);
+    if (typeof params.size === 'number') searchParams['size'] = String(params.size);
 
     return api.request<PaginatedResponse<IChargeFixe>>({
       endpoint: `/erp/charges-fixes/pagination`,

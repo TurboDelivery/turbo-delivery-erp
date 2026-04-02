@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   Modal,
   ModalContent,
@@ -11,57 +11,47 @@ import {
   Input,
   Select,
   SelectItem,
-  Badge,
+  Switch,
 } from '@heroui/react';
-import { Check, Plus, Save } from 'lucide-react';
+import { Plus, Save } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import {
   useAjouterChargeFixeMutation,
   useModifierChargeFixeMutation,
 } from '@/feature-finance/charges/queries/charge-fixe.mutation';
-import { CyclePaiement, IChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
+import { IChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
 import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
+import {
+  ChargeFixeCreateDTO,
+  chargeFixeFormSchema,
+} from '@/feature-finance/charges/schemas/charge-fixe.schema';
 
 interface AddChargeFixeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd?: (charge: any) => void;
   chargeToEdit?: IChargeFixe | null;
 }
 
-const CYCLE_MAP: Record<string, CyclePaiement> = {
-  mensuel:      'MENSUEL',
-  trimestriel:  'TRIMESTRIEL',
-  semestriel:   'SEMESTRIEL',
-  annuel:       'ANNUEL',
-};
-
-const CYCLE_REVERSE: Record<CyclePaiement, string> = {
-  MENSUEL:      'mensuel',
-  TRIMESTRIEL:  'trimestriel',
-  SEMESTRIEL:   'semestriel',
-  ANNUEL:       'annuel',
-};
-
 const cycles = [
-  { value: 'mensuel', label: 'Tous les mois' },
-  { value: 'trimestriel', label: 'Tous les trimestres' },
-  { value: 'semestriel', label: 'Tous les semestres' },
-  { value: 'annuel', label: 'Tous les ans' },
+  { value: 'MENSUEL', label: 'Tous les mois' },
+  { value: 'TRIMESTRIEL', label: 'Tous les trimestres' },
+  { value: 'SEMESTRIEL', label: 'Tous les semestres' },
+  { value: 'ANNUEL', label: 'Tous les ans' },
 ];
 
-const EMPTY_FORM = {
-  name: '',
-  category: '',
-  cycle: 'mensuel',
-  amount: '',
-  dueDate: '01',
-  description: '',
+const EMPTY_FORM: ChargeFixeCreateDTO = {
+  designation: '',
+  categorieId: '',
+  cyclePaiement: 'MENSUEL',
+  montant: 0,
+  echeanceJour: 1,
+  automatique: true,
 };
 
 export default function AddChargeFixeModal({
   isOpen,
   onClose,
-  onAdd,
   chargeToEdit,
 }: AddChargeFixeModalProps) {
   const isEditMode = !!chargeToEdit;
@@ -72,118 +62,97 @@ export default function AddChargeFixeModal({
 
   const { categories, isLoading: isLoadingCategories } = useCategorieDepense();
 
-  const [formData, setFormData] = useState(EMPTY_FORM);
+  const {
+    handleSubmit,
+    reset,
+    register,
+    setValue,
+    watch,
+    formState: { errors, isValid },
+  } = useForm<ChargeFixeCreateDTO>({
+    resolver: zodResolver(chargeFixeFormSchema),
+    mode: 'onChange',
+    defaultValues: EMPTY_FORM,
+  });
 
-  // Pré-remplir le formulaire en mode édition
   useEffect(() => {
-    if (isOpen && chargeToEdit) {
-      setFormData({
-        name: chargeToEdit.designation,
-        category: chargeToEdit.categorie?.id ?? '',
-        cycle: CYCLE_REVERSE[chargeToEdit.cyclePaiement] ?? 'mensuel',
-        amount: String(chargeToEdit.montant),
-        dueDate: String(chargeToEdit.echeanceJour),
-        description: '',
-      });
-    } else if (isOpen && !chargeToEdit) {
-      setFormData(EMPTY_FORM);
+    if (!isOpen) {
+      reset(EMPTY_FORM);
+      return;
     }
-  }, [isOpen, chargeToEdit]);
 
-  const isFormValid = useMemo(() => {
-    return (
-      formData.name.trim() !== '' &&
-      formData.category !== '' &&
-      formData.amount !== ''
-    );
-  }, [formData]);
+    if (chargeToEdit) {
+      reset({
+        designation: chargeToEdit.designation,
+        categorieId: chargeToEdit.categorie?.id ?? '',
+        cyclePaiement: chargeToEdit.cyclePaiement,
+        montant: chargeToEdit.montant,
+        echeanceJour: chargeToEdit.echeanceJour,
+        automatique: chargeToEdit.automatique,
+      });
+      return;
+    }
 
-  const handleSubmit = () => {
-    if (!isFormValid) return;
+    reset(EMPTY_FORM);
+  }, [chargeToEdit, isOpen, reset]);
 
-    const cyclePaiement = CYCLE_MAP[formData.cycle] ?? 'MENSUEL';
-    const payload = {
-      designation: formData.name.trim(),
-      categorieId: formData.category,
-      cyclePaiement,
-      montant: parseInt(formData.amount, 10),
-      echeanceJour: parseInt(formData.dueDate, 10),
-      automatique: false,
-    };
+  const formValues = watch();
 
+  const onSubmit = (values: ChargeFixeCreateDTO) => {
     if (isEditMode && chargeToEdit) {
       modifierChargeFixe(
-        { id: chargeToEdit.id, data: payload },
+        { id: chargeToEdit.id, data: values },
         {
           onSuccess: () => {
+            reset(EMPTY_FORM);
             onClose();
           },
         },
       );
-    } else {
-      ajouterChargeFixe(payload, {
-        onSuccess: (data) => {
-          onAdd?.(data);
-          onClose();
-          setFormData(EMPTY_FORM);
-        },
-      });
+      return;
     }
+
+    ajouterChargeFixe(values, {
+      onSuccess: () => {
+        reset(EMPTY_FORM);
+        onClose();
+      },
+    });
   };
 
-  const handleInputChange = (field: string, value: string | number) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleClose = () => {
+    reset(EMPTY_FORM);
+    onClose();
   };
-
-  const Step = ({
-    label,
-    sub,
-    active,
-  }: {
-    label: string;
-    sub: string;
-    active?: boolean;
-  }) => (
-    <div className="flex flex-col items-center text-center flex-1">
-      <div
-        className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${
-          active
-            ? 'bg-green-500 border-green-500 text-white'
-            : 'bg-gray-200 border-gray-300 text-gray-500'
-        }`}
-      >
-        {active ? <Check size={18} /> : null}
-      </div>
-      <p className="text-sm mt-2 font-medium">{label}</p>
-      <p className="text-xs text-gray-500">{sub}</p>
-    </div>
-  );
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
       <ModalContent>
         <ModalHeader className="text-blue-600 text-xl font-semibold">
           {isEditMode ? 'Modifier la charge fixe' : 'Ajouter une charge fixe'}
         </ModalHeader>
 
         <ModalBody>
-          <div className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <Input
-              label="Désignation"
+              label="Designation"
               placeholder="Ex: Loyer Bureau, Internet..."
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
+              {...register('designation')}
               variant="bordered"
+              isInvalid={!!errors.designation}
+              errorMessage={errors.designation?.message}
             />
 
             <Select
-              label="Catégorie"
-              selectedKeys={formData.category ? [formData.category] : []}
+              label="Categorie"
+              selectedKeys={formValues.categorieId ? [formValues.categorieId] : []}
               onSelectionChange={(keys) =>
-                handleInputChange('category', Array.from(keys)[0] as string)
+                setValue('categorieId', Array.from(keys)[0] as string, { shouldValidate: true })
               }
               variant="bordered"
               isLoading={isLoadingCategories}
+              isInvalid={!!errors.categorieId}
+              errorMessage={errors.categorieId?.message}
             >
               {categories.map((cat) => (
                 <SelectItem key={cat.id}>{cat.nomCategorie}</SelectItem>
@@ -192,11 +161,15 @@ export default function AddChargeFixeModal({
 
             <Select
               label="Cycle de paiement"
-              selectedKeys={[formData.cycle]}
+              selectedKeys={formValues.cyclePaiement ? [formValues.cyclePaiement] : []}
               onSelectionChange={(keys) =>
-                handleInputChange('cycle', Array.from(keys)[0] as string)
+                setValue('cyclePaiement', Array.from(keys)[0] as ChargeFixeCreateDTO['cyclePaiement'], {
+                  shouldValidate: true,
+                })
               }
               variant="bordered"
+              isInvalid={!!errors.cyclePaiement}
+              errorMessage={errors.cyclePaiement?.message}
             >
               {cycles.map((cycle) => (
                 <SelectItem key={cycle.value}>{cycle.label}</SelectItem>
@@ -206,18 +179,26 @@ export default function AddChargeFixeModal({
             <Input
               label="Montant FCFA"
               type="number"
-              value={formData.amount}
-              onChange={(e) => handleInputChange('amount', e.target.value)}
+              value={String(formValues.montant ?? 0)}
+              onChange={(e) =>
+                setValue('montant', Number(e.target.value), {
+                  shouldValidate: true,
+                })
+              }
               variant="bordered"
+              isInvalid={!!errors.montant}
+              errorMessage={errors.montant?.message}
             />
 
             <Select
-              label="Date d'échéance (jour du mois)"
-              selectedKeys={[formData.dueDate]}
+              label="Date d'echeance (jour du mois)"
+              selectedKeys={formValues.echeanceJour ? [String(formValues.echeanceJour)] : []}
               onSelectionChange={(keys) =>
-                handleInputChange('dueDate', Array.from(keys)[0] as string)
+                setValue('echeanceJour', Number(Array.from(keys)[0] as string), { shouldValidate: true })
               }
               variant="bordered"
+              isInvalid={!!errors.echeanceJour}
+              errorMessage={errors.echeanceJour?.message}
             >
               {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                 <SelectItem key={day.toString()}>
@@ -226,62 +207,42 @@ export default function AddChargeFixeModal({
               ))}
             </Select>
 
-            {/* Steps validation */}
-            <div className="flex items-center justify-between pt-6">
-              <Step label="Comptable" sub="Saisie" active={isFormValid} />
-
-              <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
-
-              <Step label="DGA" sub="Visa" />
-
-              <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
-
-              <Step label="DG" sub="Approbation" />
-
-              <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
-
-              <Step label="Paiement" sub="Décaissement" />
+            <div className="rounded-lg border border-gray-200 p-3">
+              <Switch
+                isSelected={Boolean(formValues.automatique)}
+                onValueChange={(value) => setValue('automatique', value, { shouldValidate: true })}
+                size="sm"
+              >
+                Charge automatique
+              </Switch>
             </div>
 
-            {/* Aperçu */}
-            {isFormValid && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="font-semibold">{formData.name}</p>
-                <Badge color="primary" variant="flat">
-                  {categories.find((c) => c.id === formData.category)?.nomCategorie}
-                </Badge>
-                <p className="text-blue-600 font-bold mt-2">
-                  {parseInt(formData.amount).toLocaleString()} FCFA
-                </p>
-              </div>
-            )}
-          </div>
+            <ModalFooter className="px-0">
+              <Button variant="bordered" onPress={handleClose}>
+                Annuler
+              </Button>
+
+              <Button
+                color="primary"
+                type="submit"
+                isDisabled={!isValid || isPending}
+                isLoading={isPending}
+              >
+                {isEditMode ? (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Enregistrer les modifications
+                  </>
+                ) : (
+                  <>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Enregistrer
+                  </>
+                )}
+              </Button>
+            </ModalFooter>
+          </form>
         </ModalBody>
-
-        <ModalFooter>
-          <Button variant="bordered" onPress={onClose}>
-            Annuler
-          </Button>
-
-          <Button
-            color="primary"
-            onPress={handleSubmit}
-            isDisabled={!isFormValid || isPending}
-            isLoading={isPending}
-          >
-            {isEditMode ? (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Enregistrer les modifications
-              </>
-            ) : (
-              <>
-                <Plus className="w-4 h-4 mr-2" />
-                Enregistrer
-              </>
-            )}
-          </Button>
-        </ModalFooter>
       </ModalContent>
     </Modal>
   );
