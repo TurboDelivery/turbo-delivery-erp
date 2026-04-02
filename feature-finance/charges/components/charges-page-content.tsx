@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  ArrowLeft,
-  Calendar,
-  ChevronDown,
-  Wallet,
-  TrendingUp,
+import { 
+  ArrowLeft, 
+  Calendar, 
+  ChevronDown, 
+  Wallet, 
+  TrendingUp, 
   Activity,
   Plus,
   Info,
@@ -14,10 +14,14 @@ import {
 import AddChargeFixeModal from './add-charge-fixe-modal';
 import AddDepenseVariableModal from './add-depense-variable-modal';
 import ChargesFixesTable from './charges-fixes-table';
+import { useChargesFixesQuery } from '../queries/charges-fixes.query';
+import { useChargesVariablesQuery } from '../queries/charges-variables.query';
 import { useSupprimerChargeFixeMutation } from '../queries/charge-fixe.mutation';
+import { useSupprimerChargeVariableMutation } from '../queries/charge-variable.mutation';
 import { IChargeFixe } from '../types/charge-fixe.type';
+import { IChargeVariable } from '../types/charge-variable.type';
 import DepensesVariablesTable from './depenses-variables-table';
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
+import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
 import { Card, CardBody } from '@heroui/react';
 
 export default function ChargesPageContent() {
@@ -25,43 +29,22 @@ export default function ChargesPageContent() {
   const [isDepenseVariableModalOpen, setIsDepenseVariableModalOpen] = useState(false);
   const [chargeToEdit, setChargeToEdit] = useState<IChargeFixe | null>(null);
   const [chargeToDelete, setChargeToDelete] = useState<IChargeFixe | null>(null);
+  const [chargeVariableToEdit, setChargeVariableToEdit] = useState<IChargeVariable | null>(null);
+  const [chargeVariableToDelete, setChargeVariableToDelete] = useState<IChargeVariable | null>(null);
 
   const { mutate: supprimerChargeFixe, isPending: isDeleting } = useSupprimerChargeFixeMutation();
+  const { mutate: supprimerChargeVariable, isPending: isDeletingVariable } = useSupprimerChargeVariableMutation();
 
-  const handleEditCharge = (charge: IChargeFixe) => {
-    setChargeToEdit(charge);
-    setIsModalOpen(true);
-  };
+  const { data: chargesFixesData, isLoading: isLoadingChargesFixees } = useChargesFixesQuery({
+    page: 0,
+    size: 50,
+  });
 
-  const handleDeleteRequest = (charge: IChargeFixe) => {
-    setChargeToDelete(charge);
-  };
-
-  const stats = {
-    totalMontant: 0,
-    totalTauxJournalier: 0,
-    activeCount: 0,
-  };
-
-  const depensesVariablesData = [
-    {
-      id: '1',
-      date: '20/03/2026',
-      designation: 'Maintenance Vehicule',
-      amount: '35 000 FCFA',
-      justificatif: '---',
-      enabled: true,
-    },
-    {
-      id: '2',
-      date: '15/03/2026',
-      designation: 'Essence Livraison',
-      amount: '15 000 FCFA',
-      justificatif: '---',
-      enabled: true,
-    },
-  ];
-
+  const { data: chargesVariablesData, isLoading: isLoadingChargesVariables } = useChargesVariablesQuery({
+    page: 0,
+    size: 50,
+  });
+  
   const handleOpenModal = () => {
     setChargeToEdit(null);
     setIsModalOpen(true);
@@ -72,16 +55,13 @@ export default function ChargesPageContent() {
     setChargeToEdit(null);
   };
 
-  const handleOpenDepenseVariableModal = () => {
-    setIsDepenseVariableModalOpen(true);
+  const handleEditCharge = (charge: IChargeFixe) => {
+    setChargeToEdit(charge);
+    setIsModalOpen(true);
   };
 
-  const handleCloseDepenseVariableModal = () => {
-    setIsDepenseVariableModalOpen(false);
-  };
-
-  const handleAddDepenseVariable = (_newDepense: unknown) => {
-    // TODO: brancher la creation reelle des depenses variables.
+  const handleDeleteRequest = (charge: IChargeFixe) => {
+    setChargeToDelete(charge);
   };
 
   const handleConfirmDelete = () => {
@@ -89,6 +69,40 @@ export default function ChargesPageContent() {
     supprimerChargeFixe(chargeToDelete.id, {
       onSuccess: () => setChargeToDelete(null),
     });
+  };
+
+  const handleAddCharge = (newCharge: any) => {
+    console.log('Nouvelle charge ajoutée:', newCharge);
+  };
+
+  const handleOpenDepenseVariableModal = () => {
+    setChargeVariableToEdit(null);
+    setIsDepenseVariableModalOpen(true);
+  };
+
+  const handleCloseDepenseVariableModal = () => {
+    setIsDepenseVariableModalOpen(false);
+    setChargeVariableToEdit(null);
+  };
+
+  const handleEditChargeVariable = (charge: IChargeVariable) => {
+    setChargeVariableToEdit(charge);
+    setIsDepenseVariableModalOpen(true);
+  };
+
+  const handleDeleteChargeVariable = (charge: IChargeVariable) => {
+    setChargeVariableToDelete(charge);
+  };
+
+  const handleConfirmDeleteVariable = () => {
+    if (!chargeVariableToDelete) return;
+    supprimerChargeVariable(chargeVariableToDelete.id, {
+      onSuccess: () => setChargeVariableToDelete(null),
+    });
+  };
+
+  const handleAddDepenseVariable = (newDepense: IChargeVariable) => {
+    console.log('Nouvelle dépense variable ajoutée:', newDepense);
   };
 
   return (
@@ -131,7 +145,7 @@ export default function ChargesPageContent() {
               </div>
               <span className="text-blue-100 text-sm font-medium">Total Charges Mensuelles</span>
             </div>
-            <p className="text-3xl font-bold mb-1">{stats.totalMontant.toLocaleString('fr-FR')} FCFA</p>
+            <p className="text-3xl font-bold mb-1">1 450 000 FCFA</p>
             <p className="text-blue-100 text-xs">Toutes charges confondues</p>
           </CardBody>
         </Card>
@@ -145,7 +159,7 @@ export default function ChargesPageContent() {
               </div>
               <span className="text-orange-100 text-sm font-medium">Point Mort Quotidien</span>
             </div>
-            <p className="text-3xl font-bold mb-1">{stats.totalTauxJournalier.toLocaleString('fr-FR')} FCFA</p>
+            <p className="text-3xl font-bold mb-1">48 333 FCFA</p>
             <p className="text-orange-100 text-xs">Coût par jour (Total ÷ 30)</p>
           </CardBody>
         </Card>
@@ -159,7 +173,7 @@ export default function ChargesPageContent() {
               </div>
               <span className="text-green-100 text-sm font-medium">Charges Actives</span>
             </div>
-            <p className="text-3xl font-bold mb-1">{stats.activeCount}</p>
+            <p className="text-3xl font-bold mb-1">7</p>
             <p className="text-green-100 text-xs">Lignes configurées</p>
           </CardBody>
         </Card>
@@ -180,7 +194,12 @@ export default function ChargesPageContent() {
         </div>
 
         <div className="overflow-x-auto">
-          <ChargesFixesTable onEdit={handleEditCharge} onDelete={handleDeleteRequest} />
+          <ChargesFixesTable
+            data={chargesFixesData?.content ?? []}
+            isLoading={isLoadingChargesFixees}
+            onEdit={handleEditCharge}
+            onDelete={handleDeleteRequest}
+          />
         </div>
       </Card>
 
@@ -199,7 +218,12 @@ export default function ChargesPageContent() {
         </div>
 
         <div className="overflow-x-auto">
-          <DepensesVariablesTable data={depensesVariablesData} />
+          <DepensesVariablesTable
+            data={chargesVariablesData?.content ?? []}
+            isLoading={isLoadingChargesVariables}
+            onEdit={handleEditChargeVariable}
+            onDelete={handleDeleteChargeVariable}
+          />
         </div>
 
         <div className="p-4 border-t border-gray-200 bg-gray-50/50 text-center">
@@ -221,7 +245,7 @@ export default function ChargesPageContent() {
           </div>
           <div>
             <p className="text-blue-900 text-sm">
-              <span className="font-semibold">Astuce :</span> La masse salariale est calculée automatiquement depuis le module &quot;Personnel TURBO&quot;. Seuls les employés actifs sont comptabilisés.
+              <span className="font-semibold">Astuce :</span> La masse salariale est calculée automatiquement depuis le module "Personnel TURBO". Seuls les employés actifs sont comptabilisés.
             </p>
           </div>
         </CardBody>
@@ -231,6 +255,7 @@ export default function ChargesPageContent() {
       <AddChargeFixeModal 
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        onAdd={handleAddCharge}
         chargeToEdit={chargeToEdit}
       />
 
@@ -263,12 +288,42 @@ export default function ChargesPageContent() {
         </ModalContent>
       </Modal>
 
-      {/* Modal d'ajout de dépense variable */}
+      {/* Modal d'ajout/édition de dépense variable */}
       <AddDepenseVariableModal 
         isOpen={isDepenseVariableModalOpen}
         onClose={handleCloseDepenseVariableModal}
         onAdd={handleAddDepenseVariable}
+        chargeToEdit={chargeVariableToEdit}
       />
+
+      {/* Modal confirmation suppression dépense variable */}
+      <Modal
+        isOpen={!!chargeVariableToDelete}
+        onClose={() => setChargeVariableToDelete(null)}
+        size="sm"
+      >
+        <ModalContent>
+          <ModalHeader className="text-red-600">Supprimer la dépense variable</ModalHeader>
+          <ModalBody>
+            <p className="text-gray-700 text-sm">
+              Voulez-vous vraiment supprimer{' '}
+              <span className="font-semibold">{chargeVariableToDelete?.designation}</span> ? Cette action est irréversible.
+            </p>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="bordered" onPress={() => setChargeVariableToDelete(null)}>
+              Annuler
+            </Button>
+            <Button
+              color="danger"
+              onPress={handleConfirmDeleteVariable}
+              isLoading={isDeletingVariable}
+            >
+              Supprimer
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }
