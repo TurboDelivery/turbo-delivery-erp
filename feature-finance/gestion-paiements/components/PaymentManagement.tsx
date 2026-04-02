@@ -1,8 +1,11 @@
 ﻿'use client';
 
 import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
+import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
 import { useActionChargeFixeMutation } from '@/feature-finance/charges/queries/charge-fixe.mutation';
+import { useActionChargeVariableMutation } from '@/feature-finance/charges/queries/charge-variable.mutation';
 import { IChargeFixe, StatutChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
+import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { Button, Card, CardBody, Chip, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { CheckCircle, Clock, Wallet } from 'lucide-react';
@@ -39,6 +42,7 @@ const STATUT_COLOR: Record<StatutChargeFixe, 'warning' | 'primary' | 'success' |
 };
 
 const PENDING_STATUTS: StatutChargeFixe[] = ['PENDING', 'EN_ATTENTE_DGA', 'VALIDE_DGA', 'APPROUVE_DG'];
+const PENDING_STATUTS_VAR = ['EN_ATTENTE_DGA', 'VALIDE_DGA', 'APPROUVE_DG'];
 
 function getEffectiveStatut(charge: IChargeFixe): StatutChargeFixe {
   if (charge.statut === 'PENDING' || charge.statut === 'EN_ATTENTE_DGA' || charge.statut === 'VALIDE_DGA') {
@@ -48,35 +52,91 @@ function getEffectiveStatut(charge: IChargeFixe): StatutChargeFixe {
   return charge.statut;
 }
 
+function getEffectiveStatutVariable(charge: IChargeVariable): string {
+  if (charge.statut === 'EN_ATTENTE_DGA' || charge.statut === 'VALIDE_DGA') {
+    if (charge.approuvePar && charge.dateApprobationDG) return 'APPROUVE_DG';
+    if (charge.validePar && charge.dateValidationDGA) return 'VALIDE_DGA';
+  }
+  return charge.statut;
+}
+
+type UnifiedCharge = {
+  id: string;
+  type: 'FIXE' | 'VARIABLE';
+  designation: string;
+  montant: number;
+  cyclePaiement?: string;
+  effectiveStatut: string;
+  dateDecaissement?: string | null;
+};
+
+function fixeToUnified(c: IChargeFixe): UnifiedCharge {
+  return {
+    id: c.id,
+    type: 'FIXE',
+    designation: c.designation,
+    montant: c.montant,
+    cyclePaiement: c.cyclePaiement,
+    effectiveStatut: getEffectiveStatut(c),
+    dateDecaissement: c.dateDecaissement,
+  };
+}
+
+function variableToUnified(c: IChargeVariable): UnifiedCharge {
+  return {
+    id: c.id,
+    type: 'VARIABLE',
+    designation: c.designation,
+    montant: c.montant,
+    cyclePaiement: undefined,
+    effectiveStatut: getEffectiveStatutVariable(c),
+    dateDecaissement: c.dateDecaissement,
+  };
+}
+
 export default function PaymentManagement() {
   const { data: session } = useSession();
   const [selectedCycle, setSelectedCycle] = useState<string>('all');
 
-  const { data: chargesFixesPage, isLoading } = useChargesFixesQuery({ page: 0, size: 200 });
-  const actionMutation = useActionChargeFixeMutation();
+  const { data: chargesFixesPage, isLoading: isLoadingFixes } = useChargesFixesQuery({ page: 0, size: 200 });
+  const { data: chargesVariablesPage, isLoading: isLoadingVariables } = useChargesVariablesQuery({ page: 0, size: 200 });
+  const actionFixeMutation = useActionChargeFixeMutation();
+  const actionVariableMutation = useActionChargeVariableMutation();
 
-  const allCharges: IChargeFixe[] = chargesFixesPage?.content ?? [];
+  const isLoading = isLoadingFixes || isLoadingVariables;
+
+  const allCharges: UnifiedCharge[] = [
+    ...(chargesFixesPage?.content ?? []).map(fixeToUnified),
+    ...(chargesVariablesPage?.content ?? []).map(variableToUnified),
+  ];
 
   const filteredCharges =
     selectedCycle === 'all'
       ? allCharges
       : allCharges.filter((c) => c.cyclePaiement === selectedCycle);
 
-  const pendingCharges = filteredCharges.filter((c) => PENDING_STATUTS.includes(getEffectiveStatut(c)));
-  const decaisseCharges = filteredCharges.filter((c) => { const s = getEffectiveStatut(c); return s === 'DECAISSE' || s === 'PAID'; });
-  const rejectedCharges = filteredCharges.filter((c) => { const s = getEffectiveStatut(c); return s === 'REJETE_DGA' || s === 'REJETE_DG'; });
+  const pendingCharges = filteredCharges.filter((c) =>
+    c.type === 'FIXE'
+      ? PENDING_STATUTS.includes(c.effectiveStatut as StatutChargeFixe)
+      : PENDING_STATUTS_VAR.includes(c.effectiveStatut),
+  );
+  const decaisseCharges = filteredCharges.filter((c) => c.effectiveStatut === 'DECAISSE' || c.effectiveStatut === 'PAID');
+  const rejectedCharges = filteredCharges.filter((c) => c.effectiveStatut === 'REJETE_DGA' || c.effectiveStatut === 'REJETE_DG');
 
   const totalPending = pendingCharges.reduce((sum, c) => sum + c.montant, 0);
   const totalDecaisse = decaisseCharges.reduce((sum, c) => sum + c.montant, 0);
   const totalAll = filteredCharges.reduce((sum, c) => sum + c.montant, 0);
 
-  const handleDecaisser = (charge: IChargeFixe) => {
-    actionMutation.mutate({
-      id: charge.id,
-      action: 'decaisser',
-      dto: { par: session?.user?.name ?? 'Inconnu' },
-    });
+  const handleDecaisser = (charge: UnifiedCharge) => {
+    const dto = { par: session?.user?.name ?? 'Inconnu' };
+    if (charge.type === 'FIXE') {
+      actionFixeMutation.mutate({ id: charge.id, action: 'decaisser', dto });
+    } else {
+      actionVariableMutation.mutate({ id: charge.id, action: 'decaisser', dto });
+    }
   };
+
+  const isPending = actionFixeMutation.isPending || actionVariableMutation.isPending;
 
   const cycles = [
     { key: 'all', label: 'Tous les cycles' },
@@ -165,9 +225,10 @@ export default function PaymentManagement() {
             ) : pendingCharges.length === 0 ? (
               <p className="text-sm text-gray-500 py-4 text-center">Aucune charge en attente</p>
             ) : (
-              <Table aria-label="Charges fixes en attente de décaissement">
+              <Table aria-label="Charges en attente de décaissement">
                 <TableHeader>
                   <TableColumn>DÉSIGNATION</TableColumn>
+                  <TableColumn>TYPE</TableColumn>
                   <TableColumn>CYCLE</TableColumn>
                   <TableColumn>MONTANT</TableColumn>
                   <TableColumn>STATUT</TableColumn>
@@ -175,29 +236,42 @@ export default function PaymentManagement() {
                 </TableHeader>
                 <TableBody>
                   {pendingCharges.map((charge) => (
-                    <TableRow key={charge.id}>
+                    <TableRow key={`${charge.type}-${charge.id}`}>
                       <TableCell className="text-sm font-medium text-gray-900">
                         {charge.designation}
                       </TableCell>
+                      <TableCell>
+                        <Chip
+                          color={charge.type === 'FIXE' ? 'default' : 'warning'}
+                          variant="flat"
+                          size="sm"
+                        >
+                          {charge.type === 'FIXE' ? 'Fixe' : 'Variable'}
+                        </Chip>
+                      </TableCell>
                       <TableCell className="text-sm text-gray-600">
-                        {CYCLE_TO_LABEL[charge.cyclePaiement] ?? charge.cyclePaiement}
+                        {charge.cyclePaiement ? (CYCLE_TO_LABEL[charge.cyclePaiement] ?? charge.cyclePaiement) : '—'}
                       </TableCell>
                       <TableCell className="text-sm font-semibold text-gray-900">
                         {formatCFA(charge.montant)}
                       </TableCell>
                       <TableCell>
-                        <Chip color={STATUT_COLOR[getEffectiveStatut(charge)]} variant="flat" size="sm">
-                          {STATUT_LABEL[getEffectiveStatut(charge)]}
+                        <Chip
+                          color={STATUT_COLOR[charge.effectiveStatut as StatutChargeFixe] ?? 'default'}
+                          variant="flat"
+                          size="sm"
+                        >
+                          {STATUT_LABEL[charge.effectiveStatut as StatutChargeFixe] ?? charge.effectiveStatut}
                         </Chip>
                       </TableCell>
                       <TableCell className="text-right">
-                        {getEffectiveStatut(charge) === 'APPROUVE_DG' ? (
+                        {charge.effectiveStatut === 'APPROUVE_DG' ? (
                           <Button
                             color="success"
                             size="sm"
                             startContent={<CheckCircle className="w-4 h-4" />}
                             onClick={() => handleDecaisser(charge)}
-                            isLoading={actionMutation.isPending}
+                            isLoading={isPending}
                           >
                             Décaisser
                           </Button>
@@ -229,6 +303,7 @@ export default function PaymentManagement() {
               <Table aria-label="Historique des décaissements">
                 <TableHeader>
                   <TableColumn>DÉSIGNATION</TableColumn>
+                  <TableColumn>TYPE</TableColumn>
                   <TableColumn>CYCLE</TableColumn>
                   <TableColumn>MONTANT</TableColumn>
                   <TableColumn>DATE DÉCAISSEMENT</TableColumn>
@@ -236,12 +311,21 @@ export default function PaymentManagement() {
                 </TableHeader>
                 <TableBody>
                   {decaisseCharges.map((charge) => (
-                    <TableRow key={charge.id}>
+                    <TableRow key={`${charge.type}-${charge.id}`}>
                       <TableCell className="text-sm font-medium text-gray-900">
                         {charge.designation}
                       </TableCell>
+                      <TableCell>
+                        <Chip
+                          color={charge.type === 'FIXE' ? 'default' : 'warning'}
+                          variant="flat"
+                          size="sm"
+                        >
+                          {charge.type === 'FIXE' ? 'Fixe' : 'Variable'}
+                        </Chip>
+                      </TableCell>
                       <TableCell className="text-sm text-gray-600">
-                        {CYCLE_TO_LABEL[charge.cyclePaiement] ?? charge.cyclePaiement}
+                        {charge.cyclePaiement ? (CYCLE_TO_LABEL[charge.cyclePaiement] ?? charge.cyclePaiement) : '—'}
                       </TableCell>
                       <TableCell className="text-sm font-semibold text-gray-900">
                         {formatCFA(charge.montant)}
@@ -275,25 +359,35 @@ export default function PaymentManagement() {
               <Table aria-label="Charges rejetées">
                 <TableHeader>
                   <TableColumn>DÉSIGNATION</TableColumn>
+                  <TableColumn>TYPE</TableColumn>
                   <TableColumn>CYCLE</TableColumn>
                   <TableColumn>MONTANT</TableColumn>
                   <TableColumn>STATUT</TableColumn>
                 </TableHeader>
                 <TableBody>
                   {rejectedCharges.map((charge) => (
-                    <TableRow key={charge.id}>
+                    <TableRow key={`${charge.type}-${charge.id}`}>
                       <TableCell className="text-sm font-medium text-gray-900">
                         {charge.designation}
                       </TableCell>
+                      <TableCell>
+                        <Chip
+                          color={charge.type === 'FIXE' ? 'default' : 'warning'}
+                          variant="flat"
+                          size="sm"
+                        >
+                          {charge.type === 'FIXE' ? 'Fixe' : 'Variable'}
+                        </Chip>
+                      </TableCell>
                       <TableCell className="text-sm text-gray-600">
-                        {CYCLE_TO_LABEL[charge.cyclePaiement] ?? charge.cyclePaiement}
+                        {charge.cyclePaiement ? (CYCLE_TO_LABEL[charge.cyclePaiement] ?? charge.cyclePaiement) : '—'}
                       </TableCell>
                       <TableCell className="text-sm font-semibold text-gray-900">
                         {formatCFA(charge.montant)}
                       </TableCell>
                       <TableCell>
                         <Chip color="danger" variant="flat" size="sm">
-                          {STATUT_LABEL[getEffectiveStatut(charge)]}
+                          {STATUT_LABEL[charge.effectiveStatut as StatutChargeFixe] ?? charge.effectiveStatut}
                         </Chip>
                       </TableCell>
                     </TableRow>
