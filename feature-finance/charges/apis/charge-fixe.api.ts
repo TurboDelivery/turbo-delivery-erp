@@ -1,5 +1,5 @@
 import { api } from '@/lib/api';
-import { IChargeFixe, IChargeFixeCreateDTO, IChargeFixeUpdateDTO, IChargeFixeParams } from '../types/charge-fixe.type';
+import { IChargeFixe, IChargeFixeCreateDTO, IChargeFixeUpdateDTO, IChargeFixeParams, IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
 import { PaginatedResponse } from '@/types/general';
 
 export interface IChargeFixeAPI {
@@ -7,6 +7,11 @@ export interface IChargeFixeAPI {
   modifierChargeFixe(id: string, data: IChargeFixeUpdateDTO): Promise<IChargeFixe>;
   supprimerChargeFixe(id: string): Promise<void>;
   obtenirChargesFixesPagination(params: IChargeFixeParams): Promise<PaginatedResponse<IChargeFixe>>;
+  validerDGAChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
+  approuverDGChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
+  rejeterDGAChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
+  rejeterDGChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
+  decaisserChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
 }
 
 export const chargeFixeAPI: IChargeFixeAPI = {
@@ -38,11 +43,51 @@ export const chargeFixeAPI: IChargeFixeAPI = {
     if (params.page !== undefined) searchParams['page'] = String(params.page);
     if (params.size !== undefined) searchParams['size'] = String(params.size);
     if (params.designation) searchParams['designation'] = params.designation;
+    if (params.statut) searchParams['statut'] = params.statut;
 
     return api.request<PaginatedResponse<IChargeFixe>>({
       endpoint: `/erp/charges-fixes/pagination`,
       method: 'GET',
       searchParams,
+    });
+  },
+
+  validerDGAChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe> {
+    return api.request<IChargeFixe>({
+      endpoint: `/erp/charges-fixes/${id}/valider-dga`,
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  approuverDGChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe> {
+    return api.request<IChargeFixe>({
+      endpoint: `/erp/charges-fixes/${id}/approuver-dg`,
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  rejeterDGAChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe> {
+    return api.request<IChargeFixe>({
+      endpoint: `/erp/charges-fixes/${id}/rejeter-dga`,
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  rejeterDGChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe> {
+    return api.request<IChargeFixe>({
+      endpoint: `/erp/charges-fixes/${id}/rejeter-dg`,
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  decaisserChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe> {
+    return api.request<IChargeFixe>({
+      endpoint: `/erp/charges-fixes/${id}/payer`,
+      method: 'PATCH',
     });
   },
 };

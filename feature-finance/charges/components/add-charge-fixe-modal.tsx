@@ -244,7 +244,7 @@ export default function AddChargeFixeModal({
             </div>
 
             {/* Aperçu */}
-            {isFormValid && (
+            {/* {isFormValid && (
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="font-semibold">{formData.name}</p>
                 <Badge color="primary" variant="flat">
@@ -254,7 +254,7 @@ export default function AddChargeFixeModal({
                   {parseInt(formData.amount).toLocaleString()} FCFA
                 </p>
               </div>
-            )}
+            )} */}
           </div>
         </ModalBody>
 

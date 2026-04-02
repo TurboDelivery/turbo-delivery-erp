@@ -21,6 +21,7 @@ import {
 import { Spinner } from '@heroui/react';
 import { useSession } from 'next-auth/react';
 import { useActionChargeVariableMutation, ActionWorkflow } from '@/feature-finance/charges/queries/charge-variable.mutation';
+import { useActionChargeFixeMutation } from '@/feature-finance/charges/queries/charge-fixe.mutation';
 import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
 import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
 import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
@@ -41,7 +42,7 @@ const S_REJETE_DGA     = 'Annulé par DGA';
 const S_REJETE_DG      = 'Rejeté par DG';
 
 // Statuts terminaux (plus rien à faire)
-const STATUTS_TERMINAUX = [S_DECAISSE, S_VUE_DGA, S_REJETE_DGA, S_REJETE_DG];
+const STATUTS_TERMINAUX = [S_DECAISSE, S_VUE_DGA, S_REJETE_DGA, S_REJETE_DG, 'DECAISSE', 'PAID', 'REJETE_DGA', 'REJETE_DG'];
 
 // ─── Mapping API statut → statut page ─────────────────────────────────────────
 const CV_STATUT_TO_PAGE: Record<string, string> = {
@@ -52,6 +53,7 @@ const CV_STATUT_TO_PAGE: Record<string, string> = {
   APPROUVE_DG:    S_APPROUVE,
   REJETE_DG:      S_REJETE_DG,
   DECAISSE:       S_DECAISSE,
+  PAID:           S_DECAISSE,
 };
 
 // Mapping role → ActionWorkflow
@@ -86,6 +88,17 @@ function chargeVariableToDepense(cv: IChargeVariable): IDepense {
 }
 
 function chargeFixeToDepense(cf: IChargeFixe): IDepense {
+  // Backend bug workaround: statut can stay stale even after DGA/DG actions.
+  // Infer the effective statut from workflow fields when statut is inconsistent.
+  let effectiveStatut = cf.statut as string;
+  if (cf.statut === 'PENDING' || cf.statut === 'EN_ATTENTE_DGA' || cf.statut === 'VALIDE_DGA') {
+    if (cf.approuvePar && cf.dateApprobationDG) {
+      effectiveStatut = 'APPROUVE_DG';
+    } else if (cf.validePar && cf.dateValidationDGA) {
+      effectiveStatut = 'VALIDE_DGA';
+    }
+  }
+
   return {
     id:            cf.id,
     libelle:       cf.designation,
@@ -94,7 +107,7 @@ function chargeFixeToDepense(cf: IChargeFixe): IDepense {
     dateDepense:   cf.createdAt.split('T')[0],
     typeDepense:   'FIXE',
     sourcePaiement: 'Prélèvement automatique',
-    statut:        CV_STATUT_TO_PAGE[cf.statut] ?? cf.statut,
+    statut:        CV_STATUT_TO_PAGE[effectiveStatut] ?? effectiveStatut,
     categorie:     cf.categorie
       ? { id: cf.categorie.id, nomCategorie: cf.categorie.nomCategorie, description: cf.categorie.description ?? '' }
       : { id: '', nomCategorie: '—', description: '' },
@@ -118,7 +131,7 @@ function fmtDate(d?: string | null) {
 }
 
 function isDGAPending(statut: string) {
-  return statut === S_EN_ATTENTE_DGA || statut === 'PENDING';
+  return statut === S_EN_ATTENTE_DGA;
 }
 function isDGPending(statut: string) {
   return statut === S_EN_ATTENTE_DG;
@@ -484,7 +497,8 @@ export default function ValidationPageContent() {
   const isLoading = isLoadingVariables || isLoadingFixes;
 
   const { data: session } = useSession();
-  const actionMutation = useActionChargeVariableMutation();
+  const actionVariableMutation = useActionChargeVariableMutation();
+  const actionFixeMutation = useActionChargeFixeMutation();
 
   // Combiner les deux sources en IDepense[] pour les helpers existants
   const allDepenses = useMemo<IDepense[]>(() => {
@@ -568,18 +582,20 @@ export default function ValidationPageContent() {
   const acceptLabel: Record<Role, string> = { comptable: 'Décaisser', dga: 'Viser', dg: 'Approuver' };
 
   const handleAccept = (id: string) => {
-    actionMutation.mutate({
-      id,
-      action: ROLE_ACCEPT_ACTION[userRole],
-      dto: { par: session?.user?.name ?? 'Inconnu', commentaire: '' },
-    });
+    const dto = { par: session?.user?.name ?? 'Inconnu', commentaire: '' };
+    if (currentDep?.typeDepense === 'FIXE') {
+      actionFixeMutation.mutate({ id, action: ROLE_ACCEPT_ACTION[userRole], dto });
+    } else {
+      actionVariableMutation.mutate({ id, action: ROLE_ACCEPT_ACTION[userRole], dto });
+    }
   };
   const handleReject = (id: string) => {
-    actionMutation.mutate({
-      id,
-      action: ROLE_REJECT_ACTION[userRole],
-      dto: { par: session?.user?.name ?? 'Inconnu', commentaire: '' },
-    });
+    const dto = { par: session?.user?.name ?? 'Inconnu', commentaire: '' };
+    if (currentDep?.typeDepense === 'FIXE') {
+      actionFixeMutation.mutate({ id, action: ROLE_REJECT_ACTION[userRole], dto });
+    } else {
+      actionVariableMutation.mutate({ id, action: ROLE_REJECT_ACTION[userRole], dto });
+    }
   };
   const handleModifier = (_id: string, _updates: Partial<IDepense>) => {
     // TODO: appeler l'API de modification de charge variable quand l'endpoint est prêt
@@ -715,7 +731,7 @@ export default function ValidationPageContent() {
                   acceptLabel={acceptLabel[userRole]}
                   canAct={canAct}
                   isDGA={userRole === 'dga'}
-                  isPending={actionMutation.isPending}
+                  isPending={actionVariableMutation.isPending || actionFixeMutation.isPending}
                 />
               )
             ) : (

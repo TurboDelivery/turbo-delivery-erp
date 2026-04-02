@@ -2,7 +2,7 @@
 
 import { ActionResponse } from '@/types';
 import { chargeFixeAPI } from '../apis/charge-fixe.api';
-import { IChargeFixe, IChargeFixeCreateDTO, IChargeFixeUpdateDTO, IChargeFixeParams } from '../types/charge-fixe.type';
+import { IChargeFixe, IChargeFixeCreateDTO, IChargeFixeUpdateDTO, IChargeFixeParams, IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
 import { PaginatedResponse } from '@/types/general';
 import { handleServerActionError } from '@/utils/handleServerActionError';
 
@@ -62,5 +62,65 @@ export const obtenirChargesFixesAction = async (
     };
   } catch (error) {
     return handleServerActionError(error, 'Erreur lors de la récupération des charges fixes');
+  }
+};
+
+export const validerDGAChargeFixeAction = async (
+  id: string,
+  dto: IWorkflowDecisionDtoFixe,
+): Promise<ActionResponse<IChargeFixe>> => {
+  try {
+    const response = await chargeFixeAPI.validerDGAChargeFixe(id, dto);
+    return { success: true, data: response, message: 'Charge fixe validée par DGA' };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors de la validation DGA');
+  }
+};
+
+export const approuverDGChargeFixeAction = async (
+  id: string,
+  dto: IWorkflowDecisionDtoFixe,
+): Promise<ActionResponse<IChargeFixe>> => {
+  try {
+    const response = await chargeFixeAPI.approuverDGChargeFixe(id, dto);
+    return { success: true, data: response, message: 'Charge fixe approuvée par DG' };
+  } catch (error) {
+    return handleServerActionError(error, "Erreur lors de l'approbation DG");
+  }
+};
+
+export const rejeterDGAChargeFixeAction = async (
+  id: string,
+  dto: IWorkflowDecisionDtoFixe,
+): Promise<ActionResponse<IChargeFixe>> => {
+  try {
+    const response = await chargeFixeAPI.rejeterDGAChargeFixe(id, dto);
+    return { success: true, data: response, message: 'Charge fixe rejetée par DGA' };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors du rejet DGA');
+  }
+};
+
+export const rejeterDGChargeFixeAction = async (
+  id: string,
+  dto: IWorkflowDecisionDtoFixe,
+): Promise<ActionResponse<IChargeFixe>> => {
+  try {
+    const response = await chargeFixeAPI.rejeterDGChargeFixe(id, dto);
+    return { success: true, data: response, message: 'Charge fixe rejetée par DG' };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors du rejet DG');
+  }
+};
+
+export const decaisserChargeFixeAction = async (
+  id: string,
+  dto: IWorkflowDecisionDtoFixe,
+): Promise<ActionResponse<IChargeFixe>> => {
+  try {
+    const response = await chargeFixeAPI.decaisserChargeFixe(id, dto);
+    return { success: true, data: response, message: 'Charge fixe décaissée avec succès' };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors du décaissement');
   }
 };
