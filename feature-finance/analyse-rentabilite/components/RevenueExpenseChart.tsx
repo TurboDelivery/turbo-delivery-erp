@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { useGlobalStats } from '@/feature-finance/dashboard/queries/global-stats.query';
+import { useDailyStatsQuery } from '@/feature-finance/analyse-rentabilite/queries/daily-stats.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 interface RevenueExpenseChartProps {
@@ -19,36 +19,19 @@ interface RevenueExpenseChartProps {
 }
 
 export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartProps) {
-  const { data: globalStats, isLoading } = useGlobalStats({
-    debut,
-    fin,
-  });
+  const { data: dailyStats, isLoading } = useDailyStatsQuery({ debut, fin });
 
-  // Créer les données pour le graphique basées sur les valeurs totales
   const data = React.useMemo(() => {
-    if (!globalStats) return [];
-    
-    const chiffreAffaire = globalStats.chiffreAffaire || 0;
-    const depenses = globalStats.depenses || 0;
-    
-    // Créer une progression journalière réaliste sur la période
-    const jours = [
-      'Semaine 1',
-      'Semaine 2', 
-      'Semaine 3',
-      'Semaine 4',
-      'Semaine 5'
-    ];
-    
-    return jours.map((jour, index) => {
-      const progression = (index + 1) / jours.length;
-      return {
-        date: jour,
-        ca: Math.round((chiffreAffaire * progression) / 1000), // Convertir en milliers
-        depenses: Math.round((depenses * progression) / 1000), // Convertir en milliers
-      };
-    });
-  }, [globalStats]);
+    if (!dailyStats) return [];
+
+    return Object.entries(dailyStats)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([dateStr, values]) => ({
+        date: new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+        ca: Math.round(values.ca / 1000),
+        depenses: Math.round(values.depenses / 1000),
+      }));
+  }, [dailyStats]);
   return (
     <div className="w-full bg-white rounded-lg p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-gray-800 mb-6">
@@ -79,18 +62,16 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
                 dataKey="date"
                 axisLine={true}
                 tickLine={false}
-                tick={{ fill: '#9ca3af', fontSize: 12 }}
-                dy={0}
-                angle={0}
-                textAnchor="middle"
-                height={40}
-                interval={0}
+                tick={{ fill: '#9ca3af', fontSize: 11 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+                interval="preserveStartEnd"
               />
               <YAxis
                 axisLine={true}
                 tickLine={false}
                 tick={{ fill: '#9ca3af', fontSize: 12 }}
-                ticks={[0, 10000, 20000, 30000]}
                 dx={-10}
                 label={{ value: 'FCFA (x1000)', angle: -90, position: 'insideLeft', style: { fill: '#9ca3af', fontSize: 12 } }}
               />
