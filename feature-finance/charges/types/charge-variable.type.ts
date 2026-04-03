@@ -44,7 +44,6 @@ export interface IChargeVariableCreateDTO {
   cyclePaiement: CyclePaiement;
   montant: number;
   echeanceJour: number;
-  automatique: boolean;
   description?: string;
   justificatif?: string;
   creerPar?: string;
@@ -56,7 +55,6 @@ export interface IChargeVariableUpdateDTO {
   cyclePaiement: CyclePaiement;
   montant: number;
   echeanceJour: number;
-  automatique: boolean;
   description?: string;
   justificatif?: string;
 }

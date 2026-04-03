@@ -11,7 +11,6 @@ import {
   ModalHeader,
   Select,
   SelectItem,
-  Switch,
   Textarea,
   Badge,
 } from '@heroui/react';
@@ -61,7 +60,6 @@ const EMPTY_FORM = {
   cycle: 'mensuel',
   montant: '',
   echeanceJour: '1',
-  automatique: false,
   description: '',
 };
 
@@ -92,7 +90,6 @@ export default function AddDepenseVariableModal({
         cycle: CYCLE_REVERSE[chargeToEdit.cyclePaiement] ?? 'mensuel',
         montant: String(chargeToEdit.montant),
         echeanceJour: String(chargeToEdit.echeanceJour),
-        automatique: chargeToEdit.automatique,
         description: chargeToEdit.description ?? '',
       });
     } else if (isOpen && !chargeToEdit) {
@@ -118,7 +115,6 @@ export default function AddDepenseVariableModal({
       cyclePaiement: CYCLE_MAP[formData.cycle] ?? 'MENSUEL',
       montant: parseInt(formData.montant, 10),
       echeanceJour: parseInt(formData.echeanceJour, 10),
-      automatique: formData.automatique,
       description: formData.description || undefined,
       creerPar: session?.user?.name ?? '',
     };
@@ -143,7 +139,7 @@ export default function AddDepenseVariableModal({
     }
   };
 
-  const handleInputChange = (field: string, value: string | boolean) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -172,42 +168,44 @@ export default function AddDepenseVariableModal({
 
         <ModalBody>
           <div className="space-y-6">
-            <Input
-              label="Désignation"
-              placeholder="Ex: Carburant, Maintenance..."
-              value={formData.designation}
-              onChange={(e) => handleInputChange('designation', e.target.value)}
-              variant="bordered"
-            />
-
-            <Select
-              label="Catégorie"
-              selectedKeys={formData.category ? [formData.category] : []}
-              onSelectionChange={(keys) =>
-                handleInputChange('category', Array.from(keys)[0] as string)
-              }
-              variant="bordered"
-              isLoading={isLoadingCategories}
-            >
-              {categories.map((cat) => (
-                <SelectItem key={cat.id}>{cat.nomCategorie}</SelectItem>
-              ))}
-            </Select>
-
-            <Select
-              label="Cycle de paiement"
-              selectedKeys={[formData.cycle]}
-              onSelectionChange={(keys) =>
-                handleInputChange('cycle', Array.from(keys)[0] as string)
-              }
-              variant="bordered"
-            >
-              {cycles.map((c) => (
-                <SelectItem key={c.value}>{c.label}</SelectItem>
-              ))}
-            </Select>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Désignation"
+                placeholder="Ex: Carburant, Maintenance..."
+                value={formData.designation}
+                onChange={(e) => handleInputChange('designation', e.target.value)}
+                variant="bordered"
+              />
+
+              <Select
+                label="Catégorie"
+                selectedKeys={formData.category ? [formData.category] : []}
+                onSelectionChange={(keys) =>
+                  handleInputChange('category', Array.from(keys)[0] as string)
+                }
+                variant="bordered"
+                isLoading={isLoadingCategories}
+              >
+                {categories.map((cat) => (
+                  <SelectItem key={cat.id}>{cat.nomCategorie}</SelectItem>
+                ))}
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Select
+                label="Cycle de paiement"
+                selectedKeys={[formData.cycle]}
+                onSelectionChange={(keys) =>
+                  handleInputChange('cycle', Array.from(keys)[0] as string)
+                }
+                variant="bordered"
+              >
+                {cycles.map((c) => (
+                  <SelectItem key={c.value}>{c.label}</SelectItem>
+                ))}
+              </Select>
+
               <Input
                 label="Montant FCFA"
                 type="number"
@@ -279,15 +277,6 @@ export default function AddDepenseVariableModal({
                   Fichier actuel : {chargeToEdit.justificatif.split('/').pop()}
                 </p>
               )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Switch
-                isSelected={formData.automatique}
-                onValueChange={(val) => handleInputChange('automatique', val)}
-                size="sm"
-              />
-              <span className="text-sm text-gray-700">Paiement automatique</span>
             </div>
 
             {/* Workflow */}

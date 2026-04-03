@@ -22,7 +22,6 @@ function buildChargeVariableFormData(data: IChargeVariableCreateDTO, file?: File
   fd.append('cyclePaiement', data.cyclePaiement);
   fd.append('montant', String(data.montant));
   fd.append('echeanceJour', String(data.echeanceJour));
-  fd.append('automatique', String(data.automatique));
   if (data.description) fd.append('description', data.description);
   if (data.creerPar) fd.append('creerPar', data.creerPar);
   if (file) fd.append('justificatif', file);

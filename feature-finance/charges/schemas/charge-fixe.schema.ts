@@ -12,7 +12,6 @@ export const chargeFixeCreateSchema = z.object({
     .int("Le jour d'echeance doit etre un entier")
     .min(1, "Le jour d'echeance doit etre compris entre 1 et 31")
     .max(31, "Le jour d'echeance doit etre compris entre 1 et 31"),
-  automatique: z.boolean(),
 });
 
 export const chargeFixeUpdateSchema = chargeFixeCreateSchema.partial();
