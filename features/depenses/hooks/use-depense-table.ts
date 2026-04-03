@@ -10,6 +10,7 @@ interface DepenseFilters extends GenericTableFilters {
   debut?: Date;
   fin?: Date;
   categoriesDepense?: string[] | null;
+  typeDepense?: 'FIXE' | 'VARIABLE';
 }
 
 const initialFilters: DepenseFilters = {
@@ -56,10 +57,19 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
       fin: currentFilters.fin,
       // Envoyer les filtres de catégories au backend
       categoriesDepense: currentFilters.categoriesDepense || undefined,
+      typeDepense: currentFilters.typeDepense,
       orderBy: currentFilters.orderBy,
       orderDirection: currentFilters.orderDirection as 'asc' | 'desc' | undefined,
     };
-  }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.categoriesDepense, currentFilters.orderBy, currentFilters.orderDirection]);
+  }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.categoriesDepense, currentFilters.typeDepense, currentFilters.orderBy, currentFilters.orderDirection]);
+
+  const setTypeDepense = (typeDepense?: 'FIXE' | 'VARIABLE') => {
+    syncedSetFilters((prev) => ({
+      ...prev,
+      typeDepense,
+      page: 0,
+    }));
+  };
 
   const { data: allDepensesData, isLoading: allDepensesLoading, error, isError, isFetching } = useDepensesListQuery(currentSearchParams);
   const allDepenses = allDepensesData?.content || [];
@@ -154,6 +164,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
     error,
     filters: currentFilters,
     setSelectedCategories,
+    setTypeDepense,
     pagination,
     handleDateChange,
   };

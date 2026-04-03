@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ArrowLeft, Calendar, ChevronDown, Info, Plus } from 'lucide-react';
+import Link from 'next/link';
 import AddChargeFixeModal from './add-charge-fixe-modal';
 import AddDepenseVariableModal from './add-depense-variable-modal';
 import ChargesFixesTable from './charges-fixes-table';
@@ -136,7 +137,7 @@ export default function ChargesPageContent() {
         </div>
 
         <div className="p-4 border-t border-gray-200 bg-gray-50/50 text-center">
-          <Button variant="light" size="sm" className="text-blue-600 hover:text-blue-700">
+          <Button as={Link} href="/finance/charges/details" variant="light" size="sm" className="text-blue-600 hover:text-blue-700">
             Voir plus (dépenses supplémentaires)
           </Button>
         </div>
