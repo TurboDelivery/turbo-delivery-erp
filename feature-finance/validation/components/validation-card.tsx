@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, FileText, Check, X, Pencil } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, FileText, Pencil, X } from 'lucide-react';
 import { IDepense } from '@/features/depenses/types/depense.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { fmtDate } from './validation.constants';
-import { TypeBadge, StatusBadge } from './validation-badges';
+import { StatusBadge, TypeBadge } from './validation-badges';
 import { WorkflowStepper } from './workflow-stepper';
 import { ModifierForm } from './modifier-form';
 
@@ -24,12 +24,7 @@ interface ValidationCardProps {
   isPending: boolean;
 }
 
-export function ValidationCard({
-  depense, current, total,
-  onPrev, onNext,
-  onAccept, onReject, onModifier,
-  acceptLabel, canAct, isDGA, isPending,
-}: ValidationCardProps) {
+export function ValidationCard({ depense, current, total, onPrev, onNext, onAccept, onReject, onModifier, acceptLabel, canAct, isDGA, isPending }: ValidationCardProps) {
   const [showEdit, setShowEdit] = useState(false);
 
   return (
@@ -37,14 +32,18 @@ export function ValidationCard({
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
         <div>
-          <h2 className="font-semibold text-gray-900">
-            {acceptLabel === 'Viser' ? 'Validation DGA' : acceptLabel === 'Approuver' ? 'Approbation DG' : 'Décaissement Comptable'}
-          </h2>
-          <p className="text-sm text-gray-400">Dépense {current + 1} sur {total}</p>
+          <h2 className="font-semibold text-gray-900">{acceptLabel === 'Viser' ? 'Validation DGA' : acceptLabel === 'Approuver' ? 'Approbation DG' : 'Décaissement Comptable'}</h2>
+          <p className="text-sm text-gray-400">
+            Dépense {current + 1} sur {total}
+          </p>
         </div>
         <div className="flex gap-1">
-          <button onClick={onPrev} disabled={current === 0}         className="rounded p-1.5 hover:bg-gray-100 disabled:opacity-30"><ChevronLeft  className="h-4 w-4" /></button>
-          <button onClick={onNext} disabled={current === total - 1} className="rounded p-1.5 hover:bg-gray-100 disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
+          <button onClick={onPrev} disabled={current === 0} className="rounded p-1.5 hover:bg-gray-100 disabled:opacity-30">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <button onClick={onNext} disabled={current === total - 1} className="rounded p-1.5 hover:bg-gray-100 disabled:opacity-30">
+            <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
@@ -97,14 +96,17 @@ export function ValidationCard({
           // DGA : 3 actions — Rejeter | Modifier | Viser
           <div className="grid grid-cols-3 border-t border-gray-200">
             <button
-              onClick={() => { onReject(depense.id); setShowEdit(false); }}
+              onClick={() => {
+                onReject(depense.id);
+                setShowEdit(false);
+              }}
               disabled={isPending}
               className="flex items-center justify-center gap-1.5 rounded-bl-xl py-4 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 border-r border-gray-200 transition-colors"
             >
               <X className="h-4 w-4" /> Rejeter
             </button>
             <button
-              onClick={() => setShowEdit(v => !v)}
+              onClick={() => setShowEdit((v) => !v)}
               disabled={isPending}
               className={`flex items-center justify-center gap-1.5 py-4 text-sm font-medium transition-colors border-r border-gray-200 ${
                 showEdit ? 'bg-orange-50 text-orange-600' : 'text-orange-500 hover:bg-orange-50'
@@ -113,7 +115,10 @@ export function ValidationCard({
               <Pencil className="h-4 w-4" /> Modifier
             </button>
             <button
-              onClick={() => { onAccept(depense.id); setShowEdit(false); }}
+              onClick={() => {
+                onAccept(depense.id);
+                setShowEdit(false);
+              }}
               disabled={isPending}
               className="flex items-center justify-center gap-1.5 rounded-br-xl bg-green-500 py-4 text-sm font-medium text-white hover:bg-green-600 disabled:opacity-50 transition-colors"
             >
