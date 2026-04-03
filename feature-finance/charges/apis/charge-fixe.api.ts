@@ -1,12 +1,14 @@
 import { api } from '@/lib/api';
 import { PaginatedResponse } from '@/types';
-import { IChargeFixe, IChargeFixeParams, IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
+import { IChargeFixe, IChargeFixeParams, IChargeStats, IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
 import { ChargeFixeCreateDTO, ChargeFixeUpdateDTO } from '../schemas/charge-fixe.schema';
+
 export interface IChargeFixeAPI {
   ajouterChargeFixe(data: ChargeFixeCreateDTO): Promise<IChargeFixe>;
   modifierChargeFixe(id: string, data: ChargeFixeUpdateDTO): Promise<IChargeFixe>;
   supprimerChargeFixe(id: string): Promise<void>;
   obtenirChargesFixes(params: IChargeFixeParams): Promise<PaginatedResponse<IChargeFixe>>;
+  obtenirStatsChargesFixes(): Promise<IChargeStats>;
   validerDGAChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
   approuverDGChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
   rejeterDGAChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
@@ -40,7 +42,7 @@ export const chargeFixeAPI: IChargeFixeAPI = {
 
   obtenirChargesFixes(params: IChargeFixeParams): Promise<PaginatedResponse<IChargeFixe>> {
     const searchParams: Record<string, string> = {};
-if (params.designation) searchParams['designation'] = params.designation;
+    if (params.designation) searchParams['designation'] = params.designation;
     if (params.statut) searchParams['statut'] = params.statut;
     if (typeof params.page === 'number') searchParams['page'] = String(params.page);
     if (typeof params.size === 'number') searchParams['size'] = String(params.size);
@@ -49,6 +51,13 @@ if (params.designation) searchParams['designation'] = params.designation;
       endpoint: `/erp/charges-fixes/pagination`,
       method: 'GET',
       searchParams,
+    });
+  },
+
+  obtenirStatsChargesFixes(): Promise<IChargeStats> {
+    return api.request<IChargeStats>({
+      endpoint: `/erp/charges-fixes/stats`,
+      method: 'GET',
     });
   },
 

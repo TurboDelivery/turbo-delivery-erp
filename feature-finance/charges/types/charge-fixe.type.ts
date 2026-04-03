@@ -48,3 +48,9 @@ export interface IWorkflowDecisionDtoFixe {
   commentaire?: string;
   par: string;
 }
+
+export interface IChargeStats {
+  totalMensuel: number;
+  pointMortQuotidien: number;
+  chargesActives: number;
+}

@@ -14,6 +14,14 @@ export const chargesFixesListQueryOption = (params: IChargeFixeParams) => ({
   staleTime: 5 * 60 * 1000,
 });
 
+export const chargesFixesStatsQueryOption = () => ({
+  queryKey: chargeFixeKeyQuery('stats'),
+  queryFn: async () => {
+    return await chargeFixeAPI.obtenirStatsChargesFixes();
+  },
+  staleTime: 5 * 60 * 1000,
+});
+
 export const useChargesFixesQuery = (params: IChargeFixeParams = {}) => {
   const query = useQuery(chargesFixesListQueryOption(params));
 
@@ -27,3 +35,18 @@ export const useChargesFixesQuery = (params: IChargeFixeParams = {}) => {
 
   return query;
 };
+
+export const useChargesFixesStatsQuery = () => {
+  const query = useQuery(chargesFixesStatsQueryOption());
+
+  useEffect(() => {
+    if (query.isError && query.error) {
+      toast.error('Erreur lors de la récupération des statistiques des charges fixes', {
+        description: query.error instanceof Error ? query.error.message : 'Erreur inconnue',
+      });
+    }
+  }, [query.isError, query.error]);
+
+  return query;
+};
+

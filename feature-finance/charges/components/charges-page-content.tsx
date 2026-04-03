@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Activity, ArrowLeft, Calendar, ChevronDown, Info, Plus, TrendingUp, Wallet } from 'lucide-react';
+import { ArrowLeft, Calendar, ChevronDown, Info, Plus } from 'lucide-react';
 import AddChargeFixeModal from './add-charge-fixe-modal';
 import AddDepenseVariableModal from './add-depense-variable-modal';
 import ChargesFixesTable from './charges-fixes-table';
+import ChargesStatsCards from './statistiques/charges-stats-cards';
 import { useChargesVariablesQuery } from '../queries/charges-variables.query';
 import { useSupprimerChargeFixeMutation } from '../queries/charge-fixe.mutation';
 import { useSupprimerChargeVariableMutation } from '../queries/charge-variable.mutation';
@@ -38,12 +39,6 @@ export default function ChargesPageContent() {
     size: 50,
   });
 
-  const stats = {
-    totalMontant: 0,
-    totalTauxJournalier: 0,
-    activeCount: 0,
-  };
-
   const handleOpenModal = () => {
     setChargeToEdit(null);
     setIsModalOpen(true);
@@ -59,10 +54,6 @@ export default function ChargesPageContent() {
     supprimerChargeFixe(chargeToDelete.id, {
       onSuccess: () => setChargeToDelete(null),
     });
-  };
-
-  const handleAddCharge = (newCharge: any) => {
-    console.log('Nouvelle charge ajoutée:', newCharge);
   };
 
   const handleOpenDepenseVariableModal = () => {
@@ -115,50 +106,7 @@ export default function ChargesPageContent() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Blue Card */}
-        <Card className="bg-gradient-to-br from-blue-600 to-blue-500 text-white shadow-lg">
-          <CardBody className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Wallet size={24} />
-              </div>
-              <span className="text-blue-100 text-sm font-medium">Total Charges Mensuelles</span>
-            </div>
-            <p className="text-3xl font-bold mb-1">{stats.totalMontant.toLocaleString('fr-FR')} FCFA</p>
-            <p className="text-blue-100 text-xs">Toutes charges confondues</p>
-          </CardBody>
-        </Card>
-
-        {/* Orange Card */}
-        <Card className="bg-gradient-to-br from-orange-500 to-orange-400 text-white shadow-lg">
-          <CardBody className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <TrendingUp size={24} />
-              </div>
-              <span className="text-orange-100 text-sm font-medium">Point Mort Quotidien</span>
-            </div>
-            <p className="text-3xl font-bold mb-1">{stats.totalTauxJournalier.toLocaleString('fr-FR')} FCFA</p>
-            <p className="text-orange-100 text-xs">Coût par jour (Total ÷ 30)</p>
-          </CardBody>
-        </Card>
-
-        {/* Green Card */}
-        <Card className="bg-gradient-to-br from-green-600 to-green-500 text-white shadow-lg">
-          <CardBody className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Activity size={24} />
-              </div>
-              <span className="text-green-100 text-sm font-medium">Charges Actives</span>
-            </div>
-            <p className="text-3xl font-bold mb-1">{stats.activeCount}</p>
-            <p className="text-green-100 text-xs">Lignes configurées</p>
-          </CardBody>
-        </Card>
-      </div>
+      <ChargesStatsCards />
 
       {/* Fixed Charges Table */}
       <Card className="border border-gray-200 mb-6 overflow-hidden">
