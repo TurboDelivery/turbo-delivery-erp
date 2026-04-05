@@ -113,7 +113,7 @@ export default function DashboardFinanceStatistics() {
               </div>
             </div>
           </FinanceHighlightCard>
-          <FinanceHighlightCard title="La marge" value={formattedMarge} icon={DollarSign} tone="orange" />
+          <FinanceHighlightCard title="Marge" value={formattedMarge} icon={DollarSign} tone="orange" />
         </div>
         <div className={`rounded-xl px-4 py-3 border ${margeStateClassName}`}>
           <p className="text-sm font-medium text-center">{margeStateLabel}</p>

@@ -3,49 +3,72 @@
 import { Card, CardBody } from '@heroui/react';
 import { IFinancialDetails } from '@/feature-finance/rapports-performance/types/performance.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { FinancialDetailRow } from '@/feature-finance/rapports-performance/components/financial-detail-row';
 
 interface FinancialDetailsSectionProps {
   financialDetails?: IFinancialDetails;
 }
 
+interface FinancialDetailItem {
+  label: string;
+  value: number | undefined;
+  withBorder?: boolean;
+  labelClassName?: string;
+  valueClassName?: string;
+  rowClassName?: string;
+}
+
+function formatFinancialAmount(value?: number): string {
+  if (!value) {
+    return '0 FCFA';
+  }
+
+  return formatCFA(Math.round(value));
+}
+
 export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSectionProps) {
+  const detailItems: FinancialDetailItem[] = [
+    {
+      label: 'Grace a nos livraisons, le partenaire a vendu',
+      value: financialDetails?.totalOrderAmount,
+      withBorder: true,
+    },
+    {
+      label: "Les frais de livraison generes sur l'ensemble des courses ce mois",
+      value: financialDetails?.deliveryFeesCollected,
+      withBorder: true,
+    },
+    {
+      label: 'Frais de service TURBO DELIVERY obtenu',
+      value: financialDetails?.turboDeliveryServiceFees,
+      withBorder: true,
+      valueClassName: 'font-semibold text-orange-600',
+    },
+    {
+      label: 'Facture total a regler au compte du mois en cours',
+      value: financialDetails?.totalFacture,
+      rowClassName: 'py-4',
+      labelClassName: 'text-gray-700 font-medium',
+      valueClassName: 'text-xl font-bold text-green-600',
+    },
+  ];
+
   return (
     <Card>
       <CardBody className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">Détails Financiers</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Détails Financiers</h2>
         <div className="space-y-4">
-          <div className="flex justify-between items-center py-3 border-b border-gray-100">
-            <span className="text-gray-600">Grâce à nos livraisons, le partenaire a vendu </span>
-            <span className="font-semibold text-gray-900">
-              {financialDetails?.totalOrderAmount
-                ? formatCFA(Math.round(financialDetails.totalOrderAmount))
-                : '0 FCFA'}
-            </span>
-          </div>
-          <div className="flex justify-between items-center py-3 border-b border-gray-100">
-            <span className="text-gray-600">Les frais de livraison générés sur l'ensemble des courses ce mois</span>
-            <span className="font-semibold text-gray-900">
-              {financialDetails?.deliveryFeesCollected
-                ? formatCFA(Math.round(financialDetails.deliveryFeesCollected))
-                : '0 FCFA'}
-            </span>
-          </div>
-          <div className="flex justify-between items-center py-3 border-b border-gray-100">
-            <span className="text-gray-600">Frais de service TURBO DELIVERY obtenu</span>
-            <span className="font-semibold text-orange-600">
-              {financialDetails?.turboDeliveryServiceFees
-                ? formatCFA(Math.round(financialDetails.turboDeliveryServiceFees))
-                : '0 FCFA'}
-            </span>
-          </div>
-          <div className="flex justify-between items-center py-4">
-            <span className="text-gray-700 font-medium">Facture total à regler au compte du mois en cours </span>
-            <span className="text-xl font-bold text-green-600">
-              {financialDetails?.totalFacture
-                ? formatCFA(Math.round(financialDetails.totalFacture))
-                : '0 FCFA'}
-            </span>
-          </div>
+          {detailItems.map((item) => (
+            <FinancialDetailRow
+              key={item.label}
+              label={item.label}
+              value={formatFinancialAmount(item.value)}
+              withBorder={item.withBorder}
+              rowClassName={item.rowClassName}
+              labelClassName={item.labelClassName}
+              valueClassName={item.valueClassName}
+            />
+          ))}
         </div>
       </CardBody>
     </Card>

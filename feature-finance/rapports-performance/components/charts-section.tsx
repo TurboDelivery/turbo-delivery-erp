@@ -1,22 +1,8 @@
 'use client';
 
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from 'recharts';
 import { Card, CardBody } from '@heroui/react';
-import {
-  IGeographicLocation,
-  IWeeklyActivity,
-} from '@/feature-finance/rapports-performance/types/performance.type';
+import { IGeographicLocation, IWeeklyActivity } from '@/feature-finance/rapports-performance/types/performance.type';
 
 interface ChartsSectionProps {
   geographicData: IGeographicLocation[];
@@ -46,7 +32,54 @@ const DONUT_COLORS = [
   '#60A5FA', // blue-400
 ];
 
+const MAX_ZONE_LABEL_CHARS = 14;
+
+interface GeographicLabelProps {
+  x?: number;
+  y?: number;
+  name?: string;
+}
+
+interface GeographicTooltipPayload {
+  payload?: IGeographicLocation;
+}
+
+function truncateZoneName(value: string, maxChars = MAX_ZONE_LABEL_CHARS): string {
+  if (value.length <= maxChars) {
+    return value;
+  }
+
+  return `${value.slice(0, maxChars)}...`;
+}
+
 export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSectionProps) {
+  const renderGeographicLabel = ({ x = 0, y = 0, name = '' }: GeographicLabelProps) => {
+    if (!name) {
+      return null;
+    }
+
+    return (
+      <text x={x} y={y} fill="#6b7280" fontSize={11} textAnchor="middle" dominantBaseline="central">
+        {truncateZoneName(name)}
+      </text>
+    );
+  };
+
+  const renderGeographicTooltip = ({ active, payload }: { active?: boolean; payload?: GeographicTooltipPayload[] }) => {
+    if (!active || !payload?.length || !payload[0]?.payload) {
+      return null;
+    }
+
+    const zone = payload[0].payload;
+
+    return (
+      <div className="rounded-md border border-gray-200 bg-white p-2 shadow-sm">
+        <p className="text-xs font-medium text-gray-900">{zone.name}</p>
+        <p className="text-xs text-gray-600">{zone.deliveries} livraisons</p>
+      </div>
+    );
+  };
+
   const renderDonutChart = () => (
     <ResponsiveContainer width="100%" height={250}>
       <PieChart>
@@ -58,13 +91,16 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
           outerRadius={100}
           paddingAngle={2}
           dataKey="value"
+          nameKey="name"
           labelLine={false}
+          label={renderGeographicLabel}
         >
           {geographicData.map((_entry, index) => (
             <Cell key={`cell-${index}`} fill={DONUT_COLORS[index % DONUT_COLORS.length]} />
           ))}
+
         </Pie>
-        <RechartsTooltip />
+        <RechartsTooltip content={renderGeographicTooltip} />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -73,18 +109,8 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
     <ResponsiveContainer width="100%" height={250}>
       <BarChart data={weeklyActivityData}>
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-        <XAxis
-          dataKey="day"
-          axisLine={false}
-          tickLine={false}
-          tick={{ fill: '#6b7280', fontSize: 12 }}
-        />
-        <YAxis
-          axisLine={false}
-          tickLine={false}
-          tick={{ fill: '#6b7280', fontSize: 12 }}
-          tickFormatter={(value) => `${(value / 100000).toFixed(0)}k`}
-        />
+        <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+        <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} tickFormatter={(value) => `${(value / 100000).toFixed(0)}k`} />
         <RechartsTooltip
           contentStyle={{
             backgroundColor: '#fff',
@@ -104,7 +130,7 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
       <Card>
         <CardBody className="p-6">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Répartition Géographique</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Répartition Géographique</h2>
             <p className="text-sm text-gray-500">
               Zone Top: {geographicData[0]?.name ?? 'N/A'} ({geographicData[0]?.deliveries ?? 0} livraisons)
             </p>
@@ -116,10 +142,10 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
       <Card>
         <CardBody className="p-6">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Pics d'Activité Hebdomadaire</h2>
-            <p className="text-sm text-gray-500">
-              Jour de Pic: <span className="font-medium">Dimanche</span> - 55% des livraisons vers Marcory
-            </p>
+            <h2 className="text-xl font-semibold text-gray-900">Pics d&#39;Activité Hebdomadaire</h2>
+            {/*<p className="text-sm text-gray-500">*/}
+            {/*  Jour de Pic: <span className="font-medium">Dimanche</span> - 55% des livraisons vers Marcory*/}
+            {/*</p>*/}
           </div>
           {renderBarChart()}
           <div className="flex items-center justify-center gap-6 mt-4">
@@ -129,7 +155,7 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-orange-500 rounded"></div>
-              <span className="text-sm text-gray-600">Chiffre d'affaires (FCFA)</span>
+              <span className="text-sm text-gray-600">Chiffre d&#39;affaires (FCFA)</span>
             </div>
           </div>
         </CardBody>
