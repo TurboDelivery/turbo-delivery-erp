@@ -1,5 +1,5 @@
-import PaymentManagement from '@/feature-finance/gestion-paiements/components/PaymentManagement';
+import PaymentManagementV2 from '@/feature-finance/gestion-paiements/components/PaymentManagementV2';
 
 export default function GestionPaiementsPage() {
-  return <PaymentManagement />;
+  return <PaymentManagementV2 />;
 }
