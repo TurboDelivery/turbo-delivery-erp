@@ -2,27 +2,25 @@ import { functionalUpdate, getCoreRowModel, getSortedRowModel, PaginationState, 
 import { useMemo, useState } from 'react';
 import { createChargesFixesV2Columns } from '../columns/charges-fixes-v2.columns';
 import { createDepensesVariablesV2Columns } from '../columns/depenses-variables-v2.columns';
-import { IChargeFixe } from '../types/charge-fixe.type';
-import { IChargeVariable } from '../types/charge-variable.type';
 import { useChargesFixesQuery, useChargesFixesStatsQuery } from '../queries/charges-fixes.query';
-import { useChargesVariablesQuery } from '../queries/charges-variables.query';
+import { useDepensesListQuery } from '@/feature-finance/depenses/queries/depense-list.query';
+import { IDepense } from '@/features/depenses/types/depense.type';
 
 const DEFAULT_PAGE_SIZE = 5;
 
 type UseChargesDepensesV2Options = {
-  onEditChargeVariable?: (charge: IChargeVariable) => void;
-  onApproveChargeVariable?: (charge: IChargeVariable) => void;
-  onRejectChargeVariable?: (charge: IChargeVariable) => void;
-  onViewJustificatif?: (url: string) => void;
+  onEditDepense?: (depense: IDepense) => void;
+  onApproveDepense?: (depense: IDepense) => void;
+  onRejectDepense?: (depense: IDepense) => void;
+  onViewJustificatif?: (depense: IDepense) => void;
 };
 
 export function useChargesDepensesV2({
-  onEditChargeVariable,
-  onApproveChargeVariable,
-  onRejectChargeVariable,
+  onEditDepense,
+  onApproveDepense,
+  onRejectDepense,
   onViewJustificatif,
 }: UseChargesDepensesV2Options = {}) {
-  // Pagination states
   const [fixesPagination, setFixesPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -38,9 +36,9 @@ export function useChargesDepensesV2({
     size: fixesPagination.pageSize,
   });
 
-  const { data: variablesResponse, isLoading: isVariablesLoading, isFetching: isVariablesFetching } = useChargesVariablesQuery({
+  const { data: variablesResponse, isLoading: isVariablesLoading, isFetching: isVariablesFetching } = useDepensesListQuery({
     page: variablesPagination.pageIndex,
-    size: variablesPagination.pageSize,
+    limit: variablesPagination.pageSize,
   });
 
   const { data: stats } = useChargesFixesStatsQuery();
@@ -53,12 +51,12 @@ export function useChargesDepensesV2({
   const fixesColumns = useMemo(() => createChargesFixesV2Columns(), []);
   const variablesColumns = useMemo(
     () => createDepensesVariablesV2Columns({
-      onEdit: onEditChargeVariable,
-      onApprove: onApproveChargeVariable,
-      onReject: onRejectChargeVariable,
+      onEdit: onEditDepense,
+      onApprove: onApproveDepense,
+      onReject: onRejectDepense,
       onViewJustificatif,
     }),
-    [onEditChargeVariable, onApproveChargeVariable, onRejectChargeVariable, onViewJustificatif],
+    [onEditDepense, onApproveDepense, onRejectDepense, onViewJustificatif],
   );
 
   // Tables
@@ -84,7 +82,7 @@ export function useChargesDepensesV2({
     getSortedRowModel: getSortedRowModel(),
   });
 
-  // Computed stats for V2 cards
+  // Computed stats
   const totalChargesFixes = stats?.totalMensuel ?? 0;
   const today = new Date();
   const jourDuMois = today.getDate();
@@ -92,9 +90,8 @@ export function useChargesDepensesV2({
   const prorata = Math.round((totalChargesFixes / joursTotal) * jourDuMois);
   const pourcentageMois = Math.round((jourDuMois / joursTotal) * 100);
 
-  // Total dépenses variables approuvées
   const depensesApprouvees = variablesData.filter(
-    (v) => v.statut === 'APPROUVE_DG' || v.statut === 'DECAISSE',
+    (v) => v.statut === 'APPROUVE' || v.statut === 'PAID',
   );
   const totalVariablesApprouvees = depensesApprouvees.reduce((sum, v) => sum + v.montant, 0);
   const countVariablesApprouvees = depensesApprouvees.length;

@@ -3,25 +3,25 @@ import { useMemo, useState } from 'react';
 import { createChargesFixesDetailsColumns } from '../columns/charges-fixes-details.columns';
 import { createDepensesVariablesDetailsColumns } from '../columns/depenses-variables-details.columns';
 import { IChargeFixe } from '../types/charge-fixe.type';
-import { IChargeVariable } from '../types/charge-variable.type';
+import { IDepense } from '@/features/depenses/types/depense.type';
 import { useChargesFixesQuery } from '../queries/charges-fixes.query';
-import { useChargesVariablesQuery } from '../queries/charges-variables.query';
+import { useDepensesListQuery } from '@/feature-finance/depenses/queries/depense-list.query';
 
 const DEFAULT_PAGE_SIZE = 8;
 
 type Options = {
   onToggleChargeFixe?: (charge: IChargeFixe, enabled: boolean) => void;
-  onEditVariable?: (charge: IChargeVariable) => void;
-  onApproveVariable?: (charge: IChargeVariable) => void;
-  onRejectVariable?: (charge: IChargeVariable) => void;
-  onViewJustificatif?: (url: string) => void;
+  onEditDepense?: (depense: IDepense) => void;
+  onApproveDepense?: (depense: IDepense) => void;
+  onRejectDepense?: (depense: IDepense) => void;
+  onViewJustificatif?: (depense: IDepense) => void;
 };
 
 export function useChargesDetailsTable({
   onToggleChargeFixe,
-  onEditVariable,
-  onApproveVariable,
-  onRejectVariable,
+  onEditDepense,
+  onApproveDepense,
+  onRejectDepense,
   onViewJustificatif,
 }: Options = {}) {
   const [fixesPagination, setFixesPagination] = useState<PaginationState>({
@@ -38,9 +38,9 @@ export function useChargesDetailsTable({
     size: fixesPagination.pageSize,
   });
 
-  const { data: variablesResponse, isLoading: isVariablesLoading, isFetching: isVariablesFetching } = useChargesVariablesQuery({
+  const { data: variablesResponse, isLoading: isVariablesLoading, isFetching: isVariablesFetching } = useDepensesListQuery({
     page: variablesPagination.pageIndex,
-    size: variablesPagination.pageSize,
+    limit: variablesPagination.pageSize,
   });
 
   const fixesData = useMemo(() => fixesResponse?.content ?? [], [fixesResponse?.content]);
@@ -52,12 +52,12 @@ export function useChargesDetailsTable({
   );
   const variablesColumns = useMemo(
     () => createDepensesVariablesDetailsColumns({
-      onEdit: onEditVariable,
-      onApprove: onApproveVariable,
-      onReject: onRejectVariable,
+      onEdit: onEditDepense,
+      onApprove: onApproveDepense,
+      onReject: onRejectDepense,
       onViewJustificatif,
     }),
-    [onEditVariable, onApproveVariable, onRejectVariable, onViewJustificatif],
+    [onEditDepense, onApproveDepense, onRejectDepense, onViewJustificatif],
   );
 
   const fixesTable = useReactTable({

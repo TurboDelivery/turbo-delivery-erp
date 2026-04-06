@@ -5,10 +5,9 @@ import { ArrowLeft, ChevronDown, Download, Plus } from 'lucide-react';
 import { Button, Card, Modal, ModalBody, ModalContent, ModalHeader, Select, SelectItem } from '@heroui/react';
 import Link from 'next/link';
 import { useChargesDepensesV2 } from '../hooks/use-charges-depenses-v2';
-import { useSupprimerChargeFixeMutation } from '../queries/charge-fixe.mutation';
-import { useActionChargeVariableMutation } from '../queries/charge-variable.mutation';
 import { IChargeFixe } from '../types/charge-fixe.type';
-import { IChargeVariable } from '../types/charge-variable.type';
+import { IDepense } from '@/features/depenses/types/depense.type';
+import { useModifierStatutDepenseMutation } from '@/feature-finance/depenses/queries/depense.mutation';
 import ChargesStatsCardsV2 from './statistiques/charges-stats-cards-v2';
 import ChargesTableV2 from './charges-table-v2';
 import AddChargeFixeModal from './add-charge-fixe-modal';
@@ -18,10 +17,10 @@ export default function ChargesPageContentV2() {
   const [isFixeModalOpen, setIsFixeModalOpen] = useState(false);
   const [chargeToEdit, setChargeToEdit] = useState<IChargeFixe | null>(null);
   const [isVariableModalOpen, setIsVariableModalOpen] = useState(false);
-  const [variableToEdit, setVariableToEdit] = useState<IChargeVariable | null>(null);
+  const [depenseToEdit, setDepenseToEdit] = useState<IDepense | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const actionVariableMutation = useActionChargeVariableMutation();
+  const statutMutation = useModifierStatutDepenseMutation();
 
   const {
     fixesTable,
@@ -32,17 +31,17 @@ export default function ChargesPageContentV2() {
     variablesRemainingCount,
     cardStats,
   } = useChargesDepensesV2({
-    onEditChargeVariable: (charge) => {
-      setVariableToEdit(charge);
+    onEditDepense: (depense) => {
+      setDepenseToEdit(depense);
       setIsVariableModalOpen(true);
     },
-    onApproveChargeVariable: (charge) => {
-      actionVariableMutation.mutate({ id: charge.id, action: 'valider-dga', dto: { par: 'Utilisateur' } });
+    onApproveDepense: (depense) => {
+      statutMutation.mutate({ id: depense.id, statut: 'APPROUVE' });
     },
-    onRejectChargeVariable: (charge) => {
-      actionVariableMutation.mutate({ id: charge.id, action: 'rejeter-dga', dto: { par: 'Utilisateur' } });
+    onRejectDepense: (depense) => {
+      statutMutation.mutate({ id: depense.id, statut: 'REJETE' });
     },
-    onViewJustificatif: (url) => setPreviewUrl(url),
+    onViewJustificatif: (depense) => setPreviewUrl(depense.description ?? null),
   });
 
   const [selectedMonth, setSelectedMonth] = useState(() => {
@@ -131,7 +130,7 @@ export default function ChargesPageContentV2() {
             color="danger"
             size="sm"
             startContent={<Plus size={16} />}
-            onPress={() => { setVariableToEdit(null); setIsVariableModalOpen(true); }}
+            onPress={() => { setDepenseToEdit(null); setIsVariableModalOpen(true); }}
           >
             Nouvelle dépense
           </Button>
@@ -149,7 +148,8 @@ export default function ChargesPageContentV2() {
 
       {/* Modals */}
       <AddChargeFixeModal isOpen={isFixeModalOpen} onClose={() => { setIsFixeModalOpen(false); setChargeToEdit(null); }} chargeToEdit={chargeToEdit} />
-      <AddDepenseVariableModal isOpen={isVariableModalOpen} onClose={() => { setIsVariableModalOpen(false); setVariableToEdit(null); }} chargeToEdit={variableToEdit} />
+      {/* TODO: Remplacer par un modal dépense compatible IDepense */}
+      <AddDepenseVariableModal isOpen={isVariableModalOpen} onClose={() => { setIsVariableModalOpen(false); setDepenseToEdit(null); }} />
 
       {/* Justificatif Preview */}
       <Modal isOpen={!!previewUrl} onClose={() => setPreviewUrl(null)} size="3xl" scrollBehavior="inside">

@@ -3,31 +3,29 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Button, Chip } from '@heroui/react';
 import { Check, Edit, Eye, X } from 'lucide-react';
-import { IChargeVariable } from '../types/charge-variable.type';
-import { createUrlFile } from '@/utils/createUrlFile';
+import { IDepense } from '@/features/depenses/types/depense.type';
 
 const STATUT_CONFIG: Record<string, { label: string; color: 'success' | 'warning' | 'danger' | 'primary' | 'default' }> = {
-  EN_ATTENTE_DGA: { label: 'En attente', color: 'warning' },
-  VALIDE_DGA: { label: 'Validé DGA', color: 'primary' },
-  REJETE_DGA: { label: 'Rejeté', color: 'danger' },
-  APPROUVE_DG: { label: 'Approuvé', color: 'success' },
-  REJETE_DG: { label: 'Rejeté', color: 'danger' },
-  DECAISSE: { label: 'Décaissé', color: 'success' },
+  EN_ATTENTE: { label: 'En attente', color: 'warning' },
+  PENDING: { label: 'En attente', color: 'warning' },
+  APPROUVE: { label: 'Approuvé', color: 'success' },
+  PAID: { label: 'Approuvé', color: 'success' },
+  REJETE: { label: 'Rejeté', color: 'danger' },
 };
 
 type Options = {
-  onEdit?: (charge: IChargeVariable) => void;
-  onApprove?: (charge: IChargeVariable) => void;
-  onReject?: (charge: IChargeVariable) => void;
-  onViewJustificatif?: (url: string) => void;
+  onEdit?: (depense: IDepense) => void;
+  onApprove?: (depense: IDepense) => void;
+  onReject?: (depense: IDepense) => void;
+  onViewJustificatif?: (depense: IDepense) => void;
 };
 
-export function createDepensesVariablesDetailsColumns({ onEdit, onApprove, onReject, onViewJustificatif }: Options = {}): ColumnDef<IChargeVariable>[] {
+export function createDepensesVariablesDetailsColumns({ onEdit, onApprove, onReject, onViewJustificatif }: Options = {}): ColumnDef<IDepense>[] {
   return [
     {
-      accessorKey: 'designation',
+      accessorKey: 'libelle',
       header: 'Désignation',
-      cell: ({ row }) => <span className="text-sm text-gray-900">{row.getValue('designation')}</span>,
+      cell: ({ row }) => <span className="text-sm text-gray-900">{row.getValue('libelle')}</span>,
     },
     {
       id: 'categorie',
@@ -46,30 +44,25 @@ export function createDepensesVariablesDetailsColumns({ onEdit, onApprove, onRej
       ),
     },
     {
-      accessorKey: 'createdAt',
+      accessorKey: 'dateDepense',
       header: 'Date',
       cell: ({ row }) => (
         <span className="text-sm text-gray-600">
-          {new Date(row.getValue<string>('createdAt')).toLocaleDateString('fr-FR')}
+          {new Date(row.getValue<string>('dateDepense')).toLocaleDateString('fr-FR')}
         </span>
       ),
     },
     {
       id: 'justificatif',
       header: 'Justificatif',
-      cell: ({ row }) => {
-        const val = row.original.justificatif;
-        if (!val) return <span className="text-sm text-gray-400">—</span>;
-        const url = createUrlFile(val, 'backend');
-        return (
-          <button
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
-            onClick={() => onViewJustificatif?.(url)}
-          >
-            <Eye size={14} /> Voir
-          </button>
-        );
-      },
+      cell: ({ row }) => (
+        <button
+          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          onClick={() => onViewJustificatif?.(row.original)}
+        >
+          <Eye size={14} /> Voir
+        </button>
+      ),
     },
     {
       accessorKey: 'statut',
@@ -84,7 +77,8 @@ export function createDepensesVariablesDetailsColumns({ onEdit, onApprove, onRej
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {
-        const isEnAttente = row.original.statut === 'EN_ATTENTE_DGA';
+        const statut = row.original.statut;
+        const isEnAttente = statut === 'EN_ATTENTE' || statut === 'PENDING';
         if (!isEnAttente) return null;
         return (
           <div className="flex items-center gap-1">
