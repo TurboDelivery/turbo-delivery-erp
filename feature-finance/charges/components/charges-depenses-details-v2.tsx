@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Button, Modal, ModalBody, ModalContent, ModalHeader } from '@heroui/react';
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button, Modal, ModalBody, ModalContent, ModalHeader, Select, SelectItem } from '@heroui/react';
+import { ArrowLeft } from 'lucide-react';
+import { useQueryStates } from 'nuqs';
 import Link from 'next/link';
+import { chargesDepensesFiltersClient } from '../filters/charges-depenses.filter';
+import { buildMonthOptions, monthKeyToRange, rangeToMonthKey } from '../utils/month-filter.utils';
 import { useChargesDetailsTable } from '../hooks/use-charges-details-table';
 import { useActionChargeVariableMutation } from '../queries/charge-variable.mutation';
 import ChargesTableV2 from './charges-table-v2';
@@ -14,6 +17,11 @@ export default function ChargesDepensesDetailsV2() {
   const initialTab = searchParams.get('tab') === 'variables' ? 'variables' : 'fixes';
   const [activeTab, setActiveTab] = useState<'fixes' | 'variables'>(initialTab);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const [filters, setFilters] = useQueryStates(
+    chargesDepensesFiltersClient.filter,
+    chargesDepensesFiltersClient.option,
+  );
 
   const actionVariableMutation = useActionChargeVariableMutation();
 
@@ -28,8 +36,6 @@ export default function ChargesDepensesDetailsV2() {
     fixesPageCount,
     variablesTotalElements,
     variablesPageCount,
-    fixesPagination,
-    variablesPagination,
   } = useChargesDetailsTable({
     onApproveChargeVariable: (charge) => {
       actionVariableMutation.mutate({ id: charge.id, action: 'valider-dga', dto: { par: 'Utilisateur' } });
@@ -41,11 +47,15 @@ export default function ChargesDepensesDetailsV2() {
   });
 
   const totalElements = activeTab === 'fixes' ? fixesTotalElements : variablesTotalElements;
-  const pageCount = activeTab === 'fixes' ? fixesPageCount : variablesPageCount;
-  const currentPage = activeTab === 'fixes' ? fixesPagination.pageIndex : variablesPagination.pageIndex;
 
-  const today = new Date();
-  const dateDisplay = today.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const monthOptions = useMemo(() => buildMonthOptions(), []);
+  const selectedMonth = rangeToMonthKey(filters.debut);
+
+  const handleMonthChange = useCallback((keys: Set<string> | any) => {
+    const key = Array.from(keys)[0] as string;
+    setFilters(monthKeyToRange(key));
+  }, [setFilters]);
+
   const isPdf = (url: string) => url.toLowerCase().includes('.pdf');
 
   return (
@@ -56,20 +66,26 @@ export default function ChargesDepensesDetailsV2() {
           <Button as={Link} href="/finance/charges" variant="light" size="sm" startContent={<ArrowLeft size={16} />} className="mb-2 text-gray-500">
             Retour à la synthèse
           </Button>
-          <h1 className="text-2xl font-bold text-red-500">Toutes les Dépenses</h1>
+          <h1 className="text-2xl font-bold text-primary">Toutes les Dépenses</h1>
         </div>
-        <div className="flex items-center gap-1 border rounded-lg px-2 py-1">
-          <Button isIconOnly size="sm" variant="light"><ChevronLeft size={16} /></Button>
-          <span className="text-sm font-medium text-gray-700 px-2">{dateDisplay}</span>
-          <Button isIconOnly size="sm" variant="light"><ChevronRight size={16} /></Button>
-        </div>
+        <Select
+          selectedKeys={[selectedMonth]}
+          onSelectionChange={handleMonthChange}
+          className="w-[200px]"
+          size="sm"
+          aria-label="Période"
+        >
+          {monthOptions.map((m) => (
+            <SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>
+          ))}
+        </Select>
       </div>
 
       {/* Tabs */}
       <div className="flex rounded-lg overflow-hidden border">
         <button
           className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-            activeTab === 'fixes' ? 'bg-red-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+            activeTab === 'fixes' ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
           }`}
           onClick={() => setActiveTab('fixes')}
         >
@@ -77,7 +93,7 @@ export default function ChargesDepensesDetailsV2() {
         </button>
         <button
           className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-            activeTab === 'variables' ? 'bg-red-500 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+            activeTab === 'variables' ? 'bg-primary text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
           }`}
           onClick={() => setActiveTab('variables')}
         >
@@ -87,10 +103,10 @@ export default function ChargesDepensesDetailsV2() {
 
       {/* Counter */}
       <div className="text-right">
-        <span className="text-sm font-medium text-red-500">{totalElements} dépenses enregistrées</span>
+        <span className="text-sm font-medium text-primary">{totalElements} dépenses enregistrées</span>
       </div>
 
-      {/* Tables — rendered separately to avoid type union issues */}
+      {/* Tables */}
       <div className="border rounded-lg overflow-hidden">
         {activeTab === 'fixes' ? (
           <ChargesTableV2
@@ -111,13 +127,6 @@ export default function ChargesDepensesDetailsV2() {
           />
         )}
       </div>
-
-      {/* Counter */}
-      {totalElements > 0 && (
-        <div className="text-sm text-gray-500">
-          Page {currentPage + 1} sur {pageCount}
-        </div>
-      )}
 
       {/* Justificatif Preview */}
       <Modal isOpen={!!previewUrl} onClose={() => setPreviewUrl(null)} size="3xl" scrollBehavior="inside">
