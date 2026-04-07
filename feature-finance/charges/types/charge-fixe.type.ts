@@ -33,6 +33,10 @@ export interface IChargeFixe {
   dateApprobationDG?: string | null;
   commentaireDG?: string | null;
   dateDecaissement?: string | null;
+  enable: boolean;
+  tauxJournalier: number;
+  montantConsomme: number;
+  dateEcheance: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -42,6 +46,8 @@ export interface IChargeFixeParams {
   page?: number;
   size?: number;
   statut?: StatutChargeFixe;
+  debut?: string;
+  fin?: string;
 }
 
 export interface IWorkflowDecisionDtoFixe {
@@ -51,15 +57,11 @@ export interface IWorkflowDecisionDtoFixe {
 
 export interface IChargeStats {
   totalMensuel: number;
-  pointMortQuotidien: number;
+  chargesFixesAuProrata: number;
   chargesActives: number;
-  // V2 fields — returned by the same /erp/charges-fixes/stats endpoint
-  totalChargesFixes?: number;
-  prorata?: number;
-  pourcentageMois?: number;
-  totalVariablesApprouvees?: number;
-  countVariablesApprouvees?: number;
-  totalChargesADate?: number;
-  pointMortCourses?: number;
-  pointMortMontant?: number;
+  sommeDepensesVariables: number;
+  nombreDepensesVariables: number;
+  totalChargesADate: number;
+  pointMortDuJour: number;
+  pointMortQuotidien: number;
 }

@@ -8,12 +8,13 @@ export interface IChargeFixeAPI {
   modifierChargeFixe(id: string, data: ChargeFixeUpdateDTO): Promise<IChargeFixe>;
   supprimerChargeFixe(id: string): Promise<void>;
   obtenirChargesFixes(params: IChargeFixeParams): Promise<PaginatedResponse<IChargeFixe>>;
-  obtenirStatsChargesFixes(): Promise<IChargeStats>;
+  obtenirStatsChargesFixes(params?: { debut?: string; fin?: string }): Promise<IChargeStats>;
   validerDGAChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
   approuverDGChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
   rejeterDGAChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
   rejeterDGChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
   decaisserChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
+  toggleEnableChargeFixe(id: string, enable: boolean, supprimerDepense: boolean): Promise<IChargeFixe>;
 }
 
 export const chargeFixeAPI: IChargeFixeAPI = {
@@ -54,10 +55,15 @@ export const chargeFixeAPI: IChargeFixeAPI = {
     });
   },
 
-  obtenirStatsChargesFixes(): Promise<IChargeStats> {
+  obtenirStatsChargesFixes(params?: { debut?: string; fin?: string }): Promise<IChargeStats> {
+    const searchParams: Record<string, string> = {};
+    if (params?.debut) searchParams['debut'] = params.debut;
+    if (params?.fin) searchParams['fin'] = params.fin;
+
     return api.request<IChargeStats>({
       endpoint: `/erp/charges-fixes/stats`,
       method: 'GET',
+      searchParams,
     });
   },
 
@@ -97,6 +103,17 @@ export const chargeFixeAPI: IChargeFixeAPI = {
     return api.request<IChargeFixe>({
       endpoint: `/erp/charges-fixes/${id}/payer`,
       method: 'PATCH',
+    });
+  },
+
+  toggleEnableChargeFixe(id: string, enable: boolean, supprimerDepense: boolean): Promise<IChargeFixe> {
+    return api.request<IChargeFixe>({
+      endpoint: `/erp/charges-fixes/${id}/enable`,
+      method: 'PATCH',
+      searchParams: {
+        enable: String(enable),
+        supprimerDepense: String(supprimerDepense),
+      },
     });
   },
 };

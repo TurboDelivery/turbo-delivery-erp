@@ -1,7 +1,11 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
+import { Edit, Trash2 } from 'lucide-react';
+import { Switch } from '@heroui/react';
 import { IChargeFixe, CyclePaiement } from '../types/charge-fixe.type';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { format } from 'date-fns';
 
 const CYCLE_LABELS: Record<CyclePaiement, string> = {
   MENSUEL: 'Mensuel',
@@ -10,15 +14,13 @@ const CYCLE_LABELS: Record<CyclePaiement, string> = {
   ANNUEL: 'Annuel',
 };
 
-function formatMontant(value: number): string {
-  return `${value.toLocaleString('fr-FR')} FCFA`;
-}
+type ChargesFixesV2ColumnsOptions = {
+  onEdit?: (charge: IChargeFixe) => void;
+  onDelete?: (charge: IChargeFixe) => void;
+  onToggle?: (charge: IChargeFixe, enabled: boolean) => void;
+};
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('fr-FR');
-}
-
-export function createChargesFixesV2Columns(): ColumnDef<IChargeFixe>[] {
+export function createChargesFixesV2Columns({ onEdit, onDelete, onToggle }: ChargesFixesV2ColumnsOptions = {}): ColumnDef<IChargeFixe>[] {
   return [
     {
       accessorKey: 'designation',
@@ -28,52 +30,64 @@ export function createChargesFixesV2Columns(): ColumnDef<IChargeFixe>[] {
     {
       id: 'categorie',
       header: 'Catégorie',
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? '—'}</span>
-      ),
+      cell: ({ row }) => <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? '—'}</span>,
     },
     {
       accessorKey: 'cyclePaiement',
       header: 'Cycle',
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-600">
-          {CYCLE_LABELS[row.getValue<CyclePaiement>('cyclePaiement')] ?? row.getValue('cyclePaiement')}
-        </span>
-      ),
+      cell: ({ row }) => <span className="text-sm text-gray-600">{CYCLE_LABELS[row.getValue<CyclePaiement>('cyclePaiement')] ?? row.getValue('cyclePaiement')}</span>,
     },
     {
       accessorKey: 'montant',
       header: 'Montant',
-      cell: ({ row }) => (
-        <span className="text-sm font-medium text-gray-900">{formatMontant(row.getValue<number>('montant'))}</span>
-      ),
+      cell: ({ row }) => <span className="text-sm font-medium text-gray-900">{formatCFA(row.getValue<number>('montant'))}</span>,
     },
     {
       id: 'tauxJournalier',
       header: 'Taux Journalier',
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-600">{formatMontant(Math.round(row.original.montant / 30))}</span>
-      ),
+      cell: ({ row }) => <span className="text-sm text-gray-600">{formatCFA(Math.round(row.original.montant / 30))}</span>,
     },
     {
       id: 'consomme',
       header: 'Consommé',
       cell: ({ row }) => {
-        // TODO: Le backend fournira le montant consommé — pour l'instant prorata du mois
-        const today = new Date();
-        const jourDuMois = today.getDate();
-        const consomme = Math.round((row.original.montant / 30) * jourDuMois);
-        return <span className="text-sm font-medium text-orange-500">{formatMontant(consomme)}</span>;
+        return <span className="text-sm font-medium text-orange-500">{formatCFA(row.original.montantConsomme)}</span>;
       },
     },
     {
-      accessorKey: 'echeanceJour',
+      accessorKey: 'dateEcheance',
       header: 'Échéance',
       cell: ({ row }) => {
-        // Afficher l'échéance du mois en cours
-        const today = new Date();
-        const echeance = new Date(today.getFullYear(), today.getMonth(), row.getValue<number>('echeanceJour'));
-        return <span className="text-sm text-gray-600">{formatDate(echeance.toISOString())}</span>;
+        return <span className="text-sm text-gray-600">{format(row.original.dateEcheance, 'dd/MM/yyyy')}</span>;
+      },
+    },
+    {
+      id: 'enabled',
+      header: 'Activer',
+      cell: ({ row }) => {
+        if (row.original.automatique) {
+          return <span className="text-xs text-green-600 font-medium">Automatique</span>;
+        }
+        return <Switch size="sm" isSelected={row.original.enable} onValueChange={(enabled) => onToggle?.(row.original, enabled)} />;
+      },
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => {
+        if (row.original.automatique) {
+          return <span className="text-sm text-gray-400">—</span>;
+        }
+        return (
+          <div className="flex gap-2">
+            <button className="text-blue-500 transition-colors hover:text-blue-700" onClick={() => onEdit?.(row.original)} title="Modifier" type="button">
+              <Edit size={16} />
+            </button>
+            <button className="text-red-500 transition-colors hover:text-red-700" onClick={() => onDelete?.(row.original)} title="Supprimer" type="button">
+              <Trash2 size={16} />
+            </button>
+          </div>
+        );
       },
     },
   ];

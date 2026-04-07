@@ -1,62 +1,90 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
 import { Button, Card, Modal, ModalBody, ModalContent, ModalHeader, Select, SelectItem } from '@heroui/react';
+import ConfirmModal from '@/components/ui/confirm-modal';
 import Link from 'next/link';
 import { useChargesDepensesV2 } from '../hooks/use-charges-depenses-v2';
 import { IChargeFixe } from '../types/charge-fixe.type';
-import { IDepense } from '@/features/depenses/types/depense.type';
-import { useModifierStatutDepenseMutation } from '@/feature-finance/depenses/queries/depense.mutation';
+import { IChargeVariable } from '../types/charge-variable.type';
+import { useSupprimerChargeFixeMutation, useToggleEnableChargeFixeMutation } from '../queries/charge-fixe.mutation';
+import { useActionChargeVariableMutation } from '../queries/charge-variable.mutation';
 import ChargesStatsCardsV2 from './statistiques/charges-stats-cards-v2';
 import ChargesTableV2 from './charges-table-v2';
 import AddChargeFixeModal from './add-charge-fixe-modal';
 import AddDepenseVariableModal from './add-depense-variable-modal';
 
+const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+
+function buildMonthOptions() {
+  const options: { key: string; label: string }[] = [];
+  const now = new Date();
+  const endYear = now.getFullYear();
+  const endMonth = now.getMonth();
+  for (let y = 2024; y <= endYear; y++) {
+    const lastM = y === endYear ? endMonth : 11;
+    for (let m = 0; m <= lastM; m++) {
+      const key = `${y}-${String(m + 1).padStart(2, '0')}`;
+      options.push({ key, label: `${MONTH_NAMES[m]} ${y}` });
+    }
+  }
+  return options.reverse();
+}
+
+function monthKeyToRange(key: string): { debut: string; fin: string } {
+  const [year, month] = key.split('-').map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  return {
+    debut: `${year}-${String(month).padStart(2, '0')}-01`,
+    fin: `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`,
+  };
+}
+
+function rangeToMonthKey(debut: string): string {
+  if (!debut) {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }
+  return debut.slice(0, 7);
+}
+
 export default function ChargesPageContentV2() {
   const [isFixeModalOpen, setIsFixeModalOpen] = useState(false);
   const [chargeToEdit, setChargeToEdit] = useState<IChargeFixe | null>(null);
   const [isVariableModalOpen, setIsVariableModalOpen] = useState(false);
-  const [depenseToEdit, setDepenseToEdit] = useState<IDepense | null>(null);
+  const [chargeVariableToEdit, setChargeVariableToEdit] = useState<IChargeVariable | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [toggleTarget, setToggleTarget] = useState<{ charge: IChargeFixe; enable: boolean } | null>(null);
+  const [chargeToDelete, setChargeToDelete] = useState<IChargeFixe | null>(null);
 
-  const statutMutation = useModifierStatutDepenseMutation();
+  const actionVariableMutation = useActionChargeVariableMutation();
+  const toggleMutation = useToggleEnableChargeFixeMutation();
+  const { mutate: supprimerChargeFixe, isPending: isDeleting } = useSupprimerChargeFixeMutation();
 
-  const { fixesTable, variablesTable, isFixesLoading, isVariablesLoading, fixesRemainingCount, variablesRemainingCount, stats, isStatsLoading } = useChargesDepensesV2({
-    onEditDepense: (depense) => {
-      setDepenseToEdit(depense);
-      setIsVariableModalOpen(true);
-    },
-    onApproveDepense: (depense) => {
-      statutMutation.mutate({ id: depense.id, statut: 'APPROUVE' });
-    },
-    onRejectDepense: (depense) => {
-      statutMutation.mutate({ id: depense.id, statut: 'REJETE' });
-    },
-    onViewJustificatif: (depense) => setPreviewUrl(depense.description ?? null),
+  const {
+    fixesTable, variablesTable,
+    isFixesLoading, isVariablesLoading,
+    fixesRemainingCount, variablesRemainingCount,
+    stats, isStatsLoading,
+    filters, setFilters,
+  } = useChargesDepensesV2({
+    onEditChargeFixe: (charge) => { setChargeToEdit(charge); setIsFixeModalOpen(true); },
+    onDeleteChargeFixe: (charge) => { setChargeToDelete(charge); },
+    onToggleChargeFixe: (charge, enabled) => { setToggleTarget({ charge, enable: enabled }); },
+    onEditChargeVariable: (charge) => { setChargeVariableToEdit(charge); setIsVariableModalOpen(true); },
+    onApproveChargeVariable: (charge) => { actionVariableMutation.mutate({ id: charge.id, action: 'valider-dga', dto: { par: 'Utilisateur' } }); },
+    onRejectChargeVariable: (charge) => { actionVariableMutation.mutate({ id: charge.id, action: 'rejeter-dga', dto: { par: 'Utilisateur' } }); },
+    onViewJustificatif: (url) => setPreviewUrl(url),
   });
 
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  });
+  const monthOptions = useMemo(() => buildMonthOptions(), []);
+  const selectedMonth = rangeToMonthKey(filters.debut);
 
-  const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-
-  const monthOptions = useMemo(() => {
-    const options: { key: string; label: string }[] = [];
-    const now = new Date();
-    const endYear = now.getFullYear();
-    const endMonth = now.getMonth();
-    for (let y = 2024; y <= endYear; y++) {
-      const lastM = y === endYear ? endMonth : 11;
-      for (let m = 0; m <= lastM; m++) {
-        const key = `${y}-${String(m + 1).padStart(2, '0')}`;
-        options.push({ key, label: `${MONTH_NAMES[m]} ${y}` });
-      }
-    }
-    return options.reverse();
-  }, []);
+  const handleMonthChange = useCallback((keys: Set<string> | any) => {
+    const key = Array.from(keys)[0] as string;
+    setFilters(monthKeyToRange(key));
+  }, [setFilters]);
 
   const isPdf = (url: string) => url.toLowerCase().includes('.pdf');
 
@@ -71,16 +99,17 @@ export default function ChargesPageContentV2() {
           <h1 className="text-2xl font-bold text-gray-900">Finance — Charges & Dépenses</h1>
           <p className="text-sm text-gray-500 mt-1">Pilotage de la rentabilité en temps réel</p>
         </div>
-        <div className="flex items-center gap-3">
-          {/*<Button variant="bordered" size="sm" startContent={<Download size={15} />}>Export</Button>*/}
-          <Select selectedKeys={[selectedMonth]} onSelectionChange={(keys) => setSelectedMonth(Array.from(keys)[0] as string)} className="w-[200px]" size="sm" aria-label="Période">
-            {monthOptions.map((m) => (
-              <SelectItem key={m.key} value={m.key}>
-                {m.label}
-              </SelectItem>
-            ))}
-          </Select>
-        </div>
+        <Select
+          selectedKeys={[selectedMonth]}
+          onSelectionChange={handleMonthChange}
+          className="w-[200px]"
+          size="sm"
+          aria-label="Période"
+        >
+          {monthOptions.map((m) => (
+            <SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>
+          ))}
+        </Select>
       </div>
 
       {/* Stats Cards */}
@@ -90,19 +119,16 @@ export default function ChargesPageContentV2() {
       <Card className="border shadow-none overflow-hidden">
         <div className="p-4 flex items-center justify-between">
           <h2 className="text-base font-semibold text-gray-900">Configuration des Charges Fixes</h2>
-          <Button
-            color="danger"
-            size="sm"
-            startContent={<Plus size={16} />}
-            onPress={() => {
-              setChargeToEdit(null);
-              setIsFixeModalOpen(true);
-            }}
-          >
+          <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={() => { setChargeToEdit(null); setIsFixeModalOpen(true); }}>
             Ajouter
           </Button>
         </div>
-        <ChargesTableV2 table={fixesTable} isLoading={isFixesLoading} emptyMessage="Aucune charge fixe configurée" />
+        <ChargesTableV2
+          table={fixesTable}
+          isLoading={isFixesLoading}
+          emptyMessage="Aucune charge fixe configurée"
+          getRowClassName={(row: IChargeFixe) => row.automatique ? 'bg-green-100' : ''}
+        />
         <div className="py-3 text-center border-t">
           <Link href="/finance/charges/details?tab=fixes" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
             <ChevronDown size={14} /> Voir plus ({fixesRemainingCount} restantes)
@@ -114,15 +140,7 @@ export default function ChargesPageContentV2() {
       <Card className="border shadow-none overflow-hidden">
         <div className="p-4 flex items-center justify-between">
           <h2 className="text-base font-semibold text-gray-900">Dépenses Variables (Au jour le jour)</h2>
-          <Button
-            color="danger"
-            size="sm"
-            startContent={<Plus size={16} />}
-            onPress={() => {
-              setDepenseToEdit(null);
-              setIsVariableModalOpen(true);
-            }}
-          >
+          <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={() => { setChargeVariableToEdit(null); setIsVariableModalOpen(true); }}>
             Nouvelle dépense
           </Button>
         </div>
@@ -135,35 +153,64 @@ export default function ChargesPageContentV2() {
       </Card>
 
       {/* Modals */}
-      <AddChargeFixeModal
-        isOpen={isFixeModalOpen}
-        onClose={() => {
-          setIsFixeModalOpen(false);
-          setChargeToEdit(null);
-        }}
-        chargeToEdit={chargeToEdit}
-      />
-      {/* TODO: Remplacer par un modal dépense compatible IDepense */}
-      <AddDepenseVariableModal
-        isOpen={isVariableModalOpen}
-        onClose={() => {
-          setIsVariableModalOpen(false);
-          setDepenseToEdit(null);
-        }}
-      />
+      <AddChargeFixeModal isOpen={isFixeModalOpen} onClose={() => { setIsFixeModalOpen(false); setChargeToEdit(null); }} chargeToEdit={chargeToEdit} />
+      <AddDepenseVariableModal isOpen={isVariableModalOpen} onClose={() => { setIsVariableModalOpen(false); setChargeVariableToEdit(null); }} chargeToEdit={chargeVariableToEdit} />
+
+      {/* Toggle Enable Confirmation */}
+      <ConfirmModal
+        isOpen={!!toggleTarget}
+        onClose={() => setToggleTarget(null)}
+        title={`${toggleTarget?.enable ? 'Activer' : 'Désactiver'} la charge fixe`}
+        isLoading={toggleMutation.isPending}
+        actions={toggleTarget?.enable
+          ? [
+              { label: 'Annuler', variant: 'bordered', onPress: () => setToggleTarget(null) },
+              { label: 'Activer', color: 'primary', onPress: () => { toggleMutation.mutate({ id: toggleTarget!.charge.id, enable: true, supprimerDepense: false }); setToggleTarget(null); } },
+            ]
+          : [
+              { label: 'Conserver les dépenses', variant: 'bordered', onPress: () => { toggleMutation.mutate({ id: toggleTarget!.charge.id, enable: false, supprimerDepense: false }); setToggleTarget(null); } },
+              { label: 'Supprimer les dépenses', color: 'danger', onPress: () => { toggleMutation.mutate({ id: toggleTarget!.charge.id, enable: false, supprimerDepense: true }); setToggleTarget(null); } },
+            ]
+        }
+      >
+        <p className="text-sm text-gray-700">
+          Voulez-vous {toggleTarget?.enable ? 'activer' : 'désactiver'}{' '}
+          <span className="font-semibold">{toggleTarget?.charge.designation}</span> ?
+        </p>
+        {!toggleTarget?.enable && (
+          <p className="text-sm text-gray-500 mt-2">
+            Souhaitez-vous également supprimer les anciennes dépenses associées ?
+          </p>
+        )}
+      </ConfirmModal>
+
+      {/* Delete Confirmation */}
+      <ConfirmModal
+        isOpen={!!chargeToDelete}
+        onClose={() => setChargeToDelete(null)}
+        title="Supprimer la charge fixe"
+        isLoading={isDeleting}
+        actions={[
+          { label: 'Annuler', variant: 'bordered', onPress: () => setChargeToDelete(null) },
+          { label: 'Supprimer', color: 'danger', onPress: () => { supprimerChargeFixe(chargeToDelete!.id, { onSuccess: () => setChargeToDelete(null) }); } },
+        ]}
+      >
+        <p className="text-sm text-gray-700">
+          Voulez-vous vraiment supprimer <span className="font-semibold">{chargeToDelete?.designation}</span> ? Cette action est irréversible.
+        </p>
+      </ConfirmModal>
 
       {/* Justificatif Preview */}
       <Modal isOpen={!!previewUrl} onClose={() => setPreviewUrl(null)} size="3xl" scrollBehavior="inside">
         <ModalContent>
           <ModalHeader className="text-gray-900">Justificatif</ModalHeader>
           <ModalBody className="pb-6">
-            {previewUrl &&
-              (isPdf(previewUrl) ? (
-                <iframe src={previewUrl} className="w-full h-[70vh] rounded-lg border" title="Justificatif PDF" />
-              ) : (
+            {previewUrl && (
+              isPdf(previewUrl)
+                ? <iframe src={previewUrl} className="w-full h-[70vh] rounded-lg border" title="Justificatif PDF" />
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={previewUrl} alt="Justificatif" className="w-full object-contain max-h-[70vh] rounded-lg" />
-              ))}
+                : <img src={previewUrl} alt="Justificatif" className="w-full object-contain max-h-[70vh] rounded-lg" />
+            )}
           </ModalBody>
         </ModalContent>
       </Modal>

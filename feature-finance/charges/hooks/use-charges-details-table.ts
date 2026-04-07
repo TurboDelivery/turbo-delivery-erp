@@ -1,27 +1,31 @@
 import { functionalUpdate, getCoreRowModel, getSortedRowModel, PaginationState, useReactTable } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
-import { createChargesFixesDetailsColumns } from '../columns/charges-fixes-details.columns';
-import { createDepensesVariablesDetailsColumns } from '../columns/depenses-variables-details.columns';
+import { createChargesFixesV2Columns } from '../columns/charges-fixes-v2.columns';
+import { createDepensesVariablesV2Columns } from '../columns/depenses-variables-v2.columns';
 import { IChargeFixe } from '../types/charge-fixe.type';
-import { IDepense } from '@/features/depenses/types/depense.type';
+import { IChargeVariable } from '../types/charge-variable.type';
 import { useChargesFixesQuery } from '../queries/charges-fixes.query';
-import { useDepensesListQuery } from '@/feature-finance/depenses/queries/depense-list.query';
+import { useChargesVariablesQuery } from '../queries/charges-variables.query';
 
 const DEFAULT_PAGE_SIZE = 8;
 
 type Options = {
+  onEditChargeFixe?: (charge: IChargeFixe) => void;
+  onDeleteChargeFixe?: (charge: IChargeFixe) => void;
   onToggleChargeFixe?: (charge: IChargeFixe, enabled: boolean) => void;
-  onEditDepense?: (depense: IDepense) => void;
-  onApproveDepense?: (depense: IDepense) => void;
-  onRejectDepense?: (depense: IDepense) => void;
-  onViewJustificatif?: (depense: IDepense) => void;
+  onEditChargeVariable?: (charge: IChargeVariable) => void;
+  onApproveChargeVariable?: (charge: IChargeVariable) => void;
+  onRejectChargeVariable?: (charge: IChargeVariable) => void;
+  onViewJustificatif?: (url: string) => void;
 };
 
 export function useChargesDetailsTable({
+  onEditChargeFixe,
+  onDeleteChargeFixe,
   onToggleChargeFixe,
-  onEditDepense,
-  onApproveDepense,
-  onRejectDepense,
+  onEditChargeVariable,
+  onApproveChargeVariable,
+  onRejectChargeVariable,
   onViewJustificatif,
 }: Options = {}) {
   const [fixesPagination, setFixesPagination] = useState<PaginationState>({
@@ -38,26 +42,26 @@ export function useChargesDetailsTable({
     size: fixesPagination.pageSize,
   });
 
-  const { data: variablesResponse, isLoading: isVariablesLoading, isFetching: isVariablesFetching } = useDepensesListQuery({
+  const { data: variablesResponse, isLoading: isVariablesLoading, isFetching: isVariablesFetching } = useChargesVariablesQuery({
     page: variablesPagination.pageIndex,
-    limit: variablesPagination.pageSize,
+    size: variablesPagination.pageSize,
   });
 
   const fixesData = useMemo(() => fixesResponse?.content ?? [], [fixesResponse?.content]);
   const variablesData = useMemo(() => variablesResponse?.content ?? [], [variablesResponse?.content]);
 
   const fixesColumns = useMemo(
-    () => createChargesFixesDetailsColumns({ onToggle: onToggleChargeFixe }),
-    [onToggleChargeFixe],
+    () => createChargesFixesV2Columns({ onEdit: onEditChargeFixe, onDelete: onDeleteChargeFixe, onToggle: onToggleChargeFixe }),
+    [onEditChargeFixe, onDeleteChargeFixe, onToggleChargeFixe],
   );
   const variablesColumns = useMemo(
-    () => createDepensesVariablesDetailsColumns({
-      onEdit: onEditDepense,
-      onApprove: onApproveDepense,
-      onReject: onRejectDepense,
+    () => createDepensesVariablesV2Columns({
+      onEdit: onEditChargeVariable,
+      onApprove: onApproveChargeVariable,
+      onReject: onRejectChargeVariable,
       onViewJustificatif,
     }),
-    [onEditDepense, onApproveDepense, onRejectDepense, onViewJustificatif],
+    [onEditChargeVariable, onApproveChargeVariable, onRejectChargeVariable, onViewJustificatif],
   );
 
   const fixesTable = useReactTable({

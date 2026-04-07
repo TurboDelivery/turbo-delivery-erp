@@ -14,10 +14,10 @@ export const chargesFixesListQueryOption = (params: IChargeFixeParams) => ({
   staleTime: 5 * 60 * 1000,
 });
 
-export const chargesFixesStatsQueryOption = () => ({
-  queryKey: chargeFixeKeyQuery('stats'),
+export const chargesFixesStatsQueryOption = (params?: { debut?: string; fin?: string }) => ({
+  queryKey: chargeFixeKeyQuery('stats', params),
   queryFn: async () => {
-    return await chargeFixeAPI.obtenirStatsChargesFixes();
+    return await chargeFixeAPI.obtenirStatsChargesFixes(params);
   },
   staleTime: 5 * 60 * 1000,
 });
@@ -36,8 +36,8 @@ export const useChargesFixesQuery = (params: IChargeFixeParams = {}) => {
   return query;
 };
 
-export const useChargesFixesStatsQuery = () => {
-  const query = useQuery(chargesFixesStatsQueryOption());
+export const useChargesFixesStatsQuery = (params?: { debut?: string; fin?: string }) => {
+  const query = useQuery(chargesFixesStatsQueryOption(params));
 
   useEffect(() => {
     if (query.isError && query.error) {
@@ -49,4 +49,3 @@ export const useChargesFixesStatsQuery = () => {
 
   return query;
 };
-

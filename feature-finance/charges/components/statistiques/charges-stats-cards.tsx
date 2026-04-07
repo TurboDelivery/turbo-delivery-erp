@@ -8,8 +8,13 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 const emptyStats: IChargeStats = {
   totalMensuel: 0,
-  pointMortQuotidien: 0,
+  chargesFixesAuProrata: 0,
   chargesActives: 0,
+  sommeDepensesVariables: 0,
+  nombreDepensesVariables: 0,
+  totalChargesADate: 0,
+  pointMortDuJour: 0,
+  pointMortQuotidien: 0,
 };
 
 export default function ChargesStatsCards() {

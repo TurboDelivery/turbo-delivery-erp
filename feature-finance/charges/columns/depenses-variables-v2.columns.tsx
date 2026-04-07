@@ -3,21 +3,24 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Button, Chip } from '@heroui/react';
 import { Check, Edit, Eye, X } from 'lucide-react';
-import { IDepense } from '@/features/depenses/types/depense.type';
+import { IChargeVariable } from '../types/charge-variable.type';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { createUrlFile } from '@/utils/createUrlFile';
 
 const STATUT_CONFIG: Record<string, { label: string; color: 'success' | 'warning' | 'danger' | 'primary' | 'default' }> = {
-  EN_ATTENTE: { label: 'En attente', color: 'warning' },
-  PENDING: { label: 'En attente', color: 'warning' },
-  APPROUVE: { label: 'Approuvé', color: 'success' },
-  PAID: { label: 'Approuvé', color: 'success' },
-  REJETE: { label: 'Rejeté', color: 'danger' },
+  EN_ATTENTE_DGA: { label: 'En attente', color: 'warning' },
+  VALIDE_DGA: { label: 'Validé DGA', color: 'primary' },
+  REJETE_DGA: { label: 'Rejeté', color: 'danger' },
+  APPROUVE_DG: { label: 'Approuvé', color: 'success' },
+  REJETE_DG: { label: 'Rejeté', color: 'danger' },
+  DECAISSE: { label: 'Décaissé', color: 'success' },
 };
 
 type DepensesVariablesV2ColumnsOptions = {
-  onEdit?: (depense: IDepense) => void;
-  onApprove?: (depense: IDepense) => void;
-  onReject?: (depense: IDepense) => void;
-  onViewJustificatif?: (depense: IDepense) => void;
+  onEdit?: (charge: IChargeVariable) => void;
+  onApprove?: (charge: IChargeVariable) => void;
+  onReject?: (charge: IChargeVariable) => void;
+  onViewJustificatif?: (url: string) => void;
 };
 
 export function createDepensesVariablesV2Columns({
@@ -25,12 +28,12 @@ export function createDepensesVariablesV2Columns({
   onApprove,
   onReject,
   onViewJustificatif,
-}: DepensesVariablesV2ColumnsOptions): ColumnDef<IDepense>[] {
+}: DepensesVariablesV2ColumnsOptions): ColumnDef<IChargeVariable>[] {
   return [
     {
-      accessorKey: 'libelle',
+      accessorKey: 'designation',
       header: 'Désignation',
-      cell: ({ row }) => <span className="text-sm text-gray-900">{row.getValue('libelle')}</span>,
+      cell: ({ row }) => <span className="text-sm text-gray-900">{row.getValue('designation')}</span>,
     },
     {
       id: 'categorie',
@@ -43,31 +46,34 @@ export function createDepensesVariablesV2Columns({
       accessorKey: 'montant',
       header: 'Montant',
       cell: ({ row }) => (
-        <span className="text-sm font-medium text-gray-900">
-          {row.getValue<number>('montant').toLocaleString('fr-FR')} FCFA
-        </span>
+        <span className="text-sm font-medium text-gray-900">{formatCFA(row.getValue<number>('montant'))}</span>
       ),
     },
     {
-      accessorKey: 'dateDepense',
+      accessorKey: 'createdAt',
       header: 'Date',
       cell: ({ row }) => (
         <span className="text-sm text-gray-600">
-          {new Date(row.getValue<string>('dateDepense')).toLocaleDateString('fr-FR')}
+          {new Date(row.getValue<string>('createdAt')).toLocaleDateString('fr-FR')}
         </span>
       ),
     },
     {
       id: 'justificatif',
       header: 'Justificatif',
-      cell: ({ row }) => (
-        <button
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
-          onClick={() => onViewJustificatif?.(row.original)}
-        >
-          <Eye size={14} /> Voir
-        </button>
-      ),
+      cell: ({ row }) => {
+        const val = row.original.justificatif;
+        if (!val) return <span className="text-sm text-gray-400">—</span>;
+        const url = createUrlFile(val, 'backend');
+        return (
+          <button
+            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+            onClick={() => onViewJustificatif?.(url)}
+          >
+            <Eye size={14} /> Voir
+          </button>
+        );
+      },
     },
     {
       accessorKey: 'statut',
@@ -82,10 +88,8 @@ export function createDepensesVariablesV2Columns({
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => {
-        const statut = row.original.statut;
-        const isEnAttente = statut === 'EN_ATTENTE' || statut === 'PENDING';
+        const isEnAttente = row.original.statut === 'EN_ATTENTE_DGA';
         if (!isEnAttente) return null;
-
         return (
           <div className="flex items-center gap-1">
             <Button isIconOnly size="sm" variant="light" onPress={() => onEdit?.(row.original)}>

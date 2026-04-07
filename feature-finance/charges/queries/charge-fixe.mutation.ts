@@ -15,6 +15,7 @@ import { useInvalidateChargeFixeQuery } from './index.query';
 import { IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
 import { toast } from 'sonner';
 import { ChargeFixeCreateDTO, ChargeFixeUpdateDTO } from '../schemas/charge-fixe.schema';
+import { chargeFixeAPI } from '../apis/charge-fixe.api';
 
 export type ActionWorkflowFixe = 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser';
 
@@ -85,6 +86,25 @@ export const useSupprimerChargeFixeMutation = () => {
     },
     onError: (error) => {
       toast.error('Erreur lors de la suppression de la charge fixe', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+export const useToggleEnableChargeFixeMutation = () => {
+  const invalidateChargeFixeQuery = useInvalidateChargeFixeQuery();
+
+  return useMutation({
+    mutationFn: async ({ id, enable, supprimerDepense }: { id: string; enable: boolean; supprimerDepense: boolean }) => {
+      return chargeFixeAPI.toggleEnableChargeFixe(id, enable, supprimerDepense);
+    },
+    onSuccess: async () => {
+      await invalidateChargeFixeQuery();
+      toast.success('Charge fixe mise à jour');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors de la mise à jour', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },

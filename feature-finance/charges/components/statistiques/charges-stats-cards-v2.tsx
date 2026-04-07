@@ -43,7 +43,7 @@ export default function ChargesStatsCardsV2({ stats, isLoading }: ChargesStatsV2
     },
     {
       label: 'CHARGES FIXES AU PRORATA',
-      value: formatCFA(stats.prorata),
+      value: formatCFA(stats.chargesFixesAuProrata),
       sub: `Jour ${jourDuMois}/${joursTotal} du mois`,
       bg: 'bg-orange-50 border-orange-100',
       textColor: 'text-orange-600',
@@ -52,8 +52,8 @@ export default function ChargesStatsCardsV2({ stats, isLoading }: ChargesStatsV2
     },
     {
       label: 'DÉPENSES VARIABLES APPROUVÉES',
-      value: formatCFA(stats.totalVariablesApprouvees),
-      sub: `${stats.countVariablesApprouvees} dépenses validées`,
+      value: formatCFA(stats.sommeDepensesVariables),
+      sub: `${stats.nombreDepensesVariables} dépenses validées`,
       bg: 'bg-green-50 border-green-100',
       textColor: 'text-green-600',
       icon: <FileText size={20} className="text-white" />,
@@ -70,8 +70,8 @@ export default function ChargesStatsCardsV2({ stats, isLoading }: ChargesStatsV2
     },
     {
       label: 'POINT MORT DU JOUR',
-      value: `${stats.pointMortCourses} courses`,
-      sub: `${formatCFA(stats.pointMortMontant)} à couvrir aujourd'hui`,
+      value: `${stats.pointMortDuJour} courses`,
+      sub: ``,
       bg: 'bg-red-500 border-red-500',
       textColor: 'text-white',
       valueColor: 'text-white',
