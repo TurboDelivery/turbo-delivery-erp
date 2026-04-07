@@ -124,7 +124,7 @@ export default function DashboardFinanceStatistics() {
         </div>
 
         <div className="flex max-md:flex-col items-center justify-between gap-4">
-          <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/depense" ariaLabel="Voir la liste des dépenses">
+          <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/charges" ariaLabel="Voir la liste des dépenses">
             <div className="flex flex-col gap-0.5">
               <div className="bg-red-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-sm">
                 <span>Charges fixes</span>

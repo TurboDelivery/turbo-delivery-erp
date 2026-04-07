@@ -23,7 +23,6 @@ export async function updateTurboyTypeAction(data: UpdateTurboyTypeDTO): Promise
     };
 
     const response = await turboyAPI.updateTurboyType(payload);
-
     return {
       success: true,
       data: response,

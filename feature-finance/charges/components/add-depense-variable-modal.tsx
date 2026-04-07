@@ -19,7 +19,7 @@ import {
   useAjouterChargeVariableMutation,
   useModifierChargeVariableMutation,
 } from '@/feature-finance/charges/queries/charge-variable.mutation';
-import { CyclePaiement, IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
+import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
 import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 import { useSession } from 'next-auth/react';
 
@@ -30,36 +30,10 @@ interface AddDepenseVariableModalProps {
   chargeToEdit?: IChargeVariable | null;
 }
 
-const CYCLE_MAP: Record<string, CyclePaiement> = {
-  mensuel:     'MENSUEL',
-  trimestriel: 'TRIMESTRIEL',
-  semestriel:  'SEMESTRIEL',
-  annuel:      'ANNUEL',
-  hebdomadaire: 'HEBDOMADAIRE',
-};
-
-const CYCLE_REVERSE: Record<CyclePaiement, string> = {
-  MENSUEL:     'mensuel',
-  TRIMESTRIEL: 'trimestriel',
-  SEMESTRIEL:  'semestriel',
-  ANNUEL:      'annuel',
-  HEBDOMADAIRE: 'hebdomadaire',
-};
-
-const cycles = [
-  { value: 'mensuel',     label: 'Tous les mois' },
-  { value: 'trimestriel', label: 'Tous les trimestres' },
-  { value: 'semestriel',  label: 'Tous les semestres' },
-  { value: 'annuel',      label: 'Tous les ans' },
-  { value: 'hebdomadaire', label: 'Toutes les semaines' },
-];
-
 const EMPTY_FORM = {
   designation: '',
   category: '',
-  cycle: 'mensuel',
   montant: '',
-  echeanceJour: '1',
   description: '',
 };
 
@@ -87,9 +61,7 @@ export default function AddDepenseVariableModal({
       setFormData({
         designation: chargeToEdit.designation,
         category: chargeToEdit.categorie?.id ?? '',
-        cycle: CYCLE_REVERSE[chargeToEdit.cyclePaiement] ?? 'mensuel',
         montant: String(chargeToEdit.montant),
-        echeanceJour: String(chargeToEdit.echeanceJour),
         description: chargeToEdit.description ?? '',
       });
     } else if (isOpen && !chargeToEdit) {
@@ -112,9 +84,7 @@ export default function AddDepenseVariableModal({
     const payload = {
       designation: formData.designation.trim(),
       categorieId: formData.category,
-      cyclePaiement: CYCLE_MAP[formData.cycle] ?? 'MENSUEL',
       montant: parseInt(formData.montant, 10),
-      echeanceJour: parseInt(formData.echeanceJour, 10),
       description: formData.description || undefined,
       creerPar: session?.user?.name ?? '',
     };
@@ -148,7 +118,7 @@ export default function AddDepenseVariableModal({
       <div
         className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${
           active
-            ? 'bg-purple-500 border-purple-500 text-white'
+            ? 'bg-green-500 border-green-500 text-white'
             : 'bg-gray-200 border-gray-300 text-gray-500'
         }`}
       >
@@ -192,43 +162,15 @@ export default function AddDepenseVariableModal({
               </Select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Select
-                label="Cycle de paiement"
-                selectedKeys={[formData.cycle]}
-                onSelectionChange={(keys) =>
-                  handleInputChange('cycle', Array.from(keys)[0] as string)
-                }
-                variant="bordered"
-              >
-                {cycles.map((c) => (
-                  <SelectItem key={c.value}>{c.label}</SelectItem>
-                ))}
-              </Select>
-
-              <Input
-                label="Montant FCFA"
-                type="number"
-                placeholder="0"
-                value={formData.montant}
-                onChange={(e) => handleInputChange('montant', e.target.value)}
-                variant="bordered"
-                startContent={<span className="text-gray-500 text-sm">FCFA</span>}
-              />
-
-              <Select
-                label="Jour d'échéance"
-                selectedKeys={[formData.echeanceJour]}
-                onSelectionChange={(keys) =>
-                  handleInputChange('echeanceJour', Array.from(keys)[0] as string)
-                }
-                variant="bordered"
-              >
-                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                  <SelectItem key={day.toString()}>{day.toString()}</SelectItem>
-                ))}
-              </Select>
-            </div>
+            <Input
+              label="Montant FCFA"
+              type="number"
+              placeholder="0"
+              value={formData.montant}
+              onChange={(e) => handleInputChange('montant', e.target.value)}
+              variant="bordered"
+              startContent={<span className="text-gray-500 text-sm">FCFA</span>}
+            />
 
             <Textarea
               label="Description (optionnel)"
@@ -281,7 +223,7 @@ export default function AddDepenseVariableModal({
 
             {/* Workflow */}
             <div className="flex items-center justify-between pt-4">
-              <Step label="Comptable" sub="Saisie" active={isFormValid} />
+              <Step label="Comptable" sub="Saisie" active />
               <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
               <Step label="DGA" sub="Visa" />
               <div className="flex-1 h-[2px] bg-gray-300 mx-2" />

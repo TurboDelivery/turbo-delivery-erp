@@ -18,7 +18,6 @@ export const useUpdateTurboyTypeMutation = (handleSuccess?: (turboy: ITurboy) =>
       return result.data!;
     },
     onSuccess: async (data) => {
-      console.log('Turboy type updated successfully:', data);
       // Invalide la liste des turboys
       await queryClient.invalidateQueries({
         queryKey: turboyKeys.lists(),

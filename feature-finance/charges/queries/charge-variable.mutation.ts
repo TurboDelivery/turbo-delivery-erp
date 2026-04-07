@@ -19,9 +19,9 @@ function buildChargeVariableFormData(data: IChargeVariableCreateDTO, file?: File
   const fd = new FormData();
   fd.append('designation', data.designation);
   fd.append('categorieId', data.categorieId);
-  fd.append('cyclePaiement', data.cyclePaiement);
+  if (data.cyclePaiement) fd.append('cyclePaiement', data.cyclePaiement);
   fd.append('montant', String(data.montant));
-  fd.append('echeanceJour', String(data.echeanceJour));
+  if (data.echeanceJour != null) fd.append('echeanceJour', String(data.echeanceJour));
   if (data.description) fd.append('description', data.description);
   if (data.creerPar) fd.append('creerPar', data.creerPar);
   if (file) fd.append('justificatif', file);
