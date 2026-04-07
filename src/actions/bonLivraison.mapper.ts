@@ -4,7 +4,7 @@ export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
   return {
     id: bon.commandeId,
     code: bon.reference,
-    statut: "TERMINEE",
+    statut: 'TERMINEE',
     livreurId: bon.livreurId ?? '',
     livreur: bon.livreur,
     restaurantId: bon.restaurantId ?? '',
@@ -30,13 +30,16 @@ export function formatNumberFR(value: number | string) {
   }).format(number);
 }
 
-export function formatCFA(value: number | string) {
+export function formatCFA(value?: number | string) {
+  if (!value) {
+    return '0';
+  }
   const number = typeof value === 'string' ? parseFloat(value) || 0 : value;
-  
+
   // Formatage manuel simple pour éviter les problèmes de Intl.NumberFormat
   const integerPart = Math.floor(number);
   const decimalPart = Math.round((number - integerPart) * 100);
-  
+
   // Formater avec le symbole FCFA manuellement
   if (decimalPart === 0) {
     return `${integerPart.toLocaleString('fr-FR')} FCFA`;

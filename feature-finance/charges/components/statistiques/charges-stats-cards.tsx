@@ -4,14 +4,13 @@ import { Activity, TrendingUp, Wallet } from 'lucide-react';
 import { Card, CardBody } from '@heroui/react';
 import { useChargesFixesStatsQuery } from '../../queries/charges-fixes.query';
 import { IChargeStats } from '../../types/charge-fixe.type';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 const emptyStats: IChargeStats = {
   totalMensuel: 0,
   pointMortQuotidien: 0,
   chargesActives: 0,
 };
-
-const formatCurrency = (value: number) => `${value.toLocaleString('fr-FR')} FCFA`;
 
 export default function ChargesStatsCards() {
   const { data } = useChargesFixesStatsQuery();
@@ -27,7 +26,7 @@ export default function ChargesStatsCards() {
             </div>
             <span className="text-blue-100 text-sm font-medium">Total Charges Mensuelles</span>
           </div>
-          <p className="text-3xl font-bold mb-1">{formatCurrency(stats.totalMensuel)}</p>
+          <p className="text-3xl font-bold mb-1">{formatCFA(stats.totalMensuel)}</p>
           <p className="text-blue-100 text-xs">Toutes charges confondues</p>
         </CardBody>
       </Card>
@@ -40,7 +39,7 @@ export default function ChargesStatsCards() {
             </div>
             <span className="text-orange-100 text-sm font-medium">Point Mort Quotidien</span>
           </div>
-          <p className="text-3xl font-bold mb-1">{formatCurrency(stats.pointMortQuotidien)}</p>
+          <p className="text-3xl font-bold mb-1">{formatCFA(stats.pointMortQuotidien)}</p>
           <p className="text-orange-100 text-xs">Coût par jour (Total ÷ 30)</p>
         </CardBody>
       </Card>
