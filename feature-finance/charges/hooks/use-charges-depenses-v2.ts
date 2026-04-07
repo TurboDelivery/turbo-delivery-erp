@@ -41,7 +41,7 @@ export function useChargesDepensesV2({
     limit: variablesPagination.pageSize,
   });
 
-  const { data: stats } = useChargesFixesStatsQuery();
+  const { data: stats, isLoading: isStatsLoading } = useChargesFixesStatsQuery();
 
   // Data
   const fixesData = useMemo(() => fixesResponse?.content ?? [], [fixesResponse?.content]);
@@ -82,23 +82,6 @@ export function useChargesDepensesV2({
     getSortedRowModel: getSortedRowModel(),
   });
 
-  // Computed stats
-  const totalChargesFixes = stats?.totalMensuel ?? 0;
-  const today = new Date();
-  const jourDuMois = today.getDate();
-  const joursTotal = 30;
-  const prorata = Math.round((totalChargesFixes / joursTotal) * jourDuMois);
-  const pourcentageMois = Math.round((jourDuMois / joursTotal) * 100);
-
-  const depensesApprouvees = variablesData.filter(
-    (v) => v.statut === 'APPROUVE' || v.statut === 'PAID',
-  );
-  const totalVariablesApprouvees = depensesApprouvees.reduce((sum, v) => sum + v.montant, 0);
-  const countVariablesApprouvees = depensesApprouvees.length;
-
-  const totalChargesADate = prorata + totalVariablesApprouvees;
-  const pointMortCourses = stats?.pointMortQuotidien ?? 0;
-
   const fixesTotalElements = fixesResponse?.totalElements ?? 0;
   const fixesRemainingCount = Math.max(0, fixesTotalElements - fixesPagination.pageSize);
   const variablesTotalElements = variablesResponse?.totalElements ?? 0;
@@ -111,18 +94,9 @@ export function useChargesDepensesV2({
     isFixesFetching,
     isVariablesLoading,
     isVariablesFetching,
+    isStatsLoading,
     fixesRemainingCount,
     variablesRemainingCount,
-    cardStats: {
-      totalChargesFixes,
-      prorata,
-      jourDuMois,
-      joursTotal,
-      pourcentageMois,
-      totalVariablesApprouvees,
-      countVariablesApprouvees,
-      totalChargesADate,
-      pointMortCourses,
-    },
+    stats,
   };
 }

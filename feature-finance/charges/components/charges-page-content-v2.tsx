@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowLeft, ChevronDown, Download, Plus } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
 import { Button, Card, Modal, ModalBody, ModalContent, ModalHeader, Select, SelectItem } from '@heroui/react';
 import Link from 'next/link';
 import { useChargesDepensesV2 } from '../hooks/use-charges-depenses-v2';
@@ -22,15 +22,7 @@ export default function ChargesPageContentV2() {
 
   const statutMutation = useModifierStatutDepenseMutation();
 
-  const {
-    fixesTable,
-    variablesTable,
-    isFixesLoading,
-    isVariablesLoading,
-    fixesRemainingCount,
-    variablesRemainingCount,
-    cardStats,
-  } = useChargesDepensesV2({
+  const { fixesTable, variablesTable, isFixesLoading, isVariablesLoading, fixesRemainingCount, variablesRemainingCount, stats, isStatsLoading } = useChargesDepensesV2({
     onEditDepense: (depense) => {
       setDepenseToEdit(depense);
       setIsVariableModalOpen(true);
@@ -80,23 +72,19 @@ export default function ChargesPageContentV2() {
           <p className="text-sm text-gray-500 mt-1">Pilotage de la rentabilité en temps réel</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="bordered" size="sm" startContent={<Download size={15} />}>Export</Button>
-          <Select
-            selectedKeys={[selectedMonth]}
-            onSelectionChange={(keys) => setSelectedMonth(Array.from(keys)[0] as string)}
-            className="w-[200px]"
-            size="sm"
-            aria-label="Période"
-          >
+          {/*<Button variant="bordered" size="sm" startContent={<Download size={15} />}>Export</Button>*/}
+          <Select selectedKeys={[selectedMonth]} onSelectionChange={(keys) => setSelectedMonth(Array.from(keys)[0] as string)} className="w-[200px]" size="sm" aria-label="Période">
             {monthOptions.map((m) => (
-              <SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>
+              <SelectItem key={m.key} value={m.key}>
+                {m.label}
+              </SelectItem>
             ))}
           </Select>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <ChargesStatsCardsV2 stats={cardStats} />
+      <ChargesStatsCardsV2 stats={stats} isLoading={isStatsLoading} />
 
       {/* Charges Fixes Table */}
       <Card className="border shadow-none overflow-hidden">
@@ -106,17 +94,17 @@ export default function ChargesPageContentV2() {
             color="danger"
             size="sm"
             startContent={<Plus size={16} />}
-            onPress={() => { setChargeToEdit(null); setIsFixeModalOpen(true); }}
+            onPress={() => {
+              setChargeToEdit(null);
+              setIsFixeModalOpen(true);
+            }}
           >
             Ajouter
           </Button>
         </div>
         <ChargesTableV2 table={fixesTable} isLoading={isFixesLoading} emptyMessage="Aucune charge fixe configurée" />
         <div className="py-3 text-center border-t">
-          <Link
-            href="/finance/charges/details?tab=fixes"
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
-          >
+          <Link href="/finance/charges/details?tab=fixes" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
             <ChevronDown size={14} /> Voir plus ({fixesRemainingCount} restantes)
           </Link>
         </div>
@@ -130,38 +118,52 @@ export default function ChargesPageContentV2() {
             color="danger"
             size="sm"
             startContent={<Plus size={16} />}
-            onPress={() => { setDepenseToEdit(null); setIsVariableModalOpen(true); }}
+            onPress={() => {
+              setDepenseToEdit(null);
+              setIsVariableModalOpen(true);
+            }}
           >
             Nouvelle dépense
           </Button>
         </div>
         <ChargesTableV2 table={variablesTable} isLoading={isVariablesLoading} emptyMessage="Aucune dépense variable" />
         <div className="py-3 text-center border-t">
-          <Link
-            href="/finance/charges/details?tab=variables"
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
-          >
+          <Link href="/finance/charges/details?tab=variables" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
             <ChevronDown size={14} /> Voir plus ({variablesRemainingCount} restantes)
           </Link>
         </div>
       </Card>
 
       {/* Modals */}
-      <AddChargeFixeModal isOpen={isFixeModalOpen} onClose={() => { setIsFixeModalOpen(false); setChargeToEdit(null); }} chargeToEdit={chargeToEdit} />
+      <AddChargeFixeModal
+        isOpen={isFixeModalOpen}
+        onClose={() => {
+          setIsFixeModalOpen(false);
+          setChargeToEdit(null);
+        }}
+        chargeToEdit={chargeToEdit}
+      />
       {/* TODO: Remplacer par un modal dépense compatible IDepense */}
-      <AddDepenseVariableModal isOpen={isVariableModalOpen} onClose={() => { setIsVariableModalOpen(false); setDepenseToEdit(null); }} />
+      <AddDepenseVariableModal
+        isOpen={isVariableModalOpen}
+        onClose={() => {
+          setIsVariableModalOpen(false);
+          setDepenseToEdit(null);
+        }}
+      />
 
       {/* Justificatif Preview */}
       <Modal isOpen={!!previewUrl} onClose={() => setPreviewUrl(null)} size="3xl" scrollBehavior="inside">
         <ModalContent>
           <ModalHeader className="text-gray-900">Justificatif</ModalHeader>
           <ModalBody className="pb-6">
-            {previewUrl && (
-              isPdf(previewUrl)
-                ? <iframe src={previewUrl} className="w-full h-[70vh] rounded-lg border" title="Justificatif PDF" />
+            {previewUrl &&
+              (isPdf(previewUrl) ? (
+                <iframe src={previewUrl} className="w-full h-[70vh] rounded-lg border" title="Justificatif PDF" />
+              ) : (
                 // eslint-disable-next-line @next/next/no-img-element
-                : <img src={previewUrl} alt="Justificatif" className="w-full object-contain max-h-[70vh] rounded-lg" />
-            )}
+                <img src={previewUrl} alt="Justificatif" className="w-full object-contain max-h-[70vh] rounded-lg" />
+              ))}
           </ModalBody>
         </ModalContent>
       </Modal>

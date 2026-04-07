@@ -2,28 +2,39 @@
 
 import { Card, CardBody } from '@heroui/react';
 import { Crosshair, FileText, Receipt, Target, Wallet } from 'lucide-react';
+import { IChargeStats } from '../../types/charge-fixe.type';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 interface ChargesStatsV2Props {
-  stats: {
-    totalChargesFixes: number;
-    prorata: number;
-    jourDuMois: number;
-    joursTotal: number;
-    pourcentageMois: number;
-    totalVariablesApprouvees: number;
-    countVariablesApprouvees: number;
-    totalChargesADate: number;
-    pointMortCourses: number;
-  };
+  stats?: IChargeStats;
+  isLoading?: boolean;
 }
 
-const fmt = (v: number) => `${v.toLocaleString('fr-FR')} FCFA`;
+export default function ChargesStatsCardsV2({ stats, isLoading }: ChargesStatsV2Props) {
+  if (isLoading || !stats) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        {[...Array(5)].map((_, i) => (
+          <Card key={i} className="bg-gray-50 border border-gray-200 shadow-none animate-pulse">
+            <CardBody className="p-4">
+              <div className="h-3 bg-gray-200 rounded w-24 mb-4" />
+              <div className="h-6 bg-gray-200 rounded w-32 mb-2" />
+              <div className="h-3 bg-gray-200 rounded w-20" />
+            </CardBody>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
-export default function ChargesStatsCardsV2({ stats }: ChargesStatsV2Props) {
+  const today = new Date();
+  const jourDuMois = today.getDate();
+  const joursTotal = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
   const cards = [
     {
       label: 'TOTAL CHARGES FIXES MENSUELLES',
-      value: fmt(stats.totalChargesFixes),
+      value: formatCFA(stats.totalMensuel),
       sub: 'Budget cible du mois',
       bg: 'bg-blue-50 border-blue-100',
       textColor: 'text-blue-600',
@@ -32,8 +43,8 @@ export default function ChargesStatsCardsV2({ stats }: ChargesStatsV2Props) {
     },
     {
       label: 'CHARGES FIXES AU PRORATA',
-      value: fmt(stats.prorata),
-      sub: `Jour ${stats.jourDuMois}/${stats.joursTotal} — ${stats.pourcentageMois}% du mois`,
+      value: formatCFA(stats.prorata),
+      sub: `Jour ${jourDuMois}/${joursTotal} du mois`,
       bg: 'bg-orange-50 border-orange-100',
       textColor: 'text-orange-600',
       icon: <Receipt size={20} className="text-white" />,
@@ -41,7 +52,7 @@ export default function ChargesStatsCardsV2({ stats }: ChargesStatsV2Props) {
     },
     {
       label: 'DÉPENSES VARIABLES APPROUVÉES',
-      value: fmt(stats.totalVariablesApprouvees),
+      value: formatCFA(stats.totalVariablesApprouvees),
       sub: `${stats.countVariablesApprouvees} dépenses validées`,
       bg: 'bg-green-50 border-green-100',
       textColor: 'text-green-600',
@@ -50,7 +61,7 @@ export default function ChargesStatsCardsV2({ stats }: ChargesStatsV2Props) {
     },
     {
       label: 'TOTAL CHARGES À DATE',
-      value: fmt(stats.totalChargesADate),
+      value: formatCFA(stats.totalChargesADate),
       sub: 'Prorata fixe + Variables approuvées',
       bg: 'bg-purple-50 border-purple-100',
       textColor: 'text-purple-600',
@@ -60,7 +71,7 @@ export default function ChargesStatsCardsV2({ stats }: ChargesStatsV2Props) {
     {
       label: 'POINT MORT DU JOUR',
       value: `${stats.pointMortCourses} courses`,
-      sub: `${fmt(stats.prorata)} à couvrir aujourd'hui`,
+      sub: `${formatCFA(stats.pointMortMontant)} à couvrir aujourd'hui`,
       bg: 'bg-red-500 border-red-500',
       textColor: 'text-white',
       valueColor: 'text-white',

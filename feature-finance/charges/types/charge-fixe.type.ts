@@ -53,4 +53,13 @@ export interface IChargeStats {
   totalMensuel: number;
   pointMortQuotidien: number;
   chargesActives: number;
+  // V2 fields — returned by the same /erp/charges-fixes/stats endpoint
+  totalChargesFixes: number;
+  prorata: number;
+  pourcentageMois: number;
+  totalVariablesApprouvees: number;
+  countVariablesApprouvees: number;
+  totalChargesADate: number;
+  pointMortCourses: number;
+  pointMortMontant: number;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
-import { ArrowDown, DollarSign } from 'lucide-react';
+import { ArrowDown, Banknote, Clock, DollarSign, TrendingUp } from 'lucide-react';
 import { useCAExport } from '@/feature-finance/dashboard/hooks/use-ca-export';
 import { useGlobalStats } from '@/feature-finance/dashboard/queries/global-stats.query';
 import DateFilterInput from '@/components/finance/date-filter-input';
@@ -11,6 +11,7 @@ import CACard from './ca-card';
 import FinanceHighlightCard from './finance-highlight-card';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { useDepenseSummaryQuery } from '@/feature-finance/depenses/queries/depense-summary.query';
+import { useFinanceResumeQuery } from '@/feature-finance/dashboard/queries/finance-resume.query';
 
 export default function DashboardFinanceStatistics() {
   // État pour le filtre par plage de dates
@@ -30,6 +31,7 @@ export default function DashboardFinanceStatistics() {
   const { data: globalStats, isLoading } = useGlobalStats(queryParams);
 
   const { data: depenseSummary } = useDepenseSummaryQuery(queryParams);
+  const { data: resume } = useFinanceResumeQuery(queryParams);
 
   // Utiliser les données de l'API globale pour les statistiques
   const chiffreAffaires = globalStats?.chiffreAffaire ?? 0;
@@ -99,6 +101,27 @@ export default function DashboardFinanceStatistics() {
           isLoadingExport={isLoadingCAExport}
           onDownload={handleDownloadDetails}
         />
+
+        <div className="flex max-md:flex-col items-center justify-between gap-4">
+          <FinanceHighlightCard
+            title="Revenus encaissés"
+            value={formatCFA(resume?.totalRevenus ?? 0)}
+            icon={Banknote}
+            tone="blue"
+          />
+          <FinanceHighlightCard
+            title="Investissements"
+            value={formatCFA(resume?.totalInvestissements ?? 0)}
+            icon={TrendingUp}
+            tone="yellow"
+          />
+          <FinanceHighlightCard
+            title="En cours"
+            value={formatCFA(resume?.totalFacturesEnCours ?? 0)}
+            icon={Clock}
+            tone="purple"
+          />
+        </div>
 
         <div className="flex max-md:flex-col items-center justify-between gap-4">
           <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/depense" ariaLabel="Voir la liste des dépenses">

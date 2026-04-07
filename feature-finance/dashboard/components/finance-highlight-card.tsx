@@ -8,7 +8,7 @@ interface FinanceHighlightCardProps {
   title: string;
   value: string;
   icon: LucideIcon;
-  tone: 'red' | 'orange';
+  tone: 'red' | 'orange' | 'blue' | 'yellow' | 'purple';
   href?: string;
   ariaLabel?: string;
   children?: React.ReactNode;
@@ -26,6 +26,24 @@ const toneClasses: Record<FinanceHighlightCardProps['tone'], { container: string
     iconBox: 'bg-orange-300/40',
     icon: 'text-orange-700',
     value: 'text-orange-500',
+  },
+  blue: {
+    container: 'bg-blue-200/50',
+    iconBox: 'bg-blue-300/40',
+    icon: 'text-blue-700',
+    value: 'text-blue-500',
+  },
+  yellow: {
+    container: 'bg-yellow-200/50',
+    iconBox: 'bg-yellow-300/40',
+    icon: 'text-yellow-700',
+    value: 'text-yellow-500',
+  },
+  purple: {
+    container: 'bg-purple-200/50',
+    iconBox: 'bg-purple-300/40',
+    icon: 'text-purple-700',
+    value: 'text-purple-500',
   },
 };
 
@@ -56,7 +74,7 @@ export default function FinanceHighlightCard({
   );
 
   const className = cn(
-    'flex max-md:flex-col md:items-center justify-between rounded-xl w-full md:max-w-[50%] py-5 px-4 gap-4',
+    'flex max-md:flex-col md:items-center justify-between rounded-xl w-full py-5 px-4 gap-4',
     style.container,
     href && 'transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer'
   );
