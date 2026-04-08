@@ -7,6 +7,14 @@ import { fr } from 'date-fns/locale';
 
 export type Role   = 'comptable' | 'dga' | 'dg';
 export type SubTab = 'validation' | 'historique';
+export type ChargeType = 'variable' | 'fixe';
+
+// ─── Mapping Role interne → rôle backend (majuscules) ────────────────────────
+export const ROLE_TO_BACKEND: Record<Role, string> = {
+  comptable: 'COMPTABLE',
+  dga: 'DGA',
+  dg: 'DG',
+};
 
 // ─── Statuts workflow ──────────────────────────────────────────────────────────
 export const S_EN_ATTENTE_DGA = 'En attente validation DGA';
@@ -45,6 +53,26 @@ export const ROLE_REJECT_ACTION: Record<string, ActionWorkflow> = {
   comptable: 'rejeter-dg',
   dga:       'rejeter-dga',
   dg:        'rejeter-dg',
+};
+
+// ─── Rôles autorisés & mapping session → Role interne ────────────────────────
+const SESSION_ROLE_MAP: Record<string, Role> = {
+  ADMIN: 'dg',
+  DG: 'dg',
+  DGA: 'dga',
+  COMPTABLE: 'comptable',
+};
+
+export function sessionRoleToRole(sessionRole?: string): Role | null {
+  const normalized = (sessionRole ?? '').toUpperCase().trim();
+  return SESSION_ROLE_MAP[normalized] ?? null;
+}
+
+// ─── Config par rôle ─────────────────────────────────────────────────────────
+export const ROLE_CONFIG: Record<Role, { label: string; description: string; acceptLabel: string }> = {
+  comptable: { label: 'Comptable', description: 'Saisie des dépenses', acceptLabel: 'Décaisser' },
+  dga:       { label: 'DGA',       description: 'Validation des dépenses', acceptLabel: 'Viser' },
+  dg:        { label: 'DG',        description: 'Approbation des dépenses', acceptLabel: 'Approuver' },
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

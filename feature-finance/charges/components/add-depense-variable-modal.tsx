@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Input,
@@ -15,6 +15,8 @@ import {
   Badge,
 } from '@heroui/react';
 import { Check, Plus, Save, Paperclip, X } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import {
   useAjouterChargeVariableMutation,
   useModifierChargeVariableMutation,
@@ -22,6 +24,10 @@ import {
 import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
 import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 import { useSession } from 'next-auth/react';
+import {
+  ChargeVariableFormDTO,
+  chargeVariableFormSchema,
+} from '@/feature-finance/charges/schemas/charge-variable.schema';
 
 interface AddDepenseVariableModalProps {
   isOpen: boolean;
@@ -30,12 +36,30 @@ interface AddDepenseVariableModalProps {
   chargeToEdit?: IChargeVariable | null;
 }
 
-const EMPTY_FORM = {
+const EMPTY_FORM: ChargeVariableFormDTO = {
   designation: '',
-  category: '',
-  montant: '',
+  categorieId: '',
+  montant: 0,
   description: '',
 };
+
+function Step({ label, sub, active }: { label: string; sub: string; active?: boolean }) {
+  return (
+    <div className="flex flex-col items-center text-center flex-1">
+      <div
+        className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${
+          active
+            ? 'bg-green-500 border-green-500 text-white'
+            : 'bg-gray-200 border-gray-300 text-gray-500'
+        }`}
+      >
+        {active ? <Check size={18} /> : null}
+      </div>
+      <p className="text-sm mt-2 font-medium">{label}</p>
+      <p className="text-xs text-gray-500">{sub}</p>
+    </div>
+  );
+}
 
 export default function AddDepenseVariableModal({
   isOpen,
@@ -52,47 +76,66 @@ export default function AddDepenseVariableModal({
   const { categories, isLoading: isLoadingCategories } = useCategorieDepense();
   const { data: session } = useSession();
 
-  const [formData, setFormData] = useState(EMPTY_FORM);
   const [justificatifFile, setJustificatifFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const {
+    handleSubmit,
+    reset,
+    register,
+    setValue,
+    watch,
+    formState: { errors, isValid },
+  } = useForm<ChargeVariableFormDTO>({
+    resolver: zodResolver(chargeVariableFormSchema),
+    mode: 'onChange',
+    defaultValues: EMPTY_FORM,
+  });
+
   useEffect(() => {
-    if (isOpen && chargeToEdit) {
-      setFormData({
+    if (!isOpen) {
+      reset(EMPTY_FORM);
+      setJustificatifFile(null);
+      return;
+    }
+
+    if (chargeToEdit) {
+      reset({
         designation: chargeToEdit.designation,
-        category: chargeToEdit.categorie?.id ?? '',
-        montant: String(chargeToEdit.montant),
+        categorieId: chargeToEdit.categorie?.id ?? '',
+        montant: chargeToEdit.montant,
         description: chargeToEdit.description ?? '',
       });
-    } else if (isOpen && !chargeToEdit) {
-      setFormData(EMPTY_FORM);
-      setJustificatifFile(null);
+      return;
     }
-  }, [isOpen, chargeToEdit]);
 
-  const isFormValid = useMemo(
-    () =>
-      formData.designation.trim() !== '' &&
-      formData.category !== '' &&
-      formData.montant !== '',
-    [formData],
-  );
+    reset(EMPTY_FORM);
+    setJustificatifFile(null);
+  }, [chargeToEdit, isOpen, reset]);
 
-  const handleSubmit = () => {
-    if (!isFormValid) return;
+  const formValues = watch();
+
+  const hasJustificatif = justificatifFile !== null || !!chargeToEdit?.justificatif;
+
+  const onSubmit = (values: ChargeVariableFormDTO) => {
+    if (!hasJustificatif) return;
 
     const payload = {
-      designation: formData.designation.trim(),
-      categorieId: formData.category,
-      montant: parseInt(formData.montant, 10),
-      description: formData.description || undefined,
+      ...values,
+      cyclePaiement: 'MENSUEL' as const,
+      echeanceJour: 5,
       creerPar: session?.user?.name ?? '',
     };
 
     if (isEditMode && chargeToEdit) {
       modifierChargeVariable(
         { id: chargeToEdit.id, data: payload, file: justificatifFile },
-        { onSuccess: () => onClose() },
+        {
+          onSuccess: () => {
+            reset(EMPTY_FORM);
+            onClose();
+          },
+        },
       );
     } else {
       ajouterChargeVariable(
@@ -100,61 +143,50 @@ export default function AddDepenseVariableModal({
         {
           onSuccess: (data) => {
             onAdd?.(data);
-            onClose();
-            setFormData(EMPTY_FORM);
+            reset(EMPTY_FORM);
             setJustificatifFile(null);
+            onClose();
           },
         },
       );
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleClose = () => {
+    reset(EMPTY_FORM);
+    setJustificatifFile(null);
+    onClose();
   };
 
-  const Step = ({ label, sub, active }: { label: string; sub: string; active?: boolean }) => (
-    <div className="flex flex-col items-center text-center flex-1">
-      <div
-        className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${
-          active
-            ? 'bg-green-500 border-green-500 text-white'
-            : 'bg-gray-200 border-gray-300 text-gray-500'
-        }`}
-      >
-        {active ? <Check size={18} /> : null}
-      </div>
-      <p className="text-sm mt-2 font-medium">{label}</p>
-      <p className="text-xs text-gray-500">{sub}</p>
-    </div>
-  );
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
+    <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
       <ModalContent>
         <ModalHeader className="text-purple-600 text-xl font-semibold">
           {isEditMode ? 'Modifier la dépense variable' : 'Ajouter une Dépense Variable'}
         </ModalHeader>
 
         <ModalBody>
-          <div className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Désignation"
                 placeholder="Ex: Carburant, Maintenance..."
-                value={formData.designation}
-                onChange={(e) => handleInputChange('designation', e.target.value)}
+                {...register('designation')}
                 variant="bordered"
+                isInvalid={!!errors.designation}
+                errorMessage={errors.designation?.message}
               />
 
               <Select
                 label="Catégorie"
-                selectedKeys={formData.category ? [formData.category] : []}
+                selectedKeys={formValues.categorieId ? [formValues.categorieId] : []}
                 onSelectionChange={(keys) =>
-                  handleInputChange('category', Array.from(keys)[0] as string)
+                  setValue('categorieId', Array.from(keys)[0] as string, { shouldValidate: true })
                 }
                 variant="bordered"
                 isLoading={isLoadingCategories}
+                isInvalid={!!errors.categorieId}
+                errorMessage={errors.categorieId?.message}
               >
                 {categories.map((cat) => (
                   <SelectItem key={cat.id}>{cat.nomCategorie}</SelectItem>
@@ -166,17 +198,20 @@ export default function AddDepenseVariableModal({
               label="Montant FCFA"
               type="number"
               placeholder="0"
-              value={formData.montant}
-              onChange={(e) => handleInputChange('montant', e.target.value)}
+              value={String(formValues.montant ?? 0)}
+              onChange={(e) =>
+                setValue('montant', Number(e.target.value), { shouldValidate: true })
+              }
               variant="bordered"
               startContent={<span className="text-gray-500 text-sm">FCFA</span>}
+              isInvalid={!!errors.montant}
+              errorMessage={errors.montant?.message}
             />
 
             <Textarea
               label="Description (optionnel)"
               placeholder="Ajouter une description..."
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
+              {...register('description')}
               variant="bordered"
               minRows={2}
               maxRows={4}
@@ -184,7 +219,9 @@ export default function AddDepenseVariableModal({
 
             {/* Justificatif (fichier) */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Justificatif (optionnel)</p>
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Justificatif <span className="text-red-500">*</span>
+              </p>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -216,8 +253,11 @@ export default function AddDepenseVariableModal({
               )}
               {chargeToEdit?.justificatif && !justificatifFile && (
                 <p className="text-xs text-gray-400 mt-1">
-                  Fichier actuel : {chargeToEdit.justificatif.split('/').pop()}
+                  Fichier actuel : {chargeToEdit.justificatif.split('/').pop()}
                 </p>
+              )}
+              {!hasJustificatif && (
+                <p className="text-xs text-red-500 mt-1">Le justificatif est obligatoire</p>
               )}
             </div>
 
@@ -233,44 +273,44 @@ export default function AddDepenseVariableModal({
             </div>
 
             {/* Aperçu */}
-            {isFormValid && (
+            {isValid && hasJustificatif && (
               <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="font-semibold">{formData.designation}</p>
+                <p className="font-semibold">{formValues.designation}</p>
                 <Badge color="secondary" variant="flat">
-                  {categories.find((c) => c.id === formData.category)?.nomCategorie}
+                  {categories.find((c) => c.id === formValues.categorieId)?.nomCategorie}
                 </Badge>
                 <p className="text-purple-600 font-bold mt-2">
-                  {parseInt(formData.montant).toLocaleString()} FCFA
+                  {formValues.montant.toLocaleString()} FCFA
                 </p>
               </div>
             )}
-          </div>
-        </ModalBody>
 
-        <ModalFooter>
-          <Button variant="bordered" onPress={onClose}>
-            Annuler
-          </Button>
-          <Button
-            color="primary"
-            onPress={handleSubmit}
-            isDisabled={!isFormValid || isPending}
-            isLoading={isPending}
-            className="bg-purple-600"
-          >
-            {isEditMode ? (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Enregistrer les modifications
-              </>
-            ) : (
-              <>
-                <Plus className="w-4 h-4 mr-2" />
-                Enregistrer
-              </>
-            )}
-          </Button>
-        </ModalFooter>
+            <ModalFooter className="px-0">
+              <Button variant="bordered" onPress={handleClose}>
+                Annuler
+              </Button>
+              <Button
+                color="primary"
+                type="submit"
+                isDisabled={!isValid || !hasJustificatif || isPending}
+                isLoading={isPending}
+                className="bg-purple-600"
+              >
+                {isEditMode ? (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Enregistrer les modifications
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Enregistrer
+                  </>
+                )}
+              </Button>
+            </ModalFooter>
+          </form>
+        </ModalBody>
       </ModalContent>
     </Modal>
   );

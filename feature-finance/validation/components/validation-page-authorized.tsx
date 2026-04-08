@@ -1,0 +1,97 @@
+'use client';
+
+import { useState } from 'react';
+import { CheckCircle2 } from 'lucide-react';
+import { Spinner } from '@heroui/react';
+import { IDepense } from '@/features/depenses/types/depense.type';
+import { useValidationData, useHistoryData } from '../hooks/use-validation-data';
+import { getPendingCount, useValidationStats } from '../hooks/use-validation-stats';
+import { useValidationActions } from '../hooks/use-validation-actions';
+import {
+  ChargeType,
+  Role,
+  ROLE_CONFIG,
+  SubTab,
+} from './validation.constants';
+import { ValidationHeader } from './validation-header';
+import { ChargeTypeSwitcher } from './charge-type-switcher';
+import { TabSwitcher } from './tab-switcher';
+import { ValidationCard } from './validation-card';
+import { ValidationStats } from './validation-stats';
+import { HistoryList } from './history-list';
+
+export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
+  const [chargeType, setChargeType] = useState<ChargeType>('variable');
+  const [activeTab, setActiveTab] = useState<SubTab>('validation');
+  const [currentIdx, setCurrentIdx] = useState(0);
+
+  const { depenses, isLoading } = useValidationData(chargeType, userRole);
+  const { depenses: historyDepenses, isLoading: isLoadingHistory } = useHistoryData(chargeType, activeTab === 'historique');
+  const { stats, isLoading: isLoadingStats } = useValidationStats(userRole, chargeType);
+  const { handleAccept, handleReject, isPending } = useValidationActions(userRole, chargeType);
+
+  const safeIdx = Math.min(currentIdx, Math.max(0, depenses.length - 1));
+  const pendingCount = getPendingCount(stats, userRole);
+
+  const handleChargeTypeChange = (type: ChargeType) => {
+    setChargeType(type);
+    setCurrentIdx(0);
+  };
+
+  const handleModifier = (_id: string, _updates: Partial<IDepense>) => {
+    // TODO: appeler l'API de modification de charge variable quand l'endpoint est prêt
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <ValidationHeader role={userRole} pendingCount={pendingCount} />
+
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <ChargeTypeSwitcher chargeType={chargeType} onChange={handleChargeTypeChange} />
+
+        {isLoading ? (
+          <div className="flex justify-center py-16">
+            <Spinner />
+          </div>
+        ) : (
+          <>
+            {!isLoadingStats && <ValidationStats role={userRole} stats={stats} />}
+            <TabSwitcher tab={activeTab} onChange={setActiveTab} pendingCount={pendingCount} />
+
+            {activeTab === 'validation' ? (
+              depenses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-b-xl border border-t-0 border-gray-200 bg-white py-16 text-gray-400">
+                  <CheckCircle2 className="mb-2 h-10 w-10" />
+                  <p className="text-sm">Aucune dépense à valider</p>
+                </div>
+              ) : (
+                <ValidationCard
+                  depense={depenses[safeIdx]}
+                  current={safeIdx}
+                  total={depenses.length}
+                  onPrev={() => setCurrentIdx((i) => Math.max(0, i - 1))}
+                  onNext={() => setCurrentIdx((i) => Math.min(depenses.length - 1, i + 1))}
+                  onAccept={handleAccept}
+                  onReject={handleReject}
+                  onModifier={handleModifier}
+                  acceptLabel={ROLE_CONFIG[userRole].acceptLabel}
+                  canAct={depenses.length > 0}
+                  isDGA={userRole === 'dga'}
+                  isPending={isPending}
+                />
+              )
+            ) : (
+              isLoadingHistory ? (
+                <div className="flex justify-center rounded-b-xl border border-t-0 border-gray-200 bg-white py-16">
+                  <Spinner />
+                </div>
+              ) : (
+                <HistoryList depenses={historyDepenses} />
+              )
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  );
+}

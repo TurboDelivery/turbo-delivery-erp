@@ -65,6 +65,7 @@ export interface IChargeVariableParams {
   designation?: string;
   statut?: StatutChargeVariable;
   cyclePaiement?: CyclePaiement;
+  role?: string;
 }
 
 export interface IWorkflowDecisionDto {

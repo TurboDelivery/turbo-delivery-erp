@@ -18,8 +18,8 @@ export const chargesVariablesListQueryOption = (params: IChargeVariableParams) =
   staleTime: 5 * 60 * 1000,
 });
 
-export const useChargesVariablesQuery = (params: IChargeVariableParams) => {
-  const query = useQuery(chargesVariablesListQueryOption(params));
+export const useChargesVariablesQuery = (params: IChargeVariableParams, enabled: boolean = true) => {
+  const query = useQuery({ ...chargesVariablesListQueryOption(params), enabled });
 
   React.useEffect(() => {
     if (query.isError && query.error) {

@@ -119,6 +119,7 @@ export const chargeVariableAPI: IChargeVariableAPI = {
     if (params.designation) searchParams['designation'] = params.designation;
     if (params.statut) searchParams['statut'] = params.statut;
     if (params.cyclePaiement) searchParams['cyclePaiement'] = params.cyclePaiement;
+    if (params.role) searchParams['role'] = params.role;
 
     return api.request<PaginatedResponse<IChargeVariable>>({
       endpoint: `/erp/charges-variables/pagination`,

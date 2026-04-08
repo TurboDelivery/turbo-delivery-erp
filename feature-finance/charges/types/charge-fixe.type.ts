@@ -48,6 +48,7 @@ export interface IChargeFixeParams {
   statut?: StatutChargeFixe;
   debut?: string;
   fin?: string;
+  role?: string;
 }
 
 export interface IWorkflowDecisionDtoFixe {

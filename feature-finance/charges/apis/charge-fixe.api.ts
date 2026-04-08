@@ -47,6 +47,7 @@ export const chargeFixeAPI: IChargeFixeAPI = {
     if (params.statut) searchParams['statut'] = params.statut;
     if (typeof params.page === 'number') searchParams['page'] = String(params.page);
     if (typeof params.size === 'number') searchParams['size'] = String(params.size);
+    if (params.role) searchParams['role'] = params.role;
 
     return api.request<PaginatedResponse<IChargeFixe>>({
       endpoint: `/erp/charges-fixes/pagination`,

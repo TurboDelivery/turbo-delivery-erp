@@ -22,8 +22,8 @@ export const chargesFixesStatsQueryOption = (params?: { debut?: string; fin?: st
   staleTime: 5 * 60 * 1000,
 });
 
-export const useChargesFixesQuery = (params: IChargeFixeParams = {}) => {
-  const query = useQuery(chargesFixesListQueryOption(params));
+export const useChargesFixesQuery = (params: IChargeFixeParams = {}, enabled: boolean = true) => {
+  const query = useQuery({ ...chargesFixesListQueryOption(params), enabled });
 
   useEffect(() => {
     if (query.isError && query.error) {
