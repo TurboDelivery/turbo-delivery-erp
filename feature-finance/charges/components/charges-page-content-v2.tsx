@@ -2,21 +2,21 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
-import { Button, Card, Modal, ModalBody, ModalContent, ModalHeader, Select, SelectItem } from '@heroui/react';
-import ConfirmModal from '@/components/ui/confirm-modal';
+import { Button, Card, Select, SelectItem } from '@heroui/react';
 import Link from 'next/link';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useChargesDepensesV2 } from '../hooks/use-charges-depenses-v2';
+import { useActionChargeVariableMutation } from '../queries/charge-variable.mutation';
 import { IChargeFixe } from '../types/charge-fixe.type';
 import { IChargeVariable } from '../types/charge-variable.type';
-import { useSupprimerChargeFixeMutation, useToggleEnableChargeFixeMutation } from '../queries/charge-fixe.mutation';
-import { useActionChargeVariableMutation } from '../queries/charge-variable.mutation';
 import ChargesStatsCardsV2 from './statistiques/charges-stats-cards-v2';
 import ChargesTableV2 from './charges-table-v2';
-import AddChargeFixeModal from './add-charge-fixe-modal';
-import AddDepenseVariableModal from './add-depense-variable-modal';
+import { ChargesModals } from './charges-modals';
+import { CategorieDepenseList } from '@/feature-finance/depenses/components/depense-list/categorie-depense';
 import { buildMonthOptions, monthKeyToRange, rangeToMonthKey } from '../utils/month-filter.utils';
 
 export default function ChargesPageContentV2() {
+  // Modals state
   const [isFixeModalOpen, setIsFixeModalOpen] = useState(false);
   const [chargeToEdit, setChargeToEdit] = useState<IChargeFixe | null>(null);
   const [isVariableModalOpen, setIsVariableModalOpen] = useState(false);
@@ -26,8 +26,6 @@ export default function ChargesPageContentV2() {
   const [chargeToDelete, setChargeToDelete] = useState<IChargeFixe | null>(null);
 
   const actionVariableMutation = useActionChargeVariableMutation();
-  const toggleMutation = useToggleEnableChargeFixeMutation();
-  const { mutate: supprimerChargeFixe, isPending: isDeleting } = useSupprimerChargeFixeMutation();
 
   const {
     fixesTable, variablesTable,
@@ -37,23 +35,21 @@ export default function ChargesPageContentV2() {
     filters, setFilters,
   } = useChargesDepensesV2({
     onEditChargeFixe: (charge) => { setChargeToEdit(charge); setIsFixeModalOpen(true); },
-    onDeleteChargeFixe: (charge) => { setChargeToDelete(charge); },
-    onToggleChargeFixe: (charge, enabled) => { setToggleTarget({ charge, enable: enabled }); },
+    onDeleteChargeFixe: (charge) => setChargeToDelete(charge),
+    onToggleChargeFixe: (charge, enabled) => setToggleTarget({ charge, enable: enabled }),
     onEditChargeVariable: (charge) => { setChargeVariableToEdit(charge); setIsVariableModalOpen(true); },
-    onApproveChargeVariable: (charge) => { actionVariableMutation.mutate({ id: charge.id, action: 'valider-dga', dto: { par: 'Utilisateur' } }); },
-    onRejectChargeVariable: (charge) => { actionVariableMutation.mutate({ id: charge.id, action: 'rejeter-dga', dto: { par: 'Utilisateur' } }); },
+    onApproveChargeVariable: (charge) => actionVariableMutation.mutate({ id: charge.id, action: 'valider-dga', dto: { par: 'Utilisateur' } }),
+    onRejectChargeVariable: (charge) => actionVariableMutation.mutate({ id: charge.id, action: 'rejeter-dga', dto: { par: 'Utilisateur' } }),
     onViewJustificatif: (url) => setPreviewUrl(url),
   });
 
   const monthOptions = useMemo(() => buildMonthOptions(), []);
   const selectedMonth = rangeToMonthKey(filters.debut);
 
-  const handleMonthChange = useCallback((keys: Set<string> | any) => {
-    const key = Array.from(keys)[0] as string;
+  const handleMonthChange = useCallback((keys: Set<string> | unknown) => {
+    const key = Array.from(keys as Iterable<string>)[0];
     setFilters(monthKeyToRange(key));
   }, [setFilters]);
-
-  const isPdf = (url: string) => url.toLowerCase().includes('.pdf');
 
   return (
     <div className="space-y-6">
@@ -82,105 +78,107 @@ export default function ChargesPageContentV2() {
       {/* Stats Cards */}
       <ChargesStatsCardsV2 stats={stats} isLoading={isStatsLoading} />
 
-      {/* Charges Fixes Table */}
-      <Card className="border shadow-none overflow-hidden">
-        <div className="p-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-900">Configuration des Charges Fixes</h2>
-          <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={() => { setChargeToEdit(null); setIsFixeModalOpen(true); }}>
-            Ajouter
-          </Button>
-        </div>
-        <ChargesTableV2
-          table={fixesTable}
-          isLoading={isFixesLoading}
-          emptyMessage="Aucune charge fixe configurée"
-          getRowClassName={(row: IChargeFixe) => row.automatique ? 'bg-green-100' : ''}
-        />
-        <div className="py-3 text-center border-t">
-          <Link href="/finance/charges/details?tab=fixes" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
-            <ChevronDown size={14} /> Voir plus ({fixesRemainingCount} restantes)
-          </Link>
-        </div>
-      </Card>
+      {/* Tabs: Charges & Catégories */}
+      <Tabs defaultValue="charges" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 gap-2">
+          <TabsTrigger value="charges">Charges Fixes</TabsTrigger>
+          <TabsTrigger value="variables">Dépenses Variables</TabsTrigger>
+          <TabsTrigger value="categories">Catégories</TabsTrigger>
+        </TabsList>
 
-      {/* Dépenses Variables Table */}
-      <Card className="border shadow-none overflow-hidden">
-        <div className="p-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-900">Dépenses Variables (Au jour le jour)</h2>
-          <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={() => { setChargeVariableToEdit(null); setIsVariableModalOpen(true); }}>
-            Nouvelle dépense
-          </Button>
-        </div>
-        <ChargesTableV2 table={variablesTable} isLoading={isVariablesLoading} emptyMessage="Aucune dépense variable" />
-        <div className="py-3 text-center border-t">
-          <Link href="/finance/charges/details?tab=variables" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
-            <ChevronDown size={14} /> Voir plus ({variablesRemainingCount} restantes)
-          </Link>
-        </div>
-      </Card>
+        <TabsContent value="charges">
+          <ChargesFixesSection
+            table={fixesTable}
+            isLoading={isFixesLoading}
+            remainingCount={fixesRemainingCount}
+            onAdd={() => { setChargeToEdit(null); setIsFixeModalOpen(true); }}
+          />
+        </TabsContent>
 
-      {/* Modals */}
-      <AddChargeFixeModal isOpen={isFixeModalOpen} onClose={() => { setIsFixeModalOpen(false); setChargeToEdit(null); }} chargeToEdit={chargeToEdit} />
-      <AddDepenseVariableModal isOpen={isVariableModalOpen} onClose={() => { setIsVariableModalOpen(false); setChargeVariableToEdit(null); }} chargeToEdit={chargeVariableToEdit} />
+        <TabsContent value="variables">
+          <DepensesVariablesSection
+            table={variablesTable}
+            isLoading={isVariablesLoading}
+            remainingCount={variablesRemainingCount}
+            onAdd={() => { setChargeVariableToEdit(null); setIsVariableModalOpen(true); }}
+          />
+        </TabsContent>
 
-      {/* Toggle Enable Confirmation */}
-      <ConfirmModal
-        isOpen={!!toggleTarget}
-        onClose={() => setToggleTarget(null)}
-        title={`${toggleTarget?.enable ? 'Activer' : 'Désactiver'} la charge fixe`}
-        isLoading={toggleMutation.isPending}
-        actions={toggleTarget?.enable
-          ? [
-              { label: 'Annuler', variant: 'bordered', onPress: () => setToggleTarget(null) },
-              { label: 'Activer', color: 'primary', onPress: () => { toggleMutation.mutate({ id: toggleTarget!.charge.id, enable: true, supprimerDepense: false }); setToggleTarget(null); } },
-            ]
-          : [
-              { label: 'Conserver les dépenses', variant: 'bordered', onPress: () => { toggleMutation.mutate({ id: toggleTarget!.charge.id, enable: false, supprimerDepense: false }); setToggleTarget(null); } },
-              { label: 'Supprimer les dépenses', color: 'danger', onPress: () => { toggleMutation.mutate({ id: toggleTarget!.charge.id, enable: false, supprimerDepense: true }); setToggleTarget(null); } },
-            ]
-        }
-      >
-        <p className="text-sm text-gray-700">
-          Voulez-vous {toggleTarget?.enable ? 'activer' : 'désactiver'}{' '}
-          <span className="font-semibold">{toggleTarget?.charge.designation}</span> ?
-        </p>
-        {!toggleTarget?.enable && (
-          <p className="text-sm text-gray-500 mt-2">
-            Souhaitez-vous également supprimer les anciennes dépenses associées ?
-          </p>
-        )}
-      </ConfirmModal>
+        <TabsContent value="categories">
+          <CategorieDepenseList />
+        </TabsContent>
+      </Tabs>
 
-      {/* Delete Confirmation */}
-      <ConfirmModal
-        isOpen={!!chargeToDelete}
-        onClose={() => setChargeToDelete(null)}
-        title="Supprimer la charge fixe"
-        isLoading={isDeleting}
-        actions={[
-          { label: 'Annuler', variant: 'bordered', onPress: () => setChargeToDelete(null) },
-          { label: 'Supprimer', color: 'danger', onPress: () => { supprimerChargeFixe(chargeToDelete!.id, { onSuccess: () => setChargeToDelete(null) }); } },
-        ]}
-      >
-        <p className="text-sm text-gray-700">
-          Voulez-vous vraiment supprimer <span className="font-semibold">{chargeToDelete?.designation}</span> ? Cette action est irréversible.
-        </p>
-      </ConfirmModal>
-
-      {/* Justificatif Preview */}
-      <Modal isOpen={!!previewUrl} onClose={() => setPreviewUrl(null)} size="3xl" scrollBehavior="inside">
-        <ModalContent>
-          <ModalHeader className="text-gray-900">Justificatif</ModalHeader>
-          <ModalBody className="pb-6">
-            {previewUrl && (
-              isPdf(previewUrl)
-                ? <iframe src={previewUrl} className="w-full h-[70vh] rounded-lg border" title="Justificatif PDF" />
-                // eslint-disable-next-line @next/next/no-img-element
-                : <img src={previewUrl} alt="Justificatif" className="w-full object-contain max-h-[70vh] rounded-lg" />
-            )}
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+      {/* All Modals */}
+      <ChargesModals
+        isFixeModalOpen={isFixeModalOpen}
+        onCloseFixeModal={() => { setIsFixeModalOpen(false); setChargeToEdit(null); }}
+        chargeToEdit={chargeToEdit}
+        isVariableModalOpen={isVariableModalOpen}
+        onCloseVariableModal={() => { setIsVariableModalOpen(false); setChargeVariableToEdit(null); }}
+        chargeVariableToEdit={chargeVariableToEdit}
+        toggleTarget={toggleTarget}
+        onCloseToggle={() => setToggleTarget(null)}
+        chargeToDelete={chargeToDelete}
+        onCloseDelete={() => setChargeToDelete(null)}
+        previewUrl={previewUrl}
+        onClosePreview={() => setPreviewUrl(null)}
+      />
     </div>
+  );
+}
+
+// --- Sub-components ---
+
+function ChargesFixesSection({ table, isLoading, remainingCount, onAdd }: {
+  table: ReturnType<typeof import('@tanstack/react-table').useReactTable<IChargeFixe>>;
+  isLoading: boolean;
+  remainingCount: number;
+  onAdd: () => void;
+}) {
+  return (
+    <Card className="border shadow-none overflow-hidden">
+      <div className="p-4 flex items-center justify-between">
+        <h2 className="text-base font-semibold text-gray-900">Configuration des Charges Fixes</h2>
+        <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={onAdd}>
+          Ajouter
+        </Button>
+      </div>
+      <ChargesTableV2
+        table={table}
+        isLoading={isLoading}
+        emptyMessage="Aucune charge fixe configurée"
+        getRowClassName={(row: IChargeFixe) => row.automatique ? 'bg-green-100' : ''}
+      />
+      <div className="py-3 text-center border-t">
+        <Link href="/finance/charges/details?tab=fixes" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+          <ChevronDown size={14} /> Voir plus ({remainingCount} restantes)
+        </Link>
+      </div>
+    </Card>
+  );
+}
+
+function DepensesVariablesSection({ table, isLoading, remainingCount, onAdd }: {
+  table: ReturnType<typeof import('@tanstack/react-table').useReactTable<IChargeVariable>>;
+  isLoading: boolean;
+  remainingCount: number;
+  onAdd: () => void;
+}) {
+  return (
+    <Card className="border shadow-none overflow-hidden">
+      <div className="p-4 flex items-center justify-between">
+        <h2 className="text-base font-semibold text-gray-900">Dépenses Variables (Au jour le jour)</h2>
+        <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={onAdd}>
+          Nouvelle dépense
+        </Button>
+      </div>
+      <ChargesTableV2 table={table} isLoading={isLoading} emptyMessage="Aucune dépense variable" />
+      <div className="py-3 text-center border-t">
+        <Link href="/finance/charges/details?tab=variables" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+          <ChevronDown size={14} /> Voir plus ({remainingCount} restantes)
+        </Link>
+      </div>
+    </Card>
   );
 }
