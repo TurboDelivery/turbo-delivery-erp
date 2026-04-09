@@ -54,7 +54,7 @@ const menuData: IMenuData[] = [
     children: [
       { icon: IconMotorbike, title: 'Liste', path: '/delivery-men' },
       // { icon: IconBuildingSkyscraper, title: 'Créneaux', path: '/delivery-men/slot' },
-      { icon: IconBuildingSkyscraper, title: 'Créneaux', path: '/delivery-men/creneau-progression' },
+      { icon: IconBuildingSkyscraper, title: 'Créneaux', path: '/delivery-men/creneaux' },
       { icon: IconBuildingSkyscraper, title: 'performance', path: '/delivery-men/performance' },
     ],
   },

@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody, CircularProgress } from '@heroui/react';
+import { Card, CardBody, Progress } from '@heroui/react';
 
 interface CreneauStatCardProps {
   label: string;
@@ -12,22 +12,19 @@ interface CreneauStatCardProps {
 export function CreneauStatCard({ label, sublabel, value, color = 'primary' }: CreneauStatCardProps) {
   return (
     <Card shadow="none" className="border border-default-200">
-      <CardBody className="flex flex-row items-center gap-4 p-4">
-        <CircularProgress
-          size="lg"
-          value={value}
-          color={color}
-          showValueLabel
-          aria-label={label}
-          classNames={{
-            value: 'text-sm font-semibold',
-          }}
-        />
-        <div className="flex flex-col">
-          <span className="text-2xl font-bold">{value}%</span>
-          <span className="text-sm text-default-500">{label}</span>
+      <CardBody className="flex flex-col gap-3 p-4">
+        <span className="text-sm text-default-500">{label}</span>
+        <div className="flex items-baseline gap-2">
+          <span className="text-3xl font-bold">{value}%</span>
           {sublabel && <span className="text-xs text-default-400">{sublabel}</span>}
         </div>
+        <Progress
+          size="md"
+          value={value}
+          color={color}
+          aria-label={label}
+          radius="none"
+        />
       </CardBody>
     </Card>
   );

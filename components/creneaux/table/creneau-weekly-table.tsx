@@ -45,14 +45,18 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
     },
     ...JOURS.map((jour, idx) => ({
       id: `jour_${idx}`,
-      header: () => (
-        <div className="flex flex-col items-center">
-          <span className="font-medium">{jour}</span>
-          {jourDates[JOURS_INDEX[idx]] && (
-            <span className="text-xs text-default-400">{new Date(jourDates[JOURS_INDEX[idx]]).getDate()}</span>
-          )}
-        </div>
-      ),
+      header: () => {
+        const dateStr = jourDates[JOURS_INDEX[idx]];
+        const dayNum = dateStr ? new Date(dateStr).getDate() : null;
+        const isHighlight = JOURS_INDEX[idx] === 'JEUDI' || JOURS_INDEX[idx] === 'SAMEDI';
+        return (
+          <div className="flex flex-col items-center gap-0.5">
+            <span className={`font-medium ${isHighlight ? 'text-orange-500 italic' : ''}`}>{jour}</span>
+            {dayNum && <span className={`text-xs ${isHighlight ? 'text-orange-500 font-semibold' : 'text-default-400'}`}>{dayNum}</span>}
+            <span className="text-[10px] text-primary cursor-pointer hover:underline">Voir details</span>
+          </div>
+        );
+      },
       cell: ({ row }: { row: { original: ICreneauTurboy } }) => {
         const jourData = row.original.jours?.find(
           (j) => j.jour.toUpperCase() === JOURS_INDEX[idx],
