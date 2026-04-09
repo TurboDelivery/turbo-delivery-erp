@@ -1,14 +1,11 @@
-import Content from "./content"
-import { Metadata } from "next";
-import { getAllCreneauPerformanceBird } from "@/src/creneau-livreur/creneau-livreur.action";  
+import { CreneauPageContent } from '@/components/creneaux/creneau-page-content';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: "PROGRESSION DES BIRD",
-    description: "LISTE PROGRESSION DES BIRD",
+  title: 'DETAIL CRENEAUX',
+  description: 'Detail des creneaux hebdomadaires',
 };
 
-
-export default async function Page() {
-    const initialData = await getAllCreneauPerformanceBird()
-    return <Content initialData={initialData} />
+export default function Page() {
+  return <CreneauPageContent />;
 }
