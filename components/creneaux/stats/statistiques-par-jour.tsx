@@ -4,7 +4,7 @@ import { Bar, BarChart, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { IStatistiqueJour } from '@/features/creneaux/types/creneau.types';
-import { getJourLabel } from '@/features/creneaux/utils/creneau.utils';
+import { getJourLabel } from '@/features/creneaux/utils/semaine.utils';
 
 interface StatistiquesParJourProps {
   data: IStatistiqueJour[];

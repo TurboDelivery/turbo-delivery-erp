@@ -1,14 +1,18 @@
 'use client';
 
+import { useCallback, useMemo } from 'react';
+import { useQueryStates } from 'nuqs';
 import { CreneauStatsOverview } from '@/components/creneaux/stats/creneau-stats-overview';
 import { CreneauLegende } from '@/components/creneaux/table/creneau-legende';
 import { CreneauSemaineHeader } from '@/components/creneaux/table/creneau-semaine-header';
 import { CreneauWeeklyTable } from '@/components/creneaux/table/creneau-weekly-table';
 import { StatistiquesParJour } from '@/components/creneaux/stats/statistiques-par-jour';
 import { CreneauAlerte } from '@/components/creneaux/alerts/creneau-alerte';
+import { creneauFiltersClient } from '@/features/creneaux/filters/creneau.filter';
+import { getSundayFromMonday, getWeekDates } from '@/features/creneaux/utils/semaine.utils';
 import { ICreneauStats, ICreneauTurboy, IStatistiqueJour, ICreneauAlerte, CreneauStatutJour } from '@/features/creneaux/types/creneau.types';
 
-// --- Mock data for initial development ---
+// --- Mock data ---
 const MOCK_STATS: ICreneauStats = {
   capaciteGlobale: 90,
   tauxPresenceGlobal: 90,
@@ -17,43 +21,38 @@ const MOCK_STATS: ICreneauStats = {
 };
 
 const JOURS_SEMAINE = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
-const DATES_SEMAINE: Record<string, string> = {
-  LUNDI: '2026-03-23',
-  MARDI: '2026-03-24',
-  MERCREDI: '2026-03-25',
-  JEUDI: '2026-03-26',
-  VENDREDI: '2026-03-27',
-  SAMEDI: '2026-03-28',
-  DIMANCHE: '2026-03-29',
-};
 
 function randomStatut(): CreneauStatutJour {
   const statuts = [CreneauStatutJour.PRESENT, CreneauStatutJour.PRESENT, CreneauStatutJour.PRESENT, CreneauStatutJour.ABSENT, CreneauStatutJour.RETARD];
   return statuts[Math.floor(Math.random() * statuts.length)];
 }
 
-const MOCK_TURBOYS: ICreneauTurboy[] = [
-  'Adama Diallo', 'Boubacar Traore', 'Cheikh Ndiaye', 'Djibril Sow', 'Elhadj Barry',
-  'Fatou Camara', 'Gorgui Mbaye', 'Habib Kone', 'Ibrahim Toure', 'Jean-Paul Koffi',
-  'Karim Bah', 'Lamine Cisse',
-].map((nom, i) => ({
-  id: String(i + 1),
-  nomComplet: nom,
-  jours: JOURS_SEMAINE.map((jour) => ({
-    jour,
-    date: DATES_SEMAINE[jour],
-    statut: randomStatut(),
-  })),
-  assiduite: Math.floor(Math.random() * 40) + 60,
-}));
+function generateMockTurboys(weekDates: Record<string, string>): ICreneauTurboy[] {
+  return [
+    'Adama Diallo', 'Boubacar Traore', 'Cheikh Ndiaye', 'Djibril Sow', 'Elhadj Barry',
+    'Fatou Camara', 'Gorgui Mbaye', 'Habib Kone', 'Ibrahim Toure', 'Jean-Paul Koffi',
+    'Karim Bah', 'Lamine Cisse',
+  ].map((nom, i) => ({
+    id: String(i + 1),
+    nomComplet: nom,
+    jours: JOURS_SEMAINE.map((jour) => ({
+      jour,
+      date: weekDates[jour],
+      statut: randomStatut(),
+    })),
+    assiduite: Math.floor(Math.random() * 40) + 60,
+  }));
+}
 
-const MOCK_STATS_JOUR: IStatistiqueJour[] = JOURS_SEMAINE.map((jour) => ({
-  jour,
-  date: DATES_SEMAINE[jour],
-  pourcentage: Math.floor(Math.random() * 50) + 20,
-  presents: Math.floor(Math.random() * 10) + 5,
-  total: 15,
-}));
+function generateMockStatsJour(weekDates: Record<string, string>): IStatistiqueJour[] {
+  return JOURS_SEMAINE.map((jour) => ({
+    jour,
+    date: weekDates[jour],
+    pourcentage: Math.floor(Math.random() * 50) + 20,
+    presents: Math.floor(Math.random() * 10) + 5,
+    total: 15,
+  }));
+}
 
 const MOCK_ALERTES: ICreneauAlerte[] = [
   {
@@ -68,17 +67,56 @@ const MOCK_ALERTES: ICreneauAlerte[] = [
   },
 ];
 
+// Mock pagination
+const MOCK_PAGE_COUNT = 3;
+
 export function CreneauPageContent() {
+  const [filters, setFilters] = useQueryStates(creneauFiltersClient.filter, creneauFiltersClient.option);
+
+  const selectedSemaine = filters.semaine;
+  const fin = getSundayFromMonday(selectedSemaine);
+  const weekDates = useMemo(() => getWeekDates(selectedSemaine), [selectedSemaine]);
+
+  const mockTurboys = useMemo(() => generateMockTurboys(weekDates), [weekDates]);
+  const mockStatsJour = useMemo(() => generateMockStatsJour(weekDates), [weekDates]);
+
+  const handleSemaineChange = useCallback(
+    (semaine: string) => {
+      setFilters({ semaine, page: 0 });
+    },
+    [setFilters],
+  );
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      // HeroUI Pagination is 1-based
+      setFilters({ page: page - 1 });
+    },
+    [setFilters],
+  );
+
   return (
     <div className="space-y-6">
       <CreneauStatsOverview stats={MOCK_STATS} />
       <CreneauLegende />
 
-      <CreneauSemaineHeader debut="2026-03-23" fin="2026-03-29" />
+      <CreneauSemaineHeader
+        selectedSemaine={selectedSemaine}
+        fin={fin}
+        onSemaineChange={handleSemaineChange}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-        <CreneauWeeklyTable data={MOCK_TURBOYS} jourDates={DATES_SEMAINE} />
-        <StatistiquesParJour data={MOCK_STATS_JOUR} />
+        <CreneauWeeklyTable
+          data={mockTurboys}
+          jourDates={weekDates}
+          pagination={{
+            page: Math.max(0, filters.page ?? 0),
+            pageCount: MOCK_PAGE_COUNT,
+            onPageChange: handlePageChange,
+          }}
+        />
+        <StatistiquesParJour data={mockStatsJour} />
       </div>
 
       <div className="space-y-3">

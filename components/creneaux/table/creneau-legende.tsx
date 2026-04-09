@@ -1,7 +1,7 @@
 'use client';
 
 import { CreneauStatutJour } from '@/features/creneaux/types/creneau.types';
-import { getStatutDotColor, getStatutLabel } from '@/features/creneaux/utils/creneau.utils';
+import { getStatutDotColor, getStatutLabel } from '@/features/creneaux/utils/statut.utils';
 
 const STATUTS = [
   CreneauStatutJour.PRESENT,

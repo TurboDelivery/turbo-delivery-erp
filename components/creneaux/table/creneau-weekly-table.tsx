@@ -2,9 +2,10 @@
 
 import { useMemo } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Progress, Avatar } from '@heroui/react';
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Progress, Avatar, Pagination } from '@heroui/react';
 import { ICreneauTurboy, CreneauStatutJour } from '@/features/creneaux/types/creneau.types';
-import { getStatutDotColor, getAssiduitProgressColor } from '@/features/creneaux/utils/creneau.utils';
+import { getStatutDotColor } from '@/features/creneaux/utils/statut.utils';
+import { getAssiduitProgressColor } from '@/features/creneaux/utils/assiduite.utils';
 import { createUrlFile } from '@/utils/createUrlFile';
 
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
@@ -14,13 +15,18 @@ interface CreneauWeeklyTableProps {
   data: ICreneauTurboy[];
   jourDates?: Record<string, string>;
   isLoading?: boolean;
+  pagination?: {
+    page: number;
+    pageCount: number;
+    onPageChange: (page: number) => void;
+  };
 }
 
 function StatutDot({ statut }: { statut: CreneauStatutJour }) {
   return <span className={`inline-block size-3 rounded-full ${getStatutDotColor(statut)}`} />;
 }
 
-export function CreneauWeeklyTable({ data, jourDates = {}, isLoading }: CreneauWeeklyTableProps) {
+export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination }: CreneauWeeklyTableProps) {
   const columns = useMemo<ColumnDef<ICreneauTurboy>[]>(() => [
     {
       id: 'turboy',
@@ -81,12 +87,30 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading }: CreneauW
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    manualPagination: true,
+    pageCount: pagination?.pageCount ?? 0,
   });
 
   const colsCount = table.getAllColumns().length;
 
   return (
-    <Table isStriped aria-label="Tableau de presence hebdomadaire">
+    <Table
+      isStriped
+      aria-label="Tableau de presence hebdomadaire"
+      bottomContent={
+        pagination && pagination.pageCount > 1 && (
+          <div className="flex justify-center py-4">
+            <Pagination
+              total={pagination.pageCount}
+              page={pagination.page + 1}
+              onChange={pagination.onPageChange}
+              color="primary"
+              showControls
+            />
+          </div>
+        )
+      }
+    >
       <TableHeader>
         {table.getFlatHeaders().map((header) => (
           <TableColumn key={header.id} className="text-center">
