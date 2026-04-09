@@ -4,29 +4,19 @@ import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from '@heroui/react';
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { EmployeeSelect } from '@/components/personnel/common/employee-select';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { deductionAPI } from '@/features/personnel/apis/deduction.api';
-import { deductionKeys } from '@/features/personnel/queries/deduction-list.query';
 import { CreatePretDTO, createPretSchema } from '@/features/personnel/schemas/deduction.schema';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
+import { getTodayDateInput } from '@/lib/date-utils';
 
 type PretModalProps = {
   isOpen: boolean;
   onClose: () => void;
   deduction?: IDeduction | null;
   onSubmit?: (args: { mode: 'create' | 'update'; id?: string; dto: CreatePretDTO }) => Promise<void> | void;
-};
-
-const getTodayDateInput = (): string => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 };
 
 const DEFAULT_VALUES: CreatePretDTO = {
@@ -38,7 +28,6 @@ const DEFAULT_VALUES: CreatePretDTO = {
 };
 
 function PretModal({ isOpen, onClose, deduction, onSubmit }: PretModalProps) {
-  const queryClient = useQueryClient();
   const isEditMode = Boolean(deduction?.id);
 
   const form = useForm<CreatePretDTO>({
@@ -85,14 +74,8 @@ function PretModal({ isOpen, onClose, deduction, onSubmit }: PretModalProps) {
     try {
       if (onSubmit) {
         await onSubmit({ mode: isEditMode ? 'update' : 'create', id: deduction?.id, dto });
-      } else if (isEditMode) {
-        toast.info('La modification du pret sera branchee sur son endpoint de mise a jour.');
-        return;
-      } else {
-        await deductionAPI.createPret(dto);
       }
 
-      await queryClient.invalidateQueries({ queryKey: deductionKeys.all });
       toast.success(isEditMode ? 'Pret modifie avec succes' : 'Pret enregistre avec succes');
       reset(DEFAULT_VALUES);
       onClose();

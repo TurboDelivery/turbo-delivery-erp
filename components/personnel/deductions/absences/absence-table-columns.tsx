@@ -3,26 +3,8 @@ import { Button } from '@heroui/react';
 import { Pencil } from 'lucide-react';
 import { IAbsence } from '@/features/personnel/types/absence.types';
 import { IEmployee } from '@/features/personnel/types/types';
-import { differenceInDays, format, isValid, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
-
-const toDate = (value: unknown): Date | null => {
-  if (value instanceof Date && isValid(value)) {
-    return value;
-  }
-
-  if (typeof value === 'string') {
-    const parsed = parseISO(value);
-    return isValid(parsed) ? parsed : null;
-  }
-
-  return null;
-};
-
-const formatDateFr = (value: unknown): string => {
-  const date = toDate(value);
-  return date ? format(date, 'dd MMM yyyy', { locale: fr }) : '-';
-};
+import { differenceInDays } from 'date-fns';
+import { formatDateFr, toDate } from '@/lib/date-utils';
 
 const getDurationInDays = (start: unknown, end: unknown): string => {
   const startDate = toDate(start);

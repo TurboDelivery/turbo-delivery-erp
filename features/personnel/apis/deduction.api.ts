@@ -26,6 +26,7 @@ export interface IDeductionAPI {
   updateAvance(deductionId: string, data: UpdateAvanceDTO): Promise<ICreateAvanceResponse>;
   updatePret(referenceId: string, data: UpdatePretDTO): Promise<ICreatePretResponse>;
   updateAbsenceDeduction(deductionId: string, data: UpdateAbsenceDeductionDTO): Promise<ICreateAbsenceDeductionResponse>;
+  cancelDeduction(deductionId: string): Promise<IDeduction>;
 }
 
 const buildQueryString = (params: Record<string, string | number>) => {
@@ -110,6 +111,13 @@ export const deductionAPI: IDeductionAPI = {
       endpoint: `/erp/deductions/absence/${deductionId}`,
       method: 'PUT',
       data,
+    });
+  },
+
+  cancelDeduction(deductionId: string): Promise<IDeduction> {
+    return api.request<IDeduction>({
+      endpoint: `/erp/deductions/cancel/${deductionId}`,
+      method: 'PATCH',
     });
   },
 };

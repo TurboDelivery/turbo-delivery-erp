@@ -1,39 +1,12 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { format, isValid, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
 import { Button } from '@heroui/react';
 import { Pencil, XCircle } from 'lucide-react';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
+import { formatCfa, formatDateFr } from '@/lib/date-utils';
 
 type CreateDeductionTableColumnsOptions = {
   onEditDeduction?: (deduction: IDeduction) => void;
   onCancelDeduction?: (deduction: IDeduction) => void;
-};
-
-const toDate = (value: unknown): Date | null => {
-  if (value instanceof Date && isValid(value)) {
-    return value;
-  }
-
-  if (typeof value === 'string') {
-    const parsed = parseISO(value);
-    return isValid(parsed) ? parsed : null;
-  }
-
-  return null;
-};
-
-const formatDateFr = (value: unknown, dateFormat = 'dd MMM yyyy'): string => {
-  const date = toDate(value);
-  return date ? format(date, dateFormat, { locale: fr }) : '-';
-};
-
-const formatCfa = (amount: number): string => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    maximumFractionDigits: 0,
-  }).format(amount || 0);
 };
 
 const getTypeLabel = (type: IDeduction['typeDeduction']) => {

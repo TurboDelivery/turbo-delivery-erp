@@ -78,3 +78,14 @@ export const useUpdatePretMutation = () => {
   });
 };
 
+export const useCancelDeductionMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (deductionId: string) => deductionAPI.cancelDeduction(deductionId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: deductionKeys.all });
+    },
+  });
+};
+
