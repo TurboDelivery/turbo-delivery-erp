@@ -11,8 +11,8 @@ interface PaiementStatsCardsProps {
 export default function PaiementStatsCards({ stats, isLoading }: PaiementStatsCardsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[...Array(3)].map((_, i) => (
           <Card key={i} className="border shadow-none animate-pulse">
             <CardBody className="p-5">
               <div className="h-3 bg-gray-200 rounded w-24 mb-3" />
@@ -26,29 +26,24 @@ export default function PaiementStatsCards({ stats, isLoading }: PaiementStatsCa
 
   const cards = [
     {
-      label: 'TOTAL À PAYER',
-      value: `${stats.totalAPayer.toLocaleString('fr-FR')} FCFA`,
+      label: 'TOTAL GLOBAL',
+      value: `${stats.totalGlobal.toLocaleString('fr-FR')} FCFA`,
       valueColor: 'text-orange-500',
     },
     {
-      label: 'EN ATTENTE',
-      value: String(stats.enAttente),
-      valueColor: 'text-gray-900',
+      label: 'À DÉCAISSER',
+      value: `${stats.aDecaisser.toLocaleString('fr-FR')} FCFA`,
+      valueColor: 'text-yellow-500',
     },
     {
-      label: 'EN COURS',
-      value: String(stats.enCours),
-      valueColor: 'text-orange-500',
-    },
-    {
-      label: 'TERMINÉS',
-      value: String(stats.termines),
+      label: 'DÉCAISSÉ',
+      value: `${stats.decaisse.toLocaleString('fr-FR')} FCFA`,
       valueColor: 'text-green-500',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       {cards.map((card) => (
         <Card key={card.label} className="border shadow-none">
           <CardBody className="p-5">

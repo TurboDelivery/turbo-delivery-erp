@@ -1,32 +1,24 @@
-export type StatutPaiement = 'EN_ATTENTE' | 'EN_COURS' | 'TERMINE';
-
-export interface IPaiement {
-  id: string;
-  designation: string;
-  categorieId?: string;
-  categorie?: {
-    id: string;
-    nomCategorie: string;
-  };
-  montant: number;
-  statut: StatutPaiement;
-  progression: number; // 0-4 steps
-  mois: string; // "2026-04"
-  datePaiement?: string | null;
-  createdAt: string;
-  updatedAt: string;
+export interface IPaiementStats {
+  totalGlobal: number;
+  aDecaisser: number;
+  decaisse: number;
 }
 
+export interface IDecaissementStatsResponse {
+  totalADecaisser: number;
+  totalDecaisse: number;
+}
+
+// Legacy types — still referenced by apis/paiement.api.ts and queries/paiements.query.ts
 export interface IPaiementParams {
   page?: number;
   size?: number;
   mois?: string;
-  statut?: StatutPaiement;
+  statut?: string;
 }
 
-export interface IPaiementStats {
-  totalAPayer: number;
-  enAttente: number;
-  enCours: number;
-  termines: number;
+export interface IPaiement {
+  id: string;
+  designation: string;
+  montant: number;
 }

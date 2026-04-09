@@ -1,6 +1,6 @@
 import { api } from '@/lib/api';
 import { PaginatedResponse } from '@/types';
-import { IPaiement, IPaiementParams, IPaiementStats } from '../types/paiement.type';
+import { IDecaissementStatsResponse, IPaiement, IPaiementParams, IPaiementStats } from '../types/paiement.type';
 
 // TODO: Remplacer les endpoints par les vrais quand le backend sera prêt
 const BASE_ENDPOINT = '/erp/paiements';
@@ -8,6 +8,7 @@ const BASE_ENDPOINT = '/erp/paiements';
 export interface IPaiementAPI {
   obtenirPaiements(params: IPaiementParams): Promise<PaginatedResponse<IPaiement>>;
   obtenirStats(mois?: string): Promise<IPaiementStats>;
+  obtenirDecaissementStats(params?: { debut?: string; fin?: string }): Promise<IDecaissementStatsResponse>;
   initierPaiement(ids: string[], mois: string): Promise<void>;
 }
 
@@ -32,6 +33,18 @@ export const paiementAPI: IPaiementAPI = {
 
     return api.request<IPaiementStats>({
       endpoint: `${BASE_ENDPOINT}/stats`,
+      method: 'GET',
+      searchParams,
+    });
+  },
+
+  obtenirDecaissementStats(params?: { debut?: string; fin?: string }): Promise<IDecaissementStatsResponse> {
+    const searchParams: Record<string, string> = {};
+    if (params?.debut) searchParams['debut'] = params.debut;
+    if (params?.fin) searchParams['fin'] = params.fin;
+
+    return api.request<IDecaissementStatsResponse>({
+      endpoint: `/erp/charges-variables/decaissement-stats`,
       method: 'GET',
       searchParams,
     });

@@ -1,61 +1,60 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Chip } from '@heroui/react';
-import { Clock, Loader2, CheckCircle } from 'lucide-react';
-import { IPaiement, StatutPaiement } from '../types/paiement.type';
+import { Button, Chip } from '@heroui/react';
+import { Wallet } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { IChargeFixe, StatutChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
 
-const STATUT_CONFIG: Record<StatutPaiement, { label: string; color: 'warning' | 'primary' | 'success'; icon: typeof Clock }> = {
-  EN_ATTENTE: { label: 'En attente', color: 'warning', icon: Clock },
-  EN_COURS: { label: 'En cours', color: 'primary', icon: Loader2 },
-  TERMINE: { label: 'Terminé', color: 'success', icon: CheckCircle },
+const STATUT_CONFIG: Record<string, { label: string; color: 'warning' | 'primary' | 'success' | 'danger' | 'default' }> = {
+  PENDING: { label: 'En attente', color: 'warning' },
+  EN_ATTENTE_DGA: { label: 'En attente DGA', color: 'warning' },
+  VALIDE_DGA: { label: 'Validé DGA', color: 'primary' },
+  APPROUVE_DG: { label: 'Approuvé DG', color: 'success' },
+  REJETE_DGA: { label: 'Rejeté DGA', color: 'danger' },
+  REJETE_DG: { label: 'Rejeté DG', color: 'danger' },
+  DECAISSE: { label: 'Décaissé', color: 'success' },
+  PAID: { label: 'Payé', color: 'success' },
 };
 
-function ProgressionDots({ value }: { value: number }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      {[0, 1, 2, 3].map((step) => (
-        <div
-          key={step}
-          className={`w-6 h-1.5 rounded-full ${
-            step < value ? 'bg-orange-400' : 'bg-gray-200'
-          }`}
-        />
-      ))}
-    </div>
-  );
+const DECAISSE_STATUTS = ['DECAISSE', 'PAID'];
+
+function isDecaisse(row: IChargeFixe) {
+  return DECAISSE_STATUTS.includes(row.statut);
 }
 
 type PaiementsColumnsOptions = {
-  selectedIds: Set<string>;
-  onToggleSelect: (id: string) => void;
+  onDecaisser: (id: string) => void;
+  isPending: boolean;
 };
 
-export function createPaiementsColumns({ selectedIds, onToggleSelect }: PaiementsColumnsOptions): ColumnDef<IPaiement>[] {
+export function createPaiementsColumns({ onDecaisser, isPending }: PaiementsColumnsOptions): ColumnDef<IChargeFixe>[] {
   return [
     {
       id: 'select',
-      header: () => (
-        <div className="w-5 h-5 rounded-full border-2 border-gray-300" />
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && 'indeterminate')
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
       ),
       cell: ({ row }) => {
-        const isSelected = selectedIds.has(row.original.id);
+        const disabled = isDecaisse(row.original);
         return (
-          <button
-            onClick={() => onToggleSelect(row.original.id)}
-            className={`w-5 h-5 rounded-full border-2 transition-colors ${
-              isSelected ? 'border-orange-500 bg-orange-500' : 'border-orange-300 hover:border-orange-400'
-            }`}
-          >
-            {isSelected && (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full" />
-              </div>
-            )}
-          </button>
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            disabled={disabled}
+            aria-label="Select row"
+          />
         );
       },
       enableSorting: false,
+      enableHiding: false,
     },
     {
       accessorKey: 'designation',
@@ -82,30 +81,33 @@ export function createPaiementsColumns({ selectedIds, onToggleSelect }: Paiement
       accessorKey: 'statut',
       header: 'Statut',
       cell: ({ row }) => {
-        const statut = row.getValue<StatutPaiement>('statut');
-        const config = STATUT_CONFIG[statut] ?? STATUT_CONFIG.EN_ATTENTE;
-        const Icon = config.icon;
+        const statut = row.getValue<StatutChargeFixe>('statut');
+        const config = STATUT_CONFIG[statut] ?? { label: statut, color: 'default' as const };
         return (
-          <Chip
-            color={config.color}
-            variant="flat"
-            size="sm"
-            startContent={<Icon size={12} />}
-          >
+          <Chip color={config.color} variant="flat" size="sm">
             {config.label}
           </Chip>
         );
       },
     },
     {
-      id: 'progression',
-      header: 'Progression',
-      cell: ({ row }) => <ProgressionDots value={row.original.progression} />,
-    },
-    {
       id: 'action',
       header: 'Action',
-      cell: () => null, // TODO: Actions quand le backend sera prêt
+      cell: ({ row }) => {
+        if (isDecaisse(row.original)) return null;
+        return (
+          <Button
+            size="sm"
+            color="warning"
+            variant="flat"
+            startContent={<Wallet size={14} />}
+            isLoading={isPending}
+            onPress={() => onDecaisser(row.original.id)}
+          >
+            Décaisser
+          </Button>
+        );
+      },
     },
   ];
 }

@@ -1,37 +1,45 @@
 'use client';
 
+import { useState } from 'react';
 import { Button, Card } from '@heroui/react';
-import { ChevronLeft, ChevronRight, Wallet } from 'lucide-react';
-import { usePaiementsTable } from '../hooks/use-paiements-table';
+import { Wallet } from 'lucide-react';
+import { useQueryStates } from 'nuqs';
+import ConfirmModal from '@/components/ui/confirm-modal';
+import { paiementFiltersClient } from '../filters/paiement.filters';
+import { usePaiementsTable, ChargeTypeFilter } from '../hooks/use-paiements-table';
 import { usePaiementsStats } from '../hooks/use-paiements-stats';
-import { useInitierPaiementMutation } from '../queries/paiement.mutation';
 import PaiementStatsCards from './paiement-stats-cards';
 import PaiementTable from './paiement-table';
+import { MonthPicker } from './month-picker';
+
+const CHARGE_TYPE_OPTIONS: { value: ChargeTypeFilter; label: string }[] = [
+  { value: 'variable', label: 'Charges variables' },
+  { value: 'fixe', label: 'Charges fixes' },
+];
 
 export default function PaymentManagementV2() {
+  const [filters, setFilters] = useQueryStates(paiementFiltersClient.filters, paiementFiltersClient.options);
+  const [confirmIds, setConfirmIds] = useState<string[]>([]);
+
   const {
     table,
     isLoading,
     isFetching,
-    moisKey,
-    monthLabel,
-    selectedMonthIndex,
-    monthNames,
-    goToPreviousMonth,
-    goToNextMonth,
-    selectMonth,
     selectedIds,
-    selectAll,
-    deselectAll,
     pageCount,
-  } = usePaiementsTable();
+    chargeType,
+    switchChargeType,
+    decaisserMutation,
+  } = usePaiementsTable(filters.debut, filters.fin, setConfirmIds);
 
-  const { stats, isLoading: isStatsLoading } = usePaiementsStats(moisKey);
-  const initierMutation = useInitierPaiementMutation();
+  const { stats, isLoading: isStatsLoading } = usePaiementsStats(filters.debut, filters.fin);
 
-  const handleInitierPaiement = () => {
-    if (selectedIds.size === 0) return;
-    initierMutation.mutate({ ids: Array.from(selectedIds), mois: moisKey });
+  const closeConfirm = () => setConfirmIds([]);
+
+  const handleConfirmDecaisser = () => {
+    decaisserMutation.mutate(confirmIds, {
+      onSuccess: () => closeConfirm(),
+    });
   };
 
   return (
@@ -40,61 +48,40 @@ export default function PaymentManagementV2() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-orange-500">Gestion des Paiements</h1>
-          <p className="text-sm text-gray-500 mt-1">Initiez et suivez l&apos;approbation des charges fixes mensuelles</p>
+          <p className="text-sm text-gray-500 mt-1">Décaissez les charges approuvées</p>
         </div>
         <Button
           color="danger"
           startContent={<Wallet size={16} />}
-          onPress={handleInitierPaiement}
-          isLoading={initierMutation.isPending}
-          isDisabled={selectedIds.size === 0}
+          onPress={() => setConfirmIds(selectedIds)}
+          isDisabled={selectedIds.length === 0}
         >
-          Initier le paiement ({selectedIds.size})
+          Décaisser ({selectedIds.length})
         </Button>
       </div>
 
-      {/* Month Navigation */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-center gap-4">
-          <Button isIconOnly size="sm" variant="bordered" radius="full" onPress={goToPreviousMonth}>
-            <ChevronLeft size={16} />
-          </Button>
-          <span className="text-lg font-semibold text-gray-900 min-w-[160px] text-center">{monthLabel}</span>
-          <Button isIconOnly size="sm" variant="bordered" radius="full" onPress={goToNextMonth}>
-            <ChevronRight size={16} />
-          </Button>
-        </div>
-
-        {/* Month Pills */}
-        <div className="flex items-center justify-center gap-1.5 flex-wrap">
-          {monthNames.map((name, index) => (
-            <button
-              key={name}
-              onClick={() => selectMonth(index)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                index === selectedMonthIndex
-                  ? 'bg-orange-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {name}
-            </button>
-          ))}
-        </div>
+      {/* Charge Type Switcher */}
+      <div className="flex gap-2">
+        {CHARGE_TYPE_OPTIONS.map(({ value, label }) => (
+          <button
+            key={value}
+            onClick={() => switchChargeType(value)}
+            className={`rounded-lg px-5 py-2 text-sm font-medium transition-all ${
+              chargeType === value
+                ? 'bg-black text-white'
+                : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
+
+      {/* Month Picker */}
+      <MonthPicker debut={filters.debut} fin={filters.fin} onChange={setFilters} />
 
       {/* Stats Cards */}
       <PaiementStatsCards stats={stats} isLoading={isStatsLoading} />
-
-      {/* Bulk Actions */}
-      <div className="flex items-center gap-3">
-        <Button size="sm" variant="bordered" onPress={selectAll}>
-          Tout sélectionner
-        </Button>
-        <Button size="sm" variant="light" className="text-gray-400" onPress={deselectAll} isDisabled={selectedIds.size === 0}>
-          Tout désélectionner
-        </Button>
-      </div>
 
       {/* Table */}
       <Card className="border shadow-none overflow-hidden">
@@ -103,9 +90,27 @@ export default function PaymentManagementV2() {
           isLoading={isLoading}
           isFetching={isFetching}
           pageCount={pageCount}
-          emptyMessage="Aucun paiement pour cette période"
+          emptyMessage="Aucune charge à décaisser"
         />
       </Card>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmIds.length > 0}
+        onClose={closeConfirm}
+        title="Confirmer le décaissement"
+        isLoading={decaisserMutation.isPending}
+        actions={[
+          { label: 'Annuler', variant: 'light', onPress: closeConfirm },
+          { label: 'Décaisser', color: 'danger', onPress: handleConfirmDecaisser },
+        ]}
+      >
+        <p className="text-sm text-gray-600">
+          Vous êtes sur le point de décaisser{' '}
+          <span className="font-semibold">{confirmIds.length} charge{confirmIds.length > 1 ? 's' : ''}</span>.
+          Cette action est irréversible.
+        </p>
+      </ConfirmModal>
     </div>
   );
 }

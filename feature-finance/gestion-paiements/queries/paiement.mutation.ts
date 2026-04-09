@@ -1,23 +1,37 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { paiementAPI } from '../apis/paiement.api';
-import { useInvalidatePaiementQuery } from './index.query';
+import { api } from '@/lib/api';
+import { ChargeTypeFilter } from '../hooks/use-paiements-table';
+import { chargeFixeKeyQuery } from '@/feature-finance/charges/queries/index.query';
+import { chargeVariableKeyQuery } from '@/feature-finance/charges/queries/index-charge-variable.query';
 
-export const useInitierPaiementMutation = () => {
-  const invalidate = useInvalidatePaiementQuery();
+const DECAISSER_ENDPOINT: Record<ChargeTypeFilter, string> = {
+  fixe: '/erp/charges-fixes',
+  variable: '/erp/charges-variables',
+};
+
+export const useDecaisserMutation = (chargeType: ChargeTypeFilter) => {
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ ids, mois }: { ids: string[]; mois: string }) => {
-      return paiementAPI.initierPaiement(ids, mois);
+    mutationFn: async (ids: string[]) => {
+      const base = DECAISSER_ENDPOINT[chargeType];
+      await Promise.all(
+        ids.map((id) =>
+          api.request({ endpoint: `${base}/${id}/payer`, method: 'PATCH' }),
+        ),
+      );
     },
-    onSuccess: async () => {
-      await invalidate();
-      toast.success('Paiement initié avec succès');
+    onSuccess: async (_data, ids) => {
+      const key = chargeType === 'fixe' ? chargeFixeKeyQuery() : chargeVariableKeyQuery();
+      await queryClient.invalidateQueries({ queryKey: key, exact: false });
+      await queryClient.refetchQueries({ queryKey: key, type: 'active' });
+      toast.success(`${ids.length > 1 ? 'Charges décaissées' : 'Charge décaissée'} avec succès`);
     },
     onError: (error) => {
-      toast.error("Erreur lors de l'initiation du paiement", {
+      toast.error('Erreur lors du décaissement', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },

@@ -1,18 +1,24 @@
-import { usePaiementsStatsQuery } from '../queries/paiements.query';
+import { useMemo } from 'react';
+import { useDecaissementStatsQuery } from '../queries/decaissement-stats.query';
 import { IPaiementStats } from '../types/paiement.type';
 
 const DEFAULT_STATS: IPaiementStats = {
-  totalAPayer: 0,
-  enAttente: 0,
-  enCours: 0,
-  termines: 0,
+  totalGlobal: 0,
+  aDecaisser: 0,
+  decaisse: 0,
 };
 
-export function usePaiementsStats(mois?: string) {
-  const { data, isLoading } = usePaiementsStatsQuery(mois);
+export function usePaiementsStats(debut?: string, fin?: string) {
+  const { data, isLoading } = useDecaissementStatsQuery({ debut, fin });
 
-  return {
-    stats: data ?? DEFAULT_STATS,
-    isLoading,
-  };
+  const stats = useMemo<IPaiementStats>(() => {
+    if (!data) return DEFAULT_STATS;
+    return {
+      totalGlobal: data.totalADecaisser + data.totalDecaisse,
+      aDecaisser: data.totalADecaisser,
+      decaisse: data.totalDecaisse,
+    };
+  }, [data]);
+
+  return { stats, isLoading };
 }

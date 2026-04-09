@@ -1,10 +1,10 @@
 'use client';
 
-import { flexRender, Table } from '@tanstack/react-table';
-import { Pagination } from '@heroui/react';
+import { flexRender, Table as ReactTable } from '@tanstack/react-table';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 
 interface PaiementTableProps<T> {
-  table: Table<T>;
+  table: ReactTable<T>;
   isLoading?: boolean;
   isFetching?: boolean;
   pageCount?: number;
@@ -12,42 +12,46 @@ interface PaiementTableProps<T> {
 }
 
 export default function PaiementTable<T>({ table, isLoading, isFetching, pageCount = 0, emptyMessage = 'Aucune donnée' }: PaiementTableProps<T>) {
-  if (isLoading) {
-    return <div className="py-12 text-center text-sm text-gray-500">Chargement...</div>;
-  }
-
-  if (table.getRowModel().rows.length === 0) {
-    return <div className="py-12 text-center text-sm text-gray-400">{emptyMessage}</div>;
-  }
+  const colsCount = table.getFlatHeaders().length;
 
   return (
     <div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="border-b">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id} className="text-left text-xs font-medium text-gray-500 px-4 py-3">
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
+      <Table isStriped aria-label="Tableau des charges à décaisser">
+        <TableHeader>
+          {table.getFlatHeaders().map((header) => (
+            <TableColumn key={header.id}>
+              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+            </TableColumn>
+          ))}
+        </TableHeader>
+        <TableBody emptyContent={emptyMessage}>
+          {isLoading ? (
+            Array.from({ length: 5 }).map((_, i) => (
+              <TableRow key={`skeleton-${i}`}>
+                {Array.from({ length: colsCount }).map((_, j) => (
+                  <TableCell key={`skeleton-cell-${j}`}>
+                    <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+                  </TableCell>
                 ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className={`hover:bg-gray-50 transition-colors ${isFetching ? 'opacity-60' : ''}`}>
+              </TableRow>
+            ))
+          ) : (
+            table.getRowModel().rows.map((row) => (
+              <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && 'selected'}
+                className={isFetching ? 'opacity-60' : ''}
+              >
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-4 py-4">
+                  <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
+                  </TableCell>
                 ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
 
       {pageCount > 1 && (
         <div className="flex justify-center py-4 border-t">

@@ -49,6 +49,7 @@ export interface IChargeFixeParams {
   debut?: string;
   fin?: string;
   role?: string;
+  aDecaisser?: boolean;
 }
 
 export interface IWorkflowDecisionDtoFixe {

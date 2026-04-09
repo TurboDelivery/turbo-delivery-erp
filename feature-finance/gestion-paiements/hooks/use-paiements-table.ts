@@ -1,55 +1,67 @@
-import { functionalUpdate, getCoreRowModel, getSortedRowModel, PaginationState, useReactTable } from '@tanstack/react-table';
+import { functionalUpdate, getCoreRowModel, getSortedRowModel, PaginationState, RowSelectionState, useReactTable } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
 import { createPaiementsColumns } from '../columns/paiements.columns';
-import { usePaiementsQuery } from '../queries/paiements.query';
+import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
+import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
+import { useDecaisserMutation } from '../queries/paiement.mutation';
+import { IChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
+import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
+
+export type ChargeTypeFilter = 'fixe' | 'variable';
 
 const DEFAULT_PAGE_SIZE = 10;
+const DECAISSE_STATUTS = ['DECAISSE', 'PAID'];
 
-const MONTH_NAMES = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jui', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-const MONTH_FULL = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-
-export function usePaiementsTable() {
-  const now = new Date();
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [selectedMonthIndex, setSelectedMonthIndex] = useState(now.getMonth()); // 0-based
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser?: (ids: string[]) => void) {
+  const [chargeType, setChargeType] = useState<ChargeTypeFilter>('variable');
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: DEFAULT_PAGE_SIZE,
   });
 
-  const moisKey = `${selectedYear}-${String(selectedMonthIndex + 1).padStart(2, '0')}`;
-  const monthLabel = `${MONTH_FULL[selectedMonthIndex]} ${selectedYear}`;
+  const decaisserMutation = useDecaisserMutation(chargeType);
 
-  const { data: response, isLoading, isFetching } = usePaiementsQuery({
-    page: pagination.pageIndex,
-    size: pagination.pageSize,
-    mois: moisKey,
-  });
+  const fixesQuery = useChargesFixesQuery(
+    { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin },
+    chargeType === 'fixe',
+  );
 
-  const data = useMemo(() => response?.content ?? [], [response?.content]);
+  const variablesQuery = useChargesVariablesQuery(
+    { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true },
+    chargeType === 'variable',
+  );
 
-  const onToggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
+  const response = chargeType === 'fixe' ? fixesQuery.data : variablesQuery.data;
+  const isLoading = chargeType === 'fixe' ? fixesQuery.isLoading : variablesQuery.isLoading;
+  const isFetching = chargeType === 'fixe' ? fixesQuery.isFetching : variablesQuery.isFetching;
 
-  const selectAll = useCallback(() => {
-    setSelectedIds(new Set(data.map((p) => p.id)));
-  }, [data]);
+  const data = useMemo(() => {
+    const content = response?.content ?? [];
+    if (chargeType === 'variable') {
+      return (content as IChargeVariable[]).map((cv) => ({
+        ...cv,
+        enable: true,
+        tauxJournalier: 0,
+        montantConsomme: 0,
+        dateEcheance: '',
+      })) as IChargeFixe[];
+    }
+    return content as IChargeFixe[];
+  }, [response?.content, chargeType]);
 
-  const deselectAll = useCallback(() => {
-    setSelectedIds(new Set());
-  }, []);
+  const handleDecaisserOne = useCallback((id: string) => {
+    if (onRequestDecaisser) {
+      onRequestDecaisser([id]);
+    } else {
+      decaisserMutation.mutate([id]);
+    }
+  }, [decaisserMutation, onRequestDecaisser]);
 
   const columns = useMemo(
-    () => createPaiementsColumns({ selectedIds, onToggleSelect }),
-    [selectedIds, onToggleSelect],
+    () => createPaiementsColumns({ onDecaisser: handleDecaisserOne, isPending: decaisserMutation.isPending }),
+    [handleDecaisserOne, decaisserMutation.isPending],
   );
 
   const table = useReactTable({
@@ -57,38 +69,21 @@ export function usePaiementsTable() {
     columns,
     pageCount: response?.totalPages ?? 0,
     manualPagination: true,
-    state: { pagination },
+    state: { pagination, rowSelection },
     onPaginationChange: (updater) => setPagination(functionalUpdate(updater, pagination)),
+    onRowSelectionChange: setRowSelection,
+    enableRowSelection: (row) => !DECAISSE_STATUTS.includes(row.original.statut),
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getRowId: (row) => row.id,
   });
 
-  const goToPreviousMonth = () => {
-    if (selectedMonthIndex === 0) {
-      setSelectedYear((y) => y - 1);
-      setSelectedMonthIndex(11);
-    } else {
-      setSelectedMonthIndex((m) => m - 1);
-    }
-    setPagination((p) => ({ ...p, pageIndex: 0 }));
-    setSelectedIds(new Set());
-  };
+  const selectedIds = Object.keys(rowSelection).filter((key) => rowSelection[key]);
 
-  const goToNextMonth = () => {
-    if (selectedMonthIndex === 11) {
-      setSelectedYear((y) => y + 1);
-      setSelectedMonthIndex(0);
-    } else {
-      setSelectedMonthIndex((m) => m + 1);
-    }
+  const switchChargeType = (type: ChargeTypeFilter) => {
+    setChargeType(type);
     setPagination((p) => ({ ...p, pageIndex: 0 }));
-    setSelectedIds(new Set());
-  };
-
-  const selectMonth = (index: number) => {
-    setSelectedMonthIndex(index);
-    setPagination((p) => ({ ...p, pageIndex: 0 }));
-    setSelectedIds(new Set());
+    setRowSelection({});
   };
 
   return {
@@ -96,19 +91,12 @@ export function usePaiementsTable() {
     data,
     isLoading,
     isFetching,
-    moisKey,
-    monthLabel,
-    selectedYear,
-    selectedMonthIndex,
-    monthNames: MONTH_NAMES,
-    goToPreviousMonth,
-    goToNextMonth,
-    selectMonth,
     selectedIds,
-    selectAll,
-    deselectAll,
     totalElements: response?.totalElements ?? 0,
     pageCount: response?.totalPages ?? 0,
     pagination,
+    chargeType,
+    switchChargeType,
+    decaisserMutation,
   };
 }
