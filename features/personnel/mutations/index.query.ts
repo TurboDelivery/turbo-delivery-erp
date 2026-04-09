@@ -71,19 +71,14 @@ export const useInvalidateEmployeeQuery = () => {
 //   };
 // };
 
-// 6. Créez un hook personnalisé pour l'invalidation des déductions
-// export const useInvalidateDeductionQuery = () => {
-//   const queryClient = useQueryClient();
+// 6. Hook personnalisé pour l'invalidation des déductions
+export const useInvalidateDeductionQuery = () => {
+  const queryClient = useQueryClient();
 
-//   return async (...params: any[]) => {
-//     await queryClient.invalidateQueries({
-//       queryKey: deductionKeyQuery(...params),
-//       exact: false
-//     });
-
-//     await queryClient.refetchQueries({
-//       queryKey: deductionKeyQuery(),
-//       type: 'active'
-//     });
-//   };
-// };
+  return async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ['deductions'],
+      exact: false,
+    });
+  };
+};

@@ -7,6 +7,7 @@ export const deductionFiltersClient = {
     employeeId: parseAsString.withDefault(''),
     year: parseAsInteger.withDefault(now.getFullYear()),
     month: parseAsInteger.withDefault(now.getMonth() + 1),
+    page: parseAsInteger.withDefault(0),
   },
   option: {
     clearOnDefault: true,
@@ -15,7 +16,7 @@ export const deductionFiltersClient = {
       employeeId: 'dEmp',
       year: 'dYear',
       month: 'dMonth',
+      page: 'dPage',
     },
   },
 };
-

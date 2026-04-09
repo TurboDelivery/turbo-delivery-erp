@@ -9,7 +9,11 @@
       "Bash(npx tsc:*)",
       "Bash(pnpm tsc:*)",
       "Bash(rtk pnpm:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(xargs grep:*)",
+      "Bash(cat)",
+      "Read(//tmp/**)",
+      "Bash(grep -E \"\\\\.tsx$\")"
     ]
   }
 }

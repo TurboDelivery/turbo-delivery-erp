@@ -3,66 +3,16 @@ import { Button } from '@heroui/react';
 import { Pencil, XCircle } from 'lucide-react';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
 import { formatCfa, formatDateFr } from '@/lib/date-utils';
+import {
+  getDeductionTypeLabel,
+  getDeductionTypeClassName,
+  getDeductionStatusLabel,
+  getDeductionStatusClassName,
+} from '@/features/personnel/utils/deduction.utils';
 
 type CreateDeductionTableColumnsOptions = {
   onEditDeduction?: (deduction: IDeduction) => void;
   onCancelDeduction?: (deduction: IDeduction) => void;
-};
-
-const getTypeLabel = (type: IDeduction['typeDeduction']) => {
-  switch (type) {
-    case 'AVANCE':
-      return 'Avance';
-    case 'PRET':
-      return 'Pret';
-    case 'ABSENCE':
-      return 'Absence';
-    case 'RETARD':
-      return 'Retard';
-    default:
-      return type;
-  }
-};
-
-const getTypeClassName = (type: IDeduction['typeDeduction']) => {
-  switch (type) {
-    case 'AVANCE':
-      return 'bg-blue-100 text-blue-700';
-    case 'PRET':
-      return 'bg-purple-100 text-purple-700';
-    case 'ABSENCE':
-      return 'bg-red-100 text-red-700';
-    case 'RETARD':
-      return 'bg-amber-100 text-amber-700';
-    default:
-      return 'bg-gray-100 text-gray-700';
-  }
-};
-
-const getStatusLabel = (status: IDeduction['status']) => {
-  switch (status) {
-    case 'PENDING':
-      return 'En attente';
-    case 'PAID':
-      return 'Paye';
-    case 'CANCELLED':
-      return 'Annule';
-    default:
-      return status;
-  }
-};
-
-const getStatusClassName = (status: IDeduction['status']) => {
-  switch (status) {
-    case 'PENDING':
-      return 'bg-amber-100 text-amber-700';
-    case 'PAID':
-      return 'bg-green-100 text-green-700';
-    case 'CANCELLED':
-      return 'bg-red-100 text-red-700';
-    default:
-      return 'bg-gray-100 text-gray-700';
-  }
 };
 
 export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction }: CreateDeductionTableColumnsOptions = {}): ColumnDef<IDeduction>[] => [
@@ -83,8 +33,8 @@ export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction
     accessorKey: 'typeDeduction',
     header: 'Type',
     cell: ({ row }) => (
-      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getTypeClassName(row.original.typeDeduction)}`}>
-        {getTypeLabel(row.original.typeDeduction)}
+      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getDeductionTypeClassName(row.original.typeDeduction)}`}>
+        {getDeductionTypeLabel(row.original.typeDeduction)}
       </span>
     ),
   },
@@ -107,8 +57,8 @@ export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction
     accessorKey: 'status',
     header: 'Statut',
     cell: ({ row }) => (
-      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getStatusClassName(row.original.status)}`}>
-        {getStatusLabel(row.original.status)}
+      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getDeductionStatusClassName(row.original.status)}`}>
+        {getDeductionStatusLabel(row.original.status)}
       </span>
     ),
   },
@@ -158,4 +108,3 @@ export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction
     },
   },
 ];
-

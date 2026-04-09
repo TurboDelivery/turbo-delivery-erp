@@ -72,14 +72,8 @@ export function useDeductionMutations() {
         return;
       }
 
-      try {
-        await cancelMutation.mutateAsync(deduction.id);
-        toast.success('Deduction annulee avec succes.');
-      } catch (error) {
-        toast.error("Impossible d'annuler la deduction", {
-          description: error instanceof Error ? error.message : 'Erreur inconnue',
-        });
-      }
+      await cancelMutation.mutateAsync(deduction.id);
+      toast.success('Deduction annulee avec succes.');
     },
     [cancelMutation],
   );

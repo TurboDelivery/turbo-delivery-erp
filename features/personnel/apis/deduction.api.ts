@@ -39,8 +39,8 @@ const buildQueryString = (params: Record<string, string | number>) => {
 
 export const deductionAPI: IDeductionAPI = {
   obtenirDeductions(params?: IDeductionParams): Promise<PaginatedResponse<IDeduction>> {
-    const year = (params as { year?: number } | undefined)?.year ?? new Date().getFullYear();
-    const month = (params as { month?: number } | undefined)?.month ?? new Date().getMonth() + 1;
+    const year = params?.year ?? new Date().getFullYear();
+    const month = params?.month ?? new Date().getMonth() + 1;
 
     return api.request<PaginatedResponse<IDeduction>>({
       endpoint: '/erp/deductions/monthly',
@@ -49,6 +49,8 @@ export const deductionAPI: IDeductionAPI = {
         employeeId: params?.employeeId,
         year,
         month,
+        page: Math.max(0, params?.page ?? 0),
+        size: params?.size ?? 10,
       } as SearchParams,
     });
   },

@@ -1,5 +1,5 @@
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQueryStates } from 'nuqs';
 import { createDeductionTableColumns } from '@/components/personnel/deductions/deductions/deduction-table-columns';
 import { deductionFiltersClient } from '@/features/personnel/filters/deduction.filter';
@@ -15,13 +15,13 @@ export function useDeductionTable({ onEditDeduction, onCancelDeduction }: UseDed
   const [filters, setFilters] = useQueryStates(deductionFiltersClient.filter, deductionFiltersClient.option);
   const columns = useMemo(() => createDeductionTableColumns({ onEditDeduction, onCancelDeduction }), [onCancelDeduction, onEditDeduction]);
 
-  const currentSearchParams: IDeductionParams = useMemo(() => {
-    return {
-      employeeId: filters.employeeId || undefined,
-      year: filters.year,
-      month: filters.month,
-    };
-  }, [filters]);
+  const currentSearchParams: IDeductionParams = useMemo(() => ({
+    employeeId: filters.employeeId || undefined,
+    year: filters.year,
+    month: filters.month,
+    page: Math.max(0, filters.page ?? 0),
+    size: 10,
+  }), [filters]);
 
   const { data: deductionsData, isLoading, isFetching, isError } = useDeductionListQuery(currentSearchParams);
 
@@ -33,26 +33,43 @@ export function useDeductionTable({ onEditDeduction, onCancelDeduction }: UseDed
     pageCount: deductionsData?.totalPages || 0,
   });
 
+  const handlePageChange = useCallback(
+    (page: number) => {
+      // HeroUI Pagination is 1-based, API is 0-based
+      setFilters({ page: page - 1 });
+    },
+    [setFilters],
+  );
+
   const pagination = {
     pageCount: deductionsData?.totalPages || 0,
     totalItems: deductionsData?.totalElements || 0,
-    page: 0,
-    handlePageChange: () => {},
+    page: Math.max(0, filters.page ?? 0),
+    handlePageChange,
   };
 
-  const handleEmployeeFilterChange = (employeeId?: string | null) => {
-    setFilters({ employeeId: employeeId || '' });
-  };
+  const handleEmployeeFilterChange = useCallback(
+    (employeeId?: string | null) => {
+      setFilters({ employeeId: employeeId || '', page: 0 });
+    },
+    [setFilters],
+  );
 
-  const handleYearFilterChange = (year?: number) => {
-    if (!year || Number.isNaN(year)) return;
-    setFilters({ year });
-  };
+  const handleYearFilterChange = useCallback(
+    (year?: number) => {
+      if (!year || Number.isNaN(year)) return;
+      setFilters({ year, page: 0 });
+    },
+    [setFilters],
+  );
 
-  const handleMonthFilterChange = (month?: number) => {
-    if (!month || Number.isNaN(month)) return;
-    setFilters({ month });
-  };
+  const handleMonthFilterChange = useCallback(
+    (month?: number) => {
+      if (!month || Number.isNaN(month)) return;
+      setFilters({ month, page: 0 });
+    },
+    [setFilters],
+  );
 
   return {
     deductionTable: table,
