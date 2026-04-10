@@ -24,6 +24,7 @@ export interface IChargeVariable {
   automatique: boolean;
   statut: StatutChargeVariable;
   typeDepense: string;
+  dateDepense?: string;
   description?: string;
   justificatif?: string;
   creerPar?: string;
@@ -45,6 +46,7 @@ export interface IChargeVariableCreateDTO {
   montant: number;
   echeanceJour?: number;
   description?: string;
+  dateDepense?: string;
   justificatif?: string;
   creerPar?: string;
 }
@@ -56,6 +58,7 @@ export interface IChargeVariableUpdateDTO {
   montant: number;
   echeanceJour?: number;
   description?: string;
+  dateDepense?: string;
   justificatif?: string;
 }
 

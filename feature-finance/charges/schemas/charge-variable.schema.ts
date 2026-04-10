@@ -5,6 +5,7 @@ export const chargeVariableFormSchema = z.object({
   categorieId: z.string().min(1, 'La categorie est requise'),
   montant: z.number().positive('Le montant doit etre superieur a 0'),
   description: z.string().optional(),
+  dateDepense: z.string().min(1, 'La date de dépense est requise'),
 });
 
 export type ChargeVariableFormDTO = z.infer<typeof chargeVariableFormSchema>;

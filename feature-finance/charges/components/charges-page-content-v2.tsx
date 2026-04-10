@@ -168,7 +168,7 @@ function DepensesVariablesSection({ table, isLoading, remainingCount, onAdd }: {
   return (
     <Card className="border shadow-none overflow-hidden">
       <div className="p-4 flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-900">Dépenses Variables (Au jour le jour)</h2>
+        <h2 className="text-base font-semibold text-gray-900">Dépenses Variables</h2>
         <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={onAdd}>
           Nouvelle dépense
         </Button>
