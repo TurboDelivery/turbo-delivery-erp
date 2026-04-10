@@ -28,6 +28,7 @@ import {
   ChargeVariableFormDTO,
   chargeVariableFormSchema,
 } from '@/feature-finance/charges/schemas/charge-variable.schema';
+import { getTodayDateInput } from '@/lib/date-utils';
 
 interface AddDepenseVariableModalProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ const EMPTY_FORM: ChargeVariableFormDTO = {
   categorieId: '',
   montant: 0,
   description: '',
+  dateDepense: getTodayDateInput(),
 };
 
 function Step({ label, sub, active }: { label: string; sub: string; active?: boolean }) {
@@ -105,6 +107,7 @@ export default function AddDepenseVariableModal({
         categorieId: chargeToEdit.categorie?.id ?? '',
         montant: chargeToEdit.montant,
         description: chargeToEdit.description ?? '',
+        dateDepense: chargeToEdit.dateDepense ?? getTodayDateInput(),
       });
       return;
     }
@@ -206,6 +209,18 @@ export default function AddDepenseVariableModal({
               startContent={<span className="text-gray-500 text-sm">FCFA</span>}
               isInvalid={!!errors.montant}
               errorMessage={errors.montant?.message}
+            />
+
+            <Input
+              label="Date de dépense"
+              type="date"
+              value={formValues.dateDepense ?? ''}
+              onChange={(e) =>
+                setValue('dateDepense', e.target.value, { shouldValidate: true })
+              }
+              variant="bordered"
+              isInvalid={!!errors.dateDepense}
+              errorMessage={errors.dateDepense?.message}
             />
 
             <Textarea
