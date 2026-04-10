@@ -6,7 +6,7 @@ import { CreneauAnalyseTab } from '@/components/creneaux/tabs/creneau-analyse-ta
 
 export function CreneauPageContent() {
   return (
-    <div className="space-y-6 bg-blue-200">
+    <div className="space-y-6 ">
       <CreneauHeader />
       <CreneauTabs>
         <CreneauPlanningTab />
