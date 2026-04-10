@@ -19,7 +19,14 @@ interface RevenueExpenseChartProps {
 }
 
 export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartProps) {
-  const { data: dailyStats, isLoading } = useDailyStatsQuery({ debut, fin });
+  const now = new Date();
+  const defaultDebut = new Date(now.getFullYear(), now.getMonth(), 1);
+  const defaultFin = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const { data: dailyStats, isLoading } = useDailyStatsQuery({
+    debut: debut ?? defaultDebut,
+    fin: fin ?? defaultFin,
+  });
 
   const data = React.useMemo(() => {
     if (!dailyStats) return [];
