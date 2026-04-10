@@ -56,3 +56,72 @@ export interface ICreneauAlerte {
   details?: string;
   joursImpactes?: string[];
 }
+
+export interface IAnalyseMiniStats {
+  tauxPresence: number;
+  fiabilite: number;
+  absencesMois: number;
+}
+
+export interface IAnalyseCapacite {
+  pourcentage: number;
+  inscrits: number;
+  total: number;
+  tauxConfirmation: number;
+}
+
+export interface IAnalyseFiabilite {
+  pourcentage: number;
+  gpsConfirme: number;
+  total: number;
+  absencesJustifiees: number;
+}
+
+export interface IAnalyseEcart {
+  valeur: number;
+  message: string;
+}
+
+export interface IAnalysePeriode {
+  taux: number;
+  absences: number;
+  justifiees: number;
+}
+
+export interface IEvolutionMensuelle {
+  mois: string;
+  previsionnel: number;
+  reel: number;
+  ecart: number;
+  tendance: 'up' | 'down';
+}
+
+export interface ICreneauAnalyseComparaison {
+  miniStats: IAnalyseMiniStats;
+  capacite: IAnalyseCapacite;
+  fiabilite: IAnalyseFiabilite;
+  ecartPrevisionRealite: IAnalyseEcart;
+  creneaux: {
+    matin: IAnalysePeriode;
+    soir: IAnalysePeriode;
+  };
+  evolutionMensuelle: IEvolutionMensuelle[];
+}
+
+export interface ICreneauDashboardParams {
+  page?: number;
+  size?: number;
+  debut?: string;
+}
+
+export interface ICreneauDashboard {
+  stats: ICreneauStats;
+  turboys: {
+    data: ICreneauTurboy[];
+    page: number;
+    pageCount: number;
+    total: number;
+  };
+  statsJour: IStatistiqueJour[];
+  alertes: ICreneauAlerte[];
+}

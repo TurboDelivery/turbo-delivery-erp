@@ -10,6 +10,7 @@ interface CreneauAlerteProps {
 
 export function CreneauAlerte({ alerte }: CreneauAlerteProps) {
   const isRupture = alerte.type === 'rupture_reseau';
+  console.log('Rendu de l\'alerte:', isRupture ? 'Rupture de reseau' : 'Alerte predictive', alerte  );
 
   return (
     <div

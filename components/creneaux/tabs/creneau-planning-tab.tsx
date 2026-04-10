@@ -10,90 +10,8 @@ import { StatistiquesParJour } from '@/components/creneaux/stats/statistiques-pa
 import { CreneauAlerte } from '@/components/creneaux/alerts/creneau-alerte';
 import { creneauFiltersClient } from '@/features/creneaux/filters/creneau.filter';
 import { getSundayFromMonday, getWeekDates } from '@/features/creneaux/utils/semaine.utils';
-import {
-  ICreneauStats,
-  ICreneauTurboy,
-  IStatistiqueJour,
-  ICreneauAlerte,
-  CreneauStatutJour,
-} from '@/features/creneaux/types/creneau.types';
-
-// ---------------------------------------------------------------------------
-// Mock data & helpers
-// ---------------------------------------------------------------------------
-
-const MOCK_STATS: ICreneauStats = {
-  capaciteGlobale: 90,
-  tauxPresenceGlobal: 90,
-  retention: 80,
-  fideliteTurboys: 90,
-};
-
-const JOURS_SEMAINE = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
-
-function randomStatut(): CreneauStatutJour {
-  const statuts = [
-    CreneauStatutJour.PRESENT,
-    CreneauStatutJour.PRESENT,
-    CreneauStatutJour.PRESENT,
-    CreneauStatutJour.ABSENT,
-    CreneauStatutJour.RETARD,
-  ];
-  return statuts[Math.floor(Math.random() * statuts.length)];
-}
-
-function generateMockTurboys(weekDates: Record<string, string>): ICreneauTurboy[] {
-  return [
-    'Adama Diallo',
-    'Boubacar Traore',
-    'Cheikh Ndiaye',
-    'Djibril Sow',
-    'Elhadj Barry',
-    'Fatou Camara',
-    'Gorgui Mbaye',
-    'Habib Kone',
-    'Ibrahim Toure',
-    'Jean-Paul Koffi',
-    'Karim Bah',
-    'Lamine Cisse',
-  ].map((nom, i) => ({
-    id: String(i + 1),
-    nomComplet: nom,
-    jours: JOURS_SEMAINE.map((jour) => ({
-      jour,
-      date: weekDates[jour],
-      statut: randomStatut(),
-    })),
-    assiduite: Math.floor(Math.random() * 40) + 60,
-  }));
-}
-
-function generateMockStatsJour(weekDates: Record<string, string>): IStatistiqueJour[] {
-  return JOURS_SEMAINE.map((jour) => ({
-    jour,
-    date: weekDates[jour],
-    pourcentage: Math.floor(Math.random() * 50) + 20,
-    presents: Math.floor(Math.random() * 10) + 5,
-    total: 15,
-  }));
-}
-
-const MOCK_ALERTES: ICreneauAlerte[] = [
-  {
-    type: 'rupture_reseau',
-    message:
-      'Le taux de presence est tombe en dessous de 80% pour certains jours. Veuillez contacter les Turboys absents et verifier la disponibilite.',
-    joursImpactes: ['Jeudi 26 (39%)', 'Mercredi 25 (46%)'],
-  },
-  {
-    type: 'predictive',
-    message:
-      "Certains jours futurs ont un taux d'inscription trop bas. Veuillez recruter ou mobiliser plus de Turboys pour ces creneaux.",
-    joursImpactes: ['Lundi 30 (Prevu 41%)', 'Samedi 28 (Prevu 52%)'],
-  },
-];
-
-const MOCK_PAGE_COUNT = 3;
+import { useCreneauDashboardQuery } from '@/features/creneaux/queries/creneau.query';
+import PaginationBlock from '@/components/pagination-block';
 
 // ---------------------------------------------------------------------------
 // Component
@@ -104,13 +22,21 @@ export function CreneauPlanningTab() {
     creneauFiltersClient.filter,
     creneauFiltersClient.option,
   );
-
+const { data } = useCreneauDashboardQuery({
+  page: filters.page,
+  size: 10,
+  debut: filters.semaine ?? undefined,
+});
+console.log('Données de la semaine:', data);
+const stat=data?.stats;
+console.log('Stats de la semaine:', stat);
   const selectedSemaine = filters.semaine;
   const fin = useMemo(() => getSundayFromMonday(selectedSemaine), [selectedSemaine]);
   const weekDates = useMemo(() => getWeekDates(selectedSemaine), [selectedSemaine]);
 
-  const turboys = useMemo(() => generateMockTurboys(weekDates), [weekDates]);
-  const statsJour = useMemo(() => generateMockStatsJour(weekDates), [weekDates]);
+  const turboys = data?.turboys?.data ?? [];
+  const statsJour = data?.statsJour ?? [];
+  const pageCount = data?.turboys?.pageCount ?? 0;
 
   const handleSemaineChange = useCallback(
     (semaine: string) => {
@@ -128,16 +54,16 @@ export function CreneauPlanningTab() {
 
   const pagination = useMemo(
     () => ({
-      page: filters.page,
-      pageCount: MOCK_PAGE_COUNT,
+      page: data?.turboys?.page ?? filters.page,
+      pageCount,
       onPageChange: handlePageChange,
     }),
-    [filters.page, handlePageChange],
+    [data?.turboys?.page, pageCount, filters.page, handlePageChange],
   );
 
   return (
     <div className="space-y-6">
-      <CreneauStatsOverview stats={MOCK_STATS} />
+      <CreneauStatsOverview stats={stat} />
       <CreneauLegende />
 
       <CreneauSemaineHeader
@@ -155,9 +81,19 @@ export function CreneauPlanningTab() {
         <StatistiquesParJour data={statsJour} />
       </div>
 
+      {pageCount > 1 && (
+        <div className="flex justify-center">
+          <PaginationBlock
+            currentPage={pagination.page}
+            totalPages={pageCount}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
+
       <div className="space-y-3">
-        {MOCK_ALERTES.map((alerte, i) => (
-          <CreneauAlerte key={i} alerte={alerte} />
+        {(data?.alertes ?? []).map((alerteItem, i) => (
+          <CreneauAlerte key={i} alerte={alerteItem} />
         ))}
       </div>
     </div>

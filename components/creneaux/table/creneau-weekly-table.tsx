@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Progress, Avatar, Pagination } from '@heroui/react';
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Progress, Avatar } from '@heroui/react';
 import { ICreneauTurboy, CreneauStatutJour } from '@/features/creneaux/types/creneau.types';
 import { getStatutDotColor } from '@/features/creneaux/utils/statut.utils';
 import { getAssiduitProgressColor } from '@/features/creneaux/utils/assiduite.utils';
@@ -101,19 +101,6 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
     <Table
       isStriped
       aria-label="Tableau de presence hebdomadaire"
-      bottomContent={
-        pagination && pagination.pageCount > 1 && (
-          <div className="flex justify-center py-4">
-            <Pagination
-              total={pagination.pageCount}
-              page={pagination.page + 1}
-              onChange={pagination.onPageChange}
-              color="primary"
-              showControls
-            />
-          </div>
-        )
-      }
     >
       <TableHeader>
         {table.getFlatHeaders().map((header) => (
