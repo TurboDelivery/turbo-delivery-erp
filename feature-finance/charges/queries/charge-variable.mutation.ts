@@ -1,16 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import {
-  ajouterChargeVariableFormDataAction,
-  approuverDGChargeVariableAction,
-  decaisserChargeVariableAction,
-  modifierChargeVariableFormDataAction,
-  rejeterDGAChargeVariableAction,
-  rejeterDGChargeVariableAction,
-  supprimerChargeVariableAction,
-  validerDGAChargeVariableAction,
-} from '../actions/charge-variable.action';
+import { chargeVariableAPI } from '../apis/charge-variable.api';
 import { useInvalidateChargeVariableQuery } from './index-charge-variable.query';
 import { IChargeVariable, IChargeVariableCreateDTO, IChargeVariableUpdateDTO, IWorkflowDecisionDto } from '../types/charge-variable.type';
 import { toast } from 'sonner';
@@ -34,13 +25,7 @@ export const useAjouterChargeVariableMutation = () => {
   return useMutation({
     mutationFn: async ({ data, file }: { data: IChargeVariableCreateDTO; file?: File | null }) => {
       const fd = buildChargeVariableFormData(data, file);
-      const result = await ajouterChargeVariableFormDataAction(fd);
-
-      if (!result.success) {
-        throw new Error(result.error || "Erreur lors de l'ajout de la charge variable");
-      }
-
-      return result.data!;
+      return chargeVariableAPI.ajouterChargeVariableFormData(fd);
     },
     onSuccess: async () => {
       await invalidateChargeVariableQuery();
@@ -60,13 +45,7 @@ export const useModifierChargeVariableMutation = () => {
   return useMutation({
     mutationFn: async ({ id, data, file }: { id: string; data: IChargeVariableUpdateDTO; file?: File | null }) => {
       const fd = buildChargeVariableFormData(data, file);
-      const result = await modifierChargeVariableFormDataAction(id, fd);
-
-      if (!result.success) {
-        throw new Error(result.error || 'Erreur lors de la modification de la charge variable');
-      }
-
-      return result.data!;
+      return chargeVariableAPI.modifierChargeVariableFormData(id, fd);
     },
     onSuccess: async () => {
       await invalidateChargeVariableQuery();
@@ -85,11 +64,7 @@ export const useSupprimerChargeVariableMutation = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const result = await supprimerChargeVariableAction(id);
-
-      if (!result.success) {
-        throw new Error(result.error || 'Erreur lors de la suppression de la charge variable');
-      }
+      await chargeVariableAPI.supprimerChargeVariable(id);
     },
     onSuccess: async () => {
       await invalidateChargeVariableQuery();
@@ -113,24 +88,20 @@ const ACTION_LABELS: Record<ActionWorkflow, string> = {
   decaisser: 'décaissée',
 };
 
-const ACTION_FN: Record<ActionWorkflow, (id: string, dto: IWorkflowDecisionDto) => Promise<import('@/types').ActionResponse<IChargeVariable>>> = {
-  'valider-dga': validerDGAChargeVariableAction,
-  'approuver-dg': approuverDGChargeVariableAction,
-  'rejeter-dga': rejeterDGAChargeVariableAction,
-  'rejeter-dg': rejeterDGChargeVariableAction,
-  decaisser: decaisserChargeVariableAction,
+const ACTION_FN: Record<ActionWorkflow, (id: string, dto: IWorkflowDecisionDto) => Promise<IChargeVariable>> = {
+  'valider-dga': (id, dto) => chargeVariableAPI.validerDGAChargeVariable(id, dto),
+  'approuver-dg': (id, dto) => chargeVariableAPI.approuverDGChargeVariable(id, dto),
+  'rejeter-dga': (id, dto) => chargeVariableAPI.rejeterDGAChargeVariable(id, dto),
+  'rejeter-dg': (id, dto) => chargeVariableAPI.rejeterDGChargeVariable(id, dto),
+  decaisser: (id, dto) => chargeVariableAPI.decaisserChargeVariable(id, dto),
 };
 
 export const useActionChargeVariableMutation = () => {
   const invalidateChargeVariableQuery = useInvalidateChargeVariableQuery();
 
   return useMutation({
-    mutationFn: async ({ id, action, dto }: { id: string; action: ActionWorkflow; dto: IWorkflowDecisionDto }) => {
-      const result = await ACTION_FN[action](id, dto);
-      if (!result.success) {
-        throw new Error(result.error || 'Erreur lors de la mise à jour du statut');
-      }
-      return result.data as IChargeVariable;
+    mutationFn: ({ id, action, dto }: { id: string; action: ActionWorkflow; dto: IWorkflowDecisionDto }) => {
+      return ACTION_FN[action](id, dto);
     },
     onSuccess: async (_data, vars) => {
       await invalidateChargeVariableQuery();

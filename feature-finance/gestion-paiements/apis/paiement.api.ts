@@ -44,7 +44,7 @@ export const paiementAPI: IPaiementAPI = {
     if (params?.fin) searchParams['fin'] = params.fin;
 
     return api.request<IDecaissementStatsResponse>({
-      endpoint: `/erp/charges-variables/decaissement-stats`,
+      endpoint: `/erp/charges-fixes/decaissement-stats-global`,
       method: 'GET',
       searchParams,
     });

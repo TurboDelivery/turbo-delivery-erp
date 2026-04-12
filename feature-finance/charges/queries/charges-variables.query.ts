@@ -1,20 +1,14 @@
 import React from 'react';
 
 import { useQuery } from '@tanstack/react-query';
-import { obtenirChargesVariablesAction } from '../actions/charge-variable.action';
+import { chargeVariableAPI } from '../apis/charge-variable.api';
 import { IChargeVariableParams } from '../types/charge-variable.type';
 import { chargeVariableKeyQuery } from './index-charge-variable.query';
 import { toast } from 'sonner';
 
 export const chargesVariablesListQueryOption = (params: IChargeVariableParams) => ({
   queryKey: chargeVariableKeyQuery('list', params),
-  queryFn: async () => {
-    const result = await obtenirChargesVariablesAction(params);
-    if (!result.success) {
-      throw new Error(result.error);
-    }
-    return result.data!;
-  },
+  queryFn: () => chargeVariableAPI.obtenirChargesVariablesPagination(params),
   staleTime: 5 * 60 * 1000,
 });
 

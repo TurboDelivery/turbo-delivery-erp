@@ -62,6 +62,8 @@ export function useChargesDepensesV2({
   const { data: variablesResponse, isLoading: isVariablesLoading, isFetching: isVariablesFetching } = useChargesVariablesQuery({
     page: variablesPagination.pageIndex,
     size: variablesPagination.pageSize,
+    debut: filters.debut || undefined,
+    fin: filters.fin || undefined,
   });
 
   const { data: stats, isLoading: isStatsLoading } = useChargesFixesStatsQuery(statsParams);
