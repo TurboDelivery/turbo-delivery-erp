@@ -70,9 +70,12 @@ export interface IChargeVariableParams {
   cyclePaiement?: CyclePaiement;
   role?: string;
   aDecaisser?: boolean;
+  debut?: string;
+  fin?: string;
 }
 
 export interface IWorkflowDecisionDto {
   commentaire?: string;
   par: string;
+  dateDebut?: string;
 }

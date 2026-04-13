@@ -29,7 +29,7 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
   );
 
   const variablesQuery = useChargesVariablesQuery(
-    { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true },
+    { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin },
     chargeType === 'variable',
   );
 

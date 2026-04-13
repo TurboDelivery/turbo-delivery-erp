@@ -1,5 +1,7 @@
 import { functionalUpdate, getCoreRowModel, getSortedRowModel, PaginationState, useReactTable } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
+import { useQueryStates } from 'nuqs';
+import { chargesDepensesFiltersClient } from '../filters/charges-depenses.filter';
 import { createChargesFixesV2Columns } from '../columns/charges-fixes-v2.columns';
 import { createDepensesVariablesV2Columns } from '../columns/depenses-variables-v2.columns';
 import { IChargeFixe } from '../types/charge-fixe.type';
@@ -28,6 +30,11 @@ export function useChargesDetailsTable({
   onRejectChargeVariable,
   onViewJustificatif,
 }: Options = {}) {
+  const [filters] = useQueryStates(
+    chargesDepensesFiltersClient.filter,
+    chargesDepensesFiltersClient.option,
+  );
+
   const [fixesPagination, setFixesPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: DEFAULT_PAGE_SIZE,
@@ -40,11 +47,15 @@ export function useChargesDetailsTable({
   const { data: fixesResponse, isLoading: isFixesLoading, isFetching: isFixesFetching } = useChargesFixesQuery({
     page: fixesPagination.pageIndex,
     size: fixesPagination.pageSize,
+    debut: filters.debut || undefined,
+    fin: filters.fin || undefined,
   });
 
   const { data: variablesResponse, isLoading: isVariablesLoading, isFetching: isVariablesFetching } = useChargesVariablesQuery({
     page: variablesPagination.pageIndex,
     size: variablesPagination.pageSize,
+    debut: filters.debut || undefined,
+    fin: filters.fin || undefined,
   });
 
   const fixesData = useMemo(() => fixesResponse?.content ?? [], [fixesResponse?.content]);
