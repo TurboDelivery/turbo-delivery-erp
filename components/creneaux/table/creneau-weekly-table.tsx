@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Progress, Avatar } from '@heroui/react';
 import { ICreneauTurboy, CreneauStatutJour, ICreneauJour } from '@/features/creneaux/types/creneau.types';
@@ -28,6 +29,7 @@ function StatutDot({ statut }: { statut: CreneauStatutJour }) {
 }
 
 export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination, onAbsenceClick }: CreneauWeeklyTableProps) {
+  const router = useRouter();
   const columns = useMemo<ColumnDef<ICreneauTurboy>[]>(() => [
     {
       id: 'turboy',
@@ -54,7 +56,19 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
           <div className="flex flex-col items-center gap-0.5">
             <span className={`font-medium ${isHighlight ? 'text-orange-500 italic' : ''}`}>{jour}</span>
             {dayNum && <span className={`text-xs ${isHighlight ? 'text-orange-500 font-semibold' : 'text-default-400'}`}>{dayNum}</span>}
-            <span className="text-[10px] text-primary cursor-pointer hover:underline">Voir details</span>
+            {dateStr ? (
+              <span
+                role="button"
+                tabIndex={0}
+                className="text-[10px] text-primary hover:underline cursor-pointer"
+                onClick={(e) => { e.stopPropagation(); router.push(`/delivery-men/creneaux/jour/${dateStr}`); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/delivery-men/creneaux/jour/${dateStr}`); }}
+              >
+                Voir details
+              </span>
+            ) : (
+              <span className="text-[10px] text-primary">Voir details</span>
+            )}
           </div>
         );
       },
@@ -91,7 +105,7 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
         </div>
       ),
     },
-  ], [jourDates, onAbsenceClick]);
+  ], [jourDates, onAbsenceClick, router]);
 
   const table = useReactTable({
     data,

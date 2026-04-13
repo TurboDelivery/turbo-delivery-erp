@@ -1,7 +1,7 @@
 import { SearchParams } from 'ak-api-http';
 import { api } from '@/lib/api';
 import { PaginatedResponse } from '@/types/general';
-import { ICreneauTurboy, ICreneauStats, IStatistiqueJour, ICreneauParams, ICreneauAnalyseComparaison, ICreneauDashboard, ICreneauDashboardParams } from '../types/creneau.types';
+import { ICreneauTurboy, ICreneauStats, IStatistiqueJour, ICreneauParams, ICreneauAnalyseComparaison, ICreneauDashboard, ICreneauDashboardParams, ICreneauJourDetail } from '../types/creneau.types';
 
 export interface ICreneauAPI {
   obtenirCreneauxSemaine(params?: ICreneauParams): Promise<PaginatedResponse<ICreneauTurboy>>;
@@ -12,6 +12,7 @@ export interface ICreneauAPI {
   obtenirDashboardRealite(params?: ICreneauDashboardParams): Promise<ICreneauDashboard>;
   justifierAbsence(id: string, body: { date: string; motif: string }): Promise<void>;
   accuserRetard(id: string, body: { date: string; motif: string }): Promise<void>;
+  obtenirDetailJour(date: string): Promise<ICreneauJourDetail>;
 }
 
 export const creneauAPI: ICreneauAPI = {
@@ -90,6 +91,14 @@ export const creneauAPI: ICreneauAPI = {
       endpoint: `/erp/gestion-creneau/${id}/accuser-retard`,
       method: 'PATCH',
       data: body,
+    });
+  },
+
+  obtenirDetailJour(date: string): Promise<ICreneauJourDetail> {
+    return api.request<ICreneauJourDetail>({
+      endpoint: '/erp/gestion-creneau/detail-jour',
+      method: 'GET',
+      searchParams: { date } as SearchParams,
     });
   },
 };

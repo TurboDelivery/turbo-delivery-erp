@@ -14,6 +14,7 @@ export const creneauKeys = {
   analyseComparaison: (mois?: string) => [...creneauKeys.all, 'analyse-comparaison', mois] as const,
   dashboard: (params?: ICreneauDashboardParams) => [...creneauKeys.all, 'dashboard', params] as const,
   dashboardRealite: (params?: ICreneauDashboardParams) => [...creneauKeys.all, 'dashboard-realite', params] as const,
+  detailJour: (date: string) => [...creneauKeys.all, 'detail-jour', date] as const,
 };
 
 export const useCreneauxSemaineQuery = (params?: ICreneauParams) => {
@@ -115,6 +116,24 @@ export const useCreneauDashboardRealiteQuery = (params?: ICreneauDashboardParams
   useEffect(() => {
     if (query.isError && query.error) {
       console.error('Erreur lors de la recuperation du dashboard réalité creneaux:', query.error);
+    }
+  }, [query.isError, query.error]);
+
+  return query;
+};
+
+export const useCreneauDetailJourQuery = (date: string) => {
+  const query = useQuery({
+    queryKey: creneauKeys.detailJour(date),
+    queryFn: () => creneauAPI.obtenirDetailJour(date),
+    staleTime: 60_000,
+    refetchOnMount: true,
+    enabled: !!date,
+  });
+
+  useEffect(() => {
+    if (query.isError && query.error) {
+      console.error('Erreur lors de la recuperation du detail jour:', query.error);
     }
   }, [query.isError, query.error]);
 

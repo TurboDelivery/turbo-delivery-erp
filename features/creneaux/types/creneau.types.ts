@@ -127,3 +127,23 @@ export interface ICreneauDashboard {
   statsJour: IStatistiqueJour[];
   alertes: ICreneauAlerte[];
 }
+
+export interface ICreneauTurboySimple {
+  id: string;
+  nomComplet: string;
+  avatar?: string;
+}
+
+export interface ICreneauJourDetail {
+  date: string;
+  inscrits: number;
+  presents: number;
+  absents: number;
+  tauxPresence: number;
+  turboysPresents: ICreneauTurboySimple[];
+  turboysAbsents: ICreneauTurboySimple[];
+  analyseRapide: {
+    resume: string;
+    recommandation: string;
+  };
+}
