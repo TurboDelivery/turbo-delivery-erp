@@ -54,7 +54,8 @@ export interface IChargeFixeParams {
 
 export interface IWorkflowDecisionDtoFixe {
   commentaire?: string;
-  par: string;
+  par?: string;
+  date?: string;
 }
 
 export interface IChargeStats {

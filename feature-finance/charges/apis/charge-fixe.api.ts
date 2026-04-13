@@ -42,18 +42,10 @@ export const chargeFixeAPI: IChargeFixeAPI = {
   },
 
   obtenirChargesFixes(params: IChargeFixeParams): Promise<PaginatedResponse<IChargeFixe>> {
-    const searchParams: Record<string, string> = {};
-    if (params.designation) searchParams['designation'] = params.designation;
-    if (params.statut) searchParams['statut'] = params.statut;
-    if (typeof params.page === 'number') searchParams['page'] = String(params.page);
-    if (typeof params.size === 'number') searchParams['size'] = String(params.size);
-    if (params.role) searchParams['role'] = params.role;
-    if (params.aDecaisser !== undefined) searchParams['aDecaisser'] = String(params.aDecaisser);
-
     return api.request<PaginatedResponse<IChargeFixe>>({
       endpoint: `/erp/charges-fixes/pagination`,
       method: 'GET',
-      searchParams,
+      searchParams: params,
     });
   },
 
@@ -105,6 +97,7 @@ export const chargeFixeAPI: IChargeFixeAPI = {
     return api.request<IChargeFixe>({
       endpoint: `/erp/charges-fixes/${id}/payer`,
       method: 'PATCH',
+      data: dto,
     });
   },
 

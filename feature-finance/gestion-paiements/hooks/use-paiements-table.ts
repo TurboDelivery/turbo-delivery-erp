@@ -21,7 +21,7 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
     pageSize: DEFAULT_PAGE_SIZE,
   });
 
-  const decaisserMutation = useDecaisserMutation(chargeType);
+  const decaisserMutation = useDecaisserMutation(chargeType, fin);
 
   const fixesQuery = useChargesFixesQuery(
     { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin },

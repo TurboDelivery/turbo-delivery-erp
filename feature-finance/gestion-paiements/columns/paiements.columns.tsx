@@ -14,7 +14,7 @@ const STATUT_CONFIG: Record<string, { label: string; color: 'warning' | 'primary
   REJETE_DGA: { label: 'Rejeté DGA', color: 'danger' },
   REJETE_DG: { label: 'Rejeté DG', color: 'danger' },
   DECAISSE: { label: 'Décaissé', color: 'success' },
-  PAID: { label: 'Payé', color: 'success' },
+  PAID: { label: 'Décaissé', color: 'success' },
 };
 
 const DECAISSE_STATUTS = ['DECAISSE', 'PAID'];

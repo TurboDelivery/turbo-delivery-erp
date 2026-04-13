@@ -12,15 +12,16 @@ const DECAISSER_ENDPOINT: Record<ChargeTypeFilter, string> = {
   variable: '/erp/charges-variables',
 };
 
-export const useDecaisserMutation = (chargeType: ChargeTypeFilter) => {
+export const useDecaisserMutation = (chargeType: ChargeTypeFilter, fin?: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (ids: string[]) => {
       const base = DECAISSER_ENDPOINT[chargeType];
+      const data = chargeType === 'fixe' && fin ? { date: fin } : undefined;
       await Promise.all(
         ids.map((id) =>
-          api.request({ endpoint: `${base}/${id}/payer`, method: 'PATCH' }),
+          api.request({ endpoint: `${base}/${id}/payer`, method: 'PATCH', data }),
         ),
       );
     },
