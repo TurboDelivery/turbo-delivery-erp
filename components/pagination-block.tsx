@@ -126,6 +126,15 @@ function NavBtn({
   onClick,
   disabled,
   title,
+  onDrag: _onDrag,
+  onDragEnd: _onDragEnd,
+  onDragEnter: _onDragEnter,
+  onDragExit: _onDragExit,
+  onDragLeave: _onDragLeave,
+  onDragOver: _onDragOver,
+  onDragStart: _onDragStart,
+  onDrop: _onDrop,
+  onAnimationStart: _onAnimationStart,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { disabled?: boolean }) {
   return (
