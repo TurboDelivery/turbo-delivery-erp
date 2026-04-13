@@ -1,71 +1,149 @@
+'use client';
+
 import React from 'react';
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export interface PaginationBlockProps {
-  currentPage: number;
+  currentPage: number;   // 0-based
   totalPages: number;
   onPageChange: (page: number) => void;
+  totalItems?: number;
+  pageSize?: number;
 }
 
-function PaginationBlock({ currentPage, totalPages, onPageChange }: PaginationBlockProps) {
-  // Convertir l'index backend (0-based) en affichage UI (1-based)
-  const displayPage = currentPage + 1;
-  const displayTotalPages = totalPages;
+function PaginationBlock({
+  currentPage,
+  totalPages,
+  onPageChange,
+  totalItems,
+  pageSize,
+}: PaginationBlockProps) {
+  const displayPage = currentPage + 1; // 1-based for UI
 
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
-    const maxVisible = 5;
-
-    if (displayTotalPages <= maxVisible) {
-      for (let i = 1; i <= displayTotalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (displayPage <= 3) {
-        pages.push(1, 2, 3, 4, 'ellipsis', displayTotalPages);
-      } else if (displayPage >= displayTotalPages - 2) {
-        pages.push(1, 'ellipsis', displayTotalPages - 3, displayTotalPages - 2, displayTotalPages - 1, displayTotalPages);
-      } else {
-        pages.push(1, 'ellipsis', displayPage - 1, displayPage, displayPage + 1, 'ellipsis', displayTotalPages);
-      }
+  const getPageNumbers = (): (number | 'ellipsis')[] => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-
-    return pages;
+    if (displayPage <= 4) {
+      return [1, 2, 3, 4, 5, 'ellipsis', totalPages];
+    }
+    if (displayPage >= totalPages - 3) {
+      return [1, 'ellipsis', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, 'ellipsis', displayPage - 1, displayPage, displayPage + 1, 'ellipsis', totalPages];
   };
 
-  const handlePageChange = (displayPageNumber: number) => {
-    const backendPage = displayPageNumber - 1;
-    if (backendPage >= 0 && backendPage < totalPages) {
-      onPageChange(backendPage);
-    }
+  const goTo = (page: number) => {
+    const p = page - 1;
+    if (p >= 0 && p < totalPages) onPageChange(p);
   };
 
   if (totalPages <= 1) return null;
 
+  const from = totalItems !== undefined && pageSize !== undefined ? currentPage * pageSize + 1 : null;
+  const to = totalItems !== undefined && pageSize !== undefined ? Math.min((currentPage + 1) * pageSize, totalItems) : null;
+
   return (
-    <Pagination>
-      <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious href="#" onClick={() => handlePageChange(displayPage - 1)} className={currentPage === 0 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} />
-        </PaginationItem>
+    <div className="flex flex-col items-center gap-3">
+      {from !== null && to !== null && totalItems !== undefined && (
+        <p className="text-sm text-muted-foreground">
+          Affichage{' '}
+          <span className="font-semibold text-foreground">{from}–{to}</span>{' '}
+          sur{' '}
+          <span className="font-semibold text-foreground">{totalItems}</span>{' '}
+          résultats
+        </p>
+      )}
 
-        {getPageNumbers().map((page, index) => (
-          <PaginationItem key={`${page}-${index}`}>
-            {page === 'ellipsis' ? (
-              <PaginationEllipsis />
+      <nav
+        className="flex items-center gap-1 rounded-xl border border-border bg-background/60 p-1 shadow-sm backdrop-blur-sm"
+        aria-label="Pagination"
+      >
+        {/* Première page */}
+        <NavBtn onClick={() => goTo(1)} disabled={currentPage === 0} title="Première page">
+          <ChevronsLeft className="size-4" />
+        </NavBtn>
+
+        {/* Page précédente */}
+        <NavBtn onClick={() => goTo(displayPage - 1)} disabled={currentPage === 0} title="Page précédente">
+          <ChevronLeft className="size-4" />
+        </NavBtn>
+
+        {/* Numéros de page */}
+        <div className="flex items-center gap-0.5 px-0.5">
+          {getPageNumbers().map((page, i) =>
+            page === 'ellipsis' ? (
+              <span
+                key={`e-${i}`}
+                className="flex h-9 w-7 select-none items-end justify-center pb-1.5 text-sm text-muted-foreground"
+              >
+                ···
+              </span>
             ) : (
-              <PaginationLink href="#" onClick={() => handlePageChange(page as number)} isActive={displayPage === page} className="cursor-pointer">
-                {page}
-              </PaginationLink>
-            )}
-          </PaginationItem>
-        ))}
+              <motion.button
+                key={page}
+                onClick={() => goTo(page)}
+                whileTap={{ scale: 0.88 }}
+                className={cn(
+                  'relative flex h-9 min-w-9 items-center justify-center rounded-lg px-1 text-sm font-medium transition-colors',
+                  displayPage === page
+                    ? 'text-primary-foreground'
+                    : 'text-foreground hover:bg-muted',
+                )}
+                aria-current={displayPage === page ? 'page' : undefined}
+              >
+                {displayPage === page && (
+                  <motion.span
+                    layoutId="active-page-pill"
+                    className="absolute inset-0 rounded-lg bg-primary shadow-md"
+                    transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+                  />
+                )}
+                <span className="relative z-10">{page}</span>
+              </motion.button>
+            ),
+          )}
+        </div>
 
-        <PaginationItem>
-          <PaginationNext href="#" onClick={() => handlePageChange(displayPage + 1)} className={currentPage === totalPages - 1 ? 'pointer-events-none' : 'cursor-pointer'} />
-        </PaginationItem>
-      </PaginationContent>
-    </Pagination>
+        {/* Page suivante */}
+        <NavBtn onClick={() => goTo(displayPage + 1)} disabled={currentPage === totalPages - 1} title="Page suivante">
+          <ChevronRight className="size-4" />
+        </NavBtn>
+
+        {/* Dernière page */}
+        <NavBtn onClick={() => goTo(totalPages)} disabled={currentPage === totalPages - 1} title="Dernière page">
+          <ChevronsRight className="size-4" />
+        </NavBtn>
+      </nav>
+    </div>
+  );
+}
+
+function NavBtn({
+  children,
+  onClick,
+  disabled,
+  title,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & { disabled?: boolean }) {
+  return (
+    <motion.button
+      onClick={disabled ? undefined : onClick}
+      whileTap={disabled ? {} : { scale: 0.88 }}
+      title={title}
+      disabled={disabled}
+      className={cn(
+        'flex h-9 w-9 items-center justify-center rounded-lg text-sm transition-colors',
+        disabled
+          ? 'cursor-not-allowed text-muted-foreground/30'
+          : 'cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground',
+      )}
+      {...props}
+    >
+      {children}
+    </motion.button>
   );
 }
 

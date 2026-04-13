@@ -112,6 +112,7 @@ export interface ICreneauDashboardParams {
   page?: number;
   size?: number;
   debut?: string;
+  search?: string;
 }
 
 export interface ICreneauDashboard {

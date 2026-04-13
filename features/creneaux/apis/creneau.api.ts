@@ -50,12 +50,13 @@ export const creneauAPI: ICreneauAPI = {
 
   obtenirDashboard(params?: ICreneauDashboardParams): Promise<ICreneauDashboard> {
     return api.request<ICreneauDashboard>({
-      endpoint: '/erp/gestion-creneau/dashboard',
+      endpoint: '/erp/gestion-creneau/previsionnel',
       method: 'GET',
       searchParams: {
         page: Math.max(0, params?.page ?? 0),
         size: params?.size ?? 10,
         ...(params?.debut ? { debut: params.debut } : {}),
+        ...(params?.search ? { keysearch: params.search } : {}),
       } as SearchParams,
     });
   },

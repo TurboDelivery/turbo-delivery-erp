@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { useQueryStates } from 'nuqs';
+import { Search, X } from 'lucide-react';
 import { CreneauStatsOverview } from '@/components/creneaux/stats/creneau-stats-overview';
 import { CreneauLegende } from '@/components/creneaux/table/creneau-legende';
 import { CreneauSemaineHeader } from '@/components/creneaux/table/creneau-semaine-header';
@@ -17,6 +18,8 @@ import PaginationBlock from '@/components/pagination-block';
 // Component
 // ---------------------------------------------------------------------------
 
+const PAGE_SIZE = 10;
+
 export function CreneauPlanningTab() {
   const [filters, setFilters] = useQueryStates(
     creneauFiltersClient.filter,
@@ -24,8 +27,9 @@ export function CreneauPlanningTab() {
   );
 const { data } = useCreneauDashboardQuery({
   page: filters.page,
-  size: 10,
+  size: PAGE_SIZE,
   debut: filters.semaine ?? undefined,
+  search: filters.search || undefined,
 });
 console.log('Données de la semaine:', data);
 const stat=data?.stats;
@@ -52,6 +56,17 @@ console.log('Stats de la semaine:', stat);
     [setFilters],
   );
 
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFilters({ search: e.target.value, page: 0 });
+    },
+    [setFilters],
+  );
+
+  const handleSearchClear = useCallback(() => {
+    setFilters({ search: '', page: 0 });
+  }, [setFilters]);
+
   const pagination = useMemo(
     () => ({
       page: data?.turboys?.page ?? filters.page,
@@ -66,11 +81,47 @@ console.log('Stats de la semaine:', stat);
       <CreneauStatsOverview stats={stat} />
       <CreneauLegende />
 
-      <CreneauSemaineHeader
-        selectedSemaine={selectedSemaine}
-        fin={fin}
-        onSemaineChange={handleSemaineChange}
-      />
+      {/* Barre de contrôle : recherche | sélecteur semaine + pagination */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Recherche */}
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            value={filters.search ?? ''}
+            onChange={handleSearchChange}
+            placeholder="Rechercher un turboy..."
+            className="h-10 w-full rounded-xl border border-border bg-background/60 pl-9 pr-9 text-sm shadow-sm backdrop-blur-sm transition-colors placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+          />
+          {filters.search && (
+            <button
+              onClick={handleSearchClear}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 flex size-5 items-center justify-center rounded-full text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Effacer la recherche"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Sélecteur semaine + pagination groupés */}
+        <div className="flex flex-wrap items-center gap-4">
+          <CreneauSemaineHeader
+            selectedSemaine={selectedSemaine}
+            fin={fin}
+            onSemaineChange={handleSemaineChange}
+          />
+          {pageCount > 1 && (
+            <PaginationBlock
+              currentPage={pagination.page}
+              totalPages={pageCount}
+              onPageChange={handlePageChange}
+              totalItems={data?.turboys?.total}
+              pageSize={PAGE_SIZE}
+            />
+          )}
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
         <CreneauWeeklyTable
@@ -80,16 +131,6 @@ console.log('Stats de la semaine:', stat);
         />
         <StatistiquesParJour data={statsJour} />
       </div>
-
-      {pageCount > 1 && (
-        <div className="flex justify-center">
-          <PaginationBlock
-            currentPage={pagination.page}
-            totalPages={pageCount}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      )}
 
       <div className="space-y-3">
         {(data?.alertes ?? []).map((alerteItem, i) => (
