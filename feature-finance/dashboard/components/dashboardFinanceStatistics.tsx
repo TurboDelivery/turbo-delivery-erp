@@ -6,7 +6,7 @@ import { useCAExport } from '@/feature-finance/dashboard/hooks/use-ca-export';
 import { useGlobalStats } from '@/feature-finance/dashboard/queries/global-stats.query';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { DateRange } from 'react-day-picker';
-import { startOfMonth } from 'date-fns';
+import { endOfMonth, startOfMonth } from 'date-fns';
 import CACard from './ca-card';
 import FinanceHighlightCard from './finance-highlight-card';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
@@ -19,7 +19,7 @@ export default function DashboardFinanceStatistics() {
     const now = new Date();
     return {
       from: startOfMonth(now),
-      to: now,
+      to: endOfMonth(now),
     };
   });
 
@@ -126,11 +126,11 @@ export default function DashboardFinanceStatistics() {
         <div className="flex max-md:flex-col items-center justify-between gap-4">
           <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/charges" ariaLabel="Voir la liste des dépenses">
             <div className="flex flex-col gap-0.5">
-              <div className="bg-red-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-sm">
+              <div className="bg-red-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium">
                 <span>Charges fixes</span>
                 <span>{formattedRecurrentes}</span>
               </div>
-              <div className="bg-orange-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-sm">
+              <div className="bg-orange-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium">
                 <span>Charges variables</span>
                 <span>{formattedNonRecurrentes}</span>
               </div>
