@@ -96,7 +96,7 @@ export const creneauAPI: ICreneauAPI = {
 
   obtenirDetailJour(date: string): Promise<ICreneauJourDetail> {
     return api.request<ICreneauJourDetail>({
-      endpoint: '/erp/gestion-creneau/detail-jour',
+      endpoint: '/erp/gestion-creneau/presence-journaliere',
       method: 'GET',
       searchParams: { date } as SearchParams,
     });

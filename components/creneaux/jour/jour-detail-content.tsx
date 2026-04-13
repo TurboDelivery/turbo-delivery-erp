@@ -1,11 +1,13 @@
 'use client';
 
-import { Avatar, Progress, Skeleton } from '@heroui/react';
-import { ArrowLeft, CheckCircle2, Lightbulb, XCircle } from 'lucide-react';
+import { Avatar, Button, Progress, Skeleton } from '@heroui/react';
+import { ArrowLeft, CheckCircle2, Download, Lightbulb, XCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 import { useCreneauDetailJourQuery } from '@/features/creneaux/queries/creneau.query';
 import { ICreneauTurboySimple } from '@/features/creneaux/types/creneau.types';
 import { createUrlFile } from '@/utils/createUrlFile';
+import { exportPresenceJournalierePdf } from './presence-journaliere-pdf';
 
 function formatDateLabel(iso: string): string {
   const d = new Date(iso);
@@ -71,26 +73,68 @@ interface JourDetailContentProps {
 }
 
 export function JourDetailContent({ date }: JourDetailContentProps) {
-  const { data, isLoading } = useCreneauDetailJourQuery(date);
+  const { data, isLoading, isError } = useCreneauDetailJourQuery(date);
+  const [isExporting, setIsExporting] = useState(false);
 
-  return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div>
+  async function handleExportPdf() {
+    if (!data) return;
+    setIsExporting(true);
+    try {
+      await exportPresenceJournalierePdf(data);
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 p-12 text-center">
+        <XCircle className="size-10 text-danger" />
+        <p className="font-semibold text-danger">Impossible de charger les données</p>
+        <p className="text-sm text-muted-foreground">Une erreur est survenue lors de la récupération des présences du jour.</p>
         <Link
           href="/delivery-men/creneaux"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mt-2"
         >
           <ArrowLeft className="size-4" />
           Retour au planning
         </Link>
+      </div>
+    );
+  }
 
-        {isLoading ? (
-          <Skeleton className="h-8 w-48 rounded-lg" />
-        ) : (
-          <h1 className="text-2xl font-bold text-primary">{formatDateLabel(date)}</h1>
+  return (
+    <div className="space-y-6 p-6">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <Link
+            href="/delivery-men/creneaux"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-3"
+          >
+            <ArrowLeft className="size-4" />
+            Retour au planning
+          </Link>
+
+          {isLoading ? (
+            <Skeleton className="h-8 w-48 rounded-lg" />
+          ) : (
+            <h1 className="text-2xl font-bold text-primary">{formatDateLabel(date)}</h1>
+          )}
+          <p className="text-sm text-muted-foreground">Détail de la journée</p>
+        </div>
+        {!isLoading && (
+          <Button
+            size="sm"
+            variant="bordered"
+            startContent={<Download className="size-4" />}
+            isLoading={isExporting}
+            onPress={handleExportPdf}
+            className="shrink-0 mt-7"
+          >
+            Exporter PDF
+          </Button>
         )}
-        <p className="text-sm text-muted-foreground">Détail de la journée</p>
       </div>
 
       {/* Stats */}
