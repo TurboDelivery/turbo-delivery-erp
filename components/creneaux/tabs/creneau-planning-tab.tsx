@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import { Search, X } from 'lucide-react';
 import { CreneauStatsOverview } from '@/components/creneaux/stats/creneau-stats-overview';
@@ -11,8 +11,10 @@ import { StatistiquesParJour } from '@/components/creneaux/stats/statistiques-pa
 import { CreneauAlerte } from '@/components/creneaux/alerts/creneau-alerte';
 import { creneauFiltersClient } from '@/features/creneaux/filters/creneau.filter';
 import { getSundayFromMonday, getWeekDates } from '@/features/creneaux/utils/semaine.utils';
-import { useCreneauDashboardQuery } from '@/features/creneaux/queries/creneau.query';
+import { useCreneauDashboardQuery, useCreneauDashboardRealiteQuery } from '@/features/creneaux/queries/creneau.query';
 import PaginationBlock from '@/components/pagination-block';
+import { AbsenceActionDialog, AbsenceActionTarget } from '@/components/creneaux/table/absence-action-dialog';
+import { ICreneauTurboy, ICreneauJour } from '@/features/creneaux/types/creneau.types';
 
 // ---------------------------------------------------------------------------
 // Component
@@ -21,19 +23,26 @@ import PaginationBlock from '@/components/pagination-block';
 const PAGE_SIZE = 10;
 
 export function CreneauPlanningTab() {
+  const [isRealite, setIsRealite] = useState(false);
+  const [absenceTarget, setAbsenceTarget] = useState<AbsenceActionTarget | null>(null);
+
   const [filters, setFilters] = useQueryStates(
     creneauFiltersClient.filter,
     creneauFiltersClient.option,
   );
-const { data } = useCreneauDashboardQuery({
-  page: filters.page,
-  size: PAGE_SIZE,
-  debut: filters.semaine ?? undefined,
-  search: filters.search || undefined,
-});
-console.log('Données de la semaine:', data);
-const stat=data?.stats;
-console.log('Stats de la semaine:', stat);
+
+  const queryParams = {
+    page: filters.page,
+    size: PAGE_SIZE,
+    debut: filters.semaine ?? undefined,
+    search: filters.search || undefined,
+  };
+
+  const previsionnel = useCreneauDashboardQuery(!isRealite ? queryParams : undefined);
+  const realite = useCreneauDashboardRealiteQuery(isRealite ? queryParams : undefined);
+  const { data } = isRealite ? realite : previsionnel;
+  const stat = data?.stats;
+
   const selectedSemaine = filters.semaine;
   const fin = useMemo(() => getSundayFromMonday(selectedSemaine), [selectedSemaine]);
   const weekDates = useMemo(() => getWeekDates(selectedSemaine), [selectedSemaine]);
@@ -63,6 +72,15 @@ console.log('Stats de la semaine:', stat);
     [setFilters],
   );
 
+  const handleAbsenceClick = useCallback((turboy: ICreneauTurboy, jour: ICreneauJour) => {
+    setAbsenceTarget({
+      emploiId: turboy.emploiId,
+      turoyNomComplet: turboy.nomComplet,
+      date: jour.date,
+      jourLabel: jour.jour.charAt(0) + jour.jour.slice(1).toLowerCase(),
+    });
+  }, []);
+
   const handleSearchClear = useCallback(() => {
     setFilters({ search: '', page: 0 });
   }, [setFilters]);
@@ -79,7 +97,20 @@ console.log('Stats de la semaine:', stat);
   return (
     <div className="space-y-6">
       <CreneauStatsOverview stats={stat} />
-      <CreneauLegende />
+      <div className="flex flex-wrap items-center gap-4">
+        <CreneauLegende />
+        <button
+          onClick={() => setIsRealite((v) => !v)}
+          className={`inline-flex items-center gap-2 rounded-xl border px-4 py-1.5 text-sm font-medium transition-colors ${
+            isRealite
+              ? 'border-primary bg-primary text-primary-foreground'
+              : 'border-border bg-background text-muted-foreground hover:border-primary hover:text-primary'
+          }`}
+        >
+          <span className={`inline-block size-2 rounded-full ${isRealite ? 'bg-primary-foreground' : 'bg-muted-foreground'}`} />
+          {isRealite ? 'Réalité' : 'Prévisionnel'}
+        </button>
+      </div>
 
       {/* Barre de contrôle : recherche | sélecteur semaine + pagination */}
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -128,6 +159,7 @@ console.log('Stats de la semaine:', stat);
           data={turboys}
           jourDates={weekDates}
           pagination={pagination}
+          onAbsenceClick={isRealite ? handleAbsenceClick : undefined}
         />
         <StatistiquesParJour data={statsJour} />
       </div>
@@ -137,6 +169,11 @@ console.log('Stats de la semaine:', stat);
           <CreneauAlerte key={i} alerte={alerteItem} />
         ))}
       </div>
+
+      <AbsenceActionDialog
+        target={absenceTarget}
+        onClose={() => setAbsenceTarget(null)}
+      />
     </div>
   );
 }

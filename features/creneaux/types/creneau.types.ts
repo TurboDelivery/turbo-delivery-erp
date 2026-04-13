@@ -20,6 +20,7 @@ export interface ICreneauTurboy {
   avatar?: string;
   jours: ICreneauJour[];
   assiduite: number;   // 0-100 percentage
+  emploiId: string;
 }
 
 export interface ICreneauSemaine {

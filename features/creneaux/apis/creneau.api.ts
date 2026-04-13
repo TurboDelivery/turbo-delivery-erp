@@ -9,6 +9,9 @@ export interface ICreneauAPI {
   obtenirStatistiquesParJour(params?: { semaine?: string }): Promise<IStatistiqueJour[]>;
   obtenirStatAnalyseComparaison(params?: { mois?: string }): Promise<ICreneauAnalyseComparaison>;
   obtenirDashboard(params?: ICreneauDashboardParams): Promise<ICreneauDashboard>;
+  obtenirDashboardRealite(params?: ICreneauDashboardParams): Promise<ICreneauDashboard>;
+  justifierAbsence(id: string, body: { date: string; motif: string }): Promise<void>;
+  accuserRetard(id: string, body: { date: string; motif: string }): Promise<void>;
 }
 
 export const creneauAPI: ICreneauAPI = {
@@ -58,6 +61,35 @@ export const creneauAPI: ICreneauAPI = {
         ...(params?.debut ? { debut: params.debut } : {}),
         ...(params?.search ? { keysearch: params.search } : {}),
       } as SearchParams,
+    });
+  },
+
+  obtenirDashboardRealite(params?: ICreneauDashboardParams): Promise<ICreneauDashboard> {
+    return api.request<ICreneauDashboard>({
+      endpoint: '/erp/gestion-creneau/realite',
+      method: 'GET',
+      searchParams: {
+        page: Math.max(0, params?.page ?? 0),
+        size: params?.size ?? 10,
+        ...(params?.debut ? { debut: params.debut } : {}),
+        ...(params?.search ? { keysearch: params.search } : {}),
+      } as SearchParams,
+    });
+  },
+
+  justifierAbsence(id: string, body: { date: string; motif: string }): Promise<void> {
+    return api.request<void>({
+      endpoint: `/erp/gestion-creneau/${id}/justifier-absence`,
+      method: 'PATCH',
+      data: body,
+    });
+  },
+
+  accuserRetard(id: string, body: { date: string; motif: string }): Promise<void> {
+    return api.request<void>({
+      endpoint: `/erp/gestion-creneau/${id}/accuser-retard`,
+      method: 'PATCH',
+      data: body,
     });
   },
 };

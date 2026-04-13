@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Progress, Avatar } from '@heroui/react';
-import { ICreneauTurboy, CreneauStatutJour } from '@/features/creneaux/types/creneau.types';
+import { ICreneauTurboy, CreneauStatutJour, ICreneauJour } from '@/features/creneaux/types/creneau.types';
 import { getStatutDotColor } from '@/features/creneaux/utils/statut.utils';
 import { getAssiduitProgressColor } from '@/features/creneaux/utils/assiduite.utils';
 import { createUrlFile } from '@/utils/createUrlFile';
@@ -15,6 +15,7 @@ interface CreneauWeeklyTableProps {
   data: ICreneauTurboy[];
   jourDates?: Record<string, string>;
   isLoading?: boolean;
+  onAbsenceClick?: (turboy: ICreneauTurboy, jour: ICreneauJour) => void;
   pagination?: {
     page: number;
     pageCount: number;
@@ -26,7 +27,7 @@ function StatutDot({ statut }: { statut: CreneauStatutJour }) {
   return <span className={`inline-block size-3 rounded-full ${getStatutDotColor(statut)}`} />;
 }
 
-export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination }: CreneauWeeklyTableProps) {
+export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination, onAbsenceClick }: CreneauWeeklyTableProps) {
   const columns = useMemo<ColumnDef<ICreneauTurboy>[]>(() => [
     {
       id: 'turboy',
@@ -62,8 +63,13 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
           (j) => j.jour.toUpperCase() === JOURS_INDEX[idx],
         );
         const statut = jourData?.statut ?? CreneauStatutJour.NON_INSCRIT;
+        const isAbsent = statut === CreneauStatutJour.ABSENT && !!onAbsenceClick && !!jourData;
         return (
-          <div className="flex justify-center">
+          <div
+            className={`flex justify-center ${isAbsent ? 'cursor-pointer' : ''}`}
+            onClick={isAbsent ? () => onAbsenceClick(row.original, jourData!) : undefined}
+            title={isAbsent ? 'Cliquer pour gérer l\'absence' : undefined}
+          >
             <StatutDot statut={statut} />
           </div>
         );
@@ -85,7 +91,7 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
         </div>
       ),
     },
-  ], [jourDates]);
+  ], [jourDates, onAbsenceClick]);
 
   const table = useReactTable({
     data,
