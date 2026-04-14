@@ -3,90 +3,48 @@
 import Link from 'next/link';
 import { Logo } from '../icons';
 import { IRootState } from '@/store';
-import { User } from '@/types/models';
 import { getTranslation } from '@/i18n';
 import { usePathname } from 'next/navigation';
 import AnimateHeight from 'react-animate-height';
 import IconMinus from '@/components/icon/icon-minus';
-import { useState, useEffect, Fragment } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleSidebar } from '@/store/themeConfigSlice';
 import menuData, { IMenuData } from '@/config/menu-data';
 import IconCaretDown from '@/components/icon/icon-caret-down';
 import IconCaretsDown from '@/components/icon/icon-carets-down';
+import { useAbility } from '@/hooks/use-ability';
+import type { AppAbility } from '@/lib/casl/ability';
 
-const Sidebar = ({ profile }: { profile: User }) => {
+const filterMenuByAbility = (menu: IMenuData[], ability: AppAbility): IMenuData[] => {
+  return menu.reduce<IMenuData[]>((acc, item) => {
+    const children = item.children ? filterMenuByAbility(item.children, ability) : undefined;
+    const allowedBySelf = item.can ? ability.can(item.can.action, item.can.subject) : false;
+    const allowedByChild = !!children && children.length > 0;
+
+    if (!item.can && !item.children) return acc;
+    if (!allowedBySelf && !allowedByChild) return acc;
+
+    acc.push(children !== undefined ? { ...item, children } : item);
+    return acc;
+  }, []);
+};
+
+const Sidebar = () => {
   const dispatch = useDispatch();
   const { t } = getTranslation();
   const pathname = usePathname();
   const [currentMenu, setCurrentMenu] = useState<string>('');
   const themeConfig = useSelector((state: IRootState) => state.themeConfig);
   const semidark = themeConfig.semidark;
+  const ability = useAbility();
 
   const toggleMenu = (value: string) => {
     setCurrentMenu((oldValue) => (oldValue === value ? '' : value));
   };
 
-  // Fonction pour filtrer le menu selon le rôle
-  const getFilteredMenu = (): IMenuData[] => {
-    const role = profile.role.libelle.toLowerCase();
-
-    // Menus visibles par tous
-    const ALWAYS_VISIBLE = ['dashboard'];
-
-    if (role === 'standard' || role === "centrale d'appel") {
-      return menuData
-        .filter((item) => ['external_delivery', 'trafic', 'paramètres', ...ALWAYS_VISIBLE].includes(item.title.toLowerCase()))
-        .map((item) => {
-          // External delivery → seulement Tickets
-          if (item.title.toLowerCase() === 'external_delivery') {
-            return {
-              ...item,
-              children: item.children?.filter((child) => child.title.toLowerCase() === 'tickets'),
-            };
-          }
-          return item;
-        });
-    }
-
-    if (role === 'comptable' || role === 'ops manager') {
-      return menuData
-        .filter((item) => ['external_delivery', 'livreurs', 'restaurants', 'paramètres', ...ALWAYS_VISIBLE].includes(item.title.toLowerCase()))
-        .map((item) => {
-          // External delivery → seulement Tickets
-          if (item.title.toLowerCase() === 'external_delivery') {
-            return {
-              ...item,
-              children: item.children?.filter((child) => child.title.toLowerCase() === 'tickets'),
-            };
-          }
-
-          // Comptable → Livreurs → Liste uniquement
-          if (role === 'comptable' && item.title.toLowerCase() === 'livreurs') {
-            return {
-              ...item,
-              children: item.children?.filter((child) => child.title.toLowerCase() === 'liste'),
-            };
-          }
-
-          // Comptable → Restaurants → Partners validés uniquement
-          if (role === 'comptable' && item.title.toLowerCase() === 'restaurants') {
-            return {
-              ...item,
-              children: item.children?.filter((child) => child.title.toLowerCase() === 'partners validés'),
-            };
-          }
-
-          return item;
-        });
-    }
-
-    // Admin / super admin → tout voir
-    return menuData;
-  };
-
-  const filteredMenu = getFilteredMenu();
+  const filteredMenu = filterMenuByAbility(menuData, ability);
 
   useEffect(() => {
     const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');

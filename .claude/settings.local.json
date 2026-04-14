@@ -13,7 +13,13 @@
       "Bash(xargs grep:*)",
       "Bash(cat)",
       "Read(//tmp/**)",
-      "Bash(grep -E \"\\\\.tsx$\")"
+      "Bash(grep -E \"\\\\.tsx$\")",
+      "Bash(grep -r \"package.json\" /c/Users/kouax/WebstormProjects/lunion/turbo-delivery-erp --include=\"package.json\" ! -path \"*/node_modules/*\" ! -path \"*/.next/*\")",
+      "Bash(ls:*)",
+      "Bash(rtk proxy:*)",
+      "Bash(pnpm.cmd --version)",
+      "Bash(pnpm.cmd add:*)",
+      "Bash(rtk tsc:*)"
     ]
   }
 }

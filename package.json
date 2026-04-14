@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@casl/ability": "^6.8.0",
+    "@casl/react": "^6.0.0",
     "@emotion/react": "^11.14.0",
     "@faker-js/faker": "^9.9.0",
     "@fullcalendar/core": "^6.1.20",

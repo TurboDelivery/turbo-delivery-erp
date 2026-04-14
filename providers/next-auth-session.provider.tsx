@@ -1,11 +1,14 @@
 'use client';
 
 import { SessionProvider } from 'next-auth/react';
-import { I18nProvider } from '@react-aria/i18n';
-import { Session } from 'next-auth';
+import { AbilityProvider } from '@/lib/casl/ability-context';
 
 const NextAuthSessionProvider = ({ children }: { children: React.ReactNode }) => {
-    return <SessionProvider>{children}</SessionProvider>;
+  return (
+    <SessionProvider>
+      <AbilityProvider>{children}</AbilityProvider>
+    </SessionProvider>
+  );
 };
 
 export default NextAuthSessionProvider;
