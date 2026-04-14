@@ -77,7 +77,7 @@ export default function ChargesPageContentV2() {
       </div>
 
       {/* Stats Cards */}
-      <ChargesStatsCardsV2 stats={stats} isLoading={isStatsLoading} />
+      <ChargesStatsCardsV2 stats={stats} isLoading={isStatsLoading} selectedMonth={selectedMonth} />
 
       {/* Tabs: Charges & Catégories */}
       <Tabs defaultValue="charges" className="w-full">

@@ -8,9 +8,40 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 interface ChargesStatsV2Props {
   stats?: IChargeStats;
   isLoading?: boolean;
+  selectedMonth?: string;
 }
 
-export default function ChargesStatsCardsV2({ stats, isLoading }: ChargesStatsV2Props) {
+function getProrataDisplay(selectedMonth?: string): { day: number; totalDays: number } {
+  const now = new Date();
+
+  if (!selectedMonth) {
+    return {
+      day: now.getDate(),
+      totalDays: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(),
+    };
+  }
+
+  const [yearPart, monthPart] = selectedMonth.split('-');
+  const year = Number(yearPart);
+  const month = Number(monthPart);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+    return {
+      day: now.getDate(),
+      totalDays: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(),
+    };
+  }
+
+  const totalDays = new Date(year, month, 0).getDate();
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1;
+
+  return {
+    day: isCurrentMonth ? now.getDate() : totalDays,
+    totalDays,
+  };
+}
+
+export default function ChargesStatsCardsV2({ stats, isLoading, selectedMonth }: ChargesStatsV2Props) {
   if (isLoading || !stats) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -27,9 +58,7 @@ export default function ChargesStatsCardsV2({ stats, isLoading }: ChargesStatsV2
     );
   }
 
-  const today = new Date();
-  const jourDuMois = today.getDate();
-  const joursTotal = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const { day: jourDuMois, totalDays: joursTotal } = getProrataDisplay(selectedMonth);
 
   const cards = [
     {
