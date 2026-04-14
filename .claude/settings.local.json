@@ -19,7 +19,8 @@
       "Bash(rtk proxy:*)",
       "Bash(pnpm.cmd --version)",
       "Bash(pnpm.cmd add:*)",
-      "Bash(rtk tsc:*)"
+      "Bash(rtk tsc:*)",
+      "Bash(pnpm:*)"
     ]
   }
 }
