@@ -1,38 +1,44 @@
 'use client';
 
-import { User } from '@/types/models';
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownSection, DropdownItem, Button } from "@heroui/react";
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger } from '@heroui/react';
 import { useState } from 'react';
-import { IconDotsVertical, IconTrash } from '@tabler/icons-react';
+import { IconTrash } from '@tabler/icons-react';
 import PriceListeDelete from './price-liste-delete';
+import { useAbility } from '@/hooks/use-ability';
 
-const PriceListeTools = ({ id }: { id:string}) => {
-    const [open, setOpen] = useState<boolean>(false);
-    const [openDelete, setOpenDelete] = useState<boolean>(false);
-    return (
-        <>
-                <Dropdown>
-                    <DropdownTrigger>
-                        <Button variant="light" isIconOnly>
-                            <IconTrash />
-                        </Button>
-                    </DropdownTrigger>
-                    <DropdownMenu aria-label="Static Actions">
-                        <DropdownSection showDivider title="Actions">
-                            <DropdownItem key="edit" onClick={() => setOpen(true)}>
-                                Annuler
-                            </DropdownItem>
-                        </DropdownSection>
-                        <DropdownItem key="delete" className="text-danger" color="danger" onClick={() => setOpenDelete(true)}>
-                            Suprimer
-                        </DropdownItem>
-                    </DropdownMenu>
-                </Dropdown>
-                
-     
-            <PriceListeDelete id={id} open={openDelete} setOpen={setOpenDelete} />
-        </>
-    );
+const PriceListeTools = ({ id }: { id: string }) => {
+  const [, setOpen] = useState<boolean>(false);
+  const [openDelete, setOpenDelete] = useState<boolean>(false);
+  const ability = useAbility();
+  const canEdit = ability.can('update', 'Restaurant');
+  const canDelete = ability.can('delete', 'Restaurant');
+  return (
+    <>
+      <Dropdown>
+        <DropdownTrigger>
+          <Button variant="light" isIconOnly>
+            <IconTrash />
+          </Button>
+        </DropdownTrigger>
+        <DropdownMenu aria-label="Static Actions">
+          <DropdownSection showDivider title="Actions">
+            {canEdit ? (
+              <DropdownItem key="edit" onPress={() => setOpen(true)}>
+                Annuler
+              </DropdownItem>
+            ) : null}
+          </DropdownSection>
+          {canDelete ? (
+            <DropdownItem key="delete" className="text-danger" color="danger" onPress={() => setOpenDelete(true)}>
+              Suprimer
+            </DropdownItem>
+          ) : null}
+        </DropdownMenu>
+      </Dropdown>
+
+      <PriceListeDelete id={id} open={openDelete} setOpen={setOpenDelete} />
+    </>
+  );
 };
 
 export default PriceListeTools;

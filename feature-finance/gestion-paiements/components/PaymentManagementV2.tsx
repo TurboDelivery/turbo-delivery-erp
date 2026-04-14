@@ -5,6 +5,7 @@ import { Button, Card } from '@heroui/react';
 import { Wallet } from 'lucide-react';
 import { useQueryStates } from 'nuqs';
 import ConfirmModal from '@/components/ui/confirm-modal';
+import { Can } from '@/components/auth/Can';
 import { paiementFiltersClient } from '../filters/paiement.filters';
 import { usePaiementsTable, ChargeTypeFilter } from '../hooks/use-paiements-table';
 import { usePaiementsStats } from '../hooks/use-paiements-stats';
@@ -50,14 +51,16 @@ export default function PaymentManagementV2() {
           <h1 className="text-2xl font-bold text-orange-500">Gestion des Paiements</h1>
           <p className="text-sm text-gray-500 mt-1">Décaissez les charges approuvées</p>
         </div>
-        <Button
-          color="danger"
-          startContent={<Wallet size={16} />}
-          onPress={() => setConfirmIds(selectedIds)}
-          isDisabled={selectedIds.length === 0}
-        >
-          Décaisser ({selectedIds.length})
-        </Button>
+        <Can I="decaisser" a="Depense">
+          <Button
+            color="danger"
+            startContent={<Wallet size={16} />}
+            onPress={() => setConfirmIds(selectedIds)}
+            isDisabled={selectedIds.length === 0}
+          >
+            Décaisser ({selectedIds.length})
+          </Button>
+        </Can>
       </div>
 
       {/* Charge Type Switcher */}

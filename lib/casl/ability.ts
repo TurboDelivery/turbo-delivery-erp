@@ -13,6 +13,7 @@ export type AppActions =
   | 'update'
   | 'delete'
   | 'access'
+  | 'valider'
   | 'valider-dga'
   | 'approuver-dg'
   | 'rejeter-dga'
@@ -37,6 +38,8 @@ export type AppSubjects =
   | 'Utilisateur'
   | 'Finance'
   | 'Notification'
+  | 'Creneau'
+  | 'Performance'
   | 'all';
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
@@ -78,9 +81,16 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
 
     case 'DGA':
       can('read', 'all');
+      can('create', ['ChargeFixe', 'ChargeVariable', 'Depense']);
+      can('update', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('valider-dga', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('rejeter-dga', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('access', ['Menu', 'Route', 'Parametre']);
+      can('decaisser', ['ChargeFixe', 'ChargeVariable', 'Depense']);
+      can('valider', 'Restaurant');
+      can('manage', 'Ticket');
+      can('manage', 'Creneau');
+      can('manage', 'Performance');
+      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 
     case 'COMPTABLE':
@@ -95,20 +105,24 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
 
     case 'OPS_MANAGER':
       can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
+      can('valider', 'Restaurant');
       can('manage', 'Ticket');
+      can('manage', 'Creneau');
+      can('manage', 'Performance');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 
     case 'BUSINESS_DEVELOPER':
       can('read', ['Livreur', 'Restaurant', 'Ticket']);
-      can('create', ['Restaurant', 'Ticket']);
-      can('update', ['Restaurant', 'Ticket']);
+      can('valider', 'Restaurant');
+      can('manage', 'Creneau');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 
     case 'STANDARD':
-      can('read', ['Ticket', 'Trafic']);
-      can('create', 'Ticket');
+      can('read', 'Trafic');
+      can('manage', 'Ticket');
+      can('manage', 'Creneau');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 

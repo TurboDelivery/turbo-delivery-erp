@@ -16,6 +16,7 @@ import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
 import { generatePdfTemplate, generateXlsTickets } from '@/features/tickets/utils/ticket-export.utils';
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { CheckSquare, ChevronDown, File, FileText, Loader2, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
+import { useAbility } from '@/hooks/use-ability';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 interface ContentProps {
@@ -54,17 +55,18 @@ export default function Content({ restaurants, profile }: ContentProps) {
   const livreurOptions = useMemo(() => validLivreurs.map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
   const restaurantOptions = useMemo(() => restaurants.map((r) => ({ value: r.id, label: r.nomEtablissement })), [restaurants]);
 
-  // ⚡ Définition des permissions selon le rôle
+  // ⚡ Permissions CASL
+  const ability = useAbility();
   const role = profile?.role?.libelle?.toLowerCase();
   const permissions = useMemo(() => {
     const isRestrictedRole = role === 'standard' || role === "centrale d'appel" || role === 'comptable';
     return {
-      canCreate: true, // ils peuvent créer
-      canUpdate: !isRestrictedRole, // interdiction de modifier si rôle restreint
-      canDelete: !isRestrictedRole, // interdiction de supprimer si rôle restreint
-      canSeeExternal: isRestrictedRole, // pour l'affichage des courses externes
+      canCreate: ability.can('create', 'Ticket'),
+      canUpdate: ability.can('update', 'Ticket'),
+      canDelete: ability.can('delete', 'Ticket'),
+      canSeeExternal: isRestrictedRole,
     };
-  }, [role]);
+  }, [ability, role]);
 
   const handleSelectAll = () => {
     if (selectedRows.size > 0 && ticketsData.length && ticketsData.length > 0) {

@@ -6,6 +6,7 @@ import { Switch } from '@heroui/react';
 import { IChargeFixe, CyclePaiement } from '../types/charge-fixe.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { format } from 'date-fns';
+import { Can } from '@/components/auth/Can';
 
 const CYCLE_LABELS: Record<CyclePaiement, string> = {
   MENSUEL: 'Mensuel',
@@ -80,12 +81,16 @@ export function createChargesFixesV2Columns({ onEdit, onDelete, onToggle }: Char
         }
         return (
           <div className="flex gap-2">
-            <button className="text-blue-500 transition-colors hover:text-blue-700" onClick={() => onEdit?.(row.original)} title="Modifier" type="button">
-              <Edit size={16} />
-            </button>
-            <button className="text-red-500 transition-colors hover:text-red-700" onClick={() => onDelete?.(row.original)} title="Supprimer" type="button">
-              <Trash2 size={16} />
-            </button>
+            <Can I="update" a="ChargeFixe">
+              <button className="text-blue-500 transition-colors hover:text-blue-700" onClick={() => onEdit?.(row.original)} title="Modifier" type="button">
+                <Edit size={16} />
+              </button>
+            </Can>
+            <Can I="delete" a="ChargeFixe">
+              <button className="text-red-500 transition-colors hover:text-red-700" onClick={() => onDelete?.(row.original)} title="Supprimer" type="button">
+                <Trash2 size={16} />
+              </button>
+            </Can>
           </div>
         );
       },

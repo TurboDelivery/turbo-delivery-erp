@@ -8,6 +8,7 @@ import { Avatar, Chip } from "@heroui/react";
 import TypePlatsTools from './type-plats-tools';
 import { createUrlFile } from '@/utils/createUrlFile';
 import TypePlatAdd from './type-plats-add';
+import { Can } from '@/components/auth/Can';
 
 const TypePlatsList = ({ typePlats }: { typePlats: Collection[] }) => {
     const [search, setSearch] = useState<string>('');
@@ -19,9 +20,11 @@ const TypePlatsList = ({ typePlats }: { typePlats: Collection[] }) => {
                 <h2 className="text-xl">Type de plats : {filteredItems.length}</h2>
                 <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
                     <div className="flex gap-3">
-                        <div>
-                            <TypePlatAdd />
-                        </div>
+                        <Can I="manage" a="Menu">
+                            <div>
+                                <TypePlatAdd />
+                            </div>
+                        </Can>
                     </div>
                     <div className="relative">
                         <input type="text" placeholder="Rechercher des utilisateurs" className="peer form-input py-2 ltr:pr-11 rtl:pl-11" value={search} onChange={(e) => setSearch(e.target.value)} />

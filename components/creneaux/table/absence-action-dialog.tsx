@@ -12,6 +12,7 @@ import {
 } from '@heroui/react';
 import { AlertTriangle, Clock } from 'lucide-react';
 import { useJustifierAbsenceMutation, useAccuserRetardMutation } from '@/features/creneaux/mutations/index.query';
+import { Can } from '@/components/auth/Can';
 
 export interface AbsenceActionTarget {
   emploiId: string;
@@ -119,17 +120,19 @@ export function AbsenceActionDialog({ target, onClose }: AbsenceActionDialogProp
           <Button variant="flat" onPress={handleClose} isDisabled={isPending}>
             Annuler
           </Button>
-          <Button
-            color={action === 'justifier' ? 'success' : 'warning'}
-            onPress={handleConfirm}
-            isLoading={isPending}
-            isDisabled={
-              !action ||
-              motif.trim().length === 0
-            }
-          >
-            Confirmer
-          </Button>
+          <Can I="manage" a="Creneau">
+            <Button
+              color={action === 'justifier' ? 'success' : 'warning'}
+              onPress={handleConfirm}
+              isLoading={isPending}
+              isDisabled={
+                !action ||
+                motif.trim().length === 0
+              }
+            >
+              Confirmer
+            </Button>
+          </Can>
         </ModalFooter>
       </ModalContent>
     </Modal>

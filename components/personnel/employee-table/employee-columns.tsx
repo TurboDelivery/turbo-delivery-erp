@@ -17,6 +17,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 import React from 'react';
+import { useAbility } from '@/hooks/use-ability';
 
 // Composant mémorisé pour les actions
 const EmployeeActions = React.memo(
@@ -33,6 +34,9 @@ const EmployeeActions = React.memo(
   }) => {
     const supprimerEmployeMutation = useSupprimerEmployeMutation();
     const changeStatusMutation = useChangeStatusMutation();
+    const ability = useAbility();
+    const canUpdate = ability.can('update', 'Personnel');
+    const canDelete = ability.can('delete', 'Personnel');
 
     const handleEdit = () => {
       onEdit(employee);
@@ -69,17 +73,22 @@ const EmployeeActions = React.memo(
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <div className="flex items-center w-full" onClick={handleEdit}>
-              <span>Modifier</span>
-            </div>
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-            <div className="flex items-center w-full" onClick={handleDeactivate}>
-              <span>{employee.statut === 'Actif' ? 'Désactiver' : 'Activer'}</span>
-              {changeStatusMutation.isPending && <span className="ml-2 text-xs text-gray-500">...</span>}
-            </div>
-          </DropdownMenuItem>
+          {canUpdate && (
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <div className="flex items-center w-full" onClick={handleEdit}>
+                <span>Modifier</span>
+              </div>
+            </DropdownMenuItem>
+          )}
+          {canUpdate && (
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              <div className="flex items-center w-full" onClick={handleDeactivate}>
+                <span>{employee.statut === 'Actif' ? 'Désactiver' : 'Activer'}</span>
+                {changeStatusMutation.isPending && <span className="ml-2 text-xs text-gray-500">...</span>}
+              </div>
+            </DropdownMenuItem>
+          )}
+          {canDelete && (
           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -118,6 +127,7 @@ const EmployeeActions = React.memo(
               </AlertDialogContent>
             </AlertDialog>
           </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     );

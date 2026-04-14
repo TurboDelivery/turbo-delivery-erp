@@ -8,6 +8,7 @@ import { fmtDate } from './validation.constants';
 import { StatusBadge, TypeBadge } from './validation-badges';
 import { WorkflowStepper } from './workflow-stepper';
 import { ModifierForm } from './modifier-form';
+import { Can } from '@/components/auth/Can';
 
 interface ValidationCardProps {
   depense: IDepense;
@@ -95,35 +96,41 @@ export function ValidationCard({ depense, current, total, onPrev, onNext, onAcce
         isDGA ? (
           // DGA : 3 actions — Rejeter | Modifier | Viser
           <div className="grid grid-cols-3 border-t border-gray-200">
-            <button
-              onClick={() => {
-                onReject(depense.id);
-                setShowEdit(false);
-              }}
-              disabled={isPending}
-              className="flex items-center justify-center gap-1.5 rounded-bl-xl py-4 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 border-r border-gray-200 transition-colors"
-            >
-              <X className="h-4 w-4" /> Rejeter
-            </button>
-            <button
-              onClick={() => setShowEdit((v) => !v)}
-              disabled={isPending}
-              className={`flex items-center justify-center gap-1.5 py-4 text-sm font-medium transition-colors border-r border-gray-200 ${
-                showEdit ? 'bg-orange-50 text-orange-600' : 'text-orange-500 hover:bg-orange-50'
-              } disabled:opacity-50`}
-            >
-              <Pencil className="h-4 w-4" /> Modifier
-            </button>
-            <button
-              onClick={() => {
-                onAccept(depense.id);
-                setShowEdit(false);
-              }}
-              disabled={isPending}
-              className="flex items-center justify-center gap-1.5 rounded-br-xl bg-green-500 py-4 text-sm font-medium text-white hover:bg-green-600 disabled:opacity-50 transition-colors"
-            >
-              <Check className="h-4 w-4" /> Viser
-            </button>
+            <Can I="rejeter-dga" a="Depense">
+              <button
+                onClick={() => {
+                  onReject(depense.id);
+                  setShowEdit(false);
+                }}
+                disabled={isPending}
+                className="flex items-center justify-center gap-1.5 rounded-bl-xl py-4 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 border-r border-gray-200 transition-colors"
+              >
+                <X className="h-4 w-4" /> Rejeter
+              </button>
+            </Can>
+            <Can I="update" a="Depense">
+              <button
+                onClick={() => setShowEdit((v) => !v)}
+                disabled={isPending}
+                className={`flex items-center justify-center gap-1.5 py-4 text-sm font-medium transition-colors border-r border-gray-200 ${
+                  showEdit ? 'bg-orange-50 text-orange-600' : 'text-orange-500 hover:bg-orange-50'
+                } disabled:opacity-50`}
+              >
+                <Pencil className="h-4 w-4" /> Modifier
+              </button>
+            </Can>
+            <Can I="valider-dga" a="Depense">
+              <button
+                onClick={() => {
+                  onAccept(depense.id);
+                  setShowEdit(false);
+                }}
+                disabled={isPending}
+                className="flex items-center justify-center gap-1.5 rounded-br-xl bg-green-500 py-4 text-sm font-medium text-white hover:bg-green-600 disabled:opacity-50 transition-colors"
+              >
+                <Check className="h-4 w-4" /> Viser
+              </button>
+            </Can>
           </div>
         ) : (
           // Comptable / DG : 2 actions

@@ -12,6 +12,7 @@ import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { getPaginationCourseExterneAutreStatus } from '@/src/actions/courses.actions';
 import { Button, Card, CardBody, CardHeader, Chip, Pagination, Skeleton, Avatar, Input, CardFooter } from "@heroui/react";
+import { Can } from '@/components/auth/Can';
 
 const getStatusColor = (statut: string) => {
     switch (statut?.toUpperCase()) {
@@ -50,7 +51,7 @@ interface Props {
 
 export default function Content({ initialData, delivers }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [selectedRestaurant, setSelectedRestaurant] = useState('');
+    const [selectedRestaurant, ] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
@@ -95,38 +96,35 @@ export default function Content({ initialData, delivers }: Props) {
     };
 
     return (
-        <div className="w-full h-full pb-10">
-            {/* HEADER */}
-            <div className="flex items-center justify-between py-4 px-1">
-                <h1 className="text-3xl font-bold text-[#E63946]">Toutes les courses</h1>
-                <Button
-                    as={Link}
-                    href="/delivery/create"
-                    color="danger"
-                    size="lg"
-                    className="rounded px-5 text-lg"
-                    startContent={<IconPlus className="h-5 w-6" />}
-                >Nouvelle course</Button>
-            </div>
+      <div className="w-full h-full pb-10">
+        {/* HEADER */}
+        <div className="flex items-center justify-between py-4 px-1">
+          <h1 className="text-3xl font-bold text-[#E63946]">Toutes les courses</h1>
+          <Can I="create" a="Commande">
+            <Button as={Link} href="/delivery/create" color="danger" size="lg" className="rounded px-5 text-lg" startContent={<IconPlus className="h-5 w-6" />}>
+              Nouvelle course
+            </Button>
+          </Can>
+        </div>
 
-            {/* INPUTS FILTRES */}
-            <div className="flex flex-col md:flex-row gap-3 items-center w-full mb-4 px-1">
-                <Input
-                    startContent={<Search className="text-gray-400 w-4 h-4" />}
-                    label=""
-                    variant="bordered"
-                    placeholder="Rechercher par code"
-                    value={searchTerm}
-                    onChange={(e) => {
-                        setSearchTerm(e.target.value);
-                        filterByCode(e.target.value);
-                    }}
-                    className="w-72"
-                    size="sm"
-                />
+        {/* INPUTS FILTRES */}
+        <div className="flex flex-col md:flex-row gap-3 items-center w-full mb-4 px-1">
+          <Input
+            startContent={<Search className="text-gray-400 w-4 h-4" />}
+            label=""
+            variant="bordered"
+            placeholder="Rechercher par code"
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              filterByCode(e.target.value);
+            }}
+            className="w-72"
+            size="sm"
+          />
 
-                {/* Restaurant selector */}
-                {/* <select
+          {/* Restaurant selector */}
+          {/* <select
                     className="border rounded px-3 py-2 w-56"
                     value={selectedRestaurant}
                     onChange={e => {
@@ -141,117 +139,102 @@ export default function Content({ initialData, delivers }: Props) {
                     )}
                 </select> */}
 
-                <Button color="danger" className="px-7">Rechercher</Button>
-            </div>
-
-            {/* PILLS & FILTERS */}
-            <div className="flex gap-2 flex-wrap mb-5 px-1">
-                {courses_statuses_filters.map((category) => (
-                    <Button
-                        key={category.id}
-                        size="sm"
-                        className="rounded-md font-medium"
-                        variant={statusFilter === category.id ? 'solid' : 'flat'}
-                        color={statusFilter === category.id ? 'danger' : 'default'}
-                        onClick={() => handleFilter(category.id)}
-                    >{category.name}</Button>
-                ))}
-            </div>
-
-            {/* LISTE DES COURSES */}
-            <div>
-                {isLoading ? (
-                    <div className="flex flex-col gap-6">
-                        {[...Array(2)].map((_, i) => <Skeleton key={i} className="rounded-lg h-52" />)}
-                    </div>
-                ) : dataFilter.length ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {dataFilter.map((delivery) => (
-                            <Card key={delivery.id} className={`w-full bg-white ${getStatusBorderClass(delivery.statut)} shadow-md rounded-md`}>
-                                <CardHeader className="flex justify-between items-center py-3 border-b">
-                                    <div className="flex items-center gap-5">
-                                        <span className={`font-bold text-base ${getStatusTextColor(delivery.statut)}`}>Code: {delivery.code}</span>
-                                        <span className="bg-gray-900 text-white font-semibold rounded px-2 ml-2 py-1">
-                                            {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(
-                                                (delivery.commandes?.reduce((sum, cmd) => sum + (cmd.prix ?? 0), 0) || 0) +
-                                                (delivery.commandes?.reduce((sum, cmd) => sum + (cmd.fraisLivraison ?? 0), 0) || 0)
-                                            )}
-                                        </span>
-                                    </div>
-                                    <div className="flex gap-2 items-center">
-                                        <DeliveryTools delivery={delivery} delivers={delivers} />
-                                    </div>
-                                </CardHeader>
-                                <CardBody className="py-3">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Package className="text-gray-400" />
-                                        <span className="font-medium">
-                                            {delivery.nombreCommande} commande{delivery.nombreCommande > 1 ? 's' : ''}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Clock className="text-gray-400" />
-                                        <span>Créé le {dayjs(delivery.createdAt).format('DD/MM/YYYY HH:mm:ss')}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Clock className="text-gray-400" />                                        
-
-                                        {/* Statut */}
-                                        <Chip
-                                            color={getStatusColor(delivery.statut)}
-                                            variant="flat" className="text-sm font-medium px-2 py-0.5 rounded-md">
-                                            {delivery.statut}
-                                        </Chip>
-                                        {/* Date de prise en charge */}
-                                        <span className="text-sm text-gray-700">
-                                            Prise en charge : {delivery.pickupAt ? dayjs(delivery.pickupAt).format('DD/MM/YYYY HH:mm:ss') : '—'}
-                                        </span>
-                                    </div>
-                                </CardBody>
-                                <CardFooter>
-                                    <div className="flex items-center justify-between w-full mb-2">
-                                        {/* Partie gauche : infos restaurant */}
-                                        <div className="flex items-center gap-2">
-                                            {delivery?.restaurant?.logo_Url ? (
-                                                <Avatar src={createUrlFile(delivery.restaurant.logo_Url, 'restaurant')} size="sm" />
-                                            ) : (
-                                                <Store className="text-gray-400" />
-                                            )}
-                                            <div>
-                                                <p className="font-semibold text-gray-900">{delivery?.restaurant?.nomEtablissement}</p>
-                                                <p className="text-gray-500 text-sm">{delivery?.restaurant?.commune}</p>
-                                            </div>
-                                        </div>
-
-                                        {/* Partie droite : lien */}
-                                        <Link href={`/external_delivery/restaurant/${delivery?.restaurant?.id}`}
-                                            className="text-primary text-sm font-medium hover:underline whitespace-nowrap">
-                                            Voir toutes les courses du restaurant
-                                        </Link>
-                                    </div>
-                                </CardFooter>
-                            </Card>
-                        ))}
-                    </div>
-                ) : (
-                    <EmptyDataTable
-                        title="Aucune Course Trouvée"
-                        message="Aucune course ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
-                    />
-                )}
-            </div>
-            {/* PAGINATION */}
-            <div className="flex justify-center mt-8 w-full">
-                <Pagination
-                    total={data?.totalPages ?? 1}
-                    page={currentPage}
-                    onChange={fetchData}
-                    showControls
-                    color="danger"
-                    variant="flat"
-                    isDisabled={isLoading}
-                />
-            </div>
+          <Button color="danger" className="px-7">
+            Rechercher
+          </Button>
         </div>
+
+        {/* PILLS & FILTERS */}
+        <div className="flex gap-2 flex-wrap mb-5 px-1">
+          {courses_statuses_filters.map((category) => (
+            <Button
+              key={category.id}
+              size="sm"
+              className="rounded-md font-medium"
+              variant={statusFilter === category.id ? 'solid' : 'flat'}
+              color={statusFilter === category.id ? 'danger' : 'default'}
+              onPress={() => handleFilter(category.id)}
+            >
+              {category.name}
+            </Button>
+          ))}
+        </div>
+
+        {/* LISTE DES COURSES */}
+        <div>
+          {isLoading ? (
+            <div className="flex flex-col gap-6">
+              {[...Array(2)].map((_, i) => (
+                <Skeleton key={i} className="rounded-lg h-52" />
+              ))}
+            </div>
+          ) : dataFilter.length ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {dataFilter.map((delivery) => (
+                <Card key={delivery.id} className={`w-full bg-white ${getStatusBorderClass(delivery.statut)} shadow-md rounded-md`}>
+                  <CardHeader className="flex justify-between items-center py-3 border-b">
+                    <div className="flex items-center gap-5">
+                      <span className={`font-bold text-base ${getStatusTextColor(delivery.statut)}`}>Code: {delivery.code}</span>
+                      <span className="bg-gray-900 text-white font-semibold rounded px-2 ml-2 py-1">
+                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(
+                          (delivery.commandes?.reduce((sum, cmd) => sum + (cmd.prix ?? 0), 0) || 0) + (delivery.commandes?.reduce((sum, cmd) => sum + (cmd.fraisLivraison ?? 0), 0) || 0),
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <DeliveryTools delivery={delivery} delivers={delivers} />
+                    </div>
+                  </CardHeader>
+                  <CardBody className="py-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Package className="text-gray-400" />
+                      <span className="font-medium">
+                        {delivery.nombreCommande} commande{delivery.nombreCommande > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="text-gray-400" />
+                      <span>Créé le {dayjs(delivery.createdAt).format('DD/MM/YYYY HH:mm:ss')}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="text-gray-400" />
+
+                      {/* Statut */}
+                      <Chip color={getStatusColor(delivery.statut)} variant="flat" className="text-sm font-medium px-2 py-0.5 rounded-md">
+                        {delivery.statut}
+                      </Chip>
+                      {/* Date de prise en charge */}
+                      <span className="text-sm text-gray-700">Prise en charge : {delivery.pickupAt ? dayjs(delivery.pickupAt).format('DD/MM/YYYY HH:mm:ss') : '—'}</span>
+                    </div>
+                  </CardBody>
+                  <CardFooter>
+                    <div className="flex items-center justify-between w-full mb-2">
+                      {/* Partie gauche : infos restaurant */}
+                      <div className="flex items-center gap-2">
+                        {delivery?.restaurant?.logo_Url ? <Avatar src={createUrlFile(delivery.restaurant.logo_Url, 'restaurant')} size="sm" /> : <Store className="text-gray-400" />}
+                        <div>
+                          <p className="font-semibold text-gray-900">{delivery?.restaurant?.nomEtablissement}</p>
+                          <p className="text-gray-500 text-sm">{delivery?.restaurant?.commune}</p>
+                        </div>
+                      </div>
+
+                      {/* Partie droite : lien */}
+                      <Link href={`/external_delivery/restaurant/${delivery?.restaurant?.id}`} className="text-primary text-sm font-medium hover:underline whitespace-nowrap">
+                        Voir toutes les courses du restaurant
+                      </Link>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <EmptyDataTable title="Aucune Course Trouvée" message="Aucune course ne correspond à vos critères de recherche. Essayez de modifier vos filtres." />
+          )}
+        </div>
+        {/* PAGINATION */}
+        <div className="flex justify-center mt-8 w-full">
+          <Pagination total={data?.totalPages ?? 1} page={currentPage} onChange={fetchData} showControls color="danger" variant="flat" isDisabled={isLoading} />
+        </div>
+      </div>
     );
 }

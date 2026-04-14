@@ -12,6 +12,7 @@ import UsersTools from './users-tools';
 import { Chip } from '@heroui/react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import PaginationBlock from '@/components/pagination-block';
+import { Can } from '@/components/auth/Can';
 
 const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
   const [value, setValue] = useState<'list' | 'grid'>('list');
@@ -39,9 +40,11 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
         <h2 className="text-xl">Utilisateurs : {totalFilteredItems} (Page {currentPage + 1} sur {totalPages})</h2>
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
           <div className="flex gap-3">
-            <div>
-              <UsersAdd />
-            </div>
+            <Can I="create" a="Utilisateur">
+              <div>
+                <UsersAdd />
+              </div>
+            </Can>
             <div>
               <button type="button" className={`btn btn-outline-primary p-2 ${value === 'list' && 'bg-primary text-white'}`} onClick={() => setValue('list')}>
                 <IconListCheck />

@@ -5,6 +5,7 @@ import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
 import { Button, Card, Select, SelectItem } from '@heroui/react';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Can } from '@/components/auth/Can';
 import { useChargesDepensesV2 } from '../hooks/use-charges-depenses-v2';
 import { useActionChargeVariableMutation } from '../queries/charge-variable.mutation';
 import { IChargeFixe } from '../types/charge-fixe.type';
@@ -140,9 +141,11 @@ function ChargesFixesSection({ table, isLoading, remainingCount, onAdd }: {
     <Card className="border shadow-none overflow-hidden">
       <div className="p-4 flex items-center justify-between">
         <h2 className="text-base font-semibold text-gray-900">Configuration des Charges Fixes</h2>
-        <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={onAdd}>
-          Ajouter
-        </Button>
+        <Can I="create" a="ChargeFixe">
+          <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={onAdd}>
+            Ajouter
+          </Button>
+        </Can>
       </div>
       <ChargesTableV2
         table={table}
@@ -169,9 +172,11 @@ function DepensesVariablesSection({ table, isLoading, remainingCount, onAdd }: {
     <Card className="border shadow-none overflow-hidden">
       <div className="p-4 flex items-center justify-between">
         <h2 className="text-base font-semibold text-gray-900">Dépenses Variables</h2>
-        <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={onAdd}>
-          Nouvelle dépense
-        </Button>
+        <Can I="create" a="ChargeVariable">
+          <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={onAdd}>
+            Nouvelle dépense
+          </Button>
+        </Can>
       </div>
       <ChargesTableV2 table={table} isLoading={isLoading} emptyMessage="Aucune dépense variable" />
       <div className="py-3 text-center border-t">

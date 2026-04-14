@@ -1,149 +1,175 @@
-# Gestion des permissions dans Turbo Delivery ERP
-
-**Document à destination de la direction**
-Objectif : comprendre comment fonctionne l'accès à l'application selon les rôles, et pouvoir décider qui a le droit de faire quoi.
+> 🎯 **Objectif** : Comprendre simplement qui peut faire quoi dans l’application, afin de piloter les accès et sécuriser les opérations.
+>
 
 ---
 
-## 1. Le principe en une phrase
+## 🧭 1. Principe général
 
-> Chaque utilisateur a **un rôle**. À chaque rôle, nous associons une **liste de choses qu'il peut faire** (voir, créer, modifier, valider, décaisser, etc.). L'application adapte automatiquement ce que l'utilisateur voit et ce qu'il peut cliquer.
+> Chaque utilisateur possède un **rôle**.
+>
+>
+> Chaque rôle définit **ce qu’il peut voir et faire** dans l’application.
+>
 
-Concrètement : si un comptable n'a pas le droit de valider une dépense, le bouton "Valider" **n'apparaît même pas** sur son écran. Il ne peut donc pas se tromper, ni tenter une action interdite.
+✅ Résultat :
 
----
-
-## 2. Les rôles en place
-
-Nous avons aujourd'hui **6 rôles** dans le système :
-
-| Rôle | Métier | Profil type |
-|---|---|---|
-| **DG** | Directeur Général | Décisionnaire final, voit et pilote tout |
-| **DGA** | Directeur Général Adjoint | Valide en premier niveau, supervise |
-| **COMPTABLE** | Comptabilité / Finance | Saisit les dépenses, décaisse, suit les paiements |
-| **OPS_MANAGER** | Responsable opérations | Pilote les livraisons, livreurs, tickets |
-| **BUSINESS_DEVELOPER** | Développement commercial | Gère les partenaires restaurants |
-| **STANDARD** | Agent standard | Saisit les tickets, opérations du quotidien |
+- Les actions non autorisées sont **invisibles**
+- Aucun risque d’erreur ou de mauvaise manipulation
+- L’interface s’adapte automatiquement à chaque profil
 
 ---
 
-## 3. Le vocabulaire des permissions
+## 👥 2. Rôles existants
 
-Pour décrire ce qu'un rôle peut faire, nous utilisons deux notions simples :
-
-### Les actions (ce qu'on fait)
-- **Voir** (lire) — consulter une information
-- **Créer** — ajouter une nouvelle fiche
-- **Modifier** — changer une fiche existante
-- **Supprimer** — retirer une fiche
-- **Viser (DGA)** — première validation d'une dépense
-- **Approuver (DG)** — validation finale d'une dépense
-- **Rejeter** — refuser une dépense
-- **Décaisser** — débloquer le paiement effectif
-- **Accéder** — ouvrir une rubrique du menu
-
-### Les ressources (sur quoi on agit)
-Charges fixes, charges variables, dépenses, paiements, tickets, livreurs, restaurants, commandes, finance, personnel, utilisateurs, trafic, paramètres, notifications, analytics.
-
-**Formule** : permission = **Action** + **Ressource**
-→ Exemple : *"Décaisser" + "Charge fixe"* = le comptable peut cliquer sur "Décaisser" depuis la page charges fixes.
+| Rôle | Fonction | Description |
+| --- | --- | --- |
+| **DG** | Direction Générale | Accès complet, décisionnaire final |
+| **DGA** | Direction Générale Adjointe | Supervision + validation niveau 1 |
+| **COMPTABLE** | Finance | Gestion des dépenses et paiements |
+| **OPS_MANAGER** | Opérations | Pilotage des livraisons et tickets |
+| **BUSINESS_DEVELOPER** | Commercial | Gestion des restaurants partenaires |
+| **STANDARD** | Agent | Saisie des opérations quotidiennes |
 
 ---
 
-## 4. Matrice actuelle des permissions
+## 🔐 3. Comment fonctionnent les permissions
+
+### 🧩 3.1 Les actions (ce que l’on peut faire)
+
+- Voir (consulter)
+- Créer
+- Modifier
+- Supprimer
+- Viser (validation DGA)
+- Approuver (validation DG)
+- Rejeter
+- Décaisser
+- Accéder (menu / page)
+
+---
+
+### 📦 3.2 Les ressources (sur quoi on agit)
+
+- Finances : charges, dépenses, paiements
+- Opérations : tickets, commandes, trafic
+- Ressources : livreurs, personnel, utilisateurs
+- Business : restaurants partenaires
+- Système : paramètres, notifications, analytics
+
+---
+
+### ⚙️ Règle simple
+
+> **Permission = Action + Ressource**
+>
+
+📌 Exemple :
+
+👉 *Décaisser + Dépense* = autoriser le paiement
+
+---
+
+## 📋 4. Matrice des permissions
 
 | Action / Ressource | DG | DGA | COMPTABLE | OPS_MANAGER | BUSINESS_DEV | STANDARD |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Finance** | | | | | | |
-| Voir les dépenses / charges | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Créer / modifier une dépense | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Viser une dépense (1er niveau) | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Approuver une dépense (final) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Rejeter une dépense | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Décaisser | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| Voir gestion des paiements | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| **Opérations** | | | | | | |
-| Voir / gérer les tickets | ✅ | ✅ | ✅ | ✅ | ✅ (voir) | ✅ |
-| Voir le trafic / livraisons | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ |
-| Voir les commandes | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
-| **Partenaires** | | | | | | |
-| Voir les restaurants | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Valider un nouveau restaurant | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ |
-| **Livreurs** | | | | | | |
-| Voir la liste livreurs | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Gérer créneaux / performance | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ |
-| **Administration** | | | | | | |
-| Voir le personnel | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Voir les utilisateurs | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Paramètres / Notifications | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-
-✅ = autorisé  ❌ = non autorisé
-
----
-
-## 5. Le circuit de validation d'une dépense
-
-Pour bien comprendre comment les rôles s'articulent, voici le parcours d'une dépense :
-
-```
-[COMPTABLE saisit] → [DGA vise] → [DG approuve] → [COMPTABLE décaisse]
-                          ↓              ↓
-                      Peut rejeter   Peut rejeter
-```
-
-1. Le **comptable** saisit la dépense (facture, montant, justificatif).
-2. Le **DGA** la vise (contrôle de premier niveau).
-3. Le **DG** l'approuve (validation finale).
-4. Le **comptable** procède au décaissement effectif.
-
-À chaque étape, le DGA ou le DG peuvent rejeter la dépense avec un commentaire.
+| --- | --- | --- | --- | --- | --- | --- |
+| **FINANCE** | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Voir dépenses | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Créer / modifier | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Viser (niveau 1) | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Approuver (final) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Rejeter | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Décaisser | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Voir paiements | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **OPÉRATIONS** |  |  |  |  |  |  |
+| Gérer tickets | ✅ | ✅ | ✅ | ✅ | 👁️ | ✅ |
+| Voir trafic | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ |
+| Voir commandes | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **PARTENAIRES** |  |  |  |  |  |  |
+| Voir restaurants | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Valider restaurant | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
+| **LIVREURS** |  |  |  |  |  |  |
+| Voir liste | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Créneaux | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ |
+| Gérer performance | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **ADMINISTRATION** |  |  |  |  |  |  |
+| Voir personnel | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Voir utilisateurs | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Paramètres | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
-## 6. Comment demander une modification des droits
+## 🔄 5. Circuit de validation d’une dépense
 
-Pour ajuster les permissions, il suffit d'indiquer **trois choses** :
+### 🧾 Processus
 
-1. **Le rôle concerné** — DG, DGA, COMPTABLE, OPS_MANAGER, BUSINESS_DEVELOPER, STANDARD
-2. **L'action** — voir, créer, modifier, supprimer, viser, approuver, rejeter, décaisser, accéder
-3. **La ressource** — ex. charges fixes, tickets, restaurants, etc.
+1. **COMPTABLE** saisit la dépense
+2. **DGA** effectue une validation (niveau 1)
+3. **DG** approuve (validation finale)
+4. **COMPTABLE** effectue le décaissement
 
-### Exemples de demandes bien formulées
+⚠️ À chaque étape :
 
-> « Le **BUSINESS_DEVELOPER** doit pouvoir **modifier** les **livreurs**. »
-
-> « Le **COMPTABLE** ne doit plus pouvoir **supprimer** une **charge fixe**. »
-
-> « Ajoutons un nouveau rôle **AUDITEUR** qui peut **voir** toutes les **finances** mais ne peut rien modifier. »
-
-### Ce qu'il faut éviter
-
-- « Donnez plus de droits au comptable » *(trop vague : lesquels ?)*
-- « Le DG doit tout voir » *(c'est déjà le cas)*
-- « Bloquer l'accès à la page X » *(préciser pour quel rôle)*
+👉 Le **DGA** ou le **DG** peut rejeter la dépense avec commentaire
 
 ---
 
-## 7. Les garanties techniques
+## 📝 6. Demande de modification des droits
 
-- **Aucun risque de fausse manipulation** : un bouton ou une page interdits sont invisibles, donc non cliquables.
-- **Un seul endroit à modifier** : les règles sont centralisées dans un unique fichier. Un changement prend quelques minutes.
-- **Évolutif** : ajouter un rôle, une action ou une ressource ne nécessite pas de refonte.
-- **Standard du marché** : nous utilisons la bibliothèque CASL, référence open-source pour ce type de système (utilisée par de nombreuses applications métier).
+### 🧩 Format obligatoire
 
----
-
-## 8. Prochaines étapes possibles
-
-Si la direction le juge utile, nous pouvons :
-
-1. **Ajouter des rôles supplémentaires** (ex. Auditeur, Responsable régional, Stagiaire)
-2. **Affiner par montant** — ex. un DGA approuve seul les dépenses < 500 000 FCFA, au-delà le DG est obligatoire
-3. **Journaliser les actions sensibles** — qui a validé, décaissé, rejeté et quand (traçabilité)
-4. **Renforcer côté serveur** — aujourd'hui les protections sont principalement côté interface ; nous pouvons ajouter une seconde barrière côté serveur pour plus de sécurité
+> **Rôle → Action → Ressource → Autoriser / Interdire**
+>
 
 ---
 
-**Pour toute remarque ou ajustement**, merci de formuler la demande sous la forme :
-> *Rôle* → *Action* → *Ressource* → *Autoriser / Interdire*
+### ✅ Exemples corrects
+
+- BUSINESS_DEVELOPER → Modifier → Livreurs → Autoriser
+- COMPTABLE → Supprimer → Charge fixe → Interdire
+- AUDITEUR → Voir → Finances → Autoriser
+
+---
+
+### ❌ À éviter
+
+- “Donner plus de droits” (trop vague)
+- “Bloquer une page” (pour quel rôle ?)
+- “Le DG doit tout voir” (déjà le cas)
+
+---
+
+## 🛡️ 7. Garanties du système
+
+- 🔒 Actions interdites **invisibles**
+- ⚡ Modifications rapides (centralisées)
+- 📈 Système évolutif
+- 🧱 Basé sur un standard reconnu (CASL)
+
+---
+
+## 🚀 8. Évolutions possibles
+
+1. Ajouter des rôles (Auditeur, Régional, Stagiaire)
+2. Gérer des seuils de validation (ex : montant)
+3. Journaliser les actions (traçabilité complète)
+4. Renforcer la sécurité côté serveur
+
+---
+
+## 📌 Conclusion
+
+> Le système actuel permet un **contrôle fin, sécurisé et évolutif** des accès.
+>
+>
+> Il garantit que chaque utilisateur agit **strictement dans son périmètre**.
+>
+
+---
+
+## 📩 Demande officielle
+
+Pour toute modification :
+
+> **Rôle → Action → Ressource → Autoriser / Interdire**
+>

@@ -6,6 +6,7 @@ import { Edit, Eye } from 'lucide-react';
 import { IChargeVariable } from '../types/charge-variable.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { createUrlFile } from '@/utils/createUrlFile';
+import { Can } from '@/components/auth/Can';
 
 const STATUT_CONFIG: Record<string, { label: string; color: 'success' | 'warning' | 'danger' | 'primary' | 'default' }> = {
   EN_ATTENTE_DGA: { label: 'En attente', color: 'warning' },
@@ -85,9 +86,11 @@ export function createDepensesVariablesV2Columns({ onEdit, onApprove, onReject, 
         if (!isEnAttente) return null;
         return (
           <div className="flex items-center gap-1">
-            <Button isIconOnly size="sm" variant="light" onPress={() => onEdit?.(row.original)}>
-              <Edit size={15} className="text-gray-500" />
-            </Button>
+            <Can I="valider-dga" a="ChargeVariable">
+              <Button isIconOnly size="sm" variant="light" onPress={() => onEdit?.(row.original)}>
+                <Edit size={15} className="text-gray-500" />
+              </Button>
+            </Can>
           </div>
         );
       },

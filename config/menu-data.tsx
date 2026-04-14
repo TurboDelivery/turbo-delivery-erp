@@ -43,10 +43,10 @@ const menuData: IMenuData[] = [
     can: { action: 'read', subject: 'Restaurant' },
     children: [
       { icon: IconBuildingSkyscraper, title: 'Partners validés', path: '/restaurants', can: { action: 'read', subject: 'Restaurant' } },
-      { icon: IconBuildingSkyscraper, title: 'Partners partiellement validés', path: '/restaurants/valide', can: { action: 'update', subject: 'Restaurant' } },
-      { icon: IconBuildingSkyscraper, title: 'News Partners', path: '/restaurants/not-valide', can: { action: 'update', subject: 'Restaurant' } },
-      { icon: AiOutlineDollarCircle, title: 'Grille tarifaire', path: '/price-list', can: { action: 'update', subject: 'Restaurant' } },
-      { icon: BarChart, title: 'Rapports Performance', path: '/finance/rapports-performance', can: { action: 'read', subject: 'Finance' } },
+      { icon: IconBuildingSkyscraper, title: 'Partners partiellement validés', path: '/restaurants/valide', can: { action: 'valider', subject: 'Restaurant' } },
+      { icon: IconBuildingSkyscraper, title: 'News Partners', path: '/restaurants/not-valide', can: { action: 'valider', subject: 'Restaurant' } },
+      { icon: AiOutlineDollarCircle, title: 'Grille tarifaire', path: '/price-list', can: { action: 'read', subject: 'Restaurant' } },
+      { icon: BarChart, title: 'Rapports Performance', path: '/finance/rapports-performance', can: { action: 'read', subject: 'Performance' } },
     ],
   },
   {
@@ -55,8 +55,8 @@ const menuData: IMenuData[] = [
     can: { action: 'read', subject: 'Livreur' },
     children: [
       { icon: IconMotorbike, title: 'Liste', path: '/delivery-men', can: { action: 'read', subject: 'Livreur' } },
-      { icon: IconBuildingSkyscraper, title: 'Créneaux', path: '/delivery-men/creneaux', can: { action: 'update', subject: 'Livreur' } },
-      { icon: IconBuildingSkyscraper, title: 'performance', path: '/delivery-men/performance', can: { action: 'update', subject: 'Livreur' } },
+      { icon: IconBuildingSkyscraper, title: 'Créneaux', path: '/delivery-men/creneaux', can: { action: 'read', subject: 'Creneau' } },
+      { icon: IconBuildingSkyscraper, title: 'performance', path: '/delivery-men/performance', can: { action: 'read', subject: 'Performance' } },
     ],
   },
   {
@@ -85,7 +85,7 @@ const menuData: IMenuData[] = [
       { icon: List, title: 'Cumule de revenus globaux', path: '/finance/revenue', can: { action: 'read', subject: 'Finance' } },
       { icon: Layers, title: 'Cumule des investissements internes', path: '/finance/revenue/investissement', can: { action: 'read', subject: 'Finance' } },
       { icon: SquareUser, title: 'Recouvrements', path: '/finance/recouvrement', can: { action: 'read', subject: 'Finance' } },
-      { icon: BarChart, title: 'Dashboard Performance', path: '/finance/rapports-performance/dashboard-performance', can: { action: 'read', subject: 'Finance' } },
+      { icon: BarChart, title: 'Dashboard Performance', path: '/finance/rapports-performance/dashboard-performance', can: { action: 'read', subject: 'Performance' } },
     ],
   },
   { icon: Bell, title: 'Notifications', path: '/notification', can: { action: 'access', subject: 'Notification' } },

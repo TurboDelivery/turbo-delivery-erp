@@ -3,7 +3,7 @@
 import { employeeColumns } from '@/components/personnel/employee-table/employee-columns';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEmployeeTableNew } from '@/features/personnel/hooks/use-employee-table-new';
-import { useEmployeeStatsQuery, useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
+import { useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { Button, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
@@ -12,6 +12,7 @@ import { DepartmentsSelectFilter } from './departments-select-filter';
 import { PostesSelectFilter } from './postes-select-filter';
 import { StatutsSelectFilter } from './statuts-select-filter';
 import { EmployeeSearchInput } from './employee-search-input';
+import { Can } from '@/components/auth/Can';
 
 interface EmployeeTableProps {
   onEditPosition: (employee: any) => void;
@@ -19,7 +20,6 @@ interface EmployeeTableProps {
   onRemove: (employee: any) => void;
   onAddEmployee: () => void;
 }
-
 
 export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAddEmployee }: EmployeeTableProps) {
   // Données de départements et positions
@@ -32,7 +32,7 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
     { id: '6', name: 'DIRECTION' },
     { id: '7', name: 'TECHNIQUE' },
     { id: '8', name: 'LOGISTIQUE' },
-    { id: '9', name: 'INFORMATIQUE' }
+    { id: '9', name: 'INFORMATIQUE' },
   ];
 
   const postes = [
@@ -43,7 +43,7 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
     'RESPONSABLE DES RECOUVREMENTS',
     'CHEF AUX OPERATIONS',
     'STANDARDISTE',
-    'AGENT DE LA CENTRALE D\'APPEL',
+    "AGENT DE LA CENTRALE D'APPEL",
     'SUPERVISEURS',
     'DISPATCHERS',
     'DISPACTHEUSES',
@@ -52,7 +52,7 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
     'CM - MARKETING',
     'SECRETAIRE DE DIRECTION',
     'Turboy Journalier',
-    "ménagère"
+    'ménagère',
   ];
 
   const { table, isLoading, isFetching, pagination, filters, setSelectedDepartments, setSelectedStatuts, setSelectedPostes, handleSearchChange } = useEmployeeTableNew({
@@ -63,20 +63,19 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
     limit: 50,
     search: '',
   });
-const { data: salaryStatsData, isLoading: salaryStatsLoading } = useEmployeeSalaryStatsQuery();
+  const { data: salaryStatsData } = useEmployeeSalaryStatsQuery();
   // Utiliser les filtres du tableau pour les stats
-  const currentSearchParams = {
-    debut: filters.debut,
-    fin: filters.fin,
-    departments: filters.departments || undefined,
-    statuts: filters.statuts || undefined,
-    postes: filters.postes || undefined,
-    search: filters.search || undefined, // Ajouter la recherche aux stats
-  };
+  // const currentSearchParams = {
+  //   debut: filters.debut,
+  //   fin: filters.fin,
+  //   departments: filters.departments || undefined,
+  //   statuts: filters.statuts || undefined,
+  //   postes: filters.postes || undefined,
+  //   search: filters.search || undefined, // Ajouter la recherche aux stats
+  // };
 
   // Utiliser les mêmes filtres pour les stats
-  const { data: statsData, isLoading: statsLoading } = useEmployeeStatsQuery(currentSearchParams);
-  
+  // const { data: statsData, isLoading: statsLoading } = useEmployeeStatsQuery(currentSearchParams);
 
   return (
     <div className="space-y-6">
@@ -124,21 +123,16 @@ const { data: salaryStatsData, isLoading: salaryStatsLoading } = useEmployeeSala
               topContent={
                 <div className="flex justify-between items-center py-2">
                   <div className="flex gap-2">
-                    <EmployeeSearchInput 
-                      value={filters.search || ''} 
-                      onChange={handleSearchChange}
-                    />
+                    <EmployeeSearchInput value={filters.search || ''} onChange={handleSearchChange} />
                     <DepartmentsSelectFilter selectedDepartments={filters.departments || []} onDepartmentsChange={setSelectedDepartments} departments={departments} />
                     <StatutsSelectFilter selectedStatuts={filters.statuts || []} onStatutsChange={setSelectedStatuts} />
                     <PostesSelectFilter selectedPostes={filters.postes || []} onPostesChange={setSelectedPostes} postes={postes} />
                   </div>
-                  <Button 
-                    color="primary" 
-                    startContent={<Plus size={16} />}
-                    onPress={onAddEmployee}
-                  >
-                    Ajouter un employé
-                  </Button>
+                  <Can I="create" a="Personnel">
+                    <Button color="primary" startContent={<Plus size={16} />} onPress={onAddEmployee}>
+                      Ajouter un employé
+                    </Button>
+                  </Can>
                 </div>
               }
               bottomContent={

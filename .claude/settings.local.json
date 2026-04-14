@@ -20,7 +20,10 @@
       "Bash(pnpm.cmd --version)",
       "Bash(pnpm.cmd add:*)",
       "Bash(rtk tsc:*)",
-      "Bash(pnpm:*)"
+      "Bash(pnpm:*)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")",
+      "Bash(chmod +x /tmp/analyze_pages.sh)",
+      "Bash(bash /tmp/analyze_pages.sh)"
     ]
   }
 }
