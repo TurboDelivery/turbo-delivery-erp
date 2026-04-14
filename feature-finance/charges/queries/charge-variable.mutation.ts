@@ -6,15 +6,16 @@ import { useInvalidateChargeVariableQuery } from './index-charge-variable.query'
 import { IChargeVariable, IChargeVariableCreateDTO, IChargeVariableUpdateDTO, IWorkflowDecisionDto } from '../types/charge-variable.type';
 import { toast } from 'sonner';
 
-function buildChargeVariableFormData(data: IChargeVariableCreateDTO, file?: File | null): FormData {
+function buildChargeVariableFormData(
+  data: IChargeVariableCreateDTO | IChargeVariableUpdateDTO,
+  file?: File | null,
+): FormData {
   const fd = new FormData();
-  fd.append('designation', data.designation);
-  fd.append('categorieId', data.categorieId);
-  if (data.cyclePaiement) fd.append('cyclePaiement', data.cyclePaiement);
-  fd.append('montant', String(data.montant));
-  if (data.echeanceJour != null) fd.append('echeanceJour', String(data.echeanceJour));
-  if (data.description) fd.append('description', data.description);
-  if (data.creerPar) fd.append('creerPar', data.creerPar);
+  for (const [key, value] of Object.entries(data)) {
+    if (value === undefined || value === null || value === '') continue;
+    if (key === 'justificatif' && typeof value !== 'string') continue;
+    fd.append(key, value instanceof Blob ? value : String(value));
+  }
   if (file) fd.append('justificatif', file);
   return fd;
 }
