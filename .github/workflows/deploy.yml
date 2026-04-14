@@ -52,30 +52,20 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2   # ou v1 si tu préfères, mais v2 est plus récent
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
-      # 1. Cache du global cache de Bun (téléchargements des packages)
-      - name: Cache Bun global install cache
-        uses: actions/cache@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-global-${{ hashFiles('**/bun.lockb') }}
-          restore-keys: ${{ runner.os }}-bun-global-
-
-      # 2. Cache du node_modules local (optionnel mais très efficace avec Bun)
-      - name: Cache node_modules
-        uses: actions/cache@v5
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-bun-node-modules-${{ hashFiles('**/bun.lockb') }}
-          restore-keys: ${{ runner.os }}-bun-node-modules-
+          node-version: 20
+          cache: pnpm
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile   # --frozen-lockfile = sécurité CI
+        run: pnpm install --frozen-lockfile
 
       - name: Type check
-        run: bun x tsc --noEmit --pretty
+        run: pnpm exec tsc --noEmit --pretty
 
   build:
     needs: typecheck
