@@ -9,6 +9,7 @@ import { StatusBadge, TypeBadge } from './validation-badges';
 import { WorkflowStepper } from './workflow-stepper';
 import { ModifierForm } from './modifier-form';
 import { Can } from '@/components/auth/Can';
+import { createUrlFile } from '@/utils/createUrlFile';
 
 interface ValidationCardProps {
   depense: IDepense;
@@ -72,10 +73,14 @@ export function ValidationCard({ depense, current, total, onPrev, onNext, onAcce
             <p className="text-xs text-gray-400">Date de création</p>
             <p className="text-sm font-medium text-gray-700">{fmtDate(depense.createdAt ?? depense.dateDepense)}</p>
           </div>
-          <div className="col-span-2 mt-2 flex items-center gap-1.5 text-sm text-gray-500 cursor-pointer hover:text-gray-800">
-            <FileText className="h-4 w-4" />
-            <span>Voir le justificatif en grand</span>
-          </div>
+          {depense.justificatif && (
+            <div
+              onClick={() => window.open(createUrlFile(depense.justificatif!, 'backend'), '_blank')}
+              className="col-span-2 mt-2 flex items-center gap-1.5 text-sm text-gray-500 cursor-pointer hover:text-gray-800">
+              <FileText className="h-4 w-4" />
+              <span>Voir le justificatif en grand</span>
+            </div>
+          )}
         </div>
       </div>
 

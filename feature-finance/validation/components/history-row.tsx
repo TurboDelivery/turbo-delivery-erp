@@ -3,6 +3,7 @@ import { IDepense } from '@/features/depenses/types/depense.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { fmtDate } from './validation.constants';
 import { TypeBadge, StatusBadge } from './validation-badges';
+import { createUrlFile } from '@/utils/createUrlFile';
 
 export function HistoryRow({ depense }: { depense: IDepense }) {
   return (
@@ -21,8 +22,10 @@ export function HistoryRow({ depense }: { depense: IDepense }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {depense.description && (
-            <button className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
+          {depense.justificatif && (
+            <button
+              onClick={() => window.open(createUrlFile(depense.justificatif!, 'backend'), '_blank')}
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors">
               <Download className="h-4 w-4" />
               <span className="hidden sm:inline">Justificatif</span>
             </button>

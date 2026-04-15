@@ -3,6 +3,7 @@ export type IDepense = {
   libelle: string;
   montant: number;
   description?: string;
+  justificatif?: string;
   dateDepense: string;
   typeDepense: string;
   sourcePaiement?: string;

@@ -102,6 +102,7 @@ export function chargeVariableToDepense(cv: IChargeVariable): IDepense {
     libelle:        cv.designation,
     montant:        cv.montant,
     description:    cv.description,
+    justificatif:   cv.justificatif,
     dateDepense:    cv.createdAt.split('T')[0],
     typeDepense:    'VARIABLE',
     sourcePaiement: undefined,
