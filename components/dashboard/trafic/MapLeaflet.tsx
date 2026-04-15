@@ -96,30 +96,31 @@ export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps
 
         validPositions.forEach((item) => {
             const primarySrc = item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : AVATAR_FALLBACK;
-            const safeSrc = escapeHtml(primarySrc);
-            const safeFallback = escapeHtml(AVATAR_FALLBACK);
+            const safeSrc = escapeHtml(primarySrc).replace(/'/g, "\\'");
+            const safeFallback = escapeHtml(AVATAR_FALLBACK).replace(/'/g, "\\'");
             const safeName = escapeHtml(item.nomComplet ?? '');
             const safePhone = escapeHtml(item.telephone ?? '');
 
             const customIcon = L.divIcon({
                 className: '',
                 html: `
-                    <div style="
-                        width: 40px;
-                        height: 40px;
-                        border-radius: 50%;
-                        border: 3px solid red;
-                        overflow: hidden;
-                        box-shadow: 0 0 3px rgba(0,0,0,0.5);
-                        background: #f5f5f5;
-                    ">
-                        <img
-                            src="${safeSrc}"
-                            alt="${safeName}"
-                            onerror="this.onerror=null;this.src='${safeFallback}';"
-                            style="width: 100%; height: 100%; object-fit: cover;"
-                        />
-                    </div>
+                    <div
+                        role="img"
+                        aria-label="${safeName}"
+                        style="
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            border: 3px solid red;
+                            overflow: hidden;
+                            box-shadow: 0 0 3px rgba(0,0,0,0.5);
+                            background-color: #f5f5f5;
+                            background-image: url('${safeSrc}'), url('${safeFallback}');
+                            background-size: cover, cover;
+                            background-position: center, center;
+                            background-repeat: no-repeat, no-repeat;
+                        "
+                    ></div>
                 `,
                 iconSize: [40, 40],
                 iconAnchor: [20, 40],
