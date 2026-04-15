@@ -10,6 +10,8 @@ import { WorkflowStepper } from './workflow-stepper';
 import { ModifierForm } from './modifier-form';
 import { Can } from '@/components/auth/Can';
 import { createUrlFile } from '@/utils/createUrlFile';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Download } from 'lucide-react';
 
 interface ValidationCardProps {
   depense: IDepense;
@@ -28,6 +30,7 @@ interface ValidationCardProps {
 
 export function ValidationCard({ depense, current, total, onPrev, onNext, onAccept, onReject, onModifier, acceptLabel, canAct, isDGA, isPending }: ValidationCardProps) {
   const [showEdit, setShowEdit] = useState(false);
+  const [showJustificatif, setShowJustificatif] = useState(false);
 
   return (
     <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white">
@@ -75,14 +78,55 @@ export function ValidationCard({ depense, current, total, onPrev, onNext, onAcce
           </div>
           {depense.justificatif && (
             <div
-              onClick={() => window.open(createUrlFile(depense.justificatif!, 'backend'), '_blank')}
+              onClick={() => setShowJustificatif(true)}
               className="col-span-2 mt-2 flex items-center gap-1.5 text-sm text-gray-500 cursor-pointer hover:text-gray-800">
               <FileText className="h-4 w-4" />
-              <span>Voir le justificatif en grand</span>
+              <span>Voir le justificatif</span>
             </div>
           )}
         </div>
       </div>
+
+      {/* Dialog justificatif */}
+      <Dialog open={showJustificatif} onOpenChange={setShowJustificatif}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Justificatif — {depense.libelle}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+              <img
+                src={createUrlFile(depense.justificatif!, 'backend')}
+                alt="Justificatif"
+                className="max-h-[60vh] w-full object-contain"
+                onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <a
+                href={createUrlFile(depense.justificatif!, 'backend')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden w-full items-center justify-center gap-2 py-8 text-sm text-blue-600 hover:underline"
+              >
+                <Download className="h-4 w-4" />
+                Ouvrir le fichier
+              </a>
+            </div>
+            <a
+              href={createUrlFile(depense.justificatif!, 'backend')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              Télécharger
+            </a>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Formulaire modifier inline */}
       {showEdit && (
