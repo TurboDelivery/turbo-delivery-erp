@@ -1,19 +1,45 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LivreurTrafic } from '@/types/models';
 import { createUrlFile } from '@/utils/createUrlFile';
 
-export default function MapLeaflet({ positions }: { positions: LivreurTrafic[]; }) {
+const AVATAR_FALLBACK = '/assets/images/avatar.png';
+
+function escapeHtml(input: string): string {
+    return input.replace(/[&<>"']/g, (c) => {
+        switch (c) {
+            case '&': return '&amp;';
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '"': return '&quot;';
+            case "'": return '&#39;';
+            default: return c;
+        }
+    });
+}
+
+interface MapLeafletProps {
+    positions: LivreurTrafic[];
+    focusPosition?: [number, number, number] | null;
+}
+
+export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps) {
     const mapContainer = useRef<HTMLDivElement>(null);
-    const mapInstance = useRef<any>(null); // pour stocker l'instance Leaflet
+    const mapInstance = useRef<any>(null);
+    const markersLayer = useRef<any>(null);
+    const leafletRef = useRef<any>(null);
+    const hasFittedRef = useRef<boolean>(false);
+    const [mapReady, setMapReady] = useState(false);
 
     useEffect(() => {
-        let L: any;
+        let cancelled = false;
 
         const initMap = async () => {
-            L = (await import('leaflet')).default;
-            if (!mapContainer.current) return;
+            const L = (await import('leaflet')).default;
+            if (cancelled || !mapContainer.current || mapInstance.current) return;
+
+            leafletRef.current = L;
 
             const map = L.map(mapContainer.current, {
                 center: [5.3984153, -3.9565058],
@@ -26,64 +52,105 @@ export default function MapLeaflet({ positions }: { positions: LivreurTrafic[]; 
                 maxZoom: 19,
             }).addTo(map);
 
+            markersLayer.current = L.layerGroup().addTo(map);
             mapInstance.current = map;
 
-            addMarkers();
-        };
-
-        const addMarkers = () => {
-            if (!mapInstance.current || !positions || positions.length === 0) return;
-
-            const validPositions = positions.filter(
-                p => p.position.latitude !== 0 && p.position.longitude !== 0
-            );
-
-            validPositions.forEach(item => {
-                // Créer un icon personnalisé
-                const customIcon = L.divIcon({
-                    className: '', // vide pour ne pas appliquer les styles par défaut
-                    html: `
-                        <div style="
-                            width: 40px;
-                            height: 40px;
-                            border-radius: 50%;
-                            border: 3px solid red;
-                            overflow: hidden;
-                            box-shadow: 0 0 3px rgba(0,0,0,0.5);
-                        ">
-                            <img src="${item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : '/assets/images/avatar.png'}"
-                                style="width: 100%; height: 100%; object-fit: cover;" />
-                        </div>
-                    `,
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 40],
-                    popupAnchor: [0, -40],
-                });
-                  
-
-                L.marker([item.position.latitude, item.position.longitude], { icon: customIcon })
-                    .addTo(mapInstance.current)
-                    .bindPopup(
-                        `<b>${item.nomComplet}</b><br><b>Statut</b>: ${item.course ? 'En livraison' : 'Disponible'}<br><b>Téléphone</b>: ${item.telephone}`
-                    );
+            // Leaflet ne peint pas correctement les tuiles si le conteneur
+            // n'avait pas sa taille finale au moment du `L.map()` — on force un recalcul.
+            requestAnimationFrame(() => {
+                if (!cancelled && mapInstance.current) {
+                    mapInstance.current.invalidateSize();
+                }
             });
 
-            if (validPositions.length > 0) {
-                const bounds = L.latLngBounds(
-                    validPositions.map(item => [item.position.latitude, item.position.longitude])
-                );
-                mapInstance.current.fitBounds(bounds, { padding: [50, 50] });
-            }
+            setMapReady(true);
         };
 
         initMap();
 
         return () => {
-            if (mapInstance.current) mapInstance.current.remove();
+            cancelled = true;
+            if (mapInstance.current) {
+                mapInstance.current.remove();
+                mapInstance.current = null;
+                markersLayer.current = null;
+                leafletRef.current = null;
+                hasFittedRef.current = false;
+            }
+            setMapReady(false);
         };
-    }, [positions]);
+    }, []);
+
+    useEffect(() => {
+        if (!mapReady) return;
+        const L = leafletRef.current;
+        const map = mapInstance.current;
+        const layer = markersLayer.current;
+        if (!L || !map || !layer) return;
+
+        layer.clearLayers();
+
+        const validPositions = (positions || []).filter(
+            (p) => p.position.latitude !== 0 && p.position.longitude !== 0,
+        );
+
+        validPositions.forEach((item) => {
+            const primarySrc = item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : AVATAR_FALLBACK;
+            const safeSrc = escapeHtml(primarySrc);
+            const safeFallback = escapeHtml(AVATAR_FALLBACK);
+            const safeName = escapeHtml(item.nomComplet ?? '');
+            const safePhone = escapeHtml(item.telephone ?? '');
+
+            const customIcon = L.divIcon({
+                className: '',
+                html: `
+                    <div style="
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        border: 3px solid red;
+                        overflow: hidden;
+                        box-shadow: 0 0 3px rgba(0,0,0,0.5);
+                        background: #f5f5f5;
+                    ">
+                        <img
+                            src="${safeSrc}"
+                            alt="${safeName}"
+                            onerror="this.onerror=null;this.src='${safeFallback}';"
+                            style="width: 100%; height: 100%; object-fit: cover;"
+                        />
+                    </div>
+                `,
+                iconSize: [40, 40],
+                iconAnchor: [20, 40],
+                popupAnchor: [0, -40],
+            });
+
+            L.marker([item.position.latitude, item.position.longitude], { icon: customIcon })
+                .addTo(layer)
+                .bindPopup(
+                    `<b>${safeName}</b><br><b>Statut</b>: ${item.course ? 'En livraison' : 'Disponible'}<br><b>Téléphone</b>: ${safePhone}`,
+                );
+        });
+
+        if (!hasFittedRef.current && validPositions.length > 0) {
+            const bounds = L.latLngBounds(
+                validPositions.map((item) => [item.position.latitude, item.position.longitude]),
+            );
+            map.fitBounds(bounds, { padding: [50, 50] });
+            hasFittedRef.current = true;
+        }
+    }, [positions, mapReady]);
+
+    useEffect(() => {
+        if (!mapReady || !focusPosition) return;
+        const map = mapInstance.current;
+        if (!map) return;
+        const [lat, lon] = focusPosition;
+        map.flyTo([lat, lon], 17, { duration: 0.8 });
+    }, [focusPosition, mapReady]);
 
     return (
-        <div ref={mapContainer} id="leaflet-map" className="w-full h-full" style={{ borderRadius: '5px' }} />
+        <div ref={mapContainer} className="w-full h-full" style={{ borderRadius: '5px', minHeight: '400px' }} />
     );
 }

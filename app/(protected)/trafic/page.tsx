@@ -1,10 +1,5 @@
-import { auth } from "@/auth";
-import Content from "./content";
-import { getTraficDelivers } from '@/src/actions/trafic.actions';
+import TraficContent from '@/features/trafic/components/trafic-content';
 
-export default async function Page() {
-    const session = await auth();
-
-    const data = await getTraficDelivers();
-    return <Content data={data} />;
+export default function Page() {
+  return <TraficContent />;
 }

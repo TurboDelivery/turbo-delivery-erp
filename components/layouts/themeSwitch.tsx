@@ -6,58 +6,59 @@ import IconSun from '@/components/icon/icon-sun';
 import IconMoon from '@/components/icon/icon-moon';
 import IconLaptop from '@/components/icon/icon-laptop';
 import { useTheme } from 'next-themes';
-import { Button, ButtonProps } from "@heroui/react";
+import { Button, ButtonProps } from '@heroui/react';
+
 const ThemeSwitch = ({ className, size }: { className?: string; size?: ButtonProps['size'] }) => {
-    const dispatch = useDispatch();
-    const { setTheme } = useTheme();
+  const dispatch = useDispatch();
+  const { setTheme } = useTheme();
 
-    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
+  const themeConfig = useSelector((state: IRootState) => state.themeConfig);
 
-    return (
-        <div>
-            {themeConfig.theme === 'light' ? (
-                <Button
-                    isIconOnly
-                    size={size}
-                    className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
-                    onClick={() => {
-                        dispatch(toggleTheme('dark'));
-                        setTheme('dark');
-                    }}
-                >
-                    <IconSun />
-                </Button>
-            ) : (
-                ''
-            )}
-            {themeConfig.theme === 'dark' && (
-                <Button
-                    isIconOnly
-                    size={size}
-                    className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
-                    onClick={() => {
-                        dispatch(toggleTheme('system'));
-                        setTheme('system');
-                    }}
-                >
-                    <IconMoon />
-                </Button>
-            )}
-            {themeConfig.theme === 'system' && (
-                <Button
-                    isIconOnly
-                    size={size}
-                    className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
-                    onClick={() => {
-                        dispatch(toggleTheme('light'));
-                        setTheme('light');
-                    }}
-                >
-                    <IconLaptop />
-                </Button>
-            )}
-        </div>
-    );
+  return (
+    <div>
+      {themeConfig.theme === 'light' ? (
+        <Button
+          isIconOnly
+          size={size}
+          className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
+          onPress={() => {
+            dispatch(toggleTheme('dark'));
+            setTheme('dark');
+          }}
+        >
+          <IconSun />
+        </Button>
+      ) : (
+        ''
+      )}
+      {themeConfig.theme === 'dark' && (
+        <Button
+          isIconOnly
+          size={size}
+          className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
+          onPress={() => {
+            dispatch(toggleTheme('system'));
+            setTheme('system');
+          }}
+        >
+          <IconMoon />
+        </Button>
+      )}
+      {themeConfig.theme === 'system' && (
+        <Button
+          isIconOnly
+          size={size}
+          className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
+          onPress={() => {
+            dispatch(toggleTheme('light'));
+            setTheme('light');
+          }}
+        >
+          <IconLaptop />
+        </Button>
+      )}
+    </div>
+  );
 };
 
 export default ThemeSwitch;
