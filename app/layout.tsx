@@ -2,7 +2,7 @@ import 'react-perfect-scrollbar/dist/css/styles.css';
 import '../styles/tailwind.css';
 import './globals.css';
 import { Metadata, Viewport } from 'next';
-import { Lato } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import NextAuthSessionProvider from '@/providers/next-auth-session.provider';
 import ProviderComponent from '@/components/layouts/provider-component';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
@@ -110,8 +110,8 @@ export const viewport: Viewport = {
   ],
 };
 
-const nunito = Lato({
-  weight: ['100', '300', '400', '700', '900'],
+const nunito = Inter({
+  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-nunito',
