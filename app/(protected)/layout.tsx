@@ -6,6 +6,7 @@ import Header from '@/components/layouts/header';
 import Overlay from '@/components/layouts/overlay';
 import Sidebar from '@/components/layouts/sidebar';
 import ProtectedPage from '@/components/protected-page';
+import { AbilityProvider } from '@/lib/casl/ability-context';
 import { getProfile } from '@/src/actions/users.actions';
 import ScrollToTop from '@/components/layouts/scroll-to-top';
 import MainContainer from '@/components/layouts/main-container';
@@ -20,6 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <>
       {profile && !profile.changePassword && <FormChangePassword userName={profile.username} />}
+      <AbilityProvider role={profile?.role?.libelle ?? null}>
       <ProtectedPage profile={profile!}>
         {/* BEGIN MAIN CONTAINER */}
         <div className="relative">
@@ -48,6 +50,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </MainContainer>
         </div>
       </ProtectedPage>
+      </AbilityProvider>
     </>
   );
 }
