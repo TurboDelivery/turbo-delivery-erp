@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { LivreurTrafic, TypeLivreur } from '@/types/models';
+import { createUrlFile } from '@/utils/createUrlFile';
+
+const AVATAR_FALLBACK = '/assets/images/avatar.png';
 
 const PIN_COLORS: Record<TypeLivreur, string> = {
   INDEPENDANT: '#2563eb', // bleu
@@ -28,13 +31,20 @@ function escapeHtml(input: string): string {
   });
 }
 
-function buildPinSvg(color: string): string {
+function buildPinHtml(color: string, avatarSrc: string, label: string): string {
   return `
-    <svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 26 16 26s16-14 16-26C32 7.2 24.8 0 16 0z"
-            fill="${color}" stroke="#ffffff" stroke-width="2"/>
-      <circle cx="16" cy="16" r="6" fill="#ffffff"/>
-    </svg>
+    <div style="position: relative; width: 44px; height: 56px;">
+      <svg width="44" height="56" viewBox="0 0 44 56" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="position:absolute; top:0; left:0;">
+        <path d="M22 0C9.85 0 0 9.85 0 22c0 13 22 34 22 34s22-21 22-34C44 9.85 34.15 0 22 0z"
+              fill="${color}" stroke="#ffffff" stroke-width="2"/>
+        <circle cx="22" cy="22" r="16" fill="#ffffff"/>
+      </svg>
+      <img
+        src="${avatarSrc}"
+        alt="${label}"
+        style="position:absolute; top:8px; left:8px; width:28px; height:28px; border-radius:50%; object-fit:cover; background:#f5f5f5; display:block;"
+      />
+    </div>
   `;
 }
 
@@ -115,13 +125,15 @@ export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps
       const safeName = escapeHtml(item.nomComplet ?? '');
       const safePhone = escapeHtml(item.telephone ?? '');
       const pinColor = item.typeLivreur ? PIN_COLORS[item.typeLivreur] ?? PIN_DEFAULT_COLOR : PIN_DEFAULT_COLOR;
+      const primarySrc = item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : AVATAR_FALLBACK;
+      const safeSrc = escapeHtml(primarySrc);
 
       const customIcon = L.divIcon({
         className: 'trafic-pin-marker',
-        html: buildPinSvg(pinColor),
-        iconSize: [32, 42],
-        iconAnchor: [16, 42],
-        popupAnchor: [0, -42],
+        html: buildPinHtml(pinColor, safeSrc, safeName),
+        iconSize: [44, 56],
+        iconAnchor: [22, 56],
+        popupAnchor: [0, -56],
       });
 
       L.marker([item.position.latitude, item.position.longitude], { icon: customIcon })
@@ -144,5 +156,5 @@ export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps
     map.flyTo([lat, lon], 17, { duration: 0.8 });
   }, [focusPosition, mapReady]);
 
-  return <div ref={mapContainer} className="w-full h-full" style={{ borderRadius: '5px', minHeight: '400px' }} />;
+  return <div ref={mapContainer} className="w-full h-full" style={{ minHeight: '400px' }} />;
 }

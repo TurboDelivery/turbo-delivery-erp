@@ -12,15 +12,7 @@ import { useTrafic } from '@/features/trafic/hooks/use-trafic';
 const MapLeaflet = dynamic(() => import('@/components/dashboard/trafic/MapLeaflet'), { ssr: false });
 
 export default function TraficContent() {
-  const {
-    data,
-    positions,
-    selectedLivreurId,
-    focusPosition,
-    focusOnLivreur,
-    openDashboard,
-    toggleDashboard,
-  } = useTrafic();
+  const { data, positions, selectedLivreurId, focusPosition, focusOnLivreur, openDashboard, toggleDashboard } = useTrafic();
 
   const handleSelectLivreur = useCallback(
     (livreurId: string) => {
@@ -31,53 +23,41 @@ export default function TraficContent() {
   );
 
   return (
-    <div className="relative w-full h-[calc(100vh-8rem)] min-h-[600px] overflow-hidden rounded-xl shadow-md">
-      <div className="absolute inset-0">
-        <MapLeaflet positions={positions} focusPosition={focusPosition} />
-      </div>
-
-      <div className="pointer-events-none absolute top-3 left-3 right-3 z-[1000] flex justify-between items-center gap-3">
-        <h3 className="pointer-events-auto bg-primary text-white text-sm 2xl:text-base font-semibold px-3 py-2 rounded-lg shadow flex items-center gap-2">
-          📍 Trafic des Livreurs en Temps Réel
-        </h3>
-        <Chip variant="solid" className="pointer-events-auto bg-white text-primary font-medium shadow">
+    <div className="flex flex-col w-full h-[calc(100vh-8rem)] min-h-[600px] bg-blue-500 overflow-hidden rounded-xl shadow-md">
+      <div className="bg-primary text-white flex justify-between items-center px-4 py-3 shrink-0">
+        <h3 className="text-lg 2xl:text-xl font-semibold flex items-center gap-2">📍 Trafic des Livreurs en Temps Réel</h3>
+        <Chip variant="solid" className="bg-white text-primary font-medium">
           Total : {data.totalLivreurs}
         </Chip>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 pointer-events-none z-[1000] flex flex-col items-center">
-        <AnimatePresence initial={false}>
-          {openDashboard && (
-            <motion.div
-              key="dashboard-panel"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 30 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="w-full px-2 sm:px-4 mb-3 pointer-events-auto"
-            >
-              <TraficLivreurPanel
-                data={data}
-                selectedLivreurId={selectedLivreurId}
-                onSelectLivreur={handleSelectLivreur}
-                onClose={toggleDashboard}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div className="relative flex-1 min-h-0 overflow-hidden">
+        <MapLeaflet positions={positions} focusPosition={focusPosition} />
 
-        {!openDashboard && (
-          <div className="mb-4 pointer-events-auto">
-            <Button
-              onPress={toggleDashboard}
-              color="primary"
-              variant="shadow"
-              startContent={<LayoutDashboard className="w-4 h-4" />}
-            >
-              Voir les livreurs
-            </Button>
-          </div>
-        )}
+        <div className="absolute inset-x-0 bottom-0 pointer-events-none z-[1000] flex flex-col items-center">
+          <AnimatePresence initial={false}>
+            {openDashboard && (
+              <motion.div
+                key="dashboard-panel"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 30 }}
+                transition={{ duration: 0.35, ease: 'easeOut' }}
+                className="w-full px-2 sm:px-4 mb-3 pointer-events-auto"
+              >
+                <TraficLivreurPanel data={data} selectedLivreurId={selectedLivreurId} onSelectLivreur={handleSelectLivreur} onClose={toggleDashboard} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {!openDashboard && (
+            <div className="mb-4 pointer-events-auto">
+              <Button onPress={toggleDashboard} color="primary" variant="shadow" startContent={<LayoutDashboard className="w-4 h-4" />}>
+                Voir les livreurs
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
