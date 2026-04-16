@@ -287,6 +287,8 @@ export enum TypeEnum {
 }
 
 // GESTION DES TRAFICS LIVREURS
+export type TypeLivreur = 'INDEPENDANT' | 'JOURNALIER';
+
 export interface LivreurTrafic {
     livreurId: string;
     avatarUrl: string;
@@ -297,6 +299,7 @@ export interface LivreurTrafic {
         longitude: number;
     };
     course?: boolean; // false si pas de course en cours
+    typeLivreur?: TypeLivreur;
 }
 
 export interface LivreurCategorie {

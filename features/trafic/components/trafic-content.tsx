@@ -1,8 +1,9 @@
 'use client';
 
+import { useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Button, Card, CardBody, CardHeader, Chip } from '@heroui/react';
+import { Button, Chip } from '@heroui/react';
 import { LayoutDashboard } from 'lucide-react';
 
 import TraficLivreurPanel from '@/features/trafic/components/trafic-livreur-panel';
@@ -21,21 +22,28 @@ export default function TraficContent() {
     toggleDashboard,
   } = useTrafic();
 
+  const handleSelectLivreur = useCallback(
+    (livreurId: string) => {
+      focusOnLivreur(livreurId);
+      if (openDashboard) toggleDashboard();
+    },
+    [focusOnLivreur, openDashboard, toggleDashboard],
+  );
+
   return (
-    <div className="relative w-full h-[calc(100vh-8rem)] min-h-[600px]">
-      <Card className="w-full h-full shadow-md overflow-hidden flex flex-col">
-        <CardHeader className="bg-primary text-white flex justify-between items-center px-4 py-3 shrink-0">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            📍 Trafic des Livreurs en Temps Réel
-          </h3>
-          <Chip variant="solid" className="bg-white text-primary font-medium">
-            Total : {data.totalLivreurs}
-          </Chip>
-        </CardHeader>
-        <CardBody className="p-2 flex-1 relative overflow-hidden">
-          <MapLeaflet positions={positions} focusPosition={focusPosition} />
-        </CardBody>
-      </Card>
+    <div className="relative w-full h-[calc(100vh-8rem)] min-h-[600px] overflow-hidden rounded-xl shadow-md">
+      <div className="absolute inset-0">
+        <MapLeaflet positions={positions} focusPosition={focusPosition} />
+      </div>
+
+      <div className="pointer-events-none absolute top-3 left-3 right-3 z-[1000] flex justify-between items-center gap-3">
+        <h3 className="pointer-events-auto bg-primary text-white text-sm 2xl:text-base font-semibold px-3 py-2 rounded-lg shadow flex items-center gap-2">
+          📍 Trafic des Livreurs en Temps Réel
+        </h3>
+        <Chip variant="solid" className="pointer-events-auto bg-white text-primary font-medium shadow">
+          Total : {data.totalLivreurs}
+        </Chip>
+      </div>
 
       <div className="absolute inset-x-0 bottom-0 pointer-events-none z-[1000] flex flex-col items-center">
         <AnimatePresence initial={false}>
@@ -51,7 +59,7 @@ export default function TraficContent() {
               <TraficLivreurPanel
                 data={data}
                 selectedLivreurId={selectedLivreurId}
-                onSelectLivreur={focusOnLivreur}
+                onSelectLivreur={handleSelectLivreur}
                 onClose={toggleDashboard}
               />
             </motion.div>

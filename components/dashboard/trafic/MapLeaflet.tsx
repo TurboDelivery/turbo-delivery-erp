@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { LivreurTrafic } from '@/types/models';
-import { createUrlFile } from '@/utils/createUrlFile';
+import { LivreurTrafic, TypeLivreur } from '@/types/models';
 
-const AVATAR_FALLBACK = '/assets/images/avatar.png';
+const PIN_COLORS: Record<TypeLivreur, string> = {
+  INDEPENDANT: '#2563eb', // bleu
+  JOURNALIER: '#dc2626', // rouge
+};
+const PIN_DEFAULT_COLOR = '#6b7280'; // gris neutre si type inconnu
 
 function escapeHtml(input: string): string {
   return input.replace(/[&<>"']/g, (c) => {
@@ -23,6 +26,16 @@ function escapeHtml(input: string): string {
         return c;
     }
   });
+}
+
+function buildPinSvg(color: string): string {
+  return `
+    <svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 26 16 26s16-14 16-26C32 7.2 24.8 0 16 0z"
+            fill="${color}" stroke="#ffffff" stroke-width="2"/>
+      <circle cx="16" cy="16" r="6" fill="#ffffff"/>
+    </svg>
+  `;
 }
 
 interface MapLeafletProps {
@@ -99,36 +112,16 @@ export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps
     const validPositions = (positions || []).filter((p) => p.position.latitude !== 0 && p.position.longitude !== 0);
 
     validPositions.forEach((item) => {
-      const primarySrc = item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : AVATAR_FALLBACK;
-      const safeSrc = escapeHtml(primarySrc).replace(/'/g, "\\'");
-      const safeFallback = escapeHtml(AVATAR_FALLBACK).replace(/'/g, "\\'");
       const safeName = escapeHtml(item.nomComplet ?? '');
       const safePhone = escapeHtml(item.telephone ?? '');
+      const pinColor = item.typeLivreur ? PIN_COLORS[item.typeLivreur] ?? PIN_DEFAULT_COLOR : PIN_DEFAULT_COLOR;
 
       const customIcon = L.divIcon({
-        className: '',
-        html: `
-                    <div
-                        role="img"
-                        aria-label="${safeName}"
-                        style="
-                            width: 40px;
-                            height: 40px;
-                            border-radius: 50%;
-                            border: 3px solid red;
-                            overflow: hidden;
-                            box-shadow: 0 0 3px rgba(0,0,0,0.5);
-                            background-color: #f5f5f5;
-                            background-image: url('${safeSrc}'), url('${safeFallback}');
-                            background-size: cover, cover;
-                            background-position: center, center;
-                            background-repeat: no-repeat, no-repeat;
-                        "
-                    ></div>
-                `,
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40],
+        className: 'trafic-pin-marker',
+        html: buildPinSvg(pinColor),
+        iconSize: [32, 42],
+        iconAnchor: [16, 42],
+        popupAnchor: [0, -42],
       });
 
       L.marker([item.position.latitude, item.position.longitude], { icon: customIcon })
