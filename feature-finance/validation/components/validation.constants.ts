@@ -1,6 +1,7 @@
 import { ActionWorkflow } from '@/feature-finance/charges/queries/charge-variable.mutation';
 import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
 import { IChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
+import { IHistoriqueCharge } from '@/feature-finance/charges/types/historique-charge.type';
 import { IDepense } from '@/features/depenses/types/depense.type';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -112,6 +113,25 @@ export function chargeVariableToDepense(cv: IChargeVariable): IDepense {
       : { id: '', nomCategorie: '—', description: '' },
     createdAt: cv.createdAt,
     updatedAt: cv.updatedAt,
+  };
+}
+
+export function historiqueChargeToDepense(hc: IHistoriqueCharge): IDepense {
+  const dateRef = hc.dateRef ?? hc.createdAt;
+  return {
+    id:             hc.id,
+    libelle:        hc.designation,
+    montant:        hc.montant,
+    description:    undefined,
+    dateDepense:    (dateRef ?? '').split('T')[0],
+    typeDepense:    hc.type,
+    sourcePaiement: hc.type === 'FIXE' ? 'Prélèvement automatique' : undefined,
+    statut:         CV_STATUT_TO_PAGE[hc.statut] ?? hc.statut,
+    categorie:      hc.categorie
+      ? { id: hc.categorie.id, nomCategorie: hc.categorie.nomCategorie, description: hc.categorie.description ?? '' }
+      : { id: '', nomCategorie: '—', description: '' },
+    createdAt: hc.createdAt,
+    updatedAt: hc.updatedAt,
   };
 }
 

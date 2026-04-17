@@ -28,7 +28,7 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
   const [chargeVariableToEdit, setChargeVariableToEdit] = useState<IChargeVariable | null>(null);
 
   const { depenses, rawVariables, isLoading } = useValidationData(chargeType, userRole);
-  const { depenses: historyDepenses, isLoading: isLoadingHistory } = useHistoryData(chargeType, activeTab === 'historique');
+  const { depenses: historyDepenses, isLoading: isLoadingHistory } = useHistoryData(userRole, activeTab === 'historique');
   const { stats, isLoading: isLoadingStats } = useValidationStats(userRole, chargeType);
   const { handleAccept, handleReject, isPending } = useValidationActions(userRole, chargeType);
 
