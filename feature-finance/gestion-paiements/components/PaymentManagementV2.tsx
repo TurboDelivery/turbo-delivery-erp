@@ -21,6 +21,7 @@ const CHARGE_TYPE_OPTIONS: { value: ChargeTypeFilter; label: string }[] = [
 export default function PaymentManagementV2() {
   const [filters, setFilters] = useQueryStates(paiementFiltersClient.filters, paiementFiltersClient.options);
   const [confirmIds, setConfirmIds] = useState<string[]>([]);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const {
     table,
@@ -31,15 +32,24 @@ export default function PaymentManagementV2() {
     chargeType,
     switchChargeType,
     decaisserMutation,
-  } = usePaiementsTable(filters.debut, filters.fin, setConfirmIds);
+    supprimerChargeVariableMutation,
+  } = usePaiementsTable(filters.debut, filters.fin, setConfirmIds, setDeleteTargetId);
 
   const { stats, isLoading: isStatsLoading } = usePaiementsStats(filters.debut, filters.fin);
 
   const closeConfirm = () => setConfirmIds([]);
+  const closeDelete = () => setDeleteTargetId(null);
 
   const handleConfirmDecaisser = () => {
     decaisserMutation.mutate(confirmIds, {
       onSuccess: () => closeConfirm(),
+    });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTargetId) return;
+    supprimerChargeVariableMutation.mutate(deleteTargetId, {
+      onSuccess: () => closeDelete(),
     });
   };
 
@@ -112,6 +122,22 @@ export default function PaymentManagementV2() {
           Vous êtes sur le point de décaisser{' '}
           <span className="font-semibold">{confirmIds.length} charge{confirmIds.length > 1 ? 's' : ''}</span>.
           Cette action est irréversible.
+        </p>
+      </ConfirmModal>
+
+      {/* Delete Modal */}
+      <ConfirmModal
+        isOpen={!!deleteTargetId}
+        onClose={closeDelete}
+        title="Supprimer la charge variable"
+        isLoading={supprimerChargeVariableMutation.isPending}
+        actions={[
+          { label: 'Annuler', variant: 'light', onPress: closeDelete },
+          { label: 'Supprimer', color: 'danger', onPress: handleConfirmDelete },
+        ]}
+      >
+        <p className="text-sm text-gray-600">
+          Voulez-vous vraiment supprimer cette charge variable ? Cette action est irréversible.
         </p>
       </ConfirmModal>
     </div>

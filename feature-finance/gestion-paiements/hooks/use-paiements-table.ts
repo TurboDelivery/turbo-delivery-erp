@@ -4,6 +4,7 @@ import { createPaiementsColumns } from '../columns/paiements.columns';
 import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
 import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
 import { useDecaisserMutation } from '../queries/paiement.mutation';
+import { useSupprimerChargeVariableMutation } from '@/feature-finance/charges/queries/charge-variable.mutation';
 import { IChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
 import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
 
@@ -12,7 +13,12 @@ export type ChargeTypeFilter = 'fixe' | 'variable';
 const DEFAULT_PAGE_SIZE = 10;
 const DECAISSE_STATUTS = ['DECAISSE', 'PAID'];
 
-export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser?: (ids: string[]) => void) {
+export function usePaiementsTable(
+  debut: string,
+  fin: string,
+  onRequestDecaisser?: (ids: string[]) => void,
+  onRequestDelete?: (id: string) => void,
+) {
   const [chargeType, setChargeType] = useState<ChargeTypeFilter>('variable');
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
@@ -22,6 +28,7 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
   });
 
   const decaisserMutation = useDecaisserMutation(chargeType, fin);
+  const supprimerChargeVariableMutation = useSupprimerChargeVariableMutation();
 
   const fixesQuery = useChargesFixesQuery(
     { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin },
@@ -59,9 +66,22 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
     }
   }, [decaisserMutation, onRequestDecaisser]);
 
+  const handleDeleteOne = useCallback((id: string) => {
+    if (onRequestDelete) {
+      onRequestDelete(id);
+    } else {
+      supprimerChargeVariableMutation.mutate(id);
+    }
+  }, [supprimerChargeVariableMutation, onRequestDelete]);
+
   const columns = useMemo(
-    () => createPaiementsColumns({ onDecaisser: handleDecaisserOne, isPending: decaisserMutation.isPending }),
-    [handleDecaisserOne, decaisserMutation.isPending],
+    () => createPaiementsColumns({
+      onDecaisser: handleDecaisserOne,
+      isPending: decaisserMutation.isPending,
+      onDelete: chargeType === 'variable' ? handleDeleteOne : undefined,
+      isDeleting: supprimerChargeVariableMutation.isPending,
+    }),
+    [handleDecaisserOne, decaisserMutation.isPending, chargeType, handleDeleteOne, supprimerChargeVariableMutation.isPending],
   );
 
   const table = useReactTable({
@@ -98,5 +118,6 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
     chargeType,
     switchChargeType,
     decaisserMutation,
+    supprimerChargeVariableMutation,
   };
 }

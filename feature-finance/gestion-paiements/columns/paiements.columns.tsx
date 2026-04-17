@@ -2,8 +2,9 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Button, Chip } from '@heroui/react';
-import { Wallet } from 'lucide-react';
+import { Trash2, Wallet } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Can } from '@/components/auth/Can';
 import { IChargeFixe, StatutChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
 
 const STATUT_CONFIG: Record<string, { label: string; color: 'warning' | 'primary' | 'success' | 'danger' | 'default' }> = {
@@ -26,9 +27,11 @@ function isDecaisse(row: IChargeFixe) {
 type PaiementsColumnsOptions = {
   onDecaisser: (id: string) => void;
   isPending: boolean;
+  onDelete?: (id: string) => void;
+  isDeleting?: boolean;
 };
 
-export function createPaiementsColumns({ onDecaisser, isPending }: PaiementsColumnsOptions): ColumnDef<IChargeFixe>[] {
+export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDeleting }: PaiementsColumnsOptions): ColumnDef<IChargeFixe>[] {
   return [
     {
       id: 'select',
@@ -96,16 +99,33 @@ export function createPaiementsColumns({ onDecaisser, isPending }: PaiementsColu
       cell: ({ row }) => {
         if (isDecaisse(row.original)) return null;
         return (
-          <Button
-            size="sm"
-            color="warning"
-            variant="flat"
-            startContent={<Wallet size={14} />}
-            isLoading={isPending}
-            onPress={() => onDecaisser(row.original.id)}
-          >
-            Décaisser
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              color="warning"
+              variant="flat"
+              startContent={<Wallet size={14} />}
+              isLoading={isPending}
+              onPress={() => onDecaisser(row.original.id)}
+            >
+              Décaisser
+            </Button>
+            {onDelete && (
+              <Can I="delete" a="ChargeVariable">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  color="danger"
+                  variant="flat"
+                  isLoading={isDeleting}
+                  onPress={() => onDelete(row.original.id)}
+                  aria-label="Supprimer la charge"
+                >
+                  <Trash2 size={14} />
+                </Button>
+              </Can>
+            )}
+          </div>
         );
       },
     },
