@@ -99,6 +99,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('update', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('decaisser', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('manage', 'Ticket');
+      can('manage', 'Personnel');
       can('read', 'Finance');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;

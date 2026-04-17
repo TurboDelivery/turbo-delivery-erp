@@ -65,8 +65,8 @@ export default function FinanceHighlightCard({
           <Icon className={cn('size-6', style.icon)} />
         </div>
         <div>
-          <h4 className="text-muted-foreground text-medium mb-2">{title}</h4>
-          <span className={cn('text-xl', style.value)}>{value}</span>
+          <h4 className="text-muted-foreground text-medium 2xl:text-lg mb-2">{title}</h4>
+          <span className={cn('text-xl 2xl:text-2xl', style.value)}>{value}</span>
         </div>
       </div>
       {children}

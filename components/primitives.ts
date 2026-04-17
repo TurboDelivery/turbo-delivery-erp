@@ -14,12 +14,12 @@ export const title = tv({
       primary: "from-[hsl(var(--primary))] to-[hsl(var(--accent))]",
     },
     size: {
-      h1: "text-4xl md:text-5xl lg:text-6xl leading-auto",
-      h2: "text-3xl md:text-4xl lg:text-5xl leading-auto",
-      h3: "text-2xl md:text-3xl lg:text-4xl leading-auto",
-      h4: "text-lg md:text-xl lg:text-3xl leading-auto",
-      h5: "text-xl lg:text-2xl leading-auto",
-      h6: "text-lg lg:text-xl leading-auto",
+      h1: "text-4xl md:text-5xl lg:text-6xl 2xl:text-7xl leading-auto",
+      h2: "text-3xl md:text-4xl lg:text-5xl 2xl:text-6xl leading-auto",
+      h3: "text-2xl md:text-3xl lg:text-4xl 2xl:text-5xl leading-auto",
+      h4: "text-lg md:text-xl lg:text-3xl 2xl:text-4xl leading-auto",
+      h5: "text-xl lg:text-2xl 2xl:text-3xl leading-auto",
+      h6: "text-lg lg:text-xl 2xl:text-2xl leading-auto",
     },
     fullWidth: {
       true: "w-full block",
@@ -46,7 +46,7 @@ export const title = tv({
 });
 
 export const subtitle = tv({
-  base: "leading-6 w-full my-2 text-lg lg:text-xl text-default-600 block max-w-full",
+  base: "leading-6 w-full my-2 text-lg lg:text-xl 2xl:text-2xl text-default-600 block max-w-full",
   variants: {
     color: {
       violet: "from-[#FF1CF7] to-[#b249f8]",
@@ -83,7 +83,7 @@ export const subtitle = tv({
 });
 
 export const body = tv({
-  base: "text-base leading-6",
+  base: "text-base 2xl:text-lg leading-6",
   variants: {
     color: {
       violet: "from-[#FF1CF7] to-[#b249f8]",
@@ -96,10 +96,10 @@ export const body = tv({
       primary: "from-[hsl(var(--primary))] to-[hsl(var(--accent))]",
     },
     size: {
-      body: "text-base leading-6",
-      body2: "text-sm leading-5",
-      caption: "text-sm leading-4 text-muted-foreground",
-      overline: "text-sm leading-4 font-bold tracking-tight",
+      body: "text-base 2xl:text-lg leading-6",
+      body2: "text-sm 2xl:text-base leading-5",
+      caption: "text-sm 2xl:text-base leading-4 text-muted-foreground",
+      overline: "text-sm 2xl:text-base leading-4 font-bold tracking-tight",
     },
   },
   defaultVariants: {

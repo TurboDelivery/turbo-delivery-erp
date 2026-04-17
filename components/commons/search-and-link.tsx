@@ -1,4 +1,3 @@
-import SearchBar from "@/app/(protected)/trafic/searchBar";
 import { Badge } from "../ui/badge";
 import { Input } from "../ui/input";
 import { Map, Search } from "lucide-react";

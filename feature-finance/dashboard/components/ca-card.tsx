@@ -80,9 +80,9 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
         {/* Partie 1 : CA */}
         <div className="flex flex-col justify-between h-full">
           <div>
-            <h3 className="text-medium font-medium text-gray-600">{title}</h3>
+            <h3 className="text-medium 2xl:text-lg font-medium text-gray-600">{title}</h3>
             <div className="flex items-center gap-2 mt-2">
-              <p className="text-2xl font-bold text-green-600">{formatCFA(totalAmount)}</p>
+              <p className="text-2xl 2xl:text-3xl font-bold text-green-600">{formatCFA(totalAmount)}</p>
               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-100">
                 <ArrowUp className="w-4 h-4 text-green-600" />
               </div>
@@ -121,8 +121,8 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
                 <Receipt className="w-3 h-3 text-blue-600" />
               </div>
               <div>
-                <span className="text-sm font-medium text-gray-700">Frais Livraison</span>
-                <div className="text-base font-bold text-blue-600">{formatCFA(fraisLivraison)}</div>
+                <span className="text-sm 2xl:text-base font-medium text-gray-700">Frais Livraison</span>
+                <div className="text-base 2xl:text-lg font-bold text-blue-600">{formatCFA(fraisLivraison)}</div>
               </div>
             </div>
 
@@ -131,8 +131,8 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
                 <TrendingUp className="w-3 h-3 text-purple-600" />
               </div>
               <div>
-                <span className="text-sm font-medium text-gray-700">Commissions</span>
-                <div className="text-base font-bold text-purple-600">{formatCFA(commissions)}</div>
+                <span className="text-sm 2xl:text-base font-medium text-gray-700">Commissions</span>
+                <div className="text-base 2xl:text-lg font-bold text-purple-600">{formatCFA(commissions)}</div>
               </div>
             </div>
 
