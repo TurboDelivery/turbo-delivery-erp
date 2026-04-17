@@ -34,13 +34,13 @@ export function useValidationData(chargeType: ChargeType, role: Role) {
 export function useHistoryData(role: Role, enabled: boolean) {
   const backendRole = ROLE_TO_BACKEND[role] as 'DGA' | 'DG' | 'COMPTABLE';
   const historiqueQuery = useHistoriqueChargesQuery(
-    { page: 0, size: 100, role: backendRole },
+    { page: 0, size: 20, role: backendRole },
     enabled,
   );
 
   const depenses = useMemo<IDepense[]>(() => {
-    return (historiqueQuery.data ?? []).map(historiqueChargeToDepense);
-  }, [historiqueQuery.data]);
+    return (historiqueQuery.data?.content ?? []).map(historiqueChargeToDepense);
+  }, [historiqueQuery.data?.content]);
 
   return { depenses, isLoading: historiqueQuery.isLoading };
 }
