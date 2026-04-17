@@ -13,7 +13,7 @@ export function ValidationStats({ role, stats }: { role: Role; stats: IChargeTyp
     <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
       <StatCard icon={<FileText     className="h-5 w-5 text-blue-600"   />} iconBg="bg-blue-50"   label="Dépenses totales"   value={stats.comptable.total} />
       <StatCard icon={<CheckCircle2 className="h-5 w-5 text-green-600"  />} iconBg="bg-green-50"  label="À décaisser"         value={stats.comptable.aDecaisser} />
-      <StatCard icon={<Receipt      className="h-5 w-5 text-orange-600" />} iconBg="bg-orange-50" label="Décaissé ce mois"    value={formatCFA(stats.comptable.decaisse)} isText />
+      <StatCard icon={<Receipt      className="h-5 w-5 text-orange-600" />} iconBg="bg-orange-50" label="Décaissé ce mois"    value={(stats.comptable.decaisse)} isText />
     </div>
   );
 
