@@ -1,17 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, FileText, Pencil, X } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, FileText, Pencil, X, Download } from 'lucide-react';
 import { IDepense } from '@/features/depenses/types/depense.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { fmtDate } from './validation.constants';
 import { StatusBadge, TypeBadge } from './validation-badges';
 import { WorkflowStepper } from './workflow-stepper';
-import { ModifierForm } from './modifier-form';
 import { Can } from '@/components/auth/Can';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Download } from 'lucide-react';
 
 interface ValidationCardProps {
   depense: IDepense;
@@ -21,15 +19,14 @@ interface ValidationCardProps {
   onNext: () => void;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
-  onModifier: (id: string, updates: Partial<IDepense>) => void;
+  onEdit?: () => void;
   acceptLabel: string;
   canAct: boolean;
   isDGA: boolean;
   isPending: boolean;
 }
 
-export function ValidationCard({ depense, current, total, onPrev, onNext, onAccept, onReject, onModifier, acceptLabel, canAct, isDGA, isPending }: ValidationCardProps) {
-  const [showEdit, setShowEdit] = useState(false);
+export function ValidationCard({ depense, current, total, onPrev, onNext, onAccept, onReject, onEdit, acceptLabel, canAct, isDGA, isPending }: ValidationCardProps) {
   const [showJustificatif, setShowJustificatif] = useState(false);
 
   return (
@@ -128,52 +125,33 @@ export function ValidationCard({ depense, current, total, onPrev, onNext, onAcce
         </DialogContent>
       </Dialog>
 
-      {/* Formulaire modifier inline */}
-      {showEdit && (
-        <ModifierForm
-          depense={depense}
-          onSave={(updates) => {
-            onModifier(depense.id, updates);
-            setShowEdit(false);
-          }}
-          onCancel={() => setShowEdit(false)}
-        />
-      )}
-
       {/* Actions */}
       {canAct ? (
         isDGA ? (
-          // DGA : 3 actions — Rejeter | Modifier | Viser
-          <div className="grid grid-cols-3 border-t border-gray-200">
+          <div className={`grid ${onEdit ? 'grid-cols-3' : 'grid-cols-2'} border-t border-gray-200`}>
             <Can I="rejeter-dga" a="Depense">
               <button
-                onClick={() => {
-                  onReject(depense.id);
-                  setShowEdit(false);
-                }}
+                onClick={() => onReject(depense.id)}
                 disabled={isPending}
                 className="flex items-center justify-center gap-1.5 rounded-bl-xl py-4 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 border-r border-gray-200 transition-colors"
               >
                 <X className="h-4 w-4" /> Rejeter
               </button>
             </Can>
-            <Can I="update" a="Depense">
-              <button
-                onClick={() => setShowEdit((v) => !v)}
-                disabled={isPending}
-                className={`flex items-center justify-center gap-1.5 py-4 text-sm font-medium transition-colors border-r border-gray-200 ${
-                  showEdit ? 'bg-orange-50 text-orange-600' : 'text-orange-500 hover:bg-orange-50'
-                } disabled:opacity-50`}
-              >
-                <Pencil className="h-4 w-4" /> Modifier
-              </button>
-            </Can>
+            {onEdit && (
+              <Can I="update" a="Depense">
+                <button
+                  onClick={onEdit}
+                  disabled={isPending}
+                  className="flex items-center justify-center gap-1.5 py-4 text-sm font-medium text-orange-500 hover:bg-orange-50 disabled:opacity-50 border-r border-gray-200 transition-colors"
+                >
+                  <Pencil className="h-4 w-4" /> Modifier
+                </button>
+              </Can>
+            )}
             <Can I="valider-dga" a="Depense">
               <button
-                onClick={() => {
-                  onAccept(depense.id);
-                  setShowEdit(false);
-                }}
+                onClick={() => onAccept(depense.id)}
                 disabled={isPending}
                 className="flex items-center justify-center gap-1.5 rounded-br-xl bg-green-500 py-4 text-sm font-medium text-white hover:bg-green-600 disabled:opacity-50 transition-colors"
               >

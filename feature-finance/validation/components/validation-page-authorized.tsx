@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { Spinner } from '@heroui/react';
-import { IDepense } from '@/features/depenses/types/depense.type';
 import { useValidationData, useHistoryData } from '../hooks/use-validation-data';
 import { getPendingCount, useValidationStats } from '../hooks/use-validation-stats';
 import { useValidationActions } from '../hooks/use-validation-actions';
+import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
+import AddDepenseVariableModal from '@/feature-finance/charges/components/add-depense-variable-modal';
 import {
   ChargeType,
   Role,
@@ -24,8 +25,9 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
   const [chargeType, setChargeType] = useState<ChargeType>('variable');
   const [activeTab, setActiveTab] = useState<SubTab>('validation');
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [chargeVariableToEdit, setChargeVariableToEdit] = useState<IChargeVariable | null>(null);
 
-  const { depenses, isLoading } = useValidationData(chargeType, userRole);
+  const { depenses, rawVariables, isLoading } = useValidationData(chargeType, userRole);
   const { depenses: historyDepenses, isLoading: isLoadingHistory } = useHistoryData(chargeType, activeTab === 'historique');
   const { stats, isLoading: isLoadingStats } = useValidationStats(userRole, chargeType);
   const { handleAccept, handleReject, isPending } = useValidationActions(userRole, chargeType);
@@ -38,8 +40,12 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
     setCurrentIdx(0);
   };
 
-  const handleModifier = (_id: string, _updates: Partial<IDepense>) => {
-    // TODO: appeler l'API de modification de charge variable quand l'endpoint est prêt
+  const handleOpenEdit = () => {
+    if (chargeType !== 'variable' || !rawVariables) return;
+    const currentId = depenses[safeIdx]?.id;
+    if (!currentId) return;
+    const raw = rawVariables.find((v) => v.id === currentId);
+    if (raw) setChargeVariableToEdit(raw);
   };
 
   return (
@@ -73,7 +79,7 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
                   onNext={() => setCurrentIdx((i) => Math.min(depenses.length - 1, i + 1))}
                   onAccept={handleAccept}
                   onReject={handleReject}
-                  onModifier={handleModifier}
+                  onEdit={chargeType === 'variable' ? handleOpenEdit : undefined}
                   acceptLabel={ROLE_CONFIG[userRole].acceptLabel}
                   canAct={depenses.length > 0}
                   isDGA={userRole === 'dga'}
@@ -92,6 +98,12 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
           </>
         )}
       </main>
+
+      <AddDepenseVariableModal
+        isOpen={!!chargeVariableToEdit}
+        onClose={() => setChargeVariableToEdit(null)}
+        chargeToEdit={chargeVariableToEdit}
+      />
     </div>
   );
 }

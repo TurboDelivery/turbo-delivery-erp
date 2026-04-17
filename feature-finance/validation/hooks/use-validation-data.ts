@@ -16,9 +16,11 @@ export function useValidationData(chargeType: ChargeType, role: Role) {
     return (fixesQuery.data?.content ?? []).map(chargeFixeToDepense);
   }, [chargeType, variablesQuery.data, fixesQuery.data]);
 
+  const rawVariables = chargeType === 'variable' ? variablesQuery.data?.content : undefined;
+
   const isLoading = chargeType === 'variable' ? variablesQuery.isLoading : fixesQuery.isLoading;
 
-  return { depenses, isLoading };
+  return { depenses, rawVariables, isLoading };
 }
 
 export function useHistoryData(chargeType: ChargeType, enabled: boolean) {
