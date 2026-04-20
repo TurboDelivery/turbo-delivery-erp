@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import { ArrowLeft, ChevronDown, Plus } from 'lucide-react';
+import { ArrowLeft, ChevronDown, FileDown, Plus } from 'lucide-react';
 import { Button, Card, Select, SelectItem } from '@heroui/react';
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,7 +17,8 @@ import { CategorieDepenseList } from '@/feature-finance/depenses/components/depe
 import { buildMonthOptions, monthKeyToRange, rangeToMonthKey } from '../utils/month-filter.utils';
 import RepartitionDepense from '@/feature-finance/depenses/components/repartition';
 import { useDepenseExport } from '@/features/depenses/hooks/use-depense-export';
-import { FileDown } from 'lucide-react';
+import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
+import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
 
 export default function ChargesPageContentV2() {
   // Modals state
@@ -31,17 +32,17 @@ export default function ChargesPageContentV2() {
 
   const actionVariableMutation = useActionChargeVariableMutation();
 
-  const {
-    fixesTable, variablesTable,
-    isFixesLoading, isVariablesLoading,
-    fixesRemainingCount, variablesRemainingCount,
-    stats, isStatsLoading,
-    filters, setFilters,
-  } = useChargesDepensesV2({
-    onEditChargeFixe: (charge) => { setChargeToEdit(charge); setIsFixeModalOpen(true); },
+  const { fixesTable, variablesTable, isFixesLoading, isVariablesLoading, fixesRemainingCount, variablesRemainingCount, stats, isStatsLoading, filters, setFilters } = useChargesDepensesV2({
+    onEditChargeFixe: (charge) => {
+      setChargeToEdit(charge);
+      setIsFixeModalOpen(true);
+    },
     onDeleteChargeFixe: (charge) => setChargeToDelete(charge),
     onToggleChargeFixe: (charge, enabled) => setToggleTarget({ charge, enable: enabled }),
-    onEditChargeVariable: (charge) => { setChargeVariableToEdit(charge); setIsVariableModalOpen(true); },
+    onEditChargeVariable: (charge) => {
+      setChargeVariableToEdit(charge);
+      setIsVariableModalOpen(true);
+    },
     onApproveChargeVariable: (charge) => actionVariableMutation.mutate({ id: charge.id, action: 'valider-dga', dto: { par: 'Utilisateur' } }),
     onRejectChargeVariable: (charge) => actionVariableMutation.mutate({ id: charge.id, action: 'rejeter-dga', dto: { par: 'Utilisateur' } }),
     onViewJustificatif: (url) => setPreviewUrl(url),
@@ -50,27 +51,33 @@ export default function ChargesPageContentV2() {
   const monthOptions = useMemo(() => buildMonthOptions(), []);
   const selectedMonth = rangeToMonthKey(filters.debut);
 
-  const filterDates = useMemo(() => ({
-    debut: filters.debut ? new Date(filters.debut) : undefined,
-    fin: filters.fin ? new Date(filters.fin) : undefined,
-  }), [filters.debut, filters.fin]);
+  const filterDates = useMemo(
+    () => ({
+      debut: filters.debut ? new Date(filters.debut) : undefined,
+      fin: filters.fin ? new Date(filters.fin) : undefined,
+    }),
+    [filters.debut, filters.fin],
+  );
 
+  const { filters: depenseFilters, handleCategoriesChange } = useDepenseDashboardFilters();
   const { exportDepensesToExcel, isLoadingDepenseExport } = useDepenseExport();
 
   const handleExport = useCallback(() => {
     exportDepensesToExcel({ debut: filterDates.debut, fin: filterDates.fin });
   }, [exportDepensesToExcel, filterDates]);
 
-  const handleMonthChange = useCallback((keys: Set<string> | unknown) => {
-    const key = Array.from(keys as Iterable<string>)[0];
-    setFilters(monthKeyToRange(key));
-  }, [setFilters]);
+  const handleMonthChange = useCallback(
+    (keys: Set<string> | unknown) => {
+      const key = Array.from(keys as Iterable<string>)[0];
+      setFilters(monthKeyToRange(key));
+    },
+    [setFilters],
+  );
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
-
         <div>
           <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3">
             <ArrowLeft size={16} />
@@ -79,17 +86,11 @@ export default function ChargesPageContentV2() {
           <p className="text-sm text-gray-500 mt-1">Pilotage de la rentabilité en temps réel</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            color="success"
-            variant="flat"
-            size="sm"
-            isLoading={isLoadingDepenseExport}
-            onPress={handleExport}
-            startContent={!isLoadingDepenseExport && <FileDown size={16} />}
-          >
+          <Button color="success" variant="flat" size="sm" isLoading={isLoadingDepenseExport} onPress={handleExport} startContent={!isLoadingDepenseExport && <FileDown size={16} />}>
             {isLoadingDepenseExport ? 'Exportation...' : 'Exporter (Excel)'}
           </Button>
-          <Select selectedKeys={[selectedMonth]} onSelectionChange={handleMonthChange} className="w-[200px]" size="sm" aria-label="Période">
+          <CategoriesSelectFilter selectedCategories={depenseFilters.categoriesDepense || []} onCategoriesChange={handleCategoriesChange} />
+          <Select selectedKeys={[selectedMonth]} onSelectionChange={handleMonthChange} className="w-[280px]" size="sm" aria-label="Période">
             {monthOptions.map((m) => (
               <SelectItem key={m.key} value={m.key}>
                 {m.label}
@@ -101,10 +102,7 @@ export default function ChargesPageContentV2() {
 
       {/* Stats Cards */}
       <ChargesStatsCardsV2 stats={stats} isLoading={isStatsLoading} selectedMonth={selectedMonth} />
-      <RepartitionDepense
-        debut={filterDates.debut}
-        fin={filterDates.fin}
-      />
+      <RepartitionDepense debut={filterDates.debut} fin={filterDates.fin} />
       {/* Tabs: Charges & Catégories */}
       <Tabs defaultValue="charges" className="w-full">
         <TabsList className="grid w-full grid-cols-3 gap-2">
@@ -169,7 +167,12 @@ export default function ChargesPageContentV2() {
 
 // --- Sub-components ---
 
-function ChargesFixesSection({ table, isLoading, remainingCount, onAdd }: {
+function ChargesFixesSection({
+  table,
+  isLoading,
+  remainingCount,
+  onAdd,
+}: {
   table: ReturnType<typeof import('@tanstack/react-table').useReactTable<IChargeFixe>>;
   isLoading: boolean;
   remainingCount: number;
@@ -185,12 +188,7 @@ function ChargesFixesSection({ table, isLoading, remainingCount, onAdd }: {
           </Button>
         </Can>
       </div>
-      <ChargesTableV2
-        table={table}
-        isLoading={isLoading}
-        emptyMessage="Aucune charge fixe configurée"
-        getRowClassName={(row: IChargeFixe) => row.automatique ? 'bg-green-100' : ''}
-      />
+      <ChargesTableV2 table={table} isLoading={isLoading} emptyMessage="Aucune charge fixe configurée" getRowClassName={(row: IChargeFixe) => (row.automatique ? 'bg-green-100' : '')} />
       <div className="py-3 text-center border-t">
         <Link href="/finance/charges/details?tab=fixes" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
           <ChevronDown size={14} /> Voir plus ({remainingCount} restantes)
@@ -200,7 +198,12 @@ function ChargesFixesSection({ table, isLoading, remainingCount, onAdd }: {
   );
 }
 
-function DepensesVariablesSection({ table, isLoading, remainingCount, onAdd }: {
+function DepensesVariablesSection({
+  table,
+  isLoading,
+  remainingCount,
+  onAdd,
+}: {
   table: ReturnType<typeof import('@tanstack/react-table').useReactTable<IChargeVariable>>;
   isLoading: boolean;
   remainingCount: number;
