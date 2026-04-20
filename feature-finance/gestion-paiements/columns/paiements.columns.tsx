@@ -37,24 +37,14 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
       id: 'select',
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
+          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
       ),
       cell: ({ row }) => {
         const disabled = isDecaisse(row.original);
-        return (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            disabled={disabled}
-            aria-label="Select row"
-          />
-        );
+        return <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} disabled={disabled} aria-label="Select row" />;
       },
       enableSorting: false,
       enableHiding: false,
@@ -67,18 +57,12 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
     {
       id: 'categorie',
       header: 'Catégorie',
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? '—'}</span>
-      ),
+      cell: ({ row }) => <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? '—'}</span>,
     },
     {
       accessorKey: 'montant',
       header: 'Montant',
-      cell: ({ row }) => (
-        <span className="text-sm font-medium text-gray-900">
-          {row.getValue<number>('montant').toLocaleString('fr-FR')} FCFA
-        </span>
-      ),
+      cell: ({ row }) => <span className="text-sm font-medium text-gray-900">{row.getValue<number>('montant').toLocaleString('fr-FR')} FCFA</span>,
     },
     {
       accessorKey: 'statut',
@@ -97,30 +81,16 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
       id: 'action',
       header: 'Action',
       cell: ({ row }) => {
-        if (isDecaisse(row.original)) return null;
         return (
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              color="warning"
-              variant="flat"
-              startContent={<Wallet size={14} />}
-              isLoading={isPending}
-              onPress={() => onDecaisser(row.original.id)}
-            >
-              Décaisser
-            </Button>
+            {!isDecaisse(row.original) && (
+              <Button size="sm" color="warning" variant="flat" startContent={<Wallet size={14} />} isLoading={isPending} onPress={() => onDecaisser(row.original.id)}>
+                Décaisser
+              </Button>
+            )}
             {onDelete && (
               <Can I="delete" a="ChargeVariable">
-                <Button
-                  isIconOnly
-                  size="sm"
-                  color="danger"
-                  variant="flat"
-                  isLoading={isDeleting}
-                  onPress={() => onDelete(row.original.id)}
-                  aria-label="Supprimer la charge"
-                >
+                <Button isIconOnly size="sm" color="danger" variant="flat" isLoading={isDeleting} aria-label="Supprimer la charge">
                   <Trash2 size={14} />
                 </Button>
               </Can>
