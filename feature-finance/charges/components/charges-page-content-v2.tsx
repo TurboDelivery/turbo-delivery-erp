@@ -16,6 +16,8 @@ import { ChargesModals } from './charges-modals';
 import { CategorieDepenseList } from '@/feature-finance/depenses/components/depense-list/categorie-depense';
 import { buildMonthOptions, monthKeyToRange, rangeToMonthKey } from '../utils/month-filter.utils';
 import RepartitionDepense from '@/feature-finance/depenses/components/repartition';
+import { useDepenseExport } from '@/features/depenses/hooks/use-depense-export';
+import { FileDown } from 'lucide-react';
 
 export default function ChargesPageContentV2() {
   // Modals state
@@ -53,6 +55,12 @@ export default function ChargesPageContentV2() {
     fin: filters.fin ? new Date(filters.fin) : undefined,
   }), [filters.debut, filters.fin]);
 
+  const { exportDepensesToExcel, isLoadingDepenseExport } = useDepenseExport();
+
+  const handleExport = useCallback(() => {
+    exportDepensesToExcel({ debut: filterDates.debut, fin: filterDates.fin });
+  }, [exportDepensesToExcel, filterDates]);
+
   const handleMonthChange = useCallback((keys: Set<string> | unknown) => {
     const key = Array.from(keys as Iterable<string>)[0];
     setFilters(monthKeyToRange(key));
@@ -62,6 +70,7 @@ export default function ChargesPageContentV2() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
+
         <div>
           <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3">
             <ArrowLeft size={16} />
@@ -69,13 +78,25 @@ export default function ChargesPageContentV2() {
           <h1 className="text-2xl font-bold text-gray-900">Finance — Charges & Dépenses</h1>
           <p className="text-sm text-gray-500 mt-1">Pilotage de la rentabilité en temps réel</p>
         </div>
-        <Select selectedKeys={[selectedMonth]} onSelectionChange={handleMonthChange} className="w-[200px]" size="sm" aria-label="Période">
-          {monthOptions.map((m) => (
-            <SelectItem key={m.key} value={m.key}>
-              {m.label}
-            </SelectItem>
-          ))}
-        </Select>
+        <div className="flex items-center gap-2">
+          <Button
+            color="success"
+            variant="flat"
+            size="sm"
+            isLoading={isLoadingDepenseExport}
+            onPress={handleExport}
+            startContent={!isLoadingDepenseExport && <FileDown size={16} />}
+          >
+            {isLoadingDepenseExport ? 'Exportation...' : 'Exporter (Excel)'}
+          </Button>
+          <Select selectedKeys={[selectedMonth]} onSelectionChange={handleMonthChange} className="w-[200px]" size="sm" aria-label="Période">
+            {monthOptions.map((m) => (
+              <SelectItem key={m.key} value={m.key}>
+                {m.label}
+              </SelectItem>
+            ))}
+          </Select>
+        </div>
       </div>
 
       {/* Stats Cards */}
