@@ -32,6 +32,7 @@ export function TurboyActionMenu({ turboy }: { turboy: ITurboy }) {
 
   const items: MenuItem[] = [
     { key: 'details', label: 'Détails' },
+    { key: 'edit', label: 'Modifier' },
     ...(validateBy === 'auth' ? [{ key: 'validate', label: 'Valider' }] : []),
     ...(validateBy === 'ops' ? [{ key: 'activate', label: 'Activer' }] : []),
   ];
@@ -49,6 +50,7 @@ export function TurboyActionMenu({ turboy }: { turboy: ITurboy }) {
           items={items}
           onAction={(key) => {
             if (key === 'details') router.push(`/delivery-men/${turboy.id}`);
+            if (key === 'edit') router.push(`/delivery-men/men/${turboy.id}`);
             if (key === 'validate' || key === 'activate') setOpenValidate(true);
           }}
         >

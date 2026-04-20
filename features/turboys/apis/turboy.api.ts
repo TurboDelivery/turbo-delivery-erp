@@ -19,8 +19,9 @@ export const turboyAPI: ITurboyAPI = {
 
   async obtenirTurboy(id: string): Promise<ITurboy> {
     return await apiClientHttp.request<ITurboy>({
-      endpoint: `/api/erp/livreur/${id}`,
+      endpoint: `/api/erp/livreur/info/${id}`,
       method: 'GET',
+      service: 'backend',
     });
   },
 

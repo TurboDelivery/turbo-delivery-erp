@@ -1,67 +1,133 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { flexRender } from '@tanstack/react-table';
-import { Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
-import { Search } from 'lucide-react';
-import { title } from '@/components/primitives';
+import {
+  Button,
+  Input,
+  Pagination,
+  Select,
+  SelectItem,
+  Spinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+} from '@heroui/react';
+import { Download, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useRestaurantTable } from '@/features/restaurants/hooks/use-restaurant-table';
 
-export default function Content() {
-  const { table, isLoading, pagination, filters, setSearch } = useRestaurantTable();
+const TYPE_OPTIONS = [
+  { label: 'Tous les types', value: '' },
+  { label: 'Mensuel', value: 'MENSUEL' },
+  { label: 'Quotidien', value: 'QUOTIDIEN' },
+  { label: 'Hebdomadaire', value: 'HEBDOMADAIRE' },
+  { label: 'Quinzaine', value: 'QUINZAINE' },
+];
 
+export default function Content() {
+  const { table, isLoading, isFetching, pagination, filters, setSearch, setFilters } = useRestaurantTable();
   const colsCount = table.getAllColumns().length;
 
   return (
-    <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">
+    <div className="w-full pb-10 flex flex-col gap-6">
+      {/* ── Header ── */}
       <div className="flex items-center justify-between">
-        <h1 className={title({ size: 'h3', class: 'text-primary' })}>Restaurants</h1>
+        <h1 className="text-2xl font-bold text-primary">Partenaires</h1>
+        <div className="flex items-center gap-3">
+          <Button variant="bordered" startContent={<Download className="w-4 h-4" />} size="sm">
+            Exporter
+          </Button>
+          <Button color="primary" startContent={<Plus className="w-4 h-4" />} size="sm" as={Link} href="/restaurants/create">
+            Créer un profil
+          </Button>
+        </div>
       </div>
 
-      {/* Champ de recherche */}
-      <Input
-        startContent={<Search className="text-gray-500 w-4 h-4" />}
-        placeholder="Rechercher par nom de restaurant..."
-        value={filters.search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-1/2 mb-4"
-      />
+      {/* ── Search + filter ── */}
+      <div className="flex items-center gap-3">
+        <Input
+          className="flex-1"
+          startContent={<Search className="text-gray-400 w-4 h-4 shrink-0" />}
+          placeholder="Rechercher par nom, email ou localisation..."
+          value={filters.search ?? ''}
+          onChange={(e) => setSearch(e.target.value)}
+          variant="bordered"
+          size="sm"
+        />
+        <Select
+          aria-label="Filtrer par type"
+          className="w-44"
+          startContent={<SlidersHorizontal className="w-3.5 h-3.5 text-gray-400" />}
+          selectedKeys={['']}
+          size="sm"
+          variant="bordered"
+        >
+          {TYPE_OPTIONS.map((opt) => <SelectItem key={opt.value}>{opt.label}</SelectItem>)}
+        </Select>
+      </div>
 
-      <div className="overflow-x-auto">
+      {/* ── Table ── */}
+      <div className="relative rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+        {(isLoading || isFetching) && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60">
+            <Spinner color="primary" />
+          </div>
+        )}
         <Table
-          aria-label="Liste des restaurants"
-          isStriped
+          aria-label="Liste des partenaires"
+          removeWrapper
+          classNames={{
+            th: 'bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide',
+            td: 'py-3',
+          }}
           bottomContent={
-            pagination &&
-            pagination.pageCount > 1 && (
-              <div className="flex justify-center mt-8">
-                <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} isDisabled={isLoading} />
+            pagination && pagination.pageCount > 1 ? (
+              <div className="flex justify-center py-3 border-t border-gray-100">
+                <Pagination
+                  total={pagination.pageCount}
+                  page={pagination.page + 1}
+                  onChange={pagination.handlePageChange}
+                  isDisabled={isLoading}
+                  showControls
+                  color="primary"
+                  variant="bordered"
+                />
               </div>
-            )
+            ) : null
           }
         >
           <TableHeader>
             {table.getFlatHeaders().map((header) => (
-              <TableColumn key={header.id} className="text-primary" allowsSorting={header.column.getCanSort()} onClick={header.column.getToggleSortingHandler()}>
+              <TableColumn
+                key={header.id}
+                allowsSorting={header.column.getCanSort()}
+                onClick={header.column.getToggleSortingHandler()}
+              >
                 {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent={'Aucun restaurant trouvé.'}>
+          <TableBody emptyContent={isLoading ? ' ' : 'Aucun partenaire trouvé.'}>
             {isLoading
-              ? Array.from({ length: 10 }).map((_, i) => (
-                  <TableRow key={`skeleton-${i}`}>
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <TableRow key={`sk-${i}`}>
                     {Array.from({ length: colsCount }).map((_, j) => (
-                      <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                      <TableCell key={`sk-c-${j}`}>
+                        <div className="h-4 bg-gray-100 rounded w-full animate-pulse" />
                       </TableCell>
                     ))}
                   </TableRow>
                 ))
               : table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                  <TableRow key={row.id} className="hover:bg-gray-50 transition-colors">
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
                     ))}
                   </TableRow>
                 ))}

@@ -9,9 +9,6 @@ export class ApiClientHttp {
   constructor(baseUrl: string) {
     this.axiosInstance = axios.create({
       baseURL: baseUrl,
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
 
     // Interceptor pour gérer les réponses
@@ -19,8 +16,11 @@ export class ApiClientHttp {
       (response) => response,
       async (error: AxiosError) => {
         if (error.response?.status === 401) {
-          const url = new URL('/api/auth/logout', process.env.NEXT_PUBLIC_URL || '');
-          await fetch(url.toString(), { method: 'POST' });
+          try {
+            const base = process.env.NEXT_PUBLIC_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
+            const url = new URL('/api/auth/logout', base);
+            await fetch(url.toString(), { method: 'POST' });
+          } catch {}
         }
         return Promise.reject(error);
       },
@@ -28,10 +28,10 @@ export class ApiClientHttp {
 
     // Interceptor pour ajouter les en-têtes
     this.axiosInstance.interceptors.request.use(async (config) => {
+      if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+      }
       return config;
-      // const headers = await this.setHeaders();
-      // config.headers = headers;
-      // return config;
     });
   }
 
@@ -97,6 +97,7 @@ export class ApiClientHttp {
         ...config,
         baseURL: baseUrl,
         headers: {
+          'Content-Type': 'application/json',
           ...config?.headers,
           ...headers,
         },

@@ -16,7 +16,7 @@ export const useTurboysByTypeQuery = (params: ITurboyParams) => {
   return useQuery({
     queryKey: turboyKeys.list(params),
     queryFn: () => getTurboysByType(params),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0,
   });
 };
 
@@ -25,7 +25,7 @@ export const useTurboyQuery = (id: string) => {
     queryKey: turboyKeys.detail(id),
     queryFn: () => getTurboyById(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
   });
 };
 

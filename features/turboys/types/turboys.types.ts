@@ -18,6 +18,12 @@ export interface ITurboy {
   typeLivreur: TurboyType;
   cniUrlR: string | null;
   cniUrlV: string | null;
+  contratUrl: string | null;
+  vehiclePhotoUrl: string | null;
+  typeDocument: string | null;
+  typeVehicule: string | null;
+  nomVehicule: string | null;
+  telephoneCompte: string | null;
   status: number;
 }
 

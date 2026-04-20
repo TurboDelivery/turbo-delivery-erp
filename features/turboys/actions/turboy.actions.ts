@@ -6,7 +6,9 @@ import { handleServerActionError } from '@/utils/handleServerActionError';
 import { UpdateTurboyTypeDTO } from '@/features/turboys/schemas/turboy.schema';
 
 export async function getTurboysByType(params: ITurboyParams): Promise<PaginatedResponse<ITurboy>> {
-  return turboyAPI.obtenirTurboyParType(params);
+  const result = await turboyAPI.obtenirTurboyParType(params);
+  console.log('📋 Liste livreurs:', result);
+  return result;
 }
 
 export async function getTurboyById(id: string): Promise<ITurboy> {

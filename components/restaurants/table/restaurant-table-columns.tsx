@@ -2,45 +2,53 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
-import { Eye } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Eye, Pencil } from 'lucide-react';
 import React from 'react';
 import Link from 'next/link';
-import { Avatar, Badge } from '@heroui/react';
-import { createUrlFile } from '@/utils/createUrlFile';
+import { Button, Chip } from '@heroui/react';
 
-// Composant mémorisé pour les actions
-const RestaurantActions = React.memo(({ restaurant }: { restaurant: IRestaurant }) => {
-  return (
-    <Button size="icon" variant="ghost" asChild>
-      <Link href={`/restaurants/${restaurant.id}`}>
-        <Eye className="h-4 w-4" />
-      </Link>
-    </Button>
-  );
-});
+// ── Avatar coloré basé sur la première lettre ───────────────────────────────
+const AVATAR_COLORS = [
+  'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
+  'bg-green-500', 'bg-teal-500', 'bg-blue-500', 'bg-indigo-500',
+  'bg-purple-500', 'bg-pink-500',
+];
+function getAvatarColor(name: string) {
+  const code = name.charCodeAt(0) || 0;
+  return AVATAR_COLORS[code % AVATAR_COLORS.length];
+}
 
-RestaurantActions.displayName = 'RestaurantActions';
+// ── Statut ───────────────────────────────────────────────────────────────────
+function StatusChip({ status }: { status: number }) {
+  if (status === 3) return <Chip color="success" size="sm" variant="flat">Validé</Chip>;
+  if (status === 2) return <Chip color="warning" size="sm" variant="flat">En attente</Chip>;
+  if (status === 1) return <Chip color="secondary" size="sm" variant="flat">Validé Auth</Chip>;
+  return <Chip color="default" size="sm" variant="flat">Inactif</Chip>;
+}
 
-// Fonction pour déterminer le statut du compte
-const getAccountStatus = (status: number) => {
-  if (status === 3) {
-    return { label: 'Validé', variant: 'success' as const };
-  }
-  return { label: 'Inconnu', variant: 'secondary' as const };
+// ── Cycle de paiement ────────────────────────────────────────────────────────
+const RECOUVREMENT_LABELS: Record<string, string> = {
+  MENSUEL: 'Mensuel',
+  QUOTIDIEN: 'Quotidien',
+  HEBDOMADAIRE: 'Hebdomadaire',
+  QUINZAINE: 'Quinzaine',
 };
 
 export const restaurantColumns: ColumnDef<IRestaurant>[] = [
   {
     id: 'nomEtablissement',
     accessorKey: 'nomEtablissement',
-    header: 'Nom établissement',
+    header: 'NAME',
     cell: ({ row }) => {
-      const restaurant = row.original;
+      const r = row.original;
+      const letter = r.nomEtablissement?.[0]?.toUpperCase() ?? '?';
+      const color = getAvatarColor(r.nomEtablissement ?? '');
       return (
-        <div className="flex items-center gap-4">
-          <Avatar src={createUrlFile(restaurant?.logo_Url ?? '', 'restaurant')} />
-          <div className="font-medium capitalize">{restaurant.nomEtablissement}</div>
+        <div className="flex items-center gap-3 min-w-[160px]">
+          <div className={`w-8 h-8 rounded-full ${color} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
+            {letter}
+          </div>
+          <span className="font-medium text-sm text-gray-800 capitalize">{r.nomEtablissement}</span>
         </div>
       );
     },
@@ -49,54 +57,58 @@ export const restaurantColumns: ColumnDef<IRestaurant>[] = [
   {
     id: 'email',
     accessorKey: 'email',
-    header: 'Email',
-    cell: ({ row }) => row.original.email || '-',
+    header: 'EMAIL',
+    cell: ({ row }) => <span className="text-sm text-gray-500">{row.original.email || '-'}</span>,
     enableSorting: true,
   },
   {
     id: 'telephone',
     accessorKey: 'telephone',
-    header: 'Téléphone',
-    cell: ({ row }) => row.original.telephone || '-',
-    enableSorting: true,
-  },
-  {
-    id: 'methodRecouvrement',
-    accessorKey: 'methodRecouvrement',
-    header: 'Cycle de paiement',
-    cell: ({ row }) => row.original.methodRecouvrement || '-',
+    header: 'TÉLÉPHONE',
+    cell: ({ row }) => <span className="text-sm text-gray-500">{row.original.telephone || '-'}</span>,
     enableSorting: true,
   },
   {
     id: 'localisation',
     accessorKey: 'localisation',
-    header: 'Localisation',
-    cell: ({ row }) => {
-      const restaurant = row.original;
-      return (
-        <div className="max-w-xs">
-          <div className="font-medium">{restaurant.commune}</div>
-          <div className="text-xs text-muted-foreground truncate">{restaurant.localisation}</div>
-        </div>
-      );
-    },
+    header: 'LOCALISATION',
+    cell: ({ row }) => (
+      <span className="text-sm text-gray-500">{row.original.localisation || row.original.commune || '-'}</span>
+    ),
+    enableSorting: true,
+  },
+  {
+    id: 'methodRecouvrement',
+    accessorKey: 'methodRecouvrement',
+    header: 'CYCLE DE PAIEMENT',
+    cell: ({ row }) => (
+      <span className="text-sm text-gray-500">
+        {RECOUVREMENT_LABELS[row.original.methodRecouvrement] ?? row.original.methodRecouvrement ?? '-'}
+      </span>
+    ),
     enableSorting: true,
   },
   {
     id: 'status',
     accessorKey: 'status',
-    header: 'État du compte',
-    cell: ({ row }) => {
-      const restaurant = row.original;
-      const statusInfo = getAccountStatus(restaurant.status);
-      return <Badge color={statusInfo.variant}>{statusInfo.label}</Badge>;
-    },
+    header: 'STATUS',
+    cell: ({ row }) => <StatusChip status={row.original.status} />,
     enableSorting: true,
   },
   {
     id: 'actions',
-    header: '',
-    cell: ({ row }) => <RestaurantActions restaurant={row.original} />,
+    header: 'ACTION',
+    cell: ({ row }) => (
+      <div className="flex items-center gap-1">
+        <Button size="sm" variant="light" isIconOnly as={Link} href={`/restaurants/${row.original.id}`} title="Voir">
+          <Eye className="w-4 h-4 text-gray-400" />
+        </Button>
+        <Button size="sm" variant="light" isIconOnly as={Link} href={`/restaurants/${row.original.id}/edit`} title="Modifier">
+          <Pencil className="w-4 h-4 text-gray-400" />
+        </Button>
+      </div>
+    ),
     enableSorting: false,
   },
 ];
+

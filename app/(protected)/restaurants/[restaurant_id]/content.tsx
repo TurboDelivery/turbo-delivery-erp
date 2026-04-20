@@ -1,237 +1,291 @@
 'use client';
 
-import { ArrowLeft } from 'lucide-react';
-import Image from 'next/image';
-import { Button, Card, CardBody, CardHeader, Input, Select, SelectItem, Textarea } from '@heroui/react';
-
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createUrlFile } from '@/utils/createUrlFile';
-import { formatTime } from '@/lib/date';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
-import { updateCommission } from '@/src/restaurants/restaurants.actions';
-import { useCallback, useState } from 'react';
-import { IRestaurant } from '@/features/restaurants';
-import { MethodRecouvrementType } from '@/features/restaurants/types/restaurant.type';
+import { Button, Input, Select, SelectItem, Textarea } from '@heroui/react';
+import { ArrowLeft, ExternalLink, FileText, FileImage } from 'lucide-react';
+import {
+  updateRestaurantSchema,
+  type UpdateRestaurantDTO,
+  METHOD_RECOUVREMENT_OPTIONS,
+  TYPE_COMMISSION_OPTIONS,
+} from '@/features/restaurants/schemas/update-restaurant.schema';
+import { updateRestaurant } from '@/features/restaurants/actions/update-restaurant.action';
+import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
+import { createUrlFile } from '@/utils/createUrlFile';
 
-export default function Content({ restaurant }: { restaurant: IRestaurant }) {
-  const router = useRouter();
+// ─── Section title ─────────────────────────────────────────────────────────────
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return <h2 className="text-base font-semibold text-primary mb-4">{children}</h2>;
+}
 
-  const dayOrder = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
-  const sortedHours = [...restaurant.openingHours].sort((a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek));
-
-  const [type, setType] = useState<string>(restaurant.typeCommission);
-  const [paymentPeriod, setPaymentPeriod] = useState<MethodRecouvrementType>(restaurant.methodRecouvrement || 'MENSUEL');
-  const [isLoading, setIsLoading] = useState(false);
-  const [commissionValue, setCommissionValue] = useState<number>(restaurant.commission);
-
-  const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setType(e.target.value);
-  }, []);
-
-  const handlePaymentPeriodChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPaymentPeriod(e.target.value as MethodRecouvrementType);
-  }, []);
-
-  const handleSubmit = useCallback(async () => {
-    setIsLoading(true);
-
-    try {
-      // Validation
-      if (type === 'POURCENTAGE' && commissionValue > 100) {
-        toast.error('Le pourcentage ne peut pas dépasser 100%.');
-        setIsLoading(false);
-        return;
-      }
-
-      const res = await updateCommission({
-        body: {
-          restoId: restaurant.id,
-          type,
-          commission: commissionValue,
-          methodRecouvrement: paymentPeriod, // Ajouter la période de paiement
-        },
-      });
-
-      if (res.status === 'success') {
-        toast.success('Bravo, votre action a été prise en compte');
-      } else {
-        toast.error("Désolé, votre action n'a pas été prise en compte");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error('Une erreur est survenue, veuillez réessayer');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [restaurant, type, commissionValue, paymentPeriod]); // ✅ Ajouté paymentPeriod ici
+// ─── Document preview card ─────────────────────────────────────────────────────
+function DocPreview({ label, url }: { label: string; url: string }) {
+  const isPdf = /\.pdf(\?|$)/i.test(url);
+  const [imgError, setImgError] = useState(false);
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div onClick={() => router.back()} className="text-gray-600 dark:text-white hover:text-primary cursor-pointer">
-              <ArrowLeft className="h-6 w-6" />
+    <div className="flex flex-col gap-1.5">
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <a href={url} target="_blank" rel="noreferrer" className="group relative block">
+        {!isPdf && !imgError ? (
+          <>
+            <img
+              src={url}
+              alt={label}
+              className="w-full h-28 object-cover rounded-lg border border-gray-200"
+              onError={() => setImgError(true)}
+            />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 rounded-lg flex items-center justify-center transition-opacity">
+              <ExternalLink className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white capitalize">{restaurant?.nomEtablissement}</h1>
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-lg border-2 border-gray-200 bg-gray-50 hover:border-primary hover:bg-primary/5 transition-colors text-gray-500 hover:text-primary">
+            {isPdf ? <FileText className="w-8 h-8" /> : <FileImage className="w-8 h-8" />}
+            <span className="text-[11px] font-medium text-center px-2 truncate w-full">
+              {imgError ? 'Voir le document' : label}
+            </span>
           </div>
-        </div>
-      </header>
+        )}
+      </a>
+    </div>
+  );
+}
 
-      <main className="container mx-auto lg:px-4 py-8">
-        <div>
-          <div className="relative h-64 w-full mb-8 rounded-lg overflow-hidden">
-            <Image src={createUrlFile(restaurant.pictures[0]?.pictureUrl ?? '', 'restaurant')} alt="Restaurant cover" className="object-cover" fill unoptimized />
-            <div className="absolute left-8 bottom-8 bg-white p-2 rounded-lg">
-              <Image src={createUrlFile(restaurant.logo_Url ?? '', 'restaurant')} alt="Restaurant logo" width={80} height={80} className="rounded" unoptimized />
+// ─── Main form ─────────────────────────────────────────────────────────────────
+export default function Content({ restaurant }: { restaurant: IRestaurant }) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<UpdateRestaurantDTO>({
+    resolver: zodResolver(updateRestaurantSchema),
+    defaultValues: {
+      nomEtablissement: '',
+      description: '',
+      email: '',
+      telephone: '',
+      codePostal: '',
+      commune: '',
+      localisation: '',
+      siteWeb: '',
+      typeCommission: '',
+      commission: 0,
+      methodRecouvrement: undefined,
+    },
+  });
+
+  useEffect(() => {
+    if (restaurant) {
+      reset({
+        nomEtablissement: restaurant.nomEtablissement ?? '',
+        description: restaurant.description ?? '',
+        email: restaurant.email ?? '',
+        telephone: restaurant.telephone ?? '',
+        codePostal: restaurant.codePostal ?? '',
+        commune: restaurant.commune ?? '',
+        localisation: restaurant.localisation ?? '',
+        siteWeb: restaurant.siteWeb ?? '',
+        typeCommission: restaurant.typeCommission ?? '',
+        commission: restaurant.commission ?? 0,
+        methodRecouvrement: restaurant.methodRecouvrement ?? undefined,
+      });
+    }
+  }, [restaurant, reset]);
+
+  const typeCommission = watch('typeCommission');
+
+  async function onSubmit(values: UpdateRestaurantDTO) {
+    setIsSubmitting(true);
+    const result = await updateRestaurant(restaurant.id, values);
+    setIsSubmitting(false);
+    if (result.status === 'success') {
+      toast.success(result.message);
+      router.push('/restaurants');
+    } else {
+      toast.error(result.message);
+    }
+  }
+
+  const logoUrl = restaurant.logo_Url ? createUrlFile(restaurant.logo_Url, 'restaurant') : null;
+  const docUrl = restaurant.documentUrl ? createUrlFile(restaurant.documentUrl, 'restaurant') : null;
+  const cniUrl = restaurant.cni ? createUrlFile(restaurant.cni, 'restaurant') : null;
+  const pictureUrls = restaurant.pictures?.slice(0, 4).map((p) => ({
+    id: p.id,
+    url: createUrlFile(p.pictureUrl, 'restaurant'),
+  })) ?? [];
+  const hasDocuments = logoUrl || docUrl || cniUrl || pictureUrls.length > 0;
+
+  return (
+    <div className="max-w-7xl mx-auto pb-16">
+      {/* Back link */}
+      <Link
+        href="/restaurants"
+        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-4 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Retour à la liste
+      </Link>
+
+      <h1 className="text-2xl font-bold text-primary mb-1">Modifier le profil</h1>
+      <p className="text-sm text-gray-500 mb-8 capitalize">{restaurant.nomEtablissement}</p>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
+
+        {/* ── Documents actuels ── */}
+        {hasDocuments && (
+          <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <SectionTitle>Documents actuels</SectionTitle>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {logoUrl && <DocPreview label="Logo" url={logoUrl} />}
+              {cniUrl && <DocPreview label="CNI propriétaire" url={cniUrl} />}
+              {docUrl && <DocPreview label="Document légal" url={docUrl} />}
+              {pictureUrls.map((p, i) => (
+                <DocPreview key={p.id} label={`Photo ${i + 1}`} url={p.url} />
+              ))}
             </div>
+          </section>
+        )}
+
+        {/* ── Informations générales ── */}
+        <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <SectionTitle>Informations générales</SectionTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Controller
+              name="nomEtablissement"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} label="Nom de l'établissement" placeholder="Mon Restaurant" isInvalid={!!errors.nomEtablissement} errorMessage={errors.nomEtablissement?.message} variant="bordered" />
+              )}
+            />
+            <Controller
+              name="email"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} type="email" label="Email" placeholder="restaurant@example.com" isInvalid={!!errors.email} errorMessage={errors.email?.message} variant="bordered" />
+              )}
+            />
+            <Controller
+              name="telephone"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} label="Téléphone" placeholder="+225 0000000000" isInvalid={!!errors.telephone} errorMessage={errors.telephone?.message} variant="bordered" />
+              )}
+            />
+            <Controller
+              name="localisation"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} label="Localisation" placeholder="Adresse complète" isInvalid={!!errors.localisation} errorMessage={errors.localisation?.message} variant="bordered" />
+              )}
+            />
+            <Controller
+              name="commune"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} label="Commune" placeholder="Cocody" isInvalid={!!errors.commune} errorMessage={errors.commune?.message} variant="bordered" />
+              )}
+            />
+            <Controller
+              name="codePostal"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} label="Code postal" placeholder="00225" isInvalid={!!errors.codePostal} errorMessage={errors.codePostal?.message} variant="bordered" />
+              )}
+            />
+            <Controller
+              name="siteWeb"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} label="Site web" placeholder="https://www.site.com" isInvalid={!!errors.siteWeb} errorMessage={errors.siteWeb?.message} variant="bordered" className="sm:col-span-2" />
+              )}
+            />
+            <Controller
+              name="description"
+              control={control}
+              render={({ field }) => (
+                <Textarea {...field} label="Description" placeholder="Décrivez votre établissement..." isInvalid={!!errors.description} errorMessage={errors.description?.message} variant="bordered" className="sm:col-span-2" minRows={3} />
+              )}
+            />
           </div>
+        </section>
 
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <h2 className="text-xl font-semibold text-red-600 mb-6">Informations Générales</h2>
-              </CardHeader>
-              <CardBody className="md:grid grid-cols-2 gap-6">
-                <Input label="Nom de l'établissement" labelPlacement="outside" value={restaurant?.nomEtablissement ?? ''} placeholder={restaurant?.nomEtablissement ?? ''} variant="bordered" />
-                <Input label="Email" type="email" labelPlacement="outside" value={restaurant?.email ?? ''} placeholder={restaurant?.email ?? ''} variant="bordered" />
-                <Input label="Localisation" labelPlacement="outside" value={restaurant?.localisation ?? ''} placeholder={restaurant?.localisation ?? ''} variant="bordered" />
-                <Input label="Téléphone" labelPlacement="outside" value={restaurant?.telephone ?? ''} placeholder={restaurant?.telephone ?? ''} variant="bordered" />
-                <Input label="Commune" labelPlacement="outside" value={restaurant?.commune ?? ''} placeholder={restaurant?.commune ?? ''} variant="bordered" />
-                <Input label="Code Postal" labelPlacement="outside" value={restaurant?.codePostal ?? ''} placeholder={restaurant?.codePostal ?? ''} variant="bordered" />
-                <Select label="Type d'entreprise" defaultSelectedKeys={['restaurant']} labelPlacement="outside" variant="bordered">
-                  <SelectItem key="restaurant" value="restaurant">
-                    Restaurant
-                  </SelectItem>
-                  <SelectItem key="cafe" value="cafe">
-                    Café
-                  </SelectItem>
-                  <SelectItem key="bar" value="bar">
-                    Bar
-                  </SelectItem>
-                </Select>
-                <Input label="Site web (si disponible)" labelPlacement="outside" value={restaurant?.siteWeb ?? ''} placeholder={restaurant?.siteWeb ?? 'https://www.site.com'} variant="bordered" />
-
-                <div className="col-span-2">
-                  <Textarea label="Description" labelPlacement="outside" value={restaurant?.description ?? ''} placeholder={restaurant?.description ?? ''} variant="bordered" />
-                </div>
-              </CardBody>
-            </Card>
-
-            {/* Ajout */}
-
-            <Card>
-              <CardHeader>
-                <h2 className="text-xl font-semibold text-red-600 mb-6">Type de commission</h2>
-              </CardHeader>
-              <CardBody className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-4">
-                  <Select
-                    id="commission-type-select"
-                    label="Choisissez le type de commission"
-                    defaultSelectedKeys={[type]}
-                    labelPlacement="outside"
-                    variant="bordered"
-                    isDisabled={isLoading}
-                    onChange={handleTypeChange}
-                  >
-                    <SelectItem key="FIXE" value="FIXE">
-                      Fixe
-                    </SelectItem>
-                    <SelectItem key="POURCENTAGE" value="POURCENTAGE">
-                      Pourcentage
-                    </SelectItem>
-                  </Select>
-
-                  {type === 'POURCENTAGE' && (
-                    <Input
-                      placeholder="Pourcentage (%) Ex: 10"
-                      type="number"
-                      labelPlacement="outside"
-                      variant="bordered"
-                      max={100}
-                      min={0}
-                      value={commissionValue.toString()}
-                      onChange={(e) => setCommissionValue(parseFloat(e.target.value))}
-                    />
-                  )}
-                </div>
+        {/* ── Configuration financière ── */}
+        <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <SectionTitle>Configuration financière</SectionTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Controller
+              name="typeCommission"
+              control={control}
+              render={({ field }) => (
                 <Select
-                  label="Choisissez la periode de recouvrement"
-                  defaultSelectedKeys={[paymentPeriod as string]}
-                  labelPlacement="outside"
+                  label="Type de commission"
+                  placeholder="Sélectionner un type"
+                  selectedKeys={field.value ? [field.value] : []}
+                  onSelectionChange={(keys) => field.onChange(Array.from(keys as Set<string>)[0] ?? '')}
                   variant="bordered"
-                  isDisabled={isLoading}
-                  onChange={handlePaymentPeriodChange}
                 >
-                  <SelectItem key="MENSUEL" value="MENSUEL">
-                    Mensuelle
-                  </SelectItem>
-                  <SelectItem key="QUINZAINE" value="QUINZAINE">
-                    Bi-hebdomadaire
-                  </SelectItem>
-                  <SelectItem key="HEBDOMADAIRE" value="HEBDOMADAIRE">
-                    Hebdomadaire
-                  </SelectItem>
-                  <SelectItem key="QUOTIDIEN" value="QUOTIDIEN">
-                    Journalière
-                  </SelectItem>
+                  {TYPE_COMMISSION_OPTIONS.map((o) => <SelectItem key={o.value}>{o.label}</SelectItem>)}
                 </Select>
-
-                <div className="flex flex-col justify-end">
-                  <Button onPress={handleSubmit} color="primary" isLoading={isLoading} disabled={isLoading} className="mt-4 self-end">
-                    Valider mon choix
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <h2 className="text-xl font-semibold text-red-600 mb-6">Type de Cuisines</h2>
-              </CardHeader>
-              <CardBody>Restaurant de cuisine Française, Italienne, Chinoise</CardBody>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <h2 className="text-xl font-semibold text-red-600 mb-6">Horaires d&apos;ouverture</h2>
-              </CardHeader>
-              <CardBody>
-                {sortedHours.map((hour, index) => (
-                  <div key={hour.id} className={`flex justify-between py-1 px-2 transition-all border hover:border-red-500 ${index % 2 ? 'bg-red-50' : 'bg-white'}`}>
-                    <span className="font-medium">{hour.dayOfWeek}</span>
-                    {hour.closed ? (
-                      <span>
-                        Fermé
-                      </span>
-                    ) : (
-                      <span>
-                        {formatTime(hour.openingTime)} - {formatTime(hour.closingTime)}
-                      </span>
-                    )}
-                  </div>
-                ))}
-              </CardBody>
-            </Card>
-
-            <Card className="p-2 md:p-6">
-              <CardHeader>
-                <h2 className="text-lg font-medium mb-4">Photos de l&apos;établissement</h2>
-              </CardHeader>
-              <CardBody>
-                <div className="grid grid-cols-4 gap-4">
-                  {restaurant?.pictures?.map((picture) => (
-                    <div key={picture.id} className="relative aspect-square rounded-lg overflow-hidden">
-                      <Image src={createUrlFile(picture.pictureUrl ?? '', 'restaurant')} alt={`Restaurant photo ${picture.id}`} fill className="object-cover" />
-                    </div>
-                  ))}
-                </div>
-              </CardBody>
-            </Card>
+              )}
+            />
+            {(typeCommission === 'POURCENTAGE' || typeCommission === 'FIXE') && (
+              <Controller
+                name="commission"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    value={field.value?.toString() ?? '0'}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    type="number"
+                    label={typeCommission === 'POURCENTAGE' ? 'Commission (%)' : 'Commission (montant fixe)'}
+                    placeholder={typeCommission === 'POURCENTAGE' ? '10' : '5000'}
+                    min={0}
+                    max={typeCommission === 'POURCENTAGE' ? 100 : undefined}
+                    variant="bordered"
+                  />
+                )}
+              />
+            )}
+            <Controller
+              name="methodRecouvrement"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Cycle de paiement"
+                  placeholder="Sélectionner une période"
+                  selectedKeys={field.value ? [field.value] : []}
+                  onSelectionChange={(keys) => field.onChange(Array.from(keys as Set<string>)[0] ?? undefined)}
+                  variant="bordered"
+                >
+                  {METHOD_RECOUVREMENT_OPTIONS.map((o) => <SelectItem key={o.value}>{o.label}</SelectItem>)}
+                </Select>
+              )}
+            />
           </div>
+        </section>
+
+        {/* ── Footer actions ── */}
+        <div className="flex items-center justify-end gap-3 pt-2">
+          <Button type="button" variant="flat" as={Link} href="/restaurants">
+            Annuler
+          </Button>
+          <Button type="submit" color="primary" isLoading={isSubmitting}>
+            Enregistrer les modifications
+          </Button>
         </div>
-      </main>
+      </form>
     </div>
   );
 }

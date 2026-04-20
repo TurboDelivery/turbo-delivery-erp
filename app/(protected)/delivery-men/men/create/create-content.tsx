@@ -7,7 +7,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
 import { Button, Input, Select, SelectItem } from '@heroui/react';
-import { ArrowLeft, Camera, Upload, Plus, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, Plus, Eye, EyeOff, FileText } from 'lucide-react';
 import {
   createTurboySchema,
   type CreateTurboyDTO,
@@ -76,6 +76,7 @@ export default function CreateContent() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [cniFiles, setCniFiles] = useState<File[]>([]);
   const [vehicleFile, setVehicleFile] = useState<File | null>(null);
+  const [contratFile, setContratFile] = useState<File | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -118,6 +119,7 @@ export default function CreateContent() {
     if (avatarFile) fd.append('avatar', avatarFile);
     cniFiles.forEach((f, i) => fd.append(`cni_${i}`, f));
     if (vehicleFile) fd.append('vehiclePhoto', vehicleFile);
+    if (contratFile) fd.append('contrat', contratFile);
 
     const result = await createLivreur(fd);
     setIsSubmitting(false);
@@ -173,6 +175,26 @@ export default function CreateContent() {
               <p className="text-sm font-medium text-gray-700">Téléchargez une photo</p>
               <p className="text-xs text-gray-400">JPG, PNG ou GIF (max: 2MB)</p>
             </div>
+          </div>
+
+          {/* Contrat */}
+          <div className="mt-5 pt-5 border-t border-gray-100">
+            <p className="text-sm font-medium text-gray-700 mb-2">Contrat du livreur</p>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
+                <FileText className="w-4 h-4 shrink-0" />
+                <span>{contratFile ? contratFile.name : 'Importer le contrat (PDF, JPG, PNG)'}</span>
+              </div>
+              <input
+                type="file"
+                accept=".pdf,image/*"
+                className="hidden"
+                onChange={(e) => { if (e.target.files?.[0]) setContratFile(e.target.files[0]); }}
+              />
+            </label>
+            {contratFile && (
+              <p className="text-xs text-green-600 mt-1.5">{contratFile.name} sélectionné</p>
+            )}
           </div>
         </section>
 
