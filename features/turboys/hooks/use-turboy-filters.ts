@@ -49,11 +49,11 @@ export const useTurboyFilters = () => {
     }));
   };
 
-  const setTypeLivreur = (typeLivreur: TurboyType) => {
+  const setTypeLivreur = (typeLivreur: TurboyType | null) => {
     setFilters((prev) => ({
       ...prev,
       typeLivreur,
-      page: 0, // Reset to first page when changing type
+      page: 0,
     }));
   };
 

@@ -2,10 +2,16 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
-import { Eye, Pencil } from 'lucide-react';
+import { BadgeCheck, Diamond, Eye, MoreHorizontal, Pencil } from 'lucide-react';
 import React from 'react';
 import Link from 'next/link';
 import { Button, Chip } from '@heroui/react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 // ── Avatar coloré basé sur la première lettre ───────────────────────────────
 const AVATAR_COLORS = [
@@ -19,7 +25,8 @@ function getAvatarColor(name: string) {
 }
 
 // ── Statut ───────────────────────────────────────────────────────────────────
-function StatusChip({ status }: { status: number }) {
+function StatusChip({ status, typeCommission }: { status: number; typeCommission?: string }) {
+  if (typeCommission === 'GRATUIT') return <Chip color="warning" size="sm" variant="flat">Gratuite</Chip>;
   if (status === 3) return <Chip color="success" size="sm" variant="flat">Validé</Chip>;
   if (status === 2) return <Chip color="warning" size="sm" variant="flat">En attente</Chip>;
   if (status === 1) return <Chip color="secondary" size="sm" variant="flat">Validé Auth</Chip>;
@@ -34,6 +41,33 @@ const RECOUVREMENT_LABELS: Record<string, string> = {
   QUINZAINE: 'Quinzaine',
 };
 
+// ── Actions dropdown ─────────────────────────────────────────────────────────
+function ActionsMenu({ id }: { id: string }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" variant="light" isIconOnly aria-label="Actions">
+          <MoreHorizontal className="w-4 h-4 text-gray-400" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuItem asChild>
+          <Link href={`/restaurants/${id}`} className="flex items-center gap-2 cursor-pointer">
+            <Eye className="w-4 h-4" />
+            Voir
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={`/restaurants/${id}/edit`} className="flex items-center gap-2 cursor-pointer">
+            <Pencil className="w-4 h-4" />
+            Modifier
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export const restaurantColumns: ColumnDef<IRestaurant>[] = [
   {
     id: 'nomEtablissement',
@@ -43,12 +77,20 @@ export const restaurantColumns: ColumnDef<IRestaurant>[] = [
       const r = row.original;
       const letter = r.nomEtablissement?.[0]?.toUpperCase() ?? '?';
       const color = getAvatarColor(r.nomEtablissement ?? '');
+      const isVerified = r.status === 3;
+      const isGratuite = r.typeCommission === 'GRATUIT';
       return (
         <div className="flex items-center gap-3 min-w-[160px]">
           <div className={`w-8 h-8 rounded-full ${color} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
             {letter}
           </div>
           <span className="font-medium text-sm text-gray-800 capitalize">{r.nomEtablissement}</span>
+          {isVerified && !isGratuite && (
+            <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />
+          )}
+          {isGratuite && (
+            <Diamond className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+          )}
         </div>
       );
     },
@@ -92,22 +134,15 @@ export const restaurantColumns: ColumnDef<IRestaurant>[] = [
     id: 'status',
     accessorKey: 'status',
     header: 'STATUS',
-    cell: ({ row }) => <StatusChip status={row.original.status} />,
+    cell: ({ row }) => (
+      <StatusChip status={row.original.status} typeCommission={row.original.typeCommission} />
+    ),
     enableSorting: true,
   },
   {
     id: 'actions',
     header: 'ACTION',
-    cell: ({ row }) => (
-      <div className="flex items-center gap-1">
-        <Button size="sm" variant="light" isIconOnly as={Link} href={`/restaurants/${row.original.id}`} title="Voir">
-          <Eye className="w-4 h-4 text-gray-400" />
-        </Button>
-        <Button size="sm" variant="light" isIconOnly as={Link} href={`/restaurants/${row.original.id}/edit`} title="Modifier">
-          <Pencil className="w-4 h-4 text-gray-400" />
-        </Button>
-      </div>
-    ),
+    cell: ({ row }) => <ActionsMenu id={row.original.id} />,
     enableSorting: false,
   },
 ];

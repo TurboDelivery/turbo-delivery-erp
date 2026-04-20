@@ -7,7 +7,7 @@ export const turboyFiltersClient = {
     page: parseAsInteger.withDefault(0),
     orderBy: parseAsString.withDefault('nom'),
     orderDirection: parseAsString.withDefault('asc'),
-    typeLivreur: parseAsStringLiteral(['INDEPENDANT', 'JOURNALIER']).withDefault('INDEPENDANT')
+    typeLivreur: parseAsStringLiteral(['INDEPENDANT', 'JOURNALIER'])
   },
   options: {
     shallow: true,

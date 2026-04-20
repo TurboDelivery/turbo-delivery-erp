@@ -52,7 +52,7 @@ export default function Content({
 
   function handleCardClick(card: ActiveCard) {
     setActiveCard(card);
-    if (card === 'all') setFilters((prev) => ({ ...prev, typeLivreur: '' as TurboyType, page: 0 }));
+    if (card === 'all') setFilters((prev) => ({ ...prev, typeLivreur: null, page: 0 }));
     else if (card === 'journalier') setFilters((prev) => ({ ...prev, typeLivreur: 'JOURNALIER' as TurboyType, page: 0 }));
     else if (card === 'independant') setFilters((prev) => ({ ...prev, typeLivreur: 'INDEPENDANT' as TurboyType, page: 0 }));
   }
@@ -88,7 +88,7 @@ export default function Content({
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap">
+      <div className="grid grid-cols-2 gap-4 w-full sm:grid-cols-4">
         <StatCard
           label="Total turboys"
           value={totalCount}

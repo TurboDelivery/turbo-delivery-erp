@@ -58,10 +58,12 @@ export default function Content() {
           variant="bordered"
           size="sm"
         />
+        <Button isIconOnly variant="bordered" size="sm" aria-label="Filtres" className="shrink-0">
+          <SlidersHorizontal className="w-4 h-4 text-gray-400" />
+        </Button>
         <Select
           aria-label="Filtrer par type"
-          className="w-44"
-          startContent={<SlidersHorizontal className="w-3.5 h-3.5 text-gray-400" />}
+          className="w-44 shrink-0"
           selectedKeys={['']}
           size="sm"
           variant="bordered"

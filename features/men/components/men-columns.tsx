@@ -1,7 +1,7 @@
 import React from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Chip } from '@heroui/react';
-import { MapPin } from 'lucide-react';
+import { Mail, MapPin } from 'lucide-react';
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
 import { AvatarCell } from './avatar-cell';
 import { StatusChip } from './status-chip';
@@ -18,7 +18,10 @@ export const menColumns: ColumnDef<ITurboy>[] = [
           <AvatarCell turboy={t} />
           <div className="flex flex-col">
             <span className="font-medium text-sm text-gray-800">{t.prenoms} {t.nom}</span>
-            <span className="text-xs text-gray-400">{t.email ?? '-'}</span>
+            <span className="flex items-center gap-1 text-xs text-gray-400">
+              <Mail className="w-3 h-3 shrink-0" />
+              {t.email ?? '-'}
+            </span>
           </div>
         </div>
       );
@@ -26,10 +29,10 @@ export const menColumns: ColumnDef<ITurboy>[] = [
   },
   {
     accessorKey: 'salaire',
-    header: 'SALAIRE',
+    header: 'COMMISSION',
     cell: ({ row }) => (
       <span className="text-sm text-gray-500">
-        {row.original.salaire ? `${row.original.salaire.toLocaleString('fr-FR')} FCFA` : '--'}
+        {row.original.salaire != null ? `${row.original.salaire}%` : '--'}
       </span>
     ),
   },
@@ -39,7 +42,7 @@ export const menColumns: ColumnDef<ITurboy>[] = [
     cell: ({ row }) => {
       const type = row.original.typeLivreur;
       return (
-        <Chip color={type === 'INDEPENDANT' ? 'warning' : 'secondary'} size="sm" variant="flat">
+        <Chip color={type === 'INDEPENDANT' ? 'success' : 'secondary'} size="sm" variant="flat">
           {type === 'INDEPENDANT' ? 'Indépendant' : 'Journalier'}
         </Chip>
       );
@@ -47,7 +50,7 @@ export const menColumns: ColumnDef<ITurboy>[] = [
   },
   {
     accessorKey: 'habitation',
-    header: 'LOCALISATION',
+    header: 'DOMICILIÉ',
     cell: ({ row }) => (
       <div className="flex items-center gap-1 text-sm text-gray-500">
         <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
@@ -62,7 +65,7 @@ export const menColumns: ColumnDef<ITurboy>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'ETAT DU COMPTE',
+    header: 'ÉTAT DU COMPTE',
     cell: ({ row }) => <StatusChip status={row.original.status} />,
   },
   {

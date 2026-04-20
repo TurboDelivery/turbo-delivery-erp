@@ -15,7 +15,7 @@ export function StatCard({ label, value, highlight, isActive, onClick }: StatCar
     return (
       <div
         onClick={onClick}
-        className={`cursor-pointer flex items-center justify-between rounded-lg px-5 py-4 text-white min-w-[180px] transition-all duration-150 ${
+        className={`cursor-pointer flex items-center justify-between rounded-lg px-5 py-4 text-white w-full transition-all duration-150 ${
           isActive
             ? 'bg-primary ring-2 ring-primary ring-offset-2 scale-[1.02]'
             : 'bg-primary/80 hover:bg-primary'
@@ -29,13 +29,13 @@ export function StatCard({ label, value, highlight, isActive, onClick }: StatCar
   return (
     <div
       onClick={onClick}
-      className={`cursor-pointer flex items-center justify-between rounded-lg border px-5 py-4 min-w-[140px] transition-all duration-150 ${
+      className={`cursor-pointer flex items-center justify-between rounded-lg border px-5 py-4 w-full transition-all duration-150 ${
         isActive
           ? 'border-primary bg-primary/10 ring-2 ring-primary ring-offset-2 scale-[1.02]'
           : 'border-gray-200 bg-white hover:border-primary/50'
       }`}
     >
-      <span className={`text-sm ${isActive ? 'text-primary font-medium' : 'text-gray-600'}`}>{label}</span>
+      <span className={`text-sm ${isActive ? 'text-primary font-medium' : 'text-black font-extrabold text-md'}`}>{label}</span>
       <span className="text-3xl font-bold text-primary">{value}</span>
     </div>
   );
