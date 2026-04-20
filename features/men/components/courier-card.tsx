@@ -1,0 +1,55 @@
+'use client';
+
+import React from 'react';
+import { Chip } from '@heroui/react';
+import { Mail, MapPin, Phone } from 'lucide-react';
+import { type ITurboy } from '@/features/turboys/types/turboys.types';
+import { AvatarCell } from './avatar-cell';
+import { StatusChip } from './status-chip';
+import { TurboyActionMenu } from './turboy-action-menu';
+
+export function CourierCard({ turboy }: { turboy: ITurboy }) {
+  const salaire = turboy.salaire ? `${turboy.salaire.toLocaleString('fr-FR')} Fcfa` : '-- Fcfa';
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-center gap-3">
+        <AvatarCell turboy={turboy} size="lg" />
+        <div className="flex flex-col">
+          <span className="font-semibold text-gray-900 text-sm leading-tight">
+            {turboy.prenoms} {turboy.nom}
+          </span>
+          <div className="mt-1">
+            <Chip
+              color={turboy.typeLivreur === 'INDEPENDANT' ? 'warning' : 'secondary'}
+              size="sm"
+              variant="flat"
+            >
+              {turboy.typeLivreur === 'INDEPENDANT' ? 'Indépendant' : 'Journalier'}
+            </Chip>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5 text-xs text-gray-500">
+        <div className="flex items-center gap-2">
+          <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+          <span className="truncate">{turboy.email ?? '-'}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+          <span>{turboy.telephone ?? '-'}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+          <span className="truncate">{turboy.habitation ?? '-'}</span>
+        </div>
+      </div>
+      <div className="flex items-center justify-between pt-1 border-t border-gray-100">
+        <StatusChip status={turboy.status} />
+        <span className="text-xs text-gray-400 font-mono">{salaire}</span>
+      </div>
+      <div className="flex items-center justify-end pt-1 border-t border-gray-100">
+        <TurboyActionMenu turboy={turboy} />
+      </div>
+    </div>
+  );
+}

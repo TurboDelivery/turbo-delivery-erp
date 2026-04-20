@@ -358,3 +358,20 @@ export async function mettreLivreurEnAttente(livreurId: string): Promise<any> {
         }
     }
 }
+
+// Compter les turboys par type (même endpoint que le tableau /delivery-men/men)
+export async function getTurboyCount(typeLivreur?: 'INDEPENDANT' | 'JOURNALIER'): Promise<number> {
+    try {
+        const params: Record<string, string> = { page: '0', size: '1' };
+        if (typeLivreur) params.typeLivreur = typeLivreur;
+        const data = await apiClientHttp.request<PaginatedResponse<any>>({
+            endpoint: `${BASE_URL}/livreur/parType`,
+            method: 'GET',
+            service: 'backend',
+            params,
+        });
+        return data?.totalElements ?? 0;
+    } catch (error) {
+        return 0;
+    }
+}
