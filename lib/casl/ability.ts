@@ -83,6 +83,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', 'all');
       can('create', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('update', ['ChargeFixe', 'ChargeVariable', 'Depense']);
+      can('delete', ['ChargeVariable']);
       can('valider-dga', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('rejeter-dga', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('decaisser', ['ChargeFixe', 'ChargeVariable', 'Depense']);

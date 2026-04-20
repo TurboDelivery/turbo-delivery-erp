@@ -2,8 +2,9 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Button, Chip } from '@heroui/react';
-import { Wallet } from 'lucide-react';
+import { Trash2, Wallet } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Can } from '@/components/auth/Can';
 import { IChargeFixe, StatutChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
 
 const STATUT_CONFIG: Record<string, { label: string; color: 'warning' | 'primary' | 'success' | 'danger' | 'default' }> = {
@@ -26,32 +27,24 @@ function isDecaisse(row: IChargeFixe) {
 type PaiementsColumnsOptions = {
   onDecaisser: (id: string) => void;
   isPending: boolean;
+  onDelete?: (id: string) => void;
+  isDeleting?: boolean;
 };
 
-export function createPaiementsColumns({ onDecaisser, isPending }: PaiementsColumnsOptions): ColumnDef<IChargeFixe>[] {
+export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDeleting }: PaiementsColumnsOptions): ColumnDef<IChargeFixe>[] {
   return [
     {
       id: 'select',
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && 'indeterminate')
-          }
+          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
         />
       ),
       cell: ({ row }) => {
         const disabled = isDecaisse(row.original);
-        return (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            disabled={disabled}
-            aria-label="Select row"
-          />
-        );
+        return <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} disabled={disabled} aria-label="Select row" />;
       },
       enableSorting: false,
       enableHiding: false,
@@ -64,18 +57,12 @@ export function createPaiementsColumns({ onDecaisser, isPending }: PaiementsColu
     {
       id: 'categorie',
       header: 'Catégorie',
-      cell: ({ row }) => (
-        <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? '—'}</span>
-      ),
+      cell: ({ row }) => <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? '—'}</span>,
     },
     {
       accessorKey: 'montant',
       header: 'Montant',
-      cell: ({ row }) => (
-        <span className="text-sm font-medium text-gray-900">
-          {row.getValue<number>('montant').toLocaleString('fr-FR')} FCFA
-        </span>
-      ),
+      cell: ({ row }) => <span className="text-sm font-medium text-gray-900">{row.getValue<number>('montant').toLocaleString('fr-FR')} FCFA</span>,
     },
     {
       accessorKey: 'statut',
@@ -94,18 +81,21 @@ export function createPaiementsColumns({ onDecaisser, isPending }: PaiementsColu
       id: 'action',
       header: 'Action',
       cell: ({ row }) => {
-        if (isDecaisse(row.original)) return null;
         return (
-          <Button
-            size="sm"
-            color="warning"
-            variant="flat"
-            startContent={<Wallet size={14} />}
-            isLoading={isPending}
-            onPress={() => onDecaisser(row.original.id)}
-          >
-            Décaisser
-          </Button>
+          <div className="flex items-center gap-2">
+            {!isDecaisse(row.original) && (
+              <Button size="sm" color="warning" variant="flat" startContent={<Wallet size={14} />} isLoading={isPending} onPress={() => onDecaisser(row.original.id)}>
+                Décaisser
+              </Button>
+            )}
+            {onDelete && (
+              <Can I="delete" a="ChargeVariable">
+                <Button isIconOnly size="sm" color="danger" variant="flat" isLoading={isDeleting} aria-label="Supprimer la charge">
+                  <Trash2 size={14} />
+                </Button>
+              </Can>
+            )}
+          </div>
         );
       },
     },
