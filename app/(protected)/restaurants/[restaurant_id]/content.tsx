@@ -107,7 +107,11 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
 
   async function onSubmit(values: UpdateRestaurantDTO) {
     setIsSubmitting(true);
-    const result = await updateRestaurant(restaurant.id, values);
+    const fd = new FormData();
+    Object.entries(values).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) fd.append(k, String(v));
+    });
+    const result = await updateRestaurant(restaurant.id, fd);
     setIsSubmitting(false);
     if (result.status === 'success') {
       toast.success(result.message);
