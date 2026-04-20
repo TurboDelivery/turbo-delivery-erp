@@ -18,17 +18,11 @@ export function useDepenseExport() {
   const { mutate: exportDepensesData, isPending: isLoadingDepenseExport, isError: isErrorDepenseExport, data: depenseExportData } = useMutation(
     async (params: UseDepenseExportParams) => {
       try {
-        console.log('🔍 Dépenses Export - Plage de dates:', params.debut, 'à', params.fin);
-        console.log('🔍 Dépenses Export - Catégories:', params.categoriesDepense);
-        
         // Utiliser la même API que le dashboard pour la cohérence
         const statsData: IDepenseStats = await depenseAPI.obtenirStatsDepenses({
           debut: params.debut,
           fin: params.fin,
         });
-        
-        console.log('📊 Stats du dashboard:', statsData);
-        console.log('💰 Montant total du dashboard:', statsData.montant_total, 'CFA');
         
         // Récupérer les dépenses individuelles pour le détail
         let allDepenses: IDepense[] = [];
@@ -44,10 +38,6 @@ export function useDepenseExport() {
             limit: params.limit || 1000,
           });
           
-          console.log(`📊 Page ${currentPage + 1}:`, response.content?.length, 'dépenses');
-          console.log(`📊 Page ${currentPage + 1} - Total pages:`, response.totalPages);
-          console.log(`📊 Page ${currentPage + 1} - Total elements:`, response.totalElements);
-          
           if (response.content && response.content.length > 0) {
             allDepenses = [...allDepenses, ...response.content];
             hasMoreData = currentPage < (response.totalPages || 1) - 1;
@@ -57,16 +47,11 @@ export function useDepenseExport() {
           }
         }
         
-        console.log('📊 Total des dépenses récupérées:', allDepenses.length);
-        
         // Calculer le total des montants pour comparaison
         const totalMontant = allDepenses.reduce((sum, depense) => {
           console.log(`💰 Addition: ${sum} + ${depense.montant} = ${sum + depense.montant}`);
           return sum + depense.montant;
         }, 0);
-        console.log('💰 Total calculé dans l\'export:', totalMontant, 'CFA');
-        console.log('💰 Total du dashboard:', statsData.montant_total, 'CFA');
-        console.log('🔄 Différence:', totalMontant - statsData.montant_total, 'CFA');
         
         // Générer les données Excel
         const worksheetData = allDepenses.map((depense) => ({
@@ -126,9 +111,7 @@ export function useDepenseExport() {
         
         // Générer le fichier Excel
         const xlsxData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-        
-        console.log('📊 Fichier Excel généré:', xlsxData.length, 'bytes');
-        
+
         // Nom de fichier personnalisé avec plage de dates et heure
         let fileName = 'depenses_export';
         const now = new Date();

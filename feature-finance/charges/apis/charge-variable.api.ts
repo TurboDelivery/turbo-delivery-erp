@@ -2,9 +2,9 @@ import { api } from '@/lib/api';
 import {
   IChargeVariable,
   IChargeVariableCreateDTO,
-  IChargeVariableUpdateDTO,
   IChargeVariableParams,
-  IWorkflowDecisionDto,
+  IChargeVariableUpdateDTO,
+  IWorkflowDecisionDto
 } from '../types/charge-variable.type';
 import { PaginatedResponse } from '@/types/general';
 

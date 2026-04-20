@@ -5,19 +5,16 @@ import { categorieDepenseKeyQuery } from './index.query';
 import { toast } from 'sonner';
 import getQueryClient from '@/lib/get-query-client';
 import { ITopCategoriesSearchParams } from '@/features/depenses/types/categorie-depense.type';
+import { categorieDepenseAPI } from '@/features/depenses/apis/categorie-depense.api';
 
 const queryClient = getQueryClient();
 
 // 1- Option de requête optimisée
 export const top4CategorieDepenseQueryOption = (params: ITopCategoriesSearchParams) => {
   return {
-    queryKey: categorieDepenseKeyQuery('top4', params),
+    queryKey: categorieDepenseKeyQuery('top10', params),
     queryFn: async () => {
-      const result = await obtenirTop4CategoriesDepensesAction(params);
-      if (!result.success) {
-        throw new Error(result.error || 'Erreur lors de la récupération du top 4 des catégories');
-      }
-      return result.data!;
+      return await categorieDepenseAPI.top4CategoriesDepenses(params);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true,

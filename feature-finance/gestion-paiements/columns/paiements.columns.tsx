@@ -90,7 +90,7 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
             )}
             {onDelete && (
               <Can I="delete" a="ChargeVariable">
-                <Button isIconOnly size="sm" color="danger" variant="flat" isLoading={isDeleting} aria-label="Supprimer la charge">
+                <Button isIconOnly size="sm" color="danger" variant="flat" onPress={() => onDelete(row.original.id)} isLoading={isDeleting} aria-label="Supprimer la charge">
                   <Trash2 size={14} />
                 </Button>
               </Can>
