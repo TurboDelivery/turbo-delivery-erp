@@ -6,6 +6,7 @@ import { depenseKeyQuery } from './index.query';
 import { toast } from 'sonner';
 import { obtenirDepensesSummaryAction } from '@/feature-finance/depenses/actions/depense.action';
 import { IDepenseSummaryParams } from '@/features/depenses/types/depense.type';
+import { depenseAPI } from '@/features/depenses/apis/depense.api';
 
 const queryClient = getQueryClient();
 
@@ -14,11 +15,7 @@ export const depenseSummaryQueryOption = (params: IDepenseSummaryParams) => {
   return {
     queryKey: depenseKeyQuery('summary', params),
     queryFn: async () => {
-      const result = await obtenirDepensesSummaryAction(params);
-      if (!result.success) {
-        throw new Error(result.error);
-      }
-      return result.data!;
+      return await depenseAPI.obtenirDepensesSummary(params);
     },
     staleTime: 5 * 60 * 1000, //5 minutes
   };

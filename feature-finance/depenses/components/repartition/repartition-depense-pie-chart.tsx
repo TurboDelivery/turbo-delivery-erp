@@ -47,15 +47,23 @@ function generateChartConfig(categoriesDepense: ITopCategorieDepense[]): ChartCo
   return config;
 }
 
-export default function RepartitionDepensePieChart({ className }: { className?: string }) {
+interface RepartitionDepensePieChartProps {
+  className?: string;
+  debut?: Date;
+  fin?: Date;
+}
+
+export default function RepartitionDepensePieChart({ className, debut: debutProp, fin: finProp }: RepartitionDepensePieChartProps) {
   const { filters } = useDepenseDashboardFilters();
+  const debut = debutProp ?? filters.debut;
+  const fin = finProp ?? filters.fin;
   const {
     data: categoriesDepense,
     isLoading,
     isError,
   } = useTopCategorieDepenseQuery({
-    debut: filters.debut,
-    fin: filters.fin,
+    debut,
+    fin,
     categorieIds: filters.categoriesDepense,
   });
 
@@ -66,9 +74,9 @@ export default function RepartitionDepensePieChart({ className }: { className?: 
     <Card className={cn('flex flex-col', className)}>
       <CardHeader className="items-center pb-0">
         <CardTitle>Répartition des dépenses</CardTitle>
-        {filters.debut && filters.fin && (
+        {debut && fin && (
           <CardDescription>
-            {format(filters.debut, 'd LLL Y', { locale: fr })} - {format(filters.fin, 'd LLL Y', { locale: fr })}
+            {format(debut, 'd LLL y', { locale: fr })} - {format(fin, 'd LLL y', { locale: fr })}
           </CardDescription>
         )}
       </CardHeader>

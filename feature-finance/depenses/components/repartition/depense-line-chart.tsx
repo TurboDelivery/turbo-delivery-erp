@@ -70,7 +70,7 @@ export default function DepenseLineChart({ className }: { className?: string }) 
             <div className="text-muted-foreground">Chargement...</div>
           </div>
         ) : chartData.length > 0 ? (
-          <ChartContainer config={chartConfig}>
+          <ChartContainer config={chartConfig} className="h-[220px] w-full">
             <LineChart
               accessibilityLayer
               data={chartData}

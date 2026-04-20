@@ -79,8 +79,6 @@ export const depenseAPI: IDepenseAPI = {
   },
 
   obtenirStatsDepenses(params: IDepenseStatsParams): Promise<IDepenseStats> {
-    console.log('🌐 API - Appel obtenirStatsDepenses avec:', params);
-    
     const searchParams = new URLSearchParams();
     
     if (params.debut) {
@@ -98,8 +96,7 @@ export const depenseAPI: IDepenseAPI = {
     }
     
     const url = `/finance/depenses/stats${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    console.log('📤 URL Stats:', url);
-    
+
     return api.request<IDepenseStats>({
       endpoint: url,
       method: 'GET',

@@ -6,12 +6,19 @@ import { DepenseSummaryPieChartTable } from '@/components/depenses/charts/depens
 import React from 'react';
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
 
-export default function RepartitionDepense() {
-  const {filters} = useDepenseDashboardFilters();
+interface RepartitionDepenseProps {
+  debut?: Date;
+  fin?: Date;
+}
+
+export default function RepartitionDepense({ debut: debutProp, fin: finProp }: RepartitionDepenseProps = {}) {
+  const { filters } = useDepenseDashboardFilters();
+  const debut = debutProp ?? filters.debut;
+  const fin = finProp ?? filters.fin;
   return (
     <div className="grid grid-cols-5 gap-4">
-      <DepenseSummaryPieChartTable className="col-span-3" debut={filters.debut} fin={filters.fin} categoriesDepense={filters.categoriesDepense} />
-      <RepartitionDepensePieChart className="col-span-2" />
+      <DepenseSummaryPieChartTable className="col-span-3" debut={debut} fin={fin} categoriesDepense={filters.categoriesDepense} />
+      <RepartitionDepensePieChart className="col-span-2" debut={debut} fin={fin} />
       <DepenseLineChart className="col-span-full" />
     </div>
   );

@@ -15,6 +15,7 @@ import ChargesTableV2 from './charges-table-v2';
 import { ChargesModals } from './charges-modals';
 import { CategorieDepenseList } from '@/feature-finance/depenses/components/depense-list/categorie-depense';
 import { buildMonthOptions, monthKeyToRange, rangeToMonthKey } from '../utils/month-filter.utils';
+import RepartitionDepense from '@/feature-finance/depenses/components/repartition';
 
 export default function ChargesPageContentV2() {
   // Modals state
@@ -47,6 +48,11 @@ export default function ChargesPageContentV2() {
   const monthOptions = useMemo(() => buildMonthOptions(), []);
   const selectedMonth = rangeToMonthKey(filters.debut);
 
+  const filterDates = useMemo(() => ({
+    debut: filters.debut ? new Date(filters.debut) : undefined,
+    fin: filters.fin ? new Date(filters.fin) : undefined,
+  }), [filters.debut, filters.fin]);
+
   const handleMonthChange = useCallback((keys: Set<string> | unknown) => {
     const key = Array.from(keys as Iterable<string>)[0];
     setFilters(monthKeyToRange(key));
@@ -63,22 +69,21 @@ export default function ChargesPageContentV2() {
           <h1 className="text-2xl font-bold text-gray-900">Finance — Charges & Dépenses</h1>
           <p className="text-sm text-gray-500 mt-1">Pilotage de la rentabilité en temps réel</p>
         </div>
-        <Select
-          selectedKeys={[selectedMonth]}
-          onSelectionChange={handleMonthChange}
-          className="w-[200px]"
-          size="sm"
-          aria-label="Période"
-        >
+        <Select selectedKeys={[selectedMonth]} onSelectionChange={handleMonthChange} className="w-[200px]" size="sm" aria-label="Période">
           {monthOptions.map((m) => (
-            <SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>
+            <SelectItem key={m.key} value={m.key}>
+              {m.label}
+            </SelectItem>
           ))}
         </Select>
       </div>
 
       {/* Stats Cards */}
       <ChargesStatsCardsV2 stats={stats} isLoading={isStatsLoading} selectedMonth={selectedMonth} />
-
+      <RepartitionDepense
+        debut={filterDates.debut}
+        fin={filterDates.fin}
+      />
       {/* Tabs: Charges & Catégories */}
       <Tabs defaultValue="charges" className="w-full">
         <TabsList className="grid w-full grid-cols-3 gap-2">
@@ -92,7 +97,10 @@ export default function ChargesPageContentV2() {
             table={fixesTable}
             isLoading={isFixesLoading}
             remainingCount={fixesRemainingCount}
-            onAdd={() => { setChargeToEdit(null); setIsFixeModalOpen(true); }}
+            onAdd={() => {
+              setChargeToEdit(null);
+              setIsFixeModalOpen(true);
+            }}
           />
         </TabsContent>
 
@@ -101,7 +109,10 @@ export default function ChargesPageContentV2() {
             table={variablesTable}
             isLoading={isVariablesLoading}
             remainingCount={variablesRemainingCount}
-            onAdd={() => { setChargeVariableToEdit(null); setIsVariableModalOpen(true); }}
+            onAdd={() => {
+              setChargeVariableToEdit(null);
+              setIsVariableModalOpen(true);
+            }}
           />
         </TabsContent>
 
@@ -113,10 +124,16 @@ export default function ChargesPageContentV2() {
       {/* All Modals */}
       <ChargesModals
         isFixeModalOpen={isFixeModalOpen}
-        onCloseFixeModal={() => { setIsFixeModalOpen(false); setChargeToEdit(null); }}
+        onCloseFixeModal={() => {
+          setIsFixeModalOpen(false);
+          setChargeToEdit(null);
+        }}
         chargeToEdit={chargeToEdit}
         isVariableModalOpen={isVariableModalOpen}
-        onCloseVariableModal={() => { setIsVariableModalOpen(false); setChargeVariableToEdit(null); }}
+        onCloseVariableModal={() => {
+          setIsVariableModalOpen(false);
+          setChargeVariableToEdit(null);
+        }}
         chargeVariableToEdit={chargeVariableToEdit}
         toggleTarget={toggleTarget}
         onCloseToggle={() => setToggleTarget(null)}
