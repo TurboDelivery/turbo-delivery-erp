@@ -23,7 +23,7 @@ import {
 import { Grid2x2, List, Search, SlidersHorizontal } from 'lucide-react';
 import { useTurboysByTypeQuery } from '@/features/turboys/queries/turboy-list.query';
 import { useTurboyFilters } from '@/features/turboys/hooks/use-turboy-filters';
-import { type ITurboy, type TurboyType } from '@/features/turboys/types/turboys.types';
+import { type TurboyType } from '@/features/turboys/types/turboys.types';
 import { menColumns } from './men-columns';
 import { CourierCard } from './courier-card';
 
@@ -34,58 +34,29 @@ const TYPE_OPTIONS = [
 ];
 
 const PAGE_SIZE = 10;
-const ALL_DATA_LIMIT = 1000;
 
 export function TurboysPanel() {
   const { filters, setFilters, setSearch, setTypeLivreur, setViewMode } = useTurboyFilters();
   const viewMode = filters.viewMode;
 
-  // Debounce: attend 350ms avant de déclencher le filtrage
+  // Debounce: attend 350ms avant d'envoyer la requête
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search ?? '');
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(filters.search ?? ''), 350);
     return () => clearTimeout(id);
   }, [filters.search]);
 
-  const isSearching = debouncedSearch.trim().length > 0;
-
-  // Quand recherche active → charge tout + filtre côté client
-  // Quand recherche vide → pagination serveur normale
   const queryParams = useMemo(() => ({
-    page: isSearching ? 0 : (filters.page ?? 0),
-    limit: isSearching ? ALL_DATA_LIMIT : (filters.limit ?? PAGE_SIZE),
+    page: filters.page ?? 0,
+    limit: filters.limit ?? PAGE_SIZE,
     typeLivreur: filters.typeLivreur ?? undefined,
-  }), [isSearching, filters.page, filters.limit, filters.typeLivreur]);
+    search: debouncedSearch.trim() || undefined,
+  }), [filters.page, filters.limit, filters.typeLivreur, debouncedSearch]);
 
   const { data: turboysData, isLoading, isFetching } = useTurboysByTypeQuery(queryParams);
-  const allTurboys = turboysData?.content ?? [];
+  const turboys = turboysData?.livreurs?.content ?? [];
 
-  // Filtrage client-side sur nom, prénom, téléphone, email, matricule
-  const filteredTurboys = useMemo<ITurboy[]>(() => {
-    if (!isSearching) return allTurboys;
-    const term = debouncedSearch.toLowerCase();
-    return allTurboys.filter((t) => {
-      return (
-        t.nom?.toLowerCase().includes(term) ||
-        t.prenoms?.toLowerCase().includes(term) ||
-        t.telephone?.toLowerCase().includes(term) ||
-        t.email?.toLowerCase().includes(term) ||
-        t.matricule?.toLowerCase().includes(term) ||
-        t.habitation?.toLowerCase().includes(term)
-      );
-    });
-  }, [allTurboys, isSearching, debouncedSearch]);
-
-  // Pagination côté client quand on filtre
-  const clientPage = isSearching ? (filters.page ?? 0) : 0;
-  const turboys = isSearching
-    ? filteredTurboys.slice(clientPage * PAGE_SIZE, (clientPage + 1) * PAGE_SIZE)
-    : allTurboys;
-
-  const totalPages = isSearching
-    ? Math.max(1, Math.ceil(filteredTurboys.length / PAGE_SIZE))
-    : (turboysData?.totalPages ?? 1);
-
+  const totalPages = turboysData?.livreurs?.totalPages ?? 1;
   const currentPage = (filters.page ?? 0) + 1;
 
   const table = useReactTable({

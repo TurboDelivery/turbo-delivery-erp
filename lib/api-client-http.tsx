@@ -93,13 +93,14 @@ export class ApiClientHttp {
         }[service] || '';
 
       const headers = await this.getHeaders(service);
+      const authToken = headers.get('Authorization');
       config = {
         ...config,
         baseURL: baseUrl,
         headers: {
           'Content-Type': 'application/json',
           ...config?.headers,
-          ...headers,
+          ...(authToken ? { Authorization: authToken } : {}),
         },
       };
     }
@@ -128,18 +129,17 @@ export class ApiClientHttp {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        // Log helpful error information
-        // console.error('API Request failed:', {
-        //     status: error.response?.status,
-        //     statusText: error.response?.statusText,
-        //     url: error.config?.url,
-        //     baseUrl: error.config?.baseURL,
-        //     method: error.config?.method,
-        //     headers: error.config?.headers,
-        //     data: error.response?.data,
-        // });
+        console.error('API Request failed:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            url: error.config?.url,
+            baseUrl: error.config?.baseURL,
+            method: error.config?.method,
+            hasAuth: !!error.config?.headers?.['Authorization'] || !!error.config?.headers?.['authorization'],
+            responseData: error.response?.data,
+        });
       } else {
-        // console.error('API error inconnue:', error);
+        console.error('API error inconnue:', error);
       }
 
       throw error;

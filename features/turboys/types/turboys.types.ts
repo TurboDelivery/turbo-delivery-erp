@@ -27,7 +27,8 @@ export interface ITurboy {
   telephoneCompte: string | null;
   status: number;
   commission: number | null;
-  avenants: string[] | null;
+  avenantUrls: string[] | null;
+  type: string | null;
 }
 
 export interface ITurboyParams {
@@ -37,6 +38,14 @@ export interface ITurboyParams {
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
   typeLivreur?: TurboyType;
+}
+
+export interface TurboyListResponse {
+  totalCount: number;
+  journalierCount: number;
+  independantCount: number;
+  demandesCount: number;
+  livreurs: import('@/types/general').PaginatedResponse<ITurboy>;
 }
 
 export interface IUpdateTurboyTypePayload {

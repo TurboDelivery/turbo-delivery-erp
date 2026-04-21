@@ -1,14 +1,11 @@
 import { turboyAPI } from '@/features/turboys/apis/turboy.api';
-import { ITurboyParams, ITurboy, IUpdateTurboyTypePayload } from '@/features/turboys/types/turboys.types';
-import { PaginatedResponse } from '@/types/general';
+import { ITurboyParams, ITurboy, IUpdateTurboyTypePayload, TurboyListResponse } from '@/features/turboys/types/turboys.types';
 import { ActionResponse } from '@/types';
 import { handleServerActionError } from '@/utils/handleServerActionError';
 import { UpdateTurboyTypeDTO } from '@/features/turboys/schemas/turboy.schema';
 
-export async function getTurboysByType(params: ITurboyParams): Promise<PaginatedResponse<ITurboy>> {
-  const result = await turboyAPI.obtenirTurboyParType(params);
-  console.log('📋 Liste livreurs:', result);
-  return result;
+export async function getTurboysByType(params: ITurboyParams): Promise<TurboyListResponse> {
+  return turboyAPI.obtenirTurboyParType(params);
 }
 
 export async function getTurboyById(id: string): Promise<ITurboy> {

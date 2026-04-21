@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getAllDemandeAssignations, getToutLivreurStatus, getTurboyCount } from '@/src/actions/delivery-men.actions';
+import { getAllDemandeAssignations } from '@/src/actions/delivery-men.actions';
 import { allRestaurants } from '@/src/restaurants/restaurants.actions';
 import Content from './content';
 
@@ -8,20 +8,13 @@ export const metadata: Metadata = {
 };
 
 export default async function MenPage() {
-  const [totalData, journalierCount, independantCount, demandes, restaurants] = await Promise.all([
-    getToutLivreurStatus(0, 1),
-    getTurboyCount('JOURNALIER'),
-    getTurboyCount('INDEPENDANT'),
+  const [demandes, restaurants] = await Promise.all([
     getAllDemandeAssignations(),
     allRestaurants(),
   ]);
 
   return (
     <Content
-      totalCount={totalData?.totalElements ?? 0}
-      journalierCount={journalierCount}
-      independantCount={independantCount}
-      demandesCount={demandes?.length ?? 0}
       demandes={demandes ?? []}
       restaurants={restaurants ?? []}
     />

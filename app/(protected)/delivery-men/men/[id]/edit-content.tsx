@@ -157,7 +157,7 @@ export default function EditContent({ id }: { id: string }) {
           cniUrlV={turboy.cniUrlV}
           vehiclePhotoUrl={turboy.vehiclePhotoUrl}
           contratUrl={turboy.contratUrl}
-          avenants={turboy.avenants}
+          avenants={turboy.avenantUrls}
         />
 
         <SectionPhotoProfil
@@ -190,7 +190,7 @@ export default function EditContent({ id }: { id: string }) {
           control={control}
           errors={errors}
           avenantFiles={avenantFiles}
-          existingAvenants={turboy.avenants}
+          existingAvenants={turboy.avenantUrls}
           onAvenantsChange={setAvenantFiles}
         />
 

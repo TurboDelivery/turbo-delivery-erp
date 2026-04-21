@@ -1,16 +1,15 @@
-import { ITurboy, ITurboyParams, IUpdateTurboyTypePayload } from '@/features/turboys/types/turboys.types';
-import { PaginatedResponse } from '@/types/general';
+import { ITurboy, ITurboyParams, IUpdateTurboyTypePayload, TurboyListResponse } from '@/features/turboys/types/turboys.types';
 import { apiClientHttp } from '@/lib/api-client-http';
 
 export interface ITurboyAPI {
-  obtenirTurboyParType(params: ITurboyParams): Promise<PaginatedResponse<ITurboy>>;
+  obtenirTurboyParType(params: ITurboyParams): Promise<TurboyListResponse>;
   obtenirTurboy(id: string): Promise<ITurboy>;
   updateTurboyType(payload: IUpdateTurboyTypePayload): Promise<ITurboy>;
 }
 
 export const turboyAPI: ITurboyAPI = {
-  async obtenirTurboyParType(params: ITurboyParams): Promise<PaginatedResponse<ITurboy>> {
-    return await apiClientHttp.request<PaginatedResponse<ITurboy>>({
+  async obtenirTurboyParType(params: ITurboyParams): Promise<TurboyListResponse> {
+    return await apiClientHttp.request<TurboyListResponse>({
       endpoint: `/api/erp/livreur/parType`,
       method: 'GET',
       params: params,

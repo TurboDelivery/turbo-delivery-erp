@@ -85,6 +85,10 @@ export default function CreateContent() {
   }
 
   async function onSubmit(values: CreateRestaurantDTO) {
+    if (!logoFile) {
+      toast.error('Le logo du restaurant est requis');
+      return;
+    }
     setIsSubmitting(true);
     const fd = new FormData();
 
@@ -106,11 +110,11 @@ export default function CreateContent() {
     });
 
     // Horaires
-    horaires.forEach((h, i) => {
-      fd.append(`openingHours[${i}][dayOfWeek]`, h.jour);
-      fd.append(`openingHours[${i}][openingTime]`, h.ouverture);
-      fd.append(`openingHours[${i}][closingTime]`, h.fermeture);
-      fd.append(`openingHours[${i}][closed]`, String(h.ferme));
+    horaires.forEach((h) => {
+      fd.append('openingHours[dayOfWeek]', h.jour);
+      fd.append('openingHours[openingTime]', h.ouverture);
+      fd.append('openingHours[closingTime]', h.fermeture);
+      fd.append('openingHours[closed]', String(h.ferme));
     });
 
     const result = await createRestaurant(fd);

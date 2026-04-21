@@ -6,9 +6,10 @@ import { ActionResult } from '@/types';
 export async function updateRestaurant(id: string, data: FormData): Promise<ActionResult<any>> {
   try {
     const result = await apiClientHttp.request<any>({
-      endpoint: `/api/V1/turbo/restaurant/${id}`,
+      endpoint: `/api/V1/turbo/restaurant/v2/update`,
       method: 'PUT',
       service: 'restaurant',
+      params: { restoId: id },
       data,
     });
     console.log('✅ Mise à jour restaurant response:', result);

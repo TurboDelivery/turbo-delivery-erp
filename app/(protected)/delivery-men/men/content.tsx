@@ -12,6 +12,7 @@ import { StatCard } from '@/features/men/components/stat-card';
 import { exportTurboysPdf } from '@/features/men/utils/export-pdf';
 import { DemandesPanel } from '@/features/men/components/demandes-panel';
 import { TurboysPanel } from '@/features/men/components/turboys-panel';
+import { useTurboysByTypeQuery } from '@/features/turboys/queries/turboy-list.query';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,19 +21,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface ContentProps {
-  totalCount: number;
-  journalierCount: number;
-  independantCount: number;
-  demandesCount: number;
   demandes: DemandeAssignationVM[];
   restaurants: Restaurant[];
 }
 
 export default function Content({
-  totalCount,
-  journalierCount,
-  independantCount,
-  demandesCount,
   demandes,
   restaurants,
 }: ContentProps) {
@@ -40,18 +33,25 @@ export default function Content({
   const activeCard = filters.tab;
   const [isExporting, setIsExporting] = useState<string | null>(null);
 
+  // Compteurs dynamiques depuis l'API
+  const { data: statsData } = useTurboysByTypeQuery({ page: 0, limit: 1 });
+  const totalCount = statsData?.totalCount ?? 0;
+  const journalierCount = statsData?.journalierCount ?? 0;
+  const independantCount = statsData?.independantCount ?? 0;
+  const demandesCount = statsData?.demandesCount ?? 0;
+
   async function fetchAllTurboys(typeLivreur?: TurboyType) {
     const PAGE_SIZE = 200;
     const first = await turboyAPI.obtenirTurboyParType({ page: 0, limit: PAGE_SIZE, typeLivreur });
-    const totalPages = first.totalPages ?? 1;
-    if (totalPages <= 1) return first.content;
+    const totalPages = first.livreurs?.totalPages ?? 1;
+    if (totalPages <= 1) return first.livreurs?.content ?? [];
 
     const remaining = await Promise.all(
       Array.from({ length: totalPages - 1 }, (_, i) =>
         turboyAPI.obtenirTurboyParType({ page: i + 1, limit: PAGE_SIZE, typeLivreur })
       )
     );
-    return [...first.content, ...remaining.flatMap((r) => r.content)];
+    return [...(first.livreurs?.content ?? []), ...remaining.flatMap((r) => r.livreurs?.content ?? [])];
   }
 
   async function handleExport(type: 'all' | TurboyType) {
@@ -114,15 +114,15 @@ export default function Content({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            as={Link}
-            href="/delivery-men/men/create"
-            color="primary"
-            size="sm"
-            startContent={<Plus className="w-4 h-4" />}
-          >
-            Créer un profil
-          </Button>
+          <Link href="/delivery-men/men/create">
+            <Button
+              color="primary"
+              size="sm"
+              startContent={<Plus className="w-4 h-4" />}
+            >
+              Créer un profil
+            </Button>
+          </Link>
         </div>
       </div>
 
