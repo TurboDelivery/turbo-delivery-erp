@@ -22,6 +22,7 @@ import { SectionInfosPersonnelles } from './_components/section-infos-personnell
 import { SectionDocumentIdentite } from './_components/section-document-identite';
 import { SectionVehicule } from './_components/section-vehicule';
 import { SectionCompte } from './_components/section-compte';
+import { SectionAvenantsCommission } from './_components/section-avenants-commission';
 
 export default function EditContent({ id }: { id: string }) {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function EditContent({ id }: { id: string }) {
   const [cniFiles, setCniFiles] = useState<File[]>([]);
   const [vehicleFile, setVehicleFile] = useState<File | null>(null);
   const [contratFile, setContratFile] = useState<File | null>(null);
+  const [avenantFiles, setAvenantFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -54,6 +56,7 @@ export default function EditContent({ id }: { id: string }) {
       nomVehicule: '',
       immatriculation: '',
       telephoneCompte: '',
+      commission: undefined,
     },
   });
 
@@ -81,6 +84,7 @@ export default function EditContent({ id }: { id: string }) {
         nomVehicule: turboy.nomVehicule ?? '',
         immatriculation: turboy.immatriculation ?? '',
         telephoneCompte: turboy.telephoneCompte ?? turboy.telephone ?? '',
+        commission: turboy.commission ?? undefined,
       });
     }
   }, [turboy, reset]);
@@ -95,11 +99,12 @@ export default function EditContent({ id }: { id: string }) {
   async function onSubmit(values: UpdateTurboyInfoDTO) {
     setIsSubmitting(true);
     const fd = new FormData();
-    Object.entries(values).forEach(([k, v]) => { if (v) fd.append(k, v); });
+    Object.entries(values).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '') fd.append(k, String(v)); });
     if (avatarFile) fd.append('avatar', avatarFile);
     cniFiles.forEach((f, i) => fd.append(`cni_${i}`, f));
     if (vehicleFile) fd.append('vehiclePhoto', vehicleFile);
     if (contratFile) fd.append('contrat', contratFile);
+    avenantFiles.forEach((f) => fd.append('avenants', f));
 
     const result = await updateLivreur(id, fd);
     setIsSubmitting(false);
@@ -152,6 +157,7 @@ export default function EditContent({ id }: { id: string }) {
           cniUrlV={turboy.cniUrlV}
           vehiclePhotoUrl={turboy.vehiclePhotoUrl}
           contratUrl={turboy.contratUrl}
+          avenants={turboy.avenants}
         />
 
         <SectionPhotoProfil
@@ -179,6 +185,14 @@ export default function EditContent({ id }: { id: string }) {
         />
 
         <SectionCompte control={control} errors={errors} />
+
+        <SectionAvenantsCommission
+          control={control}
+          errors={errors}
+          avenantFiles={avenantFiles}
+          existingAvenants={turboy.avenants}
+          onAvenantsChange={setAvenantFiles}
+        />
 
         <div className="flex items-center justify-end gap-3 pt-2">
           <Button type="button" variant="flat" as={Link} href="/delivery-men/men">

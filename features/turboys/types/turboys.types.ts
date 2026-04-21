@@ -2,6 +2,7 @@ export type TurboyType = 'INDEPENDANT' | 'JOURNALIER';
 
 export interface ITurboy {
   id: string;
+ 
   nom: string;
   prenoms: string;
   telephone: string | null;
@@ -25,6 +26,8 @@ export interface ITurboy {
   nomVehicule: string | null;
   telephoneCompte: string | null;
   status: number;
+  commission: number | null;
+  avenants: string[] | null;
 }
 
 export interface ITurboyParams {

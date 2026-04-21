@@ -20,6 +20,9 @@ export const updateTurboyInfoSchema = z.object({
 
   // Compte (pas de mot de passe en modification)
   telephoneCompte: z.string().min(1, 'Le numéro de téléphone du compte est requis'),
+
+  // Commission
+  commission: z.coerce.number().min(0).optional(),
 });
 
 export type UpdateTurboyInfoDTO = z.infer<typeof updateTurboyInfoSchema>;

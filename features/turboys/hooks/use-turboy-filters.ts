@@ -1,8 +1,11 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
-import { turboyFiltersClient } from '@/features/turboys/filters/turboy.filters';
+import { TAB_VALUES, turboyFiltersClient, VIEW_MODE_VALUES } from '@/features/turboys/filters/turboy.filters';
 import { TurboyType } from '@/features/turboys/types/turboys.types';
+
+export type ActiveTab = (typeof TAB_VALUES)[number];
+export type ViewMode = (typeof VIEW_MODE_VALUES)[number];
 
 export const useTurboyFilters = () => {
   const [filters, setFilters] = useQueryStates(turboyFiltersClient.filters, turboyFiltersClient.options);
@@ -15,6 +18,8 @@ export const useTurboyFilters = () => {
       orderBy: 'nom',
       orderDirection: 'asc',
       typeLivreur: undefined,
+      tab: 'all',
+      viewMode: 'list',
     });
   };
 
@@ -22,7 +27,7 @@ export const useTurboyFilters = () => {
     setFilters((prev) => ({
       ...prev,
       search,
-      page: 0, // Reset to first page when searching
+      page: 0,
     }));
   };
 
@@ -37,7 +42,7 @@ export const useTurboyFilters = () => {
     setFilters((prev) => ({
       ...prev,
       limit,
-      page: 0, // Reset to first page when changing limit
+      page: 0,
     }));
   };
 
@@ -57,6 +62,20 @@ export const useTurboyFilters = () => {
     }));
   };
 
+  const setTab = (tab: ActiveTab) => {
+    setFilters((prev) => ({
+      ...prev,
+      tab,
+    }));
+  };
+
+  const setViewMode = (viewMode: ViewMode) => {
+    setFilters((prev) => ({
+      ...prev,
+      viewMode,
+    }));
+  };
+
   return {
     filters,
     setFilters,
@@ -66,6 +85,8 @@ export const useTurboyFilters = () => {
     setLimit,
     setSorting,
     setTypeLivreur,
+    setTab,
+    setViewMode,
   };
 };
 

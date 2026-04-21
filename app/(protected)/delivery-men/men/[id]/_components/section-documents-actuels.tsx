@@ -7,6 +7,7 @@ interface SectionDocumentsActuelsProps {
   cniUrlV?: string | null;
   vehiclePhotoUrl?: string | null;
   contratUrl?: string | null;
+  avenants?: string[] | null;
 }
 
 export function SectionDocumentsActuels({
@@ -15,8 +16,10 @@ export function SectionDocumentsActuels({
   cniUrlV,
   vehiclePhotoUrl,
   contratUrl,
+  avenants,
 }: SectionDocumentsActuelsProps) {
-  if (!avatarUrl && !cniUrlR && !cniUrlV && !vehiclePhotoUrl && !contratUrl) return null;
+  const hasAvenants = avenants && avenants.length > 0;
+  if (!avatarUrl && !cniUrlR && !cniUrlV && !vehiclePhotoUrl && !contratUrl && !hasAvenants) return null;
 
   return (
     <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
@@ -27,6 +30,9 @@ export function SectionDocumentsActuels({
         {cniUrlV && <DocPreview label="CNI verso" url={cniUrlV} />}
         {vehiclePhotoUrl && <DocPreview label="Photo véhicule" url={vehiclePhotoUrl} />}
         {contratUrl && <DocPreview label="Contrat" url={contratUrl} />}
+        {hasAvenants && avenants.map((url, i) => (
+          <DocPreview key={`avenant-${i}`} label={`Avenant ${i + 1}`} url={url} />
+        ))}
       </div>
     </section>
   );

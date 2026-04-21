@@ -5,7 +5,7 @@ import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { BadgeCheck, Diamond, Eye, MoreHorizontal, Pencil } from 'lucide-react';
 import React from 'react';
 import Link from 'next/link';
-import { Button, Chip } from '@heroui/react';
+import { Chip } from '@heroui/react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,9 +46,12 @@ function ActionsMenu({ id }: { id: string }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="light" isIconOnly aria-label="Actions">
+        <button
+          className="inline-flex items-center justify-center p-1.5 rounded-md hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          aria-label="Actions"
+        >
           <MoreHorizontal className="w-4 h-4 text-gray-400" />
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuItem asChild>

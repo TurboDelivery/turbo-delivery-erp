@@ -1,32 +1,49 @@
 import jsPDF from 'jspdf';
 import type { ITurboy, TurboyType } from '@/features/turboys/types/turboys.types';
 
+// ── Brand colors ─────────────────────────────────────────────────────────────
+const RED   = [220, 38,  38]  as const;  // primary
+const YELLOW= [250, 204, 21]  as const;  // accent
+const DARK  = [30,  30,  30]  as const;
+const GRAY  = [100, 100, 100] as const;
+const LIGHT = [241, 245, 249] as const;
+const BORDER= [210, 218, 230] as const;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function statusLabel(status: number): string {
   if (status === 1) return 'Actif';
   if (status === 0) return 'Inactif';
   return 'Suspendu';
 }
-
 function typeLabel(type: TurboyType): string {
   return type === 'JOURNALIER' ? 'Journalier' : 'Indépendant';
 }
-
 function filterLabel(typeLivreur?: string): string {
   if (typeLivreur === 'JOURNALIER') return 'Journaliers';
   if (typeLivreur === 'INDEPENDANT') return 'Indépendants';
-  return 'tous';
+  return 'Tous';
 }
-
 function truncate(text: string, maxChars: number): string {
   return text.length > maxChars ? text.slice(0, maxChars - 1) + '…' : text;
 }
 
-interface Col {
-  header: string;
-  w: number;
-  maxChars: number;
-  value: (t: ITurboy) => string;
+async function loadLogoBase64(): Promise<string | null> {
+  try {
+    const resp = await fetch('/assets/images/Logo officiel/Logo Turbo.png');
+    const blob = await resp.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
 }
+
+// ── Columns ───────────────────────────────────────────────────────────────────
+interface Col { header: string; w: number; maxChars: number; value: (t: ITurboy) => string; }
 
 const COLS: Col[] = [
   { header: 'Matricule',  w: 26, maxChars: 12, value: (t) => t.matricule ?? '—' },
@@ -39,80 +56,111 @@ const COLS: Col[] = [
   { header: 'Habitation', w: 45, maxChars: 24, value: (t) => t.habitation ?? '—' },
 ];
 
-const TABLE_W = COLS.reduce((s, c) => s + c.w, 0);
-const START_X = 14;
-const ROW_H = 7;
-const HEADER_H = 9;
+const TABLE_W         = COLS.reduce((s, c) => s + c.w, 0);
+const START_X         = 14;
+const ROW_H           = 7;
+const HEADER_H        = 9;
 const PAGE_MARGIN_BOTTOM = 15;
+const HEADER_BAND_H   = 30;
 
-export function exportTurboysPdf(turboys: ITurboy[], typeLivreur?: string) {
+export async function exportTurboysPdf(turboys: ITurboy[], typeLivreur?: string) {
+  const logoBase64 = await loadLogoBase64();
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  function drawHeader() {
+  function drawPageHeader() {
+    // Red header band
+    doc.setFillColor(...RED);
+    doc.rect(0, 0, pageW, HEADER_BAND_H, 'F');
+
+    // Yellow accent stripe at bottom of band
+    doc.setFillColor(...YELLOW);
+    doc.rect(0, HEADER_BAND_H - 3, pageW, 3, 'F');
+
+    // Logo (top-left inside band)
+    if (logoBase64) {
+      doc.addImage(logoBase64, 'PNG', START_X, 2, 26, 26);
+    }
+
     // Title
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(17);
-    doc.setTextColor(30, 64, 175); // primary blue
-    doc.text('Turbo Delivery — Liste des Coursiers', START_X, 16);
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.text('Turbo Delivery — Liste des Coursiers', logoBase64 ? 44 : START_X, 13);
 
     // Subtitle
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
-    doc.setTextColor(100);
+    doc.setFontSize(8);
+    doc.setTextColor(255, 230, 150);
     doc.text(
       `Type : ${filterLabel(typeLivreur)}   •   ${turboys.length} coursier(s)   •   Exporté le ${new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`,
-      START_X,
-      23,
+      logoBase64 ? 44 : START_X,
+      22,
     );
-    doc.setTextColor(0);
+
+    doc.setTextColor(...DARK);
   }
 
   function drawTableHeader(y: number) {
-    doc.setFillColor(30, 64, 175);
+    doc.setFillColor(...RED);
     doc.roundedRect(START_X, y, TABLE_W, HEADER_H, 1.5, 1.5, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
-    doc.setTextColor(255);
+    doc.setTextColor(255, 255, 255);
     let x = START_X;
     for (const col of COLS) {
       doc.text(col.header, x + 2.5, y + 6);
       x += col.w;
     }
-    doc.setTextColor(0);
+    doc.setTextColor(...DARK);
     return y + HEADER_H;
   }
 
-  // ---- First page ----
-  drawHeader();
-  let y = drawTableHeader(29);
+  // ── First page ──────────────────────────────────────────────────────────────
+  drawPageHeader();
+  let y = drawTableHeader(HEADER_BAND_H + 4);
 
-  // ---- Data rows ----
+  // ── Data rows ───────────────────────────────────────────────────────────────
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
 
   for (let i = 0; i < turboys.length; i++) {
     if (y + ROW_H > pageH - PAGE_MARGIN_BOTTOM) {
       doc.addPage();
-      y = drawTableHeader(10);
+      drawPageHeader();
+      y = drawTableHeader(HEADER_BAND_H + 4);
     }
 
-    // Alternating background
+    // Alternating row background
     if (i % 2 === 0) {
-      doc.setFillColor(241, 245, 249);
+      doc.setFillColor(...LIGHT);
       doc.rect(START_X, y, TABLE_W, ROW_H, 'F');
     }
 
-    // Row bottom border
-    doc.setDrawColor(210, 218, 230);
+    // Row border
+    doc.setDrawColor(...BORDER);
     doc.line(START_X, y + ROW_H, START_X + TABLE_W, y + ROW_H);
 
-    // Cell text
-    doc.setTextColor(40);
+    // Status badge color
+    const t = turboys[i];
+
+    doc.setTextColor(...DARK);
     let x = START_X;
     for (const col of COLS) {
-      const raw = col.value(turboys[i]);
+      const raw = col.value(t);
+
+      // Highlight status
+      if (col.header === 'Statut') {
+        if (raw === 'Actif') doc.setTextColor(22, 163, 74);
+        else if (raw === 'Inactif') doc.setTextColor(220, 38, 38);
+        else doc.setTextColor(217, 119, 6);
+      } else if (col.header === 'Type') {
+        doc.setTextColor(t.typeLivreur === 'INDEPENDANT' ? 22 : 99, t.typeLivreur === 'INDEPENDANT' ? 163 : 102, t.typeLivreur === 'INDEPENDANT' ? 74 : 241);
+      } else {
+        doc.setTextColor(...DARK);
+      }
+
       doc.text(truncate(raw, col.maxChars), x + 2.5, y + 5);
       x += col.w;
     }
@@ -120,14 +168,17 @@ export function exportTurboysPdf(turboys: ITurboy[], typeLivreur?: string) {
     y += ROW_H;
   }
 
-  // ---- Page numbers ----
+  // ── Page numbers ────────────────────────────────────────────────────────────
   const totalPages = doc.getNumberOfPages();
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p);
     doc.setFontSize(7.5);
-    doc.setTextColor(150);
+    doc.setTextColor(...GRAY);
     doc.text(`Page ${p} / ${totalPages}`, pageW - 28, pageH - 6);
+    // Bottom bar
+    doc.setFillColor(...RED);
+    doc.rect(0, pageH - 5, pageW, 5, 'F');
   }
 
-  doc.save(`coursiers-${new Date().toISOString().slice(0, 10)}.pdf`);
+  doc.save(`coursiers-${filterLabel(typeLivreur).toLowerCase()}-${new Date().toISOString().slice(0, 10)}.pdf`);
 }

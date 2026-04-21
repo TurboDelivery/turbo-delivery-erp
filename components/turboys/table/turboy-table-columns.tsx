@@ -110,6 +110,18 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
     },
   },
   {
+    accessorKey: 'commission',
+    header: 'Commission',
+    cell: ({ row }) => {
+      const commission = row.original.commission;
+      return (
+        <span className="text-sm font-mono">
+          {commission !== null && commission !== undefined ? `${commission} %` : '-'}
+        </span>
+      );
+    },
+  },
+  {
     accessorKey: 'immatriculation',
     header: 'Immatriculation',
     cell: ({ row }) => {

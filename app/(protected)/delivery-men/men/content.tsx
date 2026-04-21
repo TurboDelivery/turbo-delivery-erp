@@ -5,15 +5,19 @@ import { Button } from '@heroui/react';
 import Link from 'next/link';
 import { Download, Plus } from 'lucide-react';
 import { type DemandeAssignationVM, type Restaurant } from '@/types/models';
-import { useTurboyFilters } from '@/features/turboys/hooks/use-turboy-filters';
+import { useTurboyFilters, type ActiveTab } from '@/features/turboys/hooks/use-turboy-filters';
 import { type TurboyType } from '@/features/turboys/types/turboys.types';
 import { turboyAPI } from '@/features/turboys/apis/turboy.api';
 import { StatCard } from '@/features/men/components/stat-card';
 import { exportTurboysPdf } from '@/features/men/utils/export-pdf';
 import { DemandesPanel } from '@/features/men/components/demandes-panel';
 import { TurboysPanel } from '@/features/men/components/turboys-panel';
-
-type ActiveCard = 'all' | 'journalier' | 'independant' | 'demandes';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface ContentProps {
   totalCount: number;
@@ -32,29 +36,47 @@ export default function Content({
   demandes,
   restaurants,
 }: ContentProps) {
-  const { filters, setFilters } = useTurboyFilters();
-  const [activeCard, setActiveCard] = useState<ActiveCard>('all');
-  const [isExporting, setIsExporting] = useState(false);
+  const { filters, setFilters, setTab } = useTurboyFilters();
+  const activeCard = filters.tab;
+  const [isExporting, setIsExporting] = useState<string | null>(null);
 
-  async function handleExport() {
-    setIsExporting(true);
+  async function fetchAllTurboys(typeLivreur?: TurboyType) {
+    const PAGE_SIZE = 200;
+    const first = await turboyAPI.obtenirTurboyParType({ page: 0, limit: PAGE_SIZE, typeLivreur });
+    const totalPages = first.totalPages ?? 1;
+    if (totalPages <= 1) return first.content;
+
+    const remaining = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, i) =>
+        turboyAPI.obtenirTurboyParType({ page: i + 1, limit: PAGE_SIZE, typeLivreur })
+      )
+    );
+    return [...first.content, ...remaining.flatMap((r) => r.content)];
+  }
+
+  async function handleExport(type: 'all' | TurboyType) {
+    setIsExporting(type);
     try {
-      const res = await turboyAPI.obtenirTurboyParType({
-        limit: 1000,
-        page: 0,
-        typeLivreur: (filters.typeLivreur as TurboyType) || undefined,
-      });
-      exportTurboysPdf(res.content, filters.typeLivreur || undefined);
+      if (type === 'all') {
+        const [indep, journ] = await Promise.all([
+          fetchAllTurboys('INDEPENDANT'),
+          fetchAllTurboys('JOURNALIER'),
+        ]);
+        await exportTurboysPdf([...indep, ...journ], undefined);
+      } else {
+        const turboys = await fetchAllTurboys(type);
+        await exportTurboysPdf(turboys, type);
+      }
     } finally {
-      setIsExporting(false);
+      setIsExporting(null);
     }
   }
 
-  function handleCardClick(card: ActiveCard) {
-    setActiveCard(card);
-    if (card === 'all') setFilters((prev) => ({ ...prev, typeLivreur: null, page: 0 }));
-    else if (card === 'journalier') setFilters((prev) => ({ ...prev, typeLivreur: 'JOURNALIER' as TurboyType, page: 0 }));
-    else if (card === 'independant') setFilters((prev) => ({ ...prev, typeLivreur: 'INDEPENDANT' as TurboyType, page: 0 }));
+  function handleCardClick(card: ActiveTab) {
+    if (card === 'all') setFilters((prev) => ({ ...prev, tab: 'all', typeLivreur: null, page: 0 }));
+    else if (card === 'journalier') setFilters((prev) => ({ ...prev, tab: 'journalier', typeLivreur: 'JOURNALIER' as TurboyType, page: 0 }));
+    else if (card === 'independant') setFilters((prev) => ({ ...prev, tab: 'independant', typeLivreur: 'INDEPENDANT' as TurboyType, page: 0 }));
+    else if (card === 'demandes') setFilters((prev) => ({ ...prev, tab: 'demandes', page: 0 }));
   }
 
   return (
@@ -66,15 +88,32 @@ export default function Content({
           <p className="text-sm text-gray-500 mt-0.5">Gérez tous vos livreurs en un seul endroit</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="bordered"
-            size="sm"
-            startContent={<Download className="w-4 h-4" />}
-            isLoading={isExporting}
-            onPress={handleExport}
-          >
-            Exporter PDF
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="inline-flex items-center gap-2 rounded-medium border border-default-300 bg-transparent px-3 h-8 text-sm font-medium text-default-700 hover:bg-default-100 transition-colors disabled:opacity-50"
+                disabled={isExporting !== null}
+              >
+                {isExporting !== null ? (
+                  <span className="w-4 h-4 animate-spin rounded-full border-2 border-default-400 border-t-transparent" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                Exporter PDF
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuItem onSelect={() => handleExport('all')} disabled={isExporting !== null}>
+                Tous les coursiers
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleExport('INDEPENDANT')} disabled={isExporting !== null}>
+                Indépendants
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => handleExport('JOURNALIER')} disabled={isExporting !== null}>
+                Journaliers
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             as={Link}
             href="/delivery-men/men/create"

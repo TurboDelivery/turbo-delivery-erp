@@ -49,7 +49,7 @@ export function TurboyActionMenu({ turboy }: { turboy: ITurboy }) {
           aria-label="Actions du livreur"
           items={items}
           onAction={(key) => {
-            if (key === 'details') router.push(`/delivery-men/${turboy.id}`);
+            if (key === 'details') router.push(`/delivery-men/men/${turboy.id}`);
             if (key === 'edit') router.push(`/delivery-men/men/${turboy.id}`);
             if (key === 'validate' || key === 'activate') setOpenValidate(true);
           }}

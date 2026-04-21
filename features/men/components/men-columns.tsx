@@ -28,11 +28,11 @@ export const menColumns: ColumnDef<ITurboy>[] = [
     },
   },
   {
-    accessorKey: 'salaire',
+    accessorKey: 'commission',
     header: 'COMMISSION',
     cell: ({ row }) => (
       <span className="text-sm text-gray-500">
-        {row.original.salaire != null ? `${row.original.salaire}%` : '--'}
+        {row.original.commission != null ? `${row.original.commission}%` : '--'}
       </span>
     ),
   },
