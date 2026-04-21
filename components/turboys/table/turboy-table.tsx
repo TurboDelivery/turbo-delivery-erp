@@ -50,7 +50,7 @@ export function TurboyTable() {
         </div>
         <div className="flex items-center gap-2">
           <Chip variant="flat" color="primary" size="lg">
-            Total: {turboysData?.totalElements || 0}
+            Total: {turboysData?.livreurs?.totalElements || 0}
           </Chip>
         </div>
       </div>
@@ -77,10 +77,10 @@ export function TurboyTable() {
               }
               bottomContent={
                 turboysData &&
-                turboysData.totalPages > 1 && (
+                turboysData.livreurs?.totalPages > 1 && (
                   <div className="flex justify-center p-4 border-t border-gray-200">
                     <Pagination
-                      total={turboysData.totalPages}
+                      total={turboysData.livreurs.totalPages}
                       page={filters.page ? filters.page + 1 : 1}
                       onChange={(page) =>
                         setFilters((prev) => ({

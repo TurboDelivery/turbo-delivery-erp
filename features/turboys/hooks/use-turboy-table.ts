@@ -21,7 +21,7 @@ export const useTurboyTable = () => {
   }, [filters.page, filters.limit, filters.search, filters.orderBy, filters.orderDirection, filters.typeLivreur]);
 
   const { data: turboysData, isLoading, error, isError, isFetching } = useTurboysByTypeQuery(currentSearchParams);
-  const turboys = turboysData?.content || [];
+  const turboys = turboysData?.livreurs?.content || [];
 
   const table = useReactTable({
     columns: turboyTableColumns,
