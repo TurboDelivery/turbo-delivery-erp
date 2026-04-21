@@ -280,6 +280,44 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
           </div>
         </section>
 
+        {/* ── Horaires d'ouverture ── */}
+        <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <SectionTitle>Horaires d'ouverture</SectionTitle>
+          {(() => {
+            const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
+            const LABELS: Record<string, string> = { LUNDI: 'Lundi', MARDI: 'Mardi', MERCREDI: 'Mercredi', JEUDI: 'Jeudi', VENDREDI: 'Vendredi', SAMEDI: 'Samedi', DIMANCHE: 'Dimanche' };
+            const hours = restaurant.openingHours ?? [];
+            return (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {JOURS.map((jour) => {
+                  const h = hours.find((x) => x.dayOfWeek === jour);
+                  return (
+                    <div
+                      key={jour}
+                      className={`flex items-center justify-between px-4 py-2.5 rounded-lg text-sm border ${
+                        !h ? 'bg-gray-50 border-gray-100 text-gray-400'
+                          : h.closed ? 'bg-gray-50 border-gray-100 text-gray-400'
+                          : 'bg-green-50 border-green-100 text-gray-700'
+                      }`}
+                    >
+                      <span className="font-medium w-24">{LABELS[jour]}</span>
+                      {!h ? (
+                        <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Non défini</span>
+                      ) : h.closed ? (
+                        <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Fermé</span>
+                      ) : (
+                        <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                          {h.openingTime?.slice(0, 5)} – {h.closingTime?.slice(0, 5)}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </section>
+
         {/* ── Footer actions ── */}
         <div className="flex items-center justify-end gap-3 pt-2">
           <Button type="button" variant="flat" as={Link} href="/restaurants">

@@ -34,8 +34,13 @@ const DAY_LABELS: Record<string, string> = {
   JEUDI: 'Jeudi', VENDREDI: 'Vendredi', SAMEDI: 'Samedi', DIMANCHE: 'Dimanche',
 };
 
-function formatTime(t: string) {
-  return t?.slice(0, 5) ?? '';
+const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'] as const;
+
+interface Horaire {
+  jour: string;
+  ouverture: string;
+  fermeture: string;
+  ferme: boolean;
 }
 
 export default function EditContent({ restaurant }: { restaurant: IRestaurant }) {
@@ -57,6 +62,17 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
   const [contacts, setContacts] = useState<{ nom: string; telephone: string }[]>([{ nom: '', telephone: '' }]);
   const [autreDocType, setAutreDocType] = useState('contrat');
   const [autreDocFile, setAutreDocFile] = useState<File | null>(null);
+  const [horaires, setHoraires] = useState<Horaire[]>(() => {
+    if (restaurant.openingHours?.length > 0) {
+      return JOURS.map((jour) => {
+        const existing = restaurant.openingHours.find((h) => h.dayOfWeek === jour);
+        return existing
+          ? { jour, ouverture: existing.openingTime?.slice(0, 5) ?? '08:00', fermeture: existing.closingTime?.slice(0, 5) ?? '22:00', ferme: existing.closed }
+          : { jour, ouverture: '08:00', fermeture: '22:00', ferme: false };
+      });
+    }
+    return JOURS.map((j) => ({ jour: j, ouverture: '08:00', fermeture: '22:00', ferme: false }));
+  });
 
   const existingLogoUrl = restaurant.logo_Url ? createUrlFile(restaurant.logo_Url, 'restaurant') : null;
   const existingPictures = restaurant.pictures?.filter((p) => existingPictureIds.includes(p.id)).map((p) => ({ id: p.id, url: createUrlFile(p.pictureUrl, 'restaurant') })) ?? [];
@@ -129,6 +145,15 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
     pictureFiles.forEach((f) => fd.append('pictures', f));
     existingPictureIds.forEach((id) => fd.append('existingPictureIds', id));
     if (autreDocFile) { fd.append('document', autreDocFile); fd.append('documentType', autreDocType); }
+    // Horaires
+    horaires.forEach((h, i) => {
+      fd.append(`openingHours[${i}][dayOfWeek]`, h.jour);
+      fd.append(`openingHours[${i}][openingTime]`, h.ouverture);
+      fd.append(`openingHours[${i}][closingTime]`, h.fermeture);
+      fd.append(`openingHours[${i}][closed]`, String(h.ferme));
+    });
+    // Debug
+    console.log('📋 FormData horaires:', horaires.map((h, i) => ({ [`[${i}]`]: h })));
     const result = await updateRestaurant(restaurant.id, fd);
     setIsSubmitting(false);
     if (result.status === 'success') {
@@ -363,25 +388,39 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
         {/* Horaires d'ouverture */}
         <section>
           <p className="text-sm font-medium text-gray-700 mb-3">Horaires d'ouverture</p>
-          {restaurant.openingHours?.length > 0 ? (
-            <div className="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
-              {restaurant.openingHours.map((h) => (
-                <div key={h.id} className="flex justify-between items-center px-4 py-2.5 text-sm">
-                  <span className="font-medium text-gray-700 w-28">{DAY_LABELS[h.dayOfWeek] ?? h.dayOfWeek}</span>
-                  {h.closed ? (
-                    <span className="text-gray-400">Fermé</span>
-                  ) : (
-                    <span className="text-gray-600">{formatTime(h.openingTime)} – {formatTime(h.closingTime)}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center justify-between px-4 py-3 border border-gray-200 rounded-lg">
-              <span className="text-sm text-gray-400">non défini</span>
-              <Button type="button" variant="light" size="sm" className="text-primary">Ajouter</Button>
-            </div>
-          )}
+          <div className="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+            {horaires.map((h, i) => (
+              <div key={h.jour} className="flex flex-wrap items-center gap-2 px-4 py-2.5 text-sm">
+                <span className="font-medium text-gray-700 w-24">{DAY_LABELS[h.jour]}</span>
+                <label className="flex items-center gap-1.5 text-xs text-gray-500 ml-auto">
+                  <input
+                    type="checkbox"
+                    checked={h.ferme}
+                    onChange={(e) => setHoraires((prev) => prev.map((x, idx) => idx === i ? { ...x, ferme: e.target.checked } : x))}
+                    className="accent-primary"
+                  />
+                  Fermé
+                </label>
+                {!h.ferme && (
+                  <>
+                    <input
+                      type="time"
+                      value={h.ouverture}
+                      onChange={(e) => setHoraires((prev) => prev.map((x, idx) => idx === i ? { ...x, ouverture: e.target.value } : x))}
+                      className="border border-gray-200 rounded px-2 py-1 text-xs"
+                    />
+                    <span className="text-gray-400">–</span>
+                    <input
+                      type="time"
+                      value={h.fermeture}
+                      onChange={(e) => setHoraires((prev) => prev.map((x, idx) => idx === i ? { ...x, fermeture: e.target.value } : x))}
+                      className="border border-gray-200 rounded px-2 py-1 text-xs"
+                    />
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* Autres Documents */}
