@@ -16,8 +16,33 @@ import { IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
 import { toast } from 'sonner';
 import { ChargeFixeCreateDTO, ChargeFixeUpdateDTO } from '../schemas/charge-fixe.schema';
 import { chargeFixeAPI } from '../apis/charge-fixe.api';
+import { generateMasseSalarialeXlsx } from '../utils/masse-salariale-export.utils';
 
 export type ActionWorkflowFixe = 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser';
+
+export const useRapportMasseSalarialeMutation = () => {
+  return useMutation({
+    mutationFn: (mois: string) => chargeFixeAPI.obtenirHistoriqueMasseSalariale(mois),
+    onSuccess: (data) => {
+      const xlsxData = generateMasseSalarialeXlsx(data);
+      const blob = new Blob([xlsxData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `masse_salariale_${data.moisPaie}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Rapport téléchargé avec succès');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors du téléchargement du rapport', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
 
 export const useAjouterChargeFixeMutation = () => {
   const invalidateChargeFixeQuery = useInvalidateChargeFixeQuery();

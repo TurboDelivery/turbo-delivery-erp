@@ -26,7 +26,8 @@
       "Bash(bash /tmp/analyze_pages.sh)",
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
       "Bash(rtk ls *)",
-      "Bash(rtk grep *)"
+      "Bash(rtk grep *)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
     ]
   }
 }

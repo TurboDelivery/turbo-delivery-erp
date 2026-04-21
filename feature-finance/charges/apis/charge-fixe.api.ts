@@ -1,6 +1,6 @@
 import { api } from '@/lib/api';
 import { PaginatedResponse } from '@/types';
-import { IChargeFixe, IChargeFixeParams, IChargeStats, IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
+import { IChargeFixe, IChargeFixeParams, IChargeStats, IHistoriqueMasseSalariale, IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
 import { ChargeFixeCreateDTO, ChargeFixeUpdateDTO } from '../schemas/charge-fixe.schema';
 
 export interface IChargeFixeAPI {
@@ -15,6 +15,7 @@ export interface IChargeFixeAPI {
   rejeterDGChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
   decaisserChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
   toggleEnableChargeFixe(id: string, enable: boolean, supprimerDepense: boolean): Promise<IChargeFixe>;
+  obtenirHistoriqueMasseSalariale(mois: string): Promise<IHistoriqueMasseSalariale>;
 }
 
 export const chargeFixeAPI: IChargeFixeAPI = {
@@ -109,6 +110,14 @@ export const chargeFixeAPI: IChargeFixeAPI = {
         enable: String(enable),
         supprimerDepense: String(supprimerDepense),
       },
+    });
+  },
+
+  obtenirHistoriqueMasseSalariale(mois: string): Promise<IHistoriqueMasseSalariale> {
+    return api.request<IHistoriqueMasseSalariale>({
+      endpoint: `/erp/charges-fixes/historique-masse-salariale`,
+      method: 'GET',
+      searchParams: { mois },
     });
   },
 };

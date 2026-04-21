@@ -4,6 +4,7 @@ import { createPaiementsColumns } from '../columns/paiements.columns';
 import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
 import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
 import { useDecaisserMutation } from '../queries/paiement.mutation';
+import { useRapportMasseSalarialeMutation } from '@/feature-finance/charges/queries/charge-fixe.mutation';
 import { useSupprimerChargeVariableMutation } from '@/feature-finance/charges/queries/charge-variable.mutation';
 import { IChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
 import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
@@ -29,6 +30,7 @@ export function usePaiementsTable(
 
   const decaisserMutation = useDecaisserMutation(chargeType, fin);
   const supprimerChargeVariableMutation = useSupprimerChargeVariableMutation();
+  const { mutate: telechargerRapportMasseSalariale } = useRapportMasseSalarialeMutation();
 
   const fixesQuery = useChargesFixesQuery(
     { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin },
@@ -80,8 +82,12 @@ export function usePaiementsTable(
       isPending: decaisserMutation.isPending,
       onDelete: chargeType === 'variable' ? handleDeleteOne : undefined,
       isDeleting: supprimerChargeVariableMutation.isPending,
+      onRapport: (charge) => {
+        const mois = charge.dateDecaissement ?? charge.dateEcheance;
+        telechargerRapportMasseSalariale(mois.slice(0, 10));
+      },
     }),
-    [handleDecaisserOne, decaisserMutation.isPending, chargeType, handleDeleteOne, supprimerChargeVariableMutation.isPending],
+    [handleDecaisserOne, decaisserMutation.isPending, chargeType, handleDeleteOne, supprimerChargeVariableMutation.isPending, telechargerRapportMasseSalariale],
   );
 
   const table = useReactTable({

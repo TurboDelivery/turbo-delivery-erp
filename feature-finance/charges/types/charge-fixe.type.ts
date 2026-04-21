@@ -33,6 +33,7 @@ export interface IChargeFixe {
   dateApprobationDG?: string | null;
   commentaireDG?: string | null;
   dateDecaissement?: string | null;
+  codeSysteme?: string | null;
   enable: boolean;
   tauxJournalier: number;
   montantConsomme: number;
@@ -56,6 +57,26 @@ export interface IWorkflowDecisionDtoFixe {
   commentaire?: string;
   par?: string;
   date?: string;
+}
+
+export interface IDetailMasseSalariale {
+  employeeId: string;
+  nomEmploye: string;
+  email: string;
+  poste: string;
+  departement: string;
+  salaireBrut: number;
+  totalDeductionsPayees: number;
+  totalDeductionsEnAttente: number;
+  netAPayer: number;
+  statut: string;
+}
+
+export interface IHistoriqueMasseSalariale {
+  id: string;
+  moisPaie: string;
+  montantTotal: number;
+  details: IDetailMasseSalariale[];
 }
 
 export interface IChargeStats {

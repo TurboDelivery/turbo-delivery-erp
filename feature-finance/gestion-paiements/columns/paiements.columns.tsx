@@ -2,7 +2,7 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Button, Chip } from '@heroui/react';
-import { Trash2, Wallet } from 'lucide-react';
+import { FileText, Trash2, Wallet } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Can } from '@/components/auth/Can';
 import { IChargeFixe, StatutChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
@@ -29,9 +29,10 @@ type PaiementsColumnsOptions = {
   isPending: boolean;
   onDelete?: (id: string) => void;
   isDeleting?: boolean;
+  onRapport?: (charge: IChargeFixe) => void;
 };
 
-export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDeleting }: PaiementsColumnsOptions): ColumnDef<IChargeFixe>[] {
+export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDeleting, onRapport }: PaiementsColumnsOptions): ColumnDef<IChargeFixe>[] {
   return [
     {
       id: 'select',
@@ -86,6 +87,11 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
             {!isDecaisse(row.original) && (
               <Button size="sm" color="warning" variant="flat" startContent={<Wallet size={14} />} isLoading={isPending} onPress={() => onDecaisser(row.original.id)}>
                 Décaisser
+              </Button>
+            )}
+            {isDecaisse(row.original) && row.original.codeSysteme === 'MASSE_SALARIALE_NETTE' && (
+              <Button size="sm" color="success" variant="flat" startContent={<FileText size={14} />} onPress={() => onRapport?.(row.original)}>
+                Rapport
               </Button>
             )}
             {onDelete && (
