@@ -44,7 +44,7 @@ function getProrataDisplay(selectedMonth?: string): { day: number; totalDays: nu
 export default function ChargesStatsCardsV2({ stats, isLoading, selectedMonth }: ChargesStatsV2Props) {
   if (isLoading || !stats) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {[...Array(5)].map((_, i) => (
           <Card key={i} className="bg-gray-50 border border-gray-200 shadow-none animate-pulse">
             <CardBody className="p-4">

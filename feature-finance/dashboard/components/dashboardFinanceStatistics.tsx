@@ -82,8 +82,8 @@ export default function DashboardFinanceStatistics() {
   return (
     <div className="w-full px-4 py-6">
       {/* En-tête avec filtre */}
-      <div className="flex justify-between items-center mb-6 bg-white">
-        <h2 className="text-2xl 2xl:text-3xl font-bold text-gray-800">Tableau de bord financier</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 bg-white">
+        <h2 className="text-xl sm:text-2xl 2xl:text-3xl font-bold text-gray-800">Tableau de bord financier</h2>
         <DateFilterInput filters={dateFilters} handleDateChange={setDateRange} />
       </div>
 

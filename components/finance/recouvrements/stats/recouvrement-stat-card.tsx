@@ -44,7 +44,7 @@ export function StatCard({
         </div>
       </CardHeader>
       <CardContent className="pb-3 px-5">
-        <p className="text-2xl font-bold text-gray-900">{formattedValue}</p>
+        <p className="text-lg sm:text-2xl font-bold text-gray-900 truncate">{formattedValue}</p>
       </CardContent>
     </>
   );

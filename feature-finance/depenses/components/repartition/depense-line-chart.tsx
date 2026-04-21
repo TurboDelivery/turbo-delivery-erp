@@ -57,7 +57,7 @@ export default function DepenseLineChart({ className }: { className?: string }) 
 
   return (
     <Card className={cn('', className)}>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <CardTitle>Evolution des dépenses</CardTitle>
           <CardDescription>Année {year}</CardDescription>

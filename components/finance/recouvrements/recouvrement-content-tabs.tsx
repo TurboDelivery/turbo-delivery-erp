@@ -19,7 +19,7 @@ function RecouvrementContentTabs() {
   return (
     <>
       <Tabs defaultValue="factures" className="w-full" value={filters.tab} onValueChange={(value) => handleTabChange(value as RecouvrementTabsType)}>
-        <TabsList className="grid grid-cols-5 w-full gap-2">
+        <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 w-full gap-2 h-auto p-1">
           <TabsTrigger value="factures" className="bg-red-300">
             Toutes les factures
           </TabsTrigger>

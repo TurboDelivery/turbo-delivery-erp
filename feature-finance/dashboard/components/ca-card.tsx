@@ -36,7 +36,8 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
           </div>
 
           {/* Séparateur */}
-          <div className="w-px bg-green-200 mx-4" />
+          <div className="hidden md:block w-px self-stretch bg-green-200 mx-4" />
+          <div className="block md:hidden h-px w-full bg-green-200" />
 
           {/* Skeleton pour la décomposition */}
           <div className="flex items-center gap-4">
@@ -110,8 +111,9 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
           </div>
         </div>
 
-        {/* Séparateur vertical */}
-        <div className="w-px bg-green-200 mx-4" />
+        {/* Séparateur */}
+        <div className="hidden md:block w-px self-stretch bg-green-200 mx-4" />
+        <div className="block md:hidden h-px w-full bg-green-200" />
 
         {/* Partie 2 : Décomposition du CA */}
         <div className="flex items-center gap-4">

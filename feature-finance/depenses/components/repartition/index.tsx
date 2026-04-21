@@ -16,10 +16,10 @@ export default function RepartitionDepense({ debut: debutProp, fin: finProp }: R
   const debut = debutProp ?? filters.debut;
   const fin = finProp ?? filters.fin;
   return (
-    <div className="grid grid-cols-5 gap-4">
-      <DepenseSummaryPieChartTable className="col-span-3" debut={debut} fin={fin} categoriesDepense={filters.categoriesDepense} />
-      <RepartitionDepensePieChart className="col-span-2" debut={debut} fin={fin} />
-      <DepenseLineChart className="col-span-full" />
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <DepenseSummaryPieChartTable className="col-span-1 md:col-span-3" debut={debut} fin={fin} categoriesDepense={filters.categoriesDepense} />
+      <RepartitionDepensePieChart className="col-span-1 md:col-span-2" debut={debut} fin={fin} />
+      <DepenseLineChart className="col-span-1 md:col-span-full" />
     </div>
   );
 }

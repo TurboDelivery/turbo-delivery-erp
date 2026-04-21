@@ -57,21 +57,21 @@ export function ChartLineMultiple() {
   return (
     <Card className="shadow-lg border-0">
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <h3 className="font-bold text-lg">Évolution financière mensuelle</h3>
+        <CardTitle className="flex flex-wrap justify-between items-center gap-2">
+          <h3 className="font-bold text-base sm:text-lg">Évolution financière mensuelle</h3>
           <YearFilter selectedYear={selectedYear} onYearChange={setSelectedYear} isLoading={isLoading} />
         </CardTitle>
       </CardHeader>
       <CardContent>
         {/* Cartes de résumé */}
-        <div className="grid md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-6">
           {summaryCards.map((card) => (
             <StatSummaryCard key={card.label} {...card} />
           ))}
         </div>
 
         {/* Graphique */}
-        <div className="h-[400px] w-full">
+        <div className="h-[260px] sm:h-[340px] md:h-[400px] w-full">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <p>Chargement des statistiques...</p>

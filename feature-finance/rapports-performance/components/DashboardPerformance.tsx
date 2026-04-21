@@ -17,36 +17,32 @@ export default function DashboardPerformance() {
 
   const { monthsData, isLoading } = useBilanAnnuel(selectedYear);
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-bold text-primary">Bilan Annuel {selectedYear}</h1>
-          <div className="flex items-center gap-4">
-            
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-20">
-                <SelectValue placeholder="AnnÃ©e" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-           
-          </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-primary">Bilan Annuel {selectedYear}</h1>
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
+            <SelectTrigger className="w-24">
+              <SelectValue placeholder="Année" />
+            </SelectTrigger>
+            <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year} value={year}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <p className="text-sm text-gray-500">Vue chronologique de la santÃ© financiÃ¨re et opÃ©rationnelle</p>
+        <p className="text-sm text-gray-500">Vue chronologique de la santé financière et opérationnelle</p>
       </div>
 
       {/* Months Grid */}
       <div className="space-y-6">
         {monthsData.map((month) => (
           <Card key={month.month} className="overflow-hidden">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               {/* Month Header */}
               <div className="flex items-center justify-between mb-6">
                 <h2 className={`text-lg font-bold ${month.hasData ? 'text-red-600' : 'text-gray-400'}`}>
@@ -87,7 +83,7 @@ export default function DashboardPerformance() {
                   {/* Financial Metrics */}
                   {month.hasData && (
                     <>
-                      <div className="grid grid-cols-4 gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                         <div>
                           <div className="flex items-center gap-1 text-gray-500 text-xs mb-1">
                             <TrendingUp className="w-3 h-3" />
@@ -145,7 +141,7 @@ export default function DashboardPerformance() {
                     <Card className="bg-green-50 border-green-200">
                       <CardContent className="p-4">
                         <p className="text-xs text-gray-600 mb-1">Résultat du mois</p>
-                        <p className="text-lg font-bold text-green-700 mb-1">{month.monthlyResult}</p>
+                        <p className="text-base sm:text-lg font-bold text-green-700 mb-1 break-all">{month.monthlyResult}</p>
                         <p className="text-xs text-gray-500">Bénéfice mensuel</p>
                       </CardContent>
                     </Card>
@@ -154,7 +150,7 @@ export default function DashboardPerformance() {
                     <Card className="bg-blue-600 text-white border-blue-600">
                       <CardContent className="p-4">
                         <p className="text-xs text-blue-100 mb-1">RENTABILITÉ CUMULÉE YTD</p>
-                        <p className="text-lg font-bold mb-1">{month.cumulativeResult}</p>
+                        <p className="text-base sm:text-lg font-bold mb-1 break-all">{month.cumulativeResult}</p>
                         <p className="text-xs text-blue-100">
                           Depuis : {month.monthName} 
                         </p>

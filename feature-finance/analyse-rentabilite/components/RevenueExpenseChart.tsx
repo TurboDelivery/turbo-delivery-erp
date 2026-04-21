@@ -33,12 +33,12 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
       }));
   }, [dailyStats]);
   return (
-    <div className="w-full bg-white rounded-lg p-6 shadow-sm">
+    <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-gray-800 mb-6">
         Évolution CA vs Dépenses
       </h2>
       
-      <div className="h-[400px] w-full">
+      <div className="h-[260px] sm:h-[340px] md:h-[400px] w-full">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-gray-500">Chargement des données...</div>
@@ -51,7 +51,7 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
               data={data}
-              margin={{ top: 20, right: 30, left: 50, bottom: 60 }}
+              margin={{ top: 10, right: 10, left: 0, bottom: 40 }}
             >
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -60,20 +60,20 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
               />
               <XAxis
                 dataKey="date"
-                axisLine={true}
+                axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#9ca3af', fontSize: 11 }}
-                angle={-45}
+                tick={{ fill: '#9ca3af', fontSize: 10 }}
+                angle={-35}
                 textAnchor="end"
-                height={60}
+                height={50}
                 interval="preserveStartEnd"
               />
               <YAxis
-                axisLine={true}
+                axisLine={false}
                 tickLine={false}
-                tick={{ fill: '#9ca3af', fontSize: 12 }}
-                dx={-10}
-                label={{ value: 'FCFA (x1000)', angle: -90, position: 'insideLeft', style: { fill: '#9ca3af', fontSize: 12 } }}
+                tick={{ fill: '#9ca3af', fontSize: 10 }}
+                width={55}
+                tickFormatter={(value) => `${value}k`}
               />
               <Tooltip
                 contentStyle={{
@@ -92,18 +92,18 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
                 type="monotone"
                 dataKey="ca"
                 stroke="#10b981"
-                strokeWidth={3}
-                dot={{ r: 5, fill: '#10b981' }}
-                activeDot={{ r: 7, fill: '#10b981' }}
+                strokeWidth={2}
+                dot={{ r: 3, fill: '#10b981' }}
+                activeDot={{ r: 5, fill: '#10b981' }}
                 name="Chiffre d'Affaires"
               />
               <Line
                 type="monotone"
                 dataKey="depenses"
                 stroke="#ef4444"
-                strokeWidth={3}
-                dot={{ r: 5, fill: '#ef4444' }}
-                activeDot={{ r: 7, fill: '#ef4444' }}
+                strokeWidth={2}
+                dot={{ r: 3, fill: '#ef4444' }}
+                activeDot={{ r: 5, fill: '#ef4444' }}
                 name="Dépenses Totales"
               />
             </LineChart>
@@ -114,7 +114,7 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
       <div className="flex justify-center gap-6 mt-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-emerald-500" />
-          <span className="text-sm text-gray-600">Chiffre d'Affaires</span>
+          <span className="text-sm text-gray-600">Chiffre d&#39;Affaires</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-red-500" />
