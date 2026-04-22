@@ -9,11 +9,10 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Select,
-  SelectItem,
   Textarea,
   Badge,
 } from '@heroui/react';
+import ReactSelect from 'react-select';
 import { Check, Plus, Save, Paperclip, X } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -180,21 +179,35 @@ export default function AddDepenseVariableModal({
                 errorMessage={errors.designation?.message}
               />
 
-              <Select
-                label="Catégorie"
-                selectedKeys={formValues.categorieId ? [formValues.categorieId] : []}
-                onSelectionChange={(keys) =>
-                  setValue('categorieId', Array.from(keys)[0] as string, { shouldValidate: true })
-                }
-                variant="bordered"
-                isLoading={isLoadingCategories}
-                isInvalid={!!errors.categorieId}
-                errorMessage={errors.categorieId?.message}
-              >
-                {categories.map((cat) => (
-                  <SelectItem key={cat.id}>{cat.nomCategorie}</SelectItem>
-                ))}
-              </Select>
+              <div className="flex flex-col gap-1">
+                <ReactSelect
+                  options={categories.map((cat) => ({ label: cat.nomCategorie, value: cat.id }))}
+                  value={
+                    formValues.categorieId
+                      ? { label: categories.find((c) => c.id === formValues.categorieId)?.nomCategorie ?? '', value: formValues.categorieId }
+                      : null
+                  }
+                  onChange={(opt) =>
+                    setValue('categorieId', opt?.value ?? '', { shouldValidate: true })
+                  }
+                  placeholder="Rechercher une catégorie..."
+                  isClearable
+                  isLoading={isLoadingCategories}
+                  isDisabled={isLoadingCategories}
+                  classNamePrefix="react-select"
+                  styles={{
+                    control: (base, state) => ({
+                      ...base,
+                      borderColor: errors.categorieId ? '#f31260' : state.isFocused ? '#7828c8' : '#d4d4d8',
+                      boxShadow: state.isFocused ? '0 0 0 2px rgba(120,40,200,0.2)' : 'none',
+                      '&:hover': { borderColor: errors.categorieId ? '#f31260' : '#7828c8' },
+                    }),
+                  }}
+                />
+                {errors.categorieId && (
+                  <p className="text-xs text-red-500">{errors.categorieId.message}</p>
+                )}
+              </div>
             </div>
 
             <Input

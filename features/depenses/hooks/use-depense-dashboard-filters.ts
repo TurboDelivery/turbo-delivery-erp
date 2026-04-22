@@ -31,11 +31,10 @@ export function useDepenseDashboardFilters() {
   };
 
   const handleCategoriesChange = (categoryIds: string[] | null) => {
-    setFilters((prev) => ({
-      ...prev,
+    setFilters({
       categoriesDepense: categoryIds || [],
-      page: 0, // Reset to first page when filters change
-    }));
+      page: 0,
+    });
   };
 
   return { filters, updateFilters, clearFilters, handleDateChange, handleCategoriesChange, setFilters };
