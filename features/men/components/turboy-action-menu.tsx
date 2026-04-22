@@ -9,14 +9,15 @@ import { type LivreurStatutVM } from '@/types/models';
 import DeliveryMenStatusValidate from '@/components/dashboard/delivery-men/delivery-men-status-validate';
 
 export function turboyToLivreurStatut(turboy: ITurboy): LivreurStatutVM {
+  // L'API renvoie directement 2=auth pending, 3=ops pending, 4=actif, 5=rejeté
+  // Les valeurs 0 et 1 (ancien format) sont converties
+  const status = turboy.status === 1 ? 4 : turboy.status === 0 ? 5 : turboy.status;
   return {
     livreurId: turboy.id,
     nomPrenom: `${turboy.prenoms} ${turboy.nom}`,
     telephone: turboy.telephone ?? '',
     avatarUrl: turboy.avatarUrl ?? '',
-    // ITurboy: 0=Inactif, 1=Activé, other=En attente
-    // LivreurStatutVM: 2=En attente(auth), 3=Validé(ops), 4=Activé, 5=Rejeté
-    status: turboy.status === 1 ? 4 : turboy.status === 0 ? 5 : 2,
+    status,
     type: 'TURBO',
   };
 }
