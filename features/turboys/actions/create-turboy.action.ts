@@ -8,7 +8,7 @@ const BASE_URL = '/api/erp';
 export async function createLivreur(formData: FormData): Promise<ActionResult<any>> {
   try {
     const data = await apiClientHttp.request<any>({
-      endpoint: `${BASE_URL}/livreur/register`,
+      endpoint: `${BASE_URL}/livreur`,
       method: 'POST',
       service: 'backend',
       data: formData,

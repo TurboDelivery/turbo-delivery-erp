@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { flexRender } from '@tanstack/react-table';
 import {
@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from '@heroui/react';
-import { Download, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronUp, Download, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useRestaurantTable } from '@/features/restaurants/hooks/use-restaurant-table';
 
 const TYPE_OPTIONS = [
@@ -29,8 +29,9 @@ const TYPE_OPTIONS = [
 ];
 
 export default function Content() {
-  const { table, isLoading, isFetching, pagination, filters, setSearch, setFilters } = useRestaurantTable();
+  const { table, isLoading, isFetching, pagination, filters, setSearch, setFilters, handleExport, isExporting } = useRestaurantTable();
   const colsCount = table.getAllColumns().length;
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
     <div className="w-full pb-10 flex flex-col gap-6">
@@ -38,7 +39,7 @@ export default function Content() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-primary">Partenaires</h1>
         <div className="flex items-center gap-3">
-          <Button variant="bordered" startContent={<Download className="w-4 h-4" />} size="sm">
+          <Button variant="bordered" startContent={<Download className="w-4 h-4" />} size="sm" onPress={handleExport} isLoading={isExporting}>
             Exporter
           </Button>
           <Button color="primary" startContent={<Plus className="w-4 h-4" />} size="sm" as={Link} href="/restaurants/create">
@@ -48,28 +49,76 @@ export default function Content() {
       </div>
 
       {/* ── Search + filter ── */}
-      <div className="flex items-center gap-3">
-        <Input
-          className="flex-1"
-          startContent={<Search className="text-gray-400 w-4 h-4 shrink-0" />}
-          placeholder="Rechercher par nom, email ou localisation..."
-          value={filters.search ?? ''}
-          onChange={(e) => setSearch(e.target.value)}
-          variant="bordered"
-          size="sm"
-        />
-        <Button isIconOnly variant="bordered" size="sm" aria-label="Filtres" className="shrink-0">
-          <SlidersHorizontal className="w-4 h-4 text-gray-400" />
-        </Button>
-        <Select
-          aria-label="Filtrer par type"
-          className="w-44 shrink-0"
-          selectedKeys={['']}
-          size="sm"
-          variant="bordered"
-        >
-          {TYPE_OPTIONS.map((opt) => <SelectItem key={opt.value}>{opt.label}</SelectItem>)}
-        </Select>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <Input
+            className="flex-1"
+            startContent={<Search className="text-gray-400 w-4 h-4 shrink-0" />}
+            placeholder="Rechercher par nom..."
+            value={filters.search ?? ''}
+            onChange={(e) => setSearch(e.target.value)}
+            variant="bordered"
+            size="sm"
+          />
+          <Button
+            variant="bordered"
+            size="sm"
+            className="shrink-0 gap-1.5"
+            onPress={() => setShowAdvanced((v) => !v)}
+            startContent={<SlidersHorizontal className="w-4 h-4 text-gray-400" />}
+            endContent={showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+          >
+            Filtres
+          </Button>
+        </div>
+
+        {showAdvanced && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+            <Input
+              label="Localisation"
+              size="sm"
+              variant="bordered"
+              value={filters.localisation ?? ''}
+              onChange={(e) => setFilters((prev) => ({ ...prev, localisation: e.target.value, page: 0 }))}
+            />
+            <Input
+              label="Email"
+              size="sm"
+              variant="bordered"
+              value={filters.email ?? ''}
+              onChange={(e) => setFilters((prev) => ({ ...prev, email: e.target.value, page: 0 }))}
+            />
+            <Input
+              label="Téléphone"
+              size="sm"
+              variant="bordered"
+              value={filters.telephone ?? ''}
+              onChange={(e) => setFilters((prev) => ({ ...prev, telephone: e.target.value, page: 0 }))}
+            />
+            <Input
+              label="Commune"
+              size="sm"
+              variant="bordered"
+              value={filters.commune ?? ''}
+              onChange={(e) => setFilters((prev) => ({ ...prev, commune: e.target.value, page: 0 }))}
+            />
+            <Select
+              label="Méthode de recouvrement"
+              size="sm"
+              variant="bordered"
+              selectedKeys={filters.methodRecouvrement ? [filters.methodRecouvrement] : ['']}
+              onSelectionChange={(keys) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  methodRecouvrement: Array.from(keys as Set<string>)[0] === '' ? '' : Array.from(keys as Set<string>)[0],
+                  page: 0,
+                }))
+              }
+            >
+              {TYPE_OPTIONS.map((opt) => <SelectItem key={opt.value}>{opt.label}</SelectItem>)}
+            </Select>
+          </div>
+        )}
       </div>
 
       {/* ── Table ── */}

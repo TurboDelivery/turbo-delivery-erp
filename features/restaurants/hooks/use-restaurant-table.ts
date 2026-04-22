@@ -1,13 +1,17 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { getCoreRowModel, SortingState, useReactTable } from '@tanstack/react-table';
 import { restaurantColumns } from '@/components/restaurants/table/restaurant-table-columns';
 import { useRestaurantsListQuery } from '@/features/restaurants/queries/restaurant-list.query';
 import { useRestaurantFilters } from '@/features/restaurants/hooks/use-restaurant-filters';
+import { exportRestaurantsPDF } from '@/features/restaurants/actions/restaurant.actions';
+import { saveAsPDFFile } from '@/utils/reporting-file';
+import { toast } from 'react-toastify';
 
 export const useRestaurantTable = () => {
   const { filters, setFilters } = useRestaurantFilters();
+  const [isExporting, setIsExporting] = useState(false);
 
   const [sorting, setSorting] = React.useState<SortingState>(() => {
     const orderBy = filters.orderBy;
@@ -35,8 +39,14 @@ export const useRestaurantTable = () => {
       search: filters.search || undefined,
       orderBy: filters.orderBy || undefined,
       orderDirection: filters.orderDirection as 'asc' | 'desc' | undefined,
+      localisation: filters.localisation || undefined,
+      email: filters.email || undefined,
+      telephone: filters.telephone || undefined,
+      commune: filters.commune || undefined,
+      methodRecouvrement: filters.methodRecouvrement || undefined,
     };
-  }, [filters.page, filters.limit, filters.search, filters.orderBy, filters.orderDirection]);
+  }, [filters.page, filters.limit, filters.search, filters.orderBy, filters.orderDirection,
+      filters.localisation, filters.email, filters.telephone, filters.commune, filters.methodRecouvrement]);
 
   const { data: restaurantsData, isLoading, error, isError, isFetching } = useRestaurantsListQuery(currentSearchParams);
   const restaurants = restaurantsData?.content || [];
@@ -93,8 +103,32 @@ export const useRestaurantTable = () => {
     setFilters((prev) => ({
       ...prev,
       search,
-      page: 0, // Reset to first page when searching
+      page: 0,
     }));
+  };
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const buffer = await exportRestaurantsPDF({
+        search: filters.search || undefined,
+        nomEtablissement: filters.search || undefined,
+        localisation: filters.localisation || undefined,
+        email: filters.email || undefined,
+        telephone: filters.telephone || undefined,
+        commune: filters.commune || undefined,
+        methodRecouvrement: filters.methodRecouvrement || undefined,
+      });
+      if (buffer) {
+        saveAsPDFFile(new Uint8Array(buffer), 'restaurants');
+      } else {
+        toast.error("Erreur lors de l'exportation");
+      }
+    } catch {
+      toast.error("Erreur lors de l'exportation");
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return {
@@ -102,6 +136,7 @@ export const useRestaurantTable = () => {
     isLoading,
     isError,
     isFetching,
+    isExporting,
     setFilters,
     restaurants,
     restaurantsData,
@@ -109,6 +144,7 @@ export const useRestaurantTable = () => {
     filters,
     pagination,
     setSearch,
+    handleExport,
   };
 };
 

@@ -7,6 +7,11 @@ export const restaurantFiltersClient = {
     page: parseAsInteger.withDefault(0),
     orderBy: parseAsString.withDefault('nomEtablissement'),
     orderDirection: parseAsString.withDefault('asc'),
+    localisation: parseAsString.withDefault(''),
+    email: parseAsString.withDefault(''),
+    telephone: parseAsString.withDefault(''),
+    commune: parseAsString.withDefault(''),
+    methodRecouvrement: parseAsString.withDefault(''),
   },
   options: {
     shallow: true,

@@ -51,6 +51,12 @@ export interface IRestaurantParams {
   page?: number;
   limit?: number;
   search?: string;
+  nomEtablissement?: string;
+  localisation?: string;
+  email?: string;
+  telephone?: string;
+  commune?: string;
+  methodRecouvrement?: string;
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
 }

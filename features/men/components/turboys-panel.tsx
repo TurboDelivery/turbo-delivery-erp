@@ -92,7 +92,7 @@ export function TurboysPanel() {
         <Input
           className="flex-1"
           startContent={<Search className="text-gray-400 w-4 h-4 shrink-0" />}
-          placeholder="Rechercher par nom, prénom, téléphone, email..."
+          placeholder="Rechercher par nom, prénom, téléphone"
           value={filters.search ?? ''}
           onChange={(e) => setSearch(e.target.value)}
           isClearable

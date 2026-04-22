@@ -13,6 +13,11 @@ export const useRestaurantFilters = () => {
       limit: 10,
       orderBy: 'nomEtablissement',
       orderDirection: 'asc',
+      localisation: '',
+      email: '',
+      telephone: '',
+      commune: '',
+      methodRecouvrement: '',
     });
   };
 
