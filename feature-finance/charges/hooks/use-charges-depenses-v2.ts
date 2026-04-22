@@ -19,6 +19,7 @@ type UseChargesDepensesV2Options = {
   onApproveChargeVariable?: (charge: IChargeVariable) => void;
   onRejectChargeVariable?: (charge: IChargeVariable) => void;
   onViewJustificatif?: (url: string) => void;
+  categorieIds?: string[];
 };
 
 export function useChargesDepensesV2({
@@ -29,6 +30,7 @@ export function useChargesDepensesV2({
   onApproveChargeVariable,
   onRejectChargeVariable,
   onViewJustificatif,
+  categorieIds,
 }: UseChargesDepensesV2Options = {}) {
   const [filters, setFilters] = useQueryStates(
     chargesDepensesFiltersClient.filter,
@@ -57,6 +59,7 @@ export function useChargesDepensesV2({
     size: fixesPagination.pageSize,
     debut: filters.debut || undefined,
     fin: filters.fin || undefined,
+    categorieIds: categorieIds && categorieIds.length > 0 ? categorieIds : undefined,
   });
 
   const { data: variablesResponse, isLoading: isVariablesLoading, isFetching: isVariablesFetching } = useChargesVariablesQuery({
@@ -64,6 +67,7 @@ export function useChargesDepensesV2({
     size: variablesPagination.pageSize,
     debut: filters.debut || undefined,
     fin: filters.fin || undefined,
+    categorieIds: categorieIds && categorieIds.length > 0 ? categorieIds : undefined,
   });
 
   const { data: stats, isLoading: isStatsLoading } = useChargesFixesStatsQuery(statsParams);

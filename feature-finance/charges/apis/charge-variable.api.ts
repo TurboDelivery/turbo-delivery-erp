@@ -113,21 +113,10 @@ export const chargeVariableAPI: IChargeVariableAPI = {
   },
 
   obtenirChargesVariablesPagination(params: IChargeVariableParams): Promise<PaginatedResponse<IChargeVariable>> {
-    const searchParams: Record<string, string> = {};
-    if (params.page !== undefined) searchParams['page'] = String(params.page);
-    if (params.size !== undefined) searchParams['size'] = String(params.size);
-    if (params.designation) searchParams['designation'] = params.designation;
-    if (params.statut) searchParams['statut'] = params.statut;
-    if (params.cyclePaiement) searchParams['cyclePaiement'] = params.cyclePaiement;
-    if (params.role) searchParams['role'] = params.role;
-    if (params.aDecaisser !== undefined) searchParams['aDecaisser'] = String(params.aDecaisser);
-    if (params.debut) searchParams['debut'] = params.debut;
-    if (params.fin) searchParams['fin'] = params.fin;
-
     return api.request<PaginatedResponse<IChargeVariable>>({
       endpoint: `/erp/charges-variables/pagination`,
       method: 'GET',
-      searchParams,
+      searchParams: params as Record<string, unknown>,
     });
   },
 };
