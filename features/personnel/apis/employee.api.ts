@@ -14,6 +14,7 @@ export interface IEmployeeAPI {
   exporterEmployesExcel(params: IEmployeeParams): Promise<Blob>;
   employesStats(params?: IEmployeeParams): Promise<IEmployeeSalaryStats>;
   changeStatus(id: string, status: string): Promise<IEmployee>;
+  syncJournaliers(): Promise<void>;
 }
 
 export interface IEmployeeParams {
@@ -171,6 +172,13 @@ export const employeeAPI: IEmployeeAPI = {
       endpoint: `/erp/employees/${id}/status`,
       method: 'PATCH',
       data: { status },
+    });
+  },
+
+  async syncJournaliers(): Promise<void> {
+    return api.request<void>({
+      endpoint: `/erp/employees/sync-journaliers`,
+      method: 'POST',
     });
   },
 };

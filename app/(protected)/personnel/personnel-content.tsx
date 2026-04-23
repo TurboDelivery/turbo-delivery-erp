@@ -7,7 +7,9 @@ import { AddEmployeeModal } from '@/components/personnel/add-employee-modal';
 import { EditEmployeeModal } from '@/components/personnel/edit-employee-modal';
 import { RequestManagement } from '@/components/personnel/request-management';
 import { IEmployee } from '@/features/personnel/types/types';
-import { useAjouterEmployeMutation, useModifierEmployeMutation, useSupprimerEmployeMutation } from '@/features/personnel/mutations/employee.mutation';
+import { useAjouterEmployeMutation, useModifierEmployeMutation, useSupprimerEmployeMutation, useSyncJournaliersMutation } from '@/features/personnel/mutations/employee.mutation';
+import { Button } from '@heroui/react';
+import { RefreshCw } from 'lucide-react';
 import { EmployeeTableNew } from '@/components/personnel/employee-table/index';
 import DeductionTabContents from '@/components/personnel/deductions/deduction-tab-contents';
 import PayrollTable from '@/components/personnel/payroll/table/payroll-table';
@@ -21,6 +23,7 @@ export default function PersonnelContent() {
   const ajouterEmployeMutation = useAjouterEmployeMutation();
   const modifierEmployeMutation = useModifierEmployeMutation();
   const supprimerEmployeMutation = useSupprimerEmployeMutation();
+  const syncJournaliersMutation = useSyncJournaliersMutation();
 
   const { data: leaveData } = useLeaveRequestListQuery({});
   const requests = leaveData?.content ?? [];
@@ -53,7 +56,17 @@ export default function PersonnelContent() {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6 text-primary">Personnel TURBO</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-primary">Personnel TURBO</h1>
+        <Button
+          variant="bordered"
+          startContent={<RefreshCw size={16} className={syncJournaliersMutation.isPending ? 'animate-spin' : ''} />}
+          isLoading={syncJournaliersMutation.isPending}
+          onPress={() => syncJournaliersMutation.mutate()}
+        >
+          Synchroniser
+        </Button>
+      </div>
 
       <Tabs defaultValue="employees">
         <TabsList className="grid max-w-2xl grid-cols-4 rounded-full">

@@ -1,9 +1,7 @@
-import { Button } from '@/components/ui/button';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown } from 'lucide-react';
-import React, { useState } from 'react';
+'use client';
+
+import React from 'react';
+import Select from 'react-select';
 
 interface StatutsSelectFilterProps {
   selectedStatuts: string[];
@@ -17,65 +15,15 @@ const statutsOptions = [
 ];
 
 export function StatutsSelectFilter({ selectedStatuts, onStatutsChange }: StatutsSelectFilterProps) {
-  const [open, setOpen] = useState(false);
-
-  const handleSelect = (statutValue: string) => {
-    const isSelected = selectedStatuts.includes(statutValue);
-    onStatutsChange(isSelected ? null : [statutValue]);
-    setOpen(false);
-  };
-
-  const handleClearAll = () => {
-    onStatutsChange(null);
-  };
-
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-[150px] justify-between"
-        >
-          {selectedStatuts.length > 0 ? selectedStatuts[0] : 'Tous les statuts'}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[150px] p-0">
-        <Command>
-          <CommandInput placeholder="Rechercher un statut..." />
-          <CommandEmpty>Aucun statut trouvé.</CommandEmpty>
-          <CommandGroup>
-            {statutsOptions.map((statut) => (
-              <CommandItem
-                key={statut.value}
-                value={statut.value}
-                onSelect={handleSelect}
-              >
-                <Check
-                  className={cn(
-                    "mr-2 h-4 w-4",
-                    selectedStatuts.includes(statut.value) ? "opacity-100" : "opacity-0"
-                  )}
-                />
-                {statut.label}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </Command>
-        {selectedStatuts.length > 0 && (
-          <div className="border-t p-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearAll}
-              className="w-full justify-start"
-            >
-              Effacer la sélection
-            </Button>
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
+    <Select
+      options={statutsOptions}
+      value={statutsOptions.find((opt) => selectedStatuts?.includes(opt.value)) ?? null}
+      isClearable
+      onChange={(opt) => onStatutsChange(opt ? [opt.value] : null)}
+      placeholder="Tous les statuts"
+      className="text-xs w-[160px]"
+      classNamePrefix="react-select"
+    />
   );
 }
