@@ -10,7 +10,7 @@ import { IEmployee } from '@/features/personnel/types/types';
 import { useAjouterEmployeMutation, useModifierEmployeMutation, useSupprimerEmployeMutation, useSyncJournaliersMutation } from '@/features/personnel/mutations/employee.mutation';
 import { Button } from '@heroui/react';
 import { RefreshCw } from 'lucide-react';
-import { EmployeeTableNew } from '@/components/personnel/employee-table/index';
+import EmployeeTableNew from '@/components/personnel/employee-table/index';
 import DeductionTabContents from '@/components/personnel/deductions/deduction-tab-contents';
 import PayrollTable from '@/components/personnel/payroll/table/payroll-table';
 import { useLeaveRequestListQuery } from '@/features/personnel/queries/leave-request-list.query';
@@ -60,6 +60,7 @@ export default function PersonnelContent() {
           variant="bordered"
           startContent={<RefreshCw size={16} className={syncJournaliersMutation.isPending ? 'animate-spin' : ''} />}
           isLoading={syncJournaliersMutation.isPending}
+          disabled={true}
           onPress={() => syncJournaliersMutation.mutate()}
         >
           Synchroniser
