@@ -73,10 +73,10 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
   const { data: salaryStatsData } = useEmployeeSalaryStatsQuery(statsParams);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Carte de statistiques pour les employés */}
-      <Card className="flex flex-col gap-4">
-        <CardContent>
+      <Card>
+        <CardContent className="p-0  ">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-full">
@@ -110,8 +110,8 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
       </Card>
 
       {/* Tableau des employés */}
-      <Card className="flex flex-col gap-4">
-        <CardContent>
+      <Card className="p-0">
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table
               isStriped
