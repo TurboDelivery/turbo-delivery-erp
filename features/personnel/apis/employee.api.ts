@@ -12,7 +12,7 @@ export interface IEmployeeAPI {
   supprimerEmploye(id: string): Promise<IEmployee>;
   obtenirStatsEmployes(params: IEmployeeStatsParams): Promise<IEmployeeStats>;
   exporterEmployesExcel(params: IEmployeeParams): Promise<Blob>;
-  employesStats(): Promise<IEmployeeSalaryStats>;
+  employesStats(params?: IEmployeeParams): Promise<IEmployeeSalaryStats>;
   changeStatus(id: string, status: string): Promise<IEmployee>;
 }
 
@@ -20,11 +20,12 @@ export interface IEmployeeParams {
   page?: number;
   limit?: number;
   department?: string;
-  poste?: string;
+  position?: string;
   statut?: string;
   dateEntree?: string;
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
+  search?: string;
 }
 
 export interface IEmployeeStats {
@@ -157,10 +158,11 @@ export const employeeAPI: IEmployeeAPI = {
     });
   },
 
-  async employesStats(): Promise<IEmployeeSalaryStats> {
+  async employesStats(params?: IEmployeeParams): Promise<IEmployeeSalaryStats> {
     return api.request<IEmployeeSalaryStats>({
       endpoint: `/erp/employees/stats`,
       method: 'GET',
+      searchParams: params ? { ...params } as SearchParams : undefined,
     });
   },
 

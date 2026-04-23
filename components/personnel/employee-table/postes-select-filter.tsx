@@ -16,11 +16,8 @@ export function PostesSelectFilter({ selectedPostes, onPostesChange, postes }: P
 
   const handleSelect = (posteValue: string) => {
     const isSelected = selectedPostes.includes(posteValue);
-    const newSelection = isSelected 
-      ? selectedPostes.filter(p => p !== posteValue)
-      : [...selectedPostes, posteValue];
-    
-    onPostesChange(newSelection.length > 0 ? newSelection : null);
+    onPostesChange(isSelected ? null : [posteValue]);
+    setOpen(false);
   };
 
   const handleClearAll = () => {
@@ -35,7 +32,7 @@ export function PostesSelectFilter({ selectedPostes, onPostesChange, postes }: P
           size="sm"
           className="w-[200px] justify-between"
         >
-          {selectedPostes.length > 0 ? `${selectedPostes.length} poste(s)` : 'Tous les postes'}
+          {selectedPostes.length > 0 ? selectedPostes[0] : 'Tous les postes'}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

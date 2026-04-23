@@ -16,11 +16,8 @@ export function DepartmentsSelectFilter({ selectedDepartments, onDepartmentsChan
 
   const handleSelect = (departmentName: string) => {
     const isSelected = selectedDepartments.includes(departmentName);
-    const newSelection = isSelected 
-      ? selectedDepartments.filter(d => d !== departmentName)
-      : [...selectedDepartments, departmentName];
-    
-    onDepartmentsChange(newSelection.length > 0 ? newSelection : null);
+    onDepartmentsChange(isSelected ? null : [departmentName]);
+    setOpen(false);
   };
 
   const handleClearAll = () => {
@@ -35,7 +32,7 @@ export function DepartmentsSelectFilter({ selectedDepartments, onDepartmentsChan
           size="sm"
           className="w-[200px] justify-between"
         >
-          {selectedDepartments.length > 0 ? `${selectedDepartments.length} département(s)` : 'Tous les départements'}
+          {selectedDepartments.length > 0 ? selectedDepartments[0] : 'Tous les départements'}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

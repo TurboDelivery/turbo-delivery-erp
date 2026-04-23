@@ -65,14 +65,32 @@ export const useEmployeeTableNew = (externalFilters?: EmployeeFilters) => {
       orderBy: currentFilters.orderBy,
       orderDirection: currentFilters.orderDirection as 'asc' | 'desc' | undefined,
       // Ajouter les filtres pour l'API
-      position: currentFilters.postes?.length ? currentFilters.postes[0] : undefined, // L'API semble prendre un seul poste
-      department: currentFilters.departments?.length ? currentFilters.departments[0] : undefined, // L'API semble prendre un seul département
+      position: currentFilters.postes?.length ? currentFilters.postes[0] : undefined,
+      department: currentFilters.departments?.length ? currentFilters.departments[0] : undefined,
+      statut: currentFilters.statuts?.length ? currentFilters.statuts[0] : undefined,
       search: currentFilters.search,
     };
   }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.orderBy, currentFilters.orderDirection, currentFilters.departments, currentFilters.statuts, currentFilters.postes, currentFilters.search]);
 
   const { data: employeesData, isLoading: employeesLoading, error, isError, isFetching } = useEmployeeListQuery(currentSearchParams);
-  const employees = employeesData?.content || [];
+  const allEmployees = employeesData?.content || [];
+
+  // Filtrage client-side (l'API ne supporte pas ces filtres côté serveur)
+  const employees = useMemo(() => {
+    let filtered = allEmployees;
+
+    if (currentFilters.departments && currentFilters.departments.length > 0) {
+      filtered = filtered.filter(e => currentFilters.departments?.includes(e.department || ''));
+    }
+    if (currentFilters.statuts && currentFilters.statuts.length > 0) {
+      filtered = filtered.filter(e => currentFilters.statuts?.includes(e.statut || ''));
+    }
+    if (currentFilters.postes && currentFilters.postes.length > 0) {
+      filtered = filtered.filter(e => currentFilters.postes?.includes(e.position || ''));
+    }
+
+    return filtered;
+  }, [allEmployees, currentFilters.departments, currentFilters.statuts, currentFilters.postes]);
 
   // Utiliser directement la pagination de l'API
   const pagination = useMemo(() => {

@@ -21,11 +21,8 @@ export function StatutsSelectFilter({ selectedStatuts, onStatutsChange }: Statut
 
   const handleSelect = (statutValue: string) => {
     const isSelected = selectedStatuts.includes(statutValue);
-    const newSelection = isSelected 
-      ? selectedStatuts.filter(s => s !== statutValue)
-      : [...selectedStatuts, statutValue];
-    
-    onStatutsChange(newSelection.length > 0 ? newSelection : null);
+    onStatutsChange(isSelected ? null : [statutValue]);
+    setOpen(false);
   };
 
   const handleClearAll = () => {
@@ -40,7 +37,7 @@ export function StatutsSelectFilter({ selectedStatuts, onStatutsChange }: Statut
           size="sm"
           className="w-[150px] justify-between"
         >
-          {selectedStatuts.length > 0 ? `${selectedStatuts.length} statut(s)` : 'Tous les statuts'}
+          {selectedStatuts.length > 0 ? selectedStatuts[0] : 'Tous les statuts'}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

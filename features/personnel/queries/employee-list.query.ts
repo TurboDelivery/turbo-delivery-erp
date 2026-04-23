@@ -20,10 +20,10 @@ export const useEmployeeQuery = (id: string) => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
-export const useEmployeeSalaryStatsQuery = () => {
+export const useEmployeeSalaryStatsQuery = (params?: IEmployeeParams) => {
   return useQuery<IEmployeeSalaryStats>({
-    queryKey: ['employee-salary-stats'],
-    queryFn: () => employeeAPI.employesStats(),
+    queryKey: ['employee-salary-stats', params],
+    queryFn: () => employeeAPI.employesStats(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };

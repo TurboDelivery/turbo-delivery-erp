@@ -7,6 +7,7 @@ import { MoreVertical } from 'lucide-react';
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
 import { type LivreurStatutVM } from '@/types/models';
 import DeliveryMenStatusValidate from '@/components/dashboard/delivery-men/delivery-men-status-validate';
+import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
 
 export function turboyToLivreurStatut(turboy: ITurboy): LivreurStatutVM {
   // L'API renvoie directement 2=auth pending, 3=ops pending, 4=actif, 5=rejeté
@@ -27,6 +28,7 @@ type MenuItem = { key: string; label: string };
 export function TurboyActionMenu({ turboy }: { turboy: ITurboy }) {
   const router = useRouter();
   const [openValidate, setOpenValidate] = useState(false);
+  const [openUpdateType, setOpenUpdateType] = useState(false);
   const mapped = turboyToLivreurStatut(turboy);
   const validateBy: 'auth' | 'ops' | 'no-body' =
     mapped.status === 2 ? 'auth' : mapped.status === 3 ? 'ops' : 'no-body';
@@ -34,6 +36,7 @@ export function TurboyActionMenu({ turboy }: { turboy: ITurboy }) {
   const items: MenuItem[] = [
     { key: 'details', label: 'Détails' },
     { key: 'edit', label: 'Modifier' },
+    { key: 'change-type', label: 'Changer le type' },
     ...(validateBy === 'auth' ? [{ key: 'validate', label: 'Valider' }] : []),
     ...(validateBy === 'ops' ? [{ key: 'activate', label: 'Activer' }] : []),
   ];
@@ -52,6 +55,7 @@ export function TurboyActionMenu({ turboy }: { turboy: ITurboy }) {
           onAction={(key) => {
             if (key === 'details') router.push(`/delivery-men/men/${turboy.id}`);
             if (key === 'edit') router.push(`/delivery-men/men/${turboy.id}`);
+            if (key === 'change-type') setOpenUpdateType(true);
             if (key === 'validate' || key === 'activate') setOpenValidate(true);
           }}
         >
@@ -66,6 +70,7 @@ export function TurboyActionMenu({ turboy }: { turboy: ITurboy }) {
           validateBy={validateBy}
         />
       )}
+      <UpdateTurboyTypeModal isOpen={openUpdateType} onOpenChange={setOpenUpdateType} turboy={turboy} />
     </>
   );
 }

@@ -63,19 +63,14 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
     limit: 50,
     search: '',
   });
-  const { data: salaryStatsData } = useEmployeeSalaryStatsQuery();
-  // Utiliser les filtres du tableau pour les stats
-  // const currentSearchParams = {
-  //   debut: filters.debut,
-  //   fin: filters.fin,
-  //   departments: filters.departments || undefined,
-  //   statuts: filters.statuts || undefined,
-  //   postes: filters.postes || undefined,
-  //   search: filters.search || undefined, // Ajouter la recherche aux stats
-  // };
 
-  // Utiliser les mêmes filtres pour les stats
-  // const { data: statsData, isLoading: statsLoading } = useEmployeeStatsQuery(currentSearchParams);
+  const statsParams = {
+    search: filters.search || undefined,
+    position: filters.postes?.length ? filters.postes[0] : undefined,
+    department: filters.departments?.length ? filters.departments[0] : undefined,
+    statut: filters.statuts?.length ? filters.statuts[0] : undefined,
+  };
+  const { data: salaryStatsData } = useEmployeeSalaryStatsQuery(statsParams);
 
   return (
     <div className="space-y-6">
