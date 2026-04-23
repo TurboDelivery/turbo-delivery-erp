@@ -14,13 +14,7 @@ export type ChargeTypeFilter = 'fixe' | 'variable';
 const DEFAULT_PAGE_SIZE = 10;
 const DECAISSE_STATUTS = ['DECAISSE', 'PAID'];
 
-export function usePaiementsTable(
-  debut: string,
-  fin: string,
-  onRequestDecaisser?: (ids: string[]) => void,
-  onRequestDelete?: (id: string) => void,
-  categorieIds?: string[],
-) {
+export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser?: (ids: string[]) => void, onRequestDelete?: (id: string) => void, categorieIds?: string[]) {
   const [chargeType, setChargeType] = useState<ChargeTypeFilter>('variable');
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
@@ -33,15 +27,9 @@ export function usePaiementsTable(
   const supprimerChargeVariableMutation = useSupprimerChargeVariableMutation();
   const { mutate: telechargerRapportMasseSalariale } = useRapportMasseSalarialeMutation();
 
-  const fixesQuery = useChargesFixesQuery(
-    { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin, categorieIds },
-    chargeType === 'fixe',
-  );
+  const fixesQuery = useChargesFixesQuery({ page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin, categorieIds }, chargeType === 'fixe');
 
-  const variablesQuery = useChargesVariablesQuery(
-    { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin, categorieIds },
-    chargeType === 'variable',
-  );
+  const variablesQuery = useChargesVariablesQuery({ page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin, categorieIds }, chargeType === 'variable');
 
   const response = chargeType === 'fixe' ? fixesQuery.data : variablesQuery.data;
   const isLoading = chargeType === 'fixe' ? fixesQuery.isLoading : variablesQuery.isLoading;
@@ -61,34 +49,40 @@ export function usePaiementsTable(
     return content as IChargeFixe[];
   }, [response?.content, chargeType]);
 
-  const handleDecaisserOne = useCallback((id: string) => {
-    if (onRequestDecaisser) {
-      onRequestDecaisser([id]);
-    } else {
-      decaisserMutation.mutate([id]);
-    }
-  }, [decaisserMutation, onRequestDecaisser]);
+  const handleDecaisserOne = useCallback(
+    (id: string) => {
+      if (onRequestDecaisser) {
+        onRequestDecaisser([id]);
+      } else {
+        decaisserMutation.mutate([id]);
+      }
+    },
+    [decaisserMutation, onRequestDecaisser],
+  );
 
-  const handleDeleteOne = useCallback((id: string) => {
-    if (onRequestDelete) {
-      onRequestDelete(id);
-    } else {
-      supprimerChargeVariableMutation.mutate(id);
-    }
-  }, [supprimerChargeVariableMutation, onRequestDelete]);
+  const handleDeleteOne = useCallback(
+    (id: string) => {
+      if (onRequestDelete) {
+        onRequestDelete(id);
+      } else {
+        supprimerChargeVariableMutation.mutate(id);
+      }
+    },
+    [supprimerChargeVariableMutation, onRequestDelete],
+  );
 
   const columns = useMemo(
-    () => createPaiementsColumns({
-      onDecaisser: handleDecaisserOne,
-      isPending: decaisserMutation.isPending,
-      onDelete: chargeType === 'variable' ? handleDeleteOne : undefined,
-      isDeleting: supprimerChargeVariableMutation.isPending,
-      onRapport: (charge) => {
-        const mois = charge.dateDecaissement ?? charge.dateEcheance;
-        telechargerRapportMasseSalariale(mois.slice(0, 10));
-      },
-    }),
-    [handleDecaisserOne, decaisserMutation.isPending, chargeType, handleDeleteOne, supprimerChargeVariableMutation.isPending, telechargerRapportMasseSalariale],
+    () =>
+      createPaiementsColumns({
+        onDecaisser: handleDecaisserOne,
+        isPending: decaisserMutation.isPending,
+        onDelete: chargeType === 'variable' ? handleDeleteOne : undefined,
+        isDeleting: supprimerChargeVariableMutation.isPending,
+        onRapport: () => {
+          telechargerRapportMasseSalariale(debut);
+        },
+      }),
+    [handleDecaisserOne, decaisserMutation.isPending, chargeType, handleDeleteOne, supprimerChargeVariableMutation.isPending, telechargerRapportMasseSalariale, debut],
   );
 
   const table = useReactTable({

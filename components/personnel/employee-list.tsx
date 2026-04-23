@@ -8,8 +8,6 @@ import { EmployeeCreateDTO } from '@/features/personnel/schemas/employee.schema'
 
 interface EmployeeListProps {
   employees: IEmployee[];
-  departments: Array<{ name: string; id: string }>;
-  postes: string[];
   onAddEmployee: (employee: EmployeeCreateDTO) => void;
   onEditPosition: (employee: IEmployee) => void;
   onDeactivate: (employee: IEmployee) => void;
@@ -19,7 +17,7 @@ interface EmployeeListProps {
   onPressAdd?: (e: any) => void;
 }
 
-export function EmployeeList({ employees, departments, postes, onAddEmployee,  onSearchChange, onClickAdd }: EmployeeListProps) {
+export function EmployeeList({ employees, onAddEmployee, onSearchChange, onClickAdd }: EmployeeListProps) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredEmployees = (employees || []).filter(
@@ -56,7 +54,7 @@ export function EmployeeList({ employees, departments, postes, onAddEmployee,  o
         />
       </div>
 
-      <EmployeeTable employees={filteredEmployees} departments={departments} postes={postes}  />
+      <EmployeeTable employees={filteredEmployees} />
     </div>
   );
 }

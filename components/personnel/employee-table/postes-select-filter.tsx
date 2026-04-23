@@ -2,16 +2,16 @@ import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { POSTES } from '@/features/personnel/constants/employee.constants';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface PostesSelectFilterProps {
   selectedPostes: string[];
   onPostesChange: (postes: string[] | null) => void;
-  postes: string[];
 }
 
-export function PostesSelectFilter({ selectedPostes, onPostesChange, postes }: PostesSelectFilterProps) {
+export function PostesSelectFilter({ selectedPostes, onPostesChange }: PostesSelectFilterProps) {
   const [open, setOpen] = useState(false);
 
   const handleSelect = (posteValue: string) => {
@@ -41,7 +41,7 @@ export function PostesSelectFilter({ selectedPostes, onPostesChange, postes }: P
           <CommandInput placeholder="Rechercher un poste..." />
           <CommandEmpty>Aucun poste trouvé.</CommandEmpty>
           <CommandGroup>
-            {postes?.map((poste) => (
+            {POSTES.map((poste) => (
               <CommandItem
                 key={poste}
                 value={poste}

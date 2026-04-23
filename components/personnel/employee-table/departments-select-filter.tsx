@@ -2,16 +2,16 @@ import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { DEPARTMENTS } from '@/features/personnel/constants/employee.constants';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface DepartmentsSelectFilterProps {
   selectedDepartments: string[];
   onDepartmentsChange: (departments: string[] | null) => void;
-  departments: Array<{ name: string; id: string }>;
 }
 
-export function DepartmentsSelectFilter({ selectedDepartments, onDepartmentsChange, departments }: DepartmentsSelectFilterProps) {
+export function DepartmentsSelectFilter({ selectedDepartments, onDepartmentsChange }: DepartmentsSelectFilterProps) {
   const [open, setOpen] = useState(false);
 
   const handleSelect = (departmentName: string) => {
@@ -41,7 +41,7 @@ export function DepartmentsSelectFilter({ selectedDepartments, onDepartmentsChan
           <CommandInput placeholder="Rechercher un département..." />
           <CommandEmpty>Aucun département trouvé.</CommandEmpty>
           <CommandGroup>
-            {departments?.map((department) => (
+            {DEPARTMENTS.map((department) => (
               <CommandItem
                 key={department.id}
                 value={department.name}

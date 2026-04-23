@@ -27,7 +27,10 @@
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
       "Bash(rtk ls *)",
       "Bash(rtk grep *)",
-      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebSearch",
+      "WebFetch(domain:glensea.com)"
     ]
   }
 }
