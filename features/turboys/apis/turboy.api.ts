@@ -5,6 +5,7 @@ export interface ITurboyAPI {
   obtenirTurboyParType(params: ITurboyParams): Promise<TurboyListResponse>;
   obtenirTurboy(id: string): Promise<ITurboy>;
   updateTurboyType(payload: IUpdateTurboyTypePayload): Promise<ITurboy>;
+  rejectTurboy(userId: string): Promise<void>;
 }
 
 export const turboyAPI: ITurboyAPI = {
@@ -29,6 +30,13 @@ export const turboyAPI: ITurboyAPI = {
       endpoint: `/api/erp/livreur/${payload.id}/type`,
       method: 'PATCH',
       data: payload,
+    });
+  },
+
+  async rejectTurboy(userId: string): Promise<void> {
+    return await apiClientHttp.request<void>({
+      endpoint: `/api/erp/livreur/rejet/${userId}`,
+      method: 'GET',
     });
   },
 };

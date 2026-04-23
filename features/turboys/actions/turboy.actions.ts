@@ -12,6 +12,19 @@ export async function getTurboyById(id: string): Promise<ITurboy> {
   return turboyAPI.obtenirTurboy(id);
 }
 
+export async function rejectTurboyAction(userId: string): Promise<ActionResponse<void>> {
+  try {
+    await turboyAPI.rejectTurboy(userId);
+    return {
+      success: true,
+      message: 'Le livreur a été rejeté avec succès',
+    };
+  } catch (error) {
+    console.error('❌ Erreur Action Serveur:', error);
+    return handleServerActionError(error, 'Erreur lors du rejet du livreur');
+  }
+}
+
 export async function updateTurboyTypeAction(data: UpdateTurboyTypeDTO): Promise<ActionResponse<ITurboy>> {
   try {
 
