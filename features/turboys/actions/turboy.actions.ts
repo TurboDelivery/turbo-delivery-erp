@@ -25,6 +25,19 @@ export async function rejectTurboyAction(userId: string): Promise<ActionResponse
   }
 }
 
+export async function deleteTurboyAction(id: string): Promise<ActionResponse<void>> {
+  try {
+    await turboyAPI.deleteTurboy(id);
+    return {
+      success: true,
+      message: 'Le livreur a été supprimé avec succès',
+    };
+  } catch (error) {
+    console.error('❌ Erreur Action Serveur:', error);
+    return handleServerActionError(error, 'Erreur lors de la suppression du livreur');
+  }
+}
+
 export async function updateTurboyTypeAction(data: UpdateTurboyTypeDTO): Promise<ActionResponse<ITurboy>> {
   try {
 

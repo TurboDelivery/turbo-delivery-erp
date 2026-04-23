@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { rejectTurboyAction, updateTurboyTypeAction } from '@/features/turboys/actions/turboy.actions';
+import { deleteTurboyAction, rejectTurboyAction, updateTurboyTypeAction } from '@/features/turboys/actions/turboy.actions';
 import { ITurboy, IUpdateTurboyTypePayload } from '@/features/turboys/types/turboys.types';
 import { toast } from 'react-toastify';
 import { turboyKeys } from './turboy-list.query';
@@ -59,6 +59,28 @@ export const useRejectTurboyMutation = (handleSuccess?: () => void) => {
     onError: (error) => {
       const message = error instanceof Error ? error.message : 'Erreur inconnue';
       toast.error(`Erreur lors du rejet: ${message}`);
+    },
+  });
+};
+
+export const useDeleteTurboyMutation = (handleSuccess?: () => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const result = await deleteTurboyAction(id);
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de la suppression du livreur');
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: turboyKeys.lists() });
+      toast.success('Le livreur a été supprimé avec succès.');
+      if (handleSuccess) handleSuccess();
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors de la suppression: ${message}`);
     },
   });
 };
