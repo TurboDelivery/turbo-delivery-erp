@@ -11,13 +11,11 @@ import { MoreVertical } from 'lucide-react';
 
 interface EmployeeTableProps {
   employees: IEmployee[];
-  departments: Array<{ name: string; id: string }>;
-  postes: string[];
 }
 
 const columnHelper = createColumnHelper<IEmployee>();
 
-export function EmployeeTable({ employees, departments, postes }: EmployeeTableProps) {
+export function EmployeeTable({ employees }: EmployeeTableProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<IEmployee | null>(null);
 
@@ -171,8 +169,6 @@ export function EmployeeTable({ employees, departments, postes }: EmployeeTableP
           setSelectedEmployee(null);
         }}
         employee={selectedEmployee}
-        departments={departments}
-        postes={postes}
       />
     </>
   );

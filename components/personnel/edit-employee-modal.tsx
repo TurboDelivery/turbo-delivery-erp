@@ -10,13 +10,12 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@herou
 import { IEmployee } from '@/features/personnel/types/types';
 import { useModifierEmployeMutation } from '@/features/personnel/mutations/employee.mutation';
 import { EmployeeSchema, type EmployeeDTO } from '@/features/personnel/schemas/employee.schema';
+import { DEPARTMENTS, POSTES } from '@/features/personnel/constants/employee.constants';
 
 interface EditEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
   employee: IEmployee | null;
-  departments: Array<{ name: string; id: string }>;
-  postes: string[];
 }
 
 const DEFAULT_VALUES: EmployeeDTO = {
@@ -29,13 +28,7 @@ const DEFAULT_VALUES: EmployeeDTO = {
   statut: 'Actif',
 };
 
-export function EditEmployeeModal({ 
-  isOpen, 
-  onClose, 
-  employee,
-  departments, 
-  postes 
-}: EditEmployeeModalProps) {
+export function EditEmployeeModal({ isOpen, onClose, employee }: EditEmployeeModalProps) {
   const modifierEmployeMutation = useModifierEmployeMutation();
   const form = useForm<EmployeeDTO>({
     resolver: zodResolver(EmployeeSchema),
@@ -144,7 +137,7 @@ export function EditEmployeeModal({
                         isInvalid={!!errors.position}
                         errorMessage={errors.position?.message}
                       >
-                        {postes.map((position) => (
+                        {POSTES.map((position) => (
                           <SelectItem key={position} value={position}>
                             {position.toLowerCase()}
                           </SelectItem>
@@ -169,7 +162,7 @@ export function EditEmployeeModal({
                         isInvalid={!!errors.department}
                         errorMessage={errors.department?.message}
                       >
-                        {departments.map((dept) => (
+                        {DEPARTMENTS.map((dept) => (
                           <SelectItem key={dept.name} value={dept.name}>
                             {dept.name}
                           </SelectItem>

@@ -6,6 +6,7 @@ import { Button } from '@heroui/react';
 import { Input } from '@heroui/react';
 import { Select, SelectItem } from '@heroui/react';
 import { EmployeeCreateDTO, EmployeeCreateSchema } from '@/features/personnel/schemas/employee.schema';
+import { DEPARTMENTS, POSTES } from '@/features/personnel/constants/employee.constants';
 import { processAndValidateFormData } from 'ak-zod-form-kit';
 import { toast } from 'sonner';
 
@@ -13,17 +14,9 @@ interface AddEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddEmployee: (employee: EmployeeCreateDTO) => void;
-  departments: Array<{ name: string; id: string }>;
-  postes: string[];
 }
 
-export function AddEmployeeModal({ 
-  isOpen, 
-  onClose, 
-  onAddEmployee, 
-  departments, 
-  postes 
-}: AddEmployeeModalProps) {
+export function AddEmployeeModal({ isOpen, onClose, onAddEmployee }: AddEmployeeModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -113,7 +106,7 @@ export function AddEmployeeModal({
                     onSelectionChange={(keys) => handleInputChange('position', Array.from(keys)[0] as string)}
                     variant="bordered"
                   >
-                    {postes.map((poste) => (
+                    {POSTES.map((poste) => (
                       <SelectItem key={poste} value={poste}>
                         {poste.toLowerCase()}
                       </SelectItem>
@@ -127,7 +120,7 @@ export function AddEmployeeModal({
                     onSelectionChange={(keys) => handleInputChange('department', Array.from(keys)[0] as string)}
                     variant="bordered"
                   >
-                    {departments.map((dept) => (
+                    {DEPARTMENTS.map((dept) => (
                       <SelectItem key={dept.name} value={dept.name}>
                         {dept.name}
                       </SelectItem>

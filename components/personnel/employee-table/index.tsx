@@ -5,10 +5,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useEmployeeTableNew } from '@/features/personnel/hooks/use-employee-table-new';
 import { useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { DEPARTMENTS } from '@/features/personnel/constants/employee.constants';
 import { Button, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { flexRender } from '@tanstack/react-table';
 import { DollarSign, Plus, TrendingUp, Users } from 'lucide-react';
-import { DepartmentsSelectFilter } from './departments-select-filter';
 import { PostesSelectFilter } from './postes-select-filter';
 import { StatutsSelectFilter } from './statuts-select-filter';
 import { EmployeeSearchInput } from './employee-search-input';
@@ -22,39 +24,6 @@ interface EmployeeTableProps {
 }
 
 export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAddEmployee }: EmployeeTableProps) {
-  // Données de départements et positions
-  const departments = [
-    { id: '1', name: 'RESSOURCES HUMAINES' },
-    { id: '2', name: 'COMMUNICATION - MARKETING' },
-    { id: '3', name: 'DEVELOPPEMENT' },
-    { id: '4', name: 'COMMERCIAL' },
-    { id: '5', name: 'OPERATIONS' },
-    { id: '6', name: 'DIRECTION' },
-    { id: '7', name: 'TECHNIQUE' },
-    { id: '8', name: 'LOGISTIQUE' },
-    { id: '9', name: 'INFORMATIQUE' },
-  ];
-
-  const postes = [
-    'DIRECTEUR GENERAL',
-    'DIRECTEUR GENERAL ADJOINT',
-    'RESPONSABLE DES OPERATIONS',
-    'RESPONSABLE COMPTABLE',
-    'RESPONSABLE DES RECOUVREMENTS',
-    'CHEF AUX OPERATIONS',
-    'STANDARDISTE',
-    "AGENT DE LA CENTRALE D'APPEL",
-    'SUPERVISEURS',
-    'DISPATCHERS',
-    'DISPACTHEUSES',
-    'SERVICE AUTHENTIFICATION ET VERIFICATION DE COUPONS',
-    'DEVELOPPEUR',
-    'CM - MARKETING',
-    'SECRETAIRE DE DIRECTION',
-    'Turboy Journalier',
-    'ménagère',
-  ];
-
   const { table, isLoading, isFetching, pagination, filters, setSelectedDepartments, setSelectedStatuts, setSelectedPostes, handleSearchChange } = useEmployeeTableNew({
     onEdit: onEditPosition,
     onDeactivate: onDeactivate,
@@ -109,6 +78,25 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
         </CardContent>
       </Card>
 
+      {/* Tabs de filtrage par département */}
+      <div className="py-3">
+        <Tabs value={filters.departments?.[0] ?? 'all'} onValueChange={(val) => setSelectedDepartments(val === 'all' ? null : [val])}>
+          <ScrollArea className="w-full">
+            <TabsList className="flex w-max">
+              <TabsTrigger value="all" className="text-xs sm:text-sm">
+                Tous
+              </TabsTrigger>
+              {DEPARTMENTS.map((dept) => (
+                <TabsTrigger key={dept.name} value={dept.name} className="text-xs sm:text-sm">
+                  {dept.name}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </Tabs>
+      </div>
+
       {/* Tableau des employés */}
       <Card className="p-0">
         <CardContent className="p-0">
@@ -119,9 +107,8 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
                 <div className="flex justify-between items-center py-2">
                   <div className="flex gap-2">
                     <EmployeeSearchInput value={filters.search || ''} onChange={handleSearchChange} />
-                    <DepartmentsSelectFilter selectedDepartments={filters.departments || []} onDepartmentsChange={setSelectedDepartments} departments={departments} />
                     <StatutsSelectFilter selectedStatuts={filters.statuts || []} onStatutsChange={setSelectedStatuts} />
-                    <PostesSelectFilter selectedPostes={filters.postes || []} onPostesChange={setSelectedPostes} postes={postes} />
+                    <PostesSelectFilter selectedPostes={filters.postes || []} onPostesChange={setSelectedPostes} />
                   </div>
                   <Can I="create" a="Personnel">
                     <Button color="primary" startContent={<Plus size={16} />} onPress={onAddEmployee}>

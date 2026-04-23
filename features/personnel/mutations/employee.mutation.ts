@@ -2,6 +2,7 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { ajouterEmployeAction, modifierEmployeAction, supprimerEmployeAction, changeStatusAction } from '../actions/employee.action';
+import { employeeAPI } from '../apis/employee.api';
 
 import { toast } from 'sonner';
 import { processAndValidateFormData } from 'ak-zod-form-kit';
@@ -78,7 +79,7 @@ export const useModifierEmployeMutation = () => {
       await invalidateEmployeeQuery();
       toast.success('Employé modifié avec succès');
     },
-    onError: async (error) => {
+    onError: async () => {
       // toast.error('Erreur modification employé:', {
       //   description: error instanceof Error ? error.message : 'Erreur inconnue',
       // });
@@ -105,6 +106,22 @@ export const useSupprimerEmployeMutation = () => {
     },
     onError: async (error) => {
       toast.error('Erreur suppression employé:', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+export const useSyncJournaliersMutation = () => {
+  const invalidateEmployeeQuery = useInvalidateEmployeeQuery();
+  return useMutation({
+    mutationFn: () => employeeAPI.syncJournaliers(),
+    onSuccess: async () => {
+      await invalidateEmployeeQuery();
+      toast.success('Synchronisation effectuée avec succès');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors de la synchronisation', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },
