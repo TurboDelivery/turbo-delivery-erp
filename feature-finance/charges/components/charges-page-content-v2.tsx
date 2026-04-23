@@ -32,6 +32,8 @@ export default function ChargesPageContentV2() {
 
   const actionVariableMutation = useActionChargeVariableMutation();
 
+  const { filters: depenseFilters, handleCategoriesChange } = useDepenseDashboardFilters();
+
   const { fixesTable, variablesTable, isFixesLoading, isVariablesLoading, fixesRemainingCount, variablesRemainingCount, stats, isStatsLoading, filters, setFilters } = useChargesDepensesV2({
     onEditChargeFixe: (charge) => {
       setChargeToEdit(charge);
@@ -46,6 +48,7 @@ export default function ChargesPageContentV2() {
     onApproveChargeVariable: (charge) => actionVariableMutation.mutate({ id: charge.id, action: 'valider-dga', dto: { par: 'Utilisateur' } }),
     onRejectChargeVariable: (charge) => actionVariableMutation.mutate({ id: charge.id, action: 'rejeter-dga', dto: { par: 'Utilisateur' } }),
     onViewJustificatif: (url) => setPreviewUrl(url),
+    categorieIds: depenseFilters.categoriesDepense || [],
   });
 
   const monthOptions = useMemo(() => buildMonthOptions(), []);
@@ -59,12 +62,15 @@ export default function ChargesPageContentV2() {
     [filters.debut, filters.fin],
   );
 
-  const { filters: depenseFilters, handleCategoriesChange } = useDepenseDashboardFilters();
   const { exportDepensesToExcel, isLoadingDepenseExport } = useDepenseExport();
 
   const handleExport = useCallback(() => {
-    exportDepensesToExcel({ debut: filterDates.debut, fin: filterDates.fin });
-  }, [exportDepensesToExcel, filterDates]);
+    exportDepensesToExcel({
+      debut: filterDates.debut,
+      fin: filterDates.fin,
+      categoriesDepense: depenseFilters.categoriesDepense || [],
+    });
+  }, [exportDepensesToExcel, filterDates, depenseFilters.categoriesDepense]);
 
   const handleMonthChange = useCallback(
     (keys: Set<string> | unknown) => {

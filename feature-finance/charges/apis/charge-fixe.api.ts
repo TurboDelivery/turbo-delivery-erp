@@ -46,7 +46,7 @@ export const chargeFixeAPI: IChargeFixeAPI = {
     return api.request<PaginatedResponse<IChargeFixe>>({
       endpoint: `/erp/charges-fixes/pagination`,
       method: 'GET',
-      searchParams: params,
+      searchParams: params as Record<string, unknown>,
     });
   },
 

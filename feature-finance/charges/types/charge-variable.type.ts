@@ -72,6 +72,7 @@ export interface IChargeVariableParams {
   aDecaisser?: boolean;
   debut?: string;
   fin?: string;
+  categorieIds?: string[];
 }
 
 export interface IWorkflowDecisionDto {

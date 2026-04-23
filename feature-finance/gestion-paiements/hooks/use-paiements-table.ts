@@ -19,6 +19,7 @@ export function usePaiementsTable(
   fin: string,
   onRequestDecaisser?: (ids: string[]) => void,
   onRequestDelete?: (id: string) => void,
+  categorieIds?: string[],
 ) {
   const [chargeType, setChargeType] = useState<ChargeTypeFilter>('variable');
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
@@ -33,12 +34,12 @@ export function usePaiementsTable(
   const { mutate: telechargerRapportMasseSalariale } = useRapportMasseSalarialeMutation();
 
   const fixesQuery = useChargesFixesQuery(
-    { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin },
+    { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin, categorieIds },
     chargeType === 'fixe',
   );
 
   const variablesQuery = useChargesVariablesQuery(
-    { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin },
+    { page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin, categorieIds },
     chargeType === 'variable',
   );
 
