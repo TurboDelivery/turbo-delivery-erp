@@ -49,9 +49,7 @@ export default function PersonnelContent() {
   };
 
   const handleRemove = (employee: IEmployee) => {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${employee.name} ?`)) {
-      supprimerEmployeMutation.mutate(employee.id);
-    }
+    supprimerEmployeMutation.mutate(employee.id);
   };
 
   return (
@@ -90,11 +88,7 @@ export default function PersonnelContent() {
         </TabsContent>
       </Tabs>
 
-      <AddEmployeeModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAddEmployee={(newEmployee) => ajouterEmployeMutation.mutate(newEmployee)}
-      />
+      <AddEmployeeModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAddEmployee={(newEmployee) => ajouterEmployeMutation.mutate(newEmployee)} />
 
       {selectedEmployee && (
         <EditEmployeeModal
