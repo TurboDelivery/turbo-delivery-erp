@@ -7,7 +7,7 @@ export const updateTurboyInfoSchema = z.object({
   birthDay: z.string().min(1, 'La date de naissance est requise'),
   habitation: z.string().min(1, 'Le domicile est requis'),
   telephone: z.string().min(1, 'Le téléphone est requis'),
-  email: z.string().email('Adresse email invalide').or(z.literal('')).optional(),
+  email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Adresse email invalide').or(z.literal('')).optional(),
 
   // Document d'identité
   typeDocument: z.string().optional(),

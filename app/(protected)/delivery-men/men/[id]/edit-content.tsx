@@ -150,7 +150,7 @@ export default function EditContent({ id }: { id: string }) {
         {turboy.prenoms} {turboy.nom} — {turboy.matricule ?? turboy.id}
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
         <SectionDocumentsActuels
           avatarUrl={turboy.avatarUrl}
           cniUrlR={turboy.cniUrlR}

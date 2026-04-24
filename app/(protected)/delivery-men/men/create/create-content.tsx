@@ -146,7 +146,7 @@ export default function CreateContent() {
       <h1 className="text-2xl font-bold text-primary mb-1">Créer un nouveau profil</h1>
       <p className="text-sm text-gray-500 mb-8">Enregistrer un nouveau coursier dans le système</p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
+      <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
         {/* ── Photo de profil ── */}
         <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
           <SectionTitle>Photo de profil</SectionTitle>
