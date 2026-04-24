@@ -23,7 +23,7 @@ interface EmployeeTableProps {
   onAddEmployee: () => void;
 }
 
-export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAddEmployee }: EmployeeTableProps) {
+export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAddEmployee }: EmployeeTableProps) {
   const { table, isLoading, isFetching, pagination, filters, setSelectedDepartments, setSelectedStatuts, setSelectedPostes, handleSearchChange } = useEmployeeTableNew({
     onEdit: onEditPosition,
     onDeactivate: onDeactivate,
@@ -104,8 +104,8 @@ export function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAdd
             <Table
               isStriped
               topContent={
-                <div className="flex justify-between items-center py-2">
-                  <div className="flex gap-2">
+                <div className="flex flex-col md:flex-row justify-between items-center py-2">
+                  <div className="flex flex-col md:flex-row gap-2">
                     <EmployeeSearchInput value={filters.search || ''} onChange={handleSearchChange} />
                     <StatutsSelectFilter selectedStatuts={filters.statuts || []} onStatutsChange={setSelectedStatuts} />
                     <PostesSelectFilter selectedPostes={filters.postes || []} onPostesChange={setSelectedPostes} />

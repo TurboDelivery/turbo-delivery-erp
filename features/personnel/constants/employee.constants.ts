@@ -8,6 +8,7 @@ export const DEPARTMENTS = [
   { id: '5', name: 'OPERATIONS' },
   { id: '1', name: 'RESSOURCES HUMAINES' },
   { id: '7', name: 'TECHNIQUE' },
+  { id: '8', name: 'Livraison' },
 ] as const;
 
 export const POSTES = [
