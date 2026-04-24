@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ArrowRight } from 'lucide-react';
 
 interface StatCardProps {
   label: string;
@@ -8,9 +9,22 @@ interface StatCardProps {
   highlight?: boolean;
   isActive?: boolean;
   onClick?: () => void;
+  isLink?: boolean;
 }
 
-export function StatCard({ label, value, highlight, isActive, onClick }: StatCardProps) {
+export function StatCard({ label, value, highlight, isActive, onClick, isLink }: StatCardProps) {
+  if (isLink) {
+    return (
+      <div
+        onClick={onClick}
+        className="cursor-pointer flex items-center justify-between rounded-lg border border-dashed border-primary/40 bg-primary/5 px-5 py-4 w-full transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:scale-[1.02] group"
+      >
+        <span className="text-sm font-medium text-primary">{label}</span>
+        <ArrowRight className="w-5 h-5 text-primary opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-transform" />
+      </div>
+    );
+  }
+
   if (highlight) {
     return (
       <div

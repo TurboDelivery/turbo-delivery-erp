@@ -1,14 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Tooltip } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { MoreVertical } from 'lucide-react';
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
-import { type LivreurStatutVM } from '@/types/models';
+import { type LivreurStatutVM, type Restaurant } from '@/types/models';
 import DeliveryMenStatusValidate from '@/components/dashboard/delivery-men/delivery-men-status-validate';
 import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
 import { useDeleteTurboyMutation, useRejectTurboyMutation } from '@/features/turboys/queries';
+import { UpdateDeliveryDialog } from '@/app/(protected)/delivery-men/update-delivery/update-delivery';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,24 +37,58 @@ export function turboyToLivreurStatut(turboy: ITurboy): LivreurStatutVM {
 
 type MenuItem = { key: string; label: string };
 
-export function TurboyActionMenu({ turboy }: { turboy: ITurboy }) {
+export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; restaurants?: Restaurant[] }) {
   const router = useRouter();
   const [openValidate, setOpenValidate] = useState(false);
   const [openUpdateType, setOpenUpdateType] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openReject, setOpenReject] = useState(false);
+  const [openAssign, setOpenAssign] = useState(false);
   const deleteMutation = useDeleteTurboyMutation();
   const rejectMutation = useRejectTurboyMutation();
+
+  if (turboy.status == null) {
+    return (
+      <Tooltip
+        content="Ce livreur est à l'étape 1 de son inscription. Aucune action n'est disponible pour le moment."
+        color="secondary"
+        placement="left"
+        classNames={{ content: 'max-w-[220px] text-xs' }}
+      >
+        <span>
+          <Button variant="light" isIconOnly size="sm" isDisabled>
+            <MoreVertical className="w-4 h-4 opacity-30" />
+          </Button>
+        </span>
+      </Tooltip>
+    );
+  }
+
   const mapped = turboyToLivreurStatut(turboy);
   const validateBy: 'auth' | 'ops' | 'no-body' =
     mapped.status === 2 ? 'auth' : mapped.status === 3 ? 'ops' : 'no-body';
+
+  const isInactive = turboy.status === 0 || turboy.status === 5;
+
+  // Pour le modal : on réutilise 'ops' pour réactiver un livreur inactif
+  const modalValidateBy: 'auth' | 'ops' = validateBy !== 'no-body' ? validateBy : 'ops';
+
+  const isAssigned = turboy.type === 'TURBO';
+  const isWaiting = turboy.type === 'WAITING';
+
+  const assignLabel = isAssigned
+    ? 'Réassigner'
+    : isWaiting
+    ? "Confirmer l'assignation"
+    : 'Assigner';
 
   const items: MenuItem[] = [
     { key: 'details', label: 'Détails' },
     { key: 'edit', label: 'Modifier' },
     { key: 'change-type', label: 'Changer le type' },
     ...(validateBy === 'auth' ? [{ key: 'validate', label: 'Valider' }] : []),
-    ...(validateBy === 'ops' ? [{ key: 'activate', label: 'Activer' }] : []),
+    ...(validateBy === 'ops' || isInactive ? [{ key: 'activate', label: 'Activer' }] : []),
+    { key: 'assign', label: assignLabel },
     { key: 'reject', label: 'Rejeter' },
     { key: 'delete', label: 'Supprimer' },
   ];
@@ -74,6 +109,7 @@ export function TurboyActionMenu({ turboy }: { turboy: ITurboy }) {
             if (key === 'edit') router.push(`/delivery-men/men/${turboy.id}`);
             if (key === 'change-type') setOpenUpdateType(true);
             if (key === 'validate' || key === 'activate') setOpenValidate(true);
+            if (key === 'assign') setOpenAssign(true);
             if (key === 'reject') setOpenReject(true);
             if (key === 'delete') setOpenDelete(true);
           }}
@@ -89,15 +125,24 @@ export function TurboyActionMenu({ turboy }: { turboy: ITurboy }) {
           )}
         </DropdownMenu>
       </Dropdown>
-      {validateBy !== 'no-body' && (
+      {(validateBy !== 'no-body' || isInactive) && (
         <DeliveryMenStatusValidate
           deliveryMan={mapped}
           open={openValidate}
           setOpen={setOpenValidate}
-          validateBy={validateBy}
+          validateBy={modalValidateBy}
         />
       )}
       <UpdateTurboyTypeModal isOpen={openUpdateType} onOpenChange={setOpenUpdateType} turboy={turboy} />
+      <UpdateDeliveryDialog
+        isOpen={openAssign}
+        onClose={() => setOpenAssign(false)}
+        livreur={mapped}
+        typeLiveur="TURBO"
+        isReassign={isAssigned}
+        title={assignLabel}
+        restaurants={restaurants ?? []}
+      />
       <AlertDialog open={openReject} onOpenChange={setOpenReject}>
         <AlertDialogContent>
           <AlertDialogHeader>

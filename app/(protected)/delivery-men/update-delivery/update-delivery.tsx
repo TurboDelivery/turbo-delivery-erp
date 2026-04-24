@@ -11,16 +11,19 @@ interface Props {
   livreur?: LivreurStatutVM | null;
   nomLivreur?: string;
   typeLiveur?: string;
+  isReassign?: boolean;
+  title?: string;
 }
-export function UpdateDeliveryDialog({ restaurants, isOpen, onClose, livreur, typeLiveur }: Props) {
-  const ctrl = useUpdateDeliveryManController(livreur, typeLiveur, onClose);
+export function UpdateDeliveryDialog({ restaurants, isOpen, onClose, livreur, typeLiveur, isReassign, title }: Props) {
+  const ctrl = useUpdateDeliveryManController(livreur, typeLiveur, onClose, isReassign);
+  const headerTitle = title ?? (isReassign ? 'Réassigner le livreur' : 'Changer le statut du livreur');
   return (
     <>
       <Modal isOpen={isOpen} size={'md'} onClose={onClose}>
         <ModalContent>
           <>
             <ModalHeader className="flex gap-2">
-              Changer le statut du livreur : <b className="text-primary">{livreur?.nomPrenom}</b>
+              {headerTitle} : <b className="text-primary">{livreur?.nomPrenom}</b>
             </ModalHeader>
             <ModalBody>
               <div className="">

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Button } from '@heroui/react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Download, Plus } from 'lucide-react';
 import { type DemandeAssignationVM, type Restaurant } from '@/types/models';
 import { useTurboyFilters, type ActiveTab } from '@/features/turboys/hooks/use-turboy-filters';
@@ -32,6 +33,7 @@ export default function Content({
   const { filters, setFilters, setTab } = useTurboyFilters();
   const activeCard = filters.tab;
   const [isExporting, setIsExporting] = useState<string | null>(null);
+  const router = useRouter();
 
   // Compteurs dynamiques depuis l'API
   const { data: statsData } = useTurboysByTypeQuery({ page: 0, limit: 1 });
@@ -127,7 +129,7 @@ export default function Content({
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 w-full sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 w-full sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
           label="Total turboys"
           value={totalCount}
@@ -153,12 +155,19 @@ export default function Content({
           isActive={activeCard === 'demandes'}
           onClick={() => handleCardClick('demandes')}
         />
+        <StatCard
+          label="Livreurs assignés"
+          value={0}
+          isActive={false}
+          onClick={() => router.push('/delivery-men/assigned')}
+          isLink
+        />
       </div>
 
       {activeCard === 'demandes' ? (
         <DemandesPanel demandes={demandes} restaurants={restaurants} />
       ) : (
-        <TurboysPanel />
+      <TurboysPanel restaurants={restaurants} />
       )}
     </div>
   );

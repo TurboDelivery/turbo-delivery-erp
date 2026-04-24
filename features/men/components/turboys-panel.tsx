@@ -24,7 +24,8 @@ import { Grid2x2, List, Search, SlidersHorizontal } from 'lucide-react';
 import { useTurboysByTypeQuery } from '@/features/turboys/queries/turboy-list.query';
 import { useTurboyFilters } from '@/features/turboys/hooks/use-turboy-filters';
 import { type TurboyType } from '@/features/turboys/types/turboys.types';
-import { menColumns } from './men-columns';
+import { type Restaurant } from '@/types/models';
+import { getMenColumns } from './men-columns';
 import { CourierCard } from './courier-card';
 
 const TYPE_OPTIONS = [
@@ -35,7 +36,11 @@ const TYPE_OPTIONS = [
 
 const PAGE_SIZE = 10;
 
-export function TurboysPanel() {
+interface TurboysPanelProps {
+  restaurants?: Restaurant[];
+}
+
+export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
   const { filters, setFilters, setSearch, setTypeLivreur, setViewMode } = useTurboyFilters();
   const viewMode = filters.viewMode;
 
@@ -59,8 +64,10 @@ export function TurboysPanel() {
   const totalPages = turboysData?.livreurs?.totalPages ?? 1;
   const currentPage = (filters.page ?? 0) + 1;
 
+  const columns = useMemo(() => getMenColumns(restaurants), [restaurants]);
+
   const table = useReactTable({
-    columns: menColumns,
+    columns,
     data: turboys,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,

@@ -25,7 +25,7 @@ export interface ITurboy {
   typeVehicule: string | null;
   nomVehicule: string | null;
   telephoneCompte: string | null;
-  status: number;
+  status: number | null;
   commission: number | null;
   avenantUrls: string[] | null;
   type: string | null;

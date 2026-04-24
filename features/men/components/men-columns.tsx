@@ -3,11 +3,13 @@ import { type ColumnDef } from '@tanstack/react-table';
 import { Chip } from '@heroui/react';
 import { Mail, MapPin } from 'lucide-react';
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
+import { type Restaurant } from '@/types/models';
 import { AvatarCell } from './avatar-cell';
 import { StatusChip } from './status-chip';
 import { TurboyActionMenu } from './turboy-action-menu';
 
-export const menColumns: ColumnDef<ITurboy>[] = [
+export function getMenColumns(restaurants: Restaurant[]): ColumnDef<ITurboy>[] {
+  return [
   {
     accessorKey: 'prenoms',
     header: 'COURSIERS',
@@ -64,6 +66,39 @@ export const menColumns: ColumnDef<ITurboy>[] = [
     cell: () => <span className="text-sm text-gray-500">Peut être utilisé partout</span>,
   },
   {
+    id: 'assignation',
+    header: 'ASSIGNATION',
+    cell: ({ row }) => {
+      const type = row.original.type;
+      if (type === 'TURBO') {
+        return (
+          <Chip color="success" size="sm" variant="flat">
+            Assigné
+          </Chip>
+        );
+      }
+      if (type === 'FREE') {
+        return (
+          <Chip color="primary" size="sm" variant="flat">
+            Bird / Libre
+          </Chip>
+        );
+      }
+      if (type === 'WAITING') {
+        return (
+          <Chip color="warning" size="sm" variant="flat">
+            En attente
+          </Chip>
+        );
+      }
+      return (
+        <Chip color="default" size="sm" variant="flat">
+          Non assigné
+        </Chip>
+      );
+    },
+  },
+  {
     accessorKey: 'status',
     header: 'ÉTAT DU COMPTE',
     cell: ({ row }) => <StatusChip status={row.original.status} />,
@@ -71,6 +106,7 @@ export const menColumns: ColumnDef<ITurboy>[] = [
   {
     id: 'actions',
     header: 'ACTIONS',
-    cell: ({ row }) => <TurboyActionMenu turboy={row.original} />,
-  },
-];
+      cell: ({ row }) => <TurboyActionMenu turboy={row.original} restaurants={restaurants} />,
+    },
+  ];
+}

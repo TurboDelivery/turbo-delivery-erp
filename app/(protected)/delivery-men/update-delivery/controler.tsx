@@ -4,7 +4,12 @@ import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 
-export function useUpdateDeliveryManController(livreur?: LivreurStatutVM | null, typeLivreur?: string, onClose?: () => void) {
+export function useUpdateDeliveryManController(
+  livreur?: LivreurStatutVM | null,
+  typeLivreur?: string,
+  onClose?: () => void,
+  isReassign?: boolean,
+) {
   const [restaurantSelected, setRestuarantSelect] = useState('');
   const router = useRouter();
 
@@ -14,11 +19,16 @@ export function useUpdateDeliveryManController(livreur?: LivreurStatutVM | null,
       return false;
     }
     try {
-      const result = await changerStatusLivreur({
-        livreurId: livreur?.livreurId ?? "",
-        restaurantId: restaurantSelected,
-        typeLivreur: typeLivreur ?? ""
-      })
+      const result = isReassign
+        ? await changerRestaurantLivreur({
+            livreurId: livreur?.livreurId ?? '',
+            restaurantId: restaurantSelected,
+          })
+        : await changerStatusLivreur({
+            livreurId: livreur?.livreurId ?? '',
+            restaurantId: restaurantSelected,
+            typeLivreur: typeLivreur ?? '',
+          });
       if (result.status === 'success') {
         toast.success(result.message);
         router.refresh();
