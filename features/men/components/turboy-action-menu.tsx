@@ -24,7 +24,7 @@ import {
 export function turboyToLivreurStatut(turboy: ITurboy): LivreurStatutVM {
   // L'API renvoie directement 2=auth pending, 3=ops pending, 4=actif, 5=rejeté
   // Les valeurs 0 et 1 (ancien format) sont converties
-  const status = turboy.status === 1 ? 4 : turboy.status === 0 ? 5 : turboy.status;
+  const status = turboy.status === 1 ? 4 : turboy.status === 0 ? 5 : turboy.status ?? undefined;
   return {
     livreurId: turboy.id,
     nomPrenom: `${turboy.prenoms} ${turboy.nom}`,

@@ -29,13 +29,13 @@ const getTypeLabel = (type: string) => {
   }
 };
 
-const getStatusColor = (status: number) => {
+const getStatusColor = (status: number | null) => {
   if (status === 1) return 'success';
   if (status === 0) return 'danger';
   return 'warning';
 };
 
-const getStatusLabel = (status: number) => {
+const getStatusLabel = (status: number | null) => {
   if (status === 1) return 'Actif';
   if (status === 0) return 'Inactif';
   return 'Inconnu';

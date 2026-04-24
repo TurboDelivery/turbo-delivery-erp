@@ -10,9 +10,10 @@ const LIGHT = [241, 245, 249] as const;
 const BORDER= [210, 218, 230] as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function statusLabel(status: number): string {
+function statusLabel(status: number | null): string {
   if (status === 1) return 'Actif';
   if (status === 0) return 'Inactif';
+  if (status == null) return '—';
   return 'Suspendu';
 }
 function typeLabel(type: TurboyType): string {
