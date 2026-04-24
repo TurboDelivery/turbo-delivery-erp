@@ -6,15 +6,17 @@ import { useEmployeeTableNew } from '@/features/personnel/hooks/use-employee-tab
 import { useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { DEPARTMENTS } from '@/features/personnel/constants/employee.constants';
-import { Button, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { flexRender } from '@tanstack/react-table';
-import { DollarSign, Plus, TrendingUp, Users } from 'lucide-react';
+import { DollarSign, Download, Plus, TrendingUp, Users } from 'lucide-react';
 import { PostesSelectFilter } from './postes-select-filter';
 import { StatutsSelectFilter } from './statuts-select-filter';
 import { EmployeeSearchInput } from './employee-search-input';
 import { Can } from '@/components/auth/Can';
+import { useExporterEmployesMutation } from '@/features/personnel/mutations/employee.mutation';
+import { ExportFormat } from '@/features/personnel/apis/employee.api';
 
 interface EmployeeTableProps {
   onEditPosition: (employee: any) => void;
@@ -24,6 +26,8 @@ interface EmployeeTableProps {
 }
 
 export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAddEmployee }: EmployeeTableProps) {
+  const { mutate: exporterEmployes, isPending: isExporting } = useExporterEmployesMutation();
+
   const { table, isLoading, isFetching, pagination, filters, setSelectedDepartments, setSelectedStatuts, setSelectedPostes, handleSearchChange } = useEmployeeTableNew({
     onEdit: onEditPosition,
     onDeactivate: onDeactivate,
@@ -38,6 +42,17 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
     position: filters.postes?.length ? filters.postes[0] : undefined,
     department: filters.departments?.length ? filters.departments[0] : undefined,
     statut: filters.statuts?.length ? filters.statuts[0] : undefined,
+  };
+
+  const exportParams = {
+    search: filters.search || undefined,
+    position: filters.postes?.length ? filters.postes[0] : undefined,
+    department: filters.departments?.length ? filters.departments[0] : undefined,
+    statut: filters.statuts?.length ? filters.statuts[0] : undefined,
+  };
+
+  const handleExport = (format: ExportFormat) => {
+    exporterEmployes({ ...exportParams, format });
   };
   const { data: salaryStatsData } = useEmployeeSalaryStatsQuery(statsParams);
 
@@ -104,17 +119,34 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
             <Table
               isStriped
               topContent={
-                <div className="flex flex-col md:flex-row justify-between items-center py-2">
-                  <div className="flex flex-col md:flex-row gap-2">
+                <div className="flex flex-col md:flex-row justify-between items-center py-2 gap-2">
+                  <div className="flex flex-col md:flex-row gap-2 flex-1">
                     <EmployeeSearchInput value={filters.search || ''} onChange={handleSearchChange} />
                     <StatutsSelectFilter selectedStatuts={filters.statuts || []} onStatutsChange={setSelectedStatuts} />
                     <PostesSelectFilter selectedPostes={filters.postes || []} onPostesChange={setSelectedPostes} />
                   </div>
-                  <Can I="create" a="Personnel">
-                    <Button color="primary" startContent={<Plus size={16} />} onPress={onAddEmployee}>
-                      Ajouter un employé
-                    </Button>
-                  </Can>
+                  <div className="flex gap-2">
+                    <Dropdown>
+                      <DropdownTrigger>
+                        <Button variant="bordered" startContent={<Download size={16} />} isLoading={isExporting}>
+                          Exporter
+                        </Button>
+                      </DropdownTrigger>
+                      <DropdownMenu
+                        aria-label="Format d'export"
+                        onAction={(key) => handleExport(key as ExportFormat)}
+                      >
+                        <DropdownItem key="PDF">PDF</DropdownItem>
+                        <DropdownItem key="EXCEL">Excel</DropdownItem>
+                        <DropdownItem key="CSV">CSV</DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
+                    <Can I="create" a="Personnel">
+                      <Button color="primary" startContent={<Plus size={16} />} onPress={onAddEmployee}>
+                        Ajouter un employé
+                      </Button>
+                    </Can>
+                  </div>
                 </div>
               }
               bottomContent={

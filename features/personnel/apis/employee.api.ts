@@ -4,6 +4,8 @@ import { SearchParams } from 'ak-api-http';
 import { api } from '@/lib/api';
 import { PaginatedResponse } from '@/types/general';
 
+export type ExportFormat = 'PDF' | 'EXCEL' | 'CSV';
+
 export interface IEmployeeAPI {
   obtenirTousEmployes(params: IEmployeeParams): Promise<PaginatedResponse<IEmployee>>;
   obtenirEmploye(id: string): Promise<IEmployee>;
@@ -12,6 +14,7 @@ export interface IEmployeeAPI {
   supprimerEmploye(id: string): Promise<IEmployee>;
   obtenirStatsEmployes(params: IEmployeeStatsParams): Promise<IEmployeeStats>;
   exporterEmployesExcel(params: IEmployeeParams): Promise<Blob>;
+  exporterEmployes(params: IEmployeeParams & { format: ExportFormat }): Promise<Blob>;
   employesStats(params?: IEmployeeParams): Promise<IEmployeeSalaryStats>;
   changeStatus(id: string, status: string): Promise<IEmployee>;
   syncJournaliers(): Promise<void>;
@@ -152,6 +155,16 @@ export const employeeAPI: IEmployeeAPI = {
   async exporterEmployesExcel(params: IEmployeeParams): Promise<Blob> {
     return await api.request<Blob>({
       endpoint: `/personnel/employes/export`,
+      method: 'GET',
+      searchParams: {
+        ...params,
+      } as SearchParams,
+    });
+  },
+
+  async exporterEmployes(params: IEmployeeParams & { format: ExportFormat }): Promise<Blob> {
+    return await api.request<Blob>({
+      endpoint: `/erp/employees/export`,
       method: 'GET',
       searchParams: {
         ...params,

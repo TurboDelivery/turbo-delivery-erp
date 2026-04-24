@@ -2,7 +2,7 @@
 
 import { useMutation } from '@tanstack/react-query';
 import { ajouterEmployeAction, modifierEmployeAction, supprimerEmployeAction, changeStatusAction } from '../actions/employee.action';
-import { employeeAPI } from '../apis/employee.api';
+import { employeeAPI, ExportFormat, IEmployeeParams } from '../apis/employee.api';
 
 import { toast } from 'sonner';
 import { processAndValidateFormData } from 'ak-zod-form-kit';
@@ -122,6 +122,41 @@ export const useSyncJournaliersMutation = () => {
     },
     onError: (error) => {
       toast.error('Erreur lors de la synchronisation', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+const EXPORT_MIME: Record<ExportFormat, string> = {
+  PDF: 'application/pdf',
+  EXCEL: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  CSV: 'text/csv',
+};
+
+const EXPORT_EXT: Record<ExportFormat, string> = {
+  PDF: 'pdf',
+  EXCEL: 'xlsx',
+  CSV: 'csv',
+};
+
+export const useExporterEmployesMutation = () => {
+  return useMutation({
+    mutationFn: async ({ format, ...params }: IEmployeeParams & { format: ExportFormat }) => {
+      const blob = await employeeAPI.exporterEmployes({ ...params, format });
+      const file = new Blob([blob], { type: EXPORT_MIME[format] });
+      const url = URL.createObjectURL(file);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `employes_export_${new Date().toISOString().slice(0, 10)}.${EXPORT_EXT[format]}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+    onSuccess: () => {
+      toast.success('Export téléchargé avec succès');
+    },
+    onError: (error) => {
+      toast.error("Erreur lors de l'export", {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },

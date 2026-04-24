@@ -60,7 +60,6 @@ export default function PersonnelContent() {
           variant="bordered"
           startContent={<RefreshCw size={16} className={syncJournaliersMutation.isPending ? 'animate-spin' : ''} />}
           isLoading={syncJournaliersMutation.isPending}
-          disabled={true}
           onPress={() => syncJournaliersMutation.mutate()}
         >
           Synchroniser
