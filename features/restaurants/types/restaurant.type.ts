@@ -47,6 +47,29 @@ export interface IRestaurant {
   methodRecouvrement: MethodRecouvrementType;
 }
 
+export interface IRestaurantStatsParams {
+  search?: string;
+  localisation?: string;
+  email?: string;
+  telephone?: string;
+  commune?: string;
+  methodRecouvrement?: string;
+}
+
+export interface IRestaurantStatsResponse {
+  totalPartenaires: number;
+  commissions: {
+    pourcentage: number;
+    fixe: number;
+  };
+  cyclesPaiement: {
+    quotidien: number;
+    hebdomadaire: number;
+    biHebdomadaire: number;
+    mensuel: number;
+  };
+}
+
 export interface IRestaurantParams {
   page?: number;
   limit?: number;

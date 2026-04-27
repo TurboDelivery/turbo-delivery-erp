@@ -19,6 +19,7 @@ import {
 } from '@heroui/react';
 import { ChevronDown, ChevronUp, Download, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useRestaurantTable } from '@/features/restaurants/hooks/use-restaurant-table';
+import { RestaurantStatsSection } from '@/components/restaurants/restaurant-stats-section';
 
 const TYPE_OPTIONS = [
   { label: 'Tous les types', value: '' },
@@ -47,6 +48,9 @@ export default function Content() {
           </Button>
         </div>
       </div>
+
+      {/* ── Stats ── */}
+      <RestaurantStatsSection />
 
       {/* ── Search + filter ── */}
       <div className="flex flex-col gap-3">

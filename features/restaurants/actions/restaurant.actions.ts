@@ -1,7 +1,7 @@
 'use server';
 
 import { apiClientHttp } from '@/lib/api-client-http';
-import { IRestaurant, IRestaurantParams } from '@/features/restaurants/types/restaurant.type';
+import { IRestaurant, IRestaurantParams, IRestaurantStatsParams, IRestaurantStatsResponse } from '@/features/restaurants/types/restaurant.type';
 import { PaginatedResponse } from '@/types/general';
 import axios from 'axios';
 import { auth } from '@/auth';
@@ -10,6 +10,8 @@ import { auth } from '@/auth';
 const RESTAURANT_PAGINATION_ENDPOINT = '/api/V1/turbo/restaurant/pagination';
 const RESTAURANT_EXPORT_ENDPOINT = '/api/V1/turbo/restaurant/export';
 const RESTAURANT_DETAIL_ENDPOINT = '/api/V1/turbo/restaurant';
+const RESTAURANT_STATS_ENDPOINT = '/api/V1/turbo/restaurant/stats';
+const RESTAURANT_DELETE_ENDPOINT = '/api/V1/turbo/restaurant';
 
 /**
  * Récupère la liste paginée des restaurants
@@ -90,5 +92,60 @@ export async function exportRestaurantsPDF(params: Omit<IRestaurantParams, 'page
     console.error('Error exporting restaurants PDF:', error);
     return null;
   }
+}
+
+/**
+ * Récupère les statistiques agrégées des partenaires selon les filtres actifs
+ */
+export async function getRestaurantStats(params: IRestaurantStatsParams): Promise<IRestaurantStatsResponse> {
+  const queryParams: Record<string, string> = {};
+  if (params.search) queryParams.search = params.search;
+  if (params.localisation) queryParams.localisation = params.localisation;
+  if (params.email) queryParams.email = params.email;
+  if (params.telephone) queryParams.telephone = params.telephone;
+  if (params.commune) queryParams.commune = params.commune;
+  if (params.methodRecouvrement) queryParams.methodRecouvrement = params.methodRecouvrement;
+
+  return await apiClientHttp.request<IRestaurantStatsResponse>({
+    endpoint: RESTAURANT_STATS_ENDPOINT,
+    method: 'GET',
+    params: queryParams,
+    service: 'restaurant',
+  });
+}
+
+/**
+ * Supprime un partenaire en conservant l'historique des livraisons associées
+ */
+export async function deleteRestaurant(id: string): Promise<void> {
+  await apiClientHttp.request<void>({
+    endpoint: `${RESTAURANT_DELETE_ENDPOINT}/${id}`,
+    method: 'DELETE',
+    service: 'restaurant',
+  });
+}
+
+/**
+ * Supprime un partenaire et toutes ses données de livraison (suppression totale — irréversible)
+ */
+export async function deleteRestaurantForce(id: string): Promise<void> {
+  await apiClientHttp.request<void>({
+    endpoint: `${RESTAURANT_DELETE_ENDPOINT}/${id}/force`,
+    method: 'DELETE',
+    service: 'restaurant',
+  });
+}
+
+/**
+ * Active ou désactive un partenaire
+ * activate=false → désactive (status=0, plus de nouvelles commandes)
+ * activate=true  → réactive (status restauré)
+ */
+export async function toggleRestaurantStatus(id: string, activate: boolean): Promise<void> {
+  await apiClientHttp.request<void>({
+    endpoint: `${RESTAURANT_DELETE_ENDPOINT}/${id}/${activate ? 'activate' : 'deactivate'}`,
+    method: 'PATCH',
+    service: 'restaurant',
+  });
 }
 
