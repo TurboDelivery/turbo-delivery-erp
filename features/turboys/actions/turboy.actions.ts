@@ -1,8 +1,11 @@
+'use server';
+
 import { turboyAPI } from '@/features/turboys/apis/turboy.api';
 import { ITurboyParams, ITurboy, IUpdateTurboyTypePayload, TurboyListResponse } from '@/features/turboys/types/turboys.types';
 import { ActionResponse } from '@/types';
 import { handleServerActionError } from '@/utils/handleServerActionError';
 import { UpdateTurboyTypeDTO } from '@/features/turboys/schemas/turboy.schema';
+import { AxiosError } from 'axios';
 
 export async function getTurboysByType(params: ITurboyParams): Promise<TurboyListResponse> {
   return turboyAPI.obtenirTurboyParType(params);
@@ -22,6 +25,24 @@ export async function rejectTurboyAction(userId: string): Promise<ActionResponse
   } catch (error) {
     console.error('❌ Erreur Action Serveur:', error);
     return handleServerActionError(error, 'Erreur lors du rejet du livreur');
+  }
+}
+
+export async function passerEnBirdAction(livreurId: string): Promise<ActionResponse<void>> {
+  try {
+    await turboyAPI.passerEnBird(livreurId);
+    return {
+      success: true,
+      message: 'Le livreur a été passé en Bird avec succès',
+    };
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      const serverMsg = error.response?.data?.message || error.response?.data || error.message;
+      console.error('❌ Erreur passage en Bird:', error.response?.status, serverMsg);
+      return { success: false, error: typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg) };
+    }
+    console.error('❌ Erreur Action Serveur:', error);
+    return handleServerActionError(error, 'Erreur lors du passage en Bird');
   }
 }
 

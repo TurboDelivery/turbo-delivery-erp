@@ -7,6 +7,7 @@ export interface ITurboyAPI {
   updateTurboyType(payload: IUpdateTurboyTypePayload): Promise<ITurboy>;
   deleteTurboy(id: string): Promise<void>;
   rejectTurboy(userId: string): Promise<void>;
+  passerEnBird(livreurId: string): Promise<void>;
 }
 
 export const turboyAPI: ITurboyAPI = {
@@ -45,6 +46,15 @@ export const turboyAPI: ITurboyAPI = {
     return await apiClientHttp.request<void>({
       endpoint: `/api/erp/livreur/rejet/${userId}`,
       method: 'GET',
+    });
+  },
+
+  async passerEnBird(livreurId: string): Promise<void> {
+    return await apiClientHttp.request<void>({
+      endpoint: `/api/erp/livreur/statut/changer`,
+      method: 'PUT',
+      service: 'backend',
+      data: { livreurId, typeLivreur: 'FREE' },
     });
   },
 };

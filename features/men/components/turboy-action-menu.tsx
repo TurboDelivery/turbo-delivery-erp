@@ -9,7 +9,7 @@ import { type ITurboy } from '@/features/turboys/types/turboys.types';
 import { type LivreurStatutVM, type Restaurant } from '@/types/models';
 import DeliveryMenStatusValidate from '@/components/dashboard/delivery-men/delivery-men-status-validate';
 import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
-import { useDeleteTurboyMutation, useRejectTurboyMutation, turboyKeys } from '@/features/turboys/queries';
+import { useDeleteTurboyMutation, useRejectTurboyMutation, usePasserEnBirdMutation, turboyKeys } from '@/features/turboys/queries';
 import { UpdateDeliveryDialog } from '@/app/(protected)/delivery-men/update-delivery/update-delivery';
 import {
   AlertDialog,
@@ -46,8 +46,10 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
   const [openDelete, setOpenDelete] = useState(false);
   const [openReject, setOpenReject] = useState(false);
   const [openAssign, setOpenAssign] = useState(false);
+  const [openBird, setOpenBird] = useState(false);
   const deleteMutation = useDeleteTurboyMutation();
   const rejectMutation = useRejectTurboyMutation();
+  const birdMutation = usePasserEnBirdMutation();
 
   const invalidateTurboys = () => {
     queryClient.invalidateQueries({ queryKey: turboyKeys.lists() });
@@ -95,7 +97,8 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
     ...(validateBy === 'auth' ? [{ key: 'validate', label: 'Valider' }] : []),
     ...(validateBy === 'ops' || isInactive ? [{ key: 'activate', label: 'Activer' }] : []),
     { key: 'assign', label: assignLabel },
-    { key: 'reject', label: 'Rejeter' },
+    ...(isAssigned ? [{ key: 'bird', label: 'Passer en Bird' }] : []),
+    { key: 'reject', label: 'Désactiver' },
     { key: 'delete', label: 'Supprimer' },
   ];
 
@@ -116,6 +119,7 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
             if (key === 'change-type') setOpenUpdateType(true);
             if (key === 'validate' || key === 'activate') setOpenValidate(true);
             if (key === 'assign') setOpenAssign(true);
+            if (key === 'bird') setOpenBird(true);
             if (key === 'reject') setOpenReject(true);
             if (key === 'delete') setOpenDelete(true);
           }}
@@ -123,8 +127,8 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
           {(item) => (
             <DropdownItem
               key={item.key}
-              className={item.key === 'delete' || item.key === 'reject' ? 'text-danger' : ''}
-              color={item.key === 'delete' || item.key === 'reject' ? 'danger' : 'default'}
+              className={item.key === 'delete' || item.key === 'reject' || item.key === 'bird' ? 'text-danger' : ''}
+              color={item.key === 'delete' || item.key === 'reject' || item.key === 'bird' ? 'danger' : 'default'}
             >
               {item.label}
             </DropdownItem>
@@ -154,9 +158,9 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
       <AlertDialog open={openReject} onOpenChange={setOpenReject}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Rejeter le livreur</AlertDialogTitle>
+            <AlertDialogTitle>Désactiver le livreur</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir rejeter{' '}
+              Êtes-vous sûr de vouloir désactiver{' '}
               <strong>
                 {turboy.prenoms} {turboy.nom}
               </strong>{' '}?
@@ -169,7 +173,31 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
               disabled={rejectMutation.isPending}
               onClick={() => rejectMutation.mutate(turboy.id)}
             >
-              {rejectMutation.isPending ? 'Rejet en cours...' : 'Rejeter'}
+              {rejectMutation.isPending ? 'Désactivation...' : 'Désactiver'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      <AlertDialog open={openBird} onOpenChange={setOpenBird}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Passer en Bird</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir dissocier{' '}
+              <strong>
+                {turboy.prenoms} {turboy.nom}
+              </strong>{' '}
+              de son restaurant et le remettre dans le pool Bird ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={birdMutation.isPending}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={birdMutation.isPending}
+              onClick={() => birdMutation.mutate(turboy.id)}
+            >
+              {birdMutation.isPending ? 'En cours...' : 'Passer en Bird'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

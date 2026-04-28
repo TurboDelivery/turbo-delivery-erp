@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deleteTurboyAction, rejectTurboyAction, updateTurboyTypeAction } from '@/features/turboys/actions/turboy.actions';
+import { deleteTurboyAction, rejectTurboyAction, updateTurboyTypeAction, passerEnBirdAction } from '@/features/turboys/actions/turboy.actions';
 import { ITurboy, IUpdateTurboyTypePayload } from '@/features/turboys/types/turboys.types';
 import { toast } from 'react-toastify';
 import { turboyKeys } from './turboy-list.query';
@@ -59,6 +59,28 @@ export const useRejectTurboyMutation = (handleSuccess?: () => void) => {
     onError: (error) => {
       const message = error instanceof Error ? error.message : 'Erreur inconnue';
       toast.error(`Erreur lors du rejet: ${message}`);
+    },
+  });
+};
+
+export const usePasserEnBirdMutation = (handleSuccess?: () => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (livreurId: string) => {
+      const result = await passerEnBirdAction(livreurId);
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors du passage en Bird');
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: turboyKeys.lists() });
+      toast.success('Le livreur a été passé en Bird avec succès.');
+      if (handleSuccess) handleSuccess();
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors du passage en Bird: ${message}`);
     },
   });
 };

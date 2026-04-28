@@ -1,1 +1,1 @@
-export { getTurboysByType, getTurboyById, deleteTurboyAction, rejectTurboyAction } from './turboy.actions';
+export { getTurboysByType, getTurboyById, deleteTurboyAction, rejectTurboyAction, passerEnBirdAction } from './turboy.actions';
