@@ -7,6 +7,7 @@ import { useRestaurantFilters } from '@/features/restaurants/hooks/use-restauran
 export const useRestaurantList = () => {
   const { filters, setPage, setSearch, setLimit, setSorting, resetFilters } = useRestaurantFilters();
 
+  
   const queryParams = useMemo(() => {
     return {
       page: filters.page,
