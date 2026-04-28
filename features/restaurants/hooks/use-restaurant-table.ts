@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { getCoreRowModel, SortingState, useReactTable } from '@tanstack/react-table';
 import { restaurantColumns } from '@/components/restaurants/table/restaurant-table-columns';
 import { useRestaurantsListQuery } from '@/features/restaurants/queries/restaurant-list.query';
@@ -9,9 +9,33 @@ import { exportRestaurantsPDF } from '@/features/restaurants/actions/restaurant.
 import { saveAsPDFFile } from '@/utils/reporting-file';
 import { toast } from 'react-toastify';
 
+const DEBOUNCE_MS = 350;
+
 export const useRestaurantTable = () => {
   const { filters, setFilters } = useRestaurantFilters();
   const [isExporting, setIsExporting] = useState(false);
+
+  // Debounce des champs texte pour éviter une requête à chaque frappe
+  const [debouncedFilters, setDebouncedFilters] = useState({
+    search: filters.search,
+    localisation: filters.localisation,
+    email: filters.email,
+    telephone: filters.telephone,
+    commune: filters.commune,
+  });
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setDebouncedFilters({
+        search: filters.search,
+        localisation: filters.localisation,
+        email: filters.email,
+        telephone: filters.telephone,
+        commune: filters.commune,
+      });
+    }, DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [filters.search, filters.localisation, filters.email, filters.telephone, filters.commune]);
 
   const [sorting, setSorting] = React.useState<SortingState>(() => {
     const orderBy = filters.orderBy;
@@ -36,17 +60,17 @@ export const useRestaurantTable = () => {
     return {
       page: filters.page ?? 0,
       limit: filters.limit ?? 10,
-      search: filters.search || undefined,
+      search: debouncedFilters.search || undefined,
       orderBy: filters.orderBy || undefined,
       orderDirection: filters.orderDirection as 'asc' | 'desc' | undefined,
-      localisation: filters.localisation || undefined,
-      email: filters.email || undefined,
-      telephone: filters.telephone || undefined,
-      commune: filters.commune || undefined,
+      localisation: debouncedFilters.localisation || undefined,
+      email: debouncedFilters.email || undefined,
+      telephone: debouncedFilters.telephone || undefined,
+      commune: debouncedFilters.commune || undefined,
       methodRecouvrement: filters.methodRecouvrement || undefined,
     };
-  }, [filters.page, filters.limit, filters.search, filters.orderBy, filters.orderDirection,
-      filters.localisation, filters.email, filters.telephone, filters.commune, filters.methodRecouvrement]);
+  }, [filters.page, filters.limit, debouncedFilters.search, filters.orderBy, filters.orderDirection,
+      debouncedFilters.localisation, debouncedFilters.email, debouncedFilters.telephone, debouncedFilters.commune, filters.methodRecouvrement]);
 
   const { data: restaurantsData, isLoading, error, isError, isFetching } = useRestaurantsListQuery(currentSearchParams);
   const restaurants = restaurantsData?.content || [];

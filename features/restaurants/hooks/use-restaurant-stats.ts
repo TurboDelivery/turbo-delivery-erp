@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useRestaurantStatsQuery } from '@/features/restaurants/queries/restaurant-list.query';
 import { useRestaurantFilters } from '@/features/restaurants/hooks/use-restaurant-filters';
 
@@ -14,23 +14,48 @@ export interface IRestaurantStats {
   parCycleMensuel: number;
 }
 
+const DEBOUNCE_MS = 350;
+
 export const useRestaurantStats = () => {
   const { filters } = useRestaurantFilters();
 
+  const [debouncedFilters, setDebouncedFilters] = useState({
+    search: filters.search,
+    localisation: filters.localisation,
+    email: filters.email,
+    telephone: filters.telephone,
+    commune: filters.commune,
+    methodRecouvrement: filters.methodRecouvrement,
+  });
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setDebouncedFilters({
+        search: filters.search,
+        localisation: filters.localisation,
+        email: filters.email,
+        telephone: filters.telephone,
+        commune: filters.commune,
+        methodRecouvrement: filters.methodRecouvrement,
+      });
+    }, DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [filters.search, filters.localisation, filters.email, filters.telephone, filters.commune, filters.methodRecouvrement]);
+
   const statsParams = useMemo(() => ({
-    search: filters.search || undefined,
-    localisation: filters.localisation || undefined,
-    email: filters.email || undefined,
-    telephone: filters.telephone || undefined,
-    commune: filters.commune || undefined,
-    methodRecouvrement: filters.methodRecouvrement || undefined,
+    search: debouncedFilters.search || undefined,
+    localisation: debouncedFilters.localisation || undefined,
+    email: debouncedFilters.email || undefined,
+    telephone: debouncedFilters.telephone || undefined,
+    commune: debouncedFilters.commune || undefined,
+    methodRecouvrement: debouncedFilters.methodRecouvrement || undefined,
   }), [
-    filters.search,
-    filters.localisation,
-    filters.email,
-    filters.telephone,
-    filters.commune,
-    filters.methodRecouvrement,
+    debouncedFilters.search,
+    debouncedFilters.localisation,
+    debouncedFilters.email,
+    debouncedFilters.telephone,
+    debouncedFilters.commune,
+    debouncedFilters.methodRecouvrement,
   ]);
 
   const { data, isLoading, isError } = useRestaurantStatsQuery(statsParams);
