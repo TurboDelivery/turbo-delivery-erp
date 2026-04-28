@@ -33,8 +33,7 @@ export const useRestaurantStats = () => {
     filters.methodRecouvrement,
   ]);
 
-  // TODO: activer quand l'endpoint /api/V1/turbo/restaurant/stats est disponible
-  const { data, isLoading, isError } = useRestaurantStatsQuery(statsParams, { enabled: false });
+  const { data, isLoading, isError } = useRestaurantStatsQuery(statsParams);
 
   const stats: IRestaurantStats = useMemo(() => ({
     totalPartenaires: data?.totalPartenaires ?? 0,

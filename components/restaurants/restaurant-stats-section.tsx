@@ -28,7 +28,17 @@ function SkeletonCard() {
 }
 
 export function RestaurantStatsSection() {
-  const { stats } = useRestaurantStats();
+  const { stats, isLoading } = useRestaurantStats();
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    );
+  }
 
   const cycleRows = [
     { label: 'Quotidien', value: stats.parCycleQuotidien },
