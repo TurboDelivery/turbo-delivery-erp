@@ -13,9 +13,10 @@ interface Props {
   typeLiveur?: string;
   isReassign?: boolean;
   title?: string;
+  onSuccess?: () => void;
 }
-export function UpdateDeliveryDialog({ restaurants, isOpen, onClose, livreur, typeLiveur, isReassign, title }: Props) {
-  const ctrl = useUpdateDeliveryManController(livreur, typeLiveur, onClose, isReassign);
+export function UpdateDeliveryDialog({ restaurants, isOpen, onClose, livreur, typeLiveur, isReassign, title, onSuccess }: Props) {
+  const ctrl = useUpdateDeliveryManController(livreur, typeLiveur, onClose, isReassign, onSuccess);
   const headerTitle = title ?? (isReassign ? 'Réassigner le livreur' : 'Changer le statut du livreur');
   return (
     <>

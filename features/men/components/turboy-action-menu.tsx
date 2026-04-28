@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Tooltip } from '@heroui/react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { MoreVertical } from 'lucide-react';
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
 import { type LivreurStatutVM, type Restaurant } from '@/types/models';
 import DeliveryMenStatusValidate from '@/components/dashboard/delivery-men/delivery-men-status-validate';
 import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
-import { useDeleteTurboyMutation, useRejectTurboyMutation } from '@/features/turboys/queries';
+import { useDeleteTurboyMutation, useRejectTurboyMutation, turboyKeys } from '@/features/turboys/queries';
 import { UpdateDeliveryDialog } from '@/app/(protected)/delivery-men/update-delivery/update-delivery';
 import {
   AlertDialog,
@@ -39,6 +40,7 @@ type MenuItem = { key: string; label: string };
 
 export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; restaurants?: Restaurant[] }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [openValidate, setOpenValidate] = useState(false);
   const [openUpdateType, setOpenUpdateType] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -46,6 +48,10 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
   const [openAssign, setOpenAssign] = useState(false);
   const deleteMutation = useDeleteTurboyMutation();
   const rejectMutation = useRejectTurboyMutation();
+
+  const invalidateTurboys = () => {
+    queryClient.invalidateQueries({ queryKey: turboyKeys.lists() });
+  };
 
   if (turboy.status == null) {
     return (
@@ -131,6 +137,7 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
           open={openValidate}
           setOpen={setOpenValidate}
           validateBy={modalValidateBy}
+          onSuccess={invalidateTurboys}
         />
       )}
       <UpdateTurboyTypeModal isOpen={openUpdateType} onOpenChange={setOpenUpdateType} turboy={turboy} />
@@ -142,6 +149,7 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
         isReassign={isAssigned}
         title={assignLabel}
         restaurants={restaurants ?? []}
+        onSuccess={invalidateTurboys}
       />
       <AlertDialog open={openReject} onOpenChange={setOpenReject}>
         <AlertDialogContent>

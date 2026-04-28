@@ -9,6 +9,7 @@ export function useUpdateDeliveryManController(
   typeLivreur?: string,
   onClose?: () => void,
   isReassign?: boolean,
+  onSuccess?: () => void,
 ) {
   const [restaurantSelected, setRestuarantSelect] = useState('');
   const router = useRouter();
@@ -32,6 +33,7 @@ export function useUpdateDeliveryManController(
       if (result.status === 'success') {
         toast.success(result.message);
         router.refresh();
+        onSuccess?.();
         setRestuarantSelect('');
       } else {
         toast.error(result.message);

@@ -15,11 +15,13 @@ const DeliveryMenStatusValidate = ({
   open,
   setOpen,
   validateBy = 'no-body',
+  onSuccess,
 }: {
   deliveryMan: LivreurStatutVM;
   open: boolean;
   setOpen: (open: boolean) => void;
   validateBy: 'auth' | 'ops' | 'no-body';
+  onSuccess?: () => void;
 }) => {
   const { pending } = useFormStatus();
   const router = useRouter();
@@ -28,6 +30,7 @@ const DeliveryMenStatusValidate = ({
     if (result.status === 'success') {
       toast.success(result.message || 'Bravo ! vous avez réussi');
       router.refresh();
+      onSuccess?.();
     } else {
       toast.error(result.message || "Erreur lors de l'envoi de l'email");
     }
