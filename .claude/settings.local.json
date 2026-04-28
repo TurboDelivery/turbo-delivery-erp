@@ -35,7 +35,9 @@
       "Bash(node *)",
       "Bash(curl -s https://backend-prod.turbodeliveryapp.com/v3/api-docs -o /c/Users/kouax/swagger.json)",
       "Read(//c/Users/kouax/**)",
-      "Bash(npx --no-install tsc --noEmit)"
+      "Bash(npx --no-install tsc --noEmit)",
+      "Bash(./node_modules/.bin/tsc --noEmit)",
+      "Bash(echo \"EXITCODE=$?\")"
     ]
   }
 }

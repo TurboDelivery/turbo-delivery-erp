@@ -17,6 +17,7 @@ import StatsSection from '@/components/tickets/stats-section';
 import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
 import { TicketTableFilters } from './ticket-table-filters';
 import { TicketTableActions } from './ticket-table-actions';
+import { TicketTableExportButton } from './ticket-table-export-button';
 import { createTicketColumns, TicketColumnMeta } from './ticket-table-columns';
 
 interface TicketTableProps {
@@ -440,7 +441,10 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
               onFilterChange={setFilter}
             />
 
-            <p className="text-xs sm:text-sm text-gray-600 mb-4">Total: {infiniteState.totalItems} ticket(s)</p>
+            <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <p className="text-xs sm:text-sm text-gray-600">Total: {infiniteState.totalItems} ticket(s)</p>
+              <TicketTableExportButton filters={filters} totalItems={infiniteState.totalItems} isDisabled={isLoading} />
+            </div>
 
             {/* Table */}
             <div className="overflow-x-auto -mx-4 sm:mx-0">
