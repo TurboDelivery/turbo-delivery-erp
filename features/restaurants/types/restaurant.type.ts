@@ -65,7 +65,7 @@ export interface IRestaurantStatsResponse {
   cyclesPaiement: {
     quotidien: number;
     hebdomadaire: number;
-    biHebdomadaire: number;
+    quinzaine: number;
     mensuel: number;
   };
 }

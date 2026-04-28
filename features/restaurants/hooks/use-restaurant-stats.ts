@@ -66,7 +66,7 @@ export const useRestaurantStats = () => {
     commissionFixe: data?.commissions.fixe ?? 0,
     parCycleQuotidien: data?.cyclesPaiement.quotidien ?? 0,
     parCycleHebdomadaire: data?.cyclesPaiement.hebdomadaire ?? 0,
-    parCycleBiHebdomadaire: data?.cyclesPaiement.biHebdomadaire ?? 0,
+    parCycleBiHebdomadaire: data?.cyclesPaiement.quinzaine ?? 0,
     parCycleMensuel: data?.cyclesPaiement.mensuel ?? 0,
   }), [data]);
 
