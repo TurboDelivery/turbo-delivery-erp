@@ -6,6 +6,23 @@ import { PaginatedResponse } from '@/types/general';
 
 export type ExportFormat = 'PDF' | 'EXCEL' | 'CSV';
 
+export interface IEmployeeExport {
+  id: string;
+  name: string;
+  email: string;
+  position: string;
+  department: string;
+  salary: number;
+  statut: string;
+  entryDate: string;
+  phone: string;
+  createdAt: string;
+  updatedAt: string;
+  deductionsResume: string;
+  totalDeductions: number;
+  netToPay: number;
+}
+
 export interface IEmployeeAPI {
   obtenirTousEmployes(params: IEmployeeParams): Promise<PaginatedResponse<IEmployee>>;
   obtenirEmploye(id: string): Promise<IEmployee>;
@@ -14,7 +31,7 @@ export interface IEmployeeAPI {
   supprimerEmploye(id: string): Promise<IEmployee>;
   obtenirStatsEmployes(params: IEmployeeStatsParams): Promise<IEmployeeStats>;
   exporterEmployesExcel(params: IEmployeeParams): Promise<Blob>;
-  exporterEmployes(params: IEmployeeParams & { format: ExportFormat }): Promise<Blob>;
+  exporterEmployes(params: IEmployeeParams & { format: ExportFormat }): Promise<IEmployeeExport[]>;
   employesStats(params?: IEmployeeParams): Promise<IEmployeeSalaryStats>;
   changeStatus(id: string, status: string): Promise<IEmployee>;
   syncJournaliers(): Promise<void>;
@@ -162,8 +179,8 @@ export const employeeAPI: IEmployeeAPI = {
     });
   },
 
-  async exporterEmployes(params: IEmployeeParams & { format: ExportFormat }): Promise<Blob> {
-    return await api.request<Blob>({
+  async exporterEmployes(params: IEmployeeParams & { format: ExportFormat }): Promise<IEmployeeExport[]> {
+    return await api.request<IEmployeeExport[]>({
       endpoint: `/erp/employees/export`,
       method: 'GET',
       searchParams: {

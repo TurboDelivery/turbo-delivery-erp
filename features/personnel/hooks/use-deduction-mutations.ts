@@ -7,6 +7,7 @@ import {
   useCreateAbsenceDeductionMutation,
   useCreateAvanceMutation,
   useCreatePretMutation,
+  useSupprimerDeductionMutation,
   useUpdateAbsenceDeductionMutation,
   useUpdateAvanceMutation,
 } from '@/features/personnel/mutations';
@@ -29,6 +30,7 @@ export function useDeductionMutations() {
   const updateAvanceMutation = useUpdateAvanceMutation();
   const createPretMutation = useCreatePretMutation();
   const cancelMutation = useCancelDeductionMutation();
+  const supprimerMutation = useSupprimerDeductionMutation();
 
   const submitAbsence = useCallback(
     async ({ mode, id, dto }: { mode: 'create' | 'update'; id?: string; dto: CreateAbsenceDeductionDTO }) => {
@@ -78,6 +80,14 @@ export function useDeductionMutations() {
     [cancelMutation],
   );
 
+  const supprimerDeduction = useCallback(
+    async (deduction: IDeduction) => {
+      await supprimerMutation.mutateAsync(deduction.id);
+      toast.success('Deduction supprimee avec succes.');
+    },
+    [supprimerMutation],
+  );
+
   const editDeduction = useCallback((deduction: IDeduction, modals: DeductionModals) => {
     if (deduction.typeDeduction === 'ABSENCE' || deduction.typeDeduction === 'RETARD') {
       modals.absenceModal.open(deduction);
@@ -94,5 +104,13 @@ export function useDeductionMutations() {
     toast.info('Type de deduction non gere.');
   }, []);
 
-  return { submitAbsence, submitAvance, submitPret, cancelDeduction, editDeduction };
+  return {
+    submitAbsence,
+    submitAvance,
+    submitPret,
+    cancelDeduction,
+    supprimerDeduction,
+    isSupprimerPending: supprimerMutation.isPending,
+    editDeduction,
+  };
 }

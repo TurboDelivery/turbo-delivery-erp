@@ -6,7 +6,7 @@ import { useEmployeeTableNew } from '@/features/personnel/hooks/use-employee-tab
 import { useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { DEPARTMENTS } from '@/features/personnel/constants/employee.constants';
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Button, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { flexRender } from '@tanstack/react-table';
@@ -126,21 +126,9 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
                     <PostesSelectFilter selectedPostes={filters.postes || []} onPostesChange={setSelectedPostes} />
                   </div>
                   <div className="flex gap-2">
-                    <Dropdown>
-                      <DropdownTrigger>
-                        <Button variant="bordered" startContent={<Download size={16} />} isLoading={isExporting}>
-                          Exporter
-                        </Button>
-                      </DropdownTrigger>
-                      <DropdownMenu
-                        aria-label="Format d'export"
-                        onAction={(key) => handleExport(key as ExportFormat)}
-                      >
-                        <DropdownItem key="PDF">PDF</DropdownItem>
-                        <DropdownItem key="EXCEL">Excel</DropdownItem>
-                        <DropdownItem key="CSV">CSV</DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
+                    <Button variant="bordered" onPress={() => handleExport('EXCEL')} startContent={<Download size={16} />} isLoading={isExporting}>
+                      Exporter
+                    </Button>
                     <Can I="create" a="Personnel">
                       <Button color="primary" startContent={<Plus size={16} />} onPress={onAddEmployee}>
                         Ajouter un employé

@@ -9,11 +9,15 @@ import { IDeduction, IDeductionParams } from '@/features/personnel/types/deducti
 type UseDeductionTableOptions = {
   onEditDeduction?: (deduction: IDeduction) => void;
   onCancelDeduction?: (deduction: IDeduction) => void;
+  onDeleteDeduction?: (deduction: IDeduction) => void;
 };
 
-export function useDeductionTable({ onEditDeduction, onCancelDeduction }: UseDeductionTableOptions = {}) {
+export function useDeductionTable({ onEditDeduction, onCancelDeduction, onDeleteDeduction }: UseDeductionTableOptions = {}) {
   const [filters, setFilters] = useQueryStates(deductionFiltersClient.filter, deductionFiltersClient.option);
-  const columns = useMemo(() => createDeductionTableColumns({ onEditDeduction, onCancelDeduction }), [onCancelDeduction, onEditDeduction]);
+  const columns = useMemo(
+    () => createDeductionTableColumns({ onEditDeduction, onCancelDeduction, onDeleteDeduction }),
+    [onCancelDeduction, onDeleteDeduction, onEditDeduction],
+  );
 
   const currentSearchParams: IDeductionParams = useMemo(() => ({
     employeeId: filters.employeeId || undefined,

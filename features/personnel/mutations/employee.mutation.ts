@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { processAndValidateFormData } from 'ak-zod-form-kit';
 import { EmployeeCreateDTO, EmployeeCreateSchema, EmployeeUpdateDTO, EmployeeUpdateSchema } from '@/features/personnel/schemas/employee.schema';
 import { useInvalidateEmployeeQuery } from './index.query';
+import { exportEmployesToCsv, exportEmployesToExcel, exportEmployesToPdf } from '@/features/personnel/utils/employee-export.utils';
 
 export const useAjouterEmployeMutation = () => {
   const invalidateEmployeeQuery = useInvalidateEmployeeQuery();
@@ -128,29 +129,24 @@ export const useSyncJournaliersMutation = () => {
   });
 };
 
-const EXPORT_MIME: Record<ExportFormat, string> = {
-  PDF: 'application/pdf',
-  EXCEL: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  CSV: 'text/csv',
-};
-
-const EXPORT_EXT: Record<ExportFormat, string> = {
-  PDF: 'pdf',
-  EXCEL: 'xlsx',
-  CSV: 'csv',
-};
-
 export const useExporterEmployesMutation = () => {
   return useMutation({
     mutationFn: async ({ format, ...params }: IEmployeeParams & { format: ExportFormat }) => {
-      const blob = await employeeAPI.exporterEmployes({ ...params, format });
-      const file = new Blob([blob], { type: EXPORT_MIME[format] });
-      const url = URL.createObjectURL(file);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `employes_export_${new Date().toISOString().slice(0, 10)}.${EXPORT_EXT[format]}`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const data = await employeeAPI.exporterEmployes({ ...params, format });
+      const baseFilename = `employes_export_${new Date().toISOString().slice(0, 10)}`;
+
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error('Aucun employé à exporter pour ces filtres.');
+      }
+
+      if (format === 'EXCEL') {
+        exportEmployesToExcel(data, baseFilename);
+      }
+      else if (format === 'CSV') {
+        exportEmployesToCsv(data, baseFilename);
+      } else {
+        await exportEmployesToPdf(data, baseFilename);
+      }
     },
     onSuccess: () => {
       toast.success('Export téléchargé avec succès');

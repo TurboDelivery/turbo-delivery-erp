@@ -11,9 +11,10 @@ interface DeductionTableProps {
   showFilters?: boolean;
   onEditDeduction?: (deduction: IDeduction) => void;
   onCancelDeduction?: (deduction: IDeduction) => void;
+  onDeleteDeduction?: (deduction: IDeduction) => void;
 }
 
-export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDeduction }: DeductionTableProps) {
+export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDeduction, onDeleteDeduction }: DeductionTableProps) {
   const {
     deductionTable,
     isDeductionLoading,
@@ -24,7 +25,7 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
     handleEmployeeFilterChange,
     handleYearFilterChange,
     handleMonthFilterChange,
-  } = useDeductionTable({ onEditDeduction, onCancelDeduction });
+  } = useDeductionTable({ onEditDeduction, onCancelDeduction, onDeleteDeduction });
 
   const colsCount = deductionTable.getAllColumns().length;
 

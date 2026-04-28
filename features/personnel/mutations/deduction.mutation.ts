@@ -133,3 +133,19 @@ export const useCancelDeductionMutation = () => {
     },
   });
 };
+
+export const useSupprimerDeductionMutation = () => {
+  const invalidate = useInvalidateDeductionQuery();
+
+  return useMutation({
+    mutationFn: (deductionId: string) => deductionAPI.supprimerDeduction(deductionId),
+    onSuccess: async () => {
+      await invalidate();
+    },
+    onError: (error) => {
+      toast.error('Erreur lors de la suppression de la deduction', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};

@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@heroui/react';
-import { Pencil, XCircle } from 'lucide-react';
+import { Pencil, Trash2, XCircle } from 'lucide-react';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
 import { formatCfa, formatDateFr } from '@/lib/date-utils';
 import {
@@ -13,9 +13,10 @@ import {
 type CreateDeductionTableColumnsOptions = {
   onEditDeduction?: (deduction: IDeduction) => void;
   onCancelDeduction?: (deduction: IDeduction) => void;
+  onDeleteDeduction?: (deduction: IDeduction) => void;
 };
 
-export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction }: CreateDeductionTableColumnsOptions = {}): ColumnDef<IDeduction>[] => [
+export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction, onDeleteDeduction }: CreateDeductionTableColumnsOptions = {}): ColumnDef<IDeduction>[] => [
   {
     accessorKey: 'employee',
     header: 'Employe',
@@ -102,6 +103,16 @@ export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction
             title={isCancelled ? 'Deduction deja annulee' : 'Annuler'}
           >
             <XCircle className="size-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="light"
+            color="danger"
+            isIconOnly
+            onPress={() => onDeleteDeduction?.(row.original)}
+            title="Supprimer"
+          >
+            <Trash2 className="size-4" />
           </Button>
         </div>
       );

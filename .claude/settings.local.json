@@ -30,7 +30,12 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "WebFetch(domain:ui.shadcn.com)",
       "WebSearch",
-      "WebFetch(domain:glensea.com)"
+      "WebFetch(domain:glensea.com)",
+      "WebFetch(domain:backend-prod.turbodeliveryapp.com)",
+      "Bash(node *)",
+      "Bash(curl -s https://backend-prod.turbodeliveryapp.com/v3/api-docs -o /c/Users/kouax/swagger.json)",
+      "Read(//c/Users/kouax/**)",
+      "Bash(npx --no-install tsc --noEmit)"
     ]
   }
 }
