@@ -8,6 +8,8 @@ export interface ITurboyAPI {
   deleteTurboy(id: string): Promise<void>;
   rejectTurboy(userId: string): Promise<void>;
   passerEnBird(livreurId: string): Promise<void>;
+  bulkDesactiverLivreurs(ids: string[]): Promise<void>;
+  bulkActiverLivreurs(ids: string[]): Promise<void>;
 }
 
 export const turboyAPI: ITurboyAPI = {
@@ -55,6 +57,22 @@ export const turboyAPI: ITurboyAPI = {
       method: 'PUT',
       service: 'backend',
       data: { livreurId, typeLivreur: 'FREE' },
+    });
+  },
+
+  async bulkDesactiverLivreurs(ids: string[]): Promise<void> {
+    return await apiClientHttp.request<void>({
+      endpoint: `/api/erp/livreur/desactiver-bulk`,
+      method: 'PATCH',
+      data: ids,
+    });
+  },
+
+  async bulkActiverLivreurs(ids: string[]): Promise<void> {
+    return await apiClientHttp.request<void>({
+      endpoint: `/api/erp/livreur/activer-bulk`,
+      method: 'PATCH',
+      data: ids,
     });
   },
 };

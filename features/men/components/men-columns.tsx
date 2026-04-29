@@ -1,6 +1,6 @@
 import React from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
-import { Chip } from '@heroui/react';
+import { Checkbox, Chip } from '@heroui/react';
 import { Mail, MapPin } from 'lucide-react';
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
 import { type Restaurant } from '@/types/models';
@@ -10,6 +10,26 @@ import { TurboyActionMenu } from './turboy-action-menu';
 
 export function getMenColumns(restaurants: Restaurant[]): ColumnDef<ITurboy>[] {
   return [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        isSelected={table.getIsAllPageRowsSelected()}
+        isIndeterminate={table.getIsSomePageRowsSelected()}
+        onValueChange={(checked) => table.toggleAllPageRowsSelected(checked)}
+        aria-label="Tout sélectionner"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        isSelected={row.getIsSelected()}
+        onValueChange={(checked) => row.toggleSelected(checked)}
+        aria-label="Sélectionner"
+      />
+    ),
+    enableSorting: false,
+    size: 40,
+  },
   {
     accessorKey: 'prenoms',
     header: 'COURSIERS',

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deleteTurboyAction, rejectTurboyAction, updateTurboyTypeAction, passerEnBirdAction } from '@/features/turboys/actions/turboy.actions';
+import { deleteTurboyAction, rejectTurboyAction, updateTurboyTypeAction, passerEnBirdAction, bulkDesactiverLivreursAction, bulkActiverLivreursAction } from '@/features/turboys/actions/turboy.actions';
 import { ITurboy, IUpdateTurboyTypePayload } from '@/features/turboys/types/turboys.types';
 import { toast } from 'react-toastify';
 import { turboyKeys } from './turboy-list.query';
@@ -103,6 +103,50 @@ export const useDeleteTurboyMutation = (handleSuccess?: () => void) => {
     onError: (error) => {
       const message = error instanceof Error ? error.message : 'Erreur inconnue';
       toast.error(`Erreur lors de la suppression: ${message}`);
+    },
+  });
+};
+
+export const useBulkDesactiverLivreursMutation = (handleSuccess?: () => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      const result = await bulkDesactiverLivreursAction(ids);
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de la désactivation des livreurs');
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: turboyKeys.lists() });
+      toast.success('Les livreurs ont été désactivés avec succès.');
+      if (handleSuccess) handleSuccess();
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors de la désactivation: ${message}`);
+    },
+  });
+};
+
+export const useBulkActiverLivreursMutation = (handleSuccess?: () => void) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      const result = await bulkActiverLivreursAction(ids);
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de l\'activation des livreurs');
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: turboyKeys.lists() });
+      toast.success('Les livreurs ont été activés avec succès.');
+      if (handleSuccess) handleSuccess();
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors de l'activation: ${message}`);
     },
   });
 };

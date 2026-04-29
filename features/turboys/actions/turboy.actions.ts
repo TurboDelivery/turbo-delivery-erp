@@ -80,3 +80,23 @@ export async function updateTurboyTypeAction(data: UpdateTurboyTypeDTO): Promise
   }
 }
 
+export async function bulkDesactiverLivreursAction(ids: string[]): Promise<ActionResponse<void>> {
+  try {
+    await turboyAPI.bulkDesactiverLivreurs(ids);
+    return { success: true, message: 'Les livreurs ont été désactivés avec succès' };
+  } catch (error) {
+    console.error('❌ Erreur bulk désactivation:', error);
+    return handleServerActionError(error, 'Erreur lors de la désactivation des livreurs');
+  }
+}
+
+export async function bulkActiverLivreursAction(ids: string[]): Promise<ActionResponse<void>> {
+  try {
+    await turboyAPI.bulkActiverLivreurs(ids);
+    return { success: true, message: 'Les livreurs ont été activés avec succès' };
+  } catch (error) {
+    console.error('❌ Erreur bulk activation:', error);
+    return handleServerActionError(error, 'Erreur lors de l\'activation des livreurs');
+  }
+}
+
