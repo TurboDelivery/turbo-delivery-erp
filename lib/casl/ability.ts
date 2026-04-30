@@ -18,7 +18,8 @@ export type AppActions =
   | 'approuver-dg'
   | 'rejeter-dga'
   | 'rejeter-dg'
-  | 'decaisser';
+  | 'decaisser'
+  | 'authentifier';
 
 export type AppSubjects =
   | 'ChargeFixe'
@@ -89,6 +90,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('decaisser', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('valider', 'Restaurant');
       can('manage', 'Ticket');
+      can('authentifier', 'Ticket');
       can('manage', 'Creneau');
       can('manage', 'Performance');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
@@ -109,6 +111,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
       can('valider', 'Restaurant');
       can('manage', 'Ticket');
+      can('authentifier', 'Ticket');
       can('manage', 'Creneau');
       can('manage', 'Performance');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);

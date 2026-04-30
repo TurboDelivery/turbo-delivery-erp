@@ -1,6 +1,6 @@
 'use client';
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconUser, IconUsers } from '@tabler/icons-react';
-import { BarChart, Bell, CheckCircle, FileText, Layers, List, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Wallet } from 'lucide-react';
+import { BarChart, Bell, CheckCircle, FileText, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
 import type { AppActions, AppSubjects } from '@/lib/casl/ability';
@@ -35,6 +35,14 @@ const menuData: IMenuData[] = [
       { icon: TbTruckDelivery, title: 'Courses Journalières', path: '/new-deliveries', can: { action: 'read', subject: 'Commande' } },
       { icon: TbTruckDelivery, title: 'Toutes les courses', path: '/external_delivery/all', can: { action: 'read', subject: 'Commande' } },
       { icon: Ticket, title: 'Tickets', path: '/tickets', can: { action: 'read', subject: 'Ticket' } },
+    ],
+  },
+  {
+    title: 'Validation des tickets',
+    icon: Lock,
+    children: [
+      { icon: Lock, title: 'Verrouillage V2', path: '/validation-tickets/verrouillage-v2', can: { action: 'manage', subject: 'Ticket' } },
+      { icon: Lock, title: 'Régularisation', path: '/validation-tickets/regularisation', can: { action: 'manage', subject: 'Ticket' } },
     ],
   },
   {

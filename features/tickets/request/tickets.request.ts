@@ -77,3 +77,10 @@ export async function getLivreursWithTicketsRequest(params: ILivreurSearchParams
     },
   });
 }
+
+export async function deleteBonLivraisonRequest(id: string): Promise<void> {
+  return await apiClientHttp.request<void>({
+    endpoint: `${BASE_URL}/${id}`,
+    method: 'DELETE',
+  });
+}

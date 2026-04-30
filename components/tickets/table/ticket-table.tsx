@@ -11,6 +11,7 @@ import { Package, Plus } from 'lucide-react';
 import { Restaurant, User } from '@/types/models';
 import { Ticket } from '@/types/bon-livraison.model';
 import useTickets from '@/features/tickets/hooks/use-tickets';
+import { useAbility } from '@/hooks/use-ability';
 import { useLivreurs } from '@/features/tickets/hooks/use-livreurs';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import StatsSection from '@/components/tickets/stats-section';
@@ -19,6 +20,7 @@ import { TicketTableFilters } from './ticket-table-filters';
 import { TicketTableActions } from './ticket-table-actions';
 import { TicketTableExportButton } from './ticket-table-export-button';
 import { createTicketColumns, TicketColumnMeta } from './ticket-table-columns';
+import ConfirmModal from '@/components/ui/confirm-modal';
 
 interface TicketTableProps {
   restaurants: Restaurant[];
@@ -36,8 +38,11 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
     state: { handleEditRow, editingIds, handleCancelEditRow, editedTickets, setEditedTickets },
   } = useTickets();
   const { livreurs } = useLivreurs();
+  const ability = useAbility();
 
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
+  const [authenticatedIds, setAuthenticatedIds] = useState<Set<string>>(new Set());
+  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
   const [insertCount, setInsertCount] = useState<number>(1);
   const [insertLivreurId, setInsertLivreurId] = useState<string>('');
   const [insertRestaurantId, setInsertRestaurantId] = useState<string>('');
@@ -60,8 +65,9 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
       canUpdate: !isRestrictedRole,
       canDelete: !isRestrictedRole,
       canSeeExternal: isRestrictedRole,
+      canAuthentifier: ability.can('authentifier', 'Ticket'),
     };
-  }, [role]);
+  }, [role, ability]);
 
   // Commission calculation
   const calculateCommission = useCallback(
@@ -215,6 +221,10 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
 
   const handleCancelNewTicket = useCallback((id: string) => setNewTickets((prev) => prev.filter((t) => t.id !== id)), []);
 
+  const handleAuthentifier = useCallback((id: string) => {
+    setAuthenticatedIds((prev) => new Set(prev).add(id));
+  }, []);
+
   const handleInsert = useCallback(() => {
     if (insertCount <= 0) return;
     const tickets: Ticket[] = Array.from({ length: insertCount }).map(() => {
@@ -251,6 +261,11 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
   // Columns
   const columns = useMemo(() => createTicketColumns(), []);
 
+  // Single row delete handlers
+  const handleDeleteRow = useCallback((id: string) => {
+    setTicketToDelete(id);
+  }, []);
+
   // Table meta
   const tableMeta: TicketColumnMeta = useMemo(
     () => ({
@@ -260,6 +275,7 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
       editedTickets,
       newTicketIds,
       permissions,
+      authenticatedIds,
       onTicketChange: handleTicketChange,
       onTicketPatch: handleTicketPatch,
       onSaveNew: handleSaveNewTicket,
@@ -267,6 +283,8 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
       onCancelNew: handleCancelNewTicket,
       onCancelEdit: handleCancelEditRow,
       onEditRow: handleEditRow,
+      onDeleteRow: handleDeleteRow,
+      onAuthentifier: handleAuthentifier,
       isSavingNew: isCreatingBonLivraison,
       isSavingEdit: isUpdatingBonLivraison,
       getDisplayTicket,
@@ -278,6 +296,7 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
       editedTickets,
       newTicketIds,
       permissions,
+      authenticatedIds,
       handleTicketChange,
       handleTicketPatch,
       handleSaveNewTicket,
@@ -285,6 +304,8 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
       handleCancelNewTicket,
       handleCancelEditRow,
       handleEditRow,
+      handleDeleteRow,
+      handleAuthentifier,
       isCreatingBonLivraison,
       isUpdatingBonLivraison,
       getDisplayTicket,
@@ -310,6 +331,15 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
     .filter((id) => !newTicketIds.has(id));
 
   const colsCount = table.getAllColumns().length;
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!ticketToDelete) return;
+    deleteBonLivraisonMutation(ticketToDelete, {
+      onSuccess: () => toast.success('Le ticket a été supprimé avec succès.'),
+      onError: () => toast.error('Erreur lors de la suppression du ticket.'),
+    });
+    setTicketToDelete(null);
+  }, [ticketToDelete, deleteBonLivraisonMutation]);
 
   // Delete handlers
   const handleDeleteRows = useCallback(async () => {
@@ -501,6 +531,19 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
           onDeleteRows={handleDeleteRows}
         />
       )}
+
+      <ConfirmModal
+        isOpen={ticketToDelete !== null}
+        onClose={() => setTicketToDelete(null)}
+        title="Supprimer le ticket"
+        isLoading={isDeletingBonLivraison}
+        actions={[
+          { label: 'Annuler', variant: 'light', onPress: () => setTicketToDelete(null) },
+          { label: 'Supprimer', color: 'danger', onPress: handleConfirmDelete },
+        ]}
+      >
+        Confirmez-vous la suppression définitive de ce ticket ? Cette action est irréversible.
+      </ConfirmModal>
     </div>
   );
 }

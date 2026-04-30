@@ -6,9 +6,10 @@ import { Ticket } from '@/types/bon-livraison.model';
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import Select from 'react-select';
 import PriceListSelect from '@/components/tickets/price-list-select';
-import { CheckSquare, Loader2, Pen, X } from 'lucide-react';
+import { CheckSquare, Loader2, Pen, ShieldCheck, Trash2, X } from 'lucide-react';
 import { Tooltip } from '@heroui/react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 
 export interface TicketColumnMeta {
   livreurOptions: { value: string; label: string }[];
@@ -16,7 +17,8 @@ export interface TicketColumnMeta {
   editingIds: Set<string>;
   editedTickets: Map<string, Ticket>;
   newTicketIds: Set<string>;
-  permissions: { canCreate: boolean; canUpdate: boolean; canDelete: boolean };
+  permissions: { canCreate: boolean; canUpdate: boolean; canDelete: boolean; canAuthentifier: boolean };
+  authenticatedIds: Set<string>;
   onTicketChange: (id: string, field: keyof Ticket, value: string) => void;
   onTicketPatch: (id: string, patch: Partial<Ticket>) => void;
   onSaveNew: (id: string) => void;
@@ -24,6 +26,8 @@ export interface TicketColumnMeta {
   onCancelNew: (id: string) => void;
   onCancelEdit: (id: string) => void;
   onEditRow: (id: string) => void;
+  onDeleteRow: (id: string) => void;
+  onAuthentifier: (id: string) => void;
   isSavingNew: boolean;
   isSavingEdit: boolean;
   getDisplayTicket: (ticket: Ticket) => Ticket;
@@ -217,6 +221,33 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
     },
   },
   {
+    id: 'statut',
+    header: 'Statut',
+    enableSorting: false,
+    cell: ({ row, table }) => {
+      const meta = table.options.meta as TicketColumnMeta;
+      const ticket = row.original;
+      const isAuthentifie = meta.authenticatedIds.has(ticket.id);
+      const isNouveau = meta.newTicketIds.has(ticket.id);
+      return (
+        <div className="flex items-center gap-2">
+          <Badge className={isAuthentifie ? 'bg-green-100 text-green-700 border-green-300' : 'bg-red-100 text-red-700 border-red-300'}>
+            {isAuthentifie ? 'AUTHENTIFIÉ' : 'EN ATTENTE'}
+          </Badge>
+          {!isAuthentifie && !isNouveau && meta.permissions.canAuthentifier && (
+            <button
+              onClick={() => meta.onAuthentifier(ticket.id)}
+              title="Authentifier ce ticket"
+              className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 flex items-center justify-center"
+            >
+              <ShieldCheck className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      );
+    },
+  },
+  {
     id: 'actions',
     header: '',
     enableSorting: false,
@@ -263,9 +294,14 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
       // Ticket existant en mode lecture
       if (meta.permissions.canUpdate) {
         return (
-          <button onClick={() => meta.onEditRow(ticket.id)} className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center justify-center">
-            <Pen className="w-4 h-4" />
-          </button>
+          <div className="flex gap-2">
+            <button onClick={() => meta.onEditRow(ticket.id)} className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center justify-center">
+              <Pen className="w-4 h-4" />
+            </button>
+            <button onClick={() => meta.onDeleteRow(ticket.id)} className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center justify-center">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         );
       }
 
