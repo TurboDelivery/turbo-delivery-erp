@@ -8,9 +8,8 @@ import { entreeCaisseKeys } from './index.query';
 
 export const useEntreeCaissePaginatedQuery = (params?: IEntreeCaissePaginatedParams) => {
   return useQuery({
-    queryKey: entreeCaisseKeys.paginated(params),
+    queryKey: ['entrees-caisse', 'paginated', params],
     queryFn: () => entreeCaisseAPI.listerPagine(params),
     staleTime: 5 * 60 * 1000,
-    placeholderData: (prev: PaginatedResponse<IEntreeCaisse> | undefined) => prev,
   });
 };
