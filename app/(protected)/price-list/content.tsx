@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Select from 'react-select';
 import usePriceListTable from '@/features/price-list/hooks/use-price-list-table';
 import { priceListColumns, usePriceListRenderCell } from '@/components/dashboard/price-liste/price-list-columns';
-import PriceListFormModal, { RestaurantOption } from '@/components/dashboard/price-liste/price-list-form-modal';
+import PriceListFormModal from '@/components/dashboard/price-liste/price-list-form-modal';
 
 interface Props {
   initialData: RestaurantDefini[];
@@ -37,14 +37,6 @@ export default function Content({ initialData }: Props) {
   const restaurantOptions = tabs
     .map((tab) => ({ value: tab.id, label: tab.nomComplet }))
     .sort((a, b) => a.label.localeCompare(b.label));
-
-  const restaurants: RestaurantOption[] = initialData.map((r) => ({
-    id: r.id,
-    nomEtablissement: r.nomEtablissement,
-    latitude: r.latitude,
-    longitude: r.longitude,
-    typeCommission: r.typeCommission ?? null,
-  }));
 
   return (
     <>
@@ -104,7 +96,6 @@ export default function Content({ initialData }: Props) {
         open={editModal.open}
         onClose={closeEditModal}
         initialData={editModal.selectedFee}
-        restaurants={restaurants}
       />
     </>
   );

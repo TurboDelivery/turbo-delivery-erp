@@ -5,18 +5,10 @@ import { Button } from '@heroui/react';
 import { useState } from 'react';
 import { Restaurant } from '@/types/models';
 import TextInputToUrl from './searchDelivery';
-import PriceListFormModal, { RestaurantOption } from './price-list-form-modal';
+import PriceListFormModal from './price-list-form-modal';
 
 export default function Header({ initialData }: { initialData: Restaurant[] | null }) {
   const [createOpen, setCreateOpen] = useState(false);
-
-  const restaurants: RestaurantOption[] = (initialData ?? []).map((r) => ({
-    id: r.id,
-    nomEtablissement: r.nomEtablissement,
-    latitude: r.latitude ?? 0,
-    longitude: r.longitude ?? 0,
-    typeCommission: r.typeCommission ?? null,
-  }));
 
   return (
     <div>
@@ -43,7 +35,6 @@ export default function Header({ initialData }: { initialData: Restaurant[] | nu
         mode="create"
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        restaurants={restaurants}
       />
     </div>
   );
