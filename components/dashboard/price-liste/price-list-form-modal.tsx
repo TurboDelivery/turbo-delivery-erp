@@ -1,6 +1,6 @@
 'use client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Controller, useForm } from 'react-hook-form';
@@ -16,6 +16,7 @@ import { priceListSchema, PriceListFormData } from '@/features/price-list/schema
 import { createDeliveryFee, updatePriceList } from '@/src/price-list/price-list.action';
 import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
 import { useDefinedRestaurantsQuery } from '@/features/restaurants/queries/restaurants.query';
+import { cn } from '@/lib/utils';
 
 type LatLng = { lat: number; lng: number };
 
@@ -37,10 +38,12 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
 
   const { data: allRestaurants = [] } = useDefinedRestaurantsQuery();
 
-  const { control, handleSubmit, setValue, reset, watch, formState: { errors } } = useForm<PriceListFormData>({
+  const form = useForm<PriceListFormData>({
     resolver: zodResolver(priceListSchema),
     defaultValues: buildDefaults(initialData),
   });
+
+  const { control, handleSubmit, setValue, reset, watch } = form;
 
   useEffect(() => {
     if (!open) return;
@@ -50,7 +53,6 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const watchedRestaurantId = watch('restaurantId');
-
   const currentRestaurant = allRestaurants.find((r) => r.id === watchedRestaurantId);
   const typeCommission = currentRestaurant?.typeCommission ?? null;
   const restaurantPoint: LatLng = {
@@ -58,10 +60,9 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
     lng: currentRestaurant?.longitude ?? 0,
   };
 
-  const commissionLabel =
-    typeCommission === 'POURCENTAGE' ? 'Commission (%)' : 'Commission (XOF)';
+  const commissionLabel = typeCommission === 'POURCENTAGE' ? 'Commission (%)' : 'Commission (XOF)';
 
-  const handleInputChange = useCallback(
+  const handleZoneChange = useCallback(
     async (value: string) => {
       if (value.length > 2 && !loadingGeo) {
         try {
@@ -90,7 +91,7 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
       setValue('distanceFin', distance ?? 0);
       setDistanceDisplay(distance ?? 0);
     } catch {
-      // fail silently, user can enter distance manually
+      // fail silently — user can enter distance manually
     } finally {
       setLoadingGeo(false);
     }
@@ -99,8 +100,11 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
   const onSubmit = (data: PriceListFormData) => {
     startTransition(async () => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const result = isEdit ? await (updatePriceList as any)(data) : await createDeliveryFee(data);
+        // updatePriceList signature is typed without id but accepts it at runtime
+        const result = isEdit
+          ? await (updatePriceList as (d: PriceListFormData) => ReturnType<typeof updatePriceList>)(data)
+          : await createDeliveryFee(data);
+
         if (result.status === 'success') {
           toast.success(result.message || 'Opération réussie');
           router.refresh();
@@ -123,34 +127,43 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 pt-2">
+        <form id="price-list-form" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 pt-2">
 
-          {/* Row 1 : name + restaurant (create) | name seul (edit) */}
-          <div className={isEdit ? '' : 'grid grid-cols-2 gap-3'}>
+          {/* Row 1 : nom + restaurant (create) | nom seul (edit) */}
+          <div className={cn(isEdit ? '' : 'grid grid-cols-2 gap-3')}>
+
             <Controller
-              control={control}
               name="name"
-              render={({ field }) => (
-                <div className="flex flex-col gap-1.5">
+              control={control}
+              render={({ field, fieldState }) => (
+                <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
                   <Label htmlFor="pl-name">Nom <span className="text-destructive">*</span></Label>
-                  <Input id="pl-name" {...field} />
-                  {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+                  <Input
+                    {...field}
+                    id="pl-name"
+                    aria-invalid={fieldState.invalid}
+                    autoComplete="off"
+                  />
+                  {fieldState.invalid && (
+                    <p className="text-xs text-destructive">{fieldState.error?.message}</p>
+                  )}
                 </div>
               )}
             />
+
             {!isEdit && (
               <Controller
-                control={control}
                 name="restaurantId"
-                render={({ field }) => (
-                  <div className="flex flex-col gap-1.5">
+                control={control}
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
                     <Label>Restaurant <span className="text-destructive">*</span></Label>
                     <RestaurantSelect
                       value={field.value}
                       onChange={(v) => field.onChange(v ?? '')}
                     />
-                    {errors.restaurantId && (
-                      <p className="text-xs text-destructive">{errors.restaurantId.message}</p>
+                    {fieldState.invalid && (
+                      <p className="text-xs text-destructive">{fieldState.error?.message}</p>
                     )}
                   </div>
                 )}
@@ -160,23 +173,25 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
 
           {/* Zone avec autocomplete Google Maps */}
           <Controller
-            control={control}
             name="zone"
-            render={({ field }) => (
-              <div className="flex flex-col gap-1.5">
+            control={control}
+            render={({ field, fieldState }) => (
+              <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
                 <Label htmlFor="pl-zone">Zone <span className="text-destructive">*</span></Label>
                 <div className="relative">
                   <Input
-                    id="pl-zone"
                     {...field}
+                    id="pl-zone"
                     placeholder="Entrez une adresse"
+                    aria-invalid={fieldState.invalid}
+                    autoComplete="off"
                     onChange={(e) => {
                       field.onChange(e.target.value);
-                      handleInputChange(e.target.value);
+                      handleZoneChange(e.target.value);
                     }}
                   />
                   {!loadingGeo && suggestions.length > 0 && (
-                    <ul className="absolute z-50 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg">
+                    <ul className="absolute z-50 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-48 overflow-y-auto">
                       {suggestions.map((s) => (
                         <li
                           key={s.place_id}
@@ -189,7 +204,9 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
                     </ul>
                   )}
                 </div>
-                {errors.zone && <p className="text-xs text-destructive">{errors.zone.message}</p>}
+                {fieldState.invalid && (
+                  <p className="text-xs text-destructive">{fieldState.error?.message}</p>
+                )}
               </div>
             )}
           />
@@ -201,39 +218,53 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
 
           {/* Row 2 : distanceFin + prix */}
           <div className="grid grid-cols-2 gap-3">
+
             <Controller
-              control={control}
               name="distanceFin"
-              render={({ field }) => (
-                <div className="flex flex-col gap-1.5">
+              control={control}
+              render={({ field, fieldState }) => (
+                <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
                   <Label htmlFor="pl-distance">Distance (km) <span className="text-destructive">*</span></Label>
                   <Input
                     id="pl-distance"
                     type="number"
+                    name={field.name}
+                    ref={field.ref}
                     value={distanceDisplay}
+                    aria-invalid={fieldState.invalid}
                     onChange={(e) => {
                       const n = Number(e.target.value);
                       field.onChange(n);
                       setDistanceDisplay(n);
                     }}
+                    onBlur={field.onBlur}
                   />
-                  {errors.distanceFin && <p className="text-xs text-destructive">{errors.distanceFin.message}</p>}
+                  {fieldState.invalid && (
+                    <p className="text-xs text-destructive">{fieldState.error?.message}</p>
+                  )}
                 </div>
               )}
             />
+
             <Controller
-              control={control}
               name="prix"
-              render={({ field }) => (
-                <div className="flex flex-col gap-1.5">
+              control={control}
+              render={({ field, fieldState }) => (
+                <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
                   <Label htmlFor="pl-prix">Prix (XOF) <span className="text-destructive">*</span></Label>
                   <Input
                     id="pl-prix"
                     type="number"
-                    {...field}
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    aria-invalid={fieldState.invalid}
                     onChange={(e) => field.onChange(Number(e.target.value))}
+                    onBlur={field.onBlur}
                   />
-                  {errors.prix && <p className="text-xs text-destructive">{errors.prix.message}</p>}
+                  {fieldState.invalid && (
+                    <p className="text-xs text-destructive">{fieldState.error?.message}</p>
+                  )}
                 </div>
               )}
             />
@@ -242,18 +273,24 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
           {/* Commission — visible uniquement si typeCommission défini */}
           {typeCommission && (
             <Controller
-              control={control}
               name="commission"
-              render={({ field }) => (
-                <div className="flex flex-col gap-1.5">
+              control={control}
+              render={({ field, fieldState }) => (
+                <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
                   <Label htmlFor="pl-commission">{commissionLabel} <span className="text-destructive">*</span></Label>
                   <Input
                     id="pl-commission"
                     type="number"
-                    {...field}
+                    name={field.name}
+                    ref={field.ref}
+                    value={field.value}
+                    aria-invalid={fieldState.invalid}
                     onChange={(e) => field.onChange(Number(e.target.value))}
+                    onBlur={field.onBlur}
                   />
-                  {errors.commission && <p className="text-xs text-destructive">{errors.commission.message}</p>}
+                  {fieldState.invalid && (
+                    <p className="text-xs text-destructive">{fieldState.error?.message}</p>
+                  )}
                 </div>
               )}
             />
@@ -261,11 +298,11 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
 
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-2">
-            <Button variant="bordered" type="button" onPress={onClose} isDisabled={isPending}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
               Annuler
             </Button>
-            <Button color="danger" type="submit" isLoading={isPending} startContent={!isPending && <Save size={18} />}>
-              {isEdit ? 'Modifier' : 'Ajouter'}
+            <Button type="submit" form="price-list-form" disabled={isPending}>
+              {isPending ? 'Enregistrement…' : <><Save size={16} className="mr-1.5" />{isEdit ? 'Modifier' : 'Ajouter'}</>}
             </Button>
           </div>
 
