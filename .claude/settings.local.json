@@ -47,7 +47,17 @@
       "Bash(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\components\\\\finance\\\\entrees-caisse\" -Force)",
       "Bash(Test-Path \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\components\\\\finance\\\\entrees-caisse\" -PathType Container)",
       "Bash(\".\\\\node_modules\\\\.bin\\\\tsc\" --noEmit)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\components\\\\dashboard\\\\price-liste\" -File)",
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\features\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\app\\\\\\(protected\\)\" -Directory)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\src\\\\features\\\\price-list\" -ErrorAction SilentlyContinue)",
+      "Bash(Format-Table Name, PSIsContainer)",
+      "Bash(git add *)",
+      "Bash(Get-Content \"C:\\\\Users\\\\kouax\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-kouax-WebstormProjects-lunion-turbo-delivery-erp\\\\cfdcee03-b9a0-451a-9ef5-57a37991a154\\\\tasks\\\\b9lv9wuvf.output\" -ErrorAction SilentlyContinue)",
+      "Bash(git rm *)"
     ]
   }
 }
