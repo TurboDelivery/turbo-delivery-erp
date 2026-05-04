@@ -5,15 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useEffect, useState, useTransition } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
 import { PlaceAutocompleteResult } from '@googlemaps/google-maps-services-js';
 import { autocomplete, calculateDistance, placeDetails } from '@/lib/googlemaps-server';
 import { DeliveryFee } from '@/types/price-list';
 import { priceListSchema, PriceListFormData } from '@/features/price-list/schemas/price-list.schema';
-import { createDeliveryFee, updatePriceList } from '@/src/price-list/price-list.action';
+import { useCreateDeliveryFeeMutation, useUpdatePriceListMutation } from '@/features/price-list/queries/price-list.mutation';
 import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
 import { useDefinedRestaurantsQuery } from '@/features/restaurants/queries/restaurants.query';
 import { cn } from '@/lib/utils';
@@ -28,8 +26,10 @@ interface Props {
 }
 
 export default function PriceListFormModal({ open, onClose, mode, initialData }: Props) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const createMutation = useCreateDeliveryFeeMutation();
+  const updateMutation = useUpdatePriceListMutation();
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
   const [suggestions, setSuggestions] = useState<PlaceAutocompleteResult[]>([]);
   const [loadingGeo, setLoadingGeo] = useState(false);
 
@@ -95,24 +95,11 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
   };
 
   const onSubmit = (data: PriceListFormData) => {
-    startTransition(async () => {
-      try {
-        // updatePriceList signature is typed without id but accepts it at runtime
-        const result = isEdit
-          ? await (updatePriceList as (d: PriceListFormData) => ReturnType<typeof updatePriceList>)(data)
-          : await createDeliveryFee(data);
-
-        if (result.status === 'success') {
-          toast.success(result.message || 'Opération réussie');
-          router.refresh();
-          onClose();
-        } else {
-          toast.error(result.message || 'Une erreur est survenue');
-        }
-      } catch {
-        toast.error('Une erreur est survenue');
-      }
-    });
+    if (isEdit) {
+      updateMutation.mutate(data, { onSuccess: () => onClose() });
+    } else {
+      createMutation.mutate(data, { onSuccess: () => onClose() });
+    }
   };
 
   return (

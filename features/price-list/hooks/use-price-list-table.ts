@@ -1,65 +1,48 @@
 'use client';
+
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { getPriceListByRestaurant } from '@/src/price-list/price-list.action';
-import { DeliveryFee, RestaurantDefini } from '@/types/price-list';
+import { DeliveryFee } from '@/types/price-list';
 import { useCallback, useEffect, useState } from 'react';
-import { getDetailRestaurant } from '@/src/restaurants/restaurants.actions';
-import { IRestaurant } from '@/features/restaurants';
+import { useDefinedRestaurantsQuery } from '@/features/restaurants/queries/restaurants.query';
+import { useDeliveryFeesByRestaurantQuery } from '../queries/price-list.query';
 
 export type EditModalState = {
   open: boolean;
   selectedFee: DeliveryFee | null;
 };
 
-interface Props {
-  initialData: RestaurantDefini[];
-}
-
-export default function usePriceListTable({ initialData }: Props) {
+export default function usePriceListTable() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams.toString());
 
-  const tabs = initialData.map((r) => ({ id: r.id, nomComplet: r.nomEtablissement }));
-  const initialSelectedKey = searchParams.get('restoId') || (initialData.length > 0 ? initialData[0].id : null);
+  const { data: allRestaurants = [] } = useDefinedRestaurantsQuery();
+  const tabs = allRestaurants.map((r) => ({ id: r.id, nomComplet: r.nomEtablissement }));
 
-  const [selectedKey, setSelectedKey] = useState<string | null>(initialSelectedKey);
-  const [currentRestaurant, setCurrentRestaurant] = useState<IRestaurant | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  const [meta, setMeta] = useState({ totalItems: 0, totalPages: 0 });
-  const [deliveryFeesList, setDeliveryFeesList] = useState<DeliveryFee[]>([]);
   const [editModal, setEditModal] = useState<EditModalState>({ open: false, selectedFee: null });
 
   useEffect(() => {
-    if (!selectedKey && initialData.length > 0) setSelectedKey(initialData[0].id);
-  }, [initialData, selectedKey]);
+    if (selectedKey || allRestaurants.length === 0) return;
+    const key = searchParams.get('restoId') || allRestaurants[0].id;
+    setSelectedKey(key);
+  }, [allRestaurants]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const currentRestaurant = allRestaurants.find((r) => r.id === selectedKey) ?? null;
+
+  const { data: feesData, isLoading, isFetching } = useDeliveryFeesByRestaurantQuery(selectedKey, currentPage);
+
+  const deliveryFeesList: DeliveryFee[] = feesData?.content ?? [];
+  const meta = { totalItems: feesData?.totalElements ?? 0, totalPages: feesData?.totalPages ?? 0 };
 
   const handleChangeSelectedKey = (key: string) => {
     setSelectedKey(key);
+    setCurrentPage(0);
     params.set('restoId', key);
     router.push(`${pathname}?${params.toString()}`);
   };
-
-  useEffect(() => {
-    if (!selectedKey) return;
-    getDetailRestaurant(selectedKey).then((d) => { if (d) setCurrentRestaurant(d); });
-  }, [selectedKey]);
-
-  const handleFetchDeliveryFee = useCallback(
-    async (restaurantId: string) => {
-      const data = await getPriceListByRestaurant(restaurantId, currentPage, 10);
-      if (data) {
-        setDeliveryFeesList(data.content);
-        setMeta({ totalItems: data.totalElements, totalPages: data.totalPages });
-      }
-    },
-    [currentPage],
-  );
-
-  useEffect(() => {
-    if (currentRestaurant) handleFetchDeliveryFee(currentRestaurant.id);
-  }, [currentRestaurant, handleFetchDeliveryFee]);
 
   const handleChangePage = (page: number) => {
     if (page - 1 >= 0) setCurrentPage(page - 1);
@@ -86,12 +69,13 @@ export default function usePriceListTable({ initialData }: Props) {
     selectedKey,
     tabs,
     deliveryFees,
-    handleFetchDeliveryFee,
     handleChangeSelectedKey,
     currentRestaurant,
     editModal,
     openEditModal,
     closeEditModal,
+    isLoading,
+    isFetching,
     pagination: {
       currentPage: currentPage + 1,
       totalPages: meta.totalPages,

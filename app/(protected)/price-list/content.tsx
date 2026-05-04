@@ -1,7 +1,7 @@
 'use client';
 
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
-import { RestaurantDefini } from '@/types/price-list';
+import { DeliveryFee } from '@/types/price-list';
 import { Pagination, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs } from '@heroui/react';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
@@ -10,16 +10,15 @@ import usePriceListTable from '@/features/price-list/hooks/use-price-list-table'
 import { priceListColumns, usePriceListRenderCell } from '@/components/dashboard/price-liste/price-list-columns';
 import PriceListFormModal from '@/components/dashboard/price-liste/price-list-form-modal';
 
-interface Props {
-  initialData: RestaurantDefini[];
-}
-
 const tabsItems = [
   { id: '/price-list', href: '/price-list', label: 'Liste des restaurants définis' },
   { id: '/price-list/restaurants-undefined', href: '/price-list/restaurants-undefined', label: 'Liste des restaurants indéfinis' },
 ];
 
-export default function Content({ initialData }: Props) {
+const SKELETON_COUNT = 8;
+const skeletonRows = Array.from({ length: SKELETON_COUNT }, (_, i) => ({ id: String(i) }) as DeliveryFee);
+
+export default function Content() {
   const {
     selectedKey,
     tabs,
@@ -29,14 +28,18 @@ export default function Content({ initialData }: Props) {
     editModal,
     openEditModal,
     closeEditModal,
+    isLoading,
+    isFetching,
     pagination,
-  } = usePriceListTable({ initialData });
+  } = usePriceListTable();
 
   const renderCell = usePriceListRenderCell({ currentRestaurant, onEdit: openEditModal });
 
   const restaurantOptions = tabs
     .map((tab) => ({ value: tab.id, label: tab.nomComplet }))
     .sort((a, b) => a.label.localeCompare(b.label));
+
+  const tableItems = isLoading ? skeletonRows : deliveryFees;
 
   return (
     <>
@@ -64,8 +67,12 @@ export default function Content({ initialData }: Props) {
 
         <Table
           aria-label="Tableau de Frais de livraison"
-          className="mt-4"
-          bottomContent={<Pagination initialPage={pagination.currentPage} total={pagination.totalPages} onChange={pagination.onPageChange} />}
+          className={`mt-4 transition-opacity ${isFetching && !isLoading ? 'opacity-60' : 'opacity-100'}`}
+          bottomContent={
+            !isLoading && pagination.totalPages > 0 ? (
+              <Pagination initialPage={pagination.currentPage} total={pagination.totalPages} onChange={pagination.onPageChange} />
+            ) : null
+          }
         >
           <TableHeader columns={priceListColumns}>
             {(column) => (
@@ -78,19 +85,28 @@ export default function Content({ initialData }: Props) {
               </TableColumn>
             )}
           </TableHeader>
-          <TableBody items={deliveryFees} emptyContent={<EmptyDataTable title="Aucun Frais de Livraison" />}>
-            {(item) => (
-              <TableRow key={item.id}>
-                {priceListColumns.map((column) => (
-                  <TableCell key={column.uid}>{renderCell(item, column.uid)}</TableCell>
-                ))}
-              </TableRow>
-            )}
+          <TableBody items={tableItems} emptyContent={!isLoading ? <EmptyDataTable title="Aucun Frais de Livraison" /> : ' '}>
+            {(item) =>
+              isLoading ? (
+                <TableRow key={item.id}>
+                  {priceListColumns.map((col) => (
+                    <TableCell key={col.uid}>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ) : (
+                <TableRow key={item.id}>
+                  {priceListColumns.map((column) => (
+                    <TableCell key={column.uid}>{renderCell(item, column.uid)}</TableCell>
+                  ))}
+                </TableRow>
+              )
+            }
           </TableBody>
         </Table>
       </div>
 
-      {/* Modal d'édition */}
       <PriceListFormModal
         mode="edit"
         open={editModal.open}
