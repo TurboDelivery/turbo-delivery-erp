@@ -1,6 +1,6 @@
 'use client';
 
-import { TrendingUp, Users, Briefcase, ArrowUpRight } from 'lucide-react';
+import { TrendingUp, Users, Briefcase, ArrowUpRight, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, Progress } from '@heroui/react';
@@ -39,13 +39,20 @@ function MonthStatsCards({ month }: MonthCardProps) {
 function MonthFinancials({ month }: MonthCardProps) {
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <div>
           <div className="flex items-center gap-1 text-gray-500 text-xs mb-1">
             <TrendingUp className="w-3 h-3" />
             <span>CA</span>
           </div>
           <p className="text-sm font-semibold text-gray-900">{month.ca}</p>
+        </div>
+        <div>
+          <div className="flex items-center gap-1 text-gray-500 text-xs mb-1">
+            <PlusCircle className="w-3 h-3" />
+            <span>Autres entrées</span>
+          </div>
+          <p className="text-sm font-semibold text-gray-900">{month.autresEntrees}</p>
         </div>
         <div>
           <div className="flex items-center gap-1 text-gray-500 text-xs mb-1">

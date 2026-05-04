@@ -9,6 +9,7 @@ export interface MonthData {
   courses: string;
   staff: string;
   ca: string;
+  autresEntrees: string;
   expenses: string;
   reimbursements: string;
   investments: string;
@@ -54,6 +55,7 @@ const toMonthData = (
     courses: formatNumber(stats.course_externes),
     staff: formatNumber(stats.nombre_employees),
     ca: hasData ? formatCFA(Math.round(stats.c_a)) : '',
+    autresEntrees: hasData ? formatCFA(Math.round(stats.autres_entrees)) : '',
     expenses: hasData ? formatCFA(Math.round(stats.depenses)) : '',
     reimbursements: hasData ? formatCFA(Math.round(stats.remboursement)) : '',
     investments: hasData ? formatCFA(Math.round(stats.investissements)) : '',
@@ -79,6 +81,7 @@ export const useBilanAnnuel = (annee: string) => {
         courses: '0',
         staff: '0',
         ca: '',
+        autresEntrees: '',
         expenses: '',
         reimbursements: '',
         investments: '',

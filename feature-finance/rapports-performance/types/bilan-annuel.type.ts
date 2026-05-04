@@ -11,6 +11,7 @@ export interface IMonthStats {
   investissements: number;
   nombre_employees: number;
   benefices_cumulees: number;
+  autres_entrees: number;
 }
 
 // Les clés de mois renvoyées par le backend
