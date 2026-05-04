@@ -4,6 +4,7 @@ import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { useQueryStates } from 'nuqs';
 import { useMemo } from 'react';
 import { format } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
 import { entreeCaisseFiltersClient } from '../filters/entree-caisse.filter';
 import { useEntreeCaissePaginatedQuery } from '../queries/entree-caisse-paginated.query';
 import { entreeCaisseColumns } from '../columns/entree-caisse-columns';
@@ -26,17 +27,8 @@ export function useEntreeCaisseTable() {
 
   const { data, isLoading, isFetching } = useEntreeCaissePaginatedQuery(params);
 
-  // Filtre client-side sur le libellé
-  const filteredData = useMemo(() => {
-    const content = data?.content || [];
-    if (!filters.search) return content;
-    return content.filter((e) =>
-      e.libelle.toLowerCase().includes(filters.search.toLowerCase()),
-    );
-  }, [data, filters.search]);
-
   const table = useReactTable({
-    data: filteredData,
+    data: data?.content || [],
     columns: entreeCaisseColumns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
@@ -50,16 +42,15 @@ export function useEntreeCaisseTable() {
     handlePageChange: (newPage: number) => setFilters({ page: newPage - 1 }),
   };
 
-  const handleDateChange = (debut?: Date, fin?: Date) =>
+  const handleDateChange = (range: DateRange | undefined) =>
     setFilters({
-      debut: debut ?? filters.debut,
-      fin: fin ?? filters.fin,
+      debut: range?.from ?? null,
+      fin: range?.to ?? null,
       page: 0,
     });
 
-  const handleSearchChange = (search: string) => setFilters({ search, page: 0 });
-
-  const handleReset = () => setFilters({ search: '', page: 0 });
+  const handleReset = () =>
+    setFilters({ debut: null, fin: null, page: 0 });
 
   return {
     table,
@@ -69,7 +60,6 @@ export function useEntreeCaisseTable() {
     setFilters,
     pagination,
     handleDateChange,
-    handleSearchChange,
     handleReset,
   };
 }

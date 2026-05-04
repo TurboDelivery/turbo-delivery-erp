@@ -1,11 +1,10 @@
-import { parseAsInteger, parseAsIsoDate, parseAsString } from 'nuqs';
+import { parseAsInteger, parseAsIsoDate } from 'nuqs';
 import { subMonths } from 'date-fns';
 
 export const entreeCaisseFiltersClient = {
   filter: {
     debut: parseAsIsoDate.withDefault(subMonths(new Date(), 1)),
     fin: parseAsIsoDate.withDefault(new Date()),
-    search: parseAsString.withDefault(''),
     page: parseAsInteger.withDefault(0),
     size: parseAsInteger.withDefault(20),
   },
@@ -15,7 +14,6 @@ export const entreeCaisseFiltersClient = {
     urlKeys: {
       debut: 'ecDebut',
       fin: 'ecFin',
-      search: 'ecSearch',
       page: 'ecPage',
       size: 'ecSize',
     },
