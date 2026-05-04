@@ -37,7 +37,17 @@
       "Read(//c/Users/kouax/**)",
       "Bash(npx --no-install tsc --noEmit)",
       "Bash(./node_modules/.bin/tsc --noEmit)",
-      "Bash(echo \"EXITCODE=$?\")"
+      "Bash(echo \"EXITCODE=$?\")",
+      "Bash(Test-Path C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\features\\\\entrees-caisse *)",
+      "Bash(powershell *)",
+      "Bash(npm exec *)",
+      "Bash(rtk git *)",
+      "Bash(npm run *)",
+      "Bash(rtk find *)",
+      "Bash(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\components\\\\finance\\\\entrees-caisse\" -Force)",
+      "Bash(Test-Path \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\components\\\\finance\\\\entrees-caisse\" -PathType Container)",
+      "Bash(\".\\\\node_modules\\\\.bin\\\\tsc\" --noEmit)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

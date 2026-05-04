@@ -116,7 +116,7 @@ export default function DashboardFinanceStatistics() {
             tone="yellow"
           />
           <FinanceHighlightCard
-            title="En cours"
+            title="Encours"
             value={formatCFA(resume?.totalFacturesEnCours ?? 0)}
             icon={Clock}
             tone="purple"

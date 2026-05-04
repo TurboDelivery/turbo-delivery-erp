@@ -3,7 +3,7 @@ import { MonthKey, IMonthStats } from '@/feature-finance/rapports-performance/ty
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { formatNumber } from '@/utils/formatNumber';
 
-interface MonthData {
+export interface MonthData {
   month: string;
   monthName: string;
   courses: string;
