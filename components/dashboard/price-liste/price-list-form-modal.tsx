@@ -114,8 +114,9 @@ export default function PriceListFormModal({ open, onClose, mode, initialData, r
   const onSubmit = (data: PriceListFormData) => {
     startTransition(async () => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = isEdit
-          ? await updatePriceList({ ...data, id: initialData?.id })
+          ? await (updatePriceList as any)(data)
           : await createDeliveryFee(data);
 
         if (result.status === 'success') {
