@@ -32,7 +32,6 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
   const [isPending, startTransition] = useTransition();
   const [suggestions, setSuggestions] = useState<PlaceAutocompleteResult[]>([]);
   const [loadingGeo, setLoadingGeo] = useState(false);
-  const [distanceDisplay, setDistanceDisplay] = useState(initialData?.distanceFin ?? 0);
 
   const isEdit = mode === 'edit';
 
@@ -48,7 +47,6 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
   useEffect(() => {
     if (!open) return;
     reset(buildDefaults(initialData));
-    setDistanceDisplay(initialData?.distanceFin ?? 0);
     setSuggestions([]);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -89,7 +87,6 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
       setValue('longitude', lng);
       const distance = await calculateDistance(restaurantPoint, { lat, lng });
       setValue('distanceFin', distance ?? 0);
-      setDistanceDisplay(distance ?? 0);
     } catch {
       // fail silently — user can enter distance manually
     } finally {
@@ -226,18 +223,10 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
                 <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
                   <Label htmlFor="pl-distance">Distance (km) <span className="text-destructive">*</span></Label>
                   <Input
+                    {...field}
                     id="pl-distance"
                     type="number"
-                    name={field.name}
-                    ref={field.ref}
-                    value={distanceDisplay}
                     aria-invalid={fieldState.invalid}
-                    onChange={(e) => {
-                      const n = Number(e.target.value);
-                      field.onChange(n);
-                      setDistanceDisplay(n);
-                    }}
-                    onBlur={field.onBlur}
                   />
                   {fieldState.invalid && (
                     <p className="text-xs text-destructive">{fieldState.error?.message}</p>
@@ -253,14 +242,10 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
                 <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
                   <Label htmlFor="pl-prix">Prix (XOF) <span className="text-destructive">*</span></Label>
                   <Input
+                    {...field}
                     id="pl-prix"
                     type="number"
-                    name={field.name}
-                    ref={field.ref}
-                    value={field.value}
                     aria-invalid={fieldState.invalid}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                    onBlur={field.onBlur}
                   />
                   {fieldState.invalid && (
                     <p className="text-xs text-destructive">{fieldState.error?.message}</p>
@@ -279,14 +264,10 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
                 <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
                   <Label htmlFor="pl-commission">{commissionLabel} <span className="text-destructive">*</span></Label>
                   <Input
+                    {...field}
                     id="pl-commission"
                     type="number"
-                    name={field.name}
-                    ref={field.ref}
-                    value={field.value}
                     aria-invalid={fieldState.invalid}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                    onBlur={field.onBlur}
                   />
                   {fieldState.invalid && (
                     <p className="text-xs text-destructive">{fieldState.error?.message}</p>
