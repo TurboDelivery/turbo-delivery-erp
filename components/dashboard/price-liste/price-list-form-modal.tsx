@@ -114,7 +114,6 @@ export default function PriceListFormModal({ open, onClose, mode, initialData, r
   const onSubmit = (data: PriceListFormData) => {
     startTransition(async () => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const result = isEdit
           ? await (updatePriceList as any)(data)
           : await createDeliveryFee(data);
@@ -152,7 +151,11 @@ export default function PriceListFormModal({ open, onClose, mode, initialData, r
               name="name"
               render={({ field }) => (
                 <Input
-                  {...field}
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  onBlur={field.onBlur}
                   label="Nom"
                   variant="bordered"
                   radius="sm"
@@ -174,8 +177,11 @@ export default function PriceListFormModal({ open, onClose, mode, initialData, r
                     isRequired
                     isInvalid={!!errors.restaurantId}
                     errorMessage={errors.restaurantId?.message}
-                    selectedKeys={field.value ? [field.value] : []}
-                    onChange={(e) => field.onChange(e.target.value)}
+                    selectedKeys={field.value ? new Set([field.value]) : new Set()}
+                    onSelectionChange={(keys) => {
+                      const value = Array.from(keys as Set<string>)[0] ?? '';
+                      field.onChange(value);
+                    }}
                   >
                     {restaurants
                       .filter((r) => r.typeCommission)
@@ -195,7 +201,10 @@ export default function PriceListFormModal({ open, onClose, mode, initialData, r
             render={({ field }) => (
               <div className="relative">
                 <Input
-                  {...field}
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value}
+                  onBlur={field.onBlur}
                   label="Zone"
                   placeholder="Entrez une adresse"
                   variant="bordered"
@@ -237,8 +246,10 @@ export default function PriceListFormModal({ open, onClose, mode, initialData, r
               name="distanceFin"
               render={({ field }) => (
                 <Input
-                  {...field}
+                  name={field.name}
+                  ref={field.ref}
                   value={distanceDisplay.toString()}
+                  onBlur={field.onBlur}
                   label="Distance (km)"
                   type="number"
                   variant="bordered"
@@ -259,8 +270,10 @@ export default function PriceListFormModal({ open, onClose, mode, initialData, r
               name="prix"
               render={({ field }) => (
                 <Input
-                  {...field}
+                  name={field.name}
+                  ref={field.ref}
                   value={field.value.toString()}
+                  onBlur={field.onBlur}
                   label="Prix (XOF)"
                   type="number"
                   variant="bordered"
@@ -281,8 +294,10 @@ export default function PriceListFormModal({ open, onClose, mode, initialData, r
               name="commission"
               render={({ field }) => (
                 <Input
-                  {...field}
+                  name={field.name}
+                  ref={field.ref}
                   value={field.value.toString()}
+                  onBlur={field.onBlur}
                   label={commissionLabel}
                   type="number"
                   variant="bordered"
