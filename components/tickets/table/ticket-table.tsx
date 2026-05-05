@@ -10,7 +10,6 @@ import { Restaurant } from '@/types/models';
 import { Ticket } from '@/types/bon-livraison.model';
 import useTickets from '@/features/tickets/hooks/use-tickets';
 import { useAbility } from '@/hooks/use-ability';
-import { useLivreurs } from '@/features/tickets/hooks/use-livreurs';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { useTicketAuthentication } from '@/features/tickets/hooks/use-ticket-authentication';
 import StatsSection from '@/components/tickets/stats-section';
@@ -25,13 +24,15 @@ interface TicketTableProps {
   restaurants: Restaurant[];
   newTickets: Ticket[];
   newTicketIds: Set<string>;
+  livreurOptions: { value: string; label: string }[];
+  restaurantOptions: { value: string; label: string }[];
   onSaveNewTicket: (id: string) => void;
   onCancelNewTicket: (id: string) => void;
   onNewTicketChange: (id: string, field: keyof Ticket, value: string) => void;
   onNewTicketPatch: (id: string, patch: Partial<Ticket>) => void;
 }
 
-export function TicketTable({ restaurants, newTickets, newTicketIds, onSaveNewTicket, onCancelNewTicket, onNewTicketChange, onNewTicketPatch }: TicketTableProps) {
+export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOptions, restaurantOptions, onSaveNewTicket, onCancelNewTicket, onNewTicketChange, onNewTicketPatch }: TicketTableProps) {
   const {
     filters,
     setFilter,
@@ -42,12 +43,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, onSaveNewTi
     editing,
   } = useTickets(restaurants);
 
-  const { livreurs } = useLivreurs();
   const ability = useAbility();
-
-  const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
-  const livreurOptions = useMemo(() => validLivreurs.map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
-  const restaurantOptions = useMemo(() => restaurants.map((r) => ({ value: r.id, label: r.nomEtablissement })), [restaurants]);
 
   const { authenticatedIds, handleAuthentifier } = useTicketAuthentication();
 

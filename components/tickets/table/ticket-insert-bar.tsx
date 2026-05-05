@@ -17,6 +17,12 @@ interface InsertState {
   setInsertDate: (v: string) => void;
 }
 
+const SELECT_STYLES = {
+  control:             (base: object) => ({ ...base, minHeight: '36px', height: '36px', width: '100%' }),
+  valueContainer:      (base: object) => ({ ...base, height: '36px', padding: '0 8px' }),
+  indicatorsContainer: (base: object) => ({ ...base, height: '36px' }),
+};
+
 interface TicketInsertBarProps {
   livreurOptions: Option[];
   restaurantOptions: Option[];
@@ -27,12 +33,6 @@ interface TicketInsertBarProps {
 
 export function TicketInsertBar({ livreurOptions, restaurantOptions, insertState, onInsert, canCreate }: TicketInsertBarProps) {
   const { insertCount, insertLivreurId, insertRestaurantId, insertDate, setInsertCount, setInsertLivreurId, setInsertRestaurantId, setInsertDate } = insertState;
-
-  const selectStyles = {
-    control: (base: object) => ({ ...base, minHeight: '36px', height: '36px', width: '100%' }),
-    valueContainer: (base: object) => ({ ...base, height: '36px', padding: '0 8px' }),
-    indicatorsContainer: (base: object) => ({ ...base, height: '36px' }),
-  };
 
   return (
     <div className="w-full my-3">
@@ -47,7 +47,7 @@ export function TicketInsertBar({ livreurOptions, restaurantOptions, insertState
             isClearable
             className="text-xs w-full"
             classNamePrefix="react-select"
-            styles={selectStyles}
+            styles={SELECT_STYLES}
           />
         </div>
         <div className="w-full">
@@ -60,7 +60,7 @@ export function TicketInsertBar({ livreurOptions, restaurantOptions, insertState
             isClearable
             className="text-xs w-full"
             classNamePrefix="react-select"
-            styles={selectStyles}
+            styles={SELECT_STYLES}
           />
         </div>
         <div className="w-full">

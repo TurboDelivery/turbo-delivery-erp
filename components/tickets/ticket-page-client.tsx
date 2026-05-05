@@ -44,6 +44,8 @@ export function TicketPageClient({ restaurants }: TicketPageClientProps) {
       />
       <TicketTable
         restaurants={restaurants}
+        livreurOptions={livreurOptions}
+        restaurantOptions={restaurantOptions}
         newTickets={newTickets}
         newTicketIds={newTicketIds}
         onSaveNewTicket={handleSaveNewTicket}
