@@ -32,13 +32,13 @@ export const useRejeterRegularisationMutation = () => {
   const invalidate = useInvalidateRegularisationQuery();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const result = await rejeterRegularisationMutation(id);
+    mutationFn: async ({ id, motif }: { id: string; motif: string }) => {
+      const result = await rejeterRegularisationMutation(id, motif);
       if (!result.success) throw new Error(result.error as string);
     },
     onSuccess: async () => {
       await invalidate();
-      toast.success('Ticket rejeté.');
+      toast.success('Ticket rejeté pour fraude.');
     },
     onError: (error) => {
       toast.error('Erreur lors du rejet', {

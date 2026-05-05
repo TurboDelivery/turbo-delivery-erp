@@ -73,7 +73,8 @@
       "Bash(Remove-Item \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\features\\\\tickets\\\\request\\\\creneau.request.ts\" -Force)",
       "Bash(Remove-Item \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\features\\\\tickets\\\\queries\\\\creneau-actif.query.ts\" -Force)",
       "Bash(Remove-Item \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\components\\\\tickets\\\\creneau-actif-banner.tsx\" -Force)",
-      "Bash(Write-Output \"done\")"
+      "Bash(Write-Output \"done\")",
+      "Bash(python3 *)"
     ]
   }
 }

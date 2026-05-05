@@ -1,34 +1,43 @@
+'use server';
+
+import { auth } from '@/auth';
 import { ActionResponse, PaginatedResponse } from '@/types';
-import { IRegularisationTicket, IRegularisationParams } from '@/features/validation-tickets/regularisation/types/regularisation.type';
-import { regularisationAPI } from '@/features/validation-tickets/regularisation/apis/regularisation.api';
+import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
+import { StatutControle } from '@/types/statut-controle.enum';
+import {
+  listerTicketsParStatutRequest,
+  approuverTicketRequest,
+  rejeterFraudeRequest,
+} from '@/features/tickets/request/tickets.request';
 import { handleServerActionError } from '@/utils/handleServerActionError';
 
-// TODO: activer quand l'endpoint est disponible
-export const listerRegularisationMutation = async (
-  params: IRegularisationParams,
-): Promise<ActionResponse<PaginatedResponse<IRegularisationTicket>>> => {
+export const listerRegularisationMutation = async (): Promise<ActionResponse<PaginatedResponse<BonLivraisonTerminee>>> => {
   try {
-    const data = await regularisationAPI.listerTickets(params);
-    return { success: true, data, message: 'Tickets régularisation récupérés avec succès' };
+    const data = await listerTicketsParStatutRequest({ statuts: [StatutControle.TARDIF] });
+    return { success: true, data, message: 'Tickets en retard récupérés' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération des tickets en régularisation');
+    return handleServerActionError(error, 'Erreur lors de la récupération des tickets en retard');
   }
 };
 
-// TODO: activer quand l'endpoint est disponible
 export const approuverRegularisationMutation = async (id: string): Promise<ActionResponse<void>> => {
   try {
-    await regularisationAPI.approuver(id);
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Utilisateur non authentifié');
+    await approuverTicketRequest(id, userId);
     return { success: true, data: undefined, message: 'Ticket approuvé' };
   } catch (error) {
     return handleServerActionError(error, "Erreur lors de l'approbation");
   }
 };
 
-// TODO: activer quand l'endpoint est disponible
-export const rejeterRegularisationMutation = async (id: string): Promise<ActionResponse<void>> => {
+export const rejeterRegularisationMutation = async (id: string, motif: string): Promise<ActionResponse<void>> => {
   try {
-    await regularisationAPI.rejeter(id);
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Utilisateur non authentifié');
+    await rejeterFraudeRequest(id, userId, motif);
     return { success: true, data: undefined, message: 'Ticket rejeté' };
   } catch (error) {
     return handleServerActionError(error, 'Erreur lors du rejet');
