@@ -21,6 +21,7 @@ import { TicketTableActions } from './ticket-table-actions';
 import { TicketTableExportButton } from './ticket-table-export-button';
 import { createTicketColumns, TicketColumnMeta } from './ticket-table-columns';
 import ConfirmModal from '@/components/ui/confirm-modal';
+import { applyTicketPatch, getRestaurantInfo } from '@/features/tickets/utils/commission.utils';
 
 interface TicketTableProps {
   restaurants: Restaurant[];
@@ -69,57 +70,10 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
     };
   }, [role, ability]);
 
-  // Commission calculation
-  const calculateCommission = useCallback(
-    (restaurantId: string, montantCommande: number) => {
-      const restaurant = restaurants.find((r) => r.id === restaurantId);
-      if (!restaurant || !montantCommande) return 0;
-
-      const commission = Number(restaurant.commission ?? 0);
-      if (restaurant.typeCommission == 'POURCENTAGE') {
-        const net = montantCommande * (commission / 100);
-        return Number(net.toFixed(2));
-      }
-
-      return null;
-    },
+  // Commission patch wrapper
+  const patchTicket = useCallback(
+    (ticket: Ticket, patch: Partial<Ticket>): Ticket => applyTicketPatch(ticket, patch, restaurants),
     [restaurants],
-  );
-
-  const applyTicketPatch = useCallback(
-    (ticket: Ticket, patch: Partial<Ticket>): Ticket => {
-      const updated: Ticket = { ...ticket, ...patch };
-      if (patch.restaurantId) {
-        const rest = restaurants.find((r) => r.id === patch.restaurantId);
-        if (rest) updated.typeCommission = rest.typeCommission;
-      }
-      if (patch.montantCommande !== undefined || patch.restaurantId !== undefined) {
-        const montant = Number(updated.montantCommande || 0);
-        const commission = calculateCommission(updated.restaurantId, montant);
-        if (commission !== null && commission !== undefined) {
-          updated.coutLivraison = commission.toString();
-        }
-      }
-      return updated;
-    },
-    [restaurants, calculateCommission],
-  );
-
-  const updateTicketField = useCallback(
-    (ticket: Ticket, field: keyof Ticket, value: string): Ticket => {
-      const updatedTicket = { ...ticket, [field]: value };
-      if (field === 'restaurantId') {
-        const rest = restaurants.find((r) => r.id === value);
-        if (rest) updatedTicket.typeCommission = rest.typeCommission;
-      }
-      if (field === 'montantCommande' || field === 'restaurantId') {
-        const montant = Number(updatedTicket.montantCommande || 0);
-        const commission = calculateCommission(updatedTicket.restaurantId, montant);
-        if (commission) updatedTicket.coutLivraison = commission.toString();
-      }
-      return updatedTicket;
-    },
-    [restaurants, calculateCommission],
   );
 
   // Handlers
@@ -127,33 +81,29 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
     (id: string, field: keyof Ticket, value: string) => {
       const isNewTicket = newTickets.some((t) => t.id === id);
       if (isNewTicket) {
-        setNewTickets((prev) => prev.map((t) => (t.id === id ? updateTicketField(t, field, value) : t)));
+        setNewTickets((prev) => prev.map((t) => (t.id === id ? patchTicket(t, { [field]: value }) : t)));
       } else {
-        const currentTicket = editedTickets.get(id) ?? ticketsData.find((t) => t.id === id);
-        if (currentTicket) {
-          const updated = updateTicketField(currentTicket, field, value);
-          setEditedTickets((prev) => new Map(prev).set(id, updated));
-        }
+        const base = editedTickets.get(id) ?? ticketsData.find((t) => t.id === id);
+        if (base) setEditedTickets((prev) => new Map(prev).set(id, patchTicket(base, { [field]: value })));
       }
     },
-    [newTickets, editedTickets, ticketsData, updateTicketField, setEditedTickets],
+    [newTickets, editedTickets, ticketsData, patchTicket, setEditedTickets],
   );
 
   const handleTicketPatch = useCallback(
     (id: string, patch: Partial<Ticket>) => {
       const isNewTicket = newTickets.some((t) => t.id === id);
       if (isNewTicket) {
-        setNewTickets((prev) => prev.map((t) => (t.id === id ? applyTicketPatch(t, patch) : t)));
+        setNewTickets((prev) => prev.map((t) => (t.id === id ? patchTicket(t, patch) : t)));
         return;
       }
       setEditedTickets((prev) => {
         const base = prev.get(id) ?? ticketsData.find((t) => t.id === id);
         if (!base) return prev;
-        const updated = applyTicketPatch(base, patch);
-        return new Map(prev).set(id, updated);
+        return new Map(prev).set(id, patchTicket(base, patch));
       });
     },
-    [newTickets, ticketsData, applyTicketPatch, setEditedTickets],
+    [newTickets, ticketsData, patchTicket, setEditedTickets],
   );
 
   const getDisplayTicket = useCallback(
@@ -168,21 +118,9 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
     (id: string) => {
       const ticket = newTickets.find((t) => t.id === id);
       if (!ticket) return;
-
-      // ✅ Récupérer les informations du restaurant pour le calcul correct de la commission
-      const restaurant = restaurants.find((r) => r.id === ticket.restaurantId);
-      const restaurantInfo = restaurant
-        ? {
-            typeCommission: restaurant.typeCommission,
-            commission: Number(restaurant.commission ?? 0),
-          }
-        : undefined;
-
       createBonLivraisonMutation(
-        { ticket, restaurant: restaurantInfo },
-        {
-          onSuccess: () => setNewTickets((prev) => prev.filter((t) => t.id !== id)),
-        },
+        { ticket, restaurant: getRestaurantInfo(ticket.restaurantId, restaurants) },
+        { onSuccess: () => setNewTickets((prev) => prev.filter((t) => t.id !== id)) },
       );
     },
     [newTickets, createBonLivraisonMutation, restaurants],
@@ -192,25 +130,11 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
     (id: string) => {
       const ticket = editedTickets.get(id) ?? ticketsData.find((t) => t.id === id);
       if (!ticket) return;
-
-      // ✅ Récupérer les informations du restaurant pour le calcul correct de la commission
-      const restaurant = restaurants.find((r) => r.id === ticket.restaurantId);
-      const restaurantInfo = restaurant
-        ? {
-            typeCommission: restaurant.typeCommission,
-            commission: Number(restaurant.commission ?? 0),
-          }
-        : undefined;
-
       updateBonLivraisonMutation(
-        { ticketId: id, ticket, restaurant: restaurantInfo },
+        { ticketId: id, ticket, restaurant: getRestaurantInfo(ticket.restaurantId, restaurants) },
         {
           onSuccess: () => {
-            setEditedTickets((prev) => {
-              const newMap = new Map(prev);
-              newMap.delete(id);
-              return newMap;
-            });
+            setEditedTickets((prev) => { const m = new Map(prev); m.delete(id); return m; });
             handleCancelEditRow(id);
           },
         },
