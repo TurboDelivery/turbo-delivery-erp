@@ -3,7 +3,7 @@
 import React, { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
 import { Button } from '@heroui/react';
@@ -50,14 +50,16 @@ export default function CreateContent() {
   );
 
   // Form
-  const { control, handleSubmit, watch, formState: { errors } } = useForm<CreateRestaurantDTO>({
+  const methods = useForm<CreateRestaurantDTO>({
     resolver: zodResolver(createRestaurantSchema),
     defaultValues: {
       nomEtablissement: '', description: '', email: '', telephone: '',
       codePostal: '', commune: '', localisation: '', siteWeb: '',
       typeCommission: '', commission: 0, methodRecouvrement: undefined,
+      latitude: undefined, longitude: undefined,
     },
   });
+  const { control, handleSubmit, watch, formState: { errors } } = methods;
   const typeCommission = watch('typeCommission');
 
   // Handlers
@@ -136,6 +138,7 @@ export default function CreateContent() {
         <span className="text-xl font-bold text-primary">Créer un restaurant</span>
       </div>
 
+      <FormProvider {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
 
         <CoverLogoSection
@@ -187,6 +190,7 @@ export default function CreateContent() {
           <Button type="submit" color="primary" isLoading={isSubmitting}>Enregistrer</Button>
         </div>
       </form>
+      </FormProvider>
     </div>
   );
 }

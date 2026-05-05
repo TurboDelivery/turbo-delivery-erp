@@ -11,7 +11,7 @@ import { Input as AddressInput } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, ExternalLink, FileText, FileImage } from 'lucide-react';
 import { PlaceAutocompleteResult } from '@googlemaps/google-maps-services-js';
-import { autocomplete } from '@/lib/googlemaps-server';
+import { autocomplete, placeDetails } from '@/lib/googlemaps-server';
 import {
   updateRestaurantSchema,
   type UpdateRestaurantDTO,
@@ -88,6 +88,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<UpdateRestaurantDTO>({
     resolver: zodResolver(updateRestaurantSchema),
@@ -103,6 +104,8 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
       typeCommission: '',
       commission: 0,
       methodRecouvrement: undefined,
+      latitude: undefined,
+      longitude: undefined,
     },
   });
 
@@ -120,6 +123,8 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
         typeCommission: restaurant.typeCommission ?? '',
         commission: restaurant.commission ?? 0,
         methodRecouvrement: restaurant.methodRecouvrement ?? undefined,
+        latitude: restaurant.latitude ?? undefined,
+        longitude: restaurant.longitude ?? undefined,
       });
     }
   }, [restaurant, reset]);
@@ -231,9 +236,21 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                           <li
                             key={s.place_id}
                             className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                            onMouseDown={() => {
+                            onMouseDown={async () => {
                               field.onChange(s.description);
                               setLocalisationSuggestions([]);
+                              setLoadingGeo(true);
+                              try {
+                                const details = await placeDetails(s.place_id);
+                                const lat = details.result.geometry?.location.lat ?? 0;
+                                const lng = details.result.geometry?.location.lng ?? 0;
+                                setValue('latitude', lat);
+                                setValue('longitude', lng);
+                              } catch {
+                                // fail silently
+                              } finally {
+                                setLoadingGeo(false);
+                              }
                             }}
                           >
                             {s.description}

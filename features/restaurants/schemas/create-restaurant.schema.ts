@@ -8,6 +8,8 @@ export const createRestaurantSchema = z.object({
   codePostal: z.string().optional().or(z.literal('')),
   commune: z.string().optional().or(z.literal('')),
   localisation: z.string().optional().or(z.literal('')),
+  latitude: z.coerce.number().optional(),
+  longitude: z.coerce.number().optional(),
   siteWeb: z.string().optional().or(z.literal('')),
   typeCommission: z.string().optional().or(z.literal('')),
   commission: z.coerce.number().min(0).optional(),

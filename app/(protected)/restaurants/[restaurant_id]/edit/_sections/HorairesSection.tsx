@@ -1,45 +1,61 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@heroui/react';
-import { IOpeningHour } from '@/features/restaurants/types/restaurant.type';
 
 const DAY_LABELS: Record<string, string> = {
   LUNDI: 'Lundi', MARDI: 'Mardi', MERCREDI: 'Mercredi',
   JEUDI: 'Jeudi', VENDREDI: 'Vendredi', SAMEDI: 'Samedi', DIMANCHE: 'Dimanche',
 };
 
-function formatTime(t: string) {
-  return t?.slice(0, 5) ?? '';
+export interface Horaire {
+  jour: string;
+  ouverture: string;
+  fermeture: string;
+  ferme: boolean;
 }
 
 interface HorairesSectionProps {
-  openingHours: IOpeningHour[];
+  horaires: Horaire[];
+  setHoraires: React.Dispatch<React.SetStateAction<Horaire[]>>;
 }
 
-export function HorairesSection({ openingHours }: HorairesSectionProps) {
+export function HorairesSection({ horaires, setHoraires }: HorairesSectionProps) {
   return (
     <section>
       <p className="text-sm font-medium text-gray-700 mb-3">Horaires d'ouverture</p>
-      {openingHours?.length > 0 ? (
-        <div className="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
-          {openingHours.map((h) => (
-            <div key={h.id} className="flex justify-between items-center px-4 py-2.5 text-sm">
-              <span className="font-medium text-gray-700 w-28">{DAY_LABELS[h.dayOfWeek] ?? h.dayOfWeek}</span>
-              {h.closed ? (
-                <span className="text-gray-400">Fermé</span>
-              ) : (
-                <span className="text-gray-600">{formatTime(h.openingTime)} – {formatTime(h.closingTime)}</span>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="flex items-center justify-between px-4 py-3 border border-gray-200 rounded-lg">
-          <span className="text-sm text-gray-400">non défini</span>
-          <Button type="button" variant="light" size="sm" className="text-primary">Ajouter</Button>
-        </div>
-      )}
+      <div className="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+        {horaires.map((h, i) => (
+          <div key={h.jour} className="flex flex-wrap items-center gap-2 px-4 py-2.5 text-sm">
+            <span className="font-medium text-gray-700 w-24">{DAY_LABELS[h.jour]}</span>
+            <label className="flex items-center gap-1.5 text-xs text-gray-500 ml-auto">
+              <input
+                type="checkbox"
+                checked={h.ferme}
+                onChange={(e) => setHoraires((prev) => prev.map((x, idx) => idx === i ? { ...x, ferme: e.target.checked } : x))}
+                className="accent-primary"
+              />
+              Fermé
+            </label>
+            {!h.ferme && (
+              <>
+                <input
+                  type="time"
+                  value={h.ouverture}
+                  onChange={(e) => setHoraires((prev) => prev.map((x, idx) => idx === i ? { ...x, ouverture: e.target.value } : x))}
+                  className="border border-gray-200 rounded px-2 py-1 text-xs"
+                />
+                <span className="text-gray-400">–</span>
+                <input
+                  type="time"
+                  value={h.fermeture}
+                  onChange={(e) => setHoraires((prev) => prev.map((x, idx) => idx === i ? { ...x, fermeture: e.target.value } : x))}
+                  className="border border-gray-200 rounded px-2 py-1 text-xs"
+                />
+              </>
+            )}
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
