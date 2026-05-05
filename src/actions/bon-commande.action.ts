@@ -9,7 +9,7 @@ import axios from 'axios';
 import { ApiResult } from '@/types/general';
 import { handleApiError } from '@/utils/handle-api-error';
 import { auth } from '@/auth';
-import { authentifierTicketRequest, validerV1Request } from '@/features/tickets/request/tickets.request';
+import { authentifierTicketRequest, validerV1Request, approuverTicketRequest, rejeterFraudeRequest } from '@/features/tickets/request/tickets.request';
 // Configuration
 const BASE_URL = '/api/erp/bon-livraison';
 const BASE_URL_2 = '/api/export/reporting';
@@ -244,6 +244,30 @@ export async function authentifierTicket(ticketId: string): Promise<ApiResult<vo
     return { success: true, message: 'Ticket authentifié avec succès' };
   } catch (error) {
     return handleApiError(error, "Erreur lors de l'authentification du ticket");
+  }
+}
+
+export async function approuverTicket(ticketId: string): Promise<ApiResult<void>> {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Utilisateur non authentifié');
+    await approuverTicketRequest(ticketId, userId);
+    return { success: true, message: 'Ticket approuvé avec succès' };
+  } catch (error) {
+    return handleApiError(error, "Erreur lors de l'approbation du ticket");
+  }
+}
+
+export async function rejeterTicketPourFraude(ticketId: string, motif: string): Promise<ApiResult<void>> {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Utilisateur non authentifié');
+    await rejeterFraudeRequest(ticketId, userId, motif);
+    return { success: true, message: 'Ticket rejeté pour fraude' };
+  } catch (error) {
+    return handleApiError(error, 'Erreur lors du rejet pour fraude');
   }
 }
 

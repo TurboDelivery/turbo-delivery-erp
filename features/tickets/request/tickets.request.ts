@@ -110,6 +110,25 @@ export async function validerV1Request(ticketId: string, userId: string): Promis
   });
 }
 
+export async function approuverTicketRequest(ticketId: string, userId: string): Promise<void> {
+  return await apiClientHttp.request<void>({
+    endpoint: `/api/tickets/${ticketId}/approuver`,
+    method: 'POST',
+    service: 'backend',
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
+export async function rejeterFraudeRequest(ticketId: string, userId: string, motif: string): Promise<void> {
+  return await apiClientHttp.request<void>({
+    endpoint: `/api/tickets/${ticketId}/rejeter-fraude`,
+    method: 'POST',
+    service: 'backend',
+    data: { motif },
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
 export async function listerTicketsParStatutRequest(params: ITicketsParStatutParams): Promise<PaginatedResponse<BonLivraisonTerminee>> {
   return await apiClientHttp.request<PaginatedResponse<BonLivraisonTerminee>>({
     endpoint: '/api/tickets',

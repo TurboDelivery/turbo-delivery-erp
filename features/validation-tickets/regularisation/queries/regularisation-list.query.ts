@@ -4,15 +4,13 @@ import getQueryClient from '@/lib/get-query-client';
 import { toast } from 'sonner';
 import { regularisationKeyQuery } from './index.query';
 import { listerRegularisationMutation } from '@/features/validation-tickets/regularisation/mutations/regularisation.mutation';
-import { IRegularisationParams } from '@/features/validation-tickets/regularisation/types/regularisation.type';
 
 const queryClient = getQueryClient();
 
-// 1- Option de requête
-export const regularisationListQueryOption = (params: IRegularisationParams) => ({
-  queryKey: regularisationKeyQuery('list', params),
+export const regularisationListQueryOption = () => ({
+  queryKey: regularisationKeyQuery('list'),
   queryFn: async () => {
-    const result = await listerRegularisationMutation(params);
+    const result = await listerRegularisationMutation();
     if (!result.success) throw new Error(result.error as string);
     return result.data!;
   },
@@ -21,13 +19,12 @@ export const regularisationListQueryOption = (params: IRegularisationParams) => 
   refetchOnMount: true,
 });
 
-// 2- Hook
-export const useRegularisationListQuery = (params: IRegularisationParams) => {
-  const query = useQuery(regularisationListQueryOption(params));
+export const useRegularisationListQuery = () => {
+  const query = useQuery(regularisationListQueryOption());
 
   React.useEffect(() => {
     if (query.isError && query.error) {
-      toast.error('Erreur lors de la récupération des tickets en régularisation', {
+      toast.error('Erreur lors de la récupération des tickets en retard', {
         description: query.error instanceof Error ? query.error.message : 'Erreur inconnue',
       });
     }
@@ -36,6 +33,5 @@ export const useRegularisationListQuery = (params: IRegularisationParams) => {
   return query;
 };
 
-// 3- Prefetch
-export const prefetchRegularisationListQuery = (params: IRegularisationParams) =>
-  queryClient.prefetchQuery(regularisationListQueryOption(params));
+export const prefetchRegularisationListQuery = () =>
+  queryClient.prefetchQuery(regularisationListQueryOption());

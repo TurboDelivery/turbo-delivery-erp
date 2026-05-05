@@ -1,10 +1,10 @@
 'use client';
 
+import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import RegularisationQueueItem from './RegularisationQueueItem';
-import type { RegularisationTicket } from '../data/fake-regularisation-tickets';
 
 interface Props {
-  tickets: RegularisationTicket[];
+  tickets: BonLivraisonTerminee[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }
@@ -25,9 +25,9 @@ export default function RegularisationQueue({ tickets, selectedId, onSelect }: P
       <div className="divide-y divide-gray-100">
         {tickets.map((ticket) => (
           <RegularisationQueueItem
-            key={ticket.id}
+            key={ticket.commandeId}
             ticket={ticket}
-            isSelected={selectedId === ticket.id}
+            isSelected={selectedId === ticket.commandeId}
             onSelect={onSelect}
           />
         ))}

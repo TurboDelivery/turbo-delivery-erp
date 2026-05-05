@@ -1,26 +1,18 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { IRegularisationTicket, IRegularisationParams } from '@/features/validation-tickets/regularisation/types/regularisation.type';
+import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import { useRegularisationListQuery } from '@/features/validation-tickets/regularisation/queries/regularisation-list.query';
 import { useApprouverRegularisationMutation, useRejeterRegularisationMutation } from '@/features/validation-tickets/regularisation/queries/regularisation.mutation';
-import { fakeRegularisationTickets } from '@/features/validation-tickets/regularisation/data/fake-regularisation-tickets';
 
 export default function useRegularisation() {
-  const [params] = useState<IRegularisationParams>({});
-  const [selectedId, setSelectedId] = useState<string | null>(
-    fakeRegularisationTickets[0]?.id ?? null,
-  );
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const { data, isLoading, isError } = useRegularisationListQuery(params);
+  const { data, isLoading, isError } = useRegularisationListQuery();
 
-  // TODO: retirer le fallback fakeRegularisationTickets quand l'endpoint est disponible
-  const tickets: IRegularisationTicket[] = useMemo(() => {
-    if (data?.content && data.content.length > 0) return data.content;
-    return fakeRegularisationTickets as IRegularisationTicket[];
-  }, [data]);
+  const tickets: BonLivraisonTerminee[] = useMemo(() => data?.content ?? [], [data]);
 
-  const selectedTicket = tickets.find((t) => t.id === selectedId) ?? null;
+  const selectedTicket = tickets.find((t) => t.commandeId === selectedId) ?? null;
 
   const { mutate: approuver, isPending: isApproving } = useApprouverRegularisationMutation();
   const { mutate: rejeter, isPending: isRejecting } = useRejeterRegularisationMutation();
@@ -28,17 +20,17 @@ export default function useRegularisation() {
   const handleApprove = (id: string) => {
     approuver(id, {
       onSuccess: () => {
-        const remaining = tickets.filter((t) => t.id !== id);
-        setSelectedId(remaining[0]?.id ?? null);
+        const remaining = tickets.filter((t) => t.commandeId !== id);
+        setSelectedId(remaining[0]?.commandeId ?? null);
       },
     });
   };
 
-  const handleReject = (id: string) => {
-    rejeter(id, {
+  const handleReject = (id: string, motif: string) => {
+    rejeter({ id, motif }, {
       onSuccess: () => {
-        const remaining = tickets.filter((t) => t.id !== id);
-        setSelectedId(remaining[0]?.id ?? null);
+        const remaining = tickets.filter((t) => t.commandeId !== id);
+        setSelectedId(remaining[0]?.commandeId ?? null);
       },
     });
   };

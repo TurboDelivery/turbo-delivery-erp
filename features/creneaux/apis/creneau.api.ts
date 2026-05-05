@@ -1,7 +1,19 @@
 import { SearchParams } from 'ak-api-http';
 import { api } from '@/lib/api';
+import { apiClientHttp } from '@/lib/api-client-http';
 import { PaginatedResponse } from '@/types/general';
-import { ICreneauTurboy, ICreneauStats, IStatistiqueJour, ICreneauParams, ICreneauAnalyseComparaison, ICreneauDashboard, ICreneauDashboardParams, ICreneauJourDetail } from '../types/creneau.types';
+import { ICreneauTurboy, ICreneauStats, IStatistiqueJour, ICreneauParams, ICreneauAnalyseComparaison, ICreneauDashboard, ICreneauDashboardParams, ICreneauJourDetail, ICreneauActifVm } from '../types/creneau.types';
+
+export async function getCreneauActifApi(): Promise<ICreneauActifVm | null> {
+  try {
+    return await apiClientHttp.request<ICreneauActifVm>({
+      endpoint: '/api/creneaux/actif',
+      method: 'GET',
+    });
+  } catch {
+    return null;
+  }
+}
 
 export interface ICreneauAPI {
   obtenirCreneauxSemaine(params?: ICreneauParams): Promise<PaginatedResponse<ICreneauTurboy>>;

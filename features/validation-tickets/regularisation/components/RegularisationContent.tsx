@@ -31,6 +31,8 @@ export default function RegularisationContent() {
         {selectedTicket ? (
           <RegularisationDetail
             ticket={selectedTicket}
+            isApproving={isApproving}
+            isRejecting={isRejecting}
             onApprove={handleApprove}
             onReject={handleReject}
           />
