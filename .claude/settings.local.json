@@ -66,7 +66,14 @@
       "Bash(where node *)",
       "Bash(where npm *)",
       "Bash(Get-Content *)",
-      "Bash(npx --yes typescript@latest --noEmit --skipLibCheck)"
+      "Bash(npx --yes typescript@latest --noEmit --skipLibCheck)",
+      "mcp__MCP_DOCKER__browser_navigate",
+      "mcp__MCP_DOCKER__browser_snapshot",
+      "mcp__MCP_DOCKER__browser_click",
+      "Bash(Remove-Item \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\features\\\\tickets\\\\request\\\\creneau.request.ts\" -Force)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\features\\\\tickets\\\\queries\\\\creneau-actif.query.ts\" -Force)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\components\\\\tickets\\\\creneau-actif-banner.tsx\" -Force)",
+      "Bash(Write-Output \"done\")"
     ]
   }
 }

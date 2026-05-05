@@ -134,6 +134,19 @@ export interface ICreneauTurboySimple {
   avatar?: string;
 }
 
+export interface ICreneauActifVm {
+  id: string;
+  label: string;
+  dateDebut: string;
+  dateFin: string;
+  statut: string;
+  verrouilleAt: string | null;
+  v1ValideAt: string | null;
+  v2ValideAt: string | null;
+  nbLots: number;
+  nbTicketsPending: number;
+}
+
 export interface ICreneauJourDetail {
   date: string;
   inscrits: number;

@@ -8,6 +8,7 @@ import { useNewTickets } from '@/features/tickets/hooks/use-new-tickets';
 import { useAbility } from '@/hooks/use-ability';
 import { useLivreurs } from '@/features/tickets/hooks/use-livreurs';
 import { useCreateBonLivraison } from '@/features/tickets/queries/tickets.mutation';
+import { CreneauActifBanner } from '@/features/creneaux/components/creneau-actif-banner';
 
 interface TicketPageClientProps {
   restaurants: Restaurant[];
@@ -35,6 +36,7 @@ export function TicketPageClient({ restaurants }: TicketPageClientProps) {
 
   return (
     <>
+      <CreneauActifBanner />
       <TicketInsertBar
         livreurOptions={livreurOptions}
         restaurantOptions={restaurantOptions}
