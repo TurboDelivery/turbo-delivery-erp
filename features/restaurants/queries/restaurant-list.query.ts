@@ -39,6 +39,11 @@ export const useRestaurantStatsQuery = (params: IRestaurantStatsParams, options?
   });
 };
 
+export const useInvalidateRestaurantsQuery = () => {
+  const queryClient = useQueryClient();
+  return () => queryClient.invalidateQueries({ queryKey: restaurantKeys.all });
+};
+
 export const useDeleteRestaurantMutation = () => {
   const queryClient = useQueryClient();
 

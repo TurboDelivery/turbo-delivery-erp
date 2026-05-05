@@ -19,6 +19,7 @@ import {
   TYPE_COMMISSION_OPTIONS,
 } from '@/features/restaurants/schemas/update-restaurant.schema';
 import { updateRestaurant } from '@/features/restaurants/actions/update-restaurant.action';
+import { useInvalidateRestaurantsQuery } from '@/features/restaurants/queries/restaurant-list.query';
 import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { createUrlFile } from '@/utils/createUrlFile';
 
@@ -64,6 +65,7 @@ function DocPreview({ label, url }: { label: string; url: string }) {
 // ─── Main form ─────────────────────────────────────────────────────────────────
 export default function Content({ restaurant }: { restaurant: IRestaurant }) {
   const router = useRouter();
+  const invalidateRestaurants = useInvalidateRestaurantsQuery();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localisationSuggestions, setLocalisationSuggestions] = useState<PlaceAutocompleteResult[]>([]);
   const [loadingGeo, setLoadingGeo] = useState(false);
@@ -141,6 +143,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
     setIsSubmitting(false);
     if (result.status === 'success') {
       toast.success(result.message);
+      await invalidateRestaurants();
       router.push('/restaurants');
     } else {
       toast.error(result.message);

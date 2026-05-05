@@ -13,6 +13,7 @@ import {
   type UpdateRestaurantDTO,
 } from '@/features/restaurants/schemas/update-restaurant.schema';
 import { updateRestaurant } from '@/features/restaurants/actions/update-restaurant.action';
+import { useInvalidateRestaurantsQuery } from '@/features/restaurants/queries/restaurant-list.query';
 import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { CoverBanner } from './_sections/CoverBanner';
@@ -27,6 +28,7 @@ const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIM
 
 export default function EditContent({ restaurant }: { restaurant: IRestaurant }) {
   const router = useRouter();
+  const invalidateRestaurants = useInvalidateRestaurantsQuery();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const logoRef = useRef<HTMLInputElement>(null);
@@ -142,6 +144,7 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
     setIsSubmitting(false);
     if (result.status === 'success') {
       toast.success(result.message);
+      await invalidateRestaurants();
       router.push('/restaurants');
     } else {
       toast.error(result.message);

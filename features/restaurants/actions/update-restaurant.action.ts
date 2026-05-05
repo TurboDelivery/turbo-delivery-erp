@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { apiClientHttp } from '@/lib/api-client-http';
 import { ActionResult } from '@/types';
 
@@ -13,6 +14,7 @@ export async function updateRestaurant(id: string, data: FormData): Promise<Acti
       data,
     });
     console.log('✅ Mise à jour restaurant response:', result);
+    revalidatePath('/restaurants');
     return { status: 'success', message: 'Restaurant mis à jour avec succès', data: result };
   } catch (error: any) {
     return {
