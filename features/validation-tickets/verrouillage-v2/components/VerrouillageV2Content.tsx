@@ -1,27 +1,13 @@
 'use client';
 
-import { useState } from 'react';
 import { Lock, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import TicketReadyList from './TicketReadyList';
 import TicketLockedList from './TicketLockedList';
-import { fakeReadyTickets, type TicketV2 } from '../data/fake-tickets';
+import useVerrouillageV2 from '../hooks/use-verrouillage-v2';
 
 export default function VerrouillageV2Content() {
-  const [readyTickets, setReadyTickets] = useState<TicketV2[]>(fakeReadyTickets);
-  const [lockedTickets, setLockedTickets] = useState<TicketV2[]>([]);
-
-  const handleLock = (id: string) => {
-    const ticket = readyTickets.find((t) => t.id === id);
-    if (!ticket) return;
-    setReadyTickets((prev) => prev.filter((t) => t.id !== id));
-    setLockedTickets((prev) => [...prev, ticket]);
-  };
-
-  const handleLockAll = () => {
-    setLockedTickets((prev) => [...prev, ...readyTickets]);
-    setReadyTickets([]);
-  };
+  const { readyTickets, isLocking, isLockingAll, handleLock, handleLockAll } = useVerrouillageV2();
 
   return (
     <div className="flex flex-col gap-5 p-6">
@@ -29,7 +15,7 @@ export default function VerrouillageV2Content() {
         <Button
           variant="outline"
           onClick={handleLockAll}
-          disabled={readyTickets.length === 0}
+          disabled={readyTickets.length === 0 || isLockingAll}
           className="flex items-center gap-2 rounded-full border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2"
         >
           <Lock className="h-4 w-4" />
@@ -39,7 +25,8 @@ export default function VerrouillageV2Content() {
 
       <div className="flex gap-5 items-start">
         <TicketReadyList tickets={readyTickets} onLock={handleLock} />
-        <TicketLockedList tickets={lockedTickets} />
+        {/* TODO: alimenter la liste des verrouillés depuis l'endpoint quand disponible */}
+        <TicketLockedList tickets={[]} />
       </div>
 
       <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4">

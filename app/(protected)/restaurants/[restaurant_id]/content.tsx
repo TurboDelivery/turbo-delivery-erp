@@ -1,13 +1,17 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
 import { Button, Input, Select, SelectItem, Textarea } from '@heroui/react';
+import { Input as AddressInput } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { ArrowLeft, ExternalLink, FileText, FileImage } from 'lucide-react';
+import { PlaceAutocompleteResult } from '@googlemaps/google-maps-services-js';
+import { autocomplete } from '@/lib/googlemaps-server';
 import {
   updateRestaurantSchema,
   type UpdateRestaurantDTO,
@@ -61,6 +65,23 @@ function DocPreview({ label, url }: { label: string; url: string }) {
 export default function Content({ restaurant }: { restaurant: IRestaurant }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localisationSuggestions, setLocalisationSuggestions] = useState<PlaceAutocompleteResult[]>([]);
+  const [loadingGeo, setLoadingGeo] = useState(false);
+
+  const handleLocalisationChange = useCallback(
+    async (value: string) => {
+      if (value.length > 2 && !loadingGeo) {
+        try {
+          setLocalisationSuggestions(await autocomplete(value));
+        } catch {
+          setLocalisationSuggestions([]);
+        }
+      } else {
+        setLocalisationSuggestions([]);
+      }
+    },
+    [loadingGeo],
+  );
 
   const {
     control,
@@ -189,8 +210,42 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
             <Controller
               name="localisation"
               control={control}
-              render={({ field }) => (
-                <Input {...field} label="Localisation" placeholder="Adresse complète" isInvalid={!!errors.localisation} errorMessage={errors.localisation?.message} variant="bordered" />
+              render={({ field, fieldState }) => (
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="rest-localisation">Localisation</Label>
+                  <div className="relative">
+                    <AddressInput
+                      {...field}
+                      id="rest-localisation"
+                      placeholder="Adresse complète"
+                      aria-invalid={fieldState.invalid}
+                      autoComplete="off"
+                      onChange={(e) => {
+                        field.onChange(e.target.value);
+                        handleLocalisationChange(e.target.value);
+                      }}
+                    />
+                    {!loadingGeo && localisationSuggestions.length > 0 && (
+                      <ul className="absolute z-50 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                        {localisationSuggestions.map((s) => (
+                          <li
+                            key={s.place_id}
+                            className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                            onMouseDown={() => {
+                              field.onChange(s.description);
+                              setLocalisationSuggestions([]);
+                            }}
+                          >
+                            {s.description}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  {fieldState.invalid && (
+                    <p className="text-xs text-destructive">{fieldState.error?.message}</p>
+                  )}
+                </div>
               )}
             />
             <Controller
