@@ -43,7 +43,7 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
 
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
   const [authenticatedIds, setAuthenticatedIds] = useState<Set<string>>(new Set());
-  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
+  const [ticketsToDelete, setTicketsToDelete] = useState<string[] | null>(null);
   const [insertCount, setInsertCount] = useState<number>(1);
   const [insertLivreurId, setInsertLivreurId] = useState<string>('');
   const [insertRestaurantId, setInsertRestaurantId] = useState<string>('');
@@ -187,7 +187,7 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
 
   // Single row delete handlers
   const handleDeleteRow = useCallback((id: string) => {
-    setTicketToDelete(id);
+    setTicketsToDelete([id]);
   }, []);
 
   // Table meta
@@ -257,13 +257,19 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
   const colsCount = table.getAllColumns().length;
 
   const handleConfirmDelete = useCallback(() => {
-    if (!ticketToDelete) return;
-    deleteBonLivraisonMutation(ticketToDelete, {
-      onSuccess: () => toast.success('Le ticket a été supprimé avec succès.'),
-      onError: () => toast.error('Erreur lors de la suppression du ticket.'),
-    });
-    setTicketToDelete(null);
-  }, [ticketToDelete, deleteBonLivraisonMutation]);
+    if (!ticketsToDelete || ticketsToDelete.length === 0) return;
+    for (const id of ticketsToDelete) {
+      deleteBonLivraisonMutation(id, {
+        onSuccess: () => {
+          if (ticketsToDelete.length === 1) toast.success('Le ticket a été supprimé avec succès.');
+        },
+        onError: () => toast.error('Erreur lors de la suppression du ticket.'),
+      });
+    }
+    setNewTickets((prev) => prev.filter((t) => !ticketsToDelete.includes(t.id)));
+    setRowSelection({});
+    setTicketsToDelete(null);
+  }, [ticketsToDelete, deleteBonLivraisonMutation]);
 
   // Delete handlers
   const handleDeleteRows = useCallback(async () => {
@@ -271,20 +277,8 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
       toast.warning('Aucune ligne sélectionnée');
       return;
     }
-    const confirm = window.confirm(`Supprimer ${selectedRowIds.length} ticket(s) ?`);
-    if (!confirm) return;
-    const idsToDelete = Array.from(selectedRowIds);
-    try {
-      for (const id of idsToDelete) {
-        deleteBonLivraisonMutation(id);
-      }
-      setNewTickets((prev) => prev.filter((t) => !idsToDelete.includes(t.id)));
-      setRowSelection({});
-    } catch (error) {
-      console.error(error);
-      toast.error('La suppression a échoué — aucune modification appliquée');
-    }
-  }, [selectedRowIds, deleteBonLivraisonMutation]);
+    setTicketsToDelete(Array.from(selectedRowIds));
+  }, [selectedRowIds]);
 
   return (
     <div className="min-h-screen p-2">
@@ -457,16 +451,18 @@ export function TicketTable({ restaurants, profile }: TicketTableProps) {
       )}
 
       <ConfirmModal
-        isOpen={ticketToDelete !== null}
-        onClose={() => setTicketToDelete(null)}
-        title="Supprimer le ticket"
+        isOpen={ticketsToDelete !== null}
+        onClose={() => setTicketsToDelete(null)}
+        title={ticketsToDelete?.length === 1 ? 'Supprimer le ticket' : `Supprimer ${ticketsToDelete?.length ?? 0} ticket(s)`}
         isLoading={isDeletingBonLivraison}
         actions={[
-          { label: 'Annuler', variant: 'light', onPress: () => setTicketToDelete(null) },
+          { label: 'Annuler', variant: 'light', onPress: () => setTicketsToDelete(null) },
           { label: 'Supprimer', color: 'danger', onPress: handleConfirmDelete },
         ]}
       >
-        Confirmez-vous la suppression définitive de ce ticket ? Cette action est irréversible.
+        {ticketsToDelete?.length === 1
+          ? 'Confirmez-vous la suppression définitive de ce ticket ? Cette action est irréversible.'
+          : `Confirmez-vous la suppression de ${ticketsToDelete?.length ?? 0} ticket(s) ? Cette action est irréversible.`}
       </ConfirmModal>
     </div>
   );
