@@ -167,6 +167,7 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
               )}
             />
 
+
             {!isEdit && (
               <Controller
                 name="restaurantId"
