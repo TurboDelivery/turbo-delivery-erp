@@ -12,7 +12,6 @@ import useTickets from '@/features/tickets/hooks/use-tickets';
 import { useAbility } from '@/hooks/use-ability';
 import { useLivreurs } from '@/features/tickets/hooks/use-livreurs';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
-import { useNewTickets } from '@/features/tickets/hooks/use-new-tickets';
 import { useTicketAuthentication } from '@/features/tickets/hooks/use-ticket-authentication';
 import StatsSection from '@/components/tickets/stats-section';
 import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
@@ -24,16 +23,22 @@ import ConfirmModal from '@/components/ui/confirm-modal';
 
 interface TicketTableProps {
   restaurants: Restaurant[];
+  newTickets: Ticket[];
+  newTicketIds: Set<string>;
+  onSaveNewTicket: (id: string) => void;
+  onCancelNewTicket: (id: string) => void;
+  onNewTicketChange: (id: string, field: keyof Ticket, value: string) => void;
+  onNewTicketPatch: (id: string, patch: Partial<Ticket>) => void;
 }
 
-export function TicketTable({ restaurants }: TicketTableProps) {
+export function TicketTable({ restaurants, newTickets, newTicketIds, onSaveNewTicket, onCancelNewTicket, onNewTicketChange, onNewTicketPatch }: TicketTableProps) {
   const {
     filters,
     setFilter,
     ticketsData,
     isLoading,
     infiniteState,
-    mutations: { createBonLivraisonMutation, isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison, isUpdatingBonLivraison },
+    mutations: { isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison, isUpdatingBonLivraison },
     editing,
   } = useTickets(restaurants);
 
@@ -43,15 +48,6 @@ export function TicketTable({ restaurants }: TicketTableProps) {
   const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
   const livreurOptions = useMemo(() => validLivreurs.map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
   const restaurantOptions = useMemo(() => restaurants.map((r) => ({ value: r.id, label: r.nomEtablissement })), [restaurants]);
-
-  const {
-    newTickets,
-    newTicketIds,
-    handleSaveNewTicket,
-    handleCancelNewTicket,
-    handleNewTicketChange,
-    handleNewTicketPatch,
-  } = useNewTickets({ restaurants, livreurOptions, restaurantOptions, createBonLivraisonMutation });
 
   const { authenticatedIds, handleAuthentifier } = useTicketAuthentication();
 
@@ -74,18 +70,18 @@ export function TicketTable({ restaurants }: TicketTableProps) {
 
   const handleTicketChange = useCallback(
     (id: string, field: keyof Ticket, value: string) => {
-      if (newTicketIds.has(id)) handleNewTicketChange(id, field, value);
+      if (newTicketIds.has(id)) onNewTicketChange(id, field, value);
       else editing.handleTicketChange(id, field, value);
     },
-    [newTicketIds, handleNewTicketChange, editing],
+    [newTicketIds, onNewTicketChange, editing],
   );
 
   const handleTicketPatch = useCallback(
     (id: string, patch: Partial<Ticket>) => {
-      if (newTicketIds.has(id)) handleNewTicketPatch(id, patch);
+      if (newTicketIds.has(id)) onNewTicketPatch(id, patch);
       else editing.handleTicketPatch(id, patch);
     },
-    [newTicketIds, handleNewTicketPatch, editing],
+    [newTicketIds, onNewTicketPatch, editing],
   );
 
   const tableMeta: TicketColumnMeta = useMemo(
@@ -99,9 +95,9 @@ export function TicketTable({ restaurants }: TicketTableProps) {
       authenticatedIds,
       onTicketChange: handleTicketChange,
       onTicketPatch: handleTicketPatch,
-      onSaveNew: handleSaveNewTicket,
+      onSaveNew: onSaveNewTicket,
       onSaveEdit: editing.handleSaveRow,
-      onCancelNew: handleCancelNewTicket,
+      onCancelNew: onCancelNewTicket,
       onCancelEdit: editing.handleCancelEditRow,
       onEditRow: editing.handleEditRow,
       onDeleteRow: handleDeleteRow,
@@ -112,8 +108,8 @@ export function TicketTable({ restaurants }: TicketTableProps) {
     }),
     [
       livreurOptions, restaurantOptions, editing, newTicketIds, permissions,
-      authenticatedIds, handleTicketChange, handleTicketPatch, handleSaveNewTicket,
-      handleCancelNewTicket, handleDeleteRow, handleAuthentifier, isCreatingBonLivraison, isUpdatingBonLivraison,
+      authenticatedIds, handleTicketChange, handleTicketPatch, onSaveNewTicket,
+      onCancelNewTicket, handleDeleteRow, handleAuthentifier, isCreatingBonLivraison, isUpdatingBonLivraison,
     ],
   );
 
