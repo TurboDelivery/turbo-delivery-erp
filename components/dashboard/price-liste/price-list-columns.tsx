@@ -2,7 +2,7 @@
 import { Tooltip } from '@heroui/react';
 import { IconEdit } from '@tabler/icons-react';
 import { useCallback } from 'react';
-import { DeliveryFee, RestaurantDefini } from '@/types/price-list';
+import { DeliveryFee } from '@/types/price-list';
 import PriceListeTools from './price-list-tools';
 
 export const priceListColumns = [
@@ -15,7 +15,7 @@ export const priceListColumns = [
 ];
 
 interface RenderCellProps {
-  currentRestaurant: RestaurantDefini | null;
+  currentRestaurant: { typeCommission?: string | null } | null;
   onEdit: (fee: DeliveryFee) => void;
 }
 
