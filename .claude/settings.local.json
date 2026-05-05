@@ -57,7 +57,16 @@
       "Bash(Format-Table Name, PSIsContainer)",
       "Bash(git add *)",
       "Bash(Get-Content \"C:\\\\Users\\\\kouax\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-kouax-WebstormProjects-lunion-turbo-delivery-erp\\\\cfdcee03-b9a0-451a-9ef5-57a37991a154\\\\tasks\\\\b9lv9wuvf.output\" -ErrorAction SilentlyContinue)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(Get-Item \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\features\\\\tickets\\\\utils\" -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(New-Item *)",
+      "Bash(dir C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\features\\\\tickets *)",
+      "Bash(git commit *)",
+      "Bash(where node *)",
+      "Bash(where npm *)",
+      "Bash(Get-Content *)",
+      "Bash(npx --yes typescript@latest --noEmit --skipLibCheck)"
     ]
   }
 }

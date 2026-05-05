@@ -11,6 +11,7 @@ export interface BonLivraisonTerminee {
   date: string;
   heure: string;
   statut: string;
+  statutControle?: string;
   zoneId?: string;
   nomZone?: string;
   typeCommission?: string;
@@ -62,6 +63,7 @@ export interface Ticket {
     isNew?: boolean;    // déjà existant
     isEditing?: boolean; // nouveau champ
     statut?: string;
+    statutControle?: string;
     zoneId?: string;
     nomZone?: string;
     typeCommission?: string;

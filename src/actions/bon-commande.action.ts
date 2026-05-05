@@ -8,6 +8,8 @@ import { RangeValue } from '@heroui/react';
 import axios from 'axios';
 import { ApiResult } from '@/types/general';
 import { handleApiError } from '@/utils/handle-api-error';
+import { auth } from '@/auth';
+import { authentifierTicketRequest } from '@/features/tickets/request/tickets.request';
 // Configuration
 const BASE_URL = '/api/erp/bon-livraison';
 const BASE_URL_2 = '/api/export/reporting';
@@ -211,6 +213,22 @@ export async function updateBonLivraison(ticketId: string, ticket: Ticket, resta
     };
   } catch (error) {
     return handleApiError(error, 'Erreur lors de la mise à jour du bon de livraison');
+  }
+}
+
+/**
+ * Authentifier un ticket (Kader — B08)
+ */
+export async function authentifierTicket(ticketId: string): Promise<ApiResult<void>> {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Utilisateur non authentifié');
+    
+    await authentifierTicketRequest(ticketId, userId);
+    return { success: true, message: 'Ticket authentifié avec succès' };
+  } catch (error) {
+    return handleApiError(error, "Erreur lors de l'authentification du ticket");
   }
 }
 

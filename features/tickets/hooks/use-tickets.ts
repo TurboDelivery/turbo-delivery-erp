@@ -1,60 +1,43 @@
+import { useMemo } from 'react';
 import { useTicketFilters } from '@/features/tickets/hooks/use-ticket-filters';
 import { ITicketParams } from '@/features/tickets/types/tickets.type';
-import { useMemo, useState } from 'react';
 import { bonLivraisonToTicket } from '@/src/actions/bonLivraison.mapper';
 import { useTicketsInfiniteQuery } from '@/features/tickets/queries/ticket-infinite.query';
-import { useCreateBonLivraison, useDeleteBonLivraison, useUpdateBonLivraison } from '@/features/tickets/queries/tickets.mutation';
-import { Ticket } from '@/types/bon-livraison.model';
+import { useDeleteBonLivraison, useUpdateBonLivraison } from '@/features/tickets/queries/tickets.mutation';
+import { Restaurant } from '@/types/models';
+import { useTicketEditing } from '@/features/tickets/hooks/use-ticket-editing';
 
-export default function useTickets() {
+export default function useTickets(restaurants: Restaurant[] = []) {
   const { filters, setFilter, resetFilters } = useTicketFilters();
 
-  const [editingIds, setEditingIds] = useState<Set<string>>(new Set());
-  const [editedTickets, setEditedTickets] = useState<Map<string, Ticket>>(new Map());
+  const currentSearchParams: ITicketParams = useMemo(() => ({
+    page: filters.page,
+    size: filters.size,
+    search: filters.search,
+    livreurId: filters.livreurId,
+    restaurantId: filters.restaurantId,
+    debut: filters.debut,
+    fin: filters.fin,
+  }), [filters]);
 
-  const handleEditRow = (id: string) => {
-    setEditingIds((prev) => new Set([...prev, id]));
-  };
-
-  const handleCancelEditRow = (id: string) => {
-    setEditingIds((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(id);
-      return newSet;
-    });
-
-    // Drop draft values when user cancels edit mode.
-    setEditedTickets((prev) => {
-      if (!prev.has(id)) return prev;
-      const next = new Map(prev);
-      next.delete(id);
-      return next;
-    });
-  };
-
-  const currentSearchParams: ITicketParams = useMemo(() => {
-    return {
-      page: filters.page,
-      size: filters.size,
-      search: filters.search,
-      livreurId: filters.livreurId,
-      restaurantId: filters.restaurantId,
-      debut: filters.debut,
-      fin: filters.fin,
-    };
-  }, [filters]);
-
-  const { data, isLoading, status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, isError, error } = useTicketsInfiniteQuery(currentSearchParams);
-
-  const { mutate: createBonLivraisonMutation, isPending: isCreatingBonLivraison } = useCreateBonLivraison();
+  const { data, isLoading, status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, isError, error } =
+    useTicketsInfiniteQuery(currentSearchParams);
 
   const { mutate: deleteBonLivraisonMutation, isPending: isDeletingBonLivraison } = useDeleteBonLivraison();
-
   const { mutate: updateBonLivraisonMutation, isPending: isUpdatingBonLivraison } = useUpdateBonLivraison();
 
-  const ticketsRaw = useMemo(() => [...(data?.pages.flatMap((page) => page.content.map(bonLivraisonToTicket)) || [])], [data]);
+  const ticketsRaw = useMemo(
+    () => [...(data?.pages.flatMap((page) => page.content.map(bonLivraisonToTicket)) || [])],
+    [data],
+  );
 
   const totalItems = data?.pages[0]?.totalElements || 0;
+
+  const editing = useTicketEditing({
+    restaurants,
+    ticketsData: ticketsRaw,
+    updateBonLivraisonMutation,
+  });
 
   return {
     filters,
@@ -64,29 +47,8 @@ export default function useTickets() {
     isLoading,
     isError,
     error,
-    infiniteState: {
-      status,
-      isFetching,
-      isFetchingNextPage,
-      isFetchingPreviousPage,
-      fetchNextPage,
-      hasNextPage,
-      totalItems,
-    },
-    mutations: {
-      createBonLivraisonMutation,
-      isCreatingBonLivraison,
-      deleteBonLivraisonMutation,
-      isDeletingBonLivraison,
-      updateBonLivraisonMutation,
-      isUpdatingBonLivraison,
-    },
-    state: {
-      editingIds,
-      handleEditRow,
-      handleCancelEditRow,
-      editedTickets,
-      setEditedTickets,
-    },
+    infiniteState: { status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, totalItems },
+    mutations: { deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
+    editing,
   };
 }

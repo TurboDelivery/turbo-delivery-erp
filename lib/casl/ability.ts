@@ -58,13 +58,14 @@ const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
   ADMIN: 'DG',
   BUSINESS_DEVELOPER: 'BUSINESS_DEVELOPER',
   'BUSINESS DEVELOPER': 'BUSINESS_DEVELOPER',
+  "CENTRALE D'APPEL": 'STANDARD',
 };
 
 export function normalizeRole(raw?: string | { libelle?: string } | null): AppRole | null {
   if (!raw) return null;
   const libelle = typeof raw === 'string' ? raw : raw.libelle;
   if (!libelle) return null;
-  const key = libelle.toUpperCase().trim();
+  const key = libelle.toUpperCase().trim().replace(/['']/g, "'");
   return SESSION_ROLE_ALIASES[key] ?? null;
 }
 
@@ -101,7 +102,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('create', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('update', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('decaisser', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('manage', 'Ticket');
+      can('create', 'Ticket');
+      can('read', 'Ticket');
       can('manage', 'Personnel');
       can('read', 'Finance');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
@@ -119,6 +121,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
 
     case 'BUSINESS_DEVELOPER':
       can('read', ['Livreur', 'Restaurant', 'Ticket']);
+      can('create', 'Ticket');
       can('valider', 'Restaurant');
       can('manage', 'Creneau');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
@@ -126,7 +129,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
 
     case 'STANDARD':
       can('read', 'Trafic');
-      can('manage', 'Ticket');
+      can('create', 'Ticket');
+      can('read', 'Ticket');
       can('manage', 'Creneau');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;

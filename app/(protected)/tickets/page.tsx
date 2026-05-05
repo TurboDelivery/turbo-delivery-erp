@@ -1,10 +1,7 @@
-import { getProfile } from '@/src/actions/users.actions';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
-import { TicketTable } from '@/components/tickets/table';
+import { TicketPageClient } from '@/components/tickets/ticket-page-client';
 
 export default async function TicketsPage() {
-  const profile = await getProfile();
   const restaurants = await getAllRestaurants();
-
-  return <TicketTable restaurants={restaurants} profile={profile} />;
+  return <TicketPageClient restaurants={restaurants} />;
 }

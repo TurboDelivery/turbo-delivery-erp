@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { useInvalidateTicketsQuery } from './index.query';
-import { createBonLivraison, deleteBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
+import { authentifierTicket, createBonLivraison, deleteBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
 import { Ticket } from '@/types/bon-livraison.model';
 import { toast } from 'react-toastify';
 
@@ -66,6 +66,25 @@ export const useDeleteBonLivraison = () => {
     mutationFn: deleteBonLivraison,
     onSuccess: async () => {
       await invalidateTicketsQuery();
+    },
+  });
+};
+
+export const useAuthentifierTicket = () => {
+  const invalidateTicketsQuery = useInvalidateTicketsQuery();
+
+  return useMutation({
+    mutationFn: async (ticketId: string) => {
+      const result = await authentifierTicket(ticketId);
+      if (!result.success) throw new Error(result.error);
+    },
+    onSuccess: async () => {
+      await invalidateTicketsQuery();
+      toast.success('Ticket authentifié avec succès.');
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors de l'authentification: ${message}`);
     },
   });
 };
