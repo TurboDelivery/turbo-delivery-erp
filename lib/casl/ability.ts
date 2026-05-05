@@ -65,7 +65,7 @@ export function normalizeRole(raw?: string | { libelle?: string } | null): AppRo
   if (!raw) return null;
   const libelle = typeof raw === 'string' ? raw : raw.libelle;
   if (!libelle) return null;
-  const key = libelle.toUpperCase().trim();
+  const key = libelle.toUpperCase().trim().replace(/['']/g, "'");
   return SESSION_ROLE_ALIASES[key] ?? null;
 }
 
