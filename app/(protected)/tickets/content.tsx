@@ -32,8 +32,8 @@ export default function Content({ restaurants, profile }: ContentProps) {
     isLoading,
     infiniteState,
     mutations: { createBonLivraisonMutation, isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
-    state: { handleEditRow, editingIds, handleCancelEditRow, editedTickets, setEditedTickets },
-  } = useTickets();
+    editing: { handleEditRow, editingIds, handleCancelEditRow, editedTickets, setEditedTickets },
+  } = useTickets(restaurants);
   const { livreurs } = useLivreurs();
 
   const [exportOpen, setExportOpen] = useState(false);
