@@ -10,23 +10,22 @@ import { useFormStatus } from 'react-dom';
 import { toast } from 'react-toastify';
 import { useRouter } from 'next/navigation';
 import { deletePriceList } from '@/src/price-list/price-list.action';
+import { useInvalidatePriceListQuery } from '@/features/price-list/queries/price-list.query';
 
 const PriceListeDelete = ({ id, open, setOpen }: { id: string; open: boolean; setOpen: (open: boolean) => void }) => {
     const { pending } = useFormStatus();
     const router = useRouter();
+    const invalidatePriceList = useInvalidatePriceListQuery();
     const handleSubmit = async () => {
 
         const result = await deletePriceList(id);
         if (result.status === 'success') {
             toast.success(result.message || 'Bravo ! vous avez réussi');
-            setOpen(false)
-            router.refresh();
+            setOpen(false);
+            await invalidatePriceList();
         } else {
             toast.error(result.message || "Erreur lors de l'envoi de l'email");
-            setOpen(false)
-            router.refresh();
-
-
+            setOpen(false);
         }
         return result;
     };
