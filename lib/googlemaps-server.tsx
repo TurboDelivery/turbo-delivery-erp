@@ -117,7 +117,11 @@ export async function calculateDistance(point1: LatLng, point2: LatLng): Promise
   const response = await fetch(url);
   const data = await response.json();
 
-  const distance: number = data.rows[0].elements[0].distance.value;
+  const element = data.rows?.[0]?.elements?.[0];
+  if (!element || element.status !== 'OK' || !element.distance) {
+    return 0;
+  }
+  const distance: number = element.distance.value;
   const enKm = Number((distance / 1000).toFixed(1));
   return enKm;
 
