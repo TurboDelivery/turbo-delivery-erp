@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from 
 import { toast } from 'react-toastify';
 import { Package } from 'lucide-react';
 
-import { Restaurant, User } from '@/types/models';
+import { Restaurant } from '@/types/models';
 import { Ticket } from '@/types/bon-livraison.model';
 import useTickets from '@/features/tickets/hooks/use-tickets';
 import { useAbility } from '@/hooks/use-ability';
@@ -24,10 +24,9 @@ import ConfirmModal from '@/components/ui/confirm-modal';
 
 interface TicketTableProps {
   restaurants: Restaurant[];
-  profile: User | null;
 }
 
-export function TicketTable({ restaurants, profile }: TicketTableProps) {
+export function TicketTable({ restaurants }: TicketTableProps) {
   const {
     filters,
     setFilter,
