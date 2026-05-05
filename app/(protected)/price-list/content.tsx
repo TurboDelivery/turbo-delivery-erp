@@ -39,7 +39,7 @@ export default function Content() {
     .map((tab) => ({ value: tab.id, label: tab.nomComplet }))
     .sort((a, b) => a.label.localeCompare(b.label));
 
-  const tableItems = isLoading ? skeletonRows : deliveryFees;
+  const tableItems = (isLoading && !!selectedKey) ? skeletonRows : deliveryFees;
 
   return (
     <>

@@ -26,8 +26,8 @@ export default function usePriceListTable() {
 
   useEffect(() => {
     if (selectedKey || allRestaurants.length === 0) return;
-    const key = searchParams.get('restoId') ?? null;
-    if (key) setSelectedKey(key);
+    const key = searchParams.get('restoId') || allRestaurants[0].id;
+    setSelectedKey(key);
   }, [allRestaurants]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentRestaurant = allRestaurants.find((r) => r.id === selectedKey) ?? null;
