@@ -3,7 +3,8 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { DeliveryFee } from '@/types/price-list';
 import { useCallback, useEffect, useState } from 'react';
-import { useDefinedRestaurantsQuery } from '@/features/restaurants/queries/restaurants.query';
+import { useQuery } from '@tanstack/react-query';
+import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import { useDeliveryFeesByRestaurantQuery } from '../queries/price-list.query';
 
 export type EditModalState = {
@@ -17,7 +18,11 @@ export default function usePriceListTable() {
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams.toString());
 
-  const { data: allRestaurants = [] } = useDefinedRestaurantsQuery();
+  const { data: allRestaurants = [] } = useQuery({
+    queryKey: ['restaurants', 'all'],
+    queryFn: () => getAllRestaurants(),
+    staleTime: 5 * 60 * 1000,
+  });
   const tabs = allRestaurants.map((r) => ({ id: r.id, nomComplet: r.nomEtablissement }));
 
   const [selectedKey, setSelectedKey] = useState<string | null>(null);

@@ -12,7 +12,8 @@ import { autocomplete, calculateDistance, placeDetails } from '@/lib/googlemaps-
 import { DeliveryFee } from '@/types/price-list';
 import { priceListSchema, PriceListFormData } from '@/features/price-list/schemas/price-list.schema';
 import { useCreateDeliveryFeeMutation, useUpdatePriceListMutation } from '@/features/price-list/queries/price-list.mutation';
-import { useRestaurantsListQuery } from '@/features/restaurants/queries/restaurant-list.query';
+import { useQuery } from '@tanstack/react-query';
+import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import { cn } from '@/lib/utils';
 
 type LatLng = { lat: number; lng: number };
@@ -34,8 +35,11 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
 
   const isEdit = mode === 'edit';
 
-  const { data: restaurantsPage } = useRestaurantsListQuery({ page: 0, limit: 1000 });
-  const allRestaurants = restaurantsPage?.content ?? [];
+  const { data: allRestaurants = [] } = useQuery({
+    queryKey: ['restaurants', 'all'],
+    queryFn: () => getAllRestaurants(),
+    staleTime: 5 * 60 * 1000,
+  });
 
   const form = useForm<PriceListFormData>({
     resolver: zodResolver(priceListSchema),
