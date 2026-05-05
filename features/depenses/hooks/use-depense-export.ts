@@ -51,6 +51,21 @@ export function useDepenseExport() {
         }
       }
 
+      // Dédoublonnage : par id d'abord, puis par (description normalisée + montant + date)
+      const seenIds = new Set<string>();
+      const seenSignatures = new Set<string>();
+      allDepenses = allDepenses.filter((d) => {
+        if (seenIds.has(d.id)) return false;
+        seenIds.add(d.id);
+        // Normalise la description (retire tirets, espaces multiples, casse)
+        const descNorm = (d.description ?? '').replace(/[-–]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+        const date = d.dateDepense ? new Date(d.dateDepense).toISOString().split('T')[0] : '';
+        const sig = `${descNorm}|${d.montant}|${date}`;
+        if (seenSignatures.has(sig)) return false;
+        seenSignatures.add(sig);
+        return true;
+      });
+
       // Calculer le total des montants pour comparaison
       const totalMontant = allDepenses.reduce((sum, depense) => {
         console.log(`💰 Addition: ${sum} + ${depense.montant} = ${sum + depense.montant}`);
