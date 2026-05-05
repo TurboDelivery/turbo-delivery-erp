@@ -106,6 +106,10 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
     }
   };
 
+  const onError = (errors: Record<string, unknown>) => {
+    console.error('Validation errors:', errors);
+  };
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg">
@@ -115,7 +119,7 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
           </DialogTitle>
         </DialogHeader>
 
-        <form id="price-list-form" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 pt-2">
+        <form id="price-list-form" onSubmit={handleSubmit(onSubmit, onError)} className="flex flex-col gap-4 pt-2">
 
           {/* Row 1 : nom + restaurant (create) | nom seul (edit) */}
           <div className={cn(isEdit ? '' : 'grid grid-cols-2 gap-3')}>
@@ -167,6 +171,13 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
                     )}
                   </div>
                 )}
+              />
+            )}
+            {isEdit && (
+              <Controller
+                name="restaurantId"
+                control={control}
+                render={({ field }) => <input type="hidden" {...field} />}
               />
             )}
           </div>
@@ -285,7 +296,7 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
             <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
               Annuler
             </Button>
-            <Button type="submit" form="price-list-form" disabled={isPending}>
+            <Button type="submit" disabled={isPending}>
               {isPending ? 'Enregistrement…' : <><Save size={16} className="mr-1.5" />{isEdit ? 'Modifier' : 'Ajouter'}</>}
             </Button>
           </div>

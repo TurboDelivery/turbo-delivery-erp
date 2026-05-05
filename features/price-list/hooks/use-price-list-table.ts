@@ -66,9 +66,12 @@ export default function usePriceListTable() {
       )
     : deliveryFeesList;
 
-  const openEditModal = useCallback((fee: DeliveryFee) => {
-    setEditModal({ open: true, selectedFee: fee });
-  }, []);
+  const openEditModal = useCallback(
+    (fee: DeliveryFee) => {
+      setEditModal({ open: true, selectedFee: { ...fee, restaurantId: selectedKey ?? fee.restaurantId } });
+    },
+    [selectedKey],
+  );
 
   const closeEditModal = useCallback(() => {
     setEditModal({ open: false, selectedFee: null });
