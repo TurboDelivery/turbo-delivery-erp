@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useEffect, useState } from 'react';
 import { Save } from 'lucide-react';
 import { PlaceAutocompleteResult } from '@googlemaps/google-maps-services-js';
-import { autocomplete, calculateDistance, placeDetails } from '@/lib/googlemaps-server';
+import { autocomplete, calculateDistance, geocodeAddressServer, placeDetails } from '@/lib/googlemaps-server';
 import { DeliveryFee } from '@/types/price-list';
 import { priceListSchema, PriceListFormData } from '@/features/price-list/schemas/price-list.schema';
 import { useCreateDeliveryFeeMutation, useUpdatePriceListMutation } from '@/features/price-list/queries/price-list.mutation';
@@ -70,12 +70,14 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
   // Recalculate distance when restaurant changes after zone is already selected
   useEffect(() => {
     if (isEdit) return;
-    if (!restaurantHasCoords) return;
     if (!watchedLat || !watchedLng) return;
-    calculateDistance(
-      { lat: restaurantLat, lng: restaurantLng },
-      { lat: watchedLat, lng: watchedLng },
-    )
+    const getOrigin = async (): Promise<LatLng | null> => {
+      if (restaurantHasCoords) return restaurantPoint;
+      if (currentRestaurant?.localisation) return geocodeAddressServer(currentRestaurant.localisation);
+      return null;
+    };
+    getOrigin()
+      .then((origin) => origin && calculateDistance(origin, { lat: watchedLat, lng: watchedLng }))
       .then((distance) => { if (distance) setValue('distanceFin', distance); })
       .catch(() => {});
   }, [watchedRestaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -105,8 +107,12 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
       const lng = details.result.geometry?.location.lng ?? 0;
       setValue('latitude', lat);
       setValue('longitude', lng);
-      if (restaurantHasCoords) {
-        const distance = await calculateDistance(restaurantPoint, { lat, lng });
+      let origin = restaurantHasCoords ? restaurantPoint : null;
+      if (!origin && currentRestaurant?.localisation) {
+        origin = await geocodeAddressServer(currentRestaurant.localisation);
+      }
+      if (origin) {
+        const distance = await calculateDistance(origin, { lat, lng });
         setValue('distanceFin', distance ?? 0);
       }
     } catch {
@@ -199,13 +205,6 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
               />
             )}
           </div>
-
-          {/* Avertissement si le restaurant n'a pas de coordonnées GPS */}
-          {!isEdit && watchedRestaurantId && !restaurantHasCoords && (
-            <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
-              Ce restaurant n'a pas de coordonnées GPS enregistrées. Le kilométrage ne sera pas calculé automatiquement.
-            </p>
-          )}
 
           {/* Zone avec autocomplete Google Maps */}
           <Controller
