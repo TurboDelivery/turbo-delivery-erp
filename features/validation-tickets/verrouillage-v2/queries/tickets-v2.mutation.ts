@@ -3,66 +3,22 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useInvalidateTicketsV2Query } from './index.query';
-import {
-  verrouillerTicketMutation,
-  verrouillerTousMutation,
-  deverrouillerTicketMutation,
-} from '@/features/validation-tickets/verrouillage-v2/mutations/tickets-v2.mutation';
+import { validerV1Ticket } from '@/src/actions/bon-commande.action';
 
-export const useVerrouillerTicketV2Mutation = () => {
+export const useValiderV1Mutation = () => {
   const invalidate = useInvalidateTicketsV2Query();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const result = await verrouillerTicketMutation(id);
-      if (!result.success) throw new Error(result.error as string);
+    mutationFn: async (ticketId: string) => {
+      const result = await validerV1Ticket(ticketId);
+      if (!result.success) throw new Error(result.error);
     },
     onSuccess: async () => {
       await invalidate();
-      toast.success('Ticket verrouillé avec succès.');
+      toast.success('Ticket validé V1.');
     },
     onError: (error) => {
-      toast.error('Erreur lors du verrouillage', {
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
-      });
-    },
-  });
-};
-
-export const useVerrouillerTousMutation = () => {
-  const invalidate = useInvalidateTicketsV2Query();
-
-  return useMutation({
-    mutationFn: async () => {
-      const result = await verrouillerTousMutation();
-      if (!result.success) throw new Error(result.error as string);
-    },
-    onSuccess: async () => {
-      await invalidate();
-      toast.success('Tous les tickets ont été verrouillés.');
-    },
-    onError: (error) => {
-      toast.error('Erreur lors du verrouillage global', {
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
-      });
-    },
-  });
-};
-
-export const useDeverrouillerTicketMutation = () => {
-  const invalidate = useInvalidateTicketsV2Query();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const result = await deverrouillerTicketMutation(id);
-      if (!result.success) throw new Error(result.error as string);
-    },
-    onSuccess: async () => {
-      await invalidate();
-      toast.success('Ticket déverrouillé.');
-    },
-    onError: (error) => {
-      toast.error('Erreur lors du déverrouillage', {
+      toast.error('Erreur lors de la validation V1', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },

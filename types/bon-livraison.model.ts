@@ -1,3 +1,5 @@
+import { StatutControle } from './statut-controle.enum';
+
 export interface BonLivraisonTerminee {
   commandeId: string;
   reference: string;
@@ -11,7 +13,7 @@ export interface BonLivraisonTerminee {
   date: string;
   heure: string;
   statut: string;
-  statutControle?: string;
+  statutControle?: StatutControle;
   zoneId?: string;
   nomZone?: string;
   typeCommission?: string;
@@ -60,10 +62,10 @@ export interface Ticket {
     coutLivraison: string;
     date: string;
     heure: string;
-    isNew?: boolean;    // déjà existant
-    isEditing?: boolean; // nouveau champ
+    isNew?: boolean;
+    isEditing?: boolean;
     statut?: string;
-    statutControle?: string;
+    statutControle?: StatutControle;
     zoneId?: string;
     nomZone?: string;
     typeCommission?: string;

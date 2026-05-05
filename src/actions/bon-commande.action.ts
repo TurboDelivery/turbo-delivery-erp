@@ -9,7 +9,7 @@ import axios from 'axios';
 import { ApiResult } from '@/types/general';
 import { handleApiError } from '@/utils/handle-api-error';
 import { auth } from '@/auth';
-import { authentifierTicketRequest } from '@/features/tickets/request/tickets.request';
+import { authentifierTicketRequest, validerV1Request } from '@/features/tickets/request/tickets.request';
 // Configuration
 const BASE_URL = '/api/erp/bon-livraison';
 const BASE_URL_2 = '/api/export/reporting';
@@ -213,6 +213,21 @@ export async function updateBonLivraison(ticketId: string, ticket: Ticket, resta
     };
   } catch (error) {
     return handleApiError(error, 'Erreur lors de la mise à jour du bon de livraison');
+  }
+}
+
+/**
+ * Valider V1 un ticket (DGA — B08b, AUTHENTIFIE → V1_VALIDE)
+ */
+export async function validerV1Ticket(ticketId: string): Promise<ApiResult<void>> {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Utilisateur non authentifié');
+    await validerV1Request(ticketId, userId);
+    return { success: true, message: 'Ticket validé V1 avec succès' };
+  } catch (error) {
+    return handleApiError(error, 'Erreur lors de la validation V1 du ticket');
   }
 }
 

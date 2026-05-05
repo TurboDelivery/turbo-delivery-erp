@@ -1,7 +1,14 @@
 import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
+import { StatutControle } from '@/types/statut-controle.enum';
 import { apiClientHttp } from '@/lib/api-client-http';
 import { ILivreurSearchParams, ILivreurStats, ILivreurTicket, ITicketParams, ITicketsStats } from '@/features/tickets/types/tickets.type';
 import { PaginatedResponse } from '@/types/general';
+
+export interface ITicketsParStatutParams {
+  statuts: StatutControle[];
+  page?: number;
+  size?: number;
+}
 
 const BASE_URL = '/api/erp/bon-livraison';
 
@@ -91,5 +98,26 @@ export async function authentifierTicketRequest(ticketId: string, userId: string
     method: 'POST',
     service: 'backend',
     config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
+export async function validerV1Request(ticketId: string, userId: string): Promise<void> {
+  return await apiClientHttp.request<void>({
+    endpoint: `/api/tickets/${ticketId}/valider-v1`,
+    method: 'POST',
+    service: 'backend',
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
+export async function listerTicketsParStatutRequest(params: ITicketsParStatutParams): Promise<PaginatedResponse<BonLivraisonTerminee>> {
+  return await apiClientHttp.request<PaginatedResponse<BonLivraisonTerminee>>({
+    endpoint: '/api/tickets',
+    method: 'GET',
+    params: {
+      statuts: params.statuts[0],
+      page: (params.page ?? 0).toString(),
+      size: (params.size ?? 50).toString(),
+    },
   });
 }

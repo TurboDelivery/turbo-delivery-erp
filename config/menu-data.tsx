@@ -41,7 +41,7 @@ const menuData: IMenuData[] = [
     title: 'Validation des tickets',
     icon: Lock,
     children: [
-      { icon: Lock, title: 'Verrouillage V2', path: '/validation-tickets/verrouillage-v2', can: { action: 'manage', subject: 'Ticket' } },
+      { icon: Lock, title: 'Verification V1', path: '/validation-tickets/verification-v1', can: { action: 'manage', subject: 'Ticket' } },
       { icon: Lock, title: 'Régularisation', path: '/validation-tickets/regularisation', can: { action: 'manage', subject: 'Ticket' } },
     ],
   },

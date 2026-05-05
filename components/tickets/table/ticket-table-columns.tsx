@@ -10,6 +10,7 @@ import { CheckSquare, Loader2, Pen, ShieldCheck, Trash2, X } from 'lucide-react'
 import { Tooltip } from '@heroui/react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
+import { StatutControle } from '@/types/statut-controle.enum';
 
 export interface TicketColumnMeta {
   livreurOptions: { value: string; label: string }[];
@@ -232,16 +233,16 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
       const effectiveStatut = optimisticAuthentifie ? 'AUTHENTIFIE' : (ticket.statutControle ?? 'PENDING');
       const canAuthentifier = !isNouveau && meta.permissions.canAuthentifier && (effectiveStatut === 'PENDING' || effectiveStatut === 'TARDIF');
 
-      const STATUT_CONFIG: Record<string, { label: string; className: string }> = {
-        PENDING: { label: 'EN ATTENTE', className: 'bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200 hover:text-yellow-800' },
-        TARDIF: { label: 'TARDIF', className: 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 hover:text-orange-800' },
-        AUTHENTIFIE: { label: 'AUTHENTIFIÉ', className: 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 hover:text-blue-800' },
-        V1_VALIDE: { label: 'V1 Validé', className: 'bg-teal-100 text-teal-700 border-teal-300 hover:bg-teal-200 hover:text-teal-800' },
-        V2_VALIDE: { label: 'V2 Validé', className: 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 hover:text-green-800' },
-        REJETE_FRAUDE: { label: 'REJETÉ (Fraude)', className: 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200 hover:text-red-800' },
+      const STATUT_CONFIG: Record<StatutControle, { label: string; className: string }> = {
+        [StatutControle.PENDING]:        { label: 'EN ATTENTE',      className: 'bg-yellow-100 text-yellow-700 border-yellow-300 hover:bg-yellow-200 hover:text-yellow-800' },
+        [StatutControle.TARDIF]:         { label: 'TARDIF',          className: 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200 hover:text-orange-800' },
+        [StatutControle.AUTHENTIFIE]:    { label: 'AUTHENTIFIÉ',     className: 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200 hover:text-blue-800' },
+        [StatutControle.V1_VALIDE]:      { label: 'V1 Validé',       className: 'bg-teal-100 text-teal-700 border-teal-300 hover:bg-teal-200 hover:text-teal-800' },
+        [StatutControle.V2_VALIDE]:      { label: 'V2 Validé',       className: 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200 hover:text-green-800' },
+        [StatutControle.REJETE_FRAUDE]:  { label: 'REJETÉ (Fraude)', className: 'bg-red-100 text-red-700 border-red-300 hover:bg-red-200 hover:text-red-800' },
       };
 
-      const config = STATUT_CONFIG[effectiveStatut] ?? { label: effectiveStatut, className: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 hover:text-gray-800' };
+      const config = STATUT_CONFIG[effectiveStatut as StatutControle] ?? { label: effectiveStatut, className: 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200 hover:text-gray-800' };
 
       return (
         <div className="flex items-center gap-2">

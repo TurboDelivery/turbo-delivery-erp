@@ -1,34 +1,47 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { ITicketV2, ITicketsV2Params } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
-import { useTicketsV2ListQuery } from '@/features/validation-tickets/verrouillage-v2/queries/tickets-v2-list.query';
-import { useVerrouillerTicketV2Mutation, useVerrouillerTousMutation } from '@/features/validation-tickets/verrouillage-v2/queries/tickets-v2.mutation';
-import { fakeReadyTickets } from '@/features/validation-tickets/verrouillage-v2/data/fake-tickets';
+import { useState, useMemo } from 'react';
+import { IVerrouillageParams } from '../types/tickets-v2.type';
+import { useTicketsAuthentifiesQuery, useTicketsV1ValideQuery } from '../queries/tickets-v2-list.query';
+import { useValiderV1Mutation } from '../queries/tickets-v2.mutation';
 
 export default function useVerrouillageV2() {
-  const [params] = useState<ITicketsV2Params>({});
+  const [params] = useState<IVerrouillageParams>({});
+  const [isLockingAll, setIsLockingAll] = useState(false);
 
-  const { data, isLoading, isError } = useTicketsV2ListQuery(params);
+  const { data: readyData, isLoading: isLoadingReady, fetchNextPage: fetchNextReady, hasNextPage: hasNextReady } = useTicketsAuthentifiesQuery(params);
+  const { data: lockedData, isLoading: isLoadingLocked, fetchNextPage: fetchNextLocked, hasNextPage: hasNextLocked } = useTicketsV1ValideQuery(params);
 
-  // TODO: retirer le fallback fakeReadyTickets quand l'endpoint est disponible
-  const readyTickets: ITicketV2[] = useMemo(() => {
-    if (data?.content && data.content.length > 0) return data.content;
-    return fakeReadyTickets as ITicketV2[];
-  }, [data]);
+  const readyTickets = useMemo(() => readyData?.pages.flatMap((p) => p.content) ?? [], [readyData]);
+  const lockedTickets = useMemo(() => lockedData?.pages.flatMap((p) => p.content) ?? [], [lockedData]);
 
-  const { mutate: verrouillerTicket, isPending: isLocking } = useVerrouillerTicketV2Mutation();
-  const { mutate: verrouillerTous, isPending: isLockingAll } = useVerrouillerTousMutation();
+  const { mutate: validerV1, mutateAsync: validerV1Async, isPending: isLocking } = useValiderV1Mutation();
 
-  const handleLock = (id: string) => verrouillerTicket(id);
-  const handleLockAll = () => verrouillerTous();
+  const handleLock = (ticketId: string) => validerV1(ticketId);
+
+  const handleLockAll = async () => {
+    if (readyTickets.length === 0) return;
+    setIsLockingAll(true);
+    try {
+      for (const ticket of readyTickets) {
+        await validerV1Async(ticket.commandeId);
+      }
+    } finally {
+      setIsLockingAll(false);
+    }
+  };
 
   return {
     readyTickets,
-    isLoading,
-    isError,
+    lockedTickets,
+    isLoadingReady,
+    isLoadingLocked,
     isLocking,
     isLockingAll,
+    fetchNextReady,
+    hasNextReady,
+    fetchNextLocked,
+    hasNextLocked,
     handleLock,
     handleLockAll,
   };
