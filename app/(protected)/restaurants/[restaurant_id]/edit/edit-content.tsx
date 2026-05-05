@@ -16,6 +16,7 @@ import { updateRestaurant } from '@/features/restaurants/actions/update-restaura
 import { useInvalidateRestaurantsQuery } from '@/features/restaurants/queries/restaurant-list.query';
 import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { createUrlFile } from '@/utils/createUrlFile';
+import { geocodeAddressServer } from '@/lib/googlemaps-server';
 import { CoverBanner } from './_sections/CoverBanner';
 import { InfoGenerales } from './_sections/InfoGenerales';
 import { CommissionSection } from './_sections/CommissionSection';
@@ -101,8 +102,17 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
         latitude: restaurant.latitude ?? undefined,
         longitude: restaurant.longitude ?? undefined,
       });
+      // Auto-géocode si l'adresse est renseignée mais les coordonnées GPS sont absentes
+      if (restaurant.localisation && !restaurant.latitude && !restaurant.longitude) {
+        geocodeAddressServer(restaurant.localisation).then((coords) => {
+          if (coords) {
+            methods.setValue('latitude', coords.lat);
+            methods.setValue('longitude', coords.lng);
+          }
+        }).catch(() => {});
+      }
     }
-  }, [restaurant, reset]);
+  }, [restaurant, reset]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const typeCommission = watch('typeCommission');
 

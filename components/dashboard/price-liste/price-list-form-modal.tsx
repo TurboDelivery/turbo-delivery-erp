@@ -59,11 +59,11 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
   const watchedLng = watch('longitude');
   const currentRestaurant = allRestaurants.find((r) => r.id === watchedRestaurantId);
   const typeCommission = currentRestaurant?.typeCommission ?? null;
-  const restaurantPoint: LatLng = {
-    lat: currentRestaurant?.latitude ?? 0,
-    lng: currentRestaurant?.longitude ?? 0,
-  };
-  const restaurantHasCoords = !!currentRestaurant?.latitude && !!currentRestaurant?.longitude;
+  // Coordinates can live at root level or inside `position` depending on the restaurant
+  const restaurantLat = currentRestaurant?.latitude ?? currentRestaurant?.position?.latitude ?? 0;
+  const restaurantLng = currentRestaurant?.longitude ?? currentRestaurant?.position?.longitude ?? 0;
+  const restaurantHasCoords = !!restaurantLat && !!restaurantLng;
+  const restaurantPoint: LatLng = { lat: restaurantLat, lng: restaurantLng };
 
   const commissionLabel = typeCommission === 'POURCENTAGE' ? 'Commission (%)' : 'Commission (XOF)';
 
@@ -73,7 +73,7 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
     if (!restaurantHasCoords) return;
     if (!watchedLat || !watchedLng) return;
     calculateDistance(
-      { lat: currentRestaurant!.latitude!, lng: currentRestaurant!.longitude! },
+      { lat: restaurantLat, lng: restaurantLng },
       { lat: watchedLat, lng: watchedLng },
     )
       .then((distance) => { if (distance) setValue('distanceFin', distance); })
@@ -199,6 +199,13 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
               />
             )}
           </div>
+
+          {/* Avertissement si le restaurant n'a pas de coordonnées GPS */}
+          {!isEdit && watchedRestaurantId && !restaurantHasCoords && (
+            <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+              Ce restaurant n'a pas de coordonnées GPS enregistrées. Le kilométrage ne sera pas calculé automatiquement.
+            </p>
+          )}
 
           {/* Zone avec autocomplete Google Maps */}
           <Controller

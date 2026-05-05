@@ -107,6 +107,20 @@ export async function calculateRoute(origin: LatLng, destination: LatLng, travel
 }
 
 /**
+ * Géocode une adresse texte en coordonnées lat/lng via l'API REST Google Maps
+ * (utilisable côté serveur, sans SDK JS navigateur)
+ */
+export async function geocodeAddressServer(address: string): Promise<LatLng | null> {
+  const encoded = encodeURIComponent(address);
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encoded}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  if (data.status !== 'OK' || !data.results?.[0]) return null;
+  const location = data.results[0].geometry.location;
+  return { lat: location.lat, lng: location.lng };
+}
+
+/**
  * Calcule la distance entre deux points
  * @param point1 - Les coordonnées du premier point
  * @param point2 - Les coordonnées du deuxième point
