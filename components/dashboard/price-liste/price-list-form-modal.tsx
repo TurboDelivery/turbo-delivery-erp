@@ -55,14 +55,30 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const watchedRestaurantId = watch('restaurantId');
+  const watchedLat = watch('latitude');
+  const watchedLng = watch('longitude');
   const currentRestaurant = allRestaurants.find((r) => r.id === watchedRestaurantId);
   const typeCommission = currentRestaurant?.typeCommission ?? null;
   const restaurantPoint: LatLng = {
     lat: currentRestaurant?.latitude ?? 0,
     lng: currentRestaurant?.longitude ?? 0,
   };
+  const restaurantHasCoords = !!currentRestaurant?.latitude && !!currentRestaurant?.longitude;
 
   const commissionLabel = typeCommission === 'POURCENTAGE' ? 'Commission (%)' : 'Commission (XOF)';
+
+  // Recalculate distance when restaurant changes after zone is already selected
+  useEffect(() => {
+    if (isEdit) return;
+    if (!restaurantHasCoords) return;
+    if (!watchedLat || !watchedLng) return;
+    calculateDistance(
+      { lat: currentRestaurant!.latitude!, lng: currentRestaurant!.longitude! },
+      { lat: watchedLat, lng: watchedLng },
+    )
+      .then((distance) => { if (distance) setValue('distanceFin', distance); })
+      .catch(() => {});
+  }, [watchedRestaurantId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleZoneChange = useCallback(
     async (value: string) => {
@@ -89,8 +105,10 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
       const lng = details.result.geometry?.location.lng ?? 0;
       setValue('latitude', lat);
       setValue('longitude', lng);
-      const distance = await calculateDistance(restaurantPoint, { lat, lng });
-      setValue('distanceFin', distance ?? 0);
+      if (restaurantHasCoords) {
+        const distance = await calculateDistance(restaurantPoint, { lat, lng });
+        setValue('distanceFin', distance ?? 0);
+      }
     } catch {
       // fail silently — user can enter distance manually
     } finally {
