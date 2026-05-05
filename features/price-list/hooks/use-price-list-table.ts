@@ -26,8 +26,8 @@ export default function usePriceListTable() {
 
   useEffect(() => {
     if (selectedKey || allRestaurants.length === 0) return;
-    const key = searchParams.get('restoId') || allRestaurants[0].id;
-    setSelectedKey(key);
+    const key = searchParams.get('restoId') ?? null;
+    if (key) setSelectedKey(key);
   }, [allRestaurants]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentRestaurant = allRestaurants.find((r) => r.id === selectedKey) ?? null;
@@ -37,10 +37,14 @@ export default function usePriceListTable() {
   const deliveryFeesList: DeliveryFee[] = feesData?.content ?? [];
   const meta = { totalItems: feesData?.totalElements ?? 0, totalPages: feesData?.totalPages ?? 0 };
 
-  const handleChangeSelectedKey = (key: string) => {
+  const handleChangeSelectedKey = (key: string | null) => {
     setSelectedKey(key);
     setCurrentPage(0);
-    params.set('restoId', key);
+    if (key) {
+      params.set('restoId', key);
+    } else {
+      params.delete('restoId');
+    }
     router.push(`${pathname}?${params.toString()}`);
   };
 

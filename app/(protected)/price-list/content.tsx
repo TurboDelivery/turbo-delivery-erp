@@ -52,7 +52,7 @@ export default function Content() {
           <Select
             options={restaurantOptions}
             value={restaurantOptions.find((o) => o.value === selectedKey) ?? null}
-            onChange={(opt) => { if (opt?.value) handleChangeSelectedKey(opt.value); }}
+            onChange={(opt) => handleChangeSelectedKey(opt?.value ?? null)}
             placeholder="Sélectionner un restaurant"
             isClearable
             className="text-xs w-full max-w-sm"

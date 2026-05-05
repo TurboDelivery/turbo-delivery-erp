@@ -12,8 +12,7 @@ import { autocomplete, calculateDistance, placeDetails } from '@/lib/googlemaps-
 import { DeliveryFee } from '@/types/price-list';
 import { priceListSchema, PriceListFormData } from '@/features/price-list/schemas/price-list.schema';
 import { useCreateDeliveryFeeMutation, useUpdatePriceListMutation } from '@/features/price-list/queries/price-list.mutation';
-import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
-import { useDefinedRestaurantsQuery } from '@/features/restaurants/queries/restaurants.query';
+import { useRestaurantsListQuery } from '@/features/restaurants/queries/restaurant-list.query';
 import { cn } from '@/lib/utils';
 
 type LatLng = { lat: number; lng: number };
@@ -35,7 +34,8 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
 
   const isEdit = mode === 'edit';
 
-  const { data: allRestaurants = [] } = useDefinedRestaurantsQuery();
+  const { data: restaurantsPage } = useRestaurantsListQuery({ page: 0, limit: 1000 });
+  const allRestaurants = restaurantsPage?.content ?? [];
 
   const form = useForm<PriceListFormData>({
     resolver: zodResolver(priceListSchema),
@@ -142,10 +142,22 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
                 render={({ field, fieldState }) => (
                   <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
                     <Label>Restaurant <span className="text-destructive">*</span></Label>
-                    <RestaurantSelect
+                    <select
                       value={field.value}
-                      onChange={(v) => field.onChange(v ?? '')}
-                    />
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className={cn(
+                        'w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm',
+                        fieldState.invalid && 'border-destructive',
+                      )}
+                    >
+                      <option value="">Sélectionner un restaurant</option>
+                      {allRestaurants
+                        .slice()
+                        .sort((a, b) => a.nomEtablissement.localeCompare(b.nomEtablissement))
+                        .map((r) => (
+                          <option key={r.id} value={r.id}>{r.nomEtablissement}</option>
+                        ))}
+                    </select>
                     {fieldState.invalid && (
                       <p className="text-xs text-destructive">{fieldState.error?.message}</p>
                     )}
