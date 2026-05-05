@@ -84,3 +84,12 @@ export async function deleteBonLivraisonRequest(id: string): Promise<void> {
     method: 'DELETE',
   });
 }
+
+export async function authentifierTicketRequest(ticketId: string, userId: string): Promise<void> {
+  return await apiClientHttp.request<void>({
+    endpoint: `/api/tickets/${ticketId}/authentifier`,
+    method: 'POST',
+    service: 'backend',
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}

@@ -19,6 +19,7 @@ export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
     commission: bon.commission ? String(bon.commission) : undefined,
     nomZone: bon.nomZone,
     zoneId: bon.zoneId,
+    statutControle: bon.statutControle,
   };
 }
 
