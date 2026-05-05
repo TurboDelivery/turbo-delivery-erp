@@ -18,10 +18,9 @@ const getNextPage = (last: PaginatedResponse<BonLivraisonTerminee>) =>
 
 export const ticketsAuthentifiesQueryOption = (params: IVerrouillageParams = {}) => ({
   queryKey: ticketsV2KeyQuery(StatutControle.AUTHENTIFIE, params),
-  queryFn: ({ pageParam = 0 }: { pageParam: number }) =>
+  queryFn: async ({ pageParam = 0 }) =>
     listerTicketsParStatutRequest({ statuts: [StatutControle.AUTHENTIFIE], ...params, page: pageParam }),
   getNextPageParam: getNextPage,
-  initialPageParam: 0,
   staleTime: 30 * 1000,
   refetchOnWindowFocus: false,
   refetchOnMount: true,
@@ -40,16 +39,15 @@ export const useTicketsAuthentifiesQuery = (params: IVerrouillageParams = {}) =>
 };
 
 export const prefetchTicketsAuthentifiesQuery = (params: IVerrouillageParams = {}) =>
-  queryClient.prefetchInfiniteQuery({ ...ticketsAuthentifiesQueryOption(params), pages: 1 });
+  queryClient.prefetchInfiniteQuery(ticketsAuthentifiesQueryOption(params));
 
 // --- Colonne droite : tickets V1_VALIDÉS ---
 
 export const ticketsV1ValideQueryOption = (params: IVerrouillageParams = {}) => ({
   queryKey: ticketsV2KeyQuery(StatutControle.V1_VALIDE, params),
-  queryFn: ({ pageParam = 0 }: { pageParam: number }) =>
+  queryFn: async ({ pageParam = 0 }) =>
     listerTicketsParStatutRequest({ statuts: [StatutControle.V1_VALIDE], ...params, page: pageParam }),
   getNextPageParam: getNextPage,
-  initialPageParam: 0,
   staleTime: 30 * 1000,
   refetchOnWindowFocus: false,
   refetchOnMount: true,
@@ -68,4 +66,4 @@ export const useTicketsV1ValideQuery = (params: IVerrouillageParams = {}) => {
 };
 
 export const prefetchTicketsV1ValideQuery = (params: IVerrouillageParams = {}) =>
-  queryClient.prefetchInfiniteQuery({ ...ticketsV1ValideQueryOption(params), pages: 1 });
+  queryClient.prefetchInfiniteQuery(ticketsV1ValideQueryOption(params));
