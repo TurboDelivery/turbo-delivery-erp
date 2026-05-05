@@ -26,20 +26,21 @@ interface TicketTableProps {
   newTicketIds: Set<string>;
   livreurOptions: { value: string; label: string }[];
   restaurantOptions: { value: string; label: string }[];
+  isCreatingBonLivraison: boolean;
   onSaveNewTicket: (id: string) => void;
   onCancelNewTicket: (id: string) => void;
   onNewTicketChange: (id: string, field: keyof Ticket, value: string) => void;
   onNewTicketPatch: (id: string, patch: Partial<Ticket>) => void;
 }
 
-export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOptions, restaurantOptions, onSaveNewTicket, onCancelNewTicket, onNewTicketChange, onNewTicketPatch }: TicketTableProps) {
+export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOptions, restaurantOptions, isCreatingBonLivraison, onSaveNewTicket, onCancelNewTicket, onNewTicketChange, onNewTicketPatch }: TicketTableProps) {
   const {
     filters,
     setFilter,
     ticketsData,
     isLoading,
     infiniteState,
-    mutations: { isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison, isUpdatingBonLivraison },
+    mutations: { deleteBonLivraisonMutation, isDeletingBonLivraison, isUpdatingBonLivraison },
     editing,
   } = useTickets(restaurants);
 
@@ -120,10 +121,14 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
     getRowId: (row) => row.id,
   });
 
-  const selectedRowIds = table
-    .getFilteredSelectedRowModel()
-    .rows.map((r) => r.id)
-    .filter((id) => !newTicketIds.has(id));
+  const selectedRowIds = useMemo(
+    () =>
+      table
+        .getFilteredSelectedRowModel()
+        .rows.map((r) => r.id)
+        .filter((id) => !newTicketIds.has(id)),
+    [table, rowSelection, newTicketIds],
+  );
 
   const colsCount = table.getAllColumns().length;
 

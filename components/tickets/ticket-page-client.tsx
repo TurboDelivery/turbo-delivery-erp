@@ -16,7 +16,7 @@ interface TicketPageClientProps {
 export function TicketPageClient({ restaurants }: TicketPageClientProps) {
   const ability = useAbility();
   const { livreurs } = useLivreurs();
-  const { mutate: createBonLivraisonMutation } = useCreateBonLivraison();
+  const { mutate: createBonLivraisonMutation, isPending: isCreatingBonLivraison } = useCreateBonLivraison();
 
   const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
   const livreurOptions = useMemo(() => validLivreurs.map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
@@ -48,6 +48,7 @@ export function TicketPageClient({ restaurants }: TicketPageClientProps) {
         restaurantOptions={restaurantOptions}
         newTickets={newTickets}
         newTicketIds={newTicketIds}
+        isCreatingBonLivraison={isCreatingBonLivraison}
         onSaveNewTicket={handleSaveNewTicket}
         onCancelNewTicket={handleCancelNewTicket}
         onNewTicketChange={handleNewTicketChange}

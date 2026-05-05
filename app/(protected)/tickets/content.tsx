@@ -17,6 +17,7 @@ import { generatePdfTemplate, generateXlsTickets } from '@/features/tickets/util
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { CheckSquare, ChevronDown, File, FileText, Loader2, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
 import { useAbility } from '@/hooks/use-ability';
+import { useCreateBonLivraison } from '@/features/tickets/queries/tickets.mutation';
 
 type ExportFormat = 'csv' | 'excel' | 'pdf';
 interface ContentProps {
@@ -31,9 +32,10 @@ export default function Content({ restaurants, profile }: ContentProps) {
     ticketsData,
     isLoading,
     infiniteState,
-    mutations: { createBonLivraisonMutation, isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
+    mutations: { deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
     editing: { handleEditRow, editingIds, handleCancelEditRow, editedTickets, setEditedTickets },
   } = useTickets(restaurants);
+  const { mutate: createBonLivraisonMutation, isPending: isCreatingBonLivraison } = useCreateBonLivraison();
   const { livreurs } = useLivreurs();
 
   const [exportOpen, setExportOpen] = useState(false);

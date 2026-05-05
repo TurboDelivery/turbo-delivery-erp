@@ -3,7 +3,7 @@ import { useTicketFilters } from '@/features/tickets/hooks/use-ticket-filters';
 import { ITicketParams } from '@/features/tickets/types/tickets.type';
 import { bonLivraisonToTicket } from '@/src/actions/bonLivraison.mapper';
 import { useTicketsInfiniteQuery } from '@/features/tickets/queries/ticket-infinite.query';
-import { useCreateBonLivraison, useDeleteBonLivraison, useUpdateBonLivraison } from '@/features/tickets/queries/tickets.mutation';
+import { useDeleteBonLivraison, useUpdateBonLivraison } from '@/features/tickets/queries/tickets.mutation';
 import { Restaurant } from '@/types/models';
 import { useTicketEditing } from '@/features/tickets/hooks/use-ticket-editing';
 
@@ -23,7 +23,6 @@ export default function useTickets(restaurants: Restaurant[] = []) {
   const { data, isLoading, status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, isError, error } =
     useTicketsInfiniteQuery(currentSearchParams);
 
-  const { mutate: createBonLivraisonMutation, isPending: isCreatingBonLivraison } = useCreateBonLivraison();
   const { mutate: deleteBonLivraisonMutation, isPending: isDeletingBonLivraison } = useDeleteBonLivraison();
   const { mutate: updateBonLivraisonMutation, isPending: isUpdatingBonLivraison } = useUpdateBonLivraison();
 
@@ -49,7 +48,7 @@ export default function useTickets(restaurants: Restaurant[] = []) {
     isError,
     error,
     infiniteState: { status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, totalItems },
-    mutations: { createBonLivraisonMutation, isCreatingBonLivraison, deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
+    mutations: { deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
     editing,
   };
 }

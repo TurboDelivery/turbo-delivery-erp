@@ -1,5 +1,5 @@
 // features/tickets/hooks/use-ticket-editing.ts
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Ticket } from '@/types/bon-livraison.model';
 import { Restaurant } from '@/types/models';
 import { applyTicketPatch, getRestaurantInfo } from '@/features/tickets/utils/commission.utils';
@@ -61,7 +61,6 @@ export function useTicketEditing({ restaurants, ticketsData, updateBonLivraisonM
         { ticketId: id, ticket, restaurant: getRestaurantInfo(ticket.restaurantId, restaurants) },
         {
           onSuccess: () => {
-            setEditedTickets((prev) => { const m = new Map(prev); m.delete(id); return m; });
             handleCancelEditRow(id);
           },
         },
@@ -78,7 +77,7 @@ export function useTicketEditing({ restaurants, ticketsData, updateBonLivraisonM
     [editingIds, editedTickets],
   );
 
-  return {
+  return useMemo(() => ({
     editingIds,
     editedTickets,
     setEditedTickets,
@@ -88,5 +87,5 @@ export function useTicketEditing({ restaurants, ticketsData, updateBonLivraisonM
     handleTicketPatch,
     handleSaveRow,
     getDisplayTicket,
-  };
+  }), [editingIds, editedTickets, handleEditRow, handleCancelEditRow, handleTicketChange, handleTicketPatch, handleSaveRow, getDisplayTicket]);
 }
