@@ -43,6 +43,8 @@ const menuData: IMenuData[] = [
     children: [
       { icon: Lock, title: 'Verification V1', path: '/validation-tickets/verification-v1', can: { action: 'manage', subject: 'Ticket' } },
       { icon: Lock, title: 'Régularisation', path: '/validation-tickets/regularisation', can: { action: 'manage', subject: 'Ticket' } },
+      { icon: Receipt, title: 'Grille de paiement', path: '/validation-tickets/grille-de-paiement', can: { action: 'manage', subject: 'Ticket' } },
+      { icon: CheckCircle, title: 'Visa DGA', path: '/validation-tickets/visa-dga', can: { action: 'valider-dga', subject: 'Depense' } },
     ],
   },
   {

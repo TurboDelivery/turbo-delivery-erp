@@ -15,6 +15,21 @@ export async function getCreneauActifApi(): Promise<ICreneauActifVm | null> {
   }
 }
 
+export async function getCreneauxListApi(params?: {
+  page?: number;
+  size?: number;
+}): Promise<{ content: ICreneauActifVm[]; totalElements: number } | null> {
+  try {
+    return await apiClientHttp.request<{ content: ICreneauActifVm[]; totalElements: number }>({
+      endpoint: '/api/creneaux',
+      method: 'GET',
+      params: { page: String(params?.page ?? 0), size: String(params?.size ?? 50) },
+    });
+  } catch {
+    return null;
+  }
+}
+
 export interface ICreneauAPI {
   obtenirCreneauxSemaine(params?: ICreneauParams): Promise<PaginatedResponse<ICreneauTurboy>>;
   obtenirStats(params?: { semaine?: string }): Promise<ICreneauStats>;

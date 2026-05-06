@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { creneauAPI, getCreneauActifApi } from '../apis/creneau.api';
+import { creneauAPI, getCreneauActifApi, getCreneauxListApi } from '../apis/creneau.api';
 import { ICreneauParams, ICreneauAnalyseComparaison, ICreneauDashboardParams, ICreneauActifVm } from '../types/creneau.types';
 
 export const CRENEAU_ACTIF_KEY = ['creneau-actif'] as const;
@@ -14,6 +14,14 @@ export const useCreneauActifQuery = () =>
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
+  });
+
+export const useCreneauxListQuery = (size = 50) =>
+  useQuery({
+    queryKey: ['creneaux-list', size] as const,
+    queryFn: () => getCreneauxListApi({ page: 0, size }),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
 export const creneauKeys = {
