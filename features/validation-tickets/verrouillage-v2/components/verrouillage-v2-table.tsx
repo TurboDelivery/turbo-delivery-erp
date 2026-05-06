@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
-import DataTable from '@/components/ui/data-table';
+import { useMemo, useState } from 'react';
+import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-table';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import { buildVerrouillageV2Columns } from './verrouillage-v2-columns';
 
@@ -12,11 +13,25 @@ interface VerrouillageV2TableProps {
   onReject: (id: string) => void;
 }
 
+const PAGE_SIZE = 10;
+
 export function VerrouillageV2Table({ tickets, validatingId, onValidate, onReject }: VerrouillageV2TableProps) {
+  const [page, setPage] = useState(1);
+
+  const pageCount = Math.max(1, Math.ceil(tickets.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const paginatedTickets = tickets.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
   const columns = useMemo(
     () => buildVerrouillageV2Columns(onValidate, onReject, validatingId),
     [onValidate, onReject, validatingId],
   );
+
+  const table = useReactTable({
+    data: paginatedTickets,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
@@ -27,10 +42,37 @@ export function VerrouillageV2Table({ tickets, validatingId, onValidate, onRejec
         </div>
         <p className="text-xs text-gray-500">{tickets.length} ligne{tickets.length > 1 ? 's' : ''}</p>
       </div>
-      <DataTable.Root columns={columns} data={tickets}>
-        <DataTable.Table />
-        <DataTable.Pagination />
-      </DataTable.Root>
+      <div className="overflow-x-auto">
+        <Table
+          isStriped
+          bottomContent={
+            pageCount > 1 ? (
+              <div className="flex justify-center pt-4">
+                <Pagination total={pageCount} page={safePage} onChange={setPage} color="primary" />
+              </div>
+            ) : undefined
+          }
+        >
+          <TableHeader>
+            {table.getFlatHeaders().map((header) => (
+              <TableColumn key={header.id}>
+                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+              </TableColumn>
+            ))}
+          </TableHeader>
+          <TableBody emptyContent="Aucun ticket trouvé">
+            {table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
