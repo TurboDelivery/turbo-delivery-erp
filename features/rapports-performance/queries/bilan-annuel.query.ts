@@ -3,7 +3,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import getQueryClient from '@/lib/get-query-client';
 import { toast } from 'sonner';
-import { IBilanAnnuelParams } from '@/feature-finance/rapports-performance/types/bilan-annuel.type';
+import { IBilanAnnuelParams } from '@/features/rapports-performance/types/bilan-annuel.type';
 import { bilanAnnuelAPI } from '../apis/bilan-annuel.api';
 
 const queryClient = getQueryClient();

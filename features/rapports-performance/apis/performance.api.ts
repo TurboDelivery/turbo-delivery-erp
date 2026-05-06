@@ -1,5 +1,5 @@
 import { apiClientHttp } from '@/lib/api-client-http';
-import { IDashboardData, IPerformanceParams } from '@/feature-finance/rapports-performance/types/performance.type';
+import { IDashboardData, IPerformanceParams } from '@/features/rapports-performance/types/performance.type';
 
 export interface IPerformanceAPI {
   obtenirPerformance(params: IPerformanceParams): Promise<IDashboardData>;

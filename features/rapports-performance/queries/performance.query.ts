@@ -4,8 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import getQueryClient from '@/lib/get-query-client';
 import { performanceKeyQuery } from './index.query';
 import { toast } from 'sonner';
-import { obtenirPerformanceAction } from '@/feature-finance/rapports-performance/actions/performance.action';
-import { IPerformanceParams } from '@/feature-finance/rapports-performance/types/performance.type';
+import { obtenirPerformanceAction } from '@/features/rapports-performance/actions/performance.action';
+import { IPerformanceParams } from '@/features/rapports-performance/types/performance.type';
 import { performanceAPI } from '../apis/performance.api';
 
 const queryClient = getQueryClient();

@@ -1,9 +1,9 @@
 'use client';
 
 import { Card, CardBody } from '@heroui/react';
-import { IFinancialDetails } from '@/feature-finance/rapports-performance/types/performance.type';
+import { IFinancialDetails } from '@/features/rapports-performance/types/performance.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { FinancialDetailRow } from '@/feature-finance/rapports-performance/components/financial-detail-row';
+import { FinancialDetailRow } from '@/features/rapports-performance/components/financial-detail-row';
 
 interface FinancialDetailsSectionProps {
   financialDetails?: IFinancialDetails;

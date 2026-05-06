@@ -1,7 +1,7 @@
 ﻿'use client';
 
-import { usePerformanceStats } from '@/feature-finance/rapports-performance/hooks/use-performance-stats';
-import { usePerformanceFilters } from '@/feature-finance/rapports-performance/hooks/use-performance-filters';
+import { usePerformanceStats } from '@/features/rapports-performance/hooks/use-performance-stats';
+import { usePerformanceFilters } from '@/features/rapports-performance/hooks/use-performance-filters';
 import { useDefinedRestaurantsQuery } from '@/features/restaurants/queries/restaurants.query';
 import { toRestaurantOptions } from '@/features/restaurants';
 import { PerformanceHeader } from './performance-header';

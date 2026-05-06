@@ -1,6 +1,6 @@
-import { usePerformanceFilters } from '@/feature-finance/rapports-performance/hooks/use-performance-filters';
-import { usePerformanceQuery } from '@/feature-finance/rapports-performance/queries/performance.query';
-import { IPerformanceParams } from '@/feature-finance/rapports-performance/types/performance.type';
+import { usePerformanceFilters } from '@/features/rapports-performance/hooks/use-performance-filters';
+import { usePerformanceQuery } from '@/features/rapports-performance/queries/performance.query';
+import { IPerformanceParams } from '@/features/rapports-performance/types/performance.type';
 
 export const usePerformanceStats = () => {
   const { filters } = usePerformanceFilters();

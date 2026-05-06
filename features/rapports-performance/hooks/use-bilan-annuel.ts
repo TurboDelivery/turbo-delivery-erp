@@ -1,5 +1,5 @@
-import { useBilanAnnuelQuery } from '@/feature-finance/rapports-performance/queries/bilan-annuel.query';
-import { MonthKey, IMonthStats } from '@/feature-finance/rapports-performance/types/bilan-annuel.type';
+import { useBilanAnnuelQuery } from '@/features/rapports-performance/queries/bilan-annuel.query';
+import { MonthKey, IMonthStats } from '@/features/rapports-performance/types/bilan-annuel.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { formatNumber } from '@/utils/formatNumber';
 

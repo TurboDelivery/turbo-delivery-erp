@@ -2,7 +2,7 @@
 
 import { Clock, TrendingUp, Box } from 'lucide-react';
 import { Card, CardBody } from '@heroui/react';
-import { ISecondaryKPIs } from '@/feature-finance/rapports-performance/types/performance.type';
+import { ISecondaryKPIs } from '@/features/rapports-performance/types/performance.type';
 
 interface MiddleStatsSectionProps {
   secondaryKPIs?: ISecondaryKPIs;

@@ -2,7 +2,7 @@ import { apiClientHttp } from '@/lib/api-client-http';
 import {
   IBilanAnnuelParams,
   IBilanAnnuelResponse,
-} from '@/feature-finance/rapports-performance/types/bilan-annuel.type';
+} from '@/features/rapports-performance/types/bilan-annuel.type';
 
 export const bilanAnnuelAPI = {
   async obtenirBilanAnnuel(params: IBilanAnnuelParams): Promise<IBilanAnnuelResponse> {

@@ -1,4 +1,4 @@
-import DashboardPerformance from '@/feature-finance/rapports-performance/components/DashboardPerformance';
+import DashboardPerformance from '@/features/rapports-performance/components/DashboardPerformance';
 
 export default function DashboardPerformancePage() {
   return <DashboardPerformance />;

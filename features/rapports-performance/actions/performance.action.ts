@@ -1,8 +1,8 @@
 'use server';
 
 import { ActionResponse } from '@/types';
-import { IDashboardData, IPerformanceParams } from '@/feature-finance/rapports-performance/types/performance.type';
-import { performanceAPI } from '@/feature-finance/rapports-performance/apis/performance.api';
+import { IDashboardData, IPerformanceParams } from '@/features/rapports-performance/types/performance.type';
+import { performanceAPI } from '@/features/rapports-performance/apis/performance.api';
 import { handleServerActionError } from '@/utils/handleServerActionError';
 
 export const obtenirPerformanceAction = async (

@@ -4,8 +4,8 @@ import { ActionResponse } from '@/types';
 import {
   IBilanAnnuelParams,
   IBilanAnnuelResponse,
-} from '@/feature-finance/rapports-performance/types/bilan-annuel.type';
-import { bilanAnnuelAPI } from '@/feature-finance/rapports-performance/apis/bilan-annuel.api';
+} from '@/features/rapports-performance/types/bilan-annuel.type';
+import { bilanAnnuelAPI } from '@/features/rapports-performance/apis/bilan-annuel.api';
 import { handleServerActionError } from '@/utils/handleServerActionError';
 
 export const obtenirBilanAnnuelAction = async (

@@ -1,5 +1,5 @@
 import { useQueryStates } from 'nuqs';
-import { performanceFiltersClient } from '@/feature-finance/rapports-performance/filters/performance.filters';
+import { performanceFiltersClient } from '@/features/rapports-performance/filters/performance.filters';
 import { DateRange } from 'react-day-picker';
 
 export function usePerformanceFilters() {
