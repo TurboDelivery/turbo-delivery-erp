@@ -1,4 +1,4 @@
-import { VerrouillageV2Content } from '@/features/validation-tickets/verrouillage-v2/components/verrouillage-v2-content';
+import { VerrouillageV2Content } from '@/components/validation-tickets/verrouillage-v2/verrouillage-v2-content';
 
 export const dynamic = 'force-dynamic';
 

@@ -4,7 +4,7 @@ import { VerrouillageV2Stats } from './verrouillage-v2-stats';
 import { VerrouillageV2Table } from './verrouillage-v2-table';
 import { VerrouillageV2Footer } from './verrouillage-v2-footer';
 import { RejectMotifDialog } from './reject-motif-dialog';
-import { useVerrouillageV2Content } from '../hooks/use-verrouillage-v2-content';
+import { useVerrouillageV2Content } from '@/features/validation-tickets/verrouillage-v2/hooks/use-verrouillage-v2-content';
 
 export function VerrouillageV2Content() {
   const {
