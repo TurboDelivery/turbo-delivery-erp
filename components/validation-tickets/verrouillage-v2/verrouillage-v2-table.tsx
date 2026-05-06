@@ -3,11 +3,11 @@
 import { useMemo, useState } from 'react';
 import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-table';
 import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
-import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
+import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { buildVerrouillageV2Columns } from './verrouillage-v2-columns';
 
 interface VerrouillageV2TableProps {
-  tickets: BonLivraisonTerminee[];
+  tickets: TicketControleV2[];
   validatingId: string | null;
   onValidate: (id: string) => void;
   onReject: (id: string) => void;

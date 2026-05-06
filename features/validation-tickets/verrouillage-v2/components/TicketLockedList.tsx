@@ -1,11 +1,11 @@
 'use client';
 
 import { Lock } from 'lucide-react';
-import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
+import { TicketControleV2 } from '../types/tickets-v2.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 interface Props {
-  tickets: BonLivraisonTerminee[];
+  tickets: TicketControleV2[];
 }
 
 export default function TicketLockedList({ tickets }: Props) {

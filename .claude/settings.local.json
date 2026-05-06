@@ -85,7 +85,11 @@
       "Bash(echo \"exit: $?\")",
       "Bash(echo \"EXIT: $?\")",
       "Bash(echo \"residual: $?\")",
-      "mcp__MCP_DOCKER__get_open_in_editor_file_path"
+      "mcp__MCP_DOCKER__get_open_in_editor_file_path",
+      "Bash(curl -s \"https://backend-prod.turbodeliveryapp.com/v3/api-docs\" -o /tmp/api-docs.json)",
+      "Bash(curl -s \"https://backend-prod.turbodeliveryapp.com/v3/api-docs\")",
+      "Bash(Get-Item 'C:/Users/kouax/AppData/Local/Temp/api-docs.json')",
+      "Bash(echo \"Done: $\\(Get-Item 'C:/Users/kouax/AppData/Local/Temp/api-docs.json')"
     ]
   }
 }

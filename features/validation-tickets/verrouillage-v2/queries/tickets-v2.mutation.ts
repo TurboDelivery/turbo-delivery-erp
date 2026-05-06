@@ -3,7 +3,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useInvalidateTicketsV2Query } from './index.query';
-import { validerV1Ticket, validerV2Ticket, rejeterTicketPourFraude } from '@/src/actions/bon-commande.action';
+import { validerV1Ticket, validerV2Ticket, validerV2EnMasseTicket, rejeterTicketPourFraude } from '@/src/actions/bon-commande.action';
 
 export const useValiderV1Mutation = () => {
   const invalidate = useInvalidateTicketsV2Query();
@@ -39,6 +39,26 @@ export const useValiderV2Mutation = () => {
     },
     onError: (error) => {
       toast.error('Erreur lors de la validation V2', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+export const useValiderV2EnMasseMutation = () => {
+  const invalidate = useInvalidateTicketsV2Query();
+
+  return useMutation({
+    mutationFn: async () => {
+      const result = await validerV2EnMasseTicket();
+      if (!result.success) throw new Error(result.error as string);
+    },
+    onSuccess: async () => {
+      await invalidate();
+      toast.success('Tous les tickets ont été validés V2.');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors de la validation V2 en masse', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },

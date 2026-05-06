@@ -1,10 +1,10 @@
 'use client';
 
 import TicketReadyCard from './TicketReadyCard';
-import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
+import { TicketControleV2 } from '../types/tickets-v2.type';
 
 interface Props {
-  tickets: BonLivraisonTerminee[];
+  tickets: TicketControleV2[];
   onLock: (ticketId: string) => void;
 }
 

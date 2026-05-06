@@ -10,12 +10,13 @@ export function VerrouillageV2Content() {
   const {
     tickets,
     isLoading,
+    ticketStats,
+    isStatsLoading,
     validatingId,
-    isValidating,
+    isValidatingAll,
     isRejecting,
     rejectDialogId,
     setRejectDialogId,
-    creneauActif,
     handleValidate,
     handleReject,
     handleValidateAll,
@@ -39,8 +40,8 @@ export function VerrouillageV2Content() {
       </div>
 
       <VerrouillageV2Stats
-        tickets={tickets}
-        ticketsPending={creneauActif?.nbTicketsPending ?? 0}
+        stats={ticketStats}
+        isLoading={isStatsLoading}
       />
 
       <VerrouillageV2Table
@@ -52,7 +53,7 @@ export function VerrouillageV2Content() {
 
       <VerrouillageV2Footer
         ticketCount={tickets.length}
-        isValidating={isValidating}
+        isValidating={isValidatingAll}
         onValidateAll={handleValidateAll}
       />
 

@@ -3,11 +3,11 @@
 import { Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
+import { TicketControleV2 } from '../types/tickets-v2.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 interface Props {
-  ticket: BonLivraisonTerminee;
+  ticket: TicketControleV2;
   onLock: (ticketId: string) => void;
 }
 

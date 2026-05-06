@@ -119,6 +119,15 @@ export async function validerV2Request(ticketId: string, userId: string): Promis
   });
 }
 
+export async function validerV2EnMasseRequest(userId: string): Promise<void> {
+  return await apiClientHttp.request<void>({
+    endpoint: `/api/tickets/valider-v2-en-masse`,
+    method: 'POST',
+    service: 'backend',
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
 export async function approuverTicketRequest(ticketId: string, userId: string): Promise<void> {
   return await apiClientHttp.request<void>({
     endpoint: `/api/tickets/${ticketId}/approuver`,
@@ -135,6 +144,14 @@ export async function rejeterFraudeRequest(ticketId: string, userId: string, mot
     service: 'backend',
     data: { motif },
     config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
+export async function getCreneauTicketStatsRequest(creneauId?: string): Promise<import('@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type').CreneauTicketStatsVm> {
+  return await apiClientHttp.request({
+    endpoint: '/api/creneaux/tickets/stats',
+    method: 'GET',
+    params: creneauId ? { id: creneauId } : undefined,
   });
 }
 
