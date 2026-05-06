@@ -1,9 +1,9 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useDepenseSummaryQuery } from '@/feature-finance/depenses/queries/depense-summary.query';
+import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { TrendingUp } from 'lucide-react';
 
@@ -21,7 +21,7 @@ export function DepenseSummaryPieChartTable({
   fin, 
   categoriesDepense 
 }: DepenseSummaryPieChartTableProps) {
-  // ✅ Utiliser les filtres du tableau
+  // âœ… Utiliser les filtres du tableau
   const currentSearchParams = {
     debut,
     fin,
@@ -37,12 +37,12 @@ export function DepenseSummaryPieChartTable({
 
   const dataForChart = data ? [
     {
-      name: 'Récurrentes',
+      name: 'RÃ©currentes',
       value: data.totalRecurrentes,
       color: COLORS.recurrentes,
     },
     {
-      name: 'Non Récurrentes',
+      name: 'Non RÃ©currentes',
       value: data.totalNonRecurrentes,
       color: COLORS.nonRecurrentes,
     },
@@ -90,7 +90,7 @@ export function DepenseSummaryPieChartTable({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Répartition des Dépenses
+            RÃ©partition des DÃ©penses
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -108,12 +108,12 @@ export function DepenseSummaryPieChartTable({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            Répartition des Dépenses
+            RÃ©partition des DÃ©penses
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center">
-            <p className="text-gray-500">Erreur lors du chargement des données</p>
+            <p className="text-gray-500">Erreur lors du chargement des donnÃ©es</p>
           </div>
         </CardContent>
       </Card>
@@ -127,7 +127,7 @@ export function DepenseSummaryPieChartTable({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
-          Répartition des Dépenses
+          RÃ©partition des DÃ©penses
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -143,7 +143,7 @@ export function DepenseSummaryPieChartTable({
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
-                aria-label="Répartition des dépenses entre récurrentes et non récurrentes"
+                aria-label="RÃ©partition des dÃ©penses entre rÃ©currentes et non rÃ©currentes"
                 role="img"
               >
                 {dataForChart.map((entry, index) => (
@@ -163,16 +163,16 @@ export function DepenseSummaryPieChartTable({
                     {value}: {formatCFA(entry.payload.value)}
                   </span>
                 )}
-                aria-label="Légende du graphique de répartition des dépenses"
+                aria-label="LÃ©gende du graphique de rÃ©partition des dÃ©penses"
               />
             </PieChart>
           </ResponsiveContainer>
         </div>
         
-        {/* Résumé des montants */}
+        {/* RÃ©sumÃ© des montants */}
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-green-50 rounded-lg">
-            <p className="text-sm text-green-600 font-medium">Récurrentes</p>
+            <p className="text-sm text-green-600 font-medium">RÃ©currentes</p>
             <p className="text-lg font-bold text-green-700">
               {formatCFA(data.totalRecurrentes)}
             </p>
@@ -181,7 +181,7 @@ export function DepenseSummaryPieChartTable({
             </p>
           </div>
           <div className="text-center p-3 bg-amber-50 rounded-lg">
-            <p className="text-sm text-amber-600 font-medium">Non Récurrentes</p>
+            <p className="text-sm text-amber-600 font-medium">Non RÃ©currentes</p>
             <p className="text-lg font-bold text-amber-700">
               {formatCFA(data.totalNonRecurrentes)}
             </p>
@@ -194,3 +194,4 @@ export function DepenseSummaryPieChartTable({
     </Card>
   );
 }
+

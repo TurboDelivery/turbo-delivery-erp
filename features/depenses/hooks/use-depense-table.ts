@@ -1,4 +1,4 @@
-import { useDepensesListQuery } from '@/feature-finance/depenses/queries/depense-list.query';
+﻿import { useDepensesListQuery } from '@/features/depenses/queries/depense-list.query';
 import { type GenericTableFilters } from '@/hooks/use-generic-table';
 import { depenseColumns } from '@/components/depenses/depense-table/depense-columns';
 import React, { useMemo, useState } from 'react';
@@ -55,7 +55,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
       limit: currentFilters?.limit ?? 20,
       debut: currentFilters.debut,
       fin: currentFilters.fin,
-      // Envoyer les filtres de catégories au backend
+      // Envoyer les filtres de catÃ©gories au backend
       categoriesDepense: currentFilters.categoriesDepense || undefined,
       typeDepense: currentFilters.typeDepense,
       orderBy: currentFilters.orderBy,
@@ -169,3 +169,4 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
     handleDateChange,
   };
 };
+

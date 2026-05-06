@@ -1,34 +1,34 @@
-'use client';
+﻿'use client';
 
 import { useDepenseTable } from '@/features/depenses/hooks/use-depense-table';
 import { depenseColumns } from '@/components/depenses/depense-table/depense-columns';
-import { CreerDepenseModal } from '@/feature-finance/depenses/components/depense-list/creer-depense';
+import { CreerDepenseModal } from '@/features/depenses/components/depense-list/creer-depense';
 import React from 'react';
 import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
 import { Card, CardContent } from '@/components/ui/card';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
-import { useDepenseStatsQuery } from '@/feature-finance/depenses/queries/depense-stats.query'; // ✅ AJOUTÉ: Import manquant
+import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.query'; // âœ… AJOUTÃ‰: Import manquant
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { DollarSign } from 'lucide-react';
 
 export function DepenseTable() {
   const { table, isLoading, isFetching, pagination, filters, setSelectedCategories, handleDateChange } = useDepenseTable();
 
-  // ✅ AJOUTÉ: Utiliser les filtres du tableau pour les stats
+  // âœ… AJOUTÃ‰: Utiliser les filtres du tableau pour les stats
   const currentSearchParams = {
     debut: filters.debut,
     fin: filters.fin,
-    categoriesDepense: filters.categoriesDepense || undefined, // ✅ Convertir null en undefined
+    categoriesDepense: filters.categoriesDepense || undefined, // âœ… Convertir null en undefined
   };
 
-  // ✅ AJOUTÉ: Utiliser les mêmes filtres pour les stats
+  // âœ… AJOUTÃ‰: Utiliser les mÃªmes filtres pour les stats
   const { data: statsData, isLoading: statsLoading } = useDepenseStatsQuery(currentSearchParams);
 
   return (
     <div className="space-y-6">
-      {/* ✅ AJOUTÉ: Carte de statistiques pour le montant total filtré */}
+      {/* âœ… AJOUTÃ‰: Carte de statistiques pour le montant total filtrÃ© */}
       <Card className="flex flex-col gap-4">
         <CardContent>
           <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
@@ -44,7 +44,7 @@ export function DepenseTable() {
               </div>
               <div className="text-right">
                 <p className="text-xs text-green-600">
-                  {statsData?.nombre_depenses || 0} dépense{(statsData?.nombre_depenses || 0) > 1 ? 's' : ''}
+                  {statsData?.nombre_depenses || 0} dÃ©pense{(statsData?.nombre_depenses || 0) > 1 ? 's' : ''}
                 </p>
               </div>
             </div>
@@ -52,7 +52,7 @@ export function DepenseTable() {
         </CardContent>
       </Card>
 
-      {/* Tableau des dépenses */}
+      {/* Tableau des dÃ©penses */}
       <Card className="flex flex-col gap-4">
         <CardContent>
           <div className="overflow-x-auto">
@@ -106,3 +106,4 @@ export function DepenseTable() {
     </div>
   );
 }
+

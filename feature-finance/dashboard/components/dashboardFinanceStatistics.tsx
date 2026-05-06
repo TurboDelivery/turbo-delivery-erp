@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
 import { ArrowDown, Banknote, Clock, DollarSign, TrendingUp } from 'lucide-react';
@@ -10,11 +10,11 @@ import { endOfMonth, startOfMonth } from 'date-fns';
 import CACard from './ca-card';
 import FinanceHighlightCard from './finance-highlight-card';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { useDepenseSummaryQuery } from '@/feature-finance/depenses/queries/depense-summary.query';
+import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
 import { useFinanceResumeQuery } from '@/feature-finance/dashboard/queries/finance-resume.query';
 
 export default function DashboardFinanceStatistics() {
-  // État pour le filtre par plage de dates
+  // Ã‰tat pour le filtre par plage de dates
   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
     const now = new Date();
     return {
@@ -27,13 +27,13 @@ export default function DashboardFinanceStatistics() {
   const fin = dateRange?.to;
   const queryParams = useMemo(() => ({ debut, fin }), [debut, fin]);
 
-  // Utiliser React Query pour les données globales
+  // Utiliser React Query pour les donnÃ©es globales
   const { data: globalStats, isLoading } = useGlobalStats(queryParams);
 
   const { data: depenseSummary } = useDepenseSummaryQuery(queryParams);
   const { data: resume } = useFinanceResumeQuery(queryParams);
 
-  // Utiliser les données de l'API globale pour les statistiques
+  // Utiliser les donnÃ©es de l'API globale pour les statistiques
   const chiffreAffaires = globalStats?.chiffreAffaire ?? 0;
   const fraisLivraison = globalStats?.fraisLivraison ?? 0;
   const commissions = globalStats?.commission ?? 0;
@@ -42,7 +42,7 @@ export default function DashboardFinanceStatistics() {
   const sommeDepenses = totalNonRecurrentes + totalRecurrentes;
   const marge = chiffreAffaires - sommeDepenses;
   const isDeficit = marge < 0;
-  const margeStateLabel = isDeficit ? 'Déficit' : 'Excédent';
+  const margeStateLabel = isDeficit ? 'DÃ©ficit' : 'ExcÃ©dent';
   const margeStateClassName = isDeficit ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700';
   const formattedDepenses = formatCFA(sommeDepenses);
   const formattedMarge = formatCFA(marge);
@@ -51,12 +51,12 @@ export default function DashboardFinanceStatistics() {
   //   const investissement = globalStats?.investissement || 0;
 
   // Titre dynamique pour la carte CA
-  const caTitle = dateRange ? 'CA de la Période' : 'CA du Mois';
+  const caTitle = dateRange ? 'CA de la PÃ©riode' : 'CA du Mois';
 
   // Hook pour l'exportation Excel du CA
   const { exportCAToExcel, isLoadingCAExport } = useCAExport();
 
-  // Fonction pour télécharger les détails du CA en Excel
+  // Fonction pour tÃ©lÃ©charger les dÃ©tails du CA en Excel
   const handleDownloadDetails = useCallback(() => {
     if (!debut || !fin || debut > fin) {
       return;
@@ -81,7 +81,7 @@ export default function DashboardFinanceStatistics() {
 
   return (
     <div className="w-full px-4 py-6">
-      {/* En-tête avec filtre */}
+      {/* En-tÃªte avec filtre */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 bg-white">
         <h2 className="text-xl sm:text-2xl 2xl:text-3xl font-bold text-gray-800">Tableau de bord financier</h2>
         <DateFilterInput filters={dateFilters} handleDateChange={setDateRange} />
@@ -104,7 +104,7 @@ export default function DashboardFinanceStatistics() {
 
         <div className="flex max-md:flex-col items-center justify-between gap-4">
           <FinanceHighlightCard
-            title="Revenus encaissés"
+            title="Revenus encaissÃ©s"
             value={formatCFA(resume?.totalRevenus ?? 0)}
             icon={Banknote}
             tone="blue"
@@ -124,7 +124,7 @@ export default function DashboardFinanceStatistics() {
         </div>
 
         <div className="flex max-md:flex-col items-center justify-between gap-4">
-          <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/charges" ariaLabel="Voir la liste des dépenses">
+          <FinanceHighlightCard title="Total dÃ©penses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/charges" ariaLabel="Voir la liste des dÃ©penses">
             <div className="flex flex-col gap-0.5">
               <div className="bg-red-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium 2xl:text-lg">
                 <span>Charges fixes</span>
@@ -145,3 +145,4 @@ export default function DashboardFinanceStatistics() {
     </div>
   );
 }
+

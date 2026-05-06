@@ -1,15 +1,15 @@
-import { ColumnDef } from '@tanstack/react-table';
+﻿import { ColumnDef } from '@tanstack/react-table';
 import { IDepense } from '@/features/depenses/types/depense.type';
 import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ModifierDepenseModal } from '@/feature-finance/depenses/components/modifier/modifier-depenses-modal';
-import SupprimerDepenseModal from '@/feature-finance/depenses/components/supprimer/suprime-depense';
+import { ModifierDepenseModal } from '@/features/depenses/components/modifier/modifier-depenses-modal';
+import SupprimerDepenseModal from '@/features/depenses/components/supprimer/suprime-depense';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 
-// Fonction pour formater le type de dépense
+// Fonction pour formater le type de dÃ©pense
 const formatTypeDepense = (typeDepense: string | null | undefined): {
   label: string;
   variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'square' | null | undefined;
@@ -30,7 +30,7 @@ const formatTypeDepense = (typeDepense: string | null | undefined): {
   }
 };
 
-// Composant mémorisé pour les actions
+// Composant mÃ©morisÃ© pour les actions
 const DepenseActions = React.memo(({ depense }: { depense: IDepense }) => {
   return (
     <DropdownMenu>
@@ -87,14 +87,14 @@ export const depenseColumns: ColumnDef<IDepense>[] = [
   {
     id: 'categorie',
     accessorFn: (row) => row.categorie?.nomCategorie ?? '',
-    header: 'Catégorie',
+    header: 'CatÃ©gorie',
     cell: ({ row }) => row.original.categorie?.nomCategorie ?? '-',
     enableSorting: false,
   },
   {
     id: 'typeDepense',
     accessorKey: 'typeDepense',
-    header: 'Type de dépense',
+    header: 'Type de dÃ©pense',
     cell: ({ row }) => {
       const typeInfo = formatTypeDepense(row.original.typeDepense);
       return (
@@ -121,3 +121,4 @@ export const depenseColumns: ColumnDef<IDepense>[] = [
     enableSorting: false,
   },
 ];
+

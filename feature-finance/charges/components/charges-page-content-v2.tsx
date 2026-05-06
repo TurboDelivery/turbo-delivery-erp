@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronDown, FileDown, Plus } from 'lucide-react';
@@ -13,9 +13,9 @@ import { IChargeVariable } from '../types/charge-variable.type';
 import ChargesStatsCardsV2 from './statistiques/charges-stats-cards-v2';
 import ChargesTableV2 from './charges-table-v2';
 import { ChargesModals } from './charges-modals';
-import { CategorieDepenseList } from '@/feature-finance/depenses/components/depense-list/categorie-depense';
+import { CategorieDepenseList } from '@/features/depenses/components/depense-list/categorie-depense';
 import { buildMonthOptions, monthKeyToRange, rangeToMonthKey } from '../utils/month-filter.utils';
-import RepartitionDepense from '@/feature-finance/depenses/components/repartition';
+import RepartitionDepense from '@/features/depenses/components/repartition';
 import { useDepenseExport } from '@/features/depenses/hooks/use-depense-export';
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
@@ -88,14 +88,14 @@ export default function ChargesPageContentV2() {
           <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3">
             <ArrowLeft size={16} />
           </button>
-          <h1 className="text-2xl font-bold text-gray-900">Finance — Charges & Dépenses</h1>
-          <p className="text-sm text-gray-500 mt-1">Pilotage de la rentabilité en temps réel</p>
+          <h1 className="text-2xl font-bold text-gray-900">Finance â€” Charges & DÃ©penses</h1>
+          <p className="text-sm text-gray-500 mt-1">Pilotage de la rentabilitÃ© en temps rÃ©el</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button color="success" variant="flat" size="sm" isLoading={isLoadingDepenseExport} onPress={handleExport} startContent={!isLoadingDepenseExport && <FileDown size={16} />}>
             {isLoadingDepenseExport ? 'Exportation...' : 'Exporter (Excel)'}
           </Button>
-          <Select selectedKeys={[selectedMonth]} onSelectionChange={handleMonthChange} className="w-full sm:w-[280px]" size="sm" aria-label="Période">
+          <Select selectedKeys={[selectedMonth]} onSelectionChange={handleMonthChange} className="w-full sm:w-[280px]" size="sm" aria-label="PÃ©riode">
             {monthOptions.map((m) => (
               <SelectItem key={m.key} value={m.key}>
                 {m.label}
@@ -109,17 +109,17 @@ export default function ChargesPageContentV2() {
       <ChargesStatsCardsV2 stats={stats} isLoading={isStatsLoading} selectedMonth={selectedMonth} />
       <RepartitionDepense debut={filterDates.debut} fin={filterDates.fin} />
 
-      {/* Filtre par catégories */}
+      {/* Filtre par catÃ©gories */}
       <div className="flex flex-wrap items-center gap-2">
         <CategoriesSelectFilter selectedCategories={depenseFilters.categoriesDepense || []} onCategoriesChange={handleCategoriesChange} />
       </div>
 
-      {/* Tabs: Charges & Catégories */}
+      {/* Tabs: Charges & CatÃ©gories */}
       <Tabs defaultValue="charges" className="w-full">
         <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-2 h-auto p-1">
           <TabsTrigger value="charges">Charges Fixes</TabsTrigger>
-          <TabsTrigger value="variables">Dépenses Variables</TabsTrigger>
-          <TabsTrigger value="categories">Catégories</TabsTrigger>
+          <TabsTrigger value="variables">DÃ©penses Variables</TabsTrigger>
+          <TabsTrigger value="categories">CatÃ©gories</TabsTrigger>
         </TabsList>
 
         <TabsContent value="charges">
@@ -199,7 +199,7 @@ function ChargesFixesSection({
           </Button>
         </Can>
       </div>
-      <ChargesTableV2 table={table} isLoading={isLoading} emptyMessage="Aucune charge fixe configurée" getRowClassName={(row: IChargeFixe) => (row.automatique ? 'bg-green-100' : '')} />
+      <ChargesTableV2 table={table} isLoading={isLoading} emptyMessage="Aucune charge fixe configurÃ©e" getRowClassName={(row: IChargeFixe) => (row.automatique ? 'bg-green-100' : '')} />
       <div className="py-3 text-center border-t">
         <Link href="/finance/charges/details?tab=fixes" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
           <ChevronDown size={14} /> Voir plus ({remainingCount} restantes)
@@ -223,14 +223,14 @@ function DepensesVariablesSection({
   return (
     <Card className="border shadow-none overflow-hidden">
       <div className="p-4 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-semibold text-gray-900">Dépenses Variables</h2>
+        <h2 className="text-base font-semibold text-gray-900">DÃ©penses Variables</h2>
         <Can I="create" a="ChargeVariable">
           <Button color="danger" size="sm" startContent={<Plus size={16} />} onPress={onAdd}>
-            Nouvelle dépense
+            Nouvelle dÃ©pense
           </Button>
         </Can>
       </div>
-      <ChargesTableV2 table={table} isLoading={isLoading} emptyMessage="Aucune dépense variable" />
+      <ChargesTableV2 table={table} isLoading={isLoading} emptyMessage="Aucune dÃ©pense variable" />
       <div className="py-3 text-center border-t">
         <Link href="/finance/charges/details?tab=variables" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
           <ChevronDown size={14} /> Voir plus ({remainingCount} restantes)
@@ -239,3 +239,4 @@ function DepensesVariablesSection({
     </Card>
   );
 }
+

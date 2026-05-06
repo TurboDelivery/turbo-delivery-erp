@@ -5,7 +5,7 @@ import { endOfMonth, startOfMonth } from 'date-fns';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { useLivraisonList } from '@/features/revenus/hooks/use-livraison-list';
-import { useDepensesListQuery } from '@/feature-finance/depenses/queries/depense-list.query';
+import { useDepensesListQuery } from '@/features/depenses/queries/depense-list.query';
 import { useCommissionPourcentageList } from '@/features/revenus/hooks/use-commissionpourcentage-list';
 import { useInvestissementList } from '@/features/revenus/hooks/use-investissement-list';
 
@@ -135,3 +135,4 @@ export function RepartionPieDonut() {
     </Card>
   );
 }
+
