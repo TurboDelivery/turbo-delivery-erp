@@ -9,7 +9,7 @@ import axios from 'axios';
 import { ApiResult } from '@/types/general';
 import { handleApiError } from '@/utils/handle-api-error';
 import { auth } from '@/auth';
-import { authentifierTicketRequest, validerV1Request, approuverTicketRequest, rejeterFraudeRequest } from '@/features/tickets/request/tickets.request';
+import { authentifierTicketRequest, validerV1Request, validerV2Request, approuverTicketRequest, rejeterFraudeRequest } from '@/features/tickets/request/tickets.request';
 // Configuration
 const BASE_URL = '/api/erp/bon-livraison';
 const BASE_URL_2 = '/api/export/reporting';
@@ -228,6 +228,21 @@ export async function validerV1Ticket(ticketId: string): Promise<ApiResult<void>
     return { success: true, message: 'Ticket validé V1 avec succès' };
   } catch (error) {
     return handleApiError(error, 'Erreur lors de la validation V1 du ticket');
+  }
+}
+
+/**
+ * Valider V2 un ticket (Responsable V&A — verrouillage irréversible)
+ */
+export async function validerV2Ticket(ticketId: string): Promise<ApiResult<void>> {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Utilisateur non authentifié');
+    await validerV2Request(ticketId, userId);
+    return { success: true, message: 'Ticket validé V2 avec succès' };
+  } catch (error) {
+    return handleApiError(error, 'Erreur lors de la validation V2 du ticket');
   }
 }
 

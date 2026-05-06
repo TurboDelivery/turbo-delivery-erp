@@ -110,6 +110,15 @@ export async function validerV1Request(ticketId: string, userId: string): Promis
   });
 }
 
+export async function validerV2Request(ticketId: string, userId: string): Promise<void> {
+  return await apiClientHttp.request<void>({
+    endpoint: `/api/tickets/${ticketId}/valider-v2`,
+    method: 'POST',
+    service: 'backend',
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
 export async function approuverTicketRequest(ticketId: string, userId: string): Promise<void> {
   return await apiClientHttp.request<void>({
     endpoint: `/api/tickets/${ticketId}/approuver`,
