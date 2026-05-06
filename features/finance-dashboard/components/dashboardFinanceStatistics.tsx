@@ -2,8 +2,8 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import { ArrowDown, Banknote, Clock, DollarSign, TrendingUp } from 'lucide-react';
-import { useCAExport } from '@/feature-finance/dashboard/hooks/use-ca-export';
-import { useGlobalStats } from '@/feature-finance/dashboard/queries/global-stats.query';
+import { useCAExport } from '@/features/finance-dashboard/hooks/use-ca-export';
+import { useGlobalStats } from '@/features/finance-dashboard/queries/global-stats.query';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { DateRange } from 'react-day-picker';
 import { endOfMonth, startOfMonth } from 'date-fns';
@@ -11,7 +11,7 @@ import CACard from './ca-card';
 import FinanceHighlightCard from './finance-highlight-card';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
-import { useFinanceResumeQuery } from '@/feature-finance/dashboard/queries/finance-resume.query';
+import { useFinanceResumeQuery } from '@/features/finance-dashboard/queries/finance-resume.query';
 
 export default function DashboardFinanceStatistics() {
   // Ã‰tat pour le filtre par plage de dates

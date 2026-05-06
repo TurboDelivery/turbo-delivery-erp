@@ -1,7 +1,7 @@
-import { useMutation } from '@tanstack/react-query';
+﻿import { useMutation } from '@tanstack/react-query';
 import { IRestaurantRecouvrementSearchParams } from '@/features/recouvrements/types/restaurant-recouvrement.types';
 import { obtenirRestaurantRecouvrementsRequest } from '@/features/recouvrements/requests/recouvrements.request';
-import { generateCAExcelTemplate } from '@/feature-finance/dashboard/utils/ca-export.utils';
+import { generateCAExcelTemplate } from '@/features/finance-dashboard/utils/ca-export.utils';
 import { startOfMonth } from 'date-fns';
 
 interface UseCAExportParams {
