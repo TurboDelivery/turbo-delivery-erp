@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Bar, BarChart, XAxis } from "recharts"
 import { useMemo } from "react"
@@ -18,10 +18,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { useLivraisonList } from "@/feature-finance/revenus/hooks/use-livraison-list"
+import { useLivraisonList } from "@/features/revenus/hooks/use-livraison-list"
 import { useDepensesListQuery } from "@/feature-finance/depenses/queries/depense-list.query"
-import { useCommissionPourcentageList } from "@/feature-finance/revenus/hooks/use-commissionpourcentage-list"
-import { useInvestissementList } from "@/feature-finance/revenus/hooks/use-investissement-list"
+import { useCommissionPourcentageList } from "@/features/revenus/hooks/use-commissionpourcentage-list"
+import { useInvestissementList } from "@/features/revenus/hooks/use-investissement-list"
 
 export const description = "A stacked bar chart with a legend"
 export const iframeHeight = "600px"

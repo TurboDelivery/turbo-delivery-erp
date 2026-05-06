@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 import {
     useQuery,
@@ -6,7 +6,7 @@ import {
 import getQueryClient from '@/lib/get-query-client';
 import { toast } from 'sonner';
 import { recouvrementKeyQuery } from './index.query';
-import { obtenirRecouvrementDetailAction } from '@/feature-finance/revenus/actions/recouvrement/recouvrement.action';
+import { obtenirRecouvrementDetailAction } from '@/features/revenus/actions/recouvrement/recouvrement.action';
 
 const queryClient = getQueryClient();
 

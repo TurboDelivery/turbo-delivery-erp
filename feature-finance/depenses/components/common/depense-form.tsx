@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { ICategorieDepense } from '@/features/depenses/types/categorie-depense.type';
-import { IInvestissement } from '../../../revenus/types/revenus.types';
+import { IInvestissement } from '@/features/revenus/types/revenus.types';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';

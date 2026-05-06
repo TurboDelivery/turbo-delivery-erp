@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useInvalidateRecouvrementQuery } from './index.query';
-import { RecouvrementCreateDTO, RecouvrementEditDTO } from '@/feature-finance/revenus/schemas/recouvrement/recouvrement.schema';
-import { supprimerRecouvrementAction } from '@/feature-finance/revenus/actions/recouvrement/recouvrement.action';
+import { RecouvrementCreateDTO, RecouvrementEditDTO } from '@/features/revenus/schemas/recouvrement/recouvrement.schema';
+import { supprimerRecouvrementAction } from '@/features/revenus/actions/recouvrement/recouvrement.action';
 import { recouvrementAPI } from '../apis/recouvrement.api';
 
 interface RecouvrementSubmissionData extends RecouvrementCreateDTO {

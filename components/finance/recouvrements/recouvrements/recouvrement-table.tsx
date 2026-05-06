@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useRecouvrementTable } from '@/features/recouvrements/hooks/use-recouvrement-table';
@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from 
 import { Pagination } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
 import { RestaurantSelect } from '../common/restaurant-select';
-import { CreerRecouvrementModal } from '@/feature-finance/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';
+import { CreerRecouvrementModal } from '@/features/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';
 
 interface RecouvrementTableProps {
   restoOpts: Array<{ value: string; label: string }>;

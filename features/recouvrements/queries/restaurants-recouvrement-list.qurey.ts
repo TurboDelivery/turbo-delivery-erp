@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 import getQueryClient from '@/lib/get-query-client';
@@ -6,8 +6,8 @@ import { recouvrementKeyQuery } from './index.query';
 import { toast } from 'sonner';
 import { obtenirRestaurantRecouvrementsRequest } from '@/features/recouvrements/requests/recouvrements.request';
 import { IRestaurantRecouvrementSearchParams } from '@/features/recouvrements/types/restaurant-recouvrement.types';
-import { IRecouvrement } from '@/feature-finance/revenus/types/recouvrement/recouvrement.types';
-import { obtenirRecouvrementsRestaurantAction } from '@/feature-finance/revenus/actions/recouvrement/prets.action';
+import { IRecouvrement } from '@/features/revenus/types/recouvrement/recouvrement.types';
+import { obtenirRecouvrementsRestaurantAction } from '@/features/revenus/actions/recouvrement/prets.action';
 
 const queryClient = getQueryClient();
 

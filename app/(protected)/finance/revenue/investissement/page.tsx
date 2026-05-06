@@ -1,6 +1,6 @@
-import InvestissementStatsBar from '@/feature-finance/revenus/components/cumul/investissement/stats/investissement-stats-bar';
-import InvestissementAnalyse from '@/feature-finance/revenus/components/cumul/investissement/analyse';
-import InvestissementList from '@/feature-finance/revenus/components/cumul/investissement/invest-list/invest-list';
+﻿import InvestissementStatsBar from '@/features/revenus/components/cumul/investissement/stats/investissement-stats-bar';
+import InvestissementAnalyse from '@/features/revenus/components/cumul/investissement/analyse';
+import InvestissementList from '@/features/revenus/components/cumul/investissement/invest-list/invest-list';
 import RevenusHeader from '@/components/components-finance/revenus/header';
 
 export default function RevenueInvestissementPage() {

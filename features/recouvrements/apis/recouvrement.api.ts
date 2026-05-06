@@ -1,7 +1,7 @@
-import { PaginatedResponse } from '@/types';
+﻿import { PaginatedResponse } from '@/types';
 import { api } from '@/lib/api';
 import { SearchParams } from 'ak-api-http';
-import { IRecouvrement, IRecouvrementParams } from '@/feature-finance/revenus/types/recouvrement/recouvrement.types';
+import { IRecouvrement, IRecouvrementParams } from '@/features/revenus/types/recouvrement/recouvrement.types';
 import { IRestaurantRecouvrement, IRestaurantRecouvrementSearchParams } from '@/features/recouvrements/types/restaurant-recouvrement.types';
 import { IAccompte, IAccompteParams } from '@/features/recouvrements/types/accompte.types';
 

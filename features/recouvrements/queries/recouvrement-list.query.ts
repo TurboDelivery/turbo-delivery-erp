@@ -1,11 +1,11 @@
-import React from 'react';
+﻿import React from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 import getQueryClient from '@/lib/get-query-client';
 import { recouvrementKeyQuery } from './index.query';
 import { toast } from 'sonner';
-import { IRecouvrementParams } from '@/feature-finance/revenus/types/recouvrement/recouvrement.types';
-import { obtenirTousRecouvrementsAction } from '@/feature-finance/revenus/actions/recouvrement/recouvrement.action';
+import { IRecouvrementParams } from '@/features/revenus/types/recouvrement/recouvrement.types';
+import { obtenirTousRecouvrementsAction } from '@/features/revenus/actions/recouvrement/recouvrement.action';
 
 const queryClient = getQueryClient();
 

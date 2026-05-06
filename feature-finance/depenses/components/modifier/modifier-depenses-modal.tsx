@@ -10,7 +10,7 @@ import { IDepense } from '@/features/depenses/types/depense.type';
 import { DepenseUpdateDTO, DepenseUpdateSchema } from '@/features/depenses/schemas/depense.schema';
 import { useModifierDepenseMutation } from '../../queries/depense.mutation';
 import { useCategorieDepensesListQuery } from '../../queries/category/categorie-depense.query';
-import { useInvestissementList } from '../../../revenus/hooks/use-investissement-list';
+import { useInvestissementList } from '@/features/revenus/hooks/use-investissement-list';
 import { DepenseForm } from '../common/depense-form';
 
 interface ModifierDepenseModalProps {

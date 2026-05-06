@@ -1,4 +1,4 @@
-import RevenuePeriodChart from '@/feature-finance/revenus/components/revenue-period-chart';
+﻿import RevenuePeriodChart from '@/features/revenus/components/revenue-period-chart';
 
 export default function RevenuePage() {
   return (

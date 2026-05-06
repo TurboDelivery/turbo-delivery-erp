@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form';
 import { Plus } from 'lucide-react';
 import { useAjouterDepenseMutation } from '../../queries/depense.mutation';
 import { useCategorieDepensesListQuery } from '../../queries/category/categorie-depense.query';
-import { useInvestissementListQuery } from '../../../revenus/queries/investissement/investissement-list.query';
+import { useInvestissementListQuery } from '@/features/revenus/queries/investissement/investissement-list.query';
 import { DepenseForm } from '../common/depense-form';
 
 export function CreerDepenseModal() {
