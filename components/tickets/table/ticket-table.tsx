@@ -8,6 +8,7 @@ import { Package } from 'lucide-react';
 
 import { Restaurant } from '@/types/models';
 import { Ticket } from '@/types/bon-livraison.model';
+import { StatutControle } from '@/types/statut-controle.enum';
 import useTickets from '@/features/tickets/hooks/use-tickets';
 import { useAbility } from '@/hooks/use-ability';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
@@ -121,12 +122,19 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
     getRowId: (row) => row.id,
   });
 
+  const MODIFIABLE_STATUTS = new Set<string>([StatutControle.PENDING, StatutControle.TARDIF, StatutControle.REJETE_FRAUDE]);
+
   const selectedRowIds = useMemo(
     () =>
       table
         .getFilteredSelectedRowModel()
-        .rows.map((r) => r.id)
-        .filter((id) => !newTicketIds.has(id)),
+        .rows
+        .filter((r) => {
+          if (newTicketIds.has(r.id)) return false;
+          const statut = r.original.statutControle;
+          return !statut || MODIFIABLE_STATUTS.has(statut);
+        })
+        .map((r) => r.id),
     [table, rowSelection, newTicketIds],
   );
 
