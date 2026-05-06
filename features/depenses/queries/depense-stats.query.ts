@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 import getQueryClient from '@/lib/get-query-client';
@@ -9,7 +9,7 @@ import { IDepenseStatsParams } from '@/features/depenses/types/depense.type';
 
 const queryClient = getQueryClient();
 
-//1- Option de requÃªte
+//1- Option de requête
 export const depenseStatsQueryOption = (params: IDepenseStatsParams) => {
   return {
     queryKey: depenseKeyQuery('stats', params),
@@ -24,14 +24,14 @@ export const depenseStatsQueryOption = (params: IDepenseStatsParams) => {
   };
 };
 
-//2- Hook pour rÃ©cupÃ©rer les stats dÃ©   penses
+//2- Hook pour récupérer les stats dé   penses
 export const useDepenseStatsQuery = (params: IDepenseStatsParams) => {
   const query = useQuery(depenseStatsQueryOption(params));
 
   // Gestion des erreurs dans le hook
   React.useEffect(() => {
     if (query.isError && query.error) {
-      toast.error('Erreur lors de la rÃ©cupÃ©ration des dÃ©penses:', {
+      toast.error('Erreur lors de la récupération des dépenses:', {
         description: query.error instanceof Error ? query.error.message : 'Erreur inconnue',
       });
     }
@@ -40,7 +40,7 @@ export const useDepenseStatsQuery = (params: IDepenseStatsParams) => {
   return query;
 };
 
-//3- Fonction pour prÃ©charger les stats utilisateurs
+//3- Fonction pour précharger les stats utilisateurs
 export const prefetchDepenseStatsQuery = (params: IDepenseStatsParams) => {
   return queryClient.prefetchQuery(depenseStatsQueryOption(params));
 };

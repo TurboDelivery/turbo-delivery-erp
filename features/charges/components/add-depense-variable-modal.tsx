@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -164,14 +164,14 @@ export default function AddDepenseVariableModal({
     <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
       <ModalContent>
         <ModalHeader className="text-purple-600 text-xl font-semibold">
-          {isEditMode ? 'Modifier la dÃ©pense variable' : 'Ajouter une DÃ©pense Variable'}
+          {isEditMode ? 'Modifier la dépense variable' : 'Ajouter une Dépense Variable'}
         </ModalHeader>
 
         <ModalBody>
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="DÃ©signation"
+                label="Désignation"
                 placeholder="Ex: Carburant, Maintenance..."
                 {...register('designation')}
                 variant="bordered"
@@ -190,7 +190,7 @@ export default function AddDepenseVariableModal({
                   onChange={(opt) =>
                     setValue('categorieId', opt?.value ?? '', { shouldValidate: true })
                   }
-                  placeholder="Rechercher une catÃ©gorie..."
+                  placeholder="Rechercher une catégorie..."
                   isClearable
                   isLoading={isLoadingCategories}
                   isDisabled={isLoadingCategories}
@@ -225,7 +225,7 @@ export default function AddDepenseVariableModal({
             />
 
             <Input
-              label="Date de dÃ©pense"
+              label="Date de dépense"
               type="date"
               value={formValues.dateDepense ?? ''}
               onChange={(e) =>
@@ -297,10 +297,10 @@ export default function AddDepenseVariableModal({
               <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
               <Step label="DG" sub="Approbation" />
               <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
-              <Step label="Paiement" sub="DÃ©caissement" />
+              <Step label="Paiement" sub="Décaissement" />
             </div>
 
-            {/* AperÃ§u */}
+            {/* Aperçu */}
             {isValid && hasJustificatif && (
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="font-semibold">{formValues.designation}</p>

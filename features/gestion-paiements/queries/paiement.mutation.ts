@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -29,10 +29,10 @@ export const useDecaisserMutation = (chargeType: ChargeTypeFilter, fin?: string)
       const key = chargeType === 'fixe' ? chargeFixeKeyQuery() : chargeVariableKeyQuery();
       await queryClient.invalidateQueries({ queryKey: key, exact: false });
       await queryClient.refetchQueries({ queryKey: key, type: 'active' });
-      toast.success(`${ids.length > 1 ? 'Charges dÃ©caissÃ©es' : 'Charge dÃ©caissÃ©e'} avec succÃ¨s`);
+      toast.success(`${ids.length > 1 ? 'Charges décaissées' : 'Charge décaissée'} avec succès`);
     },
     onError: (error) => {
-      toast.error('Erreur lors du dÃ©caissement', {
+      toast.error('Erreur lors du décaissement', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },

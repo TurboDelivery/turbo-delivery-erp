@@ -1,4 +1,4 @@
-﻿import { ActionWorkflow } from '@/features/charges/queries/charge-variable.mutation';
+import { ActionWorkflow } from '@/features/charges/queries/charge-variable.mutation';
 import { IChargeVariable } from '@/features/charges/types/charge-variable.type';
 import { IChargeFixe } from '@/features/charges/types/charge-fixe.type';
 import { IHistoriqueCharge } from '@/features/charges/types/historique-charge.type';
@@ -10,7 +10,7 @@ export type Role   = 'comptable' | 'dga' | 'dg';
 export type SubTab = 'validation' | 'historique';
 export type ChargeType = 'variable' | 'fixe';
 
-// â”€â”€â”€ Mapping Role interne â†’ rÃ´le backend (majuscules) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Mapping Role interne â†’ rôle backend (majuscules) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const ROLE_TO_BACKEND: Record<Role, string> = {
   comptable: 'COMPTABLE',
   dga: 'DGA',
@@ -20,12 +20,12 @@ export const ROLE_TO_BACKEND: Record<Role, string> = {
 // â”€â”€â”€ Statuts workflow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const S_EN_ATTENTE_DGA = 'En attente validation DGA';
 export const S_EN_ATTENTE_DG  = 'En attente validation DG';
-export const S_VUE_DGA        = 'VirÃ© par DGA';
-export const S_VERIFIE_DGA    = 'VÃ©rifiÃ© par DGA';
-export const S_APPROUVE       = 'ApprouvÃ© pour paiement';
-export const S_DECAISSE       = 'DÃ©caissÃ©';
-export const S_REJETE_DGA     = 'AnnulÃ© par DGA';
-export const S_REJETE_DG      = 'RejetÃ© par DG';
+export const S_VUE_DGA        = 'Viré par DGA';
+export const S_VERIFIE_DGA    = 'Vérifié par DGA';
+export const S_APPROUVE       = 'Approuvé pour paiement';
+export const S_DECAISSE       = 'Décaissé';
+export const S_REJETE_DGA     = 'Annulé par DGA';
+export const S_REJETE_DG      = 'Rejeté par DG';
 
 export const STATUTS_TERMINAUX = [
   S_DECAISSE, S_VUE_DGA, S_REJETE_DGA, S_REJETE_DG,
@@ -56,7 +56,7 @@ export const ROLE_REJECT_ACTION: Record<string, ActionWorkflow> = {
   dg:        'rejeter-dg',
 };
 
-// â”€â”€â”€ RÃ´les autorisÃ©s & mapping session â†’ Role interne â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Rôles autorisés & mapping session â†’ Role interne â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const SESSION_ROLE_MAP: Record<string, Role> = {
   ADMIN: 'dg',
   DG: 'dg',
@@ -69,11 +69,11 @@ export function sessionRoleToRole(sessionRole?: string): Role | null {
   return SESSION_ROLE_MAP[normalized] ?? null;
 }
 
-// â”€â”€â”€ Config par rÃ´le â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Config par rôle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const ROLE_CONFIG: Record<Role, { label: string; description: string; acceptLabel: string }> = {
-  comptable: { label: 'Comptable', description: 'Saisie des dÃ©penses', acceptLabel: 'DÃ©caisser' },
-  dga:       { label: 'DGA',       description: 'Validation des dÃ©penses', acceptLabel: 'Viser' },
-  dg:        { label: 'DG',        description: 'Approbation des dÃ©penses', acceptLabel: 'Approuver' },
+  comptable: { label: 'Comptable', description: 'Saisie des dépenses', acceptLabel: 'Décaisser' },
+  dga:       { label: 'DGA',       description: 'Validation des dépenses', acceptLabel: 'Viser' },
+  dg:        { label: 'DG',        description: 'Approbation des dépenses', acceptLabel: 'Approuver' },
 };
 
 // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -125,7 +125,7 @@ export function historiqueChargeToDepense(hc: IHistoriqueCharge): IDepense {
     description:    undefined,
     dateDepense:    (dateRef ?? '').split('T')[0],
     typeDepense:    hc.type,
-    sourcePaiement: hc.type === 'FIXE' ? 'PrÃ©lÃ¨vement automatique' : undefined,
+    sourcePaiement: hc.type === 'FIXE' ? 'Prélèvement automatique' : undefined,
     statut:         CV_STATUT_TO_PAGE[hc.statut] ?? hc.statut,
     categorie:      hc.categorie
       ? { id: hc.categorie.id, nomCategorie: hc.categorie.nomCategorie, description: hc.categorie.description ?? '' }
@@ -151,7 +151,7 @@ export function chargeFixeToDepense(cf: IChargeFixe): IDepense {
     description:    undefined,
     dateDepense:    cf.createdAt.split('T')[0],
     typeDepense:    'FIXE',
-    sourcePaiement: 'PrÃ©lÃ¨vement automatique',
+    sourcePaiement: 'Prélèvement automatique',
     statut:         CV_STATUT_TO_PAGE[effectiveStatut] ?? effectiveStatut,
     categorie:      cf.categorie
       ? { id: cf.categorie.id, nomCategorie: cf.categorie.nomCategorie, description: cf.categorie.description ?? '' }

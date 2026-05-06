@@ -43,7 +43,7 @@ export const depenseColumns: ColumnDef<ICategorieDepense>[] = [
   {
     id: '',
     accessorKey: 'totalDepense',
-    header: 'Total des dÃ©penses',
+    header: 'Total des dépenses',
     cell: ({ row }) => {
       const totalDepense = row.original.totalDepense;
       return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(totalDepense);

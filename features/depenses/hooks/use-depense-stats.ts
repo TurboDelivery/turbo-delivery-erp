@@ -1,4 +1,4 @@
-﻿import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.query';
+import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.query';
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
 
 export const useDepenseStats = () => {
@@ -6,7 +6,7 @@ export const useDepenseStats = () => {
   const currentSearchParams = {
     debut: filters.debut,
     fin: filters.fin,
-    categoriesDepense: filters.categoriesDepense, // AJOUTÃ‰: Inclure les catÃ©gories pour forcer la mise Ã  jour
+    categoriesDepense: filters.categoriesDepense, // AJOUTÉ: Inclure les catégories pour forcer la mise Ã  jour
   };
 
   const { data, isLoading, error, isError, refetch } = useDepenseStatsQuery(currentSearchParams);

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Button, Chip } from '@heroui/react';
@@ -10,12 +10,12 @@ import { IChargeFixe, StatutChargeFixe } from '@/features/charges/types/charge-f
 const STATUT_CONFIG: Record<string, { label: string; color: 'warning' | 'primary' | 'success' | 'danger' | 'default' }> = {
   PENDING: { label: 'En attente', color: 'warning' },
   EN_ATTENTE_DGA: { label: 'En attente DGA', color: 'warning' },
-  VALIDE_DGA: { label: 'ValidÃ© DGA', color: 'primary' },
-  APPROUVE_DG: { label: 'ApprouvÃ© DG', color: 'success' },
-  REJETE_DGA: { label: 'RejetÃ© DGA', color: 'danger' },
-  REJETE_DG: { label: 'RejetÃ© DG', color: 'danger' },
-  DECAISSE: { label: 'DÃ©caissÃ©', color: 'success' },
-  PAID: { label: 'DÃ©caissÃ©', color: 'success' },
+  VALIDE_DGA: { label: 'Validé DGA', color: 'primary' },
+  APPROUVE_DG: { label: 'Approuvé DG', color: 'success' },
+  REJETE_DGA: { label: 'Rejeté DGA', color: 'danger' },
+  REJETE_DG: { label: 'Rejeté DG', color: 'danger' },
+  DECAISSE: { label: 'Décaissé', color: 'success' },
+  PAID: { label: 'Décaissé', color: 'success' },
 };
 
 const DECAISSE_STATUTS = ['DECAISSE', 'PAID'];
@@ -52,12 +52,12 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
     },
     {
       accessorKey: 'designation',
-      header: 'DÃ©signation',
+      header: 'Désignation',
       cell: ({ row }) => <span className="text-sm text-gray-900">{row.getValue('designation')}</span>,
     },
     {
       id: 'categorie',
-      header: 'CatÃ©gorie',
+      header: 'Catégorie',
       cell: ({ row }) => <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? 'â€”'}</span>,
     },
     {
@@ -86,7 +86,7 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
           <div className="flex items-center gap-2">
             {!isDecaisse(row.original) && (
               <Button size="sm" color="warning" variant="flat" startContent={<Wallet size={14} />} isLoading={isPending} onPress={() => onDecaisser(row.original.id)}>
-                DÃ©caisser
+                Décaisser
               </Button>
             )}
             {isDecaisse(row.original) && row.original.codeSysteme === 'MASSE_SALARIALE_NETTE' && (

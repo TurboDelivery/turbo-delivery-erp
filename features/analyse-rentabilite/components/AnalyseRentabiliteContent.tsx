@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useMemo, useState } from 'react';
 import { Button, Card, CardBody } from '@heroui/react';
@@ -27,7 +27,7 @@ export default function AnalyseRentabiliteContent() {
     });
   };
 
-  // RÃ©cupÃ©rer les donnÃ©es des API
+  // Récupérer les données des API
   const { data: globalStats, isLoading: isLoadingGlobal } = useGlobalStats({
     debut: filters.debut,
     fin: filters.fin,
@@ -83,8 +83,8 @@ export default function AnalyseRentabiliteContent() {
         <div className="flex items-center gap-3">
           <Button variant="light" size="sm" startContent={<ArrowLeft className="w-5 h-5" />} className="p-0 min-w-0" />
           <div>
-            <h1 className="text-xl font-semibold text-red-500">Analyse de RentabilitÃ©</h1>
-            <p className="text-sm text-gray-500">Visualisez vos performances financiÃ¨res en temps rÃ©el</p>
+            <h1 className="text-xl font-semibold text-red-500">Analyse de Rentabilité</h1>
+            <p className="text-sm text-gray-500">Visualisez vos performances financières en temps réel</p>
           </div>
         </div>
 
@@ -102,7 +102,7 @@ export default function AnalyseRentabiliteContent() {
 
         <Card className="bg-orange-50">
           <CardBody className="p-4">
-            <p className="text-sm text-gray-500">Total DÃ©penses</p>
+            <p className="text-sm text-gray-500">Total Dépenses</p>
             <h2 className="text-lg font-semibold">{isLoadingDepenses ? 'Chargement...' : stats.formattedTotalDepenses}</h2>
           </CardBody>
         </Card>
@@ -135,7 +135,7 @@ export default function AnalyseRentabiliteContent() {
         {/* <Card>
           <CardBody className="p-4">
             <h3 className="text-sm font-semibold mb-4">
-              DÃ©tail des DÃ©penses
+              Détail des Dépenses
             </h3>
 
             <ul className="space-y-2 text-sm">
@@ -159,7 +159,7 @@ export default function AnalyseRentabiliteContent() {
               </div>
 
               <div className="flex justify-between text-purple-500">
-                <span>DÃ©penses Variables</span>
+                <span>Dépenses Variables</span>
                 <span>{isLoadingDepenses ? 'Chargement...' : stats.formattedTotalVariables}</span>
               </div>
             </div>
@@ -170,14 +170,13 @@ export default function AnalyseRentabiliteContent() {
       {/* Footer */}
       <div className="flex flex-col sm:flex-row sm:justify-between gap-1 mt-6 text-sm text-gray-500">
         <span>
-          PÃ©riode AnalysÃ©e : {filters.debut ? new Date(filters.debut).toLocaleDateString('fr-FR') : '...'}
+          Période Analysée : {filters.debut ? new Date(filters.debut).toLocaleDateString('fr-FR') : '...'}
           au {filters.fin ? new Date(filters.fin).toLocaleDateString('fr-FR') : '...'}
         </span>
-        <span className={`font-medium ${stats.isDeficit ? 'text-red-600' : 'text-green-600'}`}>{stats.isDeficit ? 'âœ— DÃ©ficit' : 'âœ“ Rentable'}</span>
+        <span className={`font-medium ${stats.isDeficit ? 'text-red-600' : 'text-green-600'}`}>{stats.isDeficit ? '✗ Déficit' : '✓ Rentable'}</span>
       </div>
     </div>
   );
 }
-
 
 

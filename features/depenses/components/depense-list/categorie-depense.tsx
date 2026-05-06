@@ -1,4 +1,4 @@
-﻿import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CreerCategorieModal } from './creer-categorie';
 import { format, parseISO } from 'date-fns';
@@ -14,10 +14,10 @@ import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-dep
 export function CategorieDepenseList() {
   const { categories: categorie_depenses } = useCategorieDepense();
 
-  // Couleur des rÃ©sultats
+  // Couleur des résultats
   const getCategoriesStyle = (nomCategorie: string) => {
     const colors = ['bg-red-500 text-white', 'bg-green-500 text-white', 'bg-blue-500 text-white', 'bg-yellow-500 text-white', 'bg-pink-500 text-white', 'bg-purple-500 text-white'];
-    // GÃ©nÃ©rer une couleur cohÃ©rente basÃ©e sur le nom de la catÃ©gorie
+    // Générer une couleur cohérente basée sur le nom de la catégorie
     const hash = nomCategorie.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const randomIndex = hash % colors.length;
     return colors[randomIndex];
@@ -42,7 +42,7 @@ export function CategorieDepenseList() {
         <CardHeader className="">
           <CardTitle>
             <div className="flex justify-between items-center">
-              <span className="text-lg font-normal">Liste des catÃ©gories de dÃ©penses</span>
+              <span className="text-lg font-normal">Liste des catégories de dépenses</span>
               <CreerCategorieModal />
             </div>
           </CardTitle>

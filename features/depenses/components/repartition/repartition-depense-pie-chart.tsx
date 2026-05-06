@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
@@ -73,7 +73,7 @@ export default function RepartitionDepensePieChart({ className, debut: debutProp
   return (
     <Card className={cn('flex flex-col', className)}>
       <CardHeader className="items-center pb-0">
-        <CardTitle>RÃ©partition des dÃ©penses</CardTitle>
+        <CardTitle>Répartition des dépenses</CardTitle>
         {debut && fin && (
           <CardDescription>
             {format(debut, 'd LLL y', { locale: fr })} - {format(fin, 'd LLL y', { locale: fr })}
@@ -87,7 +87,7 @@ export default function RepartitionDepensePieChart({ className, debut: debutProp
           </div>
         ) : isError ? (
           <div className="flex items-center justify-center h-[300px]">
-            <div className="text-destructive">Erreur lors du chargement des donnÃ©es</div>
+            <div className="text-destructive">Erreur lors du chargement des données</div>
           </div>
         ) : chartData.length > 0 ? (
           <ChartContainer config={chartConfig} className="mx-auto aspect-square px-0">
@@ -99,13 +99,13 @@ export default function RepartitionDepensePieChart({ className, debut: debutProp
           </ChartContainer>
         ) : (
           <div className="flex items-center justify-center h-[300px]">
-            <div className="text-muted-foreground">Aucune donnÃ©e disponible</div>
+            <div className="text-muted-foreground">Aucune donnée disponible</div>
           </div>
         )}
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium">Top 10 catÃ©gories</div>
-        <div className="text-muted-foreground leading-none">Comment les dÃ©penses sont distribuÃ©es entre les catÃ©gories.</div>
+        <div className="flex items-center gap-2 leading-none font-medium">Top 10 catégories</div>
+        <div className="text-muted-foreground leading-none">Comment les dépenses sont distribuées entre les catégories.</div>
       </CardFooter>
     </Card>
   );

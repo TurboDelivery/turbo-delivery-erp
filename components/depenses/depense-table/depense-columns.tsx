@@ -1,4 +1,4 @@
-﻿import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef } from '@tanstack/react-table';
 import { IDepense } from '@/features/depenses/types/depense.type';
 import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
@@ -9,7 +9,7 @@ import SupprimerDepenseModal from '@/features/depenses/components/supprimer/supr
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 
-// Fonction pour formater le type de dÃ©pense
+// Fonction pour formater le type de dépense
 const formatTypeDepense = (typeDepense: string | null | undefined): {
   label: string;
   variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'square' | null | undefined;
@@ -30,7 +30,7 @@ const formatTypeDepense = (typeDepense: string | null | undefined): {
   }
 };
 
-// Composant mÃ©morisÃ© pour les actions
+// Composant mémorisé pour les actions
 const DepenseActions = React.memo(({ depense }: { depense: IDepense }) => {
   return (
     <DropdownMenu>
@@ -87,14 +87,14 @@ export const depenseColumns: ColumnDef<IDepense>[] = [
   {
     id: 'categorie',
     accessorFn: (row) => row.categorie?.nomCategorie ?? '',
-    header: 'CatÃ©gorie',
+    header: 'Catégorie',
     cell: ({ row }) => row.original.categorie?.nomCategorie ?? '-',
     enableSorting: false,
   },
   {
     id: 'typeDepense',
     accessorKey: 'typeDepense',
-    header: 'Type de dÃ©pense',
+    header: 'Type de dépense',
     cell: ({ row }) => {
       const typeInfo = formatTypeDepense(row.original.typeDepense);
       return (

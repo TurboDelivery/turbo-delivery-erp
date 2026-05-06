@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useDepenseTable } from '@/features/depenses/hooks/use-depense-table';
 import { depenseColumns } from '@/components/depenses/depense-table/depense-columns';
@@ -9,26 +9,23 @@ import { flexRender } from '@tanstack/react-table';
 import { Card, CardContent } from '@/components/ui/card';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
-import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.query'; // âœ… AJOUTÃ‰: Import manquant
+import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { DollarSign } from 'lucide-react';
 
 export function DepenseTable() {
   const { table, isLoading, isFetching, pagination, filters, setSelectedCategories, handleDateChange } = useDepenseTable();
 
-  // âœ… AJOUTÃ‰: Utiliser les filtres du tableau pour les stats
   const currentSearchParams = {
     debut: filters.debut,
     fin: filters.fin,
     categoriesDepense: filters.categoriesDepense || undefined, // âœ… Convertir null en undefined
   };
 
-  // âœ… AJOUTÃ‰: Utiliser les mÃªmes filtres pour les stats
-  const { data: statsData, isLoading: statsLoading } = useDepenseStatsQuery(currentSearchParams);
+  const { data: statsData} = useDepenseStatsQuery(currentSearchParams);
 
   return (
     <div className="space-y-6">
-      {/* âœ… AJOUTÃ‰: Carte de statistiques pour le montant total filtrÃ© */}
       <Card className="flex flex-col gap-4">
         <CardContent>
           <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
@@ -44,7 +41,7 @@ export function DepenseTable() {
               </div>
               <div className="text-right">
                 <p className="text-xs text-green-600">
-                  {statsData?.nombre_depenses || 0} dÃ©pense{(statsData?.nombre_depenses || 0) > 1 ? 's' : ''}
+                  {statsData?.nombre_depenses || 0} dépense{(statsData?.nombre_depenses || 0) > 1 ? 's' : ''}
                 </p>
               </div>
             </div>
@@ -52,7 +49,7 @@ export function DepenseTable() {
         </CardContent>
       </Card>
 
-      {/* Tableau des dÃ©penses */}
+      {/* Tableau des dépenses */}
       <Card className="flex flex-col gap-4">
         <CardContent>
           <div className="overflow-x-auto">

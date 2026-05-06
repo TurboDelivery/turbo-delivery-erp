@@ -1,13 +1,10 @@
 ﻿'use client';
 
-import { Download, ArrowLeft } from 'lucide-react';
-import { Button } from '@heroui/react';
-import { Card, CardBody } from '@heroui/react';
-import { Progress } from '@heroui/react';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/react';
+import { Download } from 'lucide-react';
+import { Button, Card, CardBody, Progress, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import DateFilterInput from '@/components/finance/date-filter-input';
-import { useState, useMemo } from 'react';
-import { endOfMonth, startOfMonth, format } from 'date-fns';
+import { useMemo, useState } from 'react';
+import { endOfMonth, format, startOfMonth } from 'date-fns';
 import { useRapportFinancier } from '@/features/finance-dashboard/queries/global-stats.query';
 import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
@@ -24,18 +21,6 @@ interface RapportFinancierResponse {
   tauxMarge: number;
   coutJournalierMoyen: number;
   caJournalierMoyen: number;
-}
-
-interface FinancialMetric {
-  label: string;
-  value: string;
-  highlight?: 'success' | 'warning';
-}
-
-interface KPI {
-  label: string;
-  value: string;
-  unit?: string;
 }
 
 interface FixedCost {
@@ -67,13 +52,13 @@ export default function FinancialReport() {
   };
 
   // Récupérer les données de l'API avec le hook useRapportFinancier
-  const { data: rapportData, isLoading } = useRapportFinancier({
+  const { data: rapportData } = useRapportFinancier({
     debut: filters.debut,
     fin: filters.fin,
   }) as { data: RapportFinancierResponse | undefined; isLoading: boolean };
 
   // Récupérer les charges fixes
-  const { data: chargesFixesData, isLoading: isLoadingChargesFixes } = useChargesFixesQuery({
+  const { data: chargesFixesData } = useChargesFixesQuery({
     size: 100,
   });
 
@@ -95,7 +80,7 @@ export default function FinancialReport() {
     const depensesVariables = rapportData.depensesVariables || 0;
     const totalDepenses = rapportData.totalDepenses || 0;
     const benefice = rapportData.benefice || 0;
-    
+
     return [
       { label: "Chiffre d'Affaires", value: formatCFA(chiffreAffaire) },
       { label: 'Dépenses Fixes', value: formatCFA(depensesFixes) },
@@ -118,7 +103,7 @@ export default function FinancialReport() {
     const tauxMarge = rapportData.tauxMarge || 0;
     const coutJournalierMoyen = rapportData.coutJournalierMoyen || 0;
     const caJournalierMoyen = rapportData.caJournalierMoyen || 0;
-    
+
     return [
       { label: 'Taux de Marge', value: `${tauxMarge.toFixed(2)}%` },
       { label: 'Coût Journalier Moyen', value: Math.round(coutJournalierMoyen).toString(), unit: 'FCFA' },
@@ -162,7 +147,7 @@ export default function FinancialReport() {
     });
   };
 
-  const { data: chargesVariablesData, isLoading: isLoadingVariables } = useChargesVariablesQuery({
+  const { data: chargesVariablesData } = useChargesVariablesQuery({
     size: 100,
   });
 
@@ -183,7 +168,12 @@ export default function FinancialReport() {
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
             </div>
             <div>
@@ -193,20 +183,10 @@ export default function FinancialReport() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button 
-              color="primary"
-              className="bg-purple-600"
-              startContent={<Download className="w-4 h-4" />}
-              onPress={handleExportCsv}
-            >
+            <Button color="primary" className="bg-purple-600" startContent={<Download className="w-4 h-4" />} onPress={handleExportCsv}>
               Exporter CSV
             </Button>
-            <Button
-              color="secondary"
-              variant="bordered"
-              startContent={<Download className="w-4 h-4" />}
-              onPress={handleExportPdf}
-            >
+            <Button color="secondary" variant="bordered" startContent={<Download className="w-4 h-4" />} onPress={handleExportPdf}>
               Exporter PDF
             </Button>
           </div>
@@ -215,11 +195,7 @@ export default function FinancialReport() {
         {/* Period Selector */}
         <div className="mt-4">
           <div className="inline-flex items-center gap-2 px-3 py-1.5">
-
-            <DateFilterInput 
-              filters={filters} 
-              handleDateChange={handleDateChange}
-            />
+            <DateFilterInput filters={filters} handleDateChange={handleDateChange} />
           </div>
         </div>
       </div>
@@ -231,27 +207,15 @@ export default function FinancialReport() {
           {/* Vue d'Ensemble */}
           <Card>
             <CardBody className="p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Vue d'Ensemble</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Vue d&#39;Ensemble</h2>
               <div className="space-y-3">
                 {metrics.map((metric, index) => (
                   <div
                     key={index}
-                    className={`flex justify-between items-center py-2 px-3 rounded-lg ${
-                      metric.highlight === 'warning'
-                        ? 'bg-orange-50'
-                        : metric.highlight === 'success'
-                        ? 'bg-green-50'
-                        : ''
-                    }`}
+                    className={`flex justify-between items-center py-2 px-3 rounded-lg ${metric.highlight === 'warning' ? 'bg-orange-50' : metric.highlight === 'success' ? 'bg-green-50' : ''}`}
                   >
-                    <span className={`text-sm ${metric.highlight ? 'font-medium' : 'text-gray-600'}`}>
-                      {metric.label}
-                    </span>
-                    <span className={`text-sm font-semibold ${
-                      metric.highlight === 'warning' ? 'text-orange-700' :
-                      metric.highlight === 'success' ? 'text-green-700' :
-                      'text-gray-900'
-                    }`}>
+                    <span className={`text-sm ${metric.highlight ? 'font-medium' : 'text-gray-600'}`}>{metric.label}</span>
+                    <span className={`text-sm font-semibold ${metric.highlight === 'warning' ? 'text-orange-700' : metric.highlight === 'success' ? 'text-green-700' : 'text-gray-900'}`}>
                       {metric.value}
                     </span>
                   </div>
@@ -266,18 +230,11 @@ export default function FinancialReport() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Indicateurs Clés</h2>
               <div className="space-y-3">
                 {kpis.map((kpi, index) => (
-                  <div
-                    key={index}
-                    className="p-4 bg-gray-50 rounded-lg border border-gray-100"
-                  >
+                  <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                     <p className="text-sm text-gray-500 mb-1">{kpi.label}</p>
                     <p className="text-xl font-bold text-gray-900">
                       {kpi.value}
-                      {kpi.unit && (
-                        <span className="text-base font-normal text-gray-600 ml-1">
-                          {kpi.unit}
-                        </span>
-                      )}
+                      {kpi.unit && <span className="text-base font-normal text-gray-600 ml-1">{kpi.unit}</span>}
                     </p>
                   </div>
                 ))}
@@ -289,9 +246,7 @@ export default function FinancialReport() {
         {/* Répartition des Charges Fixes */}
         <Card>
           <CardBody className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Répartition des Charges Fixes
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Répartition des Charges Fixes</h2>
             <div className="space-y-4">
               {fixedCosts.map((cost, index) => (
                 <div key={index} className="space-y-2">
@@ -299,16 +254,10 @@ export default function FinancialReport() {
                     <span className="text-sm text-gray-600">{cost.label}</span>
                     <div className="flex items-center gap-4">
                       <span className="text-sm text-gray-500">{cost.percentage}%</span>
-                      <span className="text-sm font-medium text-gray-900 w-24 text-right">
-                        {cost.amount}
-                      </span>
+                      <span className="text-sm font-medium text-gray-900 w-24 text-right">{cost.amount}</span>
                     </div>
                   </div>
-                  <Progress 
-                    value={cost.percentage} 
-                    color="primary"
-                    className="h-2"
-                  />
+                  <Progress value={cost.percentage} color="primary" className="h-2" />
                 </div>
               ))}
             </div>
@@ -318,9 +267,7 @@ export default function FinancialReport() {
         {/* Dépenses Variables de la Période */}
         <Card>
           <CardBody className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Dépenses Variables de la Période
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Dépenses Variables de la Période</h2>
             <Table aria-label="Dépenses variables">
               <TableHeader>
                 <TableColumn>DATE</TableColumn>
@@ -330,15 +277,9 @@ export default function FinancialReport() {
               <TableBody>
                 {variableExpenses.map((expense, index) => (
                   <TableRow key={index}>
-                    <TableCell className="text-sm text-gray-600">
-                      {expense.date}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-900">
-                      {expense.designation}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-900 text-right font-medium">
-                      {expense.amount}
-                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">{expense.date}</TableCell>
+                    <TableCell className="text-sm text-gray-900">{expense.designation}</TableCell>
+                    <TableCell className="text-sm text-gray-900 text-right font-medium">{expense.amount}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -349,5 +290,3 @@ export default function FinancialReport() {
     </div>
   );
 }
-
-

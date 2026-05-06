@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
@@ -37,12 +37,12 @@ export function DepenseSummaryPieChartTable({
 
   const dataForChart = data ? [
     {
-      name: 'RÃ©currentes',
+      name: 'Récurrentes',
       value: data.totalRecurrentes,
       color: COLORS.recurrentes,
     },
     {
-      name: 'Non RÃ©currentes',
+      name: 'Non Récurrentes',
       value: data.totalNonRecurrentes,
       color: COLORS.nonRecurrentes,
     },
@@ -90,7 +90,7 @@ export function DepenseSummaryPieChartTable({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            RÃ©partition des DÃ©penses
+            Répartition des Dépenses
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -108,12 +108,12 @@ export function DepenseSummaryPieChartTable({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
-            RÃ©partition des DÃ©penses
+            Répartition des Dépenses
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-80 flex items-center justify-center">
-            <p className="text-gray-500">Erreur lors du chargement des donnÃ©es</p>
+            <p className="text-gray-500">Erreur lors du chargement des données</p>
           </div>
         </CardContent>
       </Card>
@@ -127,7 +127,7 @@ export function DepenseSummaryPieChartTable({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
-          RÃ©partition des DÃ©penses
+          Répartition des Dépenses
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -143,7 +143,7 @@ export function DepenseSummaryPieChartTable({
                 outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
-                aria-label="RÃ©partition des dÃ©penses entre rÃ©currentes et non rÃ©currentes"
+                aria-label="Répartition des dépenses entre récurrentes et non récurrentes"
                 role="img"
               >
                 {dataForChart.map((entry, index) => (
@@ -163,16 +163,16 @@ export function DepenseSummaryPieChartTable({
                     {value}: {formatCFA(entry.payload.value)}
                   </span>
                 )}
-                aria-label="LÃ©gende du graphique de rÃ©partition des dÃ©penses"
+                aria-label="Légende du graphique de répartition des dépenses"
               />
             </PieChart>
           </ResponsiveContainer>
         </div>
         
-        {/* RÃ©sumÃ© des montants */}
+        {/* Résumé des montants */}
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-green-50 rounded-lg">
-            <p className="text-sm text-green-600 font-medium">RÃ©currentes</p>
+            <p className="text-sm text-green-600 font-medium">Récurrentes</p>
             <p className="text-lg font-bold text-green-700">
               {formatCFA(data.totalRecurrentes)}
             </p>
@@ -181,7 +181,7 @@ export function DepenseSummaryPieChartTable({
             </p>
           </div>
           <div className="text-center p-3 bg-amber-50 rounded-lg">
-            <p className="text-sm text-amber-600 font-medium">Non RÃ©currentes</p>
+            <p className="text-sm text-amber-600 font-medium">Non Récurrentes</p>
             <p className="text-lg font-bold text-amber-700">
               {formatCFA(data.totalNonRecurrentes)}
             </p>

@@ -4,13 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import getQueryClient from '@/lib/get-query-client';
 import { depenseKeyQuery } from './index.query';
 import { toast } from 'sonner';
-import { obtenirDepensesSummaryAction } from '@/features/depenses/actions/depense.action';
 import { IDepenseSummaryParams } from '@/features/depenses/types/depense.type';
 import { depenseAPI } from '@/features/depenses/apis/depense.api';
 
 const queryClient = getQueryClient();
 
-//1- Option de requÃªte
+//1- Option de requête
 export const depenseSummaryQueryOption = (params: IDepenseSummaryParams) => {
   return {
     queryKey: depenseKeyQuery('summary', params),
@@ -21,14 +20,14 @@ export const depenseSummaryQueryOption = (params: IDepenseSummaryParams) => {
   };
 };
 
-//2- Hook pour rÃ©cupÃ©rer le summary des dÃ©penses
+//2- Hook pour récupérer le summary des dépenses
 export const useDepenseSummaryQuery = (params: IDepenseSummaryParams) => {
   const query = useQuery(depenseSummaryQueryOption(params));
 
   // Gestion des erreurs dans le hook
   React.useEffect(() => {
     if (query.isError && query.error) {
-      toast.error('Erreur lors de la rÃ©cupÃ©ration du summary dÃ©penses:', {
+      toast.error('Erreur lors de la récupération du summary dépenses:', {
         description: query.error instanceof Error ? query.error.message : 'Erreur inconnue',
       });
     }
@@ -37,8 +36,7 @@ export const useDepenseSummaryQuery = (params: IDepenseSummaryParams) => {
   return query;
 };
 
-//3- Fonction pour prÃ©charger le summary des dÃ©penses
+//3- Fonction pour précharger le summary des dépenses
 export const prefetchDepenseSummaryQuery = (params: IDepenseSummaryParams) => {
   return queryClient.prefetchQuery(depenseSummaryQueryOption(params));
 };
-
