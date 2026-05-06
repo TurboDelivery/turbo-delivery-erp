@@ -5,9 +5,9 @@ import { Button, Card, CardBody } from '@heroui/react';
 import { ArrowLeft } from 'lucide-react';
 import RevenueExpenseChart from './RevenueExpenseChart';
 import DateFilterInput from '@/components/finance/date-filter-input';
-import { useGlobalStats } from '@/feature-finance/dashboard/queries/global-stats.query';
+import { useGlobalStats } from '@/features/finance-dashboard/queries/global-stats.query';
 import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
-import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
+import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { endOfMonth, startOfMonth } from 'date-fns';
 
@@ -178,4 +178,6 @@ export default function AnalyseRentabiliteContent() {
     </div>
   );
 }
+
+
 

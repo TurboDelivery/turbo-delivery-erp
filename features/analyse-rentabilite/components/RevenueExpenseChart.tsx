@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { useDailyStatsQuery } from '@/feature-finance/analyse-rentabilite/queries/daily-stats.query';
+import { useDailyStatsQuery } from '@/features/analyse-rentabilite/queries/daily-stats.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 interface RevenueExpenseChartProps {

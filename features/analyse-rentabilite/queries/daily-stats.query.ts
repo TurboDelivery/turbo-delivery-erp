@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { obtenirDailyStatsAction } from '@/feature-finance/analyse-rentabilite/actions/daily-stats.action';
+import { obtenirDailyStatsAction } from '@/features/analyse-rentabilite/actions/daily-stats.action';
 import { IDailyStatsParams } from '@/features/analyse-rentabilite/types/daily-stats.type';
 
 // 1 - Clé de cache
