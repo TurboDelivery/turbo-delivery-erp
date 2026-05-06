@@ -1,6 +1,6 @@
-import DepensePageContent from '@/feature-finance/depenses/components/depense-page-content';
-import { prefetchDepensesListQuery } from '@/feature-finance/depenses/queries/depense-list.query';
-import { prefetchCategoriesDepensesListQuery } from '@/feature-finance/depenses/queries/category/categorie-depense.query';
+﻿import DepensePageContent from '@/features/depenses/components/depense-page-content';
+import { prefetchDepensesListQuery } from '@/features/depenses/queries/depense-list.query';
+import { prefetchCategoriesDepensesListQuery } from '@/features/depenses/queries/category/categorie-depense.query';
 
 export default async function DepensePage() {
   await Promise.all([
@@ -16,3 +16,4 @@ export default async function DepensePage() {
 
   return <DepensePageContent />;
 }
+

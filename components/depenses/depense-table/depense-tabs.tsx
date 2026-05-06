@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DepenseTable } from './index';
-import { CategorieDepenseList } from '@/feature-finance/depenses/components/depense-list/categorie-depense';
+import { CategorieDepenseList } from '@/features/depenses/components/depense-list/categorie-depense';
 
 export default function DepenseTabs() {
   return (
@@ -20,3 +20,4 @@ export default function DepenseTabs() {
     </Tabs>
   );
 }
+

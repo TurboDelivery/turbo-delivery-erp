@@ -1,12 +1,12 @@
-import { ColumnDef } from '@tanstack/react-table';
+﻿import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ICategorieDepense } from '@/features/depenses/types/categorie-depense.type';
-import { CategorieDetailModal } from '@/feature-finance/depenses/components/depense-list/detail/categorie-detail';
-import { ModifierCategorieModal } from '@/feature-finance/depenses/components/modifier/modifier-categorie-modal';
-import SupprimerCategorieModal from '@/feature-finance/depenses/components/supprimer/supprimer-categorie-modal';
+import { CategorieDetailModal } from '@/features/depenses/components/depense-list/detail/categorie-detail';
+import { ModifierCategorieModal } from '@/features/depenses/components/modifier/modifier-categorie-modal';
+import SupprimerCategorieModal from '@/features/depenses/components/supprimer/supprimer-categorie-modal';
 import { Checkbox } from '@/components/ui/checkbox';
 
 export const depenseColumns: ColumnDef<ICategorieDepense>[] = [
@@ -78,3 +78,4 @@ export const depenseColumns: ColumnDef<ICategorieDepense>[] = [
     enableSorting: false,
   },
 ];
+

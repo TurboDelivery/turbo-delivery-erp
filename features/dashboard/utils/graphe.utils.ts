@@ -1,4 +1,4 @@
-import { ChartDataPoint, MonthlyStats, YearlyStats } from '@/feature-finance/dashboard/types/dashboard.types';
+﻿import { ChartDataPoint, MonthlyStats, YearlyStats } from '@/features/finance-dashboard/types/dashboard.types';
 
 export const MONTH_LABELS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'] as const;
 
@@ -44,4 +44,5 @@ export function toMonthlyChartData(yearlyStats: YearlyStats, year: number | stri
     };
   });
 }
+
 

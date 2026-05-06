@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { IRecouvrement } from '@/feature-finance/revenus/types/recouvrement/recouvrement.types';
+import { IRecouvrement } from '@/features/revenus/types/recouvrement/recouvrement.types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Download, Loader2, Pencil, Trash2 } from 'lucide-react';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { useState } from 'react';
-import { ModifierRecouvrementModal } from '@/feature-finance/revenus/components/recouvrement/recouvrement-pret/modifier-recouvrement-modal';
+import { ModifierRecouvrementModal } from '@/features/revenus/components/recouvrement/recouvrement-pret/modifier-recouvrement-modal';
 import { useSupprimerRecouvrementMutation } from '@/features/recouvrements/queries/recouvrement.mutation';
 import {
   AlertDialog,

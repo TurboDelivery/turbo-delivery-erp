@@ -74,7 +74,18 @@
       "Bash(Remove-Item \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\features\\\\tickets\\\\queries\\\\creneau-actif.query.ts\" -Force)",
       "Bash(Remove-Item \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\components\\\\tickets\\\\creneau-actif-banner.tsx\" -Force)",
       "Bash(Write-Output \"done\")",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "PowerShell(cd \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\"; git diff --name-only 2>$null | Where-Object { $_ -notmatch 'warning' })",
+      "PowerShell(cd \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\"; git status --short 2>$null | Where-Object { $_ -match '^[MA]' })",
+      "Bash(echo \"residual exit: $?\")",
+      "Bash(echo \"TSC: $?\")",
+      "Bash(echo \"EXIT_CODE: $?\")",
+      "Bash(findstr \"charges\")",
+      "mcp__MCP_DOCKER__execute_terminal_command",
+      "Bash(echo \"exit: $?\")",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(echo \"residual: $?\")",
+      "mcp__MCP_DOCKER__get_open_in_editor_file_path"
     ]
   }
 }

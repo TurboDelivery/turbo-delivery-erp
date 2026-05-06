@@ -1,4 +1,4 @@
-import { useDepenseSummaryQuery } from '@/feature-finance/depenses/queries/depense-summary.query';
+import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
 
 export const useDepenseSummary = () => {
@@ -6,7 +6,7 @@ export const useDepenseSummary = () => {
   const currentSearchParams = {
     debut: filters.debut,
     fin: filters.fin,
-    categoriesDepense: filters.categoriesDepense, // ✅ AJOUTÉ: Inclure les catégories pour forcer la mise à jour
+    categoriesDepense: filters.categoriesDepense, // âœ… AJOUTÉ: Inclure les catégories pour forcer la mise Ã  jour
   };
 
   const { data, isLoading, error, isError, refetch } = useDepenseSummaryQuery(currentSearchParams);
@@ -19,3 +19,4 @@ export const useDepenseSummary = () => {
     refetch,
   };
 };
+

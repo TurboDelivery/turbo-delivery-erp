@@ -1,5 +1,5 @@
 import React from 'react';
-import AnalyseRentabiliteContent from '@/feature-finance/analyse-rentabilite/components/AnalyseRentabiliteContent';
+import AnalyseRentabiliteContent from '@/features/analyse-rentabilite/components/AnalyseRentabiliteContent';
 
 export default function AnalyseRentabilitePage() {
   return <AnalyseRentabiliteContent />;

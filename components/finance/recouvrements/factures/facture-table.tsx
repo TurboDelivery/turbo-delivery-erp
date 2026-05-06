@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { flexRender } from '@tanstack/react-table';
@@ -6,7 +6,7 @@ import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, Tabl
 import useFactureTable from '@/features/recouvrements/hooks/use-facture-table';
 import { FactureFilters } from './facture-filters';
 import { subMonths } from 'date-fns';
-import { CreerRecouvrementModal } from '@/feature-finance/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';
+import { CreerRecouvrementModal } from '@/features/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';
 
 interface FactureTableProps {
   restaurantId?: string;

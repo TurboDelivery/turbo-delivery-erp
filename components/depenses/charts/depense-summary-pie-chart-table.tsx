@@ -3,7 +3,7 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useDepenseSummaryQuery } from '@/feature-finance/depenses/queries/depense-summary.query';
+import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { TrendingUp } from 'lucide-react';
 
@@ -21,7 +21,7 @@ export function DepenseSummaryPieChartTable({
   fin, 
   categoriesDepense 
 }: DepenseSummaryPieChartTableProps) {
-  // ✅ Utiliser les filtres du tableau
+  // âœ… Utiliser les filtres du tableau
   const currentSearchParams = {
     debut,
     fin,
@@ -194,3 +194,4 @@ export function DepenseSummaryPieChartTable({
     </Card>
   );
 }
+

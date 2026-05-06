@@ -4,8 +4,8 @@ import { format } from 'date-fns';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ModifierDepenseModal } from '@/feature-finance/depenses/components/modifier/modifier-depenses-modal';
-import SupprimerDepenseModal from '@/feature-finance/depenses/components/supprimer/suprime-depense';
+import { ModifierDepenseModal } from '@/features/depenses/components/modifier/modifier-depenses-modal';
+import SupprimerDepenseModal from '@/features/depenses/components/supprimer/suprime-depense';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 
@@ -121,3 +121,4 @@ export const depenseColumns: ColumnDef<IDepense>[] = [
     enableSorting: false,
   },
 ];
+

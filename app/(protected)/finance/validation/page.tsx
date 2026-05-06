@@ -1,4 +1,4 @@
-import ValidationPageContent from "@/feature-finance/validation/components/validation-page-content";
+import ValidationPageContent from "@/features/validation-finance/components/validation-page-content";
 
 
 export default function ValidationPage() {

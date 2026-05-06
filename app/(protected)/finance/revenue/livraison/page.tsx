@@ -1,6 +1,6 @@
-
-import LivraisonClient from "@/feature-finance/revenus/components/cumul/livraison/livraison-client";
-import { prefetchLivraisonListQuery } from "@/feature-finance/revenus/queries/livraison/livraison-list.query";
+﻿
+import LivraisonClient from "@/features/revenus/components/cumul/livraison/livraison-client";
+import { prefetchLivraisonListQuery } from "@/features/revenus/queries/livraison/livraison-list.query";
 
 export default function RevenueLivraisonPage() {
     prefetchLivraisonListQuery({

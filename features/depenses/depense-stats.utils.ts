@@ -1,4 +1,4 @@
-import { MonthlyStats, YearlyStats } from '@/feature-finance/dashboard/types/dashboard.types';
+﻿import { MonthlyStats, YearlyStats } from '@/features/finance-dashboard/types/dashboard.types';
 
 export type RecupereDonneesResult = {
   date: string;
@@ -34,3 +34,4 @@ export function recupererDonnees(data: YearlyStats, categorie: keyof MonthlyStat
 
   return resultat;
 }
+
