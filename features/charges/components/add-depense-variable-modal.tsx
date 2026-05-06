@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -19,14 +19,14 @@ import { useForm } from 'react-hook-form';
 import {
   useAjouterChargeVariableMutation,
   useModifierChargeVariableMutation,
-} from '@/feature-finance/charges/queries/charge-variable.mutation';
-import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
+} from '@/features/charges/queries/charge-variable.mutation';
+import { IChargeVariable } from '@/features/charges/types/charge-variable.type';
 import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 import { useSession } from 'next-auth/react';
 import {
   ChargeVariableFormDTO,
   chargeVariableFormSchema,
-} from '@/feature-finance/charges/schemas/charge-variable.schema';
+} from '@/features/charges/schemas/charge-variable.schema';
 import { getTodayDateInput } from '@/lib/date-utils';
 
 interface AddDepenseVariableModalProps {
@@ -164,14 +164,14 @@ export default function AddDepenseVariableModal({
     <Modal isOpen={isOpen} onClose={handleClose} size="2xl" scrollBehavior="inside">
       <ModalContent>
         <ModalHeader className="text-purple-600 text-xl font-semibold">
-          {isEditMode ? 'Modifier la dépense variable' : 'Ajouter une Dépense Variable'}
+          {isEditMode ? 'Modifier la dÃ©pense variable' : 'Ajouter une DÃ©pense Variable'}
         </ModalHeader>
 
         <ModalBody>
           <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Désignation"
+                label="DÃ©signation"
                 placeholder="Ex: Carburant, Maintenance..."
                 {...register('designation')}
                 variant="bordered"
@@ -190,7 +190,7 @@ export default function AddDepenseVariableModal({
                   onChange={(opt) =>
                     setValue('categorieId', opt?.value ?? '', { shouldValidate: true })
                   }
-                  placeholder="Rechercher une catégorie..."
+                  placeholder="Rechercher une catÃ©gorie..."
                   isClearable
                   isLoading={isLoadingCategories}
                   isDisabled={isLoadingCategories}
@@ -225,7 +225,7 @@ export default function AddDepenseVariableModal({
             />
 
             <Input
-              label="Date de dépense"
+              label="Date de dÃ©pense"
               type="date"
               value={formValues.dateDepense ?? ''}
               onChange={(e) =>
@@ -297,10 +297,10 @@ export default function AddDepenseVariableModal({
               <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
               <Step label="DG" sub="Approbation" />
               <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
-              <Step label="Paiement" sub="Décaissement" />
+              <Step label="Paiement" sub="DÃ©caissement" />
             </div>
 
-            {/* Aperçu */}
+            {/* AperÃ§u */}
             {isValid && hasJustificatif && (
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="font-semibold">{formValues.designation}</p>
@@ -343,3 +343,4 @@ export default function AddDepenseVariableModal({
     </Modal>
   );
 }
+

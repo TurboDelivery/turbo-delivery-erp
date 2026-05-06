@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect } from 'react';
 import {
@@ -18,13 +18,13 @@ import { useForm } from 'react-hook-form';
 import {
   useAjouterChargeFixeMutation,
   useModifierChargeFixeMutation,
-} from '@/feature-finance/charges/queries/charge-fixe.mutation';
-import { IChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
+} from '@/features/charges/queries/charge-fixe.mutation';
+import { IChargeFixe } from '@/features/charges/types/charge-fixe.type';
 import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 import {
   ChargeFixeCreateDTO,
   chargeFixeFormSchema,
-} from '@/feature-finance/charges/schemas/charge-fixe.schema';
+} from '@/features/charges/schemas/charge-fixe.schema';
 
 interface AddChargeFixeModalProps {
   isOpen: boolean;
@@ -238,3 +238,4 @@ export default function AddChargeFixeModal({
     </Modal>
   );
 }
+

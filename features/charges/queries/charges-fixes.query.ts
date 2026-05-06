@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 import { IChargeFixeParams } from '../types/charge-fixe.type';
 import { chargeFixeKeyQuery } from './index.query';
 import { toast } from 'sonner';
-import { chargeFixeAPI } from '@/feature-finance/charges/apis/charge-fixe.api';
+import { chargeFixeAPI } from '@/features/charges/apis/charge-fixe.api';
 
 export const chargesFixesListQueryOption = (params: IChargeFixeParams) => ({
   queryKey: chargeFixeKeyQuery('list', params),
@@ -27,7 +27,7 @@ export const useChargesFixesQuery = (params: IChargeFixeParams = {}, enabled: bo
 
   useEffect(() => {
     if (query.isError && query.error) {
-      toast.error('Erreur lors de la récupération des charges fixes', {
+      toast.error('Erreur lors de la rÃ©cupÃ©ration des charges fixes', {
         description: query.error instanceof Error ? query.error.message : 'Erreur inconnue',
       });
     }
@@ -41,7 +41,7 @@ export const useChargesFixesStatsQuery = (params?: { debut?: string; fin?: strin
 
   useEffect(() => {
     if (query.isError && query.error) {
-      toast.error('Erreur lors de la récupération des statistiques des charges fixes', {
+      toast.error('Erreur lors de la rÃ©cupÃ©ration des statistiques des charges fixes', {
         description: query.error instanceof Error ? query.error.message : 'Erreur inconnue',
       });
     }
@@ -49,3 +49,4 @@ export const useChargesFixesStatsQuery = (params?: { debut?: string; fin?: strin
 
   return query;
 };
+

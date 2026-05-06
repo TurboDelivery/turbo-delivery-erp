@@ -1,5 +1,5 @@
-import { Suspense } from 'react';
-import ChargesDepensesDetailsV2 from '@/feature-finance/charges/components/charges-depenses-details-v2';
+﻿import { Suspense } from 'react';
+import ChargesDepensesDetailsV2 from '@/features/charges/components/charges-depenses-details-v2';
 
 export default function ChargesDetailsPage() {
   return (
@@ -8,3 +8,4 @@ export default function ChargesDetailsPage() {
     </Suspense>
   );
 }
+
