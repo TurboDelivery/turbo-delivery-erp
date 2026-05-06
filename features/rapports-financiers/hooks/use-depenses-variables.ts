@@ -1,5 +1,5 @@
-import { useDepensesVariablesQuery } from '@/feature-finance/rapports-financiers/queries/depenses-variables.query';
-import { IDepenseVariableParams } from '@/feature-finance/rapports-financiers/types/depenses-variables.type';
+﻿import { useDepensesVariablesQuery } from '@/features/rapports-financiers/queries/depenses-variables.query';
+import { IDepenseVariableParams } from '@/features/rapports-financiers/types/depenses-variables.type';
 
 export const useDepensesVariables = (params: IDepenseVariableParams) => {
   const { data, isLoading, error, isError, refetch } = useDepensesVariablesQuery(params);

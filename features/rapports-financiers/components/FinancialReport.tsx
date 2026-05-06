@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Download, ArrowLeft } from 'lucide-react';
 import { Button } from '@heroui/react';
@@ -12,8 +12,8 @@ import { useRapportFinancier } from '@/feature-finance/dashboard/queries/global-
 import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
-import { exportFinancialReportCsv } from '@/feature-finance/rapports-financiers/utils/financial-report-export.utils';
-import { exportFinancialReportPdf } from '@/feature-finance/rapports-financiers/utils/financial-report-pdf.utils';
+import { exportFinancialReportCsv } from '@/features/rapports-financiers/utils/financial-report-export.utils';
+import { exportFinancialReportPdf } from '@/features/rapports-financiers/utils/financial-report-pdf.utils';
 
 interface RapportFinancierResponse {
   chiffreAffaire: number;

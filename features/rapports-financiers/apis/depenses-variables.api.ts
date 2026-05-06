@@ -1,8 +1,8 @@
-import { apiClientHttp } from '@/lib/api-client-http';
+﻿import { apiClientHttp } from '@/lib/api-client-http';
 import {
   IDepenseVariableParams,
   IDepensesVariablesResponse,
-} from '@/feature-finance/rapports-financiers/types/depenses-variables.type';
+} from '@/features/rapports-financiers/types/depenses-variables.type';
 
 export const depensesVariablesAPI = {
   async obtenirDepensesVariables(

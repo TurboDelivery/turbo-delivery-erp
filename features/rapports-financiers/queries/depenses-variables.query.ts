@@ -1,10 +1,10 @@
-import React from 'react';
+﻿import React from 'react';
 
 import { useQuery } from '@tanstack/react-query';
 import getQueryClient from '@/lib/get-query-client';
 import { depensesVariablesKeyQuery } from './index.query';
 import { toast } from 'sonner';
-import { IDepenseVariableParams } from '@/feature-finance/rapports-financiers/types/depenses-variables.type';
+import { IDepenseVariableParams } from '@/features/rapports-financiers/types/depenses-variables.type';
 import { depensesVariablesAPI } from '../apis/depenses-variables.api';
 
 const queryClient = getQueryClient();

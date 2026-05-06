@@ -1,11 +1,11 @@
-'use server';
+﻿'use server';
 
 import { ActionResponse } from '@/types';
 import {
   IDepenseVariableParams,
   IDepensesVariablesResponse,
-} from '@/feature-finance/rapports-financiers/types/depenses-variables.type';
-import { depensesVariablesAPI } from '@/feature-finance/rapports-financiers/apis/depenses-variables.api';
+} from '@/features/rapports-financiers/types/depenses-variables.type';
+import { depensesVariablesAPI } from '@/features/rapports-financiers/apis/depenses-variables.api';
 import { handleServerActionError } from '@/utils/handleServerActionError';
 
 export const obtenirDepensesVariablesAction = async (
