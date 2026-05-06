@@ -18,9 +18,17 @@ const PAGE_SIZE = 10;
 export function VerrouillageV2Table({ tickets, validatingId, onValidate, onReject }: VerrouillageV2TableProps) {
   const [page, setPage] = useState(1);
 
-  const pageCount = Math.max(1, Math.ceil(tickets.length / PAGE_SIZE));
-  const safePage = Math.min(page, pageCount);
-  const paginatedTickets = tickets.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const pageCount = useMemo(
+    () => Math.max(1, Math.ceil(tickets.length / PAGE_SIZE)),
+    [tickets.length],
+  );
+
+  const safePage = useMemo(() => Math.min(page, pageCount), [page, pageCount]);
+
+  const paginatedTickets = useMemo(
+    () => tickets.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [tickets, safePage],
+  );
 
   const columns = useMemo(
     () => buildVerrouillageV2Columns(onValidate, onReject, validatingId),
