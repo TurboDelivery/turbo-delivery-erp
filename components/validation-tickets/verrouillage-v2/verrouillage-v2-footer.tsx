@@ -11,7 +11,7 @@ interface VerrouillageV2FooterProps {
 
 export function VerrouillageV2Footer({ ticketCount, isValidating, onValidateAll }: VerrouillageV2FooterProps) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-orange-200 bg-orange-50 px-5 py-4">
+    <div className="flex items-center gap-4 justify-between rounded-xl border border-orange-200 bg-orange-50 px-5 py-4">
       <div>
         <p className="text-sm font-semibold text-orange-700">Action critique — Verrouillage irréversible</p>
         <p className="text-xs text-orange-500 mt-0.5">

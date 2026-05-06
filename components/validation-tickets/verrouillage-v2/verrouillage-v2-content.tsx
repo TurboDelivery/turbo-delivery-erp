@@ -34,7 +34,7 @@ export function VerrouillageV2Content() {
       <div>
         <h1 className="text-2xl font-bold text-red-600">Verrouillage V2 — Responsable V&A</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Étape 4 — Double passe complète et verrouillage <strong>irréversible</strong> du créneau.
+          Étape 4 — Double passe complète.
         </p>
       </div>
 
