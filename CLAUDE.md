@@ -108,12 +108,14 @@ Roles and permissions are defined in `lib/casl/ability.ts`. Roles: `STANDARD`, `
 
 Filters (pagination, search, sort) are stored in the URL via `nuqs`. Each feature's `filters/` defines a `parseAs*` config. `useXxxFilters` wraps `useQueryStates` with that config and exposes typed setters.
 
-### Legacy Code
+### Finance Modules
 
-`feature-finance/` is a legacy directory being migrated. New finance code belongs in `features/`. Do not add new files to `feature-finance/`.
+Les modules finance sont dans `features/` : `charges`, `depenses`, `revenus`, `gestion-paiements`, `finance-dashboard`, `rapports-financiers`, `rapports-performance`, `validation-finance`, `analyse-rentabilite`.
+
+### Legacy Code
 
 `src/actions/` contains older server actions (bon-commande, livreurs, commandes…) that predate the `features/` architecture. Prefer the feature-module pattern for new work.
 
 ### Tailwind
 
-`tailwind.config.js` scans `features/**`, `components/**`, `app/**`, `feature-finance/**`, and `src/**`. Colors are CSS-variable-based HSL tokens (`hsl(var(--primary))` etc.). Dark mode is `class`-based.
+`tailwind.config.js` scans `features/**`, `components/**`, `app/**`, and `src/**`. Colors are CSS-variable-based HSL tokens (`hsl(var(--primary))` etc.). Dark mode is `class`-based.

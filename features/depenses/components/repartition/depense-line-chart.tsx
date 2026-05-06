@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
@@ -6,7 +6,7 @@ import { CartesianGrid, Line, LineChart, XAxis } from 'recharts';
 import { cn } from '@/lib/utils';
 import YearSelect from '@/components/commons/year-select';
 import React, { useMemo } from 'react';
-import { useDashboardStatsQuery } from '@/feature-finance/dashboard/queries/dashboard-stats.query';
+import { useDashboardStatsQuery } from '@/features/finance-dashboard/queries/dashboard-stats.query';
 import { recupererDonnees } from '@/features/depenses/depense-stats.utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -111,3 +111,4 @@ export default function DepenseLineChart({ className }: { className?: string }) 
     </Card>
   );
 }
+

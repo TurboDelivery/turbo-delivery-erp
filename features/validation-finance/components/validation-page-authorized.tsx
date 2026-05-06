@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
@@ -6,8 +6,8 @@ import { Spinner } from '@heroui/react';
 import { useValidationData, useHistoryData } from '../hooks/use-validation-data';
 import { getPendingCount, useValidationStats } from '../hooks/use-validation-stats';
 import { useValidationActions } from '../hooks/use-validation-actions';
-import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
-import AddDepenseVariableModal from '@/feature-finance/charges/components/add-depense-variable-modal';
+import { IChargeVariable } from '@/features/charges/types/charge-variable.type';
+import AddDepenseVariableModal from '@/features/charges/components/add-depense-variable-modal';
 import {
   ChargeType,
   Role,
@@ -68,7 +68,7 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
               depenses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-b-xl border border-t-0 border-gray-200 bg-white py-16 text-gray-400">
                   <CheckCircle2 className="mb-2 h-10 w-10" />
-                  <p className="text-sm">Aucune dépense à valider</p>
+                  <p className="text-sm">Aucune dÃ©pense Ã  valider</p>
                 </div>
               ) : (
                 <ValidationCard
@@ -107,3 +107,4 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
     </div>
   );
 }
+

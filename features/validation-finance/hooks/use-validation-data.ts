@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
-import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
-import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
-import { useHistoriqueChargesQuery } from '@/feature-finance/charges/queries/historique-charge.query';
+﻿import { useMemo } from 'react';
+import { useChargesVariablesQuery } from '@/features/charges/queries/charges-variables.query';
+import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
+import { useHistoriqueChargesQuery } from '@/features/charges/queries/historique-charge.query';
 import { IDepense } from '@/features/depenses/types/depense.type';
 import {
   ChargeType,
@@ -44,3 +44,4 @@ export function useHistoryData(role: Role, enabled: boolean) {
 
   return { depenses, isLoading: historiqueQuery.isLoading };
 }
+

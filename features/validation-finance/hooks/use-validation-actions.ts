@@ -1,6 +1,6 @@
-import { useSession } from 'next-auth/react';
-import { useActionChargeVariableMutation } from '@/feature-finance/charges/queries/charge-variable.mutation';
-import { useActionChargeFixeMutation } from '@/feature-finance/charges/queries/charge-fixe.mutation';
+﻿import { useSession } from 'next-auth/react';
+import { useActionChargeVariableMutation } from '@/features/charges/queries/charge-variable.mutation';
+import { useActionChargeFixeMutation } from '@/features/charges/queries/charge-fixe.mutation';
 import { ChargeType, Role, ROLE_ACCEPT_ACTION, ROLE_REJECT_ACTION } from '../components/validation.constants';
 
 export function useValidationActions(userRole: Role, chargeType: ChargeType) {
@@ -29,3 +29,4 @@ export function useValidationActions(userRole: Role, chargeType: ChargeType) {
     isPending: actionVariableMutation.isPending || actionFixeMutation.isPending,
   };
 }
+

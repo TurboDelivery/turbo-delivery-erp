@@ -8,10 +8,10 @@ import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from 
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { useState, useMemo } from 'react';
 import { endOfMonth, startOfMonth, format } from 'date-fns';
-import { useRapportFinancier } from '@/feature-finance/dashboard/queries/global-stats.query';
-import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
+import { useRapportFinancier } from '@/features/finance-dashboard/queries/global-stats.query';
+import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
+import { useChargesVariablesQuery } from '@/features/charges/queries/charges-variables.query';
 import { exportFinancialReportCsv } from '@/features/rapports-financiers/utils/financial-report-export.utils';
 import { exportFinancialReportPdf } from '@/features/rapports-financiers/utils/financial-report-pdf.utils';
 
@@ -349,3 +349,5 @@ export default function FinancialReport() {
     </div>
   );
 }
+
+

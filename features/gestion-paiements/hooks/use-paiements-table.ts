@@ -1,13 +1,13 @@
-import { functionalUpdate, getCoreRowModel, getSortedRowModel, PaginationState, RowSelectionState, useReactTable } from '@tanstack/react-table';
+﻿import { functionalUpdate, getCoreRowModel, getSortedRowModel, PaginationState, RowSelectionState, useReactTable } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
 import { createPaiementsColumns } from '../columns/paiements.columns';
-import { useChargesFixesQuery } from '@/feature-finance/charges/queries/charges-fixes.query';
-import { useChargesVariablesQuery } from '@/feature-finance/charges/queries/charges-variables.query';
+import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
+import { useChargesVariablesQuery } from '@/features/charges/queries/charges-variables.query';
 import { useDecaisserMutation } from '../queries/paiement.mutation';
-import { useRapportMasseSalarialeMutation } from '@/feature-finance/charges/queries/charge-fixe.mutation';
-import { useSupprimerChargeVariableMutation } from '@/feature-finance/charges/queries/charge-variable.mutation';
-import { IChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
-import { IChargeVariable } from '@/feature-finance/charges/types/charge-variable.type';
+import { useRapportMasseSalarialeMutation } from '@/features/charges/queries/charge-fixe.mutation';
+import { useSupprimerChargeVariableMutation } from '@/features/charges/queries/charge-variable.mutation';
+import { IChargeFixe } from '@/features/charges/types/charge-fixe.type';
+import { IChargeVariable } from '@/features/charges/types/charge-variable.type';
 
 export type ChargeTypeFilter = 'fixe' | 'variable';
 
@@ -122,3 +122,4 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
     supprimerChargeVariableMutation,
   };
 }
+

@@ -1,21 +1,21 @@
-'use client';
+﻿'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Button, Chip } from '@heroui/react';
 import { FileText, Trash2, Wallet } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Can } from '@/components/auth/Can';
-import { IChargeFixe, StatutChargeFixe } from '@/feature-finance/charges/types/charge-fixe.type';
+import { IChargeFixe, StatutChargeFixe } from '@/features/charges/types/charge-fixe.type';
 
 const STATUT_CONFIG: Record<string, { label: string; color: 'warning' | 'primary' | 'success' | 'danger' | 'default' }> = {
   PENDING: { label: 'En attente', color: 'warning' },
   EN_ATTENTE_DGA: { label: 'En attente DGA', color: 'warning' },
-  VALIDE_DGA: { label: 'Validé DGA', color: 'primary' },
-  APPROUVE_DG: { label: 'Approuvé DG', color: 'success' },
-  REJETE_DGA: { label: 'Rejeté DGA', color: 'danger' },
-  REJETE_DG: { label: 'Rejeté DG', color: 'danger' },
-  DECAISSE: { label: 'Décaissé', color: 'success' },
-  PAID: { label: 'Décaissé', color: 'success' },
+  VALIDE_DGA: { label: 'ValidÃ© DGA', color: 'primary' },
+  APPROUVE_DG: { label: 'ApprouvÃ© DG', color: 'success' },
+  REJETE_DGA: { label: 'RejetÃ© DGA', color: 'danger' },
+  REJETE_DG: { label: 'RejetÃ© DG', color: 'danger' },
+  DECAISSE: { label: 'DÃ©caissÃ©', color: 'success' },
+  PAID: { label: 'DÃ©caissÃ©', color: 'success' },
 };
 
 const DECAISSE_STATUTS = ['DECAISSE', 'PAID'];
@@ -52,13 +52,13 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
     },
     {
       accessorKey: 'designation',
-      header: 'Désignation',
+      header: 'DÃ©signation',
       cell: ({ row }) => <span className="text-sm text-gray-900">{row.getValue('designation')}</span>,
     },
     {
       id: 'categorie',
-      header: 'Catégorie',
-      cell: ({ row }) => <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? '—'}</span>,
+      header: 'CatÃ©gorie',
+      cell: ({ row }) => <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? 'â€”'}</span>,
     },
     {
       accessorKey: 'montant',
@@ -86,7 +86,7 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
           <div className="flex items-center gap-2">
             {!isDecaisse(row.original) && (
               <Button size="sm" color="warning" variant="flat" startContent={<Wallet size={14} />} isLoading={isPending} onPress={() => onDecaisser(row.original.id)}>
-                Décaisser
+                DÃ©caisser
               </Button>
             )}
             {isDecaisse(row.original) && row.original.codeSysteme === 'MASSE_SALARIALE_NETTE' && (
@@ -107,3 +107,4 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
     },
   ];
 }
+

@@ -1,11 +1,11 @@
-'use client';
+﻿'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { ChargeTypeFilter } from '../hooks/use-paiements-table';
-import { chargeFixeKeyQuery } from '@/feature-finance/charges/queries/index.query';
-import { chargeVariableKeyQuery } from '@/feature-finance/charges/queries/index-charge-variable.query';
+import { chargeFixeKeyQuery } from '@/features/charges/queries/index.query';
+import { chargeVariableKeyQuery } from '@/features/charges/queries/index-charge-variable.query';
 
 const DECAISSER_ENDPOINT: Record<ChargeTypeFilter, string> = {
   fixe: '/erp/charges-fixes',
@@ -29,12 +29,13 @@ export const useDecaisserMutation = (chargeType: ChargeTypeFilter, fin?: string)
       const key = chargeType === 'fixe' ? chargeFixeKeyQuery() : chargeVariableKeyQuery();
       await queryClient.invalidateQueries({ queryKey: key, exact: false });
       await queryClient.refetchQueries({ queryKey: key, type: 'active' });
-      toast.success(`${ids.length > 1 ? 'Charges décaissées' : 'Charge décaissée'} avec succès`);
+      toast.success(`${ids.length > 1 ? 'Charges dÃ©caissÃ©es' : 'Charge dÃ©caissÃ©e'} avec succÃ¨s`);
     },
     onError: (error) => {
-      toast.error('Erreur lors du décaissement', {
+      toast.error('Erreur lors du dÃ©caissement', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },
   });
 };
+
