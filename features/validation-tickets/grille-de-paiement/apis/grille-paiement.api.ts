@@ -58,6 +58,7 @@ export async function getGrillePaiementApi(
         endpoint: `/api/creneaux/${creneauId}/grille-paiement`,
         method: 'GET',
         params: { page: '0', size: '200' },
+
       }),
       apiClientHttp.request<GrilleStats>({
         endpoint: `/api/creneaux/${creneauId}/grille-paiement/stats`,

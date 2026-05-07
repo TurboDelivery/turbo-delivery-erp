@@ -1,9 +1,28 @@
 'use client';
 
+import { useMemo } from 'react';
 import { CheckCircle2, Phone, Star, XCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerBody,
+  Card,
+  CardBody,
+  CardHeader,
+  Avatar,
+  Divider,
+  Chip,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+} from '@heroui/react';
+import { getCoreRowModel, useReactTable, flexRender, type ColumnDef } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
-import { IGrillePaiementLigne } from '../types/grille-paiement.type';
+import { IGrillePaiementLigne, IGrillePaiementTicketDetail } from '../types/grille-paiement.type';
 
 function formatNumber(n: number) {
   return n.toLocaleString('fr-FR');
@@ -17,11 +36,88 @@ function formatDate(iso: string) {
   });
 }
 
-function Avatar({ nom }: { nom: string }) {
-  const initiale = nom.charAt(0).toUpperCase();
+function TicketDetailsTable({ data, creneauCode }: { data: IGrillePaiementTicketDetail[]; creneauCode: string }) {
+  const columns = useMemo<ColumnDef<IGrillePaiementTicketDetail>[]>(
+    () => [
+      {
+        accessorKey: 'ref',
+        header: 'Ticket',
+        cell: ({ getValue }) => (
+          <span className="font-medium text-blue-600">{getValue<string>()}</span>
+        ),
+      },
+      {
+        accessorKey: 'partenaire',
+        header: 'Partenaire',
+        cell: ({ getValue }) => <span className="text-gray-700">{getValue<string>()}</span>,
+      },
+      {
+        accessorKey: 'date',
+        header: 'Date',
+        cell: ({ getValue }) => (
+          <span className="text-gray-500">{formatDate(getValue<string>())}</span>
+        ),
+      },
+      {
+        accessorKey: 'commission',
+        header: 'Commission',
+        cell: ({ getValue }) => (
+          <span className="font-medium text-gray-800">{formatNumber(getValue<number>())}</span>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   return (
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white font-bold text-xl">
-      {initiale}
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-sm font-semibold text-gray-800">
+          Détail des {data.length} ticket{data.length > 1 ? 's' : ''}
+        </p>
+        <Chip
+          size="sm"
+          variant="flat"
+          color="default"
+          classNames={{ base: 'bg-gray-100', content: 'text-gray-400 text-xs' }}
+        >
+          {creneauCode.replace('CRÉNEAU-', '')}
+        </Chip>
+      </div>
+      <Card shadow="none" className="border border-gray-100 overflow-hidden">
+        <CardBody className="p-0">
+          <Table
+            removeWrapper
+            isStriped
+            classNames={{ th: 'bg-gray-50 text-[10px] uppercase tracking-wider text-gray-400 font-semibold', td: 'text-xs py-2.5' }}
+          >
+            <TableHeader>
+              {table.getFlatHeaders().map((header) => (
+                <TableColumn key={header.id}>
+                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableColumn>
+              ))}
+            </TableHeader>
+            <TableBody emptyContent="Aucun ticket trouvé pour ce créneau.">
+              {table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardBody>
+      </Card>
     </div>
   );
 }
@@ -39,11 +135,16 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
   const { turboy, tickets, brut, taux, deductions, netAPayer, numeroWave, bonusEligibilite, ticketDetails } = ligne;
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden rounded-2xl">
+    <Drawer isOpen={open} onOpenChange={(v) => !v && onClose()} placement="right" size="lg">
+      <DrawerContent>
         {/* Header */}
-        <div className="flex items-start gap-3 px-6 pt-6 pb-4">
-          <Avatar nom={turboy.nom} />
+        <DrawerHeader className="flex items-start gap-3 px-6 pt-6 pb-4 border-b border-gray-100">
+          <Avatar
+            name={turboy.nom}
+            classNames={{ base: 'bg-orange-500 shrink-0', name: 'text-white font-bold text-xl' }}
+            size="lg"
+            radius="lg"
+          />
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-gray-900 leading-tight">{turboy.nom}</h2>
             <p className="text-xs text-gray-400">{turboy.code}</p>
@@ -52,9 +153,11 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
               {creneauCode.replace('CRÉNEAU-', '')}
             </p>
           </div>
-        </div>
+        </DrawerHeader>
 
-        <div className="overflow-y-auto max-h-[80vh] px-6 pb-6 flex flex-col gap-5">
+        <DrawerBody className="flex flex-col overflow-hidden p-0">
+          {/* Scrollable zone */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
           {/* Stats cards */}
           <div className="grid grid-cols-2 gap-3">
             {[
@@ -67,43 +170,52 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
               },
               { label: 'NET À PAYER', value: formatNumber(netAPayer), sub: 'FCFA', bold: true },
             ].map(({ label, value, sub, highlight, bold }) => (
-              <div key={label} className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">
-                  {label}
-                </p>
-                <p
-                  className={cn(
-                    'text-xl font-bold leading-tight',
-                    highlight ? 'text-amber-500' : bold ? 'text-gray-900' : 'text-gray-700',
-                  )}
-                >
-                  {value}
-                  {sub && (
-                    <span className="ml-1 text-sm font-medium text-gray-400">{sub}</span>
-                  )}
-                </p>
-              </div>
+              <Card key={label} shadow="none" className="border border-gray-100 bg-gray-50">
+                <CardBody className="px-4 py-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">
+                    {label}
+                  </p>
+                  <p
+                    className={cn(
+                      'text-xl font-bold leading-tight',
+                      highlight ? 'text-amber-500' : bold ? 'text-gray-900' : 'text-gray-700',
+                    )}
+                  >
+                    {value}
+                    {sub && (
+                      <span className="ml-1 text-sm font-medium text-gray-400">{sub}</span>
+                    )}
+                  </p>
+                </CardBody>
+              </Card>
             ))}
           </div>
 
           {/* Bonus eligibility */}
-          <div className="rounded-xl border border-gray-100">
-            <div className="flex items-center gap-2 bg-red-50 px-4 py-2.5">
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-red-100">
-                <Star className="h-3.5 w-3.5 text-red-500" />
-              </div>
+          <Card shadow="none" className="border border-gray-100">
+            <CardHeader className="flex items-center gap-2 bg-red-50 px-4 py-2.5 rounded-t-xl">
+              <Avatar
+                icon={<Star className="h-3.5 w-3.5 text-red-500" />}
+                classNames={{ base: 'bg-red-100 w-6 h-6 min-w-6', icon: 'text-red-500' }}
+                radius="sm"
+                size="sm"
+              />
               <span className="text-sm font-semibold text-gray-800">
                 Calculateur de commission — Éligibilité bonus
               </span>
-            </div>
-
-            <div className="divide-y divide-gray-50">
+            </CardHeader>
+            <Divider />
+            <CardBody className="p-0">
+            <div className="divide-y divide-gray-50 max-h-[256px] overflow-y-auto">
               {bonusEligibilite.criteres.map((critere) => (
                 <div key={critere.label} className="flex items-center justify-between px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100">
-                      <Star className="h-4 w-4 text-gray-500" />
-                    </div>
+                    <Avatar
+                      icon={<Star className="h-4 w-4" />}
+                      classNames={{ base: 'bg-gray-100 w-8 h-8 min-w-8 shrink-0', icon: 'text-gray-500' }}
+                      radius="md"
+                      size="sm"
+                    />
                     <div>
                       <p className="text-sm font-medium text-gray-800">{critere.label}</p>
                       <p className="text-xs text-gray-400">{critere.detail}</p>
@@ -119,9 +231,12 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
 
               {/* Taux final */}
               <div className="flex items-center gap-3 px-4 py-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-100">
-                  <Star className="h-4 w-4 text-gray-400" />
-                </div>
+                <Avatar
+                  icon={<Star className="h-4 w-4" />}
+                  classNames={{ base: 'bg-gray-100 w-8 h-8 min-w-8 shrink-0', icon: 'text-gray-400' }}
+                  radius="md"
+                  size="sm"
+                />
                 <div>
                   <p className="text-sm font-medium text-gray-500">
                     {bonusEligibilite.tauxFinalLabel}
@@ -130,73 +245,50 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
                 </div>
               </div>
             </div>
-          </div>
+            </CardBody>
+          </Card>
 
           {/* Ticket details */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-semibold text-gray-800">
-                Détail des {ticketDetails.length} ticket{ticketDetails.length > 1 ? 's' : ''}
-              </p>
-              <span className="text-xs text-gray-400">{creneauCode.replace('CRÉNEAU-', '')}</span>
-            </div>
-            <div className="rounded-xl border border-gray-100 overflow-hidden">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr className="bg-gray-50 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                    <th className="px-3 py-2 text-left">Ticket</th>
-                    <th className="px-3 py-2 text-left">Partenaire</th>
-                    <th className="px-3 py-2 text-left">Date</th>
-                    <th className="px-3 py-2 text-right">Commission</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {ticketDetails.map((t) => (
-                    <tr key={t.ref} className="hover:bg-gray-50/50">
-                      <td className="px-3 py-2.5 font-medium text-blue-600">{t.ref}</td>
-                      <td className="px-3 py-2.5 text-gray-700">{t.partenaire}</td>
-                      <td className="px-3 py-2.5 text-gray-500">{formatDate(t.date)}</td>
-                      <td className="px-3 py-2.5 text-right font-medium text-gray-800">
-                        {formatNumber(t.commission)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <TicketDetailsTable data={ticketDetails} creneauCode={creneauCode} />
           </div>
 
-          {/* Wave */}
-          <div
-            className={cn(
-              'flex items-center gap-3 rounded-xl px-4 py-3',
-              numeroWave ? 'bg-gray-50 border border-gray-100' : 'bg-red-50 border border-red-100',
-            )}
-          >
-            <div
+          {/* Wave — toujours visible en bas */}
+          <div className="shrink-0 px-6 pb-5 pt-3 border-t border-gray-100">
+            <Card
+              shadow="none"
               className={cn(
-                'flex h-9 w-9 shrink-0 items-center justify-center rounded-full',
-                numeroWave ? 'bg-gray-200' : 'bg-red-100',
+                'border',
+                numeroWave ? 'bg-gray-50 border-gray-100' : 'bg-red-50 border-red-100',
               )}
             >
-              <Phone className={cn('h-4 w-4', numeroWave ? 'text-gray-500' : 'text-red-500')} />
-            </div>
-            <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                Numéro Wave de paiement
-              </p>
-              <p
-                className={cn(
-                  'text-sm font-semibold',
-                  numeroWave ? 'text-gray-800' : 'italic text-red-500',
-                )}
-              >
-                {numeroWave ?? 'Non renseigné'}
-              </p>
-            </div>
+              <CardBody className="flex flex-row items-center gap-3 px-4 py-3">
+                <Avatar
+                  icon={<Phone className="h-4 w-4" />}
+                  classNames={{
+                    base: cn('shrink-0', numeroWave ? 'bg-gray-200' : 'bg-red-100'),
+                    icon: cn(numeroWave ? 'text-gray-500' : 'text-red-500'),
+                  }}
+                  radius="full"
+                  size="md"
+                />
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                    Numéro Wave de paiement
+                  </p>
+                  <p
+                    className={cn(
+                      'text-sm font-semibold',
+                      numeroWave ? 'text-gray-800' : 'italic text-red-500',
+                    )}
+                  >
+                    {numeroWave ?? 'Non renseigné'}
+                  </p>
+                </div>
+              </CardBody>
+            </Card>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DrawerBody>
+      </DrawerContent>
+    </Drawer>
   );
 }
