@@ -12,6 +12,7 @@ type GrilleStats = {
   totalBrut: number;
   totalNet: number;
   waveManquants: number;
+  totalTickets: number;
 };
 
 type GrillePaiementVmRaw = {
@@ -53,18 +54,13 @@ export async function getGrillePaiementApi(
       creneauId = creneau.id;
     }
 
-    const [vm, stats] = await Promise.all([
-      apiClientHttp.request<GrillePaiementVmRaw>({
-        endpoint: `/api/creneaux/${creneauId}/grille-paiement`,
-        method: 'GET',
-        params: { page: '0', size: '200' },
+    const vm = await apiClientHttp.request<GrillePaiementVmRaw>({
+      endpoint: `/api/creneaux/${creneauId}/grille-paiement`,
+      method: 'GET',
+      params: { page: '0', size: '20' },
+    });
 
-      }),
-      apiClientHttp.request<GrilleStats>({
-        endpoint: `/api/creneaux/${creneauId}/grille-paiement/stats`,
-        method: 'GET',
-      }),
-    ]);
+    const stats = vm.stats;
 
     return {
       id: vm.id,
@@ -74,10 +70,11 @@ export async function getGrillePaiementApi(
       visePar: vm.visePar,
       viseAt: vm.viseAt,
       stats: {
-        totalLivreurs: stats.totalLivreurs,
-        totalBrut: stats.totalBrut,
-        totalNet: stats.totalNet,
-        waveManquants: stats.waveManquants,
+        totalLivreurs: stats?.totalLivreurs ?? 0,
+        totalBrut: stats?.totalBrut ?? 0,
+        totalNet: stats?.totalNet ?? 0,
+        waveManquants: stats?.waveManquants ?? 0,
+        totalTickets: stats?.totalTickets ?? 0,
       },
       lignes: (vm.lignes?.content ?? []).map((l) => ({
         id: l.id,

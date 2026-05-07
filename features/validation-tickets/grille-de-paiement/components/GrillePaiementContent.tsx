@@ -115,7 +115,7 @@ export default function GrillePaiementContent() {
       <GrillePaiementBanner grille={grille} soumis={soumis} />
 
       {/* Stats */}
-      <GrillePaiementStats stats={grille.stats} />
+      <GrillePaiementStats stats={grille.stats} totalTickets={totaux.tickets} />
 
       {/* Table + footer — masqués après soumission */}
       {!soumis && (

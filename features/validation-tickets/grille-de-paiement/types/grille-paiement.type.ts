@@ -54,6 +54,7 @@ export interface IGrillePaiementCreneau {
   lignes: IGrillePaiementLigne[];
   stats: {
     totalLivreurs: number;
+    totalTickets: number;
     totalBrut: number;
     totalNet: number;
     waveManquants: number;
