@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { AlertTriangle, CheckSquare, XCircle } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { IHistoriqueCreneau, StatutCreneau } from '../types/historique-creneaux.type';
@@ -105,10 +106,13 @@ export const historiqueCreneauxColumns: ColumnDef<IHistoriqueCreneau>[] = [
   {
     id: 'actions',
     header: '',
-    cell: () => (
-      <button className="text-sm font-medium text-red-500 hover:text-red-600 whitespace-nowrap">
+    cell: ({ row }) => (
+      <Link
+        href={`/validation-tickets/historique-creneaux/${row.original.id}`}
+        className="text-sm font-medium text-red-500 hover:text-red-600 whitespace-nowrap"
+      >
         Détail &rsaquo;
-      </button>
+      </Link>
     ),
   },
 ];
