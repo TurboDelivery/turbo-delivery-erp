@@ -20,7 +20,7 @@ export default function GrillePaiementBanner({ grille, soumis = false }: Props) 
   return (
     <div
       className={[
-        'flex items-center gap-4 rounded-xl px-6 py-4 text-white',
+        'flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 rounded-xl px-5 sm:px-6 py-4 text-white',
         soumis ? 'bg-green-500' : 'bg-blue-600',
       ].join(' ')}
     >

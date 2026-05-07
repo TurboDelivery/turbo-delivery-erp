@@ -22,12 +22,12 @@ export function VerrouillageV2Footer({ ticketCount, isValidating, onValidateAll 
 
   return (
     <>
-      <div className="flex items-center gap-4 justify-between rounded-xl border border-orange-200 bg-orange-50 px-5 py-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-orange-200 bg-orange-50 px-5 py-4">
         <div>
           <p className="text-sm font-semibold text-orange-700">Action critique</p>
           <p className="text-xs text-orange-500 mt-0.5">Une fois validé, les tickets passerons a la comptabilité</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 self-end sm:self-auto">
           <VerrouillageV2ExportButton totalItems={ticketCount} />
           <Button className="gap-2 bg-green-600 hover:bg-green-700 text-white" disabled={ticketCount === 0 || isValidating} onClick={() => setOpen(true)}>
             <Lock className="h-4 w-4" />

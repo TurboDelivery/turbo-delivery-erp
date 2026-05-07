@@ -28,13 +28,13 @@ export default function TicketLockedList({ tickets }: Props) {
           {tickets.map((ticket) => (
             <div
               key={ticket.commandeId}
-              className="flex items-center justify-between rounded-xl bg-gray-50 border border-gray-100 px-4 py-3.5"
+              className="flex items-center justify-between gap-3 rounded-xl bg-gray-50 border border-gray-100 px-4 py-3.5"
             >
-              <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-bold text-gray-900">{ticket.reference}</span>
-                <span className="text-xs text-gray-400 uppercase tracking-wide">{ticket.restaurant}</span>
+              <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                <span className="text-sm font-bold text-gray-900 truncate">{ticket.reference}</span>
+                <span className="text-xs text-gray-400 uppercase tracking-wide truncate">{ticket.restaurant}</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 shrink-0">
                 <span className="text-sm font-bold text-gray-900 whitespace-nowrap">{formatCFA(ticket.coutLivraison)}</span>
                 <Lock className="h-4 w-4 text-gray-400" />
               </div>

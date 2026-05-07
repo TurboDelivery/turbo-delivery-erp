@@ -55,7 +55,7 @@ export default function ApprobationFinaleContent() {
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
   return (
-    <div className="flex flex-col gap-5 p-6">
+    <div className="flex flex-col gap-5 p-4 sm:p-6">
       {/* Section label */}
       <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
         Pôle 4 — Présidence
@@ -69,7 +69,7 @@ export default function ApprobationFinaleContent() {
         </>
       ) : (
         <div>
-          <h1 className="text-2xl font-bold text-red-500">
+          <h1 className="text-xl sm:text-2xl font-bold text-red-500">
             Approbation finale{creneauActif ? ` — Créneau ${creneauActif.label}` : ''}
           </h1>
           {creneauActif && (
@@ -94,9 +94,9 @@ export default function ApprobationFinaleContent() {
       {isLoading ? (
         <div className="flex flex-col gap-5">
           <Skeleton className="h-24 w-full rounded-xl" />
-          <div className="flex gap-5">
+          <div className="flex flex-col gap-5 lg:flex-row">
             <Skeleton className="h-80 flex-1 rounded-xl" />
-            <Skeleton className="h-80 w-[300px] rounded-xl" />
+            <Skeleton className="h-48 lg:h-80 lg:w-[300px] rounded-xl" />
           </div>
         </div>
       ) : !grilleMeta ? (
@@ -106,7 +106,7 @@ export default function ApprobationFinaleContent() {
       ) : (
         <>
           {/* Banner visé DGA + montant total */}
-          <div className="flex items-center justify-between gap-6 rounded-xl border border-gray-200 bg-white px-5 py-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-gray-200 bg-white px-5 py-4">
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50">
                 <ShieldCheck className="h-5 w-5 text-red-500" />
@@ -127,11 +127,11 @@ export default function ApprobationFinaleContent() {
               </div>
             </div>
 
-            <div className="text-right shrink-0">
+            <div className="text-left sm:text-right shrink-0">
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
                 Montant total à virer
               </p>
-              <p className="text-3xl font-bold text-green-600 mt-0.5">
+              <p className="text-2xl sm:text-3xl font-bold text-green-600 mt-0.5">
                 {formatMontantCompact(grilleMeta.stats.totalNet)}
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
@@ -141,7 +141,7 @@ export default function ApprobationFinaleContent() {
           </div>
 
           {/* Two-column layout */}
-          <div className="flex gap-5 items-start">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
             {/* Left: Wave recap table avec infinite scroll */}
             <div className="flex-1 min-w-0 rounded-xl border border-gray-200 bg-white overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100">
@@ -152,6 +152,7 @@ export default function ApprobationFinaleContent() {
               <Table
                 isStriped
                 removeWrapper
+                aria-label="Récapitulatif des virements Wave"
                 bottomContent={
                   <div ref={bottomRef} className="flex items-center justify-center py-2">
                     {isFetchingNextPage && (
@@ -191,19 +192,21 @@ export default function ApprobationFinaleContent() {
 
           {/* Actions — visibles uniquement si statut SOUMIS_PDG */}
           {soumisAuPdg && (
-            <div className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4">
-              <Lock className="h-4 w-4 text-green-500 shrink-0" />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4">
+              <Lock className="h-4 w-4 text-green-500 shrink-0 hidden sm:block" />
               <p className="text-sm text-gray-500 flex-1">
                 Confirmation à double validation requise — déclenche immédiatement les virements Wave.
               </p>
-              <Button variant="outline" className="gap-2">
-                <XCircle className="h-4 w-4" />
-                Rejeter
-              </Button>
-              <Button className="bg-green-600 hover:bg-green-700 text-white gap-2">
-                <CheckCircle2 className="h-4 w-4" />
-                Approuver et déclencher Wave
-              </Button>
+              <div className="flex flex-wrap gap-3 shrink-0">
+                <Button variant="outline" className="gap-2">
+                  <XCircle className="h-4 w-4" />
+                  Rejeter
+                </Button>
+                <Button className="bg-green-600 hover:bg-green-700 text-white gap-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Approuver et déclencher Wave
+                </Button>
+              </div>
             </div>
           )}
 

@@ -8,10 +8,19 @@ interface VerrouillageV2StatsProps {
   isLoading?: boolean;
 }
 
+function StatCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white p-4">
+      <p className="text-[11px] font-semibold uppercase text-gray-400 leading-tight">{label}</p>
+      <p className="mt-2 text-xl sm:text-2xl font-semibold text-gray-900 break-words">{value}</p>
+    </div>
+  );
+}
+
 export function VerrouillageV2Stats({ stats, isLoading }: VerrouillageV2StatsProps) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
           <div key={i} className="rounded-xl border border-gray-200 bg-white p-4 animate-pulse">
             <div className="h-3 bg-gray-200 rounded w-3/4 mb-3" />
@@ -23,27 +32,17 @@ export function VerrouillageV2Stats({ stats, isLoading }: VerrouillageV2StatsPro
   }
 
   return (
-    <div className="grid grid-cols-4 gap-4">
-      <div className="rounded-xl border border-gray-200 bg-white p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Tickets V2 validés</p>
-        <p className="mt-1 text-2xl font-semibold text-gray-900">{stats?.nbV2Valide ?? '—'}</p>
-      </div>
-      <div className="rounded-xl border border-gray-200 bg-white p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Total commandes</p>
-        <p className="mt-1 text-2xl font-semibold text-gray-900">
-          {stats != null ? formatCFA(stats.totalMontantCommandesV2Valide) : '—'}
-        </p>
-      </div>
-      <div className="rounded-xl border border-gray-200 bg-white p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Total commissions</p>
-        <p className="mt-1 text-2xl font-semibold text-gray-900">
-          {stats != null ? formatCFA(stats.totalCommissionsV2Valide) : '—'}
-        </p>
-      </div>
-      <div className="rounded-xl border border-gray-200 bg-white p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Total tickets créneau</p>
-        <p className="mt-1 text-2xl font-semibold text-gray-900">{stats?.nbTotalTickets ?? '—'}</p>
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <StatCard label="Tickets V2 validés" value={stats?.nbV2Valide ?? '—'} />
+      <StatCard
+        label="Total commandes"
+        value={stats != null ? formatCFA(stats.totalMontantCommandesV2Valide) : '—'}
+      />
+      <StatCard
+        label="Total commissions"
+        value={stats != null ? formatCFA(stats.totalCommissionsV2Valide) : '—'}
+      />
+      <StatCard label="Total tickets créneau" value={stats?.nbTotalTickets ?? '—'} />
     </div>
   );
 }

@@ -28,7 +28,7 @@ function StatMini({ label, value, sub, icon: Icon, highlight }: StatMiniProps) {
       <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</span>
       <span
         className={[
-          'text-xl font-bold',
+          'text-base sm:text-xl font-bold break-words',
           highlight ? 'text-green-600' : 'text-gray-900',
         ].join(' ')}
       >
@@ -49,10 +49,10 @@ interface LivreurRowProps {
 
 function LivreurRow({ nom, tickets, numeroWave, netAPayer, bonus }: LivreurRowProps) {
   return (
-    <div className="flex items-center gap-3  justify-between py-2.5 border-b    last:border-0">
-      <div>
-        <p className="text-sm font-semibold text-gray-800">{nom}</p>
-        <p className="text-[11px] text-gray-400 mt-0.5">
+    <div className="flex items-center gap-3 justify-between py-2.5 border-b last:border-0">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-gray-800 truncate">{nom}</p>
+        <p className="text-[11px] text-gray-400 mt-0.5 truncate">
           {tickets} tickets · {numeroWave}
         </p>
       </div>
@@ -108,11 +108,11 @@ export default function VisaDgaContent() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-5 p-6">
+      <div className="flex flex-col gap-5 p-4 sm:p-6">
         <Skeleton className="h-8 w-72" />
-        <div className="flex gap-5">
+        <div className="flex flex-col gap-5 lg:flex-row">
           <Skeleton className="h-96 flex-1 rounded-xl" />
-          <Skeleton className="h-96 w-72 rounded-xl" />
+          <Skeleton className="h-48 lg:h-96 lg:w-72 rounded-xl" />
         </div>
       </div>
     );
@@ -120,8 +120,8 @@ export default function VisaDgaContent() {
 
   if (!creneau) {
     return (
-      <div className="flex flex-col gap-5 p-6">
-        <h1 className="text-2xl font-bold text-red-500">Visa DGA</h1>
+      <div className="flex flex-col gap-5 p-4 sm:p-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-red-500">Visa DGA</h1>
         <div className="flex items-center justify-center rounded-xl border border-gray-200 bg-white py-24">
           <p className="text-sm text-gray-400">Aucun dossier en attente de visa DGA.</p>
         </div>
@@ -132,9 +132,9 @@ export default function VisaDgaContent() {
   return (
     <div className="flex flex-col gap-5 p-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-red-500">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-red-500">
             Visa DGA —{' '}
             <span className="text-red-500">{creneau.code}</span>
           </h1>
@@ -146,7 +146,7 @@ export default function VisaDgaContent() {
       </div>
 
       {/* Two-column layout */}
-      <div className="flex gap-5 items-start">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         {/* Left — Récapitulatif + liste livreurs */}
         <div className="flex flex-col gap-4 flex-1 min-w-0">
           <div className="rounded-xl border border-gray-200 bg-white p-5">
@@ -156,7 +156,7 @@ export default function VisaDgaContent() {
             </p>
 
             {/* Stats row */}
-            <div className="grid grid-cols-4 gap-4 border-b border-gray-100 pb-5 mb-5">
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 border-b border-gray-100 pb-5 mb-5">
               <StatMini label="Livreurs"    value={creneau.stats.totalLivreurs}               icon={Users}      />
               <StatMini label="Tickets"     value={creneau.stats.totalTickets}                icon={Ticket}     />
               <StatMini label="Total Brut"  value={formatMontantCompact(creneau.stats.totalBrut)}    sub="FCFA" icon={Wallet}     />
@@ -183,7 +183,7 @@ export default function VisaDgaContent() {
 
           {/* Action buttons */}
           {!vise && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <Button
                 variant="default"
                 className="bg-green-600 hover:bg-green-700 text-white gap-2"
@@ -205,7 +205,7 @@ export default function VisaDgaContent() {
 
               <Button
                 variant="default"
-                className="ml-auto bg-red-600 hover:bg-red-700 text-white gap-2"
+                className="sm:ml-auto bg-red-600 hover:bg-red-700 text-white gap-2"
                 onClick={openViser}
                 disabled={isVisant}
               >

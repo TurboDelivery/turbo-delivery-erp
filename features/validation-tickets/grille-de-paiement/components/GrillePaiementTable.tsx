@@ -214,7 +214,7 @@ export default function GrillePaiementTable({
   });
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden overflow-x-auto">
       {waveManquants > 0 && (
         <div className="flex items-start gap-3 border-b border-red-100 bg-red-50 px-5 py-3">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />

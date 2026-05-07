@@ -53,6 +53,7 @@ export function VerrouillageV2Table({ tickets, validatingId, onValidate, onRejec
       <div className="overflow-x-auto">
         <Table
           isStriped
+          aria-label="Récapitulatif final des tickets V2"
           bottomContent={
             pageCount > 1 ? (
               <div className="flex justify-center pt-4">

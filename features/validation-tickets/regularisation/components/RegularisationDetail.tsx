@@ -21,8 +21,8 @@ export default function RegularisationDetail({ ticket, isApproving, isRejecting,
 
   return (
     <div className="flex-1 rounded-xl border border-gray-200 bg-white overflow-hidden flex flex-col">
-      <div className="flex items-center justify-between bg-amber-400 px-6 py-4">
-        <span className="text-xl font-extrabold text-white">{ticket.reference}</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 bg-amber-400 px-4 sm:px-6 py-4">
+        <span className="text-lg sm:text-xl font-extrabold text-white">{ticket.reference}</span>
         <div className="flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1">
           <Clock className="h-3.5 w-3.5 text-white" />
           <span className="text-xs font-semibold text-white">
@@ -31,8 +31,8 @@ export default function RegularisationDetail({ ticket, isApproving, isRejecting,
         </div>
       </div>
 
-      <div className="flex-1 p-6 flex flex-col gap-5">
-        <div className="grid grid-cols-3 gap-4 border-b border-gray-100 pb-5">
+      <div className="flex-1 p-4 sm:p-6 flex flex-col gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border-b border-gray-100 pb-5">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">Livreur</p>
             <p className="text-sm font-bold text-gray-900">{ticket.livreur}</p>
@@ -78,7 +78,7 @@ export default function RegularisationDetail({ ticket, isApproving, isRejecting,
         </div>
       </div>
 
-      <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-gray-100 px-4 sm:px-6 py-4">
         <Button
           variant="ghost"
           onClick={() => onReject(ticket.commandeId, motif.trim())}

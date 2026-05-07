@@ -7,7 +7,7 @@ interface Props {
 
 export default function VisaDgaChaineValidation({ etapes }: Props) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 w-[300px] shrink-0 self-start sticky top-6">
+    <div className="rounded-xl border border-gray-200 bg-white p-5 w-full lg:w-[300px] lg:shrink-0 self-start lg:sticky lg:top-6">
       <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">
         Chaîne de validation
       </p>

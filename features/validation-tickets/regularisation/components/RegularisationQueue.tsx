@@ -11,7 +11,7 @@ interface Props {
 
 export default function RegularisationQueue({ tickets, selectedId, onSelect }: Props) {
   return (
-    <div className="w-[340px] shrink-0 rounded-xl border border-gray-200 bg-white overflow-hidden">
+    <div className="w-full lg:w-[340px] lg:shrink-0 rounded-xl border border-gray-200 bg-white overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <span className="h-4 w-4 text-orange-400">⏱</span>

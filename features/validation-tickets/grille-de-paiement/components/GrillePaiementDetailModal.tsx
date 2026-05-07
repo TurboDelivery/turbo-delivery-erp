@@ -95,6 +95,7 @@ function TicketDetailsTable({ data, creneauCode }: { data: IGrillePaiementTicket
           <Table
             removeWrapper
             isStriped
+            aria-label="Détail des tickets du livreur"
             classNames={{ th: 'bg-gray-50 text-[10px] uppercase tracking-wider text-gray-400 font-semibold', td: 'text-xs py-2.5' }}
           >
             <TableHeader>

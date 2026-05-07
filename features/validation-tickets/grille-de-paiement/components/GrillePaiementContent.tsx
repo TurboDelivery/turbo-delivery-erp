@@ -53,12 +53,12 @@ export default function GrillePaiementContent() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-5 p-6">
+      <div className="flex flex-col gap-5 p-4 sm:p-6">
         <Skeleton className="h-8 w-72" />
         <Skeleton className="h-24 w-full rounded-xl" />
-        <div className="flex gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-24 flex-1 rounded-xl" />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
           ))}
         </div>
         <Skeleton className="h-64 w-full rounded-xl" />
@@ -68,7 +68,7 @@ export default function GrillePaiementContent() {
 
   if (!grille) {
     return (
-      <div className="flex flex-col gap-5 p-6">
+      <div className="flex flex-col gap-5 p-4 sm:p-6">
         <div>
           <h1 className="text-2xl font-bold text-red-600">Grille de paiement</h1>
           <p className="text-sm text-gray-400 mt-1">
@@ -83,15 +83,15 @@ export default function GrillePaiementContent() {
   }
 
   return (
-    <div className="flex flex-col gap-5 p-6">
+    <div className="flex flex-col gap-5 p-4 sm:p-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className=''>
-          <h1 className="text-2xl font-bold text-red-500 ">
+          <h1 className="text-xl sm:text-2xl font-bold text-red-500">
             Grille de paiement —{' '}
             <span className="text-red-500 font-bold">{grille.code}</span>
           </h1>
-          <p className="text-md text-gray-400 mt-0.5">
+          <p className="text-sm text-gray-400 mt-0.5">
             Génération automatique depuis les tickets verrouillés · Cliquez une ligne pour voir le
             détail.
           </p>
@@ -103,7 +103,7 @@ export default function GrillePaiementContent() {
           onValueChange={(v) => setSelectedCreneauId(v === '__actif__' ? undefined : v)}
           disabled={isLoadingCreneaux}
         >
-          <SelectTrigger className="w-72 gap-2 text-sm font-medium">
+          <SelectTrigger className="w-full sm:w-72 gap-2 text-sm font-medium">
             <CalendarDays className="h-4 w-4 shrink-0 text-gray-400" />
             <SelectValue placeholder="Choisir un créneau…" />
           </SelectTrigger>
@@ -151,7 +151,7 @@ export default function GrillePaiementContent() {
             </div>
           )}
 
-          <div className="flex items-center justify-between shadow-sm ring-1 ring-gray-200 rounded-xl bg-white px-5 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-sm ring-1 ring-gray-200 rounded-xl bg-white px-5 py-4">
             <div className="flex items-center gap-2 text-sm text-amber-600">
               <AlertTriangle className="h-4 w-4 shrink-0" />
               <span>Cochez chaque ligne après contrôle pour activer la soumission.</span>
@@ -159,7 +159,7 @@ export default function GrillePaiementContent() {
             <Button
               onClick={handleSoumettre}
               disabled={!canSoumettre || isSoumettant}
-              className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40"
+              className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 self-end sm:self-auto"
             >
               <Send className="h-4 w-4" />
               Soumettre au DGA
