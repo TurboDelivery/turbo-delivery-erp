@@ -4,7 +4,7 @@ import { createPaiementsColumns } from '../columns/paiements.columns';
 import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
 import { useChargesVariablesQuery } from '@/features/charges/queries/charges-variables.query';
 import { useDecaisserMutation } from '../queries/paiement.mutation';
-import { useRapportMasseSalarialeMutation } from '@/features/charges/queries/charge-fixe.mutation';
+import { useRapportMasseSalarialeMutation, useSupprimerDepenseDuMoisMutation } from '@/features/charges/queries/charge-fixe.mutation';
 import { useSupprimerChargeVariableMutation } from '@/features/charges/queries/charge-variable.mutation';
 import { IChargeFixe } from '@/features/charges/types/charge-fixe.type';
 import { IChargeVariable } from '@/features/charges/types/charge-variable.type';
@@ -14,7 +14,7 @@ export type ChargeTypeFilter = 'fixe' | 'variable';
 const DEFAULT_PAGE_SIZE = 10;
 const DECAISSE_STATUTS = ['DECAISSE', 'PAID'];
 
-export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser?: (ids: string[]) => void, onRequestDelete?: (id: string) => void, categorieIds?: string[]) {
+export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser?: (ids: string[]) => void, onRequestDelete?: (id: string) => void, onRequestDeleteFixe?: (id: string) => void, categorieIds?: string[]) {
   const [chargeType, setChargeType] = useState<ChargeTypeFilter>('variable');
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
@@ -25,6 +25,7 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
 
   const decaisserMutation = useDecaisserMutation(chargeType, fin);
   const supprimerChargeVariableMutation = useSupprimerChargeVariableMutation();
+  const supprimerDepenseDuMoisMutation = useSupprimerDepenseDuMoisMutation();
   const { mutate: telechargerRapportMasseSalariale } = useRapportMasseSalarialeMutation();
 
   const fixesQuery = useChargesFixesQuery({ page: pagination.pageIndex, size: pagination.pageSize, aDecaisser: true, debut, fin, categorieIds }, chargeType === 'fixe');
@@ -71,6 +72,17 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
     [supprimerChargeVariableMutation, onRequestDelete],
   );
 
+  const handleDeleteFixeOne = useCallback(
+    (id: string) => {
+      if (onRequestDeleteFixe) {
+        onRequestDeleteFixe(id);
+      } else {
+        supprimerDepenseDuMoisMutation.mutate({ id, mois: debut });
+      }
+    },
+    [supprimerDepenseDuMoisMutation, onRequestDeleteFixe, debut],
+  );
+
   const columns = useMemo(
     () =>
       createPaiementsColumns({
@@ -78,11 +90,13 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
         isPending: decaisserMutation.isPending,
         onDelete: chargeType === 'variable' ? handleDeleteOne : undefined,
         isDeleting: supprimerChargeVariableMutation.isPending,
+        onDeleteFixe: chargeType === 'fixe' ? handleDeleteFixeOne : undefined,
+        isDeletingFixe: supprimerDepenseDuMoisMutation.isPending,
         onRapport: () => {
           telechargerRapportMasseSalariale(debut);
         },
       }),
-    [handleDecaisserOne, decaisserMutation.isPending, chargeType, handleDeleteOne, supprimerChargeVariableMutation.isPending, telechargerRapportMasseSalariale, debut],
+    [handleDecaisserOne, decaisserMutation.isPending, chargeType, handleDeleteOne, supprimerChargeVariableMutation.isPending, handleDeleteFixeOne, supprimerDepenseDuMoisMutation.isPending, telechargerRapportMasseSalariale, debut],
   );
 
   const table = useReactTable({
@@ -120,6 +134,7 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
     switchChargeType,
     decaisserMutation,
     supprimerChargeVariableMutation,
+    supprimerDepenseDuMoisMutation,
   };
 }
 

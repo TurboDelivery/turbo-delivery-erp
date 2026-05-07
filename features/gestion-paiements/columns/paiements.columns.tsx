@@ -29,10 +29,12 @@ type PaiementsColumnsOptions = {
   isPending: boolean;
   onDelete?: (id: string) => void;
   isDeleting?: boolean;
+  onDeleteFixe?: (id: string) => void;
+  isDeletingFixe?: boolean;
   onRapport?: (charge: IChargeFixe) => void;
 };
 
-export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDeleting, onRapport }: PaiementsColumnsOptions): ColumnDef<IChargeFixe>[] {
+export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDeleting, onDeleteFixe, isDeletingFixe, onRapport }: PaiementsColumnsOptions): ColumnDef<IChargeFixe>[] {
   return [
     {
       id: 'select',
@@ -96,7 +98,14 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
             )}
             {onDelete && (
               <Can I="delete" a="ChargeVariable">
-                <Button isIconOnly size="sm" color="danger" variant="flat" onPress={() => onDelete(row.original.id)} isLoading={isDeleting} aria-label="Supprimer la charge">
+                <Button isIconOnly size="sm" color="danger" variant="flat" onPress={() => onDelete(row.original.id)} isLoading={isDeleting} aria-label="Supprimer la charge variable">
+                  <Trash2 size={14} />
+                </Button>
+              </Can>
+            )}
+            {onDeleteFixe && (
+              <Can I="delete" a="ChargeFixe">
+                <Button isIconOnly size="sm" color="danger" variant="flat" onPress={() => onDeleteFixe(row.original.id)} isLoading={isDeletingFixe} aria-label="Supprimer la dépense du mois">
                   <Trash2 size={14} />
                 </Button>
               </Can>

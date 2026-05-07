@@ -1,25 +1,6 @@
-import {
-  AbilityBuilder,
-  createMongoAbility,
-  type MongoAbility,
-  type ExtractSubjectType,
-  type InferSubjects,
-} from '@casl/ability';
+import { AbilityBuilder, createMongoAbility, type ExtractSubjectType, type InferSubjects, type MongoAbility } from '@casl/ability';
 
-export type AppActions =
-  | 'manage'
-  | 'create'
-  | 'read'
-  | 'update'
-  | 'delete'
-  | 'access'
-  | 'valider'
-  | 'valider-dga'
-  | 'approuver-dg'
-  | 'rejeter-dga'
-  | 'rejeter-dg'
-  | 'decaisser'
-  | 'authentifier';
+export type AppActions = 'manage' | 'create' | 'read' | 'update' | 'delete' | 'access' | 'valider' | 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser' | 'authentifier';
 
 export type AppSubjects =
   | 'ChargeFixe'
@@ -85,7 +66,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', 'all');
       can('create', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('update', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('delete', ['ChargeVariable']);
+      can('delete', ['ChargeFixe', 'ChargeVariable']);
       can('valider-dga', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('rejeter-dga', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('decaisser', ['ChargeFixe', 'ChargeVariable', 'Depense']);
@@ -101,6 +82,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', ['ChargeFixe', 'ChargeVariable', 'Depense', 'Paiement', 'Livreur', 'Restaurant']);
       can('create', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('update', ['ChargeFixe', 'ChargeVariable', 'Depense']);
+      can('delete', ['ChargeFixe', 'ChargeVariable']);
       can('decaisser', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('create', 'Ticket');
       can('read', 'Ticket');
@@ -140,10 +122,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
   }
 
   return build({
-    detectSubjectType: (item) =>
-      (typeof item === 'string' ? item : (item as { __type?: AppSubjects }).__type) as ExtractSubjectType<
-        InferSubjects<AppSubjects>
-      >,
+    detectSubjectType: (item) => (typeof item === 'string' ? item : (item as { __type?: AppSubjects }).__type) as ExtractSubjectType<InferSubjects<AppSubjects>>,
   });
 }
 

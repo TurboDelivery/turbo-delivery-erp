@@ -7,6 +7,7 @@ export interface IChargeFixeAPI {
   ajouterChargeFixe(data: ChargeFixeCreateDTO): Promise<IChargeFixe>;
   modifierChargeFixe(id: string, data: ChargeFixeUpdateDTO): Promise<IChargeFixe>;
   supprimerChargeFixe(id: string): Promise<void>;
+  supprimerDepenseDuMois(id: string, mois: string): Promise<void>;
   obtenirChargesFixes(params: IChargeFixeParams): Promise<PaginatedResponse<IChargeFixe>>;
   obtenirStatsChargesFixes(params?: { debut?: string; fin?: string }): Promise<IChargeStats>;
   validerDGAChargeFixe(id: string, dto: IWorkflowDecisionDtoFixe): Promise<IChargeFixe>;
@@ -39,6 +40,14 @@ export const chargeFixeAPI: IChargeFixeAPI = {
     return api.request<void>({
       endpoint: `/erp/charges-fixes/${id}`,
       method: 'DELETE',
+    });
+  },
+
+  supprimerDepenseDuMois(id: string, mois: string): Promise<void> {
+    return api.request<void>({
+      endpoint: `/erp/charges-fixes/${id}/depense`,
+      method: 'DELETE',
+      searchParams: { mois },
     });
   },
 
