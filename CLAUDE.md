@@ -116,6 +116,65 @@ Les modules finance sont dans `features/` : `charges`, `depenses`, `revenus`, `g
 
 `src/actions/` contains older server actions (bon-commande, livreurs, commandes…) that predate the `features/` architecture. Prefer the feature-module pattern for new work.
 
+### Tables
+
+**All data tables must use HeroUI components — never plain HTML `<table>` elements.**
+
+Reference implementation: `components/finance/recouvrements/factures/facture-table.tsx`
+
+#### Pattern
+
+```
+components/<domain>/<name>-table.tsx          ← HeroUI Table rendering
+components/<domain>/<name>-table-columns.tsx  ← ColumnDef<T>[] array (separate file, always)
+features/<domain>/hooks/use-<name>-table.ts   ← useReactTable instance + data fetching
+```
+
+#### Rules
+
+- **Columns always in a separate file** (`*-table-columns.tsx`). Never inline `ColumnDef` arrays inside the table component or the hook.
+- **Render with HeroUI**: import `Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination` from `@heroui/react`. Use `flexRender` from `@tanstack/react-table` to render cells.
+- **Hook owns the table instance**: call `useReactTable({ data, columns, getCoreRowModel(), ... })` inside a `useXxxTable` hook, not in the component.
+- **Pagination**: use the HeroUI `<Pagination>` component inside `Table`'s `bottomContent` prop. For infinite scroll, put the sentinel `<div ref={bottomRef}>` in `bottomContent` instead.
+- **Loading skeletons**: loop `Array.from({ length: n })` inside `TableBody` when `isLoading`, rendering empty cells with a `animate-pulse` div.
+
+#### Minimal example
+
+```tsx
+// *-table-columns.tsx
+import { ColumnDef } from '@tanstack/react-table';
+export const myColumns: ColumnDef<IMyType>[] = [
+  { accessorKey: 'nom', header: 'Nom', cell: ({ row }) => <span>{row.original.nom}</span> },
+];
+
+// *-table.tsx
+import { flexRender } from '@tanstack/react-table';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import useMyTable from '@/features/.../hooks/use-my-table';
+
+export function MyTable() {
+  const { table, isLoading } = useMyTable();
+  return (
+    <Table isStriped>
+      <TableHeader>
+        {table.getFlatHeaders().map(h => (
+          <TableColumn key={h.id}>{flexRender(h.column.columnDef.header, h.getContext())}</TableColumn>
+        ))}
+      </TableHeader>
+      <TableBody emptyContent="Aucun résultat">
+        {table.getRowModel().rows.map(row => (
+          <TableRow key={row.id}>
+            {row.getVisibleCells().map(cell => (
+              <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+            ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+```
+
 ### Tailwind
 
 `tailwind.config.js` scans `features/**`, `components/**`, `app/**`, and `src/**`. Colors are CSS-variable-based HSL tokens (`hsl(var(--primary))` etc.). Dark mode is `class`-based.
