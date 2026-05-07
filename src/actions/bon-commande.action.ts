@@ -9,7 +9,7 @@ import axios from 'axios';
 import { ApiResult } from '@/types/general';
 import { handleApiError } from '@/utils/handle-api-error';
 import { auth } from '@/auth';
-import { authentifierTicketRequest, validerV1Request, validerV2Request, approuverTicketRequest, rejeterFraudeRequest } from '@/features/tickets/request/tickets.request';
+import { authentifierTicketRequest, validerV1Request, validerV2Request, validerV2EnMasseRequest, approuverTicketRequest, rejeterFraudeRequest } from '@/features/tickets/request/tickets.request';
 // Configuration
 const BASE_URL = '/api/erp/bon-livraison';
 const BASE_URL_2 = '/api/export/reporting';
@@ -271,6 +271,18 @@ export async function approuverTicket(ticketId: string): Promise<ApiResult<void>
     return { success: true, message: 'Ticket approuvé avec succès' };
   } catch (error) {
     return handleApiError(error, "Erreur lors de l'approbation du ticket");
+  }
+}
+
+export async function validerV2EnMasseTicket(): Promise<ApiResult<void>> {
+  try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Utilisateur non authentifié');
+    await validerV2EnMasseRequest(userId);
+    return { success: true, message: 'Tickets validés V2 en masse avec succès' };
+  } catch (error) {
+    return handleApiError(error, 'Erreur lors de la validation V2 en masse');
   }
 }
 

@@ -16,7 +16,7 @@ import { bonLivraisonToTicket } from '@/src/actions/bonLivraison.mapper';
 
 type ExportFormat = 'EXCEL' | 'PDF';
 
-const EXPORT_PAGE_SIZE = 500;
+const EXPORT_PAGE_SIZE = 5000;
 const EXPORT_CONCURRENCY = 6;
 const CACHE_REUSE_THRESHOLD = 0.5;
 

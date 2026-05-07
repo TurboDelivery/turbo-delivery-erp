@@ -1,17 +1,19 @@
 'use client';
 
 import { useMemo, useState, useCallback } from 'react';
-import { useTicketsV1ValideQuery } from '../queries/tickets-v2-list.query';
-import { useValiderV2Mutation, useRejeterV2FraudeMutation } from '../queries/tickets-v2.mutation';
+import { useTicketsV1ValideQuery, useCreneauTicketStatsQuery } from '../queries/tickets-v2-list.query';
+import { useValiderV2Mutation, useValiderV2EnMasseMutation, useRejeterV2FraudeMutation } from '../queries/tickets-v2.mutation';
 import { useCreneauActifQuery } from '@/features/creneaux/queries/creneau.query';
 
 export function useVerrouillageV2Content() {
   const { data, isLoading } = useTicketsV1ValideQuery();
   const { data: creneauActif } = useCreneauActifQuery();
+  const { data: ticketStats, isLoading: isStatsLoading } = useCreneauTicketStatsQuery();
   const [rejectDialogId, setRejectDialogId] = useState<string | null>(null);
   const [validatingId, setValidatingId] = useState<string | null>(null);
 
   const { mutate: validerV2, isPending: isValidating } = useValiderV2Mutation();
+  const { mutate: validerV2EnMasse, isPending: isValidatingAll } = useValiderV2EnMasseMutation();
   const { mutate: rejeterFraude, isPending: isRejecting } = useRejeterV2FraudeMutation();
 
   const tickets = useMemo(
@@ -35,14 +37,17 @@ export function useVerrouillageV2Content() {
   );
 
   const handleValidateAll = useCallback(() => {
-    tickets.forEach((t) => validerV2(t.commandeId));
-  }, [tickets, validerV2]);
+    validerV2EnMasse();
+  }, [validerV2EnMasse]);
 
   return {
     tickets,
     isLoading,
+    ticketStats,
+    isStatsLoading,
     validatingId,
     isValidating,
+    isValidatingAll,
     isRejecting,
     rejectDialogId,
     setRejectDialogId,

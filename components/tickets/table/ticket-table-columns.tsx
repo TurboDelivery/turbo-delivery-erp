@@ -306,14 +306,34 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
 
       // Ticket existant en mode lecture
       if (meta.permissions.canUpdate) {
+        const MODIFIABLE_STATUTS = new Set<string>([StatutControle.PENDING, StatutControle.TARDIF, StatutControle.REJETE_FRAUDE]);
+        const originalStatut = row.original.statutControle;
+        const canMutate = !originalStatut || MODIFIABLE_STATUTS.has(originalStatut);
+
         return (
           <div className="flex gap-2">
-            <button onClick={() => meta.onEditRow(ticket.id)} className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 flex items-center justify-center">
-              <Pen className="w-4 h-4" />
-            </button>
-            <button onClick={() => meta.onDeleteRow(ticket.id)} className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 flex items-center justify-center">
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <Tooltip content="Ce ticket n'est pas modifiable" isDisabled={canMutate} size="sm">
+              <span>
+                <button
+                  onClick={() => canMutate ? meta.onEditRow(ticket.id) : undefined}
+                  disabled={!canMutate}
+                  className={`px-2 py-1 bg-blue-500 text-white rounded text-xs flex items-center justify-center ${canMutate ? 'hover:bg-blue-600' : 'opacity-40 cursor-not-allowed'}`}
+                >
+                  <Pen className="w-4 h-4" />
+                </button>
+              </span>
+            </Tooltip>
+            <Tooltip content="Ce ticket n'est pas supprimable" isDisabled={canMutate} size="sm">
+              <span>
+                <button
+                  onClick={() => canMutate ? meta.onDeleteRow(ticket.id) : undefined}
+                  disabled={!canMutate}
+                  className={`px-2 py-1 bg-red-500 text-white rounded text-xs flex items-center justify-center ${canMutate ? 'hover:bg-red-600' : 'opacity-40 cursor-not-allowed'}`}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </span>
+            </Tooltip>
           </div>
         );
       }
