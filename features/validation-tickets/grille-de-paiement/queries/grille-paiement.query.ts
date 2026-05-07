@@ -34,15 +34,16 @@ export const useGrillePaiementQuery = (params?: IGrillePaiementParams) => {
 export const useSoumettreGrilleMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ lotId, userId }: { lotId: string; userId: string }) =>
-      soumettrGrillePaiementApi(lotId, userId),
+    mutationFn: ({ creneauId, userId }: { creneauId: string; userId: string }) =>
+      soumettrGrillePaiementApi(creneauId, userId),
     onSuccess: () => {
       toast.success('Grille soumise au DGA avec succès');
       queryClient.invalidateQueries({ queryKey: grillePaiementKeys.all });
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const serverMsg = error?.response?.data?.message ?? error?.response?.data ?? null;
       toast.error('Erreur lors de la soumission', {
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        description: serverMsg ? String(serverMsg) : error?.message ?? 'Erreur inconnue',
       });
     },
   });

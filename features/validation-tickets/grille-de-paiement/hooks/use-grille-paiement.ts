@@ -93,7 +93,7 @@ export default function useGrillePaiement() {
   const handleConfirmerSoumission = (note: string) => {
     if (!grille) return;
     soumettre(
-      { lotId: grille.id, userId },
+      { creneauId: grille.id, userId },
       {
         onSuccess: () => {
           setConfirmOpen(false);

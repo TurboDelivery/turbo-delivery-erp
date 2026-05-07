@@ -18,6 +18,7 @@ type GrilleStats = {
 
 type GrillePaiementVmRaw = {
   id: string;
+  lotId?: string;
   code: string;
   debut: string;
   fin: string;
@@ -69,6 +70,7 @@ export async function getGrillePaiementApi(
 
     return {
       id: vm.id,
+      lotId: vm.lotId,
       code: vm.code,
       debut: vm.debut,
       fin: vm.fin,
@@ -115,9 +117,9 @@ export async function getGrillePaiementApi(
   }
 }
 
-export async function soumettrGrillePaiementApi(lotId: string, userId: string): Promise<void> {
+export async function soumettrGrillePaiementApi(creneauId: string, userId: string): Promise<void> {
   return apiClientHttp.request<void>({
-    endpoint: `/api/lots/${lotId}/soumettre-dga`,
+    endpoint: `/api/creneaux/${creneauId}/soumettre`,
     method: 'POST',
     config: { headers: { 'X-User-Id': userId } },
   });

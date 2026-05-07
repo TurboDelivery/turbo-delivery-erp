@@ -49,6 +49,7 @@ export interface IGrillePaiementCreneau {
   code: string; // e.g. CRÉNEAU-S16-2026
   debut: string; // ISO date
   fin: string; // ISO date
+  lotId?: string;
   visePar?: string;
   viseAt?: string; // ISO datetime
   lignes: IGrillePaiementLigne[];
