@@ -8,22 +8,10 @@ import VisaDgaChaineValidation from './VisaDgaChaineValidation';
 import VisaDgaRejetModal from './VisaDgaRejetModal';
 import VisaDgaViserModal from './VisaDgaViserModal';
 import { IVisaDgaCreneau } from '../types/visa-dga.type';
-
-function formatMontant(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
-  return n.toLocaleString('fr-FR');
-}
+import { formatMontantCompact } from '@/utils/format.utils';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-}
-
-function formatPeriode(debut: string, fin: string) {
-  const d = new Date(debut);
-  const f = new Date(fin);
-  const mois = d.toLocaleDateString('fr-FR', { month: 'long' });
-  return `${d.getDate()} → ${f.getDate()} ${mois}`;
 }
 
 interface StatMiniProps {
@@ -171,8 +159,8 @@ export default function VisaDgaContent() {
             <div className="grid grid-cols-4 gap-4 border-b border-gray-100 pb-5 mb-5">
               <StatMini label="Livreurs"    value={creneau.stats.totalLivreurs}               icon={Users}      />
               <StatMini label="Tickets"     value={creneau.stats.totalTickets}                icon={Ticket}     />
-              <StatMini label="Total Brut"  value={formatMontant(creneau.stats.totalBrut)}    sub="FCFA" icon={Wallet}     />
-              <StatMini label="Total Net"   value={formatMontant(creneau.stats.totalNet)}     sub="FCFA" icon={TrendingUp} highlight />
+              <StatMini label="Total Brut"  value={formatMontantCompact(creneau.stats.totalBrut)}    sub="FCFA" icon={Wallet}     />
+              <StatMini label="Total Net"   value={formatMontantCompact(creneau.stats.totalNet)}     sub="FCFA" icon={TrendingUp} highlight />
             </div>
 
             {/* Top livreurs */}

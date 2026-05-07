@@ -1,11 +1,6 @@
 import { Phone, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
 import { IGrillePaiementCreneau } from '../types/grille-paiement.type';
-
-function formatMontant(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)}K`;
-  return n.toLocaleString('fr-FR');
-}
+import { formatMontantCompact } from '@/utils/format.utils';
 
 interface StatCardProps {
   label: string;
@@ -42,8 +37,8 @@ export default function GrillePaiementStats({ stats, totalTickets }: Props) {
     <div className="flex gap-4">
       <StatCard label="Livreurs" value={stats.totalLivreurs} icon={Users} />
       <StatCard label="Tickets" value={totalTickets} icon={Ticket} />
-      <StatCard label="Total Brut" value={formatMontant(stats.totalBrut)} sub="FCFA" icon={Wallet} />
-      <StatCard label="Total Net" value={formatMontant(stats.totalNet)} sub="FCFA" icon={TrendingUp} className='ring-1 ring-green-400' />
+      <StatCard label="Total Brut" value={formatMontantCompact(stats.totalBrut)} sub="FCFA" icon={Wallet} />
+      <StatCard label="Total Net" value={formatMontantCompact(stats.totalNet)} sub="FCFA" icon={TrendingUp} className='ring-1 ring-green-400' />
       <StatCard label="Wave Manquants" value={stats.waveManquants} icon={Phone} className='ring-1 ring-red-600' />
     </div>
   );
