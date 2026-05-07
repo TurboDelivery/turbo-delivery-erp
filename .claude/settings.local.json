@@ -90,7 +90,12 @@
       "Bash(curl -s \"https://backend-prod.turbodeliveryapp.com/v3/api-docs\")",
       "Bash(Get-Item 'C:/Users/kouax/AppData/Local/Temp/api-docs.json')",
       "Bash(echo \"Done: $\\(Get-Item 'C:/Users/kouax/AppData/Local/Temp/api-docs.json')",
-      "Bash(Get-ChildItem *)"
+      "Bash(Get-ChildItem *)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "mcp__MCP_DOCKER__browser_wait_for",
+      "mcp__MCP_DOCKER__fetch",
+      "mcp__MCP_DOCKER__browser_evaluate"
     ]
   }
 }
