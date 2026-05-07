@@ -89,7 +89,8 @@
       "Bash(curl -s \"https://backend-prod.turbodeliveryapp.com/v3/api-docs\" -o /tmp/api-docs.json)",
       "Bash(curl -s \"https://backend-prod.turbodeliveryapp.com/v3/api-docs\")",
       "Bash(Get-Item 'C:/Users/kouax/AppData/Local/Temp/api-docs.json')",
-      "Bash(echo \"Done: $\\(Get-Item 'C:/Users/kouax/AppData/Local/Temp/api-docs.json')"
+      "Bash(echo \"Done: $\\(Get-Item 'C:/Users/kouax/AppData/Local/Temp/api-docs.json')",
+      "Bash(Get-ChildItem *)"
     ]
   }
 }

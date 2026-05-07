@@ -5,6 +5,7 @@ import {
   ajouterChargeFixeAction,
   modifierChargeFixeAction,
   supprimerChargeFixeAction,
+  supprimerDepenseDuMoisAction,
   validerDGAChargeFixeAction,
   approuverDGChargeFixeAction,
   rejeterDGAChargeFixeAction,
@@ -130,6 +131,28 @@ export const useToggleEnableChargeFixeMutation = () => {
     },
     onError: (error) => {
       toast.error('Erreur lors de la mise à jour', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+export const useSupprimerDepenseDuMoisMutation = () => {
+  const invalidateChargeFixeQuery = useInvalidateChargeFixeQuery();
+
+  return useMutation({
+    mutationFn: async ({ id, mois }: { id: string; mois: string }) => {
+      const result = await supprimerDepenseDuMoisAction(id, mois);
+      if (!result.success) {
+        throw new Error(result.error || 'Erreur lors de la suppression de la dépense du mois');
+      }
+    },
+    onSuccess: async () => {
+      await invalidateChargeFixeQuery();
+      toast.success('Dépense du mois supprimée avec succès');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors de la suppression', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },

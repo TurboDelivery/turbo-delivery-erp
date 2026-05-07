@@ -51,6 +51,18 @@ export const supprimerChargeFixeAction = async (
   }
 };
 
+export const supprimerDepenseDuMoisAction = async (
+  id: string,
+  mois: string,
+): Promise<ActionResponse<void>> => {
+  try {
+    await chargeFixeAPI.supprimerDepenseDuMois(id, mois);
+    return { success: true, message: 'Dépense du mois supprimée avec succès' };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors de la suppression de la dépense du mois');
+  }
+};
+
 export const obtenirChargesFixesAction = async (
   params: IChargeFixeParams,
 ): Promise<ActionResponse<PaginatedResponse<IChargeFixe>>> => {

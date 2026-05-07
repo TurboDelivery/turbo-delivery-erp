@@ -24,6 +24,7 @@ export default function PaymentManagementV2() {
   const [filters, setFilters] = useQueryStates(paiementFiltersClient.filters, paiementFiltersClient.options);
   const [confirmIds, setConfirmIds] = useState<string[]>([]);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleteFixeTargetId, setDeleteFixeTargetId] = useState<string | null>(null);
 
   const { filters: depenseFilters, handleCategoriesChange } = useDepenseDashboardFilters();
 
@@ -37,12 +38,14 @@ export default function PaymentManagementV2() {
     switchChargeType,
     decaisserMutation,
     supprimerChargeVariableMutation,
-  } = usePaiementsTable(filters.debut, filters.fin, setConfirmIds, setDeleteTargetId, depenseFilters.categoriesDepense || []);
+    supprimerDepenseDuMoisMutation,
+  } = usePaiementsTable(filters.debut, filters.fin, setConfirmIds, setDeleteTargetId, setDeleteFixeTargetId, depenseFilters.categoriesDepense || []);
 
   const { stats, isLoading: isStatsLoading } = usePaiementsStats(filters.debut, filters.fin);
 
   const closeConfirm = () => setConfirmIds([]);
   const closeDelete = () => setDeleteTargetId(null);
+  const closeDeleteFixe = () => setDeleteFixeTargetId(null);
 
   const handleConfirmDecaisser = () => {
     decaisserMutation.mutate(confirmIds, {
@@ -55,6 +58,14 @@ export default function PaymentManagementV2() {
     supprimerChargeVariableMutation.mutate(deleteTargetId, {
       onSuccess: () => closeDelete(),
     });
+  };
+
+  const handleConfirmDeleteFixe = () => {
+    if (!deleteFixeTargetId) return;
+    supprimerDepenseDuMoisMutation.mutate(
+      { id: deleteFixeTargetId, mois: filters.debut ?? '' },
+      { onSuccess: () => closeDeleteFixe() },
+    );
   };
 
   return (
@@ -122,7 +133,7 @@ export default function PaymentManagementV2() {
         </p>
       </ConfirmModal>
 
-      {/* Delete Modal */}
+      {/* Delete Variable Modal */}
       <ConfirmModal
         isOpen={!!deleteTargetId}
         onClose={closeDelete}
@@ -134,6 +145,20 @@ export default function PaymentManagementV2() {
         ]}
       >
         <p className="text-sm text-gray-600">Voulez-vous vraiment supprimer cette charge variable ? Cette action est irréversible.</p>
+      </ConfirmModal>
+
+      {/* Delete Fixe Modal */}
+      <ConfirmModal
+        isOpen={!!deleteFixeTargetId}
+        onClose={closeDeleteFixe}
+        title="Supprimer la dépense du mois"
+        isLoading={supprimerDepenseDuMoisMutation.isPending}
+        actions={[
+          { label: 'Annuler', variant: 'light', onPress: closeDeleteFixe },
+          { label: 'Supprimer', color: 'danger', onPress: handleConfirmDeleteFixe },
+        ]}
+      >
+        <p className="text-sm text-gray-600">Voulez-vous vraiment supprimer la dépense du mois pour cette charge fixe ? Cette action est irréversible.</p>
       </ConfirmModal>
     </div>
   );
