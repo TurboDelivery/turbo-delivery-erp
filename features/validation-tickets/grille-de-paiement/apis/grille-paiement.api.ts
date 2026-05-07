@@ -4,6 +4,7 @@ import {
   IGrillePaiementCreneau,
   IGrillePaiementLigne,
   IGrillePaiementParams,
+  IUpdateNumeroWaveParams,
   StatutLignePaiement,
 } from '../types/grille-paiement.type';
 
@@ -39,6 +40,10 @@ type GrillePaiementVmRaw = {
       ticketDetails?: Array<{ ref: string; partenaire: string; date: string; commission: number }>;
       bonusEligibilite?: IGrillePaiementLigne['bonusEligibilite'];
     }>;
+    totalPages: number;
+    totalElements: number;
+    number: number;  // current page (0-based)
+    size: number;
   };
 };
 
@@ -57,7 +62,7 @@ export async function getGrillePaiementApi(
     const vm = await apiClientHttp.request<GrillePaiementVmRaw>({
       endpoint: `/api/creneaux/${creneauId}/grille-paiement`,
       method: 'GET',
-      params: { page: '0', size: '20' },
+      params: { page: String(_params?.page ?? 0), size: String(_params?.size ?? 20) },
     });
 
     const stats = vm.stats;
@@ -69,6 +74,12 @@ export async function getGrillePaiementApi(
       fin: vm.fin,
       visePar: vm.visePar,
       viseAt: vm.viseAt,
+      pagination: {
+        page: vm.lignes?.number ?? 0,
+        totalPages: vm.lignes?.totalPages ?? 1,
+        totalElements: vm.lignes?.totalElements ?? 0,
+        size: vm.lignes?.size ?? 20,
+      },
       stats: {
         totalLivreurs: stats?.totalLivreurs ?? 0,
         totalBrut: stats?.totalBrut ?? 0,
@@ -109,5 +120,13 @@ export async function soumettrGrillePaiementApi(lotId: string, userId: string): 
     endpoint: `/api/lots/${lotId}/soumettre-dga`,
     method: 'POST',
     config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
+export async function updateNumeroWaveApi(params: IUpdateNumeroWaveParams): Promise<void> {
+  return apiClientHttp.request<void>({
+    endpoint: `/api/creneaux/grille-paiement/turboy/${params.turboyId}/wave`,
+    method: 'PATCH',
+    data: { numeroWave: params.numeroWave },
   });
 }

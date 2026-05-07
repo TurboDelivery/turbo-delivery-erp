@@ -52,6 +52,12 @@ export interface IGrillePaiementCreneau {
   visePar?: string;
   viseAt?: string; // ISO datetime
   lignes: IGrillePaiementLigne[];
+  pagination: {
+    page: number;
+    totalPages: number;
+    totalElements: number;
+    size: number;
+  };
   stats: {
     totalLivreurs: number;
     totalTickets: number;
@@ -63,4 +69,12 @@ export interface IGrillePaiementCreneau {
 
 export interface IGrillePaiementParams {
   creneauId?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface IUpdateNumeroWaveParams {
+  creneauId: string;
+  turboyId: string;
+  numeroWave: string;
 }

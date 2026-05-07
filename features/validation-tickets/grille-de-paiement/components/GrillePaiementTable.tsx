@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { ColumnDef, getCoreRowModel, flexRender, useReactTable } from '@tanstack/react-table';
 import {
   Table,
@@ -10,7 +10,7 @@ import {
   TableRow,
   TableCell,
 } from '@heroui/react';
-import { AlertCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, AlertTriangle, Pencil } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { IGrillePaiementLigne } from '../types/grille-paiement.type';
@@ -22,8 +22,53 @@ interface Props {
   onToggle: (id: string) => void;
   onToggleAll: () => void;
   onRowClick: (ligne: IGrillePaiementLigne) => void;
+  onUpdateWave: (turboyId: string, value: string) => void;
   totaux: { tickets: number; brut: number; deductions: number; net: number };
   waveManquants: number;
+}
+
+function WaveCell({ ligne, onUpdateWave }: { ligne: IGrillePaiementLigne; onUpdateWave: (turboyId: string, value: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(ligne.numeroWave ?? '');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const commit = () => {
+    setEditing(false);
+    onUpdateWave(ligne.turboy.id, draft.trim());
+  };
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        autoFocus
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit();
+          if (e.key === 'Escape') { setDraft(ligne.numeroWave ?? ''); setEditing(false); }
+        }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-blue-400"
+        placeholder="N° Wave…"
+      />
+    );
+  }
+
+  return (
+    <div
+      className="group flex items-center gap-1.5 cursor-text"
+      onClick={(e) => { e.stopPropagation(); setDraft(ligne.numeroWave ?? ''); setEditing(true); }}
+    >
+      {ligne.numeroWave ? (
+        <span className="text-gray-700">{ligne.numeroWave}</span>
+      ) : (
+        <span className="italic text-gray-400">non renseigné</span>
+      )}
+      <Pencil className="h-3 w-3 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity" />
+    </div>
+  );
 }
 
 function formatNumber(n: number) {
@@ -37,6 +82,7 @@ export default function GrillePaiementTable({
   onToggle,
   onToggleAll,
   onRowClick,
+  onUpdateWave,
   totaux,
   waveManquants,
 }: Props) {
@@ -66,7 +112,7 @@ export default function GrillePaiementTable({
         header: 'Turboy',
         cell: ({ row }) => (
           <div>
-            <p className="font-semibold text-gray-900">{row.original.turboy.nom}</p>
+            <p className="font-semibold  text-gray-900">{row.original.turboy.nom}</p>
             <p className="text-[11px] text-gray-400">{row.original.turboy.code}</p>
           </div>
         ),
@@ -129,10 +175,9 @@ export default function GrillePaiementTable({
       {
         id: 'wave',
         header: 'N° Wave',
-        cell: ({ row }) =>
-          row.original.numeroWave ?? (
-            <span className="italic text-gray-400">non renseigné</span>
-          ),
+        cell: ({ row }) => (
+          <WaveCell ligne={row.original} onUpdateWave={onUpdateWave} />
+        ),
       },
       {
         id: 'statut',
@@ -159,7 +204,7 @@ export default function GrillePaiementTable({
         cell: () => <span className="text-gray-300">›</span>,
       },
     ],
-    [allChecked, checkedIds, onToggle, onToggleAll],
+    [allChecked, checkedIds, onToggle, onToggleAll, onUpdateWave],
   );
 
   const table = useReactTable({
@@ -188,8 +233,8 @@ export default function GrillePaiementTable({
         removeWrapper
         aria-label="Grille de paiement"
         classNames={{
-          base: 'mt-8 text-sm',
-          th: 'text-[10px] font-semibold uppercase tracking-wider text-gray-400 bg-white border-b border-gray-100 px-4 py-3',
+          base: ' text-sm',
+          th: 'text-[10px] font-semibold uppercase tracking-wider text-gray-600 bg-gray-300 border-b border-gray-100 px-4 py-3',
           td: 'px-4 py-3 border-b border-gray-50',
           tr: 'transition-colors',
         }}
@@ -204,47 +249,39 @@ export default function GrillePaiementTable({
           ))}
         </TableHeader>
         <TableBody emptyContent="Aucune ligne">
-          {[
-            ...table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                onClick={() => onRowClick(row.original)}
-                className={cn(
-                  'cursor-pointer hover:bg-gray-50',
-                  checkedIds.has(row.original.id) && 'bg-gray-50/70',
-                )}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            )),
-            <TableRow key="__total__" className="font-bold text-sm">
-              <TableCell className="bg-red-600 text-white">{''}</TableCell>
-              <TableCell className="bg-red-600 text-white uppercase tracking-wide">Total</TableCell>
-              <TableCell className="bg-red-600 text-white">
-                <div className="text-right">{totaux.tickets}</div>
-              </TableCell>
-              <TableCell className="bg-red-600 text-white">
-                <div className="text-right">{formatNumber(totaux.brut)}</div>
-              </TableCell>
-              <TableCell className="bg-red-600 text-white">{''}</TableCell>
-              <TableCell className="bg-red-600 text-white">
-                <div className="text-right">
-                  {totaux.deductions !== 0 ? `−${formatNumber(Math.abs(totaux.deductions))}` : '–'}
-                </div>
-              </TableCell>
-              <TableCell className="bg-red-600 text-white">
-                <div className="text-right">{formatNumber(totaux.net)}</div>
-              </TableCell>
-              <TableCell className="bg-red-600 text-white">{''}</TableCell>
-              <TableCell className="bg-red-600 text-white">{''}</TableCell>
-              <TableCell className="bg-red-600 text-white">{''}</TableCell>
-            </TableRow>,
-          ]}
+          {table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.id}
+              onClick={() => onRowClick(row.original)}
+              className={cn(
+                'cursor-pointer hover:bg-gray-50',
+                checkedIds.has(row.original.id) && 'bg-gray-50/70',
+              )}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
         </TableBody>
+        {/* Total row — désactivé temporairement
+        <tfoot>
+          <tr className="font-bold text-sm [&>td]:bg-red-600 [&>td]:text-white">
+            <td className="px-4 py-3" />
+            <td className="px-4 py-3 uppercase tracking-wide">Total</td>
+            <td className="px-4 py-3 text-right">{totaux.tickets}</td>
+            <td className="px-4 py-3 text-right">{formatNumber(totaux.brut)}</td>
+            <td className="px-4 py-3" />
+            <td className="px-4 py-3 text-right">
+              {totaux.deductions !== 0 ? `−${formatNumber(Math.abs(totaux.deductions))}` : '–'}
+            </td>
+            <td className="px-4 py-3 text-right">{formatNumber(totaux.net)}</td>
+            <td colSpan={3} />
+          </tr>
+        </tfoot>
+        */}
       </Table>
     </div>
   );

@@ -3,6 +3,7 @@
 import { AlertTriangle, CalendarDays, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Pagination } from '@heroui/react';
 import {
   Select,
   SelectContent,
@@ -20,6 +21,7 @@ import SoumettreConfirmModal from './SoumettreConfirmModal';
 export default function GrillePaiementContent() {
   const {
     grille,
+    lignes,
     isLoading,
     creneaux,
     isLoadingCreneaux,
@@ -32,6 +34,11 @@ export default function GrillePaiementContent() {
     canSoumettre,
     isSoumettant,
     handleSoumettre,
+    updateWave,
+    waveManquants,
+    page,
+    setPage,
+    totalPages,
     totaux,
     selectedLigne,
     openDetail,
@@ -121,15 +128,28 @@ export default function GrillePaiementContent() {
       {!soumis && (
         <>
           <GrillePaiementTable
-            lignes={grille.lignes}
+            lignes={lignes}
             checkedIds={checkedIds}
             allChecked={allChecked}
             onToggle={toggleCheck}
             onToggleAll={toggleAll}
             onRowClick={openDetail}
+            onUpdateWave={updateWave}
             totaux={totaux}
-            waveManquants={grille.stats.waveManquants}
+            waveManquants={waveManquants}
           />
+
+          {totalPages > 1 && (
+            <div className="flex justify-center">
+              <Pagination
+                total={totalPages}
+                page={page + 1}
+                onChange={(p) => setPage(p - 1)}
+                color="primary"
+                showControls
+              />
+            </div>
+          )}
 
           <div className="flex items-center justify-between shadow-sm ring-1 ring-gray-200 rounded-xl bg-white px-5 py-4">
             <div className="flex items-center gap-2 text-sm text-amber-600">
