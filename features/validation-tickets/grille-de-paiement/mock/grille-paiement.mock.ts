@@ -9,9 +9,16 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
   viseAt: '2026-04-22T09:00:00.000Z',
   stats: {
     totalLivreurs: 8,
+    totalTickets: 0,
     totalBrut: 2_847_500,
     totalNet: 2_604_300,
     waveManquants: 1,
+  },
+  pagination: {
+    page: 0,
+    totalPages: 1,
+    totalElements: 8,
+    size: 20,
   },
   lignes: [
     {
