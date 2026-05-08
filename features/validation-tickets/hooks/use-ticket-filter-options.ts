@@ -2,12 +2,13 @@
 
 import { useMemo } from 'react';
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
-import { useRestaurantsListQuery } from '@/features/restaurants/queries/restaurant-list.query';
+import { useDefinedRestaurantsQuery } from '@/features/restaurants/queries/restaurants.query';
+import { toRestaurantOptions } from '@/features/restaurants';
 import { SelectOption } from '@/components/validation-tickets/TicketFilterBar';
 
 export function useTicketFilterOptions() {
   const { data: livreurs, isLoading: isLoadingLivreurs } = useLivreursListQuery();
-  const { data: restaurantsData, isLoading: isLoadingRestaurants } = useRestaurantsListQuery({ limit: 200 });
+  const { data: restaurants = [], isLoading: isLoadingRestaurants } = useDefinedRestaurantsQuery();
 
   const livreurOptions: SelectOption[] = useMemo(() => {
     if (!livreurs) return [];
@@ -16,13 +17,7 @@ export function useTicketFilterOptions() {
       .map((l) => ({ value: l.id, label: `${l.prenoms ?? ''} ${l.nom ?? ''}`.trim() }));
   }, [livreurs]);
 
-  const restaurantOptions: SelectOption[] = useMemo(() => {
-    const list = restaurantsData?.content ?? [];
-    return list.map((r) => ({
-      value: r.id,
-      label: r.nomEtablissement,
-    }));
-  }, [restaurantsData]);
+  const restaurantOptions: SelectOption[] = useMemo(() => toRestaurantOptions(restaurants), [restaurants]);
 
   return {
     livreurOptions,
