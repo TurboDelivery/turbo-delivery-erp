@@ -1,31 +1,26 @@
-import { endOfWeek, format, startOfWeek, subWeeks } from 'date-fns';
+import { format, startOfWeek, subWeeks } from 'date-fns';
+import { generateWeeks } from '@/lib/week.utils';
 
+/**
+ * Génère la liste des `nbSemaines` dernières semaines (lundi→dimanche),
+ * en ordre décroissant (plus récente en premier).
+ *
+ * Le `value` utilise le format "DD/MM/YYYY-DD/MM/YYYY" spécifique aux tickets.
+ * La logique de génération est déléguée à `lib/week.utils.generateWeeks`.
+ */
 export function genererListeSemaines(nbSemaines = 52) {
-  const semaines: {
-    label: string;
-    value: string;
-  }[] = [];
+  // Calcul de la date de début : lundi de la semaine il y a nbSemaines semaines.
+  const startMonday = startOfWeek(subWeeks(new Date(), nbSemaines), { weekStartsOn: 1 });
 
-  const today = new Date();
-
-  for (let i = 0; i <= nbSemaines; i++) {
-    const dateRef = subWeeks(today, i);
-
-    const debutSemaine = startOfWeek(dateRef, { weekStartsOn: 1 });
-    const finSemaine = endOfWeek(dateRef, { weekStartsOn: 1 });
-
-    const debut = format(debutSemaine, 'dd/MM/yyyy');
-    const fin = format(finSemaine, 'dd/MM/yyyy');
-
-    const value = `${debut}-${fin}`;
-
-    semaines.push({
-      label: `Semaine du ${debut} au ${fin}`,
-      value,
-    });
-  }
-
-  return semaines;
+  return generateWeeks(startMonday).map(({ debut, fin, label }) => {
+    // Convertir les dates ISO en format DD/MM/YYYY pour la valeur tickets.
+    const debutFr = debut.split('-').reverse().join('/');
+    const finFr = fin.split('-').reverse().join('/');
+    return {
+      label,
+      value: `${debutFr}-${finFr}`,
+    };
+  });
 }
 
 export function obtenirDatesDepuisSemaine(semaine: string) {
