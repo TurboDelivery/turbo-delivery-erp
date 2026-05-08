@@ -1,3 +1,5 @@
+import { generateWeeks } from '@/lib/week.utils';
+
 const JOURS_SEMAINE = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] as const;
 const JOURS_SEMAINE_COURT = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as const;
 const JOURS_KEYS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
@@ -13,8 +15,8 @@ export const getJourCourtLabel = (jour: string): string => {
 };
 
 export const formatSemaineLabel = (debut: string, fin: string): string => {
-  const debutDate = new Date(debut);
-  const finDate = new Date(fin);
+  const debutDate = new Date(`${debut}T00:00:00`);
+  const finDate = new Date(`${fin}T00:00:00`);
   const mois = debutDate.toLocaleDateString('fr-FR', { month: 'long' });
   const annee = debutDate.getFullYear();
   return `Semaine du ${debutDate.getDate()} au ${finDate.getDate()} ${mois.charAt(0).toUpperCase() + mois.slice(1)} ${annee}`;
@@ -27,35 +29,22 @@ export interface SemaineOption {
   fin: string;
 }
 
+/** Date de départ historique des créneaux. */
+const CRENEAUX_START_DATE = new Date('2024-12-30T00:00:00');
+
 /**
  * Génère toutes les semaines (lundi→dimanche) du 30 Dec 2024 jusqu'à la semaine courante.
  * Retournées en ordre décroissant (plus récente en premier).
+ *
+ * Délègue la logique commune à `lib/week.utils.generateWeeks`.
  */
 export function generateAllWeeks(): SemaineOption[] {
-  const weeks: SemaineOption[] = [];
-  const start = new Date('2024-12-30T00:00:00');
-  const now = new Date();
-
-  const current = new Date(start);
-  while (current <= now) {
-    const monday = new Date(current);
-    const sunday = new Date(current);
-    sunday.setDate(sunday.getDate() + 6);
-
-    const debut = monday.toISOString().split('T')[0];
-    const fin = sunday.toISOString().split('T')[0];
-
-    weeks.push({
-      value: debut,
-      label: formatSemaineLabel(debut, fin),
-      debut,
-      fin,
-    });
-
-    current.setDate(current.getDate() + 7);
-  }
-
-  return weeks.reverse();
+  return generateWeeks(CRENEAUX_START_DATE).map(({ debut, fin, label }) => ({
+    value: debut,
+    label,
+    debut,
+    fin,
+  }));
 }
 
 /**
