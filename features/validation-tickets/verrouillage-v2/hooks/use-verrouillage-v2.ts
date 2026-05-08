@@ -15,8 +15,8 @@ export default function useVerrouillageV2() {
 
   const setFilters = (v: typeof filters) => void setFiltersRaw(v);
 
-  const { data: readyData, isLoading: isLoadingReady, fetchNextPage: fetchNextReady, hasNextPage: hasNextReady } = useTicketsAuthentifiesQuery(params);
-  const { data: lockedData, isLoading: isLoadingLocked, fetchNextPage: fetchNextLocked, hasNextPage: hasNextLocked } = useTicketsV1ValideQuery(params);
+  const { data: readyData, isLoading: isLoadingReady, fetchNextPage: fetchNextReady, hasNextPage: hasNextReady, isFetchingNextPage: isFetchingNextReady } = useTicketsAuthentifiesQuery(params);
+  const { data: lockedData, isLoading: isLoadingLocked, fetchNextPage: fetchNextLocked, hasNextPage: hasNextLocked, isFetchingNextPage: isFetchingNextLocked } = useTicketsV1ValideQuery(params);
 
   const readyTickets = useMemo(() => readyData?.pages.flatMap((p) => p.content) ?? [], [readyData]);
   const lockedTickets = useMemo(() => lockedData?.pages.flatMap((p) => p.content) ?? [], [lockedData]);
@@ -69,8 +69,10 @@ export default function useVerrouillageV2() {
     isLockingAll,
     fetchNextReady,
     hasNextReady,
+    isFetchingNextReady,
     fetchNextLocked,
     hasNextLocked,
+    isFetchingNextLocked,
     handleLock,
     handleLockAll,
   };
