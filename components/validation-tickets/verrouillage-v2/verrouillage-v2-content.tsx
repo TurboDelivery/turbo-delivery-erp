@@ -5,10 +5,14 @@ import { VerrouillageV2Table } from './verrouillage-v2-table';
 import { VerrouillageV2Footer } from './verrouillage-v2-footer';
 import { RejectMotifDialog } from './reject-motif-dialog';
 import { useVerrouillageV2Content } from '@/features/validation-tickets/verrouillage-v2/hooks/use-verrouillage-v2-content';
+import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
 
 export function VerrouillageV2Content() {
   const {
     tickets,
+    filteredTickets,
+    filters,
+    setFilters,
     isLoading,
     ticketStats,
     isStatsLoading,
@@ -44,8 +48,10 @@ export function VerrouillageV2Content() {
         isLoading={isStatsLoading}
       />
 
+      <TicketFilterBar value={filters} onChange={setFilters} />
+
       <VerrouillageV2Table
-        tickets={tickets}
+        tickets={filteredTickets}
         validatingId={validatingId}
         onValidate={handleValidate}
         onReject={setRejectDialogId}

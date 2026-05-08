@@ -4,10 +4,14 @@ import RegularisationPageHeader from './RegularisationPageHeader';
 import RegularisationQueue from './RegularisationQueue';
 import RegularisationDetail from './RegularisationDetail';
 import useRegularisation from '../hooks/use-regularisation';
+import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
 
 export default function RegularisationContent() {
   const {
     tickets,
+    filteredTickets,
+    filters,
+    setFilters,
     selectedId,
     selectedTicket,
     isApproving,
@@ -21,9 +25,11 @@ export default function RegularisationContent() {
     <div className="flex flex-col gap-5 p-4 sm:p-6">
       <RegularisationPageHeader pendingCount={tickets.length} />
 
+      <TicketFilterBar value={filters} onChange={setFilters} />
+
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <RegularisationQueue
-          tickets={tickets}
+          tickets={filteredTickets}
           selectedId={selectedId}
           onSelect={setSelectedId}
         />

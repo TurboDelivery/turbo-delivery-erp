@@ -4,6 +4,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { useTicketsV1ValideQuery, useCreneauTicketStatsQuery } from '../queries/tickets-v2-list.query';
 import { useValiderV2Mutation, useValiderV2EnMasseMutation, useRejeterV2FraudeMutation } from '../queries/tickets-v2.mutation';
 import { useCreneauActifQuery } from '@/features/creneaux/queries/creneau.query';
+import { applyTicketFilters, DEFAULT_TICKET_FILTERS, TicketFilters } from '@/components/validation-tickets/TicketFilterBar';
 
 export function useVerrouillageV2Content() {
   const { data, isLoading } = useTicketsV1ValideQuery();
@@ -11,6 +12,7 @@ export function useVerrouillageV2Content() {
   const { data: ticketStats, isLoading: isStatsLoading } = useCreneauTicketStatsQuery();
   const [rejectDialogId, setRejectDialogId] = useState<string | null>(null);
   const [validatingId, setValidatingId] = useState<string | null>(null);
+  const [filters, setFilters] = useState<TicketFilters>(DEFAULT_TICKET_FILTERS);
 
   const { mutate: validerV2, isPending: isValidating } = useValiderV2Mutation();
   const { mutate: validerV2EnMasse, isPending: isValidatingAll } = useValiderV2EnMasseMutation();
@@ -20,6 +22,8 @@ export function useVerrouillageV2Content() {
     () => data?.pages.flatMap((p) => p.content) ?? [],
     [data],
   );
+
+  const filteredTickets = useMemo(() => applyTicketFilters(tickets, filters), [tickets, filters]);
 
   const handleValidate = useCallback(
     (id: string) => {
@@ -42,6 +46,9 @@ export function useVerrouillageV2Content() {
 
   return {
     tickets,
+    filteredTickets,
+    filters,
+    setFilters,
     isLoading,
     ticketStats,
     isStatsLoading,

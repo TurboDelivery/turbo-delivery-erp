@@ -5,9 +5,19 @@ import { Button } from '@/components/ui/button';
 import TicketReadyList from './TicketReadyList';
 import TicketLockedList from './TicketLockedList';
 import useVerrouillageV2 from '../hooks/use-verrouillage-v2';
+import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
 
 export default function VerificationV1Content() {
-  const { readyTickets, lockedTickets, isLockingAll, handleLock, handleLockAll } = useVerrouillageV2();
+  const {
+    readyTickets,
+    filteredReadyTickets,
+    filteredLockedTickets,
+    filters,
+    setFilters,
+    isLockingAll,
+    handleLock,
+    handleLockAll,
+  } = useVerrouillageV2();
 
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
@@ -23,9 +33,11 @@ export default function VerificationV1Content() {
         </Button>
       </div>
 
+      <TicketFilterBar value={filters} onChange={setFilters} />
+
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
-        <TicketReadyList tickets={readyTickets} onLock={handleLock} />
-        <TicketLockedList tickets={lockedTickets} />
+        <TicketReadyList tickets={filteredReadyTickets} onLock={handleLock} />
+        <TicketLockedList tickets={filteredLockedTickets} />
       </div>
 
       <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4">
