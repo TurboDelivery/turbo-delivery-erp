@@ -13,6 +13,8 @@ export function VerrouillageV2Content() {
     filteredTickets,
     filters,
     setFilters,
+    livreurOptions,
+    restaurantOptions,
     isLoading,
     ticketStats,
     isStatsLoading,
@@ -48,7 +50,7 @@ export function VerrouillageV2Content() {
         isLoading={isStatsLoading}
       />
 
-      <TicketFilterBar value={filters} onChange={setFilters} />
+      <TicketFilterBar value={filters} onChange={setFilters} livreurOptions={livreurOptions} restaurantOptions={restaurantOptions} />
 
       <VerrouillageV2Table
         tickets={filteredTickets}

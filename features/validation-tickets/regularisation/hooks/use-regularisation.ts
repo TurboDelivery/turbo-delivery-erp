@@ -1,20 +1,38 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useQueryStates } from 'nuqs';
 import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import { useRegularisationListQuery } from '@/features/validation-tickets/regularisation/queries/regularisation-list.query';
 import { useApprouverRegularisationMutation, useRejeterRegularisationMutation } from '@/features/validation-tickets/regularisation/queries/regularisation.mutation';
-import { applyTicketFilters, DEFAULT_TICKET_FILTERS, TicketFilters } from '@/components/validation-tickets/TicketFilterBar';
+import { applyTicketFilters, SelectOption } from '@/components/validation-tickets/TicketFilterBar';
+import { validationTicketFiltersConfig, validationTicketFiltersOptions } from '@/features/validation-tickets/filters/validation-tickets.filters';
 
 export default function useRegularisation() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [filters, setFilters] = useState<TicketFilters>(DEFAULT_TICKET_FILTERS);
+  const [filters, setFiltersRaw] = useQueryStates(validationTicketFiltersConfig, validationTicketFiltersOptions);
+
+  const setFilters = (v: typeof filters) => void setFiltersRaw(v);
 
   const { data, isLoading, isError } = useRegularisationListQuery();
 
   const tickets: BonLivraisonTerminee[] = useMemo(() => data?.content ?? [], [data]);
 
   const filteredTickets = useMemo(() => applyTicketFilters(tickets, filters), [tickets, filters]);
+
+  const livreurOptions: SelectOption[] = useMemo(() => {
+    const seen = new Set<string>();
+    return tickets
+      .filter((t) => t.livreurId && !seen.has(t.livreurId) && seen.add(t.livreurId))
+      .map((t) => ({ value: t.livreurId, label: t.livreur }));
+  }, [tickets]);
+
+  const restaurantOptions: SelectOption[] = useMemo(() => {
+    const seen = new Set<string>();
+    return tickets
+      .filter((t) => t.restaurantId && !seen.has(t.restaurantId) && seen.add(t.restaurantId))
+      .map((t) => ({ value: t.restaurantId, label: t.restaurant }));
+  }, [tickets]);
 
   const selectedTicket = tickets.find((t) => t.commandeId === selectedId) ?? null;
 
@@ -44,6 +62,8 @@ export default function useRegularisation() {
     filteredTickets,
     filters,
     setFilters,
+    livreurOptions,
+    restaurantOptions,
     selectedId,
     selectedTicket,
     isLoading,

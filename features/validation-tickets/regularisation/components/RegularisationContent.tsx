@@ -12,6 +12,8 @@ export default function RegularisationContent() {
     filteredTickets,
     filters,
     setFilters,
+    livreurOptions,
+    restaurantOptions,
     selectedId,
     selectedTicket,
     isApproving,
@@ -25,7 +27,7 @@ export default function RegularisationContent() {
     <div className="flex flex-col gap-5 p-4 sm:p-6">
       <RegularisationPageHeader pendingCount={tickets.length} />
 
-      <TicketFilterBar value={filters} onChange={setFilters} />
+      <TicketFilterBar value={filters} onChange={setFilters} livreurOptions={livreurOptions} restaurantOptions={restaurantOptions} />
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <RegularisationQueue

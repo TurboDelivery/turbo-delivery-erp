@@ -6,6 +6,11 @@ import { PaginatedResponse } from '@/types/general';
 
 export interface ITicketsParStatutParams {
   statuts: StatutControle[];
+  debut?: string;
+  fin?: string;
+  restaurantId?: string;
+  search?: string;
+  numero?: string;
   page?: number;
   size?: number;
 }
@@ -163,6 +168,11 @@ export async function listerTicketsParStatutRequest(params: ITicketsParStatutPar
       statuts: params.statuts[0],
       page: (params.page ?? 0).toString(),
       size: (params.size ?? 50).toString(),
+      debut: params.debut || undefined,
+      fin: params.fin || undefined,
+      restaurantId: params.restaurantId || undefined,
+      search: params.search || undefined,
+      numero: params.numero || undefined,
     },
   });
 }

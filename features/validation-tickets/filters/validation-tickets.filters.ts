@@ -1,0 +1,12 @@
+import { parseAsString } from 'nuqs';
+
+export const validationTicketFiltersConfig = {
+  search: parseAsString.withDefault(''),
+  livreurId: parseAsString.withDefault(''),
+  restaurantId: parseAsString.withDefault(''),
+};
+
+export const validationTicketFiltersOptions = {
+  clearOnDefault: true,
+  throttleMs: 300,
+} as const;
