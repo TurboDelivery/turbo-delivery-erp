@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import * as XLSX from 'xlsx';
 import { useHistoriqueCreneauxListQuery } from '../queries/historique-creneaux.query';
 import type { ICreneauActifVm } from '@/features/creneaux/types/creneau.types';
 import type { IHistoriqueCreneauxStats, LotStatut } from '../types/historique-creneaux.type';
@@ -40,26 +41,36 @@ export default function useHistoriqueCreneaux() {
     rejets: 0,
   };
 
-  const exportCsv = () => {
-    const header = ['Créneau', 'Début', 'Fin', 'Livreurs', 'Tickets', 'En attente', 'Net (FCFA)', 'Soumis le', 'Soumis par', 'Statut'];
-    const rows = allItems.map((c) => [
-      c.label,
-      c.dateDebut,
-      c.dateFin,
-      c.nbLivreurs,
-      c.totalTickets,
-      c.nbTicketsPending,
-      c.totalNet,
-      c.soumisAt ?? '',
-      c.soumisParNom ?? '',
-      c.lotStatut ?? '',
-    ]);
-    const csv = [header, ...rows].map((r) => r.join(';')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const exportXlsx = () => {
+    const worksheetData = allItems.map((c) => ({
+      'Créneau': c.label,
+      'Début': c.dateDebut,
+      'Fin': c.dateFin,
+      'Livreurs': c.nbLivreurs,
+      'Tickets': c.totalTickets,
+      'En attente': c.nbTicketsPending,
+      'Net (FCFA)': c.totalNet,
+      'Soumis le': c.soumisAt ?? '',
+      'Soumis par': c.soumisParNom ?? '',
+      'Statut': c.lotStatut ?? '',
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+    const keys = Object.keys(worksheetData[0] ?? {});
+    worksheet['!cols'] = keys.map((key) => {
+      const maxLen = Math.max(key.length, ...worksheetData.map((r) => String((r as Record<string, unknown>)[key] ?? '').length));
+      return { wch: Math.min(maxLen + 2, 40) };
+    });
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Historique créneaux');
+
+    const xlsxData = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([xlsxData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'historique-creneaux.csv';
+    a.download = `historique-creneaux_${new Date().toISOString().split('T')[0]}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -71,7 +82,7 @@ export default function useHistoriqueCreneaux() {
     setSearch,
     statutFilter,
     setStatutFilter,
-    exportCsv,
+    exportXlsx,
     isLoading,
     fetchNextPage,
     hasNextPage: !!hasNextPage,

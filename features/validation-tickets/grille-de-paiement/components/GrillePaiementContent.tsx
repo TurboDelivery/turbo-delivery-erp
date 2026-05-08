@@ -17,6 +17,7 @@ import GrillePaiementStats from './GrillePaiementStats';
 import GrillePaiementTable from './GrillePaiementTable';
 import GrillePaiementDetailModal from './GrillePaiementDetailModal';
 import SoumettreConfirmModal from './SoumettreConfirmModal';
+import GrillePaiementExportButton from './GrillePaiementExportButton';
 
 export default function GrillePaiementContent() {
   const {
@@ -97,7 +98,14 @@ export default function GrillePaiementContent() {
           </p>
         </div>
 
-        {/* Créneau selector */}
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <GrillePaiementExportButton
+            creneauId={selectedCreneauId ?? undefined}
+            grilleCode={grille.code}
+            totalItems={grille.pagination.totalElements}
+          />
+
+          {/* Créneau selector */}
         <Select
           value={selectedCreneauId ?? '__actif__'}
           onValueChange={(v) => setSelectedCreneauId(v === '__actif__' ? undefined : v)}
@@ -116,6 +124,7 @@ export default function GrillePaiementContent() {
             ))}
           </SelectContent>
         </Select>
+        </div>
       </div>
 
       {/* Créneau banner */}

@@ -1,8 +1,9 @@
 'use client';
 
-import { Download, Search } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import {
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -29,7 +30,7 @@ const STATUT_FILTERS: { value: StatutFilter; label: string }[] = [
 ];
 
 export default function HistoriqueCreneauxContent() {
-  const { filtered, stats, search, setSearch, statutFilter, setStatutFilter, exportCsv, isLoading } =
+  const { filtered, stats, statutFilter, setStatutFilter, exportXlsx, isLoading } =
     useHistoriqueCreneaux();
 
   const table = useReactTable({
@@ -43,13 +44,15 @@ export default function HistoriqueCreneauxContent() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl sm:text-2xl font-bold text-red-500">Historique des créneaux</h1>
-        <button
-          onClick={exportCsv}
-          className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition-colors"
+        <Button
+          variant="bordered"
+          color="primary"
+          startContent={<Download size={16} />}
+          isDisabled={filtered.length === 0}
+          onPress={exportXlsx}
         >
-          <Download className="h-4 w-4" />
-          Exporter CSV
-        </button>
+          Exporter Excel
+        </Button>
       </div>
 
       {/* Stats */}

@@ -2,8 +2,8 @@
  * Formate un montant de manière compacte : 2.60 M, 850 K, ou nombre brut
  */
 export function formatMontantCompact(n: number): string {
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)} Md`;
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)} M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(0)} K`;
   return n.toLocaleString('fr-FR');
 }
 

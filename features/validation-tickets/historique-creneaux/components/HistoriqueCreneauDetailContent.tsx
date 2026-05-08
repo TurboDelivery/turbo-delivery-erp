@@ -1,6 +1,7 @@
 'use client';
 
-import { AlertTriangle, CheckSquare, CreditCard, Download, Printer, Receipt, TrendingUp, Users, XCircle } from 'lucide-react';
+import { AlertTriangle, CreditCard, Receipt, TrendingUp, Users } from 'lucide-react';
+import GrillePaiementExportButton from '@/features/validation-tickets/grille-de-paiement/components/GrillePaiementExportButton';
 import { formatMontantCompact } from '@/utils/format.utils';
 import useHistoriqueCreneauDetail from '../hooks/use-historique-creneau-detail';
 import HistoriqueCreneauDetailLivreurs from './HistoriqueCreneauDetailLivreurs';
@@ -41,13 +42,8 @@ export default function HistoriqueCreneauDetailContent({ id }: Props) {
           <div className="flex flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-xl font-bold text-gray-900">{detail.code}</h1>
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${statut.className}`}>
-                {statut.label}
-              </span>
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${statut.className}`}>{statut.label}</span>
             </div>
-            <p className="text-sm text-gray-400">
-              Créneau {detail.code.replace('CRÉNEAU-', '')} · {detail.periodeDebut} → {detail.periodeFin}
-            </p>
             {detail.soumisLe && (
               <p className="text-xs text-gray-500">
                 <span className="text-red-400">Soumis le</span> {detail.soumisLe}
@@ -67,14 +63,7 @@ export default function HistoriqueCreneauDetailContent({ id }: Props) {
           </div>
 
           <div className="flex items-center gap-2 self-start">
-            <button onClick={() => window.print()} className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-              <Printer className="h-4 w-4" />
-              Imprimer
-            </button>
-            <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-              <Download className="h-4 w-4" />
-              Exporter
-            </button>
+            <GrillePaiementExportButton creneauId={id} grilleCode={detail.code} totalItems={detail.kpi.livreurs} />
           </div>
         </div>
       </div>
