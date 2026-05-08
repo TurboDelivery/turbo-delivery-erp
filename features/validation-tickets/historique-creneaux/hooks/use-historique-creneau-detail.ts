@@ -49,7 +49,7 @@ export default function useHistoriqueCreneauDetail(id: string) {
       code: grille.code,
       periodeDebut: formatDate(grille.debut),
       periodeFin: formatDate(grille.fin),
-      statut: 'soumis',  // TODO: depuis API enrichie (lotStatut)
+      statut: 'EN_ATTENTE' as const,  // TODO: depuis API enrichie (lotStatut)
       soumisLe: '',      // TODO: depuis LotTable.soumisAt
       soumisParNom: '',  // TODO: depuis LotTable.soumisPar résolu
       derniereAction: '',

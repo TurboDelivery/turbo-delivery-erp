@@ -18,13 +18,14 @@ import { historiqueCreneauxColumns } from './historique-creneaux-columns';
 import type { StatutFilter } from '../hooks/use-historique-creneaux';
 
 const STATUT_FILTERS: { value: StatutFilter; label: string }[] = [
-  { value: 'tous', label: 'Tous' },
-  { value: 'soumis', label: 'Soumis' },
-  { value: 'valide_v1', label: 'Validé V1' },
-  { value: 'verrouille_v2', label: 'Verrouillé V2' },
-  { value: 'paye', label: 'Payé' },
-  { value: 'rejete', label: 'Rejeté' },
-  { value: 'regularisation', label: 'Régularisation' },
+  { value: 'tous',              label: 'Tous' },
+  { value: 'EN_ATTENTE',        label: 'En attente' },
+  { value: 'CALCUL_EN_COURS',   label: 'Soumis DGA' },
+  { value: 'SOUMIS_PDG',        label: 'Soumis PDG' },
+  { value: 'APPROUVE_PDG',      label: 'Approuvé PDG' },
+  { value: 'PAIEMENT_EN_COURS', label: 'Paiement en cours' },
+  { value: 'SOLDE',             label: 'Soldé' },
+  { value: 'REJETE',            label: 'Rejeté' },
 ];
 
 export default function HistoriqueCreneauxContent() {
@@ -64,16 +65,6 @@ export default function HistoriqueCreneauxContent() {
 
       {/* Search + Filters */}
       <div className="rounded-xl border border-gray-200 bg-white p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher un Créneau, semaine, soumetteur..."
-            className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-700 placeholder:text-gray-400 outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition"
-          />
-        </div>
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="flex items-center gap-1 text-xs text-gray-500 mr-1">
             <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">

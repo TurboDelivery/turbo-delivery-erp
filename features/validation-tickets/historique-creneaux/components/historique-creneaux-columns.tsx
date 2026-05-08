@@ -1,48 +1,22 @@
 import Link from 'next/link';
-import { AlertTriangle, CheckSquare, XCircle } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import type { ColumnDef } from '@tanstack/react-table';
-import type { IHistoriqueCreneau, StatutCreneau } from '../types/historique-creneaux.type';
+import type { ICreneauActifVm } from '@/features/creneaux/types/creneau.types';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { getLotStatutConfig } from '../utils/lot-statut.utils';
 
-const STATUT_CONFIG: Record<
-  StatutCreneau,
-  { label: string; className: string; icon?: React.ReactNode }
-> = {
-  paye: {
-    label: 'Payé',
-    className: 'bg-green-100 text-green-700',
-    icon: <CheckSquare className="h-3.5 w-3.5" />,
-  },
-  regularisation: {
-    label: 'En régularisation',
-    className: 'bg-amber-100 text-amber-700',
-    icon: <AlertTriangle className="h-3.5 w-3.5" />,
-  },
-  rejete: {
-    label: 'Rejeté',
-    className: 'bg-red-100 text-red-600',
-    icon: <XCircle className="h-3.5 w-3.5" />,
-  },
-  soumis: {
-    label: 'Soumis',
-    className: 'bg-blue-100 text-blue-700',
-  },
-  valide_v1: {
-    label: 'Validé V1',
-    className: 'bg-indigo-100 text-indigo-700',
-  },
-  verrouille_v2: {
-    label: 'Verrouillé V2',
-    className: 'bg-purple-100 text-purple-700',
-  },
-};
+function fmtDate(iso: string | null) {
+  if (!iso) return '';
+  try { return format(parseISO(iso), 'd MMM yyyy', { locale: fr }); } catch { return iso; }
+}
 
-export const historiqueCreneauxColumns: ColumnDef<IHistoriqueCreneau>[] = [
+export const historiqueCreneauxColumns: ColumnDef<ICreneauActifVm>[] = [
   {
-    accessorKey: 'code',
+    accessorKey: 'label',
     header: 'Créneau',
     cell: ({ row }) => (
-      <span className="font-semibold text-gray-900 text-sm whitespace-nowrap">{row.original.code}</span>
+      <span className="font-semibold text-gray-900 text-sm whitespace-nowrap">{row.original.label}</span>
     ),
   },
   {
@@ -50,26 +24,35 @@ export const historiqueCreneauxColumns: ColumnDef<IHistoriqueCreneau>[] = [
     header: 'Période',
     cell: ({ row }) => (
       <span className="text-sm text-gray-600 whitespace-nowrap">
-        {row.original.periodeDebut} → {row.original.periodeFin}
+        {fmtDate(row.original.dateDebut)} → {fmtDate(row.original.dateFin)}
       </span>
     ),
   },
   {
-    accessorKey: 'livreurs',
+    accessorKey: 'nbLivreurs',
     header: 'Livreurs',
-    cell: ({ row }) => <span className="text-sm text-gray-700">{row.original.livreurs}</span>,
+    cell: ({ row }) => <span className="text-sm text-gray-700">{row.original.nbLivreurs}</span>,
   },
   {
-    accessorKey: 'tickets',
+    accessorKey: 'totalTickets',
     header: 'Tickets',
-    cell: ({ row }) => <span className="text-sm text-gray-700">{row.original.tickets}</span>,
+    cell: ({ row }) => <span className="text-sm text-gray-700">{row.original.totalTickets}</span>,
   },
   {
-    accessorKey: 'netFcfa',
+    accessorKey: 'nbTicketsPending',
+    header: 'En attente',
+    cell: ({ row }) => (
+      <span className={`text-sm font-medium ${row.original.nbTicketsPending > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
+        {row.original.nbTicketsPending}
+      </span>
+    ),
+  },
+  {
+    accessorKey: 'totalNet',
     header: 'Net (FCFA)',
     cell: ({ row }) => (
       <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
-        {formatCFA(row.original.netFcfa)}
+        {formatCFA(row.original.totalNet)}
       </span>
     ),
   },
@@ -78,8 +61,10 @@ export const historiqueCreneauxColumns: ColumnDef<IHistoriqueCreneau>[] = [
     header: 'Soumis le',
     cell: ({ row }) => (
       <div className="flex flex-col gap-0.5">
-        <span className="text-sm text-gray-700 whitespace-nowrap">{row.original.soumisLe}</span>
-        <span className="text-xs text-gray-400">par {row.original.soumisParNom}</span>
+        <span className="text-sm text-gray-700 whitespace-nowrap">{fmtDate(row.original.soumisAt)}</span>
+        {row.original.soumisParNom && (
+          <span className="text-xs text-gray-400">par {row.original.soumisParNom}</span>
+        )}
       </div>
     ),
   },
@@ -87,17 +72,14 @@ export const historiqueCreneauxColumns: ColumnDef<IHistoriqueCreneau>[] = [
     id: 'statut',
     header: 'Statut',
     cell: ({ row }) => {
-      const config = STATUT_CONFIG[row.original.statut];
+      const config = getLotStatutConfig(row.original.lotStatut);
       return (
         <div className="flex flex-col gap-1.5">
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold w-fit ${config.className}`}
-          >
-            {config.icon}
+          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold w-fit ${config.className}`}>
             {config.label}
           </span>
-          {row.original.commentaire && (
-            <p className="text-xs text-gray-500 max-w-[220px] line-clamp-2">{row.original.commentaire}</p>
+          {row.original.commentaireRejet && (
+            <p className="text-xs text-gray-500 max-w-[220px] line-clamp-2">{row.original.commentaireRejet}</p>
           )}
         </div>
       );

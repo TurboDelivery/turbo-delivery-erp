@@ -1,10 +1,11 @@
-export type StatutCreneau =
-  | 'soumis'
-  | 'valide_v1'
-  | 'verrouille_v2'
-  | 'paye'
-  | 'rejete'
-  | 'regularisation';
+export type LotStatut =
+  | 'EN_ATTENTE'
+  | 'CALCUL_EN_COURS'
+  | 'SOUMIS_PDG'
+  | 'APPROUVE_PDG'
+  | 'PAIEMENT_EN_COURS'
+  | 'SOLDE'
+  | 'REJETE';
 
 export interface IHistoriqueCreneau {
   id: string;
@@ -13,10 +14,11 @@ export interface IHistoriqueCreneau {
   periodeFin: string;
   livreurs: number;
   tickets: number;
+  nbTicketsPending: number;
   netFcfa: number;
   soumisLe: string;
   soumisParNom: string;
-  statut: StatutCreneau;
+  statut: LotStatut;
   commentaire?: string;
 }
 
@@ -58,7 +60,7 @@ export interface ICreneauDetail {
   code: string;
   periodeDebut: string;
   periodeFin: string;
-  statut: StatutCreneau;
+  statut: LotStatut;
   soumisLe: string;
   soumisParNom: string;
   derniereAction: string;

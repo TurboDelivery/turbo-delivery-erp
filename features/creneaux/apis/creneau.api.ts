@@ -18,12 +18,17 @@ export async function getCreneauActifApi(): Promise<ICreneauActifVm | null> {
 export async function getCreneauxListApi(params?: {
   page?: number;
   size?: number;
-}): Promise<{ content: ICreneauActifVm[]; totalElements: number } | null> {
+  lotStatut?: string;
+}): Promise<PaginatedResponse<ICreneauActifVm> | null> {
   try {
-    return await apiClientHttp.request<{ content: ICreneauActifVm[]; totalElements: number }>({
+    return await apiClientHttp.request<PaginatedResponse<ICreneauActifVm>>({
       endpoint: '/api/creneaux',
       method: 'GET',
-      params: { page: String(params?.page ?? 0), size: String(params?.size ?? 50) },
+      params: {
+        page: String(params?.page ?? 0),
+        size: String(params?.size ?? 20),
+        ...(params?.lotStatut ? { lotStatut: params.lotStatut } : {}),
+      },
     });
   } catch {
     return null;

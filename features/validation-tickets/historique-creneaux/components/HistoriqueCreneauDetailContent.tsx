@@ -5,17 +5,8 @@ import { formatMontantCompact } from '@/utils/format.utils';
 import useHistoriqueCreneauDetail from '../hooks/use-historique-creneau-detail';
 import HistoriqueCreneauDetailLivreurs from './HistoriqueCreneauDetailLivreurs';
 import HistoriqueCreneauDetailTimeline from './HistoriqueCreneauDetailTimeline';
-import type { StatutCreneau } from '../types/historique-creneaux.type';
+import { getLotStatutConfig } from '../utils/lot-statut.utils';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const STATUT_CONFIG: Record<StatutCreneau, { label: string; className: string; icon: React.ReactNode }> = {
-  paye: { label: 'Payé', className: 'bg-green-100 text-green-700', icon: <CheckSquare className="h-3.5 w-3.5" /> },
-  regularisation: { label: 'En régularisation', className: 'bg-amber-100 text-amber-700', icon: <AlertTriangle className="h-3.5 w-3.5" /> },
-  rejete: { label: 'Rejeté', className: 'bg-red-100 text-red-600', icon: <XCircle className="h-3.5 w-3.5" /> },
-  soumis: { label: 'Soumis', className: 'bg-blue-100 text-blue-700', icon: null },
-  valide_v1: { label: 'Validé V1', className: 'bg-indigo-100 text-indigo-700', icon: null },
-  verrouille_v2: { label: 'Verrouillé V2', className: 'bg-purple-100 text-purple-700', icon: null },
-};
 
 interface Props {
   id: string;
@@ -40,7 +31,7 @@ export default function HistoriqueCreneauDetailContent({ id }: Props) {
 
   if (!detail) return null;
 
-  const statut = STATUT_CONFIG[detail.statut];
+  const statut = getLotStatutConfig(detail.statut);
 
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
@@ -51,7 +42,6 @@ export default function HistoriqueCreneauDetailContent({ id }: Props) {
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-xl font-bold text-gray-900">{detail.code}</h1>
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${statut.className}`}>
-                {statut.icon}
                 {statut.label}
               </span>
             </div>
