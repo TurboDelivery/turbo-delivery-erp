@@ -1,6 +1,6 @@
 'use client';
 
-import { updateNotifcation } from '@/src/actions/notifcation.action';
+import { updateNotifcation } from '@/src/actions/notification.action';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';

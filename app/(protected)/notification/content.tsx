@@ -3,7 +3,7 @@
 import { CardHeader } from "@/components/commons/card-header";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import { PageWrapper } from "@/components/commons/page-wrapper";
-import { NotificationVM } from "@/types/notifcation.model";
+import { NotificationVM } from "@/types/notification.model";
 import { Button, Card, CardBody, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from "@heroui/react";
 import { Bell } from "lucide-react";
 import Link from "next/link";

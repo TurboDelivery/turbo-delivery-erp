@@ -1,5 +1,5 @@
 import { apiClientHttp } from "@/lib/api-client-http";
-import { LireNotificationCommande, NotificationDetailsVM, NotificationVM } from "@/types/notifcation.model";
+import { LireNotificationCommande, NotificationDetailsVM, NotificationVM } from "@/types/notification.model";
 
 
 const BASE_URL = '/api/erp/notification';

@@ -1,6 +1,6 @@
 import { NotificationContent } from "./content";
 import { auth } from '@/auth';
-import { fetchAllNotifcation } from "@/src/actions/notifcation.action";
+import { fetchAllNotifcation } from "@/src/actions/notification.action";
 
 
 export default async function Page() {

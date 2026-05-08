@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { socket } from '@/socket';
-import { fetchAllNotifcation, fetchNotifcationNonLu, updateNotifcation } from '@/src/actions/notifcation.action';
-import { NotificationVM } from '@/types/notifcation.model';
+import { fetchAllNotifcation, fetchNotifcationNonLu, updateNotifcation } from '@/src/actions/notification.action';
+import { NotificationVM } from '@/types/notification.model';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';

@@ -3,7 +3,7 @@
 import { CardHeader } from '@/components/commons/card-header';
 import { PageWrapper } from '@/components/commons/page-wrapper';
 import { Card } from '@/components/ui/card';
-import { NotificationDetailsVM } from '@/types/notifcation.model';
+import { NotificationDetailsVM } from '@/types/notification.model';
 import { MoveLeft } from 'lucide-react';
 import moment from 'moment';
 import Link from 'next/link';
