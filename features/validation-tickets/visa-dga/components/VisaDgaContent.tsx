@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, Eye, RotateCcw, Send, Star, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
+import { CheckCircle2, Clock, Eye, RotateCcw, Send, Star, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import useVisaDga from '../hooks/use-visa-dga';
@@ -8,7 +8,6 @@ import VisaDgaChaineValidation from './VisaDgaChaineValidation';
 import VisaDgaRejetModal from './VisaDgaRejetModal';
 import VisaDgaViserModal from './VisaDgaViserModal';
 import { IVisaDgaCreneau } from '../types/visa-dga.type';
-import { formatMontantCompact } from '@/utils/format.utils';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
@@ -73,10 +72,11 @@ function LivreurRow({ nom, tickets, numeroWave, netAPayer, bonus }: LivreurRowPr
 
 function StatutBadge({ statut }: { statut: IVisaDgaCreneau['statut'] }) {
   const map: Record<IVisaDgaCreneau['statut'], { label: string; className: string }> = {
-    SOUMIS_DGA: { label: 'SOUMIS DGA', className: 'bg-amber-500 text-white' },
-    EN_ATTENTE:  { label: 'EN ATTENTE', className: 'bg-gray-200 text-gray-600' },
-    VISE:        { label: 'VISÉ',       className: 'bg-green-500 text-white' },
-    REJETE:      { label: 'REJETÉ',     className: 'bg-red-500 text-white' },
+    EN_ATTENTE:       { label: 'EN ATTENTE',     className: 'bg-gray-200 text-gray-600' },
+    CALCUL_EN_COURS:  { label: 'CALCUL EN COURS', className: 'bg-blue-100 text-blue-700' },
+    SOUMIS_DGA:       { label: 'SOUMIS DGA',      className: 'bg-amber-500 text-white' },
+    VISE:             { label: 'VISÉ',            className: 'bg-green-500 text-white' },
+    REJETE:           { label: 'REJETÉ',          className: 'bg-red-500 text-white' },
   };
   const { label, className } = map[statut];
   return (
@@ -159,8 +159,8 @@ export default function VisaDgaContent() {
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 border-b border-gray-100 pb-5 mb-5">
               <StatMini label="Livreurs"    value={creneau.stats.totalLivreurs}               icon={Users}      />
               <StatMini label="Tickets"     value={creneau.stats.totalTickets}                icon={Ticket}     />
-              <StatMini label="Total Brut"  value={formatMontantCompact(creneau.stats.totalBrut)}    sub="FCFA" icon={Wallet}     />
-              <StatMini label="Total Net"   value={formatMontantCompact(creneau.stats.totalNet)}     sub="FCFA" icon={TrendingUp} highlight />
+              <StatMini label="Total Brut"  value={creneau.stats.totalBrut.toLocaleString('fr-FR')}    sub="FCFA" icon={Wallet}     />
+              <StatMini label="Total Net"   value={creneau.stats.totalNet.toLocaleString('fr-FR')}     sub="FCFA" icon={TrendingUp} highlight />
             </div>
 
             {/* Top livreurs */}
@@ -182,7 +182,7 @@ export default function VisaDgaContent() {
           </div>
 
           {/* Action buttons */}
-          {!vise && (
+          {!vise && creneau.statut === 'SOUMIS_DGA' && (
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <Button
                 variant="default"
@@ -210,12 +210,23 @@ export default function VisaDgaContent() {
                 disabled={isVisant}
               >
                 <Send className="h-4 w-4" />
-                Viser et transmettre au PDG
+                Valider et transmettre au PDG
               </Button>
             </div>
           )}
 
-          {vise && (
+          {(creneau.statut === 'EN_ATTENTE' || creneau.statut === 'CALCUL_EN_COURS') && !vise && (
+            <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
+              <Clock className="h-5 w-5 text-blue-400 shrink-0" />
+              <p className="text-sm font-medium text-blue-700">
+                {creneau.statut === 'EN_ATTENTE'
+                  ? 'Dossier en attente — la comptabilité doit soumettre la grille au DGA avant que vous puissiez agir.'
+                  : 'Calcul de la grille en cours — en attente de soumission au DGA par la comptabilité.'}
+              </p>
+            </div>
+          )}
+
+          {(vise || creneau.statut === 'VISE') && (
             <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-5 py-4">
               <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
               <p className="text-sm font-medium text-green-700">

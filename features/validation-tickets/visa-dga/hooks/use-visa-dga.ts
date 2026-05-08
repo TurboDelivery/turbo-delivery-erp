@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import {
   useVisaDgaQuery,
   useViserEtTransmettreMutation,
@@ -10,6 +11,8 @@ import {
 
 export default function useVisaDga() {
   const router = useRouter();
+  const { data: session } = useSession();
+  const userId = session?.user?.id ?? '';
   const { data: creneau, isLoading } = useVisaDgaQuery();
   const { mutate: viser, isPending: isVisant } = useViserEtTransmettreMutation();
   const { mutate: rejeter, isPending: isRejetant } = useRejeterEtRenvoyerMutation();
@@ -20,8 +23,8 @@ export default function useVisaDga() {
   const [vise, setVise] = useState(false);
 
   const handleViser = () => {
-    if (!creneau) return;
-    viser(creneau.id, {
+    if (!creneau?.lotId || creneau.statut !== 'SOUMIS_DGA') return;
+    viser({ lotId: creneau.lotId, userId }, {
       onSuccess: () => {
         setVise(true);
         setViserOpen(false);
@@ -30,9 +33,9 @@ export default function useVisaDga() {
   };
 
   const handleRejeter = () => {
-    if (!creneau || !motif.trim()) return;
+    if (!creneau?.lotId || !motif.trim() || creneau.statut !== 'SOUMIS_DGA') return;
     rejeter(
-      { creneauId: creneau.id, motif: motif.trim() },
+      { lotId: creneau.lotId, motif: motif.trim(), userId },
       {
         onSuccess: () => {
           setRejetOpen(false);

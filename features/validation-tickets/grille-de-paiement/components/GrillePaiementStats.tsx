@@ -1,6 +1,5 @@
 import { Phone, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
 import { IGrillePaiementCreneau } from '../types/grille-paiement.type';
-import { formatMontantCompact } from '@/utils/format.utils';
 
 interface StatCardProps {
   label: string;
@@ -37,8 +36,8 @@ export default function GrillePaiementStats({ stats, totalTickets }: Props) {
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       <StatCard label="Livreurs" value={stats.totalLivreurs} icon={Users} />
       <StatCard label="Tickets" value={totalTickets} icon={Ticket} />
-      <StatCard label="Total Brut" value={formatMontantCompact(stats.totalBrut)} sub="FCFA" icon={Wallet} />
-      <StatCard label="Total Net" value={formatMontantCompact(stats.totalNet)} sub="FCFA" icon={TrendingUp} className="ring-1 ring-green-400" />
+      <StatCard label="Total Brut" value={stats.totalBrut.toLocaleString('fr-FR')} sub="FCFA" icon={Wallet} />
+      <StatCard label="Total Net" value={stats.totalNet.toLocaleString('fr-FR')} sub="FCFA" icon={TrendingUp} className="ring-1 ring-green-400" />
       <StatCard label="Wave manquants" value={stats.waveManquants} icon={Phone} className="ring-1 ring-red-600 col-span-2 sm:col-span-1" />
     </div>
   );

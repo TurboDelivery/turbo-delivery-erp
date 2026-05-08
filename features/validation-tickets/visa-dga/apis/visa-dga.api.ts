@@ -9,6 +9,7 @@ type GrillePaiementVmRaw = {
   fin: string;
   visePar?: string;
   viseAt?: string;
+  lot?: { id: string; libelle: string; statut: string };
   stats?: {
     totalLivreurs: number;
     totalTickets: number;
@@ -51,12 +52,19 @@ export async function getVisaDgaApi(creneauId?: string): Promise<IVisaDgaCreneau
       params: { page: '0', size: '100' },
     });
 
+    const lotStatut = vm.lot?.statut;
     return {
       id: vm.id,
+      lotId: vm.lot?.id,
       code: vm.code,
       debut: vm.debut,
       fin: vm.fin,
-      statut: vm.viseAt ? 'VISE' : 'SOUMIS_DGA',
+      statut: vm.viseAt
+        ? 'VISE'
+        : lotStatut === 'SOUMIS_DGA'    ? 'SOUMIS_DGA'
+        : lotStatut === 'REJETE'        ? 'REJETE'
+        : lotStatut === 'CALCUL_EN_COURS' ? 'CALCUL_EN_COURS'
+        : 'EN_ATTENTE',
       stats: {
         totalLivreurs: vm.stats?.totalLivreurs ?? 0,
         totalTickets:  vm.stats?.totalTickets  ?? 0,
@@ -79,17 +87,19 @@ export async function getVisaDgaApi(creneauId?: string): Promise<IVisaDgaCreneau
   }
 }
 
-export async function viserEtTransmettreApi(creneauId: string): Promise<void> {
+export async function viserEtTransmettreApi(lotId: string, userId: string): Promise<void> {
   return apiClientHttp.request<void>({
-    endpoint: `/api/creneaux/${creneauId}/visa-dga/viser`,
+    endpoint: `/api/lots/${lotId}/valider-dga`,
     method: 'POST',
+    config: { headers: { 'X-User-Id': userId } },
   });
 }
 
-export async function rejeterEtRenvoyerApi(creneauId: string, motif: string): Promise<void> {
+export async function rejeterEtRenvoyerApi(lotId: string, motif: string, userId: string): Promise<void> {
   return apiClientHttp.request<void>({
-    endpoint: `/api/creneaux/${creneauId}/visa-dga/rejeter`,
+    endpoint: `/api/lots/${lotId}/rejeter-dga`,
     method: 'POST',
-    data: { motif },
+    data: { commentaireRejet: motif },
+    config: { headers: { 'X-User-Id': userId } },
   });
 }

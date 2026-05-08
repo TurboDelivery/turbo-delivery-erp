@@ -33,14 +33,15 @@ export const useVisaDgaQuery = (creneauId?: string) => {
 export const useViserEtTransmettreMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (creneauId: string) => viserEtTransmettreApi(creneauId),
+    mutationFn: ({ lotId, userId }: { lotId: string; userId: string }) => viserEtTransmettreApi(lotId, userId),
     onSuccess: () => {
       toast.success('Visa DGA apposé — dossier transmis au PDG');
       queryClient.invalidateQueries({ queryKey: visaDgaKeys.all });
     },
     onError: (error) => {
+      const axiosData = (error as { response?: { data?: { message?: string } } })?.response?.data;
       toast.error('Erreur lors de la transmission', {
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        description: axiosData?.message ?? (error instanceof Error ? error.message : 'Erreur inconnue'),
       });
     },
   });
@@ -49,15 +50,16 @@ export const useViserEtTransmettreMutation = () => {
 export const useRejeterEtRenvoyerMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ creneauId, motif }: { creneauId: string; motif: string }) =>
-      rejeterEtRenvoyerApi(creneauId, motif),
+    mutationFn: ({ lotId, motif, userId }: { lotId: string; motif: string; userId: string }) =>
+      rejeterEtRenvoyerApi(lotId, motif, userId),
     onSuccess: () => {
       toast.success('Dossier rejeté et renvoyé à la comptabilité');
       queryClient.invalidateQueries({ queryKey: visaDgaKeys.all });
     },
     onError: (error) => {
+      const axiosData = (error as { response?: { data?: { message?: string } } })?.response?.data;
       toast.error('Erreur lors du rejet', {
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
+        description: axiosData?.message ?? (error instanceof Error ? error.message : 'Erreur inconnue'),
       });
     },
   });

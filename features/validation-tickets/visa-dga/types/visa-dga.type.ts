@@ -1,4 +1,4 @@
-export type StatutVisaDga = 'EN_ATTENTE' | 'SOUMIS_DGA' | 'VISE' | 'REJETE';
+export type StatutVisaDga = 'EN_ATTENTE' | 'CALCUL_EN_COURS' | 'SOUMIS_DGA' | 'VISE' | 'REJETE';
 
 export type StatutEtape = 'done' | 'current' | 'pending';
 
@@ -21,6 +21,7 @@ export interface IVisaDgaLivreur {
 
 export interface IVisaDgaCreneau {
   id: string;
+  lotId?: string;
   code: string;
   debut: string;
   fin: string;
