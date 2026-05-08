@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from 
 import { CheckCircle2, Globe, Info, Loader2, Lock, ShieldCheck, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatMontantCompact } from '@/utils/format.utils';
 import useApprobationFinale from '../hooks/use-approbation-finale';
 import ApprobationFinaleSignatures from './ApprobationFinaleSignatures';
 
@@ -132,7 +131,7 @@ export default function ApprobationFinaleContent() {
                 Montant total à virer
               </p>
               <p className="text-2xl sm:text-3xl font-bold text-green-600 mt-0.5">
-                {formatMontantCompact(grilleMeta.stats.totalNet)}
+                {grilleMeta.stats.totalNet.toLocaleString('fr-FR')}
               </p>
               <p className="text-xs text-gray-400 mt-0.5">
                 FCFA · {grilleMeta.stats.totalLivreurs} Turboys via Wave
