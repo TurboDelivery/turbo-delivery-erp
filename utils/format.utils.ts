@@ -38,8 +38,9 @@ export function formatCfa(amount: number | string | undefined): string {
 /**
  * Formate un nombre avec séparateurs de milliers
  */
-export function formatNombre(nombre: number): string {
-    return new Intl.NumberFormat('fr-FR').format(nombre);
+export function formatNombre(nombre: number | string): string {
+    const n = typeof nombre === 'string' ? parseFloat(nombre) || 0 : nombre;
+    return new Intl.NumberFormat('fr-FR').format(n);
 }
 
 /**

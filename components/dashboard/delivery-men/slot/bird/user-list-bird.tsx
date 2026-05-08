@@ -1,6 +1,6 @@
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import { LivreurBird } from "@/types/creneau-bird";
-import { formatDate } from "@/utils/date-formate";
+import { formatDateFr as formatDate } from "@/lib/date-utils";
 
 
 export default function UserListBird({ birdNotCreneau }: { birdNotCreneau: LivreurBird[] }) {
@@ -26,12 +26,12 @@ export default function UserListBird({ birdNotCreneau }: { birdNotCreneau: Livre
                                 <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
                                 <div>
                                     <p className="font-semibold">{turboy.nomComplet}</p>
-                                    <p className="text-sm text-gray-500">Inscrit le : {turboy.dateInscrit ? formatDate(turboy.dateInscrit, 'DD/MM/YYYY') : '-'}</p>
+                                    <p className="text-sm text-gray-500">Inscrit le : {turboy.dateInscrit ? formatDate(turboy.dateInscrit, 'dd/MM/yyyy') : '-'}</p>
                                 </div>
                             </div>
 
                             <div className="flex items-center">
-                                <p className="text-sm text-gray-500 mr-3">Créé le : {turboy.dateNonDefini ? formatDate(turboy.dateNonDefini, 'DD/MM/YYYY') : '-'}</p>
+                                <p className="text-sm text-gray-500 mr-3">Créé le : {turboy.dateNonDefini ? formatDate(turboy.dateNonDefini, 'dd/MM/yyyy') : '-'}</p>
                                 <div className="relative"></div>
                             </div>
                         </div>

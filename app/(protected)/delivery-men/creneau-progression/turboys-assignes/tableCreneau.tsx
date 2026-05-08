@@ -4,7 +4,7 @@ import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import progresseBare2 from "@/components/dashboard/delivery-men/progression/progression-barre2";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Avatar } from "@heroui/react";
 import { createUrlFile } from "@/utils/createUrlFile";
-import { formatDate } from "@/utils/date-formate";
+import { formatDateFr as formatDate } from "@/lib/date-utils";
 
 const columns = [
     { key: "nom", label: "Nom du coursier" },
@@ -43,9 +43,9 @@ export default function TableCreneau({ initialData }: Props) {
                 case "jours":
                     return <div>{data.jour ? `${data.jour.jourTravaille}/7` : "NON DEFINI"}</div>;
                 case "debut":
-                    return <div>{data.creneauVM?.jourDebut ? formatDate(data.creneauVM?.jourDebut, 'DD/MM/YYYY') : "NON DEFINI"}</div>;
+                    return <div>{data.creneauVM?.jourDebut ? formatDate(data.creneauVM?.jourDebut, 'dd/MM/yyyy') : "NON DEFINI"}</div>;
                 case "fin":
-                    return <div>{data.creneauVM?.jourFin ? formatDate(data.creneauVM?.jourFin, 'DD/MM/YYYY') : "NON DEFINI"}</div>;
+                    return <div>{data.creneauVM?.jourFin ? formatDate(data.creneauVM?.jourFin, 'dd/MM/yyyy') : "NON DEFINI"}</div>;
                 default:
                     return null;
             }

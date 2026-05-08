@@ -5,7 +5,7 @@ import DropDownAction from "../dropDownAction";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import { Avatar } from "@heroui/react";
 import { createUrlFile } from "@/utils/createUrlFile";
-import { formatDate } from "@/utils/date-formate";
+import { formatDateFr as formatDate } from "@/lib/date-utils";
 
 
 export default function UserRestaurantListe({ turboysCreneau }: { turboysCreneau: Restaurant[] }) {
@@ -53,10 +53,10 @@ export default function UserRestaurantListe({ turboysCreneau }: { turboysCreneau
                                                         </div>
                                                         <p className="w-2/6 text-md px-2">{child.nomComplet}</p>
                                                         <p className="w-1/5 px-2">
-                                                            <span className="pr-1">Inscrit le :</span> <span className="text-gray-600">{formatDate(child.dateInscrit, 'DD/MM/YYYY')}</span>
+                                                            <span className="pr-1">Inscrit le :</span> <span className="text-gray-600">{formatDate(child.dateInscrit, 'dd/MM/yyyy')}</span>
                                                         </p>
                                                         <p className="w-1/5 px-2">
-                                                            <span className="pr-1">Defini le: </span> <span className="text-gray-600">{child.dateDefiniEmploiTemps != null ? formatDate(child.dateDefiniEmploiTemps, 'DD/MM/YYYY') : '-' }</span>
+                                                            <span className="pr-1">Defini le: </span> <span className="text-gray-600">{child.dateDefiniEmploiTemps != null ? formatDate(child.dateDefiniEmploiTemps, 'dd/MM/yyyy') : '-' }</span>
                                                         </p>
                                                         <div className="relative w-2/5 px-2 flex items-center justify-between">
                                                             {progresseBare(child)}

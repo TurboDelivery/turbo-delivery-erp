@@ -1,4 +1,9 @@
-import getFolderAndFileName from './getFolderAndFileName';
+function getFolderAndFileName(path: string) {
+  const parts = path?.split('/') ?? [];
+  const fileName = parts.pop() ?? '';
+  const folderName = parts.pop() ?? '';
+  return { folderName, fileName };
+}
 
 const serveFile = (folder: string, file: string) => `/api/serve/file/${folder}/${file}`;
 

@@ -2,7 +2,7 @@
 
 import { apiClientHttp } from '@/lib/api-client-http';
 import { FichePaieDetailVM, GainParJour, PaieErpVM, StatistiqueMoisPaieVM } from '@/types/gestion-de-paie.model';
-import { formatDate } from "@/utils/date-formate";
+import { formatDateFr as formatDate } from "@/lib/date-utils";
 
 const BASE_URL = '/api/erp';
 
@@ -22,8 +22,8 @@ export async function getFicheDePaies(start: Date | null, end: Date | null): Pro
             method: gestionPaieEndpoints.fichePaies.method,
             service: 'backend',
             params: {
-                debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
-                fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+                debut: start ? formatDate(start, 'yyyy-MM-dd') : '',
+                fin: end ? formatDate(end, 'yyyy-MM-dd') : '',
             }
         });
 

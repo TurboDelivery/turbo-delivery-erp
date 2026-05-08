@@ -16,7 +16,7 @@ import { createUrlFile } from "@/utils/createUrlFile";
 import { PaginatedResponse } from "@/types";
 import { getAllCreneauPerformanceBird } from "@/src/creneau-livreur/creneau-livreur.action";
 import { IconSearch } from "@tabler/icons-react";
-import { formatDate } from "@/utils/date-formate";
+import { formatDateFr as formatDate } from "@/lib/date-utils";
 
 const columns = [
     { key: "nom", label: "Nom du coursier" },
@@ -65,9 +65,9 @@ export default function TableCreneau({ initialData }: Props) {
                         </div>
                     );
                 case "debut":
-                    return <div>{data.creneauVM?.jourDebut ? formatDate(data.creneauVM?.jourDebut, 'DD/MM/YYYY') : "NON DEFINI"}</div>;
+                    return <div>{data.creneauVM?.jourDebut ? formatDate(data.creneauVM?.jourDebut, 'dd/MM/yyyy') : "NON DEFINI"}</div>;
                 case "fin":
-                    return <div>{data.creneauVM?.jourFin ? formatDate(data.creneauVM?.jourFin, 'DD/MM/YYYY') : "NON DEFINI"}</div>;
+                    return <div>{data.creneauVM?.jourFin ? formatDate(data.creneauVM?.jourFin, 'dd/MM/yyyy') : "NON DEFINI"}</div>;
                 default:
                     return null;
             }
