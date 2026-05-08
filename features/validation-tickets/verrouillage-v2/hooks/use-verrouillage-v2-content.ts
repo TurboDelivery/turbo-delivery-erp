@@ -5,8 +5,9 @@ import { useQueryStates } from 'nuqs';
 import { useTicketsV1ValideQuery, useCreneauTicketStatsQuery } from '../queries/tickets-v2-list.query';
 import { useValiderV2Mutation, useValiderV2EnMasseMutation, useRejeterV2FraudeMutation } from '../queries/tickets-v2.mutation';
 import { useCreneauActifQuery } from '@/features/creneaux/queries/creneau.query';
-import { applyTicketFilters, SelectOption } from '@/components/validation-tickets/TicketFilterBar';
+import { applyTicketFilters } from '@/components/validation-tickets/TicketFilterBar';
 import { validationTicketFiltersConfig, validationTicketFiltersOptions } from '@/features/validation-tickets/filters/validation-tickets.filters';
+import { useTicketFilterOptions } from '@/features/validation-tickets/hooks/use-ticket-filter-options';
 
 export function useVerrouillageV2Content() {
   const { data, isLoading } = useTicketsV1ValideQuery();
@@ -17,6 +18,7 @@ export function useVerrouillageV2Content() {
   const [filters, setFiltersRaw] = useQueryStates(validationTicketFiltersConfig, validationTicketFiltersOptions);
 
   const setFilters = (v: typeof filters) => void setFiltersRaw(v);
+  const { livreurOptions, restaurantOptions } = useTicketFilterOptions();
 
   const { mutate: validerV2, isPending: isValidating } = useValiderV2Mutation();
   const { mutate: validerV2EnMasse, isPending: isValidatingAll } = useValiderV2EnMasseMutation();
@@ -28,20 +30,6 @@ export function useVerrouillageV2Content() {
   );
 
   const filteredTickets = useMemo(() => applyTicketFilters(tickets, filters), [tickets, filters]);
-
-  const livreurOptions: SelectOption[] = useMemo(() => {
-    const seen = new Set<string>();
-    return tickets
-      .filter((t) => t.livreurId && !seen.has(t.livreurId) && seen.add(t.livreurId))
-      .map((t) => ({ value: t.livreurId, label: t.livreur }));
-  }, [tickets]);
-
-  const restaurantOptions: SelectOption[] = useMemo(() => {
-    const seen = new Set<string>();
-    return tickets
-      .filter((t) => t.restaurantId && !seen.has(t.restaurantId) && seen.add(t.restaurantId))
-      .map((t) => ({ value: t.restaurantId, label: t.restaurant }));
-  }, [tickets]);
 
   const handleValidate = useCallback(
     (id: string) => {
