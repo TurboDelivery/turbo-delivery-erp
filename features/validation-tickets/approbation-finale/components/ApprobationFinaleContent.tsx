@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import useApprobationFinale from '../hooks/use-approbation-finale';
 import ApprobationFinaleSignatures from './ApprobationFinaleSignatures';
+import ApprobationFinaleApprouverModal from './ApprobationFinaleApprouverModal';
+import ApprobationFinaleRejetModal from './ApprobationFinaleRejetModal';
 
 function formatPeriode(debut: string, fin: string) {
   const d = new Date(debut);
@@ -37,6 +39,18 @@ export default function ApprobationFinaleContent() {
     hasNextPage,
     fetchNextPage,
     soumisAuPdg,
+    approuverOpen,
+    rejetOpen,
+    motif,
+    setMotif,
+    isApprouvant,
+    isRejetant,
+    openApprouver,
+    closeApprouver,
+    openRejet,
+    closeRejet,
+    handleApprouver,
+    handleRejeter,
   } = useApprobationFinale();
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -197,11 +211,15 @@ export default function ApprobationFinaleContent() {
                 Confirmation à double validation requise — déclenche immédiatement les virements Wave.
               </p>
               <div className="flex flex-wrap gap-3 shrink-0">
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2" onClick={openRejet} disabled={isRejetant}>
                   <XCircle className="h-4 w-4" />
                   Rejeter
                 </Button>
-                <Button className="bg-green-600 hover:bg-green-700 text-white gap-2">
+                <Button
+                  className="bg-green-600 hover:bg-green-700 text-white gap-2"
+                  onClick={openApprouver}
+                  disabled={isApprouvant}
+                >
                   <CheckCircle2 className="h-4 w-4" />
                   Approuver et déclencher Wave
                 </Button>
@@ -240,6 +258,29 @@ export default function ApprobationFinaleContent() {
               </span>
             </div>
           )}
+        </>
+      )}
+      {grilleMeta && creneauActif && (
+        <>
+          <ApprobationFinaleApprouverModal
+            open={approuverOpen}
+            onClose={closeApprouver}
+            onConfirm={handleApprouver}
+            isLoading={isApprouvant}
+            codeCreneau={creneauActif.label}
+            totaux={{
+              livreurs: grilleMeta.stats.totalLivreurs,
+              net: grilleMeta.stats.totalNet,
+            }}
+          />
+          <ApprobationFinaleRejetModal
+            open={rejetOpen}
+            onClose={closeRejet}
+            onConfirm={handleRejeter}
+            isLoading={isRejetant}
+            motif={motif}
+            onMotifChange={setMotif}
+          />
         </>
       )}
     </div>

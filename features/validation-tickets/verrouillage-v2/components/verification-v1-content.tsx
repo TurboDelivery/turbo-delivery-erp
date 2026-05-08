@@ -19,6 +19,12 @@ export default function VerificationV1Content() {
     isLockingAll,
     handleLock,
     handleLockAll,
+    fetchNextReady,
+    hasNextReady,
+    isFetchingNextReady,
+    fetchNextLocked,
+    hasNextLocked,
+    isFetchingNextLocked,
   } = useVerrouillageV2();
 
   return (
@@ -38,8 +44,19 @@ export default function VerificationV1Content() {
       <TicketFilterBar value={filters} onChange={setFilters} livreurOptions={livreurOptions} restaurantOptions={restaurantOptions} />
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
-        <TicketReadyList tickets={filteredReadyTickets} onLock={handleLock} />
-        <TicketLockedList tickets={filteredLockedTickets} />
+        <TicketReadyList
+          tickets={filteredReadyTickets}
+          onLock={handleLock}
+          hasNextPage={!!hasNextReady}
+          isFetchingNextPage={isFetchingNextReady}
+          fetchNextPage={fetchNextReady}
+        />
+        <TicketLockedList
+          tickets={filteredLockedTickets}
+          hasNextPage={!!hasNextLocked}
+          isFetchingNextPage={isFetchingNextLocked}
+          fetchNextPage={fetchNextLocked}
+        />
       </div>
 
       <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4">

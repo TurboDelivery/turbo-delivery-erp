@@ -9,6 +9,7 @@ export interface BonLivraisonTerminee {
   restaurantId: string;
   coutLivraison: number;
   coutCommande: number;
+  montantLivraison?: number;
   commission?: number;
   date: string;
   heure: string;
