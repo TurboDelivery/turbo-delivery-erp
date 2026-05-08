@@ -145,6 +145,13 @@ export interface ICreneauActifVm {
   v2ValideAt: string | null;
   nbLots: number;
   nbTicketsPending: number;
+  nbLivreurs: number;
+  totalTickets: number;
+  totalNet: number;
+  lotStatut: string | null;
+  soumisAt: string | null;
+  soumisParNom: string | null;
+  commentaireRejet: string | null;
 }
 
 export interface ICreneauJourDetail {

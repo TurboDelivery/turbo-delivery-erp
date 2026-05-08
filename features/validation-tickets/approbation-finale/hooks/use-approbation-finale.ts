@@ -1,11 +1,15 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { useCreneauActifQuery } from '@/features/creneaux/queries/creneau.query';
 import { getGrillePaiementApi } from '@/features/validation-tickets/grille-de-paiement/apis/grille-paiement.api';
-import { useApprobationFinaleQuery } from '../queries/approbation-finale.query';
+import {
+  useApprobationFinaleQuery,
+  useApprouverEtDeclencherWaveMutation,
+  useRejeterApprobationFinaleMutation,
+} from '../queries/approbation-finale.query';
 import { approbationFinaleWaveColumns } from '../components/approbation-finale-wave-columns';
 
 export default function useApprobationFinale() {
@@ -33,6 +37,12 @@ export default function useApprobationFinale() {
   });
 
   const { data: approbation } = useApprobationFinaleQuery(creneauActif?.id);
+  const { mutate: approuver, isPending: isApprouvant } = useApprouverEtDeclencherWaveMutation();
+  const { mutate: rejeter, isPending: isRejetant } = useRejeterApprobationFinaleMutation();
+
+  const [approuverOpen, setApprouverOpen] = useState(false);
+  const [rejetOpen, setRejetOpen] = useState(false);
+  const [motif, setMotif] = useState('');
 
   const grilleMeta = useMemo(() => grillePages?.pages[0] ?? null, [grillePages]);
 
@@ -47,6 +57,26 @@ export default function useApprobationFinale() {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const handleApprouver = () => {
+    if (!creneauActif?.id) return;
+    approuver(creneauActif.id, {
+      onSuccess: () => setApprouverOpen(false),
+    });
+  };
+
+  const handleRejeter = () => {
+    if (!creneauActif?.id || !motif.trim()) return;
+    rejeter(
+      { creneauId: creneauActif.id, motif: motif.trim() },
+      {
+        onSuccess: () => {
+          setRejetOpen(false);
+          setMotif('');
+        },
+      },
+    );
+  };
+
   return {
     creneauActif,
     grilleMeta,
@@ -57,5 +87,20 @@ export default function useApprobationFinale() {
     hasNextPage: !!hasNextPage,
     fetchNextPage,
     soumisAuPdg: creneauActif?.statut === 'SOUMIS_PDG',
+    approuverOpen,
+    rejetOpen,
+    motif,
+    setMotif,
+    isApprouvant,
+    isRejetant,
+    openApprouver: () => setApprouverOpen(true),
+    closeApprouver: () => setApprouverOpen(false),
+    openRejet: () => setRejetOpen(true),
+    closeRejet: () => {
+      setRejetOpen(false);
+      setMotif('');
+    },
+    handleApprouver,
+    handleRejeter,
   };
 }

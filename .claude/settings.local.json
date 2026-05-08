@@ -95,7 +95,26 @@
       "Bash(Sort-Object FullName)",
       "mcp__MCP_DOCKER__browser_wait_for",
       "mcp__MCP_DOCKER__fetch",
-      "mcp__MCP_DOCKER__browser_evaluate"
+      "mcp__MCP_DOCKER__browser_evaluate",
+      "mcp__webstorm__list_directory_tree",
+      "mcp__webstorm__get_project_modules",
+      "mcp__webstorm__search_in_files_by_text",
+      "Bash(rm lib/api.client.ts lib/animations.ts lib/data.ts lib/googlemaps.tsx lib/date.ts config/site.ts utils/chart.utils.ts utils/getFolderAndFileName.ts utils/getEnumValues.ts utils/render-html.tsx hooks/use-global-filter-listener.ts hooks/use-mounted.ts types/notification.model.ts _tmp_check.mjs _rewrite_edit.mjs)",
+      "Bash(rm -rf components/cult-ui components/magicui)",
+      "Bash(mv types/notifcation.model.ts types/notification.model.ts)",
+      "Bash(mv src/actions/notifcation.action.ts src/actions/notification.action.ts)",
+      "mcp__webstorm__replace_text_in_file",
+      "mcp__webstorm__find_files_by_glob",
+      "mcp__webstorm__get_file_text_by_path",
+      "mcp__webstorm__create_new_file",
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(dir \"C:\\\\Users\\\\kouax\\\\WebstormProjects\\\\lunion\\\\turbo-delivery-erp\\\\.claude\\\\worktrees\\\\agent-a85497593c6c9c0d6\" /B)",
+      "Bash(rtk next *)",
+      "Bash(gh pr create --title 'chore: remove dead code, fix typos, and consolidate shared utils \\(SOLID DRY\\)' --body ' *)",
+      "Bash(gh pr *)",
+      "Bash(git worktree *)",
+      "Bash(curl *)"
     ]
   }
 }

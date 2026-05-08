@@ -70,9 +70,7 @@ export function buildVerrouillageV2Columns(
       accessorKey: 'restaurant',
       header: 'PARTENAIRE',
       enableSorting: false,
-      cell: ({ row }) => (
-        <span className="text-blue-500">{row.original.restaurant}</span>
-      ),
+      cell: ({ row }) => <span className="text-blue-500">{row.original.restaurant}</span>,
     },
     {
       accessorKey: 'date',
@@ -88,9 +86,15 @@ export function buildVerrouillageV2Columns(
     },
     {
       accessorKey: 'coutLivraison',
-      header: 'COMMISSION',
+      header: 'MONTANT LIV.',
       enableSorting: false,
       cell: ({ row }) => <span>{formatCFA(row.original.coutLivraison)}</span>,
+    },
+    {
+      accessorKey: 'commission',
+      header: 'COMMISSION',
+      enableSorting: false,
+      cell: ({ row }) => <span>{row.original.commission != null ? formatCFA(row.original.commission) : '—'}</span>,
     },
     {
       accessorKey: 'nomZone',
@@ -99,10 +103,7 @@ export function buildVerrouillageV2Columns(
       cell: ({ row }) => {
         const zone = row.original.nomZone ?? 'VERTE';
         return (
-          <span
-            title={zone}
-            className="inline-flex items-center gap-1 rounded-full border border-green-500 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 max-w-[160px]"
-          >
+          <span title={zone} className="inline-flex items-center gap-1 rounded-full border border-green-500 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 max-w-[160px]">
             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-500" />
             <span className="truncate">{zone}</span>
           </span>
@@ -113,22 +114,13 @@ export function buildVerrouillageV2Columns(
       id: 'v1ValidePar',
       header: 'V1 PAR',
       enableSorting: false,
-      cell: ({ row }) => (
-        <span className="text-gray-700">{row.original.v1Agent?.username ?? '—'}</span>
-      ),
+      cell: ({ row }) => <span className="text-gray-700">{row.original.v1Agent?.username ?? '—'}</span>,
     },
     {
       id: 'actions',
       header: 'ACTIONS',
       enableSorting: false,
-      cell: ({ row }) => (
-        <RowActions
-          ticket={row.original}
-          isValidating={validatingId === row.original.commandeId}
-          onValidate={onValidate}
-          onReject={onReject}
-        />
-      ),
+      cell: ({ row }) => <RowActions ticket={row.original} isValidating={validatingId === row.original.commandeId} onValidate={onValidate} onReject={onReject} />,
     },
   ];
 }
