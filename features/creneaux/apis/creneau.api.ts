@@ -27,7 +27,7 @@ export async function getCreneauxListApi(params?: {
       params: {
         page: String(params?.page ?? 0),
         size: String(params?.size ?? 20),
-        ...(params?.lotStatut ? { lotStatut: params.lotStatut } : {}),
+        ...(params?.lotStatut ? { statutLot: params.lotStatut } : {}),
       },
     });
   } catch {
