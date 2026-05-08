@@ -34,22 +34,3 @@ export function createUrlFile(path: string, service: 'restaurant' | 'erp' | 'del
   }
   return url;
 }
-
-export function getInitials(nomPrenom?: string): string {
-  if (!nomPrenom || nomPrenom.trim() === '' || nomPrenom.toLowerCase().trim() === 'null' || nomPrenom.toLowerCase().trim() === 'null null') {
-    return '?';
-  }
-
-  const parts = nomPrenom.trim().split(/\s+/);
-  const initials = parts
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase())
-    .join('');
-  return initials || '?';
-}
-
-export function getColorFromInitial(initial: string) {
-  const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A1', '#A133FF', '#33FFF3', '#FFC733', '#75FF33', '#FF3385', '#33A1FF', '#F333FF'];
-  const index = initial.charCodeAt(0) % colors.length;
-  return colors[index];
-}

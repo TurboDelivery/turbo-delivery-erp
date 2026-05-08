@@ -3,6 +3,7 @@
 import React from 'react';
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
 import { createUrlFile } from '@/utils/createUrlFile';
+import { getInitials } from '@/lib/avatar.utils';
 
 const AVATAR_COLORS = ['#F97316', '#3B82F6', '#8B5CF6', '#10B981', '#EC4899', '#F59E0B', '#6366F1', '#14B8A6'];
 
@@ -12,9 +13,6 @@ function getAvatarColor(id: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-function getInitials(prenoms: string, nom: string): string {
-  return `${prenoms?.[0] ?? ''}${nom?.[0] ?? ''}`.toUpperCase();
-}
 
 export function AvatarCell({ turboy, size = 'sm' }: { turboy: ITurboy; size?: 'sm' | 'lg' }) {
   const bg = getAvatarColor(turboy.id);
@@ -33,7 +31,7 @@ export function AvatarCell({ turboy, size = 'sm' }: { turboy: ITurboy; size?: 's
       className={`${cls} rounded-full flex items-center justify-center text-white shrink-0`}
       style={{ backgroundColor: bg }}
     >
-      {getInitials(turboy.prenoms, turboy.nom)}
+      {getInitials(`${turboy.prenoms} ${turboy.nom}`)}
     </div>
   );
 }
