@@ -9,14 +9,14 @@ import {
   approuverTicketRequest,
   rejeterFraudeRequest,
 } from '@/features/tickets/request/tickets.request';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 
 export const listerRegularisationMutation = async (): Promise<ActionResponse<PaginatedResponse<BonLivraisonTerminee>>> => {
   try {
     const data = await listerTicketsParStatutRequest({ statuts: [StatutControle.TARDIF] });
     return { success: true, data, message: 'Tickets en retard récupérés' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération des tickets en retard');
+    return handleApiError(error, 'Erreur lors de la récupération des tickets en retard');
   }
 };
 
@@ -28,7 +28,7 @@ export const approuverRegularisationMutation = async (id: string): Promise<Actio
     await approuverTicketRequest(id, userId);
     return { success: true, data: undefined, message: 'Ticket approuvé' };
   } catch (error) {
-    return handleServerActionError(error, "Erreur lors de l'approbation");
+    return handleApiError(error, "Erreur lors de l'approbation");
   }
 };
 
@@ -40,6 +40,6 @@ export const rejeterRegularisationMutation = async (id: string, motif: string): 
     await rejeterFraudeRequest(id, userId, motif);
     return { success: true, data: undefined, message: 'Ticket rejeté' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors du rejet');
+    return handleApiError(error, 'Erreur lors du rejet');
   }
 };

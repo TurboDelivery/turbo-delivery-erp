@@ -1,7 +1,7 @@
 import { ActionResponse } from "@/types";
 import { ICommission, ICommissionParams } from "../types/commission.types";
 import { commissionAPI } from "../apis/commission.api";
-import { handleServerActionError } from "@/utils/handleServerActionError";
+import { handleApiError } from "@/utils/handle-api-error";
 
 export const obtenirTousCommissionsPourcentageAction = async (params: ICommissionParams): Promise<ActionResponse<ICommission[]>> => {
     try {
@@ -12,7 +12,7 @@ export const obtenirTousCommissionsPourcentageAction = async (params: ICommissio
             message: "Investissements obtenues avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la récupération des investissements");
+        return handleApiError(error, "Erreur lors de la récupération des investissements");
     }
 }
 
@@ -25,7 +25,7 @@ export const obtenirTousCommissionsFixeAction = async (params: ICommissionParams
             message: "Investissements obtenues avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la récupération des investissements");
+        return handleApiError(error, "Erreur lors de la récupération des investissements");
     }
 }
 
@@ -38,6 +38,6 @@ export const obtenirCommissionAction = async (id: string): Promise<ActionRespons
             message: "Investissements obtenues avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la récupération des investissements");
+        return handleApiError(error, "Erreur lors de la récupération des investissements");
     }
 }

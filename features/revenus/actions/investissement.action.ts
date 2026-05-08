@@ -1,7 +1,7 @@
 "use server";
 
 import { ActionResponse, PaginatedResponse } from "@/types";
-import { handleServerActionError } from "@/utils/handleServerActionError";
+import { handleApiError } from "@/utils/handle-api-error";
 import { InvestissementCreateDTO, InvestissementUpdateDTO } from "../schemas/investissement.schema";
 import { IInvestissement, IInvestissementParams } from "../types/revenus.types";
 import { investissementAPI } from "../apis/investissement.api";
@@ -17,7 +17,7 @@ export const obtenirTousInvestissementsAction = async (params?: IInvestissementP
     };
   } catch (error) {
     console.error('❌ Action: Erreur', error);
-    return handleServerActionError(error, 'Erreur lors de la récupération des investissements');
+    return handleApiError(error, 'Erreur lors de la récupération des investissements');
   }
 };
 
@@ -30,7 +30,7 @@ export const obtenirInvestissementAction = async (id: string): Promise<ActionRes
             message: "Investissement obtenu avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la récupération de l'investissement");
+        return handleApiError(error, "Erreur lors de la récupération de l'investissement");
     }
 }
 
@@ -43,7 +43,7 @@ export const ajouterInvestissementAction = async (data: InvestissementCreateDTO)
             message: "Investissement ajouté avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de l'ajout de l'investissement");
+        return handleApiError(error, "Erreur lors de l'ajout de l'investissement");
     }
 }
 
@@ -56,7 +56,7 @@ export const modifierInvestissementAction = async (id: string, data: Investissem
             message: "Investissement modifié avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la modification de l'investissement");
+        return handleApiError(error, "Erreur lors de la modification de l'investissement");
     }
 }
 
@@ -69,6 +69,6 @@ export const supprimerInvestissementAction = async (id: string): Promise<ActionR
             message: "Investissement supprimé avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la suppression de l'investissement");
+        return handleApiError(error, "Erreur lors de la suppression de l'investissement");
     }
 }

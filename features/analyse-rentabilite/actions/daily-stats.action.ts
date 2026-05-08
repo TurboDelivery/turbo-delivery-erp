@@ -3,7 +3,7 @@
 import { ActionResponse } from '@/types';
 import { dailyStatsAPI } from '@/features/analyse-rentabilite/apis/daily-stats.api';
 import { IDailyStatsParams, IDailyStatsResponse } from '@/features/analyse-rentabilite/types/daily-stats.type';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 
 export const obtenirDailyStatsAction = async (
   params: IDailyStatsParams,
@@ -16,6 +16,6 @@ export const obtenirDailyStatsAction = async (
       message: 'Stats journalières obtenues avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération des stats journalières');
+    return handleApiError(error, 'Erreur lors de la récupération des stats journalières');
   }
 };

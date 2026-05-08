@@ -1,6 +1,6 @@
 import { ActionResponse } from "@/types";
 import { ILivraison, ILivraisonParams } from "../types/livraison.types";
-import { handleServerActionError } from "@/utils/handleServerActionError";
+import { handleApiError } from "@/utils/handle-api-error";
 import { livraisonAPI } from "../apis/livraison.api";
 
 export const obtenirTousLivraisonsAction = async (params: ILivraisonParams): Promise<ActionResponse<ILivraison[]>> => {
@@ -12,7 +12,7 @@ export const obtenirTousLivraisonsAction = async (params: ILivraisonParams): Pro
             message: "Livraisons obtenues avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la récupération des livraisons");
+        return handleApiError(error, "Erreur lors de la récupération des livraisons");
     }
 }
 
@@ -25,6 +25,6 @@ export const obtenirLivraisonAction = async (id: string): Promise<ActionResponse
             message: "Livraison obtenue avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la récupération de la livraison");
+        return handleApiError(error, "Erreur lors de la récupération de la livraison");
     }
 }

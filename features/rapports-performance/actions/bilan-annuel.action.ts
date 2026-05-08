@@ -6,7 +6,7 @@ import {
   IBilanAnnuelResponse,
 } from '@/features/rapports-performance/types/bilan-annuel.type';
 import { bilanAnnuelAPI } from '@/features/rapports-performance/apis/bilan-annuel.api';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 
 export const obtenirBilanAnnuelAction = async (
   params: IBilanAnnuelParams,
@@ -19,6 +19,6 @@ export const obtenirBilanAnnuelAction = async (
       message: 'Bilan annuel obtenu avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération du bilan annuel');
+    return handleApiError(error, 'Erreur lors de la récupération du bilan annuel');
   }
 };

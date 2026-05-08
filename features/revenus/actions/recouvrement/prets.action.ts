@@ -1,7 +1,7 @@
 "use server";
 
 import { ActionResponse } from "@/types";
-import { handleServerActionError } from "@/utils/handleServerActionError";
+import { handleApiError } from "@/utils/handle-api-error";
 import { pretAPI } from "../../apis/prets.api";
 import { IFacture, IFactureParams } from "../../types/recouvrement/prets.types";
 import { PretCreateDTO, PretUpdateDTO } from "../../schemas/recouvrement/prets.schema";
@@ -16,7 +16,7 @@ export const obtenirTousPretsAction = async (params: IFactureParams): Promise<Ac
             message: "Prets obtenues avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la récupération des prets");
+        return handleApiError(error, "Erreur lors de la récupération des prets");
     }
 }
 export const obtenirPretAction = async (id: string): Promise<ActionResponse<IFacture>> => {
@@ -28,7 +28,7 @@ export const obtenirPretAction = async (id: string): Promise<ActionResponse<IFac
             message: "Pret obtenue avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la récupération des prets");
+        return handleApiError(error, "Erreur lors de la récupération des prets");
     }
 }
 
@@ -41,7 +41,7 @@ export const obtenirRecouvrementsRestaurantAction = async (restaurantId: string)
             message: "Recouvrements obtenus avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la récupération des recouvrements");
+        return handleApiError(error, "Erreur lors de la récupération des recouvrements");
     }
 }
 
@@ -54,7 +54,7 @@ export const ajouterPretAction = async (data: PretCreateDTO): Promise<ActionResp
             message: "Pret ajoutée avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de l'ajout de pret");
+        return handleApiError(error, "Erreur lors de l'ajout de pret");
     }
 }
 
@@ -67,7 +67,7 @@ export const modifierPretAction = async (id: string, data: PretUpdateDTO): Promi
             message: "Pret modifiée avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la modification de pret");
+        return handleApiError(error, "Erreur lors de la modification de pret");
     }
 }
 
@@ -80,6 +80,6 @@ export const supprimerPretAction = async (id: string): Promise<ActionResponse<IF
             message: "Pret supprimée avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la suppression de pret");
+        return handleApiError(error, "Erreur lors de la suppression de pret");
     }
 }

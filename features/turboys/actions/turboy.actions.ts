@@ -3,7 +3,7 @@
 import { turboyAPI } from '@/features/turboys/apis/turboy.api';
 import { ITurboyParams, ITurboy, IUpdateTurboyTypePayload, TurboyListResponse } from '@/features/turboys/types/turboys.types';
 import { ActionResponse } from '@/types';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 import { UpdateTurboyTypeDTO } from '@/features/turboys/schemas/turboy.schema';
 import { AxiosError } from 'axios';
 
@@ -24,7 +24,7 @@ export async function rejectTurboyAction(userId: string): Promise<ActionResponse
     };
   } catch (error) {
     console.error('❌ Erreur Action Serveur:', error);
-    return handleServerActionError(error, 'Erreur lors du rejet du livreur');
+    return handleApiError(error, 'Erreur lors du rejet du livreur');
   }
 }
 
@@ -42,7 +42,7 @@ export async function passerEnBirdAction(livreurId: string): Promise<ActionRespo
       return { success: false, error: typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg) };
     }
     console.error('❌ Erreur Action Serveur:', error);
-    return handleServerActionError(error, 'Erreur lors du passage en Bird');
+    return handleApiError(error, 'Erreur lors du passage en Bird');
   }
 }
 
@@ -55,7 +55,7 @@ export async function deleteTurboyAction(id: string): Promise<ActionResponse<voi
     };
   } catch (error) {
     console.error('❌ Erreur Action Serveur:', error);
-    return handleServerActionError(error, 'Erreur lors de la suppression du livreur');
+    return handleApiError(error, 'Erreur lors de la suppression du livreur');
   }
 }
 
@@ -76,7 +76,7 @@ export async function updateTurboyTypeAction(data: UpdateTurboyTypeDTO): Promise
     };
   } catch (error) {
     console.error('❌ Erreur Action Serveur:', error);
-    return handleServerActionError(error, 'Erreur lors de la modification du type de livreur');
+    return handleApiError(error, 'Erreur lors de la modification du type de livreur');
   }
 }
 
@@ -86,7 +86,7 @@ export async function bulkDesactiverLivreursAction(ids: string[]): Promise<Actio
     return { success: true, message: 'Les livreurs ont été désactivés avec succès' };
   } catch (error) {
     console.error('❌ Erreur bulk désactivation:', error);
-    return handleServerActionError(error, 'Erreur lors de la désactivation des livreurs');
+    return handleApiError(error, 'Erreur lors de la désactivation des livreurs');
   }
 }
 
@@ -96,7 +96,7 @@ export async function bulkActiverLivreursAction(ids: string[]): Promise<ActionRe
     return { success: true, message: 'Les livreurs ont été activés avec succès' };
   } catch (error) {
     console.error('❌ Erreur bulk activation:', error);
-    return handleServerActionError(error, 'Erreur lors de l\'activation des livreurs');
+    return handleApiError(error, 'Erreur lors de l\'activation des livreurs');
   }
 }
 

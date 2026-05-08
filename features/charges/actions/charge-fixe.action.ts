@@ -3,7 +3,7 @@
 import { ActionResponse, PaginatedResponse } from '@/types';
 import { chargeFixeAPI } from '../apis/charge-fixe.api';
 import { IChargeFixe, IChargeFixeParams, IWorkflowDecisionDtoFixe } from '../types/charge-fixe.type';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 import { ChargeFixeCreateDTO, ChargeFixeUpdateDTO } from '../schemas/charge-fixe.schema';
 
 export const ajouterChargeFixeAction = async (
@@ -17,7 +17,7 @@ export const ajouterChargeFixeAction = async (
       message: 'Charge fixe ajoutée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, "Erreur lors de l'ajout de la charge fixe");
+    return handleApiError(error, "Erreur lors de l'ajout de la charge fixe");
   }
 };
 
@@ -33,7 +33,7 @@ export const modifierChargeFixeAction = async (
       message: 'Charge fixe modifiée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la modification de la charge fixe');
+    return handleApiError(error, 'Erreur lors de la modification de la charge fixe');
   }
 };
 
@@ -47,7 +47,7 @@ export const supprimerChargeFixeAction = async (
       message: 'Charge fixe supprimée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la suppression de la charge fixe');
+    return handleApiError(error, 'Erreur lors de la suppression de la charge fixe');
   }
 };
 
@@ -59,7 +59,7 @@ export const supprimerDepenseDuMoisAction = async (
     await chargeFixeAPI.supprimerDepenseDuMois(id, mois);
     return { success: true, message: 'Dépense du mois supprimée avec succès' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la suppression de la dépense du mois');
+    return handleApiError(error, 'Erreur lors de la suppression de la dépense du mois');
   }
 };
 
@@ -73,7 +73,7 @@ export const obtenirChargesFixesAction = async (
       data: response,
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération des charges fixes');
+    return handleApiError(error, 'Erreur lors de la récupération des charges fixes');
   }
 };
 
@@ -85,7 +85,7 @@ export const validerDGAChargeFixeAction = async (
     const response = await chargeFixeAPI.validerDGAChargeFixe(id, dto);
     return { success: true, data: response, message: 'Charge fixe validée par DGA' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la validation DGA');
+    return handleApiError(error, 'Erreur lors de la validation DGA');
   }
 };
 
@@ -97,7 +97,7 @@ export const approuverDGChargeFixeAction = async (
     const response = await chargeFixeAPI.approuverDGChargeFixe(id, dto);
     return { success: true, data: response, message: 'Charge fixe approuvée par DG' };
   } catch (error) {
-    return handleServerActionError(error, "Erreur lors de l'approbation DG");
+    return handleApiError(error, "Erreur lors de l'approbation DG");
   }
 };
 
@@ -109,7 +109,7 @@ export const rejeterDGAChargeFixeAction = async (
     const response = await chargeFixeAPI.rejeterDGAChargeFixe(id, dto);
     return { success: true, data: response, message: 'Charge fixe rejetée par DGA' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors du rejet DGA');
+    return handleApiError(error, 'Erreur lors du rejet DGA');
   }
 };
 
@@ -121,7 +121,7 @@ export const rejeterDGChargeFixeAction = async (
     const response = await chargeFixeAPI.rejeterDGChargeFixe(id, dto);
     return { success: true, data: response, message: 'Charge fixe rejetée par DG' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors du rejet DG');
+    return handleApiError(error, 'Erreur lors du rejet DG');
   }
 };
 
@@ -133,6 +133,6 @@ export const decaisserChargeFixeAction = async (
     const response = await chargeFixeAPI.decaisserChargeFixe(id, dto);
     return { success: true, data: response, message: 'Charge fixe décaissée avec succès' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors du décaissement');
+    return handleApiError(error, 'Erreur lors du décaissement');
   }
 };

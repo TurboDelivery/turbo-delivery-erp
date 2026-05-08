@@ -3,7 +3,7 @@
 import { ActionResponse } from '@/types';
 import { categorieDepenseAPI } from '@/features/depenses/apis/categorie-depense.api';
 import { ICategorieDepense, ICategorieDepenseParams, ITopCategorieDepense, ITopCategoriesSearchParams } from '@/features/depenses/types/categorie-depense.type';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 import { CategorieDepenseCreateDTO, CategorieDepenseUpdateDTO } from '@/features/depenses/schemas/categorie-depense.schema';
 
 export const obtenirCategoriesDepensesAction = async (params: ICategorieDepenseParams): Promise<ActionResponse<ICategorieDepense[]>> => {
@@ -15,7 +15,7 @@ export const obtenirCategoriesDepensesAction = async (params: ICategorieDepenseP
       message: 'Categories dépenses obtenues avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération des categories dépenses');
+    return handleApiError(error, 'Erreur lors de la récupération des categories dépenses');
   }
 };
 export const obtenirCategoriesDepensesActiveAction = async (params: ICategorieDepenseParams): Promise<ActionResponse<ICategorieDepense[]>> => {
@@ -27,7 +27,7 @@ export const obtenirCategoriesDepensesActiveAction = async (params: ICategorieDe
       message: 'Categories dépenses obtenues avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération des categories dépenses');
+    return handleApiError(error, 'Erreur lors de la récupération des categories dépenses');
   }
 };
 
@@ -40,7 +40,7 @@ export const ajouterCategorieDepenseAction = async (data: CategorieDepenseCreate
       message: 'Depense ajoutée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, "Erreur lors de l'ajout de la dépense");
+    return handleApiError(error, "Erreur lors de l'ajout de la dépense");
   }
 };
 
@@ -53,7 +53,7 @@ export const modifierCategorieDepenseAction = async (id: string, data: Categorie
       message: 'Depense modifiée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la modification de la dépense');
+    return handleApiError(error, 'Erreur lors de la modification de la dépense');
   }
 };
 
@@ -66,7 +66,7 @@ export const supprimerCategorieDepenseAction = async (id: string): Promise<Actio
       message: 'Depense supprimée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la suppression de la dépense');
+    return handleApiError(error, 'Erreur lors de la suppression de la dépense');
   }
 };
 
@@ -79,6 +79,6 @@ export const obtenirTop4CategoriesDepensesAction = async (params: ITopCategories
       message: 'Top 4 catégories de dépenses obtenues avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération du top 4 des catégories de dépenses');
+    return handleApiError(error, 'Erreur lors de la récupération du top 4 des catégories de dépenses');
   }
 };

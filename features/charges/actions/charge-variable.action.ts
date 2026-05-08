@@ -10,7 +10,7 @@ import {
   IWorkflowDecisionDto,
 } from '../types/charge-variable.type';
 import { PaginatedResponse } from '@/types/general';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 
 export const ajouterChargeVariableAction = async (
   data: IChargeVariableCreateDTO,
@@ -23,7 +23,7 @@ export const ajouterChargeVariableAction = async (
       message: 'Charge variable ajoutée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, "Erreur lors de l'ajout de la charge variable");
+    return handleApiError(error, "Erreur lors de l'ajout de la charge variable");
   }
 };
 
@@ -38,7 +38,7 @@ export const ajouterChargeVariableFormDataAction = async (
       message: 'Charge variable ajoutée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, "Erreur lors de l'ajout de la charge variable");
+    return handleApiError(error, "Erreur lors de l'ajout de la charge variable");
   }
 };
 
@@ -54,7 +54,7 @@ export const modifierChargeVariableAction = async (
       message: 'Charge variable modifiée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la modification de la charge variable');
+    return handleApiError(error, 'Erreur lors de la modification de la charge variable');
   }
 };
 
@@ -70,7 +70,7 @@ export const modifierChargeVariableFormDataAction = async (
       message: 'Charge variable modifiée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la modification de la charge variable');
+    return handleApiError(error, 'Erreur lors de la modification de la charge variable');
   }
 };
 
@@ -84,7 +84,7 @@ export const supprimerChargeVariableAction = async (
       message: 'Charge variable supprimée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la suppression de la charge variable');
+    return handleApiError(error, 'Erreur lors de la suppression de la charge variable');
   }
 };
 
@@ -96,7 +96,7 @@ export const validerDGAChargeVariableAction = async (
     const response = await chargeVariableAPI.validerDGAChargeVariable(id, dto);
     return { success: true, data: response, message: 'Charge variable visée par le DGA' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la validation DGA');
+    return handleApiError(error, 'Erreur lors de la validation DGA');
   }
 };
 
@@ -108,7 +108,7 @@ export const approuverDGChargeVariableAction = async (
     const response = await chargeVariableAPI.approuverDGChargeVariable(id, dto);
     return { success: true, data: response, message: 'Charge variable approuvée par le DG' };
   } catch (error) {
-    return handleServerActionError(error, "Erreur lors de l'approbation DG");
+    return handleApiError(error, "Erreur lors de l'approbation DG");
   }
 };
 
@@ -120,7 +120,7 @@ export const rejeterDGAChargeVariableAction = async (
     const response = await chargeVariableAPI.rejeterDGAChargeVariable(id, dto);
     return { success: true, data: response, message: 'Charge variable rejetée par le DGA' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors du rejet DGA');
+    return handleApiError(error, 'Erreur lors du rejet DGA');
   }
 };
 
@@ -132,7 +132,7 @@ export const rejeterDGChargeVariableAction = async (
     const response = await chargeVariableAPI.rejeterDGChargeVariable(id, dto);
     return { success: true, data: response, message: 'Charge variable rejetée par le DG' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors du rejet DG');
+    return handleApiError(error, 'Erreur lors du rejet DG');
   }
 };
 
@@ -144,7 +144,7 @@ export const decaisserChargeVariableAction = async (
     const response = await chargeVariableAPI.decaisserChargeVariable(id, dto);
     return { success: true, data: response, message: 'Charge variable décaissée' };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors du décaissement');
+    return handleApiError(error, 'Erreur lors du décaissement');
   }
 };
 
@@ -158,6 +158,6 @@ export const obtenirChargesVariablesAction = async (
       data: response,
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération des charges variables');
+    return handleApiError(error, 'Erreur lors de la récupération des charges variables');
   }
 };

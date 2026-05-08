@@ -3,7 +3,7 @@
 import { ActionResponse } from '@/types';
 import { IDashboardData, IPerformanceParams } from '@/features/rapports-performance/types/performance.type';
 import { performanceAPI } from '@/features/rapports-performance/apis/performance.api';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 
 export const obtenirPerformanceAction = async (
   params: IPerformanceParams,
@@ -16,6 +16,6 @@ export const obtenirPerformanceAction = async (
       message: 'Données de performance obtenues avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération des données de performance');
+    return handleApiError(error, 'Erreur lors de la récupération des données de performance');
   }
 };

@@ -1,5 +1,5 @@
 import { ActionResponse } from "@/types";
-import { handleServerActionError } from "@/utils/handleServerActionError";
+import { handleApiError } from "@/utils/handle-api-error";
 import { dashboardAPI } from "../apis/dashboard.api";
 import { YearlyStats, DashboardStatsParams } from "../types/dashboard.types";
 
@@ -12,6 +12,6 @@ export const getDashboardStatsAction = async (params: DashboardStatsParams): Pro
             message: "Statistiques dashboard obtenues avec succès",
         }
     } catch (error) {
-        return handleServerActionError(error, "Erreur lors de la récupération des statistiques dashboard");
+        return handleApiError(error, "Erreur lors de la récupération des statistiques dashboard");
     }
 }

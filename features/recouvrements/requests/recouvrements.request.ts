@@ -1,6 +1,6 @@
 import { ActionResponse, PaginatedResponse } from '@/types';
 import { IRestaurantRecouvrement, IRestaurantRecouvrementSearchParams } from '@/features/recouvrements/types/restaurant-recouvrement.types';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 import { recouvrementAPI } from '@/features/recouvrements/apis/recouvrement.api';
 
 export const obtenirRestaurantRecouvrementsRequest = async (params: IRestaurantRecouvrementSearchParams): Promise<ActionResponse<PaginatedResponse<IRestaurantRecouvrement>>> => {
@@ -12,6 +12,6 @@ export const obtenirRestaurantRecouvrementsRequest = async (params: IRestaurantR
       message: 'Categories dépenses obtenues avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération des categories dépenses');
+    return handleApiError(error, 'Erreur lors de la récupération des categories dépenses');
   }
 };

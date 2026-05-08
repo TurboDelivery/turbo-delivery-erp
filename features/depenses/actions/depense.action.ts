@@ -3,7 +3,7 @@
 import { ActionResponse, PaginatedResponse } from '@/types';
 import { depenseAPI } from '@/features/depenses/apis/depense.api';
 import { IDepense, IDepensesParams, IDepenseStats, IDepenseStatsParams, IDepenseSummary, IDepenseSummaryParams } from '@/features/depenses/types/depense.type';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 import { DepenseCreateDTO, DepenseUpdateDTO } from '@/features/depenses/schemas/depense.schema';
 
 export const obtenirTousDepensesAction = async (params: IDepensesParams): Promise<ActionResponse<PaginatedResponse<IDepense>>> => {
@@ -15,7 +15,7 @@ export const obtenirTousDepensesAction = async (params: IDepensesParams): Promis
       message: 'Depenses obtenues avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération des dépenses');
+    return handleApiError(error, 'Erreur lors de la récupération des dépenses');
   }
 };
 
@@ -29,7 +29,7 @@ export const obtenirUneDepenseAction = async (id: string): Promise<ActionRespons
       message: 'Depense obtenue avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la récupération de la dépense');
+    return handleApiError(error, 'Erreur lors de la récupération de la dépense');
   }
 };
 
@@ -62,7 +62,7 @@ export const ajouterDepenseAction = async (data: DepenseCreateDTO): Promise<Acti
     };
   } catch (error) {
     console.error('❌ Erreur Action Serveur:', error);
-    return handleServerActionError(error, "Erreur lors de l'ajout de la dépense");
+    return handleApiError(error, "Erreur lors de l'ajout de la dépense");
   }
 };
 
@@ -75,7 +75,7 @@ export const modifierDepenseAction = async (id: string, data: DepenseUpdateDTO):
       message: 'Depense modifiée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la modification de la dépense');
+    return handleApiError(error, 'Erreur lors de la modification de la dépense');
   }
 };
 
@@ -88,7 +88,7 @@ export const supprimerDepenseAction = async (id: string): Promise<ActionResponse
       message: 'Depense supprimée avec succès',
     };
   } catch (error) {
-    return handleServerActionError(error, 'Erreur lors de la suppression de la dépense');
+    return handleApiError(error, 'Erreur lors de la suppression de la dépense');
   }
 };
 
@@ -103,7 +103,7 @@ export const obtenirStatsDepensesAction = async (params: IDepenseStatsParams): P
     };
   } catch (error) {
     console.error('❌ Erreur Stats Action:', error);
-    return handleServerActionError(error, 'Erreur lors de la récupération des stats dépenses');
+    return handleApiError(error, 'Erreur lors de la récupération des stats dépenses');
   }
 };
 
@@ -117,7 +117,7 @@ export const obtenirDepensesSummaryAction = async (params: IDepenseSummaryParams
     };
   } catch (error) {
     console.error('❌ Erreur Summary Action:', error);
-    return handleServerActionError(error, 'Erreur lors de la récupération du summary dépenses');
+    return handleApiError(error, 'Erreur lors de la récupération du summary dépenses');
   }
 };
 
@@ -137,7 +137,7 @@ export const modifierStatutDepenseAction = async (id: string, statut: string): P
     };
   } catch (error) {
     console.error('❌ Erreur Action Serveur (modifierStatutDepense):', error);
-    return handleServerActionError(error, 'Erreur lors de la modification du statut de la dépense');
+    return handleApiError(error, 'Erreur lors de la modification du statut de la dépense');
   }
 };
 
@@ -159,6 +159,6 @@ export const obtenirDepensesFixesAction = async (params?: IDepensesParams): Prom
     };
   } catch (error) {
     console.error('❌ Erreur Action Serveur (obtenirDepensesFixes):', error);
-    return handleServerActionError(error, 'Erreur lors de la récupération des dépenses fixes');
+    return handleApiError(error, 'Erreur lors de la récupération des dépenses fixes');
   }
 };

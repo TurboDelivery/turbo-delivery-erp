@@ -6,7 +6,7 @@ import {
   IDepensesVariablesResponse,
 } from '@/features/rapports-financiers/types/depenses-variables.type';
 import { depensesVariablesAPI } from '@/features/rapports-financiers/apis/depenses-variables.api';
-import { handleServerActionError } from '@/utils/handleServerActionError';
+import { handleApiError } from '@/utils/handle-api-error';
 
 export const obtenirDepensesVariablesAction = async (
   params: IDepenseVariableParams,
@@ -19,7 +19,7 @@ export const obtenirDepensesVariablesAction = async (
       message: 'Dépenses variables obtenues avec succès',
     };
   } catch (error) {
-    return handleServerActionError(
+    return handleApiError(
       error,
       'Erreur lors de la récupération des dépenses variables',
     );
