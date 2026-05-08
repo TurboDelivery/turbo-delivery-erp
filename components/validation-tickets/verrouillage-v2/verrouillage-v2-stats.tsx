@@ -1,7 +1,7 @@
 'use client';
 
 import { CreneauTicketStatsVm } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 
 interface VerrouillageV2StatsProps {
   stats: CreneauTicketStatsVm | undefined;
@@ -36,11 +36,11 @@ export function VerrouillageV2Stats({ stats, isLoading }: VerrouillageV2StatsPro
       <StatCard label="Tickets V2 validés" value={stats?.nbV2Valide ?? '—'} />
       <StatCard
         label="Total commandes"
-        value={stats != null ? formatCFA(stats.totalMontantCommandesV2Valide) : '—'}
+        value={stats != null ? formatCfa(stats.totalMontantCommandesV2Valide) : '—'}
       />
       <StatCard
         label="Total commissions"
-        value={stats != null ? formatCFA(stats.totalCommissionsV2Valide) : '—'}
+        value={stats != null ? formatCfa(stats.totalCommissionsV2Valide) : '—'}
       />
       <StatCard label="Total tickets créneau" value={stats?.nbTotalTickets ?? '—'} />
     </div>

@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useDailyStatsQuery } from '@/features/analyse-rentabilite/queries/daily-stats.query';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 
 interface RevenueExpenseChartProps {
   debut?: Date;
@@ -86,7 +86,7 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
                   color: '#374151',
                   fontWeight: 500,
                 }}
-                formatter={(value: number) => [formatCFA(value * 1000), '']}
+                formatter={(value: number) => [formatCfa(value * 1000), '']}
               />
               <Line
                 type="monotone"

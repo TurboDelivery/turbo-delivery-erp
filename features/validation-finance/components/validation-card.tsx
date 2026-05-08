@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, FileText, Pencil, X, Download } from 'lucide-react';
 import { IDepense } from '@/features/depenses/types/depense.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { fmtDate } from './validation.constants';
 import { StatusBadge, TypeBadge } from './validation-badges';
 import { WorkflowStepper } from './workflow-stepper';
@@ -56,7 +56,7 @@ export function ValidationCard({ depense, current, total, onPrev, onNext, onAcce
             <TypeBadge type={depense.typeDepense} />
             <span className="text-sm text-gray-500">{fmtDate(depense.dateDepense)}</span>
           </div>
-          <span className="text-xl font-bold text-[#E8541E]">{formatCFA(depense.montant)}</span>
+          <span className="text-xl font-bold text-[#E8541E]">{formatCfa(depense.montant)}</span>
         </div>
 
         <p className="mb-0.5 font-semibold text-gray-900">{depense.libelle}</p>

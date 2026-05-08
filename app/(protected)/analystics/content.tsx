@@ -4,7 +4,7 @@ import DatabaseCards from '@/components/dashboard/apercu/DatabaseCards';
 import SourcesCard from '@/components/dashboard/apercu/SourcesCard';
 import { Button } from '@/components/ui/button';
 import { Card as CardUI } from '@/components/ui/card';
-import { formatNumber } from '@/utils/formatNumber';
+import { formatNombre } from '@/utils/format.utils';
 import { CalendarDate, Card, CardBody, CardHeader, DateRangePicker, RangeValue, Tooltip } from '@heroui/react';
 import { Info, Printer } from 'lucide-react';
 import Link from 'next/link';
@@ -28,7 +28,7 @@ export default function Content({ initialItems }: { initialItems: Record<string,
               <div className="text-base font-medium">Total Commande Terminée</div>
             </div>
             <div className="text-3xl font-bold mb-4">
-              {formatNumber(items?.chiffreAffaire?.commandeTotalTermine ?? 0)} <br /> FCFA
+              {formatNombre(items?.chiffreAffaire?.commandeTotalTermine ?? 0)} <br /> FCFA
             </div>
 
             <div className="flex items-center justify-between">
@@ -47,7 +47,7 @@ export default function Content({ initialItems }: { initialItems: Record<string,
             <div className="text-base font-medium">Total Commande en Attente</div>
           </div>
           <div className="text-3xl font-bold mb-4">
-            {formatNumber(items?.chiffreAffaire?.commandeTotalEnAttente ?? 0)} <br /> FCFA
+            {formatNombre(items?.chiffreAffaire?.commandeTotalEnAttente ?? 0)} <br /> FCFA
           </div>
           <div className="flex items-center justify-between">
             <Button variant="ghost" className="text-white hover:bg-white/10 px-2 text-sm">
@@ -64,7 +64,7 @@ export default function Content({ initialItems }: { initialItems: Record<string,
               <div className="text-base font-medium">Total Frais Livraison Terminée</div>
             </div>
             <div className="text-3xl font-bold mb-4">
-              {formatNumber(items?.chiffreAffaire?.fraisLivraisonTotalTermine ?? 0)} <br /> FCFA
+              {formatNombre(items?.chiffreAffaire?.fraisLivraisonTotalTermine ?? 0)} <br /> FCFA
             </div>
 
             <div className="flex items-center justify-between">
@@ -83,7 +83,7 @@ export default function Content({ initialItems }: { initialItems: Record<string,
             <div className="text-base font-medium">Total Frais Livraison en Attente</div>
           </div>
           <div className="text-3xl font-bold mb-4">
-            {formatNumber(items?.chiffreAffaire?.fraisLivraisonTotalEnAttente ?? 0)} <br /> FCFA
+            {formatNombre(items?.chiffreAffaire?.fraisLivraisonTotalEnAttente ?? 0)} <br /> FCFA
           </div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">

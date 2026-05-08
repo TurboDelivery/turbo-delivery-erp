@@ -2,7 +2,7 @@
 
 import { apiClientHttp } from '@/lib/api-client-http';
 import { ChiffreAffaire, ChiffreAffaireRestaurant } from '@/types/statistiques.model';
-import { formatDate } from '@/utils/date-formate';
+import { formatDateFr } from '@/lib/date-utils';
 import { RangeValue } from '@heroui/react';
 
 const BASE_URL = '/api/erp/chiffre-affaire';
@@ -20,8 +20,8 @@ export async function getAllChiffreAffaire({ dates: { start, end } }: { dates: R
             method: statistiquesEndpoints.getAllChiffreAffaire.method,
             service: 'backend',
             params: {
-                dateDebut: start ? formatDate(start, 'YYYY-MM-DD') : '',
-                dateFin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+                dateDebut: start ? formatDateFr(start, 'yyyy-MM-dd') : '',
+                dateFin: end ? formatDateFr(end, 'yyyy-MM-dd') : '',
             },
         });
 
@@ -38,8 +38,8 @@ export async function getAllRestaurantChiffreAffaire({ dates: { start, end } }: 
             method: statistiquesEndpoints.getAllRestaurantChiffreAffaire.method,
             service: 'backend',
             params: {
-                dateDebut: start ? formatDate(start, 'YYYY-MM-DD') : '',
-                dateFin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+                dateDebut: start ? formatDateFr(start, 'yyyy-MM-dd') : '',
+                dateFin: end ? formatDateFr(end, 'yyyy-MM-dd') : '',
             },
         });
 

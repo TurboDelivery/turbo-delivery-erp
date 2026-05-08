@@ -1,7 +1,7 @@
 "use client";
 import { AlertCircle, CheckCircle, FileText } from 'lucide-react';
 import { StatCard } from './recouvrement-stat-card';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import useRecouvrementDashboard from '@/features/recouvrements/hooks/use-recouvrement-dashboard';
 import { useFactureStats } from '@/features/recouvrements/hooks/use-facture-stats';
@@ -37,21 +37,21 @@ export default function RecouvrementStatsBar() {
               value={summary?.montantTotalARecouvrir || 0}
               icon={<FileText className="h-5 w-5" />}
               colorVariant="purple"
-              formatValue={formatCFA}
+              formatValue={formatCfa}
             />
             <StatCard
               title="Montant déjà recouvré"
               value={summary?.montantDejaRecouvre || 0}
               icon={<CheckCircle className="h-5 w-5" />}
               colorVariant="green"
-              formatValue={formatCFA}
+              formatValue={formatCfa}
             />
             <StatCard
               title="Reste à recouvrir"
               value={montantRestant}
               icon={<AlertCircle className="h-5 w-5" />}
               colorVariant="amber"
-              formatValue={formatCFA}
+              formatValue={formatCfa}
             />
           </>
         )}

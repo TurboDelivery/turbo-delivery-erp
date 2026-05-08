@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { AlertTriangle, CheckSquare, XCircle } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { IHistoriqueCreneau, StatutCreneau } from '../types/historique-creneaux.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 
 const STATUT_CONFIG: Record<
   StatutCreneau,
@@ -69,7 +69,7 @@ export const historiqueCreneauxColumns: ColumnDef<IHistoriqueCreneau>[] = [
     header: 'Net (FCFA)',
     cell: ({ row }) => (
       <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
-        {formatCFA(row.original.netFcfa)}
+        {formatCfa(row.original.netFcfa)}
       </span>
     ),
   },

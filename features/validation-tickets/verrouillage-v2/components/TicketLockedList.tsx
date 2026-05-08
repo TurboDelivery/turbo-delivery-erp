@@ -2,7 +2,7 @@
 
 import { Lock } from 'lucide-react';
 import { TicketControleV2 } from '../types/tickets-v2.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 
 interface Props {
   tickets: TicketControleV2[];
@@ -35,7 +35,7 @@ export default function TicketLockedList({ tickets }: Props) {
                 <span className="text-xs text-gray-400 uppercase tracking-wide truncate">{ticket.restaurant}</span>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <span className="text-sm font-bold text-gray-900 whitespace-nowrap">{formatCFA(ticket.coutLivraison)}</span>
+                <span className="text-sm font-bold text-gray-900 whitespace-nowrap">{formatCfa(ticket.coutLivraison)}</span>
                 <Lock className="h-4 w-4 text-gray-400" />
               </div>
             </div>

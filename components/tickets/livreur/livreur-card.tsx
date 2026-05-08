@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { ILivreurTicket } from '@/features/tickets/types/tickets.type';
 import PaginationBlock from '@/components/pagination-block';
 import { PageMeta } from '@/types/general';
@@ -77,16 +77,16 @@ function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
                           )}
                           <td className="p-2 sm:p-3 text-xs sm:text-sm text-orange-600 whitespace-nowrap font-medium">{ticket.reference}</td>
                           <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{ticket.restaurant}</td>
-                          <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCFA(Number(ticket.coutLivraison ?? 0))}</td>
-                          <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCFA(Number(ticket.coutLivraison ?? 0) * 0.6)}</td>
+                          <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCfa(Number(ticket.coutLivraison ?? 0))}</td>
+                          <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCfa(Number(ticket.coutLivraison ?? 0) * 0.6)}</td>
                         </tr>
                       ))}
                       {/*<tr className="border-b-2 border-gray-300 bg-success-50 font-bold">*/}
                       {/*  <td colSpan={2} className="p-2 sm:p-3 text-xs sm:text-sm text-gray-800 whitespace-nowrap">*/}
                       {/*    Total du jour*/}
                       {/*  </td>*/}
-                      {/*  <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCFA(dayTotal)}</td>*/}
-                      {/*  <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCFA(dayCommission)}</td>*/}
+                      {/*  <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCfa(dayTotal)}</td>*/}
+                      {/*  <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCfa(dayCommission)}</td>*/}
                       {/*</tr>*/}
                     </React.Fragment>
                   );

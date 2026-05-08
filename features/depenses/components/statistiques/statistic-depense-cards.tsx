@@ -2,7 +2,7 @@ import { Boxes, CalendarClock } from 'lucide-react';
 import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.query';
 import { useDepensesListQuery } from '@/features/depenses/queries/depense-list.query';
 import StatisticDepenseCard from '@/components/depenses/stats/statistic-depense-card';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { IDepenseStatsParams, IDepensesParams } from '@/features/depenses/types/depense.type';
 
 interface StatisticDepenseCardsProps {
@@ -67,7 +67,7 @@ export default function StatisticDepenseCards({ filters }: StatisticDepenseCards
         <StatisticDepenseCard
           isLoading={isLoading}
           title="Dépenses"
-          value={formatCFA(displayStats?.montant_total || 0)}
+          value={formatCfa(displayStats?.montant_total || 0)}
           color="text-green-600"
           bgColor="bg-green-100"
           icon={<CalendarClock className="h-5 w-5" />}

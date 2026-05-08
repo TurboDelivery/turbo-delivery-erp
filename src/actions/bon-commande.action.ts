@@ -3,7 +3,7 @@
 import { apiClientHttp } from '@/lib/api-client-http';
 import { PaginatedResponse } from '@/types';
 import { BonLivraison, BonLivraisonTerminee, ParametreBonLivraisonFacture, Ticket } from '@/types/bon-livraison.model';
-import { formatDate } from '@/utils/date-formate';
+import { formatDateFr } from '@/lib/date-utils';
 import { RangeValue } from '@heroui/react';
 import axios from 'axios';
 import { ApiResult } from '@/types/general';
@@ -39,8 +39,8 @@ export async function getBonLivraisonAll(page: number, size: number, { dates: { 
       params: {
         page: String(page),
         size: String(size),
-        debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
-        fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+        debut: start ? formatDateFr(start, 'yyyy-MM-dd') : '',
+        fin: end ? formatDateFr(end, 'yyyy-MM-dd') : '',
       },
       service: 'backend',
     });
@@ -57,8 +57,8 @@ export async function getAllBonLivraisonTerminers(page: number, size: number, { 
       params: {
         page: page.toString(),
         size: size.toString(),
-        debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
-        fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+        debut: start ? formatDateFr(start, 'yyyy-MM-dd') : '',
+        fin: end ? formatDateFr(end, 'yyyy-MM-dd') : '',
         type: typeCommsion,
       },
     });
@@ -72,7 +72,7 @@ export async function getBonLivraisonTerminees({ dates: { start, end } }: { date
     return await apiClientHttp.request<BonLivraisonTerminee[]>({
       endpoint: bonLivraisonEndpoints.bonLivraisonTerminees.endpoint,
       method: bonLivraisonEndpoints.bonLivraisonTerminees.method,
-      params: { debut: start ? formatDate(start, 'YYYY-MM-DD') : '', fin: end ? formatDate(end, 'YYYY-MM-DD') : '' },
+      params: { debut: start ? formatDateFr(start, 'yyyy-MM-dd') : '', fin: end ? formatDateFr(end, 'yyyy-MM-dd') : '' },
     });
   } catch (error) {
     return [] as any;
@@ -92,8 +92,8 @@ export async function getAllBonLivraisonEnAttentes(
       params: {
         page: page.toString(),
         size: size.toString(),
-        debut: start ? formatDate(start, 'YYYY-MM-DD') : '',
-        fin: end ? formatDate(end, 'YYYY-MM-DD') : '',
+        debut: start ? formatDateFr(start, 'yyyy-MM-dd') : '',
+        fin: end ? formatDateFr(end, 'yyyy-MM-dd') : '',
         type: typeCommsion,
       },
     });

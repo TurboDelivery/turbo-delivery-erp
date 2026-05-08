@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 
 type Props = {
   stat: {
@@ -38,7 +38,7 @@ function InvestissementStatCard({ stat, isLoading = false }: Props) {
         <div className="flex flex-col items-start gap-8">
           <h3 className="text-md capitalize">{stat.title}</h3>
           <div className="flex flex-col items-start">
-            <p className={`text-xl font-bold ${stat.color} font-exo`}>{formatCFA(stat.value)}</p>
+            <p className={`text-xl font-bold ${stat.color} font-exo`}>{formatCfa(stat.value)}</p>
           </div>
         </div>
         <div>

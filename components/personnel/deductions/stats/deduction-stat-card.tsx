@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -22,7 +22,7 @@ function DeductionStatCard({ label, value, description, color = 'default' }: Pro
     <Card>
       <CardHeader className="text-[#737373] pb-3">{label}</CardHeader>
       <CardContent className="flex flex-col">
-        <span className={cn('text-xl mb-1', amountColorClass[color])}>{formatCFA(value)}</span>
+        <span className={cn('text-xl mb-1', amountColorClass[color])}>{formatCfa(value)}</span>
         <span className="text-[#737373]">{description}</span>
       </CardContent>
     </Card>

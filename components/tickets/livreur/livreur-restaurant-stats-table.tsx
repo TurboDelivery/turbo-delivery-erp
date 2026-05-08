@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { ILivreurTicket } from '@/features/tickets/types/tickets.type';
 
 type LivreurRestaurantStatsTableProps = {
@@ -28,9 +28,9 @@ function LivreurRestaurantStatsTable({ livreur }: LivreurRestaurantStatsTablePro
               <tr key={stat.restaurantId} className="border-b border-gray-100">
                 <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 whitespace-nowrap">{stat.restaurant}</td>
                 <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{stat.nombreTotalTickets}</td>
-                <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCFA(stat.montantTotalLivraisons)}</td>
-                <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCFA(stat.montantTotalCommandes)}</td>
-                <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCFA(stat.commissionTotale)}</td>
+                <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCfa(stat.montantTotalLivraisons)}</td>
+                <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCfa(stat.montantTotalCommandes)}</td>
+                <td className="p-2 sm:p-3 text-xs sm:text-sm text-gray-700 text-right whitespace-nowrap">{formatCfa(stat.commissionTotale)}</td>
               </tr>
             ))}
           </tbody>

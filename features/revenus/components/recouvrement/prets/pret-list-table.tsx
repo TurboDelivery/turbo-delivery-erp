@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { MoreHorizontal } from 'lucide-react';
 import { IFacture } from '@/features/revenus/types/recouvrement/prets.types';
 import { PretDetailModal } from './pret-detail-modal';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 
 interface IPretTableProps {
   facture: IFacture[];
@@ -33,12 +33,12 @@ export function PretTable({ facture, currentPage = 1, totalPages = 1, totalItems
       {
         accessorKey: 'totalFraisLivraisons',
         header: 'frais de livraison',
-        cell: (info: any) => <div className="font-semibold text-center text-sm">{formatCFA(info.getValue())}</div>,
+        cell: (info: any) => <div className="font-semibold text-center text-sm">{formatCfa(info.getValue())}</div>,
       },
       {
         accessorKey: 'totalCommission',
         header: 'commission',
-        cell: (info: any) => <div className="font-semibold text-center text-sm">{formatCFA(info.getValue())}</div>,
+        cell: (info: any) => <div className="font-semibold text-center text-sm">{formatCfa(info.getValue())}</div>,
       },
       {
         accessorKey: 'totalFacture',
@@ -46,7 +46,7 @@ export function PretTable({ facture, currentPage = 1, totalPages = 1, totalItems
         cell: (info: any) => {
           const row = info.row.original;
           const total = row.totalFraisLivraisons + row.totalCommission;
-          return <div className="text-center font-semibold text-red-600">{formatCFA(total)}</div>;
+          return <div className="text-center font-semibold text-red-600">{formatCfa(total)}</div>;
         },
       },
       {
@@ -170,7 +170,7 @@ export function PretTable({ facture, currentPage = 1, totalPages = 1, totalItems
             <div className="flex justify-between items-center">
               <div>
                 <span className="text-gray-600 text-sm">Montant facture:</span>
-                <span className="font-bold text-red-600 ml-2">{formatCFA(facture.totalFraisLivraisons + facture.totalCommission)}</span>
+                <span className="font-bold text-red-600 ml-2">{formatCfa(facture.totalFraisLivraisons + facture.totalCommission)}</span>
               </div>
               <div className="mt-3">
                 <PretDetailModal facture={facture} />

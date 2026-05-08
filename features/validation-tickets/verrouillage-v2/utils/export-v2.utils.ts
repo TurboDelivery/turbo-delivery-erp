@@ -1,5 +1,7 @@
 import { TicketControleV2 } from '../types/tickets-v2.type';
-import { formatCFA, formatDateFR, formatHoursMinutes, formatNumberFR } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa, formatNombre } from '@/utils/format.utils';
+import { formatDateFr } from '@/lib/date-utils';
+import { formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 
 export function generatePdfTemplateV2(tickets: TicketControleV2[]): string {
   const totalCommande = tickets.reduce((sum, t) => sum + (t.coutCommande ?? 0), 0);
@@ -9,7 +11,7 @@ export function generatePdfTemplateV2(tickets: TicketControleV2[]): string {
   const rows = tickets
     .map((t) => {
       const agentV1 = t.v1Agent ? `${t.v1Agent.prenoms} ${t.v1Agent.nom}` : '—';
-      const dateV1 = t.v1ValideAt ? formatDateFR(t.v1ValideAt.split('T')[0]) : '—';
+      const dateV1 = t.v1ValideAt ? formatDateFr(t.v1ValideAt.split('T')[0]) : '—';
       const heureV1 = t.v1ValideAt ? formatHoursMinutes(t.v1ValideAt.split('T')[1]?.substring(0, 5) ?? '') : '—';
 
       return `
@@ -17,9 +19,9 @@ export function generatePdfTemplateV2(tickets: TicketControleV2[]): string {
           <td>${t.reference ?? '—'}</td>
           <td>${t.livreur ?? '—'}</td>
           <td>${t.restaurant ?? '—'}</td>
-          <td>${formatNumberFR(t.coutCommande ?? 0)}</td>
-          <td>${formatNumberFR(t.coutLivraison ?? 0)}</td>
-          <td>${formatNumberFR(t.commission ?? 0)}</td>
+          <td>${formatNombre(t.coutCommande ?? 0)}</td>
+          <td>${formatNombre(t.coutLivraison ?? 0)}</td>
+          <td>${formatNombre(t.commission ?? 0)}</td>
           <td>${agentV1}</td>
           <td>${dateV1} ${heureV1}</td>
         </tr>`;
@@ -75,15 +77,15 @@ export function generatePdfTemplateV2(tickets: TicketControleV2[]): string {
     </div>
     <div class="stat-item">
       <span class="stat-label">Total commandes</span>
-      <span class="stat-value">${formatCFA(totalCommande)}</span>
+      <span class="stat-value">${formatCfa(totalCommande)}</span>
     </div>
     <div class="stat-item">
       <span class="stat-label">Total livraisons</span>
-      <span class="stat-value">${formatCFA(totalLivraison)}</span>
+      <span class="stat-value">${formatCfa(totalLivraison)}</span>
     </div>
     <div class="stat-item">
       <span class="stat-label">Total commissions</span>
-      <span class="stat-value">${formatCFA(totalCommission)}</span>
+      <span class="stat-value">${formatCfa(totalCommission)}</span>
     </div>
   </div>
 

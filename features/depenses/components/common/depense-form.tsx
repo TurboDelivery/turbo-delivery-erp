@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { fr } from 'date-fns/locale';
 import { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { Switch } from '@/components/ui/switch';
 
 interface DepenseFormProps {
@@ -284,7 +284,7 @@ export function DepenseForm({
                   <SelectItem value="none">Aucun investisseur</SelectItem>
                   {investissements.map((investissement: IInvestissement) => (
                     <SelectItem key={investissement.id} value={investissement.id}>
-                      {investissement.nomInvestisseur} - {formatCFA(investissement.montant)}
+                      {investissement.nomInvestisseur} - {formatCfa(investissement.montant)}
                     </SelectItem>
                   ))}
                 </>

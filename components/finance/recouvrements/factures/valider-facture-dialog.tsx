@@ -11,7 +11,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { IFacture } from '@/features/recouvrements/types/facture.types';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { useValiderFactureMutation } from '@/features/recouvrements/queries/facture.mutation';
 
 interface ValiderFactureDialogProps {
@@ -38,7 +38,7 @@ export const ValiderFactureDialog = ({ facture, open, onOpenChange }: ValiderFac
           <AlertDialogTitle>Valider la facture</AlertDialogTitle>
           <AlertDialogDescription>
             Êtes-vous sûr de vouloir valider cette facture pour le restaurant <strong>{facture.restaurantName}</strong> d&apos;un montant de{' '}
-            <strong>{formatCFA(facture.montant || 0)}</strong> ?
+            <strong>{formatCfa(facture.montant || 0)}</strong> ?
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

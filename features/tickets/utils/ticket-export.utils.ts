@@ -1,5 +1,7 @@
 import { Ticket } from '@/types/bon-livraison.model';
-import { formatDateFR, formatHoursMinutes, formatNumberFR } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa, formatNombre } from '@/utils/format.utils';
+import { formatDateFr } from '@/lib/date-utils';
+import { formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import * as XLSX from 'xlsx';
 import { newTicket } from '@/features/tickets/types/tickets.type';
 import { autoFitColumns } from '@/features/tickets/utils/export.utils';
@@ -60,12 +62,12 @@ export function generatePdfTemplate(tickets: Ticket[]): string {
   <p><strong>Date d'export:</strong> ${new Date().toLocaleString('fr-FR')}</p>
   <p><strong>Nombre total de tickets:</strong> ${tickets.length}</p>
   <p>
-    <strong>Montant total des livraisons :</strong> ${formatNumberFR(totalLivraison)} CFA
+    <strong>Montant total des livraisons :</strong> ${formatNombre(totalLivraison)} CFA
   </p>
   <p>
-    <strong>Montant total des commissions :</strong> ${formatNumberFR(totalCommission)} CFA
+    <strong>Montant total des commissions :</strong> ${formatNombre(totalCommission)} CFA
   </p>
-  <p><strong>Revenu total:</strong> ${formatNumberFR(totalRevenu)} CFA</p>
+  <p><strong>Revenu total:</strong> ${formatNombre(totalRevenu)} CFA</p>
 </div>
 <table>
   <thead>
@@ -88,10 +90,10 @@ export function generatePdfTemplate(tickets: Ticket[]): string {
               <td>${t.code}</td>
               <td>${t.livreur}</td>
               <td>${t.restaurant}</td>
-              <td>${formatNumberFR(t.montantLivraison ?? 0)}</td>
-              <td>${formatNumberFR(t.montantCommande ?? 0)}</td>
-              <td>${formatNumberFR(t.commission ?? 0)}</td>
-              <td>${formatDateFR(t.date)}</td>
+              <td>${formatNombre(t.montantLivraison ?? 0)}</td>
+              <td>${formatNombre(t.montantCommande ?? 0)}</td>
+              <td>${formatNombre(t.commission ?? 0)}</td>
+              <td>${formatDateFr(t.date)}</td>
               <td>${formatHoursMinutes(t.heure)}</td>
             </tr>
           `,
@@ -112,7 +114,7 @@ export function generateXlsTickets(tickets: Ticket[]) {
     'Montant de Livraison': t.montantLivraison,
     'Montant de Commande': t.montantCommande,
     Commission: t.commission,
-    Date: formatDateFR(t.date),
+    Date: formatDateFr(t.date),
     Heure: formatHoursMinutes(t.heure),
   }));
 
@@ -131,7 +133,7 @@ export function generateXlsTemplate(tickets: newTicket[]) {
     'Montant de Livraison': t.coutLivraison,
     'Montant de Commande': t.coutCommande,
     Commission: Number(t.coutLivraison ?? 0) * 0.6,
-    Date: formatDateFR(t.date),
+    Date: formatDateFr(t.date),
     Heure: formatHoursMinutes(t.heure),
   }));
 

@@ -7,7 +7,7 @@ import { useMemo, useState } from 'react';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
 import { useRapportFinancier } from '@/features/finance-dashboard/queries/global-stats.query';
 import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { useChargesVariablesQuery } from '@/features/charges/queries/charges-variables.query';
 import { exportFinancialReportCsv } from '@/features/rapports-financiers/utils/financial-report-export.utils';
 import { exportFinancialReportPdf } from '@/features/rapports-financiers/utils/financial-report-pdf.utils';
@@ -82,11 +82,11 @@ export default function FinancialReport() {
     const benefice = rapportData.benefice || 0;
 
     return [
-      { label: "Chiffre d'Affaires", value: formatCFA(chiffreAffaire) },
-      { label: 'Dépenses Fixes', value: formatCFA(depensesFixes) },
-      { label: 'Dépenses Variables', value: formatCFA(depensesVariables) },
-      { label: 'Total Dépenses', value: formatCFA(totalDepenses), highlight: 'warning' as const },
-      { label: 'Bénéfice', value: formatCFA(benefice), highlight: 'success' as const },
+      { label: "Chiffre d'Affaires", value: formatCfa(chiffreAffaire) },
+      { label: 'Dépenses Fixes', value: formatCfa(depensesFixes) },
+      { label: 'Dépenses Variables', value: formatCfa(depensesVariables) },
+      { label: 'Total Dépenses', value: formatCfa(totalDepenses), highlight: 'warning' as const },
+      { label: 'Bénéfice', value: formatCfa(benefice), highlight: 'success' as const },
     ];
   }, [rapportData]);
 
@@ -121,7 +121,7 @@ export default function FinancialReport() {
     return content.map((charge) => ({
       label: charge.designation,
       percentage: totalFixes > 0 ? Math.round((charge.montant / totalFixes) * 100) : 0,
-      amount: formatCFA(charge.montant),
+      amount: formatCfa(charge.montant),
     }));
   }, [chargesFixesData]);
 
@@ -156,7 +156,7 @@ export default function FinancialReport() {
     return {
       date: rawDate ? format(new Date(rawDate), 'dd/MM/yyyy') : '-',
       designation: charge.designation,
-      amount: formatCFA(charge.montant),
+      amount: formatCfa(charge.montant),
     };
   });
 

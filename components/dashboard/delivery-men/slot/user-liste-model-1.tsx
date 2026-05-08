@@ -8,7 +8,7 @@ import DropDownAction from './dropDownAction';
 import progresseBare from '../progression/progression-barre';
 import { Avatar } from '@heroui/react';
 import { createUrlFile } from '@/utils/createUrlFile';
-import { formatDate } from '@/utils/date-formate';
+import { formatDateFr } from '@/lib/date-utils';
 
 interface props {
     turboy: LivreurBird;
@@ -22,11 +22,11 @@ export default function UserListeModel1({ turboy }: props) {
                         <Avatar isBordered radius="full" size="md" src={turboy?.avatar ? createUrlFile(turboy?.avatar ?? '', 'backend') : 'assets/images/avatar.png'} />
                         <p className="font-semibold">{turboy.nomComplet}</p>
                     </div>
-                    <p className="w-1/2 text-sm text-gray-500">Inscrit le : {turboy.dateInscrit ? formatDate(turboy.dateInscrit, 'DD/MM/YYYY') : '-'}</p>
+                    <p className="w-1/2 text-sm text-gray-500">Inscrit le : {turboy.dateInscrit ? formatDateFr(turboy.dateInscrit, 'dd/MM/yyyy') : '-'}</p>
                 </div>
 
                 <div className="flex-shrink-0 pr-8 flex-1 flex lg:justify-between items-center">
-                    <p className="text-sm text-gray-500 mr-3">Défini le : {turboy.dateDefiniEmploiTemps ? formatDate(turboy.dateDefiniEmploiTemps, 'DD/MM/YYYY') : '-'}</p>
+                    <p className="text-sm text-gray-500 mr-3">Défini le : {turboy.dateDefiniEmploiTemps ? formatDateFr(turboy.dateDefiniEmploiTemps, 'dd/MM/yyyy') : '-'}</p>
                     <div className="relative flex gap-2">
                         {progresseBare(turboy)}
                         <span className="relative flex  items-end mt-6">

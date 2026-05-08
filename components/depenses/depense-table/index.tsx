@@ -10,7 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
 import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.query';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { DollarSign } from 'lucide-react';
 
 export function DepenseTable() {
@@ -36,7 +36,7 @@ export function DepenseTable() {
                 </div>
                 <div>
                   <p className="text-sm text-green-600 font-medium">Montant Total</p>
-                  <p className="text-2xl font-bold text-green-700">{formatCFA(statsData?.montant_total || 0)}</p>
+                  <p className="text-2xl font-bold text-green-700">{formatCfa(statsData?.montant_total || 0)}</p>
                 </div>
               </div>
               <div className="text-right">

@@ -3,8 +3,7 @@
 import { AlertCircle } from 'lucide-react';
 import { Card, CardBody } from '@heroui/react';
 import { IMainKPIs, ISecondaryKPIs } from '@/features/rapports-performance/types/performance.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { formatNumber } from '@/utils/formatNumber';
+import { formatCfa, formatNombre } from '@/utils/format.utils';
 
 interface PerformanceSummarySectionProps {
   mainKPIs?: IMainKPIs;
@@ -30,8 +29,8 @@ export function PerformanceSummarySection({
               {mainKPIs && secondaryKPIs ? (
                 <>
                   Grâce à Turbo Delivery, Restaurant {selectedRestaurant || 'Tous'} a réalisé{' '}
-                  {formatNumber(mainKPIs.totalDeliveries)} livraisons pour un montant total de{' '}
-                  {formatCFA(Math.round(mainKPIs.totalOrderValue))} durant la période
+                  {formatNombre(mainKPIs.totalDeliveries)} livraisons pour un montant total de{' '}
+                  {formatCfa(Math.round(mainKPIs.totalOrderValue))} durant la période
                   sélectionnée. Le temps moyen de livraison est de {secondaryKPIs.averageDeliveryTime}{' '}
                   minutes avec un taux de succès de {mainKPIs.successRate.toFixed(1)}%.
                 </>

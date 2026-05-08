@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, DollarSign, TrendingUp, Users } from 'lucide-react';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { RestaurantSelect } from '../common/restaurant-select';
 import { useAccompteQuery } from '@/features/recouvrements/queries/accompte.query';
 import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
@@ -97,7 +97,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Accompte</p>
-                <p className="text-2xl font-bold text-green-600">{formatCFA(stats.totalAccompte)}</p>
+                <p className="text-2xl font-bold text-green-600">{formatCfa(stats.totalAccompte)}</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-600" />
             </div>
@@ -121,7 +121,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Accomptes Validés</p>
-                <p className="text-2xl font-bold text-purple-600">{formatCFA(stats.accompteValides)}</p>
+                <p className="text-2xl font-bold text-purple-600">{formatCfa(stats.accompteValides)}</p>
               </div>
               <Calendar className="h-8 w-8 text-purple-600" />
             </div>

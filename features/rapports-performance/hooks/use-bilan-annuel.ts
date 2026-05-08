@@ -1,7 +1,6 @@
 import { useBilanAnnuelQuery } from '@/features/rapports-performance/queries/bilan-annuel.query';
 import { MonthKey, IMonthStats } from '@/features/rapports-performance/types/bilan-annuel.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { formatNumber } from '@/utils/formatNumber';
+import { formatCfa, formatNombre } from '@/utils/format.utils';
 
 export interface MonthData {
   month: string;
@@ -38,7 +37,7 @@ const MONTH_CONFIG: { key: MonthKey; slug: string; label: string; num: number }[
 const formatResult = (value: number): string => {
   if (value === 0) return '0 FCFA';
   const prefix = value >= 0 ? '+ ' : '- ';
-  return `${prefix}${formatCFA(Math.round(Math.abs(value)))}`;
+  return `${prefix}${formatCfa(Math.round(Math.abs(value)))}`;
 };
 
 const toMonthData = (
@@ -52,13 +51,13 @@ const toMonthData = (
   return {
     month: slug,
     monthName: `${label} ${annee}`,
-    courses: formatNumber(stats.course_externes),
-    staff: formatNumber(stats.nombre_employees),
-    ca: hasData ? formatCFA(Math.round(stats.c_a)) : '',
-    autresEntrees: hasData ? formatCFA(Math.round(stats.autres_entrees)) : '',
-    expenses: hasData ? formatCFA(Math.round(stats.depenses)) : '',
-    reimbursements: hasData ? formatCFA(Math.round(stats.remboursement)) : '',
-    investments: hasData ? formatCFA(Math.round(stats.investissements)) : '',
+    courses: formatNombre(stats.course_externes),
+    staff: formatNombre(stats.nombre_employees),
+    ca: hasData ? formatCfa(Math.round(stats.c_a)) : '',
+    autresEntrees: hasData ? formatCfa(Math.round(stats.autres_entrees)) : '',
+    expenses: hasData ? formatCfa(Math.round(stats.depenses)) : '',
+    reimbursements: hasData ? formatCfa(Math.round(stats.remboursement)) : '',
+    investments: hasData ? formatCfa(Math.round(stats.investissements)) : '',
     progress: num,
     monthlyResult: hasData ? formatResult(stats.benefices) : '',
     cumulativeResult: hasData ? formatResult(stats.benefices_cumulees) : '',

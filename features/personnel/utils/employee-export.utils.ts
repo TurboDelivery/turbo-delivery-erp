@@ -2,7 +2,8 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import { saveAs } from 'file-saver';
 import { autoFitColumns } from '@/features/tickets/utils/export.utils';
-import { formatCfa, formatDateFr } from '@/lib/date-utils';
+import { formatCfa } from '@/utils/format.utils';
+import { formatDateFr } from '@/lib/date-utils';
 import { IEmployeeExport } from '@/features/personnel/apis/employee.api';
 
 const RED = [220, 38, 38] as const;

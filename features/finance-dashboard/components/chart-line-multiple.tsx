@@ -7,7 +7,7 @@ import { useDashboardStats } from '../hooks/use-dashboard-stats';
 import { useFinanceResumeQuery } from '../queries/finance-resume.query';
 import { YearFilter } from './year-filter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import StatSummaryCard from './stat-summary-card';
 import { createChartDot } from '../utils/chart.utils';
 
@@ -37,11 +37,11 @@ export function ChartLineMultiple() {
   });
 
   const summaryCards = [
-    { label: 'Revenus totaux', value: formatCFA(resume?.chiffreAffaire ?? 0), color: '#10b981', boldColor: '#047857' },
-    { label: 'Dépenses totales', value: formatCFA(resume?.totalDepenses ?? 0), color: '#ef4444', boldColor: '#dc2626' },
-    { label: 'Revenus encaissés', value: formatCFA(resume?.totalRevenus ?? 0), color: '#3b82f6', boldColor: '#2563eb' },
-    { label: 'Investissements', value: formatCFA(resume?.totalInvestissements ?? 0), color: '#f59e0b', boldColor: '#d97706' },
-    { label: 'Encours', value: formatCFA(resume?.totalFacturesEnCours ?? 0), color: '#8b5cf6', boldColor: '#7c3aed' },
+    { label: 'Revenus totaux', value: formatCfa(resume?.chiffreAffaire ?? 0), color: '#10b981', boldColor: '#047857' },
+    { label: 'Dépenses totales', value: formatCfa(resume?.totalDepenses ?? 0), color: '#ef4444', boldColor: '#dc2626' },
+    { label: 'Revenus encaissés', value: formatCfa(resume?.totalRevenus ?? 0), color: '#3b82f6', boldColor: '#2563eb' },
+    { label: 'Investissements', value: formatCfa(resume?.totalInvestissements ?? 0), color: '#f59e0b', boldColor: '#d97706' },
+    { label: 'Encours', value: formatCfa(resume?.totalFacturesEnCours ?? 0), color: '#8b5cf6', boldColor: '#7c3aed' },
   ];
 
   if (isError) {

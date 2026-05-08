@@ -1,6 +1,7 @@
 ﻿import { ColumnDef } from '@tanstack/react-table';
 import { IInvestissement } from '@/features/revenus/types/revenus.types';
-import { formatCFA, formatDateFR } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
+import { formatDateFr } from '@/lib/date-utils';
 import { MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -28,7 +29,7 @@ export const investissementColumns: ColumnDef<IInvestissement>[] = [
   {
     accessorKey: 'dateInvestissement',
     header: 'Date',
-    cell: (info) => <div className="font-medium">{formatDateFR(info.getValue() as string)}</div>,
+    cell: (info) => <div className="font-medium">{formatDateFr(info.getValue() as string)}</div>,
   },
   {
     accessorKey: 'nomInvestisseur',
@@ -42,7 +43,7 @@ export const investissementColumns: ColumnDef<IInvestissement>[] = [
   {
     accessorKey: 'montant',
     header: 'Montant du prêt',
-    cell: (info) => formatCFA(info.getValue() as number),
+    cell: (info) => formatCfa(info.getValue() as number),
   },
   {
     accessorKey: 'deadline',
@@ -50,7 +51,7 @@ export const investissementColumns: ColumnDef<IInvestissement>[] = [
     cell: (info) => {
       const deadline = info.getValue() as string;
       const colorClass = getDeadlineColor(deadline);
-      return <div className={colorClass}>{formatDateFR(deadline)}</div>;
+      return <div className={colorClass}>{formatDateFr(deadline)}</div>;
     },
   },
   {

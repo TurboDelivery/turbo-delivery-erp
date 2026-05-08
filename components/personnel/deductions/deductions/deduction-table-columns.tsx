@@ -2,7 +2,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@heroui/react';
 import { Pencil, Trash2, XCircle } from 'lucide-react';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
-import { formatCfa, formatDateFr } from '@/lib/date-utils';
+import { formatCfa } from '@/utils/format.utils';
+import { formatDateFr } from '@/lib/date-utils';
 import {
   getDeductionTypeLabel,
   getDeductionTypeClassName,

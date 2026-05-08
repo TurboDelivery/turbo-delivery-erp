@@ -28,14 +28,6 @@ export const formatDateFr = (value: unknown, dateFormat = 'dd MMM yyyy'): string
   return date ? format(date, dateFormat, { locale: fr }) : '-';
 };
 
-export const formatCfa = (amount: number): string => {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    maximumFractionDigits: 0,
-  }).format(amount || 0);
-};
-
 export const computeEndDateFromDays = (dateDebut: unknown, days: unknown): string => {
   const startDate = toDate(dateDebut);
   const daysNumber = typeof days === 'number' ? days : Number(days);

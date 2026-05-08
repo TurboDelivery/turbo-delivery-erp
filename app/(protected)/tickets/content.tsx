@@ -14,7 +14,9 @@ import { useLivreurs } from '@/features/tickets/hooks/use-livreurs';
 import PriceListSelect from '@/components/tickets/price-list-select';
 import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
 import { generatePdfTemplate, generateXlsTickets } from '@/features/tickets/utils/ticket-export.utils';
-import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
+import { formatDateFr } from '@/lib/date-utils';
+import { formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { CheckSquare, ChevronDown, File, FileText, Loader2, Package, Pen, Plus, Search, Trash, X } from 'lucide-react';
 import { useAbility } from '@/hooks/use-ability';
 import { useCreateBonLivraison } from '@/features/tickets/queries/tickets.mutation';
@@ -749,7 +751,7 @@ export default function Content({ restaurants, profile }: ContentProps) {
                                       className={`w-full h-9 px-2 py-1 text-xs border rounded ${!displayTicket.restaurantId ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'}`}
                                     />
                                   ) : (
-                                    formatCFA(displayTicket.montantLivraison)
+                                    formatCfa(displayTicket.montantLivraison)
                                   )}
                                 </td>
 
@@ -763,7 +765,7 @@ export default function Content({ restaurants, profile }: ContentProps) {
                                       placeholder="0 CFA"
                                     />
                                   ) : (
-                                    formatCFA(displayTicket.montantCommande)
+                                    formatCfa(displayTicket.montantCommande)
                                   )}
                                 </td>
 
@@ -778,7 +780,7 @@ export default function Content({ restaurants, profile }: ContentProps) {
                                       className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded"
                                     />
                                   ) : (
-                                    formatCFA(displayTicket?.commission ?? 0)
+                                    formatCfa(displayTicket?.commission ?? 0)
                                   )}
                                 </td>
 
@@ -792,7 +794,7 @@ export default function Content({ restaurants, profile }: ContentProps) {
                                       className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
                                     />
                                   ) : (
-                                    formatDateFR(displayTicket.date)
+                                    formatDateFr(displayTicket.date)
                                   )}
                                 </td>
 

@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Download, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { useState } from 'react';
 import { ModifierRecouvrementModal } from '@/features/revenus/components/recouvrement/recouvrement-pret/modifier-recouvrement-modal';
@@ -61,7 +61,7 @@ function ActionsCell({ recouvrement }: { recouvrement: IRecouvrement }) {
             <AlertDialogHeader>
               <AlertDialogTitle>Supprimer le recouvrement ?</AlertDialogTitle>
               <AlertDialogDescription>
-                Cette action est irréversible. Le recouvrement de <strong>{formatCFA(recouvrement.montant)}</strong> du{' '}
+                Cette action est irréversible. Le recouvrement de <strong>{formatCfa(recouvrement.montant)}</strong> du{' '}
                 <strong>{format(new Date(recouvrement.dateRecouvrement), 'dd MMM yyyy', { locale: fr })}</strong> sera définitivement supprimé.
               </AlertDialogDescription>
             </AlertDialogHeader>
@@ -108,7 +108,7 @@ export const recouvrementColumns: ColumnDef<IRecouvrement>[] = [
   {
     accessorKey: 'montant',
     header: 'Montant',
-    cell: ({ row }) => formatCFA(row.getValue('montant')),
+    cell: ({ row }) => formatCfa(row.getValue('montant')),
   },
   {
     id: 'actions',

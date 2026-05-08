@@ -4,7 +4,7 @@ import { Lock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TicketControleV2 } from '../types/tickets-v2.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 
 interface Props {
   ticket: TicketControleV2;
@@ -20,7 +20,7 @@ export default function TicketReadyCard({ ticket, onLock }: Props) {
           <span className="text-sm font-bold text-gray-900 truncate">{ticket.reference}</span>
           <span className="text-xs text-gray-500 truncate">{ticket.restaurant}</span>
         </div>
-        <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">{formatCFA(ticket.coutLivraison)}</span>
+        <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">{formatCfa(ticket.coutLivraison)}</span>
       </div>
 
       {/* Badge + action */}

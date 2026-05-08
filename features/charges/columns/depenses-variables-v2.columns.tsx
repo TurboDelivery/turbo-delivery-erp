@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Button, Chip } from '@heroui/react';
 import { Edit, Eye } from 'lucide-react';
 import { IChargeVariable } from '../types/charge-variable.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { Can } from '@/components/auth/Can';
 
@@ -39,7 +39,7 @@ export function createDepensesVariablesV2Columns({ onEdit, onApprove, onReject, 
     {
       accessorKey: 'montant',
       header: 'Montant',
-      cell: ({ row }) => <span className="text-sm font-medium text-gray-900">{formatCFA(row.getValue<number>('montant'))}</span>,
+      cell: ({ row }) => <span className="text-sm font-medium text-gray-900">{formatCfa(row.getValue<number>('montant'))}</span>,
     },
     {
       accessorKey: 'dateDepense',

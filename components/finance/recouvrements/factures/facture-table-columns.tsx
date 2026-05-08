@@ -1,6 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { IFacture } from '@/features/recouvrements/types/facture.types';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
@@ -73,7 +73,7 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
   {
     accessorKey: 'montant',
     header: 'Montant Total',
-    cell: ({ row }) => <span className="font-bold">{formatCFA(row.original.montant || 0)}</span>,
+    cell: ({ row }) => <span className="font-bold">{formatCfa(row.original.montant || 0)}</span>,
   },
   {
     accessorKey: 'restant',
@@ -84,7 +84,7 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
       
       return (
         <span className={`font-bold ${isFullyPaid ? 'text-green-600' : 'text-red-600'}`}>
-          {formatCFA(Math.max(0, montantRestant))}
+          {formatCfa(Math.max(0, montantRestant))}
         </span>
       );
     },

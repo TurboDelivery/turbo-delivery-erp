@@ -5,7 +5,7 @@ import { IconPointFilled } from '@tabler/icons-react';
 import progresseBare from '../progression/progression-barre';
 import DropDownAction from './dropDownAction';
 import { createUrlFile } from '@/utils/createUrlFile';
-import { formatDate } from '@/utils/date-formate';
+import { formatDateFr } from '@/lib/date-utils';
 function UserListeModel2({ turboy }: any) {
     return (
         <Card className="max-w-[400px] rounded-md">
@@ -18,8 +18,8 @@ function UserListeModel2({ turboy }: any) {
                 <DropDownAction id={turboy.id} />
             </CardHeader>
             <CardBody className='flex flex-col gap-2'>
-                <p className="w-1/2 text-sm text-gray-500">Inscrit le : {turboy.dateInscrit ? formatDate(turboy.dateInscrit, 'DD/MM/YYYY') : '-'}</p>
-                <p className="text-sm text-gray-500 mr-3">Défini le : {turboy.dateDefiniEmploiTemps ? formatDate(turboy.dateDefiniEmploiTemps, 'DD/MM/YYYY') : '-'}</p>
+                <p className="w-1/2 text-sm text-gray-500">Inscrit le : {turboy.dateInscrit ? formatDateFr(turboy.dateInscrit, 'dd/MM/yyyy') : '-'}</p>
+                <p className="text-sm text-gray-500 mr-3">Défini le : {turboy.dateDefiniEmploiTemps ? formatDateFr(turboy.dateDefiniEmploiTemps, 'dd/MM/yyyy') : '-'}</p>
 
             </CardBody>
             <CardFooter>

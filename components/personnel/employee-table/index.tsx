@@ -4,7 +4,7 @@ import { employeeColumns } from '@/components/personnel/employee-table/employee-
 import { Card, CardContent } from '@/components/ui/card';
 import { useEmployeeTableNew } from '@/features/personnel/hooks/use-employee-table-new';
 import { useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { DEPARTMENTS } from '@/features/personnel/constants/employee.constants';
 import { Button, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -77,7 +77,7 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
               </div>
               <div>
                 <p className="text-sm text-green-600 font-medium">Masse Salariale</p>
-                <p className="text-2xl font-bold text-green-700">{formatCFA(salaryStatsData?.totalSalary || 0)}</p>
+                <p className="text-2xl font-bold text-green-700">{formatCfa(salaryStatsData?.totalSalary || 0)}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">

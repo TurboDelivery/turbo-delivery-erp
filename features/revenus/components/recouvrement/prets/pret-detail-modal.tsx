@@ -9,7 +9,7 @@ import { IRecouvrement } from '@/features/revenus/types/recouvrement/recouvremen
 import { Building, DollarSign, Download, Eye, Hash, Loader2 } from 'lucide-react';
 import { useRecouvrementsRestaurantQuery } from '@/features/recouvrements/queries/restaurants-recouvrement-list.qurey';
 import { getFullUrlFile } from '@/utils/getFullUrlFile';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 
 interface PretDetailModalProps {
   facture: IFacture;
@@ -57,15 +57,15 @@ export function PretDetailModal({ facture }: PretDetailModalProps) {
             </div>
             <div>
               <Label className="text-sm text-gray-600">Frais de livraison</Label>
-              <Input value={formatCFA(facture.totalFraisLivraisons)} readOnly className="mt-1" />
+              <Input value={formatCfa(facture.totalFraisLivraisons)} readOnly className="mt-1" />
             </div>
             <div>
               <Label className="text-sm text-gray-600">Commission</Label>
-              <Input value={formatCFA(facture.totalCommission)} readOnly className="mt-1" />
+              <Input value={formatCfa(facture.totalCommission)} readOnly className="mt-1" />
             </div>
             <div className="col-span-2">
               <Label className="text-sm text-gray-600">Total facture</Label>
-              <Input value={formatCFA(totalFacture)} readOnly className="mt-1 font-bold text-red-600" />
+              <Input value={formatCfa(totalFacture)} readOnly className="mt-1 font-bold text-red-600" />
             </div>
           </div>
         </div>
@@ -75,11 +75,11 @@ export function PretDetailModal({ facture }: PretDetailModalProps) {
           <h3 className="font-semibold text-lg mb-3 text-blue-800">Résumé des recouvrements</h3>
           <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{formatCFA(totalRecouvre)}</div>
+              <div className="text-2xl font-bold text-green-600">{formatCfa(totalRecouvre)}</div>
               <div className="text-sm text-gray-600">Total recouvré</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{formatCFA(resteARecouvrer)}</div>
+              <div className="text-2xl font-bold text-red-600">{formatCfa(resteARecouvrer)}</div>
               <div className="text-sm text-gray-600">Reste à recouvrer</div>
             </div>
             <div className="text-center">
@@ -127,7 +127,7 @@ export function PretDetailModal({ facture }: PretDetailModalProps) {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-green-500" />
-                      <span className="font-semibold text-green-600">{formatCFA(recouv.montant)}</span>
+                      <span className="font-semibold text-green-600">{formatCfa(recouv.montant)}</span>
                     </div>
 
                     {recouv.preuve && (

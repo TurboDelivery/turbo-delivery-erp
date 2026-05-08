@@ -22,6 +22,20 @@ export function formatMontant(montant: number): string {
 }
 
 /**
+ * Formate un montant en CFA/XOF (source canonique unique)
+ * Alias de référence pour tous les consommateurs de formatCFA / formatCfa
+ */
+export function formatCfa(amount: number | string | undefined): string {
+    const n = typeof amount === 'string' ? parseFloat(amount) || 0 : (amount ?? 0);
+    return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'XOF',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(n);
+}
+
+/**
  * Formate un nombre avec séparateurs de milliers
  */
 export function formatNombre(nombre: number): string {

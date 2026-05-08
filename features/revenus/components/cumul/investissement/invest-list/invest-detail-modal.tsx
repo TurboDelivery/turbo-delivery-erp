@@ -5,7 +5,8 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 import { Calendar, DollarSign, Eye, User, Clock } from 'lucide-react';
 import { IInvestissement } from '@/features/revenus/types/revenus.types';
 import Image from 'next/image';
-import { formatCFA, formatDateFR } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
+import { formatDateFr } from '@/lib/date-utils';
 import { differenceInDays } from 'date-fns';
 
 interface InvestDetailModalProps {
@@ -83,7 +84,7 @@ export function InvestDetailModal({ investissement }: InvestDetailModalProps) {
             </div>
             <div className="flex-1">
               <p className="text-sm text-muted-foreground">Montant du prêt</p>
-              <p className="font-bold text-2xl text-green-600">{formatCFA(investissement.montant)}</p>
+              <p className="font-bold text-2xl text-green-600">{formatCfa(investissement.montant)}</p>
             </div>
           </div>
 
@@ -96,7 +97,7 @@ export function InvestDetailModal({ investissement }: InvestDetailModalProps) {
               </div>
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">Date d'investissement</p>
-                <p className="font-medium">{formatDateFR(investissement.dateInvestissement)}</p>
+                <p className="font-medium">{formatDateFr(investissement.dateInvestissement)}</p>
               </div>
             </div>
 
@@ -107,7 +108,7 @@ export function InvestDetailModal({ investissement }: InvestDetailModalProps) {
               </div>
               <div className="flex-1">
                 <p className="text-xs opacity-75">Échéance</p>
-                <p className="font-medium">{formatDateFR(investissement.deadline)}</p>
+                <p className="font-medium">{formatDateFr(investissement.deadline)}</p>
               </div>
             </div>
           </div>

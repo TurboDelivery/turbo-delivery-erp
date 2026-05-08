@@ -2,7 +2,7 @@
 
 import { Card, CardBody } from '@heroui/react';
 import { IFinancialDetails } from '@/features/rapports-performance/types/performance.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { FinancialDetailRow } from '@/features/rapports-performance/components/financial-detail-row';
 
 interface FinancialDetailsSectionProps {
@@ -23,7 +23,7 @@ function formatFinancialAmount(value?: number): string {
     return '0 FCFA';
   }
 
-  return formatCFA(Math.round(value));
+  return formatCfa(Math.round(value));
 }
 
 export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSectionProps) {

@@ -6,7 +6,7 @@ import IconSearch from '@/components/icon/icon-search';
 import React, { useState } from 'react';
 import { User } from '@/types/models';
 import { PaginatedResponse } from '@/types';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import UsersAdd from './users-add';
 import UsersTools from './users-tools';
 import { Chip } from '@heroui/react';
@@ -124,7 +124,7 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                         </div>
                         <div className="flex-auto">
                           <div className="flex-none ltr:mr-2 rtl:ml-2">Salaire :</div>
-                          <div className="">{user.salaire ? formatCFA(user.salaire) : '-'}</div>
+                          <div className="">{user.salaire ? formatCfa(user.salaire) : '-'}</div>
                         </div>
                         <div className="flex-auto">
                           <div className="flex-none ltr:mr-2 rtl:ml-2">Date d&apos;entrée :</div>

@@ -3,7 +3,7 @@
 import { Card, CardBody } from '@heroui/react';
 import { Crosshair, FileText, Receipt, Target, Wallet } from 'lucide-react';
 import { IChargeStats } from '../../types/charge-fixe.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 
 interface ChargesStatsV2Props {
   stats?: IChargeStats;
@@ -63,7 +63,7 @@ export default function ChargesStatsCardsV2({ stats, isLoading, selectedMonth }:
   const cards = [
     {
       label: 'TOTAL CHARGES FIXES MENSUELLES',
-      value: formatCFA(stats.totalMensuel),
+      value: formatCfa(stats.totalMensuel),
       sub: 'Budget cible du mois',
       bg: 'bg-blue-50 border-blue-100',
       textColor: 'text-blue-600',
@@ -72,7 +72,7 @@ export default function ChargesStatsCardsV2({ stats, isLoading, selectedMonth }:
     },
     {
       label: 'CHARGES FIXES AU PRORATA',
-      value: formatCFA(stats.chargesFixesAuProrata),
+      value: formatCfa(stats.chargesFixesAuProrata),
       sub: `Jour ${jourDuMois}/${joursTotal} du mois`,
       bg: 'bg-orange-50 border-orange-100',
       textColor: 'text-orange-600',
@@ -81,7 +81,7 @@ export default function ChargesStatsCardsV2({ stats, isLoading, selectedMonth }:
     },
     {
       label: 'DÉPENSES VARIABLES APPROUVÉES',
-      value: formatCFA(stats.sommeDepensesVariables),
+      value: formatCfa(stats.sommeDepensesVariables),
       sub: `${stats.nombreDepensesVariables} dépenses validées`,
       bg: 'bg-green-50 border-green-100',
       textColor: 'text-green-600',
@@ -90,7 +90,7 @@ export default function ChargesStatsCardsV2({ stats, isLoading, selectedMonth }:
     },
     {
       label: 'TOTAL CHARGES À DATE',
-      value: formatCFA(stats.totalChargesADate),
+      value: formatCfa(stats.totalChargesADate),
       sub: 'Prorata fixe + Variables approuvées',
       bg: 'bg-purple-50 border-purple-100',
       textColor: 'text-purple-600',

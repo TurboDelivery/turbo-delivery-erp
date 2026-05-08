@@ -4,7 +4,7 @@ import React from 'react';
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDepenseSummary } from '@/features/depenses/hooks/use-depense-summary';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { Scale, TrendingUp } from 'lucide-react';
 
 interface DepenseSummaryPieChartProps {
@@ -40,7 +40,7 @@ export function DepenseSummaryPieChart({ className }: DepenseSummaryPieChartProp
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-900">{payload[0].name}</p>
           <p className="text-sm font-bold" style={{ color: payload[0].payload.color }}>
-            {formatCFA(payload[0].value)}
+            {formatCfa(payload[0].value)}
           </p>
         </div>
       );
@@ -124,7 +124,7 @@ export function DepenseSummaryPieChart({ className }: DepenseSummaryPieChartProp
                 height={36}
                 formatter={(value, entry: any) => (
                   <span style={{ color: entry.color }}>
-                    {value}: {formatCFA(entry.payload.value)}
+                    {value}: {formatCfa(entry.payload.value)}
                   </span>
                 )}
               />
@@ -136,12 +136,12 @@ export function DepenseSummaryPieChart({ className }: DepenseSummaryPieChartProp
         <div className="mt-4 grid grid-cols-2 gap-4">
           <div className="text-center p-3 bg-green-50 rounded-lg">
             <p className="text-sm text-green-600 font-medium">Récurrentes</p>
-            <p className="text-lg font-bold text-green-700">{formatCFA(data.totalRecurrentes)}</p>
+            <p className="text-lg font-bold text-green-700">{formatCfa(data.totalRecurrentes)}</p>
             <p className="text-xs text-green-600">{total > 0 ? ((data.totalRecurrentes / total) * 100).toFixed(1) : 0}%</p>
           </div>
           <div className="text-center p-3 bg-amber-50 rounded-lg">
             <p className="text-sm text-amber-600 font-medium">Non Récurrentes</p>
-            <p className="text-lg font-bold text-amber-700">{formatCFA(data.totalNonRecurrentes)}</p>
+            <p className="text-lg font-bold text-amber-700">{formatCfa(data.totalNonRecurrentes)}</p>
             <p className="text-xs text-amber-600">{total > 0 ? ((data.totalNonRecurrentes / total) * 100).toFixed(1) : 0}%</p>
           </div>
         </div>

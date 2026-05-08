@@ -2,7 +2,7 @@
 
 import { Download, Eye, X } from 'lucide-react';
 import { IDepense } from '@/features/depenses/types/depense.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { fmtDate } from './validation.constants';
 import { TypeBadge, StatusBadge } from './validation-badges';
 import { createUrlFile } from '@/utils/createUrlFile';
@@ -24,7 +24,7 @@ export function HistoryRow({ depense }: { depense: IDepense }) {
             <h3 className="mb-1 font-semibold text-gray-900">{depense.libelle}</h3>
             <p className="mb-3 text-sm text-gray-500">{depense.categorie?.nomCategorie}</p>
             <div className="flex items-center gap-3">
-              <span className="text-lg font-bold text-blue-600">{formatCFA(depense.montant)}</span>
+              <span className="text-lg font-bold text-blue-600">{formatCfa(depense.montant)}</span>
               <StatusBadge statut={depense.statut} />
             </div>
           </div>
@@ -64,7 +64,7 @@ export function HistoryRow({ depense }: { depense: IDepense }) {
               </div>
               <div>
                 <p className="text-xs text-gray-400">Montant</p>
-                <p className="font-bold text-blue-600">{formatCFA(depense.montant)}</p>
+                <p className="font-bold text-blue-600">{formatCfa(depense.montant)}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400">Date</p>

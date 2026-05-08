@@ -8,7 +8,7 @@ import DateFilterInput from '@/components/finance/date-filter-input';
 import { useGlobalStats } from '@/features/finance-dashboard/queries/global-stats.query';
 import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
 import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { endOfMonth, startOfMonth } from 'date-fns';
 
 export default function AnalyseRentabiliteContent() {
@@ -66,13 +66,13 @@ export default function AnalyseRentabiliteContent() {
       totalNonRecurrentes,
       totalFixes,
       totalVariables,
-      formattedChiffreAffaires: formatCFA(chiffreAffaires),
-      formattedTotalDepenses: formatCFA(totalDepenses),
-      formattedMarge: formatCFA(marge),
-      formattedRecurrentes: formatCFA(totalRecurrentes),
-      formattedNonRecurrentes: formatCFA(totalNonRecurrentes),
-      formattedTotalFixes: formatCFA(totalFixes),
-      formattedTotalVariables: formatCFA(totalVariables),
+      formattedChiffreAffaires: formatCfa(chiffreAffaires),
+      formattedTotalDepenses: formatCfa(totalDepenses),
+      formattedMarge: formatCfa(marge),
+      formattedRecurrentes: formatCfa(totalRecurrentes),
+      formattedNonRecurrentes: formatCfa(totalNonRecurrentes),
+      formattedTotalFixes: formatCfa(totalFixes),
+      formattedTotalVariables: formatCfa(totalVariables),
     };
   }, [globalStats, depenseSummary, chargesFixesData]);
 
@@ -142,7 +142,7 @@ export default function AnalyseRentabiliteContent() {
               {chargesFixesData?.content?.map((charge) => (
                 <li key={charge.id} className="flex justify-between">
                   <span>{charge.designation}</span>
-                  <span>{formatCFA(charge.montant)}</span>
+                  <span>{formatCfa(charge.montant)}</span>
                 </li>
               ))}
             </ul>

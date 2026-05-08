@@ -5,7 +5,7 @@ import { memo } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -84,13 +84,13 @@ export function buildVerrouillageV2Columns(
       accessorKey: 'coutCommande',
       header: 'MONTANT CMD',
       enableSorting: false,
-      cell: ({ row }) => <span>{formatCFA(row.original.coutCommande)}</span>,
+      cell: ({ row }) => <span>{formatCfa(row.original.coutCommande)}</span>,
     },
     {
       accessorKey: 'coutLivraison',
       header: 'COMMISSION',
       enableSorting: false,
-      cell: ({ row }) => <span>{formatCFA(row.original.coutLivraison)}</span>,
+      cell: ({ row }) => <span>{formatCfa(row.original.coutLivraison)}</span>,
     },
     {
       accessorKey: 'nomZone',

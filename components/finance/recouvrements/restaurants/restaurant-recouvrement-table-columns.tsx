@@ -1,6 +1,6 @@
 ﻿import { ColumnDef } from '@tanstack/react-table';
 import { IRestaurantRecouvrement } from '@/features/recouvrements/types/restaurant-recouvrement.types';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
@@ -18,19 +18,19 @@ export const restaurantRecouvrementTableColumns: ColumnDef<IRestaurantRecouvreme
   {
     accessorKey: 'totalFraisLivraisons',
     header: 'Total Livraison',
-    cell: ({ row }) => <span>{formatCFA(row.original.totalFraisLivraisons || 0)}</span>,
+    cell: ({ row }) => <span>{formatCfa(row.original.totalFraisLivraisons || 0)}</span>,
     enableSorting: false,
   },
   {
     accessorKey: 'totalCommission',
     header: 'Total Commission',
-    cell: ({ row }) => <span>{formatCFA(row.original.totalCommission || 0)}</span>,
+    cell: ({ row }) => <span>{formatCfa(row.original.totalCommission || 0)}</span>,
     enableSorting: false,
   },
   {
     accessorKey: 'totalFacture',
     header: 'Total Facture',
-    cell: ({ row }) => <span className="font-bold">{formatCFA(row.original.totalFacture || 0)}</span>,
+    cell: ({ row }) => <span className="font-bold">{formatCfa(row.original.totalFacture || 0)}</span>,
     enableSorting: false,
   },
   {

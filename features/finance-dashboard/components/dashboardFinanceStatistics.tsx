@@ -9,7 +9,7 @@ import { DateRange } from 'react-day-picker';
 import { endOfMonth, startOfMonth } from 'date-fns';
 import CACard from './ca-card';
 import FinanceHighlightCard from './finance-highlight-card';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
 import { useFinanceResumeQuery } from '@/features/finance-dashboard/queries/finance-resume.query';
 
@@ -44,10 +44,10 @@ export default function DashboardFinanceStatistics() {
   const isDeficit = marge < 0;
   const margeStateLabel = isDeficit ? 'Déficit' : 'Excédent';
   const margeStateClassName = isDeficit ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700';
-  const formattedDepenses = formatCFA(sommeDepenses);
-  const formattedMarge = formatCFA(marge);
-  const formattedRecurrentes = formatCFA(totalRecurrentes);
-  const formattedNonRecurrentes = formatCFA(totalNonRecurrentes);
+  const formattedDepenses = formatCfa(sommeDepenses);
+  const formattedMarge = formatCfa(marge);
+  const formattedRecurrentes = formatCfa(totalRecurrentes);
+  const formattedNonRecurrentes = formatCfa(totalNonRecurrentes);
   //   const investissement = globalStats?.investissement || 0;
 
   // Titre dynamique pour la carte CA
@@ -105,19 +105,19 @@ export default function DashboardFinanceStatistics() {
         <div className="flex max-md:flex-col items-center justify-between gap-4">
           <FinanceHighlightCard
             title="Revenus encaissés"
-            value={formatCFA(resume?.totalRevenus ?? 0)}
+            value={formatCfa(resume?.totalRevenus ?? 0)}
             icon={Banknote}
             tone="blue"
           />
           <FinanceHighlightCard
             title="Investissements"
-            value={formatCFA(resume?.totalInvestissements ?? 0)}
+            value={formatCfa(resume?.totalInvestissements ?? 0)}
             icon={TrendingUp}
             tone="yellow"
           />
           <FinanceHighlightCard
             title="Encours"
-            value={formatCFA(resume?.totalFacturesEnCours ?? 0)}
+            value={formatCfa(resume?.totalFacturesEnCours ?? 0)}
             icon={Clock}
             tone="purple"
           />

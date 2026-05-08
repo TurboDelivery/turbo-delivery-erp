@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { ArrowUp, Download, Receipt, TrendingUp, Wallet } from 'lucide-react';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import CommissionBadge from './commission-badge';
 
 interface CACardProps {
@@ -83,7 +83,7 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
           <div>
             <h3 className="text-medium 2xl:text-lg font-medium text-gray-600">{title}</h3>
             <div className="flex items-center gap-2 mt-2">
-              <p className="text-2xl 2xl:text-3xl font-bold text-green-600">{formatCFA(totalAmount)}</p>
+              <p className="text-2xl 2xl:text-3xl font-bold text-green-600">{formatCfa(totalAmount)}</p>
               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-100">
                 <ArrowUp className="w-4 h-4 text-green-600" />
               </div>
@@ -124,7 +124,7 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
               </div>
               <div>
                 <span className="text-sm 2xl:text-base font-medium text-gray-700">Frais Livraison</span>
-                <div className="text-base 2xl:text-lg font-bold text-blue-600">{formatCFA(fraisLivraison)}</div>
+                <div className="text-base 2xl:text-lg font-bold text-blue-600">{formatCfa(fraisLivraison)}</div>
               </div>
             </div>
 
@@ -134,7 +134,7 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
               </div>
               <div>
                 <span className="text-sm 2xl:text-base font-medium text-gray-700">Commissions</span>
-                <div className="text-base 2xl:text-lg font-bold text-purple-600">{formatCFA(commissions)}</div>
+                <div className="text-base 2xl:text-lg font-bold text-purple-600">{formatCfa(commissions)}</div>
               </div>
             </div>
 

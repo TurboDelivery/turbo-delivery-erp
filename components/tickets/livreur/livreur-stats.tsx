@@ -1,6 +1,6 @@
 import React from 'react';
 import LivreurStatItem from './livreur-stat-item';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { useLivreurStats } from '@/features/tickets/hooks/use-livreur-stats';
 
 function LivreurStats({ totalTickets = 0 }: { totalTickets: number }) {
@@ -17,9 +17,9 @@ function LivreurStats({ totalTickets = 0 }: { totalTickets: number }) {
       {!isLoading && !isError && (
         <>
           <LivreurStatItem label="Total Tickets" value={totalTickets} />
-          <LivreurStatItem label="total livraison" value={formatCFA(totalLivraisons)} valueColor="text-orange-500" labelColor="text-orange-500" />
-          <LivreurStatItem label="commission" value={formatCFA((totalLivraisons || 0) * 0.6)} valueColor="text-blue-500" labelColor="text-blue-500" />
-          <LivreurStatItem label="Prime Hebdo" value={formatCFA(montantPrime)} valueColor="text-blue-500" labelColor="text-blue-500" />
+          <LivreurStatItem label="total livraison" value={formatCfa(totalLivraisons)} valueColor="text-orange-500" labelColor="text-orange-500" />
+          <LivreurStatItem label="commission" value={formatCfa((totalLivraisons || 0) * 0.6)} valueColor="text-blue-500" labelColor="text-blue-500" />
+          <LivreurStatItem label="Prime Hebdo" value={formatCfa(montantPrime)} valueColor="text-blue-500" labelColor="text-blue-500" />
         </>
       )}
       {isLoading && Array.from({ length: 4 }).map((_, index) => <LivreurStatItemSkeleton key={index} />)}

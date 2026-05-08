@@ -4,7 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
 import { Switch } from '@heroui/react';
 import { IChargeFixe, CyclePaiement } from '../types/charge-fixe.type';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { format } from 'date-fns';
 import { Can } from '@/components/auth/Can';
 
@@ -41,18 +41,18 @@ export function createChargesFixesV2Columns({ onEdit, onDelete, onToggle }: Char
     {
       accessorKey: 'montant',
       header: 'Montant',
-      cell: ({ row }) => <span className="text-sm font-medium text-gray-900">{formatCFA(row.getValue<number>('montant'))}</span>,
+      cell: ({ row }) => <span className="text-sm font-medium text-gray-900">{formatCfa(row.getValue<number>('montant'))}</span>,
     },
     {
       id: 'tauxJournalier',
       header: 'Taux Journalier',
-      cell: ({ row }) => <span className="text-sm text-gray-600">{formatCFA(Math.round(row.original.montant / 30))}</span>,
+      cell: ({ row }) => <span className="text-sm text-gray-600">{formatCfa(Math.round(row.original.montant / 30))}</span>,
     },
     {
       id: 'consomme',
       header: 'Consommé',
       cell: ({ row }) => {
-        return <span className="text-sm font-medium text-orange-500">{formatCFA(row.original.montantConsomme)}</span>;
+        return <span className="text-sm font-medium text-orange-500">{formatCfa(row.original.montantConsomme)}</span>;
       },
     },
     {

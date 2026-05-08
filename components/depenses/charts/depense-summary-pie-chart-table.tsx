@@ -4,7 +4,7 @@ import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatCfa } from '@/utils/format.utils';
 import { TrendingUp } from 'lucide-react';
 
 interface DepenseSummaryPieChartTableProps {
@@ -54,7 +54,7 @@ export function DepenseSummaryPieChartTable({
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-900">{payload[0].name}</p>
           <p className="text-sm font-bold" style={{ color: payload[0].payload.color }}>
-            {formatCFA(payload[0].value)}
+            {formatCfa(payload[0].value)}
           </p>
         </div>
       );
@@ -150,7 +150,7 @@ export function DepenseSummaryPieChartTable({
                   <Cell 
                     key={`cell-${index}`} 
                     fill={entry.color} 
-                    aria-label={`${entry.name}: ${formatCFA(entry.value)}`}
+                    aria-label={`${entry.name}: ${formatCfa(entry.value)}`}
                   />
                 ))}
               </Pie>
@@ -160,7 +160,7 @@ export function DepenseSummaryPieChartTable({
                 height={36}
                 formatter={(value, entry: any) => (
                   <span style={{ color: entry.color }}>
-                    {value}: {formatCFA(entry.payload.value)}
+                    {value}: {formatCfa(entry.payload.value)}
                   </span>
                 )}
                 aria-label="Légende du graphique de répartition des dépenses"
@@ -174,7 +174,7 @@ export function DepenseSummaryPieChartTable({
           <div className="text-center p-3 bg-green-50 rounded-lg">
             <p className="text-sm text-green-600 font-medium">Récurrentes</p>
             <p className="text-lg font-bold text-green-700">
-              {formatCFA(data.totalRecurrentes)}
+              {formatCfa(data.totalRecurrentes)}
             </p>
             <p className="text-xs text-green-600">
               {total > 0 ? ((data.totalRecurrentes / total) * 100).toFixed(1) : 0}%
@@ -183,7 +183,7 @@ export function DepenseSummaryPieChartTable({
           <div className="text-center p-3 bg-amber-50 rounded-lg">
             <p className="text-sm text-amber-600 font-medium">Non Récurrentes</p>
             <p className="text-lg font-bold text-amber-700">
-              {formatCFA(data.totalNonRecurrentes)}
+              {formatCfa(data.totalNonRecurrentes)}
             </p>
             <p className="text-xs text-amber-600">
               {total > 0 ? ((data.totalNonRecurrentes / total) * 100).toFixed(1) : 0}%
