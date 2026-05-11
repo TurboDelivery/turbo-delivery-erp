@@ -2,7 +2,6 @@ import { api } from '@/lib/api';
 import { PaginatedResponse } from '@/types';
 import { IDecaissementStatsResponse, IPaiement, IPaiementParams, IPaiementStats } from '../types/paiement.type';
 
-// TODO: Remplacer les endpoints par les vrais quand le backend sera prêt
 const BASE_ENDPOINT = '/erp/paiements';
 
 export interface IPaiementAPI {

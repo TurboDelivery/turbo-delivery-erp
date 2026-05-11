@@ -2,20 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { Clock } from 'lucide-react';
-import { format, getISOWeek, isSameMonth, intervalToDuration, endOfDay } from 'date-fns';
+import { addDays, endOfDay, format, getISOWeek, intervalToDuration, isSameMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { useCreneauActifQuery } from '../queries/creneau.query';
 
 const STATUT_CONFIG: Record<string, { label: string; className: string }> = {
-  OUVERT:     { label: 'Saisie en cours',  className: 'bg-orange-500 hover:bg-orange-600 text-white' },
-  VERROUILLE: { label: 'Verrouillé',       className: 'bg-red-500 hover:bg-red-600 text-white' },
-  V1_VALIDE:  { label: 'V1 Validé',        className: 'bg-blue-500 hover:bg-blue-600 text-white' },
-  V2_VALIDE:  { label: 'V2 Validé',        className: 'bg-green-600 hover:bg-green-700 text-white' },
+  OUVERT: { label: 'Saisie en cours', className: 'bg-orange-500 hover:bg-orange-600 text-white' },
+  VERROUILLE: { label: 'Verrouillé', className: 'bg-red-500 hover:bg-red-600 text-white' },
+  V1_VALIDE: { label: 'V1 Validé', className: 'bg-blue-500 hover:bg-blue-600 text-white' },
+  V2_VALIDE: { label: 'V2 Validé', className: 'bg-green-600 hover:bg-green-700 text-white' },
 };
 
-function computeCountdown(dateFin: string): string {
-  const end = endOfDay(new Date(dateFin));
+function computeCountdown(dateFin: Date): string {
+  const end = endOfDay(dateFin);
   const now = new Date();
   if (end <= now) return '0j 00h 00min';
   const { days = 0, hours = 0, minutes = 0 } = intervalToDuration({ start: now, end });
@@ -37,8 +37,9 @@ export function CreneauActifBanner() {
 
   useEffect(() => {
     if (!creneau) return;
-    setCountdown(computeCountdown(creneau.dateFin));
-    const id = setInterval(() => setCountdown(computeCountdown(creneau.dateFin)), 60_000);
+    const dateVerrouillage = addDays(creneau.dateFin, 3);
+    setCountdown(computeCountdown(dateVerrouillage));
+    const id = setInterval(() => setCountdown(computeCountdown(dateVerrouillage)), 60_000);
     return () => clearInterval(id);
   }, [creneau]);
 
@@ -56,9 +57,7 @@ export function CreneauActifBanner() {
       <div className="flex items-center gap-4 mt-2">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-500">Statut :</span>
-          <Badge className={`${statut.className} text-xs font-semibold px-2.5 py-0.5 rounded-full border-0`}>
-            {statut.label}
-          </Badge>
+          <Badge className={`${statut.className} text-xs font-semibold px-2.5 py-0.5 rounded-full border-0`}>{statut.label}</Badge>
         </div>
         {countdown && (
           <div className="flex items-center gap-1.5 text-red-500">
