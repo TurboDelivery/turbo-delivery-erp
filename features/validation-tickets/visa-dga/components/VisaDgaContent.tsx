@@ -1,7 +1,14 @@
 'use client';
 
-import { CheckCircle2, Clock, Eye, RotateCcw, Send, Star, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
+import { CalendarDays, CheckCircle2, Clock, Eye, RotateCcw, Send, Star, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import useVisaDga from '../hooks/use-visa-dga';
 import VisaDgaChaineValidation from './VisaDgaChaineValidation';
@@ -90,6 +97,10 @@ export default function VisaDgaContent() {
   const {
     creneau,
     isLoading,
+    creneaux,
+    isLoadingCreneaux,
+    selectedCreneauId,
+    setSelectedCreneauId,
     isVisant,
     isRejetant,
     vise,
@@ -142,7 +153,27 @@ export default function VisaDgaContent() {
             {formatDate(creneau.debut)} → {formatDate(creneau.fin)}
           </p>
         </div>
-        <StatutBadge statut={vise ? 'VISE' : creneau.statut} />
+        <div className="flex items-center gap-2 shrink-0">
+          <Select
+            value={selectedCreneauId ?? '__actif__'}
+            onValueChange={(v) => setSelectedCreneauId(v === '__actif__' ? undefined : v)}
+            disabled={isLoadingCreneaux}
+          >
+            <SelectTrigger className="w-full sm:w-64 gap-2 text-sm font-medium">
+              <CalendarDays className="h-4 w-4 shrink-0 text-gray-400" />
+              <SelectValue placeholder="Choisir un créneau…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__actif__">Créneau actif</SelectItem>
+              {creneaux.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <StatutBadge statut={vise ? 'VISE' : creneau.statut} />
+        </div>
       </div>
 
       {/* Two-column layout */}

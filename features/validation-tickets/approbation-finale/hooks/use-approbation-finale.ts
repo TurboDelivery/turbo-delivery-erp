@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { useCreneauActifQuery } from '@/features/creneaux/queries/creneau.query';
+import { useCreneauActifQuery, useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
 import { getGrillePaiementApi } from '@/features/validation-tickets/grille-de-paiement/apis/grille-paiement.api';
 import {
   useApprobationFinaleQuery,
@@ -15,6 +15,15 @@ import { approbationFinaleWaveColumns } from '../components/approbation-finale-w
 export default function useApprobationFinale() {
   const { data: creneauActif, isLoading: isLoadingCreneau } = useCreneauActifQuery();
 
+  const [selectedCreneauId, setSelectedCreneauId] = useState<string | undefined>(undefined);
+  const { data: creneauList, isLoading: isLoadingCreneaux } = useCreneauxListQuery();
+  const creneaux = creneauList?.content ?? [];
+
+  const resolvedCreneauId = selectedCreneauId ?? creneauActif?.id;
+  const resolvedCreneau = selectedCreneauId
+    ? (creneaux.find((c) => c.id === selectedCreneauId) ?? creneauActif)
+    : creneauActif;
+
   const {
     data: grillePages,
     isLoading: isLoadingGrille,
@@ -22,9 +31,9 @@ export default function useApprobationFinale() {
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: ['grille-paiement-approbation', creneauActif?.id] as const,
+    queryKey: ['grille-paiement-approbation', resolvedCreneauId] as const,
     queryFn: ({ pageParam = 0 }) =>
-      getGrillePaiementApi({ creneauId: creneauActif!.id, page: pageParam as number }),
+      getGrillePaiementApi({ creneauId: resolvedCreneauId!, page: pageParam as number }),
     getNextPageParam: (lastPage) => {
       if (!lastPage) return undefined;
       const { page, totalPages } = lastPage.pagination;
@@ -33,10 +42,10 @@ export default function useApprobationFinale() {
     staleTime: 60_000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
-    enabled: !!creneauActif?.id,
+    enabled: !!resolvedCreneauId,
   });
 
-  const { data: approbation } = useApprobationFinaleQuery(creneauActif?.id);
+  const { data: approbation } = useApprobationFinaleQuery(resolvedCreneauId);
   const { mutate: approuver, isPending: isApprouvant } = useApprouverEtDeclencherWaveMutation();
   const { mutate: rejeter, isPending: isRejetant } = useRejeterApprobationFinaleMutation();
 
@@ -58,16 +67,16 @@ export default function useApprobationFinale() {
   });
 
   const handleApprouver = () => {
-    if (!creneauActif?.id) return;
-    approuver(creneauActif.id, {
+    if (!resolvedCreneauId) return;
+    approuver(resolvedCreneauId, {
       onSuccess: () => setApprouverOpen(false),
     });
   };
 
   const handleRejeter = () => {
-    if (!creneauActif?.id || !motif.trim()) return;
+    if (!resolvedCreneauId || !motif.trim()) return;
     rejeter(
-      { creneauId: creneauActif.id, motif: motif.trim() },
+      { creneauId: resolvedCreneauId, motif: motif.trim() },
       {
         onSuccess: () => {
           setRejetOpen(false);
@@ -78,7 +87,11 @@ export default function useApprobationFinale() {
   };
 
   return {
-    creneauActif,
+    creneauActif: resolvedCreneau,
+    creneaux,
+    isLoadingCreneaux,
+    selectedCreneauId,
+    setSelectedCreneauId: (id: string | undefined) => setSelectedCreneauId(id),
     grilleMeta,
     waveTable,
     approbation,
@@ -86,7 +99,7 @@ export default function useApprobationFinale() {
     isFetchingNextPage,
     hasNextPage: !!hasNextPage,
     fetchNextPage,
-    soumisAuPdg: creneauActif?.statut === 'SOUMIS_PDG',
+    soumisAuPdg: resolvedCreneau?.statut === 'SOUMIS_PDG',
     approuverOpen,
     rejetOpen,
     motif,

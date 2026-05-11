@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
 import {
   useVisaDgaQuery,
   useViserEtTransmettreMutation,
@@ -13,7 +14,12 @@ export default function useVisaDga() {
   const router = useRouter();
   const { data: session } = useSession();
   const userId = session?.user?.id ?? '';
-  const { data: creneau, isLoading } = useVisaDgaQuery();
+
+  const [selectedCreneauId, setSelectedCreneauId] = useState<string | undefined>(undefined);
+  const { data: creneauList, isLoading: isLoadingCreneaux } = useCreneauxListQuery();
+  const creneaux = creneauList?.content ?? [];
+
+  const { data: creneau, isLoading } = useVisaDgaQuery(selectedCreneauId);
   const { mutate: viser, isPending: isVisant } = useViserEtTransmettreMutation();
   const { mutate: rejeter, isPending: isRejetant } = useRejeterEtRenvoyerMutation();
 
@@ -52,6 +58,10 @@ export default function useVisaDga() {
   return {
     creneau,
     isLoading,
+    creneaux,
+    isLoadingCreneaux,
+    selectedCreneauId,
+    setSelectedCreneauId: (id: string | undefined) => setSelectedCreneauId(id),
     isVisant,
     isRejetant,
     vise,
