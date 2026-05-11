@@ -5,9 +5,16 @@ import { flexRender } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
-import { CheckCircle2, Globe, Info, Loader2, Lock, ShieldCheck, XCircle } from 'lucide-react';
+import { CheckCircle2, CalendarDays, Globe, Info, Loader2, Lock, ShieldCheck, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import useApprobationFinale from '../hooks/use-approbation-finale';
 import ApprobationFinaleSignatures from './ApprobationFinaleSignatures';
 import ApprobationFinaleApprouverModal from './ApprobationFinaleApprouverModal';
@@ -31,6 +38,10 @@ function formatHorodatage(iso: string) {
 export default function ApprobationFinaleContent() {
   const {
     creneauActif,
+    creneaux,
+    isLoadingCreneaux,
+    selectedCreneauId,
+    setSelectedCreneauId,
     grilleMeta,
     waveTable,
     approbation,
@@ -81,15 +92,35 @@ export default function ApprobationFinaleContent() {
           <Skeleton className="h-4 w-56" />
         </>
       ) : (
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-red-500">
-            Approbation finale{creneauActif ? ` — Créneau ${creneauActif.label}` : ''}
-          </h1>
-          {creneauActif && (
-            <p className="text-sm text-gray-400 mt-0.5">
-              {formatPeriode(creneauActif.dateDebut, creneauActif.dateFin)} · Visé par le DGA
-            </p>
-          )}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-red-500">
+              Approbation finale{creneauActif ? ` — Créneau ${creneauActif.label}` : ''}
+            </h1>
+            {creneauActif && (
+              <p className="text-sm text-gray-400 mt-0.5">
+                {formatPeriode(creneauActif.dateDebut, creneauActif.dateFin)} · Visé par le DGA
+              </p>
+            )}
+          </div>
+          <Select
+            value={selectedCreneauId ?? '__actif__'}
+            onValueChange={(v) => setSelectedCreneauId(v === '__actif__' ? undefined : v)}
+            disabled={isLoadingCreneaux}
+          >
+            <SelectTrigger className="w-full sm:w-64 gap-2 text-sm font-medium">
+              <CalendarDays className="h-4 w-4 shrink-0 text-gray-400" />
+              <SelectValue placeholder="Choisir un créneau…" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__actif__">Créneau actif</SelectItem>
+              {creneaux.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       )}
 
