@@ -22,11 +22,13 @@ export type AppSubjects =
   | 'Notification'
   | 'Creneau'
   | 'Performance'
+  | 'ValidationTicket'
+  | 'GrillePaiement'
   | 'all';
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
-export const APP_ROLES = ['STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER'] as const;
+export const APP_ROLES = ['STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
@@ -40,6 +42,8 @@ const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
   BUSINESS_DEVELOPER: 'BUSINESS_DEVELOPER',
   'BUSINESS DEVELOPER': 'BUSINESS_DEVELOPER',
   "CENTRALE D'APPEL": 'STANDARD',
+  'RESPONSABLE V&A': 'RESPONSABLE_VA',
+  'RESPONSBALE V&A': 'RESPONSABLE_VA',
 };
 
 export function normalizeRole(raw?: string | { libelle?: string } | null): AppRole | null {
@@ -75,6 +79,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('authentifier', 'Ticket');
       can('manage', 'Creneau');
       can('manage', 'Performance');
+      can('manage', 'ValidationTicket');
+      can('manage', 'GrillePaiement');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 
@@ -86,6 +92,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('decaisser', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('create', 'Ticket');
       can('read', 'Ticket');
+      can('read', 'ValidationTicket');
+      can('read', 'GrillePaiement');
       can('manage', 'Personnel');
       can('read', 'Finance');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
@@ -98,6 +106,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('authentifier', 'Ticket');
       can('manage', 'Creneau');
       can('manage', 'Performance');
+      can('manage', 'ValidationTicket');
+      can('manage', 'GrillePaiement');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 
@@ -114,6 +124,19 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('create', 'Ticket');
       can('read', 'Ticket');
       can('manage', 'Creneau');
+      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
+      break;
+
+    case 'RESPONSABLE_VA':
+      can('manage', 'Ticket');
+      can('authentifier', 'Ticket');
+      can('manage', 'ValidationTicket');
+      can('manage', 'Livreur');
+      can('read', 'Creneau');
+      can('manage', 'Performance');
+      can('manage', 'Restaurant');
+      can('valider', 'Restaurant');
+      can('manage', 'Trafic');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 
