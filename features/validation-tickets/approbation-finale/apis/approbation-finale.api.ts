@@ -14,19 +14,19 @@ export async function getApprobationFinaleApi(creneauId?: string): Promise<IAppr
   }
 }
 
-export async function approuverEtDeclencherWaveApi(creneauId: string): Promise<void> {
+export async function approuverEtDeclencherWaveApi(lotId: string, userId: string): Promise<void> {
   return apiClientHttp.request<void>({
-    endpoint: `/api/erp/creneaux/${creneauId}/approbation-finale/approuver`,
+    endpoint: `/api/lots/${lotId}/approuver-dg`,
     method: 'POST',
-    service: 'erp',
+    config: { headers: { 'X-User-Id': userId } },
   });
 }
 
-export async function rejeterApprobationFinaleApi(creneauId: string, motif: string): Promise<void> {
+export async function rejeterApprobationFinaleApi(lotId: string, motif: string, userId: string): Promise<void> {
   return apiClientHttp.request<void>({
-    endpoint: `/api/erp/creneaux/${creneauId}/approbation-finale/rejeter`,
+    endpoint: `/api/lots/${lotId}/rejeter-dg`,
     method: 'POST',
-    service: 'erp',
-    data: { motif },
+    data: { commentaireRejet: motif },
+    config: { headers: { 'X-User-Id': userId } },
   });
 }

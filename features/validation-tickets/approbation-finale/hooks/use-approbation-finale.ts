@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { useSession } from 'next-auth/react';
 import { useCreneauActifQuery, useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
 import { getGrillePaiementApi } from '@/features/validation-tickets/grille-de-paiement/apis/grille-paiement.api';
 import {
@@ -13,6 +14,9 @@ import {
 import { approbationFinaleWaveColumns } from '../components/approbation-finale-wave-columns';
 
 export default function useApprobationFinale() {
+  const { data: session } = useSession();
+  const userId = session?.user?.id ?? '';
+
   const { data: creneauActif, isLoading: isLoadingCreneau } = useCreneauActifQuery();
 
   const [selectedCreneauId, setSelectedCreneauId] = useState<string | undefined>(undefined);
@@ -70,16 +74,18 @@ export default function useApprobationFinale() {
   const handleCreneauChange = useCallback((id: string | undefined) => setSelectedCreneauId(id), []);
 
   const handleApprouver = () => {
-    if (!resolvedCreneauId) return;
-    approuver(resolvedCreneauId, {
+    const lotId = grilleMeta?.lotId;
+    if (!lotId || !userId) return;
+    approuver({ lotId, userId }, {
       onSuccess: () => setApprouverOpen(false),
     });
   };
 
   const handleRejeter = () => {
-    if (!resolvedCreneauId || !motif.trim()) return;
+    const lotId = grilleMeta?.lotId;
+    if (!lotId || !userId || !motif.trim()) return;
     rejeter(
-      { creneauId: resolvedCreneauId, motif: motif.trim() },
+      { lotId, motif: motif.trim(), userId },
       {
         onSuccess: () => {
           setRejetOpen(false);
