@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getGrillePaiementApi, soumettrGrillePaiementApi, updateNumeroWaveApi } from '../apis/grille-paiement.api';
+import { getGrillePaiementApi, soumettrGrillePaiementApi, updateNumeroWaveApi, validerLigneApi } from '../apis/grille-paiement.api';
 import { IGrillePaiementParams, IUpdateNumeroWaveParams } from '../types/grille-paiement.type';
 
 export const grillePaiementKeys = {
@@ -45,6 +45,24 @@ export const useSoumettreGrilleMutation = () => {
       const serverMsg = error?.response?.data?.message ?? error?.response?.data ?? null;
       toast.error('Erreur lors de la soumission', {
         description: serverMsg ? String(serverMsg) : error?.message ?? 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+export const useValiderLigneMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ lotId, turboyId, userId }: { lotId: string; turboyId: string; userId: string }) =>
+      validerLigneApi(lotId, turboyId, userId),
+    onSuccess: () => {
+      toast.success('Ligne validée avec succès');
+      queryClient.invalidateQueries({ queryKey: grillePaiementKeys.all });
+    },
+    onError: (error: any) => {
+      const serverMsg = error?.response?.data?.message ?? null;
+      toast.error('Erreur lors de la validation', {
+        description: serverMsg ?? error?.message ?? 'Erreur inconnue',
       });
     },
   });

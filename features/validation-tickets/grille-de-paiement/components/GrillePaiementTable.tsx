@@ -10,8 +10,9 @@ import {
   TableRow,
   TableCell,
 } from '@heroui/react';
-import { AlertCircle, CheckCircle2, AlertTriangle, Pencil } from 'lucide-react';
+import { AlertCircle, CheckCircle2, AlertTriangle, Pencil, ShieldCheck } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { IGrillePaiementLigne } from '../types/grille-paiement.type';
 
@@ -23,6 +24,7 @@ interface Props {
   onToggleAll: () => void;
   onRowClick: (ligne: IGrillePaiementLigne) => void;
   onUpdateWave: (turboyId: string, value: string) => void;
+  onValiderLigne: (ligne: IGrillePaiementLigne) => void;
   waveManquants: number;
 }
 
@@ -82,6 +84,7 @@ export default function GrillePaiementTable({
   onToggleAll,
   onRowClick,
   onUpdateWave,
+  onValiderLigne,
   waveManquants,
 }: Props) {
   const columns = useMemo<ColumnDef<IGrillePaiementLigne>[]>(
@@ -197,12 +200,30 @@ export default function GrillePaiementTable({
         ),
       },
       {
+        id: 'action',
+        header: '',
+        cell: ({ row }) =>
+          row.original.flagAttente ? (
+            <div onClick={(e) => e.stopPropagation()}>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800 text-xs"
+                onClick={() => onValiderLigne(row.original)}
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Valider
+              </Button>
+            </div>
+          ) : null,
+      },
+      {
         id: 'arrow',
         header: '',
         cell: () => <span className="text-gray-300">›</span>,
       },
     ],
-    [allChecked, checkedIds, onToggle, onToggleAll, onUpdateWave],
+    [allChecked, checkedIds, onToggle, onToggleAll, onUpdateWave, onValiderLigne],
   );
 
   const table = useReactTable({
@@ -254,6 +275,7 @@ export default function GrillePaiementTable({
               className={cn(
                 'cursor-pointer hover:bg-gray-50',
                 checkedIds.has(row.original.id) && 'bg-gray-50/70',
+                row.original.flagAttente && 'bg-amber-50 hover:bg-amber-100',
               )}
             >
               {row.getVisibleCells().map((cell) => (

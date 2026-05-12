@@ -39,6 +39,7 @@ export interface IGrillePaiementLigne {
   netAPayer: number;
   numeroWave?: string;
   statut: StatutLignePaiement;
+  flagAttente?: boolean;
   checked: boolean;
   ticketDetails: IGrillePaiementTicketDetail[];
   bonusEligibilite: IBonusEligibilite;

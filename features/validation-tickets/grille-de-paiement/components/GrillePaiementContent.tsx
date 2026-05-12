@@ -18,6 +18,7 @@ import GrillePaiementDetailModal from './GrillePaiementDetailModal';
 import GrillePaiementSubmitFooter from './GrillePaiementSubmitFooter';
 import GrillePaiementExportButton from './GrillePaiementExportButton';
 import SoumettreConfirmModal from './SoumettreConfirmModal';
+import ValiderLigneConfirmModal from './ValiderLigneConfirmModal';
 
 export default function GrillePaiementContent() {
   const {
@@ -49,6 +50,11 @@ export default function GrillePaiementContent() {
     setCommentaire,
     handleConfirmerSoumission,
     soumis,
+    ligneAValider,
+    handleValiderLigne,
+    handleConfirmerValidation,
+    closeConfirmValidation,
+    isValidating,
   } = useGrillePaiement();
 
   if (isLoading) return <GrillePaiementSkeleton />;
@@ -125,6 +131,7 @@ export default function GrillePaiementContent() {
             onToggleAll={toggleAll}
             onRowClick={openDetail}
             onUpdateWave={updateWave}
+            onValiderLigne={handleValiderLigne}
             waveManquants={waveManquants}
           />
 
@@ -167,6 +174,14 @@ export default function GrillePaiementContent() {
         }}
         commentaire={commentaire}
         onCommentaireChange={setCommentaire}
+      />
+
+      <ValiderLigneConfirmModal
+        open={!!ligneAValider}
+        ligne={ligneAValider}
+        isLoading={isValidating}
+        onClose={closeConfirmValidation}
+        onConfirm={handleConfirmerValidation}
       />
     </div>
   );

@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
-import { useGrillePaiementQuery, useSoumettreGrilleMutation, useUpdateNumeroWaveMutation } from '../queries/grille-paiement.query';
+import { useGrillePaiementQuery, useSoumettreGrilleMutation, useUpdateNumeroWaveMutation, useValiderLigneMutation } from '../queries/grille-paiement.query';
 import { IGrillePaiementLigne } from '../types/grille-paiement.type';
 
 export default function useGrillePaiement() {
@@ -18,6 +18,7 @@ export default function useGrillePaiement() {
   const { data: grille, isLoading } = useGrillePaiementQuery({ creneauId: selectedCreneauId, page });
   const { mutate: soumettre, isPending: isSoumettant } = useSoumettreGrilleMutation();
   const { mutate: persistWave } = useUpdateNumeroWaveMutation();
+  const { mutate: validerLigne, isPending: isValidating } = useValiderLigneMutation();
 
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [selectedLigne, setSelectedLigne] = useState<IGrillePaiementLigne | null>(null);
@@ -25,6 +26,7 @@ export default function useGrillePaiement() {
   const [commentaire, setCommentaire] = useState('');
   const [soumis, setSoumis] = useState(false);
   const [waveOverrides, setWaveOverrides] = useState<Map<string, string>>(new Map());
+  const [ligneAValider, setLigneAValider] = useState<IGrillePaiementLigne | null>(null);
 
   const handleCreneauChange = useCallback((id: string | undefined) => {
     setSelectedCreneauId(id);
@@ -87,6 +89,16 @@ export default function useGrillePaiement() {
     setConfirmOpen(true);
   };
 
+  const handleValiderLigne = (ligne: IGrillePaiementLigne) => setLigneAValider(ligne);
+
+  const handleConfirmerValidation = () => {
+    if (!ligneAValider || !grille?.lotId) return;
+    validerLigne(
+      { lotId: grille.lotId, turboyId: ligneAValider.turboy.id, userId },
+      { onSuccess: () => setLigneAValider(null) },
+    );
+  };
+
   const handleConfirmerSoumission = () => {
     if (!grille) return;
     soumettre(
@@ -130,5 +142,10 @@ export default function useGrillePaiement() {
     setCommentaire,
     handleConfirmerSoumission,
     soumis,
+    ligneAValider,
+    handleValiderLigne,
+    handleConfirmerValidation,
+    closeConfirmValidation: () => setLigneAValider(null),
+    isValidating,
   };
 }

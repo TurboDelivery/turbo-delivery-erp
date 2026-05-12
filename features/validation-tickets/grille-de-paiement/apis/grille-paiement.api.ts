@@ -38,6 +38,7 @@ type GrillePaiementVmRaw = {
       netAPayer: number;
       numeroWave?: string;
       statut?: string;
+      flagAttente?: boolean;
       ticketDetails?: Array<{ ref: string; partenaire: string; date: string; commission: number }>;
       bonusEligibilite?: IGrillePaiementLigne['bonusEligibilite'];
     }>;
@@ -101,6 +102,7 @@ export async function getGrillePaiementApi(
         netAPayer: l.netAPayer,
         numeroWave: l.numeroWave,
         statut: (l.statut as StatutLignePaiement) ?? (l.numeroWave ? 'OK' : 'WAVE_MANQUANT'),
+        flagAttente: l.flagAttente ?? false,
         checked: false,
         ticketDetails: l.ticketDetails ?? [],
         bonusEligibilite: l.bonusEligibilite ?? {
@@ -120,6 +122,14 @@ export async function getGrillePaiementApi(
 export async function soumettrGrillePaiementApi(creneauId: string, userId: string): Promise<void> {
   return apiClientHttp.request<void>({
     endpoint: `/api/creneaux/${creneauId}/soumettre`,
+    method: 'POST',
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
+export async function validerLigneApi(lotId: string, turboyId: string, userId: string): Promise<void> {
+  return apiClientHttp.request<void>({
+    endpoint: `/api/lots/${lotId}/valider-ligne/${turboyId}`,
     method: 'POST',
     config: { headers: { 'X-User-Id': userId } },
   });
