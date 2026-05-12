@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { useCreneauActifQuery, useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
@@ -40,6 +40,7 @@ export default function useApprobationFinale() {
       return page + 1 < totalPages ? page + 1 : undefined;
     },
     staleTime: 60_000,
+    refetchInterval: 120_000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     enabled: !!resolvedCreneauId,
@@ -66,6 +67,8 @@ export default function useApprobationFinale() {
     getCoreRowModel: getCoreRowModel(),
   });
 
+  const handleCreneauChange = useCallback((id: string | undefined) => setSelectedCreneauId(id), []);
+
   const handleApprouver = () => {
     if (!resolvedCreneauId) return;
     approuver(resolvedCreneauId, {
@@ -91,7 +94,7 @@ export default function useApprobationFinale() {
     creneaux,
     isLoadingCreneaux,
     selectedCreneauId,
-    setSelectedCreneauId: (id: string | undefined) => setSelectedCreneauId(id),
+    setSelectedCreneauId: handleCreneauChange,
     grilleMeta,
     waveTable,
     approbation,
@@ -109,10 +112,7 @@ export default function useApprobationFinale() {
     openApprouver: () => setApprouverOpen(true),
     closeApprouver: () => setApprouverOpen(false),
     openRejet: () => setRejetOpen(true),
-    closeRejet: () => {
-      setRejetOpen(false);
-      setMotif('');
-    },
+    closeRejet: () => { setRejetOpen(false); setMotif(''); },
     handleApprouver,
     handleRejeter,
   };
