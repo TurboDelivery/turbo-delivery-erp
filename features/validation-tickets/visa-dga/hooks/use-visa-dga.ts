@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
@@ -27,6 +27,8 @@ export default function useVisaDga() {
   const [viserOpen, setViserOpen] = useState(false);
   const [motif, setMotif] = useState('');
   const [vise, setVise] = useState(false);
+
+  const handleCreneauChange = useCallback((id: string | undefined) => setSelectedCreneauId(id), []);
 
   const handleViser = () => {
     if (!creneau?.lotId || creneau.statut !== 'SOUMIS_DGA') return;
@@ -61,7 +63,7 @@ export default function useVisaDga() {
     creneaux,
     isLoadingCreneaux,
     selectedCreneauId,
-    setSelectedCreneauId: (id: string | undefined) => setSelectedCreneauId(id),
+    setSelectedCreneauId: handleCreneauChange,
     isVisant,
     isRejetant,
     vise,
@@ -70,10 +72,7 @@ export default function useVisaDga() {
     motif,
     setMotif,
     openRejet: () => setRejetOpen(true),
-    closeRejet: () => {
-      setRejetOpen(false);
-      setMotif('');
-    },
+    closeRejet: () => { setRejetOpen(false); setMotif(''); },
     openViser: () => setViserOpen(true),
     closeViser: () => setViserOpen(false),
     handleViser,

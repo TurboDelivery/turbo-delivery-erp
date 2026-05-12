@@ -15,6 +15,7 @@ export const useVisaDgaQuery = (creneauId?: string) => {
     queryKey: visaDgaKeys.detail(creneauId),
     queryFn: () => getVisaDgaApi(creneauId),
     staleTime: 60_000,
+    refetchInterval: 120_000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });

@@ -1,7 +1,6 @@
 'use client';
 
-import { CalendarDays, CheckCircle2, Clock, Eye, RotateCcw, Send, Star, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { CalendarDays } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -10,87 +9,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
 import useVisaDga from '../hooks/use-visa-dga';
+import StatMini from './StatMini';
+import LivreurRow from './LivreurRow';
+import VisaDgaStatutBadge from './VisaDgaStatutBadge';
+import VisaDgaActionBar from './VisaDgaActionBar';
+import VisaDgaStatusAlert from './VisaDgaStatusAlert';
 import VisaDgaChaineValidation from './VisaDgaChaineValidation';
 import VisaDgaRejetModal from './VisaDgaRejetModal';
 import VisaDgaViserModal from './VisaDgaViserModal';
-import { IVisaDgaCreneau } from '../types/visa-dga.type';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
-}
-
-interface StatMiniProps {
-  label: string;
-  value: string | number;
-  sub?: string;
-  icon: React.ElementType;
-  highlight?: boolean;
-}
-
-function StatMini({ label, value, sub, icon: Icon, highlight }: StatMiniProps) {
-  return (
-    <div className="flex flex-col  ">
-      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</span>
-      <span
-        className={[
-          'text-base sm:text-xl font-bold break-words',
-          highlight ? 'text-green-600' : 'text-gray-900',
-        ].join(' ')}
-      >
-        {value}
-        {sub && <span className="ml-1 text-sm font-medium text-gray-500">{sub}</span>}
-      </span>
-    </div>
-  );
-}
-
-interface LivreurRowProps {
-  nom: string;
-  tickets: number;
-  numeroWave: string;
-  netAPayer: number;
-  bonus: boolean;
-}
-
-function LivreurRow({ nom, tickets, numeroWave, netAPayer, bonus }: LivreurRowProps) {
-  return (
-    <div className="flex items-center gap-3 justify-between py-2.5 border-b last:border-0">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-gray-800 truncate">{nom}</p>
-        <p className="text-[11px] text-gray-400 mt-0.5 truncate">
-          {tickets} tickets · {numeroWave}
-        </p>
-      </div>
-      <div className="flex items-center gap-2">
-        {bonus && (
-          <span className="flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-600 uppercase">
-            <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" />
-            BONUS
-          </span>
-        )}
-        <span className="text-sm font-bold text-green-600">
-          {netAPayer.toLocaleString('fr-FR')} FCFA
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function StatutBadge({ statut }: { statut: IVisaDgaCreneau['statut'] }) {
-  const map: Record<IVisaDgaCreneau['statut'], { label: string; className: string }> = {
-    EN_ATTENTE:       { label: 'EN ATTENTE',     className: 'bg-gray-200 text-gray-600' },
-    CALCUL_EN_COURS:  { label: 'CALCUL EN COURS', className: 'bg-blue-100 text-blue-700' },
-    SOUMIS_DGA:       { label: 'SOUMIS DGA',      className: 'bg-amber-500 text-white' },
-    VISE:             { label: 'VISÉ',            className: 'bg-green-500 text-white' },
-    REJETE:           { label: 'REJETÉ',          className: 'bg-red-500 text-white' },
-  };
-  const { label, className } = map[statut];
-  return (
-    <span className={`rounded px-3 py-1.5 text-xs font-bold uppercase tracking-wide ${className}`}>
-      {label}
-    </span>
-  );
 }
 
 export default function VisaDgaContent() {
@@ -146,8 +77,7 @@ export default function VisaDgaContent() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl font-bold text-red-500">
-            Visa DGA —{' '}
-            <span className="text-red-500">{creneau.code}</span>
+            Visa DGA — <span className="text-red-500">{creneau.code}</span>
           </h1>
           <p className="text-sm text-gray-400 mt-0.5">
             {formatDate(creneau.debut)} → {formatDate(creneau.fin)}
@@ -172,7 +102,7 @@ export default function VisaDgaContent() {
               ))}
             </SelectContent>
           </Select>
-          <StatutBadge statut={vise ? 'VISE' : creneau.statut} />
+          <VisaDgaStatutBadge statut={vise ? 'VISE' : creneau.statut} />
         </div>
       </div>
 
@@ -181,97 +111,42 @@ export default function VisaDgaContent() {
         {/* Left — Récapitulatif + liste livreurs */}
         <div className="flex flex-col gap-4 flex-1 min-w-0">
           <div className="rounded-xl border border-gray-200 bg-white p-5">
-            {/* Section title */}
             <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-4">
               Récapitulatif consolidé
             </p>
 
-            {/* Stats row */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 border-b border-gray-100 pb-5 mb-5">
-              <StatMini label="Livreurs"    value={creneau.stats.totalLivreurs}               icon={Users}      />
-              <StatMini label="Tickets"     value={creneau.stats.totalTickets}                icon={Ticket}     />
-              <StatMini label="Total Brut"  value={creneau.stats.totalBrut.toLocaleString('fr-FR')}    sub="FCFA" icon={Wallet}     />
-              <StatMini label="Total Net"   value={creneau.stats.totalNet.toLocaleString('fr-FR')}     sub="FCFA" icon={TrendingUp} highlight />
+              <StatMini label="Livreurs"   value={creneau.stats.totalLivreurs}                          icon={Users}      />
+              <StatMini label="Tickets"    value={creneau.stats.totalTickets}                           icon={Ticket}     />
+              <StatMini label="Total Brut" value={creneau.stats.totalBrut.toLocaleString('fr-FR')} sub="FCFA" icon={Wallet}     />
+              <StatMini label="Total Net"  value={creneau.stats.totalNet.toLocaleString('fr-FR')}  sub="FCFA" icon={TrendingUp} highlight />
             </div>
 
-            {/* Top livreurs */}
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 bg-white mb-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
               Top livreurs
             </p>
-            <div className=''>
-              {creneau.livreurs.map((l) => (
-                <LivreurRow
-                  key={l.id}
-                  nom={l.nom}
-                  tickets={l.tickets}
-                  numeroWave={l.numeroWave}
-                  netAPayer={l.netAPayer}
-                  bonus={l.bonus}
-                />
-              ))}
-            </div>
+            {creneau.livreurs.map((l) => (
+              <LivreurRow key={l.id} {...l} />
+            ))}
           </div>
 
-          {/* Action buttons */}
           {!vise && creneau.statut === 'SOUMIS_DGA' && (
-            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <Button
-                variant="default"
-                className="bg-green-600 hover:bg-green-700 text-white gap-2"
-                onClick={handleVoirGrille}
-              >
-                <Eye className="h-4 w-4" />
-                Voir grille complète
-              </Button>
-
-              <Button
-                variant="outline"
-                className="gap-2 text-gray-600"
-                onClick={openRejet}
-                disabled={isRejetant}
-              >
-                <RotateCcw className="h-4 w-4" />
-                Rejeter et renvoyer
-              </Button>
-
-              <Button
-                variant="default"
-                className="sm:ml-auto bg-red-600 hover:bg-red-700 text-white gap-2"
-                onClick={openViser}
-                disabled={isVisant}
-              >
-                <Send className="h-4 w-4" />
-                Valider et transmettre au PDG
-              </Button>
-            </div>
+            <VisaDgaActionBar
+              isVisant={isVisant}
+              isRejetant={isRejetant}
+              onVoirGrille={handleVoirGrille}
+              onRejeter={openRejet}
+              onViser={openViser}
+            />
           )}
 
-          {(creneau.statut === 'EN_ATTENTE' || creneau.statut === 'CALCUL_EN_COURS') && !vise && (
-            <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
-              <Clock className="h-5 w-5 text-blue-400 shrink-0" />
-              <p className="text-sm font-medium text-blue-700">
-                {creneau.statut === 'EN_ATTENTE'
-                  ? 'Dossier en attente — la comptabilité doit soumettre la grille au DGA avant que vous puissiez agir.'
-                  : 'Calcul de la grille en cours — en attente de soumission au DGA par la comptabilité.'}
-              </p>
-            </div>
-          )}
-
-          {(vise || creneau.statut === 'VISE') && (
-            <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 px-5 py-4">
-              <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-              <p className="text-sm font-medium text-green-700">
-                Visa DGA apposé — dossier transmis au PDG pour approbation finale.
-              </p>
-            </div>
-          )}
+          <VisaDgaStatusAlert statut={creneau.statut} vise={vise} />
         </div>
 
         {/* Right — Chaîne de validation */}
         <VisaDgaChaineValidation etapes={creneau.chaineValidation} />
       </div>
 
-      {/* Modal viser */}
       <VisaDgaViserModal
         open={viserOpen}
         onClose={closeViser}
@@ -285,7 +160,6 @@ export default function VisaDgaContent() {
         }}
       />
 
-      {/* Modal rejet */}
       <VisaDgaRejetModal
         open={rejetOpen}
         onClose={closeRejet}
