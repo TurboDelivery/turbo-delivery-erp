@@ -114,7 +114,10 @@
       "Bash(gh pr create --title 'chore: remove dead code, fix typos, and consolidate shared utils \\(SOLID DRY\\)' --body ' *)",
       "Bash(gh pr *)",
       "Bash(git worktree *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(Select-Object -Property FullName)",
+      "Bash(ConvertTo-Json)",
+      "Bash(Format-Table -AutoSize)"
     ]
   }
 }

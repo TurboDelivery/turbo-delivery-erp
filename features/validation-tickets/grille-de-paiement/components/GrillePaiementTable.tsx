@@ -23,7 +23,6 @@ interface Props {
   onToggleAll: () => void;
   onRowClick: (ligne: IGrillePaiementLigne) => void;
   onUpdateWave: (turboyId: string, value: string) => void;
-  totaux: { tickets: number; brut: number; deductions: number; net: number };
   waveManquants: number;
 }
 
@@ -83,7 +82,6 @@ export default function GrillePaiementTable({
   onToggleAll,
   onRowClick,
   onUpdateWave,
-  totaux,
   waveManquants,
 }: Props) {
   const columns = useMemo<ColumnDef<IGrillePaiementLigne>[]>(

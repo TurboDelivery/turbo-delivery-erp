@@ -12,7 +12,7 @@ function formatNumber(n: number) {
 interface Props {
   open: boolean;
   onClose: () => void;
-  onConfirm: (commentaire: string) => void;
+  onConfirm: () => void;
   isLoading: boolean;
   totaux: {
     livreurs: number;
@@ -91,7 +91,7 @@ export default function SoumettreConfirmModal({
             Annuler
           </Button>
           <Button
-            onClick={() => onConfirm(commentaire)}
+            onClick={onConfirm}
             disabled={isLoading}
             className="bg-red-500 text-white hover:bg-red-600"
           >

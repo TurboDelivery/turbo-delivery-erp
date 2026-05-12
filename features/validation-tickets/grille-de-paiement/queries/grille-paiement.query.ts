@@ -16,6 +16,7 @@ export const useGrillePaiementQuery = (params?: IGrillePaiementParams) => {
     queryKey: grillePaiementKeys.detail(params),
     queryFn: () => getGrillePaiementApi(params),
     staleTime: 60_000,
+    refetchInterval: 120_000,
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });

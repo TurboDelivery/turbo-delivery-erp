@@ -28,14 +28,13 @@ function StatCard({ label, value, sub, icon: Icon, className }: StatCardProps) {
 
 interface Props {
   stats: IGrillePaiementCreneau['stats'];
-  totalTickets: number;
 }
 
-export default function GrillePaiementStats({ stats, totalTickets }: Props) {
+export default function GrillePaiementStats({ stats }: Props) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       <StatCard label="Livreurs" value={stats.totalLivreurs} icon={Users} />
-      <StatCard label="Tickets" value={totalTickets} icon={Ticket} />
+      <StatCard label="Tickets" value={stats.totalTickets} icon={Ticket} />
       <StatCard label="Total Brut" value={stats.totalBrut.toLocaleString('fr-FR')} sub="FCFA" icon={Wallet} />
       <StatCard label="Total Net" value={stats.totalNet.toLocaleString('fr-FR')} sub="FCFA" icon={TrendingUp} className="ring-1 ring-green-400" />
       <StatCard label="Wave manquants" value={stats.waveManquants} icon={Phone} className="ring-1 ring-red-600 col-span-2 sm:col-span-1" />

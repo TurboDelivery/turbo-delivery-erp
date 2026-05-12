@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
 import { useGrillePaiementQuery, useSoumettreGrilleMutation, useUpdateNumeroWaveMutation } from '../queries/grille-paiement.query';
@@ -24,8 +24,12 @@ export default function useGrillePaiement() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [commentaire, setCommentaire] = useState('');
   const [soumis, setSoumis] = useState(false);
-  // turboyId → numeroWave override (local edits not yet persisted to backend)
   const [waveOverrides, setWaveOverrides] = useState<Map<string, string>>(new Map());
+
+  const handleCreneauChange = useCallback((id: string | undefined) => {
+    setSelectedCreneauId(id);
+    setPage(0);
+  }, []);
 
   const toggleCheck = (id: string) => {
     setCheckedIds((prev) => {
@@ -37,16 +41,13 @@ export default function useGrillePaiement() {
   };
 
   const updateWave = (turboyId: string, value: string) => {
-    // Optimistic local update
     setWaveOverrides((prev) => new Map(prev).set(turboyId, value));
-    // Persist to backend (requires the active creneauId)
     const creneauId = selectedCreneauId ?? grille?.id;
     if (creneauId) {
       persistWave(
         { creneauId, turboyId, numeroWave: value },
         {
           onError: () => {
-            // Revert on failure
             setWaveOverrides((prev) => {
               const next = new Map(prev);
               next.delete(turboyId);
@@ -58,21 +59,20 @@ export default function useGrillePaiement() {
     }
   };
 
-  // Lignes merged with local wave overrides
-  const lignes: IGrillePaiementLigne[] = (grille?.lignes ?? []).map((l) => {
-    const override = waveOverrides.get(l.turboy.id);
-    if (override === undefined) return l;
-    return {
-      ...l,
-      numeroWave: override,
-      statut: override.trim() !== '' ? 'OK' : 'WAVE_MANQUANT',
-    };
-  });
+  // Lignes merged with local wave overrides for optimistic UI
+  const lignes: IGrillePaiementLigne[] = useMemo(
+    () =>
+      (grille?.lignes ?? []).map((l) => {
+        const override = waveOverrides.get(l.turboy.id);
+        if (override === undefined) return l;
+        return { ...l, numeroWave: override, statut: override.trim() !== '' ? 'OK' : 'WAVE_MANQUANT' };
+      }),
+    [grille?.lignes, waveOverrides],
+  );
 
-  const waveManquantsComputed = lignes.filter((l) => l.statut === 'WAVE_MANQUANT').length;
+  const waveManquants = grille?.stats.waveManquants ?? 0;
 
-  const allChecked =
-    !!grille && lignes.length > 0 && lignes.every((l) => checkedIds.has(l.id));
+  const allChecked = !!grille && lignes.length > 0 && lignes.every((l) => checkedIds.has(l.id));
 
   const toggleAll = () => {
     if (!grille) return;
@@ -80,17 +80,14 @@ export default function useGrillePaiement() {
     else setCheckedIds(new Set(lignes.map((l) => l.id)));
   };
 
-  const canSoumettre =
-    !!grille &&
-    waveManquantsComputed === 0 &&
-    allChecked;
+  const canSoumettre = !!grille && waveManquants === 0 && allChecked;
 
   const handleSoumettre = () => {
     if (!grille || !canSoumettre) return;
     setConfirmOpen(true);
   };
 
-  const handleConfirmerSoumission = (note: string) => {
+  const handleConfirmerSoumission = () => {
     if (!grille) return;
     soumettre(
       { creneauId: grille.id, userId },
@@ -104,11 +101,6 @@ export default function useGrillePaiement() {
     );
   };
 
-  const totalTickets = lignes.reduce((s, l) => s + l.tickets, 0);
-  const totalBrut = lignes.reduce((s, l) => s + l.brut, 0);
-  const totalDeductions = lignes.reduce((s, l) => s + l.deductions, 0);
-  const totalNet = lignes.reduce((s, l) => s + l.netAPayer, 0);
-
   return {
     grille,
     lignes,
@@ -116,11 +108,10 @@ export default function useGrillePaiement() {
     creneaux,
     isLoadingCreneaux,
     selectedCreneauId,
-    setSelectedCreneauId: (id: string | undefined) => { setSelectedCreneauId(id); setPage(0); },
+    setSelectedCreneauId: handleCreneauChange,
     page,
     setPage,
     totalPages: grille?.pagination.totalPages ?? 1,
-    totalElements: grille?.pagination.totalElements ?? 0,
     checkedIds,
     toggleCheck,
     allChecked,
@@ -129,8 +120,7 @@ export default function useGrillePaiement() {
     isSoumettant,
     handleSoumettre,
     updateWave,
-    waveManquants: waveManquantsComputed,
-    totaux: { tickets: totalTickets, brut: totalBrut, deductions: totalDeductions, net: totalNet },
+    waveManquants,
     selectedLigne,
     openDetail: setSelectedLigne,
     closeDetail: () => setSelectedLigne(null),
