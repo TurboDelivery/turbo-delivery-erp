@@ -3,6 +3,9 @@ import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 export interface IVerrouillageParams {
   page?: number;
   size?: number;
+  debut?: string;
+  fin?: string;
+  restaurantId?: string;
 }
 
 export interface CreneauTicketStatsVm {

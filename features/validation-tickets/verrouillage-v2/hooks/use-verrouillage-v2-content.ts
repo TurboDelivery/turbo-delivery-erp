@@ -8,17 +8,25 @@ import { useCreneauActifQuery } from '@/features/creneaux/queries/creneau.query'
 import { applyTicketFilters } from '@/components/validation-tickets/TicketFilterBar';
 import { validationTicketFiltersConfig, validationTicketFiltersOptions } from '@/features/validation-tickets/filters/validation-tickets.filters';
 import { useTicketFilterOptions } from '@/features/validation-tickets/hooks/use-ticket-filter-options';
+import type { IVerrouillageParams } from '../types/tickets-v2.type';
 
 export function useVerrouillageV2Content() {
-  const { data, isLoading } = useTicketsV1ValideQuery();
-  const { data: creneauActif } = useCreneauActifQuery();
-  const { data: ticketStats, isLoading: isStatsLoading } = useCreneauTicketStatsQuery();
   const [rejectDialogId, setRejectDialogId] = useState<string | null>(null);
   const [validatingId, setValidatingId] = useState<string | null>(null);
   const [filters, setFiltersRaw] = useQueryStates(validationTicketFiltersConfig, validationTicketFiltersOptions);
 
   const setFilters = (v: typeof filters) => void setFiltersRaw(v);
-  const { livreurOptions, restaurantOptions } = useTicketFilterOptions();
+
+  const params = useMemo<IVerrouillageParams>(() => ({
+    debut: filters.debut || undefined,
+    fin: filters.fin || undefined,
+    restaurantId: filters.restaurantId || undefined,
+  }), [filters.debut, filters.fin, filters.restaurantId]);
+
+  const { data, isLoading } = useTicketsV1ValideQuery(params);
+  const { data: creneauActif } = useCreneauActifQuery();
+  const { data: ticketStats, isLoading: isStatsLoading } = useCreneauTicketStatsQuery();
+  const { livreurOptions } = useTicketFilterOptions();
 
   const { mutate: validerV2, isPending: isValidating } = useValiderV2Mutation();
   const { mutate: validerV2EnMasse, isPending: isValidatingAll } = useValiderV2EnMasseMutation();
@@ -56,7 +64,6 @@ export function useVerrouillageV2Content() {
     filters,
     setFilters,
     livreurOptions,
-    restaurantOptions,
     isLoading,
     ticketStats,
     isStatsLoading,

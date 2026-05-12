@@ -3,6 +3,9 @@
 import Select from 'react-select';
 import { Input } from '@heroui/react';
 import { Search } from 'lucide-react';
+import DateFilterInput from '@/components/finance/date-filter-input';
+import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
+import type { DateRange } from 'react-day-picker';
 
 export type SelectOption = { value: string; label: string };
 
@@ -10,12 +13,16 @@ export interface TicketFilters {
   search: string;
   livreurId: string;
   restaurantId: string;
+  debut: string;
+  fin: string;
 }
 
 export const DEFAULT_TICKET_FILTERS: TicketFilters = {
   search: '',
   livreurId: '',
   restaurantId: '',
+  debut: '',
+  fin: '',
 };
 
 /** Filtre client-side sur reference, livreurId, restaurantId */
@@ -36,13 +43,23 @@ interface Props {
   value: TicketFilters;
   onChange: (v: TicketFilters) => void;
   livreurOptions: SelectOption[];
-  restaurantOptions: SelectOption[];
 }
 
-export default function TicketFilterBar({ value, onChange, livreurOptions, restaurantOptions }: Props) {
+export default function TicketFilterBar({ value, onChange, livreurOptions }: Props) {
+  const debutDate = value.debut ? new Date(value.debut) : undefined;
+  const finDate = value.fin ? new Date(value.fin) : undefined;
+
+  const handleDateChange = (range: DateRange | undefined) => {
+    onChange({
+      ...value,
+      debut: range?.from ? range.from.toISOString().split('T')[0] : '',
+      fin: range?.to ? range.to.toISOString().split('T')[0] : '',
+    });
+  };
+
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
-      <div className="flex-1">
+    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <div className="flex-1 min-w-[180px]">
         <label className="block text-xs font-medium mb-1 text-gray-500">Code check</label>
         <Input
           size="sm"
@@ -53,11 +70,10 @@ export default function TicketFilterBar({ value, onChange, livreurOptions, resta
           startContent={<Search className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />}
           isClearable
           onClear={() => onChange({ ...value, search: '' })}
-      
         />
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 min-w-[180px]">
         <label className="block text-xs font-medium mb-1 text-gray-500">Livreur</label>
         <Select
           options={livreurOptions}
@@ -70,16 +86,21 @@ export default function TicketFilterBar({ value, onChange, livreurOptions, resta
         />
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 min-w-[180px]">
         <label className="block text-xs font-medium mb-1 text-gray-500">Restaurant</label>
-        <Select
-          options={restaurantOptions}
-          value={restaurantOptions.find((o) => o.value === value.restaurantId) ?? null}
-          onChange={(opt) => onChange({ ...value, restaurantId: opt?.value ?? '' })}
+        <RestaurantSelect
+          value={value.restaurantId || undefined}
+          onChange={(v) => onChange({ ...value, restaurantId: v ?? '' })}
           placeholder="Tous les restaurants"
-          isClearable
-          className="text-xs"
-          classNamePrefix="react-select"
+          className="text-xs w-full"
+        />
+      </div>
+
+      <div className="flex-1 min-w-[220px]">
+        <label className="block text-xs font-medium mb-1 text-gray-500">Période</label>
+        <DateFilterInput
+          filters={{ debut: debutDate, fin: finDate }}
+          handleDateChange={handleDateChange}
         />
       </div>
     </div>

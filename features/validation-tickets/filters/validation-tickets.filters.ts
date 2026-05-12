@@ -4,6 +4,8 @@ export const validationTicketFiltersConfig = {
   search: parseAsString.withDefault(''),
   livreurId: parseAsString.withDefault(''),
   restaurantId: parseAsString.withDefault(''),
+  debut: parseAsString.withDefault(''),
+  fin: parseAsString.withDefault(''),
 };
 
 export const validationTicketFiltersOptions = {

@@ -15,7 +15,6 @@ export default function VerificationV1Content() {
     filters,
     setFilters,
     livreurOptions,
-    restaurantOptions,
     isLockingAll,
     handleLock,
     handleLockAll,
@@ -41,7 +40,7 @@ export default function VerificationV1Content() {
         </Button>
       </div>
 
-      <TicketFilterBar value={filters} onChange={setFilters} livreurOptions={livreurOptions} restaurantOptions={restaurantOptions} />
+      <TicketFilterBar value={filters} onChange={setFilters} livreurOptions={livreurOptions} />
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <TicketReadyList
