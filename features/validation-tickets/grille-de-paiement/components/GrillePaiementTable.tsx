@@ -53,6 +53,7 @@ function WaveCell({ ligne, onUpdateWave }: { ligne: IGrillePaiementLigne; onUpda
         onClick={(e) => e.stopPropagation()}
         className="w-full rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-blue-400"
         placeholder="N° Wave…"
+        
       />
     );
   }

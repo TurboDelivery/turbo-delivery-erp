@@ -43,7 +43,7 @@ function TicketDetailsTable({ data, creneauCode }: { data: IGrillePaiementTicket
         accessorKey: 'ref',
         header: 'Ticket',
         cell: ({ getValue }) => (
-          <span className="font-medium text-blue-600">{getValue<string>()}</span>
+          <span className="font-medium text-red-500">{getValue<string>()}</span>
         ),
       },
       {
@@ -142,7 +142,7 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
         <DrawerHeader className="flex items-start gap-3 px-6 pt-6 pb-4 border-b border-gray-100">
           <Avatar
             name={turboy.nom}
-            classNames={{ base: 'bg-orange-500 shrink-0', name: 'text-white font-bold text-xl' }}
+            classNames={{ base: 'bg-green-500 shrink-0', name: 'text-white font-bold text-xl' }}
             size="lg"
             radius="lg"
           />
@@ -168,9 +168,10 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
                 label: 'DÉDUCTIONS',
                 value: deductions !== 0 ? `−${formatNumber(Math.abs(deductions))}` : '—',
                 sub: deductions !== 0 ? 'FCFA' : '',
+                red: deductions < 0,
               },
-              { label: 'NET À PAYER', value: formatNumber(netAPayer), sub: 'FCFA', bold: true },
-            ].map(({ label, value, sub, highlight, bold }) => (
+              { label: 'NET À PAYER', value: formatNumber(netAPayer), sub: 'FCFA', green: true },
+            ].map(({ label, value, sub, highlight, bold, red, green }: { label: string; value: string; sub: string; highlight?: boolean; bold?: boolean; red?: boolean; green?: boolean }) => (
               <Card key={label} shadow="none" className="border border-gray-100 bg-gray-50">
                 <CardBody className="px-4 py-3">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">
@@ -179,7 +180,7 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
                   <p
                     className={cn(
                       'text-xl font-bold leading-tight',
-                      highlight ? 'text-amber-500' : bold ? 'text-gray-900' : 'text-gray-700',
+                      highlight ? 'text-amber-500' : red ? 'text-red-500' : green ? 'text-green-600' : 'text-gray-700',
                     )}
                   >
                     {value}
@@ -259,15 +260,15 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
               shadow="none"
               className={cn(
                 'border',
-                numeroWave ? 'bg-gray-50 border-gray-100' : 'bg-red-50 border-red-100',
+                numeroWave ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100',
               )}
             >
               <CardBody className="flex flex-row items-center gap-3 px-4 py-3">
                 <Avatar
                   icon={<Phone className="h-4 w-4" />}
                   classNames={{
-                    base: cn('shrink-0', numeroWave ? 'bg-gray-200' : 'bg-red-100'),
-                    icon: cn(numeroWave ? 'text-gray-500' : 'text-red-500'),
+                    base: cn('shrink-0', numeroWave ? 'bg-green-100' : 'bg-red-100'),
+                    icon: cn(numeroWave ? 'text-green-600' : 'text-red-500'),
                   }}
                   radius="full"
                   size="md"
