@@ -41,6 +41,7 @@ export interface IGrillePaiementLigne {
   statut: StatutLignePaiement;
   flagAttente?: boolean;
   checked: boolean;
+  totalFraisLivraison?: number;
   ticketDetails: IGrillePaiementTicketDetail[];
   bonusEligibilite: IBonusEligibilite;
 }
