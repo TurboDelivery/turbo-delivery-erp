@@ -48,14 +48,22 @@ export default function FactureDetailView({ facture }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
+          <p className="text-xs text-gray-400 mb-0.5">Facture</p>
           <h1 className="text-2xl font-bold text-red-500">{facture.numero}</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {facture.partenaire} · Cycle {facture.cycle}
           </p>
         </div>
-        <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${config.className}`}>
-          {config.label}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${config.className}`}>
+            {config.label}
+          </span>
+          {facture.statut === 'Acompte' && (
+            <button className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
+              Enregistrer un versement
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Stat cards */}
@@ -79,7 +87,7 @@ export default function FactureDetailView({ facture }: Props) {
         </div>
         <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
           <p className="text-xs text-gray-500 mb-1">Reste à recouvrer</p>
-          <p className="text-2xl font-bold text-gray-900">{formatMontant(restant)}</p>
+          <p className={`text-2xl font-bold ${restant > 0 ? 'text-red-500' : 'text-gray-900'}`}>{formatMontant(restant)}</p>
         </div>
       </div>
 
@@ -100,13 +108,13 @@ export default function FactureDetailView({ facture }: Props) {
                 {/* Dot */}
                 <span
                   className={`absolute -left-[13px] w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-sm ${
-                    item.isCurrent ? 'bg-green-500' : 'bg-green-400'
+                    item.isPending ? 'bg-gray-200' : item.isCurrent ? 'bg-green-500' : 'bg-green-400'
                   }`}
                 >
-                  <span className="w-2 h-2 bg-white rounded-full" />
+                  <span className={`w-2 h-2 rounded-full ${item.isPending ? 'bg-gray-400' : 'bg-white'}`} />
                 </span>
                 <div>
-                  <p className={`text-sm font-medium ${item.isCurrent ? 'text-gray-900' : 'text-gray-700'}`}>
+                  <p className={`text-sm font-medium ${item.isPending ? 'text-gray-400' : item.isCurrent ? 'text-gray-900' : 'text-gray-700'}`}>
                     {item.label}
                     {item.isCurrent && (
                       <span className="ml-2 inline-flex items-center rounded-full bg-red-500 text-white text-[10px] font-bold px-2 py-0.5">
@@ -115,10 +123,12 @@ export default function FactureDetailView({ facture }: Props) {
                     )}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {[item.date, item.agent ? `par ${item.agent}` : undefined, item.montant ? formatMontant(item.montant) : undefined]
-                      .filter(Boolean)
-                      .join(' · ')}
-                    {!item.date && !item.agent && !item.montant ? '—' : ''}
+                    {item.isPending
+                      ? [item.agent ? `par ${item.agent}` : undefined, item.montant ? new Intl.NumberFormat('fr-FR').format(item.montant) + ' CFA' : undefined, 'En attente']
+                          .filter(Boolean).join(' · ')
+                      : [item.date, item.agent ? `par ${item.agent}` : undefined, item.montant ? formatMontant(item.montant) : undefined]
+                          .filter(Boolean).join(' · ') || '—'
+                    }
                   </p>
                 </div>
               </li>

@@ -6,6 +6,7 @@ export interface IHistoriqueStatut {
   agent?: string;
   montant?: number;
   isCurrent?: boolean;
+  isPending?: boolean;
 }
 
 export interface IFactureRFDetail extends IFactureRF {
@@ -56,7 +57,9 @@ export const MOCK_FACTURES: IFactureRFDetail[] = [
       { label: 'Validée par le Responsable Financier', agent: 'KONE YACOUBA' },
       { label: 'Recouvrement lancé', agent: 'K. Medard' },
       { label: 'Déposée chez le partenaire', date: '05-05-2026', agent: 'K. Medard' },
-      { label: 'Acompte reçu — 5 250 000 F CFA (60%)', date: '07-05-2026', montant: 5250000, isCurrent: true },
+      { label: 'Preuve de dépôt ajoutée', agent: 'K. Medard', isCurrent: true },
+      { label: 'Visa DG apposé', agent: 'DG', isPending: true },
+      { label: 'Soldée — paiement reçu', montant: 5250000, isPending: true },
     ],
   },
   {

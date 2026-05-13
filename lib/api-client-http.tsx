@@ -9,6 +9,7 @@ export class ApiClientHttp {
   constructor(baseUrl: string) {
     this.axiosInstance = axios.create({
       baseURL: baseUrl,
+      timeout: 30000,
     });
 
     // Interceptor pour gérer les réponses

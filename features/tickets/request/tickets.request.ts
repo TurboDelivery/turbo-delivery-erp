@@ -102,7 +102,7 @@ export async function authentifierTicketRequest(ticketId: string, userId: string
     endpoint: `/api/tickets/${ticketId}/authentifier`,
     method: 'POST',
     service: 'backend',
-    config: { headers: { 'X-User-Id': userId } },
+    config: { headers: { 'X-User-Id': userId }, timeout: 10000 },
   });
 }
 
