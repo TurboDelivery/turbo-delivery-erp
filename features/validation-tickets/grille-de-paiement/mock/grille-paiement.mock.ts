@@ -14,13 +14,8 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
     totalNet: 2_604_300,
     waveManquants: 1,
   },
-  pagination: {
-    page: 0,
-    totalPages: 1,
-    totalElements: 8,
-    size: 20,
-  },
-  lignes: [
+  lignes: {
+    content: [
     {
       id: 'l-001',
       turboy: { id: 'trb-001', nom: 'Ousmane Bah', code: 'TRB-001' },
@@ -252,5 +247,23 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
         ],
       },
     },
-  ],
+    ],
+    totalElements: 8,
+    totalPages: 1,
+    number: 0,
+    size: 20,
+    numberOfElements: 8,
+    first: true,
+    last: true,
+    empty: false,
+    sort: { sorted: false, unsorted: true, empty: true },
+    pageable: {
+      pageNumber: 0,
+      pageSize: 20,
+      offset: 0,
+      paged: true,
+      unpaged: false,
+      sort: { sorted: false, unsorted: true, empty: true },
+    },
+  },
 };

@@ -132,7 +132,7 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
             </div>
 
             {/* Bonus eligibility */}
-            <div className="rounded-2xl border border-[#dddddd] bg-white p-4">
+            {bonusEligibilite && <div className="rounded-2xl border border-[#dddddd] bg-white p-4">
               <div className="flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#fff1f2]">
                   <ReceiptText size={15} className="text-[#f87171]" strokeWidth={2} />
@@ -171,10 +171,10 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
                   rightIcon={<ShieldAlert size={17} className="text-[#9ca3af]" strokeWidth={2} />}
                 />
               </div>
-            </div>
+            </div>}
 
             {/* Tickets */}
-            <div>
+            {ticketDetails && <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-[14px] font-semibold text-[#4b4b4b]">
                   Détail des {ticketDetails.length} ticket{ticketDetails.length > 1 ? 's' : ''}
@@ -210,7 +210,7 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
                   </div>
                 ))}
               </div>
-            </div>
+            </div>}
 
           </div>
 

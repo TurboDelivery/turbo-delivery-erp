@@ -34,14 +34,14 @@ export default function useHistoriqueCreneauDetail(id: string) {
     if (!grille) return null;
 
     const livreurs: ICreneauDetailLivreur[] = grille.lignes.content.map((l) => ({
-      id: l.id,
+      id: l.id ?? '',
       nom: l.turboy.nom,
-      code: l.turboy.code,
+      code: l.turboy.code ?? '',
       tickets: l.tickets,
       brut: l.brut,
       taux: l.taux,
       net: l.netAPayer,
-      statut: mapStatutLigne(l.statut),
+      statut: mapStatutLigne(l.statut ?? 'WAVE_MANQUANT'),
     }));
 
     return {

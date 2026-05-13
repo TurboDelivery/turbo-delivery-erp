@@ -61,7 +61,7 @@ export default function useApprobationFinale() {
   const grilleMeta = useMemo(() => grillePages?.pages[0] ?? null, [grillePages]);
 
   const lignes = useMemo(
-    () => grillePages?.pages.flatMap((p) => p?.lignes ?? []) ?? [],
+    () => grillePages?.pages.flatMap((p) => p?.lignes.content ?? []) ?? [],
     [grillePages],
   );
 
