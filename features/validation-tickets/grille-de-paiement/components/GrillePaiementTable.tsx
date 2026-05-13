@@ -92,20 +92,10 @@ export default function GrillePaiementTable({
     () => [
       {
         id: 'select',
-        header: () => (
-          <Checkbox
-            checked={allChecked}
-            onCheckedChange={onToggleAll}
-            className="border-gray-300"
-          />
-        ),
+        header: () => <Checkbox checked={allChecked} onCheckedChange={onToggleAll} className="border-gray-300" />,
         cell: ({ row }) => (
           <div onClick={(e) => e.stopPropagation()}>
-            <Checkbox
-              checked={checkedIds.has(row.original.id)}
-              onCheckedChange={() => onToggle(row.original.id)}
-              className="border-gray-300"
-            />
+            <Checkbox checked={checkedIds.has(row.original.id)} onCheckedChange={() => onToggle(row.original.id)} className="border-gray-300" />
           </div>
         ),
       },
@@ -122,16 +112,12 @@ export default function GrillePaiementTable({
       {
         id: 'tickets',
         header: () => <div className="w-full text-right">Tickets</div>,
-        cell: ({ row }) => (
-          <div className="text-right font-medium text-gray-700">{row.original.tickets}</div>
-        ),
+        cell: ({ row }) => <div className="text-right font-medium text-gray-700">{row.original.tickets}</div>,
       },
       {
-        id: 'brut',
-        header: () => <div className="w-full text-right">Brut</div>,
-        cell: ({ row }) => (
-          <div className="text-right text-gray-700">{formatNumber(row.original.brut)}</div>
-        ),
+        id: 'totalFraisLivraison',
+        header: () => <div className="w-full text-right">Total realise</div>,
+        cell: ({ row }) => <div className="text-right text-gray-700">{formatNumber(row.original.brut)}</div>,
       },
       {
         id: 'taux',
@@ -139,47 +125,18 @@ export default function GrillePaiementTable({
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-1.5">
             <span className="text-gray-700">{row.original.taux}%</span>
-            {row.original.tauxManuel && (
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
-                C
-              </span>
-            )}
-            {row.original.bonus && (
-              <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
-                BONUS
-              </span>
-            )}
-          </div>
-        ),
-      },
-      {
-        id: 'deductions',
-        header: () => <div className="w-full text-right">Déductions</div>,
-        cell: ({ row }) => (
-          <div className="text-right text-gray-500">
-            {row.original.deductions !== 0 ? (
-              <span className="text-red-500">−{formatNumber(Math.abs(row.original.deductions))}</span>
-            ) : (
-              <span className="text-gray-300">–</span>
-            )}
           </div>
         ),
       },
       {
         id: 'net',
-        header: () => <div className="w-full text-right">Net à payer</div>,
-        cell: ({ row }) => (
-          <div className="text-right font-semibold text-emerald-600">
-            {formatNumber(row.original.netAPayer)}
-          </div>
-        ),
+        header: () => <div className="w-full text-right">Commission</div>,
+        cell: ({ row }) => <div className="text-right font-semibold text-emerald-600">{formatNumber(row.original.netAPayer)}</div>,
       },
       {
         id: 'wave',
         header: 'N° Wave',
-        cell: ({ row }) => (
-          <WaveCell ligne={row.original} onUpdateWave={onUpdateWave} />
-        ),
+        cell: ({ row }) => <WaveCell ligne={row.original} onUpdateWave={onUpdateWave} />,
       },
       {
         id: 'statut',
@@ -206,12 +163,7 @@ export default function GrillePaiementTable({
         cell: ({ row }) =>
           row.original.flagAttente ? (
             <div onClick={(e) => e.stopPropagation()}>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800 text-xs"
-                onClick={() => onValiderLigne(row.original)}
-              >
+              <Button size="sm" variant="outline" className="h-7 gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800 text-xs" onClick={() => onValiderLigne(row.original)}>
                 <ShieldCheck className="h-3.5 w-3.5" />
                 Valider
               </Button>
