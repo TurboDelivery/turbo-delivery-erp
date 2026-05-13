@@ -38,6 +38,7 @@ export interface IGrillePaiementLigne {
   deductions: number;
   netAPayer: number;
   numeroWave?: string;
+  commission?: number;
   statut: StatutLignePaiement;
   flagAttente?: boolean;
   checked: boolean;

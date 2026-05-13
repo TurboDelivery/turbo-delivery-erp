@@ -1,14 +1,8 @@
 'use client';
 
-import { CalendarDays, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
 import useApprobationFinale from '../hooks/use-approbation-finale';
 import { formatPeriode } from '../utils/approbation-finale.utils';
 import ApprobationFinaleBanner from './ApprobationFinaleBanner';
@@ -71,24 +65,12 @@ export default function ApprobationFinaleContent() {
               </p>
             )}
           </div>
-          <Select
-            value={selectedCreneauId ?? '__actif__'}
-            onValueChange={(v) => setSelectedCreneauId(v === '__actif__' ? undefined : v)}
+          <CreneauSelectPicker
+            creneaux={creneaux}
+            selectedCreneauId={selectedCreneauId}
+            onSelectCreneau={setSelectedCreneauId}
             disabled={isLoadingCreneaux}
-          >
-            <SelectTrigger className="w-full sm:w-64 gap-2 text-sm font-medium">
-              <CalendarDays className="h-4 w-4 shrink-0 text-gray-400" />
-              <SelectValue placeholder="Choisir un créneau…" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__actif__">Créneau actif</SelectItem>
-              {creneaux.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
         </div>
       )}
 

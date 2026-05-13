@@ -1,14 +1,7 @@
 'use client';
 
-import { CalendarDays } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
 import { Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
 import useVisaDga from '../hooks/use-visa-dga';
 import StatMini from './StatMini';
@@ -84,24 +77,12 @@ export default function VisaDgaContent() {
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Select
-            value={selectedCreneauId ?? '__actif__'}
-            onValueChange={(v) => setSelectedCreneauId(v === '__actif__' ? undefined : v)}
+          <CreneauSelectPicker
+            creneaux={creneaux}
+            selectedCreneauId={selectedCreneauId}
+            onSelectCreneau={setSelectedCreneauId}
             disabled={isLoadingCreneaux}
-          >
-            <SelectTrigger className="w-full sm:w-64 gap-2 text-sm font-medium">
-              <CalendarDays className="h-4 w-4 shrink-0 text-gray-400" />
-              <SelectValue placeholder="Choisir un créneau…" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__actif__">Créneau actif</SelectItem>
-              {creneaux.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
           <VisaDgaStatutBadge statut={vise ? 'VISE' : creneau.statut} />
         </div>
       </div>

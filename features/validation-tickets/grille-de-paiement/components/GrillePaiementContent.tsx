@@ -1,15 +1,8 @@
 'use client';
 
-import { CalendarDays } from 'lucide-react';
 import { Pagination } from '@heroui/react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import useGrillePaiement from '../hooks/use-grille-paiement';
+import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
 import GrillePaiementSkeleton from './GrillePaiementSkeleton';
 import GrillePaiementBanner from './GrillePaiementBanner';
 import GrillePaiementStats from './GrillePaiementStats';
@@ -96,24 +89,12 @@ export default function GrillePaiementContent() {
             totalItems={grille.pagination.totalElements}
           />
 
-          <Select
-            value={selectedCreneauId ?? '__actif__'}
-            onValueChange={(v) => setSelectedCreneauId(v === '__actif__' ? undefined : v)}
+          <CreneauSelectPicker
+            creneaux={creneaux}
+            selectedCreneauId={selectedCreneauId}
+            onSelectCreneau={setSelectedCreneauId}
             disabled={isLoadingCreneaux}
-          >
-            <SelectTrigger className="w-full sm:w-72 gap-2 text-sm font-medium">
-              <CalendarDays className="h-4 w-4 shrink-0 text-gray-400" />
-              <SelectValue placeholder="Choisir un créneau…" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__actif__">Créneau actif</SelectItem>
-              {creneaux.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
         </div>
       </div>
 
