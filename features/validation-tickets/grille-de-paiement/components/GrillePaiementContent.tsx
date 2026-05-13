@@ -22,10 +22,6 @@ export default function GrillePaiementContent() {
     isLoadingCreneaux,
     selectedCreneauId,
     setSelectedCreneauId,
-    checkedIds,
-    toggleCheck,
-    allChecked,
-    toggleAll,
     canSoumettre,
     isSoumettant,
     handleSoumettre,
@@ -106,10 +102,6 @@ export default function GrillePaiementContent() {
         <>
           <GrillePaiementTable
             lignes={lignes}
-            checkedIds={checkedIds}
-            allChecked={allChecked}
-            onToggle={toggleCheck}
-            onToggleAll={toggleAll}
             onRowClick={openDetail}
             onUpdateWave={updateWave}
             onValiderLigne={handleValiderLigne}

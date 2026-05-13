@@ -20,7 +20,6 @@ export default function useGrillePaiement() {
   const { mutate: persistWave } = useUpdateNumeroWaveMutation();
   const { mutate: validerLigne, isPending: isValidating } = useValiderLigneMutation();
 
-  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [selectedLigne, setSelectedLigne] = useState<IGrillePaiementLigne | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [commentaire, setCommentaire] = useState('');
@@ -32,15 +31,6 @@ export default function useGrillePaiement() {
     setSelectedCreneauId(id);
     setPage(0);
   }, []);
-
-  const toggleCheck = (id: string) => {
-    setCheckedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const updateWave = (turboyId: string, value: string) => {
     setWaveOverrides((prev) => new Map(prev).set(turboyId, value));
@@ -74,15 +64,7 @@ export default function useGrillePaiement() {
 
   const waveManquants = grille?.stats.waveManquants ?? 0;
 
-  const allChecked = !!grille && lignes.length > 0 && lignes.every((l) => checkedIds.has(l.id));
-
-  const toggleAll = () => {
-    if (!grille) return;
-    if (allChecked) setCheckedIds(new Set());
-    else setCheckedIds(new Set(lignes.map((l) => l.id)));
-  };
-
-  const canSoumettre = !!grille && waveManquants === 0 && allChecked;
+  const canSoumettre = !!grille && waveManquants === 0;
 
   const handleSoumettre = () => {
     if (!grille || !canSoumettre) return;
@@ -124,10 +106,6 @@ export default function useGrillePaiement() {
     page,
     setPage,
     totalPages: grille?.pagination.totalPages ?? 1,
-    checkedIds,
-    toggleCheck,
-    allChecked,
-    toggleAll,
     canSoumettre,
     isSoumettant,
     handleSoumettre,

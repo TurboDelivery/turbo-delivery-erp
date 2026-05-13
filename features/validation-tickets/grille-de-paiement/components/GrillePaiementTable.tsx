@@ -11,17 +11,12 @@ import {
   TableCell,
 } from '@heroui/react';
 import { AlertCircle, CheckCircle2, AlertTriangle, Pencil, ShieldCheck } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { IGrillePaiementLigne } from '../types/grille-paiement.type';
 
 interface Props {
   lignes: IGrillePaiementLigne[];
-  checkedIds: Set<string>;
-  allChecked: boolean;
-  onToggle: (id: string) => void;
-  onToggleAll: () => void;
   onRowClick: (ligne: IGrillePaiementLigne) => void;
   onUpdateWave: (turboyId: string, value: string) => void;
   onValiderLigne: (ligne: IGrillePaiementLigne) => void;
@@ -79,10 +74,6 @@ function formatNumber(n: number) {
 
 export default function GrillePaiementTable({
   lignes,
-  checkedIds,
-  allChecked,
-  onToggle,
-  onToggleAll,
   onRowClick,
   onUpdateWave,
   onValiderLigne,
@@ -90,15 +81,6 @@ export default function GrillePaiementTable({
 }: Props) {
   const columns = useMemo<ColumnDef<IGrillePaiementLigne>[]>(
     () => [
-      {
-        id: 'select',
-        header: () => <Checkbox checked={allChecked} onCheckedChange={onToggleAll} className="border-gray-300" />,
-        cell: ({ row }) => (
-          <div onClick={(e) => e.stopPropagation()}>
-            <Checkbox checked={checkedIds.has(row.original.id)} onCheckedChange={() => onToggle(row.original.id)} className="border-gray-300" />
-          </div>
-        ),
-      },
       {
         id: 'turboy',
         header: 'Turboy',
@@ -176,7 +158,7 @@ export default function GrillePaiementTable({
         cell: () => <span className="text-gray-300">›</span>,
       },
     ],
-    [allChecked, checkedIds, onToggle, onToggleAll, onUpdateWave, onValiderLigne],
+    [onUpdateWave, onValiderLigne],
   );
 
   const table = useReactTable({
@@ -227,7 +209,6 @@ export default function GrillePaiementTable({
               onClick={() => onRowClick(row.original)}
               className={cn(
                 'cursor-pointer hover:bg-gray-50',
-                checkedIds.has(row.original.id) && 'bg-gray-50/70',
                 row.original.flagAttente && 'bg-amber-50 hover:bg-amber-100',
               )}
             >

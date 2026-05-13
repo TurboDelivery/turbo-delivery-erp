@@ -12,7 +12,7 @@ export default function GrillePaiementSubmitFooter({ canSoumettre, isSoumettant,
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-sm ring-1 ring-gray-200 rounded-xl bg-white px-5 py-4">
       <div className="flex items-center gap-2 text-sm text-amber-600">
         <AlertTriangle className="h-4 w-4 shrink-0" />
-        <span>Cochez chaque ligne après contrôle pour activer la soumission.</span>
+        <span>Vérifiez que tous les numéros Wave sont renseignés avant de soumettre.</span>
       </div>
       <Button
         onClick={onSoumettre}
