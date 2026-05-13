@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Leaf } from 'lucide-react';
 import type { IFactureRFDetail } from './mock-data';
+import ProformaModal from './proforma-modal';
 
 type StatutFacture = IFactureRFDetail['statut'];
 
@@ -26,6 +28,7 @@ interface Props {
 }
 
 export default function FactureDetailView({ facture }: Props) {
+  const [proformaOpen, setProformaOpen] = useState(false);
   const recouvre = facture.montantRecouvre ?? 0;
   const restant = facture.montant - recouvre;
   const pct = facture.pourcentageRecouvre ?? 0;
@@ -142,12 +145,19 @@ export default function FactureDetailView({ facture }: Props) {
               </div>
             ))}
           </dl>
-          <button className="w-full mt-2 inline-flex items-center justify-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors">
+          <button
+            onClick={() => setProformaOpen(true)}
+            className="w-full mt-2 inline-flex items-center justify-center gap-2 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors">
             <Leaf className="w-4 h-4" />
             Voir la preuve de dépôt
           </button>
         </div>
       </div>
+      <ProformaModal
+        open={proformaOpen}
+        onClose={() => setProformaOpen(false)}
+        facture={facture}
+      />
     </div>
   );
 }
