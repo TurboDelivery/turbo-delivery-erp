@@ -117,7 +117,7 @@ export default function GrillePaiementTable({
       {
         id: 'totalFraisLivraison',
         header: () => <div className="w-full text-right">Total realise</div>,
-        cell: ({ row }) => <div className="text-right text-gray-700">{formatNumber(row.original.brut)}</div>,
+        cell: ({ row }) => <div className="text-right text-gray-700">{formatNumber(row.original.totalFraisLivraison ?? 0)}</div>,
       },
       {
         id: 'taux',
