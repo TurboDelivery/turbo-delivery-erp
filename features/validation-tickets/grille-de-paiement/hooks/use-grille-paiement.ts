@@ -35,6 +35,7 @@ export default function useGrillePaiement() {
   const updateWave = (turboyId: string, value: string) => {
     setWaveOverrides((prev) => new Map(prev).set(turboyId, value));
     const creneauId = selectedCreneauId ?? grille?.id;
+    if (!creneauId || !value.trim()) return;
     if (creneauId) {
       persistWave(
         { creneauId, turboyId, numeroWave: value },
