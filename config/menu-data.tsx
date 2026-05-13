@@ -102,6 +102,14 @@ const menuData: IMenuData[] = [
       { icon: BarChart, title: 'Dashboard Performance', path: '/finance/rapports-performance/dashboard-performance', can: { action: 'read', subject: 'Performance' } },
     ],
   },
+  {
+    icon: FileText,
+    title: 'Comptabilité',
+    can: { action: 'read', subject: 'Finance' },
+    children: [
+      { icon: FileText, title: 'Responsable Financier', path: '/finance/comptabilite/responsable-financier', can: { action: 'read', subject: 'Finance' } },
+    ],
+  },
   { icon: Bell, title: 'Notifications', path: '/notification', can: { action: 'access', subject: 'Notification' } },
   { icon: IconSettings2, title: 'Paramètres', path: '/settings/profile', can: { action: 'access', subject: 'Parametre' } },
 ];
