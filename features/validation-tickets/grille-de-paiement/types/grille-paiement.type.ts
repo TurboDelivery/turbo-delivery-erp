@@ -1,3 +1,5 @@
+import { PageResponse } from '@/types/page-response';
+
 export type StatutLignePaiement = 'OK' | 'WAVE_MANQUANT';
 
 export interface IGrillePaiementTicketDetail {
@@ -24,11 +26,11 @@ export interface IBonusEligibilite {
 export interface IGrillePaiementTurboy {
   id: string;
   nom: string;
-  code: string; // e.g. TRB-001
+  code?: string;
 }
 
 export interface IGrillePaiementLigne {
-  id: string;
+  id: string | null;
   turboy: IGrillePaiementTurboy;
   tickets: number;
   brut: number;
@@ -39,12 +41,12 @@ export interface IGrillePaiementLigne {
   netAPayer: number;
   numeroWave?: string;
   commission?: number;
-  statut: StatutLignePaiement;
+  statut?: StatutLignePaiement;
   flagAttente?: boolean;
   checked: boolean;
   totalFraisLivraison?: number;
-  ticketDetails: IGrillePaiementTicketDetail[];
-  bonusEligibilite: IBonusEligibilite;
+  ticketDetails?: IGrillePaiementTicketDetail[];
+  bonusEligibilite?: IBonusEligibilite;
 }
 
 export interface IGrillePaiementCreneau {
@@ -52,16 +54,10 @@ export interface IGrillePaiementCreneau {
   code: string; // e.g. CRÉNEAU-S16-2026
   debut: string; // ISO date
   fin: string; // ISO date
-  lotId?: string;
+  lot?: { id: string; libelle: string; statut: string };
   visePar?: string;
   viseAt?: string; // ISO datetime
-  lignes: IGrillePaiementLigne[];
-  pagination: {
-    page: number;
-    totalPages: number;
-    totalElements: number;
-    size: number;
-  };
+  lignes: PageResponse<IGrillePaiementLigne>;
   stats: {
     totalLivreurs: number;
     totalTickets: number;

@@ -118,7 +118,8 @@
       "Bash(Select-Object -Property FullName)",
       "Bash(ConvertTo-Json)",
       "Bash(Format-Table -AutoSize)",
-      "mcp__webstorm__read_file"
+      "mcp__webstorm__read_file",
+      "Bash(rtk curl *)"
     ]
   }
 }

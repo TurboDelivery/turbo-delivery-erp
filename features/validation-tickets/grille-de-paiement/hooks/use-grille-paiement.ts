@@ -54,12 +54,12 @@ export default function useGrillePaiement() {
   // Lignes merged with local wave overrides for optimistic UI
   const lignes: IGrillePaiementLigne[] = useMemo(
     () =>
-      (grille?.lignes ?? []).map((l) => {
+      (grille?.lignes.content ?? []).map((l) => {
         const override = waveOverrides.get(l.turboy.id);
         if (override === undefined) return l;
         return { ...l, numeroWave: override, statut: override.trim() !== '' ? 'OK' : 'WAVE_MANQUANT' };
       }),
-    [grille?.lignes, waveOverrides],
+    [grille?.lignes.content, waveOverrides],
   );
 
   const waveManquants = grille?.stats.waveManquants ?? 0;
@@ -74,9 +74,9 @@ export default function useGrillePaiement() {
   const handleValiderLigne = (ligne: IGrillePaiementLigne) => setLigneAValider(ligne);
 
   const handleConfirmerValidation = () => {
-    if (!ligneAValider || !grille?.lotId) return;
+    if (!ligneAValider || !grille?.lot?.id) return;
     validerLigne(
-      { lotId: grille.lotId, turboyId: ligneAValider.turboy.id, userId },
+      { lotId: grille.lot.id, turboyId: ligneAValider.turboy.id, userId },
       { onSuccess: () => setLigneAValider(null) },
     );
   };
@@ -105,7 +105,7 @@ export default function useGrillePaiement() {
     setSelectedCreneauId: handleCreneauChange,
     page,
     setPage,
-    totalPages: grille?.pagination.totalPages ?? 1,
+    totalPages: grille?.lignes.totalPages ?? 1,
     canSoumettre,
     isSoumettant,
     handleSoumettre,

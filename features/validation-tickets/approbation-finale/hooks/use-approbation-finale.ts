@@ -40,8 +40,8 @@ export default function useApprobationFinale() {
       getGrillePaiementApi({ creneauId: resolvedCreneauId!, page: pageParam as number }),
     getNextPageParam: (lastPage) => {
       if (!lastPage) return undefined;
-      const { page, totalPages } = lastPage.pagination;
-      return page + 1 < totalPages ? page + 1 : undefined;
+      const { number, totalPages } = lastPage.lignes;
+      return number + 1 < totalPages ? number + 1 : undefined;
     },
     staleTime: 60_000,
     refetchInterval: 120_000,
@@ -74,7 +74,7 @@ export default function useApprobationFinale() {
   const handleCreneauChange = useCallback((id: string | undefined) => setSelectedCreneauId(id), []);
 
   const handleApprouver = () => {
-    const lotId = grilleMeta?.lotId;
+    const lotId = grilleMeta?.lot?.id;
     if (!lotId || !userId) return;
     approuver({ lotId, userId }, {
       onSuccess: () => setApprouverOpen(false),
@@ -82,7 +82,7 @@ export default function useApprobationFinale() {
   };
 
   const handleRejeter = () => {
-    const lotId = grilleMeta?.lotId;
+    const lotId = grilleMeta?.lot?.id;
     if (!lotId || !userId || !motif.trim()) return;
     rejeter(
       { lotId, motif: motif.trim(), userId },

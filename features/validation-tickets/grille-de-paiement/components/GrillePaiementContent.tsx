@@ -82,7 +82,7 @@ export default function GrillePaiementContent() {
           <GrillePaiementExportButton
             creneauId={selectedCreneauId ?? undefined}
             grilleCode={grille.code}
-            totalItems={grille.pagination.totalElements}
+            totalItems={grille.lignes.totalElements}
           />
 
           <CreneauSelectPicker

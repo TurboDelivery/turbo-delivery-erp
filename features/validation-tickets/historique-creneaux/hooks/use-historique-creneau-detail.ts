@@ -33,7 +33,7 @@ export default function useHistoriqueCreneauDetail(id: string) {
   const detail: ICreneauDetail | null = useMemo(() => {
     if (!grille) return null;
 
-    const livreurs: ICreneauDetailLivreur[] = grille.lignes.map((l) => ({
+    const livreurs: ICreneauDetailLivreur[] = grille.lignes.content.map((l) => ({
       id: l.id,
       nom: l.turboy.nom,
       code: l.turboy.code,

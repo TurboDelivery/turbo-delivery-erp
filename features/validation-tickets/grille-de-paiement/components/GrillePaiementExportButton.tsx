@@ -34,7 +34,7 @@ export default function GrillePaiementExportButton({
     try {
       const grille = await getGrillePaiementApi({ creneauId, size: 1000, page: 0 });
 
-      if (!grille || grille.lignes.length === 0) {
+      if (!grille || grille.lignes.content.length === 0) {
         toast.dismiss(toastId);
         toast.warning('Aucune donnée à exporter');
         return;
@@ -43,7 +43,7 @@ export default function GrillePaiementExportButton({
       toast.loading('Génération du fichier Excel...', { id: toastId });
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
 
-      const xlsxData = generateXlsGrillePaiement(grille, grille.lignes);
+      const xlsxData = generateXlsGrillePaiement(grille, grille.lignes.content);
       const blob = new Blob([xlsxData], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
@@ -54,7 +54,7 @@ export default function GrillePaiementExportButton({
       a.click();
       window.URL.revokeObjectURL(url);
 
-      toast.success(`${grille.lignes.length} ligne(s) exportée(s) en Excel`, { id: toastId });
+      toast.success(`${grille.lignes.content.length} ligne(s) exportée(s) en Excel`, { id: toastId });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erreur lors de l'export", {
         id: toastId,
