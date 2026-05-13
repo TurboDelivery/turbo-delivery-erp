@@ -1,17 +1,20 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
+import { useQueryStates } from 'nuqs';
 import { useSession } from 'next-auth/react';
 import { useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
 import { useGrillePaiementQuery, useSoumettreGrilleMutation, useUpdateNumeroWaveMutation, useValiderLigneMutation } from '../queries/grille-paiement.query';
 import { IGrillePaiementLigne } from '../types/grille-paiement.type';
+import { grillePaiementFiltersConfig, grillePaiementFiltersOptions } from '../filters/grille-paiement.filters';
 
 export default function useGrillePaiement() {
   const { data: session } = useSession();
   const userId = session?.user?.id ?? '';
 
-  const [selectedCreneauId, setSelectedCreneauId] = useState<string | undefined>(undefined);
-  const [page, setPage] = useState(0);
+  const [filters, setFilters] = useQueryStates(grillePaiementFiltersConfig, grillePaiementFiltersOptions);
+  const selectedCreneauId = filters.creneauId || undefined;
+  const page = filters.page;
   const { data: creneauList, isLoading: isLoadingCreneaux } = useCreneauxListQuery();
   const creneaux = creneauList?.content ?? [];
 
@@ -28,9 +31,12 @@ export default function useGrillePaiement() {
   const [ligneAValider, setLigneAValider] = useState<IGrillePaiementLigne | null>(null);
 
   const handleCreneauChange = useCallback((id: string | undefined) => {
-    setSelectedCreneauId(id);
-    setPage(0);
-  }, []);
+    setFilters({ creneauId: id ?? '', page: 0 });
+  }, [setFilters]);
+
+  const handlePageChange = useCallback((p: number) => {
+    setFilters({ page: p });
+  }, [setFilters]);
 
   const updateWave = (turboyId: string, value: string) => {
     setWaveOverrides((prev) => new Map(prev).set(turboyId, value));
@@ -105,7 +111,7 @@ export default function useGrillePaiement() {
     selectedCreneauId,
     setSelectedCreneauId: handleCreneauChange,
     page,
-    setPage,
+    setPage: handlePageChange,
     totalPages: grille?.lignes.totalPages ?? 1,
     canSoumettre,
     isSoumettant,
