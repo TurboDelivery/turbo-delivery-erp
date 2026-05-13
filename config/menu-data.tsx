@@ -67,7 +67,7 @@ const menuData: IMenuData[] = [
     title: 'Turboys',
     can: { action: 'read', subject: 'Livreur' },
     children: [
-      { icon: IconMotorbike, title: 'Liste', path: '/delivery-men', can: { action: 'read', subject: 'Livreur' } },
+      // { icon: IconMotorbike, title: 'Liste', path: '/delivery-men', can: { action: 'read', subject: 'Livreur' } },
       { icon: IconBuildingSkyscraper, title: 'Créneaux', path: '/delivery-men/creneaux', can: { action: 'read', subject: 'Creneau' } },
       { icon: IconMotorbike, title: 'Men', path: '/delivery-men/men', can: { action: 'read', subject: 'Livreur' } },
       { icon: IconBuildingSkyscraper, title: 'performance', path: '/delivery-men/performance', can: { action: 'read', subject: 'Performance' } },
