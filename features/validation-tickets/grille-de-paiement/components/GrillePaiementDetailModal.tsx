@@ -91,7 +91,7 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
   const creneauLabel = creneauCode.replace('CRÉNEAU-', '');
 
   return (
-    <Drawer isOpen={open} onOpenChange={(v) => !v && onClose()} placement="right" size="md">
+    <Drawer isOpen={open} onOpenChange={(v) => !v && onClose()} placement="right" size="xl">
       <DrawerContent className="bg-[#f6f6f6] flex flex-col overflow-hidden">
         {/* Header fixe */}
         <div className="shrink-0 bg-[#f6f6f6] px-5 pt-5 pb-4 z-10">
@@ -183,11 +183,12 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
               </div>
 
               <div className="overflow-hidden rounded-2xl border border-[#dddddd] bg-white">
-                <div className="grid grid-cols-[1.2fr_1.4fr_1fr_0.7fr] border-b border-[#ececec] px-4 py-3 text-[10px] font-medium uppercase tracking-[0.12em] text-[#9a9a9a]">
+                <div className="grid grid-cols-[1.2fr_1.4fr_1fr_0.9fr_0.9fr] border-b border-[#ececec] px-4 py-3 text-[10px] font-medium uppercase tracking-[0.12em] text-[#9a9a9a]">
                   <span>Ticket</span>
                   <span>Partenaire</span>
                   <span>Date</span>
-                  <span className="text-right">Commission</span>
+                  <span className="text-right">Brut</span>
+                  <span className="text-right text-[#16a34a]">Commission</span>
                 </div>
 
                 {ticketDetails.length === 0 && (
@@ -199,14 +200,15 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
                 {ticketDetails.map((t, index) => (
                   <div
                     key={t.ref}
-                    className={`grid grid-cols-[1.2fr_1.4fr_1fr_0.7fr] items-center px-4 py-4 text-[12px] ${
+                    className={`grid grid-cols-[1.2fr_1.4fr_1fr_0.9fr_0.9fr] items-center px-4 py-4 text-[12px] ${
                       index !== ticketDetails.length - 1 ? 'border-b border-[#f1f1f1]' : ''
                     }`}
                   >
                     <span className="font-medium text-[#d14c45] truncate">{t.ref}</span>
                     <span className="text-[#555555] truncate">{t.partenaire}</span>
                     <span className="text-[#8a8a8a]">{formatDate(t.date)}</span>
-                    <span className="text-right font-semibold text-[#4a4a4a]">{formatNumber(t.commission)}</span>
+                    <span className="text-right font-semibold text-[#4a4a4a]">{formatNumber(t.fraisLivraison)}</span>
+                    <span className="text-right font-semibold text-[#16a34a]">{formatNumber(t.commission)}</span>
                   </div>
                 ))}
               </div>

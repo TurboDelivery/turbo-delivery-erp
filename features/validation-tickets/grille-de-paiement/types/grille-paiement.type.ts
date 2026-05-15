@@ -7,6 +7,7 @@ export interface IGrillePaiementTicketDetail {
   partenaire: string;
   date: string;      // ISO date
   commission: number;
+  fraisLivraison: number;
 }
 
 export interface IBonusCritere {

@@ -14,6 +14,7 @@ import { AlertCircle, CheckCircle2, AlertTriangle, Pencil, ShieldCheck } from 'l
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { IGrillePaiementLigne } from '../types/grille-paiement.type';
+import FichePaieButton from './FichePaieButton';
 
 interface Props {
   lignes: IGrillePaiementLigne[];
@@ -21,6 +22,8 @@ interface Props {
   onUpdateWave: (turboyId: string, value: string) => void;
   onValiderLigne: (ligne: IGrillePaiementLigne) => void;
   waveManquants: number;
+  creneauDebut: Date;
+  creneauFin: Date;
 }
 
 function WaveCell({ ligne, onUpdateWave }: { ligne: IGrillePaiementLigne; onUpdateWave: (turboyId: string, value: string) => void }) {
@@ -78,6 +81,8 @@ export default function GrillePaiementTable({
   onUpdateWave,
   onValiderLigne,
   waveManquants,
+  creneauDebut,
+  creneauFin,
 }: Props) {
   const columns = useMemo<ColumnDef<IGrillePaiementLigne>[]>(
     () => [
@@ -153,12 +158,26 @@ export default function GrillePaiementTable({
           ) : null,
       },
       {
+        id: 'fiche',
+        header: '',
+        cell: ({ row }) => (
+          <div onClick={(e) => e.stopPropagation()}>
+            <FichePaieButton
+              turboyId={row.original.turboy.id}
+              turboyNom={row.original.turboy.nom}
+              creneauDebut={creneauDebut}
+              creneauFin={creneauFin}
+            />
+          </div>
+        ),
+      },
+      {
         id: 'arrow',
         header: '',
         cell: () => <span className="text-gray-300">›</span>,
       },
     ],
-    [onUpdateWave, onValiderLigne],
+    [onUpdateWave, onValiderLigne, creneauDebut, creneauFin],
   );
 
   const table = useReactTable({

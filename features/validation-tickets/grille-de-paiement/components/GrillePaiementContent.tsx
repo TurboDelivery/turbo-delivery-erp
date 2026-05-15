@@ -106,6 +106,8 @@ export default function GrillePaiementContent() {
             onUpdateWave={updateWave}
             onValiderLigne={handleValiderLigne}
             waveManquants={waveManquants}
+            creneauDebut={new Date(grille.debut)}
+            creneauFin={new Date(grille.fin)}
           />
 
           {totalPages > 1 && (
