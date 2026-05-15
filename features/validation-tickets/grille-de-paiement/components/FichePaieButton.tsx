@@ -8,7 +8,7 @@ import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { livreurTicketsListQueryOption } from '@/features/tickets/queries/livreur-ticket-list.query';
-import { livreurStatsQueryOption } from '@/features/tickets/queries/livreur-stats.query.tsx';
+import { livreurStatsQueryOption } from '@/features/tickets/queries/livreur-stats.query';
 import { genererReleveDePaie } from '@/features/tickets/utils/tickets-livreur-export.utils';
 import { RelevePaiePdf } from '@/components/tickets/export/releve-paie-pdf';
 

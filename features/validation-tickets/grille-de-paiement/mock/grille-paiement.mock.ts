@@ -30,9 +30,9 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
       statut: 'WAVE_MANQUANT',
       checked: false,
       ticketDetails: [
-        { ref: 'TKT-2026-00101', partenaire: 'Pharmacie Liberté', date: '2026-04-14', commission: 720 },
-        { ref: 'TKT-2026-00102', partenaire: 'Carrefour Almadies', date: '2026-04-14', commission: 850 },
-        { ref: 'TKT-2026-00103', partenaire: 'Restaurant Le Baobab', date: '2026-04-15', commission: 630 },
+        { ref: 'TKT-2026-00101', partenaire: 'Pharmacie Liberté', date: '2026-04-14', fraisLivraison: 1_060, commission: 720 },
+        { ref: 'TKT-2026-00102', partenaire: 'Carrefour Almadies', date: '2026-04-14', fraisLivraison: 1_250, commission: 850 },
+        { ref: 'TKT-2026-00103', partenaire: 'Restaurant Le Baobab', date: '2026-04-15', fraisLivraison: 930, commission: 630 },
       ],
       bonusEligibilite: {
         eligible: false,
@@ -59,9 +59,9 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
       statut: 'WAVE_MANQUANT',
       checked: false,
       ticketDetails: [
-        { ref: 'TKT-2026-00201', partenaire: 'Auchan Liberté 6', date: '2026-04-13', commission: 900 },
-        { ref: 'TKT-2026-00202', partenaire: 'Pharmacie Liberté', date: '2026-04-15', commission: 760 },
-        { ref: 'TKT-2026-00203', partenaire: 'Yassine Fast Food', date: '2026-04-16', commission: 810 },
+        { ref: 'TKT-2026-00201', partenaire: 'Auchan Liberté 6', date: '2026-04-13', fraisLivraison: 1_500, commission: 900 },
+        { ref: 'TKT-2026-00202', partenaire: 'Pharmacie Liberté', date: '2026-04-15', fraisLivraison: 1_270, commission: 760 },
+        { ref: 'TKT-2026-00203', partenaire: 'Yassine Fast Food', date: '2026-04-16', fraisLivraison: 1_350, commission: 810 },
       ],
       bonusEligibilite: {
         eligible: false,
@@ -88,9 +88,9 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
       statut: 'WAVE_MANQUANT',
       checked: false,
       ticketDetails: [
-        { ref: 'TKT-2026-00301', partenaire: 'Carrefour Almadies', date: '2026-04-13', commission: 1_100 },
-        { ref: 'TKT-2026-00302', partenaire: 'Restaurant Le Baobab', date: '2026-04-15', commission: 980 },
-        { ref: 'TKT-2026-00303', partenaire: 'Auchan Liberté 6', date: '2026-04-17', commission: 870 },
+        { ref: 'TKT-2026-00301', partenaire: 'Carrefour Almadies', date: '2026-04-13', fraisLivraison: 1_833, commission: 1_100 },
+        { ref: 'TKT-2026-00302', partenaire: 'Restaurant Le Baobab', date: '2026-04-15', fraisLivraison: 1_633, commission: 980 },
+        { ref: 'TKT-2026-00303', partenaire: 'Auchan Liberté 6', date: '2026-04-17', fraisLivraison: 1_450, commission: 870 },
       ],
       bonusEligibilite: {
         eligible: false,
@@ -117,8 +117,8 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
       statut: 'WAVE_MANQUANT',
       checked: false,
       ticketDetails: [
-        { ref: 'TKT-2026-01003', partenaire: 'Pharmacie Liberté', date: '2026-04-16', commission: 727 },
-        { ref: 'TKT-2026-01011', partenaire: 'Carrefour Almadies', date: '2026-04-17', commission: 1_384 },
+        { ref: 'TKT-2026-01003', partenaire: 'Pharmacie Liberté', date: '2026-04-16', fraisLivraison: 1_069, commission: 727 },
+        { ref: 'TKT-2026-01011', partenaire: 'Carrefour Almadies', date: '2026-04-17', fraisLivraison: 2_035, commission: 1_384 },
       ],
       bonusEligibilite: {
         eligible: false,
@@ -145,9 +145,9 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
       statut: 'OK',
       checked: false,
       ticketDetails: [
-        { ref: 'TKT-2026-00501', partenaire: 'Yassine Fast Food', date: '2026-04-14', commission: 1_200 },
-        { ref: 'TKT-2026-00502', partenaire: 'Auchan Liberté 6', date: '2026-04-16', commission: 1_050 },
-        { ref: 'TKT-2026-00503', partenaire: 'Pharmacie Liberté', date: '2026-04-18', commission: 930 },
+        { ref: 'TKT-2026-00501', partenaire: 'Yassine Fast Food', date: '2026-04-14', fraisLivraison: 2_000, commission: 1_200 },
+        { ref: 'TKT-2026-00502', partenaire: 'Auchan Liberté 6', date: '2026-04-16', fraisLivraison: 1_750, commission: 1_050 },
+        { ref: 'TKT-2026-00503', partenaire: 'Pharmacie Liberté', date: '2026-04-18', fraisLivraison: 1_550, commission: 930 },
       ],
       bonusEligibilite: {
         eligible: false,
@@ -174,9 +174,9 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
       statut: 'OK',
       checked: false,
       ticketDetails: [
-        { ref: 'TKT-2026-00601', partenaire: 'Restaurant Le Baobab', date: '2026-04-13', commission: 1_500 },
-        { ref: 'TKT-2026-00602', partenaire: 'Carrefour Almadies', date: '2026-04-15', commission: 1_300 },
-        { ref: 'TKT-2026-00603', partenaire: 'Auchan Liberté 6', date: '2026-04-17', commission: 1_100 },
+        { ref: 'TKT-2026-00601', partenaire: 'Restaurant Le Baobab', date: '2026-04-13', fraisLivraison: 2_500, commission: 1_500 },
+        { ref: 'TKT-2026-00602', partenaire: 'Carrefour Almadies', date: '2026-04-15', fraisLivraison: 2_167, commission: 1_300 },
+        { ref: 'TKT-2026-00603', partenaire: 'Auchan Liberté 6', date: '2026-04-17', fraisLivraison: 1_833, commission: 1_100 },
       ],
       bonusEligibilite: {
         eligible: false,
@@ -203,9 +203,9 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
       statut: 'OK',
       checked: false,
       ticketDetails: [
-        { ref: 'TKT-2026-00701', partenaire: 'Yassine Fast Food', date: '2026-04-13', commission: 1_800 },
-        { ref: 'TKT-2026-00702', partenaire: 'Pharmacie Liberté', date: '2026-04-15', commission: 1_650 },
-        { ref: 'TKT-2026-00703', partenaire: 'Auchan Liberté 6', date: '2026-04-17', commission: 1_400 },
+        { ref: 'TKT-2026-00701', partenaire: 'Yassine Fast Food', date: '2026-04-13', fraisLivraison: 2_647, commission: 1_800 },
+        { ref: 'TKT-2026-00702', partenaire: 'Pharmacie Liberté', date: '2026-04-15', fraisLivraison: 2_426, commission: 1_650 },
+        { ref: 'TKT-2026-00703', partenaire: 'Auchan Liberté 6', date: '2026-04-17', fraisLivraison: 2_059, commission: 1_400 },
       ],
       bonusEligibilite: {
         eligible: true,
@@ -232,9 +232,9 @@ export const MOCK_GRILLE_PAIEMENT: IGrillePaiementCreneau = {
       statut: 'OK',
       checked: false,
       ticketDetails: [
-        { ref: 'TKT-2026-00801', partenaire: 'Carrefour Almadies', date: '2026-04-14', commission: 1_100 },
-        { ref: 'TKT-2026-00802', partenaire: 'Restaurant Le Baobab', date: '2026-04-16', commission: 970 },
-        { ref: 'TKT-2026-00803', partenaire: 'Yassine Fast Food', date: '2026-04-18', commission: 840 },
+        { ref: 'TKT-2026-00801', partenaire: 'Carrefour Almadies', date: '2026-04-14', fraisLivraison: 1_833, commission: 1_100 },
+        { ref: 'TKT-2026-00802', partenaire: 'Restaurant Le Baobab', date: '2026-04-16', fraisLivraison: 1_617, commission: 970 },
+        { ref: 'TKT-2026-00803', partenaire: 'Yassine Fast Food', date: '2026-04-18', fraisLivraison: 1_400, commission: 840 },
       ],
       bonusEligibilite: {
         eligible: false,
