@@ -146,7 +146,7 @@ export function createResponsableFinancierColumns(
           </Button>
         );
       }
-      if (statut === 'Recouvrement') {
+      if (statut === 'Recouvrement' || statut === 'À valider') {
         return (
           <Button size="sm" className="bg-gray-900 text-white hover:bg-gray-700 text-xs px-3">
             Lancer recouvrement →
@@ -159,17 +159,6 @@ export function createResponsableFinancierColumns(
             size="sm"
             variant="outline"
             className="text-green-600 border-green-300 hover:bg-green-50 text-xs px-3"
-            onClick={() => onValider(row.original)}
-          >
-            ✓ Valider la facture
-          </Button>
-        );
-      }
-      if (statut === 'À valider') {
-        return (
-          <Button
-            size="sm"
-            className="bg-green-600 text-white hover:bg-green-700 text-xs px-3"
             onClick={() => onValider(row.original)}
           >
             ✓ Valider la facture

@@ -46,9 +46,10 @@ function StatCard({ icon: Icon, color, label, value, sub }: { icon: React.Elemen
 export default function ResponsableFinancierView() {
   const [periode, setPeriode] = useState<Periode>('mois');
   const [statutFilter, setStatutFilter] = useState<StatutFilter>('Tous');
+  const [factures, setFactures] = useState<IFactureRF[]>(MOCK_FACTURES);
   const [factureAValider, setFactureAValider] = useState<IFactureRF | null>(null);
 
-  const filteredData = MOCK_FACTURES.filter((f) => {
+  const filteredData = factures.filter((f) => {
     if (statutFilter === 'Tous') return true;
     if (statutFilter === 'En attente') {
       const enAttente: StatutFacture[] = ['Recouvrement', 'À valider', 'Déposé partenaire'];
@@ -182,8 +183,11 @@ export default function ResponsableFinancierView() {
         onClose={() => setFactureAValider(null)}
         facture={factureAValider}
         onConfirm={(facture, cycle) => {
-          // TODO: call server action to validate facture
-          console.log('Valider facture', facture.id, 'cycle:', cycle);
+          setFactures((prev) =>
+            prev.map((f) =>
+              f.id === facture.id ? { ...f, statut: 'À valider' as const } : f,
+            ),
+          );
         }}
       />
     </div>
