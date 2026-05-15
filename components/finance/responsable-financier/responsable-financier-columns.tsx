@@ -159,7 +159,11 @@ export function createResponsableFinancierColumns(
             size="sm"
             variant="outline"
             className="text-green-600 border-green-300 hover:bg-green-50 text-xs px-3"
-            onClick={() => onValider(row.original)}
+            onClick={() => {
+              console.log('[ValiderFacture] clic bouton, facture:', row.original);
+              onValider(row.original);
+              console.log('[ValiderFacture] onValider appelé');
+            }}
           >
             ✓ Valider la facture
           </Button>

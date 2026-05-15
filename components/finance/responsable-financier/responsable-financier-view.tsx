@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Table,
   TableHeader,
@@ -49,16 +49,19 @@ export default function ResponsableFinancierView() {
   const [factures, setFactures] = useState<IFactureRF[]>(MOCK_FACTURES);
   const [factureAValider, setFactureAValider] = useState<IFactureRF | null>(null);
 
-  const filteredData = factures.filter((f) => {
+  const filteredData = useMemo(() => factures.filter((f) => {
     if (statutFilter === 'Tous') return true;
     if (statutFilter === 'En attente') {
       const enAttente: StatutFacture[] = ['Recouvrement', 'À valider', 'Déposé partenaire'];
       return enAttente.includes(f.statut);
     }
     return f.statut === (statutFilter as StatutFacture);
-  });
+  }), [factures, statutFilter]);
 
-  const columns = createResponsableFinancierColumns((facture) => setFactureAValider(facture));
+  const columns = useMemo(
+    () => createResponsableFinancierColumns((facture) => setFactureAValider(facture)),
+    [],
+  );
 
   const table = useReactTable({
     data: filteredData,
