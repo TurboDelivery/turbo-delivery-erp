@@ -23,6 +23,7 @@ export type AppSubjects =
   | 'Creneau'
   | 'Performance'
   | 'ValidationTicket'
+  | 'VerrouillageV2'
   | 'GrillePaiement'
   | 'all';
 
@@ -80,6 +81,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('manage', 'Creneau');
       can('manage', 'Performance');
       can('manage', 'ValidationTicket');
+      can('manage', 'VerrouillageV2');
       can('manage', 'GrillePaiement');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
@@ -93,6 +95,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('create', 'Ticket');
       can('read', 'Ticket');
       can('read', 'ValidationTicket');
+      can('read', 'VerrouillageV2');
       can('read', 'GrillePaiement');
       can('manage', 'Personnel');
       can('read', 'Finance');

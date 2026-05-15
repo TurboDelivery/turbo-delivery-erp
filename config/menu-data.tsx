@@ -43,7 +43,7 @@ const menuData: IMenuData[] = [
     children: [
       { icon: Lock, title: 'Régularisation', path: '/validation-tickets/regularisation', can: { action: 'read', subject: 'ValidationTicket' } },
       { icon: Lock, title: 'Verification V1', path: '/validation-tickets/verification-v1', can: { action: 'read', subject: 'ValidationTicket' } },
-      { icon: Lock, title: 'Verrouillage V2', path: '/validation-tickets/verrouillage-v2', can: { action: 'read', subject: 'ValidationTicket' } },
+      { icon: Lock, title: 'Verrouillage V2', path: '/validation-tickets/verrouillage-v2', can: { action: 'read', subject: 'VerrouillageV2' } },
       { icon: Receipt, title: 'Grille de paiement', path: '/validation-tickets/grille-de-paiement', can: { action: 'read', subject: 'GrillePaiement' } },
       { icon: CheckCircle, title: 'Visa DGA', path: '/validation-tickets/visa-dga', can: { action: 'valider-dga', subject: 'Depense' } },
       { icon: CheckCircle, title: 'Approbation finale', path: '/validation-tickets/approbation-finale', can: { action: 'approuver-dg', subject: 'Ticket' } },
