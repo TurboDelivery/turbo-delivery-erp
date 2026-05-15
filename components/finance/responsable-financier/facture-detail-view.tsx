@@ -17,6 +17,7 @@ const statutConfig: Record<StatutFacture, { label: string; className: string }> 
   'Preuve ajoutée': { label: 'Preuve ajoutée', className: 'bg-purple-100 text-purple-700 border-purple-200' },
   'Visé DG': { label: 'Visé DG', className: 'bg-blue-100 text-blue-700 border-blue-200' },
   'À valider': { label: 'À valider', className: 'bg-gray-100 text-gray-600 border-gray-200' },
+  'En cours': { label: 'En cours', className: 'bg-blue-100 text-blue-700 border-blue-200' },
 };
 
 function formatMontant(v: number) {
