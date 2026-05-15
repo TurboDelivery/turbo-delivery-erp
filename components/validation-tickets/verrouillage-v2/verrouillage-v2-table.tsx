@@ -1,34 +1,46 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-table';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Loader2 } from 'lucide-react';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { buildVerrouillageV2Columns } from './verrouillage-v2-columns';
 
 interface VerrouillageV2TableProps {
   tickets: TicketControleV2[];
+  totalElements: number;
   validatingId: string | null;
   onValidate: (id: string) => void;
   onReject: (id: string) => void;
+  fetchNextPage: () => void;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
 }
 
-const PAGE_SIZE = 10;
+export function VerrouillageV2Table({
+  tickets,
+  totalElements,
+  validatingId,
+  onValidate,
+  onReject,
+  fetchNextPage,
+  hasNextPage,
+  isFetchingNextPage,
+}: VerrouillageV2TableProps) {
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-export function VerrouillageV2Table({ tickets, validatingId, onValidate, onReject }: VerrouillageV2TableProps) {
-  const [page, setPage] = useState(1);
-
-  const pageCount = useMemo(
-    () => Math.max(1, Math.ceil(tickets.length / PAGE_SIZE)),
-    [tickets.length],
-  );
-
-  const safePage = useMemo(() => Math.min(page, pageCount), [page, pageCount]);
-
-  const paginatedTickets = useMemo(
-    () => tickets.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
-    [tickets, safePage],
-  );
+  useEffect(() => {
+    if (!bottomRef.current || !hasNextPage) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isFetchingNextPage) fetchNextPage();
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(bottomRef.current);
+    return () => observer.disconnect();
+  }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
   const columns = useMemo(
     () => buildVerrouillageV2Columns(onValidate, onReject, validatingId),
@@ -36,7 +48,7 @@ export function VerrouillageV2Table({ tickets, validatingId, onValidate, onRejec
   );
 
   const table = useReactTable({
-    data: paginatedTickets,
+    data: tickets,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -48,18 +60,21 @@ export function VerrouillageV2Table({ tickets, validatingId, onValidate, onRejec
           <p className="font-semibold text-gray-900">Récapitulatif final</p>
           <p className="text-xs text-gray-400">À vérifier avant verrouillage définitif</p>
         </div>
-        <p className="text-xs text-gray-500">{tickets.length} ligne{tickets.length > 1 ? 's' : ''}</p>
+        <p className="text-xs text-gray-500">{totalElements} ligne{totalElements > 1 ? 's' : ''}</p>
       </div>
       <div className="overflow-x-auto">
         <Table
           isStriped
+          isHeaderSticky
           aria-label="Récapitulatif final des tickets V2"
+          classNames={{
+            base: 'rounded-none',
+            wrapper: 'max-h-[60vh] rounded-none shadow-none p-0',
+          }}
           bottomContent={
-            pageCount > 1 ? (
-              <div className="flex justify-center pt-4">
-                <Pagination total={pageCount} page={safePage} onChange={setPage} color="primary" />
-              </div>
-            ) : undefined
+            <div ref={bottomRef} className="flex items-center justify-center py-3">
+              {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+            </div>
           }
         >
           <TableHeader>

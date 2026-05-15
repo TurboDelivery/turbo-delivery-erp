@@ -9,6 +9,7 @@ export interface ITicketsParStatutParams {
   debut?: string;
   fin?: string;
   restaurantId?: string;
+  livreurId?: string;
   search?: string;
   numero?: string;
   page?: number;
@@ -171,6 +172,7 @@ export async function listerTicketsParStatutRequest(params: ITicketsParStatutPar
       debut: params.debut || undefined,
       fin: params.fin || undefined,
       restaurantId: params.restaurantId || undefined,
+      livreurId: params.livreurId || undefined,
       search: params.search || undefined,
       numero: params.numero || undefined,
     },

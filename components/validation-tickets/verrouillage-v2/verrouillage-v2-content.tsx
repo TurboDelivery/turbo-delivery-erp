@@ -10,11 +10,14 @@ import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
 export function VerrouillageV2Content() {
   const {
     tickets,
-    filteredTickets,
+    totalElements,
     filters,
     setFilters,
     livreurOptions,
     isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     ticketStats,
     isStatsLoading,
     validatingId,
@@ -52,14 +55,18 @@ export function VerrouillageV2Content() {
       <TicketFilterBar value={filters} onChange={setFilters} livreurOptions={livreurOptions} />
 
       <VerrouillageV2Table
-        tickets={filteredTickets}
+        tickets={tickets}
+        totalElements={totalElements}
         validatingId={validatingId}
         onValidate={handleValidate}
         onReject={setRejectDialogId}
+        fetchNextPage={fetchNextPage}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
       />
 
       <VerrouillageV2Footer
-        ticketCount={tickets.length}
+        ticketCount={totalElements}
         isValidating={isValidatingAll}
         onValidateAll={handleValidateAll}
       />

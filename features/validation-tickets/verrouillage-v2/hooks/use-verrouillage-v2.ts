@@ -5,7 +5,6 @@ import { useQueryStates } from 'nuqs';
 import { IVerrouillageParams } from '../types/tickets-v2.type';
 import { useTicketsAuthentifiesQuery, useTicketsV1ValideQuery } from '../queries/tickets-v2-list.query';
 import { useValiderV1Mutation } from '../queries/tickets-v2.mutation';
-import { applyTicketFilters } from '@/components/validation-tickets/TicketFilterBar';
 import { validationTicketFiltersConfig, validationTicketFiltersOptions } from '@/features/validation-tickets/filters/validation-tickets.filters';
 import { useTicketFilterOptions } from '@/features/validation-tickets/hooks/use-ticket-filter-options';
 
@@ -19,7 +18,9 @@ export default function useVerrouillageV2() {
     debut: filters.debut || undefined,
     fin: filters.fin || undefined,
     restaurantId: filters.restaurantId || undefined,
-  }), [filters.debut, filters.fin, filters.restaurantId]);
+    livreurId: filters.livreurId || undefined,
+    search: filters.search || undefined,
+  }), [filters.debut, filters.fin, filters.restaurantId, filters.livreurId, filters.search]);
 
   const { data: readyData, isLoading: isLoadingReady, fetchNextPage: fetchNextReady, hasNextPage: hasNextReady, isFetchingNextPage: isFetchingNextReady } = useTicketsAuthentifiesQuery(params);
   const { data: lockedData, isLoading: isLoadingLocked, fetchNextPage: fetchNextLocked, hasNextPage: hasNextLocked, isFetchingNextPage: isFetchingNextLocked } = useTicketsV1ValideQuery(params);
@@ -28,8 +29,8 @@ export default function useVerrouillageV2() {
   const readyTickets = useMemo(() => readyData?.pages.flatMap((p) => p.content) ?? [], [readyData]);
   const lockedTickets = useMemo(() => lockedData?.pages.flatMap((p) => p.content) ?? [], [lockedData]);
 
-  const filteredReadyTickets = useMemo(() => applyTicketFilters(readyTickets, filters), [readyTickets, filters]);
-  const filteredLockedTickets = useMemo(() => applyTicketFilters(lockedTickets, filters), [lockedTickets, filters]);
+  const totalReady = readyData?.pages[0]?.totalElements ?? 0;
+  const totalLocked = lockedData?.pages[0]?.totalElements ?? 0;
 
   const { mutate: validerV1, mutateAsync: validerV1Async, isPending: isLocking } = useValiderV1Mutation();
 
@@ -50,8 +51,8 @@ export default function useVerrouillageV2() {
   return {
     readyTickets,
     lockedTickets,
-    filteredReadyTickets,
-    filteredLockedTickets,
+    totalReady,
+    totalLocked,
     filters,
     setFilters,
     livreurOptions,

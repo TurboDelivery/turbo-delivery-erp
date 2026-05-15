@@ -10,8 +10,8 @@ import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
 export default function VerificationV1Content() {
   const {
     readyTickets,
-    filteredReadyTickets,
-    filteredLockedTickets,
+    lockedTickets,
+    totalReady,
     filters,
     setFilters,
     livreurOptions,
@@ -36,7 +36,7 @@ export default function VerificationV1Content() {
           className="flex items-center gap-2 rounded-full border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 w-full sm:w-auto"
         >
           <Lock className="h-4 w-4" />
-          Tout valider V1 ({readyTickets.length})
+          Tout valider V1 ({totalReady})
         </Button>
       </div>
 
@@ -44,14 +44,14 @@ export default function VerificationV1Content() {
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <TicketReadyList
-          tickets={filteredReadyTickets}
+          tickets={readyTickets}
           onLock={handleLock}
           hasNextPage={!!hasNextReady}
           isFetchingNextPage={isFetchingNextReady}
           fetchNextPage={fetchNextReady}
         />
         <TicketLockedList
-          tickets={filteredLockedTickets}
+          tickets={lockedTickets}
           hasNextPage={!!hasNextLocked}
           isFetchingNextPage={isFetchingNextLocked}
           fetchNextPage={fetchNextLocked}

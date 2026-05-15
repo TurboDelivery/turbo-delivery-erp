@@ -5,7 +5,6 @@ import { useQueryStates } from 'nuqs';
 import { useTicketsV1ValideQuery, useCreneauTicketStatsQuery } from '../queries/tickets-v2-list.query';
 import { useValiderV2Mutation, useValiderV2EnMasseMutation, useRejeterV2FraudeMutation } from '../queries/tickets-v2.mutation';
 import { useCreneauActifQuery } from '@/features/creneaux/queries/creneau.query';
-import { applyTicketFilters } from '@/components/validation-tickets/TicketFilterBar';
 import { validationTicketFiltersConfig, validationTicketFiltersOptions } from '@/features/validation-tickets/filters/validation-tickets.filters';
 import { useTicketFilterOptions } from '@/features/validation-tickets/hooks/use-ticket-filter-options';
 import type { IVerrouillageParams } from '../types/tickets-v2.type';
@@ -21,9 +20,11 @@ export function useVerrouillageV2Content() {
     debut: filters.debut || undefined,
     fin: filters.fin || undefined,
     restaurantId: filters.restaurantId || undefined,
-  }), [filters.debut, filters.fin, filters.restaurantId]);
+    livreurId: filters.livreurId || undefined,
+    search: filters.search || undefined,
+  }), [filters.debut, filters.fin, filters.restaurantId, filters.livreurId, filters.search]);
 
-  const { data, isLoading } = useTicketsV1ValideQuery(params);
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTicketsV1ValideQuery(params);
   const { data: creneauActif } = useCreneauActifQuery();
   const { data: ticketStats, isLoading: isStatsLoading } = useCreneauTicketStatsQuery();
   const { livreurOptions } = useTicketFilterOptions();
@@ -37,7 +38,7 @@ export function useVerrouillageV2Content() {
     [data],
   );
 
-  const filteredTickets = useMemo(() => applyTicketFilters(tickets, filters), [tickets, filters]);
+  const totalElements = data?.pages[0]?.totalElements ?? 0;
 
   const handleValidate = useCallback(
     (id: string) => {
@@ -60,11 +61,14 @@ export function useVerrouillageV2Content() {
 
   return {
     tickets,
-    filteredTickets,
+    totalElements,
     filters,
     setFilters,
     livreurOptions,
     isLoading,
+    fetchNextPage,
+    hasNextPage: !!hasNextPage,
+    isFetchingNextPage,
     ticketStats,
     isStatsLoading,
     validatingId,
