@@ -154,6 +154,10 @@ function calculateFinalCommission(ticket: Ticket, restaurant?: { typeCommission:
  */
 export async function createBonLivraison(ticket: Ticket, restaurant?: { typeCommission: string; commission: number }): Promise<ApiResult<BonLivraisonTerminee>> {
   try {
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Utilisateur non authentifié');
+
     const { id, code, ...rest } = ticket;
 
     // ✅ Calcul correct de la commission au moment de l'envoi
@@ -171,6 +175,7 @@ export async function createBonLivraison(ticket: Ticket, restaurant?: { typeComm
       method: bonLivraisonEndpoints.create.method,
       service: 'backend',
       data: payload,
+      config: { headers: { 'X-User-Id': userId } },
     });
     return {
       success: true,

@@ -119,7 +119,11 @@
       "Bash(ConvertTo-Json)",
       "Bash(Format-Table -AutoSize)",
       "mcp__webstorm__read_file",
-      "Bash(rtk curl *)"
+      "Bash(rtk curl *)",
+      "mcp__webstorm__execute_terminal_command",
+      "Bash(where pnpm *)",
+      "Bash(where npx *)",
+      "Bash(C:\\\\nvm4w\\\\nodejs\\\\pnpm.cmd tsc *)"
     ]
   }
 }
