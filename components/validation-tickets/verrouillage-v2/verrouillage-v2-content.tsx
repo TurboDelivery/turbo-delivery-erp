@@ -30,14 +30,6 @@ export function VerrouillageV2Content() {
     handleValidateAll,
   } = useVerrouillageV2Content();
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-sm text-gray-400">Chargement des tickets...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
       <div>
@@ -57,6 +49,7 @@ export function VerrouillageV2Content() {
       <VerrouillageV2Table
         tickets={tickets}
         totalElements={totalElements}
+        isLoading={isLoading}
         validatingId={validatingId}
         onValidate={handleValidate}
         onReject={setRejectDialogId}

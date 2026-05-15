@@ -8,6 +8,7 @@ export interface IVerrouillageParams {
   restaurantId?: string;
   livreurId?: string;
   search?: string;
+  numero?: string;
 }
 
 export interface CreneauTicketStatsVm {

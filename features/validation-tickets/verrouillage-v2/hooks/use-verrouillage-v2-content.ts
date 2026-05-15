@@ -22,7 +22,8 @@ export function useVerrouillageV2Content() {
     restaurantId: filters.restaurantId || undefined,
     livreurId: filters.livreurId || undefined,
     search: filters.search || undefined,
-  }), [filters.debut, filters.fin, filters.restaurantId, filters.livreurId, filters.search]);
+    numero: filters.numero || undefined,
+  }), [filters.debut, filters.fin, filters.restaurantId, filters.livreurId, filters.search, filters.numero]);
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTicketsV1ValideQuery(params);
   const { data: creneauActif } = useCreneauActifQuery();

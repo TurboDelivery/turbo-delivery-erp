@@ -20,7 +20,8 @@ export default function useVerrouillageV2() {
     restaurantId: filters.restaurantId || undefined,
     livreurId: filters.livreurId || undefined,
     search: filters.search || undefined,
-  }), [filters.debut, filters.fin, filters.restaurantId, filters.livreurId, filters.search]);
+    numero: filters.numero || undefined,
+  }), [filters.debut, filters.fin, filters.restaurantId, filters.livreurId, filters.search, filters.numero]);
 
   const { data: readyData, isLoading: isLoadingReady, fetchNextPage: fetchNextReady, hasNextPage: hasNextReady, isFetchingNextPage: isFetchingNextReady } = useTicketsAuthentifiesQuery(params);
   const { data: lockedData, isLoading: isLoadingLocked, fetchNextPage: fetchNextLocked, hasNextPage: hasNextLocked, isFetchingNextPage: isFetchingNextLocked } = useTicketsV1ValideQuery(params);

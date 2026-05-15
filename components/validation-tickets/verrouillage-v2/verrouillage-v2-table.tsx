@@ -10,6 +10,7 @@ import { buildVerrouillageV2Columns } from './verrouillage-v2-columns';
 interface VerrouillageV2TableProps {
   tickets: TicketControleV2[];
   totalElements: number;
+  isLoading: boolean;
   validatingId: string | null;
   onValidate: (id: string) => void;
   onReject: (id: string) => void;
@@ -21,6 +22,7 @@ interface VerrouillageV2TableProps {
 export function VerrouillageV2Table({
   tickets,
   totalElements,
+  isLoading,
   validatingId,
   onValidate,
   onReject,
@@ -84,16 +86,26 @@ export function VerrouillageV2Table({
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent="Aucun ticket trouvé">
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+          <TableBody emptyContent={isLoading ? ' ' : 'Aucun ticket trouvé'}>
+            {isLoading
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {table.getFlatHeaders().map((header) => (
+                      <TableCell key={header.id}>
+                        <div className="h-4 rounded bg-gray-100 animate-pulse" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
           </TableBody>
         </Table>
       </div>

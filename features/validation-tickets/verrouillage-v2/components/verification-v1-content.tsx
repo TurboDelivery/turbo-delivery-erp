@@ -12,6 +12,7 @@ export default function VerificationV1Content() {
     readyTickets,
     lockedTickets,
     totalReady,
+    totalLocked,
     filters,
     setFilters,
     livreurOptions,
@@ -45,6 +46,7 @@ export default function VerificationV1Content() {
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <TicketReadyList
           tickets={readyTickets}
+          total={totalReady}
           onLock={handleLock}
           hasNextPage={!!hasNextReady}
           isFetchingNextPage={isFetchingNextReady}
@@ -52,6 +54,7 @@ export default function VerificationV1Content() {
         />
         <TicketLockedList
           tickets={lockedTickets}
+          total={totalLocked}
           hasNextPage={!!hasNextLocked}
           isFetchingNextPage={isFetchingNextLocked}
           fetchNextPage={fetchNextLocked}

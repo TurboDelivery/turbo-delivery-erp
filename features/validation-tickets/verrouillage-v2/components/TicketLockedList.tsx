@@ -7,12 +7,13 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 interface Props {
   tickets: TicketControleV2[];
+  total: number;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
 }
 
-export default function TicketLockedList({ tickets, hasNextPage, isFetchingNextPage, fetchNextPage }: Props) {
+export default function TicketLockedList({ tickets, total, hasNextPage, isFetchingNextPage, fetchNextPage }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +34,7 @@ export default function TicketLockedList({ tickets, hasNextPage, isFetchingNextP
           <span className="h-2.5 w-2.5 rounded-full bg-gray-900 inline-block" />
           <h2 className="text-base font-semibold text-gray-800">Validés V1</h2>
         </div>
-        <span className="text-sm text-gray-400 font-medium">{tickets.length}</span>
+        <span className="text-sm text-gray-400 font-medium">{total}</span>
       </div>
 
       {tickets.length === 0 ? (

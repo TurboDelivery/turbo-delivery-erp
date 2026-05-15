@@ -11,6 +11,7 @@ export type SelectOption = { value: string; label: string };
 
 export interface TicketFilters {
   search: string;
+  numero: string;
   livreurId: string;
   restaurantId: string;
   debut: string;
@@ -19,6 +20,7 @@ export interface TicketFilters {
 
 export const DEFAULT_TICKET_FILTERS: TicketFilters = {
   search: '',
+  numero: '',
   livreurId: '',
   restaurantId: '',
   debut: '',
@@ -65,11 +67,11 @@ export default function TicketFilterBar({ value, onChange, livreurOptions }: Pro
           size="sm"
           variant="bordered"
           placeholder="Rechercher par code check…"
-          value={value.search}
-          onValueChange={(v) => onChange({ ...value, search: v })}
+          value={value.numero}
+          onValueChange={(v) => onChange({ ...value, numero: v })}
           startContent={<Search className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />}
           isClearable
-          onClear={() => onChange({ ...value, search: '' })}
+          onClear={() => onChange({ ...value, numero: '' })}
         />
       </div>
 
@@ -97,7 +99,6 @@ export default function TicketFilterBar({ value, onChange, livreurOptions }: Pro
       </div>
 
       <div className="flex-1 min-w-[220px]">
-        <label className="block text-xs font-medium mb-1 text-gray-500">Période</label>
         <DateFilterInput
           filters={{ debut: debutDate, fin: finDate }}
           handleDateChange={handleDateChange}

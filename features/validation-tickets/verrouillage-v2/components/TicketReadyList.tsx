@@ -7,13 +7,14 @@ import { TicketControleV2 } from '../types/tickets-v2.type';
 
 interface Props {
   tickets: TicketControleV2[];
+  total: number;
   onLock: (ticketId: string) => void;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
 }
 
-export default function TicketReadyList({ tickets, onLock, hasNextPage, isFetchingNextPage, fetchNextPage }: Props) {
+export default function TicketReadyList({ tickets, total, onLock, hasNextPage, isFetchingNextPage, fetchNextPage }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -35,7 +36,7 @@ export default function TicketReadyList({ tickets, onLock, hasNextPage, isFetchi
           <h2 className="text-base font-semibold text-gray-800">Prêts pour V1</h2>
         </div>
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
-          {tickets.length}
+          {total}
         </span>
       </div>
 
