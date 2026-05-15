@@ -37,7 +37,10 @@ function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
 }
 
-export const responsableFinancierColumns: ColumnDef<IFactureRF>[] = [
+export function createResponsableFinancierColumns(
+  onValider: (facture: IFactureRF) => void,
+): ColumnDef<IFactureRF>[] {
+  return [
   {
     accessorKey: 'numero',
     header: 'N° FACTURE',
@@ -152,14 +155,23 @@ export const responsableFinancierColumns: ColumnDef<IFactureRF>[] = [
       }
       if (statut === 'Validé') {
         return (
-          <Button size="sm" variant="outline" className="text-green-600 border-green-300 hover:bg-green-50 text-xs px-3">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-green-600 border-green-300 hover:bg-green-50 text-xs px-3"
+            onClick={() => onValider(row.original)}
+          >
             ✓ Valider la facture
           </Button>
         );
       }
       if (statut === 'À valider') {
         return (
-          <Button size="sm" className="bg-green-600 text-white hover:bg-green-700 text-xs px-3">
+          <Button
+            size="sm"
+            className="bg-green-600 text-white hover:bg-green-700 text-xs px-3"
+            onClick={() => onValider(row.original)}
+          >
             ✓ Valider la facture
           </Button>
         );
@@ -167,4 +179,5 @@ export const responsableFinancierColumns: ColumnDef<IFactureRF>[] = [
       return null;
     },
   },
-];
+  ];
+}

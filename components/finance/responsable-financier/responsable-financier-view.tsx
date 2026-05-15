@@ -11,8 +11,9 @@ import {
 } from '@heroui/react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { TrendingUp, FileText, Users, Percent } from 'lucide-react';
-import { responsableFinancierColumns, type IFactureRF, type StatutFacture } from './responsable-financier-columns';
+import { createResponsableFinancierColumns, type IFactureRF, type StatutFacture } from './responsable-financier-columns';
 import { MOCK_FACTURES } from './mock-data';
+import ValiderFactureModal from './valider-facture-modal';
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 const MOCK_STATS = {
@@ -45,6 +46,7 @@ function StatCard({ icon: Icon, color, label, value, sub }: { icon: React.Elemen
 export default function ResponsableFinancierView() {
   const [periode, setPeriode] = useState<Periode>('mois');
   const [statutFilter, setStatutFilter] = useState<StatutFilter>('Tous');
+  const [factureAValider, setFactureAValider] = useState<IFactureRF | null>(null);
 
   const filteredData = MOCK_FACTURES.filter((f) => {
     if (statutFilter === 'Tous') return true;
@@ -55,9 +57,11 @@ export default function ResponsableFinancierView() {
     return f.statut === (statutFilter as StatutFacture);
   });
 
+  const columns = createResponsableFinancierColumns((facture) => setFactureAValider(facture));
+
   const table = useReactTable({
     data: filteredData,
-    columns: responsableFinancierColumns,
+    columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -172,6 +176,16 @@ export default function ResponsableFinancierView() {
           </TableBody>
         </Table>
       </div>
+
+      <ValiderFactureModal
+        open={factureAValider !== null}
+        onClose={() => setFactureAValider(null)}
+        facture={factureAValider}
+        onConfirm={(facture, cycle) => {
+          // TODO: call server action to validate facture
+          console.log('Valider facture', facture.id, 'cycle:', cycle);
+        }}
+      />
     </div>
   );
 }
