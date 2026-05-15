@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { IFactureRF } from './responsable-financier-columns';
@@ -22,15 +23,22 @@ function formatMontant(v: number) {
 
 export default function ValiderFactureModal({ open, onClose, facture, onConfirm }: Props) {
   const [cycle, setCycle] = useState<CyclePaiement>('Mensuel');
+  const portalRef = useRef<Element | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  if (!open || !facture) return null;
+  useEffect(() => {
+    portalRef.current = document.getElementById('modal-portal') ?? document.body;
+    setMounted(true);
+  }, []);
+
+  if (!open || !facture || !mounted) return null;
 
   function handleConfirm() {
     if (facture) onConfirm(facture, cycle);
     onClose();
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={onClose}
@@ -135,6 +143,7 @@ export default function ValiderFactureModal({ open, onClose, facture, onConfirm 
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    portalRef.current!,
   );
 }
