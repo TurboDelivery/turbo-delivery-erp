@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-export type StatutFacture = 'Soldé' | 'Acompte' | 'Déposé partenaire' | 'Recouvrement' | 'Validé' | 'Preuve ajoutée' | 'Visé DG' | 'À valider';
+export type StatutFacture = 'Soldé' | 'Acompte' | 'Déposé partenaire' | 'Recouvrement' | 'En cours' | 'Validé' | 'Preuve ajoutée' | 'Visé DG' | 'À valider';
 
 export interface IFactureRF {
   id: string;
@@ -27,6 +27,7 @@ const statutConfig: Record<StatutFacture, { label: string; className: string }> 
   'Acompte': { label: 'Acompte', className: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
   'Déposé partenaire': { label: 'Déposé partenaire', className: 'bg-blue-100 text-blue-700 border-blue-200' },
   'Recouvrement': { label: 'Recouvrement', className: 'bg-orange-100 text-orange-700 border-orange-200' },
+  'En cours': { label: 'Recouvrement', className: 'bg-orange-100 text-orange-700 border-orange-200' },
   'Validé': { label: 'Validé', className: 'bg-green-100 text-green-700 border-green-200' },
   'Preuve ajoutée': { label: 'Preuve ajoutée', className: 'bg-purple-100 text-purple-700 border-purple-200' },
   'Visé DG': { label: 'Visé DG', className: 'bg-blue-100 text-blue-700 border-blue-200' },
@@ -39,6 +40,7 @@ function formatMontant(v: number) {
 
 export function createResponsableFinancierColumns(
   onValider: (facture: IFactureRF) => void,
+  onLancerRecouvrement: (facture: IFactureRF) => void,
 ): ColumnDef<IFactureRF>[] {
   return [
   {
@@ -148,10 +150,17 @@ export function createResponsableFinancierColumns(
       }
       if (statut === 'Recouvrement' || statut === 'À valider') {
         return (
-          <Button size="sm" className="bg-gray-900 text-white hover:bg-gray-700 text-xs px-3">
+          <Button
+            size="sm"
+            className="bg-gray-900 text-white hover:bg-gray-700 text-xs px-3"
+            onClick={() => onLancerRecouvrement(row.original)}
+          >
             Lancer recouvrement →
           </Button>
         );
+      }
+      if (statut === 'En cours') {
+        return <span className="text-xs text-gray-400 italic">En cours de traitement...</span>;
       }
       if (statut === 'Validé') {
         return (

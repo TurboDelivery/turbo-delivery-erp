@@ -14,6 +14,7 @@ import { TrendingUp, FileText, Users, Percent } from 'lucide-react';
 import { createResponsableFinancierColumns, type IFactureRF, type StatutFacture } from './responsable-financier-columns';
 import { MOCK_FACTURES } from './mock-data';
 import ValiderFactureModal from './valider-facture-modal';
+import DemarrerRecouvrementDrawer from './demarrer-recouvrement-modal';
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 const MOCK_STATS = {
@@ -48,6 +49,7 @@ export default function ResponsableFinancierView() {
   const [statutFilter, setStatutFilter] = useState<StatutFilter>('Tous');
   const [factures, setFactures] = useState<IFactureRF[]>(MOCK_FACTURES);
   const [factureAValider, setFactureAValider] = useState<IFactureRF | null>(null);
+  const [factureRecouvrement, setFactureRecouvrement] = useState<IFactureRF | null>(null);
 
   const filteredData = useMemo(() => factures.filter((f) => {
     if (statutFilter === 'Tous') return true;
@@ -59,7 +61,10 @@ export default function ResponsableFinancierView() {
   }), [factures, statutFilter]);
 
   const columns = useMemo(
-    () => createResponsableFinancierColumns((facture) => setFactureAValider(facture)),
+    () => createResponsableFinancierColumns(
+      (facture) => setFactureAValider(facture),
+      (facture) => setFactureRecouvrement(facture),
+    ),
     [],
   );
 
@@ -189,6 +194,19 @@ export default function ResponsableFinancierView() {
           setFactures((prev) =>
             prev.map((f) =>
               f.id === facture.id ? { ...f, statut: 'À valider' as const } : f,
+            ),
+          );
+        }}
+      />
+
+      <DemarrerRecouvrementDrawer
+        open={factureRecouvrement !== null}
+        onClose={() => setFactureRecouvrement(null)}
+        facture={factureRecouvrement}
+        onConfirm={(facture, agent) => {
+          setFactures((prev) =>
+            prev.map((f) =>
+              f.id === facture.id ? { ...f, statut: 'En cours' as const, agent: agent.nom } : f,
             ),
           );
         }}
