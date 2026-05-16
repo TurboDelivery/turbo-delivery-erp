@@ -27,15 +27,17 @@ export const DEFAULT_TICKET_FILTERS: TicketFilters = {
   fin: '',
 };
 
-/** Filtre client-side sur reference, livreurId, restaurantId */
+/** Filtre client-side sur reference (numero), livreurId, restaurantId */
 export function applyTicketFilters<
   T extends { reference: string; livreurId: string; restaurantId: string },
 >(items: T[], filters: TicketFilters): T[] {
   const s = filters.search.toLowerCase().trim();
-  if (!s && !filters.livreurId && !filters.restaurantId) return items;
+  const n = filters.numero.toLowerCase().trim();
+  if (!s && !n && !filters.livreurId && !filters.restaurantId) return items;
   return items.filter(
     (item) =>
       (!s || item.reference.toLowerCase().includes(s)) &&
+      (!n || item.reference.toLowerCase().includes(n)) &&
       (!filters.livreurId || item.livreurId === filters.livreurId) &&
       (!filters.restaurantId || item.restaurantId === filters.restaurantId),
   );
