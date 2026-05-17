@@ -137,7 +137,7 @@ export function RelevePaiePdf({ data, period }: { data: IReleveDePaie; period: s
         <View style={styles.recapBox} wrap={false}>
           <View style={styles.row}>
             <Text>Total général</Text>
-            <Text>{data.totalGeneral} CFA</Text>
+            <Text>{Math.round(data.totalGeneral)} CFA</Text>
           </View>
           <View style={styles.row}>
             <Text>Pourcentage applicable</Text>
@@ -145,7 +145,7 @@ export function RelevePaiePdf({ data, period }: { data: IReleveDePaie; period: s
           </View>
           <View style={styles.row}>
             <Text>Gain</Text>
-            <Text>{data.gain} CFA</Text>
+            <Text>{Math.round(data.gain)} CFA</Text>
           </View>
           {/*<View style={styles.row}>*/}
           {/*  <Text>Déduction (Crédit TURBO)</Text>*/}
@@ -154,7 +154,7 @@ export function RelevePaiePdf({ data, period }: { data: IReleveDePaie; period: s
 
           <View style={[styles.row, { marginTop: 8, borderTop: '1px solid #000', paddingTop: 6 }]}>
             <Text style={styles.net}>Net à payer</Text>
-            <Text style={styles.net}>{data.netAPayer} CFA</Text>
+            <Text style={styles.net}>{Math.round(data.netAPayer)} CFA</Text>
           </View>
         </View>
 

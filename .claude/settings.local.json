@@ -125,7 +125,8 @@
       "Bash(where npx *)",
       "Bash(C:\\\\nvm4w\\\\nodejs\\\\pnpm.cmd tsc *)",
       "Bash(grep -E '\\\\.\\(tsx?|jsx?\\)$')",
-      "Bash(grep -E '\\\\.\\(tsx?\\)$')"
+      "Bash(grep -E '\\\\.\\(tsx?\\)$')",
+      "WebFetch(domain:erp-prod.turbodeliveryapp.com)"
     ]
   }
 }

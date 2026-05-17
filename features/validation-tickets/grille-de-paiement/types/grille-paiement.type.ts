@@ -68,6 +68,32 @@ export interface IGrillePaiementCreneau {
   };
 }
 
+export interface IFichePaieRestaurant {
+  id: string;
+  nomEtablissement: string;
+  typeCommission: 'POURCENTAGE' | 'FIXE';
+  commission: number;
+}
+
+export interface IFichePaieDetailJour {
+  date: string;
+  restaurants: IFichePaieRestaurant[];
+  totalJour: number;
+}
+
+export interface IFichePaie {
+  livreurId: string;
+  livreur: string;
+  debut: string;
+  fin: string;
+  nombreJoursTravailles: number;
+  detailsLivraisons: IFichePaieDetailJour[];
+  totalGeneral: number;
+  pourcentageApplicable: number;
+  gain: number;
+  netAPayer: number;
+}
+
 export interface IGrillePaiementParams {
   creneauId?: string;
   page?: number;

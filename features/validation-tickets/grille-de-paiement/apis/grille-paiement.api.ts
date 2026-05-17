@@ -1,6 +1,7 @@
 import { getCreneauActifApi } from '@/features/creneaux/apis/creneau.api';
 import { apiClientHttp } from '@/lib/api-client-http';
 import {
+  IFichePaie,
   IGrillePaiementCreneau,
   IGrillePaiementParams,
   IUpdateNumeroWaveParams,
@@ -48,6 +49,14 @@ export async function validerLigneApi(lotId: string, turboyId: string, userId: s
     endpoint: `/api/lots/${lotId}/valider-ligne/${turboyId}`,
     method: 'POST',
     config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
+export async function getFichePaieApi(livreurId: string, lotId: string): Promise<IFichePaie> {
+  return apiClientHttp.request<IFichePaie>({
+    endpoint: `/api/erp/bon-livraison/livreurs/${livreurId}/montants-livraison`,
+    method: 'GET',
+    params: { lotId },
   });
 }
 

@@ -3,12 +3,13 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getGrillePaiementApi, soumettrGrillePaiementApi, updateNumeroWaveApi, validerLigneApi } from '../apis/grille-paiement.api';
+import { getFichePaieApi, getGrillePaiementApi, soumettrGrillePaiementApi, updateNumeroWaveApi, validerLigneApi } from '../apis/grille-paiement.api';
 import { IGrillePaiementParams, IUpdateNumeroWaveParams } from '../types/grille-paiement.type';
 
 export const grillePaiementKeys = {
   all: ['grille-paiement'] as const,
   detail: (params?: IGrillePaiementParams) => [...grillePaiementKeys.all, params?.creneauId, params?.page ?? 0] as const,
+  fichePaie: (livreurId: string, lotId: string) => [...grillePaiementKeys.all, 'fiche-paie', livreurId, lotId] as const,
 };
 
 export const useGrillePaiementQuery = (params?: IGrillePaiementParams) => {
@@ -30,6 +31,15 @@ export const useGrillePaiementQuery = (params?: IGrillePaiementParams) => {
   }, [query.isError, query.error]);
 
   return query;
+};
+
+export const useFichePaieQuery = (livreurId: string | null, lotId: string | undefined) => {
+  return useQuery({
+    queryKey: grillePaiementKeys.fichePaie(livreurId ?? '', lotId ?? ''),
+    queryFn: () => getFichePaieApi(livreurId!, lotId!),
+    enabled: !!livreurId && !!lotId,
+    staleTime: 60_000,
+  });
 };
 
 export const useSoumettreGrilleMutation = () => {
