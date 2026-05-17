@@ -41,6 +41,7 @@ function EligibilityItem({ icon, iconBg, title, subtitle, rightIcon }: { icon: R
 interface Props {
   ligne: IGrillePaiementLigne | null;
   creneauCode: string;
+  lotId?: string;
   open: boolean;
   onClose: () => void;
 }
@@ -139,7 +140,6 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
                   </div>
 
                   {ticketDetails.length === 0 && <p className="px-4 py-6 text-center text-sm text-[#9a9a9a]">Aucun ticket trouvé.</p>}
-
                   {ticketDetails.map((t, index) => (
                     <div
                       key={t.ref}
@@ -147,7 +147,7 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
                     >
                       <span className="font-medium text-[#d14c45] truncate">{t.ref}</span>
                       <span className="text-[#555555] truncate">{t.partenaire}</span>
-                      <span className="text-[#8a8a8a]">{format(t.date, 'dd/MM/YYYY', { locale: fr })}</span>
+                      <span className="text-[#8a8a8a]">{format(new Date(t.date), 'dd/MM/yyyy', { locale: fr })}</span>
                       <span className="text-right font-semibold text-[#4a4a4a]">{formatNumber(t.fraisLivraison)}</span>
                       <span className="text-right font-semibold text-[#16a34a]">{formatNumber(t.commission)}</span>
                     </div>

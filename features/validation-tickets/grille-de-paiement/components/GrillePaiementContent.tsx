@@ -133,7 +133,6 @@ export default function GrillePaiementContent() {
       <GrillePaiementDetailModal
         ligne={selectedLigne}
         creneauCode={grille.code}
-        lotId={grille.lot?.id}
         open={!!selectedLigne}
         onClose={closeDetail}
       />
