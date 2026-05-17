@@ -68,6 +68,14 @@ export default function TicketLockedList({ tickets, total, hasNextPage, isFetchi
                   {ticket.commission != null ? formatCFA(ticket.commission) : '—'}
                 </span>
               </div>
+              {ticket.createdByUser && (
+                <div className="flex items-center gap-1 text-xs text-gray-400">
+                  <span>Créé par</span>
+                  <span className="font-medium text-gray-500">
+                    {ticket.createdByUser.prenoms} {ticket.createdByUser.nom}
+                  </span>
+                </div>
+              )}
             </div>
           ))}
           <div ref={bottomRef} className="flex items-center justify-center py-1 shrink-0">

@@ -123,7 +123,9 @@
       "mcp__webstorm__execute_terminal_command",
       "Bash(where pnpm *)",
       "Bash(where npx *)",
-      "Bash(C:\\\\nvm4w\\\\nodejs\\\\pnpm.cmd tsc *)"
+      "Bash(C:\\\\nvm4w\\\\nodejs\\\\pnpm.cmd tsc *)",
+      "Bash(grep -E '\\\\.\\(tsx?|jsx?\\)$')",
+      "Bash(grep -E '\\\\.\\(tsx?\\)$')"
     ]
   }
 }

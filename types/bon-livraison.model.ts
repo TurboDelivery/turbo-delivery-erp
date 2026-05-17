@@ -18,6 +18,13 @@ export interface BonLivraisonTerminee {
   zoneId?: string;
   nomZone?: string;
   typeCommission?: string;
+  createdByUser?: {
+    id: string;
+    nom: string;
+    prenoms: string;
+    email: string;
+    username: string;
+  } | null;
 }
 
 export interface BonLivraison {
@@ -71,6 +78,13 @@ export interface Ticket {
     nomZone?: string;
     typeCommission?: string;
     commission?: string;
+    createdByUser?: {
+      id: string;
+      nom: string;
+      prenoms: string;
+      email: string;
+      username: string;
+    } | null;
 }
 
 export interface LivreurStat {

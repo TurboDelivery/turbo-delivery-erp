@@ -261,6 +261,15 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
     },
   },
   {
+    id: 'createdByUser',
+    header: 'Créé par',
+    enableSorting: false,
+    cell: ({ row }) => {
+      const u = row.original.createdByUser;
+      return <span className="text-xs">{u ? `${u.prenoms} ${u.nom}` : '—'}</span>;
+    },
+  },
+  {
     id: 'actions',
     header: '',
     enableSorting: false,

@@ -20,6 +20,7 @@ export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
     nomZone: bon.nomZone,
     zoneId: bon.zoneId,
     statutControle: bon.statutControle,
+    createdByUser: bon.createdByUser,
   };
 }
 

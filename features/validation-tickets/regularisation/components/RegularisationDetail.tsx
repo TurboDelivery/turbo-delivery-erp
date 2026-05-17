@@ -45,6 +45,14 @@ export default function RegularisationDetail({ ticket, isApproving, isRejecting,
             <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">Date</p>
             <p className="text-sm font-bold text-gray-900">{ticket.date}</p>
           </div>
+          {ticket.createdByUser && (
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-1">Créé par</p>
+              <p className="text-sm font-bold text-gray-900">
+                {ticket.createdByUser.prenoms} {ticket.createdByUser.nom}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-5">

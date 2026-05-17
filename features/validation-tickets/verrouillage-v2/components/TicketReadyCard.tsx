@@ -48,6 +48,14 @@ export default function TicketReadyCard({ ticket, onLock }: Props) {
           {ticket.commission != null ? formatCFA(ticket.commission) : '—'}
         </span>
       </div>
+      {ticket.createdByUser && (
+        <div className="flex items-center gap-1 text-xs text-gray-400">
+          <span>Créé par</span>
+          <span className="font-medium text-gray-600">
+            {ticket.createdByUser.prenoms} {ticket.createdByUser.nom}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

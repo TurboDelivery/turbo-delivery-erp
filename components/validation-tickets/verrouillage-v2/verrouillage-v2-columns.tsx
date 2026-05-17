@@ -117,6 +117,15 @@ export function buildVerrouillageV2Columns(
       cell: ({ row }) => <span className="text-gray-700">{row.original.v1Agent?.username ?? '—'}</span>,
     },
     {
+      id: 'createdByUser',
+      header: 'CRÉÉ PAR',
+      enableSorting: false,
+      cell: ({ row }) => {
+        const u = row.original.createdByUser;
+        return <span className="text-gray-700">{u ? `${u.prenoms} ${u.nom}` : '—'}</span>;
+      },
+    },
+    {
       id: 'actions',
       header: 'ACTIONS',
       enableSorting: false,
