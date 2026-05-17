@@ -4,6 +4,7 @@ import { VerrouillageV2Stats } from './verrouillage-v2-stats';
 import { VerrouillageV2Table } from './verrouillage-v2-table';
 import { VerrouillageV2Footer } from './verrouillage-v2-footer';
 import { RejectMotifDialog } from './reject-motif-dialog';
+import { V2ValideTable } from './v2-valide-table';
 import { useVerrouillageV2Content } from '@/features/validation-tickets/verrouillage-v2/hooks/use-verrouillage-v2-content';
 import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
 
@@ -11,6 +12,12 @@ export function VerrouillageV2Content() {
   const {
     tickets,
     totalElements,
+    ticketsV2Valide,
+    totalV2Valide,
+    isLoadingV2Valide,
+    fetchNextV2Valide,
+    hasNextV2Valide,
+    isFetchingNextV2Valide,
     filters,
     setFilters,
     livreurOptions,
@@ -62,6 +69,15 @@ export function VerrouillageV2Content() {
         ticketCount={totalElements}
         isValidating={isValidatingAll}
         onValidateAll={handleValidateAll}
+      />
+
+      <V2ValideTable
+        tickets={ticketsV2Valide}
+        totalElements={totalV2Valide}
+        isLoading={isLoadingV2Valide}
+        fetchNextPage={fetchNextV2Valide}
+        hasNextPage={hasNextV2Valide}
+        isFetchingNextPage={isFetchingNextV2Valide}
       />
 
       <RejectMotifDialog

@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useCallback } from 'react';
 import { useQueryStates } from 'nuqs';
-import { useTicketsV1ValideQuery, useCreneauTicketStatsQuery } from '../queries/tickets-v2-list.query';
+import { useTicketsV1ValideQuery, useTicketsV2ValideQuery, useCreneauTicketStatsQuery } from '../queries/tickets-v2-list.query';
 import { useValiderV2Mutation, useValiderV2EnMasseMutation, useRejeterV2FraudeMutation } from '../queries/tickets-v2.mutation';
 import { useCreneauActifQuery } from '@/features/creneaux/queries/creneau.query';
 import { validationTicketFiltersConfig, validationTicketFiltersOptions } from '@/features/validation-tickets/filters/validation-tickets.filters';
@@ -26,6 +26,13 @@ export function useVerrouillageV2Content() {
   }), [filters.debut, filters.fin, filters.restaurantId, filters.livreurId, filters.search, filters.numero]);
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTicketsV1ValideQuery(params);
+  const {
+    data: v2ValideData,
+    isLoading: isLoadingV2Valide,
+    fetchNextPage: fetchNextV2Valide,
+    hasNextPage: hasNextV2Valide,
+    isFetchingNextPage: isFetchingNextV2Valide,
+  } = useTicketsV2ValideQuery(params);
   const { data: creneauActif } = useCreneauActifQuery();
   const { data: ticketStats, isLoading: isStatsLoading } = useCreneauTicketStatsQuery();
   const { livreurOptions } = useTicketFilterOptions();
@@ -40,6 +47,13 @@ export function useVerrouillageV2Content() {
   );
 
   const totalElements = data?.pages[0]?.totalElements ?? 0;
+
+  const ticketsV2Valide = useMemo(
+    () => v2ValideData?.pages.flatMap((p) => p.content) ?? [],
+    [v2ValideData],
+  );
+
+  const totalV2Valide = v2ValideData?.pages[0]?.totalElements ?? 0;
 
   const handleValidate = useCallback(
     (id: string) => {
@@ -63,6 +77,12 @@ export function useVerrouillageV2Content() {
   return {
     tickets,
     totalElements,
+    ticketsV2Valide,
+    totalV2Valide,
+    isLoadingV2Valide,
+    fetchNextV2Valide,
+    hasNextV2Valide: !!hasNextV2Valide,
+    isFetchingNextV2Valide,
     filters,
     setFilters,
     livreurOptions,

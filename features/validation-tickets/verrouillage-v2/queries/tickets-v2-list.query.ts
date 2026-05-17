@@ -67,6 +67,33 @@ export const useTicketsV1ValideQuery = (params: IVerrouillageParams = {}) => {
 export const prefetchTicketsV1ValideQuery = (params: IVerrouillageParams = {}) =>
   queryClient.prefetchInfiniteQuery(ticketsV1ValideQueryOption(params));
 
+// --- Tickets V2_VALIDÉS (déjà verrouillés) ---
+
+export const ticketsV2ValideQueryOption = (params: IVerrouillageParams = {}) => ({
+  queryKey: ticketsV2KeyQuery(StatutControle.V2_VALIDE, params),
+  queryFn: async ({ pageParam = 0 }) =>
+    listerTicketsParStatutRequest({ statuts: [StatutControle.V2_VALIDE], ...params, page: pageParam }) as Promise<PaginatedResponse<TicketControleV2>>,
+  getNextPageParam: getNextPage,
+  staleTime: 30 * 1000,
+  refetchOnWindowFocus: false,
+  refetchOnMount: true,
+});
+
+export const useTicketsV2ValideQuery = (params: IVerrouillageParams = {}) => {
+  const query = useInfiniteQuery(ticketsV2ValideQueryOption(params));
+  React.useEffect(() => {
+    if (query.isError && query.error) {
+      toast.error('Erreur lors de la récupération des tickets V2 validés', {
+        description: query.error instanceof Error ? query.error.message : 'Erreur inconnue',
+      });
+    }
+  }, [query.isError, query.error]);
+  return query;
+};
+
+export const prefetchTicketsV2ValideQuery = (params: IVerrouillageParams = {}) =>
+  queryClient.prefetchInfiniteQuery(ticketsV2ValideQueryOption(params));
+
 // --- Stats du créneau courant ---
 
 export const useCreneauTicketStatsQuery = (creneauId?: string) => {
