@@ -17,6 +17,31 @@ function formatDate(dateStr: string) {
   }
 }
 
+function formatDateTime(dateStr: string | null | undefined) {
+  if (!dateStr) return null;
+  try {
+    return format(parseISO(dateStr), 'dd MMM yyyy à HH:mm', { locale: fr });
+  } catch {
+    return dateStr;
+  }
+}
+
+interface AgentCellProps {
+  agent: { nom: string; prenoms: string } | null | undefined;
+  date?: string | null;
+}
+
+function AgentCell({ agent, date }: AgentCellProps) {
+  if (!agent) return <span className="text-gray-400">—</span>;
+  const formatted = formatDateTime(date);
+  return (
+    <div className="flex flex-col leading-tight">
+      <span className="text-gray-800 font-medium">{`${agent.prenoms} ${agent.nom}`}</span>
+      {formatted && <span className="text-[11px] text-gray-500">{formatted}</span>}
+    </div>
+  );
+}
+
 interface RowActionsProps {
   ticket: TicketControleV2;
   isValidating: boolean;
@@ -111,19 +136,28 @@ export function buildVerrouillageV2Columns(
       },
     },
     {
-      id: 'v1ValidePar',
-      header: 'V1 PAR',
-      enableSorting: false,
-      cell: ({ row }) => <span className="text-gray-700">{row.original.v1Agent?.username ?? '—'}</span>,
-    },
-    {
       id: 'createdByUser',
       header: 'CRÉÉ PAR',
       enableSorting: false,
-      cell: ({ row }) => {
-        const u = row.original.createdByUser;
-        return <span className="text-gray-700">{u ? `${u.prenoms} ${u.nom}` : '—'}</span>;
-      },
+      cell: ({ row }) => <AgentCell agent={row.original.createdByUser} />,
+    },
+    {
+      id: 'vauthAgent',
+      header: 'AUTH PAR',
+      enableSorting: false,
+      cell: ({ row }) => <AgentCell agent={row.original.vauthAgent} date={row.original.vauthAt} />,
+    },
+    {
+      id: 'v1Agent',
+      header: 'V1 PAR',
+      enableSorting: false,
+      cell: ({ row }) => <AgentCell agent={row.original.v1Agent} date={row.original.v1ValideAt} />,
+    },
+    {
+      id: 'v2Agent',
+      header: 'V2 PAR',
+      enableSorting: false,
+      cell: ({ row }) => <AgentCell agent={row.original.v2Agent} date={row.original.v2ValideAt} />,
     },
     {
       id: 'actions',
