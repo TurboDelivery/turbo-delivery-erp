@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { useInvalidateTicketsQuery } from './index.query';
 import { authentifierTicket, createBonLivraison, deleteBonLivraison, updateBonLivraison } from '@/src/actions/bon-commande.action';
+import { restaurerArchivesRequest } from '@/features/tickets/request/tickets.request';
 import { Ticket } from '@/types/bon-livraison.model';
 import { toast } from 'react-toastify';
 
@@ -66,6 +67,24 @@ export const useDeleteBonLivraison = () => {
     mutationFn: deleteBonLivraison,
     onSuccess: async () => {
       await invalidateTicketsQuery();
+    },
+  });
+};
+
+export const useRestaurerArchives = (onSuccessFn?: (restored: Record<string, number>) => void) => {
+  const invalidateTicketsQuery = useInvalidateTicketsQuery();
+
+  return useMutation({
+    mutationFn: (commandeIds: string[]) => restaurerArchivesRequest(commandeIds),
+    onSuccess: async (data, commandeIds) => {
+      await invalidateTicketsQuery();
+      const count = commandeIds.length;
+      toast.success(`${count} ticket(s) restauré(s) avec succès.`);
+      onSuccessFn?.(data);
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors de la restauration: ${message}`);
     },
   });
 };

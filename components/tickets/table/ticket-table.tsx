@@ -14,7 +14,7 @@ import { useAbility } from '@/hooks/use-ability';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { useTicketAuthentication } from '@/features/tickets/hooks/use-ticket-authentication';
 import StatsSection from '@/components/tickets/stats-section';
-import TicketTabLivreur from '@/components/tickets/tabs/ticket-tab-livreur';
+import { TicketArchivesTable } from './ticket-archives-table';
 import { TicketTableFilters } from './ticket-table-filters';
 import { TicketTableActions } from './ticket-table-actions';
 import { TicketTableExportButton } from './ticket-table-export-button';
@@ -182,10 +182,10 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
             Tous les Tickets
           </button>
           <button
-            onClick={() => setFilter('tab', 'livreur')}
-            className={`px-4 sm:px-6 py-3 sm:py-4 font-medium text-sm sm:text-base whitespace-nowrap ${activeTab === 'livreur' ? 'border-b-2 border-red-500 text-red-500' : 'text-gray-600'}`}
+            onClick={() => setFilter('tab', 'archives')}
+            className={`px-4 sm:px-6 py-3 sm:py-4 font-medium text-sm sm:text-base whitespace-nowrap ${activeTab === 'archives' ? 'border-b-2 border-red-500 text-red-500' : 'text-gray-600'}`}
           >
-            Par Livreur
+            Archives
           </button>
         </div>
 
@@ -245,10 +245,10 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
           </div>
         )}
 
-        {activeTab === 'livreur' && <TicketTabLivreur />}
+        {activeTab === 'archives' && <TicketArchivesTable restaurantOptions={restaurantOptions} livreurOptions={livreurOptions} />}
       </div>
 
-      {activeTab !== 'livreur' && (
+      {activeTab !== 'archives' && (
         <TicketTableActions
           ticketsData={ticketsData}
           selectedRows={selectedRowIds}

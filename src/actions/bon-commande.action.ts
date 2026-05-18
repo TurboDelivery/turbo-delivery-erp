@@ -9,7 +9,7 @@ import axios from 'axios';
 import { ApiResult } from '@/types/general';
 import { handleApiError } from '@/utils/handle-api-error';
 import { auth } from '@/auth';
-import { authentifierTicketRequest, validerV1Request, validerV2Request, validerV2EnMasseRequest, approuverTicketRequest, rejeterFraudeRequest } from '@/features/tickets/request/tickets.request';
+import { authentifierTicketRequest, validerV1Request, validerV2Request, validerV2EnMasseRequest, approuverTicketRequest, rejeterFraudeRequest, deleteBonLivraisonRequest } from '@/features/tickets/request/tickets.request';
 // Configuration
 const BASE_URL = '/api/erp/bon-livraison';
 const BASE_URL_2 = '/api/export/reporting';
@@ -306,15 +306,13 @@ export async function rejeterTicketPourFraude(ticketId: string, motif: string): 
 /**
  * Supprimer un bon de livraison
  */
-export async function deleteBonLivraison(ticketId: string): Promise<boolean> {
+export async function deleteBonLivraison(ticketId: string, motif?: string): Promise<boolean> {
   try {
-    await apiClientHttp.request({
-      endpoint: bonLivraisonEndpoints.delete.endpoint(ticketId),
-      method: bonLivraisonEndpoints.delete.method,
-      service: 'backend',
-    });
+    const session = await auth();
+    const userId = session?.user?.id;
+    if (!userId) throw new Error('Utilisateur non authentifié');
 
-    // ✅ Si on arrive ici sans exception, la suppression a réussi
+    await deleteBonLivraisonRequest(ticketId, userId, motif);
     return true;
   } catch (error) {
     console.error('Erreur suppression:', error);
