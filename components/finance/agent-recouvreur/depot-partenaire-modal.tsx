@@ -11,7 +11,7 @@ interface Props {
   onClose: () => void;
   facture: IFactureAgent | null;
   agentNom?: string;
-  onConfirm: (facture: IFactureAgent, data: { date: string; montant: number }) => void;
+  onConfirm: (facture: IFactureAgent, data: { date: string; montant: number; agent: string }) => void;
 }
 
 function formatMontant(v: number) {
@@ -42,7 +42,7 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
     : 0;
 
   function handleConfirm() {
-    if (facture) onConfirm(facture, { date, montant });
+    if (facture) onConfirm(facture, { date, montant, agent: agentNom });
     onClose();
   }
 

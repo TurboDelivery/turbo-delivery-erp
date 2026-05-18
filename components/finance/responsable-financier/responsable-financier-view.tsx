@@ -294,7 +294,7 @@ export default function ResponsableFinancierView() {
         onClose={() => setFacturePreuve(null)}
         facture={facturePreuve}
         onConfirm={(facture, preuveUrl) => {
-          ajouterPreuveMutation.mutate({ id: facture.id, data: { preuveUrl } });
+          ajouterPreuveMutation.mutate({ id: facture.id, data: { reference: preuveUrl } });
           setFacturePreuve(null);
         }}
       />
@@ -303,8 +303,8 @@ export default function ResponsableFinancierView() {
         open={factureDepotPartenaire !== null}
         onClose={() => setFactureDepotPartenaire(null)}
         facture={factureDepotPartenaire}
-        onConfirm={(facture, date, agent) => {
-          depotPartenaireMutation.mutate({ id: facture.id, data: { date, agent } });
+        onConfirm={(facture, date, agentId) => {
+          depotPartenaireMutation.mutate({ id: facture.id, data: { date, agentId } });
           setFactureDepotPartenaire(null);
         }}
       />

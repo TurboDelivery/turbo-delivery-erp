@@ -30,6 +30,7 @@ export interface IFactureRF {
   depotBanque: string | null;
   agent: string;
   statut: StatutFacture;
+  preuve?: string | null; // base64 data URL or HTTP URL returned by the API
 }
 
 // ─── Détail ───────────────────────────────────────────────────────────────────
@@ -105,13 +106,13 @@ export interface ILancerRecouvrementDTO {
 
 // FacturePreuveRequestDto
 export interface IAjouterPreuveDTO {
-  preuveUrl: string;
+  reference: string;
 }
 
 // FactureDepotPartenaireRequestDto
 export interface IDepotPartenaireDTO {
   date: string; // ISO date
-  agent: string;
+  agentId: string; // UUID
 }
 
 // FactureDepotBanqueRequestDto

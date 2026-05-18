@@ -110,6 +110,7 @@ export function createAgentRecouvreurColumns(
       header: 'STATUT',
       cell: ({ row }) => {
         const config = statutConfig[row.original.statut];
+        if (!config) return <span className="text-gray-400 text-xs">{row.original.statut}</span>;
         return (
           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${config.className}`}>
             • {config.label}

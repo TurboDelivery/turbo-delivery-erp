@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useSession } from 'next-auth/react';
 import {
   Table,
   TableHeader,
@@ -12,11 +13,12 @@ import {
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Clock, TrendingUp, FileText, DollarSign } from 'lucide-react';
 import { createAgentRecouvreurColumns } from './agent-recouvreur-columns';
-import { MOCK_FACTURES_AGENT, type IFactureAgent, type StatutAgentFacture } from './mock-data';
+import type { IFactureAgent } from './mock-data';
 import DepotPartenaireModal from './depot-partenaire-modal';
 import EncaissementModal from './encaissement-drawer';
 import VerserComptableModal from './verser-comptable-modal';
-import type { IPaiement } from './ajouter-paiement-modal';
+import type { IPaiement } from './ajouter-paiement-modal'; // used by EncaissementModal callback
+import { useAgentFacturesQuery, useDepotPartenaireMutation, useEncaissementMutation, useVerserComptableMutation } from '@/features/agent-recouvreur';
 
 type Periode = 'mois' | 'annee' | 'cycle' | 'plage';
 type StatutFilter = 'Tous' | 'En attente' | 'Acompte' | 'Soldé';
@@ -48,19 +50,28 @@ function StatCard({
 }
 
 export default function AgentRecouvreurView() {
-  const [factures, setFactures] = useState<IFactureAgent[]>(MOCK_FACTURES_AGENT);
+  const { data: session } = useSession();
+  const sessionUserId = session?.user?.id ?? '';
+  const [agentIdInput, setAgentIdInput] = useState('');
+  const agentId = agentIdInput.trim() || undefined;
+
   const [periode, setPeriode] = useState<Periode>('mois');
   const [statutFilter, setStatutFilter] = useState<StatutFilter>('Tous');
   const [factureDepot, setFactureDepot] = useState<IFactureAgent | null>(null);
   const [factureEncaissement, setFactureEncaissement] = useState<IFactureAgent | null>(null);
   const [factureVersement, setFactureVersement] = useState<IFactureAgent | null>(null);
 
-  const enAttente = factures.filter((f) => f.statut === 'Recouvrement').length;
-  const avecAcompte = factures.filter((f) => f.montantRecouvre !== null && f.pourcentageRecouvre !== null && f.pourcentageRecouvre < 100).length;
-  const soldees = factures.filter((f) => f.statut === 'Soldé').length;
-  const totalMontant = factures.reduce((acc, f) => acc + f.montant, 0);
-  const totalRecouvre = factures.reduce((acc, f) => acc + (f.montantRecouvre ?? 0), 0);
-  const tauxRecouvrement = totalMontant > 0 ? Math.round((totalRecouvre / totalMontant) * 100) : 0;
+  const { data, isLoading, isError, error } = useAgentFacturesQuery({ periode }, agentId);
+  const depotPartenaireMutation = useDepotPartenaireMutation(agentId);
+  const encaissementMutation = useEncaissementMutation(agentId);
+  const verserComptableMutation = useVerserComptableMutation(agentId);
+
+  const factures = (data?.factures.content ?? []) as unknown as IFactureAgent[];
+
+  const enAttente = data?.stats.enAttente ?? 0;
+  const avecAcompte = data?.stats.avecAcompte ?? 0;
+  const soldees = data?.stats.soldees ?? 0;
+  const tauxRecouvrement = data?.stats.tauxRecouvrement ?? 0;
 
   const filteredData = useMemo(() => factures.filter((f) => {
     if (statutFilter === 'Tous') return true;
@@ -70,22 +81,10 @@ export default function AgentRecouvreurView() {
     return true;
   }), [factures, statutFilter]);
 
-  function handleDepotPartenaire(facture: IFactureAgent) {
-    setFactureDepot(facture);
-  }
-
-  function handleAjouterPreuve(facture: IFactureAgent) {
-    setFactures((prev) =>
-      prev.map((f) =>
-        f.id === facture.id ? { ...f, statut: 'Preuve ajoutée' as const } : f,
-      ),
-    );
-  }
-
   const columns = useMemo(
     () => createAgentRecouvreurColumns(
-      handleDepotPartenaire,
-      handleAjouterPreuve,
+      (facture) => setFactureDepot(facture),
+      (_facture) => { /* ajouter preuve: no dedicated endpoint */ },
       (facture) => setFactureEncaissement(facture),
       (facture) => setFactureVersement(facture),
     ),
@@ -179,15 +178,36 @@ export default function AgentRecouvreurView() {
               ))}
             </div>
           </div>
+
+          {/* Agent ID override (admin) */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-gray-500 font-medium">
+              ID Agent <span className="text-gray-400 font-normal">(laisser vide = vous-même)</span>
+            </label>
+            <input
+              type="text"
+              placeholder={sessionUserId || 'UUID de l\'agent…'}
+              value={agentIdInput}
+              onChange={(e) => setAgentIdInput(e.target.value)}
+              className="h-8 w-72 rounded-lg border border-gray-200 px-3 text-xs text-gray-700 placeholder-gray-300 focus:border-blue-400 focus:outline-none"
+            />
+          </div>
         </div>
       </div>
+
+      {/* Error banner */}
+      {isError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+          Erreur de chargement : {error instanceof Error ? error.message : 'Erreur inconnue'}
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div>
             <p className="text-sm font-semibold text-gray-800">Suivi des factures</p>
-            <p className="text-xs text-gray-400">{String(filteredData.length).padStart(2, '0')} factures</p>
+            <p className="text-xs text-gray-400">{String(data?.factures.totalElements ?? filteredData.length).padStart(2, '0')} factures</p>
           </div>
           <button className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors">
             Suivi des factures
@@ -201,7 +221,10 @@ export default function AgentRecouvreurView() {
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent="Aucune facture trouvée">
+          <TableBody
+            emptyContent={isLoading ? ' ' : 'Aucune facture trouvée'}
+            isLoading={isLoading}
+          >
             {table.getRowModel().rows.map((row) => (
               <TableRow key={row.id}>
                 {row.getVisibleCells().map((cell) => (
@@ -219,20 +242,10 @@ export default function AgentRecouvreurView() {
         open={factureDepot !== null}
         onClose={() => setFactureDepot(null)}
         facture={factureDepot}
-        onConfirm={(facture, { date, montant }) => {
-          setFactures((prev) =>
-            prev.map((f) =>
-              f.id === facture.id
-                ? {
-                    ...f,
-                    statut: 'Déposé partenaire' as const,
-                    montantRecouvre: montant,
-                    pourcentageRecouvre: Math.min(100, Math.round((montant / f.montant) * 100)),
-                    depotPartenaire: { date, agent: 'KOUASSI MEDARD' },
-                  }
-                : f,
-            ),
-          );
+        agentNom={session?.user?.name ?? ''}
+        onConfirm={(facture, { date, montant, agent }) => {
+          depotPartenaireMutation.mutate({ factureId: facture.id, body: { date, montant, agent } });
+          setFactureDepot(null);
         }}
       />
 
@@ -241,21 +254,18 @@ export default function AgentRecouvreurView() {
         onClose={() => setFactureEncaissement(null)}
         facture={factureEncaissement}
         onPaiementAjoute={(facture, paiements) => {
-          const total = paiements.reduce((acc, p) => acc + p.montant, 0);
           const dernierPaiement = paiements[paiements.length - 1];
-          const estSolde = dernierPaiement?.type === 'Solde';
-          setFactures((prev) =>
-            prev.map((f) =>
-              f.id === facture.id
-                ? {
-                    ...f,
-                    montantRecouvre: total,
-                    pourcentageRecouvre: Math.min(100, Math.round((total / f.montant) * 100)),
-                    ...(estSolde ? { statut: 'Soldé' as const } : {}),
-                  }
-                : f,
-            ),
-          );
+          if (dernierPaiement) {
+            encaissementMutation.mutate({
+              factureId: facture.id,
+              body: {
+                type: dernierPaiement.type,
+                date: dernierPaiement.date,
+                montant: dernierPaiement.montant,
+                remarque: dernierPaiement.remarque,
+              },
+            });
+          }
         }}
       />
 
@@ -264,13 +274,8 @@ export default function AgentRecouvreurView() {
         onClose={() => setFactureVersement(null)}
         facture={factureVersement}
         onConfirm={(facture, { montant, date }) => {
-          setFactures((prev) =>
-            prev.map((f) =>
-              f.id === facture.id
-                ? { ...f, statut: 'Preuve ajoutée' as const, depotBanque: date }
-                : f,
-            ),
-          );
+          verserComptableMutation.mutate({ factureId: facture.id, body: { montant, date } });
+          setFactureVersement(null);
         }}
       />
     </div>

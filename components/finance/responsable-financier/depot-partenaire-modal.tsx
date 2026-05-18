@@ -3,21 +3,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Building2 } from 'lucide-react';
+import { Skeleton } from '@heroui/react';
 import { Button } from '@/components/ui/button';
 import type { IFactureRF } from './responsable-financier-columns';
+import { useAgentsRecouvrementQuery } from '@/features/responsable-financier';
 
 interface Props {
   open: boolean;
   onClose: () => void;
   facture: IFactureRF | null;
-  onConfirm: (facture: IFactureRF, date: string, agent: string) => void;
+  onConfirm: (facture: IFactureRF, date: string, agentId: string) => void;
 }
 
 export default function DepotPartenaireModal({ open, onClose, facture, onConfirm }: Props) {
   const [date, setDate] = useState('');
-  const [agent, setAgent] = useState('');
+  const [agentId, setAgentId] = useState('');
   const portalRef = useRef<Element | null>(null);
   const [mounted, setMounted] = useState(false);
+
+  const { data: agents = [], isLoading: agentsLoading } = useAgentsRecouvrementQuery();
 
   useEffect(() => {
     portalRef.current = document.getElementById('modal-portal') ?? document.body;
@@ -25,12 +29,17 @@ export default function DepotPartenaireModal({ open, onClose, facture, onConfirm
   }, []);
 
   useEffect(() => {
-    if (!open) { setDate(''); setAgent(''); }
+    if (!open) { setDate(''); setAgentId(''); }
   }, [open]);
+
+  // Pre-select first agent when agents load
+  useEffect(() => {
+    if (agents.length > 0 && !agentId) setAgentId(agents[0].id);
+  }, [agents, agentId]);
 
   if (!open || !facture || !mounted) return null;
 
-  const canSubmit = date.trim() && agent.trim();
+  const canSubmit = date.trim() && agentId;
 
   return createPortal(
     <div
@@ -74,13 +83,43 @@ export default function DepotPartenaireModal({ open, onClose, facture, onConfirm
             <label className="block text-xs text-gray-500 font-medium mb-1.5">
               Agent <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              value={agent}
-              onChange={(e) => setAgent(e.target.value)}
-              placeholder="Nom de l'agent"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors"
-            />
+            {agentsLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 rounded-xl w-full" />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                {agents.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => setAgentId(a.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border text-left transition-colors ${
+                      agentId === a.id
+                        ? 'border-orange-400 bg-orange-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 text-xs font-bold text-gray-600">
+                      {a.nom.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{a.nom}</p>
+                      <p className="text-xs text-gray-400">{a.role}</p>
+                    </div>
+                    {agentId === a.id && (
+                      <div className="ml-auto w-4 h-4 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -91,7 +130,7 @@ export default function DepotPartenaireModal({ open, onClose, facture, onConfirm
           </Button>
           <Button
             disabled={!canSubmit}
-            onClick={() => { onConfirm(facture, date.trim(), agent.trim()); onClose(); }}
+            onClick={() => { onConfirm(facture, date.trim(), agentId); onClose(); }}
             className="bg-orange-500 hover:bg-orange-600 text-white text-sm disabled:opacity-50"
           >
             Enregistrer le dépôt
