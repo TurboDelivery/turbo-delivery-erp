@@ -1,4 +1,5 @@
 import { Ticket } from '@/types/bon-livraison.model';
+import { StatutControle } from '@/types/statut-controle.enum';
 
 export interface ITicketParams {
   page?: number;
@@ -8,8 +9,43 @@ export interface ITicketParams {
   debut?: Date;
   fin?: Date;
   search?: string;
-  tab?: 'tous' | 'termines' | 'attentes';
+  tab?: 'tous' | 'termines' | 'attentes' | 'archives';
   livreur?: string;
+}
+
+export interface IArchivesParams {
+  page?: number;
+  size?: number;
+  restaurantId?: string;
+  livreurId?: string;
+  debut?: Date;
+  fin?: Date;
+  deletedAtDebut?: Date;
+  deletedAtFin?: Date;
+  numero?: string;
+}
+
+export interface IArchiveBonLivraisonVm {
+  commandeId: string;
+  reference: string;
+  livreurId: string;
+  livreur: string;
+  restaurantId: string;
+  restaurant: string;
+  coutLivraison: number;
+  coutCommande: number;
+  commission: number;
+  date: string;
+  heure: string;
+  statut: string;
+  statutControle?: StatutControle;
+  zoneId?: string;
+  nomZone?: string;
+  typeCommission?: string;
+  deletedAt?: string;
+  deletedByUser?: { id: string; nom: string; prenoms: string; email: string; username: string } | null;
+  createdByUser?: { id: string; nom: string; prenoms: string; email: string; username: string } | null;
+  motifAnnulation?: string;
 }
 
 export interface ILivreurSearchParams {

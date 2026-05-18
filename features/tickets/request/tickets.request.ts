@@ -1,7 +1,7 @@
 import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import { StatutControle } from '@/types/statut-controle.enum';
 import { apiClientHttp } from '@/lib/api-client-http';
-import { ILivreurSearchParams, ILivreurStats, ILivreurTicket, ITicketParams, ITicketsStats } from '@/features/tickets/types/tickets.type';
+import { IArchiveBonLivraisonVm, IArchivesParams, ILivreurSearchParams, ILivreurStats, ILivreurTicket, ITicketParams, ITicketsStats } from '@/features/tickets/types/tickets.type';
 import { PaginatedResponse } from '@/types/general';
 
 export interface ITicketsParStatutParams {
@@ -91,10 +91,13 @@ export async function getLivreursWithTicketsRequest(params: ILivreurSearchParams
   });
 }
 
-export async function deleteBonLivraisonRequest(id: string): Promise<void> {
+export async function deleteBonLivraisonRequest(id: string, userId: string, motif?: string): Promise<void> {
   return await apiClientHttp.request<void>({
     endpoint: `${BASE_URL}/${id}`,
     method: 'DELETE',
+    service: 'backend',
+    params: motif ? { motif } : undefined,
+    config: { headers: { 'X-User-Id': userId } },
   });
 }
 
@@ -158,6 +161,32 @@ export async function getCreneauTicketStatsRequest(creneauId?: string): Promise<
     endpoint: '/api/creneaux/tickets/stats',
     method: 'GET',
     params: creneauId ? { id: creneauId } : undefined,
+  });
+}
+
+export async function listerArchivesRequest(params: IArchivesParams): Promise<PaginatedResponse<IArchiveBonLivraisonVm>> {
+  return await apiClientHttp.request<PaginatedResponse<IArchiveBonLivraisonVm>>({
+    endpoint: `${BASE_URL}/archives`,
+    method: 'GET',
+    params: {
+      page: (params.page ?? 0).toString(),
+      size: (params.size ?? 20).toString(),
+      restaurantId: params.restaurantId?.trim() || undefined,
+      livreurId: params.livreurId?.trim() || undefined,
+      numero: params.numero?.trim() || undefined,
+      debut: params.debut?.toISOString(),
+      fin: params.fin?.toISOString(),
+      deletedAtDebut: params.deletedAtDebut?.toISOString(),
+      deletedAtFin: params.deletedAtFin?.toISOString(),
+    },
+  });
+}
+
+export async function restaurerArchivesRequest(commandeIds: string[]): Promise<Record<string, number>> {
+  return await apiClientHttp.request<Record<string, number>>({
+    endpoint: '/api/restaurant/commandes-externe/archives/restaurer',
+    method: 'PATCH',
+    data: commandeIds,
   });
 }
 
