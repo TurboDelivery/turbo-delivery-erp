@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -8,26 +8,46 @@ import {
   TableColumn,
   TableRow,
   TableCell,
+  Pagination,
+  Skeleton,
 } from '@heroui/react';
-import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { flexRender } from '@tanstack/react-table';
 import { TrendingUp, FileText, Users, Percent } from 'lucide-react';
+import type { DateRange } from 'react-day-picker';
 import { createResponsableFinancierColumns, type IFactureRF, type StatutFacture } from './responsable-financier-columns';
-import { MOCK_FACTURES } from './mock-data';
 import ValiderFactureModal from './valider-facture-modal';
+import ViserDgModal from './viser-dg-modal';
+import AjouterPreuveModal from './ajouter-preuve-modal';
+import DepotPartenaireModal from './depot-partenaire-modal';
+import DepotBanqueModal from './depot-banque-modal';
 import DemarrerRecouvrementDrawer from './demarrer-recouvrement-modal';
-
-// ─── Stats ────────────────────────────────────────────────────────────────────
-const MOCK_STATS = {
-  montantTotal: 750000,
-  nombreFactures: 3,
-  nombrePartenaires: 3,
-  tauxRecouvrement: 0,
-};
+import DateFilterInput from '@/components/finance/date-filter-input';
+import { useResponsableFinancierTable } from '@/features/responsable-financier/hooks/use-responsable-financier-table';
+import { useResponsableFinancierStats } from '@/features/responsable-financier/hooks/use-responsable-financier-stats';
+import {
+  useValiderFactureRFMutation,
+  useViserDgMutation,
+  useLancerRecouvrementMutation,
+  useAjouterPreuveMutation,
+  useDepotPartenaireMutation,
+  useDepotBanqueMutation,
+} from '@/features/responsable-financier';
 
 type Periode = 'mois' | 'annee' | 'cycle' | 'plage';
-type StatutFilter = 'Tous' | 'En attente' | StatutFacture;
+type StatutFilter = 'Tous' | StatutFacture;
 
-const statutFilters: StatutFilter[] = ['Tous', 'En attente', 'Acompte', 'Soldé'];
+const statutFilters: StatutFilter[] = [
+  'Tous',
+  'Soldé',
+  'Acompte',
+  'Déposé partenaire',
+  'Recouvrement',
+  'En cours',
+  'Validé',
+  'Preuve ajoutée',
+  'Visé DG',
+  'À valider',
+];
 
 function StatCard({ icon: Icon, color, label, value, sub }: { icon: React.ElementType; color: string; label: string; value: string; sub: string }) {
   return (
@@ -45,34 +65,43 @@ function StatCard({ icon: Icon, color, label, value, sub }: { icon: React.Elemen
 }
 
 export default function ResponsableFinancierView() {
-  const [periode, setPeriode] = useState<Periode>('mois');
-  const [statutFilter, setStatutFilter] = useState<StatutFilter>('Tous');
-  const [factures, setFactures] = useState<IFactureRF[]>(MOCK_FACTURES);
   const [factureAValider, setFactureAValider] = useState<IFactureRF | null>(null);
+  const [factureViserDg, setFactureViserDg] = useState<IFactureRF | null>(null);
   const [factureRecouvrement, setFactureRecouvrement] = useState<IFactureRF | null>(null);
-
-  const filteredData = useMemo(() => factures.filter((f) => {
-    if (statutFilter === 'Tous') return true;
-    if (statutFilter === 'En attente') {
-      const enAttente: StatutFacture[] = ['Recouvrement', 'À valider', 'Déposé partenaire'];
-      return enAttente.includes(f.statut);
-    }
-    return f.statut === (statutFilter as StatutFacture);
-  }), [factures, statutFilter]);
+  const [facturePreuve, setFacturePreuve] = useState<IFactureRF | null>(null);
+  const [factureDepotPartenaire, setFactureDepotPartenaire] = useState<IFactureRF | null>(null);
+  const [factureDepotBanque, setFactureDepotBanque] = useState<IFactureRF | null>(null);
 
   const columns = useMemo(
     () => createResponsableFinancierColumns(
       (facture) => setFactureAValider(facture),
+      (facture) => setFactureViserDg(facture),
       (facture) => setFactureRecouvrement(facture),
+      (facture) => setFacturePreuve(facture),
+      (facture) => setFactureDepotPartenaire(facture),
+      (facture) => setFactureDepotBanque(facture),
     ),
     [],
   );
 
-  const table = useReactTable({
-    data: filteredData,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  const { table, filters, setFilters, isLoading, stats, totalPages } =
+    useResponsableFinancierTable(columns);
+  const { statsCards } = useResponsableFinancierStats({ periode: filters.periode as 'mois' | 'annee' | 'cycle' | 'plage' | undefined });
+
+  const validerMutation = useValiderFactureRFMutation();
+  const viserDgMutation = useViserDgMutation();
+  const lancerRecouvrementMutation = useLancerRecouvrementMutation();
+  const ajouterPreuveMutation = useAjouterPreuveMutation();
+  const depotPartenaireMutation = useDepotPartenaireMutation();
+  const depotBanqueMutation = useDepotBanqueMutation();
+
+  const handleDateChange = (range: DateRange | undefined) => {
+    setFilters({
+      dateDebut: range?.from ?? null,
+      dateFin: range?.to ?? null,
+      page: 0,
+    });
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -88,29 +117,29 @@ export default function ResponsableFinancierView() {
           icon={TrendingUp}
           color="bg-green-500"
           label="Montant Total"
-          value={new Intl.NumberFormat('fr-FR').format(MOCK_STATS.montantTotal) + ' FCFA'}
-          sub="Mois en cours"
+          value={new Intl.NumberFormat('fr-FR').format(statsCards[1]?.value ?? 0) + ' FCFA'}
+          sub="Période sélectionnée"
         />
         <StatCard
           icon={FileText}
           color="bg-blue-500"
           label="Nombre de Factures"
-          value={String(MOCK_STATS.nombreFactures)}
-          sub="Mois en cours"
+          value={String(statsCards[0]?.value ?? 0)}
+          sub="Période sélectionnée"
         />
         <StatCard
           icon={Users}
           color="bg-purple-500"
           label="Nombre de Partenaires"
-          value={String(MOCK_STATS.nombrePartenaires)}
+          value={String(statsCards[2]?.value ?? 0)}
           sub="Partenaires uniques"
         />
         <StatCard
           icon={Percent}
           color="bg-orange-500"
           label="Taux de Recouvrement"
-          value={MOCK_STATS.tauxRecouvrement + '%'}
-          sub="Mois en cours"
+          value={(statsCards[3]?.value ?? 0) + '%'}
+          sub="Période sélectionnée"
         />
       </div>
 
@@ -124,12 +153,12 @@ export default function ResponsableFinancierView() {
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-gray-500 font-medium">Période</label>
             <div className="flex gap-1.5">
-              {([['mois', 'Mois en cours'], ['annee', 'Année 2026'], ['cycle', 'Par cycle'], ['plage', 'Plage de dates']] as [Periode, string][]).map(([val, label]) => (
+              {([['mois', 'Mois en cours'], ['annee', 'Année'], ['cycle', 'Par cycle'], ['plage', 'Plage de dates']] as [Periode, string][]).map(([val, label]) => (
                 <button
                   key={val}
-                  onClick={() => setPeriode(val)}
+                  onClick={() => setFilters({ periode: val, page: 0 })}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    periode === val
+                    filters.periode === val
                       ? 'bg-blue-600 text-white border-blue-600'
                       : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
                   }`}
@@ -143,13 +172,13 @@ export default function ResponsableFinancierView() {
           {/* Statut */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-gray-500 font-medium">Statut</label>
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {statutFilters.map((s) => (
                 <button
                   key={s}
-                  onClick={() => setStatutFilter(s)}
+                  onClick={() => setFilters({ statut: s === 'Tous' ? '' : s, page: 0 })}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    statutFilter === s
+                    (s === 'Tous' && !filters.statut) || filters.statut === s
                       ? 'bg-green-600 text-white border-green-600'
                       : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
                   }`}
@@ -159,12 +188,41 @@ export default function ResponsableFinancierView() {
               ))}
             </div>
           </div>
+
+          {/* Plage de dates */}
+          {filters.periode === 'plage' && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-gray-500 font-medium">Plage de dates</label>
+              <DateFilterInput
+                filters={{
+                  debut: filters.dateDebut ?? undefined,
+                  fin: filters.dateFin ?? undefined,
+                }}
+                handleDateChange={handleDateChange}
+                variant="outline"
+              />
+            </div>
+          )}
         </div>
       </div>
 
       {/* Table */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <Table isStriped aria-label="Factures responsable financier">
+        <Table
+          isStriped
+          aria-label="Factures responsable financier"
+          bottomContent={
+            totalPages > 1 ? (
+              <div className="flex justify-center py-3">
+                <Pagination
+                  page={filters.page + 1}
+                  total={totalPages}
+                  onChange={(p) => setFilters({ page: p - 1 })}
+                />
+              </div>
+            ) : null
+          }
+        >
           <TableHeader>
             {table.getFlatHeaders().map((h) => (
               <TableColumn key={h.id} className="text-xs font-semibold text-gray-500 uppercase bg-gray-50">
@@ -172,16 +230,31 @@ export default function ResponsableFinancierView() {
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent="Aucune facture trouvée">
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="py-3">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
+          <TableBody
+            emptyContent={isLoading ? ' ' : 'Aucune facture trouvée'}
+            items={isLoading ? [] : table.getRowModel().rows}
+          >
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={`skeleton-${i}`}>
+                  {table.getAllColumns().map((col) => (
+                    <TableCell key={col.id}>
+                      <Skeleton className="h-4 w-full rounded" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              )) as unknown as React.ReactElement
+            ) : (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="py-3">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              )) as unknown as React.ReactElement
+            )}
           </TableBody>
         </Table>
       </div>
@@ -191,11 +264,18 @@ export default function ResponsableFinancierView() {
         onClose={() => setFactureAValider(null)}
         facture={factureAValider}
         onConfirm={(facture, cycle) => {
-          setFactures((prev) =>
-            prev.map((f) =>
-              f.id === facture.id ? { ...f, statut: 'À valider' as const } : f,
-            ),
-          );
+          validerMutation.mutate({ id: facture.id, data: { cycle } });
+          setFactureAValider(null);
+        }}
+      />
+
+      <ViserDgModal
+        open={factureViserDg !== null}
+        onClose={() => setFactureViserDg(null)}
+        facture={factureViserDg}
+        onConfirm={(facture) => {
+          viserDgMutation.mutate(facture.id);
+          setFactureViserDg(null);
         }}
       />
 
@@ -204,11 +284,38 @@ export default function ResponsableFinancierView() {
         onClose={() => setFactureRecouvrement(null)}
         facture={factureRecouvrement}
         onConfirm={(facture, agent) => {
-          setFactures((prev) =>
-            prev.map((f) =>
-              f.id === facture.id ? { ...f, statut: 'En cours' as const, agent: agent.nom } : f,
-            ),
-          );
+          lancerRecouvrementMutation.mutate({ id: facture.id, data: { agentId: agent.id } });
+          setFactureRecouvrement(null);
+        }}
+      />
+
+      <AjouterPreuveModal
+        open={facturePreuve !== null}
+        onClose={() => setFacturePreuve(null)}
+        facture={facturePreuve}
+        onConfirm={(facture, preuveUrl) => {
+          ajouterPreuveMutation.mutate({ id: facture.id, data: { preuveUrl } });
+          setFacturePreuve(null);
+        }}
+      />
+
+      <DepotPartenaireModal
+        open={factureDepotPartenaire !== null}
+        onClose={() => setFactureDepotPartenaire(null)}
+        facture={factureDepotPartenaire}
+        onConfirm={(facture, date, agent) => {
+          depotPartenaireMutation.mutate({ id: facture.id, data: { date, agent } });
+          setFactureDepotPartenaire(null);
+        }}
+      />
+
+      <DepotBanqueModal
+        open={factureDepotBanque !== null}
+        onClose={() => setFactureDepotBanque(null)}
+        facture={factureDepotBanque}
+        onConfirm={(facture, date) => {
+          depotBanqueMutation.mutate({ id: facture.id, data: { date } });
+          setFactureDepotBanque(null);
         }}
       />
     </div>

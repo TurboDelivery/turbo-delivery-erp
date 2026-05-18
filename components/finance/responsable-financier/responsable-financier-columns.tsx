@@ -40,7 +40,11 @@ function formatMontant(v: number) {
 
 export function createResponsableFinancierColumns(
   onValider: (facture: IFactureRF) => void,
+  onViserDg: (facture: IFactureRF) => void,
   onLancerRecouvrement: (facture: IFactureRF) => void,
+  onAjouterPreuve: (facture: IFactureRF) => void,
+  onDepotPartenaire: (facture: IFactureRF) => void,
+  onDepotBanque: (facture: IFactureRF) => void,
 ): ColumnDef<IFactureRF>[] {
   return [
   {
@@ -139,46 +143,110 @@ export function createResponsableFinancierColumns(
     header: 'ACTIONS',
     cell: ({ row }) => {
       const { statut } = row.original;
-      if (statut === 'Soldé' || statut === 'Acompte' || statut === 'Déposé partenaire' || statut === 'Visé DG' || statut === 'Preuve ajoutée') {
+      const voirDetail = (
+        <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 text-xs px-2" asChild>
+          <Link href={`/finance/comptabilite/responsable-financier/${row.original.id}`}>
+            Voir détail
+          </Link>
+        </Button>
+      );
+
+      if (statut === 'À valider') {
         return (
-          <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-700 text-xs px-2" asChild>
-            <Link href={`/finance/comptabilite/responsable-financier/${row.original.id}`}>
-              Voir détail
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className="bg-green-600 text-white hover:bg-green-700 text-xs px-3"
+              onClick={() => onValider(row.original)}
+            >
+              ✓ Valider
+            </Button>
+            {voirDetail}
+          </div>
         );
-      }
-      if (statut === 'Recouvrement' || statut === 'À valider') {
-        return (
-          <Button
-            size="sm"
-            className="bg-gray-900 text-white hover:bg-gray-700 text-xs px-3"
-            onClick={() => onLancerRecouvrement(row.original)}
-          >
-            Lancer recouvrement →
-          </Button>
-        );
-      }
-      if (statut === 'En cours') {
-        return <span className="text-xs text-gray-400 italic">En cours de traitement...</span>;
       }
       if (statut === 'Validé') {
         return (
-          <Button
-            size="sm"
-            variant="outline"
-            className="text-green-600 border-green-300 hover:bg-green-50 text-xs px-3"
-            onClick={() => {
-              console.log('[ValiderFacture] clic bouton, facture:', row.original);
-              onValider(row.original);
-              console.log('[ValiderFacture] onValider appelé');
-            }}
-          >
-            ✓ Valider la facture
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className="bg-blue-600 text-white hover:bg-blue-700 text-xs px-3"
+              onClick={() => onViserDg(row.original)}
+            >
+              Viser DG
+            </Button>
+            {voirDetail}
+          </div>
         );
       }
-      return null;
+      if (statut === 'Visé DG') {
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className="bg-gray-900 text-white hover:bg-gray-700 text-xs px-3"
+              onClick={() => onLancerRecouvrement(row.original)}
+            >
+              Lancer recouvrement →
+            </Button>
+            {voirDetail}
+          </div>
+        );
+      }
+      if (statut === 'Recouvrement') {
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-purple-600 border-purple-300 hover:bg-purple-50 text-xs px-3"
+              onClick={() => onAjouterPreuve(row.original)}
+            >
+              + Preuve
+            </Button>
+            {voirDetail}
+          </div>
+        );
+      }
+      if (statut === 'Preuve ajoutée') {
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-orange-600 border-orange-300 hover:bg-orange-50 text-xs px-3"
+              onClick={() => onDepotPartenaire(row.original)}
+            >
+              Dépôt partenaire
+            </Button>
+            {voirDetail}
+          </div>
+        );
+      }
+      if (statut === 'Déposé partenaire') {
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-green-600 border-green-300 hover:bg-green-50 text-xs px-3"
+              onClick={() => onDepotBanque(row.original)}
+            >
+              Dépôt banque
+            </Button>
+            {voirDetail}
+          </div>
+        );
+      }
+      if (statut === 'En cours') {
+        return (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400 italic">En cours de traitement...</span>
+            {voirDetail}
+          </div>
+        );
+      }
+      return voirDetail;
     },
   },
   ];

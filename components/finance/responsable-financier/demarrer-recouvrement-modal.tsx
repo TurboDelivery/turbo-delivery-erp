@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -8,20 +8,11 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@heroui/react';
 import type { IFactureRF } from './responsable-financier-columns';
+import { useAgentsRecouvrementQuery, type IAgentRecouvrement } from '@/features/responsable-financier';
 
-export interface IAgent {
-  id: string;
-  nom: string;
-  role: string;
-}
-
-const MOCK_AGENTS: IAgent[] = [
-  { id: 'a1', nom: 'KOUASSI MEDARD', role: 'Agent de recouvrement' },
-  { id: 'a2', nom: 'DIARRA Fatou', role: 'Agent de recouvrement' },
-  { id: 'a3', nom: 'TRAORE Mamadou', role: 'Agent de recouvrement' },
-  { id: 'a4', nom: 'KONE Adjoua', role: 'Agent de recouvrement' },
-];
+export type IAgent = IAgentRecouvrement;
 
 interface Props {
   open: boolean;
@@ -35,10 +26,17 @@ function formatMontant(v: number) {
 }
 
 export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onConfirm }: Props) {
-  const [selectedAgent, setSelectedAgent] = useState<IAgent>(MOCK_AGENTS[0]);
+  const { data: agents = [], isLoading } = useAgentsRecouvrementQuery();
+  const [selectedAgent, setSelectedAgent] = useState<IAgent | null>(null);
+
+  useEffect(() => {
+    if (agents.length > 0 && !selectedAgent) {
+      setSelectedAgent(agents[0]);
+    }
+  }, [agents, selectedAgent]);
 
   function handleConfirm() {
-    if (facture) onConfirm(facture, selectedAgent);
+    if (facture && selectedAgent) onConfirm(facture, selectedAgent);
     onClose();
   }
 
@@ -92,13 +90,17 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
               Sélectionner un agent recouvrement <span className="text-red-500">*</span>
             </label>
             <div className="space-y-2">
-              {MOCK_AGENTS.map((agent) => (
+              {isLoading
+                ? Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-14 rounded-xl w-full" />
+                  ))
+                : agents.map((agent) => (
                 <button
                   key={agent.id}
                   type="button"
                   onClick={() => setSelectedAgent(agent)}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-colors ${
-                    selectedAgent.id === agent.id
+                    selectedAgent?.id === agent.id
                       ? 'border-red-400 bg-red-50'
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
@@ -110,7 +112,7 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
                     <p className="text-sm font-medium text-gray-800">{agent.nom}</p>
                     <p className="text-xs text-gray-400">{agent.role}</p>
                   </div>
-                  {selectedAgent.id === agent.id && (
+                  {selectedAgent?.id === agent.id && (
                     <div className="ml-auto w-4 h-4 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
                       <svg
                         className="w-2.5 h-2.5 text-white"
@@ -133,7 +135,8 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
         <div className="px-6 py-4 border-t border-gray-100">
           <Button
             onClick={handleConfirm}
-            className="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2.5"
+            disabled={!selectedAgent}
+            className="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2.5 disabled:opacity-50"
           >
             Démarrer le recouvrement
           </Button>

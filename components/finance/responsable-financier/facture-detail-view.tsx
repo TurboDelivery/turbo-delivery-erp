@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Leaf } from 'lucide-react';
-import type { IFactureRFDetail } from './mock-data';
+import type { IFactureRFDetail } from '@/features/responsable-financier';
 import ProformaModal from './proforma-modal';
 
 type StatutFacture = IFactureRFDetail['statut'];
