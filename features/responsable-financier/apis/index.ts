@@ -59,7 +59,7 @@ export function validerFacture(
     endpoint: `finance/responsable-financier/factures/${id}/valider`,
     method: 'PATCH',
     data: body,
-    headers: userId ? { 'X-User-Id': userId } : undefined,
+    config: userId ? { headers: { 'X-User-Id': userId } } : undefined,
   });
 }
 
@@ -74,7 +74,7 @@ export function viserDgFacture(
   return api.request<IResponsableFinancierFactureStatutVm>({
     endpoint: `finance/responsable-financier/factures/${id}/viser-dg`,
     method: 'PATCH',
-    headers: userId ? { 'X-User-Id': userId } : undefined,
+    config: userId ? { headers: { 'X-User-Id': userId } } : undefined,
   });
 }
 
@@ -106,7 +106,7 @@ export function ajouterPreuveFacture(
     endpoint: `finance/responsable-financier/factures/${id}/preuve`,
     method: 'PATCH',
     data: body,
-    headers: userId ? { 'X-User-Id': userId } : undefined,
+    config: userId ? { headers: { 'X-User-Id': userId } } : undefined,
   });
 }
 
@@ -138,6 +138,6 @@ export function marquerDepotBanqueFacture(
     endpoint: `finance/responsable-financier/factures/${id}/depot-banque`,
     method: 'PATCH',
     data: body,
-    headers: userId ? { 'X-User-Id': userId } : undefined,
+    config: userId ? { headers: { 'X-User-Id': userId } } : undefined,
   });
 }
