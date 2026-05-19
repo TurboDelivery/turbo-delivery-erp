@@ -22,9 +22,7 @@ export const useResponsableFinancierStats = (params?: IFactureRFParams) => {
         { title: 'Taux de recouvrement', value: 0, isCurrency: false },
       ];
     }
-
     const { totalFactures, totalMontant, nombrePartenaires, tauxRecouvrement } = data.stats;
-
     return [
       { title: 'Total factures', value: totalFactures, isCurrency: false },
       { title: 'Montant total', value: totalMontant, isCurrency: true },

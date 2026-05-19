@@ -10,11 +10,15 @@ import {
   TableCell,
   Pagination,
   Skeleton,
+  Select,
+  SelectItem,
 } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
 import { TrendingUp, FileText, Users, Percent } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import { createResponsableFinancierColumns, type IFactureRF, type StatutFacture } from './responsable-financier-columns';
+import { cycleOptions } from '@/features/responsable-financier/filters/responsable-financier.filter';
+import type { CycleFiltre } from '@/features/responsable-financier/types/responsable-financier.types';
 import ValiderFactureModal from './valider-facture-modal';
 import ViserDgModal from './viser-dg-modal';
 import AjouterPreuveModal from './ajouter-preuve-modal';
@@ -33,7 +37,6 @@ import {
   useDepotBanqueMutation,
 } from '@/features/responsable-financier';
 
-type Periode = 'mois' | 'annee' | 'cycle' | 'plage';
 type StatutFilter = 'Tous' | StatutFacture;
 
 const statutFilters: StatutFilter[] = [
@@ -84,9 +87,17 @@ export default function ResponsableFinancierView() {
     [],
   );
 
-  const { table, filters, setFilters, isLoading, stats, totalPages } =
+  const { table, filters, setFilters, isLoading, totalPages } =
     useResponsableFinancierTable(columns);
-  const { statsCards } = useResponsableFinancierStats({ periode: filters.periode as 'mois' | 'annee' | 'cycle' | 'plage' | undefined });
+  const { statsCards } = useResponsableFinancierStats({
+    periode: 'plage',
+    cycle: filters.cycle && filters.cycle !== 'TOUT' ? (filters.cycle as CycleFiltre) : undefined,
+    dateDebut: filters.dateDebut ? filters.dateDebut.toISOString().split('T')[0] : undefined,
+    dateFin: filters.dateFin ? filters.dateFin.toISOString().split('T')[0] : undefined,
+    page: filters.page,
+    size: filters.size,
+    statut: filters.statut || undefined,
+  });
 
   const validerMutation = useValiderFactureRFMutation();
   const viserDgMutation = useViserDgMutation();
@@ -101,6 +112,10 @@ export default function ResponsableFinancierView() {
       dateFin: range?.to ?? null,
       page: 0,
     });
+  };
+
+  const handleCycleChange = (key: string) => {
+    setFilters({ cycle: key, page: 0 });
   };
 
   return (
@@ -148,26 +163,33 @@ export default function ResponsableFinancierView() {
         <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
           <span>🔽</span> Filtres
         </div>
-        <div className="flex flex-wrap gap-6">
-          {/* Période */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-gray-500 font-medium">Période</label>
-            <div className="flex gap-1.5">
-              {([['mois', 'Mois en cours'], ['annee', 'Année'], ['cycle', 'Par cycle'], ['plage', 'Plage de dates']] as [Periode, string][]).map(([val, label]) => (
-                <button
-                  key={val}
-                  onClick={() => setFilters({ periode: val, page: 0 })}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    filters.periode === val
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="flex flex-wrap items-end gap-4">
+          {/* Plage de dates (mois en cours par défaut) */}
+          <DateFilterInput
+            filters={{
+              debut: filters.dateDebut ?? undefined,
+              fin: filters.dateFin ?? undefined,
+            }}
+            handleDateChange={handleDateChange}
+            variant="outline"
+          />
+
+          {/* Cycle */}
+          <Select
+            label="Cycle"
+            selectedKeys={new Set([filters.cycle || 'TOUT'])}
+            onSelectionChange={(keys) => {
+              const key = Array.from(keys as Set<string>)[0];
+              if (key) handleCycleChange(key);
+            }}
+            variant="bordered"
+            className="max-w-xs w-full sm:w-[220px]"
+            disallowEmptySelection
+          >
+            {cycleOptions.map((opt) => (
+              <SelectItem key={opt.key}>{opt.label}</SelectItem>
+            ))}
+          </Select>
 
           {/* Statut */}
           <div className="flex flex-col gap-1.5">
@@ -188,21 +210,6 @@ export default function ResponsableFinancierView() {
               ))}
             </div>
           </div>
-
-          {/* Plage de dates */}
-          {filters.periode === 'plage' && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-gray-500 font-medium">Plage de dates</label>
-              <DateFilterInput
-                filters={{
-                  debut: filters.dateDebut ?? undefined,
-                  fin: filters.dateFin ?? undefined,
-                }}
-                handleDateChange={handleDateChange}
-                variant="outline"
-              />
-            </div>
-          )}
         </div>
       </div>
 

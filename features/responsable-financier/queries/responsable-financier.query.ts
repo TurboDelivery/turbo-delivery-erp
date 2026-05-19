@@ -15,7 +15,7 @@ export const responsableFinancierKeys = {
   agents: () => [...responsableFinancierKeys.all, 'agents'] as const,
 };
 
-// ─── Liste paginée + stats ─────────────────────────────────────────────────────
+// ─── Liste paginée ─────────────────────────────────────────────────────────────
 
 export const useFacturesRFQuery = (params?: IFactureRFParams) => {
   return useQuery({

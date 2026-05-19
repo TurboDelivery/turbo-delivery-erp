@@ -11,7 +11,7 @@ export type StatutFacture =
   | 'Visé DG'
   | 'À valider';
 
-export type Periode = 'mois' | 'annee' | 'cycle' | 'plage';
+export type CycleFiltre = 'TOUT' | 'QUOTIDIEN' | 'HEBDOMADAIRE' | 'QUINZAINE' | 'MENSUEL';
 
 export type CycleFacture = 'Journalier' | 'Hebdomadaire' | 'Mensuel';
 
@@ -84,7 +84,8 @@ export interface IFactureRFRecouvrementVm {
 // ─── Params ───────────────────────────────────────────────────────────────────
 
 export interface IFactureRFParams {
-  periode?: Periode;
+  periode?: 'mois' | 'annee' | 'cycle' | 'plage';
+  cycle?: CycleFiltre;
   dateDebut?: string;
   dateFin?: string;
   statut?: string;
@@ -127,3 +128,4 @@ export interface IFactureRFListResponse {
   stats: IFactureRFStats;
   factures: PaginatedResponse<IFactureRF>;
 }
+

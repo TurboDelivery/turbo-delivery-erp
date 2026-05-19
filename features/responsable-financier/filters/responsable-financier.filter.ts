@@ -1,11 +1,20 @@
 import { parseAsIsoDate, parseAsInteger, parseAsString } from 'nuqs';
-import { subMonths } from 'date-fns';
+import { startOfMonth, endOfMonth } from 'date-fns';
+import type { CycleFiltre } from '../types/responsable-financier.types';
+
+export const cycleOptions: { key: CycleFiltre; label: string }[] = [
+  { key: 'TOUT', label: 'Tout' },
+  { key: 'QUOTIDIEN', label: 'Quotidien' },
+  { key: 'HEBDOMADAIRE', label: 'Hebdomadaire' },
+  { key: 'QUINZAINE', label: 'Quinzaine' },
+  { key: 'MENSUEL', label: 'Mensuel' },
+];
 
 export const responsableFinancierFilters = {
   filter: {
-    periode: parseAsString.withDefault('mois'),
-    dateDebut: parseAsIsoDate.withDefault(subMonths(new Date(), 1)),
-    dateFin: parseAsIsoDate.withDefault(new Date()),
+    cycle: parseAsString.withDefault('TOUT'),
+    dateDebut: parseAsIsoDate.withDefault(startOfMonth(new Date())),
+    dateFin: parseAsIsoDate.withDefault(endOfMonth(new Date())),
     statut: parseAsString.withDefault(''),
     page: parseAsInteger.withDefault(0),
     size: parseAsInteger.withDefault(20),
@@ -14,7 +23,7 @@ export const responsableFinancierFilters = {
     clearOnDefault: true,
     throttleMs: 500,
     urlKeys: {
-      periode: 'rfPeriode',
+      cycle: 'rfCycle',
       dateDebut: 'rfDebut',
       dateFin: 'rfFin',
       statut: 'rfStatut',
