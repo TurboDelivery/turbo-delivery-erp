@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import {
   getAgentFactures,
+  getAgentFacturesStats,
   postEncaissement,
   patchDepotPartenaire,
   patchVerserComptable,
@@ -17,6 +18,8 @@ export const agentRecouvreurKeys = {
   all: ['agent-recouvreur'] as const,
   list: (params?: IAgentFactureParams) =>
     [...agentRecouvreurKeys.all, 'list', params] as const,
+  stats: (params?: IAgentFactureParams) =>
+    [...agentRecouvreurKeys.all, 'stats', params] as const,
 };
 
 function useCurrentUserSession() {
@@ -28,12 +31,16 @@ function useCurrentUserSession() {
   };
 }
 
-export function useAgentFacturesQuery(params?: IAgentFactureParams, agentIdOverride?: string) {
+function useEffectiveUserId(agentIdOverride?: string) {
   const { userId, role, sessionStatus } = useCurrentUserSession();
   const isStandardAgent = role.toUpperCase() === 'STANDARD';
-  // Admin/manager: no X-User-Id by default (backend returns all); STANDARD: always filter by own ID
   const defaultUserId = isStandardAgent ? userId : '';
   const effectiveUserId = agentIdOverride?.trim() || defaultUserId;
+  return { effectiveUserId, isStandardAgent, sessionStatus };
+}
+
+export function useAgentFacturesQuery(params?: IAgentFactureParams, agentIdOverride?: string) {
+  const { effectiveUserId, isStandardAgent, sessionStatus } = useEffectiveUserId(agentIdOverride);
 
   const query = useQuery({
     queryKey: [...agentRecouvreurKeys.list(params), effectiveUserId],
@@ -47,10 +54,26 @@ export function useAgentFacturesQuery(params?: IAgentFactureParams, agentIdOverr
   };
 }
 
+export function useAgentFacturesStatsQuery(
+  params?: IAgentFactureParams,
+  agentIdOverride?: string,
+) {
+  const { effectiveUserId, isStandardAgent, sessionStatus } = useEffectiveUserId(agentIdOverride);
+
+  const query = useQuery({
+    queryKey: [...agentRecouvreurKeys.stats(params), effectiveUserId],
+    queryFn: () => getAgentFacturesStats(effectiveUserId, params),
+    enabled: sessionStatus === 'authenticated' && (!isStandardAgent || !!effectiveUserId),
+    staleTime: 5 * 60 * 1000,
+  });
+  return {
+    ...query,
+    isLoading: sessionStatus === 'loading' || query.isLoading,
+  };
+}
+
 export function useEncaissementMutation(agentIdOverride?: string) {
-  const { userId, role } = useCurrentUserSession();
-  const isStandardAgent = role.toUpperCase() === 'STANDARD';
-  const effectiveUserId = agentIdOverride?.trim() || (isStandardAgent ? userId : '');
+  const { effectiveUserId } = useEffectiveUserId(agentIdOverride);
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ factureId, body }: { factureId: string; body: IEncaissementBody }) =>
@@ -62,9 +85,7 @@ export function useEncaissementMutation(agentIdOverride?: string) {
 }
 
 export function useDepotPartenaireMutation(agentIdOverride?: string) {
-  const { userId, role } = useCurrentUserSession();
-  const isStandardAgent = role.toUpperCase() === 'STANDARD';
-  const effectiveUserId = agentIdOverride?.trim() || (isStandardAgent ? userId : '');
+  const { effectiveUserId } = useEffectiveUserId(agentIdOverride);
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ factureId, body }: { factureId: string; body: IDepotPartenaireBody }) =>
@@ -76,9 +97,7 @@ export function useDepotPartenaireMutation(agentIdOverride?: string) {
 }
 
 export function useVerserComptableMutation(agentIdOverride?: string) {
-  const { userId, role } = useCurrentUserSession();
-  const isStandardAgent = role.toUpperCase() === 'STANDARD';
-  const effectiveUserId = agentIdOverride?.trim() || (isStandardAgent ? userId : '');
+  const { effectiveUserId } = useEffectiveUserId(agentIdOverride);
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ factureId, body }: { factureId: string; body: IVerserComptableBody }) =>
@@ -88,4 +107,3 @@ export function useVerserComptableMutation(agentIdOverride?: string) {
     },
   });
 }
-

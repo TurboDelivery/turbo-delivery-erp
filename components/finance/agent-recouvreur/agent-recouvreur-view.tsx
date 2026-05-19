@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import {
   Table,
@@ -9,21 +9,31 @@ import {
   TableColumn,
   TableRow,
   TableCell,
+  Pagination,
+  Select,
+  SelectItem,
 } from '@heroui/react';
-import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Clock, TrendingUp, FileText, DollarSign } from 'lucide-react';
+import { flexRender } from '@tanstack/react-table';
+import type { DateRange } from 'react-day-picker';
 import { createAgentRecouvreurColumns } from './agent-recouvreur-columns';
-import type { IFactureAgent } from './mock-data';
 import DepotPartenaireModal from './depot-partenaire-modal';
 import EncaissementModal from './encaissement-drawer';
 import VerserComptableModal from './verser-comptable-modal';
-import type { IPaiement } from './ajouter-paiement-modal'; // used by EncaissementModal callback
-import { useAgentFacturesQuery, useDepotPartenaireMutation, useEncaissementMutation, useVerserComptableMutation } from '@/features/agent-recouvreur';
+import DateFilterInput from '@/components/finance/date-filter-input';
+import {
+  useDepotPartenaireMutation,
+  useEncaissementMutation,
+  useVerserComptableMutation,
+  useAgentRecouvreurFilters,
+  useAgentRecouvreurTable,
+  useAgentRecouvreurStats,
+  cycleOptions,
+} from '@/features/agent-recouvreur';
+import type { IAgentFacture } from '@/features/agent-recouvreur';
 
-type Periode = 'mois' | 'annee' | 'cycle' | 'plage';
-type StatutFilter = 'Tous' | 'En attente' | 'Acompte' | 'Soldé';
+type StatutChip = 'Tous' | 'Recouvrement' | 'Déposé partenaire' | 'Soldé' | 'Preuve ajoutée';
 
-const statutFilters: StatutFilter[] = ['Tous', 'En attente', 'Acompte', 'Soldé'];
+const statutChips: StatutChip[] = ['Tous', 'Recouvrement', 'Déposé partenaire', 'Soldé', 'Preuve ajoutée'];
 
 function StatCard({
   icon: Icon,
@@ -51,35 +61,12 @@ function StatCard({
 
 export default function AgentRecouvreurView() {
   const { data: session } = useSession();
-  const sessionUserId = session?.user?.id ?? '';
-  const [agentIdInput, setAgentIdInput] = useState('');
-  const agentId = agentIdInput.trim() || undefined;
 
-  const [periode, setPeriode] = useState<Periode>('mois');
-  const [statutFilter, setStatutFilter] = useState<StatutFilter>('Tous');
-  const [factureDepot, setFactureDepot] = useState<IFactureAgent | null>(null);
-  const [factureEncaissement, setFactureEncaissement] = useState<IFactureAgent | null>(null);
-  const [factureVersement, setFactureVersement] = useState<IFactureAgent | null>(null);
+  const { filters, setFilters, params, statsParams } = useAgentRecouvreurFilters();
 
-  const { data, isLoading, isError, error } = useAgentFacturesQuery({ periode }, agentId);
-  const depotPartenaireMutation = useDepotPartenaireMutation(agentId);
-  const encaissementMutation = useEncaissementMutation(agentId);
-  const verserComptableMutation = useVerserComptableMutation(agentId);
-
-  const factures = (data?.factures.content ?? []) as unknown as IFactureAgent[];
-
-  const enAttente = data?.stats.enAttente ?? 0;
-  const avecAcompte = data?.stats.avecAcompte ?? 0;
-  const soldees = data?.stats.soldees ?? 0;
-  const tauxRecouvrement = data?.stats.tauxRecouvrement ?? 0;
-
-  const filteredData = useMemo(() => factures.filter((f) => {
-    if (statutFilter === 'Tous') return true;
-    if (statutFilter === 'En attente') return f.statut === 'Recouvrement';
-    if (statutFilter === 'Acompte') return f.pourcentageRecouvre !== null && f.pourcentageRecouvre < 100;
-    if (statutFilter === 'Soldé') return f.statut === 'Soldé';
-    return true;
-  }), [factures, statutFilter]);
+  const [factureDepot, setFactureDepot] = useState<IAgentFacture | null>(null);
+  const [factureEncaissement, setFactureEncaissement] = useState<IAgentFacture | null>(null);
+  const [factureVersement, setFactureVersement] = useState<IAgentFacture | null>(null);
 
   const columns = useMemo(
     () => createAgentRecouvreurColumns(
@@ -91,11 +78,29 @@ export default function AgentRecouvreurView() {
     [],
   );
 
-  const table = useReactTable({
-    data: filteredData,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  const { table, isLoading, isError, error, totalElements, totalPages } =
+    useAgentRecouvreurTable(columns, params);
+  const { statsCards } = useAgentRecouvreurStats(statsParams);
+
+  const depotPartenaireMutation = useDepotPartenaireMutation();
+  const encaissementMutation = useEncaissementMutation();
+  const verserComptableMutation = useVerserComptableMutation();
+
+  const handleDateChange = (range: DateRange | undefined) => {
+    setFilters({
+      dateDebut: range?.from ?? null,
+      dateFin: range?.to ?? null,
+      page: 0,
+    });
+  };
+
+  const handleCycleChange = (key: string) => {
+    setFilters({ cycle: key, page: 0 });
+  };
+
+  const handleStatutChip = (chip: StatutChip) => {
+    setFilters({ statut: chip === 'Tous' ? '' : chip, page: 0 });
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -107,30 +112,15 @@ export default function AgentRecouvreurView() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={Clock}
-          color="bg-orange-400"
-          label="En attente de paiement"
-          value={String(enAttente)}
-        />
-        <StatCard
-          icon={TrendingUp}
-          color="bg-teal-500"
-          label="Paiement avec acompte"
-          value={String(avecAcompte)}
-        />
-        <StatCard
-          icon={FileText}
-          color="bg-green-500"
-          label="Factures soldées"
-          value={String(soldees)}
-        />
-        <StatCard
-          icon={DollarSign}
-          color="bg-blue-500"
-          label="Taux de recouvrement"
-          value={`${tauxRecouvrement}%`}
-        />
+        {statsCards.map((card) => (
+          <StatCard
+            key={card.key}
+            icon={card.icon}
+            color={card.color}
+            label={card.label}
+            value={card.value}
+          />
+        ))}
       </div>
 
       {/* Filtres */}
@@ -138,60 +128,57 @@ export default function AgentRecouvreurView() {
         <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
           <span>▼</span> Filtres
         </div>
-        <div className="flex flex-wrap gap-6">
-          {/* Période */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-gray-500 font-medium">Période</label>
-            <div className="flex gap-1.5">
-              {([['mois', 'Mois en cours'], ['annee', 'Année 2026'], ['cycle', 'Par cycle'], ['plage', 'Plage de dates']] as [Periode, string][]).map(([val, label]) => (
-                <button
-                  key={val}
-                  onClick={() => setPeriode(val)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    periode === val
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+        <div className="flex flex-wrap items-end gap-4">
+          {/* Plage de dates (mois en cours par défaut) */}
+          <DateFilterInput
+            filters={{
+              debut: filters.dateDebut ?? undefined,
+              fin: filters.dateFin ?? undefined,
+            }}
+            handleDateChange={handleDateChange}
+            variant="outline"
+          />
 
-          {/* Statut */}
+          {/* Cycle */}
+          <Select
+            label="Cycle"
+            selectedKeys={new Set([filters.cycle || 'TOUT'])}
+            onSelectionChange={(keys) => {
+              const key = Array.from(keys as Set<string>)[0];
+              if (key) handleCycleChange(key);
+            }}
+            variant="bordered"
+            className="max-w-xs w-full sm:w-[220px]"
+            disallowEmptySelection
+          >
+            {cycleOptions.map((opt) => (
+              <SelectItem key={opt.key}>{opt.label}</SelectItem>
+            ))}
+          </Select>
+
+          {/* Statut chips (envoyés au backend) */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-gray-500 font-medium">Statut</label>
-            <div className="flex gap-1.5">
-              {statutFilters.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setStatutFilter(s)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    statutFilter === s
-                      ? 'bg-green-600 text-white border-green-600'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-1.5">
+              {statutChips.map((s) => {
+                const active = (s === 'Tous' && !filters.statut) || filters.statut === s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => handleStatutChip(s)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                      active
+                        ? 'bg-green-600 text-white border-green-600'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Agent ID override (admin) */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-gray-500 font-medium">
-              ID Agent <span className="text-gray-400 font-normal">(laisser vide = vous-même)</span>
-            </label>
-            <input
-              type="text"
-              placeholder={sessionUserId || 'UUID de l\'agent…'}
-              value={agentIdInput}
-              onChange={(e) => setAgentIdInput(e.target.value)}
-              className="h-8 w-72 rounded-lg border border-gray-200 px-3 text-xs text-gray-700 placeholder-gray-300 focus:border-blue-400 focus:outline-none"
-            />
-          </div>
         </div>
       </div>
 
@@ -207,13 +194,24 @@ export default function AgentRecouvreurView() {
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div>
             <p className="text-sm font-semibold text-gray-800">Suivi des factures</p>
-            <p className="text-xs text-gray-400">{String(data?.factures.totalElements ?? filteredData.length).padStart(2, '0')} factures</p>
+            <p className="text-xs text-gray-400">{String(totalElements).padStart(2, '0')} factures</p>
           </div>
-          <button className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium px-4 py-2 rounded-lg transition-colors">
-            Suivi des factures
-          </button>
         </div>
-        <Table isStriped aria-label="Factures agent recouvreur">
+        <Table
+          isStriped
+          aria-label="Factures agent recouvreur"
+          bottomContent={
+            totalPages > 1 ? (
+              <div className="flex justify-center py-3">
+                <Pagination
+                  page={filters.page + 1}
+                  total={totalPages}
+                  onChange={(p) => setFilters({ page: p - 1 })}
+                />
+              </div>
+            ) : null
+          }
+        >
           <TableHeader>
             {table.getFlatHeaders().map((h) => (
               <TableColumn key={h.id} className="text-xs font-semibold text-gray-500 uppercase bg-gray-50">

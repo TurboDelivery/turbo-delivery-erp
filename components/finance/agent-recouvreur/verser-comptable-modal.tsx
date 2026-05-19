@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { IFactureAgent } from './mock-data';
+import type { IAgentFacture as IFactureAgent } from '@/features/agent-recouvreur';
 
 interface Props {
   open: boolean;

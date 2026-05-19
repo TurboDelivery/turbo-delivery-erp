@@ -1,9 +1,13 @@
+import type { PaginatedResponse } from '@/types';
+
 export type StatutAgentFacture =
   | 'Recouvrement'
   | 'Déposé partenaire'
   | 'Soldé'
   | 'Visé DG'
   | 'Preuve ajoutée';
+
+export type CycleFiltre = 'TOUT' | 'QUOTIDIEN' | 'HEBDOMADAIRE' | 'QUINZAINE' | 'MENSUEL';
 
 export interface IAgentFacture {
   id: string;
@@ -27,19 +31,10 @@ export interface IAgentFactureStats {
   tauxRecouvrement: number;
 }
 
-export interface IAgentFactureListResponse {
-  stats: IAgentFactureStats;
-  factures: {
-    content: IAgentFacture[];
-    totalElements: number;
-    totalPages: number;
-    size: number;
-    number: number;
-  };
-}
+export type IAgentFactureListResponse = PaginatedResponse<IAgentFacture>;
 
 export interface IAgentFactureParams {
-  periode?: 'mois' | 'annee' | 'cycle' | 'plage';
+  cycle?: CycleFiltre;
   dateDebut?: string;
   dateFin?: string;
   statut?: string;

@@ -2,8 +2,8 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, RefreshCw, Banknote, Landmark } from 'lucide-react';
-import type { IFactureAgent, StatutAgentFacture } from './mock-data';
+import { Banknote, ClipboardList, Landmark } from 'lucide-react';
+import type { IAgentFacture as IFactureAgent, StatutAgentFacture } from '@/features/agent-recouvreur';
 
 const statutConfig: Record<StatutAgentFacture, { label: string; className: string }> = {
   'Recouvrement': { label: 'Recouvrement', className: 'bg-orange-100 text-orange-700 border-orange-200' },
