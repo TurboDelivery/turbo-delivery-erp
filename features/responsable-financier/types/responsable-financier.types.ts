@@ -93,7 +93,6 @@ export interface IFactureRFRecouvrementVm {
 
 export interface IFactureRFParams {
   periode?: 'mois' | 'annee' | 'cycle' | 'plage';
-  cycle?: CycleFiltre;
   dateDebut?: string;
   dateFin?: string;
   statut?: string;

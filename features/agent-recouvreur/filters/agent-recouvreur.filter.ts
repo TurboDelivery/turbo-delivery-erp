@@ -12,6 +12,7 @@ export const cycleOptions: { key: CycleFiltre; label: string }[] = [
 
 export const agentRecouvreurFilters = {
   filter: {
+    restaurantId: parseAsString.withDefault(''),
     cycle: parseAsString.withDefault('TOUT'),
     dateDebut: parseAsIsoDate.withDefault(startOfMonth(new Date())),
     dateFin: parseAsIsoDate.withDefault(endOfMonth(new Date())),
@@ -23,6 +24,7 @@ export const agentRecouvreurFilters = {
     clearOnDefault: true,
     throttleMs: 500,
     urlKeys: {
+      restaurantId: 'arRestaurant',
       cycle: 'arCycle',
       dateDebut: 'arDebut',
       dateFin: 'arFin',

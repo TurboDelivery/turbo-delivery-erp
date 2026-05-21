@@ -5,7 +5,7 @@ import { useQueryStates } from 'nuqs';
 import { ColumnDef, getCoreRowModel, SortingState, useReactTable } from '@tanstack/react-table';
 import { responsableFinancierFilters } from '../filters/responsable-financier.filter';
 import { useFacturesRFQuery } from '../queries/responsable-financier.query';
-import { IFactureRF, IFactureRFParams, CycleFiltre } from '../types/responsable-financier.types';
+import { IFactureRF, IFactureRFParams } from '../types/responsable-financier.types';
 
 export const useResponsableFinancierTable = (columns: ColumnDef<IFactureRF>[]) => {
   const [filters, setFilters] = useQueryStates(
@@ -15,7 +15,6 @@ export const useResponsableFinancierTable = (columns: ColumnDef<IFactureRF>[]) =
 
   const params: IFactureRFParams = useMemo(() => ({
     periode: 'plage',
-    cycle: filters.cycle && filters.cycle !== 'TOUT' ? (filters.cycle as CycleFiltre) : undefined,
     dateDebut: filters.dateDebut ? filters.dateDebut.toISOString().split('T')[0] : undefined,
     dateFin: filters.dateFin ? filters.dateFin.toISOString().split('T')[0] : undefined,
     statut: filters.statut || undefined,

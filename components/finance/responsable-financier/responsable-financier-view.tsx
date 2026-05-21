@@ -18,7 +18,8 @@ import { TrendingUp, FileText, Users, Percent } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import { createResponsableFinancierColumns, type IFactureRF } from './responsable-financier-columns';
 import { cycleOptions } from '@/features/responsable-financier/filters/responsable-financier.filter';
-import type { CycleFiltre } from '@/features/responsable-financier/types/responsable-financier.types';
+import type { IFactureRFParams } from '@/features/responsable-financier/types/responsable-financier.types';
+import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
 import ValiderFactureModal from './valider-facture-modal';
 import DepotBanqueModal from './depot-banque-modal';
 import DemarrerRecouvrementDrawer from './demarrer-recouvrement-modal';
@@ -79,15 +80,15 @@ export default function ResponsableFinancierView() {
 
   const { table, filters, setFilters, isLoading, totalPages } =
     useResponsableFinancierTable(columns);
-  const { statsCards } = useResponsableFinancierStats({
+
+  const statsParams = useMemo((): IFactureRFParams => ({
     periode: 'plage',
-    cycle: filters.cycle && filters.cycle !== 'TOUT' ? (filters.cycle as CycleFiltre) : undefined,
     dateDebut: filters.dateDebut ? filters.dateDebut.toISOString().split('T')[0] : undefined,
     dateFin: filters.dateFin ? filters.dateFin.toISOString().split('T')[0] : undefined,
-    page: filters.page,
-    size: filters.size,
     statut: filters.statut || undefined,
-  });
+  }), [filters]);
+
+  const { statsCards } = useResponsableFinancierStats(statsParams);
 
   const validerMutation = useValiderFactureRFMutation();
   const lancerRecouvrementMutation = useLancerRecouvrementMutation();
@@ -103,6 +104,10 @@ export default function ResponsableFinancierView() {
 
   const handleCycleChange = (key: string) => {
     setFilters({ cycle: key, page: 0 });
+  };
+
+  const handleRestaurantChange = (value?: string) => {
+    setFilters({ restaurantId: value ?? '', page: 0 });
   };
 
   return (
@@ -160,6 +165,17 @@ export default function ResponsableFinancierView() {
             handleDateChange={handleDateChange}
             variant="outline"
           />
+
+          {/* Restaurant / Partenaire */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500 font-medium">Partenaire</label>
+            <RestaurantSelect
+              value={filters.restaurantId || undefined}
+              onChange={handleRestaurantChange}
+              placeholder="Tous les partenaires"
+              className="text-xs w-full sm:w-[220px]"
+            />
+          </div>
 
           {/* Cycle */}
           <Select

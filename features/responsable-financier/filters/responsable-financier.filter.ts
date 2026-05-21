@@ -12,6 +12,7 @@ export const cycleOptions: { key: CycleFiltre; label: string }[] = [
 
 export const responsableFinancierFilters = {
   filter: {
+    restaurantId: parseAsString.withDefault(''),
     cycle: parseAsString.withDefault('TOUT'),
     dateDebut: parseAsIsoDate.withDefault(startOfMonth(new Date())),
     dateFin: parseAsIsoDate.withDefault(endOfMonth(new Date())),
@@ -23,6 +24,7 @@ export const responsableFinancierFilters = {
     clearOnDefault: true,
     throttleMs: 500,
     urlKeys: {
+      restaurantId: 'rfRestaurant',
       cycle: 'rfCycle',
       dateDebut: 'rfDebut',
       dateFin: 'rfFin',

@@ -18,6 +18,7 @@ const cycleApiMap: Record<Exclude<CycleFiltre, 'TOUT'>, string> = {
 };
 
 function buildFiltersQs(params: IAgentFactureParams | undefined, qs: URLSearchParams) {
+  if (params?.restaurantId) qs.set('restaurantId', params.restaurantId);
   if (params?.cycle && params.cycle !== 'TOUT') {
     qs.set('cycle', cycleApiMap[params.cycle]);
   }

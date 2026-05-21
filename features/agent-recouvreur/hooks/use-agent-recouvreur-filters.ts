@@ -10,6 +10,7 @@ export function useAgentRecouvreurFilters() {
 
   const params: IAgentFactureParams = useMemo(
     () => ({
+      restaurantId: filters.restaurantId || undefined,
       cycle: filters.cycle && filters.cycle !== 'TOUT' ? (filters.cycle as CycleFiltre) : undefined,
       dateDebut: filters.dateDebut ? filters.dateDebut.toISOString().split('T')[0] : undefined,
       dateFin: filters.dateFin ? filters.dateFin.toISOString().split('T')[0] : undefined,

@@ -43,6 +43,7 @@ export interface IAgentFactureStats {
 export type IAgentFactureListResponse = PaginatedResponse<IAgentFacture>;
 
 export interface IAgentFactureParams {
+  restaurantId?: string;
   cycle?: CycleFiltre;
   dateDebut?: string;
   dateFin?: string;

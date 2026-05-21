@@ -20,6 +20,7 @@ import DepotPartenaireModal from './depot-partenaire-modal';
 import EncaissementModal from './encaissement-drawer';
 import VerserComptableModal from './verser-comptable-modal';
 import DateFilterInput from '@/components/finance/date-filter-input';
+import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
 import {
   useDepotPartenaireMutation,
   useEncaissementMutation,
@@ -96,6 +97,10 @@ export default function AgentRecouvreurView() {
     setFilters({ cycle: key, page: 0 });
   };
 
+  const handleRestaurantChange = (value?: string) => {
+    setFilters({ restaurantId: value ?? '', page: 0 });
+  };
+
   const handleStatutChip = (chip: StatutChip) => {
     setFilters({ statut: chip === 'Tous' ? '' : chip, page: 0 });
   };
@@ -136,6 +141,17 @@ export default function AgentRecouvreurView() {
             handleDateChange={handleDateChange}
             variant="outline"
           />
+
+          {/* Restaurant / Partenaire */}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-gray-500 font-medium">Partenaire</label>
+            <RestaurantSelect
+              value={filters.restaurantId || undefined}
+              onChange={handleRestaurantChange}
+              placeholder="Tous les partenaires"
+              className="text-xs w-full sm:w-[220px]"
+            />
+          </div>
 
           {/* Cycle */}
           <Select
