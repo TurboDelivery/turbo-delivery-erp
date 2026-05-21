@@ -8,17 +8,24 @@ import PreuveModal from './preuve-modal';
 
 type StatutFacture = IFactureRFDetail['statut'];
 
-const statutConfig: Record<StatutFacture, { label: string; className: string }> = {
-  'Soldé': { label: 'Soldé', className: 'bg-green-100 text-green-700 border-green-200' },
-  'Acompte': { label: 'Acompte', className: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-  'Déposé partenaire': { label: 'Déposé partenaire', className: 'bg-blue-100 text-blue-700 border-blue-200' },
-  'Recouvrement': { label: 'Recouvrement', className: 'bg-orange-100 text-orange-700 border-orange-200' },
-  'Validé': { label: 'Validé', className: 'bg-green-100 text-green-700 border-green-200' },
-  'Preuve ajoutée': { label: 'Preuve ajoutée', className: 'bg-purple-100 text-purple-700 border-purple-200' },
-  'Visé DG': { label: 'Visé DG', className: 'bg-blue-100 text-blue-700 border-blue-200' },
-  'À valider': { label: 'À valider', className: 'bg-gray-100 text-gray-600 border-gray-200' },
-  'En cours': { label: 'En cours', className: 'bg-blue-100 text-blue-700 border-blue-200' },
+const statutConfigMap: Record<string, { label: string; className: string }> = {
+  'À valider':           { label: 'À valider',           className: 'bg-gray-100 text-gray-600 border-gray-200' },
+  'Validé':              { label: 'Validé',              className: 'bg-blue-100 text-blue-700 border-blue-200' },
+  'Recouvrement':        { label: 'Recouvrement',        className: 'bg-orange-100 text-orange-700 border-orange-200' },
+  'Déposé partenaire':   { label: 'Déposé partenaire',   className: 'bg-sky-100 text-sky-700 border-sky-200' },
+  'Soldé':               { label: 'Soldé',               className: 'bg-green-100 text-green-700 border-green-200' },
+  'Versé au caissier':   { label: 'Versé au caissier',   className: 'bg-slate-100 text-slate-700 border-slate-200' },
+  'En attente visa DGA': { label: 'En attente visa DGA', className: 'bg-violet-100 text-violet-700 border-violet-200' },
+  'Visé DGA':            { label: 'Visé DGA',            className: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  'Rejeté DGA':          { label: 'Rejeté DGA',          className: 'bg-red-100 text-red-700 border-red-200' },
+  'Clôturé':             { label: 'Clôturé',             className: 'bg-green-200 text-green-800 border-green-300' },
 };
+
+function getStatutConfig(statut: string) {
+  if (statut in statutConfigMap) return statutConfigMap[statut];
+  if (statut.startsWith('Acompte')) return { label: statut, className: 'bg-yellow-100 text-yellow-700 border-yellow-200' };
+  return { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
+}
 
 function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
@@ -33,7 +40,7 @@ export default function FactureDetailView({ facture }: Props) {
   const recouvre = facture.montantRecouvre ?? 0;
   const restant = facture.montant - recouvre;
   const pct = facture.pourcentageRecouvre ?? 0;
-  const config = statutConfig[facture.statut];
+  const config = getStatutConfig(facture.statut);
 
   return (
     <div className="p-6 space-y-6">
@@ -59,7 +66,7 @@ export default function FactureDetailView({ facture }: Props) {
           <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${config.className}`}>
             {config.label}
           </span>
-          {facture.statut === 'Acompte' && (
+          {facture.statut.startsWith('Acompte') && (
             <button className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
               Enregistrer un versement
             </button>

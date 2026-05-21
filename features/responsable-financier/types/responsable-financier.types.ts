@@ -1,15 +1,20 @@
 import { PaginatedResponse } from '@/types';
 
+// "Acompte N" est un statut dynamique émis par le serveur (ex. "Acompte 1", "Acompte 2")
+export type StatutAcompte = `Acompte ${number}`;
+
 export type StatutFacture =
-  | 'Soldé'
-  | 'Acompte'
-  | 'Déposé partenaire'
-  | 'Recouvrement'
-  | 'En cours'
+  | 'À valider'
   | 'Validé'
-  | 'Preuve ajoutée'
-  | 'Visé DG'
-  | 'À valider';
+  | 'Recouvrement'
+  | 'Déposé partenaire'
+  | StatutAcompte
+  | 'Soldé'
+  | 'Versé au caissier'
+  | 'En attente visa DGA'
+  | 'Visé DGA'
+  | 'Rejeté DGA'
+  | 'Clôturé';
 
 export type CycleFiltre = 'TOUT' | 'QUOTIDIEN' | 'HEBDOMADAIRE' | 'QUINZAINE' | 'MENSUEL';
 
@@ -118,7 +123,10 @@ export interface IDepotPartenaireDTO {
 
 // FactureDepotBanqueRequestDto
 export interface IDepotBanqueDTO {
-  date: string; // ISO date
+  date: string;   // ISO date
+  montant: number;
+  reference: string; // N° bordereau
+  banque: string;    // Banque destinataire
 }
 
 // ─── Réponse liste ────────────────────────────────────────────────────────────

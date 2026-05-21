@@ -23,7 +23,7 @@ import DateFilterInput from '@/components/finance/date-filter-input';
 import {
   useDepotPartenaireMutation,
   useEncaissementMutation,
-  useVerserComptableMutation,
+  useVersementCaissierMutation,
   useAgentRecouvreurFilters,
   useAgentRecouvreurTable,
   useAgentRecouvreurStats,
@@ -31,9 +31,8 @@ import {
 } from '@/features/agent-recouvreur';
 import type { IAgentFacture } from '@/features/agent-recouvreur';
 
-type StatutChip = 'Tous' | 'Recouvrement' | 'Déposé partenaire' | 'Soldé' | 'Preuve ajoutée';
-
-const statutChips: StatutChip[] = ['Tous', 'Recouvrement', 'Déposé partenaire', 'Soldé', 'Preuve ajoutée'];
+const statutChips = ['Tous', 'Recouvrement', 'Déposé partenaire', 'Soldé', 'Versé au caissier'] as const;
+type StatutChip = typeof statutChips[number];
 
 function StatCard({
   icon: Icon,
@@ -71,7 +70,6 @@ export default function AgentRecouvreurView() {
   const columns = useMemo(
     () => createAgentRecouvreurColumns(
       (facture) => setFactureDepot(facture),
-      (_facture) => { /* ajouter preuve: no dedicated endpoint */ },
       (facture) => setFactureEncaissement(facture),
       (facture) => setFactureVersement(facture),
     ),
@@ -84,7 +82,7 @@ export default function AgentRecouvreurView() {
 
   const depotPartenaireMutation = useDepotPartenaireMutation();
   const encaissementMutation = useEncaissementMutation();
-  const verserComptableMutation = useVerserComptableMutation();
+  const verserComptableMutation = useVersementCaissierMutation();
 
   const handleDateChange = (range: DateRange | undefined) => {
     setFilters({

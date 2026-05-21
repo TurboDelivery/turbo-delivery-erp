@@ -16,13 +16,10 @@ import {
 import { flexRender } from '@tanstack/react-table';
 import { TrendingUp, FileText, Users, Percent } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
-import { createResponsableFinancierColumns, type IFactureRF, type StatutFacture } from './responsable-financier-columns';
+import { createResponsableFinancierColumns, type IFactureRF } from './responsable-financier-columns';
 import { cycleOptions } from '@/features/responsable-financier/filters/responsable-financier.filter';
 import type { CycleFiltre } from '@/features/responsable-financier/types/responsable-financier.types';
 import ValiderFactureModal from './valider-facture-modal';
-import ViserDgModal from './viser-dg-modal';
-import AjouterPreuveModal from './ajouter-preuve-modal';
-import DepotPartenaireModal from './depot-partenaire-modal';
 import DepotBanqueModal from './depot-banque-modal';
 import DemarrerRecouvrementDrawer from './demarrer-recouvrement-modal';
 import DateFilterInput from '@/components/finance/date-filter-input';
@@ -30,27 +27,23 @@ import { useResponsableFinancierTable } from '@/features/responsable-financier/h
 import { useResponsableFinancierStats } from '@/features/responsable-financier/hooks/use-responsable-financier-stats';
 import {
   useValiderFactureRFMutation,
-  useViserDgMutation,
   useLancerRecouvrementMutation,
-  useAjouterPreuveMutation,
-  useDepotPartenaireMutation,
   useDepotBanqueMutation,
 } from '@/features/responsable-financier';
 
-type StatutFilter = 'Tous' | StatutFacture;
-
-const statutFilters: StatutFilter[] = [
+const statutFilters = [
   'Tous',
-  'Soldé',
-  'Acompte',
-  'Déposé partenaire',
-  'Recouvrement',
-  'En cours',
-  'Validé',
-  'Preuve ajoutée',
-  'Visé DG',
   'À valider',
-];
+  'Validé',
+  'Recouvrement',
+  'Déposé partenaire',
+  'Soldé',
+  'Versé au caissier',
+  'En attente visa DGA',
+  'Visé DGA',
+  'Rejeté DGA',
+  'Clôturé',
+] as const;
 
 function StatCard({ icon: Icon, color, label, value, sub }: { icon: React.ElementType; color: string; label: string; value: string; sub: string }) {
   return (
@@ -69,19 +62,13 @@ function StatCard({ icon: Icon, color, label, value, sub }: { icon: React.Elemen
 
 export default function ResponsableFinancierView() {
   const [factureAValider, setFactureAValider] = useState<IFactureRF | null>(null);
-  const [factureViserDg, setFactureViserDg] = useState<IFactureRF | null>(null);
   const [factureRecouvrement, setFactureRecouvrement] = useState<IFactureRF | null>(null);
-  const [facturePreuve, setFacturePreuve] = useState<IFactureRF | null>(null);
-  const [factureDepotPartenaire, setFactureDepotPartenaire] = useState<IFactureRF | null>(null);
   const [factureDepotBanque, setFactureDepotBanque] = useState<IFactureRF | null>(null);
 
   const columns = useMemo(
     () => createResponsableFinancierColumns(
       (facture) => setFactureAValider(facture),
-      (facture) => setFactureViserDg(facture),
       (facture) => setFactureRecouvrement(facture),
-      (facture) => setFacturePreuve(facture),
-      (facture) => setFactureDepotPartenaire(facture),
       (facture) => setFactureDepotBanque(facture),
     ),
     [],
@@ -100,10 +87,7 @@ export default function ResponsableFinancierView() {
   });
 
   const validerMutation = useValiderFactureRFMutation();
-  const viserDgMutation = useViserDgMutation();
   const lancerRecouvrementMutation = useLancerRecouvrementMutation();
-  const ajouterPreuveMutation = useAjouterPreuveMutation();
-  const depotPartenaireMutation = useDepotPartenaireMutation();
   const depotBanqueMutation = useDepotBanqueMutation();
 
   const handleDateChange = (range: DateRange | undefined) => {
@@ -276,16 +260,6 @@ export default function ResponsableFinancierView() {
         }}
       />
 
-      <ViserDgModal
-        open={factureViserDg !== null}
-        onClose={() => setFactureViserDg(null)}
-        facture={factureViserDg}
-        onConfirm={(facture) => {
-          viserDgMutation.mutate(facture.id);
-          setFactureViserDg(null);
-        }}
-      />
-
       <DemarrerRecouvrementDrawer
         open={factureRecouvrement !== null}
         onClose={() => setFactureRecouvrement(null)}
@@ -296,32 +270,12 @@ export default function ResponsableFinancierView() {
         }}
       />
 
-      <AjouterPreuveModal
-        open={facturePreuve !== null}
-        onClose={() => setFacturePreuve(null)}
-        facture={facturePreuve}
-        onConfirm={(facture, preuveUrl) => {
-          ajouterPreuveMutation.mutate({ id: facture.id, data: { reference: preuveUrl } });
-          setFacturePreuve(null);
-        }}
-      />
-
-      <DepotPartenaireModal
-        open={factureDepotPartenaire !== null}
-        onClose={() => setFactureDepotPartenaire(null)}
-        facture={factureDepotPartenaire}
-        onConfirm={(facture, date, agentId) => {
-          depotPartenaireMutation.mutate({ id: facture.id, data: { date, agentId } });
-          setFactureDepotPartenaire(null);
-        }}
-      />
-
       <DepotBanqueModal
         open={factureDepotBanque !== null}
         onClose={() => setFactureDepotBanque(null)}
         facture={factureDepotBanque}
-        onConfirm={(facture, date) => {
-          depotBanqueMutation.mutate({ id: facture.id, data: { date } });
+        onConfirm={(facture, data) => {
+          depotBanqueMutation.mutate({ id: facture.id, data });
           setFactureDepotBanque(null);
         }}
       />

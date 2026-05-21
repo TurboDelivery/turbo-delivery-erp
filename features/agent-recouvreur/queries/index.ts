@@ -5,13 +5,13 @@ import {
   getAgentFacturesStats,
   postEncaissement,
   patchDepotPartenaire,
-  patchVerserComptable,
+  patchVersementCaissier,
 } from '../apis';
 import type {
   IAgentFactureParams,
   IEncaissementBody,
   IDepotPartenaireBody,
-  IVerserComptableBody,
+  IVersementCaissierBody,
 } from '../types';
 
 export const agentRecouvreurKeys = {
@@ -96,14 +96,17 @@ export function useDepotPartenaireMutation(agentIdOverride?: string) {
   });
 }
 
-export function useVerserComptableMutation(agentIdOverride?: string) {
+export function useVersementCaissierMutation(agentIdOverride?: string) {
   const { effectiveUserId } = useEffectiveUserId(agentIdOverride);
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ factureId, body }: { factureId: string; body: IVerserComptableBody }) =>
-      patchVerserComptable(effectiveUserId, factureId, body),
+    mutationFn: ({ factureId, body }: { factureId: string; body: IVersementCaissierBody }) =>
+      patchVersementCaissier(effectiveUserId, factureId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: agentRecouvreurKeys.all });
     },
   });
 }
+
+/** @deprecated Utilisez useVersementCaissierMutation */
+export const useVerserComptableMutation = useVersementCaissierMutation;

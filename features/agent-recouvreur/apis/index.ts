@@ -5,7 +5,7 @@ import type {
   IAgentFactureStats,
   IEncaissementBody,
   IDepotPartenaireBody,
-  IVerserComptableBody,
+  IVersementCaissierBody,
 } from '../types';
 
 const BASE = (process.env.NEXT_PUBLIC_API_BACKEND_URL ?? '').replace(/\/$/, '');
@@ -96,13 +96,13 @@ export async function patchDepotPartenaire(
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
 }
 
-export async function patchVerserComptable(
+export async function patchVersementCaissier(
   userId: string,
   factureId: string,
-  body: IVerserComptableBody,
+  body: IVersementCaissierBody,
 ): Promise<void> {
   const res = await fetch(
-    `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/verser-comptable`,
+    `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/versement-caissier`,
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...(userId ? { 'X-User-Id': userId } : {}) },
@@ -111,3 +111,6 @@ export async function patchVerserComptable(
   );
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
 }
+
+/** @deprecated Utilisez patchVersementCaissier */
+export const patchVerserComptable = patchVersementCaissier;

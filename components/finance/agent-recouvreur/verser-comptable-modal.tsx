@@ -58,7 +58,7 @@ export default function VerserComptableModal({ open, onClose, facture, onConfirm
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
-            <p className="text-sm font-semibold text-gray-900">Versement au comptable</p>
+            <p className="text-sm font-semibold text-gray-900">Versement au caissier</p>
             <p className="text-xs mt-0.5">
               Total collecté disponible :{' '}
               <span className="text-red-500 font-semibold">{formatMontant(totalCollecte)}</span>
