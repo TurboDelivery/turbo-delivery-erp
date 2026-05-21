@@ -29,7 +29,7 @@ export type AppSubjects =
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
-export const APP_ROLES = ['STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA'] as const;
+export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
@@ -40,6 +40,9 @@ const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
   DGA: 'DGA',
   DG: 'DG',
   ADMIN: 'DG',
+  TRESORIER: 'TRESORIER',
+  RECOUVREUR: 'RECOUVREUR',
+  'AGENT RECOUVREUR': 'RECOUVREUR',
   BUSINESS_DEVELOPER: 'BUSINESS_DEVELOPER',
   'BUSINESS DEVELOPER': 'BUSINESS_DEVELOPER',
   "CENTRALE D'APPEL": 'STANDARD',
@@ -141,6 +144,16 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('valider', 'Restaurant');
       can('manage', 'Trafic');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
+      break;
+
+    case 'RECOUVREUR':
+      can('read', 'Finance');
+      can('manage', 'Finance');
+      can('read', ['Restaurant', 'Livreur']);
+      can('access', ['Menu', 'Route', 'Notification']);
+      break;
+
+    case 'TRESORIER':
       break;
 
     default:
