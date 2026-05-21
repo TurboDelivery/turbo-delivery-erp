@@ -41,8 +41,15 @@ export default function useVerrouillageV2() {
     if (readyTickets.length === 0) return;
     setIsLockingAll(true);
     try {
+      // On essaie chaque ticket indépendamment — sans try/catch interne,
+      // un seul ticket déjà V1_VALIDE (race condition) ferait planter
+      // tout le batch. La mutation onError affiche déjà un toast par ticket.
       for (const ticket of readyTickets) {
-        await validerV1Async(ticket.commandeId);
+        try {
+          await validerV1Async(ticket.commandeId);
+        } catch {
+          // ignoré : déjà signalé via toast par la mutation
+        }
       }
     } finally {
       setIsLockingAll(false);

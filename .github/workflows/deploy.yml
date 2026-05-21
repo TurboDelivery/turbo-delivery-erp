@@ -100,15 +100,21 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # Depuis la fusion V1+V2, erp-backend / restaurant-backend / client-backend
+          # / delivery-backend sont mergés dans main-backend (backend-prod). Les
+          # anciens hosts (erp-prod, resto-prod, customer-prod, delivery-prod) ne
+          # servent plus rien — 502/401. On hardcode toutes les URLs sur
+          # backend-prod ; les secrets GitHub correspondants sont obsolètes
+          # (à supprimer du repo plus tard).
           build-args: |
             VERSION=${{ env.VERSION }}
-            NEXT_PUBLIC_BACKEND_PROTOCOL=${{ secrets.NEXT_PUBLIC_BACKEND_PROTOCOL }}
-            NEXT_PUBLIC_API_ERP_URL=${{ secrets.NEXT_PUBLIC_API_ERP_URL }}
-            NEXT_PUBLIC_API_RESTO_URL=${{ secrets.NEXT_PUBLIC_API_RESTO_URL }}
-            NEXT_PUBLIC_API_CLIENT_URL=${{ secrets.NEXT_PUBLIC_API_CLIENT_URL }}
-            NEXT_PUBLIC_API_DELIVERY_URL=${{ secrets.NEXT_PUBLIC_API_DELIVERY_URL }}
-            NEXT_PUBLIC_API_BACKEND_URL=${{ secrets.NEXT_PUBLIC_API_BACKEND_URL }}
-            NEXT_PUBLIC_API_SOCKET_URL=${{ secrets.NEXT_PUBLIC_API_SOCKET_URL }}
+            NEXT_PUBLIC_BACKEND_PROTOCOL=https
+            NEXT_PUBLIC_API_ERP_URL=https://backend-prod.turbodeliveryapp.com
+            NEXT_PUBLIC_API_RESTO_URL=https://backend-prod.turbodeliveryapp.com
+            NEXT_PUBLIC_API_CLIENT_URL=https://backend-prod.turbodeliveryapp.com
+            NEXT_PUBLIC_API_DELIVERY_URL=https://backend-prod.turbodeliveryapp.com
+            NEXT_PUBLIC_API_BACKEND_URL=https://backend-prod.turbodeliveryapp.com
+            NEXT_PUBLIC_API_SOCKET_URL=https://socket-prod.turbodeliveryapp.com
             NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
 
   deploy:
