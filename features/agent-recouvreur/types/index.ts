@@ -42,6 +42,12 @@ export interface IAgentFactureStats {
 
 export type IAgentFactureListResponse = PaginatedResponse<IAgentFacture>;
 
+/** Shape réelle retournée par GET /api/finance/agent-recouvreur/factures */
+export interface IAgentFactureApiResponse {
+  stats: IAgentFactureStats;
+  factures: IAgentFactureListResponse;
+}
+
 export interface IAgentFactureParams {
   restaurantId?: string;
   cycle?: CycleFiltre;

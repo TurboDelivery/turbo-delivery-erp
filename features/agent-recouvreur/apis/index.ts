@@ -1,5 +1,6 @@
 import type {
   CycleFiltre,
+  IAgentFactureApiResponse,
   IAgentFactureListResponse,
   IAgentFactureParams,
   IAgentFactureStats,
@@ -30,7 +31,7 @@ function buildFiltersQs(params: IAgentFactureParams | undefined, qs: URLSearchPa
 export async function getAgentFactures(
   userId: string,
   params?: IAgentFactureParams,
-): Promise<IAgentFactureListResponse> {
+): Promise<IAgentFactureApiResponse> {
   const qs = new URLSearchParams();
   buildFiltersQs(params, qs);
   if (params?.page != null) qs.set('page', String(params.page));
@@ -39,12 +40,10 @@ export async function getAgentFactures(
   const query = qs.toString() ? `?${qs.toString()}` : '';
   const url = `${BASE}/api/finance/agent-recouvreur/factures${query}`;
 
-  const headers: Record<string, string> = {};
-  if (userId) headers['X-User-Id'] = userId;
-
-  const res = await fetch(url, { headers });
+  // Note: X-User-Id (ERP UUID) ne correspond pas aux UUIDs backend — omis pour retourner toutes les factures
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-  return res.json() as Promise<IAgentFactureListResponse>;
+  return res.json() as Promise<IAgentFactureApiResponse>;
 }
 
 export async function getAgentFacturesStats(
@@ -74,7 +73,7 @@ export async function postEncaissement(
     `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/encaissements`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(userId ? { 'X-User-Id': userId } : {}) },
+      headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
       body: JSON.stringify(body),
     },
   );
@@ -90,7 +89,7 @@ export async function patchDepotPartenaire(
     `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/depot-partenaire`,
     {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...(userId ? { 'X-User-Id': userId } : {}) },
+      headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
       body: JSON.stringify(body),
     },
   );
@@ -106,7 +105,7 @@ export async function patchVersementCaissier(
     `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/verser-comptable`,
     {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...(userId ? { 'X-User-Id': userId } : {}) },
+      headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
       body: JSON.stringify(body),
     },
   );

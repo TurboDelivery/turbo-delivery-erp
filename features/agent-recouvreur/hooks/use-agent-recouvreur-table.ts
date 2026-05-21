@@ -12,11 +12,11 @@ export function useAgentRecouvreurTable(
   const { data, isLoading, isFetching, isError, error } = useAgentFacturesQuery(params, agentIdOverride);
 
   const table = useReactTable({
-    data: data?.content ?? [],
+    data: data?.factures?.content ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    pageCount: data?.totalPages ?? -1,
+    pageCount: data?.factures?.totalPages ?? -1,
   });
 
   return {
@@ -25,8 +25,8 @@ export function useAgentRecouvreurTable(
     isFetching,
     isError,
     error,
-    totalElements: data?.totalElements ?? 0,
-    totalPages: data?.totalPages ?? 0,
+    totalElements: data?.factures?.totalElements ?? 0,
+    totalPages: data?.factures?.totalPages ?? 0,
   };
 }
 

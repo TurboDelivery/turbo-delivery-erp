@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 import {
   Table,
   TableHeader,
@@ -30,6 +31,7 @@ import {
   useAgentRecouvreurStats,
   cycleOptions,
 } from '@/features/agent-recouvreur';
+import { responsableFinancierAPI } from '@/features/responsable-financier';
 import type { IAgentFacture } from '@/features/agent-recouvreur';
 
 const statutChips = ['Tous', 'Recouvrement', 'Déposé partenaire', 'Soldé', 'Versé au caissier'] as const;
@@ -62,7 +64,7 @@ function StatCard({
 export default function AgentRecouvreurView() {
   const { data: session } = useSession();
 
-  const { filters, setFilters, params, statsParams } = useAgentRecouvreurFilters();
+  const { filters, setFilters, params } = useAgentRecouvreurFilters();
 
   const [factureDepot, setFactureDepot] = useState<IAgentFacture | null>(null);
   const [factureEncaissement, setFactureEncaissement] = useState<IAgentFacture | null>(null);
@@ -77,13 +79,27 @@ export default function AgentRecouvreurView() {
     [],
   );
 
+  const [backendUserId, setBackendUserId] = useState<string>('');
+
+  useEffect(() => {
+    const userName = session?.user?.name;
+    if (!userName) return;
+    responsableFinancierAPI
+      .obtenirAgents()
+      .then((agents) => {
+        const match = agents.find((a) => a.nom === userName);
+        if (match) setBackendUserId(match.id);
+      })
+      .catch(() => {});
+  }, [session?.user?.name]);
+
   const { table, isLoading, isError, error, totalElements, totalPages } =
     useAgentRecouvreurTable(columns, params);
-  const { statsCards } = useAgentRecouvreurStats(statsParams);
+  const { statsCards } = useAgentRecouvreurStats(params);
 
-  const depotPartenaireMutation = useDepotPartenaireMutation();
-  const encaissementMutation = useEncaissementMutation();
-  const verserComptableMutation = useVersementCaissierMutation();
+  const depotPartenaireMutation = useDepotPartenaireMutation(backendUserId);
+  const encaissementMutation = useEncaissementMutation(backendUserId);
+  const verserComptableMutation = useVersementCaissierMutation(backendUserId);
 
   const handleDateChange = (range: DateRange | undefined) => {
     setFilters({
@@ -256,7 +272,13 @@ export default function AgentRecouvreurView() {
         facture={factureDepot}
         agentNom={session?.user?.name ?? ''}
         onConfirm={(facture, { date, montant, agent }) => {
-          depotPartenaireMutation.mutate({ factureId: facture.id, body: { date, montant, agent } });
+          depotPartenaireMutation.mutate(
+            { factureId: facture.id, body: { date, montant, agent } },
+            {
+              onSuccess: () => toast.success('Dépôt enregistré avec succès'),
+              onError: (e) => toast.error(`Échec dépôt : ${e instanceof Error ? e.message : 'Erreur'}`),
+            },
+          );
           setFactureDepot(null);
         }}
       />
@@ -268,15 +290,21 @@ export default function AgentRecouvreurView() {
         onPaiementAjoute={(facture, paiements) => {
           const dernierPaiement = paiements[paiements.length - 1];
           if (dernierPaiement) {
-            encaissementMutation.mutate({
-              factureId: facture.id,
-              body: {
-                type: dernierPaiement.type,
-                date: dernierPaiement.date,
-                montant: dernierPaiement.montant,
-                remarque: dernierPaiement.remarque,
+            encaissementMutation.mutate(
+              {
+                factureId: facture.id,
+                body: {
+                  type: dernierPaiement.type,
+                  date: dernierPaiement.date,
+                  montant: dernierPaiement.montant,
+                  remarque: dernierPaiement.remarque,
+                },
               },
-            });
+              {
+                onSuccess: () => toast.success('Encaissement enregistré'),
+                onError: (e) => toast.error(`Échec encaissement : ${e instanceof Error ? e.message : 'Erreur'}`),
+              },
+            );
           }
         }}
       />
@@ -286,7 +314,13 @@ export default function AgentRecouvreurView() {
         onClose={() => setFactureVersement(null)}
         facture={factureVersement}
         onConfirm={(facture, { montant, date }) => {
-          verserComptableMutation.mutate({ factureId: facture.id, body: { montant, date } });
+          verserComptableMutation.mutate(
+            { factureId: facture.id, body: { montant, date } },
+            {
+              onSuccess: () => toast.success('Versement enregistré avec succès'),
+              onError: (e) => toast.error(`Échec versement : ${e instanceof Error ? e.message : 'Erreur'}`),
+            },
+          );
           setFactureVersement(null);
         }}
       />

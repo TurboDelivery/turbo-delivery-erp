@@ -33,19 +33,20 @@ function useCurrentUserSession() {
 
 function useEffectiveUserId(agentIdOverride?: string) {
   const { userId, role, sessionStatus } = useCurrentUserSession();
-  const isStandardAgent = role.toUpperCase() === 'STANDARD';
-  const defaultUserId = isStandardAgent ? userId : '';
+  const normalizedRole = role.toUpperCase().trim();
+  const isAgent = ['STANDARD', 'RECOUVREUR', 'AGENT RECOUVREUR'].includes(normalizedRole);
+  const defaultUserId = isAgent ? userId : '';
   const effectiveUserId = agentIdOverride?.trim() || defaultUserId;
-  return { effectiveUserId, isStandardAgent, sessionStatus };
+  return { effectiveUserId, isAgent, sessionStatus };
 }
 
 export function useAgentFacturesQuery(params?: IAgentFactureParams, agentIdOverride?: string) {
-  const { effectiveUserId, isStandardAgent, sessionStatus } = useEffectiveUserId(agentIdOverride);
+  const { effectiveUserId, isAgent, sessionStatus } = useEffectiveUserId(agentIdOverride);
 
   const query = useQuery({
     queryKey: [...agentRecouvreurKeys.list(params), effectiveUserId],
     queryFn: () => getAgentFactures(effectiveUserId, params),
-    enabled: sessionStatus === 'authenticated' && (!isStandardAgent || !!effectiveUserId),
+    enabled: sessionStatus === 'authenticated',
     staleTime: 5 * 60 * 1000,
   });
   return {
@@ -58,12 +59,12 @@ export function useAgentFacturesStatsQuery(
   params?: IAgentFactureParams,
   agentIdOverride?: string,
 ) {
-  const { effectiveUserId, isStandardAgent, sessionStatus } = useEffectiveUserId(agentIdOverride);
+  const { effectiveUserId, isAgent, sessionStatus } = useEffectiveUserId(agentIdOverride);
 
   const query = useQuery({
     queryKey: [...agentRecouvreurKeys.stats(params), effectiveUserId],
     queryFn: () => getAgentFacturesStats(effectiveUserId, params),
-    enabled: sessionStatus === 'authenticated' && (!isStandardAgent || !!effectiveUserId),
+    enabled: sessionStatus === 'authenticated',
     staleTime: 5 * 60 * 1000,
   });
   return {

@@ -147,10 +147,15 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       break;
 
     case 'RECOUVREUR':
+      // Mêmes permissions que STANDARD
+      can('read', 'Trafic');
+      can('create', 'Ticket');
+      can('read', 'Ticket');
+      can('manage', 'Creneau');
+      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
+      // + accès page agent-recouvreur
       can('read', 'Finance');
       can('manage', 'Finance');
-      can('read', ['Restaurant', 'Livreur']);
-      can('access', ['Menu', 'Route', 'Notification']);
       break;
 
     case 'TRESORIER':

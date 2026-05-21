@@ -34,7 +34,9 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
                         token: data?.token,
                         role: data?.user?.role?.libelle,
                     } as User;
+                    console.log('User authenticated successfully:', data);
                 }
+                
                 return null;
             },
         }),
