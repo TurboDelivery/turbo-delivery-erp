@@ -100,16 +100,20 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          # Depuis la fusion V1+V2, erp-backend / restaurant-backend / client-backend
-          # / delivery-backend sont mergés dans main-backend (backend-prod). Les
-          # anciens hosts (erp-prod, resto-prod, customer-prod, delivery-prod) ne
-          # servent plus rien — 502/401. On hardcode toutes les URLs sur
-          # backend-prod ; les secrets GitHub correspondants sont obsolètes
-          # (à supprimer du repo plus tard).
+          # Routing post-fusion :
+          # - erp-backend (port 8008) tourne ENCORE et gère l'auth ERP (login,
+          #   /api/V1/turbo/erp/user/login). On garde donc ERP_URL sur erp-prod.
+          # - restaurant-backend et client-backend ont été arrêtés ; leurs hosts
+          #   resto-prod et customer-prod retournent 502. On les route sur
+          #   backend-prod (main-backend) qui a fusionné leurs endpoints.
+          # - delivery-backend pareil — DNS ne résout plus → on route en
+          #   préventif sur backend-prod.
+          # - BACKEND_URL = main-backend (fusion V1+V2), c'est l'endpoint de
+          #   référence pour les nouveaux services (finance, tickets, etc.).
           build-args: |
             VERSION=${{ env.VERSION }}
             NEXT_PUBLIC_BACKEND_PROTOCOL=https
-            NEXT_PUBLIC_API_ERP_URL=https://backend-prod.turbodeliveryapp.com
+            NEXT_PUBLIC_API_ERP_URL=https://erp-prod.turbodeliveryapp.com
             NEXT_PUBLIC_API_RESTO_URL=https://backend-prod.turbodeliveryapp.com
             NEXT_PUBLIC_API_CLIENT_URL=https://backend-prod.turbodeliveryapp.com
             NEXT_PUBLIC_API_DELIVERY_URL=https://backend-prod.turbodeliveryapp.com
