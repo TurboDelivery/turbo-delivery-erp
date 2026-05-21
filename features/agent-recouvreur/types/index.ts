@@ -42,11 +42,14 @@ export interface IAgentFactureStats {
 
 export type IAgentFactureListResponse = PaginatedResponse<IAgentFacture>;
 
-/** Shape réelle retournée par GET /api/finance/agent-recouvreur/factures */
-export interface IAgentFactureApiResponse {
-  stats: IAgentFactureStats;
-  factures: IAgentFactureListResponse;
-}
+/**
+ * Shape réelle retournée par GET /api/finance/agent-recouvreur/factures.
+ *
+ * <p>Le backend renvoie un {@code AgentRecouvreurFacturePageVm} qui est une
+ * Page Spring "flat" — pas de wrap {stats, factures}. Les stats sont sur un
+ * endpoint séparé : GET /factures/stats.</p>
+ */
+export type IAgentFactureApiResponse = IAgentFactureListResponse;
 
 export interface IAgentFactureParams {
   restaurantId?: string;

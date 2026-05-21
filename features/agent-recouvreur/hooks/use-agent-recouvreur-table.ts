@@ -11,12 +11,15 @@ export function useAgentRecouvreurTable(
 ) {
   const { data, isLoading, isFetching, isError, error } = useAgentFacturesQuery(params, agentIdOverride);
 
+  // Backend renvoie directement une Page Spring "flat" {content, totalElements,
+  // totalPages, size, number} — pas de wrap {factures: {...}}. Voir le record
+  // AgentRecouvreurFacturePageVm côté Java.
   const table = useReactTable({
-    data: data?.factures?.content ?? [],
+    data: data?.content ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
-    pageCount: data?.factures?.totalPages ?? -1,
+    pageCount: data?.totalPages ?? -1,
   });
 
   return {
@@ -25,8 +28,8 @@ export function useAgentRecouvreurTable(
     isFetching,
     isError,
     error,
-    totalElements: data?.factures?.totalElements ?? 0,
-    totalPages: data?.factures?.totalPages ?? 0,
+    totalElements: data?.totalElements ?? 0,
+    totalPages: data?.totalPages ?? 0,
   };
 }
 
