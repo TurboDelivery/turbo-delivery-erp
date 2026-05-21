@@ -14,13 +14,18 @@ export const useValiderV1Mutation = () => {
       if (!result.success) throw new Error(result.error);
     },
     onSuccess: async () => {
-      await invalidate();
       toast.success('Ticket validé V1.');
     },
     onError: (error) => {
       toast.error('Erreur lors de la validation V1', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
+    },
+    // Invalide la liste DANS TOUS LES CAS — sinon, si le backend rejette
+    // (ex. "V1 impossible, statut=V1_VALIDE déjà"), le bouton reste cliquable
+    // sur un ticket fantôme et l'utilisateur reclique indéfiniment.
+    onSettled: async () => {
+      await invalidate();
     },
   });
 };
@@ -34,13 +39,15 @@ export const useValiderV2Mutation = () => {
       if (!result.success) throw new Error(result.error as string);
     },
     onSuccess: async () => {
-      await invalidate();
       toast.success('Ticket validé V2.');
     },
     onError: (error) => {
       toast.error('Erreur lors de la validation V2', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
+    },
+    onSettled: async () => {
+      await invalidate();
     },
   });
 };
