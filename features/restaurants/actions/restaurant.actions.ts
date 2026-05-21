@@ -104,12 +104,17 @@ export async function getRestaurantsPaginated(params: IRestaurantParams): Promis
 void RESTAURANT_PAGINATION_ENDPOINT;
 
 /**
- * Récupère les détails d'un restaurant par son ID
+ * Récupère les détails d'un restaurant par son ID.
+ *
+ * <p>Backend main-backend (post-fusion) : endpoint canonique
+ * {@code GET /api/V1/turbo/restaurant/info/{id}} (RestaurantCatalogResource).
+ * L'ancien chemin {@code /restaurant/{id}} n'est pas mappé en GET côté backend
+ * (seul DELETE existe sur ce path) → 405.</p>
  */
 export async function getRestaurantById(id: string): Promise<IRestaurant> {
   try {
     return await apiClientHttp.request<IRestaurant>({
-      endpoint: `${RESTAURANT_DETAIL_ENDPOINT}/${id}`,
+      endpoint: `${RESTAURANT_DETAIL_ENDPOINT}/info/${id}`,
       method: 'GET',
       service: 'restaurant',
     });

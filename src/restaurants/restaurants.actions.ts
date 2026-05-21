@@ -20,16 +20,22 @@ const restaurantEndpoints = {
     endpoint: BASE_URL_2,
     method: 'GET',
   },
+  // Backend canonique : GET /api/V1/turbo/restaurant/detail/erp/{id}
+  // (l'ancien chemin /restaurant/{id}/detail n'existe pas dans main-backend)
   getDetailRestaurant: {
-    endpoint: (idRestaurant: string) => `${BASE_URL_3}/${idRestaurant}/detail`,
+    endpoint: (idRestaurant: string) => `${BASE_URL_3}/detail/erp/${idRestaurant}`,
     method: 'GET',
   },
   getAll: {
     endpoint: (page: number) => `${BASE_URL_2}/validated/opsmanager/${page}`,
     method: 'GET',
   },
+  // Backend ne fournit plus /validated/opsmanager (endpoint legacy non migré).
+  // /restaurant/get/all retourne TOUS les restaurants (validés ou non) ; pour
+  // les dropdowns/listes d'admin c'est acceptable. À remplacer si on a besoin
+  // d'un vrai filtre validé-ops un jour.
   getAlls: {
-    endpoint: `/api/V1/turbo/restaurant/validated/opsmanager`,
+    endpoint: `/api/V1/turbo/restaurant/get/all`,
     method: 'GET',
   },
   getAllValidated: {
