@@ -1,18 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Download, Leaf } from 'lucide-react';
 import type { IFactureRFDetail } from '@/features/responsable-financier';
+import {
+  useValiderFactureRFMutation,
+  useLancerRecouvrementMutation,
+  useDepotBanqueMutation,
+} from '@/features/responsable-financier';
 import PreuveModal from './preuve-modal';
+import ValiderFactureModal from './valider-facture-modal';
+import DemarrerRecouvrementDrawer from './demarrer-recouvrement-modal';
+import DepotBanqueModal from './depot-banque-modal';
+import type { IFactureRF } from './responsable-financier-columns';
 
 type StatutFacture = IFactureRFDetail['statut'];
 
 const statutConfigMap: Record<string, { label: string; className: string }> = {
+  'DRAFT':               { label: 'À valider',           className: 'bg-gray-100 text-gray-600 border-gray-200' },
   'À valider':           { label: 'À valider',           className: 'bg-gray-100 text-gray-600 border-gray-200' },
   'Validé':              { label: 'Validé',              className: 'bg-blue-100 text-blue-700 border-blue-200' },
   'Recouvrement':        { label: 'Recouvrement',        className: 'bg-orange-100 text-orange-700 border-orange-200' },
+  'En cours':            { label: 'En cours',            className: 'bg-orange-100 text-orange-700 border-orange-200' },
   'Déposé partenaire':   { label: 'Déposé partenaire',   className: 'bg-sky-100 text-sky-700 border-sky-200' },
+  'Preuve ajoutée':      { label: 'Preuve ajoutée',      className: 'bg-purple-100 text-purple-700 border-purple-200' },
   'Soldé':               { label: 'Soldé',               className: 'bg-green-100 text-green-700 border-green-200' },
   'Versé au caissier':   { label: 'Versé au caissier',   className: 'bg-slate-100 text-slate-700 border-slate-200' },
   'En attente visa DGA': { label: 'En attente visa DGA', className: 'bg-violet-100 text-violet-700 border-violet-200' },
@@ -37,10 +49,34 @@ interface Props {
 
 export default function FactureDetailView({ facture }: Props) {
   const [preuveOpen, setPreuveOpen] = useState(false);
+  const [validerOpen, setValiderOpen] = useState(false);
+  const [recouvrementOpen, setRecouvrementOpen] = useState(false);
+  const [depotBanqueOpen, setDepotBanqueOpen] = useState(false);
+
   const recouvre = facture.montantRecouvre ?? 0;
   const restant = facture.montant - recouvre;
   const pct = facture.pourcentageRecouvre ?? 0;
   const config = getStatutConfig(facture.statut);
+
+  const validerMutation = useValiderFactureRFMutation();
+  const lancerRecouvrementMutation = useLancerRecouvrementMutation();
+  const depotBanqueMutation = useDepotBanqueMutation();
+
+  // Adapte IFactureRFDetail → IFactureRF pour les modals
+  const factureForModal = useMemo<IFactureRF>(() => ({
+    id: facture.id,
+    numero: facture.numero,
+    partenaire: facture.partenaire,
+    montant: facture.montant,
+    montantRecouvre: facture.montantRecouvre,
+    pourcentageRecouvre: facture.pourcentageRecouvre,
+    cycle: facture.cycle,
+    emission: facture.emission,
+    depotPartenaire: facture.depotPartenaire,
+    depotBanque: facture.depotBanque,
+    agent: facture.agent,
+    statut: facture.statut as IFactureRF['statut'],
+  }), [facture]);
 
   return (
     <div className="p-6 space-y-6">
@@ -66,9 +102,28 @@ export default function FactureDetailView({ facture }: Props) {
           <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${config.className}`}>
             {config.label}
           </span>
-          {facture.statut.startsWith('Acompte') && (
-            <button className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-              Enregistrer un versement
+          {(facture.statut === 'DRAFT' || facture.statut === 'À valider') && (
+            <button
+              onClick={() => setValiderOpen(true)}
+              className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            >
+              ✓ Valider la facture
+            </button>
+          )}
+          {facture.statut === 'Validé' && (
+            <button
+              onClick={() => setRecouvrementOpen(true)}
+              className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            >
+              Lancer recouvrement →
+            </button>
+          )}
+          {facture.statut === 'Visé DGA' && (
+            <button
+              onClick={() => setDepotBanqueOpen(true)}
+              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            >
+              🏦 Dépôt en banque
             </button>
           )}
         </div>
@@ -176,6 +231,36 @@ export default function FactureDetailView({ facture }: Props) {
         onClose={() => setPreuveOpen(false)}
         preuve={facture.preuve}
         factureNumero={facture.numero}
+      />
+
+      <ValiderFactureModal
+        open={validerOpen}
+        onClose={() => setValiderOpen(false)}
+        facture={factureForModal}
+        onConfirm={(f, cycle) => {
+          validerMutation.mutate({ id: f.id, data: { cycle } });
+          setValiderOpen(false);
+        }}
+      />
+
+      <DemarrerRecouvrementDrawer
+        open={recouvrementOpen}
+        onClose={() => setRecouvrementOpen(false)}
+        facture={factureForModal}
+        onConfirm={(f, agent) => {
+          lancerRecouvrementMutation.mutate({ id: f.id, data: { agentId: agent.id } });
+          setRecouvrementOpen(false);
+        }}
+      />
+
+      <DepotBanqueModal
+        open={depotBanqueOpen}
+        onClose={() => setDepotBanqueOpen(false)}
+        facture={factureForModal}
+        onConfirm={(f, data) => {
+          depotBanqueMutation.mutate({ id: f.id, data: { date: data.date } });
+          setDepotBanqueOpen(false);
+        }}
       />
     </div>
   );

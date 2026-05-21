@@ -10,14 +10,11 @@ interface Props {
   open: boolean;
   onClose: () => void;
   facture: IFactureRF | null;
-  onConfirm: (facture: IFactureRF, data: { date: string; montant: number; reference: string; banque: string }) => void;
+  onConfirm: (facture: IFactureRF, data: { date: string }) => void;
 }
 
 export default function DepotBanqueModal({ open, onClose, facture, onConfirm }: Props) {
   const [date, setDate] = useState('');
-  const [montant, setMontant] = useState('');
-  const [reference, setReference] = useState('');
-  const [banque, setBanque] = useState('');
   const portalRef = useRef<Element | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -27,12 +24,10 @@ export default function DepotBanqueModal({ open, onClose, facture, onConfirm }: 
   }, []);
 
   useEffect(() => {
-    if (!open) { setDate(''); setMontant(''); setReference(''); setBanque(''); }
+    if (!open) setDate('');
   }, [open]);
 
   if (!open || !facture || !mounted) return null;
-
-  const isValid = date.trim() && montant.trim() && reference.trim() && banque.trim();
 
   return createPortal(
     <div
@@ -72,42 +67,6 @@ export default function DepotBanqueModal({ open, onClose, facture, onConfirm }: 
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-colors"
             />
           </div>
-          <div>
-            <label className="block text-xs text-gray-500 font-medium mb-1.5">
-              Montant déposé (F CFA) <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              value={montant}
-              onChange={(e) => setMontant(e.target.value)}
-              placeholder="Ex: 500000"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-colors"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 font-medium mb-1.5">
-              N° Bordereau <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              placeholder="Ex: BRD-2024-001"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-colors"
-            />
-          </div>
-          <div>
-            <label className="block text-xs text-gray-500 font-medium mb-1.5">
-              Banque destinataire <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={banque}
-              onChange={(e) => setBanque(e.target.value)}
-              placeholder="Ex: BICICI, SGBCI..."
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-colors"
-            />
-          </div>
         </div>
 
         {/* Footer */}
@@ -116,11 +75,8 @@ export default function DepotBanqueModal({ open, onClose, facture, onConfirm }: 
             Annuler
           </Button>
           <Button
-            disabled={!isValid}
-            onClick={() => {
-              onConfirm(facture, { date: date.trim(), montant: Number(montant), reference: reference.trim(), banque: banque.trim() });
-              onClose();
-            }}
+            disabled={!date.trim()}
+            onClick={() => { onConfirm(facture, { date: date.trim() }); onClose(); }}
             className="bg-green-600 hover:bg-green-700 text-white text-sm disabled:opacity-50"
           >
             Enregistrer le dépôt

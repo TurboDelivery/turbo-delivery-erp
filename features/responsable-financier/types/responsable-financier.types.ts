@@ -4,10 +4,13 @@ import { PaginatedResponse } from '@/types';
 export type StatutAcompte = `Acompte ${number}`;
 
 export type StatutFacture =
-  | 'À valider'
+  | 'DRAFT'              // backend: facture non encore validée
+  | 'À valider'           // alias UI
   | 'Validé'
   | 'Recouvrement'
+  | 'En cours'           // backend: recouvrement en cours
   | 'Déposé partenaire'
+  | 'Preuve ajoutée'     // backend: preuve de dépôt ajoutée
   | StatutAcompte
   | 'Soldé'
   | 'Versé au caissier'
@@ -123,10 +126,7 @@ export interface IDepotPartenaireDTO {
 
 // FactureDepotBanqueRequestDto
 export interface IDepotBanqueDTO {
-  date: string;   // ISO date
-  montant: number;
-  reference: string; // N° bordereau
-  banque: string;    // Banque destinataire
+  date: string; // ISO date yyyy-MM-dd
 }
 
 // ─── Réponse liste ────────────────────────────────────────────────────────────

@@ -102,7 +102,7 @@ export async function patchVersementCaissier(
   body: IVersementCaissierBody,
 ): Promise<void> {
   const res = await fetch(
-    `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/versement-caissier`,
+    `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/verser-comptable`,
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', ...(userId ? { 'X-User-Id': userId } : {}) },

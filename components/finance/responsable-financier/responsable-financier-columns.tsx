@@ -8,10 +8,13 @@ import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 
 // Statuts locaux alignés sur CDC v5
 export type StatutFacture =
+  | 'DRAFT'
   | 'À valider'
   | 'Validé'
   | 'Recouvrement'
+  | 'En cours'
   | 'Déposé partenaire'
+  | 'Preuve ajoutée'
   | `Acompte ${number}`
   | 'Soldé'
   | 'Versé au caissier'
@@ -36,10 +39,13 @@ export interface IFactureRF {
 }
 
 const statutConfig: Record<string, { label: string; className: string }> = {
+  'DRAFT':                { label: 'À valider',             className: 'bg-gray-100 text-gray-600 border-gray-200' },
   'À valider':             { label: 'À valider',             className: 'bg-gray-100 text-gray-600 border-gray-200' },
   'Validé':                { label: 'Validé',                className: 'bg-blue-100 text-blue-700 border-blue-200' },
   'Recouvrement':          { label: 'Recouvrement',          className: 'bg-orange-100 text-orange-700 border-orange-200' },
+  'En cours':              { label: 'En cours',              className: 'bg-orange-100 text-orange-700 border-orange-200' },
   'Déposé partenaire':     { label: 'Déposé partenaire',     className: 'bg-sky-100 text-sky-700 border-sky-200' },
+  'Preuve ajoutée':        { label: 'Preuve ajoutée',        className: 'bg-purple-100 text-purple-700 border-purple-200' },
   'Soldé':                { label: 'Soldé',                className: 'bg-green-100 text-green-700 border-green-200' },
   'Versé au caissier':     { label: 'Versé au caissier',     className: 'bg-slate-100 text-slate-700 border-slate-200' },
   'En attente visa DGA':   { label: 'En attente visa DGA',   className: 'bg-violet-100 text-violet-700 border-violet-200' },
@@ -168,7 +174,7 @@ export function createResponsableFinancierColumns(
         </Button>
       );
 
-      if (statut === 'À valider') {
+      if (statut === 'DRAFT' || statut === 'À valider') {
         return (
           <div className="flex items-center gap-2">
             <Button
@@ -198,7 +204,9 @@ export function createResponsableFinancierColumns(
       }
       if (
         statut === 'Recouvrement' ||
+        statut === 'En cours' ||
         statut === 'Déposé partenaire' ||
+        statut === 'Preuve ajoutée' ||
         statut.startsWith('Acompte') ||
         statut === 'Soldé'
       ) {

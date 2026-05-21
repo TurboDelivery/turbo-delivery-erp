@@ -33,10 +33,13 @@ import {
 
 const statutFilters = [
   'Tous',
+  'DRAFT',
   'À valider',
   'Validé',
   'Recouvrement',
+  'En cours',
   'Déposé partenaire',
+  'Preuve ajoutée',
   'Soldé',
   'Versé au caissier',
   'En attente visa DGA',
@@ -275,7 +278,7 @@ export default function ResponsableFinancierView() {
         onClose={() => setFactureDepotBanque(null)}
         facture={factureDepotBanque}
         onConfirm={(facture, data) => {
-          depotBanqueMutation.mutate({ id: facture.id, data });
+          depotBanqueMutation.mutate({ id: facture.id, data: { date: data.date } });
           setFactureDepotBanque(null);
         }}
       />

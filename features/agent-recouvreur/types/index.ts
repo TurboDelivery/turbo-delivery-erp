@@ -5,7 +5,9 @@ export type StatutAcompte = `Acompte ${number}`;
 
 export type StatutAgentFacture =
   | 'Recouvrement'
+  | 'En cours'           // backend alias
   | 'Déposé partenaire'
+  | 'Preuve ajoutée'     // backend: preuve ajoutée
   | StatutAcompte
   | 'Soldé'
   | 'Versé au caissier'
@@ -53,8 +55,6 @@ export interface IEncaissementBody {
   type: 'Acompte' | 'Solde';
   date: string;
   montant: number;
-  modePaiement?: 'Espèces' | 'Mobile Money' | 'Virement';
-  referenceTransaction?: string; // Obligatoire si modePaiement ≠ Espèces
   preuve?: string;
   remarque?: string;
 }

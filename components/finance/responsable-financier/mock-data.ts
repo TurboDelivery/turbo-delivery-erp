@@ -50,7 +50,7 @@ export const MOCK_FACTURES: IFactureRFDetail[] = [
     depotPartenaire: { date: '05-05-2026', agent: 'Mme DIARRA' },
     depotBanque: null,
     agent: 'K. Medard',
-    statut: 'Acompte',
+    statut: 'Acompte 1',
     historique: [
       { label: 'Facture émise', date: '04-05-2026', agent: 'K. Medard' },
       { label: 'En attente de validation' },
@@ -174,7 +174,7 @@ export const MOCK_FACTURES: IFactureRFDetail[] = [
     depotPartenaire: { date: '04-05-2026', agent: 'Mme COULIBALY' },
     depotBanque: null,
     agent: 'K. Medard',
-    statut: 'Visé DG',
+    statut: 'Visé DGA',
     historique: [
       { label: 'Facture émise', date: '03-05-2026', agent: 'K. Medard' },
       { label: 'En attente de validation' },
@@ -197,7 +197,7 @@ export const MOCK_FACTURES: IFactureRFDetail[] = [
     depotPartenaire: { date: '08-05-2026', agent: 'M. BAMBA' },
     depotBanque: null,
     agent: 'A. Yao',
-    statut: 'Acompte',
+    statut: 'Acompte 1',
     historique: [
       { label: 'Facture émise', date: '07-05-2026', agent: 'A. Yao' },
       { label: 'En attente de validation' },
