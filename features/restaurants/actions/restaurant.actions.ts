@@ -141,7 +141,13 @@ export async function exportRestaurantsPDF(params: Omit<IRestaurantParams, 'page
     if (params.methodRecouvrement) queryParams.methodRecouvrement = params.methodRecouvrement;
 
     const qs = new URLSearchParams(queryParams).toString();
-    const url = `${process.env.NEXT_PUBLIC_API_RESTAURANT_URL}${RESTAURANT_EXPORT_ENDPOINT}${qs ? `?${qs}` : ''}`;
+    // Note : la variable NEXT_PUBLIC_API_RESTAURANT_URL (avec RESTAURANT) n'a
+    // jamais existé dans le .env — c'est un typo legacy. On utilise
+    // NEXT_PUBLIC_API_RESTO_URL qui pointe sur backend-prod (post-fusion).
+    // L'endpoint /restaurant/export n'existe pas encore côté main-backend,
+    // donc l'export retournera 404 jusqu'à ce que l'endpoint soit ajouté
+    // (TODO backend) — au moins ça ne crash plus avec `undefined/...`.
+    const url = `${process.env.NEXT_PUBLIC_API_RESTO_URL ?? ''}${RESTAURANT_EXPORT_ENDPOINT}${qs ? `?${qs}` : ''}`;
 
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
