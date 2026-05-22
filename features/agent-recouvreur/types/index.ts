@@ -83,3 +83,38 @@ export interface IVersementCaissierBody {
 
 /** @deprecated Utilisez IVersementCaissierBody */
 export type IVerserComptableBody = IVersementCaissierBody;
+
+// ─── Response VMs ─────────────────────────────────────────────────────────────
+
+/** Paiement enregistré dans AgentRecouvreurEncaissementResponseVm */
+export interface IEncaissementPaiement {
+  id: string;
+  type: 'Acompte' | 'Solde';
+  date: string;
+  montant: number;
+  preuve?: string | null;
+  remarque?: string | null;
+}
+
+/** Facture mise à jour dans AgentRecouvreurEncaissementResponseVm */
+export interface IEncaissementFactureVm {
+  id: string;
+  montantRecouvre: number;
+  pourcentageRecouvre: number;
+  statut: StatutAgentFacture;
+}
+
+/** AgentRecouvreurEncaissementResponseVm */
+export interface IEncaissementResponse {
+  paiement: IEncaissementPaiement;
+  facture: IEncaissementFactureVm;
+}
+
+/** AgentRecouvreurPaiementFactureVm — réponse de PATCH /verser-comptable */
+export interface IVersementCaissierVm {
+  id: string;
+  statut: StatutAgentFacture;
+  depotBanque: string | null;
+  montantRecouvre: number;
+  pourcentageRecouvre: number;
+}

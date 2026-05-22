@@ -32,6 +32,14 @@ export default function AjouterPaiementModal({ open, onClose, facture, montantDe
   const [type, setType] = useState<'Acompte' | 'Solde'>('Acompte');
   const [date, setDate] = useState(today);
   const [montant, setMontant] = useState(0);
+
+  // Auto-sélectionner 'Solde' quand le montant saisi couvre le restant dû
+  function handleMontantChange(value: number) {
+    setMontant(value);
+    const r = facture ? facture.montant - montantDejaRecouvre : 0;
+    if (value > 0 && r > 0 && value >= r) setType('Solde');
+    else if (value < r) setType('Acompte');
+  }
   const [fileName, setFileName] = useState<string | null>(null);
   const [remarque, setRemarque] = useState('');
   const portalRef = useRef<Element | null>(null);
@@ -134,7 +142,7 @@ export default function AjouterPaiementModal({ open, onClose, facture, montantDe
                   type="number"
                   value={montant || ''}
                   min={0}
-                  onChange={(e) => setMontant(Number(e.target.value))}
+                  onChange={(e) => handleMontantChange(Number(e.target.value))}
                   placeholder="0"
                   className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 pr-14"
                 />

@@ -8,11 +8,15 @@ import {
   patchVersementCaissier,
 } from '../apis';
 import type {
+  IAgentFacture,
   IAgentFactureApiResponse,
   IAgentFactureParams,
   IEncaissementBody,
+  IEncaissementResponse,
   IDepotPartenaireBody,
   IVersementCaissierBody,
+  IVersementCaissierVm,
+  StatutAgentFacture,
 } from '../types';
 
 export const agentRecouvreurKeys = {
@@ -79,7 +83,42 @@ export function useEncaissementMutation() {
   return useMutation({
     mutationFn: ({ factureId, body, agentIdOverride }: { factureId: string; body: IEncaissementBody; agentIdOverride?: string }) =>
       postEncaissement(agentIdOverride ?? '', factureId, body),
-    onSuccess: () => {
+    onMutate: async ({ factureId, body }) => {
+      await queryClient.cancelQueries({ queryKey: agentRecouvreurKeys.all });
+      const snapshot = queryClient.getQueriesData({ queryKey: agentRecouvreurKeys.all });
+
+      const optimisticStatut = body.type === 'Solde' ? 'Soldé' : 'Acompte 1';
+      queryClient.setQueriesData(
+        { queryKey: agentRecouvreurKeys.all },
+        (old: unknown) => {
+          if (!old || typeof old !== 'object' || !('content' in old)) return old;
+          const response = old as IAgentFactureApiResponse;
+          return {
+            ...response,
+            content: response.content.map((f) => {
+              if (f.id !== factureId) return f;
+              const newMontantRecouvre = (f.montantRecouvre ?? 0) + body.montant;
+              const newPourcentage = f.montant > 0
+                ? Math.round((newMontantRecouvre / f.montant) * 100)
+                : 0;
+              return {
+                ...f,
+                statut: optimisticStatut as StatutAgentFacture,
+                montantRecouvre: newMontantRecouvre,
+                pourcentageRecouvre: newPourcentage,
+              };
+            }),
+          };
+        },
+      );
+      return { snapshot };
+    },
+    onError: (_err, _vars, context) => {
+      context?.snapshot.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data);
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: agentRecouvreurKeys.all });
     },
   });
@@ -90,7 +129,21 @@ export function useDepotPartenaireMutation() {
   return useMutation({
     mutationFn: ({ factureId, body, agentIdOverride }: { factureId: string; body: IDepotPartenaireBody; agentIdOverride?: string }) =>
       patchDepotPartenaire(agentIdOverride ?? '', factureId, body),
-    onSuccess: () => {
+    onSuccess: (updatedFacture: IAgentFacture) => {
+      // Mettre à jour le cache avec les données serveur
+      queryClient.setQueriesData(
+        { queryKey: agentRecouvreurKeys.all },
+        (old: unknown) => {
+          if (!old || typeof old !== 'object' || !('content' in old)) return old;
+          const response = old as IAgentFactureApiResponse;
+          return {
+            ...response,
+            content: response.content.map((f) =>
+              f.id === updatedFacture.id ? updatedFacture : f,
+            ),
+          };
+        },
+      );
       queryClient.invalidateQueries({ queryKey: agentRecouvreurKeys.all });
     },
   });
@@ -131,7 +184,7 @@ export function useVersementCaissierMutation() {
         queryClient.setQueryData(key, data);
       });
     },
-    onSuccess: (data, _vars, context) => {
+    onSuccess: (data: IVersementCaissierVm | null, _vars, context) => {
       // Vérifier si le statut a réellement changé côté serveur.
       // Si le backend retourne 200 mais n'a pas mis à jour la DB (bug facture_type_check),
       // le body contiendra le statut inchangé → on rollback l'update optimiste.

@@ -22,6 +22,7 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
   const today = new Date().toISOString().split('T')[0];
   const [date, setDate] = useState(today);
   const [montant, setMontant] = useState(facture?.montant ?? 0);
+  const [agentName, setAgentName] = useState(agentNom);
   const [fileName, setFileName] = useState<string | null>(null);
   const portalRef = useRef<Element | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -35,6 +36,10 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
     if (facture) setMontant(facture.montant);
   }, [facture]);
 
+  useEffect(() => {
+    setAgentName(agentNom);
+  }, [agentNom]);
+
   if (!open || !facture || !mounted) return null;
 
   const pourcentage = facture.montant > 0
@@ -42,7 +47,7 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
     : 0;
 
   function handleConfirm() {
-    if (facture) onConfirm(facture, { date, montant, agent: agentNom });
+    if (facture) onConfirm(facture, { date, montant, agent: agentName });
     onClose();
   }
 
@@ -93,9 +98,10 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
               </label>
               <input
                 type="text"
-                value={agentNom}
-                readOnly
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 cursor-default"
+                value={agentName}
+                onChange={(e) => setAgentName(e.target.value)}
+                placeholder="Nom de l'agent"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-300"
               />
             </div>
           </div>
