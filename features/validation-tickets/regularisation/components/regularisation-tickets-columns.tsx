@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { Loader2, ShieldCheck, X } from 'lucide-react';
+import { BadgeCheck, Loader2, ShieldCheck, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import { StatutControle } from '@/types/statut-controle.enum';
@@ -8,8 +8,10 @@ import { formatMontant } from '@/utils/format.utils';
 export interface RegularisationTicketsColumnMeta {
   onApprove: (id: string) => void;
   onReject: (ticket: BonLivraisonTerminee) => void;
+  onAuthentifier: (id: string) => void;
   approvingId: string | null;
   isApproving: boolean;
+  authenticatedIds: Set<string>;
 }
 
 /** Libellé + style du badge par statut (dupliqué localement — voir ticket-table-columns). */
@@ -30,9 +32,6 @@ export const STATUT_FILTER_OPTIONS: { value: StatutControle; label: string }[] =
   { value: StatutControle.V2_VALIDE, label: 'V2 Validé' },
   { value: StatutControle.REJETE_FRAUDE, label: 'Rejeté (Fraude)' },
 ];
-
-/** Statuts terminaux : l'approbation / le rejet n'a plus de sens. */
-const TERMINAL_STATUTS = new Set<string>([StatutControle.V2_VALIDE, StatutControle.REJETE_FRAUDE]);
 
 export function createRegularisationTicketsColumns(): ColumnDef<BonLivraisonTerminee>[] {
   return [
@@ -82,8 +81,14 @@ export function createRegularisationTicketsColumns(): ColumnDef<BonLivraisonTerm
     {
       id: 'statut',
       header: 'Statut',
-      cell: ({ row }) => {
-        const statut = row.original.statutControle ?? row.original.statut;
+      cell: ({ row, table }) => {
+        const meta = table.options.meta as RegularisationTicketsColumnMeta;
+        const rawStatut = row.original.statutControle ?? row.original.statut;
+        // Authentification optimiste : un ticket PENDING authentifié passe AUTHENTIFIE.
+        const statut =
+          rawStatut === StatutControle.PENDING && meta.authenticatedIds.has(row.original.commandeId)
+            ? StatutControle.AUTHENTIFIE
+            : rawStatut;
         const config = STATUT_CONFIG[statut] ?? { label: statut, className: 'bg-gray-100 text-gray-700' };
         return (
           <span
@@ -102,39 +107,64 @@ export function createRegularisationTicketsColumns(): ColumnDef<BonLivraisonTerm
         const ticket = row.original;
         const statut = ticket.statutControle ?? ticket.statut;
 
-        if (TERMINAL_STATUTS.has(statut)) {
-          return <div className="text-right text-xs text-gray-300">—</div>;
+        // PENDING → authentification (déjà fait = aucune action).
+        if (statut === StatutControle.PENDING) {
+          if (meta.authenticatedIds.has(ticket.commandeId)) {
+            return (
+              <div className="flex items-center justify-end gap-1 text-xs font-medium text-blue-600">
+                <BadgeCheck className="h-3.5 w-3.5" />
+                Authentifié
+              </div>
+            );
+          }
+          return (
+            <div className="flex items-center justify-end">
+              <Button
+                size="sm"
+                onClick={() => meta.onAuthentifier(ticket.commandeId)}
+                className="h-7 gap-1.5 bg-emerald-500 text-xs text-white hover:bg-emerald-600"
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Authentifier
+              </Button>
+            </div>
+          );
         }
 
-        const isApprovingThis = meta.isApproving && meta.approvingId === ticket.commandeId;
+        // TARDIF → approuver (retard) ou rejeter (fraude).
+        if (statut === StatutControle.TARDIF) {
+          const isApprovingThis = meta.isApproving && meta.approvingId === ticket.commandeId;
+          return (
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => meta.onReject(ticket)}
+                disabled={meta.isApproving}
+                className="h-7 gap-1.5 border-red-200 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+              >
+                <X className="h-3.5 w-3.5" />
+                Rejeter
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => meta.onApprove(ticket.commandeId)}
+                disabled={meta.isApproving}
+                className="h-7 gap-1.5 bg-red-500 text-xs text-white hover:bg-red-600 disabled:opacity-60"
+              >
+                {isApprovingThis ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                )}
+                Approuver
+              </Button>
+            </div>
+          );
+        }
 
-        return (
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => meta.onReject(ticket)}
-              disabled={meta.isApproving}
-              className="h-7 gap-1.5 border-red-200 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
-            >
-              <X className="h-3.5 w-3.5" />
-              Rejeter
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => meta.onApprove(ticket.commandeId)}
-              disabled={meta.isApproving}
-              className="h-7 gap-1.5 bg-red-500 text-xs text-white hover:bg-red-600 disabled:opacity-60"
-            >
-              {isApprovingThis ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <ShieldCheck className="h-3.5 w-3.5" />
-              )}
-              Approuver
-            </Button>
-          </div>
-        );
+        // AUTHENTIFIE / V1_VALIDE / V2_VALIDE / REJETE_FRAUDE → aucune action.
+        return <div className="text-right text-xs text-gray-300">—</div>;
       },
     },
   ];

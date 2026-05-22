@@ -10,6 +10,7 @@ import {
   useApprouverRegularisationMutation,
   useRejeterRegularisationMutation,
 } from '@/features/validation-tickets/regularisation/queries/regularisation.mutation';
+import { useTicketAuthentication } from '@/features/tickets/hooks/use-ticket-authentication';
 import {
   createRegularisationTicketsColumns,
   RegularisationTicketsColumnMeta,
@@ -63,6 +64,7 @@ export default function useRegularisationTicketsTable() {
 
   const { mutate: approuver, isLoading: isApproving } = useApprouverRegularisationMutation();
   const { mutate: rejeter, isLoading: isRejecting } = useRejeterRegularisationMutation();
+  const { authenticatedIds, handleAuthentifier } = useTicketAuthentication();
 
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [ticketToReject, setTicketToReject] = useState<BonLivraisonTerminee | null>(null);
@@ -102,8 +104,15 @@ export default function useRegularisationTicketsTable() {
   const columns = useMemo(() => createRegularisationTicketsColumns(), []);
 
   const meta: RegularisationTicketsColumnMeta = useMemo(
-    () => ({ onApprove: handleApprove, onReject: openReject, approvingId, isApproving }),
-    [handleApprove, openReject, approvingId, isApproving],
+    () => ({
+      onApprove: handleApprove,
+      onReject: openReject,
+      onAuthentifier: handleAuthentifier,
+      approvingId,
+      isApproving,
+      authenticatedIds,
+    }),
+    [handleApprove, openReject, handleAuthentifier, approvingId, isApproving, authenticatedIds],
   );
 
   const table = useReactTable({
