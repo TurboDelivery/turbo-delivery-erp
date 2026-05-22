@@ -46,35 +46,51 @@ function playNotificationSound() {
     if (typeof window === 'undefined') return;
     const AudioCtor =
       window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtor) return;
+    if (!AudioCtor) {
+      console.warn('[NotifSound] Web Audio API non supporté par ce navigateur');
+      return;
+    }
 
     if (!audioCtx) audioCtx = new AudioCtor();
-    // Si suspendu (cas iOS Safari après inactivité), on tente un resume.
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(() => {});
-    }
     const ctx = audioCtx;
 
-    const playTone = (freq: number, startTime: number, duration: number) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = freq;
-      osc.type = 'sine';
-      // Enveloppe ADSR simplifiée pour éviter le click/pop sur start/stop
-      gain.gain.setValueAtTime(0, startTime);
-      gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-      osc.start(startTime);
-      osc.stop(startTime + duration);
+    // Helper qui programme les 2 tons. On l'extrait pour pouvoir le différer
+    // si l'AudioContext est suspended (cas Chrome avant 1ère interaction, ou
+    // iOS Safari après inactivité — resume() est asynchrone).
+    const schedule = () => {
+      const playTone = (freq: number, startOffset: number, duration: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        const startTime = ctx.currentTime + startOffset;
+        // Volume bumped à 0.5 (était 0.25 — trop faible sur certaines configs).
+        // ADSR pour éviter les clicks/pops sur start/stop.
+        gain.gain.setValueAtTime(0, startTime);
+        gain.gain.linearRampToValueAtTime(0.5, startTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+      };
+      playTone(880, 0, 0.18); // A5
+      playTone(1175, 0.09, 0.22); // D6 — légèrement décalé pour effet "ding-dong"
+      console.debug('[NotifSound] played (state=' + ctx.state + ')');
     };
 
-    const now = ctx.currentTime;
-    playTone(880, now, 0.18); // A5
-    playTone(1175, now + 0.09, 0.22); // D6 — léger délai pour effet "ding-dong"
-  } catch {
-    // Silent fail — pas de log pour ne pas polluer la console.
+    if (ctx.state === 'suspended') {
+      // resume() retourne une promesse — il FAUT attendre qu'elle résolve
+      // avant d'enchaîner les start(), sinon les oscillateurs partent à
+      // un currentTime invalide et rien n'est audible.
+      ctx.resume()
+        .then(schedule)
+        .catch((err) => console.warn('[NotifSound] resume failed:', err));
+    } else {
+      schedule();
+    }
+  } catch (e) {
+    console.warn('[NotifSound] erreur:', e);
   }
 }
 
