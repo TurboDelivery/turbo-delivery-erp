@@ -87,7 +87,8 @@ export default function AgentRecouvreurView() {
     responsableFinancierAPI
       .obtenirAgents()
       .then((agents) => {
-        const match = agents.find((a) => a.nom === userName);
+        const normalizedUser = userName.trim().toLowerCase();
+        const match = agents.find((a) => a.nom.trim().toLowerCase() === normalizedUser);
         if (match) setBackendUserId(match.id);
       })
       .catch(() => {});

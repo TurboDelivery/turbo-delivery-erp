@@ -85,11 +85,14 @@ export async function patchDepotPartenaire(
   factureId: string,
   body: IDepotPartenaireBody,
 ): Promise<void> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (userId) headers['X-User-Id'] = userId;
+
   const res = await fetch(
     `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/depot-partenaire`,
     {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+      headers,
       body: JSON.stringify(body),
     },
   );
@@ -101,11 +104,14 @@ export async function patchVersementCaissier(
   factureId: string,
   body: IVersementCaissierBody,
 ): Promise<void> {
+  const headers2: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (userId) headers2['X-User-Id'] = userId;
+
   const res = await fetch(
     `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/verser-comptable`,
     {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+      headers: headers2,
       body: JSON.stringify(body),
     },
   );
