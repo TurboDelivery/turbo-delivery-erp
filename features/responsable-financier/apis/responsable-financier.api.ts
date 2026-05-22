@@ -57,11 +57,12 @@ export const responsableFinancierAPI: IResponsableFinancierApi = {
     });
   },
 
-  lancerRecouvrement(id: string, data: ILancerRecouvrementDTO): Promise<IFactureRFRecouvrementVm> {
+  lancerRecouvrement(id: string, data: ILancerRecouvrementDTO, userId?: string): Promise<IFactureRFRecouvrementVm> {
     return api.request<IFactureRFRecouvrementVm>({
       endpoint: `finance/responsable-financier/factures/${id}/recouvrement`,
       method: 'PATCH',
       data,
+      config: userId ? { headers: { 'X-User-Id': userId } } : undefined,
     });
   },
 

@@ -63,6 +63,7 @@ function StatCard({
 
 export default function AgentRecouvreurView() {
   const { data: session } = useSession();
+  console.log('[AgentRecouvreur] session user id:', session?.user?.id, '| session:', session?.user);
 
   const { filters, setFilters, params } = useAgentRecouvreurFilters();
 
@@ -87,6 +88,13 @@ export default function AgentRecouvreurView() {
     const normalized = factureAgentNom.trim().toLowerCase();
     return agentsList.find((a) => a.nom.trim().toLowerCase() === normalized)?.id ?? '';
   }
+
+  /** Nom de l'agent connecté résolu depuis la liste des agents RF */
+  const connectedAgentNom =
+    agentsList.find((a) => a.id === session?.user?.id)?.nom ??
+    session?.user?.nomComplet ??
+    session?.user?.name ??
+    '';
 
   const { table, isLoading, isError, error, totalElements, totalPages } =
     useAgentRecouvreurTable(columns, params);
@@ -265,11 +273,10 @@ export default function AgentRecouvreurView() {
         open={factureDepot !== null}
         onClose={() => setFactureDepot(null)}
         facture={factureDepot}
-        agentNom={session?.user?.nomComplet || session?.user?.name || ''}
+        agentNom={connectedAgentNom}
         onConfirm={(facture, { date, montant, agent }) => {
-          const agentId = resolveAgentId(facture.agent);
           depotPartenaireMutation.mutate(
-            { factureId: facture.id, body: { date, montant, agent }, agentIdOverride: agentId },
+            { factureId: facture.id, body: { date, montant, agent }, agentIdOverride: session?.user?.id ?? '' },
             {
               onSuccess: () => toast.success('Dépôt enregistré avec succès'),
               onError: (e) => toast.error(`Échec dépôt : ${e instanceof Error ? e.message : 'Erreur'}`),
@@ -289,7 +296,7 @@ export default function AgentRecouvreurView() {
             encaissementMutation.mutate(
               {
                 factureId: facture.id,
-                agentIdOverride: resolveAgentId(facture.agent),
+                agentIdOverride: session?.user?.id ?? '',
                 body: {
                   type: dernierPaiement.type,
                   date: dernierPaiement.date,
@@ -311,10 +318,10 @@ export default function AgentRecouvreurView() {
         onClose={() => setFactureVersement(null)}
         facture={factureVersement}
         onConfirm={(facture, { montant, date }) => {
-          const agentId = resolveAgentId(facture.agent);
+          const agentId = session?.user?.id ?? '';
           if (!agentId) {
-            toast.error('Agent introuvable', {
-              description: `Impossible de résoudre l'identifiant de l'agent "${facture.agent}". Réessayez dans un instant.`,
+            toast.error('Session expirée', {
+              description: 'Impossible de récupérer votre identifiant. Reconnectez-vous.',
             });
             return;
           }

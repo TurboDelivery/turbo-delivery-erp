@@ -42,8 +42,11 @@ export default function EncaissementModal({
 
   if (!mounted || !open || !facture) return null;
 
-  const montantRecouvre = paiements.reduce((acc, p) => acc + p.montant, 0);
-  const montantRestant = facture.montant - montantRecouvre;
+  // Inclure ce qui est déjà recouvré côté serveur (facture.montantRecouvre) +
+  // les paiements ajoutés dans cette session
+  const alreadyOnServer = facture.montantRecouvre ?? 0;
+  const montantRecouvre = alreadyOnServer + paiements.reduce((acc, p) => acc + p.montant, 0);
+  const montantRestant = Math.max(0, facture.montant - montantRecouvre);
   const progression =
     facture.montant > 0
       ? Math.min(100, Math.round((montantRecouvre / facture.montant) * 100))

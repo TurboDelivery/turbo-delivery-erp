@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { responsableFinancierAPI } from '../apis/responsable-financier.api';
 import {
@@ -55,10 +56,11 @@ export const useViserDgMutation = () => {
 
 export const useLancerRecouvrementMutation = () => {
   const invalidate = useInvalidateFacturesRFQuery();
+  const { data: session } = useSession();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ILancerRecouvrementDTO }) =>
-      responsableFinancierAPI.lancerRecouvrement(id, data),
+      responsableFinancierAPI.lancerRecouvrement(id, data, session?.user?.id),
     onSuccess: async () => {
       await invalidate();
       toast.success('Recouvrement lancé avec succès');

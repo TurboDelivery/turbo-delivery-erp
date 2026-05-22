@@ -1,12 +1,15 @@
 import type {
   CycleFiltre,
+  IAgentFacture,
   IAgentFactureApiResponse,
   IAgentFactureListResponse,
   IAgentFactureParams,
   IAgentFactureStats,
   IEncaissementBody,
+  IEncaissementResponse,
   IDepotPartenaireBody,
   IVersementCaissierBody,
+  IVersementCaissierVm,
 } from '../types';
 
 const BASE = (process.env.NEXT_PUBLIC_API_BACKEND_URL ?? '').replace(/\/$/, '');
@@ -68,7 +71,7 @@ export async function postEncaissement(
   userId: string,
   factureId: string,
   body: IEncaissementBody,
-): Promise<void> {
+): Promise<IEncaissementResponse> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (userId) headers['X-User-Id'] = userId;
 
@@ -80,14 +83,18 @@ export async function postEncaissement(
       body: JSON.stringify(body),
     },
   );
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`${res.status} ${res.statusText} — ${errorText}`);
+  }
+  return res.json() as Promise<IEncaissementResponse>;
 }
 
 export async function patchDepotPartenaire(
   userId: string,
   factureId: string,
   body: IDepotPartenaireBody,
-): Promise<void> {
+): Promise<IAgentFacture> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (userId) headers['X-User-Id'] = userId;
 
@@ -99,32 +106,40 @@ export async function patchDepotPartenaire(
       body: JSON.stringify(body),
     },
   );
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`${res.status} ${res.statusText} — ${errorText}`);
+  }
+  return res.json() as Promise<IAgentFacture>;
 }
 
 export async function patchVersementCaissier(
   userId: string,
   factureId: string,
   body: IVersementCaissierBody,
-): Promise<{ id: string; statut: string } | null> {
-  const headers2: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (userId) headers2['X-User-Id'] = userId;
+): Promise<IVersementCaissierVm | null> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (userId) headers['X-User-Id'] = userId;
 
   const res = await fetch(
     `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/verser-comptable`,
     {
       method: 'PATCH',
-      headers: headers2,
+      headers,
       body: JSON.stringify(body),
     },
   );
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`${res.status} ${res.statusText} — ${errorText}`);
+  }
 
   // Parse le body pour vérifier si le statut a réellement changé
   const text = await res.text();
   if (!text) return null;
   try {
-    return JSON.parse(text) as { id: string; statut: string };
+    return JSON.parse(text) as IVersementCaissierVm;
   } catch {
     return null;
   }

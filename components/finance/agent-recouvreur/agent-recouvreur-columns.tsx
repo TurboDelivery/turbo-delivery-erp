@@ -146,7 +146,22 @@ export function createAgentRecouvreurColumns(
           );
         }
         // Étape 4 : Encaisser (acompte ou solde) — depuis Déposé partenaire
+        // Si 100% recouvré malgré statut non mis à jour (bug backend), on saute directement au versement
         if (statut === 'Déposé partenaire') {
+          const { montantRecouvre, montant } = row.original;
+          const isFullyCovered = montantRecouvre !== null && montant > 0 && montantRecouvre >= montant;
+          if (isFullyCovered) {
+            return (
+              <Button
+                size="sm"
+                className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
+                onClick={() => onVerserCaissier(row.original)}
+              >
+                <Landmark className="w-3.5 h-3.5" />
+                Verser au caissier
+              </Button>
+            );
+          }
           return (
             <Button
               size="sm"
@@ -159,7 +174,22 @@ export function createAgentRecouvreurColumns(
           );
         }
         // Étape 4 bis : Ajouter un acompte supplémentaire (statut "Acompte N")
+        // Si 100% recouvré, proposer directement le versement
         if (statut.startsWith('Acompte')) {
+          const { montantRecouvre, montant } = row.original;
+          const isFullyCovered = montantRecouvre !== null && montant > 0 && montantRecouvre >= montant;
+          if (isFullyCovered) {
+            return (
+              <Button
+                size="sm"
+                className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
+                onClick={() => onVerserCaissier(row.original)}
+              >
+                <Landmark className="w-3.5 h-3.5" />
+                Verser au caissier
+              </Button>
+            );
+          }
           return (
             <div className="flex items-center gap-2">
               <Button
