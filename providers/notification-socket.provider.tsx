@@ -10,7 +10,8 @@ import type { NotificationVm } from '@/features/notifications';
 /**
  * Provider qui écoute le channel SocketIO /notification/erp/{userId} et :
  * 1) déclenche un toast sonner pour la notif live (Lot 4 V44)
- * 2) invalide les queries TanStack notifications pour refresh du badge cloche
+ * 2) joue un "ding" de notification via Web Audio API
+ * 3) invalide les queries TanStack notifications pour refresh du badge cloche
  *    et de la page /notification sans refetch manuel
  *
  * À monter UNE FOIS dans app/(protected)/layout.tsx (ou un layout au-dessus
@@ -23,6 +24,60 @@ import type { NotificationVm } from '@/features/notifications';
  * backend supportera auth socket : passer {@code auth: {token: session.user.token}}
  * à io() côté socket.ts + valider côté serveur.
  */
+
+/**
+ * Singleton AudioContext partagé pour éviter d'en créer un par notif (les
+ * navigateurs limitent le nombre d'AudioContext concurrents — Chrome cap
+ * ~6 avant warning). Lazy-init au premier usage car certains navigateurs
+ * refusent la construction avant la 1ère interaction utilisateur.
+ */
+let audioCtx: AudioContext | null = null;
+
+/**
+ * Joue un "ding" double-tone (A5 → D6) de ~250ms, généré dynamiquement —
+ * pas de fichier audio à héberger. Échoue silencieusement si :
+ *  - le navigateur n'a pas l'API (très rare)
+ *  - autoplay policy bloque (peu probable car l'user est forcément actif
+ *    pour avoir loggé + reçu une notif socket, donc geste utilisateur acquis)
+ *  - onglet en arrière-plan avec throttling agressif
+ */
+function playNotificationSound() {
+  try {
+    if (typeof window === 'undefined') return;
+    const AudioCtor =
+      window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtor) return;
+
+    if (!audioCtx) audioCtx = new AudioCtor();
+    // Si suspendu (cas iOS Safari après inactivité), on tente un resume.
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
+    const ctx = audioCtx;
+
+    const playTone = (freq: number, startTime: number, duration: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      // Enveloppe ADSR simplifiée pour éviter le click/pop sur start/stop
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.25, startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+    };
+
+    const now = ctx.currentTime;
+    playTone(880, now, 0.18); // A5
+    playTone(1175, now + 0.09, 0.22); // D6 — léger délai pour effet "ding-dong"
+  } catch {
+    // Silent fail — pas de log pour ne pas polluer la console.
+  }
+}
+
 export function NotificationSocketProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const utilisateurId = session?.user?.id;
@@ -47,6 +102,9 @@ export function NotificationSocketProvider({ children }: { children: React.React
           description: data.message,
           duration: 6000,
         });
+
+        // Son "ding" — joué en // du toast (pas d'await, ne bloque pas le reste)
+        playNotificationSound();
 
         // Invalidate les queries notifications → badge cloche + page se refresh auto
         invalidate();
