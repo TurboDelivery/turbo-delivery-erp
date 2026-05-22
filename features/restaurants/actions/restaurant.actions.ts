@@ -104,12 +104,17 @@ export async function getRestaurantsPaginated(params: IRestaurantParams): Promis
 void RESTAURANT_PAGINATION_ENDPOINT;
 
 /**
- * Récupère les détails d'un restaurant par son ID
+ * Récupère les détails d'un restaurant par son ID.
+ *
+ * <p>Backend main-backend (post-fusion) : endpoint canonique
+ * {@code GET /api/V1/turbo/restaurant/info/{id}} (RestaurantCatalogResource).
+ * L'ancien chemin {@code /restaurant/{id}} n'est pas mappé en GET côté backend
+ * (seul DELETE existe sur ce path) → 405.</p>
  */
 export async function getRestaurantById(id: string): Promise<IRestaurant> {
   try {
     return await apiClientHttp.request<IRestaurant>({
-      endpoint: `${RESTAURANT_DETAIL_ENDPOINT}/${id}`,
+      endpoint: `${RESTAURANT_DETAIL_ENDPOINT}/info/${id}`,
       method: 'GET',
       service: 'restaurant',
     });
@@ -136,7 +141,13 @@ export async function exportRestaurantsPDF(params: Omit<IRestaurantParams, 'page
     if (params.methodRecouvrement) queryParams.methodRecouvrement = params.methodRecouvrement;
 
     const qs = new URLSearchParams(queryParams).toString();
-    const url = `${process.env.NEXT_PUBLIC_API_RESTAURANT_URL}${RESTAURANT_EXPORT_ENDPOINT}${qs ? `?${qs}` : ''}`;
+    // Note : la variable NEXT_PUBLIC_API_RESTAURANT_URL (avec RESTAURANT) n'a
+    // jamais existé dans le .env — c'est un typo legacy. On utilise
+    // NEXT_PUBLIC_API_RESTO_URL qui pointe sur backend-prod (post-fusion).
+    // L'endpoint /restaurant/export n'existe pas encore côté main-backend,
+    // donc l'export retournera 404 jusqu'à ce que l'endpoint soit ajouté
+    // (TODO backend) — au moins ça ne crash plus avec `undefined/...`.
+    const url = `${process.env.NEXT_PUBLIC_API_RESTO_URL ?? ''}${RESTAURANT_EXPORT_ENDPOINT}${qs ? `?${qs}` : ''}`;
 
     const response = await axios.get(url, {
       responseType: 'arraybuffer',

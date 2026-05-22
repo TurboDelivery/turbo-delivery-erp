@@ -20,16 +20,22 @@ const restaurantEndpoints = {
     endpoint: BASE_URL_2,
     method: 'GET',
   },
+  // Backend canonique : GET /api/V1/turbo/restaurant/detail/erp/{id}
+  // (l'ancien chemin /restaurant/{id}/detail n'existe pas dans main-backend)
   getDetailRestaurant: {
-    endpoint: (idRestaurant: string) => `${BASE_URL_3}/${idRestaurant}/detail`,
+    endpoint: (idRestaurant: string) => `${BASE_URL_3}/detail/erp/${idRestaurant}`,
     method: 'GET',
   },
   getAll: {
     endpoint: (page: number) => `${BASE_URL_2}/validated/opsmanager/${page}`,
     method: 'GET',
   },
+  // Backend ne fournit plus /validated/opsmanager (endpoint legacy non migré).
+  // /restaurant/get/all retourne TOUS les restaurants (validés ou non) ; pour
+  // les dropdowns/listes d'admin c'est acceptable. À remplacer si on a besoin
+  // d'un vrai filtre validé-ops un jour.
   getAlls: {
-    endpoint: `/api/V1/turbo/restaurant/validated/opsmanager`,
+    endpoint: `/api/V1/turbo/restaurant/get/all`,
     method: 'GET',
   },
   getAllValidated: {
@@ -101,32 +107,67 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
   }
 }
 
+// Helper : enrobe une List<Restaurant> en PaginatedResponse pour matcher
+// l'interface attendue par useContentCtx (page-based). Pagination in-memory.
+function wrapPaginated(all: Restaurant[], page: number, pageSize = 10): PaginatedResponse<Restaurant> {
+  const totalElements = all.length;
+  const totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
+  const start = page * pageSize;
+  const content = all.slice(start, start + pageSize);
+  return {
+    content,
+    pageable: {
+      pageNumber: page,
+      pageSize,
+      offset: start,
+      paged: true,
+      unpaged: false,
+      sort: { sorted: false, empty: true, unsorted: true },
+    },
+    last: page >= totalPages - 1,
+    totalElements,
+    totalPages,
+    size: pageSize,
+    number: page,
+    sort: { sorted: false, empty: true, unsorted: true },
+    first: page === 0,
+    numberOfElements: content.length,
+    empty: content.length === 0,
+  };
+}
+
+/**
+ * Backend post-fusion : les endpoints legacy
+ * /api/erp/validation/restaurant/validated/authservice/{page} et
+ * /api/erp/validation/restaurant/not/validated/{page} n'existent plus
+ * (workflow de validation auth-service/ops-manager supprimé — tous les
+ * restaurants en base sont considérés actifs). On fallback sur
+ * /api/V1/turbo/restaurant/get/all et on pagine in-memory.
+ *
+ * Tant que le nouveau modèle n'expose pas de champ `status`, "validated"
+ * = tous les restaurants existants.
+ */
 export async function getRestaurantsValidated(page: number): Promise<PaginatedResponse<Restaurant> | null> {
   try {
-    const data = await apiClientHttp.request<PaginatedResponse<Restaurant>>({
-      endpoint: restaurantEndpoints.getAllValidated.endpoint(page),
-      method: restaurantEndpoints.getAllValidated.method,
-      service: 'erp',
+    const all = await apiClientHttp.request<Restaurant[]>({
+      endpoint: `/api/V1/turbo/restaurant/get/all`,
+      method: 'GET',
+      service: 'restaurant',
     });
-
-    return data;
+    return wrapPaginated(all ?? [], page);
   } catch (error) {
     return null;
   }
 }
 
+/**
+ * Liste "not validated" : concept disparu côté backend post-fusion (tous les
+ * restaurants en base sont considérés validés). On retourne une page vide
+ * pour ne pas casser l'UI. À ré-implémenter le jour où le backend expose un
+ * vrai champ `status`/`validatedByOps`.
+ */
 export async function getRestaurantsNoValidated(page: number): Promise<PaginatedResponse<Restaurant> | null> {
-  try {
-    const data = await apiClientHttp.request<PaginatedResponse<Restaurant>>({
-      endpoint: restaurantEndpoints.getAllNoValidated.endpoint(page),
-      method: restaurantEndpoints.getAllNoValidated.method,
-      service: 'erp',
-    });
-
-    return data;
-  } catch (error) {
-    return null;
-  }
+  return wrapPaginated([], page);
 }
 
 export async function validateRestaurant(id: string, validateBy: 'auth' | 'ops' | 'no-body'): Promise<ActionResult<Restaurant>> {
