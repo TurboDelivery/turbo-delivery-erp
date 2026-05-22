@@ -19,7 +19,7 @@ export interface IResponsableFinancierApi {
   obtenirFacture(id: string): Promise<IFactureRFDetail>;
   validerFacture(id: string, data: IValiderFactureDTO): Promise<IFactureRFStatutVm>;
   viserDg(id: string): Promise<IFactureRFStatutVm>;
-  lancerRecouvrement(id: string, data: ILancerRecouvrementDTO): Promise<IFactureRFRecouvrementVm>;
+  lancerRecouvrement(id: string, data: ILancerRecouvrementDTO, userId?: string): Promise<IFactureRFRecouvrementVm>;
   ajouterPreuve(id: string, data: IAjouterPreuveDTO): Promise<IFactureRFStatutVm>;
   marquerDepotPartenaire(id: string, data: IDepotPartenaireDTO): Promise<IFactureRFStatutVm>;
   marquerDepotBanque(id: string, data: IDepotBanqueDTO): Promise<IFactureRFStatutVm>;
