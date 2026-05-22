@@ -69,11 +69,14 @@ export async function postEncaissement(
   factureId: string,
   body: IEncaissementBody,
 ): Promise<void> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (userId) headers['X-User-Id'] = userId;
+
   const res = await fetch(
     `${BASE}/api/finance/agent-recouvreur/factures/${factureId}/encaissements`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-User-Id': userId },
+      headers,
       body: JSON.stringify(body),
     },
   );
@@ -103,7 +106,7 @@ export async function patchVersementCaissier(
   userId: string,
   factureId: string,
   body: IVersementCaissierBody,
-): Promise<void> {
+): Promise<{ id: string; statut: string } | null> {
   const headers2: Record<string, string> = { 'Content-Type': 'application/json' };
   if (userId) headers2['X-User-Id'] = userId;
 
@@ -116,6 +119,15 @@ export async function patchVersementCaissier(
     },
   );
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+
+  // Parse le body pour vérifier si le statut a réellement changé
+  const text = await res.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text) as { id: string; statut: string };
+  } catch {
+    return null;
+  }
 }
 
 /** @deprecated Utilisez patchVersementCaissier */
