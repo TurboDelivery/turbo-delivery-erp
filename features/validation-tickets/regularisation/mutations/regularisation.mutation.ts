@@ -43,3 +43,28 @@ export const rejeterRegularisationMutation = async (id: string, motif: string): 
     return handleServerActionError(error, 'Erreur lors du rejet');
   }
 };
+
+export interface ListerTicketsParStatutCreneauParams {
+  statut: StatutControle;
+  debut?: string;
+  fin?: string;
+  page?: number;
+  size?: number;
+}
+
+export const listerTicketsParStatutCreneauMutation = async (
+  params: ListerTicketsParStatutCreneauParams,
+): Promise<ActionResponse<PaginatedResponse<BonLivraisonTerminee>>> => {
+  try {
+    const data = await listerTicketsParStatutRequest({
+      statuts: [params.statut],
+      debut: params.debut,
+      fin: params.fin,
+      page: params.page,
+      size: params.size,
+    });
+    return { success: true, data, message: 'Tickets récupérés' };
+  } catch (error) {
+    return handleServerActionError(error, 'Erreur lors de la récupération des tickets');
+  }
+};
