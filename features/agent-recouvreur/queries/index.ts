@@ -8,6 +8,7 @@ import {
   patchVersementCaissier,
 } from '../apis';
 import type {
+  IAgentFactureApiResponse,
   IAgentFactureParams,
   IEncaissementBody,
   IDepotPartenaireBody,
@@ -73,38 +74,79 @@ export function useAgentFacturesStatsQuery(
   };
 }
 
-export function useEncaissementMutation(agentIdOverride?: string) {
-  const { effectiveUserId } = useEffectiveUserId(agentIdOverride);
+export function useEncaissementMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ factureId, body }: { factureId: string; body: IEncaissementBody }) =>
-      postEncaissement(effectiveUserId, factureId, body),
+    mutationFn: ({ factureId, body, agentIdOverride }: { factureId: string; body: IEncaissementBody; agentIdOverride?: string }) =>
+      postEncaissement(agentIdOverride ?? '', factureId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: agentRecouvreurKeys.all });
     },
   });
 }
 
-export function useDepotPartenaireMutation(agentIdOverride?: string) {
-  const { effectiveUserId } = useEffectiveUserId(agentIdOverride);
+export function useDepotPartenaireMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ factureId, body }: { factureId: string; body: IDepotPartenaireBody }) =>
-      patchDepotPartenaire(effectiveUserId, factureId, body),
+    mutationFn: ({ factureId, body, agentIdOverride }: { factureId: string; body: IDepotPartenaireBody; agentIdOverride?: string }) =>
+      patchDepotPartenaire(agentIdOverride ?? '', factureId, body),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: agentRecouvreurKeys.all });
     },
   });
 }
 
-export function useVersementCaissierMutation(agentIdOverride?: string) {
-  const { effectiveUserId } = useEffectiveUserId(agentIdOverride);
+export function useVersementCaissierMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ factureId, body }: { factureId: string; body: IVersementCaissierBody }) =>
-      patchVersementCaissier(effectiveUserId, factureId, body),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: agentRecouvreurKeys.all });
+    mutationFn: ({ factureId, body, agentIdOverride }: { factureId: string; body: IVersementCaissierBody; agentIdOverride?: string }) =>
+      patchVersementCaissier(agentIdOverride ?? '', factureId, body),
+    onMutate: async ({ factureId }) => {
+      // Cancel in-flight fetches to avoid overwriting the optimistic update
+      await queryClient.cancelQueries({ queryKey: agentRecouvreurKeys.all });
+
+      // Snapshot current cache for rollback on error
+      const snapshot = queryClient.getQueriesData({ queryKey: agentRecouvreurKeys.all });
+
+      // Optimistically flip the facture status → button changes immediately
+      queryClient.setQueriesData(
+        { queryKey: agentRecouvreurKeys.all },
+        (old: unknown) => {
+          if (!old || typeof old !== 'object' || !('content' in old)) return old;
+          const response = old as IAgentFactureApiResponse;
+          return {
+            ...response,
+            content: response.content.map((f) =>
+              f.id === factureId ? { ...f, statut: 'Versé au caissier' as const } : f,
+            ),
+          };
+        },
+      );
+
+      return { snapshot };
+    },
+    onError: (_err, _vars, context) => {
+      // Rollback on failure
+      context?.snapshot.forEach(([key, data]) => {
+        queryClient.setQueryData(key, data);
+      });
+    },
+    onSuccess: (data, _vars, context) => {
+      // Vérifier si le statut a réellement changé côté serveur.
+      // Si le backend retourne 200 mais n'a pas mis à jour la DB (bug facture_type_check),
+      // le body contiendra le statut inchangé → on rollback l'update optimiste.
+      if (data && 'statut' in data && data.statut !== 'Versé au caissier') {
+        context?.snapshot.forEach(([key, d]) => {
+          queryClient.setQueryData(key, d);
+        });
+        queryClient.invalidateQueries({ queryKey: agentRecouvreurKeys.all });
+      }
+    },
+    onSettled: () => {
+      // Marquer comme stale sans refetch immédiat — évite d'écraser l'update optimiste
+      // quand le backend retourne 200 mais ne met pas encore à jour le statut en DB.
+      queryClient.invalidateQueries({ queryKey: agentRecouvreurKeys.all, refetchType: 'none' });
+      queryClient.invalidateQueries({ queryKey: ['responsable-financier'], refetchType: 'none' });
     },
   });
 }

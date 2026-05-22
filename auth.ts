@@ -33,6 +33,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
                         email: data?.user?.email,
                         token: data?.token,
                         role: data?.user?.role?.libelle,
+                        nomComplet: `${data?.user?.nom ?? ''} ${data?.user?.prenoms ?? ''}`.trim(),
                     } as User;
                     console.log('User authenticated successfully:', data);
                 }
@@ -64,6 +65,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
                     email: user.email as string,
                     token: user.token as string,
                     role: user.role as string,
+                    nomComplet: user.nomComplet as string,
                 };
             }
 
@@ -79,6 +81,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
             session.user.email = token.email as string;
             session.user.image = token.image as string;
             session.user.role = token.role as string;
+            session.user.nomComplet = token.nomComplet as string;
             return session;
         },
     },

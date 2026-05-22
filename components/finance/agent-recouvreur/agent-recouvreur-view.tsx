@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import {
@@ -31,7 +31,7 @@ import {
   useAgentRecouvreurStats,
   cycleOptions,
 } from '@/features/agent-recouvreur';
-import { responsableFinancierAPI } from '@/features/responsable-financier';
+import { useAgentsRecouvrementQuery } from '@/features/responsable-financier';
 import type { IAgentFacture } from '@/features/agent-recouvreur';
 
 const statutChips = ['Tous', 'Recouvrement', 'Déposé partenaire', 'Soldé', 'Versé au caissier'] as const;
@@ -79,27 +79,22 @@ export default function AgentRecouvreurView() {
     [],
   );
 
-  const [backendUserId, setBackendUserId] = useState<string>('');
+  const { data: agentsData } = useAgentsRecouvrementQuery();
+  const agentsList = agentsData ?? [];
 
-  useEffect(() => {
-    const userName = session?.user?.name;
-    if (!userName) return;
-    responsableFinancierAPI
-      .obtenirAgents()
-      .then((agents) => {
-        const match = agents.find((a) => a.nom === userName);
-        if (match) setBackendUserId(match.id);
-      })
-      .catch(() => {});
-  }, [session?.user?.name]);
+  /** Résout le X-User-Id depuis le nom de l'agent assigné à la facture */
+  function resolveAgentId(factureAgentNom: string): string {
+    const normalized = factureAgentNom.trim().toLowerCase();
+    return agentsList.find((a) => a.nom.trim().toLowerCase() === normalized)?.id ?? '';
+  }
 
   const { table, isLoading, isError, error, totalElements, totalPages } =
     useAgentRecouvreurTable(columns, params);
   const { statsCards } = useAgentRecouvreurStats(params);
 
-  const depotPartenaireMutation = useDepotPartenaireMutation(backendUserId);
-  const encaissementMutation = useEncaissementMutation(backendUserId);
-  const verserComptableMutation = useVersementCaissierMutation(backendUserId);
+  const depotPartenaireMutation = useDepotPartenaireMutation();
+  const encaissementMutation = useEncaissementMutation();
+  const verserComptableMutation = useVersementCaissierMutation();
 
   const handleDateChange = (range: DateRange | undefined) => {
     setFilters({
@@ -270,10 +265,11 @@ export default function AgentRecouvreurView() {
         open={factureDepot !== null}
         onClose={() => setFactureDepot(null)}
         facture={factureDepot}
-        agentNom={session?.user?.name ?? ''}
+        agentNom={session?.user?.nomComplet || session?.user?.name || ''}
         onConfirm={(facture, { date, montant, agent }) => {
+          const agentId = resolveAgentId(facture.agent);
           depotPartenaireMutation.mutate(
-            { factureId: facture.id, body: { date, montant, agent } },
+            { factureId: facture.id, body: { date, montant, agent }, agentIdOverride: agentId },
             {
               onSuccess: () => toast.success('Dépôt enregistré avec succès'),
               onError: (e) => toast.error(`Échec dépôt : ${e instanceof Error ? e.message : 'Erreur'}`),
@@ -293,6 +289,7 @@ export default function AgentRecouvreurView() {
             encaissementMutation.mutate(
               {
                 factureId: facture.id,
+                agentIdOverride: resolveAgentId(facture.agent),
                 body: {
                   type: dernierPaiement.type,
                   date: dernierPaiement.date,
@@ -314,10 +311,25 @@ export default function AgentRecouvreurView() {
         onClose={() => setFactureVersement(null)}
         facture={factureVersement}
         onConfirm={(facture, { montant, date }) => {
+          const agentId = resolveAgentId(facture.agent);
+          if (!agentId) {
+            toast.error('Agent introuvable', {
+              description: `Impossible de résoudre l'identifiant de l'agent "${facture.agent}". Réessayez dans un instant.`,
+            });
+            return;
+          }
           verserComptableMutation.mutate(
-            { factureId: facture.id, body: { montant, date } },
+            { factureId: facture.id, agentIdOverride: agentId, body: { montant, date } },
             {
-              onSuccess: () => toast.success('Versement enregistré avec succès'),
+              onSuccess: (data) => {
+                if (data && 'statut' in data && data.statut !== 'Versé au caissier') {
+                  toast.error('Versement non enregistré', {
+                    description: `Le serveur a retourné le statut "${data.statut}" — le versement n'a pas été appliqué. Contactez le support.`,
+                  });
+                } else {
+                  toast.success('Versement enregistré avec succès');
+                }
+              },
               onError: (e) => toast.error(`Échec versement : ${e instanceof Error ? e.message : 'Erreur'}`),
             },
           );
