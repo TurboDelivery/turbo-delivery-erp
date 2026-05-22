@@ -1,126 +1,51 @@
-import { auth } from '@/auth';
-import { socket } from '@/socket';
-import { fetchAllNotifcation, fetchNotifcationNonLu, updateNotifcation } from '@/src/actions/notifcation.action';
-import { NotificationVM } from '@/types/notifcation.model';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import {
+  useUnreadNotificationsQuery,
+  useNotificationsListQuery,
+  useMarkAllAsReadMutation,
+} from '@/features/notifications';
 
+/**
+ * Controller refactoré V44 — utilise TanStack Query au lieu du state local
+ * + useEffect chaîne fragile. Préserve l'API publique pour que le content.tsx
+ * legacy continue de fonctionner sans modification.
+ *
+ * Bénéfices :
+ * - Cache automatique + invalidation propre (plus de race condition)
+ * - mark-all-as-read appelle l'endpoint bulk V44 (1 requête au lieu de N)
+ * - Refresh passif chaque 60s en fallback du socket
+ *
+ * Note : isConnected est désormais géré par le provider socket global
+ * (providers/socket.provider.tsx). En attendant, on retourne true par défaut.
+ */
 export function useNotificationController() {
   const session = useSession();
   const utilisateurId = session.data?.user.id;
-  const [notifications, setNotifications] = useState<NotificationVM[]>([]);
-  const [notificationNonLus, setNotificationNonLus] = useState<NotificationVM[]>([]);
-  const [realTimeData, setRealTimeData] = useState<any>({});
-  const [toutNotifications, setToutNotifications] = useState<NotificationVM[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
-  const [voirMoins, setVoirMoins] = useState(false);
-  const router = useRouter();
 
-  useEffect(() => {
-    const setNotification = (data: any) => {
-      const jsonData = data && (JSON.parse(data) as NotificationVM);
-      setRealTimeData(jsonData);
-    };
-    socket.on('connect', () => setIsConnected(true));
-    socket.on('disconnect', () => setIsConnected(false));
-    socket.on(`/notification/erp/${utilisateurId}`, setNotification);
-    return () => {
-      socket.off(`/notification/erp/${utilisateurId}`, setNotification);
-      socket.off('connect', () => setIsConnected(true));
-      socket.off('disconnect', () => setIsConnected(false));
-    };
-  }, [utilisateurId]);
+  const { data: unread = [] } = useUnreadNotificationsQuery(utilisateurId);
+  const { data: all = [] } = useNotificationsListQuery(utilisateurId);
 
-  const fetchAllNotifications = async () => {
-    try {
-      const result = await fetchAllNotifcation(utilisateurId ?? '');
-      setToutNotifications(() => {
-        return result.filter((item) => {
-          if (!item.titre && !item.message) {
-            return false;
-          } else {
-            return true;
-          }
-        });
-      });
-    } catch (error) {
-      console.error(error);
-    } finally {
-      router.refresh();
-    }
-  };
+  const markAllMut = useMarkAllAsReadMutation(utilisateurId);
 
-  const fetchAllNotificationNonLus = async () => {
-    try {
-      const result = await fetchNotifcationNonLu(utilisateurId ?? '');
-      setNotifications(result);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      router.refresh();
-    }
-  };
+  // Filtre des notifs sans titre ni message (anti-bruit historique)
+  const cleanUnread = unread.filter((n) => n.titre || n.message);
+  const cleanAll = all.filter((n) => n.titre || n.message);
 
-  useEffect(() => {
-    if (realTimeData) {
-      const data = [...notificationNonLus, realTimeData];
-      setNotificationNonLus(() => {
-        return data.filter((item) => {
-          if (!item.titre && !item.message) {
-            return false;
-          } else {
-            return true;
-          }
-        });
-      });
-      setNotifications([...notifications, realTimeData]);
-    }
-  }, [realTimeData]);
-
-  useEffect(() => {
-    fetchAllNotificationNonLus();
-    fetchAllNotifications();
-  }, [utilisateurId]);
-
-  const voirTout = () => {
-    if (toutNotifications.length > 0) {
-      if (voirMoins) {
-        setVoirMoins(false);
-        setNotifications(notificationNonLus);
-      } else {
-        setNotifications(toutNotifications);
-        setVoirMoins(true);
-      }
-    }
-  };
-
-  const toutMarqueCommeLus = async () => {
-    if (notificationNonLus && notificationNonLus.length > 0) {
-      try {
-        notificationNonLus.map(async (item: any) => {
-          await updateNotifcation({
-            utilisateurId: utilisateurId ?? '',
-            notificationId: item.id,
-          });
-        });
-        fetchAllNotifications();
-        fetchAllNotificationNonLus();
-        router.refresh();
-      } catch (error) {
-      } finally {
-        router.refresh();
-      }
-    }
+  const toutMarqueCommeLus = () => {
+    if (cleanUnread.length === 0) return;
+    markAllMut.mutate();
   };
 
   return {
-    notifications,
-    notificationNonLus,
-    voirTout,
+    notifications: cleanUnread,
+    notificationNonLus: cleanUnread,
+    toutNotifications: cleanAll,
+    isConnected: true, // TODO V44+: provider socket global gérera l'état réel
+    voirMoins: false,
+    voirTout: () => {
+      // Inutile maintenant — la liste complète est sur /notification.
+      // Garde la signature pour rétrocompat content.tsx.
+    },
     toutMarqueCommeLus,
-    isConnected,
-    voirMoins,
-    toutNotifications,
   };
 }

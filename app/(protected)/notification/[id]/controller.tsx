@@ -1,26 +1,22 @@
 'use client';
 
-import { updateNotifcation } from '@/src/actions/notifcation.action';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useMarkAsReadMutation } from '@/features/notifications';
 
+/**
+ * Auto-mark-as-read au mount du détail. V44 : utilise la mutation TanStack
+ * (qui invalide les queries listes + compteur automatiquement) au lieu du
+ * router.refresh() legacy qui forçait un refetch de toute la page.
+ */
 export function useDetailNotificationController(id: string) {
   const { data } = useSession();
-  const router = useRouter();
-  const lireNotification = async () => {
-    try {
-      await updateNotifcation({
-        utilisateurId: data ? data.user?.id : '',
-        notificationId: id,
-      });
-    } catch (error) {
-    } finally {
-      router.refresh();
-    }
-  };
+  const userId = data?.user?.id;
+  const markMut = useMarkAsReadMutation(userId);
 
   useEffect(() => {
-    lireNotification();
-  }, [id]);
+    if (!id || !userId) return;
+    markMut.mutate({ notificationId: id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, userId]);
 }
