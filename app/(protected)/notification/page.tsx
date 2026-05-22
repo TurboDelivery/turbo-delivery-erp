@@ -1,13 +1,7 @@
-import { NotificationContent } from "./content";
-import { auth } from '@/auth';
-import { fetchAllNotifcation } from "@/src/actions/notifcation.action";
+// V44 — refactor : page client + TanStack Query (au lieu du fetch SSR figé).
+// Le content gère seul le chargement + filtres via les hooks features/notifications.
+import { NotificationContent } from './content';
 
-
-export default async function Page() {
-    const session = await auth()
-    const initalNotifications = await fetchAllNotifcation(session?.user?.id ?? "");
-    return (
-        <NotificationContent intialNotification={initalNotifications} />
-
-    )
+export default function Page() {
+  return <NotificationContent />;
 }
