@@ -96,6 +96,11 @@ export interface IFactureRFParams {
   dateDebut?: string;
   dateFin?: string;
   statut?: string;
+  // Backend ResponsableFinancierFactureResource.listFactures :
+  // - cycle : QUOTIDIEN | HEBDOMADAIRE | QUINZAINE | MENSUEL (omis ou 'TOUT' = pas de filtre)
+  // - restaurantId : UUID du partenaire
+  cycle?: string;
+  restaurantId?: string;
   page?: number;
   size?: number;
 }
