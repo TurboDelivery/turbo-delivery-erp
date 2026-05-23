@@ -123,12 +123,16 @@ export default function ResponsableFinancierView() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/*
-          NB métier (2026-05) : ce "Montant Total" est la somme des montants des
-          factures émises pour la période/cycle/partenaire sélectionnés. Il diffère
-          structurellement du "CA de la Période" du tableau de bord financier qui
-          additionne frais de livraison + commissions + entrées de caisse côté
-          commandes (notion comptable distincte). Voir DashboardFinancierService
-          vs. ResponsableFinancierFactureService.buildStats côté backend.
+          NB métier (2026-05) : ce "Total factures émises" est la somme des
+          montants des factures émises pour la période/cycle/partenaire
+          sélectionnés. Il diffère structurellement du "CA de la Période" du
+          tableau de bord financier qui additionne frais de livraison +
+          commissions + entrées de caisse côté commandes (notion comptable
+          distincte). Voir DashboardFinancierService vs.
+          ResponsableFinancierFactureService.buildStats côté backend.
+          TODO UX : ajouter un Tooltip HeroUI sur le label avec cette
+          explication courte ("Somme des factures émises ce mois ; ≠ CA
+          dashboard qui inclut entrées caisse").
         */}
         <StatCard
           icon={TrendingUp}
