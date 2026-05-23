@@ -4,11 +4,20 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Building2, Calendar, Download, FileText, Landmark, X, ZoomIn } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@heroui/react';
+import {
+  Button,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Textarea,
+} from '@heroui/react';
 import {
   useFacturesRFQuery,
   useFactureRFQuery,
   useViserDgMutation,
+  useRejeterDgaMutation,
   type IFactureRF,
 } from '@/features/responsable-financier';
 
@@ -198,6 +207,8 @@ function ProofPanel({ facture, isLoading, onViser, onRejeter, isPending }: Proof
 export default function ValidationDgaView() {
   const { data: session } = useSession();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [rejeterOpen, setRejeterOpen] = useState(false);
+  const [motif, setMotif] = useState('');
 
   // Fetch the list of invoices waiting for DGA visa
   const { data: listData, isLoading: listLoading } = useFacturesRFQuery({
@@ -215,6 +226,7 @@ export default function ValidationDgaView() {
 
   // Mutations
   const viserMutation = useViserDgMutation();
+  const rejeterMutation = useRejeterDgaMutation();
 
   function handleViser() {
     if (!selectedId) return;
@@ -226,7 +238,22 @@ export default function ValidationDgaView() {
   }
 
   function handleRejeter() {
-    toast.info('Fonctionnalité de rejet en cours de déploiement.');
+    if (!selectedId) return;
+    setMotif('');
+    setRejeterOpen(true);
+  }
+
+  function handleConfirmRejeter() {
+    if (!selectedId || !motif.trim()) return;
+    rejeterMutation.mutate(
+      { id: selectedId, data: { motif: motif.trim() } },
+      {
+        onSuccess: () => {
+          setRejeterOpen(false);
+          setSelectedId(null);
+        },
+      },
+    );
   }
 
   const userName = session?.user?.name ?? 'DGA';
@@ -296,9 +323,43 @@ export default function ValidationDgaView() {
           isLoading={detailLoading}
           onViser={handleViser}
           onRejeter={handleRejeter}
-          isPending={viserMutation.isPending}
+          isPending={viserMutation.isPending || rejeterMutation.isPending}
         />
       </div>
+
+      {/* Modale rejet DGA */}
+      <Modal isOpen={rejeterOpen} onOpenChange={setRejeterOpen} size="sm">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-red-600">Rejeter la facture</ModalHeader>
+              <ModalBody>
+                <Textarea
+                  label="Motif du rejet"
+                  placeholder="Décrivez la raison du rejet…"
+                  value={motif}
+                  onValueChange={setMotif}
+                  minRows={3}
+                  isRequired
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={onClose} isDisabled={rejeterMutation.isPending}>
+                  Annuler
+                </Button>
+                <Button
+                  color="danger"
+                  onPress={handleConfirmRejeter}
+                  isLoading={rejeterMutation.isPending}
+                  isDisabled={!motif.trim()}
+                >
+                  Confirmer le rejet
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

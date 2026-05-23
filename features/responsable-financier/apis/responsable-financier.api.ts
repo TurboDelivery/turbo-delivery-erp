@@ -11,6 +11,7 @@ import {
   IFactureRFRecouvrementVm,
   IFactureRFStatutVm,
   ILancerRecouvrementDTO,
+  IRejeterDgaDTO,
   IValiderFactureDTO,
 } from '../types/responsable-financier.types';
 
@@ -23,6 +24,7 @@ export interface IResponsableFinancierApi {
   ajouterPreuve(id: string, data: IAjouterPreuveDTO): Promise<IFactureRFStatutVm>;
   marquerDepotPartenaire(id: string, data: IDepotPartenaireDTO): Promise<IFactureRFStatutVm>;
   marquerDepotBanque(id: string, data: IDepotBanqueDTO): Promise<IFactureRFStatutVm>;
+  rejeterDga(id: string, data: IRejeterDgaDTO, userId?: string): Promise<IFactureRFStatutVm>;
   obtenirAgents(): Promise<IAgentRecouvrement[]>;
 }
 
@@ -87,6 +89,15 @@ export const responsableFinancierAPI: IResponsableFinancierApi = {
       endpoint: `finance/responsable-financier/factures/${id}/depot-banque`,
       method: 'PATCH',
       data,
+    });
+  },
+
+  rejeterDga(id: string, data: IRejeterDgaDTO, userId?: string): Promise<IFactureRFStatutVm> {
+    return api.request<IFactureRFStatutVm>({
+      endpoint: `finance/responsable-financier/factures/${id}/rejeter-dga`,
+      method: 'PATCH',
+      data,
+      config: userId ? { headers: { 'X-User-Id': userId } } : undefined,
     });
   },
 

@@ -9,6 +9,7 @@ import {
   IDepotBanqueDTO,
   IDepotPartenaireDTO,
   ILancerRecouvrementDTO,
+  IRejeterDgaDTO,
   IValiderFactureDTO,
 } from '../types/responsable-financier.types';
 import { useInvalidateFacturesRFQuery } from './responsable-financier.query';
@@ -107,6 +108,27 @@ export const useDepotPartenaireMutation = () => {
     },
     onError: (error) => {
       toast.error('Erreur lors du dépôt partenaire', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+// ─── Rejeter DGA ──────────────────────────────────────────────────────────────
+
+export const useRejeterDgaMutation = () => {
+  const invalidate = useInvalidateFacturesRFQuery();
+  const { data: session } = useSession();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: IRejeterDgaDTO }) =>
+      responsableFinancierAPI.rejeterDga(id, data, session?.user?.id),
+    onSuccess: async () => {
+      await invalidate();
+      toast.success('Facture rejetée par le DGA');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors du rejet DGA', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },
