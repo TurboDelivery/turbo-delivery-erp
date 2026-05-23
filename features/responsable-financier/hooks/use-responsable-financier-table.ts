@@ -18,6 +18,9 @@ export const useResponsableFinancierTable = (columns: ColumnDef<IFactureRF>[]) =
     dateDebut: filters.dateDebut ? filters.dateDebut.toISOString().split('T')[0] : undefined,
     dateFin: filters.dateFin ? filters.dateFin.toISOString().split('T')[0] : undefined,
     statut: filters.statut || undefined,
+    // 'TOUT' = pas de filtre côté backend, on omet le paramètre.
+    cycle: filters.cycle && filters.cycle !== 'TOUT' ? filters.cycle : undefined,
+    restaurantId: filters.restaurantId || undefined,
     page: filters.page,
     size: filters.size,
   }), [filters]);

@@ -86,6 +86,8 @@ export default function ResponsableFinancierView() {
     dateDebut: filters.dateDebut ? filters.dateDebut.toISOString().split('T')[0] : undefined,
     dateFin: filters.dateFin ? filters.dateFin.toISOString().split('T')[0] : undefined,
     statut: filters.statut || undefined,
+    cycle: filters.cycle && filters.cycle !== 'TOUT' ? filters.cycle : undefined,
+    restaurantId: filters.restaurantId || undefined,
   }), [filters]);
 
   const { statsCards } = useResponsableFinancierStats(statsParams);
@@ -120,12 +122,20 @@ export default function ResponsableFinancierView() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/*
+          NB métier (2026-05) : ce "Montant Total" est la somme des montants des
+          factures émises pour la période/cycle/partenaire sélectionnés. Il diffère
+          structurellement du "CA de la Période" du tableau de bord financier qui
+          additionne frais de livraison + commissions + entrées de caisse côté
+          commandes (notion comptable distincte). Voir DashboardFinancierService
+          vs. ResponsableFinancierFactureService.buildStats côté backend.
+        */}
         <StatCard
           icon={TrendingUp}
           color="bg-green-500"
-          label="Montant Total"
+          label="Total factures émises"
           value={new Intl.NumberFormat('fr-FR').format(statsCards[1]?.value ?? 0) + ' FCFA'}
-          sub="Période sélectionnée"
+          sub="Somme des montants facturés"
         />
         <StatCard
           icon={FileText}
