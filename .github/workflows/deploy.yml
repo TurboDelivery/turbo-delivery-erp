@@ -27,24 +27,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Notify Discord - Start
+        env:
+          # Variables passées au shell (pas interpolées dans le JSON inline),
+          # ce qui permet à jq de gérer l'escape des sauts de ligne + caractères
+          # spéciaux (parenthèses, accents, "). L'ancienne version cassait dès
+          # qu'un commit message contenait des sauts de ligne ou des parenthèses.
+          ACTOR: ${{ github.actor }}
+          REF_NAME: ${{ github.ref_name }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          curl -H "Content-Type: application/json" \
-          -X POST \
-          -d "{
-            \"username\": \"CI/CD Bot\",
-            \"embeds\": [{
-              \"title\": \"🚀 Workflow Started\",
-              \"description\": \"\
-                👤 Pushed by: ${{ github.actor }}\n\
-                🌿 Branch: ${{ github.ref_name }}\n\
-                📝 Commit: ${{ github.event.head_commit.message }}\n\
-                🔗 Repo: https://github.com/${{ github.repository }}\n\
-                ⚙️ Job: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\
-                \",
-                \"color\": 16776960
-              } ]
-              }" \
-              ${{ secrets.DISCORD_WEBHOOK }}
+          PAYLOAD=$(jq -n \
+            --arg actor "$ACTOR" \
+            --arg branch "$REF_NAME" \
+            --arg commit "$COMMIT_MSG" \
+            --arg repo "$REPO" \
+            --arg run_id "$RUN_ID" \
+            '{
+              username: "CI/CD Bot",
+              embeds: [{
+                title: "🚀 Workflow Started",
+                description: ("👤 Pushed by: " + $actor + "\n" +
+                              "🌿 Branch: " + $branch + "\n" +
+                              "📝 Commit: " + $commit + "\n" +
+                              "🔗 Repo: https://github.com/" + $repo + "\n" +
+                              "⚙️ Job: https://github.com/" + $repo + "/actions/runs/" + $run_id),
+                color: 16776960
+              }]
+            }')
+          curl -H "Content-Type: application/json" -X POST -d "$PAYLOAD" "$WEBHOOK"
   
 
 
@@ -177,21 +190,36 @@ jobs:
           fi
 
       - name: Notify Discord - Result
+        env:
+          # Cf. notify_start — jq évite les soucis d'escape des commit messages
+          # multi-lignes ou avec caractères spéciaux.
+          TITLE: ${{ env.TITLE }}
+          COLOR: ${{ env.COLOR }}
+          ACTOR: ${{ github.actor }}
+          REF_NAME: ${{ github.ref_name }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          curl -H "Content-Type: application/json" \
-          -X POST \
-          -d "{
-            \"username\": \"CI/CD Bot\",
-            \"embeds\": [{
-              \"title\": \"${{ env.TITLE }}\",
-              \"description\": \"\
-              👤 Pushed by: ${{ github.actor }}\n\
-              🌿 Branch: ${{ github.ref_name }}\n\
-              📝 Commit: ${{ github.event.head_commit.message }}\n\
-              🔗 Repo: https://github.com/${{ github.repository }}\n\
-              ⚙️ Job: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\
-              \",
-              \"color\": ${{ env.COLOR }}
-            } ]
-            }" \
-            ${{ secrets.DISCORD_WEBHOOK }}
+          PAYLOAD=$(jq -n \
+            --arg title "$TITLE" \
+            --argjson color "$COLOR" \
+            --arg actor "$ACTOR" \
+            --arg branch "$REF_NAME" \
+            --arg commit "$COMMIT_MSG" \
+            --arg repo "$REPO" \
+            --arg run_id "$RUN_ID" \
+            '{
+              username: "CI/CD Bot",
+              embeds: [{
+                title: $title,
+                description: ("👤 Pushed by: " + $actor + "\n" +
+                              "🌿 Branch: " + $branch + "\n" +
+                              "📝 Commit: " + $commit + "\n" +
+                              "🔗 Repo: https://github.com/" + $repo + "\n" +
+                              "⚙️ Job: https://github.com/" + $repo + "/actions/runs/" + $run_id),
+                color: $color
+              }]
+            }')
+          curl -H "Content-Type: application/json" -X POST -d "$PAYLOAD" "$WEBHOOK"
