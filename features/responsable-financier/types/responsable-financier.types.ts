@@ -133,6 +133,11 @@ export interface IDepotBanqueDTO {
   date: string; // ISO date yyyy-MM-dd
 }
 
+// RejeterDgaRequestDto
+export interface IRejeterDgaDTO {
+  motif: string;
+}
+
 // ─── Réponse liste ────────────────────────────────────────────────────────────
 
 // Correspond à ResponsableFinancierFactureListVm
