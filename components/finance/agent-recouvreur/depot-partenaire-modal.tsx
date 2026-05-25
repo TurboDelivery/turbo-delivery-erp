@@ -18,11 +18,26 @@ function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
 }
 
-export default function DepotPartenaireModal({ open, onClose, facture, agentNom = 'KOUASSI MEDARD', onConfirm }: Props) {
-  const today = new Date().toISOString().split('T')[0];
-  const [date, setDate] = useState(today);
-  const [montant, setMontant] = useState(facture?.montant ?? 0);
-  const [agentName, setAgentName] = useState(agentNom);
+// Date locale au format YYYY-MM-DD (le toISOString() partirait en UTC et
+// décalerait d'un jour autour de minuit côté Abidjan).
+function toLocalYMD(d: Date) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
+  day: '2-digit',
+  month: 'long',
+  year: 'numeric',
+});
+
+export default function DepotPartenaireModal({ open, onClose, facture, agentNom = '', onConfirm }: Props) {
+  // Snapshot de la date à l'ouverture du modal. Le Recouvreur ne saisit plus
+  // la date manuellement : elle est capturée automatiquement au moment où il
+  // ouvre la confirmation du dépôt.
+  const [submissionMoment, setSubmissionMoment] = useState<Date>(() => new Date());
   const [fileName, setFileName] = useState<string | null>(null);
   const portalRef = useRef<Element | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -32,22 +47,25 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
     setMounted(true);
   }, []);
 
+  // Re-snapshote le moment à chaque ouverture / changement de facture.
   useEffect(() => {
-    if (facture) setMontant(facture.montant);
-  }, [facture]);
-
-  useEffect(() => {
-    setAgentName(agentNom);
-  }, [agentNom]);
+    if (open) {
+      setSubmissionMoment(new Date());
+      setFileName(null);
+    }
+  }, [open, facture?.id]);
 
   if (!open || !facture || !mounted) return null;
 
-  const pourcentage = facture.montant > 0
-    ? Math.min(100, Math.round((montant / facture.montant) * 100))
-    : 0;
-
   function handleConfirm() {
-    if (facture) onConfirm(facture, { date, montant, agent: agentName });
+    if (!facture) return;
+    // Aucun montant recouvré au stade du dépôt — l'encaissement (acompte/solde)
+    // se fait via le bouton "Encaisser" qui apparaît une fois le dépôt enregistré.
+    onConfirm(facture, {
+      date: toLocalYMD(submissionMoment),
+      montant: 0,
+      agent: agentNom,
+    });
     onClose();
   }
 
@@ -79,18 +97,19 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
             </div>
           </div>
 
-          {/* Date + Agent */}
+          {/* Date+heure + Agent (tous deux en lecture seule) */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="flex text-xs text-gray-500 mb-1.5 items-center gap-1">
-                <span>📅</span> Date du dépôt chez le partenaire
+                <span>📅</span> Date du dépôt
               </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-300"
-              />
+              <div
+                aria-readonly="true"
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 cursor-not-allowed select-none"
+              >
+                {dateFormatter.format(submissionMoment)}
+              </div>
+              <p className="text-[11px] text-gray-400 mt-1">Capturée automatiquement à l&apos;ouverture du formulaire.</p>
             </div>
             <div>
               <label className="flex text-xs text-gray-500 mb-1.5 items-center gap-1">
@@ -98,30 +117,28 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
               </label>
               <input
                 type="text"
-                value={agentName}
-                onChange={(e) => setAgentName(e.target.value)}
-                placeholder="Nom de l'agent"
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+                value={agentNom || '—'}
+                readOnly
+                disabled
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 cursor-not-allowed disabled:opacity-100"
               />
             </div>
           </div>
 
-          {/* Montant recouvré */}
+          {/* Montant recouvré — désactivé : pas de paiement à ce stade */}
           <div>
-            <label className="flex text-xs text-gray-500 mb-1.5 items-center gap-1">
+            <label className="flex text-xs text-gray-400 mb-1.5 items-center gap-1">
               <span>🔗</span> Montant recouvré (cumul)
             </label>
             <input
               type="number"
-              value={montant}
-              min={0}
-              max={facture.montant}
-              onChange={(e) => setMontant(Number(e.target.value))}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-300"
+              value={0}
+              readOnly
+              disabled
+              className="w-full rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-400 cursor-not-allowed disabled:opacity-100"
             />
-            <p className="text-xs mt-1.5">
-              <span className="text-gray-400">{formatMontant(montant)} sur {formatMontant(facture.montant)} · </span>
-              <span className="font-semibold text-red-500">{pourcentage}%</span>
+            <p className="text-xs mt-1.5 text-gray-400 italic">
+              Aucun paiement n&apos;est saisi au dépôt — utilisez « Encaisser » après enregistrement pour ajouter un acompte ou solder la facture.
             </p>
           </div>
 
@@ -169,7 +186,7 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
             onClick={handleConfirm}
             className="flex-1 bg-red-400 hover:bg-red-500 text-white text-sm"
           >
-            Enregistrer
+            Enregistrer le dépôt
           </Button>
         </div>
       </div>

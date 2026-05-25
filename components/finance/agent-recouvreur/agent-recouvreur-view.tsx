@@ -83,12 +83,6 @@ export default function AgentRecouvreurView() {
   const { data: agentsData } = useAgentsRecouvrementQuery();
   const agentsList = agentsData ?? [];
 
-  /** Résout le X-User-Id depuis le nom de l'agent assigné à la facture */
-  function resolveAgentId(factureAgentNom: string): string {
-    const normalized = factureAgentNom.trim().toLowerCase();
-    return agentsList.find((a) => a.nom.trim().toLowerCase() === normalized)?.id ?? '';
-  }
-
   /** Nom de l'agent connecté résolu depuis la liste des agents RF */
   const connectedAgentNom =
     agentsList.find((a) => a.id === session?.user?.id)?.nom ??
@@ -290,6 +284,7 @@ export default function AgentRecouvreurView() {
         open={factureEncaissement !== null}
         onClose={() => setFactureEncaissement(null)}
         facture={factureEncaissement}
+        agentNom={connectedAgentNom}
         onPaiementAjoute={(facture, paiements) => {
           const dernierPaiement = paiements[paiements.length - 1];
           if (dernierPaiement) {

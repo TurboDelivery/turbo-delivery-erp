@@ -23,7 +23,7 @@ export default function EncaissementModal({
   open,
   onClose,
   facture,
-  agentNom = 'KOUASSI MEDARD',
+  agentNom = '',
   onPaiementAjoute,
 }: Props) {
   const [paiements, setPaiements] = useState<IPaiement[]>([]);
@@ -105,11 +105,11 @@ export default function EncaissementModal({
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
-                      {agentNom.charAt(0)}
+                      {agentNom.charAt(0) || '?'}
                     </div>
                     <div>
                       <p className="text-xs text-gray-400 mb-0.5">Agent recouvreur</p>
-                      <p className="font-medium text-gray-800">{agentNom}</p>
+                      <p className="font-medium text-gray-800">{agentNom || '—'}</p>
                     </div>
                   </div>
                   <div>
@@ -208,50 +208,6 @@ export default function EncaissementModal({
                 )}
               </div>
 
-              {/* Historique */}
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-gray-800">Historique</p>
-                <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <div className="flex flex-col items-center">
-                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-0.5 flex-shrink-0" />
-                      <div className="w-px flex-1 bg-gray-200 mt-1" />
-                    </div>
-                    <div className="pb-3">
-                      <div className="flex items-center justify-between gap-4">
-                        <p className="text-xs font-semibold text-gray-800">Facture validée</p>
-                        <p className="text-xs text-gray-400 whitespace-nowrap">01/05/2026</p>
-                      </div>
-                      <p className="text-xs text-gray-500">Validation de la facture</p>
-                      <p className="text-xs text-gray-400">Par KONE YACOUBA</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="w-2.5 h-2.5 rounded-full bg-orange-400 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <div className="flex items-center justify-between gap-4">
-                        <p className="text-xs font-semibold text-gray-800">Recouvrement initié</p>
-                        <p className="text-xs text-gray-400 whitespace-nowrap">03/05/2026</p>
-                      </div>
-                      <p className="text-xs text-gray-400">Agent {agentNom} assigné</p>
-                    </div>
-                  </div>
-                  {paiements.map((p) => (
-                    <div key={p.id} className="flex gap-3">
-                      <div className="w-2.5 h-2.5 rounded-full bg-green-500 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <div className="flex items-center justify-between gap-4">
-                          <p className="text-xs font-semibold text-gray-800">
-                            Paiement enregistré — {p.type}
-                          </p>
-                          <p className="text-xs text-gray-400 whitespace-nowrap">{p.date}</p>
-                        </div>
-                        <p className="text-xs text-gray-400">{formatMontant(p.montant)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>,

@@ -1,8 +1,8 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { responsableFinancierAPI } from '../apis/responsable-financier.api';
-import { IFactureRFParams } from '../types/responsable-financier.types';
+import { responsableFinancierAPI } from '@/features/responsable-financier';
+import { IFactureRFParams } from '@/features/responsable-financier';
 
 // ─── Clés de query ─────────────────────────────────────────────────────────────
 
@@ -48,7 +48,11 @@ export const useAgentsRecouvrementQuery = () => {
 
 // ─── Invalidation ─────────────────────────────────────────────────────────────
 
+// Invalide list + detail + agents : indispensable car les mutations (lancer
+// recouvrement, valider, dépôt…) modifient aussi la facture vue en détail.
+// Avant : seul lists() était invalidé → la page /[id] gardait du cache stale
+// (ancien agent, historique non mis à jour) après une mutation.
 export const useInvalidateFacturesRFQuery = () => {
   const queryClient = useQueryClient();
-  return () => queryClient.invalidateQueries({ queryKey: responsableFinancierKeys.lists() });
+  return () => queryClient.invalidateQueries({ queryKey: responsableFinancierKeys.all });
 };

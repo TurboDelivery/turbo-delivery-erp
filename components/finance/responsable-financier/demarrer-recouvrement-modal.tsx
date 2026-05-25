@@ -29,11 +29,13 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
   const { data: agents = [], isLoading } = useAgentsRecouvrementQuery();
   const [selectedAgent, setSelectedAgent] = useState<IAgent | null>(null);
 
+  // Reset à chaque ouverture / changement de facture : le COMPTABLE doit
+  // explicitement choisir le recouvreur, pas hériter du premier de la liste ni
+  // d'une sélection précédente. Le bouton "Démarrer" reste désactivé tant
+  // qu'aucun agent n'est sélectionné.
   useEffect(() => {
-    if (agents.length > 0 && !selectedAgent) {
-      setSelectedAgent(agents[0]);
-    }
-  }, [agents, selectedAgent]);
+    if (open) setSelectedAgent(null);
+  }, [open, facture?.id]);
 
   function handleConfirm() {
     if (facture && selectedAgent) onConfirm(facture, selectedAgent);
