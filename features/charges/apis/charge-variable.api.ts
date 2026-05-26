@@ -10,9 +10,13 @@ import { PaginatedResponse } from '@/types/general';
 
 export interface IChargeVariableAPI {
   ajouterChargeVariable(data: IChargeVariableCreateDTO): Promise<IChargeVariable>;
-  ajouterChargeVariableFormData(data: FormData): Promise<IChargeVariable>;
+  // 2026-05 (commit A) — userId optionnel propagé en header X-User-Id pour
+  // persister charge_variables.creer_par_id côté backend. Permet à
+  // CHARGE_REJETEE de cibler PRÉCISÉMENT le Comptable créateur au lieu de
+  // broadcast à tous les Comptables (cf. ChargeVariableService.create).
+  ajouterChargeVariableFormData(data: FormData, userId?: string): Promise<IChargeVariable>;
   modifierChargeVariable(id: string, data: IChargeVariableUpdateDTO): Promise<IChargeVariable>;
-  modifierChargeVariableFormData(id: string, data: FormData): Promise<IChargeVariable>;
+  modifierChargeVariableFormData(id: string, data: FormData, userId?: string): Promise<IChargeVariable>;
   validerDGAChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable>;
   approuverDGChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable>;
   rejeterDGAChargeVariable(id: string, dto: IWorkflowDecisionDto): Promise<IChargeVariable>;
@@ -31,16 +35,16 @@ export const chargeVariableAPI: IChargeVariableAPI = {
     });
   },
 
-  ajouterChargeVariableFormData(data: FormData): Promise<IChargeVariable> {
+  ajouterChargeVariableFormData(data: FormData, userId?: string): Promise<IChargeVariable> {
+    const headers: Record<string, string> = { 'Content-Type': 'multipart/form-data' };
+    // X-User-Id capture le Comptable créateur côté backend pour adresser les
+    // notifs CHARGE_REJETEE individuellement (commit A 2026-05).
+    if (userId) headers['X-User-Id'] = userId;
     return api.request<IChargeVariable>({
       endpoint: `/erp/charges-variables`,
       method: 'POST',
       data,
-      config: {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      },
+      config: { headers },
     });
   },
 
@@ -52,16 +56,16 @@ export const chargeVariableAPI: IChargeVariableAPI = {
     });
   },
 
-  modifierChargeVariableFormData(id: string, data: FormData): Promise<IChargeVariable> {
+  modifierChargeVariableFormData(id: string, data: FormData, userId?: string): Promise<IChargeVariable> {
+    const headers: Record<string, string> = { 'Content-Type': 'multipart/form-data' };
+    // X-User-Id propagé aussi sur update : permet la bascule "re-soumission
+    // après rejet" (commit B 2026-05) qui re-notifie le DGA/DG d'origine.
+    if (userId) headers['X-User-Id'] = userId;
     return api.request<IChargeVariable>({
       endpoint: `/erp/charges-variables/${id}`,
       method: 'PUT',
       data,
-      config: {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      },
+      config: { headers },
     });
   },
 
