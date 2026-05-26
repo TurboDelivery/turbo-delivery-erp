@@ -29,6 +29,10 @@ export interface ITurboy {
   commission: number | null;
   avenantUrls: string[] | null;
   type: string | null;
+  // V48 (2026-05) — Enrichissements ERP (cf. V48 backend)
+  ficheIdentificationUrl: string | null;
+  numeroPersonneAContacter: string | null;
+  permisConduire: boolean | null;
 }
 
 export interface ITurboyParams {

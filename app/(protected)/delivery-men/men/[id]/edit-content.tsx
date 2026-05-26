@@ -34,6 +34,8 @@ export default function EditContent({ id }: { id: string }) {
   const [vehicleFile, setVehicleFile] = useState<File | null>(null);
   const [contratFile, setContratFile] = useState<File | null>(null);
   const [avenantFiles, setAvenantFiles] = useState<File[]>([]);
+  // V48 — fiche d'identification (PDF/image)
+  const [ficheIdentificationFile, setFicheIdentificationFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -57,6 +59,9 @@ export default function EditContent({ id }: { id: string }) {
       immatriculation: '',
       telephoneCompte: '',
       commission: undefined,
+      // V48
+      numeroPersonneAContacter: '',
+      permisConduire: false,
     },
   });
 
@@ -85,6 +90,9 @@ export default function EditContent({ id }: { id: string }) {
         immatriculation: turboy.immatriculation ?? '',
         telephoneCompte: turboy.telephoneCompte ?? turboy.telephone ?? '',
         commission: turboy.commission ?? undefined,
+        // V48 : pré-remplir si déjà set en base, sinon valeurs neutres
+        numeroPersonneAContacter: turboy.numeroPersonneAContacter ?? '',
+        permisConduire: turboy.permisConduire ?? false,
       });
     }
   }, [turboy, reset]);
@@ -99,12 +107,20 @@ export default function EditContent({ id }: { id: string }) {
   async function onSubmit(values: UpdateTurboyInfoDTO) {
     setIsSubmitting(true);
     const fd = new FormData();
-    Object.entries(values).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '') fd.append(k, String(v)); });
+    // V48 : permisConduire est boolean — on envoie aussi false explicitement
+    // (le backend accepte true/false/null ; "" est filtré pour les strings).
+    Object.entries(values).forEach(([k, v]) => {
+      if (v === undefined || v === null) return;
+      if (typeof v === 'string' && v === '') return;
+      fd.append(k, String(v));
+    });
     if (avatarFile) fd.append('avatar', avatarFile);
     cniFiles.forEach((f, i) => fd.append(`cni_${i}`, f));
     if (vehicleFile) fd.append('vehiclePhoto', vehicleFile);
     if (contratFile) fd.append('contrat', contratFile);
     avenantFiles.forEach((f) => fd.append('avenants', f));
+    // V48 — fiche d'identification (PDF/image), only if user a uploadé un nouveau
+    if (ficheIdentificationFile) fd.append('ficheIdentification', ficheIdentificationFile);
 
     const result = await updateLivreur(id, fd);
     setIsSubmitting(false);
@@ -175,6 +191,8 @@ export default function EditContent({ id }: { id: string }) {
           errors={errors}
           cniFiles={cniFiles}
           onCniChange={setCniFiles}
+          ficheIdentificationFile={ficheIdentificationFile}
+          onFicheIdentificationChange={setFicheIdentificationFile}
         />
 
         <SectionVehicule

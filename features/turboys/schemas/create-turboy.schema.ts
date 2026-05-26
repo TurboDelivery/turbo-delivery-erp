@@ -18,6 +18,13 @@ export const createTurboySchema = z.object({
   nomVehicule: z.string().min(1, 'Le nom du véhicule est requis'),
   immatriculation: z.string().min(1, "L'immatriculation est requise"),
 
+  // V48 (2026-05) — Enrichissements ERP
+  // Optionnels : le formulaire les expose mais ne les rend pas obligatoires
+  // (rétrocompat avec les utilisateurs métier qui n'ont pas l'info à la
+  // saisie initiale ; ils complètent au PUT plus tard).
+  numeroPersonneAContacter: z.string().optional(),
+  permisConduire: z.boolean().optional(),
+
   // Compte
   telephoneCompte: z.string().min(1, 'Le numéro de téléphone du compte est requis'),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),

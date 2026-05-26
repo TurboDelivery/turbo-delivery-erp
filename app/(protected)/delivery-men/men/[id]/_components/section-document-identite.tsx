@@ -2,7 +2,8 @@
 
 import { Control, FieldErrors } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
-import { Input, Select, SelectItem } from '@heroui/react';
+import { Input, Select, SelectItem, Switch } from '@heroui/react';
+import { FileText } from 'lucide-react';
 import { type UpdateTurboyInfoDTO } from '@/features/turboys/schemas/update-turboy-info.schema';
 import { TYPE_DOCUMENT_OPTIONS } from '@/features/turboys/schemas/create-turboy.schema';
 import { SectionTitle } from './section-title';
@@ -13,6 +14,9 @@ interface SectionDocumentIdentiteProps {
   errors: FieldErrors<UpdateTurboyInfoDTO>;
   cniFiles: File[];
   onCniChange: (files: File[]) => void;
+  // V48 (2026-05) — Enrichissements ERP
+  ficheIdentificationFile: File | null;
+  onFicheIdentificationChange: (file: File | null) => void;
 }
 
 export function SectionDocumentIdentite({
@@ -20,6 +24,8 @@ export function SectionDocumentIdentite({
   errors,
   cniFiles,
   onCniChange,
+  ficheIdentificationFile,
+  onFicheIdentificationChange,
 }: SectionDocumentIdentiteProps) {
   return (
     <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
@@ -73,6 +79,52 @@ export function SectionDocumentIdentite({
         {cniFiles.length > 0 && (
           <p className="text-xs text-green-600 mt-2">{cniFiles.length} fichier(s) sélectionné(s)</p>
         )}
+      </div>
+
+      {/* V48 (2026-05) — Fiche d'identification (PDF/image) */}
+      <div className="mt-5 pt-5 border-t border-gray-100">
+        <p className="text-sm font-medium text-gray-700 mb-2">Fiche d&apos;identification</p>
+        <label className="flex items-center gap-3 cursor-pointer">
+          <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
+            <FileText className="w-4 h-4 shrink-0" />
+            <span>
+              {ficheIdentificationFile
+                ? ficheIdentificationFile.name
+                : 'Importer la fiche d\'identification (PDF, JPG, PNG)'}
+            </span>
+          </div>
+          <input
+            type="file"
+            accept=".pdf,image/*"
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.[0]) onFicheIdentificationChange(e.target.files[0]);
+            }}
+          />
+        </label>
+        {ficheIdentificationFile && (
+          <p className="text-xs text-green-600 mt-1.5">{ficheIdentificationFile.name} sélectionné</p>
+        )}
+      </div>
+
+      {/* V48 (2026-05) — Permis de conduire */}
+      <div className="mt-5 pt-5 border-t border-gray-100">
+        <Controller
+          name="permisConduire"
+          control={control}
+          render={({ field }) => (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-700">Permis de conduire</p>
+                <p className="text-xs text-gray-400">Le livreur détient-il un permis valide ?</p>
+              </div>
+              <Switch
+                isSelected={field.value ?? false}
+                onValueChange={field.onChange}
+              />
+            </div>
+          )}
+        />
       </div>
     </section>
   );
