@@ -9,6 +9,7 @@ import { PaginatedResponse } from '@/types';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import UsersAdd from './users-add';
 import UsersTools from './users-tools';
+import UsersEmailPrimaryToggle from './users-email-primary-toggle';
 import { Chip } from '@heroui/react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import PaginationBlock from '@/components/pagination-block';
@@ -74,6 +75,11 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                 <TableHead>Nom d&apos;utilisateur</TableHead>
                 <TableHead>Rôle</TableHead>
                 <TableHead>Statut</TableHead>
+                {/* 2026-05 — Bascule "Reçoit les emails de notifs". Permet de
+                    désigner 1-2 destinataires email primaires par rôle pour
+                    éviter de saturer le quota SMTP Hostinger 50/h. L'in-app
+                    est toujours diffusée à tous les users du rôle. */}
+                <TableHead className="text-center">Emails de notif</TableHead>
                 <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -90,6 +96,9 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                   <TableCell>{user.username}</TableCell>
                   <TableCell>{user.role.libelle}</TableCell>
                   <TableCell>{user.status === 1 ? <Chip color="success">Actif</Chip> : <Chip color="warning">Inactif</Chip>}</TableCell>
+                  <TableCell className="text-center">
+                    <UsersEmailPrimaryToggle user={user} />
+                  </TableCell>
                   <TableCell>
                     <UsersTools user={user} value="list" />
                   </TableCell>
