@@ -105,6 +105,22 @@ export function SectionInfosPersonnelles({ control, errors }: SectionInfosPerson
             />
           )}
         />
+        {/* V48 (2026-05) — Numéro d'urgence (proche, famille) */}
+        <Controller
+          name="numeroPersonneAContacter"
+          control={control}
+          render={({ field }) => (
+            <Input
+              {...field}
+              label="Personne à contacter (urgence)"
+              placeholder="+225 0000000000"
+              isInvalid={!!errors.numeroPersonneAContacter}
+              errorMessage={errors.numeroPersonneAContacter?.message}
+              variant="bordered"
+              startContent={<span className="text-gray-400 text-sm">🚨</span>}
+            />
+          )}
+        />
       </div>
     </section>
   );
