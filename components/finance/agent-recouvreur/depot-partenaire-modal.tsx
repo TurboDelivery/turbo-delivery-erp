@@ -18,10 +18,28 @@ function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
 }
 
+/**
+ * Fix C (workflow facture, 2026-05) : modal allégée — le dépôt physique
+ * chez le partenaire est désormais une action one-click qui se contente de
+ * timestamper le dépôt côté backend.
+ *
+ * Changements UX par rapport à l'ancienne version :
+ *  - Date : retirée du formulaire ; affichage "Aujourd'hui" en lecture seule
+ *    (capture auto côté backend via LocalDate.now()).
+ *  - Montant recouvré : grisé (disabled). L'encaissement est une étape
+ *    séparée — le recouvreur clique "Encaisser" depuis la table après le
+ *    dépôt pour saisir un versement (acompte ou solde).
+ *  - Preuve de dépôt : conservée (upload du bordereau signé).
+ *  - Bouton CTA renommé "Déposer chez le partenaire" (action unique).
+ *
+ * Le backend ignore désormais date et montant envoyés ici (rétrocompat
+ * pour ne pas casser l'API). Donc on garde l'envoi du payload identique.
+ */
 export default function DepotPartenaireModal({ open, onClose, facture, agentNom = 'KOUASSI MEDARD', onConfirm }: Props) {
   const today = new Date().toISOString().split('T')[0];
-  const [date, setDate] = useState(today);
-  const [montant, setMontant] = useState(facture?.montant ?? 0);
+  // date et montant restent dans le state pour rester rétrocompat avec le
+  // contrat onConfirm — mais ils ne sont plus saisissables (cf. JSX).
+  const [date] = useState(today);
   const [fileName, setFileName] = useState<string | null>(null);
   const portalRef = useRef<Element | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -31,18 +49,13 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (facture) setMontant(facture.montant);
-  }, [facture]);
-
   if (!open || !facture || !mounted) return null;
 
-  const pourcentage = facture.montant > 0
-    ? Math.min(100, Math.round((montant / facture.montant) * 100))
-    : 0;
-
   function handleConfirm() {
-    if (facture) onConfirm(facture, { date, montant, agent: agentNom });
+    // Fix C : on envoie montant=0 (le backend l'ignore — cf.
+    // AgentRecouvreurDepotPartenaireRequestDto et fix marquerDepotPartenaireAgent
+    // qui force LocalDate.now() et ne lit pas montant).
+    if (facture) onConfirm(facture, { date, montant: 0, agent: agentNom });
     onClose();
   }
 
@@ -74,18 +87,16 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
             </div>
           </div>
 
-          {/* Date + Agent */}
+          {/* Date + Agent — Fix C : date capturée automatiquement (lecture seule) */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="flex text-xs text-gray-500 mb-1.5 items-center gap-1">
-                <span>📅</span> Date du dépôt chez le partenaire
+                <span>📅</span> Date du dépôt
               </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-300"
-              />
+              <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                Aujourd&apos;hui
+                <span className="text-xs text-gray-400 italic ml-2">(capture automatique)</span>
+              </div>
             </div>
             <div>
               <label className="flex text-xs text-gray-500 mb-1.5 items-center gap-1">
@@ -100,22 +111,27 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
             </div>
           </div>
 
-          {/* Montant recouvré */}
+          {/* Paiement — Fix C : grisé/désactivé. L'encaissement est une étape
+              séparée (bouton "Encaisser" depuis la table une fois le dépôt
+              effectué). Garder ce champ en lecture seule sert d'indice UX :
+              le recouvreur sait où chercher mais comprend qu'il n'y a rien à
+              renseigner ici. */}
           <div>
             <label className="flex text-xs text-gray-500 mb-1.5 items-center gap-1">
-              <span>🔗</span> Montant recouvré (cumul)
+              <span>🔗</span> Paiement
+              <span className="text-xs text-gray-400 italic">— à renseigner via &laquo; Encaisser &raquo;</span>
             </label>
             <input
               type="number"
-              value={montant}
-              min={0}
-              max={facture.montant}
-              onChange={(e) => setMontant(Number(e.target.value))}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-300"
+              value={0}
+              disabled
+              readOnly
+              className="w-full rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-gray-400 cursor-not-allowed"
+              placeholder="Aucun paiement à cette étape"
             />
-            <p className="text-xs mt-1.5">
-              <span className="text-gray-400">{formatMontant(montant)} sur {formatMontant(facture.montant)} · </span>
-              <span className="font-semibold text-red-500">{pourcentage}%</span>
+            <p className="text-xs mt-1.5 text-gray-400">
+              Montant facture : {formatMontant(facture.montant)}. Un encaissement
+              (acompte ou solde) sera saisi séparément après le dépôt.
             </p>
           </div>
 
@@ -161,9 +177,9 @@ export default function DepotPartenaireModal({ open, onClose, facture, agentNom 
           </Button>
           <Button
             onClick={handleConfirm}
-            className="flex-1 bg-red-400 hover:bg-red-500 text-white text-sm"
+            className="flex-1 bg-red-500 hover:bg-red-600 text-white text-sm"
           >
-            Enregistrer
+            Déposer chez le partenaire
           </Button>
         </div>
       </div>
