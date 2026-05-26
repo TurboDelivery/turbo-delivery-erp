@@ -15,14 +15,36 @@ interface Props {
   onConfirm: (facture: IFactureRF, cycle: CyclePaiement) => void;
 }
 
-const CYCLES: CyclePaiement[] = ['Journalier', 'Hebdomadaire', 'Mensuel'];
-
 function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' FCFA';
 }
 
+/**
+ * Mapping backend `facture.type` → libellé UI cycle. Le backend stocke des
+ * codes upper-case (QUOTIDIEN, HEBDOMADAIRE, MENSUEL) dérivés du restaurant
+ * par FacturationJobService.mapMethodToFactureType — on n'a plus à les
+ * re-saisir (fix A1 workflow facture, 2026-05).
+ */
+function backendCycleToLabel(raw: string | undefined): CyclePaiement {
+  if (!raw) return 'Mensuel';
+  const upper = raw.toUpperCase();
+  if (upper.startsWith('QUOTID') || upper === 'JOURNALIER') return 'Journalier';
+  if (upper.startsWith('HEBDO')) return 'Hebdomadaire';
+  if (upper.startsWith('MENSU')) return 'Mensuel';
+  // Fallback : si le backend renvoie déjà un libellé UI lisible, l'utiliser.
+  if (raw === 'Journalier' || raw === 'Hebdomadaire' || raw === 'Mensuel') {
+    return raw as CyclePaiement;
+  }
+  return 'Mensuel';
+}
+
 export default function ValiderFactureModal({ open, onClose, facture, onConfirm }: Props) {
-  const [cycle, setCycle] = useState<CyclePaiement>('Mensuel');
+  // Fix A1 : le cycle est dérivé du restaurant côté backend (champ
+  // facture.cycle déjà set à la création) et n'est plus saisi par l'utilisateur.
+  // On le calcule au render à partir de la facture courante pour rester
+  // synchronisé même si plusieurs validations sont ouvertes successivement.
+  const cycleAffiche = backendCycleToLabel(facture?.cycle);
+
   const portalRef = useRef<Element | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -34,7 +56,10 @@ export default function ValiderFactureModal({ open, onClose, facture, onConfirm 
   if (!open || !facture || !mounted) return null;
 
   function handleConfirm() {
-    if (facture) onConfirm(facture, cycle);
+    // Fix A1 : on envoie quand même le cycle au backend pour compatibilité
+    // (le backend l'ignore s'il est null, mais on garde le contrat existant
+    // côté frontend pour ne pas avoir à toucher la mutation).
+    if (facture) onConfirm(facture, cycleAffiche);
     onClose();
   }
 
@@ -106,26 +131,12 @@ export default function ValiderFactureModal({ open, onClose, facture, onConfirm 
             </div>
           </div>
 
-          {/* Cycle de paiement */}
+          {/* Cycle de paiement — Fix A1 : lecture seule, dérivé du restaurant */}
           <div>
-            <label className="block text-xs text-gray-500 mb-2">
-              Cycle de paiement <span className="text-red-500">*</span>
-            </label>
-            <div className="flex gap-2">
-              {CYCLES.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setCycle(c)}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                    cycle === c
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
+            <label className="block text-xs text-gray-500 mb-1.5">Cycle de paiement</label>
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700 font-medium flex items-center justify-between">
+              <span>{cycleAffiche}</span>
+              <span className="text-xs text-gray-400 italic">configuré dans le profil partenaire</span>
             </div>
           </div>
         </div>

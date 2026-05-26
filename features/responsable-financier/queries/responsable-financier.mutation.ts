@@ -1,7 +1,6 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { responsableFinancierAPI } from '../apis/responsable-financier.api';
 import {
@@ -9,10 +8,20 @@ import {
   IDepotBanqueDTO,
   IDepotPartenaireDTO,
   ILancerRecouvrementDTO,
-  IRejeterDgaDTO,
   IValiderFactureDTO,
 } from '../types/responsable-financier.types';
 import { useInvalidateFacturesRFQuery } from './responsable-financier.query';
+
+/**
+ * Fix B1 (2026-05) : helper pour extraire l'id de facture à passer à
+ * {@link useInvalidateFacturesRFQuery}, qui invalide à la fois la liste et
+ * le détail spécifique de la facture modifiée. Couvre les 2 signatures
+ * mutationFn présentes ici : (id: string) et ({ id, data }).
+ */
+function pickFactureId(variables: string | { id?: string } | undefined): string | undefined {
+  if (typeof variables === 'string') return variables;
+  return variables?.id;
+}
 
 // ─── Valider une facture ───────────────────────────────────────────────────────
 
@@ -22,8 +31,12 @@ export const useValiderFactureRFMutation = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: IValiderFactureDTO }) =>
       responsableFinancierAPI.validerFacture(id, data),
-    onSuccess: async () => {
-      await invalidate();
+    onSuccess: async (_data, variables) => {
+      // Fix B1 : passer l'id pour invalider précisément le détail de la
+      // facture modifiée (en plus des listes). Avant : seule la liste était
+      // invalidée, le détail spécifique servait un cache stale (et donc
+      // affichait l'ancien agent "Medard").
+      await invalidate(pickFactureId(variables));
       toast.success('Facture validée avec succès');
     },
     onError: (error) => {
@@ -41,8 +54,12 @@ export const useViserDgMutation = () => {
 
   return useMutation({
     mutationFn: (id: string) => responsableFinancierAPI.viserDg(id),
-    onSuccess: async () => {
-      await invalidate();
+    onSuccess: async (_data, variables) => {
+      // Fix B1 : passer l'id pour invalider précisément le détail de la
+      // facture modifiée (en plus des listes). Avant : seule la liste était
+      // invalidée, le détail spécifique servait un cache stale (et donc
+      // affichait l'ancien agent "Medard").
+      await invalidate(pickFactureId(variables));
       toast.success('Facture visée par le DG');
     },
     onError: (error) => {
@@ -57,13 +74,16 @@ export const useViserDgMutation = () => {
 
 export const useLancerRecouvrementMutation = () => {
   const invalidate = useInvalidateFacturesRFQuery();
-  const { data: session } = useSession();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ILancerRecouvrementDTO }) =>
-      responsableFinancierAPI.lancerRecouvrement(id, data, session?.user?.id),
-    onSuccess: async () => {
-      await invalidate();
+      responsableFinancierAPI.lancerRecouvrement(id, data),
+    onSuccess: async (_data, variables) => {
+      // Fix B1 : passer l'id pour invalider précisément le détail de la
+      // facture modifiée (en plus des listes). Avant : seule la liste était
+      // invalidée, le détail spécifique servait un cache stale (et donc
+      // affichait l'ancien agent "Medard").
+      await invalidate(pickFactureId(variables));
       toast.success('Recouvrement lancé avec succès');
     },
     onError: (error) => {
@@ -82,8 +102,12 @@ export const useAjouterPreuveMutation = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: IAjouterPreuveDTO }) =>
       responsableFinancierAPI.ajouterPreuve(id, data),
-    onSuccess: async () => {
-      await invalidate();
+    onSuccess: async (_data, variables) => {
+      // Fix B1 : passer l'id pour invalider précisément le détail de la
+      // facture modifiée (en plus des listes). Avant : seule la liste était
+      // invalidée, le détail spécifique servait un cache stale (et donc
+      // affichait l'ancien agent "Medard").
+      await invalidate(pickFactureId(variables));
       toast.success('Preuve ajoutée avec succès');
     },
     onError: (error) => {
@@ -102,33 +126,16 @@ export const useDepotPartenaireMutation = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: IDepotPartenaireDTO }) =>
       responsableFinancierAPI.marquerDepotPartenaire(id, data),
-    onSuccess: async () => {
-      await invalidate();
+    onSuccess: async (_data, variables) => {
+      // Fix B1 : passer l'id pour invalider précisément le détail de la
+      // facture modifiée (en plus des listes). Avant : seule la liste était
+      // invalidée, le détail spécifique servait un cache stale (et donc
+      // affichait l'ancien agent "Medard").
+      await invalidate(pickFactureId(variables));
       toast.success('Dépôt partenaire enregistré');
     },
     onError: (error) => {
       toast.error('Erreur lors du dépôt partenaire', {
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
-      });
-    },
-  });
-};
-
-// ─── Rejeter DGA ──────────────────────────────────────────────────────────────
-
-export const useRejeterDgaMutation = () => {
-  const invalidate = useInvalidateFacturesRFQuery();
-  const { data: session } = useSession();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: IRejeterDgaDTO }) =>
-      responsableFinancierAPI.rejeterDga(id, data, session?.user?.id),
-    onSuccess: async () => {
-      await invalidate();
-      toast.success('Facture rejetée par le DGA');
-    },
-    onError: (error) => {
-      toast.error('Erreur lors du rejet DGA', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },
@@ -143,8 +150,12 @@ export const useDepotBanqueMutation = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: IDepotBanqueDTO }) =>
       responsableFinancierAPI.marquerDepotBanque(id, data),
-    onSuccess: async () => {
-      await invalidate();
+    onSuccess: async (_data, variables) => {
+      // Fix B1 : passer l'id pour invalider précisément le détail de la
+      // facture modifiée (en plus des listes). Avant : seule la liste était
+      // invalidée, le détail spécifique servait un cache stale (et donc
+      // affichait l'ancien agent "Medard").
+      await invalidate(pickFactureId(variables));
       toast.success('Dépôt banque enregistré');
     },
     onError: (error) => {
