@@ -1,3 +1,20 @@
+/**
+ * ⚠️ FIXTURES UI POUR DÉVELOPPEMENT — NE PAS IMPORTER EN PROD ⚠️
+ *
+ * Ce fichier contient des données mockées (avec "K. Medard" partout en tant
+ * qu'agent par défaut) utilisées historiquement pour prototyper l'UI sans le
+ * backend. Aucun composant ne devrait l'importer en production.
+ *
+ * Si le nom "K. Medard" apparaît dans l'UI alors qu'un autre agent a été
+ * sélectionné, c'est probablement parce qu'un composant a réimporté
+ * accidentellement {@link MOCK_FACTURES} (cf. fix B1 workflow recouvrement,
+ * 2026-05). À vérifier avec `grep -r MOCK_FACTURES` dans tout le repo.
+ *
+ * Pour la suppression future : conserver les types
+ * {@link IHistoriqueStatut} / {@link IFactureRFDetail} dans
+ * `features/responsable-financier/types/responsable-financier.types.ts`
+ * (déjà fait pour {@link IFactureRFDetail}), et supprimer ce fichier.
+ */
 import type { IFactureRF } from './responsable-financier-columns';
 
 export interface IHistoriqueStatut {
