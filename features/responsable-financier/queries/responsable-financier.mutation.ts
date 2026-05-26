@@ -8,6 +8,7 @@ import {
   IDepotBanqueDTO,
   IDepotPartenaireDTO,
   ILancerRecouvrementDTO,
+  IRejeterDgaDTO,
   IValiderFactureDTO,
 } from '../types/responsable-financier.types';
 import { useInvalidateFacturesRFQuery } from './responsable-financier.query';
@@ -136,6 +137,35 @@ export const useDepotPartenaireMutation = () => {
     },
     onError: (error) => {
       toast.error('Erreur lors du dépôt partenaire', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+// ─── Rejeter DGA ──────────────────────────────────────────────────────────────
+
+/**
+ * Fix build pré-existant (2026-05) : validation-dga-view.tsx importait
+ * `useRejeterDgaMutation` qui n'était pas exporté. `tsc --noEmit` laissait
+ * passer (warning), mais `pnpm run build` (Next.js) fail strict sur cet
+ * import manquant. Ajout du hook manquant pour débloquer le deploy prod.
+ *
+ * Le service backend est déjà câblé : PATCH /factures/{id}/rejeter-dga avec
+ * { motif } dans le body (cf. responsableFinancierAPI.rejeterDga).
+ */
+export const useRejeterDgaMutation = () => {
+  const invalidate = useInvalidateFacturesRFQuery();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: IRejeterDgaDTO }) =>
+      responsableFinancierAPI.rejeterDga(id, data),
+    onSuccess: async (_data, variables) => {
+      await invalidate(pickFactureId(variables));
+      toast.success('Facture rejetée par le DGA');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors du rejet DGA', {
         description: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     },
