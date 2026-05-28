@@ -146,20 +146,77 @@ export function createAgentRecouvreurColumns(
           );
         }
         // Étape 4 : Encaisser (acompte ou solde) — depuis Déposé partenaire
+        //
+        // Bug 2 fix (2026-05) — Cycle par acompte : sur "Déposé partenaire"
+        // avec déjà du montant recouvré (cas après retour d'un cycle, mon
+        // fix marquerDepotBanque renvoie à DEPOSE_PARTENAIRE quand pas
+        // soldé+versé), on doit pouvoir EN MÊME TEMPS continuer à encaisser
+        // ET verser ce qui est déjà encaissé. Avant ce fix : un seul bouton
+        // selon montantRecouvre >= montant, ce qui bloquait le métier qui
+        // veut "à chaque paiement, verser au caissier".
         if (statut === 'Déposé partenaire') {
+          const { montantRecouvre, montant } = row.original;
+          const hasRecouvrement = montantRecouvre !== null && montantRecouvre > 0;
+          const isFullyCovered = hasRecouvrement && montant > 0 && (montantRecouvre as number) >= montant;
+          if (isFullyCovered) {
+            return (
+              <Button
+                size="sm"
+                className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
+                onClick={() => onVerserCaissier(row.original)}
+              >
+                <Landmark className="w-3.5 h-3.5" />
+                Verser au caissier
+              </Button>
+            );
+          }
           return (
-            <Button
-              size="sm"
-              className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-              onClick={() => onEncaisser(row.original)}
-            >
-              <Banknote className="w-3.5 h-3.5" />
-              Encaisser
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
+                onClick={() => onEncaisser(row.original)}
+              >
+                <Banknote className="w-3.5 h-3.5" />
+                Encaisser
+              </Button>
+              {/* Si déjà du montant recouvré (cycle d'acompte en cours), proposer
+                  AUSSI le bouton "Verser au caissier" pour le solde déjà collecté. */}
+              {hasRecouvrement && (
+                <Button
+                  size="sm"
+                  className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
+                  onClick={() => onVerserCaissier(row.original)}
+                >
+                  <Landmark className="w-3.5 h-3.5" />
+                  Verser au caissier
+                </Button>
+              )}
+            </div>
           );
         }
         // Étape 4 bis : Ajouter un acompte supplémentaire (statut "Acompte N")
+        //
+        // Bug 2 fix (2026-05) — Quel que soit le pourcentage recouvré, le
+        // recouvreur doit pouvoir verser au caissier ce qu'il a déjà en
+        // main, et CONTINUER à encaisser des acomptes en parallèle. Avant :
+        // tant que pas 100% recouvré, seul "Ajouter acompte" était dispo,
+        // l'argent dormait dans la caisse du recouvreur.
         if (statut.startsWith('Acompte')) {
+          const { montantRecouvre, montant } = row.original;
+          const isFullyCovered = montantRecouvre !== null && montant > 0 && montantRecouvre >= montant;
+          if (isFullyCovered) {
+            return (
+              <Button
+                size="sm"
+                className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
+                onClick={() => onVerserCaissier(row.original)}
+              >
+                <Landmark className="w-3.5 h-3.5" />
+                Verser au caissier
+              </Button>
+            );
+          }
           return (
             <div className="flex items-center gap-2">
               <Button
@@ -169,6 +226,14 @@ export function createAgentRecouvreurColumns(
               >
                 <Banknote className="w-3.5 h-3.5" />
                 Ajouter acompte
+              </Button>
+              <Button
+                size="sm"
+                className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
+                onClick={() => onVerserCaissier(row.original)}
+              >
+                <Landmark className="w-3.5 h-3.5" />
+                Verser au caissier
               </Button>
             </div>
           );
