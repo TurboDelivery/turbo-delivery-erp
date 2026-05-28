@@ -79,6 +79,9 @@ export interface IVersementCaissierBody {
   montant: number;
   date: string;
   commentaire?: string;
+  // V52 (2026-05) — Preuve data URL base64 du reçu de versement.
+  // Persistée dans factures.preuve_versement_caissier côté backend.
+  preuve?: string;
 }
 
 /** @deprecated Utilisez IVersementCaissierBody */

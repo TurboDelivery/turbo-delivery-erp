@@ -33,6 +33,11 @@ export default function AjouterPaiementModal({ open, onClose, facture, montantDe
   const [date, setDate] = useState(today);
   const [montant, setMontant] = useState(0);
   const [fileName, setFileName] = useState<string | null>(null);
+  // V52 (2026-05) — On stocke aussi le contenu en data URL base64 pour
+  // l'envoi au backend. Avant : seul le nom du fichier était capturé,
+  // donc la preuve était silencieusement perdue au backend (champ DTO
+  // recevait juste un nom de fichier sans contenu).
+  const [preuveDataUrl, setPreuveDataUrl] = useState<string | null>(null);
   const [remarque, setRemarque] = useState('');
   const portalRef = useRef<Element | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -48,16 +53,35 @@ export default function AjouterPaiementModal({ open, onClose, facture, montantDe
       setDate(today);
       setMontant(0);
       setFileName(null);
+      setPreuveDataUrl(null);
       setRemarque('');
     }
   }, [open]);
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setFileName(null);
+      setPreuveDataUrl(null);
+      return;
+    }
+    setFileName(file.name);
+    // V52 — lire le fichier en data URL base64 pour l'envoyer au backend.
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') setPreuveDataUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+  }
 
   if (!open || !facture || !mounted) return null;
 
   const restant = facture.montant - montantDejaRecouvre;
 
   function handleConfirm() {
-    onConfirm({ type, date, montant, preuve: fileName ?? undefined, remarque: remarque || undefined });
+    // V52 — envoyer la data URL base64 (pas juste le nom du fichier comme
+    // avant) pour que le backend puisse persister la preuve.
+    onConfirm({ type, date, montant, preuve: preuveDataUrl ?? undefined, remarque: remarque || undefined });
     onClose();
   }
 
@@ -152,7 +176,7 @@ export default function AjouterPaiementModal({ open, onClose, facture, montantDe
                 ? <p className="text-xs font-medium text-gray-700">{fileName}</p>
                 : <p className="text-xs text-gray-400">Choisir pour télécharger<br /><span className="text-gray-300">PNG, JPG ou PDF (max 10Mo)</span></p>
               }
-              <input type="file" accept=".pdf,.png,.jpg,.jpeg" className="hidden" onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)} />
+              <input type="file" accept=".pdf,.png,.jpg,.jpeg" className="hidden" onChange={handleFileChange} />
             </label>
           </div>
 

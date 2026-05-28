@@ -7,9 +7,13 @@ interface Props {
   onClose: () => void;
   preuve: string | null | undefined;
   factureNumero?: string;
+  // V52 (2026-05) — Titre custom pour distinguer les 3 modals de preuves
+  // dans le panel "Preuves & Documents" (fiche paiement / encaissement /
+  // versement caissier). Si omis, fallback "Preuve de dépôt".
+  titre?: string;
 }
 
-export default function PreuveModal({ open, onClose, preuve, factureNumero }: Props) {
+export default function PreuveModal({ open, onClose, preuve, factureNumero, titre }: Props) {
   if (!open) return null;
 
   const isPdf = preuve?.startsWith('data:application/pdf') || preuve?.toLowerCase().endsWith('.pdf');
@@ -41,7 +45,7 @@ export default function PreuveModal({ open, onClose, preuve, factureNumero }: Pr
               <FileText className="w-4 h-4 text-purple-600" />
             </div>
             <h2 className="text-base font-semibold text-gray-900">
-              Preuve de dépôt{factureNumero ? ` — ${factureNumero}` : ''}
+              {titre ?? 'Preuve de dépôt'}{factureNumero ? ` — ${factureNumero}` : ''}
             </h2>
           </div>
           <div className="flex items-center gap-2">

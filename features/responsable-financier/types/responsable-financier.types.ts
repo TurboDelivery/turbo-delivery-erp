@@ -54,6 +54,12 @@ export interface IHistoriqueStatut {
 
 export interface IFactureRFDetail extends IFactureRF {
   historique: IHistoriqueStatut[];
+  // V52 (2026-05) — Preuves uploadées par l'agent recouvreur dans les 2
+  // modals d'encaissement et de versement au caissier. Format : data URL
+  // base64 (ou null si pas encore fournie). Affichées dans le panel
+  // "Preuves & Documents" de facture-detail-view.
+  preuveEncaissement?: string | null;
+  preuveVersementCaissier?: string | null;
 }
 
 // ─── Stats ────────────────────────────────────────────────────────────────────

@@ -298,6 +298,10 @@ export default function AgentRecouvreurView() {
                   date: dernierPaiement.date,
                   montant: dernierPaiement.montant,
                   remarque: dernierPaiement.remarque,
+                  // V52 (2026-05) — Propager la preuve data URL base64 au
+                  // backend pour persistance. Avant : champ jamais propagé,
+                  // upload silencieusement perdu.
+                  preuve: dernierPaiement.preuve,
                 },
               },
               {
@@ -313,9 +317,10 @@ export default function AgentRecouvreurView() {
         open={factureVersement !== null}
         onClose={() => setFactureVersement(null)}
         facture={factureVersement}
-        onConfirm={(facture, { montant, date }) => {
+        onConfirm={(facture, { montant, date, preuve }) => {
           verserComptableMutation.mutate(
-            { factureId: facture.id, body: { montant, date } },
+            // V52 (2026-05) — Propager la preuve data URL base64 au backend.
+            { factureId: facture.id, body: { montant, date, preuve } },
             {
               onSuccess: () => toast.success('Versement enregistré avec succès'),
               onError: (e) => toast.error(`Échec versement : ${e instanceof Error ? e.message : 'Erreur'}`),
