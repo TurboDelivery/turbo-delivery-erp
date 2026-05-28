@@ -30,6 +30,16 @@ export interface IGrillePaiementTurboy {
   code?: string;
 }
 
+/**
+ * V54 (2026-05) — Type de collaborateur du livreur. Détermine l'inclusion
+ * par défaut dans le calcul du "Total à payer" :
+ *   INDEPENDANT → inclus
+ *   JOURNALIER  → exclu (payé via autre circuit)
+ *   SUPERVISEUR → exclu (salarié)
+ *   null        → "à catégoriser" (RH doit assigner un type)
+ */
+export type TypeLivreur = 'INDEPENDANT' | 'JOURNALIER' | 'SUPERVISEUR';
+
 export interface IGrillePaiementLigne {
   id: string | null;
   turboy: IGrillePaiementTurboy;
@@ -48,6 +58,11 @@ export interface IGrillePaiementLigne {
   totalFraisLivraison?: number;
   ticketDetails?: IGrillePaiementTicketDetail[];
   bonusEligibilite?: IBonusEligibilite;
+  // V54 (2026-05) — Type de collaborateur (null = "à catégoriser" si pas
+  // assigné en base) et inclusion effective dans le totalAPayer (override
+  // Comptable ou défaut auto selon le type).
+  typeLivreur?: TypeLivreur | null;
+  inclusDansPaie?: boolean | null;
 }
 
 export interface IGrillePaiementCreneau {
@@ -65,6 +80,20 @@ export interface IGrillePaiementCreneau {
     totalBrut: number;
     totalNet: number;
     waveManquants: number;
+    // V54 (2026-05) — Décomposition par type de livreur. Le backend renvoie
+    // toujours ces champs depuis V54 ; on les rend optionnels côté types
+    // pour ne pas casser les anciens consommateurs qui ne les lisent pas
+    // encore (rétrocompat soft).
+    totalNetVerifie?: number;
+    totalAPayer?: number;
+    dontIndependants?: number;
+    nbIndependants?: number;
+    dontJournaliers?: number;
+    nbJournaliers?: number;
+    dontSuperviseurs?: number;
+    nbSuperviseurs?: number;
+    dontACategoriser?: number;
+    nbACategoriser?: number;
   };
 }
 
