@@ -30,7 +30,7 @@ export default function useGrillePaiement() {
   const [ligneAValider, setLigneAValider] = useState<IGrillePaiementLigne | null>(null);
 
   const lotStatut = grille?.lot?.statut;
-  const isLotVerrouille = !!grille?.lot && lotStatut !== 'EN_ATTENTE';
+  const isLotVerrouille = !!grille?.lot && lotStatut !== 'EN_ATTENTE' && lotStatut !== 'REJETE';
 
   const handleCreneauChange = useCallback((id: string | undefined) => {
     setFilters({ creneauId: id ?? '', page: 0 });
