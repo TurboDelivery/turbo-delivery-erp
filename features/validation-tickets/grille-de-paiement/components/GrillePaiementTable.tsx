@@ -24,6 +24,15 @@ interface Props {
   waveManquants: number;
   creneauDebut: Date;
   creneauFin: Date;
+  readOnly?: boolean;
+}
+
+function WaveReadOnlyCell({ ligne }: { ligne: IGrillePaiementLigne }) {
+  return ligne.numeroWave ? (
+    <span className="text-gray-700">{ligne.numeroWave}</span>
+  ) : (
+    <span className="italic text-gray-400">non renseigné</span>
+  );
 }
 
 function WaveCell({ ligne, onUpdateWave }: { ligne: IGrillePaiementLigne; onUpdateWave: (turboyId: string, value: string) => void }) {
@@ -83,6 +92,7 @@ export default function GrillePaiementTable({
   waveManquants,
   creneauDebut,
   creneauFin,
+  readOnly = false,
 }: Props) {
   const columns = useMemo<ColumnDef<IGrillePaiementLigne>[]>(
     () => [
@@ -123,7 +133,8 @@ export default function GrillePaiementTable({
       {
         id: 'wave',
         header: 'N° Wave',
-        cell: ({ row }) => <WaveCell ligne={row.original} onUpdateWave={onUpdateWave} />,
+        cell: ({ row }) =>
+          readOnly ? <WaveReadOnlyCell ligne={row.original} /> : <WaveCell ligne={row.original} onUpdateWave={onUpdateWave} />,
       },
       {
         id: 'statut',
@@ -148,7 +159,7 @@ export default function GrillePaiementTable({
         id: 'action',
         header: '',
         cell: ({ row }) =>
-          row.original.flagAttente ? (
+          row.original.flagAttente && !readOnly ? (
             <div onClick={(e) => e.stopPropagation()}>
               <Button size="sm" variant="outline" className="h-7 gap-1.5 border-amber-300 text-amber-700 hover:bg-amber-50 hover:text-amber-800 text-xs" onClick={() => onValiderLigne(row.original)}>
                 <ShieldCheck className="h-3.5 w-3.5" />
@@ -177,7 +188,7 @@ export default function GrillePaiementTable({
         cell: () => <span className="text-gray-300">›</span>,
       },
     ],
-    [onUpdateWave, onValiderLigne, creneauDebut, creneauFin],
+    [onUpdateWave, onValiderLigne, creneauDebut, creneauFin, readOnly],
   );
 
   const table = useReactTable({
@@ -188,7 +199,7 @@ export default function GrillePaiementTable({
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden overflow-x-auto">
-      {waveManquants > 0 && (
+      {!readOnly && waveManquants > 0 && (
         <div className="flex items-start gap-3 border-b border-red-100 bg-red-50 px-5 py-3">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
           <div>

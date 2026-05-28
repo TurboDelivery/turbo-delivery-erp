@@ -31,7 +31,7 @@ export default function useVisaDga() {
   const handleCreneauChange = useCallback((id: string | undefined) => setSelectedCreneauId(id), []);
 
   const handleViser = () => {
-    if (!creneau?.lotId || creneau.statut !== 'SOUMIS_DGA') return;
+    if (!creneau?.lotId || creneau.statut !== 'CALCUL_EN_COURS') return;
     viser({ lotId: creneau.lotId, userId }, {
       onSuccess: () => {
         setVise(true);
@@ -41,7 +41,7 @@ export default function useVisaDga() {
   };
 
   const handleRejeter = () => {
-    if (!creneau?.lotId || !motif.trim() || creneau.statut !== 'SOUMIS_DGA') return;
+    if (!creneau?.lotId || !motif.trim() || creneau.statut !== 'CALCUL_EN_COURS') return;
     rejeter(
       { lotId: creneau.lotId, motif: motif.trim(), userId },
       {

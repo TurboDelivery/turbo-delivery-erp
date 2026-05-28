@@ -26,9 +26,11 @@ export default function useGrillePaiement() {
   const [selectedLigne, setSelectedLigne] = useState<IGrillePaiementLigne | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [commentaire, setCommentaire] = useState('');
-  const [soumis, setSoumis] = useState(false);
   const [waveOverrides, setWaveOverrides] = useState<Map<string, string>>(new Map());
   const [ligneAValider, setLigneAValider] = useState<IGrillePaiementLigne | null>(null);
+
+  const lotStatut = grille?.lot?.statut;
+  const isLotVerrouille = !!grille?.lot && lotStatut !== 'EN_ATTENTE';
 
   const handleCreneauChange = useCallback((id: string | undefined) => {
     setFilters({ creneauId: id ?? '', page: 0 });
@@ -96,7 +98,6 @@ export default function useGrillePaiement() {
         onSuccess: () => {
           setConfirmOpen(false);
           setCommentaire('');
-          setSoumis(true);
         },
       },
     );
@@ -126,7 +127,8 @@ export default function useGrillePaiement() {
     commentaire,
     setCommentaire,
     handleConfirmerSoumission,
-    soumis,
+    isLotVerrouille,
+    lotStatut,
     ligneAValider,
     handleValiderLigne,
     handleConfirmerValidation,

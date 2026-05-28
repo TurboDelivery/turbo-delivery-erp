@@ -1,7 +1,9 @@
 'use client';
 
 import { Pagination } from '@heroui/react';
+import { Lock } from 'lucide-react';
 import useGrillePaiement from '../hooks/use-grille-paiement';
+import { lotStatutLabel } from '../utils/lot-statut-label';
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
 import GrillePaiementSkeleton from './GrillePaiementSkeleton';
 import GrillePaiementBanner from './GrillePaiementBanner';
@@ -38,7 +40,8 @@ export default function GrillePaiementContent() {
     commentaire,
     setCommentaire,
     handleConfirmerSoumission,
-    soumis,
+    isLotVerrouille,
+    lotStatut,
     ligneAValider,
     handleValiderLigne,
     handleConfirmerValidation,
@@ -78,7 +81,14 @@ export default function GrillePaiementContent() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap justify-end">
+          {isLotVerrouille && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+              <Lock className="h-3 w-3" />
+              {lotStatutLabel(lotStatut)}
+            </span>
+          )}
+
           <GrillePaiementExportButton
             creneauId={selectedCreneauId ?? undefined}
             grilleCode={grille.code}
@@ -94,40 +104,39 @@ export default function GrillePaiementContent() {
         </div>
       </div>
 
-      <GrillePaiementBanner grille={grille} soumis={soumis} />
+      <GrillePaiementBanner grille={grille} />
 
       <GrillePaiementStats stats={grille.stats} />
 
-      {!soumis && (
-        <>
-          <GrillePaiementTable
-            lignes={lignes}
-            onRowClick={openDetail}
-            onUpdateWave={updateWave}
-            onValiderLigne={handleValiderLigne}
-            waveManquants={waveManquants}
-            creneauDebut={new Date(grille.debut)}
-            creneauFin={new Date(grille.fin)}
-          />
+      <GrillePaiementTable
+        lignes={lignes}
+        onRowClick={openDetail}
+        onUpdateWave={updateWave}
+        onValiderLigne={handleValiderLigne}
+        waveManquants={waveManquants}
+        creneauDebut={new Date(grille.debut)}
+        creneauFin={new Date(grille.fin)}
+        readOnly={isLotVerrouille}
+      />
 
-          {totalPages > 1 && (
-            <div className="flex justify-center">
-              <Pagination
-                total={totalPages}
-                page={page + 1}
-                onChange={(p) => setPage(p - 1)}
-                color="primary"
-                showControls
-              />
-            </div>
-          )}
-
-          <GrillePaiementSubmitFooter
-            canSoumettre={canSoumettre}
-            isSoumettant={isSoumettant}
-            onSoumettre={handleSoumettre}
+      {totalPages > 1 && (
+        <div className="flex justify-center">
+          <Pagination
+            total={totalPages}
+            page={page + 1}
+            onChange={(p) => setPage(p - 1)}
+            color="primary"
+            showControls
           />
-        </>
+        </div>
+      )}
+
+      {!isLotVerrouille && (
+        <GrillePaiementSubmitFooter
+          canSoumettre={canSoumettre}
+          isSoumettant={isSoumettant}
+          onSoumettre={handleSoumettre}
+        />
       )}
 
       <GrillePaiementDetailModal
