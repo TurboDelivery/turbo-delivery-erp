@@ -194,25 +194,27 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       break;
 
     case 'DIRECTEUR_OPERATIONS':
-      // 2026-05 — Directeur des Opérations : vue cadre supervision
-      // opérationnelle. Demandé explicitement :
-      //   • Tableau de bord     → can('access', 'Analytics') (déjà global)
-      //   • Trafic              → read Trafic (localisation Turboys + file attente)
-      //   • Partners            → read + valider Restaurant + read Performance
-      //                           (Partenaires validés, partiellement, news, grille, rapports)
-      //   • Turboys             → read Livreur + Creneau + Performance
-      //   • Comptabilité > Agent Recouvreur → read Finance (parent) + PageAgentRecouvreur
+      // 2026-05 (révision après clarification user) — Le Directeur des
+      // Opérations a EXACTEMENT les permissions d'OPS_MANAGER + l'accès au
+      // sous-menu "Comptabilité > Agent Recouvreur" pour suivre les
+      // recouvrements terrain.
       //
-      // PAS d'accès à : Charges, Validation, Rapports Financiers, Gestion
-      // des Paiements, Recouvrements (menu Finance principal), Comptabilité >
-      // Responsable Financier / Caissier / Validation DGA, Validation des
-      // Tickets, Personnel, Utilisateurs, Commandes, External Delivery.
-      can('read', 'Trafic');
-      can('read', 'Restaurant');
+      // Différence avec OPS_MANAGER : uniquement l'ajout de Finance + Page
+      // AgentRecouvreur. Tout le reste est identique (gestion tickets,
+      // validation, créneaux, performance, grille paiement, etc.).
+      //
+      // PAS d'accès à : Comptabilité > Responsable Financier / Caissier /
+      // Validation DGA, ni au menu Finance principal (Charges, Rapports
+      // Financiers, etc.).
+      can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
       can('valider', 'Restaurant');
-      can('read', 'Livreur');
-      can('read', 'Creneau');
-      can('read', 'Performance');
+      can('manage', 'Ticket');
+      can('authentifier', 'Ticket');
+      can('manage', 'Creneau');
+      can('manage', 'Performance');
+      can('manage', 'ValidationTicket');
+      can('manage', 'GrillePaiement');
+      // Spécifique DIRECTEUR_OPERATIONS — accès suivi recouvrement.
       can('read', 'Finance');
       can('read', 'PageAgentRecouvreur');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
