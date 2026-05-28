@@ -218,12 +218,80 @@ export default function FactureDetailView({ facture }: Props) {
               </div>
             ))}
           </dl>
-          <button
-            onClick={() => setPreuveOpen(true)}
-            className="w-full mt-2 inline-flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors">
-            <Leaf className="w-4 h-4" />
-            Voir la preuve de dépôt
-          </button>
+        </div>
+
+        {/* 2026-05 — Section dédiée "Preuves & Documents" pour rendre visibles
+            toutes les preuves du workflow facture. User demande : "lors du dépôt
+            de la Facture y'a upload de la preuve / lors de l'encaissement y'a
+            une preuve uploadé / lors du versement au caissier y'a upload aussi /
+            A aucun moment on voit les trois types de preuve pour chaque facture.
+            Peux-tu rendre ça visible ici" → Section dédiée + indicateurs clairs
+            des preuves disponibles vs en attente de migration backend. */}
+        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm space-y-4 md:col-span-2 lg:col-span-1">
+          <h2 className="font-semibold text-gray-800">Preuves &amp; Documents</h2>
+          <div className="space-y-3 text-sm">
+            {/* Preuve 1 : Dépôt partenaire — actuellement date + agent seuls
+                (la preuve fichier physique sera ajoutée dans un commit suivant
+                car nécessite migration backend). */}
+            <div className="border border-gray-100 rounded-lg p-3 space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-gray-700">Dépôt chez partenaire</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.depotPartenaire ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-500'}`}>
+                  {facture.depotPartenaire ? 'Effectué' : 'En attente'}
+                </span>
+              </div>
+              {facture.depotPartenaire ? (
+                <div className="text-xs text-gray-600">
+                  Le {facture.depotPartenaire.date} par <strong>{facture.depotPartenaire.agent}</strong>
+                </div>
+              ) : (
+                <div className="text-xs text-gray-400 italic">Pas encore déposé.</div>
+              )}
+            </div>
+
+            {/* Preuve 2 : Fiche de paiement (financeProofReference) — preuve
+                de réception physique des fonds. C'est la preuve principale qui
+                est aujourd'hui persistée en DB (ajouterPreuve / confirmer
+                réception). */}
+            <div className="border border-gray-100 rounded-lg p-3 space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-gray-700">Fiche de paiement (réception fonds)</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.preuve ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-500'}`}>
+                  {facture.preuve ? 'Disponible' : 'Non fournie'}
+                </span>
+              </div>
+              {facture.preuve ? (
+                <button
+                  onClick={() => setPreuveOpen(true)}
+                  className="w-full mt-1 inline-flex items-center justify-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors">
+                  <Leaf className="w-3.5 h-3.5" />
+                  Voir la fiche
+                </button>
+              ) : (
+                <div className="text-xs text-gray-400 italic">Le Comptable peut l'ajouter après confirmation de réception.</div>
+              )}
+            </div>
+
+            {/* Preuves 3 & 4 : Encaissement chez partenaire + Versement au
+                caissier. Aujourd'hui le frontend accepte des uploads mais le
+                backend ne persiste pas (audit Bug 3). À ajouter dans un commit
+                ultérieur (migration FactureTable + DTOs + UI). On affiche
+                l'état pour transparence avec le user. */}
+            <div className="border border-amber-100 bg-amber-50/30 rounded-lg p-3 space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-amber-800">Encaissement &amp; Versement caissier</span>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-700">
+                  À venir
+                </span>
+              </div>
+              <div className="text-xs text-amber-700/80 italic">
+                La persistance backend des preuves d'encaissement et de
+                versement au caissier sera ajoutée dans un déploiement suivant.
+                Les fichiers uploadés actuellement par l'agent ne sont pas
+                conservés.
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <PreuveModal
