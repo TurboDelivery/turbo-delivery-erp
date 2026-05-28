@@ -82,8 +82,14 @@ export default function GrillePaiementContent() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap justify-end">
-          {isLotVerrouille && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+          {lotStatut && lotStatut !== 'EN_ATTENTE' && (
+            <span
+              className={
+                lotStatut === 'REJETE'
+                  ? 'inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700'
+                  : 'inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700'
+              }
+            >
               <Lock className="h-3 w-3" />
               {lotStatutLabel(lotStatut)}
             </span>
