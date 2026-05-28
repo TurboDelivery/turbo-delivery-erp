@@ -55,6 +55,10 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
   const [autreDocType, setAutreDocType] = useState('contrat');
   const [autreDocFile, setAutreDocFile] = useState<File | null>(null);
 
+  // Compte partenaire
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
   const [horaires, setHoraires] = useState<Horaire[]>(() => {
     if (restaurant.openingHours?.length > 0) {
       return JOURS.map((jour) => {
@@ -144,6 +148,8 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
     pictureFiles.forEach((f) => fd.append('pictures', f));
     existingPictureIds.forEach((id) => fd.append('existingPictureIds', id));
     if (autreDocFile) { fd.append('document', autreDocFile); fd.append('documentType', autreDocType); }
+    if (username) fd.append('username', username);
+    if (password) fd.append('password', password);
     horaires.forEach((h, i) => {
       fd.append(`openingHours[${i}][dayOfWeek]`, h.jour);
       fd.append(`openingHours[${i}][openingTime]`, h.ouverture);
@@ -201,7 +207,12 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
             typeCommission={typeCommission ?? ''}
           />
 
-          <CompteSection />
+          <CompteSection
+            username={username}
+            password={password}
+            onUsernameChange={setUsername}
+            onPasswordChange={setPassword}
+          />
 
           <PhotosSection
             existingPictures={existingPictures}

@@ -77,6 +77,8 @@ export default function CreateContent() {
   const [cniFiles, setCniFiles] = useState<File[]>([]);
   const [vehicleFile, setVehicleFile] = useState<File | null>(null);
   const [contratFile, setContratFile] = useState<File | null>(null);
+  const [ficheIdentificationFile, setFicheIdentificationFile] = useState<File | null>(null);
+  const [permisConduire, setPermisConduire] = useState<boolean | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -100,6 +102,7 @@ export default function CreateContent() {
       typeVehicule: '',
       nomVehicule: '',
       immatriculation: '',
+      personneAContacter: '',
       telephoneCompte: '',
       password: '',
     },
@@ -120,6 +123,8 @@ export default function CreateContent() {
     cniFiles.forEach((f, i) => fd.append(`cni_${i}`, f));
     if (vehicleFile) fd.append('vehiclePhoto', vehicleFile);
     if (contratFile) fd.append('contrat', contratFile);
+    if (ficheIdentificationFile) fd.append('ficheIdentification', ficheIdentificationFile);
+    if (permisConduire !== null) fd.append('permisConduire', String(permisConduire));
 
     const result = await createLivreur(fd);
     setIsSubmitting(false);
@@ -177,24 +182,47 @@ export default function CreateContent() {
             </div>
           </div>
 
-          {/* Contrat */}
-          <div className="mt-5 pt-5 border-t border-gray-100">
-            <p className="text-sm font-medium text-gray-700 mb-2">Contrat du livreur</p>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
-                <FileText className="w-4 h-4 shrink-0" />
-                <span>{contratFile ? contratFile.name : 'Importer le contrat (PDF, JPG, PNG)'}</span>
-              </div>
-              <input
-                type="file"
-                accept=".pdf,image/*"
-                className="hidden"
-                onChange={(e) => { if (e.target.files?.[0]) setContratFile(e.target.files[0]); }}
-              />
-            </label>
-            {contratFile && (
-              <p className="text-xs text-green-600 mt-1.5">{contratFile.name} sélectionné</p>
-            )}
+          {/* Contrat + Fiche d'identification */}
+          <div className="mt-5 pt-5 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Contrat */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Contrat du livreur</p>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
+                  <FileText className="w-4 h-4 shrink-0" />
+                  <span>{contratFile ? contratFile.name : 'Importer le contrat (PDF, JPG, PNG)'}</span>
+                </div>
+                <input
+                  type="file"
+                  accept=".pdf,image/*"
+                  className="hidden"
+                  onChange={(e) => { if (e.target.files?.[0]) setContratFile(e.target.files[0]); }}
+                />
+              </label>
+              {contratFile && (
+                <p className="text-xs text-green-600 mt-1.5">{contratFile.name} sélectionné</p>
+              )}
+            </div>
+
+            {/* Fiche d'identification Turboy */}
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">Fiche d'identification Turboy</p>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
+                  <FileText className="w-4 h-4 shrink-0" />
+                  <span>{ficheIdentificationFile ? ficheIdentificationFile.name : 'Importer la fiche (PDF, JPG, PNG)'}</span>
+                </div>
+                <input
+                  type="file"
+                  accept=".pdf,image/*"
+                  className="hidden"
+                  onChange={(e) => { if (e.target.files?.[0]) setFicheIdentificationFile(e.target.files[0]); }}
+                />
+              </label>
+              {ficheIdentificationFile && (
+                <p className="text-xs text-green-600 mt-1.5">{ficheIdentificationFile.name} sélectionné</p>
+              )}
+            </div>
           </div>
         </section>
 
@@ -244,6 +272,42 @@ export default function CreateContent() {
                 <Input {...field} type="email" label="Adresse mail" placeholder="email@example.com" isInvalid={!!errors.email} errorMessage={errors.email?.message} variant="bordered" startContent={<span className="text-gray-400 text-sm">✉️</span>} />
               )}
             />
+            <Controller
+              name="personneAContacter"
+              control={control}
+              render={({ field }) => (
+                <Input {...field} label="Personne à contacter" placeholder="+225 0000000000" variant="bordered" startContent={<span className="text-gray-400 text-sm">📞</span>} className="sm:col-span-2" />
+              )}
+            />
+          </div>
+
+          {/* Permis de conduire */}
+          <div className="mt-5 pt-5 border-t border-gray-100">
+            <p className="text-sm font-medium text-gray-700 mb-3">Permis de conduire</p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setPermisConduire(true)}
+                className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                  permisConduire === true
+                    ? 'border-primary bg-primary text-white'
+                    : 'border-gray-300 text-gray-500 hover:border-primary hover:text-primary'
+                }`}
+              >
+                Oui
+              </button>
+              <button
+                type="button"
+                onClick={() => setPermisConduire(false)}
+                className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                  permisConduire === false
+                    ? 'border-danger bg-danger text-white'
+                    : 'border-gray-300 text-gray-500 hover:border-danger hover:text-danger'
+                }`}
+              >
+                Non
+              </button>
+            </div>
           </div>
         </section>
 

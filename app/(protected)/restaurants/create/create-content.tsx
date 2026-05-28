@@ -20,6 +20,7 @@ import { ComptePartenaireSection } from './_sections/ComptePartenaireSection';
 import { PhotosSection } from './_sections/PhotosSection';
 import { HorairesSection, type Horaire } from './_sections/HorairesSection';
 import { AutresDocumentsSection } from './_sections/AutresDocumentsSection';
+import { DocumentsPartenaireSection } from './_sections/DocumentsPartenaireSection';
 
 const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'] as const;
 
@@ -45,6 +46,15 @@ export default function CreateContent() {
   const [contacts, setContacts] = useState<{ nom: string; telephone: string }[]>([{ nom: '', telephone: '' }]);
   const [autreDocType, setAutreDocType] = useState('contrat');
   const [autreDocFile, setAutreDocFile] = useState<File | null>(null);
+
+  // Documents partenariat
+  const [fichePartnerFile, setFichePartnerFile] = useState<File | null>(null);
+  const [contratPartnerFile, setContratPartnerFile] = useState<File | null>(null);
+  const [avenantFile, setAvenantFile] = useState<File | null>(null);
+
+  // Compte partenaire
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [horaires, setHoraires] = useState<Horaire[]>(
     JOURS.map((j) => ({ jour: j, ouverture: '08:00', fermeture: '22:00', ferme: false }))
   );
@@ -105,6 +115,15 @@ export default function CreateContent() {
     pictureFiles.forEach((f) => fd.append('pictures', f));
     if (autreDocFile) { fd.append('document', autreDocFile); fd.append('documentType', autreDocType); }
 
+    // Documents partenariat
+    if (fichePartnerFile) fd.append('ficheRenseignement', fichePartnerFile);
+    if (contratPartnerFile) fd.append('contratPartenariat', contratPartnerFile);
+    if (avenantFile) fd.append('avenantContrat', avenantFile);
+
+    // Compte partenaire
+    if (username) fd.append('username', username);
+    if (password) fd.append('password', password);
+
     // Contacts
     contacts.forEach((c, i) => {
       if (c.nom) fd.append(`contact_nom_${i}`, c.nom);
@@ -163,7 +182,21 @@ export default function CreateContent() {
           typeCommission={typeCommission ?? ''}
         />
 
-        <ComptePartenaireSection />
+        <ComptePartenaireSection
+          username={username}
+          password={password}
+          onUsernameChange={setUsername}
+          onPasswordChange={setPassword}
+        />
+
+        <DocumentsPartenaireSection
+          ficheFile={fichePartnerFile}
+          contratFile={contratPartnerFile}
+          avenantFile={avenantFile}
+          onFicheChange={setFichePartnerFile}
+          onContratChange={setContratPartnerFile}
+          onAvenantChange={setAvenantFile}
+        />
 
         <PhotosSection
           pictureRef={pictureRef}
