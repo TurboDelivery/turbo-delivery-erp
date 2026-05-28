@@ -68,6 +68,11 @@ export function createResponsableFinancierColumns(
   onValider: (facture: IFactureRF) => void,
   onLancerRecouvrement: (facture: IFactureRF) => void,
   onDepotBanque: (facture: IFactureRF) => void,
+  // 2026-05 (fix post-test mardi) — callback optionnel pour le bouton
+  // "Confirmer réception fonds" (D3 du workflow facture). Affiché quand la
+  // facture est en statut "Versé au caissier". Si la callback est non passée
+  // (ex. test ou pages legacy), le bouton n'est pas rendu.
+  onConfirmerReception?: (facture: IFactureRF) => void,
 ): ColumnDef<IFactureRF>[] {
   return [
   {
@@ -225,6 +230,19 @@ export function createResponsableFinancierColumns(
             <span className="flex items-center gap-1 text-xs text-slate-500 italic">
               <Clock className="h-3 w-3" /> Versé au caissier
             </span>
+            {/* 2026-05 (fix post-test mardi) — Bouton D3 visible pour
+                COMPTABLE + DGA + DG. La permission CASL "manage Finance"
+                couvre les 3 rôles ; le backend re-valide qu'on est dans un
+                statut compatible et renvoie 400 sinon. */}
+            {onConfirmerReception && (
+              <Button
+                size="sm"
+                className="bg-emerald-600 text-white hover:bg-emerald-700 text-xs px-3"
+                onClick={() => onConfirmerReception(row.original)}
+              >
+                <CheckCircle2 className="h-3 w-3 mr-1" /> Confirmer réception fonds
+              </Button>
+            )}
             {voirDetail}
           </div>
         );

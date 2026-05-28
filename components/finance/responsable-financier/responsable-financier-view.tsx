@@ -30,6 +30,7 @@ import {
   useValiderFactureRFMutation,
   useLancerRecouvrementMutation,
   useDepotBanqueMutation,
+  useConfirmerReceptionComptableMutation,
 } from '@/features/responsable-financier';
 
 const statutFilters = [
@@ -69,13 +70,20 @@ export default function ResponsableFinancierView() {
   const [factureRecouvrement, setFactureRecouvrement] = useState<IFactureRF | null>(null);
   const [factureDepotBanque, setFactureDepotBanque] = useState<IFactureRF | null>(null);
 
+  const confirmerReceptionMutation = useConfirmerReceptionComptableMutation();
+
   const columns = useMemo(
     () => createResponsableFinancierColumns(
       (facture) => setFactureAValider(facture),
       (facture) => setFactureRecouvrement(facture),
       (facture) => setFactureDepotBanque(facture),
+      // 2026-05 (fix post-test mardi) — D3 : Comptable confirme physiquement
+      // la réception des fonds versés par le caissier. Click direct (pas de
+      // modal), c'est une simple confirmation idempotente. La sécurité reste
+      // côté backend qui vérifie le statut autorisé et renvoie 400 sinon.
+      (facture) => confirmerReceptionMutation.mutate(facture.id),
     ),
-    [],
+    [confirmerReceptionMutation],
   );
 
   const { table, filters, setFilters, isLoading, totalPages } =
