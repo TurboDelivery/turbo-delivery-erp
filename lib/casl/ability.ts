@@ -29,7 +29,7 @@ export type AppSubjects =
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
-export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR'] as const;
+export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
@@ -43,6 +43,7 @@ const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
   TRESORIER: 'TRESORIER',
   RECOUVREUR: 'RECOUVREUR',
   'AGENT RECOUVREUR': 'RECOUVREUR',
+  CAISSIER: 'CAISSIER',
   BUSINESS_DEVELOPER: 'BUSINESS_DEVELOPER',
   'BUSINESS DEVELOPER': 'BUSINESS_DEVELOPER',
   "CENTRALE D'APPEL": 'STANDARD',
@@ -159,6 +160,25 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       break;
 
     case 'TRESORIER':
+      break;
+
+    case 'CAISSIER':
+      // 2026-05 (fix post-test mardi) — Le CAISSIER reçoit physiquement les
+      // versements des agents recouvreurs dans le workflow facture (étape D2).
+      // Avant ce fix : rôle absent de l'énumération → ability vide → page
+      // /finance/comptabilite vide, aucun accès. Sans ces droits le métier
+      // était cassé en prod.
+      //
+      // Mirror minimal du RECOUVREUR + accès Finance (vue comptabilité et
+      // tableau des factures à confirmer).
+      can('read', 'Trafic');
+      can('create', 'Ticket');
+      can('read', 'Ticket');
+      can('manage', 'Creneau');
+      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
+      // Accès vue comptabilité (lecture + actions sur les versements à confirmer).
+      can('read', 'Finance');
+      can('manage', 'Finance');
       break;
 
     default:

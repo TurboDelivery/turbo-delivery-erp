@@ -201,6 +201,37 @@ export const useRejeterDgaMutation = () => {
   });
 };
 
+// ─── D3 — Confirmer réception fonds (Comptable / DGA / DG) ──────────────────
+
+/**
+ * 2026-05 (fix post-test mardi) — Le Comptable (ou DGA/DG en suppléance)
+ * confirme physiquement avoir reçu les fonds versés par le caissier.
+ *
+ * <p>Émet un event historique + notif DGA + DG côté backend (sans changer
+ * le statut métier de la facture pour ne pas bloquer le flow
+ * ajouterPreuve → viserDg qui s'enchaîne après).</p>
+ *
+ * <p>Permission CASL : COMPTABLE + DGA + DG ont le droit. La visibilité du
+ * bouton dans l'UI est gérée par `<Can I="manage" a="Finance">`.</p>
+ */
+export const useConfirmerReceptionComptableMutation = () => {
+  const invalidate = useInvalidateFacturesRFQuery();
+  const userId = useCurrentUserId();
+
+  return useMutation({
+    mutationFn: (id: string) => responsableFinancierAPI.confirmerReceptionComptable(id, userId),
+    onSuccess: async (_data, variables) => {
+      await invalidate(pickFactureId(variables));
+      toast.success('Réception des fonds confirmée — DGA et DG notifiés');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors de la confirmation de réception', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
 // ─── Marquer dépôt banque ─────────────────────────────────────────────────────
 
 export const useDepotBanqueMutation = () => {
