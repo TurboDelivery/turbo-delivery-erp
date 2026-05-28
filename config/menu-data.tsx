@@ -107,8 +107,13 @@ const menuData: IMenuData[] = [
     title: 'Comptabilité',
     can: { action: 'read', subject: 'Finance' },
     children: [
-      { icon: FileText, title: 'Responsable Financier', path: '/finance/comptabilite/responsable-financier', can: { action: 'read', subject: 'Finance' } },
-      { icon: FileText, title: 'Agent Recouvreur', path: '/finance/comptabilite/agent-recouvreur', can: { action: 'read', subject: 'Finance' } },
+      // 2026-05 — Permissions granulaires sur les 2 sous-menus Comptabilité.
+      // Le RECOUVREUR ne doit voir QUE "Agent Recouvreur" → on utilise le
+      // subject dédié PageResponsableFinancier qui n'est PAS accordé au
+      // RECOUVREUR (cf. ability.ts case 'RECOUVREUR'). Les autres rôles
+      // Finance (COMPTABLE, DGA, DG, CAISSIER) le reçoivent et voient les 2.
+      { icon: FileText, title: 'Responsable Financier', path: '/finance/comptabilite/responsable-financier', can: { action: 'read', subject: 'PageResponsableFinancier' } },
+      { icon: FileText, title: 'Agent Recouvreur', path: '/finance/comptabilite/agent-recouvreur', can: { action: 'read', subject: 'PageAgentRecouvreur' } },
     ],
   },
   { icon: Bell, title: 'Notifications', path: '/notification', can: { action: 'access', subject: 'Notification' } },
