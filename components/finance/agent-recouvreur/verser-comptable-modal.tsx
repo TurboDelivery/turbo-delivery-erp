@@ -10,7 +10,12 @@ interface Props {
   open: boolean;
   onClose: () => void;
   facture: IFactureAgent | null;
-  onConfirm: (facture: IFactureAgent, data: { montant: number; date: string }) => void;
+  // V52 (2026-05) — data.preuve = data URL base64 du reçu uploadé.
+  // Optional pour rétrocompat avec les callers historiques.
+  onConfirm: (
+    facture: IFactureAgent,
+    data: { montant: number; date: string; preuve?: string }
+  ) => void;
 }
 
 function formatMontant(v: number) {
@@ -22,6 +27,9 @@ export default function VerserComptableModal({ open, onClose, facture, onConfirm
   const [montant, setMontant] = useState(0);
   const [date, setDate] = useState(today);
   const [fileName, setFileName] = useState<string | null>(null);
+  // V52 — data URL base64 envoyée au backend (avant : seul le nom du
+  // fichier était capturé, le contenu était perdu).
+  const [preuveDataUrl, setPreuveDataUrl] = useState<string | null>(null);
   const portalRef = useRef<Element | null>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -35,6 +43,7 @@ export default function VerserComptableModal({ open, onClose, facture, onConfirm
       setMontant(facture.montantRecouvre ?? facture.montant);
       setDate(today);
       setFileName(null);
+      setPreuveDataUrl(null);
     }
   }, [open, facture]);
 
@@ -42,9 +51,24 @@ export default function VerserComptableModal({ open, onClose, facture, onConfirm
 
   const totalCollecte = facture.montantRecouvre ?? facture.montant;
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setFileName(null);
+      setPreuveDataUrl(null);
+      return;
+    }
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') setPreuveDataUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
   function handleConfirm() {
     if (!facture) return;
-    onConfirm(facture, { montant, date });
+    onConfirm(facture, { montant, date, preuve: preuveDataUrl ?? undefined });
     onClose();
   }
 
@@ -108,7 +132,7 @@ export default function VerserComptableModal({ open, onClose, facture, onConfirm
                 type="file"
                 className="hidden"
                 accept="image/*,application/pdf"
-                onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+                onChange={handleFileChange}
               />
             </label>
           </div>

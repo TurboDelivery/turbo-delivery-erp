@@ -297,6 +297,10 @@ export default function AgentRecouvreurView() {
                   date: dernierPaiement.date,
                   montant: dernierPaiement.montant,
                   remarque: dernierPaiement.remarque,
+                  // V52 (2026-05) — Propager la preuve data URL base64 au
+                  // backend pour persistance. Avant : champ jamais propagé,
+                  // upload silencieusement perdu.
+                  preuve: dernierPaiement.preuve,
                 },
               },
               {
@@ -312,7 +316,7 @@ export default function AgentRecouvreurView() {
         open={factureVersement !== null}
         onClose={() => setFactureVersement(null)}
         facture={factureVersement}
-        onConfirm={(facture, { montant, date }) => {
+        onConfirm={(facture, { montant, date, preuve }) => {
           const agentId = session?.user?.id ?? '';
           if (!agentId) {
             toast.error('Session expirée', {
@@ -321,7 +325,8 @@ export default function AgentRecouvreurView() {
             return;
           }
           verserComptableMutation.mutate(
-            { factureId: facture.id, agentIdOverride: agentId, body: { montant, date } },
+            // V52 (2026-05) — Propager la preuve data URL base64 au backend.
+            { factureId: facture.id, agentIdOverride: agentId, body: { montant, date, preuve } },
             {
               onSuccess: (data) => {
                 if (data && 'statut' in data && data.statut !== 'Versé au caissier') {

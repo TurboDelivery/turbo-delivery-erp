@@ -49,6 +49,10 @@ interface Props {
 
 export default function FactureDetailView({ facture }: Props) {
   const [preuveOpen, setPreuveOpen] = useState(false);
+  // V52 (2026-05) — 2 modals supplémentaires pour preuves d'encaissement
+  // et de versement caissier (Bug C complet).
+  const [preuveEncaissementOpen, setPreuveEncaissementOpen] = useState(false);
+  const [preuveVersementOpen, setPreuveVersementOpen] = useState(false);
   const [validerOpen, setValiderOpen] = useState(false);
   const [recouvrementOpen, setRecouvrementOpen] = useState(false);
   const [depotBanqueOpen, setDepotBanqueOpen] = useState(false);
@@ -272,24 +276,49 @@ export default function FactureDetailView({ facture }: Props) {
               )}
             </div>
 
-            {/* Preuves 3 & 4 : Encaissement chez partenaire + Versement au
-                caissier. Aujourd'hui le frontend accepte des uploads mais le
-                backend ne persiste pas (audit Bug 3). À ajouter dans un commit
-                ultérieur (migration FactureTable + DTOs + UI). On affiche
-                l'état pour transparence avec le user. */}
-            <div className="border border-amber-100 bg-amber-50/30 rounded-lg p-3 space-y-1">
+            {/* V52 (2026-05) — Preuve d'encaissement chez partenaire :
+                fichier uploadé par l'agent recouvreur dans le modal
+                "Ajouter un paiement" (encaissement-drawer). Persistée via
+                colonne factures.preuve_encaissement (migration V52). */}
+            <div className="border border-gray-100 rounded-lg p-3 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-amber-800">Encaissement &amp; Versement caissier</span>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-amber-100 text-amber-700">
-                  À venir
+                <span className="text-xs font-semibold text-gray-700">Preuve d&apos;encaissement (partenaire)</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.preuveEncaissement ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-500'}`}>
+                  {facture.preuveEncaissement ? 'Disponible' : 'Non fournie'}
                 </span>
               </div>
-              <div className="text-xs text-amber-700/80 italic">
-                La persistance backend des preuves d'encaissement et de
-                versement au caissier sera ajoutée dans un déploiement suivant.
-                Les fichiers uploadés actuellement par l'agent ne sont pas
-                conservés.
+              {facture.preuveEncaissement ? (
+                <button
+                  onClick={() => setPreuveEncaissementOpen(true)}
+                  className="w-full mt-1 inline-flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors">
+                  <Leaf className="w-3.5 h-3.5" />
+                  Voir la preuve d&apos;encaissement
+                </button>
+              ) : (
+                <div className="text-xs text-gray-400 italic">Uploadée par l&apos;agent recouvreur lors de l&apos;encaissement chez le partenaire.</div>
+              )}
+            </div>
+
+            {/* V52 (2026-05) — Preuve de versement au caissier : fichier
+                uploadé par l'agent dans le modal "Verser au caissier".
+                Persistée via factures.preuve_versement_caissier. */}
+            <div className="border border-gray-100 rounded-lg p-3 space-y-1">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-gray-700">Preuve de versement au caissier</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.preuveVersementCaissier ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-500'}`}>
+                  {facture.preuveVersementCaissier ? 'Disponible' : 'Non fournie'}
+                </span>
               </div>
+              {facture.preuveVersementCaissier ? (
+                <button
+                  onClick={() => setPreuveVersementOpen(true)}
+                  className="w-full mt-1 inline-flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors">
+                  <Leaf className="w-3.5 h-3.5" />
+                  Voir la preuve de versement
+                </button>
+              ) : (
+                <div className="text-xs text-gray-400 italic">Uploadée par l&apos;agent lors du transfert au caissier.</div>
+              )}
             </div>
           </div>
         </div>
@@ -299,6 +328,24 @@ export default function FactureDetailView({ facture }: Props) {
         onClose={() => setPreuveOpen(false)}
         preuve={facture.preuve}
         factureNumero={facture.numero}
+        titre="Fiche de paiement"
+      />
+
+      {/* V52 (2026-05) — Modals pour les 2 nouvelles preuves persistées. */}
+      <PreuveModal
+        open={preuveEncaissementOpen}
+        onClose={() => setPreuveEncaissementOpen(false)}
+        preuve={facture.preuveEncaissement}
+        factureNumero={facture.numero}
+        titre="Preuve d'encaissement (chez partenaire)"
+      />
+
+      <PreuveModal
+        open={preuveVersementOpen}
+        onClose={() => setPreuveVersementOpen(false)}
+        preuve={facture.preuveVersementCaissier}
+        factureNumero={facture.numero}
+        titre="Preuve de versement au caissier"
       />
 
       <ValiderFactureModal
