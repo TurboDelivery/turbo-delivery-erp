@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
-import { Button, Input, Select, SelectItem } from '@heroui/react';
+import { Button, Input, Select, SelectItem, Switch } from '@heroui/react';
 import { ArrowLeft, Camera, Upload, Plus, Eye, EyeOff, FileText } from 'lucide-react';
 import {
   createTurboySchema,
@@ -77,8 +77,8 @@ export default function CreateContent() {
   const [cniFiles, setCniFiles] = useState<File[]>([]);
   const [vehicleFile, setVehicleFile] = useState<File | null>(null);
   const [contratFile, setContratFile] = useState<File | null>(null);
+  // fiche d'identification (PDF ou image scannée)
   const [ficheIdentificationFile, setFicheIdentificationFile] = useState<File | null>(null);
-  const [permisConduire, setPermisConduire] = useState<boolean | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -102,7 +102,8 @@ export default function CreateContent() {
       typeVehicule: '',
       nomVehicule: '',
       immatriculation: '',
-      personneAContacter: '',
+      numeroPersonneAContacter: '',
+      permisConduire: false,
       telephoneCompte: '',
       password: '',
     },
@@ -118,13 +119,17 @@ export default function CreateContent() {
   async function onSubmit(values: CreateTurboyDTO) {
     setIsSubmitting(true);
     const fd = new FormData();
-    Object.entries(values).forEach(([k, v]) => { if (v) fd.append(k, v); });
+    // V48 : permisConduire est un boolean, donc `if (v)` skip "false".
+    // On itère explicitement pour gérer boolean/string différemment.
+    Object.entries(values).forEach(([k, v]) => {
+      if (v === undefined || v === null || v === '') return;
+      fd.append(k, typeof v === 'boolean' ? String(v) : (v as string));
+    });
     if (avatarFile) fd.append('avatar', avatarFile);
     cniFiles.forEach((f, i) => fd.append(`cni_${i}`, f));
     if (vehicleFile) fd.append('vehiclePhoto', vehicleFile);
     if (contratFile) fd.append('contrat', contratFile);
     if (ficheIdentificationFile) fd.append('ficheIdentification', ficheIdentificationFile);
-    if (permisConduire !== null) fd.append('permisConduire', String(permisConduire));
 
     const result = await createLivreur(fd);
     setIsSubmitting(false);
@@ -273,41 +278,41 @@ export default function CreateContent() {
               )}
             />
             <Controller
-              name="personneAContacter"
+              name="numeroPersonneAContacter"
               control={control}
               render={({ field }) => (
-                <Input {...field} label="Personne à contacter" placeholder="+225 0000000000" variant="bordered" startContent={<span className="text-gray-400 text-sm">📞</span>} className="sm:col-span-2" />
+                <Input
+                  {...field}
+                  label="Personne à contacter (urgence)"
+                  placeholder="+225 0000000000"
+                  isInvalid={!!errors.numeroPersonneAContacter}
+                  errorMessage={errors.numeroPersonneAContacter?.message}
+                  variant="bordered"
+                  startContent={<span className="text-gray-400 text-sm">📞</span>}
+                  className="sm:col-span-2"
+                />
               )}
             />
           </div>
 
           {/* Permis de conduire */}
           <div className="mt-5 pt-5 border-t border-gray-100">
-            <p className="text-sm font-medium text-gray-700 mb-3">Permis de conduire</p>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setPermisConduire(true)}
-                className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
-                  permisConduire === true
-                    ? 'border-primary bg-primary text-white'
-                    : 'border-gray-300 text-gray-500 hover:border-primary hover:text-primary'
-                }`}
-              >
-                Oui
-              </button>
-              <button
-                type="button"
-                onClick={() => setPermisConduire(false)}
-                className={`px-6 py-2 rounded-lg border-2 text-sm font-medium transition-colors ${
-                  permisConduire === false
-                    ? 'border-danger bg-danger text-white'
-                    : 'border-gray-300 text-gray-500 hover:border-danger hover:text-danger'
-                }`}
-              >
-                Non
-              </button>
-            </div>
+            <Controller
+              name="permisConduire"
+              control={control}
+              render={({ field }) => (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Permis de conduire</p>
+                    <p className="text-xs text-gray-400">Le livreur détient-il un permis valide ?</p>
+                  </div>
+                  <Switch
+                    isSelected={field.value ?? false}
+                    onValueChange={field.onChange}
+                  />
+                </div>
+              )}
+            />
           </div>
         </section>
 
@@ -352,6 +357,46 @@ export default function CreateContent() {
             {cniFiles.length > 0 && (
               <p className="text-xs text-green-600 mt-2">{cniFiles.length} fichier(s) sélectionné(s)</p>
             )}
+          </div>
+
+          {/* V48 (2026-05) — Fiche d'identification (PDF/image scannée) */}
+          <div className="mt-5 pt-5 border-t border-gray-100">
+            <p className="text-sm font-medium text-gray-700 mb-2">Fiche d&apos;identification</p>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
+                <FileText className="w-4 h-4 shrink-0" />
+                <span>{ficheIdentificationFile ? ficheIdentificationFile.name : 'Importer la fiche d\'identification (PDF, JPG, PNG)'}</span>
+              </div>
+              <input
+                type="file"
+                accept=".pdf,image/*"
+                className="hidden"
+                onChange={(e) => { if (e.target.files?.[0]) setFicheIdentificationFile(e.target.files[0]); }}
+              />
+            </label>
+            {ficheIdentificationFile && (
+              <p className="text-xs text-green-600 mt-1.5">{ficheIdentificationFile.name} sélectionné</p>
+            )}
+          </div>
+
+          {/* V48 (2026-05) — Permis de conduire (booléen) */}
+          <div className="mt-5 pt-5 border-t border-gray-100">
+            <Controller
+              name="permisConduire"
+              control={control}
+              render={({ field }) => (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Permis de conduire</p>
+                    <p className="text-xs text-gray-400">Le livreur détient-il un permis valide ?</p>
+                  </div>
+                  <Switch
+                    isSelected={field.value ?? false}
+                    onValueChange={field.onChange}
+                  />
+                </div>
+              )}
+            />
           </div>
         </section>
 

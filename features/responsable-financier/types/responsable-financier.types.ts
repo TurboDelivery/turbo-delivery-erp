@@ -133,7 +133,8 @@ export interface IDepotBanqueDTO {
   date: string; // ISO date yyyy-MM-dd
 }
 
-// RejeterDgaRequestDto
+// FactureRejetDgaRequestDto — 2026-05, motif obligatoire côté backend
+// (cf. PATCH /factures/{id}/rejeter-dga + validation @NotBlank).
 export interface IRejeterDgaDTO {
   motif: string;
 }

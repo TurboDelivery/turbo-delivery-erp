@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { responsableFinancierAPI } from '../apis/responsable-financier.api';
 import {
@@ -8,6 +9,7 @@ import {
   IDepotBanqueDTO,
   IDepotPartenaireDTO,
   ILancerRecouvrementDTO,
+  IRejeterDgaDTO,
   IValiderFactureDTO,
 } from '../types/responsable-financier.types';
 import { useInvalidateFacturesRFQuery } from './responsable-financier.query';
@@ -23,14 +25,30 @@ function pickFactureId(variables: string | { id?: string } | undefined): string 
   return variables?.id;
 }
 
+/**
+ * 2026-05 (fix incident X-User-Id) — Helper pour récupérer l'UUID du user
+ * authentifié depuis la session NextAuth et le propager aux API calls du
+ * workflow facture. Sans ce header, l'endpoint backend
+ * {@code assignerRecouvrement} throw "X-User-Id est requis" (HTTP 400) ;
+ * les autres endpoints du workflow sont permissifs aujourd'hui mais on
+ * propage partout pour ne pas avoir à fixer endpoint par endpoint si le
+ * backend devient strict, et pour avoir un audit trail "qui a fait quoi"
+ * côté logs serveur.
+ */
+function useCurrentUserId(): string | undefined {
+  const { data: session } = useSession();
+  return (session?.user as { id?: string } | undefined)?.id;
+}
+
 // ─── Valider une facture ───────────────────────────────────────────────────────
 
 export const useValiderFactureRFMutation = () => {
   const invalidate = useInvalidateFacturesRFQuery();
+  const userId = useCurrentUserId();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: IValiderFactureDTO }) =>
-      responsableFinancierAPI.validerFacture(id, data),
+      responsableFinancierAPI.validerFacture(id, data, userId),
     onSuccess: async (_data, variables) => {
       // Fix B1 : passer l'id pour invalider précisément le détail de la
       // facture modifiée (en plus des listes). Avant : seule la liste était
@@ -51,9 +69,10 @@ export const useValiderFactureRFMutation = () => {
 
 export const useViserDgMutation = () => {
   const invalidate = useInvalidateFacturesRFQuery();
+  const userId = useCurrentUserId();
 
   return useMutation({
-    mutationFn: (id: string) => responsableFinancierAPI.viserDg(id),
+    mutationFn: (id: string) => responsableFinancierAPI.viserDg(id, userId),
     onSuccess: async (_data, variables) => {
       // Fix B1 : passer l'id pour invalider précisément le détail de la
       // facture modifiée (en plus des listes). Avant : seule la liste était
@@ -74,10 +93,15 @@ export const useViserDgMutation = () => {
 
 export const useLancerRecouvrementMutation = () => {
   const invalidate = useInvalidateFacturesRFQuery();
+  // 2026-05 (fix prod) — Backend exige X-User-Id sur ce endpoint
+  // (assignerRecouvrement throw "X-User-Id est requis" si null). Avant ce
+  // fix, l'API acceptait le param userId mais la mutation ne le passait
+  // jamais → bouton "Lancer recouvrement" cassé en prod.
+  const userId = useCurrentUserId();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ILancerRecouvrementDTO }) =>
-      responsableFinancierAPI.lancerRecouvrement(id, data),
+      responsableFinancierAPI.lancerRecouvrement(id, data, userId),
     onSuccess: async (_data, variables) => {
       // Fix B1 : passer l'id pour invalider précisément le détail de la
       // facture modifiée (en plus des listes). Avant : seule la liste était
@@ -98,10 +122,11 @@ export const useLancerRecouvrementMutation = () => {
 
 export const useAjouterPreuveMutation = () => {
   const invalidate = useInvalidateFacturesRFQuery();
+  const userId = useCurrentUserId();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: IAjouterPreuveDTO }) =>
-      responsableFinancierAPI.ajouterPreuve(id, data),
+      responsableFinancierAPI.ajouterPreuve(id, data, userId),
     onSuccess: async (_data, variables) => {
       // Fix B1 : passer l'id pour invalider précisément le détail de la
       // facture modifiée (en plus des listes). Avant : seule la liste était
@@ -122,10 +147,11 @@ export const useAjouterPreuveMutation = () => {
 
 export const useDepotPartenaireMutation = () => {
   const invalidate = useInvalidateFacturesRFQuery();
+  const userId = useCurrentUserId();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: IDepotPartenaireDTO }) =>
-      responsableFinancierAPI.marquerDepotPartenaire(id, data),
+      responsableFinancierAPI.marquerDepotPartenaire(id, data, userId),
     onSuccess: async (_data, variables) => {
       // Fix B1 : passer l'id pour invalider précisément le détail de la
       // facture modifiée (en plus des listes). Avant : seule la liste était
@@ -142,14 +168,48 @@ export const useDepotPartenaireMutation = () => {
   });
 };
 
+// ─── Rejeter DGA ──────────────────────────────────────────────────────────────
+
+/**
+ * Fix build pré-existant (2026-05) : validation-dga-view.tsx importait
+ * `useRejeterDgaMutation` qui n'était pas exporté. `tsc --noEmit` laissait
+ * passer (warning), mais `pnpm run build` (Next.js) fail strict sur cet
+ * import manquant. Ajout du hook manquant pour débloquer le deploy prod.
+ *
+ * Le service backend est déjà câblé : PATCH /factures/{id}/rejeter-dga avec
+ * { motif } dans le body (cf. responsableFinancierAPI.rejeterDga).
+ */
+export const useRejeterDgaMutation = () => {
+  const invalidate = useInvalidateFacturesRFQuery();
+  // 2026-05 (fix incident X-User-Id) — Même pattern que lancerRecouvrement :
+  // l'API acceptait userId optionnel mais la mutation ne le passait pas.
+  // Backend permissif aujourd'hui mais on aligne pour cohérence + audit.
+  const userId = useCurrentUserId();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: IRejeterDgaDTO }) =>
+      responsableFinancierAPI.rejeterDga(id, data, userId),
+    onSuccess: async (_data, variables) => {
+      await invalidate(pickFactureId(variables));
+      toast.success('Facture rejetée par le DGA');
+    },
+    onError: (error) => {
+      toast.error('Erreur lors du rejet DGA', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+
 // ─── Marquer dépôt banque ─────────────────────────────────────────────────────
 
 export const useDepotBanqueMutation = () => {
   const invalidate = useInvalidateFacturesRFQuery();
+  const userId = useCurrentUserId();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: IDepotBanqueDTO }) =>
-      responsableFinancierAPI.marquerDepotBanque(id, data),
+      responsableFinancierAPI.marquerDepotBanque(id, data, userId),
     onSuccess: async (_data, variables) => {
       // Fix B1 : passer l'id pour invalider précisément le détail de la
       // facture modifiée (en plus des listes). Avant : seule la liste était

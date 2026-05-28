@@ -23,6 +23,10 @@ export const updateTurboyInfoSchema = z.object({
 
   // Commission
   commission: z.coerce.number().min(0).optional(),
+
+  // V48 (2026-05) — Enrichissements ERP
+  numeroPersonneAContacter: z.string().optional(),
+  permisConduire: z.boolean().optional(),
 });
 
 export type UpdateTurboyInfoDTO = z.infer<typeof updateTurboyInfoSchema>;

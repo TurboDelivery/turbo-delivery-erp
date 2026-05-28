@@ -15,15 +15,35 @@ import {
   IValiderFactureDTO,
 } from '../types/responsable-financier.types';
 
+/**
+ * 2026-05 (fix incident X-User-Id) — Helper pour générer la config axios qui
+ * injecte le header X-User-Id quand le user authentifié est connu.
+ *
+ * <p>Plusieurs endpoints du workflow facture côté backend valident strictement
+ * la présence de ce header (cf. ResponsableFinancierFactureService :
+ * assignerRecouvrement throw BAD_REQUEST si userId null). Les autres sont
+ * permissifs aujourd'hui mais on propage partout pour : (1) éviter d'avoir à
+ * faire ce fix endpoint par endpoint à chaque fois que le backend devient
+ * strict, (2) tracer dans les logs serveur quelle action a été déclenchée
+ * par quel user — audit trail métier.</p>
+ *
+ * <p>Si userId est undefined (caller hors session, edge case test), on retombe
+ * sur l'ancien comportement sans header → backend voit userId=null. Pour les
+ * endpoints strict, ça repart en BAD_REQUEST côté serveur (échec rapide).</p>
+ */
+function withUserHeader(userId?: string) {
+  return userId ? { headers: { 'X-User-Id': userId } } : undefined;
+}
+
 export interface IResponsableFinancierApi {
   obtenirFactures(params?: IFactureRFParams): Promise<IFactureRFListResponse>;
   obtenirFacture(id: string): Promise<IFactureRFDetail>;
-  validerFacture(id: string, data: IValiderFactureDTO): Promise<IFactureRFStatutVm>;
-  viserDg(id: string): Promise<IFactureRFStatutVm>;
+  validerFacture(id: string, data: IValiderFactureDTO, userId?: string): Promise<IFactureRFStatutVm>;
+  viserDg(id: string, userId?: string): Promise<IFactureRFStatutVm>;
   lancerRecouvrement(id: string, data: ILancerRecouvrementDTO, userId?: string): Promise<IFactureRFRecouvrementVm>;
-  ajouterPreuve(id: string, data: IAjouterPreuveDTO): Promise<IFactureRFStatutVm>;
-  marquerDepotPartenaire(id: string, data: IDepotPartenaireDTO): Promise<IFactureRFStatutVm>;
-  marquerDepotBanque(id: string, data: IDepotBanqueDTO): Promise<IFactureRFStatutVm>;
+  ajouterPreuve(id: string, data: IAjouterPreuveDTO, userId?: string): Promise<IFactureRFStatutVm>;
+  marquerDepotPartenaire(id: string, data: IDepotPartenaireDTO, userId?: string): Promise<IFactureRFStatutVm>;
+  marquerDepotBanque(id: string, data: IDepotBanqueDTO, userId?: string): Promise<IFactureRFStatutVm>;
   rejeterDga(id: string, data: IRejeterDgaDTO, userId?: string): Promise<IFactureRFStatutVm>;
   obtenirAgents(): Promise<IAgentRecouvrement[]>;
 }
@@ -44,18 +64,20 @@ export const responsableFinancierAPI: IResponsableFinancierApi = {
     });
   },
 
-  validerFacture(id: string, data: IValiderFactureDTO): Promise<IFactureRFStatutVm> {
+  validerFacture(id: string, data: IValiderFactureDTO, userId?: string): Promise<IFactureRFStatutVm> {
     return api.request<IFactureRFStatutVm>({
       endpoint: `finance/responsable-financier/factures/${id}/valider`,
       method: 'PATCH',
       data,
+      config: withUserHeader(userId),
     });
   },
 
-  viserDg(id: string): Promise<IFactureRFStatutVm> {
+  viserDg(id: string, userId?: string): Promise<IFactureRFStatutVm> {
     return api.request<IFactureRFStatutVm>({
       endpoint: `finance/responsable-financier/factures/${id}/viser-dg`,
       method: 'PATCH',
+      config: withUserHeader(userId),
     });
   },
 
@@ -64,31 +86,34 @@ export const responsableFinancierAPI: IResponsableFinancierApi = {
       endpoint: `finance/responsable-financier/factures/${id}/recouvrement`,
       method: 'PATCH',
       data,
-      config: userId ? { headers: { 'X-User-Id': userId } } : undefined,
+      config: withUserHeader(userId),
     });
   },
 
-  ajouterPreuve(id: string, data: IAjouterPreuveDTO): Promise<IFactureRFStatutVm> {
+  ajouterPreuve(id: string, data: IAjouterPreuveDTO, userId?: string): Promise<IFactureRFStatutVm> {
     return api.request<IFactureRFStatutVm>({
       endpoint: `finance/responsable-financier/factures/${id}/preuve`,
       method: 'PATCH',
       data,
+      config: withUserHeader(userId),
     });
   },
 
-  marquerDepotPartenaire(id: string, data: IDepotPartenaireDTO): Promise<IFactureRFStatutVm> {
+  marquerDepotPartenaire(id: string, data: IDepotPartenaireDTO, userId?: string): Promise<IFactureRFStatutVm> {
     return api.request<IFactureRFStatutVm>({
       endpoint: `finance/responsable-financier/factures/${id}/depot-partenaire`,
       method: 'PATCH',
       data,
+      config: withUserHeader(userId),
     });
   },
 
-  marquerDepotBanque(id: string, data: IDepotBanqueDTO): Promise<IFactureRFStatutVm> {
+  marquerDepotBanque(id: string, data: IDepotBanqueDTO, userId?: string): Promise<IFactureRFStatutVm> {
     return api.request<IFactureRFStatutVm>({
       endpoint: `finance/responsable-financier/factures/${id}/depot-banque`,
       method: 'PATCH',
       data,
+      config: withUserHeader(userId),
     });
   },
 
@@ -97,7 +122,7 @@ export const responsableFinancierAPI: IResponsableFinancierApi = {
       endpoint: `finance/responsable-financier/factures/${id}/rejeter-dga`,
       method: 'PATCH',
       data,
-      config: userId ? { headers: { 'X-User-Id': userId } } : undefined,
+      config: withUserHeader(userId),
     });
   },
 

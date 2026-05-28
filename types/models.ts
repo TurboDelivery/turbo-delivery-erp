@@ -32,6 +32,13 @@ export interface User {
     departement?: string;
     salaire?: number;
     dateEntree?: string;
+    // 2026-05 — Destinataire emails de notification de workflow (charges,
+    // factures, tickets). Quand true, l'user reçoit les emails SMTP en plus
+    // du push WS / in-app que tout user du rôle reçoit. Permet de limiter le
+    // volume d'emails sous le quota Hostinger 50/h en désignant 1-2 primaires
+    // par rôle. Optional pour rétrocompat — le backend renvoie null si jamais
+    // set, comportement fallback = broadcast à tous (cf. SocketNotificationService).
+    notificationEmailPrimary?: boolean;
 }
 
 export interface Restaurant {

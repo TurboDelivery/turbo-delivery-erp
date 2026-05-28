@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 import { chargeVariableAPI } from '../apis/charge-variable.api';
 import { useInvalidateChargeVariableQuery } from './index-charge-variable.query';
 import { IChargeVariable, IChargeVariableCreateDTO, IChargeVariableUpdateDTO, IWorkflowDecisionDto } from '../types/charge-variable.type';
@@ -22,11 +23,16 @@ function buildChargeVariableFormData(
 
 export const useAjouterChargeVariableMutation = () => {
   const invalidateChargeVariableQuery = useInvalidateChargeVariableQuery();
+  // 2026-05 (commit A) — propage l'UUID du Comptable créateur en header
+  // X-User-Id pour que le backend puisse remplir charge_variables.creer_par_id
+  // et adresser les notifs CHARGE_REJETEE individuellement.
+  const { data: session } = useSession();
+  const userId = (session?.user as { id?: string } | undefined)?.id;
 
   return useMutation({
     mutationFn: async ({ data, file }: { data: IChargeVariableCreateDTO; file?: File | null }) => {
       const fd = buildChargeVariableFormData(data, file);
-      return chargeVariableAPI.ajouterChargeVariableFormData(fd);
+      return chargeVariableAPI.ajouterChargeVariableFormData(fd, userId);
     },
     onSuccess: async () => {
       await invalidateChargeVariableQuery();
@@ -42,11 +48,16 @@ export const useAjouterChargeVariableMutation = () => {
 
 export const useModifierChargeVariableMutation = () => {
   const invalidateChargeVariableQuery = useInvalidateChargeVariableQuery();
+  // 2026-05 (commit B) — propage l'UUID pour la re-soumission après rejet :
+  // le backend bascule le statut REJETE_* → EN_ATTENTE_DGA/VALIDE_DGA et
+  // re-notifie le validateur d'origine.
+  const { data: session } = useSession();
+  const userId = (session?.user as { id?: string } | undefined)?.id;
 
   return useMutation({
     mutationFn: async ({ id, data, file }: { id: string; data: IChargeVariableUpdateDTO; file?: File | null }) => {
       const fd = buildChargeVariableFormData(data, file);
-      return chargeVariableAPI.modifierChargeVariableFormData(id, fd);
+      return chargeVariableAPI.modifierChargeVariableFormData(id, fd, userId);
     },
     onSuccess: async () => {
       await invalidateChargeVariableQuery();

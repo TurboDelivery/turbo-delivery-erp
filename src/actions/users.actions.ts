@@ -23,6 +23,9 @@ const usersEndpoints = {
     disableEnable: { endpoint: (id: string) => `${BASE_URL}/disable/enable/${id}`, method: 'GET' },
     deleteRestaure: { endpoint: (id: string) => `${BASE_URL}/delete/restaured/${id}`, method: 'GET' },
     create: { endpoint: `${BASE_URL}/create`, method: 'POST' },
+    // 2026-05 — Bascule du flag notification_email_primary (UI admin).
+    // Limite le volume d'emails de workflow sous le quota Hostinger 50/h.
+    toggleEmailPrimary: { endpoint: (id: string) => `${BASE_URL}/${id}/toggle-email-primary`, method: 'POST' },
 };
 
 export async function loginUser(formData: FormData): Promise<ActionResult<any>> {
@@ -298,6 +301,40 @@ export async function disableEnableUser(id: string, status: number): Promise<Act
         return {
             status: 'error',
             message: error?.response?.data?.message || error?.response?.data || (status === 1 ? "Erreur lors de la désactivation de l'utilisateur" : "Erreur lors de l'activation de l'utilisateur"),
+        };
+    }
+}
+
+/**
+ * 2026-05 — Bascule du flag notification_email_primary pour un utilisateur.
+ *
+ * Quand activé, l'user reçoit les emails SMTP des notifs de workflow (charges,
+ * factures, tickets) en plus du push WS / in-app que tout user du rôle reçoit.
+ * Le but : limiter le volume d'emails sous le quota Hostinger 50/h en désignant
+ * 1-2 destinataires primaires par rôle (DGA, DG, COMPTABLE, RECOUVREUR…) au
+ * lieu d'envoyer un email à TOUS les users actifs du rôle.
+ *
+ * Retourne le nouvel état du flag, le caller peut s'en servir pour mettre à
+ * jour la ligne de la table en optimiste sans refetch full list.
+ */
+export async function toggleUserEmailPrimary(id: string): Promise<ActionResult<{ id: string; notificationEmailPrimary: boolean; username: string }>> {
+    try {
+        const data = await apiClientHttp.request<{ id: string; notificationEmailPrimary: boolean; username: string }>({
+            endpoint: usersEndpoints.toggleEmailPrimary.endpoint(id),
+            method: usersEndpoints.toggleEmailPrimary.method,
+            service: 'erp',
+        });
+        return {
+            status: 'success',
+            message: data.notificationEmailPrimary
+                ? `${data.username} reçoit désormais les emails de notification`
+                : `${data.username} ne reçoit plus les emails de notification`,
+            data,
+        };
+    } catch (error: any) {
+        return {
+            status: 'error',
+            message: error?.response?.data?.message || error?.response?.data || 'Erreur lors de la mise à jour du destinataire email',
         };
     }
 }

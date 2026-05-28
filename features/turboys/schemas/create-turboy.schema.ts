@@ -18,8 +18,9 @@ export const createTurboySchema = z.object({
   nomVehicule: z.string().min(1, 'Le nom du véhicule est requis'),
   immatriculation: z.string().min(1, "L'immatriculation est requise"),
 
-  // Personne à contacter
-  personneAContacter: z.string().optional(),
+  // Personne à contacter + permis
+  numeroPersonneAContacter: z.string().optional(),
+  permisConduire: z.boolean().optional(),
 
   // Compte
   telephoneCompte: z.string().min(1, 'Le numéro de téléphone du compte est requis'),
