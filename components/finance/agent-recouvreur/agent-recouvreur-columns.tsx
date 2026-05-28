@@ -251,29 +251,76 @@ export function createAgentRecouvreurColumns(
             </Button>
           );
         }
-        // Étapes suivantes : lecture seule (Caissier / DGA)
+        // Bug encaissement bloqué (2026-05) — Sur les statuts de cycle
+        // (Versé au caissier / En attente visa DGA / Visé DGA), l'agent doit
+        // pouvoir continuer à encaisser de nouveaux acomptes du partner en
+        // parallèle. Avant : lecture seule pure, l'agent était bloqué tant
+        // que le cycle (caissier → DGA → banque) n'était pas terminé.
+        //
+        // Helper local : true si la facture n'est pas encore totalement
+        // encaissée chez le partenaire (donc nouvel acompte possible).
+        const { montantRecouvre, montant } = row.original;
+        const peutEncaisserEncore =
+          montantRecouvre === null || (montant > 0 && montantRecouvre < montant);
+
         if (statut === 'Versé au caissier') {
           return (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
-              <Clock className="w-3.5 h-3.5" />
-              En attente Caissier
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                <Clock className="w-3.5 h-3.5" />
+                En attente Caissier
+              </span>
+              {peutEncaisserEncore && (
+                <Button
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
+                  onClick={() => onEncaisser(row.original)}
+                >
+                  <Banknote className="w-3.5 h-3.5" />
+                  Nouvel acompte
+                </Button>
+              )}
+            </div>
           );
         }
         if (statut === 'En attente visa DGA') {
           return (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-violet-600">
-              <Clock className="w-3.5 h-3.5" />
-              En attente visa DGA
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-violet-600">
+                <Clock className="w-3.5 h-3.5" />
+                En attente visa DGA
+              </span>
+              {peutEncaisserEncore && (
+                <Button
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
+                  onClick={() => onEncaisser(row.original)}
+                >
+                  <Banknote className="w-3.5 h-3.5" />
+                  Nouvel acompte
+                </Button>
+              )}
+            </div>
           );
         }
         if (statut === 'Visé DGA') {
           return (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Visé DGA
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                Visé DGA
+              </span>
+              {peutEncaisserEncore && (
+                <Button
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
+                  onClick={() => onEncaisser(row.original)}
+                >
+                  <Banknote className="w-3.5 h-3.5" />
+                  Nouvel acompte
+                </Button>
+              )}
+            </div>
           );
         }
         if (statut === 'Rejeté DGA') {
