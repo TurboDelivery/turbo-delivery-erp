@@ -45,6 +45,10 @@ export interface IResponsableFinancierApi {
   marquerDepotPartenaire(id: string, data: IDepotPartenaireDTO, userId?: string): Promise<IFactureRFStatutVm>;
   marquerDepotBanque(id: string, data: IDepotBanqueDTO, userId?: string): Promise<IFactureRFStatutVm>;
   rejeterDga(id: string, data: IRejeterDgaDTO, userId?: string): Promise<IFactureRFStatutVm>;
+  // 2026-05 (fix post-test mardi) — D3 du workflow facture : Comptable
+  // confirme physiquement la réception des fonds versés par le caissier.
+  // Émet un event d'historique + notif DGA + DG (sans changer le statut).
+  confirmerReceptionComptable(id: string, userId?: string): Promise<IFactureRFStatutVm>;
   obtenirAgents(): Promise<IAgentRecouvrement[]>;
 }
 
@@ -122,6 +126,15 @@ export const responsableFinancierAPI: IResponsableFinancierApi = {
       endpoint: `finance/responsable-financier/factures/${id}/rejeter-dga`,
       method: 'PATCH',
       data,
+      config: withUserHeader(userId),
+    });
+  },
+
+  confirmerReceptionComptable(id: string, userId?: string): Promise<IFactureRFStatutVm> {
+    // PATCH (pas de body) — l'identité de l'acteur est dans le header X-User-Id.
+    return api.request<IFactureRFStatutVm>({
+      endpoint: `finance/responsable-financier/factures/${id}/confirmer-reception-comptable`,
+      method: 'PATCH',
       config: withUserHeader(userId),
     });
   },

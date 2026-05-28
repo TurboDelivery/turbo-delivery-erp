@@ -107,10 +107,14 @@ const menuData: IMenuData[] = [
     title: 'Comptabilité',
     can: { action: 'read', subject: 'Finance' },
     children: [
-      { icon: FileText, title: 'Responsable Financier', path: '/finance/comptabilite/responsable-financier', can: { action: 'read', subject: 'Finance' } },
-      { icon: FileText, title: 'Agent Recouvreur', path: '/finance/comptabilite/agent-recouvreur', can: { action: 'read', subject: 'Finance' } },
-      { icon: Wallet, title: 'Caissier', path: '/finance/comptabilite/caissier', can: { action: 'read', subject: 'Finance' } },
-      { icon: CheckCircle, title: 'Validation DGA', path: '/finance/comptabilite/validation-dga', can: { action: 'read', subject: 'Finance' } },
+      // 2026-05 — Permissions granulaires sur les 4 sous-menus Comptabilité.
+      // Le RECOUVREUR ne voit QUE Agent Recouvreur. Le COMPTABLE (Responsable
+      // Financier dans le workflow) voit Responsable Financier + Caissier.
+      // Les DG/DGA voient tout via 'manage all' / 'read all'.
+      { icon: FileText, title: 'Responsable Financier', path: '/finance/comptabilite/responsable-financier', can: { action: 'read', subject: 'PageResponsableFinancier' } },
+      { icon: FileText, title: 'Agent Recouvreur', path: '/finance/comptabilite/agent-recouvreur', can: { action: 'read', subject: 'PageAgentRecouvreur' } },
+      { icon: Wallet, title: 'Caissier', path: '/finance/comptabilite/caissier', can: { action: 'read', subject: 'PageCaissier' } },
+      { icon: CheckCircle, title: 'Validation DGA', path: '/finance/comptabilite/validation-dga', can: { action: 'read', subject: 'PageValidationDga' } },
     ],
   },
   { icon: Bell, title: 'Notifications', path: '/notification', can: { action: 'access', subject: 'Notification' } },
