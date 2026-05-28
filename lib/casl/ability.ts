@@ -45,7 +45,7 @@ export type AppSubjects =
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
-export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER'] as const;
+export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
@@ -60,6 +60,9 @@ const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
   RECOUVREUR: 'RECOUVREUR',
   'AGENT RECOUVREUR': 'RECOUVREUR',
   CAISSIER: 'CAISSIER',
+  DIRECTEUR_OPERATIONS: 'DIRECTEUR_OPERATIONS',
+  'DIRECTEUR DES OPERATIONS': 'DIRECTEUR_OPERATIONS',
+  'DIRECTEUR DES OPÉRATIONS': 'DIRECTEUR_OPERATIONS',
   BUSINESS_DEVELOPER: 'BUSINESS_DEVELOPER',
   'BUSINESS DEVELOPER': 'BUSINESS_DEVELOPER',
   "CENTRALE D'APPEL": 'STANDARD',
@@ -188,6 +191,31 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('manage', 'Finance');
       can('read', 'PageAgentRecouvreur');
       // Note : PAS de can('read', 'PageResponsableFinancier') ici.
+      break;
+
+    case 'DIRECTEUR_OPERATIONS':
+      // 2026-05 — Directeur des Opérations : vue cadre supervision
+      // opérationnelle. Demandé explicitement :
+      //   • Tableau de bord     → can('access', 'Analytics') (déjà global)
+      //   • Trafic              → read Trafic (localisation Turboys + file attente)
+      //   • Partners            → read + valider Restaurant + read Performance
+      //                           (Partenaires validés, partiellement, news, grille, rapports)
+      //   • Turboys             → read Livreur + Creneau + Performance
+      //   • Comptabilité > Agent Recouvreur → read Finance (parent) + PageAgentRecouvreur
+      //
+      // PAS d'accès à : Charges, Validation, Rapports Financiers, Gestion
+      // des Paiements, Recouvrements (menu Finance principal), Comptabilité >
+      // Responsable Financier / Caissier / Validation DGA, Validation des
+      // Tickets, Personnel, Utilisateurs, Commandes, External Delivery.
+      can('read', 'Trafic');
+      can('read', 'Restaurant');
+      can('valider', 'Restaurant');
+      can('read', 'Livreur');
+      can('read', 'Creneau');
+      can('read', 'Performance');
+      can('read', 'Finance');
+      can('read', 'PageAgentRecouvreur');
+      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 
     case 'TRESORIER':
