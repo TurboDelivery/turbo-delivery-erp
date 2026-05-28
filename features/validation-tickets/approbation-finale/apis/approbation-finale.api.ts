@@ -26,7 +26,7 @@ export async function rejeterApprobationFinaleApi(lotId: string, motif: string, 
   return apiClientHttp.request<void>({
     endpoint: `/api/lots/${lotId}/rejeter-dg`,
     method: 'POST',
-    data: { commentaireRejet: motif },
+    data: { commentaire: motif },
     config: { headers: { 'X-User-Id': userId } },
   });
 }

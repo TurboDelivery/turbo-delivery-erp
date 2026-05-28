@@ -99,7 +99,7 @@ export async function rejeterEtRenvoyerApi(lotId: string, motif: string, userId:
   return apiClientHttp.request<void>({
     endpoint: `/api/lots/${lotId}/rejeter-dga`,
     method: 'POST',
-    data: { commentaireRejet: motif },
+    data: { commentaire: motif },
     config: { headers: { 'X-User-Id': userId } },
   });
 }
