@@ -3,8 +3,19 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getFichePaieApi, getGrillePaiementApi, soumettrGrillePaiementApi, updateNumeroWaveApi, validerLigneApi } from '../apis/grille-paiement.api';
-import { IGrillePaiementParams, IUpdateNumeroWaveParams } from '../types/grille-paiement.type';
+import {
+  getFichePaieApi,
+  getGrillePaiementApi,
+  modifierInclusionLigneApi,
+  soumettrGrillePaiementApi,
+  updateNumeroWaveApi,
+  validerLigneApi,
+} from '../apis/grille-paiement.api';
+import {
+  IGrillePaiementParams,
+  IModifierInclusionParams,
+  IUpdateNumeroWaveParams,
+} from '../types/grille-paiement.type';
 
 export const grillePaiementKeys = {
   all: ['grille-paiement'] as const,
@@ -73,6 +84,41 @@ export const useValiderLigneMutation = () => {
       const serverMsg = error?.response?.data?.message ?? null;
       toast.error('Erreur lors de la validation', {
         description: serverMsg ?? error?.message ?? 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+/**
+ * V54 (2026-05) — Mutation Comptable : override inclusion ligne dans le
+ * "Total à payer". Affiche un toast spécial si le backend retourne
+ * {@code reSoumissionRequise=true} (lot remis en CALCUL_EN_COURS).
+ */
+export const useModifierInclusionMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ params, userId }: { params: IModifierInclusionParams; userId: string }) =>
+      modifierInclusionLigneApi(params, userId),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: grillePaiementKeys.all });
+      if (response.reSoumissionRequise) {
+        toast.warning('Le lot a été remis en calcul', {
+          description:
+            'L\'inclusion a changé après approbation — re-soumission au DGA requise.',
+          duration: 8000,
+        });
+      } else {
+        toast.success(
+          response.inclusDansPaie
+            ? 'Ligne incluse dans le paiement'
+            : 'Ligne exclue du paiement',
+        );
+      }
+    },
+    onError: (error: any) => {
+      const serverMsg = error?.response?.data?.message ?? error?.response?.data ?? null;
+      toast.error('Erreur lors de la modification de l\'inclusion', {
+        description: serverMsg ? String(serverMsg) : error?.message ?? 'Erreur inconnue',
       });
     },
   });

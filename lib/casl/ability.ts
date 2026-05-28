@@ -1,6 +1,6 @@
 import { AbilityBuilder, createMongoAbility, type ExtractSubjectType, type InferSubjects, type MongoAbility } from '@casl/ability';
 
-export type AppActions = 'manage' | 'create' | 'read' | 'update' | 'delete' | 'access' | 'valider' | 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser' | 'authentifier';
+export type AppActions = 'manage' | 'create' | 'read' | 'update' | 'delete' | 'access' | 'valider' | 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser' | 'authentifier' | 'update-inclusion';
 
 export type AppSubjects =
   | 'ChargeFixe'
@@ -122,6 +122,10 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', 'ValidationTicket');
       can('read', 'VerrouillageV2');
       can('read', 'GrillePaiement');
+      // V54 (2026-05) — Le COMPTABLE peut overrider l'inclusion d'une ligne
+      // dans le "Total à payer" (action 'update-inclusion'). Backend audité
+      // par JournalSecurite(LIGNE_INCLUSION_MODIFIEE) + justification ≥30c.
+      can('update-inclusion', 'GrillePaiement');
       can('manage', 'Personnel');
       can('read', 'Finance');
       // 2026-05 (correction) — Le COMPTABLE (qui occupe la fonction de

@@ -10,10 +10,10 @@ import {
   TableRow,
   TableCell,
 } from '@heroui/react';
-import { AlertCircle, CheckCircle2, AlertTriangle, Pencil, ShieldCheck } from 'lucide-react';
+import { AlertCircle, CheckCircle2, AlertTriangle, HelpCircle, Pencil, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { IGrillePaiementLigne } from '../types/grille-paiement.type';
+import { IGrillePaiementLigne, TypeLivreur } from '../types/grille-paiement.type';
 import FichePaieButton from './FichePaieButton';
 
 interface Props {
@@ -21,10 +21,49 @@ interface Props {
   onRowClick: (ligne: IGrillePaiementLigne) => void;
   onUpdateWave: (turboyId: string, value: string) => void;
   onValiderLigne: (ligne: IGrillePaiementLigne) => void;
+  /**
+   * V54 (2026-05) — Demande d'override Comptable sur l'inclusion d'une
+   * ligne dans le "Total à payer". {@code nextValue} = état cible que la
+   * checkbox veut atteindre. La modale de justification est ouverte par
+   * le parent ; on ne mute pas directement ici.
+   */
+  onToggleInclusion?: (ligne: IGrillePaiementLigne, nextValue: boolean) => void;
+  /**
+   * V54 (2026-05) — true si l'utilisateur courant est Comptable (les
+   * autres rôles voient la colonne en lecture seule).
+   */
+  canEditInclusion?: boolean;
   waveManquants: number;
   creneauDebut: Date;
   creneauFin: Date;
   readOnly?: boolean;
+}
+
+/**
+ * V54 (2026-05) — Détermine l'inclusion effective dans le totalAPayer en
+ * appliquant la même règle que le backend : si {@code inclusDansPaie} est
+ * explicitement set (override Comptable), on l'utilise ; sinon défaut basé
+ * sur le type ({@code INDEPENDANT} → true, {@code JOURNALIER/SUPERVISEUR}
+ * → false, null → false aussi en attendant la catégorisation RH).
+ */
+function effectiveInclusion(ligne: IGrillePaiementLigne): boolean {
+  if (ligne.inclusDansPaie !== null && ligne.inclusDansPaie !== undefined) {
+    return ligne.inclusDansPaie;
+  }
+  return ligne.typeLivreur === 'INDEPENDANT';
+}
+
+function typeLivreurBadge(type: TypeLivreur | null | undefined) {
+  switch (type) {
+    case 'INDEPENDANT':
+      return { label: 'Indépendant', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    case 'JOURNALIER':
+      return { label: 'Journalier', className: 'bg-blue-50 text-blue-700 border-blue-200' };
+    case 'SUPERVISEUR':
+      return { label: 'Superviseur', className: 'bg-purple-50 text-purple-700 border-purple-200' };
+    default:
+      return { label: 'À catégoriser', className: 'bg-amber-50 text-amber-700 border-amber-200' };
+  }
 }
 
 function WaveReadOnlyCell({ ligne }: { ligne: IGrillePaiementLigne }) {
@@ -89,6 +128,8 @@ export default function GrillePaiementTable({
   onRowClick,
   onUpdateWave,
   onValiderLigne,
+  onToggleInclusion,
+  canEditInclusion = false,
   waveManquants,
   creneauDebut,
   creneauFin,
@@ -105,6 +146,72 @@ export default function GrillePaiementTable({
             <p className="text-[11px] text-gray-400">{row.original.turboy.code}</p>
           </div>
         ),
+      },
+      // V54 (2026-05) — Type de collaborateur. Badge couleur par type ;
+      // "À catégoriser" en orange pour signaler une action RH requise.
+      {
+        id: 'typeLivreur',
+        header: 'Type',
+        cell: ({ row }) => {
+          const badge = typeLivreurBadge(row.original.typeLivreur);
+          const isACategoriser = !row.original.typeLivreur;
+          return (
+            <span
+              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${badge.className}`}
+            >
+              {isACategoriser && <HelpCircle className="h-3 w-3" />}
+              {badge.label}
+            </span>
+          );
+        },
+      },
+      // V54 (2026-05) — Inclusion dans le "Total à payer". Checkbox éditable
+      // uniquement si Comptable + lot pas verrouillé ; sinon lecture seule.
+      // Le clic ouvre la modale justification dans le parent — pas de mutation
+      // directe ici pour éviter une bascule sans audit.
+      {
+        id: 'inclusion',
+        header: () => <div className="w-full text-center">Inclus</div>,
+        cell: ({ row }) => {
+          const included = effectiveInclusion(row.original);
+          const isOverride =
+            row.original.inclusDansPaie !== null && row.original.inclusDansPaie !== undefined;
+          const canEdit = canEditInclusion && !readOnly && onToggleInclusion;
+          return (
+            <div
+              className="flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <label
+                className={`relative inline-flex items-center ${
+                  canEdit ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'
+                }`}
+                title={
+                  isOverride
+                    ? 'Override Comptable (cf. journal)'
+                    : included
+                      ? 'Inclus par défaut (Indépendant)'
+                      : 'Exclu par défaut (Journalier/Superviseur/À catégoriser)'
+                }
+              >
+                <input
+                  type="checkbox"
+                  checked={included}
+                  disabled={!canEdit}
+                  onChange={() => onToggleInclusion?.(row.original, !included)}
+                  className="sr-only peer"
+                />
+                <div
+                  className={`w-9 h-5 rounded-full transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4 ${
+                    included
+                      ? 'bg-emerald-500 peer-disabled:bg-emerald-300'
+                      : 'bg-gray-300 peer-disabled:bg-gray-200'
+                  } ${isOverride ? 'ring-2 ring-offset-1 ring-amber-300' : ''}`}
+                />
+              </label>
+            </div>
+          );
+        },
       },
       {
         id: 'tickets',
@@ -188,7 +295,7 @@ export default function GrillePaiementTable({
         cell: () => <span className="text-gray-300">›</span>,
       },
     ],
-    [onUpdateWave, onValiderLigne, creneauDebut, creneauFin, readOnly],
+    [onUpdateWave, onValiderLigne, onToggleInclusion, canEditInclusion, creneauDebut, creneauFin, readOnly],
   );
 
   const table = useReactTable({

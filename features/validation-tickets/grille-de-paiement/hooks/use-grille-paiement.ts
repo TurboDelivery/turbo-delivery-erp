@@ -3,14 +3,26 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useQueryStates } from 'nuqs';
 import { useSession } from 'next-auth/react';
+import { useAbility } from '@casl/react';
 import { useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
-import { useGrillePaiementQuery, useSoumettreGrilleMutation, useUpdateNumeroWaveMutation, useValiderLigneMutation } from '../queries/grille-paiement.query';
+import { AbilityContext } from '@/lib/casl/ability-context';
+import {
+  useGrillePaiementQuery,
+  useModifierInclusionMutation,
+  useSoumettreGrilleMutation,
+  useUpdateNumeroWaveMutation,
+  useValiderLigneMutation,
+} from '../queries/grille-paiement.query';
 import { IGrillePaiementLigne } from '../types/grille-paiement.type';
 import { grillePaiementFiltersConfig, grillePaiementFiltersOptions } from '../filters/grille-paiement.filters';
 
 export default function useGrillePaiement() {
   const { data: session } = useSession();
   const userId = session?.user?.id ?? '';
+  const ability = useAbility(AbilityContext);
+  // V54 — Seul COMPTABLE (et 'manage all' DG) peut overrider. Permission CASL
+  // déclarée dans ability.ts : can('update-inclusion', 'GrillePaiement').
+  const canEditInclusion = ability.can('update-inclusion', 'GrillePaiement');
 
   const [filters, setFilters] = useQueryStates(grillePaiementFiltersConfig, grillePaiementFiltersOptions);
   const selectedCreneauId = filters.creneauId || undefined;
@@ -22,12 +34,19 @@ export default function useGrillePaiement() {
   const { mutate: soumettre, isPending: isSoumettant } = useSoumettreGrilleMutation();
   const { mutate: persistWave } = useUpdateNumeroWaveMutation();
   const { mutate: validerLigne, isPending: isValidating } = useValiderLigneMutation();
+  const { mutate: modifierInclusion, isPending: isModifyingInclusion } = useModifierInclusionMutation();
 
   const [selectedLigne, setSelectedLigne] = useState<IGrillePaiementLigne | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [commentaire, setCommentaire] = useState('');
   const [waveOverrides, setWaveOverrides] = useState<Map<string, string>>(new Map());
   const [ligneAValider, setLigneAValider] = useState<IGrillePaiementLigne | null>(null);
+  // V54 (2026-05) — State de la modale justification inclusion.
+  // {@code nextValue} = état cible (true = inclure, false = exclure).
+  const [inclusionRequest, setInclusionRequest] = useState<{
+    ligne: IGrillePaiementLigne;
+    nextValue: boolean;
+  } | null>(null);
 
   const lotStatut = grille?.lot?.statut;
   const isLotVerrouille = !!grille?.lot && lotStatut !== 'EN_ATTENTE' && lotStatut !== 'REJETE';
@@ -90,6 +109,28 @@ export default function useGrillePaiement() {
     );
   };
 
+  // V54 — Comptable demande à toggle l'inclusion → on ouvre la modale
+  // justification. La mutation n'est tirée qu'à la confirmation.
+  const handleRequestToggleInclusion = (ligne: IGrillePaiementLigne, nextValue: boolean) => {
+    setInclusionRequest({ ligne, nextValue });
+  };
+
+  const handleConfirmerInclusion = (justification: string) => {
+    if (!inclusionRequest || !grille?.lot?.id) return;
+    modifierInclusion(
+      {
+        params: {
+          lotId: grille.lot.id,
+          turboyId: inclusionRequest.ligne.turboy.id,
+          inclus: inclusionRequest.nextValue,
+          justification,
+        },
+        userId,
+      },
+      { onSuccess: () => setInclusionRequest(null) },
+    );
+  };
+
   const handleConfirmerSoumission = () => {
     if (!grille) return;
     soumettre(
@@ -134,5 +175,12 @@ export default function useGrillePaiement() {
     handleConfirmerValidation,
     closeConfirmValidation: () => setLigneAValider(null),
     isValidating,
+    // V54 (2026-05) — Override inclusion ligne par le Comptable.
+    canEditInclusion,
+    inclusionRequest,
+    isModifyingInclusion,
+    handleRequestToggleInclusion,
+    handleConfirmerInclusion,
+    closeInclusionRequest: () => setInclusionRequest(null),
   };
 }

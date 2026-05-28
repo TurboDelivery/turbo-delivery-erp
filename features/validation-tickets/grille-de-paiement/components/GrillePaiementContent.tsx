@@ -12,6 +12,7 @@ import GrillePaiementTable from './GrillePaiementTable';
 import GrillePaiementDetailModal from './GrillePaiementDetailModal';
 import GrillePaiementSubmitFooter from './GrillePaiementSubmitFooter';
 import GrillePaiementExportButton from './GrillePaiementExportButton';
+import JustificationInclusionModal from './JustificationInclusionModal';
 import SoumettreConfirmModal from './SoumettreConfirmModal';
 import ValiderLigneConfirmModal from './ValiderLigneConfirmModal';
 
@@ -47,6 +48,12 @@ export default function GrillePaiementContent() {
     handleConfirmerValidation,
     closeConfirmValidation,
     isValidating,
+    canEditInclusion,
+    inclusionRequest,
+    isModifyingInclusion,
+    handleRequestToggleInclusion,
+    handleConfirmerInclusion,
+    closeInclusionRequest,
   } = useGrillePaiement();
 
   if (isLoading) return <GrillePaiementSkeleton />;
@@ -119,6 +126,8 @@ export default function GrillePaiementContent() {
         onRowClick={openDetail}
         onUpdateWave={updateWave}
         onValiderLigne={handleValiderLigne}
+        onToggleInclusion={handleRequestToggleInclusion}
+        canEditInclusion={canEditInclusion}
         waveManquants={waveManquants}
         creneauDebut={new Date(grille.debut)}
         creneauFin={new Date(grille.fin)}
@@ -172,6 +181,17 @@ export default function GrillePaiementContent() {
         isLoading={isValidating}
         onClose={closeConfirmValidation}
         onConfirm={handleConfirmerValidation}
+      />
+
+      {/* V54 (2026-05) — Modale justification override Comptable. */}
+      <JustificationInclusionModal
+        open={!!inclusionRequest}
+        ligne={inclusionRequest?.ligne ?? null}
+        nextValue={inclusionRequest?.nextValue ?? false}
+        lotStatut={lotStatut}
+        isLoading={isModifyingInclusion}
+        onClose={closeInclusionRequest}
+        onConfirm={handleConfirmerInclusion}
       />
     </div>
   );

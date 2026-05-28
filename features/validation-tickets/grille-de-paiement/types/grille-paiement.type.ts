@@ -134,3 +134,36 @@ export interface IUpdateNumeroWaveParams {
   turboyId: string;
   numeroWave: string;
 }
+
+/**
+ * V54 (2026-05) — Paramètres d'override Comptable sur l'inclusion d'une
+ * ligne dans le totalAPayer. Le {@code lotId} est requis car la mutation
+ * cible un lot précis (PATCH /api/lots/{lotId}/lignes/{turboyId}/inclusion).
+ *
+ * <p>Justification : champ {@code @NotBlank @Size(min=30)} côté backend ;
+ * la modale frontale force la saisie avant d'autoriser l'envoi pour éviter
+ * un 400 Bad Request.</p>
+ */
+export interface IModifierInclusionParams {
+  lotId: string;
+  turboyId: string;
+  inclus: boolean;
+  justification: string;
+}
+
+/**
+ * V54 (2026-05) — Réponse {@code ModifierInclusionResponseVm}. Le drapeau
+ * {@code reSoumissionRequise} = true signale que le lot était déjà engagé
+ * dans le workflow d'approbation (SOUMIS_DGA / VALIDE_DGA / APPROUVE_DG)
+ * et a été remis en CALCUL_EN_COURS — la grille doit afficher un bandeau
+ * "re-soumission requise" pour que le Comptable comprenne pourquoi le
+ * statut a régressé.
+ */
+export interface IModifierInclusionResponse {
+  lotId: string;
+  turboyId: string;
+  inclusDansPaie: boolean;
+  statutLot: string;
+  reSoumissionRequise: boolean;
+  justificationLength: number;
+}
