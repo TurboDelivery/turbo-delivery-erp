@@ -19,6 +19,21 @@ export type AppSubjects =
   | 'Personnel'
   | 'Utilisateur'
   | 'Finance'
+  // 2026-05 — Sous-menus dédiés du module Comptabilité pour contrôle granulaire
+  // de visibilité. Le sujet général "Finance" reste utilisé par les autres
+  // pages (recouvrement, dashboard, etc.) ; ici on isole ces 2 sous-pages
+  // pour pouvoir les autoriser séparément.
+  // - PageResponsableFinancier → vue Comptable/DGA/DG/Caissier (validation factures, etc.)
+  //   Pas accordé au RECOUVREUR qui ne doit voir QUE sa vue Agent.
+  // - PageAgentRecouvreur → vue Agent recouvreur (encaissements terrain).
+  //   Accordé au RECOUVREUR + Comptable/DGA/DG/Caissier pour suivi.
+  | 'PageResponsableFinancier'
+  | 'PageAgentRecouvreur'
+  // - PageCaissier → vue dédiée Caissier (réception des versements).
+  //   Pas accordé au RECOUVREUR (pas son rôle).
+  // - PageValidationDga → vue dédiée Validation DGA. Pas accordé au RECOUVREUR.
+  | 'PageCaissier'
+  | 'PageValidationDga'
   | 'Notification'
   | 'Creneau'
   | 'Performance'
@@ -73,6 +88,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
 
     case 'DGA':
       can('read', 'all');
+      // can('read', 'all') couvre déjà PageResponsableFinancier et PageAgentRecouvreur,
+      // pas besoin de re-déclarer explicitement.
       can('create', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('update', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('delete', ['ChargeFixe', 'ChargeVariable']);
@@ -103,6 +120,9 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', 'GrillePaiement');
       can('manage', 'Personnel');
       can('read', 'Finance');
+      // 2026-05 — Comptable a accès aux 4 sous-pages Comptabilité (vue
+      // globale du workflow facture, dont la sienne).
+      can('read', ['PageResponsableFinancier', 'PageAgentRecouvreur', 'PageCaissier', 'PageValidationDga']);
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 
@@ -154,9 +174,15 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', 'Ticket');
       can('manage', 'Creneau');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      // + accès page agent-recouvreur
+      // + accès page agent-recouvreur UNIQUEMENT (pas Responsable Financier).
+      // can('read', 'Finance') reste pour permettre l'accès au parent
+      // "Comptabilité" du menu ; le sous-menu Responsable Financier est
+      // filtré par la permission spécifique PageResponsableFinancier qu'on
+      // ne donne PAS au RECOUVREUR (fix 2026-05).
       can('read', 'Finance');
       can('manage', 'Finance');
+      can('read', 'PageAgentRecouvreur');
+      // Note : PAS de can('read', 'PageResponsableFinancier') ici.
       break;
 
     case 'TRESORIER':
@@ -179,6 +205,11 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // Accès vue comptabilité (lecture + actions sur les versements à confirmer).
       can('read', 'Finance');
       can('manage', 'Finance');
+      // 2026-05 — Caissier a SA page dédiée + visibilité sur les vues
+      // amont (Responsable Financier pour les factures à recevoir, Agent
+      // Recouvreur pour suivre les versements en cours).
+      // PAS PageValidationDga (rôle DGA-only).
+      can('read', ['PageResponsableFinancier', 'PageAgentRecouvreur', 'PageCaissier']);
       break;
 
     default:
