@@ -208,8 +208,8 @@ function typeLivreurLabel(type: TypeLivreur | null): string {
       return 'Indépendant';
     case 'JOURNALIER':
       return 'Journalier';
-    case 'SUPERVISEUR':
-      return 'Superviseur';
+    case 'SUPERVISEUR_LIVREUR':
+      return 'Superviseur-livreur';
     default:
       return 'À catégoriser';
   }

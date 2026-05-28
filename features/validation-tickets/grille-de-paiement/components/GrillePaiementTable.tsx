@@ -59,8 +59,8 @@ function typeLivreurBadge(type: TypeLivreur | null | undefined) {
       return { label: 'Indépendant', className: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
     case 'JOURNALIER':
       return { label: 'Journalier', className: 'bg-blue-50 text-blue-700 border-blue-200' };
-    case 'SUPERVISEUR':
-      return { label: 'Superviseur', className: 'bg-purple-50 text-purple-700 border-purple-200' };
+    case 'SUPERVISEUR_LIVREUR':
+      return { label: 'Superviseur-livreur', className: 'bg-purple-50 text-purple-700 border-purple-200' };
     default:
       return { label: 'À catégoriser', className: 'bg-amber-50 text-amber-700 border-amber-200' };
   }

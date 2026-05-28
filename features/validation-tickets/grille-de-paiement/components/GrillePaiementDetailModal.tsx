@@ -1,10 +1,33 @@
 'use client';
 
-import { CheckCircle2, CircleAlert, Phone, ReceiptText, ShieldAlert, X } from 'lucide-react';
+import { CheckCircle2, CircleAlert, FileText, HelpCircle, Phone, ReceiptText, ShieldAlert, X } from 'lucide-react';
 import { Drawer, DrawerBody, DrawerContent } from '@heroui/react';
-import { IGrillePaiementLigne } from '../types/grille-paiement.type';
+import { IGrillePaiementLigne, TypeLivreur } from '../types/grille-paiement.type';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
+/**
+ * V54 + V57 (2026-05) — Badge + libellé du type de livreur pour le pavé
+ * "Inclusion paie" affiché juste avant les tickets. Aligné sur la note de
+ * cadrage DGA du 28/05/2026 : INDEPENDANT vert, JOURNALIER bleu,
+ * SUPERVISEUR_LIVREUR violet, null/à catégoriser orange.
+ */
+function typeLivreurDisplay(type: TypeLivreur | null | undefined): {
+  label: string;
+  className: string;
+  defaultIncluded: boolean;
+} {
+  switch (type) {
+    case 'INDEPENDANT':
+      return { label: 'Indépendant', className: 'bg-emerald-50 text-emerald-700 border-emerald-200', defaultIncluded: true };
+    case 'JOURNALIER':
+      return { label: 'Journalier', className: 'bg-blue-50 text-blue-700 border-blue-200', defaultIncluded: false };
+    case 'SUPERVISEUR_LIVREUR':
+      return { label: 'Superviseur-livreur', className: 'bg-purple-50 text-purple-700 border-purple-200', defaultIncluded: false };
+    default:
+      return { label: 'À catégoriser', className: 'bg-amber-50 text-amber-700 border-amber-200', defaultIncluded: false };
+  }
+}
 
 function formatNumber(n: number | undefined | null) {
   if (n == null) return '—';
@@ -49,9 +72,22 @@ interface Props {
 export default function GrillePaiementDetailModal({ ligne, creneauCode, open, onClose }: Props) {
   if (!ligne) return null;
 
-  const { turboy, tickets, brut, taux, deductions, netAPayer, numeroWave, bonusEligibilite, ticketDetails } = ligne;
+  const {
+    turboy, tickets, brut, taux, deductions, netAPayer, numeroWave,
+    bonusEligibilite, ticketDetails,
+    typeLivreur, inclusDansPaie, inclusPaieMotif,
+  } = ligne;
   const initial = turboy.nom.charAt(0).toUpperCase();
   const creneauLabel = creneauCode.replace('CRÉNEAU-', '');
+
+  // V54 + V57 — État d'inclusion explicite pour la modale détail.
+  const typeInfo = typeLivreurDisplay(typeLivreur);
+  // Inclusion effective côté UI : si override explicite (boolean) on respecte,
+  // sinon défaut auto par type. Aligné sur la règle backend §9.
+  const effectiveIncluded = inclusDansPaie !== null && inclusDansPaie !== undefined
+    ? inclusDansPaie
+    : typeInfo.defaultIncluded;
+  const isOverride = inclusDansPaie !== null && inclusDansPaie !== undefined;
 
   return (
     <Drawer isOpen={open} onOpenChange={(v) => !v && onClose()} placement="right" size="xl">
@@ -84,6 +120,63 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
               <StatCard title="TAUX" value={`${taux}`} suffix="%" color="text-[#f59e0b]" />
               <StatCard title="DÉDUCTIONS" value={deductions !== 0 ? `−${formatNumber(Math.abs(deductions))}` : '—'} suffix={deductions !== 0 ? 'FCFA' : ''} color="text-[#dc2626]" />
               <StatCard title="NET À PAYER" value={formatNumber(netAPayer)} suffix="FCFA" color="text-[#22c55e]" />
+            </div>
+
+            {/* V54 + V57 (2026-05) — Inclusion paie. Affiche le type de
+                collaborateur, le statut d'inclusion (avec drapeau "override
+                Comptable") et le motif s'il y en a un. Le DGA s'en sert pour
+                comprendre une dérogation avant de viser. */}
+            <div className="rounded-2xl border border-[#dddddd] bg-white p-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#eff6ff]">
+                    <FileText size={15} className="text-[#2563eb]" strokeWidth={2} />
+                  </div>
+                  <h3 className="text-[14px] font-semibold text-[#444444]">Inclusion dans la paie</h3>
+                </div>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${typeInfo.className}`}
+                >
+                  {!typeLivreur && <HelpCircle className="h-3 w-3" />}
+                  {typeInfo.label}
+                </span>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-gray-100 bg-gray-50/60 px-3 py-2">
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-1">État effectif</p>
+                  <p className={`text-sm font-semibold ${effectiveIncluded ? 'text-emerald-700' : 'text-amber-700'}`}>
+                    {effectiveIncluded ? '✓ Inclus dans le Total à payer' : '✕ Exclu du Total à payer'}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-gray-100 bg-gray-50/60 px-3 py-2">
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-1">Source</p>
+                  <p className="text-sm font-medium text-gray-700">
+                    {isOverride ? 'Override Comptable' : 'Défaut auto par type'}
+                  </p>
+                </div>
+              </div>
+
+              {isOverride && inclusPaieMotif && (
+                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
+                  <p className="text-[10px] uppercase tracking-wider text-amber-700 font-semibold mb-1">
+                    Justification de l&apos;override
+                  </p>
+                  <p className="text-[12px] leading-relaxed text-amber-900 whitespace-pre-wrap">
+                    {inclusPaieMotif}
+                  </p>
+                </div>
+              )}
+
+              {!typeLivreur && (
+                <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
+                  <p className="text-[12px] leading-relaxed text-amber-900">
+                    Ce livreur n&apos;a pas de type assigné. La soumission au Visa DGA est
+                    bloquée tant que la RH n&apos;aura pas qualifié ce profil
+                    (Indépendant / Journalier / Superviseur-livreur).
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Bonus eligibility */}

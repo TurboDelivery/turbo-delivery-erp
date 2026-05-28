@@ -31,7 +31,7 @@ import {
 const TYPE_ORDER: ReadonlyArray<TypeLivreur | null> = [
   'INDEPENDANT',
   'JOURNALIER',
-  'SUPERVISEUR',
+  'SUPERVISEUR_LIVREUR',
   null, // "À catégoriser" en dernier — action RH requise.
 ];
 
@@ -41,8 +41,8 @@ function typeLabel(type: TypeLivreur | null | undefined): string {
       return 'Indépendant';
     case 'JOURNALIER':
       return 'Journalier';
-    case 'SUPERVISEUR':
-      return 'Superviseur';
+    case 'SUPERVISEUR_LIVREUR':
+      return 'Superviseur-livreur';
     default:
       return 'À catégoriser';
   }

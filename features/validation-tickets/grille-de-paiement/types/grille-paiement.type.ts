@@ -31,14 +31,17 @@ export interface IGrillePaiementTurboy {
 }
 
 /**
- * V54 (2026-05) — Type de collaborateur du livreur. Détermine l'inclusion
- * par défaut dans le calcul du "Total à payer" :
- *   INDEPENDANT → inclus
- *   JOURNALIER  → exclu (payé via autre circuit)
- *   SUPERVISEUR → exclu (salarié)
- *   null        → "à catégoriser" (RH doit assigner un type)
+ * V54 (2026-05) — Type de collaborateur du livreur, aligné sur la note
+ * de cadrage DGA du 28/05/2026. Détermine l'inclusion par défaut dans le
+ * calcul du "Total à payer" :
+ *   INDEPENDANT         → inclus
+ *   JOURNALIER          → exclu (payé via autre circuit)
+ *   SUPERVISEUR_LIVREUR → exclu (superviseur effectuant des livraisons —
+ *                                 anciennement classés à tort INDEPENDANT)
+ *   null                → "à catégoriser" (RH doit assigner un type ;
+ *                         bloque la soumission au Visa DGA — §8 du cadrage)
  */
-export type TypeLivreur = 'INDEPENDANT' | 'JOURNALIER' | 'SUPERVISEUR';
+export type TypeLivreur = 'INDEPENDANT' | 'JOURNALIER' | 'SUPERVISEUR_LIVREUR';
 
 export interface IGrillePaiementLigne {
   id: string | null;
@@ -63,6 +66,11 @@ export interface IGrillePaiementLigne {
   // Comptable ou défaut auto selon le type).
   typeLivreur?: TypeLivreur | null;
   inclusDansPaie?: boolean | null;
+  // V57 (2026-05) — Motif courant de l'override d'inclusion (justification
+  // ≥30c saisie par le Comptable). Vide tant que la ligne est au défaut auto.
+  // Affiché dans le DetailModal pour permettre au DGA de comprendre pourquoi
+  // une ligne a été incluse/exclue manuellement avant de viser.
+  inclusPaieMotif?: string | null;
 }
 
 export interface IGrillePaiementCreneau {
