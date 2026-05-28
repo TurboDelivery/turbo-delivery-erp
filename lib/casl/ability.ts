@@ -29,6 +29,12 @@ export type AppSubjects =
   //   Accordé au RECOUVREUR + Comptable/DGA/DG/Caissier pour suivi.
   | 'PageResponsableFinancier'
   | 'PageAgentRecouvreur'
+  // - PageCaissier → vue Caissier (réception physique versements).
+  //   Accordé au CAISSIER + COMPTABLE + DGA + DG. PAS au RECOUVREUR.
+  // - PageValidationDga → vue dédiée Validation DGA. Accordé DGA + DG seulement
+  //   (le COMPTABLE est limité à Responsable Financier + Caissier per fix 2026-05).
+  | 'PageCaissier'
+  | 'PageValidationDga'
   | 'Notification'
   | 'Creneau'
   | 'Performance'
@@ -115,8 +121,13 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', 'GrillePaiement');
       can('manage', 'Personnel');
       can('read', 'Finance');
-      // 2026-05 — Comptable a accès aux 2 sous-pages Comptabilité.
-      can('read', ['PageResponsableFinancier', 'PageAgentRecouvreur']);
+      // 2026-05 (correction) — Le COMPTABLE (qui occupe la fonction de
+      // Responsable Financier dans le workflow facture) ne doit voir et
+      // mener des actions QUE sur "Responsable Financier" et "Caissier".
+      // PAS "Agent Recouvreur" (vue terrain de l'agent recouvreur) ni
+      // "Validation DGA" (vue DGA-only). Le DG et le DGA gardent l'accès
+      // à toutes les sous-pages via leur 'manage all' / 'read all'.
+      can('read', ['PageResponsableFinancier', 'PageCaissier']);
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 
@@ -199,9 +210,10 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // Accès vue comptabilité (lecture + actions sur les versements à confirmer).
       can('read', 'Finance');
       can('manage', 'Finance');
-      // 2026-05 — Caissier voit les 2 sous-pages (suivi des versements
-      // côté Responsable Financier + côté Agent Recouvreur).
-      can('read', ['PageResponsableFinancier', 'PageAgentRecouvreur']);
+      // 2026-05 — Caissier a SA page dédiée + visibilité sur Responsable
+      // Financier (factures à recevoir) et Agent Recouvreur (versements en cours).
+      // PAS PageValidationDga (rôle DGA-only).
+      can('read', ['PageResponsableFinancier', 'PageAgentRecouvreur', 'PageCaissier']);
       break;
 
     default:

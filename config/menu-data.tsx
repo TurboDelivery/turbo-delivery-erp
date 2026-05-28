@@ -107,13 +107,14 @@ const menuData: IMenuData[] = [
     title: 'Comptabilité',
     can: { action: 'read', subject: 'Finance' },
     children: [
-      // 2026-05 — Permissions granulaires sur les 2 sous-menus Comptabilité.
-      // Le RECOUVREUR ne doit voir QUE "Agent Recouvreur" → on utilise le
-      // subject dédié PageResponsableFinancier qui n'est PAS accordé au
-      // RECOUVREUR (cf. ability.ts case 'RECOUVREUR'). Les autres rôles
-      // Finance (COMPTABLE, DGA, DG, CAISSIER) le reçoivent et voient les 2.
+      // 2026-05 — Permissions granulaires sur les 4 sous-menus Comptabilité.
+      // Le RECOUVREUR ne voit QUE Agent Recouvreur. Le COMPTABLE (Responsable
+      // Financier dans le workflow) voit Responsable Financier + Caissier.
+      // Les DG/DGA voient tout via 'manage all' / 'read all'.
       { icon: FileText, title: 'Responsable Financier', path: '/finance/comptabilite/responsable-financier', can: { action: 'read', subject: 'PageResponsableFinancier' } },
       { icon: FileText, title: 'Agent Recouvreur', path: '/finance/comptabilite/agent-recouvreur', can: { action: 'read', subject: 'PageAgentRecouvreur' } },
+      { icon: Wallet, title: 'Caissier', path: '/finance/comptabilite/caissier', can: { action: 'read', subject: 'PageCaissier' } },
+      { icon: CheckCircle, title: 'Validation DGA', path: '/finance/comptabilite/validation-dga', can: { action: 'read', subject: 'PageValidationDga' } },
     ],
   },
   { icon: Bell, title: 'Notifications', path: '/notification', can: { action: 'access', subject: 'Notification' } },
