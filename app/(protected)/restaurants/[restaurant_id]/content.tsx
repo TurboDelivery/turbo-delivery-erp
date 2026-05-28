@@ -9,7 +9,7 @@ import { toast } from 'react-toastify';
 import { Button, Input, Select, SelectItem, Textarea } from '@heroui/react';
 import { Input as AddressInput } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, ExternalLink, FileText, FileImage } from 'lucide-react';
+import { ArrowLeft, ExternalLink, FileText, FileImage, Eye, EyeOff } from 'lucide-react';
 import { PlaceAutocompleteResult } from '@googlemaps/google-maps-services-js';
 import { autocomplete, placeDetails } from '@/lib/googlemaps-server';
 import {
@@ -19,7 +19,7 @@ import {
   TYPE_COMMISSION_OPTIONS,
 } from '@/features/restaurants/schemas/update-restaurant.schema';
 import { updateRestaurant } from '@/features/restaurants/actions/update-restaurant.action';
-import { useInvalidateRestaurantsQuery } from '@/features/restaurants/queries/restaurant-list.query';
+import { useInvalidateRestaurantsQuery, useToggleRestaurantMutation } from '@/features/restaurants/queries/restaurant-list.query';
 import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { createUrlFile } from '@/utils/createUrlFile';
 
@@ -66,9 +66,18 @@ function DocPreview({ label, url }: { label: string; url: string }) {
 export default function Content({ restaurant }: { restaurant: IRestaurant }) {
   const router = useRouter();
   const invalidateRestaurants = useInvalidateRestaurantsQuery();
+  const toggleMutation = useToggleRestaurantMutation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localisationSuggestions, setLocalisationSuggestions] = useState<PlaceAutocompleteResult[]>([]);
   const [loadingGeo, setLoadingGeo] = useState(false);
+
+  // Compte partenaire
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Statut actif/inactif (status > 0 = actif)
+  const [isActive, setIsActive] = useState(() => (restaurant.status ?? 1) !== 0);
 
   const handleLocalisationChange = useCallback(
     async (value: string) => {
@@ -139,6 +148,8 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
     Object.entries(values).forEach(([k, v]) => {
       if (v !== undefined && v !== null) fd.append(k, String(v));
     });
+    if (username) fd.append('username', username);
+    if (password) fd.append('password', password);
     const result = await updateRestaurant(restaurant.id, fd);
     setIsSubmitting(false);
     if (result.status === 'success') {
@@ -147,6 +158,17 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
       router.push('/restaurants');
     } else {
       toast.error(result.message);
+    }
+  }
+
+  async function handleToggleStatus() {
+    const newActive = !isActive;
+    try {
+      await toggleMutation.mutateAsync({ id: restaurant.id, activate: newActive });
+      setIsActive(newActive);
+      toast.success(newActive ? 'Partenaire activé' : 'Partenaire désactivé');
+    } catch {
+      toast.error('Erreur lors du changement de statut');
     }
   }
 
@@ -171,7 +193,22 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
       </Link>
 
       <h1 className="text-2xl font-bold text-primary mb-1">Modifier le profil</h1>
-      <p className="text-sm text-gray-500 mb-8 capitalize">{restaurant.nomEtablissement}</p>
+      <div className="flex items-center justify-between mb-8">
+        <p className="text-sm text-gray-500 capitalize">{restaurant.nomEtablissement}</p>
+        <button
+          type="button"
+          onClick={handleToggleStatus}
+          disabled={toggleMutation.isPending}
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold border-2 transition-colors ${
+            isActive
+              ? 'border-green-500 bg-green-50 text-green-700 hover:bg-red-50 hover:border-red-400 hover:text-red-600'
+              : 'border-red-400 bg-red-50 text-red-600 hover:bg-green-50 hover:border-green-500 hover:text-green-700'
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-red-400'}`} />
+          {toggleMutation.isPending ? 'En cours...' : isActive ? 'ACTIF' : 'INACTIF'}
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
 
@@ -391,6 +428,33 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
               </div>
             );
           })()}
+        </section>
+
+        {/* ── Compte du partenaire ── */}
+        <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <SectionTitle>Compte du partenaire</SectionTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="Nom utilisateur"
+              variant="bordered"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="username_restaurant"
+            />
+            <Input
+              label="Nouveau mot de passe"
+              type={showPassword ? 'text' : 'password'}
+              variant="bordered"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              endContent={
+                <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-gray-400 hover:text-gray-600">
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
+            />
+          </div>
         </section>
 
         {/* ── Footer actions ── */}
