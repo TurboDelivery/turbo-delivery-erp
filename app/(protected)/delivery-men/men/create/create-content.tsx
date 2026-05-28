@@ -123,7 +123,9 @@ export default function CreateContent() {
     // On itère explicitement pour gérer boolean/string différemment.
     Object.entries(values).forEach(([k, v]) => {
       if (v === undefined || v === null || v === '') return;
-      fd.append(k, typeof v === 'boolean' ? String(v) : (v as string));
+      // Map frontend schema field names to backend API field names
+      const apiKey = k === 'numeroPersonneAContacter' ? 'personneAContacter' : k;
+      fd.append(apiKey, typeof v === 'boolean' ? String(v) : (v as string));
     });
     if (avatarFile) fd.append('avatar', avatarFile);
     cniFiles.forEach((f, i) => fd.append(`cni_${i}`, f));
@@ -357,46 +359,6 @@ export default function CreateContent() {
             {cniFiles.length > 0 && (
               <p className="text-xs text-green-600 mt-2">{cniFiles.length} fichier(s) sélectionné(s)</p>
             )}
-          </div>
-
-          {/* V48 (2026-05) — Fiche d'identification (PDF/image scannée) */}
-          <div className="mt-5 pt-5 border-t border-gray-100">
-            <p className="text-sm font-medium text-gray-700 mb-2">Fiche d&apos;identification</p>
-            <label className="flex items-center gap-3 cursor-pointer">
-              <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
-                <FileText className="w-4 h-4 shrink-0" />
-                <span>{ficheIdentificationFile ? ficheIdentificationFile.name : 'Importer la fiche d\'identification (PDF, JPG, PNG)'}</span>
-              </div>
-              <input
-                type="file"
-                accept=".pdf,image/*"
-                className="hidden"
-                onChange={(e) => { if (e.target.files?.[0]) setFicheIdentificationFile(e.target.files[0]); }}
-              />
-            </label>
-            {ficheIdentificationFile && (
-              <p className="text-xs text-green-600 mt-1.5">{ficheIdentificationFile.name} sélectionné</p>
-            )}
-          </div>
-
-          {/* V48 (2026-05) — Permis de conduire (booléen) */}
-          <div className="mt-5 pt-5 border-t border-gray-100">
-            <Controller
-              name="permisConduire"
-              control={control}
-              render={({ field }) => (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Permis de conduire</p>
-                    <p className="text-xs text-gray-400">Le livreur détient-il un permis valide ?</p>
-                  </div>
-                  <Switch
-                    isSelected={field.value ?? false}
-                    onValueChange={field.onChange}
-                  />
-                </div>
-              )}
-            />
           </div>
         </section>
 
