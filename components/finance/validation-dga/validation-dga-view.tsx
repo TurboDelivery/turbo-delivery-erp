@@ -210,8 +210,18 @@ export default function ValidationDgaView() {
   const [rejeterOpen, setRejeterOpen] = useState(false);
   const [motif, setMotif] = useState('');
 
-  // Fetch the list of invoices waiting for DGA visa
+  // Fetch the list of invoices waiting for DGA visa.
+  //
+  // Bug (2026-05) — Le backlog visa DGA doit montrer TOUTES les factures en
+  // attente de visa, quel que soit leur mois de création. Sans `periode`
+  // explicite, le backend applique `periode="mois"` (mois courant) et masque
+  // silencieusement les factures plus anciennes encore non visées : une
+  // facture créée en février (ex. F20260211-AGHA-56744, statut
+  // EN_ATTENTE_VISA_DGA) n'apparaissait plus dans le backlog en mai alors
+  // qu'elle bloquait toujours le workflow. `periode="cycle"` mappe sur
+  // DateRange(null, null) côté backend = aucun filtre de date.
   const { data: listData, isLoading: listLoading } = useFacturesRFQuery({
+    periode: 'cycle',
     statut: 'En attente visa DGA',
     size: 50,
   });

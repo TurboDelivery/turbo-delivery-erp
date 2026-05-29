@@ -26,6 +26,12 @@ export interface IFactureCaissierListResponse {
 }
 
 export interface ICaissierParams {
+  // Backend ResponsableFinancierFactureResource.listFactures : sans `periode`
+  // le serveur applique "mois" (mois courant) et masque les factures plus
+  // anciennes. La caisse est un backlog (todo), pas un rapport mensuel — on
+  // passe donc periode="cycle" (= DateRange null/null backend = aucun filtre
+  // date) pour voir toutes les factures à traiter quel que soit leur mois.
+  periode?: 'mois' | 'annee' | 'cycle' | 'plage';
   statut?: string;
   dateDebut?: string;
   dateFin?: string;

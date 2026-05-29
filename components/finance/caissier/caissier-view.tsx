@@ -68,8 +68,11 @@ export default function CaissierView() {
   const [statut, setStatut] = useState<string>('Versé au caissier');
   const [page, setPage] = useState(0);
 
-  const params = { statut: statut || undefined, page };
-  const { data: statsData } = useCaissierFacturesQuery({ size: 200 });
+  // periode 'cycle' = aucun filtre date côté backend (cf. ICaissierParams).
+  // Sans ça, la caisse ne voyait que les factures créées le mois courant et
+  // perdait celles versées un mois précédent encore à confirmer/clôturer.
+  const params = { periode: 'cycle' as const, statut: statut || undefined, page };
+  const { data: statsData } = useCaissierFacturesQuery({ periode: 'cycle', size: 200 });
 
   const [factureAConfirmer, setFactureAConfirmer] = useState<IFactureCaissier | null>(null);
   const [factureDepotBanque, setFactureDepotBanque] = useState<IFactureCaissier | null>(null);
