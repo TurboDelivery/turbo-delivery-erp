@@ -36,7 +36,7 @@ export default function RestaurantContent() {
         <PageWrapper>
             <div className="space-y-4">
                 <div className="pb-2">
-                    <div className="h1 text-3xl font-[1000] text-red-500">File d'attente</div>
+                    <div className="h1 text-3xl font-[1000] text-red-500">File d&apos;attente</div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 w-full">
                     {/* Recherche */}
@@ -67,7 +67,10 @@ export default function RestaurantContent() {
                         {statistiqueFileAttentes ? statistiqueFileAttentes?.coursier : 0} Turboys
                     </div>
 
-                    <Link href="/delivery-men" className="mt-8 block">
+                    {/* 2026-05-29 — Lien pointait sur l'ancienne page racine
+                         {@code /delivery-men}. Redirigé vers la nouvelle vue
+                         coursiers {@code /delivery-men/men}. */}
+                    <Link href="/delivery-men/men" className="mt-8 block">
                         <Button variant="destructive" className="w-full text-md hover:bg-red-300">
                             Voir la liste
                         </Button>

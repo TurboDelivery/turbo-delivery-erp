@@ -44,7 +44,10 @@ export default function DatabaseCards() {
 
   const statsItems = [
     { label: 'Partenaire Actif', value: data?.partenaireActif ?? 0, href: '/restaurants' },
-    { label: 'Turboys', value: data?.turboys ?? 0 },
+    // 2026-05-29 — Carte "Turboys" pointe maintenant explicitement vers la
+    // nouvelle vue /delivery-men/men. Sans href elle redirigeait vers "#"
+    // (donc nulle part) et l'utilisateur restait coincé sur le dashboard.
+    { label: 'Turboys', value: data?.turboys ?? 0, href: '/delivery-men/men' },
     { label: 'Personnel TURBO', value: data?.personnel ?? 0, href: '/personnel' },
     { label: 'Utilisateurs Actifs', value: data?.utilisateurs ?? 0, href: 'users' },
   ];
