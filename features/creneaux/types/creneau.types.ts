@@ -152,6 +152,10 @@ export interface ICreneauActifVm {
   soumisAt: string | null;
   soumisParNom: string | null;
   commentaireRejet: string | null;
+  // V58 (2026-05-29) — Drapeau de visibilité administrateur du créneau.
+  // Optionnel pour rester rétro-compat avec un backend pré-V58 (champ
+  // sera alors undefined, traité comme actif par défaut côté UI).
+  actif?: boolean;
 }
 
 export interface ICreneauJourDetail {

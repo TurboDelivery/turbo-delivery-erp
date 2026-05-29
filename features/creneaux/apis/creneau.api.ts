@@ -19,6 +19,9 @@ export async function getCreneauxListApi(params?: {
   page?: number;
   size?: number;
   lotStatut?: string;
+  // V58 (2026-05-29) — Si true, l'API renvoie aussi les créneaux marqués
+  // inactifs. Réservé à l'écran admin "Gérer les créneaux".
+  includeInactifs?: boolean;
 }): Promise<PaginatedResponse<ICreneauActifVm> | null> {
   try {
     return await apiClientHttp.request<PaginatedResponse<ICreneauActifVm>>({
@@ -28,11 +31,29 @@ export async function getCreneauxListApi(params?: {
         page: String(params?.page ?? 0),
         size: String(params?.size ?? 20),
         ...(params?.lotStatut ? { statutLot: params.lotStatut } : {}),
+        ...(params?.includeInactifs ? { includeInactifs: 'true' } : {}),
       },
     });
   } catch {
     return null;
   }
+}
+
+/**
+ * V58 (2026-05-29) — Active / désactive un créneau pour le masquer (ou le
+ * réafficher) dans les pickers UI. L'historique reste intact en base.
+ */
+export async function setCreneauActifApi(
+  creneauId: string,
+  actif: boolean,
+  userId: string,
+): Promise<ICreneauActifVm> {
+  return apiClientHttp.request<ICreneauActifVm>({
+    endpoint: `/api/creneaux/${creneauId}/actif`,
+    method: 'PATCH',
+    data: { actif },
+    config: { headers: { 'X-User-Id': userId } },
+  });
 }
 
 export interface ICreneauAPI {

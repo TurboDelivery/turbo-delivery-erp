@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { creneauAPI, getCreneauActifApi, getCreneauxListApi } from '../apis/creneau.api';
+import { creneauAPI, getCreneauActifApi, getCreneauxListApi, setCreneauActifApi } from '../apis/creneau.api';
 import { ICreneauParams, ICreneauAnalyseComparaison, ICreneauDashboardParams, ICreneauActifVm } from '../types/creneau.types';
 
 /**
@@ -30,13 +30,40 @@ export const useCreneauActifQuery = () =>
     refetchOnMount: true,
   });
 
-export const useCreneauxListQuery = (size = 50) =>
+export const useCreneauxListQuery = (size = 50, includeInactifs = false) =>
   useQuery({
-    queryKey: ['creneaux-list', size] as const,
-    queryFn: () => getCreneauxListApi({ page: 0, size }),
+    // V58 (2026-05-29) — Clé inclut includeInactifs pour ne pas mélanger
+    // le cache de la vue admin (tout) avec celui du picker (actifs seuls).
+    queryKey: ['creneaux-list', size, includeInactifs ? 'all' : 'active'] as const,
+    queryFn: () => getCreneauxListApi({ page: 0, size, includeInactifs }),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+/**
+ * V58 (2026-05-29) — Mutation admin : bascule le drapeau actif d'un créneau.
+ * Invalide les deux caches (actifs seuls + tous) pour que le picker grille
+ * de paiement reflète immédiatement le masquage.
+ */
+export const useSetCreneauActifMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ creneauId, actif, userId }: { creneauId: string; actif: boolean; userId: string }) =>
+      setCreneauActifApi(creneauId, actif, userId),
+    onSuccess: (_data, { actif }) => {
+      queryClient.invalidateQueries({ queryKey: ['creneaux-list'] });
+      toast.success(actif ? 'Créneau réactivé' : 'Créneau masqué', {
+        description: actif
+          ? 'Le créneau apparaît à nouveau dans les pickers.'
+          : 'Le créneau est masqué des pickers. L\'historique reste intact.',
+      });
+    },
+    onError: (error: unknown) => {
+      const description = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error('Impossible de modifier le statut du créneau', { description });
+    },
+  });
+};
 
 export const creneauKeys = {
   all: ['creneaux'] as const,

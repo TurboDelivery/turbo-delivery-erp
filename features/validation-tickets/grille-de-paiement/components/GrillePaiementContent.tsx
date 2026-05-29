@@ -1,10 +1,12 @@
 'use client';
 
-import { Pagination } from '@heroui/react';
-import { Lock } from 'lucide-react';
+import { useState } from 'react';
+import { Button, Pagination } from '@heroui/react';
+import { Lock, Settings } from 'lucide-react';
 import useGrillePaiement from '../hooks/use-grille-paiement';
 import { lotStatutLabel } from '../utils/lot-statut-label';
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
+import CreneauxAdminModal from '@/features/creneaux/components/CreneauxAdminModal';
 import GrillePaiementSkeleton from './GrillePaiementSkeleton';
 import GrillePaiementBanner from './GrillePaiementBanner';
 import GrillePaiementStats from './GrillePaiementStats';
@@ -56,6 +58,9 @@ export default function GrillePaiementContent() {
     closeInclusionRequest,
   } = useGrillePaiement();
 
+  // V58 (2026-05-29) — Modale admin "Gérer les créneaux".
+  const [creneauxAdminOpen, setCreneauxAdminOpen] = useState(false);
+
   if (isLoading) return <GrillePaiementSkeleton />;
 
   if (!grille) {
@@ -101,6 +106,17 @@ export default function GrillePaiementContent() {
               {lotStatutLabel(lotStatut)}
             </span>
           )}
+
+          {/* V58 (2026-05-29) — Accès à la modale admin "Gérer les créneaux"
+              pour masquer/réafficher des créneaux sans suppression. */}
+          <Button
+            size="sm"
+            variant="bordered"
+            startContent={<Settings size={14} />}
+            onPress={() => setCreneauxAdminOpen(true)}
+          >
+            Gérer les créneaux
+          </Button>
 
           <GrillePaiementExportButton
             creneauId={selectedCreneauId ?? undefined}
@@ -181,6 +197,12 @@ export default function GrillePaiementContent() {
         isLoading={isValidating}
         onClose={closeConfirmValidation}
         onConfirm={handleConfirmerValidation}
+      />
+
+      {/* V58 (2026-05-29) — Modale admin pour basculer la visibilité des créneaux. */}
+      <CreneauxAdminModal
+        open={creneauxAdminOpen}
+        onClose={() => setCreneauxAdminOpen(false)}
       />
 
       {/* V54 (2026-05) — Modale justification override Comptable. */}
