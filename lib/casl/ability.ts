@@ -47,13 +47,19 @@ export type AppSubjects =
   // RESPONSABLE_VA. PAS DIRECTEUR_OPERATIONS.
   | 'DashboardPerformance'
   | 'ValidationTicket'
+  // 2026-05 — "Validation des tickets > Verification V1" isolé sur son propre
+  // sujet (séparé de 'ValidationTicket', partagé avec Régularisation et
+  // Historique des Créneaux) pour pouvoir l'accorder SEUL au rôle agent V1
+  // AUTHENTIFICATION_VERIFICATION. Accordé aussi à DG(all)/DGA/COMPTABLE/
+  // OPS_MANAGER/RESPONSABLE_VA/DIRECTEUR_OPERATIONS pour préserver l'existant.
+  | 'VerificationV1'
   | 'VerrouillageV2'
   | 'GrillePaiement'
   | 'all';
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
-export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS'] as const;
+export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS','AUTHENTIFICATION_VERIFICATION'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
@@ -71,6 +77,8 @@ const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
   DIRECTEUR_OPERATIONS: 'DIRECTEUR_OPERATIONS',
   'DIRECTEUR DES OPERATIONS': 'DIRECTEUR_OPERATIONS',
   'DIRECTEUR DES OPÉRATIONS': 'DIRECTEUR_OPERATIONS',
+  AUTHENTIFICATION_VERIFICATION: 'AUTHENTIFICATION_VERIFICATION',
+  'AUTHENTIFICATION VERIFICATION': 'AUTHENTIFICATION_VERIFICATION',
   BUSINESS_DEVELOPER: 'BUSINESS_DEVELOPER',
   'BUSINESS DEVELOPER': 'BUSINESS_DEVELOPER',
   "CENTRALE D'APPEL": 'STANDARD',
@@ -87,8 +95,11 @@ export function normalizeRole(raw?: string | { libelle?: string } | null): AppRo
 }
 
 export function defineAbilityFor(role: AppRole | null): AppAbility {
-  const { can, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
+  const { can, cannot, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
 
+  // Accordé globalement, puis révoqué (cannot) pour les rôles qui ne doivent
+  // pas voir le tableau de bord (STANDARD, AUTHENTIFICATION_VERIFICATION).
+  // En CASL la dernière règle qui matche gagne → le cannot l'emporte.
   can('access', 'Analytics');
 
   switch (role) {
@@ -114,6 +125,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('manage', 'Creneau');
       can('manage', 'Performance');
       can('manage', 'ValidationTicket');
+      // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
+      can('manage', 'VerificationV1');
       can('manage', 'VerrouillageV2');
       can('manage', 'GrillePaiement');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
@@ -128,6 +141,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('create', 'Ticket');
       can('read', 'Ticket');
       can('read', 'ValidationTicket');
+      // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
+      can('read', 'VerificationV1');
       can('read', 'VerrouillageV2');
       can('read', 'GrillePaiement');
       // V54 (2026-05) — Le COMPTABLE peut overrider l'inclusion d'une ligne
@@ -156,6 +171,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // Sous-menu "Finance > Dashboard Performance" (sujet dédié, cf. plus haut).
       can('read', 'DashboardPerformance');
       can('manage', 'ValidationTicket');
+      // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
+      can('manage', 'VerificationV1');
       can('manage', 'GrillePaiement');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
@@ -174,12 +191,19 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', 'Ticket');
       can('manage', 'Creneau');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
+      // 2026-05 — Le STANDARD n'a pas besoin du tableau de bord : on révoque
+      // l'accès Analytics accordé globalement → le lien "dashboard" disparaît
+      // du menu. La route /analystics reste ouverte (ALWAYS_ALLOWED_PATHS)
+      // comme page d'atterrissage post-login, on ne casse donc pas le login.
+      cannot('access', 'Analytics');
       break;
 
     case 'RESPONSABLE_VA':
       can('manage', 'Ticket');
       can('authentifier', 'Ticket');
       can('manage', 'ValidationTicket');
+      // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
+      can('manage', 'VerificationV1');
       can('manage', 'Livreur');
       can('read', 'Creneau');
       can('manage', 'Performance');
@@ -229,6 +253,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('manage', 'Creneau');
       can('manage', 'Performance');
       can('manage', 'ValidationTicket');
+      // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
+      can('manage', 'VerificationV1');
       can('manage', 'GrillePaiement');
       // Spécifique DIRECTEUR_OPERATIONS — accès suivi recouvrement UNIQUEMENT.
       // PAS de can('read','Finance') : ça réafficherait le module "Finance"
@@ -266,6 +292,27 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // Financier (factures à recevoir) et Agent Recouvreur (versements en cours).
       // PAS PageValidationDga (rôle DGA-only).
       can('read', ['PageResponsableFinancier', 'PageAgentRecouvreur', 'PageCaissier']);
+      break;
+
+    case 'AUTHENTIFICATION_VERIFICATION':
+      // 2026-05 — Agent d'authentification / vérification V1. Rôle volontairement
+      // minimaliste : il valide les tickets en V1 et consulte les tickets des
+      // courses externes. RIEN d'autre.
+      //
+      // VOIT : "Courses externes > Tickets" (read Ticket) et "Validation des
+      // tickets > Verification V1" (read VerificationV1 — sujet dédié pour NE PAS
+      // exposer Régularisation ni Historique des Créneaux, qui partagent
+      // 'ValidationTicket'). + Notifications / Paramètres.
+      //
+      // NE VOIT PAS : tableau de bord (cannot Analytics ci-dessous), Approbation
+      // finale (approuver-dg Ticket non accordé), Historique des Créneaux
+      // (ValidationTicket non accordé), ni AUCUN module Finance (Finance / Page*
+      // non accordés).
+      can('read', 'Ticket');
+      can('read', 'VerificationV1');
+      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
+      // Tableau de bord retiré (Analytics accordé globalement plus haut).
+      cannot('access', 'Analytics');
       break;
 
     default:
