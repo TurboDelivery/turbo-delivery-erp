@@ -6,6 +6,7 @@ import TicketReadyList from './TicketReadyList';
 import TicketLockedList from './TicketLockedList';
 import useVerrouillageV2 from '../hooks/use-verrouillage-v2';
 import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
+import { RejectMotifDialog } from '@/components/validation-tickets/verrouillage-v2/reject-motif-dialog';
 
 export default function VerificationV1Content() {
   const {
@@ -17,6 +18,10 @@ export default function VerificationV1Content() {
     setFilters,
     livreurOptions,
     isLockingAll,
+    isRejecting,
+    rejectDialogId,
+    setRejectDialogId,
+    handleReject,
     handleLock,
     handleLockAll,
     fetchNextReady,
@@ -48,6 +53,7 @@ export default function VerificationV1Content() {
           tickets={readyTickets}
           total={totalReady}
           onLock={handleLock}
+          onReject={setRejectDialogId}
           hasNextPage={!!hasNextReady}
           isFetchingNextPage={isFetchingNextReady}
           fetchNextPage={fetchNextReady}
@@ -68,6 +74,14 @@ export default function VerificationV1Content() {
           <span className="font-semibold text-gray-900">validation finale (V2)</span> du DG.
         </p>
       </div>
+
+      <RejectMotifDialog
+        open={rejectDialogId !== null}
+        ticketId={rejectDialogId}
+        isRejecting={isRejecting}
+        onConfirm={handleReject}
+        onClose={() => setRejectDialogId(null)}
+      />
     </div>
   );
 }

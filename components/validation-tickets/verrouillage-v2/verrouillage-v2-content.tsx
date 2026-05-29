@@ -20,6 +20,8 @@ export function VerrouillageV2Content() {
     isFetchingNextV2Valide,
     filters,
     setFilters,
+    v2ValideFilters,
+    setV2ValideFilters,
     livreurOptions,
     isLoading,
     fetchNextPage,
@@ -70,6 +72,8 @@ export function VerrouillageV2Content() {
         isValidating={isValidatingAll}
         onValidateAll={handleValidateAll}
       />
+
+      <TicketFilterBar value={v2ValideFilters} onChange={setV2ValideFilters} livreurOptions={livreurOptions} />
 
       <V2ValideTable
         tickets={ticketsV2Valide}

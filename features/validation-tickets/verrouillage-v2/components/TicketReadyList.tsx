@@ -9,12 +9,13 @@ interface Props {
   tickets: TicketControleV2[];
   total: number;
   onLock: (ticketId: string) => void;
+  onReject: (ticketId: string) => void;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
 }
 
-export default function TicketReadyList({ tickets, total, onLock, hasNextPage, isFetchingNextPage, fetchNextPage }: Props) {
+export default function TicketReadyList({ tickets, total, onLock, onReject, hasNextPage, isFetchingNextPage, fetchNextPage }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -42,7 +43,7 @@ export default function TicketReadyList({ tickets, total, onLock, hasNextPage, i
 
       <div ref={scrollRef} className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 pr-1">
         {tickets.map((ticket) => (
-          <TicketReadyCard key={ticket.commandeId} ticket={ticket} onLock={onLock} />
+          <TicketReadyCard key={ticket.commandeId} ticket={ticket} onLock={onLock} onReject={onReject} />
         ))}
         <div ref={bottomRef} className="flex items-center justify-center py-1 shrink-0">
           {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-300" />}
