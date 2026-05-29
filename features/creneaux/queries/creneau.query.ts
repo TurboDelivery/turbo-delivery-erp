@@ -2,8 +2,22 @@
 
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { creneauAPI, getCreneauActifApi, getCreneauxListApi } from '../apis/creneau.api';
 import { ICreneauParams, ICreneauAnalyseComparaison, ICreneauDashboardParams, ICreneauActifVm } from '../types/creneau.types';
+
+/**
+ * 2026-05-29 — Helper centralisé pour signaler une erreur de chargement à
+ * l'utilisateur ET au log dev. Avant : seul {@code console.error} était
+ * appelé, ce qui rendait les pannes invisibles pour les utilisateurs
+ * (écran vide ou stats à 0 sans explication). On affiche désormais un
+ * toast non bloquant en plus du log.
+ */
+function signalerErreurChargement(contexte: string, error: unknown) {
+  console.error(`Erreur lors de la récupération ${contexte}:`, error);
+  const description = error instanceof Error ? error.message : 'Erreur inconnue';
+  toast.error(`Erreur de chargement (${contexte})`, { description, duration: 5000 });
+}
 
 export const CRENEAU_ACTIF_KEY = ['creneau-actif'] as const;
 
@@ -47,7 +61,7 @@ export const useCreneauxSemaineQuery = (params?: ICreneauParams) => {
 
   useEffect(() => {
     if (query.isError && query.error) {
-      console.error('Erreur lors de la recuperation des creneaux:', query.error);
+      signalerErreurChargement('des créneaux', query.error);
     }
   }, [query.isError, query.error]);
 
@@ -64,7 +78,7 @@ export const useCreneauStatsQuery = (semaine?: string) => {
 
   useEffect(() => {
     if (query.isError && query.error) {
-      console.error('Erreur lors de la recuperation des stats creneaux:', query.error);
+      signalerErreurChargement('des stats créneaux', query.error);
     }
   }, [query.isError, query.error]);
 
@@ -81,7 +95,7 @@ export const useStatistiquesParJourQuery = (semaine?: string) => {
 
   useEffect(() => {
     if (query.isError && query.error) {
-      console.error('Erreur lors de la recuperation des stats par jour:', query.error);
+      signalerErreurChargement('des stats par jour', query.error);
     }
   }, [query.isError, query.error]);
 
@@ -98,7 +112,7 @@ export const useCreneauAnalyseComparaisonQuery = (mois?: string) => {
 
   useEffect(() => {
     if (query.isError && query.error) {
-      console.error('Erreur lors de la recuperation de l\'analyse comparaison:', query.error);
+      signalerErreurChargement('de l\'analyse comparaison', query.error);
     }
   }, [query.isError, query.error]);
 
@@ -116,7 +130,7 @@ export const useCreneauDashboardQuery = (params?: ICreneauDashboardParams) => {
 
   useEffect(() => {
     if (query.isError && query.error) {
-      console.error('Erreur lors de la recuperation du dashboard creneaux:', query.error);
+      signalerErreurChargement('du dashboard prévisionnel', query.error);
     }
   }, [query.isError, query.error]);
 
@@ -134,7 +148,7 @@ export const useCreneauDashboardRealiteQuery = (params?: ICreneauDashboardParams
 
   useEffect(() => {
     if (query.isError && query.error) {
-      console.error('Erreur lors de la recuperation du dashboard réalité creneaux:', query.error);
+      signalerErreurChargement('du dashboard réalité', query.error);
     }
   }, [query.isError, query.error]);
 
@@ -152,7 +166,7 @@ export const useCreneauDetailJourQuery = (date: string) => {
 
   useEffect(() => {
     if (query.isError && query.error) {
-      console.error('Erreur lors de la recuperation du detail jour:', query.error);
+      signalerErreurChargement('du détail jour', query.error);
     }
   }, [query.isError, query.error]);
 
