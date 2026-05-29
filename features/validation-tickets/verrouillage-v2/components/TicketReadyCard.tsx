@@ -1,6 +1,6 @@
 'use client';
 
-import { Lock } from 'lucide-react';
+import { Lock, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TicketControleV2 } from '../types/tickets-v2.type';
@@ -9,9 +9,10 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 interface Props {
   ticket: TicketControleV2;
   onLock: (ticketId: string) => void;
+  onReject: (ticketId: string) => void;
 }
 
-export default function TicketReadyCard({ ticket, onLock }: Props) {
+export default function TicketReadyCard({ ticket, onLock, onReject }: Props) {
   return (
     <div className="flex flex-col gap-2 rounded-lg bg-green-50 border border-green-100 px-4 py-3">
       {/* Référence + actions */}
@@ -31,6 +32,15 @@ export default function TicketReadyCard({ ticket, onLock }: Props) {
           >
             <Lock className="h-3 w-3" />
             V1
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            onClick={() => onReject(ticket.commandeId)}
+            className="rounded-full px-4 py-1 text-xs font-semibold flex items-center gap-1.5"
+          >
+            <XCircle className="h-3 w-3" />
+            Rejeter
           </Button>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { useQueryStates } from 'nuqs';
 import { useTicketsV1ValideQuery, useTicketsV2ValideQuery, useCreneauTicketStatsQuery } from '../queries/tickets-v2-list.query';
 import { useValiderV2Mutation, useValiderV2EnMasseMutation, useRejeterV2FraudeMutation } from '../queries/tickets-v2.mutation';
 import { useCreneauActifQuery } from '@/features/creneaux/queries/creneau.query';
-import { validationTicketFiltersConfig, validationTicketFiltersOptions } from '@/features/validation-tickets/filters/validation-tickets.filters';
+import { validationTicketFiltersConfig, validationTicketFiltersOptions, validationTicketV2ValideFiltersOptions } from '@/features/validation-tickets/filters/validation-tickets.filters';
 import { useTicketFilterOptions } from '@/features/validation-tickets/hooks/use-ticket-filter-options';
 import type { IVerrouillageParams } from '../types/tickets-v2.type';
 
@@ -13,8 +13,10 @@ export function useVerrouillageV2Content() {
   const [rejectDialogId, setRejectDialogId] = useState<string | null>(null);
   const [validatingId, setValidatingId] = useState<string | null>(null);
   const [filters, setFiltersRaw] = useQueryStates(validationTicketFiltersConfig, validationTicketFiltersOptions);
+  const [v2ValideFilters, setV2ValideFiltersRaw] = useQueryStates(validationTicketFiltersConfig, validationTicketV2ValideFiltersOptions);
 
   const setFilters = (v: typeof filters) => void setFiltersRaw(v);
+  const setV2ValideFilters = (v: typeof v2ValideFilters) => void setV2ValideFiltersRaw(v);
 
   const params = useMemo<IVerrouillageParams>(() => ({
     debut: filters.debut || undefined,
@@ -25,6 +27,15 @@ export function useVerrouillageV2Content() {
     numero: filters.numero || undefined,
   }), [filters.debut, filters.fin, filters.restaurantId, filters.livreurId, filters.search, filters.numero]);
 
+  const v2ValideParams = useMemo<IVerrouillageParams>(() => ({
+    debut: v2ValideFilters.debut || undefined,
+    fin: v2ValideFilters.fin || undefined,
+    restaurantId: v2ValideFilters.restaurantId || undefined,
+    livreurId: v2ValideFilters.livreurId || undefined,
+    search: v2ValideFilters.search || undefined,
+    numero: v2ValideFilters.numero || undefined,
+  }), [v2ValideFilters.debut, v2ValideFilters.fin, v2ValideFilters.restaurantId, v2ValideFilters.livreurId, v2ValideFilters.search, v2ValideFilters.numero]);
+
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTicketsV1ValideQuery(params);
   const {
     data: v2ValideData,
@@ -32,7 +43,7 @@ export function useVerrouillageV2Content() {
     fetchNextPage: fetchNextV2Valide,
     hasNextPage: hasNextV2Valide,
     isFetchingNextPage: isFetchingNextV2Valide,
-  } = useTicketsV2ValideQuery(params);
+  } = useTicketsV2ValideQuery(v2ValideParams);
   const { data: creneauActif } = useCreneauActifQuery();
   const { data: ticketStats, isLoading: isStatsLoading } = useCreneauTicketStatsQuery();
   const { livreurOptions } = useTicketFilterOptions();
@@ -85,6 +96,8 @@ export function useVerrouillageV2Content() {
     isFetchingNextV2Valide,
     filters,
     setFilters,
+    v2ValideFilters,
+    setV2ValideFilters,
     livreurOptions,
     isLoading,
     fetchNextPage,
