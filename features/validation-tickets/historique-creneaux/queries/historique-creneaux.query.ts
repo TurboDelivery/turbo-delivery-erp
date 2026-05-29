@@ -16,8 +16,11 @@ export function useHistoriqueCreneauxListQuery(params?: { size?: number; lotStat
   const lotStatut = params?.lotStatut;
   return useInfiniteQuery({
     queryKey: historiqueCreneauxKeys.list(size, lotStatut),
+    // V59 (2026-05-29) — includeInactifs=true : c'est la surface admin de
+    // gestion des créneaux (colonne "Visible"). On doit voir les créneaux
+    // masqués pour pouvoir les réafficher, contrairement aux pickers UI.
     queryFn: ({ pageParam = 0 }): Promise<PaginatedResponse<ICreneauActifVm>> =>
-      getCreneauxListApi({ page: pageParam as number, size, lotStatut }).then(
+      getCreneauxListApi({ page: pageParam as number, size, lotStatut, includeInactifs: true }).then(
         (d) => d ?? ({ content: [], totalElements: 0, totalPages: 0, number: 0 } as unknown as PaginatedResponse<ICreneauActifVm>),
       ),
     getNextPageParam: (lastPage) =>

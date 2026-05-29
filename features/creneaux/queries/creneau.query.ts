@@ -52,6 +52,12 @@ export const useSetCreneauActifMutation = () => {
       setCreneauActifApi(creneauId, actif, userId),
     onSuccess: (_data, { actif }) => {
       queryClient.invalidateQueries({ queryKey: ['creneaux-list'] });
+      // V59 (2026-05-29) — La gestion de visibilité vit désormais dans le
+      // tableau "Historique des créneaux" ; on rafraîchit aussi ce cache et
+      // celui du créneau actif (banner grille) après chaque bascule. Clé en
+      // dur (= historiqueCreneauxKeys.all) pour éviter un import cross-feature.
+      queryClient.invalidateQueries({ queryKey: ['historique-creneaux'] });
+      queryClient.invalidateQueries({ queryKey: CRENEAU_ACTIF_KEY });
       toast.success(actif ? 'Créneau réactivé' : 'Créneau masqué', {
         description: actif
           ? 'Le créneau apparaît à nouveau dans les pickers.'

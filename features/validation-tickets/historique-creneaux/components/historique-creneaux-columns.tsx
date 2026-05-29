@@ -5,6 +5,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { ICreneauActifVm } from '@/features/creneaux/types/creneau.types';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { getLotStatutConfig } from '../utils/lot-statut.utils';
+import CreneauActifToggleCell from './CreneauActifToggleCell';
 
 function fmtDate(iso: string | null) {
   if (!iso) return '';
@@ -84,6 +85,13 @@ export const historiqueCreneauxColumns: ColumnDef<ICreneauActifVm>[] = [
         </div>
       );
     },
+  },
+  {
+    // V59 (2026-05-29) — Bascule de visibilité (drapeau actif). Remplace
+    // l'ancienne modale "Gérer les créneaux" de la grille de paiement.
+    id: 'actif',
+    header: 'Visible',
+    cell: ({ row }) => <CreneauActifToggleCell creneau={row.original} />,
   },
   {
     id: 'actions',
