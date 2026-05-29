@@ -4,12 +4,16 @@ import React from 'react';
 import { Chip } from '@heroui/react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
+import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { AvatarCell } from './avatar-cell';
 import { StatusChip } from './status-chip';
 import { TurboyActionMenu } from './turboy-action-menu';
 
 export function CourierCard({ turboy }: { turboy: ITurboy }) {
   const salaire = turboy.salaire ? `${turboy.salaire.toLocaleString('fr-FR')} Fcfa` : '-- Fcfa';
+  // V54 (2026-05-29) — Helper centralisé : libellé/couleur cohérents pour
+  // les 3 types (INDEPENDANT, JOURNALIER, SUPERVISEUR_LIVREUR).
+  const typeDisplay = getTurboyTypeDisplay(turboy.typeLivreur);
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
@@ -19,12 +23,8 @@ export function CourierCard({ turboy }: { turboy: ITurboy }) {
             {turboy.prenoms} {turboy.nom}
           </span>
           <div className="mt-1">
-            <Chip
-              color={turboy.typeLivreur === 'INDEPENDANT' ? 'warning' : 'secondary'}
-              size="sm"
-              variant="flat"
-            >
-              {turboy.typeLivreur === 'INDEPENDANT' ? 'Indépendant' : 'Journalier'}
+            <Chip color={typeDisplay.chipColor} size="sm" variant="flat">
+              {typeDisplay.label}
             </Chip>
           </div>
         </div>

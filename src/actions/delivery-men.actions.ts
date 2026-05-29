@@ -360,7 +360,11 @@ export async function mettreLivreurEnAttente(livreurId: string): Promise<any> {
 }
 
 // Compter les turboys par type (même endpoint que le tableau /delivery-men/men)
-export async function getTurboyCount(typeLivreur?: 'INDEPENDANT' | 'JOURNALIER'): Promise<number> {
+// V54 (2026-05-29) — Élargi à SUPERVISEUR_LIVREUR pour rester aligné sur les
+// 3 populations supportées par le backend depuis V54.
+export async function getTurboyCount(
+  typeLivreur?: 'INDEPENDANT' | 'JOURNALIER' | 'SUPERVISEUR_LIVREUR',
+): Promise<number> {
     try {
         const params: Record<string, string> = { page: '0', size: '1' };
         if (typeLivreur) params.typeLivreur = typeLivreur;

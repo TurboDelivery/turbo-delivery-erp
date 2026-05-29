@@ -3,6 +3,7 @@ import { type ColumnDef } from '@tanstack/react-table';
 import { Checkbox, Chip } from '@heroui/react';
 import { Mail, MapPin } from 'lucide-react';
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
+import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { type Restaurant } from '@/types/models';
 import { AvatarCell } from './avatar-cell';
 import { StatusChip } from './status-chip';
@@ -62,10 +63,16 @@ export function getMenColumns(restaurants: Restaurant[]): ColumnDef<ITurboy>[] {
     accessorKey: 'typeLivreur',
     header: 'TYPE DE LIVREUR',
     cell: ({ row }) => {
-      const type = row.original.typeLivreur;
+      // V54 (2026-05-29) — Passage par le helper centralisé pour gérer les
+      // 3 types (INDEPENDANT, JOURNALIER, SUPERVISEUR_LIVREUR) + fallback
+      // "À catégoriser" sur valeur inconnue. Avant : un ternaire à 2
+      // branches affichait "Journalier" pour tout ce qui n'était pas
+      // INDEPENDANT — ce qui faisait passer un superviseur-livreur pour
+      // un journalier dans la liste filtrée.
+      const display = getTurboyTypeDisplay(row.original.typeLivreur);
       return (
-        <Chip color={type === 'INDEPENDANT' ? 'success' : 'secondary'} size="sm" variant="flat">
-          {type === 'INDEPENDANT' ? 'Indépendant' : 'Journalier'}
+        <Chip color={display.chipColor} size="sm" variant="flat">
+          {display.label}
         </Chip>
       );
     },

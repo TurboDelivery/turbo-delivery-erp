@@ -3,31 +3,14 @@
 import React, { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ITurboy } from '@/features/turboys/types/turboys.types';
+import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { Avatar, Button, Chip } from '@heroui/react';
 import { Edit2, Mail, Phone } from 'lucide-react';
 import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
 
-const getTypeColor = (type: string) => {
-  switch (type) {
-    case 'INDEPENDANT':
-      return 'warning';
-    case 'JOURNALIER':
-      return 'secondary';
-    default:
-      return 'default';
-  }
-};
-
-const getTypeLabel = (type: string) => {
-  switch (type) {
-    case 'INDEPENDANT':
-      return 'Indépendant';
-    case 'JOURNALIER':
-      return 'Journalier';
-    default:
-      return type;
-  }
-};
+// V54 (2026-05-29) — Les anciennes fonctions locales getTypeColor / getTypeLabel
+// ne connaissaient pas SUPERVISEUR_LIVREUR (default → 'default' / brut). On
+// utilise désormais le helper centralisé features/turboys/utils.
 
 const getStatusColor = (status: number | null) => {
   if (status === 1) return 'success';
@@ -93,10 +76,10 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
     accessorKey: 'typeLivreur',
     header: 'Type',
     cell: ({ row }) => {
-      const type = row.original.typeLivreur;
+      const display = getTurboyTypeDisplay(row.original.typeLivreur);
       return (
-        <Chip color={getTypeColor(type)} size="sm" variant="flat">
-          {getTypeLabel(type)}
+        <Chip color={display.chipColor} size="sm" variant="flat">
+          {display.label}
         </Chip>
       );
     },

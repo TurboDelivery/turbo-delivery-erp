@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import type { ITurboy, TurboyType } from '@/features/turboys/types/turboys.types';
+import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 
 // ── Brand colors ─────────────────────────────────────────────────────────────
 const RED   = [220, 38,  38]  as const;  // primary
@@ -16,13 +17,15 @@ function statusLabel(status: number | null): string {
   if (status == null) return '—';
   return 'Suspendu';
 }
+// V54 (2026-05-29) — Helpers locaux délégant au mapping central. Avant :
+// ternaire à 2 branches qui transformait n'importe quel SUPERVISEUR_LIVREUR
+// en "Indépendant" sur l'export PDF.
 function typeLabel(type: TurboyType): string {
-  return type === 'JOURNALIER' ? 'Journalier' : 'Indépendant';
+  return getTurboyTypeDisplay(type).label;
 }
 function filterLabel(typeLivreur?: string): string {
-  if (typeLivreur === 'JOURNALIER') return 'Journaliers';
-  if (typeLivreur === 'INDEPENDANT') return 'Indépendants';
-  return 'Tous';
+  if (!typeLivreur) return 'Tous';
+  return getTurboyTypeDisplay(typeLivreur).labelPlural;
 }
 function truncate(text: string, maxChars: number): string {
   return text.length > maxChars ? text.slice(0, maxChars - 1) + '…' : text;

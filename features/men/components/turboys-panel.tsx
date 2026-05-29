@@ -25,16 +25,15 @@ import { CheckCheck, Grid2x2, List, Search, SlidersHorizontal, ToggleLeft, Toggl
 import { useTurboysByTypeQuery } from '@/features/turboys/queries/turboy-list.query';
 import { useTurboyFilters } from '@/features/turboys/hooks/use-turboy-filters';
 import { type TurboyType } from '@/features/turboys/types/turboys.types';
+import { TURBOY_FILTER_OPTIONS } from '@/features/turboys/utils/type-livreur-display';
 import { type Restaurant } from '@/types/models';
 import { getMenColumns } from './men-columns';
 import { CourierCard } from './courier-card';
 import { useBulkDesactiverLivreursMutation, useBulkActiverLivreursMutation } from '@/features/turboys/queries';
 
-const TYPE_OPTIONS = [
-  { label: 'Tous les types', value: '' },
-  { label: 'Indépendant', value: 'INDEPENDANT' },
-  { label: 'Journalier', value: 'JOURNALIER' },
-];
+// V54 (2026-05-29) — Source unique des options de filtre — 4 entrées :
+// "Tous les types" + INDEPENDANT + JOURNALIER + SUPERVISEUR_LIVREUR.
+const TYPE_OPTIONS = TURBOY_FILTER_OPTIONS;
 
 const PAGE_SIZE = 10;
 

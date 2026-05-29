@@ -294,7 +294,11 @@ export enum TypeEnum {
 }
 
 // GESTION DES TRAFICS LIVREURS
-export type TypeLivreur = 'INDEPENDANT' | 'JOURNALIER';
+// V54 (2026-05-29) — Alignement sur la note de cadrage DGA 28/05 : ajout de
+// SUPERVISEUR_LIVREUR comme 3e population. Utilisé pour les pins de la carte
+// trafic + les types globaux côté legacy. La source canonique reste
+// {@code features/turboys/types/turboys.types.ts > TurboyType} (même union).
+export type TypeLivreur = 'INDEPENDANT' | 'JOURNALIER' | 'SUPERVISEUR_LIVREUR';
 
 export interface LivreurTrafic {
     livreurId: string;

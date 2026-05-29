@@ -1,16 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { LivreurTrafic, TypeLivreur } from '@/types/models';
+import { LivreurTrafic } from '@/types/models';
+import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { createUrlFile } from '@/utils/createUrlFile';
 
 const AVATAR_FALLBACK = '/assets/images/avatar.png';
 
-const PIN_COLORS: Record<TypeLivreur, string> = {
-  INDEPENDANT: '#2563eb', // bleu
-  JOURNALIER: '#dc2626', // rouge
-};
-const PIN_DEFAULT_COLOR = '#6b7280'; // gris neutre si type inconnu
+// V54 (2026-05-29) — La couleur du pin est dérivée du helper centralisé
+// pour rester cohérente avec les badges UI : INDEPENDANT bleu, JOURNALIER
+// rouge, SUPERVISEUR_LIVREUR violet. Avant cette fix, la map ignorait
+// silencieusement les superviseurs-livreurs (PIN_DEFAULT_COLOR gris).
+const PIN_DEFAULT_COLOR = '#6b7280'; // fallback si type non assigné côté backend
 
 function escapeHtml(input: string): string {
   return input.replace(/[&<>"']/g, (c) => {
@@ -124,7 +125,11 @@ export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps
     validPositions.forEach((item) => {
       const safeName = escapeHtml(item.nomComplet ?? '');
       const safePhone = escapeHtml(item.telephone ?? '');
-      const pinColor = item.typeLivreur ? PIN_COLORS[item.typeLivreur] ?? PIN_DEFAULT_COLOR : PIN_DEFAULT_COLOR;
+      // V54 (2026-05-29) — Couleur dérivée du helper central pour rester
+      // cohérent avec le reste de l'UI (3 types + fallback).
+      const pinColor = item.typeLivreur
+        ? getTurboyTypeDisplay(item.typeLivreur).hexColor
+        : PIN_DEFAULT_COLOR;
       const primarySrc = item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : AVATAR_FALLBACK;
       const safeSrc = escapeHtml(primarySrc);
 
