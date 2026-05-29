@@ -64,6 +64,20 @@ export default function DatabaseCards() {
                   <TurboysButton name={'Indépendants'} param={'INDEPENDANT'} value={data?.turboysIndependant} />
                   <Divider />
                   <TurboysButton name={'Journaliers'} param={'JOURNALIER'} value={data?.turboysJournalier} />
+                  {/* V54 (2026-05) — Affiche la 3e population SUPERVISEUR_LIVREUR
+                       quand l'API la renvoie. Si l'utilisateur est sur un front
+                       qui a tapé un backend pré-V54, le champ est undefined et
+                       on n'affiche rien — comportement gracieux. */}
+                  {data?.turboysSuperviseurLivreur !== undefined && (
+                    <>
+                      <Divider />
+                      <TurboysButton
+                        name={'Superviseurs-livreurs'}
+                        param={'SUPERVISEUR_LIVREUR'}
+                        value={data.turboysSuperviseurLivreur}
+                      />
+                    </>
+                  )}
                 </div>
               )}
             </div>

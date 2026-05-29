@@ -1,4 +1,10 @@
-export type TurboyType = 'INDEPENDANT' | 'JOURNALIER';
+/**
+ * V54 (2026-05) — Ajout de SUPERVISEUR_LIVREUR aligné sur la note de cadrage
+ * DGA du 28/05/2026. Représente les superviseurs qui effectuent aussi des
+ * livraisons et qui doivent être isolés de la paie hebdomadaire des
+ * indépendants.
+ */
+export type TurboyType = 'INDEPENDANT' | 'JOURNALIER' | 'SUPERVISEUR_LIVREUR';
 
 export interface ITurboy {
   id: string;
@@ -48,6 +54,10 @@ export interface TurboyListResponse {
   totalCount: number;
   journalierCount: number;
   independantCount: number;
+  // V54 (2026-05) — Compteur de la nouvelle population SUPERVISEUR_LIVREUR.
+  // Optionnel pour rester rétro-compat si l'API renvoie un payload ancien
+  // sans ce champ (chaîne de déploiement back/front asynchrone).
+  superviseurLivreurCount?: number;
   demandesCount: number;
   livreurs: import('@/types/general').PaginatedResponse<ITurboy>;
 }

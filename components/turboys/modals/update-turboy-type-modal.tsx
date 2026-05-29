@@ -24,9 +24,13 @@ interface UpdateTurboyTypeModalProps {
   turboy: ITurboy | null;
 }
 
+// V54 (2026-05) — Ajout de la nouvelle population SUPERVISEUR_LIVREUR pour
+// que la RH puisse requalifier les superviseurs actuellement classés
+// "Indépendant" (cf. §6.2 cadrage DGA).
 const TURBOY_TYPES: { value: TurboyType; label: string }[] = [
   { value: 'INDEPENDANT', label: 'Indépendant' },
   { value: 'JOURNALIER', label: 'Journalier' },
+  { value: 'SUPERVISEUR_LIVREUR', label: 'Superviseur-livreur' },
 ];
 
 export function UpdateTurboyTypeModal({ isOpen, onOpenChange, turboy }: UpdateTurboyTypeModalProps) {

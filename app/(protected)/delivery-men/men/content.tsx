@@ -37,6 +37,9 @@ export default function Content({
   const totalCount = statsData?.totalCount ?? 0;
   const journalierCount = statsData?.journalierCount ?? 0;
   const independantCount = statsData?.independantCount ?? 0;
+  // V54 (2026-05) — Nouvelle population SUPERVISEUR_LIVREUR. Optionnel pour
+  // rester rétro-compat avec un backend pré-V54.
+  const superviseurLivreurCount = statsData?.superviseurLivreurCount ?? 0;
   const demandesCount = statsData?.demandesCount ?? 0;
 
   async function fetchAllTurboys(typeLivreur?: TurboyType) {
@@ -57,11 +60,15 @@ export default function Content({
     setIsExporting(type);
     try {
       if (type === 'all') {
-        const [indep, journ] = await Promise.all([
+        // V54 (2026-05) — Inclut aussi les superviseurs-livreurs dans l'export
+        // "Tous". La spec demande de préserver la visibilité de toutes les
+        // populations (vérification anti-fraude — §5.3 / §6.3 cadrage).
+        const [indep, journ, sup] = await Promise.all([
           fetchAllTurboys('INDEPENDANT'),
           fetchAllTurboys('JOURNALIER'),
+          fetchAllTurboys('SUPERVISEUR_LIVREUR'),
         ]);
-        await exportTurboysPdf([...indep, ...journ], undefined);
+        await exportTurboysPdf([...indep, ...journ, ...sup], undefined);
       } else {
         const turboys = await fetchAllTurboys(type);
         await exportTurboysPdf(turboys, type);
@@ -75,6 +82,8 @@ export default function Content({
     if (card === 'all') setFilters((prev) => ({ ...prev, tab: 'all', typeLivreur: null, page: 0 }));
     else if (card === 'journalier') setFilters((prev) => ({ ...prev, tab: 'journalier', typeLivreur: 'JOURNALIER' as TurboyType, page: 0 }));
     else if (card === 'independant') setFilters((prev) => ({ ...prev, tab: 'independant', typeLivreur: 'INDEPENDANT' as TurboyType, page: 0 }));
+    // V54 (2026-05) — Nouveau filtre par superviseur-livreur (note de cadrage).
+    else if (card === 'superviseur_livreur') setFilters((prev) => ({ ...prev, tab: 'superviseur_livreur', typeLivreur: 'SUPERVISEUR_LIVREUR' as TurboyType, page: 0 }));
     else if (card === 'demandes') setFilters((prev) => ({ ...prev, tab: 'demandes', page: 0 }));
   }
 
@@ -111,6 +120,10 @@ export default function Content({
               <DropdownMenuItem onSelect={() => handleExport('JOURNALIER')} disabled={isExporting !== null}>
                 Journaliers
               </DropdownMenuItem>
+              {/* V54 (2026-05) — Export de la nouvelle population aligné cadrage DGA. */}
+              <DropdownMenuItem onSelect={() => handleExport('SUPERVISEUR_LIVREUR')} disabled={isExporting !== null}>
+                Superviseurs-livreurs
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Link href="/delivery-men/men/create">
@@ -125,8 +138,9 @@ export default function Content({
         </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-4 w-full sm:grid-cols-4">
+      {/* V54 (2026-05) — Grille passée à 5 colonnes pour accueillir la nouvelle
+           carte "Superviseurs-livreurs" (note de cadrage DGA 28/05). */}
+      <div className="grid grid-cols-2 gap-4 w-full sm:grid-cols-3 lg:grid-cols-5">
         <StatCard
           label="Total turboys"
           value={totalCount}
@@ -145,6 +159,12 @@ export default function Content({
           value={independantCount}
           isActive={activeCard === 'independant'}
           onClick={() => handleCardClick('independant')}
+        />
+        <StatCard
+          label="Superviseurs-livreurs"
+          value={superviseurLivreurCount}
+          isActive={activeCard === 'superviseur_livreur'}
+          onClick={() => handleCardClick('superviseur_livreur')}
         />
         <StatCard
           label="Demandes en cours"

@@ -43,7 +43,7 @@ interface Props {
  * V54 (2026-05) — Détermine l'inclusion effective dans le totalAPayer en
  * appliquant la même règle que le backend : si {@code inclusDansPaie} est
  * explicitement set (override Comptable), on l'utilise ; sinon défaut basé
- * sur le type ({@code INDEPENDANT} → true, {@code JOURNALIER/SUPERVISEUR}
+ * sur le type ({@code INDEPENDANT} → true, {@code JOURNALIER/SUPERVISEUR_LIVREUR}
  * → false, null → false aussi en attendant la catégorisation RH).
  */
 function effectiveInclusion(ligne: IGrillePaiementLigne): boolean {
