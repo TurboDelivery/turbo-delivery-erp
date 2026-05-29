@@ -99,7 +99,7 @@ const menuData: IMenuData[] = [
       { icon: List, title: 'Cumule de revenus globaux', path: '/finance/revenue', can: { action: 'read', subject: 'Finance' } },
       { icon: Layers, title: 'Cumule des investissements internes', path: '/finance/revenue/investissement', can: { action: 'read', subject: 'Finance' } },
       { icon: SquareUser, title: 'Recouvrements', path: '/finance/recouvrement', can: { action: 'read', subject: 'Finance' } },
-      { icon: BarChart, title: 'Dashboard Performance', path: '/finance/rapports-performance/dashboard-performance', can: { action: 'read', subject: 'Performance' } },
+      { icon: BarChart, title: 'Dashboard Performance', path: '/finance/rapports-performance/dashboard-performance', can: { action: 'read', subject: 'DashboardPerformance' } },
     ],
   },
   {

@@ -38,6 +38,14 @@ export type AppSubjects =
   | 'Notification'
   | 'Creneau'
   | 'Performance'
+  // 2026-05 — "Finance > Dashboard Performance" isolé sur son propre sujet (au
+  // lieu de 'Performance' partagé) pour pouvoir le masquer au
+  // DIRECTEUR_OPERATIONS sans impacter les autres menus Performance. Sinon, DO
+  // possédant 'Performance', ce sous-menu survivait et faisait réapparaître
+  // tout le parent "Finance" (filterMenuByAbility affiche un parent dès qu'AU
+  // MOINS un enfant passe). Accordé : DG/DGA (via 'all'), OPS_MANAGER,
+  // RESPONSABLE_VA. PAS DIRECTEUR_OPERATIONS.
+  | 'DashboardPerformance'
   | 'ValidationTicket'
   | 'VerrouillageV2'
   | 'GrillePaiement'
@@ -145,6 +153,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('authentifier', 'Ticket');
       can('manage', 'Creneau');
       can('manage', 'Performance');
+      // Sous-menu "Finance > Dashboard Performance" (sujet dédié, cf. plus haut).
+      can('read', 'DashboardPerformance');
       can('manage', 'ValidationTicket');
       can('manage', 'GrillePaiement');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
@@ -173,6 +183,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('manage', 'Livreur');
       can('read', 'Creneau');
       can('manage', 'Performance');
+      // Sous-menu "Finance > Dashboard Performance" (sujet dédié, cf. plus haut).
+      can('read', 'DashboardPerformance');
       can('manage', 'Restaurant');
       can('valider', 'Restaurant');
       can('manage', 'Trafic');
@@ -199,17 +211,17 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
 
     case 'DIRECTEUR_OPERATIONS':
       // 2026-05 (révision après clarification user) — Le Directeur des
-      // Opérations a EXACTEMENT les permissions d'OPS_MANAGER + l'accès au
-      // sous-menu "Comptabilité > Agent Recouvreur" pour suivre les
-      // recouvrements terrain.
+      // Opérations a les permissions d'OPS_MANAGER + l'accès au SEUL sous-menu
+      // "Comptabilité > Agent Recouvreur" pour suivre les recouvrements terrain.
       //
-      // Différence avec OPS_MANAGER : uniquement l'ajout de Finance + Page
-      // AgentRecouvreur. Tout le reste est identique (gestion tickets,
-      // validation, créneaux, performance, grille paiement, etc.).
+      // Différence avec OPS_MANAGER : uniquement l'ajout de PageAgentRecouvreur.
+      // Tout le reste est identique (tickets, validation, créneaux, performance,
+      // grille paiement, etc.) — sauf "Dashboard Performance" sous Finance,
+      // volontairement masqué (cf. plus bas : on ne donne PAS 'DashboardPerformance').
       //
       // PAS d'accès à : Comptabilité > Responsable Financier / Caissier /
-      // Validation DGA, ni au menu Finance principal (Charges, Rapports
-      // Financiers, etc.).
+      // Validation DGA, NI au module "Finance" principal (Charges, Validation,
+      // Rapports Financiers, Rentabilité, Paiements, Revenus, Recouvrements).
       can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
       can('valider', 'Restaurant');
       can('manage', 'Ticket');
@@ -218,8 +230,14 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('manage', 'Performance');
       can('manage', 'ValidationTicket');
       can('manage', 'GrillePaiement');
-      // Spécifique DIRECTEUR_OPERATIONS — accès suivi recouvrement.
-      can('read', 'Finance');
+      // Spécifique DIRECTEUR_OPERATIONS — accès suivi recouvrement UNIQUEMENT.
+      // PAS de can('read','Finance') : ça réafficherait le module "Finance"
+      // principal. Le parent "Comptabilité" reste visible via son enfant
+      // "Agent Recouvreur" (PageAgentRecouvreur) — filterMenuByAbility affiche
+      // un parent dès qu'au moins un enfant passe. Le module "Finance" disparaît
+      // donc entièrement : son seul enfant potentiellement visible pour ce rôle,
+      // "Dashboard Performance", est gaté par 'DashboardPerformance' qu'on ne
+      // donne pas ici (DO garde 'Performance' pour les autres menus perf).
       can('read', 'PageAgentRecouvreur');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
