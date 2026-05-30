@@ -75,14 +75,25 @@ export type AppSubjects =
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
-export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS','AUTHENTIFICATION_VERIFICATION','AGENT_V1'] as const;
+export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS','AUTHENTIFICATION_VERIFICATION','AGENT_V1','RESPONSABLE_AUTH_COUPONS','ASSISTANT_COMPTABLE'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
   STANDARD: 'STANDARD',
+  // « Agent de saisie - Standard » = le rôle STANDARD redéfini (cf. case STANDARD).
+  'AGENT DE SAISIE': 'STANDARD',
+  'AGENT DE SAISIE - STANDARD': 'STANDARD',
   OPS_MANAGER: 'OPS_MANAGER',
   'OPS MANAGER': 'OPS_MANAGER',
   COMPTABLE: 'COMPTABLE',
+  // « Comptable - Agent V2 » = enrichissement du rôle COMPTABLE (cf. case COMPTABLE).
+  'COMPTABLE - AGENT V2': 'COMPTABLE',
+  // Nouveaux rôles 2026-05 (cadrage dépt développement).
+  RESPONSABLE_AUTH_COUPONS: 'RESPONSABLE_AUTH_COUPONS',
+  'RESPONSABLE AUTHENTIFICATION DE COUPONS': 'RESPONSABLE_AUTH_COUPONS',
+  'RESPONSABLE AUTH COUPONS': 'RESPONSABLE_AUTH_COUPONS',
+  ASSISTANT_COMPTABLE: 'ASSISTANT_COMPTABLE',
+  'ASSISTANT COMPTABLE': 'ASSISTANT_COMPTABLE',
   DGA: 'DGA',
   DG: 'DG',
   ADMIN: 'DG',
@@ -181,6 +192,23 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // "Validation DGA" (vue DGA-only). Le DG et le DGA gardent l'accès
       // à toutes les sous-pages via leur 'manage all' / 'read all'.
       can('read', ['PageResponsableFinancier', 'PageCaissier']);
+      // 2026-05 — « Comptable - Agent V2 » (enrichissement du rôle Comptable, sur
+      // choix user "enrichir") : reprend les droits opérationnels de l'Agent V1
+      // en voir+modifier + Verrouillage V2 modifiable (peut valider V2) +
+      // Dashboard Performance + module Finances en modification. Tout l'existant
+      // ci-dessus est conservé (soumission grille→DGA, recouvrement/factures,
+      // charges, comptabilité Resp.Financier+Caissier).
+      can('manage', 'Trafic');
+      can('manage', 'Livreur');             // Turboys > Men en voir+modifier
+      can('manage', 'Creneau');             // Turboys > Créneaux
+      can('manage', 'Performance');         // Turboys > Performance
+      can('read', 'DashboardPerformance');  // Finance > Dashboard Performance
+      can('manage', 'Commande');            // Courses externes (Nouvelles/Journalières/Toutes)
+      can('authentifier', 'Ticket');
+      can('manage', 'ValidationTicket');    // Régularisation en voir+modifier
+      can('manage', 'VerificationV1');      // Verification V1 en voir+modifier (valide V1)
+      can('manage', 'VerrouillageV2');      // Verrouillage V2 en voir+modifier (valide V2)
+      can('manage', 'Finance');             // module Finances en voir+modifier
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       break;
 
@@ -213,15 +241,19 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       break;
 
     case 'STANDARD':
-      can('read', 'Trafic');
-      can('create', 'Ticket');
-      can('read', 'Ticket');
-      can('manage', 'Creneau');
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      // 2026-05 — Le STANDARD n'a pas besoin du tableau de bord : on révoque
-      // l'accès Analytics accordé globalement → le lien "dashboard" disparaît
-      // du menu. La route /analystics reste ouverte (ALWAYS_ALLOWED_PATHS)
-      // comme page d'atterrissage post-login, on ne casse donc pas le login.
+      // 2026-05 — « Agent de saisie - Standard » : saisie de tickets (création +
+      // édition, SANS suppression) ; n'authentifie PAS, ne régularise PAS, ne
+      // valide PAS (ni V1 ni V2). Trafic en voir+modifier. Menu Livreurs :
+      // Créneaux voir+modifier, Liste des livreurs en lecture seule. Partenaires :
+      // lecture seule. Rien d'autre.
+      // NB : Notifications/Paramètres retirés du menu (spec) ; 'Menu'/'Route'
+      // conservés (infra). Tableau de bord retiré (cannot Analytics).
+      can('manage', 'Trafic');
+      can(['read', 'create', 'update'], 'Ticket'); // créer + éditer (PAS delete/authentifier/valider)
+      can('manage', 'Creneau');                     // Livreurs > Créneaux (voir+modifier)
+      can('read', 'Livreur');                       // Livreurs > Liste des livreurs (lecture seule)
+      can('read', 'Restaurant');                    // Partenaires (lecture seule)
+      can('access', ['Menu', 'Route']);
       cannot('access', 'Analytics');
       break;
 
@@ -382,6 +414,46 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', 'VerrouillageV2');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       // Pas de tableau de bord (non listé dans le périmètre).
+      cannot('access', 'Analytics');
+      break;
+
+    case 'RESPONSABLE_AUTH_COUPONS':
+      // 2026-05 — « Responsable Authentification de coupons ». Gère les tickets :
+      // créer/éditer, AUTHENTIFIER, régulariser les retardés (page Régularisation).
+      // NE VALIDE PAS (ni V1 ni V2). Menus en voir+modifier : Livreurs (Créneaux +
+      // Liste), Partenaires, Trafic. Grille de paiement : consultation seule.
+      // NB : « Contacts » = page inexistante dans l'app → non mappée (choix user).
+      // Notifications/Paramètres hors périmètre (menu masqué) ; Menu/Route = infra.
+      can('manage', 'Trafic');
+      can('manage', 'Creneau');             // Menu Livreurs > Créneaux
+      can('manage', 'Livreur');             // Menu Livreurs > Liste des livreurs
+      can('manage', 'Restaurant');          // Menu Partners
+      can('valider', 'Restaurant');
+      // Tickets : créer/éditer + authentifier (PAS valider V1/V2). 'read Ticket'
+      // affiche "Courses externes > Tickets" = la surface de gestion des tickets
+      // (les 3 autres sous-pages Courses restent masquées, pas de 'Commande').
+      can(['read', 'create', 'update', 'authentifier'], 'Ticket');
+      can('manage', 'ValidationTicket');    // Régularisation (régulariser les tickets retardés)
+      can('read', 'GrillePaiement');        // Grille de paiement : lecture seule
+      can('access', ['Menu', 'Route']);
+      cannot('access', 'Analytics');
+      break;
+
+    case 'ASSISTANT_COMPTABLE':
+      // 2026-05 — « Assistant Comptable ». Tickets : voir+modifier, authentifier,
+      // valider V1 ET V2. Module Finances : Charges + Validation uniquement
+      // (voir+modifier). Module Comptabilité : Caissiers uniquement. Livreurs
+      // (liste) + Partenaires : lecture seule. Rien d'autre.
+      // NB : 'read Ticket' affiche "Courses externes > Tickets" (surface tickets).
+      // Notifications/Paramètres hors périmètre (menu masqué) ; Menu/Route = infra.
+      can(['read', 'create', 'update', 'authentifier'], 'Ticket');
+      can('manage', 'VerificationV1');      // valider V1
+      can('manage', 'VerrouillageV2');      // valider V2
+      can('manage', 'ChargeFixe');          // Finances > Charges + Validation (voir+modifier)
+      can('read', 'PageCaissier');          // Comptabilité > Caissier uniquement
+      can('read', 'Livreur');               // Livreurs > Liste des livreurs (lecture seule)
+      can('read', 'Restaurant');            // Partenaires (lecture seule)
+      can('access', ['Menu', 'Route']);
       cannot('access', 'Analytics');
       break;
 
