@@ -1,10 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  getApprobationFinaleApi,
   approuverEtDeclencherWaveApi,
   rejeterApprobationFinaleApi,
 } from '../apis/approbation-finale.api';
@@ -12,26 +10,6 @@ import {
 export const approbationFinaleKeys = {
   all: ['approbation-finale'] as const,
   detail: (creneauId?: string) => [...approbationFinaleKeys.all, creneauId] as const,
-};
-
-export const useApprobationFinaleQuery = (creneauId?: string) => {
-  const query = useQuery({
-    queryKey: approbationFinaleKeys.detail(creneauId),
-    queryFn: () => getApprobationFinaleApi(creneauId),
-    staleTime: 60_000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-  });
-
-  useEffect(() => {
-    if (query.isError && query.error) {
-      toast.error('Erreur lors du chargement', {
-        description: query.error instanceof Error ? query.error.message : 'Erreur inconnue',
-      });
-    }
-  }, [query.isError, query.error]);
-
-  return query;
 };
 
 export const useApprouverEtDeclencherWaveMutation = () => {

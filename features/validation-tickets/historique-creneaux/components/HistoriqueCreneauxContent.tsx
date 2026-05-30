@@ -21,9 +21,10 @@ import type { StatutFilter } from '../hooks/use-historique-creneaux';
 const STATUT_FILTERS: { value: StatutFilter; label: string }[] = [
   { value: 'tous',              label: 'Tous' },
   { value: 'EN_ATTENTE',        label: 'En attente' },
-  { value: 'CALCUL_EN_COURS',   label: 'Soumis DGA' },
-  { value: 'SOUMIS_PDG',        label: 'Soumis PDG' },
-  { value: 'APPROUVE_PDG',      label: 'Approuvé PDG' },
+  { value: 'CALCUL_EN_COURS',   label: 'En préparation' },
+  { value: 'SOUMIS_DGA',        label: 'Soumis DGA' },
+  { value: 'VALIDE_DGA',        label: 'Visé DGA' },
+  { value: 'APPROUVE_DG',       label: 'Approuvé PDG' },
   { value: 'PAIEMENT_EN_COURS', label: 'Paiement en cours' },
   { value: 'SOLDE',             label: 'Soldé' },
   { value: 'REJETE',            label: 'Rejeté' },

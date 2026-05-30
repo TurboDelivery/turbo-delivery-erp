@@ -1,8 +1,13 @@
+// Aligné sur l'enum backend StatutLot (porté par CreneauHistoriqueVm.lotStatut).
+// Les anciennes valeurs SOUMIS_PDG / APPROUVE_PDG n'existaient dans aucun enum
+// backend → les lots SOUMIS_DGA/VALIDE_DGA/APPROUVE_DG s'affichaient en brut et
+// le filtre (envoyé en param statutLot) ne renvoyait rien.
 export type LotStatut =
   | 'EN_ATTENTE'
   | 'CALCUL_EN_COURS'
-  | 'SOUMIS_PDG'
-  | 'APPROUVE_PDG'
+  | 'SOUMIS_DGA'
+  | 'VALIDE_DGA'
+  | 'APPROUVE_DG'
   | 'PAIEMENT_EN_COURS'
   | 'SOLDE'
   | 'REJETE';

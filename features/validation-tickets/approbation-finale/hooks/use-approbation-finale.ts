@@ -7,7 +7,6 @@ import { useSession } from 'next-auth/react';
 import { useCreneauActifQuery, useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
 import { getGrillePaiementApi } from '@/features/validation-tickets/grille-de-paiement/apis/grille-paiement.api';
 import {
-  useApprobationFinaleQuery,
   useApprouverEtDeclencherWaveMutation,
   useRejeterApprobationFinaleMutation,
 } from '../queries/approbation-finale.query';
@@ -50,7 +49,6 @@ export default function useApprobationFinale() {
     enabled: !!resolvedCreneauId,
   });
 
-  const { data: approbation } = useApprobationFinaleQuery(resolvedCreneauId);
   const { mutate: approuver, isPending: isApprouvant } = useApprouverEtDeclencherWaveMutation();
   const { mutate: rejeter, isPending: isRejetant } = useRejeterApprobationFinaleMutation();
 
@@ -103,7 +101,6 @@ export default function useApprobationFinale() {
     setSelectedCreneauId: handleCreneauChange,
     grilleMeta,
     waveTable,
-    approbation,
     isLoading: isLoadingCreneau || isLoadingGrille,
     isFetchingNextPage,
     hasNextPage: !!hasNextPage,

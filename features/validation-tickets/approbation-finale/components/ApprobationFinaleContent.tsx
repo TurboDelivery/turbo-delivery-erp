@@ -8,8 +8,6 @@ import { formatPeriode } from '../utils/approbation-finale.utils';
 import ApprobationFinaleBanner from './ApprobationFinaleBanner';
 import ApprobationFinaleWaveTable from './ApprobationFinaleWaveTable';
 import ApprobationFinaleActionBar from './ApprobationFinaleActionBar';
-import ApprobationFinaleTraceabilite from './ApprobationFinaleTraceabilite';
-import ApprobationFinaleSignatures from './ApprobationFinaleSignatures';
 import ApprobationFinaleApprouverModal from './ApprobationFinaleApprouverModal';
 import ApprobationFinaleRejetModal from './ApprobationFinaleRejetModal';
 
@@ -22,7 +20,6 @@ export default function ApprobationFinaleContent() {
     setSelectedCreneauId,
     grilleMeta,
     waveTable,
-    approbation,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
@@ -104,17 +101,12 @@ export default function ApprobationFinaleContent() {
             totalLivreurs={grilleMeta.stats.totalLivreurs}
           />
 
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
-            <ApprobationFinaleWaveTable
-              waveTable={waveTable}
-              isFetchingNextPage={isFetchingNextPage}
-              hasNextPage={hasNextPage}
-              fetchNextPage={fetchNextPage}
-            />
-            {approbation?.chaineSignatures && approbation.chaineSignatures.length > 0 && (
-              <ApprobationFinaleSignatures signataires={approbation.chaineSignatures} />
-            )}
-          </div>
+          <ApprobationFinaleWaveTable
+            waveTable={waveTable}
+            isFetchingNextPage={isFetchingNextPage}
+            hasNextPage={hasNextPage}
+            fetchNextPage={fetchNextPage}
+          />
 
           {soumisAuPdg && (
             <ApprobationFinaleActionBar
@@ -123,10 +115,6 @@ export default function ApprobationFinaleContent() {
               onRejeter={openRejet}
               onApprouver={openApprouver}
             />
-          )}
-
-          {approbation?.traceabilite && (
-            <ApprobationFinaleTraceabilite traceabilite={approbation.traceabilite} />
           )}
         </>
       )}
