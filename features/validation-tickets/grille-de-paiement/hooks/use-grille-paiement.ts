@@ -49,7 +49,14 @@ export default function useGrillePaiement() {
   } | null>(null);
 
   const lotStatut = grille?.lot?.statut;
-  const isLotVerrouille = !!grille?.lot && lotStatut !== 'EN_ATTENTE' && lotStatut !== 'REJETE';
+  // Le footer "Soumettre au DGA" + l'édition des lignes restent disponibles
+  // tant que le lot n'a pas atteint le DGA. CALCUL_EN_COURS est un état
+  // intermédiaire (calcul/préparation) AVANT SOUMIS_DGA : on le laisse
+  // "déverrouillé" pour permettre l'étape 2 (soumettre-dga) et la validation
+  // des lignes — sinon un lot bloqué en CALCUL_EN_COURS n'aurait plus aucun
+  // bouton pour repartir vers le DGA.
+  const STATUTS_SOUMETTABLES = ['EN_ATTENTE', 'REJETE', 'CALCUL_EN_COURS'];
+  const isLotVerrouille = !!grille?.lot && !STATUTS_SOUMETTABLES.includes(lotStatut ?? '');
 
   const handleCreneauChange = useCallback((id: string | undefined) => {
     setFilters({ creneauId: id ?? '', page: 0 });
@@ -134,7 +141,7 @@ export default function useGrillePaiement() {
   const handleConfirmerSoumission = () => {
     if (!grille) return;
     soumettre(
-      { creneauId: grille.id, userId },
+      { creneauId: grille.id, lotId: grille.lot?.id, statut: lotStatut, userId },
       {
         onSuccess: () => {
           setConfirmOpen(false);

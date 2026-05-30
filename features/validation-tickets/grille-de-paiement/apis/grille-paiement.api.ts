@@ -38,9 +38,34 @@ export async function getGrillePaiementApi(
   }
 }
 
-export async function soumettrGrillePaiementApi(creneauId: string, userId: string): Promise<void> {
-  return apiClientHttp.request<void>({
+/**
+ * Étape 1/2 de la soumission Comptable au DGA : EN_ATTENTE|REJETE →
+ * CALCUL_EN_COURS. Le backend renvoie le LotTable ; on en récupère l'id pour
+ * enchaîner sur {@link soumettreDgaApi} (étape 2/2). NE rend PAS le lot visible
+ * au DGA à elle seule — c'est l'étape 2 qui fait ça.
+ */
+export async function soumettrGrillePaiementApi(
+  creneauId: string,
+  userId: string,
+): Promise<{ id: string; statut: string }> {
+  return apiClientHttp.request<{ id: string; statut: string }>({
     endpoint: `/api/creneaux/${creneauId}/soumettre`,
+    method: 'POST',
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
+/**
+ * Étape 2/2 de la soumission Comptable au DGA : CALCUL_EN_COURS → SOUMIS_DGA.
+ * C'est CETTE transition qui expose le lot au DGA (le backend validerDga exige
+ * SOUMIS_DGA). L'UI ne l'appelait pas auparavant → le lot restait bloqué en
+ * CALCUL_EN_COURS et la "Soumission au DGA" (étape 8 du workflow) ne marchait
+ * pas. Préconditions backend : aucune ligne flag_attente=true (chaque ligne
+ * doit avoir été validée) et un numéro Wave renseigné sur chaque ligne.
+ */
+export async function soumettreDgaApi(lotId: string, userId: string): Promise<void> {
+  return apiClientHttp.request<void>({
+    endpoint: `/api/lots/${lotId}/soumettre-dga`,
     method: 'POST',
     config: { headers: { 'X-User-Id': userId } },
   });

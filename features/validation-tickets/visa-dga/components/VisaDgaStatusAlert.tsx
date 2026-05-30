@@ -18,7 +18,10 @@ export default function VisaDgaStatusAlert({ statut, vise }: Props) {
     );
   }
 
-  if (statut === 'EN_ATTENTE') {
+  // CALCUL_EN_COURS = lot en préparation côté comptable, pas encore soumis au
+  // DGA (la soumission ne marque le lot SOUMIS_DGA qu'après l'étape
+  // soumettre-dga). Dans les deux cas le DGA ne peut pas encore agir.
+  if (statut === 'EN_ATTENTE' || statut === 'CALCUL_EN_COURS') {
     return (
       <div className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
         <Clock className="h-5 w-5 text-blue-400 shrink-0" />

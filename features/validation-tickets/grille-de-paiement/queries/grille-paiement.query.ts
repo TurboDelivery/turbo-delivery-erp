@@ -7,6 +7,7 @@ import {
   getFichePaieApi,
   getGrillePaiementApi,
   modifierInclusionLigneApi,
+  soumettreDgaApi,
   soumettrGrillePaiementApi,
   updateNumeroWaveApi,
   validerLigneApi,
@@ -53,11 +54,42 @@ export const useFichePaieQuery = (livreurId: string | null, lotId: string | unde
   });
 };
 
+/**
+ * Soumission Comptable au DGA — orchestre les DEUX transitions backend que
+ * l'UI omettait (d'où "Point 8 ne fonctionne" : le lot restait en
+ * CALCUL_EN_COURS et n'atteignait jamais le DGA) :
+ *   1. POST /creneaux/{id}/soumettre    → EN_ATTENTE|REJETE → CALCUL_EN_COURS
+ *   2. POST /lots/{lotId}/soumettre-dga → CALCUL_EN_COURS   → SOUMIS_DGA
+ * Si le lot est DÉJÀ en CALCUL_EN_COURS (lots historiquement bloqués par
+ * l'ancien bug), on saute l'étape 1 et on enchaîne direct sur l'étape 2 →
+ * auto-réparation des lots coincés.
+ */
 export const useSoumettreGrilleMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ creneauId, userId }: { creneauId: string; userId: string }) =>
-      soumettrGrillePaiementApi(creneauId, userId),
+    mutationFn: async ({
+      creneauId,
+      lotId,
+      statut,
+      userId,
+    }: {
+      creneauId: string;
+      lotId?: string;
+      statut?: string;
+      userId: string;
+    }) => {
+      let resolvedLotId = lotId;
+      // Étape 1 sautée uniquement si le lot est déjà en CALCUL_EN_COURS.
+      if (statut !== 'CALCUL_EN_COURS') {
+        const lot = await soumettrGrillePaiementApi(creneauId, userId);
+        resolvedLotId = lot?.id ?? lotId;
+      }
+      if (!resolvedLotId) {
+        throw new Error('Lot introuvable pour ce créneau — soumission au DGA impossible.');
+      }
+      // Étape 2 : transition qui expose réellement le lot au DGA (SOUMIS_DGA).
+      await soumettreDgaApi(resolvedLotId, userId);
+    },
     onSuccess: () => {
       toast.success('Grille soumise au DGA avec succès');
       queryClient.invalidateQueries({ queryKey: grillePaiementKeys.all });

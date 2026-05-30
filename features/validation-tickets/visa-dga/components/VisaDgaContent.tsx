@@ -111,7 +111,7 @@ export default function VisaDgaContent() {
             ))}
           </div>
 
-          {!vise && creneau.statut === 'CALCUL_EN_COURS' && (
+          {!vise && creneau.statut === 'SOUMIS_DGA' && (
             <VisaDgaActionBar
               isVisant={isVisant}
               isRejetant={isRejetant}
