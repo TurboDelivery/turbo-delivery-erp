@@ -5,7 +5,7 @@ import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-tabl
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
-import { v2ValideColumns } from './v2-valide-columns';
+import { buildV2ValideColumns } from './v2-valide-columns';
 
 interface V2ValideTableProps {
   tickets: TicketControleV2[];
@@ -14,6 +14,8 @@ interface V2ValideTableProps {
   fetchNextPage: () => void;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
+  onReject: (id: string) => void;
+  rejectingId?: string | null;
 }
 
 export function V2ValideTable({
@@ -23,6 +25,8 @@ export function V2ValideTable({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  onReject,
+  rejectingId = null,
 }: V2ValideTableProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -38,9 +42,11 @@ export function V2ValideTable({
     return () => observer.disconnect();
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
+  const columns = buildV2ValideColumns(onReject, rejectingId);
+
   const table = useReactTable({
     data: tickets,
-    columns: v2ValideColumns,
+    columns,
     getCoreRowModel: getCoreRowModel(),
   });
 

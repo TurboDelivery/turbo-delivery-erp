@@ -1,6 +1,9 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
+import { memo } from 'react';
+import { XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { format, parseISO } from 'date-fns';
@@ -39,7 +42,32 @@ function AgentCell({ agent, date }: AgentCellProps) {
   );
 }
 
-export const v2ValideColumns: ColumnDef<TicketControleV2>[] = [
+interface RowActionsProps {
+  ticket: TicketControleV2;
+  isRejecting: boolean;
+  onReject: (id: string) => void;
+}
+
+const RowActions = memo(function RowActions({ ticket, isRejecting, onReject }: RowActionsProps) {
+  return (
+    <Button
+      size="sm"
+      variant="destructive"
+      className="h-7 px-2 text-xs"
+      onClick={() => onReject(ticket.commandeId)}
+      disabled={isRejecting}
+    >
+      <XCircle className="h-3.5 w-3.5 mr-1" />
+      Rejeter
+    </Button>
+  );
+});
+
+export function buildV2ValideColumns(
+  onReject: (id: string) => void,
+  rejectingId: string | null,
+): ColumnDef<TicketControleV2>[] {
+  return [
   {
     accessorKey: 'reference',
     header: 'TICKET',
@@ -118,4 +146,17 @@ export const v2ValideColumns: ColumnDef<TicketControleV2>[] = [
     enableSorting: false,
     cell: ({ row }) => <AgentCell agent={row.original.v2Agent} date={row.original.v2ValideAt} />,
   },
+  {
+    id: 'actions',
+    header: 'ACTIONS',
+    enableSorting: false,
+    cell: ({ row }) => (
+      <RowActions
+        ticket={row.original}
+        isRejecting={rejectingId === row.original.commandeId}
+        onReject={onReject}
+      />
+    ),
+  },
 ];
+}

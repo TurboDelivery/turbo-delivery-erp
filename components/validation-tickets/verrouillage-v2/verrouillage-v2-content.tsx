@@ -82,6 +82,8 @@ export function VerrouillageV2Content() {
         fetchNextPage={fetchNextV2Valide}
         hasNextPage={hasNextV2Valide}
         isFetchingNextPage={isFetchingNextV2Valide}
+        onReject={setRejectDialogId}
+        rejectingId={rejectDialogId}
       />
 
       <RejectMotifDialog
