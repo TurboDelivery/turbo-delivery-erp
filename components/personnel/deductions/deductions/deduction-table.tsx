@@ -5,7 +5,16 @@ import { flexRender } from '@tanstack/react-table';
 import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { useDeductionTable } from '@/features/personnel/hooks/use-deduction-table';
 import { DeductionFilters } from '@/components/personnel/deductions/deductions/deduction-filters';
+import { renderDeductionActions } from '@/components/personnel/deductions/deductions/deduction-table-columns';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
+import { PersonnelMobileCard, PersonnelMobileCardList } from '@/components/personnel/shared/personnel-mobile-card';
+import { formatCfa, formatDateFr } from '@/lib/date-utils';
+import {
+  getDeductionStatusClassName,
+  getDeductionStatusLabel,
+  getDeductionTypeClassName,
+  getDeductionTypeLabel,
+} from '@/features/personnel/utils/deduction.utils';
 
 interface DeductionTableProps {
   showFilters?: boolean;
@@ -51,7 +60,8 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
         />
       )}
 
-      <div className="overflow-x-auto">
+      {/* Tableau — desktop uniquement (≥ md) */}
+      <div className="hidden md:block overflow-x-auto">
         <Table
           isStriped
           bottomContent={
@@ -92,6 +102,48 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
           </TableBody>
         </Table>
       </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <PersonnelMobileCardList>
+        {isDeductionLoading ? (
+          Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 animate-pulse" />)
+        ) : deductionTable.getRowModel().rows.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">Aucune deduction trouvee</p>
+        ) : (
+          deductionTable.getRowModel().rows.map((row) => {
+            const deduction = row.original;
+            return (
+              <PersonnelMobileCard
+                key={row.id}
+                title={deduction.employee?.name ?? '-'}
+                subtitle={deduction.employee?.email ?? '-'}
+                statut={getDeductionStatusLabel(deduction.status)}
+                statutClassName={`${getDeductionStatusClassName(deduction.status)} border-transparent`}
+                fields={[
+                  {
+                    label: 'Type',
+                    value: (
+                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getDeductionTypeClassName(deduction.typeDeduction)}`}>
+                        {getDeductionTypeLabel(deduction.typeDeduction)}
+                      </span>
+                    ),
+                  },
+                  { label: 'Montant', value: <span className="font-medium">{formatCfa(deduction.amount)}</span> },
+                  { label: 'Date deduction', value: formatDateFr(deduction.deductionDate) },
+                  { label: 'Mois de paie', value: formatDateFr(deduction.payrollMonth, 'MMM yyyy') },
+                  { label: 'Description', value: deduction.description?.trim() || '-' },
+                ]}
+                actions={renderDeductionActions(deduction, { onEditDeduction, onCancelDeduction, onDeleteDeduction })}
+              />
+            );
+          })
+        )}
+        {pagination && pagination.pageCount > 1 && (
+          <div className="flex justify-center pt-2">
+            <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} color="primary" />
+          </div>
+        )}
+      </PersonnelMobileCardList>
     </div>
   );
 }

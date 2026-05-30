@@ -85,22 +85,39 @@ export default function Content({ initialData, restaurants }: Props) {
             </div>
           ) : (
             <>
-              <Table aria-label="Tableau des livreurs non assignés">
-                <TableHeader>
-                  {nonAssignedColumns.map((col) => (
-                    <TableColumn key={col.uid}>{col.name}</TableColumn>
-                  ))}
-                </TableHeader>
-                <TableBody emptyContent="Aucun livreur à afficher.">
-                  {rows.map((row: any) => (
-                    <TableRow key={row.livreurId}>
-                      {nonAssignedColumns.map((col) => (
-                        <TableCell key={col.uid}>{renderNonAssignedCell(row, col.uid)}</TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              {/* Table — desktop uniquement (≥ md) */}
+              <div className="hidden md:block">
+                <Table aria-label="Tableau des livreurs non assignés">
+                  <TableHeader>
+                    {nonAssignedColumns.map((col) => (
+                      <TableColumn key={col.uid}>{col.name}</TableColumn>
+                    ))}
+                  </TableHeader>
+                  <TableBody emptyContent="Aucun livreur à afficher.">
+                    {rows.map((row: any) => (
+                      <TableRow key={row.livreurId}>
+                        {nonAssignedColumns.map((col) => (
+                          <TableCell key={col.uid}>{renderNonAssignedCell(row, col.uid)}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile — cartes tactiles (mêmes données / handlers via renderNonAssignedCell) */}
+              <div className="md:hidden space-y-3 px-4">
+                {rows.map((row: any) => (
+                  <div key={row.livreurId} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                    <div className="min-w-0">{renderNonAssignedCell(row, 'nom')}</div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs text-gray-400 shrink-0">Date d&apos;inscription</span>
+                      <span className="text-sm text-gray-700 text-right truncate">{renderNonAssignedCell(row, 'dateInscription')}</span>
+                    </div>
+                    <div className="pt-2 flex flex-wrap gap-2">{renderNonAssignedCell(row, 'actions')}</div>
+                  </div>
+                ))}
+              </div>
             </>
           )}
         </div>

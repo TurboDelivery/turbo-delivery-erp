@@ -66,7 +66,7 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
         </div>
       </div>
       {value === 'list' && (
-        <div className="mt-5">
+        <div className="mt-5 hidden md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -106,6 +106,47 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
               ))}
             </TableBody>
           </Table>
+        </div>
+      )}
+
+      {/* Mobile — une carte par utilisateur (remplace le tableau « liste » < md) */}
+      {value === 'list' && (
+        <div className="mt-5 space-y-3 md:hidden">
+          {paginatedItems.length === 0 ? (
+            <p className="py-10 text-center text-sm text-gray-400">Aucun utilisateur trouvé</p>
+          ) : (
+            paginatedItems.map((user: User) => (
+              <div key={user.id} className="space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">{user.nom[0]}</div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-gray-900">{`${user.nom} ${user.prenoms}`}</p>
+                      <p className="truncate text-xs text-gray-500">{user.role.libelle}</p>
+                    </div>
+                  </div>
+                  {user.status === 1 ? <Chip color="success">Actif</Chip> : <Chip color="warning">Inactif</Chip>}
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Email</span>
+                  <span className="truncate text-right text-sm text-gray-700">{user.email}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Nom d&apos;utilisateur</span>
+                  <span className="truncate text-right text-sm text-gray-700">{user.username}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Emails de notif</span>
+                  <UsersEmailPrimaryToggle user={user} />
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <UsersTools user={user} value="list" />
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
 

@@ -10,6 +10,7 @@ import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, Tabl
 import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { accompteColumns } from '@/features/recouvrements/columns/accompte-columns';
 import { DateRange } from 'react-day-picker';
+import { AccompteMobileCard } from '@/components/finance/recouvrements/recouvrement-mobile-cards';
 
 interface AccompteTabsContentProps {
   restoOpts?: Array<{ label: string; value: string }>;
@@ -147,7 +148,8 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
           <CardTitle>Liste des Accomptes</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Tableau — desktop uniquement (≥ md) */}
+          <div className="hidden md:block overflow-x-auto">
             <Table
               bottomContent={
                 pagination &&
@@ -214,6 +216,22 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
                     window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
                   }}
                 />
+              </div>
+            )}
+          </div>
+
+          {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+          <div className={`md:hidden space-y-3 ${isFetching ? 'opacity-70' : ''}`}>
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-24 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+            ) : accomptes.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-10">Aucun résultat trouvé</p>
+            ) : (
+              accomptes.map((accompte) => <AccompteMobileCard key={accompte.id} accompte={accompte} />)
+            )}
+            {pagination && pagination.pageCount > 1 && (
+              <div className="flex justify-center pt-2">
+                <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} color="primary" />
               </div>
             )}
           </div>

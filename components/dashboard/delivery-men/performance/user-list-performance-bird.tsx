@@ -114,9 +114,25 @@ export default function UserListPerformanceBird({ data }: props) {
                     key={groupes[activeIndex].creneau.debut + '-' + groupes[activeIndex].creneau.fin}
                     className="flex flex-col gap-2"
                 >
-                    {paginatedLivreurs.map((item) => (
-                        <div key={item.id} className="flex overflow-hidden">
-                            <div className="relative w-full overflow-x-auto overflow-y-hidden px-3 py-3 hide-scrollbar flex flex-nowrap gap-2 border-2 rounded-md space-x-4 flex-1">
+                    {paginatedLivreurs.map((item) => {
+                        const creneauLabel = `Créneau du : ${item.creneau.debut?.substring(8, 10)} - ${item.creneau.fin?.substring(8, 10)} ${fnMois(item.creneau.debut?.substring(5, 7) || '')}`;
+                        const dayButtons = item.etats.map((etat, idx) => {
+                            const lettre = etat.jour[0];
+                            const style =
+                                etat.statut === 'VALIDE'
+                                    ? 'success' : (etat.statut === 'EN_COURS'
+                                        ? 'warning' : (etat.statut === 'MANQUE' ? 'danger' : 'default'));
+                            return (
+                                <Button key={idx} isIconOnly size="sm" className="rounded-md" color={style}>
+                                    {lettre}
+                                </Button>
+                            );
+                        });
+                        return (
+                        <div key={item.id}>
+                            {/* Ligne dense — desktop uniquement (≥ md) */}
+                            <div className="hidden md:flex overflow-hidden">
+                                <div className="relative w-full overflow-x-auto overflow-y-hidden px-3 py-3 hide-scrollbar flex flex-nowrap gap-2 border-2 rounded-md space-x-4 flex-1">
                                 {/* avatar + nom */}
                                 <div className="flex-shrink-0 flex items-center w-1/6">
                                     <Avatar
@@ -135,24 +151,13 @@ export default function UserListPerformanceBird({ data }: props) {
 
                                 {/* date / statut */}
                                 <div className="flex-shrink-0 bg-red-500 flex items-center rounded-md text-white py-2 px-2">
-                                    {`Créneau du : ${item.creneau.debut?.substring(8, 10)} - ${item.creneau.fin?.substring(8, 10)} ${fnMois(item.creneau.debut?.substring(5, 7) || '')}`}
+                                    {creneauLabel}
                                 </div>
 
                                 {/* boutons jours */}
                                 <div className="flex-shrink-0 w-[350px] flex items-center gap-2">
                                     <span>En cours</span>
-                                    {item.etats.map((etat, idx) => {
-                                        const lettre = etat.jour[0];
-                                        const style =
-                                            etat.statut === 'VALIDE'
-                                                ? 'success' : (etat.statut === 'EN_COURS' 
-                                                    ? 'warning' : (etat.statut === 'MANQUE' ? 'danger': 'default'));
-                                        return (
-                                            <Button key={idx} isIconOnly size="sm" className="rounded-md" color={style}>
-                                                {lettre}
-                                            </Button>
-                                        );
-                                    })}
+                                    {dayButtons}
                                 </div>
 
                                 {/* progression */}
@@ -172,14 +177,57 @@ export default function UserListPerformanceBird({ data }: props) {
                                     <h3>Prime</h3>
                                     <h4 className="text-lg">{item.prime}</h4>
                                 </div>
+                                </div>
+
+                                {/* action */}
+                                <div className="bg-stone-100 w-[50px] rounded-r-md flex items-center justify-center relative -left-3">
+                                    <DropDownActionPerformance id={item.id} />
+                                </div>
                             </div>
 
-                            {/* action */}
-                            <div className="bg-stone-100 w-[50px] rounded-r-md flex items-center justify-center relative -left-3">
-                                <DropDownActionPerformance id={item.id} />
+                            {/* Carte tactile — mobile (< md), mêmes données / handlers que la ligne */}
+                            <div className="md:hidden bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-3">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <Avatar
+                                            isBordered
+                                            radius="full"
+                                            size="sm"
+                                            src={item?.avatarUrl ? createUrlFile(item.avatarUrl ?? "", "backend") : "assets/images/avatar.png"}
+                                        />
+                                        <p className="font-semibold text-slate-500 truncate">{item.nomComplet}</p>
+                                    </div>
+                                    <DropDownActionPerformance id={item.id} />
+                                </div>
+
+                                <div className="inline-flex bg-red-500 items-center rounded-md text-white text-xs py-1.5 px-2">
+                                    {creneauLabel}
+                                </div>
+
+                                <div className="space-y-1">
+                                    <span className="text-xs text-gray-400">En cours</span>
+                                    <div className="flex flex-wrap items-center gap-2">{dayButtons}</div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    {fnProgressionPerformance(item)}
+                                    <span className="text-sm">Performance {fnPerformance(item)}</span>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <h3 className="text-xs text-gray-400">Commission</h3>
+                                        <h4 className="text-lg">{item.commission}</h4>
+                                    </div>
+                                    <div className="text-right">
+                                        <h3 className="text-xs text-gray-400">Prime</h3>
+                                        <h4 className="text-lg">{item.prime}</h4>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
 
                     {/* Pagination UI */}
                     {totalPages > 1 && (

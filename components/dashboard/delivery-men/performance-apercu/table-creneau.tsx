@@ -181,9 +181,16 @@ const performanceApercuGlobalGain: PerformanceApercuGlobalGain|null = {
       fetchData();
     },[livreurId, emploiId])
 
+    const openJour = (j: string) => {
+      setOpen(true);
+      SetJour(j);
+    };
+
     return (
       <div>
-          <Table aria-label="Example table with custom cells"  selectionMode="single">
+          {/* Table — desktop uniquement (≥ md) */}
+          <div className="hidden md:block">
+            <Table aria-label="Example table with custom cells"  selectionMode="single">
       <TableHeader columns={columns}>
         {(column) => (
           <TableColumn key={column.key}>
@@ -193,21 +200,42 @@ const performanceApercuGlobalGain: PerformanceApercuGlobalGain|null = {
       </TableHeader>
       <TableBody items={initialData.progressions} emptyContent={<EmptyDataTable title="Aucun  Livreur" />}>
         {(item) => (
-          <TableRow key={item.jour} onClick={() => {
-            setOpen(true)
-            SetJour(item.jour)            
-          }
-
-          }>
+          <TableRow key={item.jour} onClick={() => openJour(item.jour)}>
             {(columnKey) => <TableCell >{renderCell(item, columnKey)}</TableCell>}
           </TableRow>
         )}
       </TableBody>
     </Table>
+          </div>
+
+          {/* Mobile — cartes tactiles (mêmes données / handler que le tableau) */}
+          <div className="md:hidden space-y-3">
+            {(initialData.progressions ?? []).length === 0 ? (
+              <EmptyDataTable title="Aucun  Livreur" />
+            ) : (
+              (initialData.progressions ?? []).map((item: Progression) => (
+                <div
+                  key={item.jour}
+                  className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2 cursor-pointer active:bg-gray-50"
+                  onClick={() => openJour(item.jour)}
+                >
+                  <p className="text-sm font-semibold text-gray-900">{item.jour || 'non definie'}</p>
+                  <div className="space-y-1">
+                    <span className="text-xs text-gray-400">Progression du jour</span>
+                    {renderCell(item, 'progression')}
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-gray-400 shrink-0">Commission du jour</span>
+                    <span className="text-sm text-gray-700 text-right">{renderCell(item, 'commission')}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
 
     <DropDownPerformanceCrenea open={open} setOpen={setOpen} gainsData={dataGains||null} jour={jour}/>
 
       </div>
-    
+
     );
   }

@@ -34,10 +34,12 @@ export default function HistoriqueCreneauDetailLivreurs({ livreurs }: Props) {
         </p>
       </div>
 
+      {/* Tableau — desktop uniquement (≥ md) */}
       <Table
         aria-label="Détail livreurs"
         removeWrapper
         classNames={{
+          base: 'hidden md:block',
           th: 'bg-gray-50 text-[10px] font-bold uppercase tracking-wide text-gray-500 py-3 px-4',
           td: 'py-3 px-4 border-b border-gray-100',
           tr: 'hover:bg-gray-50/50 transition-colors',
@@ -84,6 +86,48 @@ export default function HistoriqueCreneauDetailLivreurs({ livreurs }: Props) {
           })}
         </TableBody>
       </Table>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <div className="md:hidden space-y-3 p-4">
+        {livreurs.length === 0 ? (
+          <p className="py-6 text-center text-sm text-gray-400">Aucun livreur.</p>
+        ) : (
+          livreurs.map((l) => {
+            const badge = STATUT_BADGE[l.statut];
+            return (
+              <div key={l.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-gray-900">{l.nom}</p>
+                    <p className="text-[11px] text-gray-400">{l.code}</p>
+                  </div>
+                  <span
+                    className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${badge.className}`}
+                  >
+                    {badge.label}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Tickets</span>
+                  <span className="text-right text-sm text-gray-700">{l.tickets}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Brut</span>
+                  <span className="text-right text-sm text-gray-700">{fmt(l.brut)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Taux</span>
+                  <span className="text-right text-sm text-gray-700">{l.taux}%</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Net</span>
+                  <span className="text-right text-sm font-semibold text-green-600">{fmt(l.net)}</span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }

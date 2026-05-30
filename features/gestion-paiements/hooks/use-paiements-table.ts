@@ -1,6 +1,8 @@
-﻿import { functionalUpdate, getCoreRowModel, getSortedRowModel, PaginationState, RowSelectionState, useReactTable } from '@tanstack/react-table';
+﻿import { createElement } from 'react';
+import { functionalUpdate, getCoreRowModel, getSortedRowModel, PaginationState, Row, RowSelectionState, useReactTable } from '@tanstack/react-table';
 import { useCallback, useMemo, useState } from 'react';
 import { createPaiementsColumns } from '../columns/paiements.columns';
+import PaiementMobileCard from '../components/paiement-mobile-card';
 import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
 import { useChargesVariablesQuery } from '@/features/charges/queries/charges-variables.query';
 import { useDecaisserMutation } from '../queries/paiement.mutation';
@@ -99,6 +101,26 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
     [handleDecaisserOne, decaisserMutation.isPending, chargeType, handleDeleteOne, supprimerChargeVariableMutation.isPending, handleDeleteFixeOne, supprimerDepenseDuMoisMutation.isPending, telechargerRapportMasseSalariale, debut],
   );
 
+  // Carte mobile par ligne — réutilise EXACTEMENT les mêmes handlers/états que
+  // les colonnes (décaissement, suppression, rapport) → zéro divergence.
+  const renderMobileCard = useCallback(
+    (row: Row<IChargeFixe>) =>
+      createElement(PaiementMobileCard, {
+        key: row.id,
+        row,
+        onDecaisser: handleDecaisserOne,
+        isPending: decaisserMutation.isPending,
+        onDelete: chargeType === 'variable' ? handleDeleteOne : undefined,
+        isDeleting: supprimerChargeVariableMutation.isPending,
+        onDeleteFixe: chargeType === 'fixe' ? handleDeleteFixeOne : undefined,
+        isDeletingFixe: supprimerDepenseDuMoisMutation.isPending,
+        onRapport: () => {
+          telechargerRapportMasseSalariale(debut);
+        },
+      }),
+    [handleDecaisserOne, decaisserMutation.isPending, chargeType, handleDeleteOne, supprimerChargeVariableMutation.isPending, handleDeleteFixeOne, supprimerDepenseDuMoisMutation.isPending, telechargerRapportMasseSalariale, debut],
+  );
+
   const table = useReactTable({
     data,
     columns,
@@ -124,6 +146,7 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
   return {
     table,
     data,
+    renderMobileCard,
     isLoading,
     isFetching,
     selectedIds,

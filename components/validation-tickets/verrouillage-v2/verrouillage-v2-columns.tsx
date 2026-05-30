@@ -9,7 +9,7 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-function formatDate(dateStr: string) {
+export function formatDate(dateStr: string) {
   try {
     return format(parseISO(dateStr), 'dd MMM yyyy', { locale: fr });
   } catch {
@@ -31,7 +31,8 @@ interface AgentCellProps {
   date?: string | null;
 }
 
-function AgentCell({ agent, date }: AgentCellProps) {
+/** Affiche un agent (nom + horodatage) — partagé entre colonne et carte mobile. */
+export function AgentCell({ agent, date }: AgentCellProps) {
   if (!agent) return <span className="text-gray-400">—</span>;
   const formatted = formatDateTime(date);
   return (
@@ -49,12 +50,19 @@ interface RowActionsProps {
   onReject: (id: string) => void;
 }
 
-const RowActions = memo(function RowActions({ ticket, isValidating, onValidate, onReject }: RowActionsProps) {
+/** Actions d'une ligne V2 (Valider V2 / Rejeter) — partagé colonne + carte mobile. */
+export const VerrouillageV2RowActions = memo(function VerrouillageV2RowActions({
+  ticket,
+  isValidating,
+  onValidate,
+  onReject,
+  fullWidth = false,
+}: RowActionsProps & { fullWidth?: boolean }) {
   return (
     <div className="flex items-center gap-2">
       <Button
         size="sm"
-        className="h-7 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
+        className={`h-7 px-2 text-xs bg-green-600 hover:bg-green-700 text-white ${fullWidth ? 'flex-1' : ''}`}
         onClick={() => onValidate(ticket.commandeId)}
         disabled={isValidating}
       >
@@ -64,7 +72,7 @@ const RowActions = memo(function RowActions({ ticket, isValidating, onValidate, 
       <Button
         size="sm"
         variant="destructive"
-        className="h-7 px-2 text-xs"
+        className={`h-7 px-2 text-xs ${fullWidth ? 'flex-1' : ''}`}
         onClick={() => onReject(ticket.commandeId)}
         disabled={isValidating}
       >
@@ -171,7 +179,7 @@ export function buildVerrouillageV2Columns(
       header: 'ACTIONS',
       enableSorting: false,
       cell: ({ row }) => (
-        <RowActions
+        <VerrouillageV2RowActions
           ticket={row.original}
           isValidating={validatingId === row.original.commandeId}
           onValidate={onValidate}

@@ -24,7 +24,7 @@ const formatDateFr = (value: unknown, dateFormat = 'dd MMM yyyy'): string => {
   return date ? format(date, dateFormat, { locale: fr }) : '-';
 };
 
-const formatCfa = (amount: number): string => {
+export const formatCfa = (amount: number): string => {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'XOF',
@@ -32,7 +32,9 @@ const formatCfa = (amount: number): string => {
   }).format(amount || 0);
 };
 
-const getStatusClassName = (status: string) => {
+export { formatDateFr };
+
+export const getStatusClassName = (status: string) => {
   const normalized = status?.toUpperCase?.() || '';
 
   if (normalized.includes('PAID') || normalized.includes('PAYE')) {
@@ -50,7 +52,7 @@ const getStatusClassName = (status: string) => {
   return 'bg-gray-100 text-gray-700';
 };
 
-const getSalaryStatusClassName = (status: string) => {
+export const getSalaryStatusClassName = (status: string) => {
   if (status === 'PAID') {
     return 'bg-green-100 text-green-700';
   }

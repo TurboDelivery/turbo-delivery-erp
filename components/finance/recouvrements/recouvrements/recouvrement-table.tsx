@@ -7,6 +7,7 @@ import { Pagination } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
 import { RestaurantSelect } from '../common/restaurant-select';
 import { CreerRecouvrementModal } from '@/features/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';
+import { RecouvrementMobileCard } from '@/components/finance/recouvrements/recouvrement-mobile-cards';
 
 interface RecouvrementTableProps {
   restoOpts: Array<{ value: string; label: string }>;
@@ -31,8 +32,8 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
         <CreerRecouvrementModal variant="ghost" />
       </div>
 
-      {/* Tableau */}
-      <div className="overflow-x-auto">
+      {/* Tableau — desktop uniquement (≥ md) */}
+      <div className="hidden md:block overflow-x-auto">
         <Table isStriped>
           <TableHeader>
             {table.getFlatHeaders().map((header) => (
@@ -62,6 +63,18 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
           </TableBody>
         </Table>
       </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <div className={`md:hidden space-y-3 ${isFetching ? 'opacity-70' : ''}`}>
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-28 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+        ) : table.getRowModel().rows.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">Aucun résultat trouvé</p>
+        ) : (
+          table.getRowModel().rows.map((row) => <RecouvrementMobileCard key={row.id} recouvrement={row.original} />)
+        )}
+      </div>
+
       {pagination && pagination.pageCount > 1 && (
         <div className="flex justify-center pt-4 sm:pt-6">
           <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} color="primary" />

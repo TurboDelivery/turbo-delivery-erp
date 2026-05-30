@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { IFacture } from '@/features/recouvrements/types';
 
-function ActionsCell({ recouvrement }: { recouvrement: IRecouvrement }) {
+export function RecouvrementActionsCell({ recouvrement }: { recouvrement: IRecouvrement }) {
   const [openEdit, setOpenEdit] = useState(false);
   const { mutate: supprimerMutation, isPending: isDeleting } = useSupprimerRecouvrementMutation();
 
@@ -113,6 +113,6 @@ export const recouvrementColumns: ColumnDef<IRecouvrement>[] = [
   {
     id: 'actions',
     header: '',
-    cell: ({ row }) => <ActionsCell recouvrement={row.original} />,
+    cell: ({ row }) => <RecouvrementActionsCell recouvrement={row.original} />,
   },
 ];

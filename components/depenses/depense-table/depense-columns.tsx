@@ -10,7 +10,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 
 // Fonction pour formater le type de dépense
-const formatTypeDepense = (typeDepense: string | null | undefined): {
+export const formatTypeDepense = (typeDepense: string | null | undefined): {
   label: string;
   variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'square' | null | undefined;
 } => {
@@ -30,8 +30,8 @@ const formatTypeDepense = (typeDepense: string | null | undefined): {
   }
 };
 
-// Composant mémorisé pour les actions
-const DepenseActions = React.memo(({ depense }: { depense: IDepense }) => {
+// Composant mémorisé pour les actions — partagé entre la colonne (desktop) et la carte mobile.
+export const DepenseActions = React.memo(({ depense }: { depense: IDepense }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

@@ -6,6 +6,8 @@ import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Tabs, 
 import useContent from './useContent';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
+import { RestaurantMobileCard, RestaurantMobileCardList } from '@/components/restaurants/restaurant-mobile-card';
+import { createUrlFile } from '@/utils/createUrlFile';
 
 interface Props {
   initialData: RestaurantDefini[];
@@ -34,12 +36,13 @@ export default function Content({ initialData }: Props) {
       {(item) => {
         return (
           <Tab key={item.id} as={Link} href={item.href} title={item.label}>
-            <div className="flex flex-col">
+            {/* Tableau (desktop ≥ md) */}
+            <div className="hidden md:flex flex-col">
               <Table aria-label="Tableau de Frais de livraison">
                 <TableHeader columns={columns}>
                   {(column) => (
-                    <TableColumn 
-                    className={`${column.uid == 'nomEtablissement' ? 'flex items-center gap-2' : ''}`} 
+                    <TableColumn
+                    className={`${column.uid == 'nomEtablissement' ? 'flex items-center gap-2' : ''}`}
                     key={column.uid}
                     align={column.align as 'start' | 'end' | 'center'}
                     >
@@ -52,6 +55,22 @@ export default function Content({ initialData }: Props) {
                 </TableBody>
               </Table>
             </div>
+
+            {/* Cartes (mobile < md) — mêmes données et même action (renderCell) que le tableau */}
+            <RestaurantMobileCardList>
+              {(undefinedRestaurant ?? []).length === 0 ? (
+                <EmptyDataTable title="Aucun Frais de Livraison" />
+              ) : (
+                (undefinedRestaurant ?? []).map((restaurant) => (
+                  <RestaurantMobileCard
+                    key={restaurant.id}
+                    nom={restaurant.nomEtablissement}
+                    logoUrl={createUrlFile(restaurant.logo_Url, 'restaurant')}
+                    actions={renderCell(restaurant, 'actions') as React.ReactNode}
+                  />
+                ))
+              )}
+            </RestaurantMobileCardList>
           </Tab>
         );
       }}

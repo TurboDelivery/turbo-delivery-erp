@@ -21,6 +21,41 @@ const data: any = [
 
 const items = ['Apple', 'Banana', 'Cherry', 'Grapes', 'Mango', 'Orange', 'Pineapple', 'Strawberry'];
 
+/**
+ * Cartes mobile des livraisons (remplace le tableau dense < md). Mêmes données
+ * et mêmes liens que le tableau ; factorisé ici pour rester identique dans les
+ * deux branches (accordéon / vue simple).
+ */
+function LivraisonsMobileCards() {
+    return (
+        <div className="space-y-3 md:hidden">
+            {data.length === 0 ? (
+                <p className="py-10 text-center text-sm text-gray-400">Aucune livraison</p>
+            ) : (
+                data.map((item: any, index: number) => (
+                    <Link
+                        key={index}
+                        href={`/analystics/pay-slip/${item.id}/details`}
+                        className="block space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-sm active:bg-red-50"
+                    >
+                        <div className="flex items-start justify-between gap-2">
+                            <span className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                <Circle className="text-red-500" size={18} /> {item.date}
+                            </span>
+                            <span className="shrink-0 text-sm font-semibold text-gray-700">{item.cout}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                            <span className="shrink-0 text-xs text-gray-400">Partenaire</span>
+                            <span className="truncate text-right text-sm text-gray-700">{item.partenaire}</span>
+                        </div>
+                        <p className="text-xs text-gray-500">Total {item.cout}</p>
+                    </Link>
+                ))
+            )}
+        </div>
+    );
+}
+
 export function ListeDesLivraisons() {
     const [selected, setSelected] = useState([]);
     const [showAccordion, setShowAccordion] = useState(false);
@@ -81,7 +116,7 @@ export function ListeDesLivraisons() {
                                         </div>
                                     </div>
                                     <div className="w-full md:w-3/4">
-                                        <Table className="w-full border rounded-lg">
+                                        <Table className="hidden w-full rounded-lg border md:table">
                                             <TableHeader>
                                                 <TableRow className="text-red-500">
                                                     <TableHead className="text-left py-2 px-4">
@@ -124,6 +159,7 @@ export function ListeDesLivraisons() {
                                                 ))}
                                             </TableBody>
                                         </Table>
+                                        <LivraisonsMobileCards />
                                     </div>
                                 </div>
                             </AccordionContent>
@@ -148,7 +184,7 @@ export function ListeDesLivraisons() {
                         </div>
                     </div>
                     <div className="w-full md:w-3/4">
-                        <Table className="w-full border rounded-lg">
+                        <Table className="hidden w-full rounded-lg border md:table">
                             <TableHeader>
                                 <TableRow className="text-red-500">
                                     <TableHead className="text-left py-2 px-4">
@@ -191,6 +227,7 @@ export function ListeDesLivraisons() {
                                 ))}
                             </TableBody>
                         </Table>
+                        <LivraisonsMobileCards />
                     </div>
                 </div>
             )}

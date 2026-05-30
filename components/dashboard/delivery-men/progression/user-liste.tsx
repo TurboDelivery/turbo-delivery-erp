@@ -7,7 +7,8 @@ const UserListe = ({ initialData }: { initialData: CreneauProgressionBird[] }) =
   
     return (
     <div className="panel mt-5 overflow-hidden border-0 p-0">
-      <div className="table-responsive">
+      {/* Table — desktop uniquement (≥ md) */}
+      <div className="table-responsive hidden md:block">
         <table className='table-striped table-hover'>
             <thead>
                 <tr >
@@ -18,21 +19,9 @@ const UserListe = ({ initialData }: { initialData: CreneauProgressionBird[] }) =
                     <th >Fin</th>
                 </tr>
             </thead>
-          
+
           <tbody>
             {initialData.map((item) => {
-          // const progresseBare =()=>{
-          //   if(item.progression==100){
-          //   return <Progress   color="success" className="max-w-md"  value={100} />
-          //   }
-          //   if(item.progression<100 && item.progression>=65){
-          //       return <Progress   color="warning" className="max-w-md"  value={65} />
-          //       }
-          //   if(item.progression<65){
-                
-          //       return <Progress   color="danger" className="max-w-md"  value={20} />
-          //       }
-          // }
               return (
                 <tr key={item.id}>
                   <td>{item.nomComplet}</td>
@@ -46,7 +35,28 @@ const UserListe = ({ initialData }: { initialData: CreneauProgressionBird[] }) =
           </tbody>
         </table>
       </div>
-      {/* <Pagination total={data?.totalPages ?? 1} page={currentPage} onChange={fetchData} showControls color="primary" variant="bordered" isDisabled={isLoading} /> */}
+
+      {/* Mobile — cartes tactiles (mêmes données que le tableau) */}
+      <div className="md:hidden space-y-3 p-4">
+        {initialData.map((item) => (
+          <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+            <p className="text-sm font-semibold text-gray-900">{item.nomComplet}</p>
+            <div>{progresseBare2(item)}</div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-gray-400 shrink-0">Jour</span>
+              <span className="text-sm text-gray-700 text-right">{item.jour.jourNonTravaille}/{item.jour.jourTravaille}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-gray-400 shrink-0">Début</span>
+              <span className="text-sm text-gray-700 text-right">{item.creneauVM.jourDebut}</span>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-gray-400 shrink-0">Fin</span>
+              <span className="text-sm text-gray-700 text-right">{item.creneauVM.jourFin}</span>
+            </div>
+          </div>
+        ))}
+      </div>
 
     </div>
   );

@@ -34,7 +34,7 @@ const TypePlatsList = ({ typePlats }: { typePlats: Collection[] }) => {
                     </div>
                 </div>
             </div>
-            <div className="panel mt-5 overflow-hidden border-0 p-0">
+            <div className="panel mt-5 hidden overflow-hidden border-0 p-0 md:block">
                 <div className="table-responsive">
                     <table className="table-striped table-hover">
                         <thead>
@@ -66,6 +66,36 @@ const TypePlatsList = ({ typePlats }: { typePlats: Collection[] }) => {
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            {/* Mobile — une carte par type de plat (remplace le tableau < md) */}
+            <div className="mt-5 space-y-3 md:hidden">
+                {filteredItems.length === 0 ? (
+                    <p className="py-10 text-center text-sm text-gray-400">Aucun type de plat trouvé</p>
+                ) : (
+                    filteredItems.map((typePlat: Collection) => (
+                        <div key={typePlat.id} className="space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                            <div className="flex items-start justify-between gap-2">
+                                <div className="flex min-w-0 items-center gap-2">
+                                    <Avatar src={createUrlFile(typePlat.pictureUrl ?? '', 'erp')} />
+                                    <p className="truncate text-sm font-semibold text-gray-900">{typePlat.libelle}</p>
+                                </div>
+                                {typePlat.status === 1 ? <Chip color="success">Actif</Chip> : <Chip color="warning">Inactif</Chip>}
+                            </div>
+
+                            {typePlat.description ? (
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="shrink-0 text-xs text-gray-400">Description</span>
+                                    <span className="truncate text-right text-sm text-gray-700">{typePlat.description}</span>
+                                </div>
+                            ) : null}
+
+                            <div className="flex justify-end pt-1">
+                                <TypePlatsTools typePlat={typePlat} />
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     );

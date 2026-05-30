@@ -26,8 +26,8 @@ export default function UserRestaurantListe({ turboysCreneau }: { turboysCreneau
                     {
                         turboysCreneau.map((restaurant, index) => {
                             return (
-                                <div key={index} className="w-full bg-white shadow flex gap-4 border-2 rounded-md">
-                                    <div className="relative w-[180px] flex flex-col items-center text-center space-y-2 p-3">
+                                <div key={index} className="w-full bg-white shadow flex flex-col md:flex-row gap-4 border-2 rounded-md">
+                                    <div className="relative w-full md:w-[180px] flex flex-col items-center text-center space-y-2 p-3">
                                         {/* Logo */}
                                         <Avatar
                                             isBordered
@@ -43,22 +43,22 @@ export default function UserRestaurantListe({ turboysCreneau }: { turboysCreneau
                                         <p className="text-lg font-semibold">{restaurant.nombreLivreur}</p>
                                     </div>
 
-                                    <div className="flex-grow border-l-2 ">
-                                        <div className="flex flex-col py-2">
+                                    <div className="flex-grow border-t-2 md:border-t-0 md:border-l-2 ">
+                                        <div className="flex flex-col py-2 divide-y md:divide-y-0">
                                             {restaurant.livreurs.map((child) => {
                                                 return (
-                                                    <div key={child.id} className="font-semibold flex items-center px-2 py-2">
+                                                    <div key={child.id} className="font-semibold flex flex-wrap md:flex-nowrap items-center gap-y-1 px-2 py-2">
                                                         <div className="w-8">
                                                             <Avatar isBordered radius="full" size="sm" src={createUrlFile(child?.avatar ?? '', "backend")} />
                                                         </div>
-                                                        <p className="w-2/6 text-md px-2">{child.nomComplet}</p>
-                                                        <p className="w-1/5 px-2">
+                                                        <p className="w-[calc(100%-2rem)] md:w-2/6 text-md px-2">{child.nomComplet}</p>
+                                                        <p className="w-1/2 md:w-1/5 px-2 text-sm">
                                                             <span className="pr-1">Inscrit le :</span> <span className="text-gray-600">{formatDate(child.dateInscrit, 'DD/MM/YYYY')}</span>
                                                         </p>
-                                                        <p className="w-1/5 px-2">
+                                                        <p className="w-1/2 md:w-1/5 px-2 text-sm">
                                                             <span className="pr-1">Defini le: </span> <span className="text-gray-600">{child.dateDefiniEmploiTemps != null ? formatDate(child.dateDefiniEmploiTemps, 'DD/MM/YYYY') : '-' }</span>
                                                         </p>
-                                                        <div className="relative w-2/5 px-2 flex items-center justify-between">
+                                                        <div className="relative w-full md:w-2/5 px-2 flex items-center justify-between">
                                                             {progresseBare(child)}
                                                             <span className="flex items-end mt-6">
                                                                 {child.disponibilite

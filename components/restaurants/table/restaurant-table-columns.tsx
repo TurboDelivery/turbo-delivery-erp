@@ -23,13 +23,13 @@ const AVATAR_COLORS = [
   'bg-green-500', 'bg-teal-500', 'bg-blue-500', 'bg-indigo-500',
   'bg-purple-500', 'bg-pink-500',
 ];
-function getAvatarColor(name: string) {
+export function getAvatarColor(name: string) {
   const code = name.charCodeAt(0) || 0;
   return AVATAR_COLORS[code % AVATAR_COLORS.length];
 }
 
 // ── Statut ───────────────────────────────────────────────────────────────────
-function StatusChip({ status, typeCommission }: { status: number; typeCommission?: string }) {
+export function StatusChip({ status, typeCommission }: { status: number; typeCommission?: string }) {
   if (typeCommission === 'GRATUIT') return <Chip color="warning" size="sm" variant="flat">Gratuite</Chip>;
   if (status === 3) return <Chip color="success" size="sm" variant="flat">Validé</Chip>;
   if (status === 2) return <Chip color="warning" size="sm" variant="flat">En attente</Chip>;
@@ -46,7 +46,7 @@ const RECOUVREMENT_LABELS: Record<string, string> = {
 };
 
 // ── Actions dropdown ─────────────────────────────────────────────────────────
-function ActionsMenu({ id, name, status }: { id: string; name: string; status: number }) {
+export function ActionsMenu({ id, name, status }: { id: string; name: string; status: number }) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [toggleModalOpen, setToggleModalOpen] = useState(false);
   const { softDelete, hardDelete } = useDeleteRestaurantMutation();

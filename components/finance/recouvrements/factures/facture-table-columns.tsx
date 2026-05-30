@@ -21,8 +21,8 @@ const formatDate = (dateString: string) => {
   }
 };
 
-// Composant pour les actions de facture
-const FactureActions = ({ facture }: { facture: IFacture }) => {
+// Composant pour les actions de facture — partagé colonne (desktop) + carte mobile.
+export const FactureActions = ({ facture }: { facture: IFacture }) => {
   const [showValidateDialog, setShowValidateDialog] = useState(false);
   const canValidate = facture.statut?.toUpperCase() === 'DRAFT';
 

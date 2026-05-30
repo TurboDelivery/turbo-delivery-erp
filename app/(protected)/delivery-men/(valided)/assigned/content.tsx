@@ -125,22 +125,43 @@ export default function Content({ initialData, restaurants }: Props) {
                 ) : (
                     <>
                     <div className="border-b-2 mb-4 text-lg font-semibold">Aujourd&apos;hui</div>
-                    <Table aria-label="Tableau des livreurs">
-                        <TableHeader>
-                        {columns.map((column) => (
-                            <TableColumn key={column.uid}>{column.name}</TableColumn>
-                        ))}
-                        </TableHeader>
-                        <TableBody emptyContent="Aucun livreur à afficher.">
-                        {rows.map((row: any) => (
-                            <TableRow key={row?.livreurId}>
+                    {/* Table — desktop uniquement (≥ md) */}
+                    <div className="hidden md:block">
+                        <Table aria-label="Tableau des livreurs">
+                            <TableHeader>
                             {columns.map((column) => (
-                                <TableCell key={column.uid}>{renderCell(row, column.uid)}</TableCell>
+                                <TableColumn key={column.uid}>{column.name}</TableColumn>
                             ))}
-                            </TableRow>
+                            </TableHeader>
+                            <TableBody emptyContent="Aucun livreur à afficher.">
+                            {rows.map((row: any) => (
+                                <TableRow key={row?.livreurId}>
+                                {columns.map((column) => (
+                                    <TableCell key={column.uid}>{renderCell(row, column.uid)}</TableCell>
+                                ))}
+                                </TableRow>
+                            ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    {/* Mobile — cartes tactiles (mêmes données / handlers que le tableau via renderCell) */}
+                    <div className="md:hidden space-y-3">
+                        {rows.map((row: any) => (
+                            <div key={row?.livreurId} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                                <div className="min-w-0">{renderCell(row, 'nom')}</div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-xs text-gray-400 shrink-0">Date d&apos;inscription</span>
+                                    <span className="text-sm text-gray-700 text-right truncate">{renderCell(row, 'dateInscription')}</span>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-xs text-gray-400">Affectation</span>
+                                    {renderCell(row, 'restaurant')}
+                                </div>
+                                <div className="pt-2 flex flex-wrap gap-2">{renderCell(row, 'actions')}</div>
+                            </div>
                         ))}
-                        </TableBody>
-                    </Table>
+                    </div>
                     <UpdateDeliveryDialog
                         onClose={livreurAssigneCtrl.onClose}
                         isOpen={livreurAssigneCtrl.isOpen}

@@ -193,7 +193,10 @@ const dataCreneau={
 
 
     return (
-          <Table  aria-label="Example table with custom cells"  selectionMode="single">
+      <>
+          {/* Table — desktop uniquement (≥ md) */}
+          <div className="hidden md:block">
+            <Table  aria-label="Example table with custom cells"  selectionMode="single">
       <TableHeader columns={columns}>
         {(column) => (
           <TableColumn key={column.key}>
@@ -208,8 +211,38 @@ const dataCreneau={
           </TableRow>
         )}
       </TableBody>
-    </Table>    
+    </Table>
+          </div>
+
+          {/* Mobile — cartes tactiles (mêmes données / handler que le tableau) */}
+          <div className="md:hidden space-y-3">
+            {(initialData ?? []).length === 0 ? (
+              <EmptyDataTable title="Aucun  Livreur" />
+            ) : (
+              (initialData ?? []).map((item: GainDetail) => (
+                <div
+                  key={item.code}
+                  className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2 cursor-pointer active:bg-gray-50"
+                  onClick={() => setOpen(true)}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-semibold text-gray-900">{item.code}</p>
+                    <span className="text-xs text-gray-400 shrink-0">{item.date || 'non definie'}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-gray-400 shrink-0">Coût de livraison</span>
+                    <span className="text-sm text-gray-700 text-right">{renderCell(item, 'coute')}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-gray-400 shrink-0">Commission</span>
+                    <span className="text-sm text-gray-700 text-right">{renderCell(item, 'commussion')}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+      </>
     );
 
-    
+
   }

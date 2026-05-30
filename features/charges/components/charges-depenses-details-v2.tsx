@@ -11,6 +11,9 @@ import { buildMonthOptions, monthKeyToRange, rangeToMonthKey } from '../utils/mo
 import { useChargesDetailsTable } from '../hooks/use-charges-details-table';
 import { useActionChargeVariableMutation } from '../queries/charge-variable.mutation';
 import ChargesTableV2 from './charges-table-v2';
+import { ChargeFixeMobileCard, ChargeVariableMobileCard } from './charges-mobile-cards';
+import type { IChargeFixe } from '../types/charge-fixe.type';
+import type { IChargeVariable } from '../types/charge-variable.type';
 
 export default function ChargesDepensesDetailsV2() {
   const searchParams = useSearchParams();
@@ -116,6 +119,7 @@ export default function ChargesDepensesDetailsV2() {
             pageCount={fixesPageCount}
             emptyMessage="Aucune charge fixe"
             getRowClassName={(row: any) => row.automatique ? 'bg-green-100' : ''}
+            renderMobileCard={(row: IChargeFixe) => <ChargeFixeMobileCard key={row.id} charge={row} />}
           />
         ) : (
           <ChargesTableV2
@@ -124,6 +128,9 @@ export default function ChargesDepensesDetailsV2() {
             isFetching={isVariablesFetching}
             pageCount={variablesPageCount}
             emptyMessage="Aucune dépense variable"
+            renderMobileCard={(row: IChargeVariable) => (
+              <ChargeVariableMobileCard key={row.id} charge={row} onViewJustificatif={(url) => setPreviewUrl(url)} />
+            )}
           />
         )}
       </div>

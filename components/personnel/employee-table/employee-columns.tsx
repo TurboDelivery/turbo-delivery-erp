@@ -19,8 +19,25 @@ import { MoreHorizontal } from 'lucide-react';
 import React from 'react';
 import { useAbility } from '@/hooks/use-ability';
 
+/**
+ * Config du badge de statut employé — partagée par la colonne du tableau et la
+ * carte mobile (zéro divergence d'affichage).
+ */
+export const getEmployeeStatutConfig = (statut: IEmployee['statut']): { label: string; className: string } => {
+  switch (statut) {
+    case 'Actif':
+      return { label: statut, className: 'bg-green-600 text-white border-green-300' };
+    case 'Inactif':
+      return { label: statut, className: 'bg-primary text-white border-primary' };
+    case 'Congé':
+      return { label: statut, className: 'bg-yellow-500 text-white border-yellow-200' };
+    default:
+      return { label: statut, className: 'bg-gray-100 text-gray-800 border-gray-200' };
+  }
+};
+
 // Composant mémorisé pour les actions
-const EmployeeActions = React.memo(
+export const EmployeeActions = React.memo(
   ({
     employee,
     onEdit,
@@ -183,25 +200,8 @@ export const employeeColumns: ColumnDef<IEmployee>[] = [
     accessorKey: 'statut',
     header: 'Statut',
     cell: ({ row }) => {
-      const statut = row.original.statut;
-      let badgeClass;
-      let label = statut;
-
-      switch (statut) {
-        case 'Actif':
-          badgeClass = 'bg-green-600 text-white border-green-300';
-          break;
-        case 'Inactif':
-          badgeClass = 'bg-primary text-white border-primary';
-          break;
-        case 'Congé':
-          badgeClass = 'bg-yellow-500 text-white border-yellow-200';
-          break;
-        default:
-          badgeClass = 'bg-gray-100 text-gray-800 border-gray-200';
-      }
-
-      return <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${badgeClass}`}>{label}</div>;
+      const { label, className } = getEmployeeStatutConfig(row.original.statut);
+      return <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${className}`}>{label}</div>;
     },
     enableSorting: false,
   },

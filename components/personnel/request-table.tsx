@@ -8,6 +8,7 @@ import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from 
 import { LeaveRequest } from '../../features/personnel/types/types';
 import { IConge, CongeStatut } from '../../features/conge/types/conge.type';
 import { useCongesQuery } from '../../features/conge/queries/conge.query';
+import { PersonnelMobileCard, PersonnelMobileCardList } from '@/components/personnel/shared/personnel-mobile-card';
 
 interface RequestTableProps {
   requests: LeaveRequest[];
@@ -217,6 +218,8 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
 
   return (
     <>
+      {/* Tableau — desktop uniquement (≥ md) */}
+      <div className="hidden md:block">
       <Table aria-label="Liste des demandes">
       <TableHeader>
         <TableColumn>EMPLOYÉ</TableColumn>
@@ -292,6 +295,56 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
         )}
       </TableBody>
     </Table>
+    </div>
+
+    {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+    <PersonnelMobileCardList>
+      {displayRequests && displayRequests.length > 0 ? (
+        displayRequests.map((request: LeaveRequest | IConge) => (
+          <PersonnelMobileCard
+            key={request.id}
+            title={
+              <span className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-semibold shrink-0">
+                  {getEmployeeInitials(request.employeeName)}
+                </span>
+                {request.employeeName}
+              </span>
+            }
+            subtitle={`Demande créée le ${new Date(request.createdAt || request.startDate).toLocaleDateString('fr-FR')}`}
+            statut={
+              <span className="inline-flex items-center gap-1" title={getStatusDescription(request.statut)}>
+                <span>{getStatusIcon(request.statut)}</span>
+                {request.statut}
+              </span>
+            }
+            statutClassName={getStatusColor(request.statut)}
+            fields={[
+              {
+                label: 'Type',
+                value: (
+                  <span className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${getLeaveTypeColor(request.type)}`}>
+                    {getLeaveTypeLabel(request.type)}
+                  </span>
+                ),
+              },
+              { label: 'Période', value: `${request.startDate} - ${request.endDate}` },
+              { label: 'Durée', value: `${request.duration} jours` },
+              { label: 'Motif', value: request.reason || '-' },
+            ]}
+            actions={
+              <Button size="sm" color="primary" variant="flat" className="w-full" onPress={() => handleActionClick(request)}>
+                Actions
+              </Button>
+            }
+          />
+        ))
+      ) : (
+        <p className="text-sm text-gray-400 text-center py-10">
+          {congesData ? 'Aucune demande en attente trouvée' : 'Chargement...'}
+        </p>
+      )}
+    </PersonnelMobileCardList>
 
     {/* Modal d'actions */}
     <Modal 

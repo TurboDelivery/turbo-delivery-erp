@@ -8,6 +8,8 @@ import { toast } from 'react-toastify';
 import { ArchiveRestore, Loader2, Search, X } from 'lucide-react';
 
 import ConfirmModal from '@/components/ui/confirm-modal';
+import { Checkbox } from '@/components/ui/checkbox';
+import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { useAbility } from '@/hooks/use-ability';
 import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
 import { useTicketArchivesInfiniteQuery } from '@/features/tickets/queries/ticket-archives.query';
@@ -44,6 +46,8 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
   const totalItems = archivesQuery.data?.pages[0]?.totalElements ?? 0;
 
   const observerTarget = useInfiniteScroll(archivesQuery.fetchNextPage, archivesQuery.hasNextPage ?? false);
+  // Sentinelle dédiée aux cartes mobile (le sentinel desktop est masqué < md et n'intersecte jamais)
+  const observerTargetMobile = useInfiniteScroll(archivesQuery.fetchNextPage, archivesQuery.hasNextPage ?? false);
 
   const restaurerMutation = useRestaurerArchives(() => {
     setRowSelection({});
@@ -156,7 +160,7 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
         </div>
       </div>
 
-      <div className="overflow-x-auto -mx-4 sm:mx-0">
+      <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
         <div className="max-h-[420px] overflow-y-auto">
           <Table isStriped>
             <TableHeader>
@@ -191,6 +195,83 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
           <div className="h-0.5" ref={observerTarget}>
             {archivesQuery.isFetchingNextPage && <p className="text-xs text-gray-500 w-full text-center py-2">Chargement des données...</p>}
           </div>
+        </div>
+      </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <div className="md:hidden space-y-3">
+        {archivesQuery.isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-40 rounded-xl bg-gray-100 animate-pulse" />)
+        ) : table.getRowModel().rows.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">Aucun ticket archivé.</p>
+        ) : (
+          table.getRowModel().rows.map((row) => {
+            const a = row.original;
+            const deletedBy = a.deletedByUser ? `${a.deletedByUser.prenoms} ${a.deletedByUser.nom}` : '—';
+            return (
+              <div key={row.id} className={`bg-white border rounded-xl p-4 shadow-sm space-y-2 ${row.getIsSelected() ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-xs text-gray-400">Code Check</p>
+                    <p className="text-sm font-semibold text-gray-900 truncate">{a.reference}</p>
+                    <p className="text-xs text-blue-500 truncate">{a.restaurant}</p>
+                  </div>
+                  <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Sélectionner la ligne" />
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Livreur</span>
+                  <span className="text-sm text-gray-700 text-right truncate">{a.livreur}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Zone</span>
+                  <span className="text-sm text-gray-700 text-right truncate">{a.nomZone ?? 'Inconnue'}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Montant de Livraison</span>
+                  <span className="text-sm text-gray-700 text-right">{formatCFA(a.coutLivraison)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Montant de Commande</span>
+                  <span className="text-sm text-gray-700 text-right">{formatCFA(a.coutCommande)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Commission</span>
+                  <span className="text-sm text-gray-700 text-right">{formatCFA(a.commission ?? 0)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Date</span>
+                  <span className="text-sm text-gray-700 text-right">{formatDateFR(a.date)} · {formatHoursMinutes(a.heure)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Supprimé par</span>
+                  <span className="text-sm text-gray-700 text-right truncate">{deletedBy}</span>
+                </div>
+                {a.motifAnnulation && (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-gray-400 shrink-0">Motif</span>
+                    <span className="text-sm text-gray-700 text-right truncate">{a.motifAnnulation}</span>
+                  </div>
+                )}
+
+                {canRestore && (
+                  <div className="pt-1">
+                    <button
+                      onClick={() => handleRestoreRow(a.commandeId)}
+                      disabled={restoringId === a.commandeId}
+                      className="w-full px-3 py-2 bg-emerald-500 text-white rounded-lg text-sm hover:bg-emerald-600 flex items-center justify-center gap-1 disabled:opacity-50"
+                    >
+                      {restoringId === a.commandeId ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArchiveRestore className="w-4 h-4" />}
+                      Restaurer
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+        <div className="h-0.5" ref={observerTargetMobile}>
+          {archivesQuery.isFetchingNextPage && <p className="text-xs text-gray-500 w-full text-center py-2">Chargement des données...</p>}
         </div>
       </div>
 

@@ -48,12 +48,18 @@ interface RowActionsProps {
   onReject: (id: string) => void;
 }
 
-const RowActions = memo(function RowActions({ ticket, isRejecting, onReject }: RowActionsProps) {
+/** Action « Rejeter » d'un ticket V2 validé — partagé colonne + carte mobile. */
+export const V2ValideRowActions = memo(function V2ValideRowActions({
+  ticket,
+  isRejecting,
+  onReject,
+  fullWidth = false,
+}: RowActionsProps & { fullWidth?: boolean }) {
   return (
     <Button
       size="sm"
       variant="destructive"
-      className="h-7 px-2 text-xs"
+      className={`h-7 px-2 text-xs ${fullWidth ? 'w-full' : ''}`}
       onClick={() => onReject(ticket.commandeId)}
       disabled={isRejecting}
     >
@@ -157,7 +163,7 @@ export function buildV2ValideColumns(
       header: 'ACTIONS',
       enableSorting: false,
       cell: ({ row }) => (
-        <RowActions
+        <V2ValideRowActions
           ticket={row.original}
           isRejecting={rejectingId === row.original.commandeId}
           onReject={onReject}

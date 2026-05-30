@@ -6,6 +6,17 @@ import { IEmployee } from '@/features/personnel/types/types';
 import { differenceInDays } from 'date-fns';
 import { formatDateFr, toDate } from '@/lib/date-utils';
 
+export const getAbsenceDurationInDays = (start: unknown, end: unknown): string => getDurationInDays(start, end);
+
+export const getAbsenceTypeLabel = (type: string | undefined): string => getTypeLabel(type);
+
+export const getAbsenceTypeClassName = (typeLabel: string): string =>
+  typeLabel === 'Retard'
+    ? 'bg-amber-100 text-amber-700'
+    : typeLabel === 'Absence'
+      ? 'bg-red-100 text-red-700'
+      : 'bg-gray-100 text-gray-600';
+
 const getDurationInDays = (start: unknown, end: unknown): string => {
   const startDate = toDate(start);
   const endDate = toDate(end);
@@ -32,6 +43,20 @@ const getTypeLabel = (type: string | undefined): string => {
 type CreateAbsenceTableColumnsOptions = {
   onEditAbsence?: (absence: IAbsence) => void;
 };
+
+/** Bouton d'action d'une absence (modifier) — partagé par la colonne et la carte mobile. */
+export const renderAbsenceActions = (absence: IAbsence, onEditAbsence?: (absence: IAbsence) => void) => (
+  <Button
+    size="sm"
+    variant="light"
+    color="primary"
+    isIconOnly
+    onPress={() => onEditAbsence?.(absence)}
+    title="Modifier"
+  >
+    <Pencil className="size-4" />
+  </Button>
+);
 
 export const createAbsenceTableColumns = ({ onEditAbsence }: CreateAbsenceTableColumnsOptions = {}): ColumnDef<IAbsence>[] => [
   {
@@ -71,15 +96,8 @@ export const createAbsenceTableColumns = ({ onEditAbsence }: CreateAbsenceTableC
     header: 'Type',
     cell: ({ row }) => {
       const typeLabel = getTypeLabel(row.original.type);
-      const typeClassName =
-        typeLabel === 'Retard'
-          ? 'bg-amber-100 text-amber-700'
-          : typeLabel === 'Absence'
-            ? 'bg-red-100 text-red-700'
-            : 'bg-gray-100 text-gray-600';
-
       return (
-        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${typeClassName}`}>
+        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getAbsenceTypeClassName(typeLabel)}`}>
           {typeLabel}
         </span>
       );
@@ -101,17 +119,6 @@ export const createAbsenceTableColumns = ({ onEditAbsence }: CreateAbsenceTableC
     id: 'actions',
     header: 'Actions',
     enableSorting: false,
-    cell: ({ row }) => (
-      <Button
-        size="sm"
-        variant="light"
-        color="primary"
-        isIconOnly
-        onPress={() => onEditAbsence?.(row.original)}
-        title="Modifier"
-      >
-        <Pencil className="size-4" />
-      </Button>
-    ),
+    cell: ({ row }) => renderAbsenceActions(row.original, onEditAbsence),
   },
 ];

@@ -48,7 +48,8 @@ export function CategorieDepenseList() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
+          {/* Tableau — desktop uniquement (≥ md) */}
+          <Table className="hidden md:table">
             <TableHeader className="">
               <TableRow className="bg-red-500 hover:bg-red-600">
                 <TableHead className="font-semibold">Date</TableHead>
@@ -89,6 +90,47 @@ export function CategorieDepenseList() {
               ))}
             </TableBody>
           </Table>
+
+          {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+          <div className="md:hidden space-y-3 p-4">
+            {categorie_depenses.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-10">Aucune catégorie</p>
+            ) : (
+              categorie_depenses.map((categorie_depense) => (
+                <div key={categorie_depense.id} className="bg-white dark:bg-transparent border border-gray-100 dark:border-gray-700 rounded-xl p-4 shadow-sm space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className={`font-semibold rounded-full px-2 py-1 text-sm ${getCategoriesStyle(categorie_depense.nomCategorie)}`}>{categorie_depense.nomCategorie}</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="icon" variant="secondary" className="shrink-0">
+                          <MoreHorizontal className="h-4 w-4 cursor-pointer" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <CategorieDetailModal categorie={categorie_depense} />
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <ModifierCategorieModal categorieDepense={categorie_depense} />
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          <SupprimerCategorieModal categorieDepense={categorie_depense} />
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-gray-400">Date</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{formatDate(categorie_depense.createdAt)}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-gray-400">Montant total</span>
+                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(categorie_depense.totalDepense)}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

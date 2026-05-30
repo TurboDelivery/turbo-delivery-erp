@@ -83,22 +83,44 @@ export default function Content({ demandeAssignations, allRestaurant }: { demand
               <EmptyDataTable title="Aucun Résultat" />
             </div>
           ) : (
-            <Table aria-label="Tableau des demandes d’assignation">
-              <TableHeader>
-                {demandeColumns.map((col) => (
-                  <TableColumn key={col.uid}>{col.name}</TableColumn>
-                ))}
-              </TableHeader>
-              <TableBody emptyContent="Aucune demande à afficher.">
-                {rows.map((row: any) => (
-                  <TableRow key={row.id}>
+            <>
+              {/* Table — desktop uniquement (≥ md) */}
+              <div className="hidden md:block">
+                <Table aria-label="Tableau des demandes d’assignation">
+                  <TableHeader>
                     {demandeColumns.map((col) => (
-                      <TableCell key={col.uid}>{renderDemandeCell(row, col.uid)}</TableCell>
+                      <TableColumn key={col.uid}>{col.name}</TableColumn>
                     ))}
-                  </TableRow>
+                  </TableHeader>
+                  <TableBody emptyContent="Aucune demande à afficher.">
+                    {rows.map((row: any) => (
+                      <TableRow key={row.id}>
+                        {demandeColumns.map((col) => (
+                          <TableCell key={col.uid}>{renderDemandeCell(row, col.uid)}</TableCell>
+                        ))}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile — cartes tactiles (mêmes données / handlers via renderDemandeCell) */}
+              <div className="md:hidden space-y-3 px-4">
+                {rows.map((row: any) => (
+                  <div key={row.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">{renderDemandeCell(row, 'nom')}</div>
+                      <div className="shrink-0">{renderDemandeCell(row, 'statut')}</div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs text-gray-400 shrink-0">Date</span>
+                      <span className="text-sm text-gray-700 text-right truncate">{renderDemandeCell(row, 'date')}</span>
+                    </div>
+                    <div className="pt-2 flex flex-wrap gap-2">{renderDemandeCell(row, 'actions')}</div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </div>
         <ValidateDialog

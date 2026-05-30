@@ -53,7 +53,7 @@ function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
             </div>
           </div>
           <LivreurStats totalTickets={meta.totalItems} />
-          <div className="overflow-x-auto -mx-4 sm:mx-0">
+          <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
             <table className="w-full min-w-full">
               <thead className="border-b border-gray-200">
                 <tr>
@@ -93,6 +93,37 @@ function LivreurCard({ livreur, meta, onPageChange }: LivreurCardProps) {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile — cartes tactiles groupées par jour (remplace le tableau < md) */}
+          <div className="md:hidden space-y-4">
+            {livreur.tickets.map((ticketJour, dayIndex) => (
+              <div key={`day-mobile-${dayIndex}`} className="space-y-2">
+                <p className="text-xs font-semibold text-gray-500 bg-gray-100 rounded px-2 py-1">{ticketJour.jour}</p>
+                {ticketJour.tickets.map((ticket, ticketIndex) => (
+                  <div key={`${ticketIndex}-jour-mobile`} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-xs text-gray-400">Code check</p>
+                        <p className="text-sm font-semibold text-orange-600 truncate">{ticket.reference}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs text-gray-400 shrink-0">Restaurant</span>
+                      <span className="text-sm text-gray-700 text-right truncate">{ticket.restaurant}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs text-gray-400 shrink-0">Montant livraison</span>
+                      <span className="text-sm text-gray-700 text-right">{formatCFA(Number(ticket.coutLivraison ?? 0))}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs text-gray-400 shrink-0">Montant Commission</span>
+                      <span className="text-sm text-gray-700 text-right">{formatCFA(Number(ticket.coutLivraison ?? 0) * 0.6)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
         <PaginationBlock totalPages={meta.totalPages} currentPage={meta.currentPage} onPageChange={onPageChange} />

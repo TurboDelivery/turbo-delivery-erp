@@ -120,23 +120,52 @@ export default function TableCreneau({ initialData }: Props) {
                     </button>
                 </form>
             </div>
-            <Table aria-label="TABLEAU DE PROGRESSION DES BIRDS" className="rounded-md">
-                <TableHeader columns={columns}>
-                    {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
-                </TableHeader>
-                <TableBody
-                    items={data?.content}
-                    emptyContent={<EmptyDataTable title="Aucun Livreur" />}
-                >
-                    {(item) => (
-                        <TableRow key={String(item.id)}>
-                            {(columnKey) => (
-                                <TableCell>{renderCell(item, columnKey)}</TableCell>
-                            )}
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
+            {/* Table — desktop uniquement (≥ md) */}
+            <div className="hidden md:block">
+                <Table aria-label="TABLEAU DE PROGRESSION DES BIRDS" className="rounded-md">
+                    <TableHeader columns={columns}>
+                        {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
+                    </TableHeader>
+                    <TableBody
+                        items={data?.content}
+                        emptyContent={<EmptyDataTable title="Aucun Livreur" />}
+                    >
+                        {(item) => (
+                            <TableRow key={String(item.id)}>
+                                {(columnKey) => (
+                                    <TableCell>{renderCell(item, columnKey)}</TableCell>
+                                )}
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
+            {/* Mobile — cartes tactiles (mêmes données / handlers via renderCell) */}
+            <div className="md:hidden space-y-3">
+                {(data?.content ?? []).length === 0 ? (
+                    <EmptyDataTable title="Aucun Livreur" />
+                ) : (
+                    (data?.content ?? []).map((item) => (
+                        <div key={String(item.id)} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                            <div className="min-w-0">{renderCell(item, 'nom')}</div>
+                            <div>{renderCell(item, 'progression')}</div>
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs text-gray-400 shrink-0">Jours</span>
+                                <span className="text-sm text-gray-700 text-right">{renderCell(item, 'jours')}</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs text-gray-400 shrink-0">Début</span>
+                                <span className="text-sm text-gray-700 text-right">{renderCell(item, 'debut')}</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs text-gray-400 shrink-0">Fin</span>
+                                <span className="text-sm text-gray-700 text-right">{renderCell(item, 'fin')}</span>
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
 
             {/* Pagination */}
             <div className="flex justify-center mt-6 space-x-2">

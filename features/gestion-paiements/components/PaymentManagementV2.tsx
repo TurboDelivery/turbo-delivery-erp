@@ -30,6 +30,7 @@ export default function PaymentManagementV2() {
 
   const {
     table,
+    renderMobileCard,
     isLoading,
     isFetching,
     selectedIds,
@@ -110,7 +111,7 @@ export default function PaymentManagementV2() {
 
       {/* Table */}
       <Card className="border shadow-none overflow-hidden">
-        <PaiementTable table={table} isLoading={isLoading} isFetching={isFetching} pageCount={pageCount} emptyMessage="Aucune charge à décaisser" />
+        <PaiementTable table={table} isLoading={isLoading} isFetching={isFetching} pageCount={pageCount} emptyMessage="Aucune charge à décaisser" renderMobileCard={renderMobileCard} />
       </Card>
 
       {/* Confirm Modal */}

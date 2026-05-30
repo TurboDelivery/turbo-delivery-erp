@@ -9,8 +9,8 @@ import { ModifierInvestModal } from '../modifier/modifier-invest-modal';
 import SupprimerInvestModal from '../supprimer/supprimer-invest-modal';
 import { differenceInDays } from 'date-fns';
 
-// Fonction pour déterminer la couleur de l'échéance
-const getDeadlineColor = (deadline: string): string => {
+// Fonction pour déterminer la couleur de l'échéance — partagée colonne + carte mobile.
+export const getDeadlineColor = (deadline: string): string => {
   const deadlineDate = new Date(deadline);
   const today = new Date();
   const daysUntilDeadline = differenceInDays(deadlineDate, today);

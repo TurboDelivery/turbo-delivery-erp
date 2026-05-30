@@ -268,22 +268,46 @@ export default function FinancialReport() {
         <Card>
           <CardBody className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Dépenses Variables de la Période</h2>
-            <Table aria-label="Dépenses variables">
-              <TableHeader>
-                <TableColumn>DATE</TableColumn>
-                <TableColumn>DÉSIGNATION</TableColumn>
-                <TableColumn className="text-right">MONTANT</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {variableExpenses.map((expense, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="text-sm text-gray-600">{expense.date}</TableCell>
-                    <TableCell className="text-sm text-gray-900">{expense.designation}</TableCell>
-                    <TableCell className="text-sm text-gray-900 text-right font-medium">{expense.amount}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+
+            {/* Tableau — desktop uniquement (≥ md) */}
+            <div className="hidden md:block">
+              <Table aria-label="Dépenses variables">
+                <TableHeader>
+                  <TableColumn>DATE</TableColumn>
+                  <TableColumn>DÉSIGNATION</TableColumn>
+                  <TableColumn className="text-right">MONTANT</TableColumn>
+                </TableHeader>
+                <TableBody emptyContent="Aucune dépense variable sur la période">
+                  {variableExpenses.map((expense, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="text-sm text-gray-600">{expense.date}</TableCell>
+                      <TableCell className="text-sm text-gray-900">{expense.designation}</TableCell>
+                      <TableCell className="text-sm text-gray-900 text-right font-medium">{expense.amount}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+            <div className="md:hidden space-y-3">
+              {variableExpenses.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-10">Aucune dépense variable sur la période</p>
+              ) : (
+                variableExpenses.map((expense, index) => (
+                  <div key={index} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{expense.designation}</p>
+                      <span className="text-sm font-semibold text-gray-900 shrink-0">{expense.amount}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs text-gray-400">Date</span>
+                      <span className="text-sm text-gray-700">{expense.date}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </CardBody>
         </Card>
       </div>

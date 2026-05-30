@@ -65,46 +65,91 @@ export default function Content() {
           />
         </div>
 
-        <Table
-          aria-label="Tableau de Frais de livraison"
-          className={`mt-4 transition-opacity ${isFetching && !isLoading ? 'opacity-60' : 'opacity-100'}`}
-          bottomContent={
-            !isLoading && pagination.totalPages > 0 ? (
-              <Pagination initialPage={pagination.currentPage} total={pagination.totalPages} onChange={pagination.onPageChange} />
-            ) : null
-          }
-        >
-          <TableHeader columns={priceListColumns}>
-            {(column) => (
-              <TableColumn
-                key={column.uid}
-                className={column.uid === 'zone' ? 'flex items-center gap-2' : ''}
-                align={column.uid === 'actions' ? 'center' : 'start'}
-              >
-                {column.uid === 'zone' && <Search />} {column.name}
-              </TableColumn>
-            )}
-          </TableHeader>
-          <TableBody items={tableItems} emptyContent={!isLoading ? <EmptyDataTable title="Aucun Frais de Livraison" /> : ' '}>
-            {(item) =>
-              isLoading ? (
-                <TableRow key={item.id}>
-                  {priceListColumns.map((col) => (
-                    <TableCell key={col.uid}>
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ) : (
-                <TableRow key={item.id}>
-                  {priceListColumns.map((column) => (
-                    <TableCell key={column.uid}>{renderCell(item, column.uid)}</TableCell>
-                  ))}
-                </TableRow>
-              )
+        {/* Tableau (desktop ≥ md) */}
+        <div className="hidden md:block">
+          <Table
+            aria-label="Tableau de Frais de livraison"
+            className={`mt-4 transition-opacity ${isFetching && !isLoading ? 'opacity-60' : 'opacity-100'}`}
+            bottomContent={
+              !isLoading && pagination.totalPages > 0 ? (
+                <Pagination initialPage={pagination.currentPage} total={pagination.totalPages} onChange={pagination.onPageChange} />
+              ) : null
             }
-          </TableBody>
-        </Table>
+          >
+            <TableHeader columns={priceListColumns}>
+              {(column) => (
+                <TableColumn
+                  key={column.uid}
+                  className={column.uid === 'zone' ? 'flex items-center gap-2' : ''}
+                  align={column.uid === 'actions' ? 'center' : 'start'}
+                >
+                  {column.uid === 'zone' && <Search />} {column.name}
+                </TableColumn>
+              )}
+            </TableHeader>
+            <TableBody items={tableItems} emptyContent={!isLoading ? <EmptyDataTable title="Aucun Frais de Livraison" /> : ' '}>
+              {(item) =>
+                isLoading ? (
+                  <TableRow key={item.id}>
+                    {priceListColumns.map((col) => (
+                      <TableCell key={col.uid}>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ) : (
+                  <TableRow key={item.id}>
+                    {priceListColumns.map((column) => (
+                      <TableCell key={column.uid}>{renderCell(item, column.uid)}</TableCell>
+                    ))}
+                  </TableRow>
+                )
+              }
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Cartes (mobile < md) — mêmes données et mêmes actions (renderCell) que le tableau */}
+        <div className="md:hidden mt-4 space-y-3">
+          {isLoading && !!selectedKey ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={`sk-card-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />
+            ))
+          ) : deliveryFees.length === 0 ? (
+            <EmptyDataTable title="Aucun Frais de Livraison" />
+          ) : (
+            deliveryFees.map((fee) => (
+              <div key={fee.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{fee.name || fee.zone}</p>
+                    {fee.name && <p className="text-xs text-gray-400 truncate">{fee.zone}</p>}
+                  </div>
+                  <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                    {renderCell(fee, 'actions')}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Distance</span>
+                  <span className="text-sm text-gray-700 text-right">{renderCell(fee, 'distance')}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Coût de livraison</span>
+                  <span className="text-sm font-semibold text-gray-900 text-right">{renderCell(fee, 'prix')}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Commission</span>
+                  <span className="text-sm text-gray-700 text-right">{renderCell(fee, 'commission')}</span>
+                </div>
+              </div>
+            ))
+          )}
+          {!isLoading && pagination.totalPages > 0 && (
+            <div className="flex justify-center pt-2">
+              <Pagination initialPage={pagination.currentPage} total={pagination.totalPages} onChange={pagination.onPageChange} />
+            </div>
+          )}
+        </div>
       </div>
 
       <PriceListFormModal

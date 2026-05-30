@@ -5,7 +5,8 @@ import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-tabl
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { Loader2 } from 'lucide-react';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
-import { buildVerrouillageV2Columns } from './verrouillage-v2-columns';
+import { buildVerrouillageV2Columns, VerrouillageV2RowActions } from './verrouillage-v2-columns';
+import TicketV2MobileCard from './ticket-v2-mobile-card';
 
 interface VerrouillageV2TableProps {
   tickets: TicketControleV2[];
@@ -34,16 +35,20 @@ export function VerrouillageV2Table({
   readOnly = false,
 }: VerrouillageV2TableProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const bottomRefMobile = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!bottomRef.current || !hasNextPage) return;
+    if (!hasNextPage) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !isFetchingNextPage) fetchNextPage();
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting) && !isFetchingNextPage) fetchNextPage();
       },
       { threshold: 0.1 },
     );
-    observer.observe(bottomRef.current);
+    // Observe les deux sentinelles (tableau desktop + liste mobile) : celle qui
+    // est masquée par `display:none` ne déclenche jamais d'intersection.
+    if (bottomRef.current) observer.observe(bottomRef.current);
+    if (bottomRefMobile.current) observer.observe(bottomRefMobile.current);
     return () => observer.disconnect();
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
@@ -67,7 +72,8 @@ export function VerrouillageV2Table({
         </div>
         <p className="text-xs text-gray-500">{totalElements} ligne{totalElements > 1 ? 's' : ''}</p>
       </div>
-      <div className="overflow-x-auto">
+      {/* Tableau — desktop uniquement (≥ md) */}
+      <div className="hidden md:block overflow-x-auto">
         <Table
           isStriped
           isHeaderSticky
@@ -111,6 +117,38 @@ export function VerrouillageV2Table({
                 ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <div className="md:hidden space-y-3 p-4">
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <div key={`m-skel-${i}`} className="h-52 rounded-xl bg-gray-100 animate-pulse" />
+          ))
+        ) : tickets.length === 0 ? (
+          <p className="py-10 text-center text-sm text-gray-400">Aucun ticket trouvé</p>
+        ) : (
+          tickets.map((ticket) => (
+            <TicketV2MobileCard
+              key={ticket.commandeId}
+              ticket={ticket}
+              actions={
+                readOnly ? undefined : (
+                  <VerrouillageV2RowActions
+                    ticket={ticket}
+                    isValidating={validatingId === ticket.commandeId}
+                    onValidate={onValidate}
+                    onReject={onReject}
+                    fullWidth
+                  />
+                )
+              }
+            />
+          ))
+        )}
+        <div ref={bottomRefMobile} className="flex items-center justify-center py-1">
+          {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+        </div>
       </div>
     </div>
   );

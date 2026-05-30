@@ -10,6 +10,7 @@ import { PaginatedResponse } from '@/types';
 import { SelectField } from '@/components/commons/form/select-field';
 import { Restaurant } from '@/types/models';
 import { TicketTermineReportingDialog } from '@/components/ticket-terminers/reporting-dialog';
+import { BonLivraisonMobileCard, BonLivraisonMobileList } from '@/components/tickets/shared/bon-livraison-mobile-card';
 
 interface ContentProps {
   initialData: BonLivraison[] | null;
@@ -51,6 +52,7 @@ export default function Content({ initialData, restaurants }: ContentProps) {
       <div className="flex items-center justify-between">
         <h1 className={title({ size: 'h3', class: 'text-primary' })}>Gestions des tickets : Commandes terminées</h1>
       </div>
+      <div className="hidden md:block w-full overflow-x-auto">
       <Table aria-label="Example table with custom cells" className="min-w-[700px] w-full ">
         <TableHeader columns={columns}>
           {(column) => (
@@ -90,6 +92,23 @@ export default function Content({ initialData, restaurants }: ContentProps) {
           {(item) => <TableRow key={item.commandeId}>{(columnKey) => <TableCell>{renderCell(item, columnKey) as React.ReactNode}</TableCell>}</TableRow>}
         </TableBody>
       </Table>
+      </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <BonLivraisonMobileList>
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-36 rounded-xl bg-gray-100 animate-pulse" />
+          ))
+        ) : (data?.length ?? 0) === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">No rows to display.</p>
+        ) : (
+          (data ?? []).map((item) => (
+            <BonLivraisonMobileCard key={item.commandeId} item={item} columns={columns} renderCell={renderCell} />
+          ))
+        )}
+      </BonLivraisonMobileList>
+
       {/* justify-center */}
       <div className="flex-wrap  lg:flex md:flex xl:flex h-fit z-10  mt-8 fixed bottom-4 items-center w-full">
         <div className="bg-gray-200 absolute inset-0 w-full h-full blur-sm opacity-50"></div>

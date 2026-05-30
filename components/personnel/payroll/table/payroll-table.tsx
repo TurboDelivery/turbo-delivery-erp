@@ -17,6 +17,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { usePayrollTable } from '@/features/personnel/hooks/use-payroll-table';
 import { IPayroll } from '@/features/personnel/types/payroll.types';
+import { PersonnelMobileCard, PersonnelMobileCardList } from '@/components/personnel/shared/personnel-mobile-card';
+import { getSalaryStatusClassName, getStatusClassName, formatDateFr } from '@/components/personnel/payroll/table/payroll-table-columns';
 
 const MONTHS = [
   { value: 1, label: 'Janvier' },
@@ -96,7 +98,8 @@ function PayrollTable() {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Tableau — desktop uniquement (≥ md) */}
+      <div className="hidden md:block overflow-x-auto">
         <Table isStriped>
           <TableHeader>
             {payrollTable.getFlatHeaders().map((header) => (
@@ -148,6 +151,56 @@ function PayrollTable() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <PersonnelMobileCardList>
+        {isPayrollLoading ? (
+          Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-48 rounded-xl bg-gray-100 animate-pulse" />)
+        ) : payrollTable.getRowModel().rows.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">Aucun paiement trouve</p>
+        ) : (
+          payrollTable.getRowModel().rows.map((row) => {
+            const payroll = row.original;
+            const isPaid = payroll.salary_status === 'PAID';
+            return (
+              <PersonnelMobileCard
+                key={payroll.id}
+                title={payroll.name || '-'}
+                subtitle={payroll.email || '-'}
+                statut={isPaid ? 'Payé' : 'Non payé'}
+                statutClassName={getSalaryStatusClassName(payroll.salary_status)}
+                fields={[
+                  { label: 'Poste', value: payroll.position || '-' },
+                  { label: 'Departement', value: payroll.department || '-' },
+                  { label: 'Salaire brut', value: formatCfa(payroll.salaryBrut) },
+                  { label: 'Deductions en attente', value: <span className="text-amber-700">{formatCfa(payroll.totalDeductionsPending)}</span> },
+                  { label: 'Deductions payees', value: <span className="text-green-700">{formatCfa(payroll.totalDeductionsPaid)}</span> },
+                  { label: 'Net a payer', value: <span className="font-semibold">{formatCfa(payroll.netToPay)}</span> },
+                  {
+                    label: 'Statut',
+                    value: (
+                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium capitalize ${getStatusClassName(payroll.statut)}`}>
+                        {payroll.statut || '-'}
+                      </span>
+                    ),
+                  },
+                  { label: 'Date entree', value: formatDateFr(payroll.entryDate) },
+                  { label: 'Derniere maj', value: formatDateFr(payroll.updatedAt, 'dd MMM yyyy HH:mm') },
+                ]}
+                actions={
+                  <button
+                    onClick={() => handlePayClick(payroll)}
+                    disabled={isPaid || isPayingPayroll}
+                    className="inline-flex w-full items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-gray-300 disabled:text-gray-600"
+                  >
+                    {isPaid ? 'Payé' : 'Payer'}
+                  </button>
+                }
+              />
+            );
+          })
+        )}
+      </PersonnelMobileCardList>
 
       <AlertDialog open={Boolean(selectedPayroll)} onOpenChange={(open) => !open && setSelectedPayroll(null)}>
         <AlertDialogContent>

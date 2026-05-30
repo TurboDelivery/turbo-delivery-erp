@@ -7,6 +7,8 @@ import useContent from './useContent';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import { PaginatedResponse } from '@/types';
+import { RestaurantMobileCard, RestaurantMobileCardList } from '@/components/restaurants/restaurant-mobile-card';
+import { createUrlFile } from '@/utils/createUrlFile';
 
 interface Props {
     initialData: PaginatedResponse<RestaurantDefini> | null;
@@ -37,7 +39,8 @@ export default function Content({ initialData }: Props) {
         {(item) => {
           return (
             <Tab key={item.id} as={Link} href={item.href} title={item.label}>*
-              <div className="flex flex-col">
+              {/* Tableau (desktop ≥ md) */}
+              <div className="hidden md:flex flex-col">
                 <Table aria-label="Tableau de Frais de livraison">
                   <TableHeader columns={columns}>
                     {(column) => (
@@ -51,6 +54,23 @@ export default function Content({ initialData }: Props) {
                   </TableBody>
                 </Table>
               </div>
+
+              {/* Cartes (mobile < md) — mêmes données et même action (renderCell) que le tableau */}
+              <RestaurantMobileCardList>
+                {(data?.content ?? []).length === 0 ? (
+                  <EmptyDataTable title="Aucun Frais de Livraison" />
+                ) : (
+                  (data?.content ?? []).map((restaurant) => (
+                    <RestaurantMobileCard
+                      key={restaurant.id}
+                      nom={restaurant.nomEtablissement}
+                      logoUrl={createUrlFile(restaurant.logo_Url, 'restaurant')}
+                      fields={[{ label: 'Type de commission', value: renderCell(restaurant, 'typeCommission') as React.ReactNode }]}
+                      actions={renderCell(restaurant, 'actions') as React.ReactNode}
+                    />
+                  ))
+                )}
+              </RestaurantMobileCardList>
             </Tab>
           );
         }}

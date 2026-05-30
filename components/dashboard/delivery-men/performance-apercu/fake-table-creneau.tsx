@@ -101,7 +101,9 @@ const data ={
 
     return (
       <div>
-          <Table aria-label="Example table with custom cells"  selectionMode="single">
+          {/* Table — desktop uniquement (≥ md) */}
+          <div className="hidden md:block">
+            <Table aria-label="Example table with custom cells"  selectionMode="single">
       <TableHeader columns={columns}>
         {(column) => (
           <TableColumn key={column.key}>
@@ -117,7 +119,29 @@ const data ={
         )}
       </TableBody>
     </Table>
+          </div>
+
+          {/* Mobile — cartes tactiles (placeholder « à venir », mêmes données) */}
+          <div className="md:hidden space-y-3">
+            {progressions.map((item: Progression) => (
+              <div
+                key={item.jour}
+                className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2 cursor-pointer active:bg-gray-50"
+                onClick={() => setOpen(true)}
+              >
+                <p className="text-sm font-semibold text-gray-900 opacity-50">{item.jour}</p>
+                <div className="space-y-1">
+                  <span className="text-xs text-gray-400">Progression du jour</span>
+                  {renderCell(item, 'progression')}
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Commission du jour</span>
+                  <span className="text-sm text-gray-700 text-right">{renderCell(item, 'commission')}</span>
+                </div>
+              </div>
+            ))}
+          </div>
       </div>
-    
+
     );
   }

@@ -20,6 +20,15 @@ import {
 import { ChevronDown, ChevronUp, Download, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useRestaurantTable } from '@/features/restaurants/hooks/use-restaurant-table';
 import { RestaurantStatsSection } from '@/components/restaurants/restaurant-stats-section';
+import { RestaurantMobileCard, RestaurantMobileCardList } from '@/components/restaurants/restaurant-mobile-card';
+import { StatusChip, ActionsMenu } from '@/components/restaurants/table/restaurant-table-columns';
+
+const RECOUVREMENT_LABELS: Record<string, string> = {
+  MENSUEL: 'Mensuel',
+  QUOTIDIEN: 'Quotidien',
+  HEBDOMADAIRE: 'Hebdomadaire',
+  QUINZAINE: 'Quinzaine',
+};
 
 const TYPE_OPTIONS = [
   { label: 'Tous les types', value: '' },
@@ -125,8 +134,8 @@ export default function Content() {
         )}
       </div>
 
-      {/* ── Table ── */}
-      <div className="relative rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+      {/* ── Table (desktop ≥ md) ── */}
+      <div className="hidden md:block relative rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
         {(isLoading || isFetching) && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60">
             <Spinner color="primary" />
@@ -189,6 +198,51 @@ export default function Content() {
           </TableBody>
         </Table>
       </div>
+
+      {/* ── Cartes (mobile < md) ── */}
+      <RestaurantMobileCardList>
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={`sk-card-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />
+          ))
+        ) : table.getRowModel().rows.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">Aucun partenaire trouvé.</p>
+        ) : (
+          table.getRowModel().rows.map((row) => {
+            const r = row.original;
+            const isGratuite = r.typeCommission === 'GRATUIT';
+            return (
+              <RestaurantMobileCard
+                key={r.id}
+                nom={r.nomEtablissement}
+                verified={r.status === 3 && !isGratuite}
+                gratuite={isGratuite}
+                statut={<StatusChip status={r.status} typeCommission={r.typeCommission} />}
+                fields={[
+                  { label: 'Email', value: r.email || '-' },
+                  { label: 'Téléphone', value: r.telephone || '-' },
+                  { label: 'Localisation', value: r.localisation || r.commune || '-' },
+                  { label: 'Cycle de paiement', value: RECOUVREMENT_LABELS[r.methodRecouvrement] ?? r.methodRecouvrement ?? '-' },
+                ]}
+                actions={<ActionsMenu id={r.id} name={r.nomEtablissement} status={r.status} />}
+              />
+            );
+          })
+        )}
+        {pagination && pagination.pageCount > 1 && (
+          <div className="flex justify-center pt-2">
+            <Pagination
+              total={pagination.pageCount}
+              page={pagination.page + 1}
+              onChange={pagination.handlePageChange}
+              isDisabled={isLoading}
+              showControls
+              color="primary"
+              variant="bordered"
+            />
+          </div>
+        )}
+      </RestaurantMobileCardList>
     </div>
   );
 }

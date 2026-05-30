@@ -7,7 +7,7 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { getLotStatutConfig } from '../utils/lot-statut.utils';
 import CreneauActifToggleCell from './CreneauActifToggleCell';
 
-function fmtDate(iso: string | null) {
+export function fmtDate(iso: string | null) {
   if (!iso) return '';
   try { return format(parseISO(iso), 'd MMM yyyy', { locale: fr }); } catch { return iso; }
 }

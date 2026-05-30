@@ -6,6 +6,15 @@ import { useRestaurantTable } from '@/features/restaurants/hooks/use-restaurant-
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Pagination } from '@heroui/react';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
+import { RestaurantMobileCard, RestaurantMobileCardList } from '@/components/restaurants/restaurant-mobile-card';
+import { StatusChip, ActionsMenu } from './restaurant-table-columns';
+
+const RECOUVREMENT_LABELS: Record<string, string> = {
+  MENSUEL: 'Mensuel',
+  QUOTIDIEN: 'Quotidien',
+  HEBDOMADAIRE: 'Hebdomadaire',
+  QUINZAINE: 'Quinzaine',
+};
 
 export const RestaurantTable = () => {
   const { table, isLoading, isError, isFetching, pagination, filters, setSearch } = useRestaurantTable();
@@ -28,8 +37,8 @@ export const RestaurantTable = () => {
         </div>
       </div>
 
-      {/* Tableau */}
-      <div className="overflow-x-auto">
+      {/* Tableau (desktop ≥ md) */}
+      <div className="hidden md:block overflow-x-auto">
         <Table isStriped>
           <TableHeader>
             {table.getFlatHeaders().map((header) => (
@@ -78,6 +87,40 @@ export const RestaurantTable = () => {
           </TableBody>
         </Table>
       </div>
+
+      {/* Cartes (mobile < md) */}
+      <RestaurantMobileCardList>
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={`sk-card-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />
+          ))
+        ) : isError ? (
+          <p className="text-sm text-destructive text-center py-10">Erreur lors du chargement des données</p>
+        ) : table.getRowModel().rows.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">Aucun restaurant trouvé</p>
+        ) : (
+          table.getRowModel().rows.map((row) => {
+            const r = row.original;
+            const isGratuite = r.typeCommission === 'GRATUIT';
+            return (
+              <RestaurantMobileCard
+                key={r.id}
+                nom={r.nomEtablissement}
+                verified={r.status === 3 && !isGratuite}
+                gratuite={isGratuite}
+                statut={<StatusChip status={r.status} typeCommission={r.typeCommission} />}
+                fields={[
+                  { label: 'Email', value: r.email || '-' },
+                  { label: 'Téléphone', value: r.telephone || '-' },
+                  { label: 'Localisation', value: r.localisation || r.commune || '-' },
+                  { label: 'Cycle de paiement', value: RECOUVREMENT_LABELS[r.methodRecouvrement] ?? r.methodRecouvrement ?? '-' },
+                ]}
+                actions={<ActionsMenu id={r.id} name={r.nomEtablissement} status={r.status} />}
+              />
+            );
+          })
+        )}
+      </RestaurantMobileCardList>
 
       {/* Pagination */}
       {pagination && pagination.pageCount > 1 && (

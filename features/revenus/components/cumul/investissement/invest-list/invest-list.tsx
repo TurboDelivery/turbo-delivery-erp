@@ -8,7 +8,14 @@ import { AddInvestModal } from '../creer-invest/add-invest-modal';
 import { useInvestissementList } from '@/features/revenus/hooks/use-investissement-list';
 import { Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import DateFilterInput from '@/components/finance/date-filter-input';
-import { investissementColumns } from './invest-columns';
+import { investissementColumns, getDeadlineColor } from './invest-columns';
+import { formatCFA, formatDateFR } from '@/src/actions/bonLivraison.mapper';
+import { InvestDetailModal } from './invest-detail-modal';
+import { ModifierInvestModal } from '../modifier/modifier-invest-modal';
+import SupprimerInvestModal from '../supprimer/supprimer-invest-modal';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal } from 'lucide-react';
 
 export default function InvestissementList() {
   const { investissements, isLoading, filters, handleFilterChange, handleDateChange, pagination } = useInvestissementList();
@@ -69,6 +76,58 @@ export default function InvestissementList() {
               </Table>
             </div>
           </div>
+        </div>
+
+        {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+        <div className="md:hidden space-y-3 p-4">
+          {isLoading ? (
+            Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />)
+          ) : (investissements || []).length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-10">Aucun résultat trouvé.</p>
+          ) : (
+            (investissements || []).map((inv) => (
+              <div key={inv.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{inv.nomInvestisseur}</p>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="shrink-0">
+                        <MoreHorizontal className="h-4 w-4 cursor-pointer" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <InvestDetailModal investissement={inv} />
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <ModifierInvestModal investissement={inv} />
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <SupprimerInvestModal investissement={inv} />
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400">Date</span>
+                  <span className="text-sm text-gray-700">{formatDateFR(inv.dateInvestissement)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400">Montant du prêt</span>
+                  <span className="text-sm font-semibold text-gray-900">{formatCFA(inv.montant)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400">Échéance</span>
+                  <span className={`text-sm ${getDeadlineColor(inv.deadline)}`}>{formatDateFR(inv.deadline)}</span>
+                </div>
+              </div>
+            ))
+          )}
+          {pagination?.pageCount! > 1 && (
+            <div className="flex justify-center pt-2">
+              <Pagination total={pagination?.pageCount ?? 1} page={filters.page + 1} onChange={pagination.handlePageChange} color="primary" />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -16,6 +16,60 @@ type CreateDeductionTableColumnsOptions = {
   onDeleteDeduction?: (deduction: IDeduction) => void;
 };
 
+/**
+ * Boutons d'action d'une déduction (modifier / annuler / supprimer) — partagés
+ * par la colonne du tableau et la carte mobile pour garantir une logique
+ * d'activation identique (prêt non modifiable, déduction déjà annulée…).
+ */
+export const renderDeductionActions = (
+  deduction: IDeduction,
+  handlers: {
+    onEditDeduction?: (deduction: IDeduction) => void;
+    onCancelDeduction?: (deduction: IDeduction) => void;
+    onDeleteDeduction?: (deduction: IDeduction) => void;
+  } = {},
+) => {
+  const isPret = deduction.typeDeduction === 'PRET';
+  const isCancelled = deduction.status === 'CANCELLED';
+
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        size="sm"
+        variant="light"
+        color="primary"
+        isIconOnly
+        isDisabled={isPret}
+        onPress={() => handlers.onEditDeduction?.(deduction)}
+        title={isPret ? 'Modification du pret desactivee' : 'Modifier'}
+      >
+        <Pencil className="size-4" />
+      </Button>
+      <Button
+        size="sm"
+        variant="light"
+        color="danger"
+        isIconOnly
+        isDisabled={isCancelled}
+        onPress={() => handlers.onCancelDeduction?.(deduction)}
+        title={isCancelled ? 'Deduction deja annulee' : 'Annuler'}
+      >
+        <XCircle className="size-4" />
+      </Button>
+      <Button
+        size="sm"
+        variant="light"
+        color="danger"
+        isIconOnly
+        onPress={() => handlers.onDeleteDeduction?.(deduction)}
+        title="Supprimer"
+      >
+        <Trash2 className="size-4" />
+      </Button>
+    </div>
+  );
+};
+
 export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction, onDeleteDeduction }: CreateDeductionTableColumnsOptions = {}): ColumnDef<IDeduction>[] => [
   {
     accessorKey: 'employee',
@@ -76,46 +130,6 @@ export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction
     id: 'actions',
     header: 'Actions',
     enableSorting: false,
-    cell: ({ row }) => {
-      const isPret = row.original.typeDeduction === 'PRET';
-      const isCancelled = row.original.status === 'CANCELLED';
-
-      return (
-        <div className="flex items-center gap-1">
-          <Button
-            size="sm"
-            variant="light"
-            color="primary"
-            isIconOnly
-            isDisabled={isPret}
-            onPress={() => onEditDeduction?.(row.original)}
-            title={isPret ? 'Modification du pret desactivee' : 'Modifier'}
-          >
-            <Pencil className="size-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="light"
-            color="danger"
-            isIconOnly
-            isDisabled={isCancelled}
-            onPress={() => onCancelDeduction?.(row.original)}
-            title={isCancelled ? 'Deduction deja annulee' : 'Annuler'}
-          >
-            <XCircle className="size-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="light"
-            color="danger"
-            isIconOnly
-            onPress={() => onDeleteDeduction?.(row.original)}
-            title="Supprimer"
-          >
-            <Trash2 className="size-4" />
-          </Button>
-        </div>
-      );
-    },
+    cell: ({ row }) => renderDeductionActions(row.original, { onEditDeduction, onCancelDeduction, onDeleteDeduction }),
   },
 ];

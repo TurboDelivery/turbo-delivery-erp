@@ -36,7 +36,8 @@ const DeliveryMenList = ({ deliveryMen, validateBy = 'no-body' }: { deliveryMen:
                 </div>
             </div>
             <div className="panel mt-5 overflow-hidden border-0 p-0">
-                <div className="table-responsive">
+                {/* Table — desktop uniquement (≥ md) */}
+                <div className="table-responsive hidden md:block">
                     <table className="table-striped table-hover">
                         <thead>
                             <tr>
@@ -80,6 +81,48 @@ const DeliveryMenList = ({ deliveryMen, validateBy = 'no-body' }: { deliveryMen:
                             })}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Mobile — cartes tactiles (mêmes données / handlers que le tableau) */}
+                <div className="md:hidden space-y-3 p-4">
+                    {filteredItems.length === 0 ? (
+                        <p className="text-sm text-gray-400 text-center py-10">Aucun livreur trouvé.</p>
+                    ) : (
+                        filteredItems.map((deliveryMan: DeliveryMan) => (
+                            <div key={deliveryMan.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <div className="grid h-8 w-8 place-content-center rounded-full bg-primary text-sm font-semibold text-white shrink-0">
+                                            {deliveryMan.matricule[0]}
+                                        </div>
+                                        <div className="font-medium truncate">{deliveryMan.matricule}</div>
+                                    </div>
+                                    {deliveryMan.status == 2 ? (
+                                        <Chip>En attente</Chip>
+                                    ) : deliveryMan.status == 3 ? (
+                                        <Chip color="warning">Partiellement</Chip>
+                                    ) : (
+                                        <Chip color="success">Validé</Chip>
+                                    )}
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-xs text-gray-400 shrink-0">Téléphone</span>
+                                    <span className="text-sm text-gray-700 text-right truncate">{deliveryMan.telephone}</span>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-xs text-gray-400 shrink-0">Statut</span>
+                                    <span className="text-sm text-gray-700 text-right">{deliveryMan.status === 2 ? 'Actif' : 'Inactif'}</span>
+                                </div>
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-xs text-gray-400 shrink-0">Date de création</span>
+                                    <span className="text-sm text-gray-700 text-right">{new Date(deliveryMan.dateCreation).toLocaleDateString()}</span>
+                                </div>
+                                <div className="pt-2 flex flex-wrap gap-2">
+                                    <DeliveryMenTools deliveryMan={deliveryMan} validateBy={validateBy} />
+                                </div>
+                            </div>
+                        ))
+                    )}
                 </div>
             </div>
         </div>

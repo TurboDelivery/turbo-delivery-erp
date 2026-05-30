@@ -3,9 +3,12 @@
 import React from 'react';
 import { flexRender } from '@tanstack/react-table';
 import { Card, CardBody, Chip, Pagination, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
-import { Users } from 'lucide-react';
+import { Mail, Phone, Users } from 'lucide-react';
 import { TurboyType } from '@/features/turboys/types/turboys.types';
 import { useTurboyTable } from '@/features/turboys/hooks/use-turboy-table';
+import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
+import { TurboyActionsCell, getTurboyStatusColor, getTurboyStatusLabel } from './turboy-table-columns';
+import { LivreurMobileCard, LivreurMobileCardList } from '@/components/dashboard/delivery-men/shared/livreur-mobile-card';
 
 const TURBOY_TYPES: { value: TurboyType; label: string }[] = [
   { value: 'INDEPENDANT', label: 'Indépendant' },
@@ -55,8 +58,8 @@ export function TurboyTable() {
         </div>
       </div>
 
-      {/* Table Card */}
-      <Card>
+      {/* Table Card — desktop uniquement (≥ md) */}
+      <Card className="hidden md:block">
         <CardBody>
           <div className="overflow-x-auto">
             <Table
@@ -126,6 +129,74 @@ export function TurboyTable() {
           </div>
         </CardBody>
       </Card>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <div className="md:hidden">
+        <div className="mb-3">
+          <Select
+            items={TURBOY_TYPES}
+            selectedKeys={filters.typeLivreur ? [filters.typeLivreur] : []}
+            onSelectionChange={handleTypeFilterChange}
+            placeholder="Filtrer par type"
+            className="w-full"
+            size="sm"
+          >
+            {(item) => <SelectItem key={item.value}>{item.label}</SelectItem>}
+          </Select>
+        </div>
+        <LivreurMobileCardList>
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-44 rounded-xl bg-gray-100 animate-pulse" />
+            ))
+          ) : table.getRowModel().rows.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-10">Aucun turboy trouvé.</p>
+          ) : (
+            table.getRowModel().rows.map((row) => {
+              const t = row.original;
+              const display = getTurboyTypeDisplay(t.typeLivreur);
+              return (
+                <LivreurMobileCard
+                  key={row.id}
+                  nom={`${t.prenoms} ${t.nom}`}
+                  avatarUrl={t.avatarUrl}
+                  sousTitre={
+                    <div className="flex flex-col gap-0.5">
+                      <span className="flex items-center gap-1">
+                        <Phone className="w-3.5 h-3.5 text-gray-400" /> {t.telephone || '-'}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Mail className="w-3.5 h-3.5 text-gray-400" /> {t.email || '-'}
+                      </span>
+                    </div>
+                  }
+                  statut={getTurboyStatusLabel(t.status)}
+                  statutColor={getTurboyStatusColor(t.status)}
+                  fields={[
+                    { label: 'Genre', value: t.gender || '-' },
+                    { label: 'Type', value: display.label },
+                    { label: 'Salaire', value: t.salaire ? `${t.salaire.toLocaleString('fr-FR')} FCFA` : '-' },
+                    { label: 'Commission', value: t.commission !== null && t.commission !== undefined ? `${t.commission} %` : '-' },
+                    { label: 'Immatriculation', value: t.immatriculation || '-' },
+                    { label: 'Matricule', value: t.matricule || '-' },
+                  ]}
+                  actions={<TurboyActionsCell turboy={t} />}
+                />
+              );
+            })
+          )}
+        </LivreurMobileCardList>
+        {turboysData && turboysData.livreurs?.totalPages > 1 && (
+          <div className="flex justify-center pt-3">
+            <Pagination
+              total={turboysData.livreurs.totalPages}
+              page={filters.page ? filters.page + 1 : 1}
+              onChange={(page) => setFilters((prev) => ({ ...prev, page: page - 1 }))}
+              color="primary"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

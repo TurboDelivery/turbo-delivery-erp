@@ -20,8 +20,13 @@ const STATUT_CONFIG: Record<string, { label: string; color: 'warning' | 'primary
 
 const DECAISSE_STATUTS = ['DECAISSE', 'PAID'];
 
-function isDecaisse(row: IChargeFixe) {
+export function isDecaisse(row: IChargeFixe) {
   return DECAISSE_STATUTS.includes(row.statut);
+}
+
+/** Config de statut partagée colonne (desktop) + carte mobile — pas de divergence. */
+export function getPaiementStatutConfig(statut: string) {
+  return STATUT_CONFIG[statut] ?? { label: statut, color: 'default' as const };
 }
 
 type PaiementsColumnsOptions = {

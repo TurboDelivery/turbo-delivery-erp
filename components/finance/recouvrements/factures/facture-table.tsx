@@ -7,6 +7,7 @@ import useFactureTable from '@/features/recouvrements/hooks/use-facture-table';
 import { FactureFilters } from './facture-filters';
 import { subMonths } from 'date-fns';
 import { CreerRecouvrementModal } from '@/features/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';
+import { FactureRecouvrementMobileCard } from '@/components/finance/recouvrements/recouvrement-mobile-cards';
 
 interface FactureTableProps {
   restaurantId?: string;
@@ -55,7 +56,7 @@ export function FactureTable({
         <CreerRecouvrementModal variant="outline" />
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="hidden md:block overflow-x-auto">
         <Table
           isStriped
           bottomContent={
@@ -104,6 +105,22 @@ export function FactureTable({
                 })}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <div className={`md:hidden space-y-3 ${isFactureFetching ? 'opacity-70' : ''}`}>
+        {isFactureLoading ? (
+          Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+        ) : factureTable.getRowModel().rows.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">Aucune facture trouvée</p>
+        ) : (
+          factureTable.getRowModel().rows.map((row) => <FactureRecouvrementMobileCard key={row.id} facture={row.original} />)
+        )}
+        {pagination && pagination.pageCount > 1 && (
+          <div className="flex justify-center pt-2">
+            <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} color="primary" />
+          </div>
+        )}
       </div>
     </div>
   );

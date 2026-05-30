@@ -19,6 +19,7 @@ import { TicketTableFilters } from './ticket-table-filters';
 import { TicketTableActions } from './ticket-table-actions';
 import { TicketTableExportButton } from './ticket-table-export-button';
 import { createTicketColumns, TicketColumnMeta } from './ticket-table-columns';
+import { TicketMobileCard } from './ticket-mobile-card';
 import ConfirmModal from '@/components/ui/confirm-modal';
 
 interface TicketTableProps {
@@ -61,6 +62,8 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
 
   const activeTab = filters.tab;
   const observerTarget = useInfiniteScroll(infiniteState.fetchNextPage, infiniteState.hasNextPage);
+  // Sentinelle dédiée aux cartes mobile (le sentinel desktop est masqué < md et n'intersecte jamais)
+  const observerTargetMobile = useInfiniteScroll(infiniteState.fetchNextPage, infiniteState.hasNextPage);
   const allTickets = useMemo(() => [...newTickets, ...ticketsData], [newTickets, ticketsData]);
   const columns = useMemo(() => createTicketColumns(), []);
 
@@ -205,7 +208,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
               <p className="text-xs sm:text-sm text-gray-600">Total: {infiniteState.totalItems} ticket(s)</p>
               <TicketTableExportButton filters={filters} totalItems={infiniteState.totalItems} isDisabled={isLoading} />
             </div>
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
               <div className="max-h-[420px] overflow-y-auto">
                 <Table isStriped>
                   <TableHeader>
@@ -240,6 +243,28 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
                 <div className="h-0.5" ref={observerTarget}>
                   {infiniteState.isFetchingNextPage && <p className="text-xs text-gray-500 w-full text-center py-2">Chargement des données...</p>}
                 </div>
+              </div>
+            </div>
+
+            {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+            <div className="md:hidden space-y-3">
+              {isLoading ? (
+                Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-72 rounded-xl bg-gray-100 animate-pulse" />)
+              ) : table.getRowModel().rows.length === 0 ? (
+                <p className="text-sm text-gray-400 text-center py-10">Aucun ticket trouvé.</p>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <TicketMobileCard
+                    key={row.id}
+                    ticket={row.original}
+                    meta={tableMeta}
+                    isSelected={row.getIsSelected()}
+                    onToggleSelect={(value) => row.toggleSelected(value)}
+                  />
+                ))
+              )}
+              <div className="h-0.5" ref={observerTargetMobile}>
+                {infiniteState.isFetchingNextPage && <p className="text-xs text-gray-500 w-full text-center py-2">Chargement des données...</p>}
               </div>
             </div>
           </div>

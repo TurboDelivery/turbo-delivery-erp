@@ -12,19 +12,23 @@ import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
 // ne connaissaient pas SUPERVISEUR_LIVREUR (default → 'default' / brut). On
 // utilise désormais le helper centralisé features/turboys/utils.
 
-const getStatusColor = (status: number | null) => {
+export const getTurboyStatusColor = (status: number | null) => {
   if (status === 1) return 'success';
   if (status === 0) return 'danger';
   return 'warning';
 };
 
-const getStatusLabel = (status: number | null) => {
+export const getTurboyStatusLabel = (status: number | null) => {
   if (status === 1) return 'Actif';
   if (status === 0) return 'Inactif';
   return 'Inconnu';
 };
 
-function ActionsCell({ turboy }: { turboy: ITurboy }) {
+const getStatusColor = getTurboyStatusColor;
+const getStatusLabel = getTurboyStatusLabel;
+
+// Exporté pour partage colonne + carte mobile (zéro divergence d'actions).
+export function TurboyActionsCell({ turboy }: { turboy: ITurboy }) {
   const [openEdit, setOpenEdit] = useState(false);
 
   return (
@@ -135,6 +139,6 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
   {
     id: 'actions',
     header: 'Actions',
-    cell: ({ row }) => <ActionsCell turboy={row.original} />,
+    cell: ({ row }) => <TurboyActionsCell turboy={row.original} />,
   },
 ];

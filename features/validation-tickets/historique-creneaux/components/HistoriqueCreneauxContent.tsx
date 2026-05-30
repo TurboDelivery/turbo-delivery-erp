@@ -12,10 +12,14 @@ import {
   TableRow,
 } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
+import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import useHistoriqueCreneaux from '../hooks/use-historique-creneaux';
 import HistoriqueCreneauxStats from './HistoriqueCreneauxStats';
-import { historiqueCreneauxColumns } from './historique-creneaux-columns';
+import { historiqueCreneauxColumns, fmtDate } from './historique-creneaux-columns';
+import { getLotStatutConfig } from '../utils/lot-statut.utils';
+import CreneauActifToggleCell from './CreneauActifToggleCell';
 import type { StatutFilter } from '../hooks/use-historique-creneaux';
 
 const STATUT_FILTERS: { value: StatutFilter; label: string }[] = [
@@ -92,8 +96,8 @@ export default function HistoriqueCreneauxContent() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      {/* Table — desktop uniquement (≥ md) */}
+      <div className="hidden md:block rounded-xl border border-gray-200 bg-white overflow-hidden">
         <Table
           aria-label="Historique des créneaux"
           removeWrapper
@@ -136,6 +140,90 @@ export default function HistoriqueCreneauxContent() {
                 ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <div className="md:hidden space-y-3">
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 animate-pulse" />
+          ))
+        ) : filtered.length === 0 ? (
+          <p className="py-10 text-center text-sm text-gray-400">Aucun créneau trouvé.</p>
+        ) : (
+          filtered.map((creneau) => {
+            const config = getLotStatutConfig(creneau.lotStatut);
+            return (
+              <div
+                key={creneau.id}
+                className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-gray-900">{creneau.label}</p>
+                    <p className="text-xs text-gray-500">
+                      {fmtDate(creneau.dateDebut)} → {fmtDate(creneau.dateFin)}
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${config.className}`}
+                  >
+                    {config.label}
+                  </span>
+                </div>
+
+                {creneau.commentaireRejet && (
+                  <p className="line-clamp-2 text-xs text-gray-500">{creneau.commentaireRejet}</p>
+                )}
+
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Livreurs</span>
+                  <span className="text-right text-sm text-gray-700">{creneau.nbLivreurs}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Tickets</span>
+                  <span className="text-right text-sm text-gray-700">{creneau.totalTickets}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">En attente</span>
+                  <span
+                    className={`text-right text-sm font-medium ${creneau.nbTicketsPending > 0 ? 'text-amber-600' : 'text-gray-400'}`}
+                  >
+                    {creneau.nbTicketsPending}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Net (FCFA)</span>
+                  <span className="text-right text-sm font-semibold text-gray-900">{formatCFA(creneau.totalNet)}</span>
+                </div>
+                {creneau.soumisAt && (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="shrink-0 text-xs text-gray-400">Soumis le</span>
+                    <span className="text-right text-sm text-gray-700">
+                      {fmtDate(creneau.soumisAt)}
+                      {creneau.soumisParNom && (
+                        <span className="text-gray-400"> · {creneau.soumisParNom}</span>
+                      )}
+                    </span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Visible</span>
+                  <CreneauActifToggleCell creneau={creneau} />
+                </div>
+
+                <div className="pt-1">
+                  <Link
+                    href={`/validation-tickets/historique-creneaux/${creneau.id}`}
+                    className="inline-flex w-full items-center justify-center rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50"
+                  >
+                    Voir le détail &rsaquo;
+                  </Link>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

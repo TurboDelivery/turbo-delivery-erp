@@ -9,6 +9,7 @@ import { SelectField } from '@/components/commons/form/select-field';
 import { Calendar, Cherry, CircleFadingPlus, Home, SquareMenu, ToggleRight, User } from 'lucide-react';
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, RangeValue, CalendarDate, DateRangePicker } from '@heroui/react';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
+import { BonLivraisonMobileCard, BonLivraisonMobileList } from '@/components/tickets/shared/bon-livraison-mobile-card';
 
 interface ContentProps {
     initialData: PaginatedResponse<BonLivraison> | null;
@@ -48,7 +49,7 @@ export default function Content({ initialData, restaurants }: ContentProps) {
                 </div>
             </div>
 
-            <div className="w-full overflow-x-auto rounded-md border border-gray-200 shadow-sm bg-white">
+            <div className="hidden md:block w-full overflow-x-auto rounded-md border border-gray-200 shadow-sm bg-white">
                 <Table
                     aria-label="Table des bons de livraison"
                     classNames={{
@@ -115,6 +116,29 @@ export default function Content({ initialData, restaurants }: ContentProps) {
                     </TableBody>
                 </Table>
             </div>
+
+            {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+            <BonLivraisonMobileList>
+                {isLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="h-36 rounded-xl bg-gray-100 animate-pulse" />
+                    ))
+                ) : (data?.content?.length ?? 0) === 0 ? (
+                    <EmptyDataTable
+                        title="Aucun Bon de Livraison Trouvé"
+                        message="Aucune bon de Livraison ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
+                    />
+                ) : (
+                    (data?.content ?? []).map((item) => (
+                        <BonLivraisonMobileCard
+                            key={item.commandeId}
+                            item={item}
+                            columns={columns}
+                            renderCell={renderCell}
+                        />
+                    ))
+                )}
+            </BonLivraisonMobileList>
 
 
             <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 sm:pt-6">

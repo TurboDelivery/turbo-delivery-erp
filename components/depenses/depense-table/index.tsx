@@ -12,6 +12,7 @@ import { CategoriesSelectFilter } from '@/components/depenses/depense-table/cate
 import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { DollarSign } from 'lucide-react';
+import { DepenseMobileCard } from '@/components/depenses/depense-table/depense-mobile-card';
 
 export function DepenseTable() {
   const { table, isLoading, isFetching, pagination, filters, setSelectedCategories, handleDateChange } = useDepenseTable();
@@ -52,16 +53,17 @@ export function DepenseTable() {
       {/* Tableau des dépenses */}
       <Card className="flex flex-col gap-4">
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Filtres — toujours visibles (desktop + mobile) */}
+          <div className="flex flex-col gap-2 py-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+            <DateFilterInput filters={filters} handleDateChange={handleDateChange} variant="outline" />
+            <CategoriesSelectFilter selectedCategories={filters.categoriesDepense || []} onCategoriesChange={setSelectedCategories} />
+            <CreerDepenseModal />
+          </div>
+
+          {/* Tableau — desktop uniquement (≥ md) */}
+          <div className="hidden md:block overflow-x-auto">
             <Table
               isStriped
-              topContent={
-                <div className="flex justify-between py-2">
-                  <DateFilterInput filters={filters} handleDateChange={handleDateChange} variant="outline" />
-                  <CategoriesSelectFilter selectedCategories={filters.categoriesDepense || []} onCategoriesChange={setSelectedCategories} />
-                  <CreerDepenseModal />
-                </div>
-              }
               bottomContent={
                 pagination?.pageCount! > 1 && (
                   <div className="flex justify-center pt-4 sm:pt-6">
@@ -97,6 +99,24 @@ export function DepenseTable() {
                     ))}
               </TableBody>
             </Table>
+          </div>
+
+          {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+          <div className={`md:hidden space-y-3 pt-2 ${isFetching ? 'opacity-70' : ''}`}>
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={`m-skel-${i}`} className="h-40 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />
+              ))
+            ) : table.getRowModel().rows.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-10">Aucune dépense</p>
+            ) : (
+              table.getRowModel().rows.map((row) => <DepenseMobileCard key={row.id} depense={row.original} />)
+            )}
+            {pagination?.pageCount! > 1 && (
+              <div className="flex justify-center pt-2">
+                <Pagination total={pagination?.pageCount ?? 1} page={filters.page + 1} onChange={pagination.handlePageChange} color="primary" />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

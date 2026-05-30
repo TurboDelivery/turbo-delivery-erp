@@ -297,7 +297,7 @@ export default function LivraisonList() {
                                 <div className="flex justify-between items-start mb-3">
                                     <div>
                                         <p className="text-sm text-muted-foreground">{livraison.refCommande}</p>
-                                        <h3 className="font-semibold text-sm md:text-lg">${formatDate(livraison.createdAt)}</h3>
+                                        <h3 className="font-semibold text-sm md:text-lg">{formatDate(livraison.createdAt)}</h3>
                                     </div>
                                     <span className="px-2 py-1 rounded text-xs font-semibold bg-muted text-muted-foreground">
                                         {livraison.nomLivreur}

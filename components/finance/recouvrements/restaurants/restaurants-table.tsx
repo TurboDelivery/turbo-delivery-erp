@@ -6,6 +6,7 @@ import React from 'react';
 import { restaurantRecouvrementTableColumns } from '@/components/finance/recouvrements/restaurants/restaurant-recouvrement-table-columns';
 import useRestaurantRecouvrementTable from '@/features/recouvrements/hooks/use-restaurant-recouvrement-table';
 import Select from 'react-select';
+import { RestaurantRecouvrementMobileCard } from '@/components/finance/recouvrements/recouvrement-mobile-cards';
 
 export type restaurantsTableProps = {
   restoOpts: {
@@ -53,7 +54,8 @@ export function RestaurantsTable({ restoOpts, isOptionsLoading = false }: restau
         </div>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        {/* Tableau — desktop uniquement (≥ md) */}
+        <div className="hidden md:block overflow-x-auto">
           <Table
             isStriped
             bottomContent={
@@ -91,6 +93,22 @@ export function RestaurantsTable({ restoOpts, isOptionsLoading = false }: restau
                   ))}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+        <div className={`md:hidden space-y-3 ${isRestaurantFetching ? 'opacity-70' : ''}`}>
+          {isRestaurantLoading ? (
+            Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+          ) : restaurantTable.getRowModel().rows.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-10">Aucun résultat trouvé</p>
+          ) : (
+            restaurantTable.getRowModel().rows.map((row) => <RestaurantRecouvrementMobileCard key={row.id} restaurant={row.original} />)
+          )}
+          {pagination?.pageCount! > 1 && (
+            <div className="flex justify-center pt-2">
+              <Pagination total={pagination?.pageCount ?? 1} page={filters.page + 1} onChange={pagination.handlePageChange} color="primary" />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

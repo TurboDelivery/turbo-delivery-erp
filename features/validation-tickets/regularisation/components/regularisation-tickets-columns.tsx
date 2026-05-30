@@ -24,6 +24,96 @@ const STATUT_CONFIG: Record<string, { label: string; className: string }> = {
   [StatutControle.REJETE_FRAUDE]: { label: 'Rejeté (Fraude)', className: 'bg-red-100 text-red-700' },
 };
 
+/**
+ * Config (libellé + classes du badge) du statut effectif d'un ticket. Tient
+ * compte de l'authentification optimiste (PENDING + id authentifié → AUTHENTIFIE).
+ * Partagé entre la colonne « Statut » du tableau et la carte mobile.
+ */
+export function getRegularisationStatutConfig(
+  ticket: BonLivraisonTerminee,
+  authenticatedIds: Set<string>,
+) {
+  const rawStatut = ticket.statutControle ?? ticket.statut;
+  const statut =
+    rawStatut === StatutControle.PENDING && authenticatedIds.has(ticket.commandeId)
+      ? StatutControle.AUTHENTIFIE
+      : rawStatut;
+  return STATUT_CONFIG[statut] ?? { label: statut, className: 'bg-gray-100 text-gray-700' };
+}
+
+/**
+ * Actions disponibles pour un ticket selon son statut (authentifier / approuver
+ * / rejeter / aucune). Partagé entre la cellule « Actions » du tableau et la
+ * carte mobile (zéro divergence de logique). {@code fullWidth} étire les boutons
+ * pour l'affichage carte mobile.
+ */
+export function renderRegularisationActions(
+  ticket: BonLivraisonTerminee,
+  meta: RegularisationTicketsColumnMeta,
+  fullWidth = false,
+) {
+  const statut = ticket.statutControle ?? ticket.statut;
+
+  // PENDING → authentification (déjà fait = aucune action).
+  if (statut === StatutControle.PENDING) {
+    if (meta.authenticatedIds.has(ticket.commandeId)) {
+      return (
+        <div className="flex items-center justify-end gap-1 text-xs font-medium text-blue-600">
+          <BadgeCheck className="h-3.5 w-3.5" />
+          Authentifié
+        </div>
+      );
+    }
+    return (
+      <div className={`flex items-center ${fullWidth ? '' : 'justify-end'}`}>
+        <Button
+          size="sm"
+          onClick={() => meta.onAuthentifier(ticket.commandeId)}
+          className={`h-7 gap-1.5 bg-emerald-500 text-xs text-white hover:bg-emerald-600 ${fullWidth ? 'w-full' : ''}`}
+        >
+          <ShieldCheck className="h-3.5 w-3.5" />
+          Authentifier
+        </Button>
+      </div>
+    );
+  }
+
+  // TARDIF → approuver (retard) ou rejeter (fraude).
+  if (statut === StatutControle.TARDIF) {
+    const isApprovingThis = meta.isApproving && meta.approvingId === ticket.commandeId;
+    return (
+      <div className={`flex items-center gap-2 ${fullWidth ? '' : 'justify-end'}`}>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => meta.onReject(ticket)}
+          disabled={meta.isApproving}
+          className={`h-7 gap-1.5 border-red-200 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 ${fullWidth ? 'flex-1' : ''}`}
+        >
+          <X className="h-3.5 w-3.5" />
+          Rejeter
+        </Button>
+        <Button
+          size="sm"
+          onClick={() => meta.onApprove(ticket.commandeId)}
+          disabled={meta.isApproving}
+          className={`h-7 gap-1.5 bg-red-500 text-xs text-white hover:bg-red-600 disabled:opacity-60 ${fullWidth ? 'flex-1' : ''}`}
+        >
+          {isApprovingThis ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <ShieldCheck className="h-3.5 w-3.5" />
+          )}
+          Approuver
+        </Button>
+      </div>
+    );
+  }
+
+  // AUTHENTIFIE / V1_VALIDE / V2_VALIDE / REJETE_FRAUDE → aucune action.
+  return null;
+}
+
 /** Statuts proposés dans le filtre (tous sauf TARDIF). PENDING est le défaut. */
 export const STATUT_FILTER_OPTIONS: { value: StatutControle; label: string }[] = [
   { value: StatutControle.PENDING, label: 'En attente' },
@@ -83,13 +173,7 @@ export function createRegularisationTicketsColumns(): ColumnDef<BonLivraisonTerm
       header: 'Statut',
       cell: ({ row, table }) => {
         const meta = table.options.meta as RegularisationTicketsColumnMeta;
-        const rawStatut = row.original.statutControle ?? row.original.statut;
-        // Authentification optimiste : un ticket PENDING authentifié passe AUTHENTIFIE.
-        const statut =
-          rawStatut === StatutControle.PENDING && meta.authenticatedIds.has(row.original.commandeId)
-            ? StatutControle.AUTHENTIFIE
-            : rawStatut;
-        const config = STATUT_CONFIG[statut] ?? { label: statut, className: 'bg-gray-100 text-gray-700' };
+        const config = getRegularisationStatutConfig(row.original, meta.authenticatedIds);
         return (
           <span
             className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${config.className}`}
@@ -104,67 +188,11 @@ export function createRegularisationTicketsColumns(): ColumnDef<BonLivraisonTerm
       header: () => <div className="w-full text-right">Actions</div>,
       cell: ({ row, table }) => {
         const meta = table.options.meta as RegularisationTicketsColumnMeta;
-        const ticket = row.original;
-        const statut = ticket.statutControle ?? ticket.statut;
-
-        // PENDING → authentification (déjà fait = aucune action).
-        if (statut === StatutControle.PENDING) {
-          if (meta.authenticatedIds.has(ticket.commandeId)) {
-            return (
-              <div className="flex items-center justify-end gap-1 text-xs font-medium text-blue-600">
-                <BadgeCheck className="h-3.5 w-3.5" />
-                Authentifié
-              </div>
-            );
-          }
-          return (
-            <div className="flex items-center justify-end">
-              <Button
-                size="sm"
-                onClick={() => meta.onAuthentifier(ticket.commandeId)}
-                className="h-7 gap-1.5 bg-emerald-500 text-xs text-white hover:bg-emerald-600"
-              >
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Authentifier
-              </Button>
-            </div>
-          );
-        }
-
-        // TARDIF → approuver (retard) ou rejeter (fraude).
-        if (statut === StatutControle.TARDIF) {
-          const isApprovingThis = meta.isApproving && meta.approvingId === ticket.commandeId;
-          return (
-            <div className="flex items-center justify-end gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => meta.onReject(ticket)}
-                disabled={meta.isApproving}
-                className="h-7 gap-1.5 border-red-200 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
-              >
-                <X className="h-3.5 w-3.5" />
-                Rejeter
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => meta.onApprove(ticket.commandeId)}
-                disabled={meta.isApproving}
-                className="h-7 gap-1.5 bg-red-500 text-xs text-white hover:bg-red-600 disabled:opacity-60"
-              >
-                {isApprovingThis ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                )}
-                Approuver
-              </Button>
-            </div>
-          );
-        }
-
-        // AUTHENTIFIE / V1_VALIDE / V2_VALIDE / REJETE_FRAUDE → aucune action.
-        return <div className="text-right text-xs text-gray-300">—</div>;
+        return (
+          renderRegularisationActions(row.original, meta) ?? (
+            <div className="text-right text-xs text-gray-300">—</div>
+          )
+        );
       },
     },
   ];

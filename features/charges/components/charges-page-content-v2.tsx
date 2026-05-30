@@ -12,6 +12,7 @@ import { IChargeFixe } from '../types/charge-fixe.type';
 import { IChargeVariable } from '../types/charge-variable.type';
 import ChargesStatsCardsV2 from './statistiques/charges-stats-cards-v2';
 import ChargesTableV2 from './charges-table-v2';
+import { ChargeFixeMobileCard, ChargeVariableMobileCard } from './charges-mobile-cards';
 import { ChargesModals } from './charges-modals';
 import { CategorieDepenseList } from '@/features/depenses/components/depense-list/categorie-depense';
 import { buildMonthOptions, monthKeyToRange, rangeToMonthKey } from '../utils/month-filter.utils';
@@ -131,6 +132,12 @@ export default function ChargesPageContentV2() {
               setChargeToEdit(null);
               setIsFixeModalOpen(true);
             }}
+            onEdit={(charge) => {
+              setChargeToEdit(charge);
+              setIsFixeModalOpen(true);
+            }}
+            onDelete={(charge) => setChargeToDelete(charge)}
+            onToggle={(charge, enabled) => setToggleTarget({ charge, enable: enabled })}
           />
         </TabsContent>
 
@@ -143,6 +150,11 @@ export default function ChargesPageContentV2() {
               setChargeVariableToEdit(null);
               setIsVariableModalOpen(true);
             }}
+            onEdit={(charge) => {
+              setChargeVariableToEdit(charge);
+              setIsVariableModalOpen(true);
+            }}
+            onViewJustificatif={(url) => setPreviewUrl(url)}
           />
         </TabsContent>
 
@@ -183,11 +195,17 @@ function ChargesFixesSection({
   isLoading,
   remainingCount,
   onAdd,
+  onEdit,
+  onDelete,
+  onToggle,
 }: {
   table: ReturnType<typeof import('@tanstack/react-table').useReactTable<IChargeFixe>>;
   isLoading: boolean;
   remainingCount: number;
   onAdd: () => void;
+  onEdit: (charge: IChargeFixe) => void;
+  onDelete: (charge: IChargeFixe) => void;
+  onToggle: (charge: IChargeFixe, enabled: boolean) => void;
 }) {
   return (
     <Card className="border shadow-none overflow-hidden">
@@ -199,7 +217,15 @@ function ChargesFixesSection({
           </Button>
         </Can>
       </div>
-      <ChargesTableV2 table={table} isLoading={isLoading} emptyMessage="Aucune charge fixe configurée" getRowClassName={(row: IChargeFixe) => (row.automatique ? 'bg-green-100' : '')} />
+      <ChargesTableV2
+        table={table}
+        isLoading={isLoading}
+        emptyMessage="Aucune charge fixe configurée"
+        getRowClassName={(row: IChargeFixe) => (row.automatique ? 'bg-green-100' : '')}
+        renderMobileCard={(row: IChargeFixe) => (
+          <ChargeFixeMobileCard key={row.id} charge={row} onEdit={onEdit} onDelete={onDelete} onToggle={onToggle} />
+        )}
+      />
       <div className="py-3 text-center border-t">
         <Link href="/finance/charges/details?tab=fixes" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
           <ChevronDown size={14} /> Voir plus ({remainingCount} restantes)
@@ -214,11 +240,15 @@ function DepensesVariablesSection({
   isLoading,
   remainingCount,
   onAdd,
+  onEdit,
+  onViewJustificatif,
 }: {
   table: ReturnType<typeof import('@tanstack/react-table').useReactTable<IChargeVariable>>;
   isLoading: boolean;
   remainingCount: number;
   onAdd: () => void;
+  onEdit: (charge: IChargeVariable) => void;
+  onViewJustificatif: (url: string) => void;
 }) {
   return (
     <Card className="border shadow-none overflow-hidden">
@@ -230,7 +260,14 @@ function DepensesVariablesSection({
           </Button>
         </Can>
       </div>
-      <ChargesTableV2 table={table} isLoading={isLoading} emptyMessage="Aucune dépense variable" />
+      <ChargesTableV2
+        table={table}
+        isLoading={isLoading}
+        emptyMessage="Aucune dépense variable"
+        renderMobileCard={(row: IChargeVariable) => (
+          <ChargeVariableMobileCard key={row.id} charge={row} onEdit={onEdit} onViewJustificatif={onViewJustificatif} />
+        )}
+      />
       <div className="py-3 text-center border-t">
         <Link href="/finance/charges/details?tab=variables" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
           <ChevronDown size={14} /> Voir plus ({remainingCount} restantes)

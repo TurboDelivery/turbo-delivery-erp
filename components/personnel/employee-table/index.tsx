@@ -1,6 +1,7 @@
 'use client';
 
-import { employeeColumns } from '@/components/personnel/employee-table/employee-columns';
+import { employeeColumns, EmployeeActions, getEmployeeStatutConfig } from '@/components/personnel/employee-table/employee-columns';
+import { PersonnelMobileCard, PersonnelMobileCardList } from '@/components/personnel/shared/personnel-mobile-card';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEmployeeTableNew } from '@/features/personnel/hooks/use-employee-table-new';
 import { useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
@@ -10,6 +11,7 @@ import { Button, Pagination, Table, TableBody, TableCell, TableColumn, TableHead
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { flexRender } from '@tanstack/react-table';
+import { format } from 'date-fns';
 import { DollarSign, Download, Plus, TrendingUp, Users } from 'lucide-react';
 import { PostesSelectFilter } from './postes-select-filter';
 import { StatutsSelectFilter } from './statuts-select-filter';
@@ -112,8 +114,8 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
         </Tabs>
       </div>
 
-      {/* Tableau des employés */}
-      <Card className="p-0">
+      {/* Tableau des employés — desktop uniquement (≥ md) */}
+      <Card className="p-0 hidden md:block">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table
@@ -175,6 +177,63 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
           </div>
         </CardContent>
       </Card>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <div className="md:hidden space-y-3">
+        {/* Filtres + actions (mêmes composants que le topContent du tableau) */}
+        <div className="flex flex-col gap-2">
+          <EmployeeSearchInput value={filters.search || ''} onChange={handleSearchChange} />
+          <div className="flex flex-wrap gap-2">
+            <StatutsSelectFilter selectedStatuts={filters.statuts || []} onStatutsChange={setSelectedStatuts} />
+            <PostesSelectFilter selectedPostes={filters.postes || []} onPostesChange={setSelectedPostes} />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="bordered" className="w-full sm:w-auto" onPress={() => handleExport('EXCEL')} startContent={<Download size={16} />} isLoading={isExporting}>
+              Exporter
+            </Button>
+            <Can I="create" a="Personnel">
+              <Button color="primary" className="w-full sm:w-auto" startContent={<Plus size={16} />} onPress={onAddEmployee}>
+                Ajouter un employé
+              </Button>
+            </Can>
+          </div>
+        </div>
+
+        <PersonnelMobileCardList>
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-40 rounded-xl bg-gray-100 animate-pulse" />)
+          ) : table.getRowModel().rows.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-10">Aucun employé trouvé</p>
+          ) : (
+            table.getRowModel().rows.map((row) => {
+              const employee = row.original;
+              const statut = getEmployeeStatutConfig(employee.statut);
+              return (
+                <PersonnelMobileCard
+                  key={employee.id}
+                  title={employee.name}
+                  subtitle={employee.email}
+                  statut={statut.label}
+                  statutClassName={statut.className}
+                  fields={[
+                    { label: 'Poste', value: employee.position },
+                    { label: 'Département', value: employee.department },
+                    { label: 'Salaire', value: formatCFA(employee.salary || 0) },
+                    { label: "Date d'entrée", value: employee.entryDate ? format(new Date(employee.entryDate), 'dd/MM/yyyy') : '-' },
+                  ]}
+                  actions={<EmployeeActions employee={employee} onEdit={onEditPosition} onDeactivate={onDeactivate} onRemove={onRemove} />}
+                />
+              );
+            })
+          )}
+        </PersonnelMobileCardList>
+
+        {pagination?.pageCount! > 1 && (
+          <div className="flex justify-center pt-2">
+            <Pagination total={pagination?.pageCount ?? 1} page={filters.page + 1} onChange={pagination.handlePageChange} color="primary" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

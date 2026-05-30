@@ -118,38 +118,103 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
   const colsCount = table.getAllColumns().length;
 
   return (
-    <Table
-      isStriped
-      aria-label="Tableau de presence hebdomadaire"
-    >
-      <TableHeader>
-        {table.getFlatHeaders().map((header) => (
-          <TableColumn key={header.id} className="text-center">
-            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-          </TableColumn>
-        ))}
-      </TableHeader>
-      <TableBody emptyContent="Aucun turboy trouve">
-        {isLoading
-          ? Array.from({ length: 5 }).map((_, i) => (
-              <TableRow key={`skeleton-${i}`}>
-                {Array.from({ length: colsCount }).map((_, j) => (
-                  <TableCell key={`skeleton-cell-${j}`}>
-                    <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          : table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-      </TableBody>
-    </Table>
+    <>
+      {/* Tableau hebdomadaire — desktop uniquement (≥ md) */}
+      <Table
+        isStriped
+        aria-label="Tableau de presence hebdomadaire"
+        className="hidden md:block"
+      >
+        <TableHeader>
+          {table.getFlatHeaders().map((header) => (
+            <TableColumn key={header.id} className="text-center">
+              {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+            </TableColumn>
+          ))}
+        </TableHeader>
+        <TableBody emptyContent="Aucun turboy trouve">
+          {isLoading
+            ? Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={`skeleton-${i}`}>
+                  {Array.from({ length: colsCount }).map((_, j) => (
+                    <TableCell key={`skeleton-cell-${j}`}>
+                      <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            : table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+        </TableBody>
+      </Table>
+
+      {/* Mobile — une carte par turboy (mêmes données / handlers que le tableau) */}
+      <div className="md:hidden space-y-3">
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-40 rounded-xl bg-gray-100 animate-pulse" />
+          ))
+        ) : data.length === 0 ? (
+          <p className="text-sm text-default-400 text-center py-10">Aucun turboy trouve</p>
+        ) : (
+          data.map((turboy) => (
+            <div key={turboy.emploiId ?? turboy.nomComplet} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-3">
+              <div className="flex items-center gap-2">
+                <Avatar
+                  size="sm"
+                  src={turboy.avatar ? createUrlFile(turboy.avatar, 'backend') : undefined}
+                  name={turboy.nomComplet}
+                  className="shrink-0"
+                />
+                <span className="text-sm font-medium truncate">{turboy.nomComplet}</span>
+              </div>
+
+              {/* Strip 7 jours */}
+              <div className="grid grid-cols-7 gap-1">
+                {JOURS.map((jour, idx) => {
+                  const jourData = turboy.jours?.find((j) => j.jour.toUpperCase() === JOURS_INDEX[idx]);
+                  const statut = jourData?.statut ?? CreneauStatutJour.NON_INSCRIT;
+                  const isAbsent = statut === CreneauStatutJour.ABSENT && !!onAbsenceClick && !!jourData;
+                  const dateStr = jourDates[JOURS_INDEX[idx]];
+                  const dayNum = dateStr ? new Date(dateStr).getDate() : null;
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex flex-col items-center gap-1 rounded-md py-1 ${isAbsent ? 'cursor-pointer bg-red-50' : ''}`}
+                      onClick={isAbsent ? () => onAbsenceClick(turboy, jourData!) : undefined}
+                      title={isAbsent ? "Cliquer pour gerer l'absence" : undefined}
+                    >
+                      <span className="text-[10px] text-default-500">{jour.slice(0, 3)}</span>
+                      {dayNum && <span className="text-[10px] text-default-400">{dayNum}</span>}
+                      <StatutDot statut={statut} />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Assiduite */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-default-400 shrink-0">Assiduite</span>
+                <Progress
+                  size="sm"
+                  value={turboy.assiduite}
+                  color={getAssiduitProgressColor(turboy.assiduite)}
+                  className="flex-1"
+                  aria-label="Assiduite"
+                />
+                <span className="text-sm font-medium shrink-0">{turboy.assiduite}%</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </>
   );
 }

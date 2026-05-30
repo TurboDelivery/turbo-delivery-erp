@@ -59,18 +59,43 @@ export default function TableCreneau({ initialData }: Props) {
 
     return (
         <div className="p-4 bg-gray-100 rounded-md">
-            <Table aria-label="TABLEAU DE PROGRESSION DES TURBOYS" className="rounded-md">
-                <TableHeader columns={columns}>
-                    {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
-                </TableHeader>
-                <TableBody items={initialData} emptyContent={<EmptyDataTable title="Aucun Livreur" />}>
-                    {(item) => (
-                        <TableRow key={item.id}>
-                            {(columnKey) => <TableCell>{renderCell(item, String(columnKey))}</TableCell>}
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
+            {/* Table — desktop uniquement (≥ md) */}
+            <div className="hidden md:block">
+                <Table aria-label="TABLEAU DE PROGRESSION DES TURBOYS" className="rounded-md">
+                    <TableHeader columns={columns}>
+                        {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
+                    </TableHeader>
+                    <TableBody items={initialData} emptyContent={<EmptyDataTable title="Aucun Livreur" />}>
+                        {(item) => (
+                            <TableRow key={item.id}>
+                                {(columnKey) => <TableCell>{renderCell(item, String(columnKey))}</TableCell>}
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
+            {/* Mobile — cartes tactiles (mêmes données / handlers via renderCell) */}
+            <div className="md:hidden space-y-3">
+                {initialData.map((item) => (
+                    <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                        <div className="min-w-0">{renderCell(item, 'nom')}</div>
+                        <div>{renderCell(item, 'progression')}</div>
+                        <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs text-gray-400 shrink-0">Jours</span>
+                            <span className="text-sm text-gray-700 text-right">{renderCell(item, 'jours')}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs text-gray-400 shrink-0">Début</span>
+                            <span className="text-sm text-gray-700 text-right">{renderCell(item, 'debut')}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs text-gray-400 shrink-0">Fin</span>
+                            <span className="text-sm text-gray-700 text-right">{renderCell(item, 'fin')}</span>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }
