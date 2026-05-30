@@ -16,6 +16,8 @@ interface V2ValideTableProps {
   isFetchingNextPage: boolean;
   onReject: (id: string) => void;
   rejectingId?: string | null;
+  /** Lecture seule : masque l'action "Rejeter". */
+  readOnly?: boolean;
 }
 
 export function V2ValideTable({
@@ -27,6 +29,7 @@ export function V2ValideTable({
   isFetchingNextPage,
   onReject,
   rejectingId = null,
+  readOnly = false,
 }: V2ValideTableProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -42,7 +45,7 @@ export function V2ValideTable({
     return () => observer.disconnect();
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
-  const columns = buildV2ValideColumns(onReject, rejectingId);
+  const columns = buildV2ValideColumns(onReject, rejectingId, readOnly);
 
   const table = useReactTable({
     data: tickets,

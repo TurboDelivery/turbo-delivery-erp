@@ -79,8 +79,9 @@ export function buildVerrouillageV2Columns(
   onValidate: (id: string) => void,
   onReject: (id: string) => void,
   validatingId: string | null,
+  readOnly = false,
 ): ColumnDef<TicketControleV2>[] {
-  return [
+  const columns: ColumnDef<TicketControleV2>[] = [
     {
       accessorKey: 'reference',
       header: 'TICKET',
@@ -159,11 +160,26 @@ export function buildVerrouillageV2Columns(
       enableSorting: false,
       cell: ({ row }) => <AgentCell agent={row.original.v2Agent} date={row.original.v2ValideAt} />,
     },
-    {
+  ];
+
+  // Colonne d'actions (Valider V2 / Rejeter) masquée en lecture seule — ex. rôle
+  // AGENT_V1 : Verrouillage V2 en consultation uniquement. Le gate se fait sur
+  // 'manage VerrouillageV2' côté content (DG/DGA uniquement).
+  if (!readOnly) {
+    columns.push({
       id: 'actions',
       header: 'ACTIONS',
       enableSorting: false,
-      cell: ({ row }) => <RowActions ticket={row.original} isValidating={validatingId === row.original.commandeId} onValidate={onValidate} onReject={onReject} />,
-    },
-  ];
+      cell: ({ row }) => (
+        <RowActions
+          ticket={row.original}
+          isValidating={validatingId === row.original.commandeId}
+          onValidate={onValidate}
+          onReject={onReject}
+        />
+      ),
+    });
+  }
+
+  return columns;
 }

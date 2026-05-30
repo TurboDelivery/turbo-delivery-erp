@@ -25,7 +25,7 @@ const menuData: IMenuData[] = [
       { icon: SquareUser, title: "File d'attente", path: '/file-attente', can: { action: 'read', subject: 'Trafic' } },
     ],
   },
-  { icon: ShoppingCartIcon, title: 'Commandes / Client', path: '/commandes', can: { action: 'read', subject: 'Commande' } },
+  { icon: ShoppingCartIcon, title: 'Commandes / Client', path: '/commandes', can: { action: 'read', subject: 'CommandeClient' } },
   {
     icon: TbTruckDelivery,
     title: 'external_delivery',
@@ -47,7 +47,7 @@ const menuData: IMenuData[] = [
       { icon: Receipt, title: 'Grille de paiement', path: '/validation-tickets/grille-de-paiement', can: { action: 'read', subject: 'GrillePaiement' } },
       { icon: CheckCircle, title: 'Visa DGA', path: '/validation-tickets/visa-dga', can: { action: 'valider-dga', subject: 'Depense' } },
       { icon: CheckCircle, title: 'Approbation finale', path: '/validation-tickets/approbation-finale', can: { action: 'approuver-dg', subject: 'Ticket' } },
-      { icon: History, title: 'Historique des Créneaux', path: '/validation-tickets/historique-creneaux', can: { action: 'read', subject: 'ValidationTicket' } },
+      { icon: History, title: 'Historique des Créneaux', path: '/validation-tickets/historique-creneaux', can: { action: 'read', subject: 'HistoriqueCreneaux' } },
     ],
   },
   {
@@ -59,7 +59,7 @@ const menuData: IMenuData[] = [
       { icon: IconBuildingSkyscraper, title: 'Partners partiellement validés', path: '/restaurants/valide', can: { action: 'valider', subject: 'Restaurant' } },
       { icon: IconBuildingSkyscraper, title: 'News Partners', path: '/restaurants/not-valide', can: { action: 'valider', subject: 'Restaurant' } },
       { icon: AiOutlineDollarCircle, title: 'Grille tarifaire', path: '/price-list', can: { action: 'read', subject: 'Restaurant' } },
-      { icon: BarChart, title: 'Rapports Performance', path: '/finance/rapports-performance', can: { action: 'read', subject: 'Performance' } },
+      { icon: BarChart, title: 'Rapports Performance', path: '/finance/rapports-performance', can: { action: 'read', subject: 'RapportPerformancePartenaire' } },
     ],
   },
   {

@@ -16,6 +16,11 @@ export type AppSubjects =
   | 'Parametre'
   | 'Trafic'
   | 'Commande'
+  // 2026-05 — "Commandes / Client" (menu racine, /commandes) isolé de 'Commande'
+  // (qui gate les sous-pages Courses externes Nouvelles/Journalières/Toutes) pour
+  // pouvoir le CACHER au rôle AGENT_V1 sans masquer les courses externes.
+  // Re-accordé à OPS_MANAGER + DIRECTEUR_OPERATIONS (DG/DGA via all).
+  | 'CommandeClient'
   | 'Personnel'
   | 'Utilisateur'
   | 'Finance'
@@ -46,6 +51,11 @@ export type AppSubjects =
   // MOINS un enfant passe). Accordé : DG/DGA (via 'all'), OPS_MANAGER,
   // RESPONSABLE_VA. PAS DIRECTEUR_OPERATIONS.
   | 'DashboardPerformance'
+  // 2026-05 — "Partenaires > Rapports Performance" (/finance/rapports-performance)
+  // isolé de 'Performance' (qui gate "Turboys > performance") pour pouvoir le
+  // CACHER au rôle AGENT_V1 sans masquer la performance Turboys. Re-accordé à
+  // OPS_MANAGER + RESPONSABLE_VA + DIRECTEUR_OPERATIONS (DG/DGA via all).
+  | 'RapportPerformancePartenaire'
   | 'ValidationTicket'
   // 2026-05 — "Validation des tickets > Verification V1" isolé sur son propre
   // sujet (séparé de 'ValidationTicket', partagé avec Régularisation et
@@ -53,13 +63,19 @@ export type AppSubjects =
   // AUTHENTIFICATION_VERIFICATION. Accordé aussi à DG(all)/DGA/COMPTABLE/
   // OPS_MANAGER/RESPONSABLE_VA/DIRECTEUR_OPERATIONS pour préserver l'existant.
   | 'VerificationV1'
+  // 2026-05 — "Validation des tickets > Historique des Créneaux" isolé de
+  // 'ValidationTicket' (partagé avec Régularisation) pour pouvoir le CACHER au
+  // rôle AGENT_V1 (qui voit Régularisation) sans exposer tout l'historique de
+  // paie. Re-accordé à COMPTABLE + OPS_MANAGER + RESPONSABLE_VA +
+  // DIRECTEUR_OPERATIONS (DG/DGA via all).
+  | 'HistoriqueCreneaux'
   | 'VerrouillageV2'
   | 'GrillePaiement'
   | 'all';
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
-export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS','AUTHENTIFICATION_VERIFICATION'] as const;
+export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS','AUTHENTIFICATION_VERIFICATION','AGENT_V1'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
@@ -79,6 +95,10 @@ const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
   'DIRECTEUR DES OPÉRATIONS': 'DIRECTEUR_OPERATIONS',
   AUTHENTIFICATION_VERIFICATION: 'AUTHENTIFICATION_VERIFICATION',
   'AUTHENTIFICATION VERIFICATION': 'AUTHENTIFICATION_VERIFICATION',
+  // Rôle « Agent V1 » (cadrage dépt développement 2026-05). normalizeRole met
+  // en MAJUSCULES + trim → "Agent V1" devient "AGENT V1".
+  AGENT_V1: 'AGENT_V1',
+  'AGENT V1': 'AGENT_V1',
   BUSINESS_DEVELOPER: 'BUSINESS_DEVELOPER',
   'BUSINESS DEVELOPER': 'BUSINESS_DEVELOPER',
   "CENTRALE D'APPEL": 'STANDARD',
@@ -143,6 +163,9 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', 'ValidationTicket');
       // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
       can('read', 'VerificationV1');
+      // Historique des Créneaux (sujet dédié isolé de ValidationTicket pour le
+      // cacher à AGENT_V1) — re-accordé ici pour préserver l'existant.
+      can('read', 'HistoriqueCreneaux');
       can('read', 'VerrouillageV2');
       can('read', 'GrillePaiement');
       // V54 (2026-05) — Le COMPTABLE peut overrider l'inclusion d'une ligne
@@ -163,6 +186,10 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
 
     case 'OPS_MANAGER':
       can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
+      // Sujets isolés pour AGENT_V1 (cf. AppSubjects) — re-accordés ici pour
+      // préserver l'existant : "Commandes / Client", "Historique des Créneaux",
+      // "Partenaires > Rapports Performance".
+      can('read', ['CommandeClient', 'HistoriqueCreneaux', 'RapportPerformancePartenaire']);
       can('valider', 'Restaurant');
       can('manage', 'Ticket');
       can('authentifier', 'Ticket');
@@ -204,6 +231,8 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('manage', 'ValidationTicket');
       // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
       can('manage', 'VerificationV1');
+      // Sujets isolés pour AGENT_V1 — re-accordés pour préserver l'existant.
+      can('read', ['HistoriqueCreneaux', 'RapportPerformancePartenaire']);
       can('manage', 'Livreur');
       can('read', 'Creneau');
       can('manage', 'Performance');
@@ -247,6 +276,10 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // Validation DGA, NI au module "Finance" principal (Charges, Validation,
       // Rapports Financiers, Rentabilité, Paiements, Revenus, Recouvrements).
       can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
+      // Sujets isolés pour AGENT_V1 (cf. AppSubjects) — re-accordés ici pour
+      // préserver l'existant : "Commandes / Client", "Historique des Créneaux",
+      // "Partenaires > Rapports Performance".
+      can('read', ['CommandeClient', 'HistoriqueCreneaux', 'RapportPerformancePartenaire']);
       can('valider', 'Restaurant');
       can('manage', 'Ticket');
       can('authentifier', 'Ticket');
@@ -312,6 +345,43 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('read', 'VerificationV1');
       can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
       // Tableau de bord retiré (Analytics accordé globalement plus haut).
+      cannot('access', 'Analytics');
+      break;
+
+    case 'AGENT_V1':
+      // Rôle « Agent V1 » (cadrage dépt développement, 2026-05) — périmètre
+      // STRICT. Lecture + modification sur : Trafic, Turboys (Créneaux/Men/
+      // Performance), Courses externes (Nouvelles/Journalières/Toutes + Tickets),
+      // Validation des tickets > Régularisation + Verification V1.
+      // Verrouillage V2 : CONSULTATION uniquement (read, PAS manage → les boutons
+      // d'action V2 sont masqués, cf. verrouillage-v2-content). + Notifications /
+      // Paramètres. RIEN d'autre.
+      //
+      // Chaîne ticket autorisée : créer, authentifier, valider V1. PAS de
+      // 'manage Ticket' (sinon 'approuver-dg Ticket' réafficherait "Approbation
+      // finale") → on liste des actions ciblées.
+      //
+      // Sujets volontairement NON accordés (isolés exprès, cf. AppSubjects) pour
+      // tenir le périmètre — chacun partage un sujet avec une page autorisée :
+      //   - PAS 'CommandeClient'              → cache "Commandes / Client"
+      //   - PAS 'HistoriqueCreneaux'          → cache "Historique des Créneaux"
+      //   - PAS 'RapportPerformancePartenaire' → cache "Partenaires > Rapports Performance"
+      // Non accordés non plus : GrillePaiement, Visa DGA (valider-dga), Approbation
+      // finale (approuver-dg), Restaurant/Partenaires, Personnel, Utilisateur,
+      // Finance/Comptabilité, Analytics.
+      can('manage', 'Trafic');
+      can('manage', 'Livreur');
+      can('manage', 'Creneau');
+      can('manage', 'Performance');
+      can('manage', 'Commande');
+      can(['read', 'create', 'update', 'authentifier'], 'Ticket');
+      can('manage', 'ValidationTicket');
+      can('manage', 'VerificationV1');
+      // Verrouillage V2 — consultation seule : PAS de 'manage' → l'UI masque les
+      // actions (Valider V2 / Rejeter) pour qui n'a pas manage VerrouillageV2.
+      can('read', 'VerrouillageV2');
+      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
+      // Pas de tableau de bord (non listé dans le périmètre).
       cannot('access', 'Analytics');
       break;
 

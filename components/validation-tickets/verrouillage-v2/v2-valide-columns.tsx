@@ -66,8 +66,9 @@ const RowActions = memo(function RowActions({ ticket, isRejecting, onReject }: R
 export function buildV2ValideColumns(
   onReject: (id: string) => void,
   rejectingId: string | null,
+  readOnly = false,
 ): ColumnDef<TicketControleV2>[] {
-  return [
+  const columns: ColumnDef<TicketControleV2>[] = [
   {
     accessorKey: 'reference',
     header: 'TICKET',
@@ -146,17 +147,24 @@ export function buildV2ValideColumns(
     enableSorting: false,
     cell: ({ row }) => <AgentCell agent={row.original.v2Agent} date={row.original.v2ValideAt} />,
   },
-  {
-    id: 'actions',
-    header: 'ACTIONS',
-    enableSorting: false,
-    cell: ({ row }) => (
-      <RowActions
-        ticket={row.original}
-        isRejecting={rejectingId === row.original.commandeId}
-        onReject={onReject}
-      />
-    ),
-  },
-];
+  ];
+
+  // Action "Rejeter" masquée en lecture seule (ex. rôle AGENT_V1 : Verrouillage
+  // V2 en consultation uniquement). Gate sur 'manage VerrouillageV2' côté content.
+  if (!readOnly) {
+    columns.push({
+      id: 'actions',
+      header: 'ACTIONS',
+      enableSorting: false,
+      cell: ({ row }) => (
+        <RowActions
+          ticket={row.original}
+          isRejecting={rejectingId === row.original.commandeId}
+          onReject={onReject}
+        />
+      ),
+    });
+  }
+
+  return columns;
 }

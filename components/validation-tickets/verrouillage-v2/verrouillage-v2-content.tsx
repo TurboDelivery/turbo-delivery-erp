@@ -7,6 +7,8 @@ import { RejectMotifDialog } from './reject-motif-dialog';
 import { V2ValideTable } from './v2-valide-table';
 import { useVerrouillageV2Content } from '@/features/validation-tickets/verrouillage-v2/hooks/use-verrouillage-v2-content';
 import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
+import { useAbility } from '@casl/react';
+import { AbilityContext } from '@/lib/casl/ability-context';
 
 export function VerrouillageV2Content() {
   const {
@@ -39,6 +41,14 @@ export function VerrouillageV2Content() {
     handleValidateAll,
   } = useVerrouillageV2Content();
 
+  // Verrouillage V2 = action réservée à qui possède 'manage VerrouillageV2'
+  // (DG/DGA). Les rôles en lecture seule (ex. AGENT_V1, COMPTABLE) consultent la
+  // page sans agir : on masque les boutons Valider/Rejeter et le footer de
+  // validation en masse. Backend RBAC actuellement désactivé → ce gate UI est la
+  // seule barrière, d'où son importance.
+  const ability = useAbility(AbilityContext);
+  const canActV2 = ability.can('manage', 'VerrouillageV2');
+
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
       <div>
@@ -65,13 +75,16 @@ export function VerrouillageV2Content() {
         fetchNextPage={fetchNextPage}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
+        readOnly={!canActV2}
       />
 
-      <VerrouillageV2Footer
-        ticketCount={totalElements}
-        isValidating={isValidatingAll}
-        onValidateAll={handleValidateAll}
-      />
+      {canActV2 && (
+        <VerrouillageV2Footer
+          ticketCount={totalElements}
+          isValidating={isValidatingAll}
+          onValidateAll={handleValidateAll}
+        />
+      )}
 
       <TicketFilterBar value={v2ValideFilters} onChange={setV2ValideFilters} livreurOptions={livreurOptions} />
 
@@ -84,6 +97,7 @@ export function VerrouillageV2Content() {
         isFetchingNextPage={isFetchingNextV2Valide}
         onReject={setRejectDialogId}
         rejectingId={rejectDialogId}
+        readOnly={!canActV2}
       />
 
       <RejectMotifDialog

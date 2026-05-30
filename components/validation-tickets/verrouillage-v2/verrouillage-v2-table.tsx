@@ -17,6 +17,8 @@ interface VerrouillageV2TableProps {
   fetchNextPage: () => void;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
+  /** Lecture seule : masque la colonne d'actions (Valider V2 / Rejeter). */
+  readOnly?: boolean;
 }
 
 export function VerrouillageV2Table({
@@ -29,6 +31,7 @@ export function VerrouillageV2Table({
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
+  readOnly = false,
 }: VerrouillageV2TableProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -45,8 +48,8 @@ export function VerrouillageV2Table({
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
   const columns = useMemo(
-    () => buildVerrouillageV2Columns(onValidate, onReject, validatingId),
-    [onValidate, onReject, validatingId],
+    () => buildVerrouillageV2Columns(onValidate, onReject, validatingId, readOnly),
+    [onValidate, onReject, validatingId, readOnly],
   );
 
   const table = useReactTable({
