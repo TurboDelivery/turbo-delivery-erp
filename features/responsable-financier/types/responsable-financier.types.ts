@@ -16,6 +16,9 @@ export type StatutFacture =
   | 'Versé au caissier'
   | 'En attente visa DGA'
   | 'Visé DGA'
+  // SPEC-RECOUV-002 — orientation des fonds après visa (DG/DGA).
+  | 'Orienté banque'
+  | 'Conservé en caisse'
   | 'Rejeté DGA'
   | 'Clôturé';
 
@@ -60,6 +63,15 @@ export interface IFactureRFDetail extends IFactureRF {
   // "Preuves & Documents" de facture-detail-view.
   preuveEncaissement?: string | null;
   preuveVersementCaissier?: string | null;
+  // SPEC-RECOUV-002 — orientation des fonds + dépôt enrichi (null si non renseignés).
+  orientationFonds?: string | null; // DEPOT_BANQUE | CONSERVATION_CAISSE
+  orientationMotif?: string | null;
+  orientationDate?: string | null;
+  numeroVisa?: string | null;
+  numeroBordereau?: string | null;
+  preuveBordereau?: string | null;
+  banqueAgence?: string | null;
+  montantDepose?: number | null;
 }
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
@@ -134,9 +146,14 @@ export interface IDepotPartenaireDTO {
   agentId: string; // UUID
 }
 
-// FactureDepotBanqueRequestDto
+// FactureDepotBanqueRequestDto — SPEC-RECOUV-002 : dépôt enrichi (1 versement =
+// 1 bordereau). Activable uniquement sur une facture « Orienté banque ».
 export interface IDepotBanqueDTO {
-  date: string; // ISO date yyyy-MM-dd
+  date: string; // ISO date yyyy-MM-dd ; ≥ date de visa
+  numeroBordereau: string; // unique dans tout le système
+  preuveBordereau: string; // scan du bordereau (data URL base64)
+  banqueAgence: string; // compte créditeur Turbo
+  montantDepose: number; // = montant visé de l'opération
 }
 
 // FactureRejetDgaRequestDto — 2026-05, motif obligatoire côté backend

@@ -40,6 +40,11 @@ export type AppSubjects =
   //   (le COMPTABLE est limité à Responsable Financier + Caissier per fix 2026-05).
   | 'PageCaissier'
   | 'PageValidationDga'
+  // SPEC-RECOUV-002 — écrans aval du visa du workflow recouvrement.
+  // OrientationFonds : décision DG/DGA (banque/caisse) — réservé DG/DGA (via all).
+  // VerificationDepots : rapprochement visa↔bordereau + caisse — Comptable/DGA/DG/Caissier.
+  | 'OrientationFonds'
+  | 'VerificationDepots'
   | 'Notification'
   | 'Creneau'
   | 'Performance'
@@ -192,6 +197,9 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // "Validation DGA" (vue DGA-only). Le DG et le DGA gardent l'accès
       // à toutes les sous-pages via leur 'manage all' / 'read all'.
       can('read', ['PageResponsableFinancier', 'PageCaissier']);
+      // SPEC-RECOUV-002 — le Comptable voit l'écran de vérification des dépôts
+      // (rapprochement visa↔bordereau + caisse). L'orientation reste DG/DGA.
+      can('read', 'VerificationDepots');
       // 2026-05 — « Comptable - Agent V2 » (enrichissement du rôle Comptable, sur
       // choix user "enrichir") : reprend les droits opérationnels de l'Agent V1
       // en voir+modifier + Verrouillage V2 modifiable (peut valider V2) +
@@ -357,6 +365,9 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // Financier (factures à recevoir) et Agent Recouvreur (versements en cours).
       // PAS PageValidationDga (rôle DGA-only).
       can('read', ['PageResponsableFinancier', 'PageAgentRecouvreur', 'PageCaissier']);
+      // SPEC-RECOUV-002 — le Caissier accède à l'écran de vérification pour
+      // saisir l'attestation de comptage physique (contrôle des fonds conservés).
+      can('read', 'VerificationDepots');
       break;
 
     case 'AUTHENTIFICATION_VERIFICATION':

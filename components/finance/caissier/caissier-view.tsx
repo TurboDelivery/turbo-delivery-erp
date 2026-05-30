@@ -22,7 +22,7 @@ import {
   useCaissierConfirmationMutation,
   useCaissierDepotBanqueMutation,
 } from '@/features/caissier';
-import type { IFactureCaissier } from '@/features/caissier';
+import type { IFactureCaissier, IDepotBanqueCaissierBody } from '@/features/caissier';
 
 function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
@@ -34,6 +34,8 @@ const statutChips = [
   'Rejeté DGA',
   'En attente visa DGA',
   'Visé DGA',
+  'Orienté banque',
+  'Conservé en caisse',
   'Clôturé',
 ] as const;
 type StatutChip = (typeof statutChips)[number];
@@ -109,12 +111,12 @@ export default function CaissierView() {
 
   const handleDepotBanque = (
     facture: IFactureCaissier,
-    data: { date: string },
+    data: IDepotBanqueCaissierBody,
   ) => {
     depotBanqueMutation.mutate(
-      { id: facture.id, body: { date: data.date } },
+      { id: facture.id, body: data },
       {
-        onSuccess: () => toast.success('Dépôt en banque enregistré — facture clôturée'),
+        onSuccess: () => toast.success('Dépôt en banque enregistré (bordereau + preuve)'),
         onError: (e) => toast.error('Erreur dépôt en banque', { description: e instanceof Error ? e.message : 'Veuillez réessayer.' }),
       },
     );

@@ -39,7 +39,13 @@ export const caissierAPI = {
     return api.request({
       endpoint: `finance/responsable-financier/factures/${id}/depot-banque`,
       method: 'PATCH',
-      data: { date: body.date },
+      data: {
+        date: body.date,
+        numeroBordereau: body.numeroBordereau,
+        preuveBordereau: body.preuveBordereau,
+        banqueAgence: body.banqueAgence,
+        montantDepose: body.montantDepose,
+      },
     });
   },
 };

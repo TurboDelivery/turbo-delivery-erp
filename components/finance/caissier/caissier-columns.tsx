@@ -10,6 +10,8 @@ const statutConfig: Record<string, { label: string; className: string }> = {
   'En attente visa DGA': { label: 'En attente visa DGA', className: 'bg-violet-100 text-violet-700 border-violet-200' },
   'Rejeté DGA':          { label: 'Rejeté DGA',          className: 'bg-red-100 text-red-700 border-red-200' },
   'Visé DGA':             { label: 'Visé DGA',             className: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  'Orienté banque':       { label: 'Orienté banque',       className: 'bg-blue-100 text-blue-700 border-blue-200' },
+  'Conservé en caisse':   { label: 'Conservé en caisse',   className: 'bg-amber-100 text-amber-700 border-amber-200' },
   'Clôturé':             { label: 'Clôturé',             className: 'bg-green-100 text-green-800 border-green-300' },
 };
 
@@ -121,7 +123,25 @@ export function createCaissierColumns(
             </span>
           );
         }
+        // SPEC-RECOUV-002 — après visa, la Direction doit orienter les fonds.
+        // Le dépôt n'est activable QUE sur « Orienté banque ».
         if (statut === 'Visé DGA') {
+          return (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              En attente orientation DG
+            </span>
+          );
+        }
+        if (statut === 'Conservé en caisse') {
+          return (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Conservé en caisse
+            </span>
+          );
+        }
+        if (statut === 'Orienté banque') {
           return (
             <Button
               size="sm"

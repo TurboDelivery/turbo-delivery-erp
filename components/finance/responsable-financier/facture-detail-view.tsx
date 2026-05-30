@@ -122,7 +122,7 @@ export default function FactureDetailView({ facture }: Props) {
               Lancer recouvrement →
             </button>
           )}
-          {facture.statut === 'Visé DGA' && (
+          {facture.statut === 'Orienté banque' && (
             <button
               onClick={() => setDepotBanqueOpen(true)}
               className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
@@ -373,7 +373,7 @@ export default function FactureDetailView({ facture }: Props) {
         onClose={() => setDepotBanqueOpen(false)}
         facture={factureForModal}
         onConfirm={(f, data) => {
-          depotBanqueMutation.mutate({ id: f.id, data: { date: data.date } });
+          depotBanqueMutation.mutate({ id: f.id, data });
           setDepotBanqueOpen(false);
         }}
       />

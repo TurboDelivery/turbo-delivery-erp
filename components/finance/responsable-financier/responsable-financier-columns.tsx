@@ -20,6 +20,9 @@ export type StatutFacture =
   | 'Versé au caissier'
   | 'En attente visa DGA'
   | 'Visé DGA'
+  // SPEC-RECOUV-002 — orientation des fonds après visa.
+  | 'Orienté banque'
+  | 'Conservé en caisse'
   | 'Rejeté DGA'
   | 'Clôturé';
 
@@ -50,6 +53,8 @@ const statutConfig: Record<string, { label: string; className: string }> = {
   'Versé au caissier':     { label: 'Versé au caissier',     className: 'bg-slate-100 text-slate-700 border-slate-200' },
   'En attente visa DGA':   { label: 'En attente visa DGA',   className: 'bg-violet-100 text-violet-700 border-violet-200' },
   'Visé DGA':              { label: 'Visé DGA',              className: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  'Orienté banque':        { label: 'Orienté banque',        className: 'bg-blue-100 text-blue-700 border-blue-200' },
+  'Conservé en caisse':    { label: 'Conservé en caisse',    className: 'bg-amber-100 text-amber-700 border-amber-200' },
   'Rejeté DGA':            { label: 'Rejeté DGA',            className: 'bg-red-100 text-red-700 border-red-200' },
   'Clôturé':               { label: 'Clôturé',               className: 'bg-green-200 text-green-800 border-green-300' },
 };
@@ -257,7 +262,7 @@ export function createResponsableFinancierColumns(
           </div>
         );
       }
-      if (statut === 'Visé DGA') {
+      if (statut === 'Orienté banque') {
         return (
           <div className="flex items-center gap-2">
             <Button

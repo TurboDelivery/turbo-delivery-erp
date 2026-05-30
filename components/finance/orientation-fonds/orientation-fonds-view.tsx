@@ -1,0 +1,258 @@
+'use client';
+
+import { useState } from 'react';
+import {
+  Button,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Radio,
+  RadioGroup,
+  Textarea,
+} from '@heroui/react';
+import { Landmark, PiggyBank, ArrowRightLeft, Building2 } from 'lucide-react';
+import { useFacturesRFQuery, type IFactureRF } from '@/features/responsable-financier';
+import {
+  useOrienterFondsMutation,
+  useReorienterFondsMutation,
+} from '@/features/orientation-fonds';
+
+function formatMontant(v: number) {
+  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
+}
+
+const MOTIF_MIN = 30;
+
+function FactureCard({ facture, children }: { facture: IFactureRF; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-4 h-4 text-indigo-500" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-gray-900 truncate">{facture.partenaire}</p>
+            <p className="text-xs text-gray-400">{facture.numero}</p>
+          </div>
+        </div>
+        <p className="text-sm font-bold text-red-600 whitespace-nowrap">{formatMontant(facture.montant)}</p>
+      </div>
+      <div className="mt-3">{children}</div>
+    </div>
+  );
+}
+
+export default function OrientationFondsView() {
+  // Factures visées en attente d'orientation + factures conservées (ré-orientables).
+  const { data: viseData, isLoading: loadingVise } = useFacturesRFQuery({ periode: 'cycle', statut: 'Visé DGA', size: 100 });
+  const { data: caisseData, isLoading: loadingCaisse } = useFacturesRFQuery({ periode: 'cycle', statut: 'Conservé en caisse', size: 100 });
+
+  const aOrienter = viseData?.factures?.content ?? [];
+  const conservees = caisseData?.factures?.content ?? [];
+
+  const orienter = useOrienterFondsMutation();
+  const reorienter = useReorienterFondsMutation();
+
+  // Modale orientation
+  const [orientFacture, setOrientFacture] = useState<IFactureRF | null>(null);
+  const [choix, setChoix] = useState<'DEPOT_BANQUE' | 'CONSERVATION_CAISSE'>('DEPOT_BANQUE');
+  const [motif, setMotif] = useState('');
+
+  // Modale ré-orientation
+  const [reorientFacture, setReorientFacture] = useState<IFactureRF | null>(null);
+  const [motifReorient, setMotifReorient] = useState('');
+
+  const openOrient = (f: IFactureRF) => { setOrientFacture(f); setChoix('DEPOT_BANQUE'); setMotif(''); };
+  const openReorient = (f: IFactureRF) => { setReorientFacture(f); setMotifReorient(''); };
+
+  const motifRequis = choix === 'CONSERVATION_CAISSE';
+  const motifValide = !motifRequis || motif.trim().length >= MOTIF_MIN;
+
+  const handleConfirmOrient = () => {
+    if (!orientFacture || !motifValide) return;
+    orienter.mutate(
+      { id: orientFacture.id, data: { orientation: choix, motif: motifRequis ? motif.trim() : undefined } },
+      { onSuccess: () => setOrientFacture(null) },
+    );
+  };
+
+  const handleConfirmReorient = () => {
+    if (!reorientFacture || motifReorient.trim().length < MOTIF_MIN) return;
+    reorienter.mutate(
+      { id: reorientFacture.id, data: { motif: motifReorient.trim() } },
+      { onSuccess: () => setReorientFacture(null) },
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
+      <div>
+        <p className="text-sm text-gray-500">Comptabilité — Direction</p>
+        <h1 className="text-2xl font-bold text-indigo-600">Orientation des fonds</h1>
+        <p className="text-sm text-gray-400 mt-0.5">
+          Après le visa, la Direction décide de la destination des fonds : dépôt en banque ou conservation en caisse (fonds de roulement).
+        </p>
+      </div>
+
+      {/* Section 1 — En attente d'orientation */}
+      <section>
+        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3">
+          En attente d&apos;orientation ({aOrienter.length})
+        </h2>
+        {loadingVise ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-28 rounded-xl bg-gray-100 animate-pulse" />)}
+          </div>
+        ) : aOrienter.length === 0 ? (
+          <p className="text-sm text-gray-400 py-8 text-center rounded-xl border border-dashed border-gray-200">Aucune opération en attente d&apos;orientation.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {aOrienter.map((f) => (
+              <FactureCard key={f.id} facture={f}>
+                <Button
+                  size="sm"
+                  className="w-full bg-indigo-600 text-white hover:bg-indigo-700"
+                  startContent={<Landmark className="w-4 h-4" />}
+                  onPress={() => openOrient(f)}
+                >
+                  Orienter les fonds
+                </Button>
+              </FactureCard>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Section 2 — Conservés en caisse (ré-orientables) */}
+      <section>
+        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3">
+          Conservés en caisse ({conservees.length})
+        </h2>
+        {loadingCaisse ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-28 rounded-xl bg-gray-100 animate-pulse" />)}
+          </div>
+        ) : conservees.length === 0 ? (
+          <p className="text-sm text-gray-400 py-8 text-center rounded-xl border border-dashed border-gray-200">Aucun fonds conservé en caisse.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {conservees.map((f) => (
+              <FactureCard key={f.id} facture={f}>
+                <div className="flex items-center gap-1.5 text-xs text-amber-600 mb-2">
+                  <PiggyBank className="w-3.5 h-3.5" /> Fonds de roulement
+                </div>
+                <Button
+                  size="sm"
+                  variant="bordered"
+                  className="w-full border-indigo-300 text-indigo-600"
+                  startContent={<ArrowRightLeft className="w-4 h-4" />}
+                  onPress={() => openReorient(f)}
+                >
+                  Ré-orienter vers la banque
+                </Button>
+              </FactureCard>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Modale orientation */}
+      <Modal isOpen={!!orientFacture} onOpenChange={(o) => !o && setOrientFacture(null)} size="lg">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex-col items-start gap-0">
+                <span className="text-lg font-bold text-gray-900">Orienter les fonds</span>
+                {orientFacture && (
+                  <span className="text-sm font-normal text-gray-400">
+                    {orientFacture.numero} — {orientFacture.partenaire} · {formatMontant(orientFacture.montant)}
+                  </span>
+                )}
+              </ModalHeader>
+              <ModalBody>
+                <RadioGroup value={choix} onValueChange={(v) => setChoix(v as typeof choix)}>
+                  <Radio value="DEPOT_BANQUE" description="Le Comptable pourra exécuter le dépôt bancaire (bordereau + preuve).">
+                    Autoriser le dépôt en banque
+                  </Radio>
+                  <Radio value="CONSERVATION_CAISSE" description="Garder les fonds en caisse comme fonds de roulement (aucun dépôt).">
+                    Conserver en caisse (fonds de roulement)
+                  </Radio>
+                </RadioGroup>
+                {motifRequis && (
+                  <Textarea
+                    label="Motif de conservation"
+                    placeholder={`Obligatoire — minimum ${MOTIF_MIN} caractères`}
+                    value={motif}
+                    onValueChange={setMotif}
+                    minRows={3}
+                    isRequired
+                    description={`${motif.trim().length}/${MOTIF_MIN} caractères`}
+                    color={motif.length > 0 && !motifValide ? 'danger' : 'default'}
+                  />
+                )}
+                <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-700">
+                  <span>La décision est tracée (auteur + horodatage) et vaut autorisation : c&apos;est elle qui débloque (ou non) l&apos;action du Comptable.</span>
+                </div>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={onClose} isDisabled={orienter.isPending}>Annuler</Button>
+                <Button
+                  className="bg-indigo-600 text-white"
+                  onPress={handleConfirmOrient}
+                  isLoading={orienter.isPending}
+                  isDisabled={!motifValide}
+                >
+                  Confirmer
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Modale ré-orientation */}
+      <Modal isOpen={!!reorientFacture} onOpenChange={(o) => !o && setReorientFacture(null)} size="lg">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex-col items-start gap-0">
+                <span className="text-lg font-bold text-gray-900">Ré-orienter vers la banque</span>
+                {reorientFacture && (
+                  <span className="text-sm font-normal text-gray-400">
+                    {reorientFacture.numero} — {reorientFacture.partenaire} · {formatMontant(reorientFacture.montant)}
+                  </span>
+                )}
+              </ModalHeader>
+              <ModalBody>
+                <Textarea
+                  label="Motif de ré-orientation"
+                  placeholder={`Obligatoire — minimum ${MOTIF_MIN} caractères (toute sortie de caisse doit être tracée)`}
+                  value={motifReorient}
+                  onValueChange={setMotifReorient}
+                  minRows={3}
+                  isRequired
+                  description={`${motifReorient.trim().length}/${MOTIF_MIN} caractères`}
+                  color={motifReorient.length > 0 && motifReorient.trim().length < MOTIF_MIN ? 'danger' : 'default'}
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={onClose} isDisabled={reorienter.isPending}>Annuler</Button>
+                <Button
+                  className="bg-indigo-600 text-white"
+                  onPress={handleConfirmReorient}
+                  isLoading={reorienter.isPending}
+                  isDisabled={motifReorient.trim().length < MOTIF_MIN}
+                >
+                  Confirmer la ré-orientation
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </div>
+  );
+}

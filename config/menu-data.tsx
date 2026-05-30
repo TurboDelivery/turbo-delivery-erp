@@ -115,6 +115,9 @@ const menuData: IMenuData[] = [
       { icon: FileText, title: 'Agent Recouvreur', path: '/finance/comptabilite/agent-recouvreur', can: { action: 'read', subject: 'PageAgentRecouvreur' } },
       { icon: Wallet, title: 'Caissier', path: '/finance/comptabilite/caissier', can: { action: 'read', subject: 'PageCaissier' } },
       { icon: CheckCircle, title: 'Validation DGA', path: '/finance/comptabilite/validation-dga', can: { action: 'read', subject: 'PageValidationDga' } },
+      // SPEC-RECOUV-002 — aval du visa : orientation des fonds (DG/DGA) + vérification des dépôts.
+      { icon: Wallet, title: 'Orientation des fonds', path: '/finance/comptabilite/orientation-fonds', can: { action: 'read', subject: 'OrientationFonds' } },
+      { icon: CheckCircle, title: 'Vérification dépôts', path: '/finance/comptabilite/verification-depots', can: { action: 'read', subject: 'VerificationDepots' } },
     ],
   },
   { icon: Bell, title: 'Notifications', path: '/notification', can: { action: 'access', subject: 'Notification' } },

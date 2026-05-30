@@ -5,6 +5,9 @@ export type StatutCaissier =
   | 'En attente visa DGA'
   | 'Rejeté DGA'
   | 'Visé DGA'
+  // SPEC-RECOUV-002 — orientation des fonds après visa (DG/DGA).
+  | 'Orienté banque'
+  | 'Conservé en caisse'
   | 'Clôturé';
 
 export interface IFactureCaissier {
@@ -44,7 +47,14 @@ export interface ICaissierConfirmationBody {
   reference: string;
 }
 
-/** Correspond à FactureDepotBanqueRequestDto — dépôt des fonds en banque (statut Visé DGA → Clôturé) */
+/**
+ * Correspond à FactureDepotBanqueRequestDto — SPEC-RECOUV-002 : dépôt enrichi.
+ * Activable uniquement sur « Orienté banque ». Un versement = un bordereau.
+ */
 export interface IDepotBanqueCaissierBody {
-  date: string; // ISO date yyyy-MM-dd
+  date: string; // ISO date yyyy-MM-dd ; ≥ date de visa
+  numeroBordereau: string; // unique
+  preuveBordereau: string; // scan du bordereau (data URL base64)
+  banqueAgence: string;
+  montantDepose: number; // = montant visé
 }

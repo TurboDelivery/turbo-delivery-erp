@@ -316,7 +316,7 @@ export default function ResponsableFinancierView() {
         onClose={() => setFactureDepotBanque(null)}
         facture={factureDepotBanque}
         onConfirm={(facture, data) => {
-          depotBanqueMutation.mutate({ id: facture.id, data: { date: data.date } });
+          depotBanqueMutation.mutate({ id: facture.id, data });
           setFactureDepotBanque(null);
         }}
       />
