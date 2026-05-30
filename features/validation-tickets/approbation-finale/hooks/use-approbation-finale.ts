@@ -108,7 +108,13 @@ export default function useApprobationFinale() {
     isFetchingNextPage,
     hasNextPage: !!hasNextPage,
     fetchNextPage,
-    soumisAuPdg: resolvedCreneau?.statut === 'SOUMIS_PDG',
+    // Le PDG agit quand le LOT est VALIDE_DGA (visé par le DGA), pas sur un
+    // statut créneau. L'ancien test `resolvedCreneau.statut === 'SOUMIS_PDG'`
+    // comparait le statut CRÉNEAU (StatutCreneau: OUVERT/VERROUILLE_V2/…)
+    // à un libellé fantôme absent de tout enum backend → la barre d'action
+    // n'apparaissait JAMAIS (étape 10 cassée). On lit le vrai statut du lot,
+    // déjà chargé dans grilleMeta. Backend approuverDg exige VALIDE_DGA.
+    soumisAuPdg: grilleMeta?.lot?.statut === 'VALIDE_DGA',
     approuverOpen,
     rejetOpen,
     motif,
