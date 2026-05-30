@@ -15,6 +15,11 @@ const statutConfig: Record<string, { label: string; className: string }> = {
   'Clôturé':             { label: 'Clôturé',             className: 'bg-green-100 text-green-800 border-green-300' },
 };
 
+/** Réutilisé par les cartes mobile (cf. caissier-view) pour le chip de statut. */
+export function getCaissierStatutConfig(statut: string): { label: string; className: string } {
+  return statutConfig[statut] ?? { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
+}
+
 function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
 }

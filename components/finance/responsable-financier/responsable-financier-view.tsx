@@ -14,9 +14,12 @@ import {
   SelectItem,
 } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
+import Link from 'next/link';
 import { TrendingUp, FileText, Users, Percent } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
-import { createResponsableFinancierColumns, type IFactureRF } from './responsable-financier-columns';
+import { Button } from '@/components/ui/button';
+import { createResponsableFinancierColumns, getStatutConfig, formatMontant, type IFactureRF } from './responsable-financier-columns';
+import { FactureMobileCard, MobileCardList } from '@/components/finance/shared/facture-mobile-card';
 import { cycleOptions } from '@/features/responsable-financier/filters/responsable-financier.filter';
 import type { IFactureRFParams } from '@/features/responsable-financier/types/responsable-financier.types';
 import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
@@ -238,8 +241,8 @@ export default function ResponsableFinancierView() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* Table — desktop uniquement (≥ md) */}
+      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <Table
           isStriped
           aria-label="Factures responsable financier"
@@ -290,6 +293,76 @@ export default function ResponsableFinancierView() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <MobileCardList>
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-40 rounded-xl bg-gray-100 animate-pulse" />
+          ))
+        ) : table.getRowModel().rows.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">Aucune facture trouvée</p>
+        ) : (
+          table.getRowModel().rows.map((row) => {
+            const f = row.original;
+            const cfg = getStatutConfig(f.statut);
+            const detailLink = (
+              <Link
+                href={`/finance/comptabilite/responsable-financier/${f.id}`}
+                className="w-full text-center text-sm font-medium text-red-500 border border-gray-200 rounded-md py-2"
+              >
+                Voir le détail ›
+              </Link>
+            );
+            return (
+              <FactureMobileCard
+                key={f.id}
+                numero={f.numero}
+                partenaire={f.partenaire}
+                montant={formatMontant(f.montant)}
+                statut={cfg.label}
+                statutClassName={cfg.className}
+                fields={[
+                  { label: 'Recouvré', value: f.montantRecouvre ? `${formatMontant(f.montantRecouvre)} (${f.pourcentageRecouvre ?? 0}%)` : '—' },
+                  { label: 'Cycle', value: f.cycle },
+                  { label: 'Agent', value: f.agent },
+                  { label: 'Émission', value: f.emission },
+                ]}
+                actions={
+                  <>
+                    {(f.statut === 'DRAFT' || f.statut === 'À valider') && (
+                      <Button onClick={() => setFactureAValider(f)} className="w-full bg-gray-900 hover:bg-gray-700 text-white text-sm">
+                        ✓ Valider la facture
+                      </Button>
+                    )}
+                    {f.statut === 'Validé' && (
+                      <Button onClick={() => setFactureRecouvrement(f)} className="w-full bg-gray-900 hover:bg-gray-700 text-white text-sm">
+                        Lancer le recouvrement →
+                      </Button>
+                    )}
+                    {f.statut === 'Versé au caissier' && (
+                      <Button onClick={() => confirmerReceptionMutation.mutate(f.id)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm">
+                        Confirmer la réception des fonds
+                      </Button>
+                    )}
+                    {f.statut === 'Orienté banque' && (
+                      <Button onClick={() => setFactureDepotBanque(f)} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm">
+                        🏦 Dépôt en banque
+                      </Button>
+                    )}
+                    {detailLink}
+                  </>
+                }
+              />
+            );
+          })
+        )}
+        {totalPages > 1 && (
+          <div className="flex justify-center pt-2">
+            <Pagination page={filters.page + 1} total={totalPages} onChange={(p) => setFilters({ page: p - 1 })} />
+          </div>
+        )}
+      </MobileCardList>
 
       <ValiderFactureModal
         open={factureAValider !== null}

@@ -16,7 +16,8 @@ import {
 } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
 import type { DateRange } from 'react-day-picker';
-import { createAgentRecouvreurColumns } from './agent-recouvreur-columns';
+import { createAgentRecouvreurColumns, renderAgentActions, getStatutConfig, formatMontant } from './agent-recouvreur-columns';
+import { FactureMobileCard, MobileCardList } from '@/components/finance/shared/facture-mobile-card';
 import DepotPartenaireModal from './depot-partenaire-modal';
 import EncaissementModal from './encaissement-drawer';
 import VerserComptableModal from './verser-comptable-modal';
@@ -63,7 +64,6 @@ function StatCard({
 
 export default function AgentRecouvreurView() {
   const { data: session } = useSession();
-  console.log('[AgentRecouvreur] session user id:', session?.user?.id, '| session:', session?.user);
 
   const { filters, setFilters, params } = useAgentRecouvreurFilters();
 
@@ -216,8 +216,8 @@ export default function AgentRecouvreurView() {
         </div>
       )}
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* Table — desktop uniquement (≥ md) */}
+      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
           <div>
             <p className="text-sm font-semibold text-gray-800">Suivi des factures</p>
@@ -262,6 +262,45 @@ export default function AgentRecouvreurView() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <MobileCardList>
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-44 rounded-xl bg-gray-100 animate-pulse" />
+          ))
+        ) : table.getRowModel().rows.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">
+            {isError ? String(error) : 'Aucune facture trouvée'}
+          </p>
+        ) : (
+          table.getRowModel().rows.map((row) => {
+            const f = row.original;
+            const cfg = getStatutConfig(f.statut);
+            return (
+              <FactureMobileCard
+                key={f.id}
+                numero={f.numero}
+                partenaire={f.partenaire}
+                montant={formatMontant(f.montant)}
+                statut={cfg.label}
+                statutClassName={cfg.className}
+                fields={[
+                  { label: 'Recouvré', value: f.montantRecouvre ? `${formatMontant(f.montantRecouvre)} (${f.pourcentageRecouvre ?? 0}%)` : '—' },
+                  { label: 'Cycle', value: f.cycle },
+                  { label: 'Dépôt partenaire', value: f.depotPartenaire ? f.depotPartenaire.date : '—' },
+                ]}
+                actions={renderAgentActions(f, setFactureDepot, setFactureEncaissement, setFactureVersement)}
+              />
+            );
+          })
+        )}
+        {totalPages > 1 && (
+          <div className="flex justify-center pt-2">
+            <Pagination page={filters.page + 1} total={totalPages} onChange={(p) => setFilters({ page: p - 1 })} />
+          </div>
+        )}
+      </MobileCardList>
 
       <DepotPartenaireModal
         open={factureDepot !== null}

@@ -149,7 +149,7 @@ export default function VerificationDepotsView() {
           <p className="font-semibold text-gray-900">Recouvrements orientés banque</p>
           <span className="text-xs text-gray-400">· rapprochement visa ↔ bordereau</span>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <Table aria-label="Rapprochement banque" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-gray-50 text-gray-600 text-xs uppercase' }}>
             <TableHeader>
               <TableColumn>N° VISA</TableColumn>
@@ -177,6 +177,24 @@ export default function VerificationDepotsView() {
             </TableBody>
           </Table>
         </div>
+        {/* Mobile — cartes (lecture seule) */}
+        <div className="md:hidden divide-y divide-gray-100">
+          {banque.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-8">Aucun recouvrement orienté banque</p>
+          ) : banque.map((l) => (
+            <div key={l.factureId} className="p-4 space-y-1.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{l.partenaire}</p>
+                  <p className="text-[11px] text-gray-400">Visa {l.numeroVisa ?? '—'} · Bord. {l.numeroBordereau ?? '—'}</p>
+                </div>
+                <Chip size="sm" color={ETAT_BANQUE[l.etatRapprochement].color} variant="flat">{ETAT_BANQUE[l.etatRapprochement].label}</Chip>
+              </div>
+              <div className="flex justify-between text-xs"><span className="text-gray-400">Visé / Déposé</span><span className="text-gray-700">{fmt(l.montantVise)} / {fmt(l.montantDepose)}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-gray-400">Date dépôt</span><span className="text-gray-700">{fmtDate(l.dateDepot)}</span></div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Section B — conservés en caisse */}
@@ -185,7 +203,7 @@ export default function VerificationDepotsView() {
           <PiggyBank className="w-4 h-4 text-amber-500" />
           <p className="font-semibold text-gray-900">Recouvrements conservés en caisse</p>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <Table aria-label="Suivi caisse" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-gray-50 text-gray-600 text-xs uppercase' }}>
             <TableHeader>
               <TableColumn>N° VISA</TableColumn>
@@ -212,6 +230,24 @@ export default function VerificationDepotsView() {
               ))}
             </TableBody>
           </Table>
+        </div>
+        {/* Mobile — cartes (lecture seule) */}
+        <div className="md:hidden divide-y divide-gray-100">
+          {caisse.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-8">Aucun fonds conservé en caisse</p>
+          ) : caisse.map((l) => (
+            <div key={l.factureId} className="p-4 space-y-1.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 truncate">{l.partenaire}</p>
+                  <p className="text-[11px] text-gray-400">Visa {l.numeroVisa ?? '—'} · {l.ancienneteJours} j</p>
+                </div>
+                <Chip size="sm" color={l.alerteDormant ? 'danger' : 'warning'} variant="flat">{l.alerteDormant ? 'Dormant' : 'En caisse'}</Chip>
+              </div>
+              <div className="flex justify-between text-xs"><span className="text-gray-400">Montant</span><span className="text-gray-700 font-semibold">{fmt(l.montantConserve)}</span></div>
+              {l.motif && <p className="text-[11px] text-gray-500 line-clamp-2">{l.motif}</p>}
+            </div>
+          ))}
         </div>
       </section>
 

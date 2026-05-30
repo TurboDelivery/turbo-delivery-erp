@@ -17,15 +17,156 @@ const statutConfig: Record<string, { label: string; className: string }> = {
   'Clôturé':              { label: 'Clôturé',              className: 'bg-green-200 text-green-800 border-green-300' },
 };
 
-function getStatutConfig(statut: string) {
+export function getStatutConfig(statut: string) {
   if (statut in statutConfig) return statutConfig[statut];
   // Acompte 1, Acompte 2…
   if (statut.startsWith('Acompte')) return { label: statut, className: 'bg-yellow-100 text-yellow-700 border-yellow-200' };
   return { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
 }
 
-function formatMontant(v: number) {
+export function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
+}
+
+/**
+ * Rendu des actions agent recouvreur selon le statut + le montant recouvré.
+ * Extrait pour être PARTAGÉ entre la colonne du tableau (desktop) et les cartes
+ * mobile (cf. agent-recouvreur-view) → logique conditionnelle unique, pas de
+ * divergence. Reçoit la facture (row.original) et les 3 handlers.
+ */
+export function renderAgentActions(
+  facture: IFactureAgent,
+  onDepotPartenaire: (f: IFactureAgent) => void,
+  onEncaisser: (f: IFactureAgent) => void,
+  onVerserCaissier: (f: IFactureAgent) => void,
+) {
+  const { statut } = facture;
+  if (statut === 'Recouvrement') {
+    return (
+      <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onDepotPartenaire(facture)}>
+        <ClipboardList className="w-3.5 h-3.5" />
+        Dépôt chez le partenaire
+      </Button>
+    );
+  }
+  if (statut === 'Déposé partenaire') {
+    const { montantRecouvre, montant } = facture;
+    const hasRecouvrement = montantRecouvre !== null && montantRecouvre > 0;
+    const isFullyCovered = hasRecouvrement && montant > 0 && (montantRecouvre as number) >= montant;
+    if (isFullyCovered) {
+      return (
+        <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onVerserCaissier(facture)}>
+          <Landmark className="w-3.5 h-3.5" />
+          Verser au caissier
+        </Button>
+      );
+    }
+    return (
+      <div className="flex items-center gap-2">
+        <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onEncaisser(facture)}>
+          <Banknote className="w-3.5 h-3.5" />
+          Encaisser
+        </Button>
+        {hasRecouvrement && (
+          <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onVerserCaissier(facture)}>
+            <Landmark className="w-3.5 h-3.5" />
+            Verser au caissier
+          </Button>
+        )}
+      </div>
+    );
+  }
+  if (statut.startsWith('Acompte')) {
+    const { montantRecouvre, montant } = facture;
+    const isFullyCovered = montantRecouvre !== null && montant > 0 && montantRecouvre >= montant;
+    if (isFullyCovered) {
+      return (
+        <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onVerserCaissier(facture)}>
+          <Landmark className="w-3.5 h-3.5" />
+          Verser au caissier
+        </Button>
+      );
+    }
+    return (
+      <div className="flex items-center gap-2">
+        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onEncaisser(facture)}>
+          <Banknote className="w-3.5 h-3.5" />
+          Ajouter acompte
+        </Button>
+        <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onVerserCaissier(facture)}>
+          <Landmark className="w-3.5 h-3.5" />
+          Verser au caissier
+        </Button>
+      </div>
+    );
+  }
+  if (statut === 'Soldé') {
+    return (
+      <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onVerserCaissier(facture)}>
+        <Landmark className="w-3.5 h-3.5" />
+        Verser au caissier
+      </Button>
+    );
+  }
+  const { montantRecouvre, montant } = facture;
+  const peutEncaisserEncore = montantRecouvre === null || (montant > 0 && montantRecouvre < montant);
+  if (statut === 'Versé au caissier') {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
+          <Clock className="w-3.5 h-3.5" /> En attente Caissier
+        </span>
+        {peutEncaisserEncore && (
+          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onEncaisser(facture)}>
+            <Banknote className="w-3.5 h-3.5" /> Nouvel acompte
+          </Button>
+        )}
+      </div>
+    );
+  }
+  if (statut === 'En attente visa DGA') {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-violet-600">
+          <Clock className="w-3.5 h-3.5" /> En attente visa DGA
+        </span>
+        {peutEncaisserEncore && (
+          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onEncaisser(facture)}>
+            <Banknote className="w-3.5 h-3.5" /> Nouvel acompte
+          </Button>
+        )}
+      </div>
+    );
+  }
+  if (statut === 'Visé DGA') {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
+          <CheckCircle2 className="w-3.5 h-3.5" /> Visé DGA
+        </span>
+        {peutEncaisserEncore && (
+          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onEncaisser(facture)}>
+            <Banknote className="w-3.5 h-3.5" /> Nouvel acompte
+          </Button>
+        )}
+      </div>
+    );
+  }
+  if (statut === 'Rejeté DGA') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600">
+        <AlertCircle className="w-3.5 h-3.5" /> Rejeté DGA
+      </span>
+    );
+  }
+  if (statut === 'Clôturé') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700">
+        <CheckCircle2 className="w-3.5 h-3.5" /> Clôturé
+      </span>
+    );
+  }
+  return <span className="text-gray-400 text-xs">—</span>;
 }
 
 export function createAgentRecouvreurColumns(
@@ -130,217 +271,7 @@ export function createAgentRecouvreurColumns(
     {
       id: 'actions',
       header: 'ACTIONS',
-      cell: ({ row }) => {
-        const { statut } = row.original;
-        // Étape 3 : Dépôt chez le partenaire
-        if (statut === 'Recouvrement') {
-          return (
-            <Button
-              size="sm"
-              className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-              onClick={() => onDepotPartenaire(row.original)}
-            >
-              <ClipboardList className="w-3.5 h-3.5" />
-              Dépôt chez le partenaire
-            </Button>
-          );
-        }
-        // Étape 4 : Encaisser (acompte ou solde) — depuis Déposé partenaire
-        //
-        // Bug 2 fix (2026-05) — Cycle par acompte : sur "Déposé partenaire"
-        // avec déjà du montant recouvré (cas après retour d'un cycle, mon
-        // fix marquerDepotBanque renvoie à DEPOSE_PARTENAIRE quand pas
-        // soldé+versé), on doit pouvoir EN MÊME TEMPS continuer à encaisser
-        // ET verser ce qui est déjà encaissé. Avant ce fix : un seul bouton
-        // selon montantRecouvre >= montant, ce qui bloquait le métier qui
-        // veut "à chaque paiement, verser au caissier".
-        if (statut === 'Déposé partenaire') {
-          const { montantRecouvre, montant } = row.original;
-          const hasRecouvrement = montantRecouvre !== null && montantRecouvre > 0;
-          const isFullyCovered = hasRecouvrement && montant > 0 && (montantRecouvre as number) >= montant;
-          if (isFullyCovered) {
-            return (
-              <Button
-                size="sm"
-                className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-                onClick={() => onVerserCaissier(row.original)}
-              >
-                <Landmark className="w-3.5 h-3.5" />
-                Verser au caissier
-              </Button>
-            );
-          }
-          return (
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-                onClick={() => onEncaisser(row.original)}
-              >
-                <Banknote className="w-3.5 h-3.5" />
-                Encaisser
-              </Button>
-              {/* Si déjà du montant recouvré (cycle d'acompte en cours), proposer
-                  AUSSI le bouton "Verser au caissier" pour le solde déjà collecté. */}
-              {hasRecouvrement && (
-                <Button
-                  size="sm"
-                  className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-                  onClick={() => onVerserCaissier(row.original)}
-                >
-                  <Landmark className="w-3.5 h-3.5" />
-                  Verser au caissier
-                </Button>
-              )}
-            </div>
-          );
-        }
-        // Étape 4 bis : Ajouter un acompte supplémentaire (statut "Acompte N")
-        //
-        // Bug 2 fix (2026-05) — Quel que soit le pourcentage recouvré, le
-        // recouvreur doit pouvoir verser au caissier ce qu'il a déjà en
-        // main, et CONTINUER à encaisser des acomptes en parallèle. Avant :
-        // tant que pas 100% recouvré, seul "Ajouter acompte" était dispo,
-        // l'argent dormait dans la caisse du recouvreur.
-        if (statut.startsWith('Acompte')) {
-          const { montantRecouvre, montant } = row.original;
-          const isFullyCovered = montantRecouvre !== null && montant > 0 && montantRecouvre >= montant;
-          if (isFullyCovered) {
-            return (
-              <Button
-                size="sm"
-                className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-                onClick={() => onVerserCaissier(row.original)}
-              >
-                <Landmark className="w-3.5 h-3.5" />
-                Verser au caissier
-              </Button>
-            );
-          }
-          return (
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-                onClick={() => onEncaisser(row.original)}
-              >
-                <Banknote className="w-3.5 h-3.5" />
-                Ajouter acompte
-              </Button>
-              <Button
-                size="sm"
-                className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-                onClick={() => onVerserCaissier(row.original)}
-              >
-                <Landmark className="w-3.5 h-3.5" />
-                Verser au caissier
-              </Button>
-            </div>
-          );
-        }
-        // Étape 5 : Verser les fonds au Caissier (depuis Soldé)
-        if (statut === 'Soldé') {
-          return (
-            <Button
-              size="sm"
-              className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-              onClick={() => onVerserCaissier(row.original)}
-            >
-              <Landmark className="w-3.5 h-3.5" />
-              Verser au caissier
-            </Button>
-          );
-        }
-        // Bug encaissement bloqué (2026-05) — Sur les statuts de cycle
-        // (Versé au caissier / En attente visa DGA / Visé DGA), l'agent doit
-        // pouvoir continuer à encaisser de nouveaux acomptes du partner en
-        // parallèle. Avant : lecture seule pure, l'agent était bloqué tant
-        // que le cycle (caissier → DGA → banque) n'était pas terminé.
-        //
-        // Helper local : true si la facture n'est pas encore totalement
-        // encaissée chez le partenaire (donc nouvel acompte possible).
-        const { montantRecouvre, montant } = row.original;
-        const peutEncaisserEncore =
-          montantRecouvre === null || (montant > 0 && montantRecouvre < montant);
-
-        if (statut === 'Versé au caissier') {
-          return (
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                <Clock className="w-3.5 h-3.5" />
-                En attente Caissier
-              </span>
-              {peutEncaisserEncore && (
-                <Button
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-                  onClick={() => onEncaisser(row.original)}
-                >
-                  <Banknote className="w-3.5 h-3.5" />
-                  Nouvel acompte
-                </Button>
-              )}
-            </div>
-          );
-        }
-        if (statut === 'En attente visa DGA') {
-          return (
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-violet-600">
-                <Clock className="w-3.5 h-3.5" />
-                En attente visa DGA
-              </span>
-              {peutEncaisserEncore && (
-                <Button
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-                  onClick={() => onEncaisser(row.original)}
-                >
-                  <Banknote className="w-3.5 h-3.5" />
-                  Nouvel acompte
-                </Button>
-              )}
-            </div>
-          );
-        }
-        if (statut === 'Visé DGA') {
-          return (
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Visé DGA
-              </span>
-              {peutEncaisserEncore && (
-                <Button
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap"
-                  onClick={() => onEncaisser(row.original)}
-                >
-                  <Banknote className="w-3.5 h-3.5" />
-                  Nouvel acompte
-                </Button>
-              )}
-            </div>
-          );
-        }
-        if (statut === 'Rejeté DGA') {
-          return (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600">
-              <AlertCircle className="w-3.5 h-3.5" />
-              Rejeté DGA
-            </span>
-          );
-        }
-        if (statut === 'Clôturé') {
-          return (
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Clôturé
-            </span>
-          );
-        }
-        return <span className="text-gray-400 text-xs">—</span>;
-      },
+      cell: ({ row }) => renderAgentActions(row.original, onDepotPartenaire, onEncaisser, onVerserCaissier),
     },
   ];
 }

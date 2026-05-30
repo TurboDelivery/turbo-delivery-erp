@@ -286,10 +286,10 @@ export default function ValidationDgaView() {
         </div>
       </div>
 
-      {/* Two-panel layout */}
-      <div className="flex gap-4 flex-1 min-h-0">
-        {/* Left panel — Invoice list */}
-        <div className="w-80 flex-shrink-0 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* Two-panel layout — empilé sur mobile, côte à côte ≥ lg */}
+      <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+        {/* Left panel — Invoice list (pleine largeur sur mobile, hauteur limitée) */}
+        <div className="w-full lg:w-80 lg:flex-shrink-0 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-h-[45vh] lg:max-h-none">
           {/* Panel header */}
           <div className="px-4 py-3.5 border-b border-gray-100">
             <div className="flex items-center justify-between">

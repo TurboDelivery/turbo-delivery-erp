@@ -13,7 +13,9 @@ import {
 } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
 import { Landmark, Clock, CheckCircle2, FileCheck } from 'lucide-react';
-import { createCaissierColumns } from './caissier-columns';
+import { Button } from '@/components/ui/button';
+import { createCaissierColumns, getCaissierStatutConfig } from './caissier-columns';
+import { FactureMobileCard, MobileCardList } from '@/components/finance/shared/facture-mobile-card';
 import ConfirmerReceptionModal from './confirmer-reception-modal';
 import DepotBanqueCaissierModal from './depot-banque-caissier-modal';
 import {
@@ -186,8 +188,8 @@ export default function CaissierView() {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* Table — desktop uniquement (≥ md) */}
+      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <Table
           isStriped
           aria-label="Factures caissier"
@@ -242,6 +244,64 @@ export default function CaissierView() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+      <MobileCardList>
+        {isLoading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-36 rounded-xl bg-gray-100 animate-pulse" />
+          ))
+        ) : table.getRowModel().rows.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-10">
+            {isError ? String(error) : 'Aucune facture trouvée'}
+          </p>
+        ) : (
+          table.getRowModel().rows.map((row) => {
+            const f = row.original;
+            const cfg = getCaissierStatutConfig(f.statut);
+            const isFiche = f.statut === 'Versé au caissier' || f.statut === 'Rejeté DGA';
+            const isDepot = f.statut === 'Orienté banque';
+            return (
+              <FactureMobileCard
+                key={f.id}
+                numero={f.numero}
+                partenaire={f.partenaire}
+                montant={formatMontant(f.montant)}
+                statut={cfg.label}
+                statutClassName={cfg.className}
+                fields={[
+                  { label: 'Recouvré', value: f.montantRecouvre ? `${formatMontant(f.montantRecouvre)} (${f.pourcentageRecouvre ?? 0}%)` : '—' },
+                  { label: 'Cycle', value: f.cycle },
+                  { label: 'Agent', value: f.agent },
+                ]}
+                actions={
+                  isFiche ? (
+                    <Button
+                      onClick={() => setFactureAConfirmer(f)}
+                      className={`w-full text-white text-sm gap-1.5 ${f.statut === 'Rejeté DGA' ? 'bg-red-600 hover:bg-red-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                    >
+                      <Landmark className="w-4 h-4" />
+                      {f.statut === 'Rejeté DGA' ? 'Re-soumettre fiche' : 'Enregistrer fiche de paiement'}
+                    </Button>
+                  ) : isDepot ? (
+                    <Button
+                      onClick={() => setFactureDepotBanque(f)}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white text-sm gap-1.5"
+                    >
+                      <Landmark className="w-4 h-4" /> Dépôt en banque
+                    </Button>
+                  ) : undefined
+                }
+              />
+            );
+          })
+        )}
+        {totalPages > 1 && (
+          <div className="flex justify-center pt-2">
+            <Pagination showControls page={page + 1} total={totalPages} onChange={(p) => setPage(p - 1)} />
+          </div>
+        )}
+      </MobileCardList>
 
       {/* Modals */}
       <ConfirmerReceptionModal

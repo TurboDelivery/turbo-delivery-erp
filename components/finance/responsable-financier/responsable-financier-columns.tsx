@@ -59,13 +59,13 @@ const statutConfig: Record<string, { label: string; className: string }> = {
   'Clôturé':               { label: 'Clôturé',               className: 'bg-green-200 text-green-800 border-green-300' },
 };
 
-function getStatutConfig(statut: string) {
+export function getStatutConfig(statut: string) {
   if (statut in statutConfig) return statutConfig[statut];
   if (statut.startsWith('Acompte')) return { label: statut, className: 'bg-yellow-100 text-yellow-700 border-yellow-200' };
   return { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
 }
 
-function formatMontant(v: number) {
+export function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
 }
 
