@@ -23,14 +23,13 @@ const Content = ({ className }: {
                 placement={`${isRtl ? 'bottom-start' : 'bottom-end'}`}
                 btnClassName="relative block p-2 rounded-full bg-white-light/40 dark:bg-dark/40  hover:text-primary hover:bg-white-light/90 dark:hover:bg-dark/60"
                 button={
-                    <span>
-                        <Bell />
-                        <span className="absolute top-0 flex h-3 w-3 ltr:right-0 rtl:left-0">
-                            <span className="absolute -top-[3px] inline-flex h-full w-full animate-ping rounded-full bg-success/50 opacity-75 ltr:-left-[3px] rtl:-right-[3px]"></span>
-                            <span className={`relative inline-flex h-[6px] w-[6px] rounded-full bg-success p-1`}>
-                                <span className=' rounded-full text-red-500 font-bold'> {ctrl.notificationNonLus.length > 0 && ctrl.notificationNonLus.length}</span>
+                    <span className="relative inline-flex items-center justify-center">
+                        <Bell className="h-5 w-5" />
+                        {ctrl.notificationNonLus.length > 0 && (
+                            <span className="absolute -top-2 ltr:-right-2 rtl:-left-2 inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white dark:ring-black">
+                                {ctrl.notificationNonLus.length > 99 ? '99+' : ctrl.notificationNonLus.length}
                             </span>
-                        </span>
+                        )}
                     </span>
                 }
             >
