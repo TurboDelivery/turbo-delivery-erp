@@ -102,6 +102,7 @@ export interface IAgentRecouvrement {
 export interface IFactureRFStatutVm {
   id: string;
   statut: StatutFacture;
+  numeroVisa?: string | null;
 }
 
 // Correspond à ResponsableFinancierFactureRecouvrementVm

@@ -73,13 +73,18 @@ export const useViserDgMutation = () => {
 
   return useMutation({
     mutationFn: (id: string) => responsableFinancierAPI.viserDg(id, userId),
-    onSuccess: async (_data, variables) => {
+    onSuccess: async (data, variables) => {
       // Fix B1 : passer l'id pour invalider précisément le détail de la
       // facture modifiée (en plus des listes). Avant : seule la liste était
       // invalidée, le détail spécifique servait un cache stale (et donc
       // affichait l'ancien agent "Medard").
       await invalidate(pickFactureId(variables));
-      toast.success('Facture visée par le DG');
+      // SPEC-RECOUV-002 — le N° de visa est généré automatiquement au visa ;
+      // on le montre à l'utilisateur (clé du rapprochement visa↔bordereau).
+      toast.success(
+        data?.numeroVisa ? `Opération visée — N° ${data.numeroVisa}` : 'Facture visée par le DG',
+        data?.numeroVisa ? { description: 'Numéro de visa généré automatiquement.' } : undefined,
+      );
     },
     onError: (error) => {
       toast.error('Erreur lors du visa DG', {
