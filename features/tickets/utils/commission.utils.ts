@@ -7,7 +7,9 @@ export function calculateCommission(restaurant: Restaurant, montantCommande: num
   if (restaurant.typeCommission === 'POURCENTAGE') {
     return Number((montantCommande * (commission / 100)).toFixed(2));
   }
-  return null;
+  // Montant fixe (FIXE) : la commission est le montant fixe du partenaire,
+  // indépendant du montant de la commande. (Corrige le "sort à 0/null" pour FIXE.)
+  return Number(commission.toFixed(2));
 }
 
 export function applyTicketPatch(ticket: Ticket, patch: Partial<Ticket>, restaurants: Restaurant[]): Ticket {

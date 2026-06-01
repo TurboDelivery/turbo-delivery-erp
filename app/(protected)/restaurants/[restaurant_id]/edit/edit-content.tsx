@@ -20,6 +20,7 @@ import { geocodeAddressServer } from '@/lib/googlemaps-server';
 import { CoverBanner } from './_sections/CoverBanner';
 import { InfoGenerales } from './_sections/InfoGenerales';
 import { CommissionSection } from './_sections/CommissionSection';
+import { CommissionHistorySection } from './_sections/CommissionHistorySection';
 import { CompteSection } from './_sections/CompteSection';
 import { PhotosSection } from './_sections/PhotosSection';
 import { HorairesSection, type Horaire } from './_sections/HorairesSection';
@@ -206,6 +207,8 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
             control={control}
             typeCommission={typeCommission ?? ''}
           />
+
+          <CommissionHistorySection restaurantId={restaurant.id} />
 
           <CompteSection
             username={username}
