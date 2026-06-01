@@ -14,6 +14,7 @@ export interface ICommissionVersion {
   dateFinEffet: string | null; // null = version courante
   courante: boolean;
   auteurId: string | null;
+  auteurNom: string | null;
   motif: string | null;
   source: SourceCommissionVersion;
   createdAt: string;

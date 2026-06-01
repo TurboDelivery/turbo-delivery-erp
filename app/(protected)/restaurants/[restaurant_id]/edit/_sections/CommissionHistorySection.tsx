@@ -157,6 +157,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                 <TableColumn>PÉRIODE D'EFFET</TableColumn>
                 <TableColumn>STATUT</TableColumn>
                 <TableColumn>ORIGINE</TableColumn>
+                <TableColumn>AUTEUR</TableColumn>
                 <TableColumn>MOTIF</TableColumn>
               </TableHeader>
               <TableBody>
@@ -176,6 +177,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                       )}
                     </TableCell>
                     <TableCell>{sourceChip(v.source)}</TableCell>
+                    <TableCell className="text-gray-500">{v.auteurNom ?? '—'}</TableCell>
                     <TableCell className="max-w-[200px] truncate text-gray-500">{v.motif ?? '—'}</TableCell>
                   </TableRow>
                 ))}
@@ -208,6 +210,12 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-xs text-gray-400">Seuil</span>
                     <span className="text-sm text-gray-700">{Number(v.seuil).toLocaleString('fr-FR')} FCFA</span>
+                  </div>
+                )}
+                {v.auteurNom && (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs text-gray-400">Auteur</span>
+                    <span className="text-sm text-gray-700 text-right">{v.auteurNom}</span>
                   </div>
                 )}
                 {v.motif && (

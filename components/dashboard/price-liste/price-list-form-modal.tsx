@@ -330,6 +330,7 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
                         id="pl-seuil"
                         type="number"
                         min={0}
+                        step={1}
                         aria-invalid={fieldState.invalid}
                       />
                       <p className="text-[11px] text-muted-foreground">
