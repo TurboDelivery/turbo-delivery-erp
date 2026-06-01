@@ -256,8 +256,8 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
 
                 {type === 'MONTANT_FIXE' && (
                   <Input
-                    label="Seuil d'application (FCFA, optionnel)"
-                    description="Montant minimum de commande sous lequel la commission ne s'applique pas."
+                    label="Seuil d'application — défaut partenaire (FCFA, optionnel)"
+                    description="Montant minimum de commande sous lequel la commission ne s'applique pas. Une zone peut définir son propre seuil dans la grille tarifaire (prioritaire)."
                     type="number"
                     value={seuil}
                     onChange={(e) => setSeuil(e.target.value)}

@@ -11,6 +11,8 @@ export const priceListSchema = z.object({
   distanceFin: z.coerce.number().min(0),
   prix: z.coerce.number().min(1, 'Le prix doit être supérieur à 0'),
   commission: z.coerce.number().min(0),
+  // Seuil d'application du montant fixe (0 = pas de seuil). SPEC « Seuil ».
+  seuilCommission: z.coerce.number().min(0).optional(),
 });
 
 export type PriceListFormData = z.infer<typeof priceListSchema>;

@@ -11,6 +11,7 @@ export const deliveryFeeCreateSchema = z.object({
     distanceFin: z.number().min(0, 'La distance de fin doit être supérieur ou égal à 0'),
     prix: z.number().min(1, 'Le prix doit être supérieur ou égal à 0'),
     commission: z.number(),
+    seuilCommission: z.number().min(0).optional(),
 });
 
 export type _deliveryFeeCreateSchema = z.infer<typeof deliveryFeeCreateSchema>;
@@ -26,6 +27,7 @@ export const deliveryFeeUpdateSchema = z.object({
     distanceFin: z.number().min(0, 'La distance de fin doit être supérieur ou égal à 0'),
     prix: z.number().min(1, 'Le prix doit être supérieur ou égal à 0'),
     commission: z.number().min(0, 'La commission doit être supérieur ou égal à 0'),
+    seuilCommission: z.number().min(0).optional(),
     id: z.string().min(0, "L'identifiant doit être requis").optional(),
 });
 

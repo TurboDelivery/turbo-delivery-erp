@@ -294,26 +294,55 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
             />
           </div>
 
-          {/* Commission — visible uniquement si typeCommission défini */}
+          {/* Commission + Seuil — visible uniquement si typeCommission défini.
+              Le seuil d'application n'est pertinent que pour le montant fixe (SPEC « Seuil »). */}
           {typeCommission && (
-            <Controller
-              name="commission"
-              control={control}
-              render={({ field, fieldState }) => (
-                <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
-                  <Label htmlFor="pl-commission">{commissionLabel} <span className="text-destructive">*</span></Label>
-                  <Input
-                    {...field}
-                    id="pl-commission"
-                    type="number"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <p className="text-xs text-destructive">{fieldState.error?.message}</p>
+            <div className={cn(typeCommission === 'FIXE' ? 'grid grid-cols-2 gap-3' : '')}>
+              <Controller
+                name="commission"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
+                    <Label htmlFor="pl-commission">{commissionLabel} <span className="text-destructive">*</span></Label>
+                    <Input
+                      {...field}
+                      id="pl-commission"
+                      type="number"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <p className="text-xs text-destructive">{fieldState.error?.message}</p>
+                    )}
+                  </div>
+                )}
+              />
+
+              {typeCommission === 'FIXE' && (
+                <Controller
+                  name="seuilCommission"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <div className="flex flex-col gap-1.5" data-invalid={fieldState.invalid}>
+                      <Label htmlFor="pl-seuil">Seuil d&apos;application (XOF)</Label>
+                      <Input
+                        {...field}
+                        value={field.value ?? 0}
+                        id="pl-seuil"
+                        type="number"
+                        min={0}
+                        aria-invalid={fieldState.invalid}
+                      />
+                      <p className="text-[11px] text-muted-foreground">
+                        Laisser à 0 pour appliquer la commission à toutes les commandes.
+                      </p>
+                      {fieldState.invalid && (
+                        <p className="text-xs text-destructive">{fieldState.error?.message}</p>
+                      )}
+                    </div>
                   )}
-                </div>
+                />
               )}
-            />
+            </div>
           )}
 
           {/* Actions */}
@@ -344,5 +373,6 @@ function buildDefaults(initialData?: DeliveryFee | null): PriceListFormData {
     distanceFin: initialData?.distanceFin ?? 0,
     prix: initialData?.prix ?? 0,
     commission: initialData?.commission ?? 0,
+    seuilCommission: initialData?.seuilCommission ?? 0,
   };
 }

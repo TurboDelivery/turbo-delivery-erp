@@ -9,6 +9,7 @@ export interface DeliveryFee {
     distanceFin: number;
     prix: number;
     commission: number;
+    seuilCommission?: number | null;
     createdAt?: string;
     updatedAt?: string;
 }
