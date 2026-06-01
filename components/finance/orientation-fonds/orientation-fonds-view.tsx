@@ -23,6 +23,15 @@ function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
 }
 
+function formatDateFr(iso?: string | null) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString('fr-FR');
+  } catch {
+    return iso;
+  }
+}
+
 const MOTIF_MIN = 30;
 
 function FactureCard({ facture, children }: { facture: IFactureRF; children: React.ReactNode }) {
@@ -40,6 +49,13 @@ function FactureCard({ facture, children }: { facture: IFactureRF; children: Rea
         </div>
         <p className="text-sm font-bold text-red-600 whitespace-nowrap">{formatMontant(facture.montant)}</p>
       </div>
+      {facture.numeroVisa && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-400">
+          <span className="font-semibold text-indigo-600">{facture.numeroVisa}</span>
+          {facture.dateVisa && <span>visa du {formatDateFr(facture.dateVisa)}</span>}
+          {facture.viseur && <span>par {facture.viseur}</span>}
+        </div>
+      )}
       <div className="mt-3">{children}</div>
     </div>
   );
@@ -173,6 +189,17 @@ export default function OrientationFondsView() {
                 )}
               </ModalHeader>
               <ModalBody>
+                {/* Rappel en lecture seule (SPEC-RECOUV-002 §4.1) */}
+                {orientFacture && (
+                  <div className="rounded-lg bg-gray-50 border border-gray-100 p-3 text-xs space-y-1">
+                    <div className="flex justify-between gap-3"><span className="text-gray-400">N° facture</span><span className="font-medium text-gray-800">{orientFacture.numero}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-400">Partenaire</span><span className="font-medium text-gray-800 text-right">{orientFacture.partenaire}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-400">Montant recouvré</span><span className="font-semibold text-red-600">{formatMontant(orientFacture.montant)}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-400">N° de visa</span><span className="font-semibold text-indigo-600">{orientFacture.numeroVisa ?? '—'}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-400">Date du visa</span><span className="text-gray-800">{formatDateFr(orientFacture.dateVisa)}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-gray-400">Viseur</span><span className="text-gray-800">{orientFacture.viseur ?? '—'}</span></div>
+                  </div>
+                )}
                 <RadioGroup value={choix} onValueChange={(v) => setChoix(v as typeof choix)}>
                   <Radio value="DEPOT_BANQUE" description="Le Comptable pourra exécuter le dépôt bancaire (bordereau + preuve).">
                     Autoriser le dépôt en banque

@@ -42,6 +42,10 @@ export interface IFactureRF {
   agent: string;
   statut: StatutFacture;
   preuve?: string | null; // base64 data URL or HTTP URL returned by the API
+  // Visa (SPEC-RECOUV-002 §4.1 / §4.4) — clé du rapprochement visa↔bordereau.
+  numeroVisa?: string | null;
+  dateVisa?: string | null;
+  viseur?: string | null;
 }
 
 // ─── Détail ───────────────────────────────────────────────────────────────────
