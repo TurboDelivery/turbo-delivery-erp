@@ -45,6 +45,9 @@ export type AppSubjects =
   // VerificationDepots : rapprochement visa↔bordereau + caisse — Comptable/DGA/DG/Caissier.
   | 'OrientationFonds'
   | 'VerificationDepots'
+  // PageEncours : relevé des restes à payer (factures éditées non recouvrées), module
+  // Comptabilité. Accès Comptable + DGA/DG (via read/manage all). Demandeur : DGA.
+  | 'PageEncours'
   | 'Notification'
   | 'Creneau'
   | 'Performance'
@@ -196,7 +199,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // PAS "Agent Recouvreur" (vue terrain de l'agent recouvreur) ni
       // "Validation DGA" (vue DGA-only). Le DG et le DGA gardent l'accès
       // à toutes les sous-pages via leur 'manage all' / 'read all'.
-      can('read', ['PageResponsableFinancier', 'PageCaissier']);
+      can('read', ['PageResponsableFinancier', 'PageCaissier', 'PageEncours']);
       // SPEC-RECOUV-002 — le Comptable voit l'écran de vérification des dépôts
       // (rapprochement visa↔bordereau + caisse). L'orientation reste DG/DGA.
       can('read', 'VerificationDepots');

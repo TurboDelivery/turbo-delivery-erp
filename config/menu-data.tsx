@@ -118,6 +118,8 @@ const menuData: IMenuData[] = [
       // SPEC-RECOUV-002 — aval du visa : orientation des fonds (DG/DGA) + vérification des dépôts.
       { icon: Wallet, title: 'Orientation des fonds', path: '/finance/comptabilite/orientation-fonds', can: { action: 'read', subject: 'OrientationFonds' } },
       { icon: CheckCircle, title: 'Vérification dépôts', path: '/finance/comptabilite/verification-depots', can: { action: 'read', subject: 'VerificationDepots' } },
+      // ENCOURS — relevé des restes à payer (factures éditées non recouvrées), par mois/an.
+      { icon: TrendingUp, title: 'Encours', path: '/finance/comptabilite/encours', can: { action: 'read', subject: 'PageEncours' } },
     ],
   },
   { icon: Bell, title: 'Notifications', path: '/notification', can: { action: 'access', subject: 'Notification' } },
