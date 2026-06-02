@@ -29,6 +29,22 @@ export const encoursAPI = {
     });
   },
 
+  // Export serveur (OpenPDF / POI) — renvoie un Blob (binaire). On surcharge le timeout
+  // (2 s par défaut, insuffisant pour un gros relevé) et on force responseType: 'blob'.
+  exporter(params: IEncoursParams, format: 'pdf' | 'xlsx'): Promise<Blob> {
+    return api.request<Blob>({
+      endpoint: 'finance/encours/export',
+      method: 'GET',
+      searchParams: {
+        annee: params.annee,
+        mois: params.mois ?? undefined,
+        partenaire: params.partenaire || undefined,
+        format,
+      } as SearchParams,
+      config: { responseType: 'blob', timeout: 120000 },
+    });
+  },
+
   listerDeductions(annee: number): Promise<IDeductionPartenaire[]> {
     return api.request<IDeductionPartenaire[]>({
       endpoint: 'finance/deductions-partenaire',

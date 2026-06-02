@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
-import { Button, Select, SelectItem } from '@heroui/react';
+import { Select, SelectItem } from '@heroui/react';
 import {
   encoursFilters,
   useEncoursQuery,
@@ -11,6 +11,7 @@ import {
 import { EncoursTable } from './encours-table';
 import { EncoursDeductionsTable } from './encours-deductions-table';
 import { EncoursDeductionsManager } from './encours-deductions-manager';
+import { EncoursExportButton } from './encours-export-button';
 
 const anneeCourante = new Date().getFullYear();
 const ANNEES = [anneeCourante, anneeCourante - 1, anneeCourante - 2, anneeCourante - 3];
@@ -39,9 +40,7 @@ export function EncoursView() {
         </div>
         <div className="flex flex-wrap gap-2">
           <EncoursDeductionsManager annee={filters.annee} />
-          <Button isDisabled variant="bordered" size="sm">
-            Exporter (à venir)
-          </Button>
+          <EncoursExportButton params={params} isDisabled={!releve || isLoading} />
         </div>
       </div>
 
