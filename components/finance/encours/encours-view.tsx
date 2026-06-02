@@ -10,6 +10,7 @@ import {
 } from '@/features/encours';
 import { EncoursTable } from './encours-table';
 import { EncoursDeductionsTable } from './encours-deductions-table';
+import { EncoursDeductionsManager } from './encours-deductions-manager';
 
 const anneeCourante = new Date().getFullYear();
 const ANNEES = [anneeCourante, anneeCourante - 1, anneeCourante - 2, anneeCourante - 3];
@@ -36,9 +37,12 @@ export function EncoursView() {
             Factures éditées non encore recouvrées (par mois / cumul annuel)
           </p>
         </div>
-        <Button isDisabled variant="bordered" size="sm">
-          Exporter (à venir)
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <EncoursDeductionsManager annee={filters.annee} />
+          <Button isDisabled variant="bordered" size="sm">
+            Exporter (à venir)
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3">

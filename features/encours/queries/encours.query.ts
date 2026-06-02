@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { encoursAPI } from '../apis/encours.api';
 import { IEncoursParams } from '../types/encours.types';
 
@@ -27,3 +27,18 @@ export const useEncoursGroupesQuery = () =>
     queryFn: () => encoursAPI.getGroupes(),
     staleTime: 30 * 60 * 1000,
   });
+
+/** Liste brute des déductions (avec id) d'une année — pour la gestion (CRUD). */
+export const useDeductionsQuery = (annee: number) =>
+  useQuery({
+    queryKey: encoursKeys.deductions(annee),
+    queryFn: () => encoursAPI.listerDeductions(annee),
+    enabled: !!annee,
+    staleTime: 5 * 60 * 1000,
+  });
+
+/** Invalide tout l'ENCOURS (relevé + déductions) après une mutation. */
+export const useInvalidateEncours = () => {
+  const queryClient = useQueryClient();
+  return () => queryClient.invalidateQueries({ queryKey: encoursKeys.all });
+};
