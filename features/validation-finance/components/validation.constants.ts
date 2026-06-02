@@ -62,6 +62,12 @@ const SESSION_ROLE_MAP: Record<string, Role> = {
   DG: 'dg',
   DGA: 'dga',
   COMPTABLE: 'comptable',
+  // « Comptable - Agent V2 » = rôle COMPTABLE (déjà mappé ci-dessus).
+  // « Assistant Comptable » : accès Charges + Validation au niveau comptable (SPEC) —
+  //   sinon sessionRoleToRole renvoyait null → "Accès non autorisé" sur la page Validation
+  //   alors que CASL l'autorise (les pages Finance contournent CASL via ce mapping).
+  ASSISTANT_COMPTABLE: 'comptable',
+  'ASSISTANT COMPTABLE': 'comptable',
 };
 
 export function sessionRoleToRole(sessionRole?: string): Role | null {
