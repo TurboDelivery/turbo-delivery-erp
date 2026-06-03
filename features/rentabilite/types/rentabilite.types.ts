@@ -12,4 +12,11 @@ export interface IRentabilite {
   caCumule: number;
   profit: number;
   marge: boolean; // true = marge (≥0) ; false = déficit
+  // Décomposition du CA (réplique du tableau de bord principal)
+  fraisLivraison: number;
+  commission: number;
+  commissionFixe: number;
+  commissionPourcentage: number;
+  revenuEncaisse: number;
+  investissement: number;
 }

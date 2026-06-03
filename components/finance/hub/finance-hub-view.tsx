@@ -17,7 +17,7 @@ import {
   Spinner,
   useDisclosure,
 } from '@heroui/react';
-import { Banknote, Download, FileText, Plus, Wallet } from 'lucide-react';
+import { Banknote, Clock, Download, FileText, Plus, TrendingUp, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   FinanceStatut,
@@ -39,6 +39,12 @@ const CUR_MONTH_KEY = `${NOW.getFullYear()}-${String(NOW.getMonth() + 1).padStar
 // monthKey = "YYYY-MM" → date d'arrêté "YYYY-MM-DD"
 const buildDate = (monthKey: string, jour: number) =>
   `${monthKey}-${String(jour).padStart(2, '0')}`;
+// Jours réels du mois (28/29/30/31) — le curseur doit atteindre le vrai dernier
+// jour, sinon le CA cumulé exclut le 31 sur les mois de 31 jours.
+const daysInMonth = (monthKey: string) => {
+  const [y, m] = monthKey.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
+};
 
 const STATUT: Record<FinanceStatut, { label: string; color: 'warning' | 'primary' | 'secondary' | 'success' | 'danger' }> = {
   pending: { label: 'En attente', color: 'warning' },
@@ -86,8 +92,8 @@ const TABS = [
 
 export function FinanceHubView() {
   const [monthKey, setMonthKey] = useState(CUR_MONTH_KEY);
-  const [jour, setJour] = useState(Math.min(NOW.getDate(), 30));
-  const [dateArret, setDateArret] = useState(buildDate(CUR_MONTH_KEY, Math.min(NOW.getDate(), 30)));
+  const [jour, setJour] = useState(Math.min(NOW.getDate(), daysInMonth(CUR_MONTH_KEY)));
+  const [dateArret, setDateArret] = useState(buildDate(CUR_MONTH_KEY, Math.min(NOW.getDate(), daysInMonth(CUR_MONTH_KEY))));
   const [tab, setTab] = useState<(typeof TABS)[number]['k']>('fixe');
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [isFixeModalOpen, setIsFixeModalOpen] = useState(false);
@@ -103,7 +109,8 @@ export function FinanceHubView() {
   // fenêtre est dérivée du mois de dateArret).
   const changeMonth = (key: string) => {
     if (!key) return;
-    const day = key === CUR_MONTH_KEY ? Math.min(NOW.getDate(), nbJours) : nbJours;
+    const dim = daysInMonth(key);
+    const day = key === CUR_MONTH_KEY ? Math.min(NOW.getDate(), dim) : dim;
     setMonthKey(key);
     setJour(day);
     setDateArret(buildDate(key, day));
@@ -123,7 +130,17 @@ export function FinanceHubView() {
     variableReel: renta?.variableReel ?? 0,
     fixeMensuel: renta?.chargesFixesMensuelles ?? 0,
     jours: renta?.joursEcoules ?? jour,
+    // Décomposition du CA + rubriques (réplique du tableau de bord principal)
+    fraisLivraison: renta?.fraisLivraison ?? 0,
+    commission: renta?.commission ?? 0,
+    commissionFixe: renta?.commissionFixe ?? 0,
+    commissionPct: renta?.commissionPourcentage ?? 0,
+    revenuEncaisse: renta?.revenuEncaisse ?? 0,
+    investissement: renta?.investissement ?? 0,
   };
+  // Encours = CA pas encore encaissé (cf. tableau de bord principal).
+  const encours = Math.max(0, k.ca - k.revenuEncaisse);
+  const realDays = daysInMonth(monthKey); // borne du curseur = vrai dernier jour du mois
   const bap = useMemo(() => items.filter((i) => nextAction(i, seuil) === 'pay'), [items, seuil]);
   const bapTotal = bap.reduce((s, i) => s + i.montant, 0);
 
@@ -243,10 +260,10 @@ export function FinanceHubView() {
         <CardBody className="gap-2">
           <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wide text-default-500">
             <span>Date d&apos;arrêté (jour du mois) — pilote le prorata</span>
-            <span className="font-bold text-primary">J{jour} / {nbJours}</span>
+            <span className="font-bold text-primary">J{jour} / {realDays}</span>
           </div>
           <input
-            type="range" min={1} max={nbJours} value={jour}
+            type="range" min={1} max={realDays} value={jour}
             onChange={(e) => setJour(Number(e.target.value))}
             onMouseUp={(e) => setDateArret(buildDate(monthKey, Number((e.target as HTMLInputElement).value)))}
             onTouchEnd={(e) => setDateArret(buildDate(monthKey, Number((e.target as HTMLInputElement).value)))}
@@ -255,10 +272,38 @@ export function FinanceHubView() {
         </CardBody>
       </Card>
 
-      {/* KPI */}
+      {/* CA cumulé + décomposition (réplique du tableau de bord principal) */}
+      <Card shadow="none" className="border border-emerald-200 bg-emerald-50/40">
+        <CardBody className="gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-default-500">CA cumulé</span>
+            <div className="text-2xl font-bold tabular-nums text-emerald-700">{fmtFcfa(k.ca)}</div>
+            <span className="text-xs text-default-400">Frais de livraison + commissions + entrées de caisse</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+            <CaPart label="Frais de livraison" value={fmtFcfa(k.fraisLivraison)} />
+            <CaPart label="Commissions" value={fmtFcfa(k.commission)} hint={`Fixe ${fmtFcfa(k.commissionFixe)} · Pourcentage ${fmtFcfa(k.commissionPct)}`} />
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* Rubriques (réplique du tableau de bord principal) */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="CA cumulé" value={fmtFcfa(k.ca)} />
-        <Kpi label="Dépenses cumulées" value={fmtFcfa(k.dep)} sub="Prorata fixe + variable réel" />
+        <Kpi label="Revenus encaissés" value={fmtFcfa(k.revenuEncaisse)} icon={Banknote} />
+        <Kpi label="Investissements" value={fmtFcfa(k.investissement)} icon={TrendingUp} />
+        <Kpi label="Encours" value={fmtFcfa(encours)} sub="CA non encore encaissé" icon={Clock} />
+        <Kpi label="Bon à payer" value={fmtFcfa(bapTotal)} sub={`${bap.length} dépense${bap.length > 1 ? 's' : ''} prête${bap.length > 1 ? 's' : ''}`} icon={Wallet} />
+      </div>
+
+      {/* Dépenses cumulées (détail) + marge */}
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <Card shadow="none" className="border border-default-200">
+          <CardBody className="gap-1 p-4">
+            <span className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wide text-default-500">Dépenses cumulées<Banknote className="h-4 w-4 text-default-300" /></span>
+            <span className="text-xl font-bold tabular-nums text-foreground">{fmtFcfa(k.dep)}</span>
+            <span className="text-xs text-default-400">Charges fixes (prorata) {fmtFcfa(k.fixeProrata)} · Dépenses variables {fmtFcfa(k.variableReel)}</span>
+          </CardBody>
+        </Card>
         <Card shadow="none" className={`border ${k.marge ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}>
           <CardBody className="gap-1 p-4">
             <span className="text-[11px] font-medium uppercase tracking-wide text-default-500">{k.marge ? 'Marge actuelle' : 'Déficit actuel'}</span>
@@ -266,7 +311,6 @@ export function FinanceHubView() {
             <span className={`mt-0.5 inline-block w-fit rounded-full px-2 py-0.5 text-[11px] font-semibold ${k.marge ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{k.marge ? 'Rentable à ce stade' : 'En déficit à ce stade'}</span>
           </CardBody>
         </Card>
-        <Kpi label="Bon à payer" value={fmtFcfa(bapTotal)} sub={`${bap.length} dépense${bap.length > 1 ? 's' : ''} prête${bap.length > 1 ? 's' : ''}`} icon={Wallet} />
       </div>
 
       {/* Décomposition prorata */}
@@ -275,7 +319,7 @@ export function FinanceHubView() {
           <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-default-700"><span className="h-2 w-2 rounded-full bg-primary" />Décomposition au prorata (à J{k.jours})</p>
           <div className="grid grid-cols-2 gap-y-3 sm:grid-cols-4">
             <Cell l="Coût journalier" v={fmtFcfa(k.coutJour)} s={`${fmtFcfa(k.fixeMensuel)} ÷ ${nbJours} j`} />
-            <Cell l="Charges fixes prorata" v={fmtFcfa(k.fixeProrata)} s={`${fmtFcfa(k.coutJour)} × ${k.jours} j`} />
+            <Cell l="Charges fixes prorata" v={fmtFcfa(k.fixeProrata)} s={`${fmtFcfa(k.coutJour)} × ${Math.min(k.jours, nbJours)} j`} />
             <Cell l="Dépenses variables réelles" v={fmtFcfa(k.variableReel)} s={`Jusqu'à J${k.jours}`} />
             <Cell l="Total dépenses" v={fmtFcfa(k.dep)} s="Prorata + variable" accent />
           </div>
@@ -405,6 +449,16 @@ export function FinanceHubView() {
       {/* Modales de création (reprises de la page Charges, désormais pilotées ici) */}
       <AddChargeFixeModal isOpen={isFixeModalOpen} onClose={() => setIsFixeModalOpen(false)} chargeToEdit={null} />
       <AddDepenseVariableModal isOpen={isVariableModalOpen} onClose={() => setIsVariableModalOpen(false)} chargeToEdit={null} />
+    </div>
+  );
+}
+
+function CaPart({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="rounded-lg border border-emerald-200 bg-white/70 px-3 py-2">
+      <div className="text-[10px] font-medium uppercase tracking-wide text-default-500">{label}</div>
+      <div className="text-sm font-bold tabular-nums text-foreground">{value}</div>
+      {hint && <div className="mt-0.5 text-[10px] text-default-400">{hint}</div>}
     </div>
   );
 }
