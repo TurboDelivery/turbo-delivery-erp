@@ -143,14 +143,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      # Le runner rejoint le tailnet → SSH via l'IP Tailscale (100.x), plus le :22 public.
-      # Prérequis : secret TS_AUTHKEY + SSH_HOST = IP 100.x du serveur.
-      - name: Connect to Tailscale
-        uses: tailscale/github-action@v2
-        with:
-          authkey: ${{ secrets.TS_AUTHKEY }}
-          version: latest
-
       - name: Deploy
         run: |
           IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
