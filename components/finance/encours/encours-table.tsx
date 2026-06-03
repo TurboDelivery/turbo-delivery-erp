@@ -76,9 +76,10 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
 
     p.stores.forEach((s, si) => {
       s.factures.forEach((f, fi) => {
+        const aVenir = f.statut === 'À venir';
         lines.push({
           key: `g${pi}-s${si}-f${fi}`,
-          cn: 'hover:bg-primary/5 transition-colors',
+          cn: aVenir ? 'text-default-300' : 'hover:bg-primary/5 transition-colors',
           cells: [
             {
               node:

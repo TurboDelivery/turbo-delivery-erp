@@ -6,11 +6,11 @@ export type CycleRecouvrement = 'QUINZAINE' | 'HEBDOMADAIRE' | 'MENSUEL';
 export interface IEncoursFacture {
   mois: number; // 1-12
   periode: string; // libellé mois, ex. « Avril »
-  libelle: string; // « Mois » | « Quinzaine 1/2 » | « Semaine N (dd–dd) »
-  totalAPayer: number;
-  acompte: number; // déjà recouvré
-  solde: number; // reste à payer
-  statut: string; // Payé | Partiel | En retard | En cours
+  libelle: string; // « Mois » | « Quinzaine 1/2 » | « Semaine N (dd–dd) » | « — » (À venir)
+  totalAPayer: number | null;
+  acompte: number | null; // déjà recouvré
+  solde: number | null; // reste à payer
+  statut: string; // Payé | Partiel | En retard | En cours | À venir
 }
 
 export interface IEncoursStore {
