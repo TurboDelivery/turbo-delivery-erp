@@ -100,6 +100,7 @@ const menuData: IMenuData[] = [
       { icon: Layers, title: 'Cumule des investissements internes', path: '/finance/revenue/investissement', can: { action: 'read', subject: 'Finance' } },
       { icon: SquareUser, title: 'Recouvrements', path: '/finance/recouvrement', can: { action: 'read', subject: 'Finance' } },
       { icon: BarChart, title: 'Dashboard Performance', path: '/finance/rapports-performance/dashboard-performance', can: { action: 'read', subject: 'DashboardPerformance' } },
+      { icon: IconSettings2, title: 'Configuration', path: '/finance/configuration', can: { action: 'read', subject: 'PageFinanceConfig' } },
     ],
   },
   {

@@ -48,6 +48,9 @@ export type AppSubjects =
   // PageEncours : relevé des restes à payer (factures éditées non recouvrées), module
   // Comptabilité. Accès Comptable + DGA/DG (via read/manage all). Demandeur : DGA.
   | 'PageEncours'
+  // PageFinanceConfig : configuration globale du module FINANCES (§4.1).
+  // Réservé DG (manage all) + DGA (read all, propose le seuil). « Admin » = DG côté front.
+  | 'PageFinanceConfig'
   | 'Notification'
   | 'Creneau'
   | 'Performance'
