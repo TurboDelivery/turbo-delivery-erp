@@ -23,6 +23,8 @@ import {
   FinanceStatut,
   IFinanceItem,
   fmtFcfa,
+  generateFinancesPdf,
+  generateFinancesXlsx,
   nextAction,
   steps,
   useFinancesHub,
@@ -161,14 +163,40 @@ export function FinanceHubView() {
     toast.success(`Décaissé ${fmtFcfa(payTargets.reduce((s, i) => s + i.montant, 0))} depuis ${acc}`);
   };
 
-  const exportCsv = () => {
-    const rows = [['Désignation', 'Type', 'Catégorie', 'Montant', 'Échéance', 'Statut']];
-    items.forEach((i) => rows.push([i.designation, i.type, i.categorie, String(i.montant), i.echeance, STATUT[i.statut].label]));
-    const csv = '﻿' + rows.map((r) => r.map((c) => `"${c}"`).join(';')).join('\n');
+  // Métadonnées d'en-tête communes aux exports (période + KPI du mois sélectionné).
+  const exportMeta = () => ({
+    monthLabel: monthOptions.find((m) => m.key === monthKey)?.label ?? monthKey,
+    jours: k.jours,
+    nbJours,
+    ca: k.ca,
+    dep: k.dep,
+    profit: k.profit,
+    marge: k.marge,
+    bapTotal,
+  });
+
+  // Excel : vrai fichier .xlsx (Synthèse + Dépenses), montants en nombres sommables.
+  const exportXlsx = () => {
+    const data = generateFinancesXlsx(items, exportMeta());
+    const blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-    a.download = `Finances_Turbo_Delivery.csv`;
+    a.href = url;
+    a.download = `Finances_${monthKey}.xlsx`;
     a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // PDF : document HTML isolé imprimé dans une nouvelle fenêtre (pas la page entière).
+  const exportPdf = () => {
+    const w = window.open('', '_blank');
+    if (!w) {
+      toast.error('Autorisez les pop-ups pour exporter en PDF.');
+      return;
+    }
+    w.document.write(generateFinancesPdf(items, exportMeta()));
+    w.document.close();
+    setTimeout(() => w.print(), 250);
   };
 
   const countFor = (kk: string) =>
@@ -205,8 +233,8 @@ export function FinanceHubView() {
               <SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>
             ))}
           </Select>
-          <Button size="sm" variant="bordered" startContent={<Download className="h-4 w-4" />} onPress={exportCsv}>Excel</Button>
-          <Button size="sm" className="bg-foreground text-background" startContent={<FileText className="h-4 w-4" />} onPress={() => window.print()}>PDF</Button>
+          <Button size="sm" variant="bordered" startContent={<Download className="h-4 w-4" />} onPress={exportXlsx}>Excel</Button>
+          <Button size="sm" className="bg-foreground text-background" startContent={<FileText className="h-4 w-4" />} onPress={exportPdf}>PDF</Button>
         </div>
       </div>
 
