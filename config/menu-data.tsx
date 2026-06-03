@@ -94,6 +94,7 @@ const menuData: IMenuData[] = [
       { icon: Receipt, title: 'Charges', path: '/finance/charges', can: { action: 'read', subject: 'ChargeFixe' } },
       { icon: CheckCircle, title: 'Validation', path: '/finance/validation', can: { action: 'read', subject: 'ChargeFixe' } },
       { icon: TrendingUp, title: 'Analyse de Rentabilité', path: '/finance/analyse-rentabilite', can: { action: 'read', subject: 'Finance' } },
+      { icon: TrendingUp, title: 'Rentabilité (temps réel)', path: '/finance/rentabilite', can: { action: 'read', subject: 'Finance' } },
       { icon: FileText, title: 'Rapports Financiers', path: '/finance/rapports-financiers', can: { action: 'read', subject: 'Finance' } },
       { icon: Wallet, title: 'Gestion des Paiements', path: '/finance/gestion-paiements', can: { action: 'read', subject: 'Paiement' } },
       { icon: List, title: 'Cumule de revenus globaux', path: '/finance/revenue', can: { action: 'read', subject: 'Finance' } },
