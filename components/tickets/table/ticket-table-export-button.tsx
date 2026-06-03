@@ -16,8 +16,13 @@ import { bonLivraisonToTicket } from '@/src/actions/bonLivraison.mapper';
 
 type ExportFormat = 'EXCEL' | 'PDF';
 
-const EXPORT_PAGE_SIZE = 5000;
+// Pages volontairement modestes : une requête « size=5000 » sur /tous/termines
+// peut dépasser le timeout (gros volume → requête lente côté backend). On découpe
+// en pages plus petites récupérées en parallèle (EXPORT_CONCURRENCY), chacune avec
+// un timeout étendu (EXPORT_TIMEOUT_MS).
+const EXPORT_PAGE_SIZE = 200;
 const EXPORT_CONCURRENCY = 6;
+const EXPORT_TIMEOUT_MS = 120000;
 const CACHE_REUSE_THRESHOLD = 0.5;
 
 interface TicketTableExportButtonProps {
@@ -98,7 +103,7 @@ async function fetchAllTickets(
 
       const fetchedByIndex = new Map<number, BonLivraisonTerminee[]>();
       const tasks = missingIndexes.map((pageIndex) => async () => {
-        const r = await getBonLivraisonRequest({ ...cacheParams, size: cachedSize, page: pageIndex });
+        const r = await getBonLivraisonRequest({ ...cacheParams, size: cachedSize, page: pageIndex }, { timeoutMs: EXPORT_TIMEOUT_MS });
         return { pageIndex, content: r.content };
       });
 
@@ -118,7 +123,7 @@ async function fetchAllTickets(
   }
 
   const baseParams: ITicketParams = { ...cacheParams, size: EXPORT_PAGE_SIZE };
-  const first = await getBonLivraisonRequest({ ...baseParams, page: 0 });
+  const first = await getBonLivraisonRequest({ ...baseParams, page: 0 }, { timeoutMs: EXPORT_TIMEOUT_MS });
   const totalPages = first.totalPages || 1;
   const totalElements = first.totalElements || first.content.length;
 
@@ -130,7 +135,7 @@ async function fetchAllTickets(
   if (totalPages > 1) {
     const indices = Array.from({ length: totalPages - 1 }, (_, k) => k + 1);
     const tasks = indices.map((pageIndex) => async () => {
-      const r = await getBonLivraisonRequest({ ...baseParams, page: pageIndex });
+      const r = await getBonLivraisonRequest({ ...baseParams, page: pageIndex }, { timeoutMs: EXPORT_TIMEOUT_MS });
       return { pageIndex, content: r.content };
     });
 

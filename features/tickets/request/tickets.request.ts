@@ -33,7 +33,10 @@ const bonLivraisonEndpoints = {
   supprimerBonLivraison: { endpoint: `${BASE_URL}/supprimer`, method: 'DELETE' },
 };
 
-export async function getBonLivraisonRequest(params: ITicketParams): Promise<PaginatedResponse<BonLivraisonTerminee>> {
+export async function getBonLivraisonRequest(
+  params: ITicketParams,
+  options?: { timeoutMs?: number },
+): Promise<PaginatedResponse<BonLivraisonTerminee>> {
   return await apiClientHttp.request<PaginatedResponse<BonLivraisonTerminee>>({
     endpoint: bonLivraisonEndpoints.bonLivraisonTerminees.endpoint,
     method: bonLivraisonEndpoints.bonLivraisonTerminees.method,
@@ -46,6 +49,9 @@ export async function getBonLivraisonRequest(params: ITicketParams): Promise<Pag
       fin: params.fin?.toISOString()?.split('T')?.[0],
       search: params.search,
     },
+    // Export en masse : on autorise un timeout étendu (le défaut 30 s coupe les
+    // grosses pages sur /tous/termines). Sans option, comportement inchangé.
+    ...(options?.timeoutMs ? { config: { timeout: options.timeoutMs } } : {}),
   });
 }
 
