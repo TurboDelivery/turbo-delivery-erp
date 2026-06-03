@@ -1,0 +1,365 @@
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Button,
+  Card,
+  CardBody,
+  Checkbox,
+  Chip,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Select,
+  SelectItem,
+  Spinner,
+  useDisclosure,
+} from '@heroui/react';
+import { Banknote, Download, FileText, Wallet } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  FinanceStatut,
+  IFinanceItem,
+  fmtFcfa,
+  nextAction,
+  steps,
+  useFinancesHub,
+} from '@/features/finances-hub';
+
+const now = new Date();
+const Y = now.getFullYear();
+const M = now.getMonth() + 1;
+const buildDate = (jour: number) =>
+  `${Y}-${String(M).padStart(2, '0')}-${String(jour).padStart(2, '0')}`;
+
+const STATUT: Record<FinanceStatut, { label: string; color: 'warning' | 'primary' | 'secondary' | 'success' | 'danger' }> = {
+  pending: { label: 'En attente', color: 'warning' },
+  vise: { label: 'Visé DGA', color: 'primary' },
+  approuve: { label: 'Approuvé DG', color: 'secondary' },
+  paye: { label: 'Payé', color: 'success' },
+  rejete: { label: 'Rejeté', color: 'danger' },
+};
+
+function Stepper({ item, seuil }: { item: IFinanceItem; seuil: number }) {
+  const st = steps(item, seuil);
+  const cur = nextAction(item, seuil);
+  const node = (done: boolean, current = false, skip = false) => (
+    <span
+      className={`flex h-3.5 w-3.5 flex-none items-center justify-center rounded-full border-2 ${
+        done
+          ? 'border-emerald-600 bg-emerald-600'
+          : current
+            ? 'border-primary ring-2 ring-primary/20'
+            : skip
+              ? 'border-dashed border-default-300 bg-default-100'
+              : 'border-default-300 bg-white'
+      }`}
+    >
+      {done && <span className="h-1 w-1 rounded-full bg-white" />}
+    </span>
+  );
+  const line = (done: boolean) => <span className={`h-0.5 flex-1 ${done ? 'bg-emerald-600' : 'bg-default-200'}`} />;
+  return (
+    <div className="flex min-w-[140px] items-center" title="Saisie → Visa DGA → Accord DG → Payé">
+      <span className="flex flex-1 items-center">{node(st.saisie)}{line(st.visa)}</span>
+      <span className="flex flex-1 items-center">{node(st.visa, cur === 'vise')}{line(st.dg === true)}</span>
+      <span className="flex flex-1 items-center">{node(st.dg === true, cur === 'approuve', st.dg === 'skip')}{line(st.paye)}</span>
+      <span className="flex items-center">{node(st.paye, cur === 'pay')}</span>
+    </div>
+  );
+}
+
+const TABS = [
+  { k: 'fixe', label: 'Charges fixes' },
+  { k: 'variable', label: 'Dépenses variables' },
+  { k: 'bap', label: 'Bon à payer' },
+  { k: 'all', label: 'Toutes' },
+] as const;
+
+export function FinanceHubView() {
+  const [jour, setJour] = useState(Math.min(now.getDate(), 30));
+  const [dateArret, setDateArret] = useState(buildDate(Math.min(now.getDate(), 30)));
+  const [tab, setTab] = useState<(typeof TABS)[number]['k']>('fixe');
+  const [sel, setSel] = useState<Set<string>>(new Set());
+
+  const { items, seuil, nbJours, renta, isLoading, busy, runAction } = useFinancesHub(dateArret);
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const [payTargets, setPayTargets] = useState<IFinanceItem[]>([]);
+  const [acc, setAcc] = useState('Caisse physique');
+  const [moy, setMoy] = useState('Espèces');
+
+  // KPI / prorata depuis l'API rentabilité
+  const k = {
+    ca: renta?.caCumule ?? 0,
+    dep: renta?.totalCumule ?? 0,
+    profit: renta?.profit ?? 0,
+    marge: renta?.marge ?? true,
+    coutJour: renta?.coutJournalier ?? 0,
+    fixeProrata: renta?.fixeProrata ?? 0,
+    variableReel: renta?.variableReel ?? 0,
+    fixeMensuel: renta?.chargesFixesMensuelles ?? 0,
+    jours: renta?.joursEcoules ?? jour,
+  };
+  const bap = useMemo(() => items.filter((i) => nextAction(i, seuil) === 'pay'), [items, seuil]);
+  const bapTotal = bap.reduce((s, i) => s + i.montant, 0);
+
+  const list = useMemo(() => {
+    if (tab === 'fixe') return items.filter((i) => i.type === 'fixe');
+    if (tab === 'variable') return items.filter((i) => i.type === 'variable');
+    if (tab === 'bap') return bap;
+    return items;
+  }, [items, tab, bap]);
+
+  useEffect(() => setSel(new Set()), [tab]);
+
+  const act = async (item: IFinanceItem, action: 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser', label: string, comment?: string) => {
+    try {
+      await runAction(item, action, comment);
+      toast.success(`${label} · ${item.designation}`);
+    } catch (e) {
+      toast.error("Action impossible", { description: e instanceof Error ? e.message : 'Erreur' });
+    }
+  };
+  const onReject = (item: IFinanceItem) =>
+    act(item, item.statut === 'vise' ? 'rejeter-dg' : 'rejeter-dga', 'Rejeté');
+
+  const openPay = (targets: IFinanceItem[]) => {
+    if (!targets.length) return;
+    setPayTargets(targets);
+    onOpen();
+  };
+  const confirmPay = async () => {
+    const comment = `${acc} · ${moy}`;
+    for (const item of payTargets) {
+      // eslint-disable-next-line no-await-in-loop
+      await act(item, 'decaisser', 'Décaissé', comment);
+    }
+    onClose();
+    setSel(new Set());
+    toast.success(`Décaissé ${fmtFcfa(payTargets.reduce((s, i) => s + i.montant, 0))} depuis ${acc}`);
+  };
+
+  const exportCsv = () => {
+    const rows = [['Désignation', 'Type', 'Catégorie', 'Montant', 'Échéance', 'Statut']];
+    items.forEach((i) => rows.push([i.designation, i.type, i.categorie, String(i.montant), i.echeance, STATUT[i.statut].label]));
+    const csv = '﻿' + rows.map((r) => r.map((c) => `"${c}"`).join(';')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+    a.download = `Finances_Turbo_Delivery.csv`;
+    a.click();
+  };
+
+  const countFor = (kk: string) =>
+    kk === 'fixe' ? items.filter((i) => i.type === 'fixe').length
+    : kk === 'variable' ? items.filter((i) => i.type === 'variable').length
+    : kk === 'bap' ? bap.length : items.length;
+
+  const pf = k.dep ? (k.fixeProrata / k.dep) * 100 : 50;
+
+  return (
+    <div className="space-y-4 p-3 sm:p-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-primary sm:text-xl">Finances — Dépenses, Décaissement & Rentabilité</h1>
+          <p className="text-sm text-default-500">
+            Module unifié : charges fixes & variables · validation en cascade · prorata temps réel · décaissement
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="bordered" startContent={<Download className="h-4 w-4" />} onPress={exportCsv}>Excel</Button>
+          <Button size="sm" className="bg-foreground text-background" startContent={<FileText className="h-4 w-4" />} onPress={() => window.print()}>PDF</Button>
+        </div>
+      </div>
+
+      {/* Curseur date d'arrêté */}
+      <Card shadow="none" className="border border-default-200">
+        <CardBody className="gap-2">
+          <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wide text-default-500">
+            <span>Date d&apos;arrêté (jour du mois) — pilote le prorata</span>
+            <span className="font-bold text-primary">J{jour} / {nbJours}</span>
+          </div>
+          <input
+            type="range" min={1} max={nbJours} value={jour}
+            onChange={(e) => setJour(Number(e.target.value))}
+            onMouseUp={(e) => setDateArret(buildDate(Number((e.target as HTMLInputElement).value)))}
+            onTouchEnd={(e) => setDateArret(buildDate(Number((e.target as HTMLInputElement).value)))}
+            className="w-full accent-primary"
+          />
+        </CardBody>
+      </Card>
+
+      {/* KPI */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Kpi label="CA cumulé" value={fmtFcfa(k.ca)} />
+        <Kpi label="Dépenses cumulées" value={fmtFcfa(k.dep)} sub="Prorata fixe + variable réel" />
+        <Card shadow="none" className={`border ${k.marge ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}>
+          <CardBody className="gap-1 p-4">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-default-500">{k.marge ? 'Marge actuelle' : 'Déficit actuel'}</span>
+            <span className={`text-2xl font-bold tabular-nums ${k.marge ? 'text-emerald-700' : 'text-rose-700'}`}>{k.profit >= 0 ? '+' : ''}{fmtFcfa(k.profit)}</span>
+            <span className={`mt-0.5 inline-block w-fit rounded-full px-2 py-0.5 text-[11px] font-semibold ${k.marge ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{k.marge ? 'Rentable à ce stade' : 'En déficit à ce stade'}</span>
+          </CardBody>
+        </Card>
+        <Kpi label="Bon à payer" value={fmtFcfa(bapTotal)} sub={`${bap.length} dépense${bap.length > 1 ? 's' : ''} prête${bap.length > 1 ? 's' : ''}`} icon={Wallet} />
+      </div>
+
+      {/* Décomposition prorata */}
+      <Card shadow="none" className="border border-default-200">
+        <CardBody>
+          <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-default-700"><span className="h-2 w-2 rounded-full bg-primary" />Décomposition au prorata (à J{k.jours})</p>
+          <div className="grid grid-cols-2 gap-y-3 sm:grid-cols-4">
+            <Cell l="Coût journalier" v={fmtFcfa(k.coutJour)} s={`${fmtFcfa(k.fixeMensuel)} ÷ ${nbJours} j`} />
+            <Cell l="Charges fixes prorata" v={fmtFcfa(k.fixeProrata)} s={`${fmtFcfa(k.coutJour)} × ${k.jours} j`} />
+            <Cell l="Dépenses variables réelles" v={fmtFcfa(k.variableReel)} s={`Jusqu'à J${k.jours}`} />
+            <Cell l="Total dépenses" v={fmtFcfa(k.dep)} s="Prorata + variable" accent />
+          </div>
+          <div className="mt-3 flex h-3 overflow-hidden rounded-full border border-default-200">
+            <div className="bg-primary" style={{ width: `${pf}%` }} />
+            <div className="bg-foreground/80" style={{ width: `${100 - pf}%` }} />
+          </div>
+          <div className="mt-1.5 flex gap-4 text-xs text-default-500">
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-primary" />Charges fixes au prorata</span>
+            <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-foreground/80" />Dépenses variables réelles</span>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* Onglets */}
+      <div className="flex flex-wrap gap-1.5">
+        {TABS.map((t) => (
+          <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-content1 text-foreground shadow-sm ring-1 ring-default-200' : 'text-default-500 hover:text-foreground'}`}>
+            {t.label}<span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-primary/10 text-primary' : 'bg-default-100 text-default-500'}`}>{countFor(t.k)}</span>
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-16"><Spinner color="primary" label="Chargement…" /></div>
+      ) : (
+        <Card shadow="none" className="border border-default-200">
+          {tab === 'bap' && bap.length > 0 && (
+            <div className="flex items-center justify-between border-b border-default-200 px-4 py-2.5">
+              <span className="text-sm text-default-500">Sélection : {sel.size} / {bap.length}</span>
+              <Button size="sm" color="success" isLoading={busy} startContent={<Banknote className="h-4 w-4" />}
+                onPress={() => openPay(bap.filter((i) => sel.has(i.id)))} isDisabled={sel.size === 0}>
+                Décaisser la sélection ({sel.size})
+              </Button>
+            </div>
+          )}
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] text-sm">
+              <thead>
+                <tr className="bg-default-100 text-left text-[11px] uppercase tracking-wide text-default-600">
+                  {tab === 'bap' && <th className="w-10 px-3 py-2.5" />}
+                  <th className="px-3 py-2.5">Désignation</th>
+                  <th className="px-3 py-2.5">{tab === 'bap' ? 'Type' : 'Catégorie'}</th>
+                  <th className="px-3 py-2.5 text-right">Montant</th>
+                  <th className="px-3 py-2.5">Échéance</th>
+                  {tab !== 'bap' && <th className="px-3 py-2.5">Validation</th>}
+                  <th className="px-3 py-2.5">Statut</th>
+                  <th className="px-3 py-2.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.length === 0 && (
+                  <tr><td colSpan={8} className="px-3 py-10 text-center text-default-400">Aucune dépense ici.</td></tr>
+                )}
+                {list.map((item) => {
+                  const a = nextAction(item, seuil);
+                  return (
+                    <tr key={`${item.type}-${item.id}`} className="border-b border-default-100 hover:bg-default-50">
+                      {tab === 'bap' && (
+                        <td className="px-3 py-2.5">
+                          <Checkbox size="sm" isSelected={sel.has(item.id)} onValueChange={(v) => setSel((p) => { const n = new Set(p); v ? n.add(item.id) : n.delete(item.id); return n; })} />
+                        </td>
+                      )}
+                      <td className="px-3 py-2.5">
+                        <div className="font-semibold text-foreground">{item.designation}{item.dyn && <span className="ml-1.5 rounded bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-teal-700">RH dyn.</span>}</div>
+                        <div className="text-[11px] text-default-400">{item.src} · {item.justif ? 'Reçu' : 'sans pièce'}</div>
+                      </td>
+                      <td className="px-3 py-2.5">
+                        {tab === 'bap'
+                          ? <Chip size="sm" variant="flat" color={item.type === 'fixe' ? 'default' : 'warning'} className="h-5">{item.type === 'fixe' ? 'Fixe' : 'Variable'}</Chip>
+                          : <span className="text-default-500">{item.categorie}</span>}
+                      </td>
+                      <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{fmtFcfa(item.montant)}</td>
+                      <td className="px-3 py-2.5 text-default-500">{item.echeance}</td>
+                      {tab !== 'bap' && <td className="px-3 py-2.5"><Stepper item={item} seuil={seuil} /></td>}
+                      <td className="px-3 py-2.5"><Chip size="sm" variant="flat" color={STATUT[item.statut].color} className="h-5">{STATUT[item.statut].label}</Chip></td>
+                      <td className="px-3 py-2.5">
+                        <div className="flex justify-end gap-1.5">
+                          {a === 'vise' && <Button size="sm" variant="flat" color="primary" isLoading={busy} onPress={() => act(item, 'valider-dga', 'Visa DGA')}>Viser</Button>}
+                          {a === 'approuve' && <Button size="sm" variant="flat" color="secondary" isLoading={busy} onPress={() => act(item, 'approuver-dg', 'Accord DG')}>Approuver</Button>}
+                          {a === 'pay' && <Button size="sm" color="success" isLoading={busy} onPress={() => openPay([item])}>Décaisser</Button>}
+                          {a && item.statut !== 'paye' && <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => onReject(item)} title="Rejeter">✕</Button>}
+                          {item.statut === 'paye' && <span className="text-[11px] text-default-400">Payé</span>}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* Modal décaissement */}
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="lg">
+        <ModalContent>
+          {(close) => (
+            <>
+              <ModalHeader className="bg-emerald-600 text-white">Décaisser {payTargets.length > 1 ? `la sélection (${payTargets.length})` : 'cette dépense'}</ModalHeader>
+              <ModalBody className="gap-4 py-4">
+                <div className="rounded-lg bg-default-100 p-3 text-sm">
+                  {payTargets.length === 1
+                    ? <>{payTargets[0]?.designation}<br />Montant : <b>{fmtFcfa(payTargets[0]?.montant)}</b></>
+                    : <>{payTargets.length} dépenses · Total : <b>{fmtFcfa(payTargets.reduce((s, i) => s + i.montant, 0))}</b></>}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Select label="Compte débité" size="sm" selectedKeys={[acc]} onSelectionChange={(ks) => setAcc(String(Array.from(ks)[0] ?? 'Caisse physique'))}>
+                    <SelectItem key="Caisse physique" value="Caisse physique">Caisse physique</SelectItem>
+                    <SelectItem key="Banque" value="Banque">Banque</SelectItem>
+                  </Select>
+                  <Select label="Moyen de paiement" size="sm" selectedKeys={[moy]} onSelectionChange={(ks) => setMoy(String(Array.from(ks)[0] ?? 'Espèces'))}>
+                    {['Espèces', 'Chèque', 'Mobile Money', 'Virement'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  </Select>
+                </div>
+                <p className="text-xs text-default-400">Le passage en « Payé » crée la sortie de trésorerie (compte + moyen tracés).</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={close}>Annuler</Button>
+                <Button color="success" isLoading={busy} onPress={confirmPay}>Confirmer le décaissement</Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </div>
+  );
+}
+
+function Kpi({ label, value, sub, icon: Icon }: { label: string; value: string; sub?: string; icon?: typeof Wallet }) {
+  return (
+    <Card shadow="none" className="border border-default-200">
+      <CardBody className="gap-1 p-4">
+        <span className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wide text-default-500">
+          {label}{Icon && <Icon className="h-4 w-4 text-default-300" />}
+        </span>
+        <span className="text-xl font-bold tabular-nums text-foreground">{value}</span>
+        {sub && <span className="text-xs text-default-400">{sub}</span>}
+      </CardBody>
+    </Card>
+  );
+}
+
+function Cell({ l, v, s, accent }: { l: string; v: string; s: string; accent?: boolean }) {
+  return (
+    <div className="px-1">
+      <div className="text-[11px] font-medium uppercase tracking-wide text-default-500">{l}</div>
+      <div className={`mt-1 text-lg font-bold tabular-nums ${accent ? 'text-primary' : 'text-foreground'}`}>{v}</div>
+      <div className="text-[11px] text-default-400">{s}</div>
+    </div>
+  );
+}
