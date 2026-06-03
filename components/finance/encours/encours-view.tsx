@@ -11,6 +11,7 @@ import {
 import { EncoursKpiCards } from './encours-kpi-cards';
 import { EncoursCharts } from './encours-charts';
 import { EncoursTable } from './encours-table';
+import { EncoursMobileCards } from './encours-mobile-cards';
 import { EncoursDeductionsTable } from './encours-deductions-table';
 import { EncoursDeductionsManager } from './encours-deductions-manager';
 import { EncoursExportButton } from './encours-export-button';
@@ -23,6 +24,7 @@ const CYCLES = [
   { key: 'TOUS', label: 'Tous' },
   { key: 'MENSUEL', label: 'Mensuel' },
   { key: 'QUINZAINE', label: 'Quinzaine' },
+  { key: 'HEBDOMADAIRE', label: 'Hebdomadaire' },
 ];
 
 export function EncoursView() {
@@ -40,13 +42,13 @@ export function EncoursView() {
   const { data: groupes } = useEncoursGroupesQuery();
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-4 p-3 sm:p-4">
       {/* En-tête */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-primary">Encours — Restes à payer</h1>
+          <h1 className="text-lg font-bold text-primary sm:text-xl">Encours — Restes à payer</h1>
           <p className="text-sm text-default-500">
-            Factures éditées non encore recouvrées (par mois / cumul annuel)
+            Factures éditées non encore recouvrées — détail par facture (mois / quinzaine / semaine)
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -55,12 +57,12 @@ export function EncoursView() {
         </div>
       </div>
 
-      {/* Filtres */}
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-default-200 bg-content1 p-3">
+      {/* Filtres (responsives : 2 colonnes en mobile, ligne en desktop) */}
+      <div className="grid grid-cols-2 items-end gap-2 rounded-xl border border-default-200 bg-content1 p-3 sm:flex sm:flex-wrap sm:gap-3">
         <Select
           label="Année"
           size="sm"
-          className="w-28"
+          className="w-full sm:w-28"
           selectedKeys={[String(filters.annee)]}
           onSelectionChange={(keys) => {
             const v = Array.from(keys)[0] as string;
@@ -77,7 +79,7 @@ export function EncoursView() {
         <Select
           label="Mois"
           size="sm"
-          className="w-40"
+          className="w-full sm:w-40"
           selectedKeys={[filters.mois || 'TOUS']}
           onSelectionChange={(keys) => {
             const v = Array.from(keys)[0] as string;
@@ -99,7 +101,7 @@ export function EncoursView() {
         <Select
           label="Cycle"
           size="sm"
-          className="w-36"
+          className="w-full sm:w-40"
           selectedKeys={[filters.cycle || 'TOUS']}
           onSelectionChange={(keys) => {
             const v = Array.from(keys)[0] as string;
@@ -116,7 +118,7 @@ export function EncoursView() {
         <Select
           label="Partenaire"
           size="sm"
-          className="w-56"
+          className="w-full sm:w-56"
           selectedKeys={[filters.partenaire || 'TOUS']}
           onSelectionChange={(keys) => {
             const v = Array.from(keys)[0] as string;
@@ -136,11 +138,13 @@ export function EncoursView() {
           ]}
         </Select>
 
-        <EncoursStoreFilter
-          partenaire={filters.partenaire}
-          value={filters.stores ?? []}
-          onChange={(ids) => setFilters({ stores: ids })}
-        />
+        <div className="col-span-2 sm:contents">
+          <EncoursStoreFilter
+            partenaire={filters.partenaire}
+            value={filters.stores ?? []}
+            onChange={(ids) => setFilters({ stores: ids })}
+          />
+        </div>
       </div>
 
       {/* États */}
@@ -160,7 +164,13 @@ export function EncoursView() {
         <div className="space-y-4">
           <EncoursKpiCards releve={releve} />
           <EncoursCharts releve={releve} />
-          <EncoursTable releve={releve} />
+          {/* Desktop : tableau détaillé ; Mobile : cartes tactiles */}
+          <div className="hidden md:block">
+            <EncoursTable releve={releve} />
+          </div>
+          <div className="md:hidden">
+            <EncoursMobileCards releve={releve} />
+          </div>
           <EncoursDeductionsTable deductions={releve.deductions} total={releve.totalDeductions} />
         </div>
       )}

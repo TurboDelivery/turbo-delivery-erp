@@ -1,19 +1,27 @@
-// Types de la page ENCOURS (restes à payer) — module Comptabilité.
+// Types de la page ENCOURS v3 (restes à payer) — détail facture par facture.
 
-export type CycleRecouvrement = 'QUINZAINE' | 'MENSUEL';
+export type CycleRecouvrement = 'QUINZAINE' | 'HEBDOMADAIRE' | 'MENSUEL';
+
+/** Une facture éditée (ligne de détail). */
+export interface IEncoursFacture {
+  mois: number; // 1-12
+  periode: string; // libellé mois, ex. « Avril »
+  libelle: string; // « Mois » | « Quinzaine 1/2 » | « Semaine N (dd–dd) »
+  totalAPayer: number;
+  acompte: number; // déjà recouvré
+  solde: number; // reste à payer
+  statut: string; // Payé | Partiel | En retard | En cours
+}
 
 export interface IEncoursStore {
   store: string;
-  /** mois (1-12) → montant facturé. Mois absent = « — » à l'affichage (pas 0). */
-  factureParMois: Record<string, number>;
-  resteParMois?: Record<string, number>;
+  factures: IEncoursFacture[];
   totalFacture: number;
   reste: number;
 }
 
 export interface IEncoursPartenaire {
   groupe: string;
-  /** Cadence de facturation : "QUINZAINE" ou "MENSUEL" (§4 filtre Cycle). */
   cycle: CycleRecouvrement;
   stores: IEncoursStore[];
   sousTotalFacture: number;
@@ -27,25 +35,20 @@ export interface IStoreOption {
   nom: string;
 }
 
-export interface IEncoursDeduction {
-  partenaire: string;
-  motif: string | null;
-  montant: number;
-}
-
 export interface IEncoursReleve {
   annee: number;
   mois: number | null;
   partenaireFiltre: string | null;
-  moisColonnes: number[];
   partenaires: IEncoursPartenaire[];
   totalFacture: number;
   totalReste: number;
   /** Totaux par mois (clé = numéro de mois "1".."12") pour les mini-graphes. */
+  moisColonnes: number[];
   factureParMois: Record<string, number>;
   resteParMois: Record<string, number>;
   nbPartenaires: number;
   nbStores: number;
+  nbFactures: number;
   deductions: IEncoursDeduction[];
   totalDeductions: number;
   dateGeneration: string;
@@ -55,13 +58,17 @@ export interface IEncoursParams {
   annee: number;
   mois?: number | null;
   partenaire?: string | null;
-  /** "MENSUEL" | "QUINZAINE" | null = tous. */
   cycle?: string | null;
-  /** ids de stores (multi-sélection) ; vide = tous. */
   stores?: string[] | null;
 }
 
-// Déductions / avances par partenaire (CRUD §6).
+// Déductions / avances par partenaire (CRUD §7).
+export interface IEncoursDeduction {
+  partenaire: string;
+  motif: string | null;
+  montant: number;
+}
+
 export interface IDeductionPartenaire {
   id: string;
   groupePartenaire: string;

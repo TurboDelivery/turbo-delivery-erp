@@ -109,8 +109,14 @@ const Sidebar = () => {
                 <IconCaretsDown className="m-auto rotate-90" />
               </button>
             </div>
-            <PerfectScrollbar className="relative h-[calc(100vh-80px)]">
-              <ul className="relative space-y-0.5 p-4 py-0 font-semibold">
+            {/* 100dvh (hauteur de viewport dynamique) : sur mobile, la barre du navigateur
+                réduit 100vh et masquait les derniers items du menu. pb-24 garantit que le
+                dernier item est atteignable au-dessus du bord/safe-area. */}
+            <PerfectScrollbar
+              className="relative h-[calc(100dvh-80px)] overflow-y-auto overscroll-contain"
+              options={{ suppressScrollX: true, wheelPropagation: false }}
+            >
+              <ul className="relative space-y-0.5 p-4 py-0 pb-24 font-semibold">
                 <RenderMenu menu={filteredMenu} currentMenu={currentMenu} toggleMenu={toggleMenu} t={t} />
               </ul>
             </PerfectScrollbar>

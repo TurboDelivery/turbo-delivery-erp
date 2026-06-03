@@ -34,7 +34,11 @@ export function formatCompact(n?: number | null): string {
   return formatNombre(n);
 }
 
-export const CYCLE_LABEL: Record<string, string> = { QUINZAINE: 'Quinzaine', MENSUEL: 'Mensuel' };
+export const CYCLE_LABEL: Record<string, string> = {
+  QUINZAINE: 'Quinzaine',
+  HEBDOMADAIRE: 'Hebdomadaire',
+  MENSUEL: 'Mensuel',
+};
 
 export function cycleLabel(c?: string | null): string {
   if (!c) return '—';
