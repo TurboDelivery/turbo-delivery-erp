@@ -3,9 +3,18 @@ import { SearchParams } from 'ak-api-http';
 import {
   IEncoursReleve,
   IEncoursParams,
+  IStoreOption,
   IDeductionPartenaire,
   ICreateDeductionPartenaire,
 } from '../types/encours.types';
+
+const searchParamsFromFilters = (params: IEncoursParams) => ({
+  annee: params.annee,
+  mois: params.mois ?? undefined, // omis = « Tous » (cumul annuel)
+  cycle: params.cycle || undefined,
+  partenaire: params.partenaire || undefined,
+  stores: params.stores && params.stores.length ? params.stores.join(',') : undefined,
+});
 
 // Backend : main-backend (service erp). /api/finance/encours, /api/finance/encours/groupes,
 // /api/finance/deductions-partenaire.
@@ -14,11 +23,7 @@ export const encoursAPI = {
     return api.request<IEncoursReleve>({
       endpoint: 'finance/encours',
       method: 'GET',
-      searchParams: {
-        annee: params.annee,
-        mois: params.mois ?? undefined,        // omis = « Tous » (cumul annuel)
-        partenaire: params.partenaire || undefined,
-      } as SearchParams,
+      searchParams: searchParamsFromFilters(params) as SearchParams,
     });
   },
 
@@ -29,18 +34,21 @@ export const encoursAPI = {
     });
   },
 
+  getStores(partenaire: string): Promise<IStoreOption[]> {
+    return api.request<IStoreOption[]>({
+      endpoint: 'finance/encours/stores',
+      method: 'GET',
+      searchParams: { partenaire } as SearchParams,
+    });
+  },
+
   // Export serveur (OpenPDF / POI) — renvoie un Blob (binaire). On surcharge le timeout
   // (2 s par défaut, insuffisant pour un gros relevé) et on force responseType: 'blob'.
   exporter(params: IEncoursParams, format: 'pdf' | 'xlsx'): Promise<Blob> {
     return api.request<Blob>({
       endpoint: 'finance/encours/export',
       method: 'GET',
-      searchParams: {
-        annee: params.annee,
-        mois: params.mois ?? undefined,
-        partenaire: params.partenaire || undefined,
-        format,
-      } as SearchParams,
+      searchParams: { ...searchParamsFromFilters(params), format } as SearchParams,
       config: { responseType: 'blob', timeout: 120000 },
     });
   },

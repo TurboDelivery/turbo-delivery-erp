@@ -8,6 +8,7 @@ export const encoursKeys = {
   all: ['encours'] as const,
   releve: (params: IEncoursParams) => [...encoursKeys.all, 'releve', params] as const,
   groupes: () => [...encoursKeys.all, 'groupes'] as const,
+  stores: (partenaire: string) => [...encoursKeys.all, 'stores', partenaire] as const,
   deductions: (annee: number) => [...encoursKeys.all, 'deductions', annee] as const,
 };
 
@@ -25,6 +26,15 @@ export const useEncoursGroupesQuery = () =>
   useQuery({
     queryKey: encoursKeys.groupes(),
     queryFn: () => encoursAPI.getGroupes(),
+    staleTime: 30 * 60 * 1000,
+  });
+
+/** Points de vente d'un partenaire (filtre multi-sélection) — actif si un partenaire est choisi. */
+export const useEncoursStoresQuery = (partenaire: string) =>
+  useQuery({
+    queryKey: encoursKeys.stores(partenaire),
+    queryFn: () => encoursAPI.getStores(partenaire),
+    enabled: !!partenaire,
     staleTime: 30 * 60 * 1000,
   });
 

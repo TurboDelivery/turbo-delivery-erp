@@ -1,21 +1,29 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
-import { Select, SelectItem } from '@heroui/react';
+import { Select, SelectItem, Spinner } from '@heroui/react';
 import {
   encoursFilters,
   useEncoursQuery,
   useEncoursGroupesQuery,
   MOIS_LONGS,
 } from '@/features/encours';
+import { EncoursKpiCards } from './encours-kpi-cards';
+import { EncoursCharts } from './encours-charts';
 import { EncoursTable } from './encours-table';
 import { EncoursDeductionsTable } from './encours-deductions-table';
 import { EncoursDeductionsManager } from './encours-deductions-manager';
 import { EncoursExportButton } from './encours-export-button';
+import { EncoursStoreFilter } from './encours-store-filter';
 
 const anneeCourante = new Date().getFullYear();
 const ANNEES = [anneeCourante, anneeCourante - 1, anneeCourante - 2, anneeCourante - 3];
 const MOIS = Array.from({ length: 12 }, (_, i) => i + 1);
+const CYCLES = [
+  { key: 'TOUS', label: 'Tous' },
+  { key: 'MENSUEL', label: 'Mensuel' },
+  { key: 'QUINZAINE', label: 'Quinzaine' },
+];
 
 export function EncoursView() {
   const [filters, setFilters] = useQueryStates(encoursFilters.filter, encoursFilters.option);
@@ -23,7 +31,9 @@ export function EncoursView() {
   const params = {
     annee: filters.annee,
     mois: filters.mois ? Number(filters.mois) : null,
+    cycle: filters.cycle || null,
     partenaire: filters.partenaire || null,
+    stores: filters.stores ?? [],
   };
 
   const { data: releve, isLoading, isError } = useEncoursQuery(params);
@@ -31,10 +41,11 @@ export function EncoursView() {
 
   return (
     <div className="space-y-4 p-4">
+      {/* En-tête */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-primary">Encours — Restes à payer</h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-default-500">
             Factures éditées non encore recouvrées (par mois / cumul annuel)
           </p>
         </div>
@@ -44,11 +55,12 @@ export function EncoursView() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      {/* Filtres */}
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-default-200 bg-content1 p-3">
         <Select
           label="Année"
           size="sm"
-          className="w-32"
+          className="w-28"
           selectedKeys={[String(filters.annee)]}
           onSelectionChange={(keys) => {
             const v = Array.from(keys)[0] as string;
@@ -65,7 +77,7 @@ export function EncoursView() {
         <Select
           label="Mois"
           size="sm"
-          className="w-44"
+          className="w-40"
           selectedKeys={[filters.mois || 'TOUS']}
           onSelectionChange={(keys) => {
             const v = Array.from(keys)[0] as string;
@@ -85,13 +97,31 @@ export function EncoursView() {
         </Select>
 
         <Select
+          label="Cycle"
+          size="sm"
+          className="w-36"
+          selectedKeys={[filters.cycle || 'TOUS']}
+          onSelectionChange={(keys) => {
+            const v = Array.from(keys)[0] as string;
+            setFilters({ cycle: v === 'TOUS' ? '' : v });
+          }}
+        >
+          {CYCLES.map((c) => (
+            <SelectItem key={c.key} value={c.key}>
+              {c.label}
+            </SelectItem>
+          ))}
+        </Select>
+
+        <Select
           label="Partenaire"
           size="sm"
           className="w-56"
           selectedKeys={[filters.partenaire || 'TOUS']}
           onSelectionChange={(keys) => {
             const v = Array.from(keys)[0] as string;
-            setFilters({ partenaire: v === 'TOUS' ? '' : v });
+            // changer de partenaire réinitialise la sélection de points de vente (§4)
+            setFilters({ partenaire: v === 'TOUS' ? '' : v, stores: [] });
           }}
         >
           {[
@@ -105,13 +135,31 @@ export function EncoursView() {
             )),
           ]}
         </Select>
+
+        <EncoursStoreFilter
+          partenaire={filters.partenaire}
+          value={filters.stores ?? []}
+          onChange={(ids) => setFilters({ stores: ids })}
+        />
       </div>
 
-      {isLoading && <div className="py-10 text-center text-sm text-gray-500">Chargement…</div>}
-      {isError && <div className="py-10 text-center text-sm text-red-600">Erreur de chargement du relevé.</div>}
+      {/* États */}
+      {isLoading && (
+        <div className="flex items-center justify-center gap-2 py-16 text-sm text-default-500">
+          <Spinner size="sm" color="primary" /> Chargement du relevé…
+        </div>
+      )}
+      {isError && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 py-10 text-center text-sm text-rose-600">
+          Erreur de chargement du relevé.
+        </div>
+      )}
 
+      {/* Contenu */}
       {releve && !isLoading && (
-        <div className="overflow-x-auto">
+        <div className="space-y-4">
+          <EncoursKpiCards releve={releve} />
+          <EncoursCharts releve={releve} />
           <EncoursTable releve={releve} />
           <EncoursDeductionsTable deductions={releve.deductions} total={releve.totalDeductions} />
         </div>
