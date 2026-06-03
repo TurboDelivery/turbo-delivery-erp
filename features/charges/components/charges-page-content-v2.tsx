@@ -14,7 +14,6 @@ import ChargesStatsCardsV2 from './statistiques/charges-stats-cards-v2';
 import ChargesTableV2 from './charges-table-v2';
 import { ChargeFixeMobileCard, ChargeVariableMobileCard } from './charges-mobile-cards';
 import { ChargesModals } from './charges-modals';
-import { CategorieDepenseList } from '@/features/depenses/components/depense-list/categorie-depense';
 import { buildMonthOptions, monthKeyToRange, rangeToMonthKey } from '../utils/month-filter.utils';
 import RepartitionDepense from '@/features/depenses/components/repartition';
 import { useDepenseExport } from '@/features/depenses/hooks/use-depense-export';
@@ -115,12 +114,11 @@ export default function ChargesPageContentV2() {
         <CategoriesSelectFilter selectedCategories={depenseFilters.categoriesDepense || []} onCategoriesChange={handleCategoriesChange} />
       </div>
 
-      {/* Tabs: Charges & Catégories */}
+      {/* Tabs: Charges fixes & Dépenses variables (gestion des catégories déplacée dans Configuration) */}
       <Tabs defaultValue="charges" className="w-full">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 gap-2 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 gap-2 h-auto p-1">
           <TabsTrigger value="charges">Charges Fixes</TabsTrigger>
           <TabsTrigger value="variables">Dépenses Variables</TabsTrigger>
-          <TabsTrigger value="categories">Catégories</TabsTrigger>
         </TabsList>
 
         <TabsContent value="charges">
@@ -156,10 +154,6 @@ export default function ChargesPageContentV2() {
             }}
             onViewJustificatif={(url) => setPreviewUrl(url)}
           />
-        </TabsContent>
-
-        <TabsContent value="categories">
-          <CategorieDepenseList />
         </TabsContent>
       </Tabs>
 

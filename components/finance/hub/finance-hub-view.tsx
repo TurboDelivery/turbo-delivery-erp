@@ -17,7 +17,7 @@ import {
   Spinner,
   useDisclosure,
 } from '@heroui/react';
-import { Banknote, Download, FileText, Wallet } from 'lucide-react';
+import { Banknote, Download, FileText, Plus, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   FinanceStatut,
@@ -27,12 +27,16 @@ import {
   steps,
   useFinancesHub,
 } from '@/features/finances-hub';
+import { buildMonthOptions } from '@/features/charges/utils/month-filter.utils';
+import AddChargeFixeModal from '@/features/charges/components/add-charge-fixe-modal';
+import AddDepenseVariableModal from '@/features/charges/components/add-depense-variable-modal';
+import { Can } from '@/components/auth/Can';
 
-const now = new Date();
-const Y = now.getFullYear();
-const M = now.getMonth() + 1;
-const buildDate = (jour: number) =>
-  `${Y}-${String(M).padStart(2, '0')}-${String(jour).padStart(2, '0')}`;
+const NOW = new Date();
+const CUR_MONTH_KEY = `${NOW.getFullYear()}-${String(NOW.getMonth() + 1).padStart(2, '0')}`;
+// monthKey = "YYYY-MM" → date d'arrêté "YYYY-MM-DD"
+const buildDate = (monthKey: string, jour: number) =>
+  `${monthKey}-${String(jour).padStart(2, '0')}`;
 
 const STATUT: Record<FinanceStatut, { label: string; color: 'warning' | 'primary' | 'secondary' | 'success' | 'danger' }> = {
   pending: { label: 'En attente', color: 'warning' },
@@ -79,13 +83,29 @@ const TABS = [
 ] as const;
 
 export function FinanceHubView() {
-  const [jour, setJour] = useState(Math.min(now.getDate(), 30));
-  const [dateArret, setDateArret] = useState(buildDate(Math.min(now.getDate(), 30)));
+  const [monthKey, setMonthKey] = useState(CUR_MONTH_KEY);
+  const [jour, setJour] = useState(Math.min(NOW.getDate(), 30));
+  const [dateArret, setDateArret] = useState(buildDate(CUR_MONTH_KEY, Math.min(NOW.getDate(), 30)));
   const [tab, setTab] = useState<(typeof TABS)[number]['k']>('fixe');
   const [sel, setSel] = useState<Set<string>>(new Set());
+  const [isFixeModalOpen, setIsFixeModalOpen] = useState(false);
+  const [isVariableModalOpen, setIsVariableModalOpen] = useState(false);
+  const monthOptions = useMemo(() => buildMonthOptions(), []);
 
   const { items, seuil, nbJours, renta, isLoading, busy, runAction } = useFinancesHub(dateArret);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+
+  // Changement de mois : on repositionne le curseur (jour courant si mois en
+  // cours, sinon fin de mois) et on recalcule la date d'arrêté → la rentabilité
+  // et le prorata reflètent le mois choisi (cf. RentabiliteService back : la
+  // fenêtre est dérivée du mois de dateArret).
+  const changeMonth = (key: string) => {
+    if (!key) return;
+    const day = key === CUR_MONTH_KEY ? Math.min(NOW.getDate(), nbJours) : nbJours;
+    setMonthKey(key);
+    setJour(day);
+    setDateArret(buildDate(key, day));
+  };
   const [payTargets, setPayTargets] = useState<IFinanceItem[]>([]);
   const [acc, setAcc] = useState('Caisse physique');
   const [moy, setMoy] = useState('Espèces');
@@ -167,7 +187,24 @@ export function FinanceHubView() {
             Module unifié : charges fixes & variables · validation en cascade · prorata temps réel · décaissement
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Can I="create" a="ChargeFixe">
+            <Button size="sm" color="danger" variant="flat" startContent={<Plus className="h-4 w-4" />} onPress={() => setIsFixeModalOpen(true)}>Charge fixe</Button>
+          </Can>
+          <Can I="create" a="ChargeVariable">
+            <Button size="sm" color="danger" variant="flat" startContent={<Plus className="h-4 w-4" />} onPress={() => setIsVariableModalOpen(true)}>Dépense</Button>
+          </Can>
+          <Select
+            aria-label="Période (mois)"
+            size="sm"
+            className="w-[170px]"
+            selectedKeys={[monthKey]}
+            onSelectionChange={(keys) => changeMonth(String(Array.from(keys as Set<string>)[0] ?? CUR_MONTH_KEY))}
+          >
+            {monthOptions.map((m) => (
+              <SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>
+            ))}
+          </Select>
           <Button size="sm" variant="bordered" startContent={<Download className="h-4 w-4" />} onPress={exportCsv}>Excel</Button>
           <Button size="sm" className="bg-foreground text-background" startContent={<FileText className="h-4 w-4" />} onPress={() => window.print()}>PDF</Button>
         </div>
@@ -183,8 +220,8 @@ export function FinanceHubView() {
           <input
             type="range" min={1} max={nbJours} value={jour}
             onChange={(e) => setJour(Number(e.target.value))}
-            onMouseUp={(e) => setDateArret(buildDate(Number((e.target as HTMLInputElement).value)))}
-            onTouchEnd={(e) => setDateArret(buildDate(Number((e.target as HTMLInputElement).value)))}
+            onMouseUp={(e) => setDateArret(buildDate(monthKey, Number((e.target as HTMLInputElement).value)))}
+            onTouchEnd={(e) => setDateArret(buildDate(monthKey, Number((e.target as HTMLInputElement).value)))}
             className="w-full accent-primary"
           />
         </CardBody>
@@ -336,6 +373,10 @@ export function FinanceHubView() {
           )}
         </ModalContent>
       </Modal>
+
+      {/* Modales de création (reprises de la page Charges, désormais pilotées ici) */}
+      <AddChargeFixeModal isOpen={isFixeModalOpen} onClose={() => setIsFixeModalOpen(false)} chargeToEdit={null} />
+      <AddDepenseVariableModal isOpen={isVariableModalOpen} onClose={() => setIsVariableModalOpen(false)} chargeToEdit={null} />
     </div>
   );
 }

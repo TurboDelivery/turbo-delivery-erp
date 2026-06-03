@@ -18,6 +18,7 @@ import {
   useModuleConfigQuery,
   useUpdateModuleConfigMutation,
 } from '@/features/finances-config';
+import { CategorieDepenseList } from '@/features/depenses/components/depense-list/categorie-depense';
 
 const DEVISES = ['FCFA', 'EUR', 'USD'];
 
@@ -248,6 +249,9 @@ export function FinanceConfigView() {
           </CardBody>
         </Card>
       </div>
+
+      {/* Catégories de dépenses — création/édition (déplacé depuis la page Charges) */}
+      <CategorieDepenseList />
     </div>
   );
 }
