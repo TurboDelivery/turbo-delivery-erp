@@ -146,7 +146,7 @@ jobs:
       - name: Deploy
         run: |
           IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
+          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ConnectionAttempts=5 -o ServerAliveInterval=20 -o ServerAliveCountMax=5 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
           
             IMAGE="$IMAGE_NAME:latest"
           
