@@ -167,9 +167,14 @@ export default function GrillePaiementContent() {
         onConfirm={handleConfirmerSoumission}
         isLoading={isSoumettant}
         totaux={{
-          livreurs: grille.stats.totalLivreurs,
+          // Soumission DGA : on présente le « Total à payer » (Indépendants
+          // uniquement, V54) — pas le totalNet qui englobe journaliers +
+          // superviseurs (payés via un autre circuit). Cohérent avec la carte
+          // stats "Total à payer (Indépendants)". Fallback totalNet si l'ancien
+          // backend ne renvoie pas encore la décomposition.
+          livreurs: grille.stats.nbIndependants ?? grille.stats.totalLivreurs,
           tickets: grille.stats.totalTickets,
-          net: grille.stats.totalNet,
+          net: grille.stats.totalAPayer ?? grille.stats.totalNet,
         }}
         commentaire={commentaire}
         onCommentaireChange={setCommentaire}

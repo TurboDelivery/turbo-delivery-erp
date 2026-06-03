@@ -15,6 +15,8 @@ type GrillePaiementVmRaw = {
     totalTickets: number;
     totalBrut: number;
     totalNet: number;
+    totalAPayer?: number;
+    nbIndependants?: number;
   };
   lignes: {
     content: Array<{
@@ -70,6 +72,10 @@ export async function getVisaDgaApi(creneauId?: string): Promise<IVisaDgaCreneau
         totalTickets:  vm.stats?.totalTickets  ?? 0,
         totalBrut:     vm.stats?.totalBrut     ?? 0,
         totalNet:      vm.stats?.totalNet      ?? 0,
+        // V54 — montant à payer = Indépendants uniquement (fallback totalNet
+        // si l'ancien backend ne renvoie pas la décomposition).
+        totalAPayer:    vm.stats?.totalAPayer    ?? vm.stats?.totalNet      ?? 0,
+        nbIndependants: vm.stats?.nbIndependants ?? vm.stats?.totalLivreurs ?? 0,
       },
       livreurs: (vm.lignes?.content ?? []).map((l) => ({
         id:          l.turboy.id,

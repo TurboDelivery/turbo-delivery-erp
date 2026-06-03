@@ -31,6 +31,9 @@ export interface IVisaDgaCreneau {
     totalTickets: number;
     totalBrut: number;
     totalNet: number;
+    // V54 — montant réellement à payer (Indépendants uniquement) + leur nombre.
+    totalAPayer?: number;
+    nbIndependants?: number;
   };
   livreurs: IVisaDgaLivreur[];
   chaineValidation: IEtapeValidation[];

@@ -100,7 +100,7 @@ export default function VisaDgaContent() {
               <StatMini label="Livreurs"   value={creneau.stats.totalLivreurs}                          icon={Users}      />
               <StatMini label="Tickets"    value={creneau.stats.totalTickets}                           icon={Ticket}     />
               <StatMini label="Total Brut" value={creneau.stats.totalBrut.toLocaleString('fr-FR')} sub="FCFA" icon={Wallet}     />
-              <StatMini label="Total Net"  value={creneau.stats.totalNet.toLocaleString('fr-FR')}  sub="FCFA" icon={TrendingUp} highlight />
+              <StatMini label="Total à payer (Indép.)" value={(creneau.stats.totalAPayer ?? creneau.stats.totalNet).toLocaleString('fr-FR')} sub="FCFA" icon={TrendingUp} highlight />
             </div>
 
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
@@ -135,9 +135,9 @@ export default function VisaDgaContent() {
         isLoading={isVisant}
         codeCreneau={creneau.code}
         totaux={{
-          livreurs: creneau.stats.totalLivreurs,
+          livreurs: creneau.stats.nbIndependants ?? creneau.stats.totalLivreurs,
           tickets: creneau.stats.totalTickets,
-          net: creneau.stats.totalNet,
+          net: creneau.stats.totalAPayer ?? creneau.stats.totalNet,
         }}
       />
 
@@ -149,9 +149,9 @@ export default function VisaDgaContent() {
         motif={motif}
         onMotifChange={setMotif}
         totaux={{
-          livreurs: creneau.stats.totalLivreurs,
+          livreurs: creneau.stats.nbIndependants ?? creneau.stats.totalLivreurs,
           tickets: creneau.stats.totalTickets,
-          net: creneau.stats.totalNet,
+          net: creneau.stats.totalAPayer ?? creneau.stats.totalNet,
         }}
       />
     </div>

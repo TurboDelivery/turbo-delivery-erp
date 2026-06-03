@@ -43,7 +43,7 @@ export default function VisaDgaRejetModal({
           {/* Résumé */}
           <div className="rounded-xl bg-red-50 divide-y divide-red-100">
             <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-              <span className="text-gray-600">Nombre de Turboys</span>
+              <span className="text-gray-600">Indépendants à payer</span>
               <span className="font-medium text-gray-900">{totaux.livreurs}</span>
             </div>
             <div className="flex items-center justify-between px-4 py-2.5 text-sm">
@@ -51,7 +51,7 @@ export default function VisaDgaRejetModal({
               <span className="font-medium text-gray-900">{totaux.tickets}</span>
             </div>
             <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-              <span className="text-gray-600">Montant Net Total</span>
+              <span className="text-gray-600">Total à payer (Indépendants)</span>
               <span className="font-semibold text-emerald-600">
                 {formatNumber(totaux.net)} FCFA
               </span>

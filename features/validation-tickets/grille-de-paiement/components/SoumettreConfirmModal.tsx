@@ -47,7 +47,7 @@ export default function SoumettreConfirmModal({
             <p className="text-sm font-semibold text-blue-600 mb-2">Résumé du Créneau</p>
             <div className="rounded-xl bg-gray-50 divide-y divide-gray-100">
               <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-                <span className="text-gray-600">Nombre de Turboys</span>
+                <span className="text-gray-600">Indépendants à payer</span>
                 <span className="font-medium text-gray-900">{totaux.livreurs}</span>
               </div>
               <div className="flex items-center justify-between px-4 py-2.5 text-sm">
@@ -55,7 +55,7 @@ export default function SoumettreConfirmModal({
                 <span className="font-medium text-gray-900">{totaux.tickets}</span>
               </div>
               <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-                <span className="text-gray-600">Montant Net Total</span>
+                <span className="text-gray-600">Total à payer <span className="text-gray-400">(Indépendants)</span></span>
                 <span className="font-semibold text-emerald-600">
                   {formatNumber(totaux.net)} FCFA
                 </span>
