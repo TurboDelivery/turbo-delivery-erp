@@ -9,6 +9,7 @@ export interface IFactureApi {
   obtenirFacturesParRestaurant(restaurantId?: string, params?: IFactureParams): Promise<PaginatedResponse<IFacture>>;
   obtenirSummaryRecouvrements(params?: IFactureSummaryParams): Promise<IFactureSummary>;
   validerFacture(id: string): Promise<IFacture>;
+  recalculerFacture(id: string): Promise<IFacture>;
 }
 
 export const factureAPI: IFactureApi = {
@@ -63,6 +64,14 @@ export const factureAPI: IFactureApi = {
   validerFacture(id: string): Promise<IFacture> {
     return api.request<IFacture>({
       endpoint: `erp/factures/${id}/valider`,
+      method: 'POST',
+      data: { id },
+    });
+  },
+
+  recalculerFacture(id: string): Promise<IFacture> {
+    return api.request<IFacture>({
+      endpoint: `erp/factures/${id}/recalculer`,
       method: 'POST',
       data: { id },
     });

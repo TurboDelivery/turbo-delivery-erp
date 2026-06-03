@@ -5,9 +5,10 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import FacturePdfViewer from '@/components/finance/recouvrements/factures/pdf/facture-pdf-viewer';
 import { ValiderFactureDialog } from '@/components/finance/recouvrements/factures/valider-facture-dialog';
+import { RecalculerFactureDialog } from '@/components/finance/recouvrements/factures/recalculer-facture-dialog';
 import React, { useState } from 'react';
 import { Tooltip } from '@heroui/react';
 import { getStatutBadgeVariant, getStatutColor, getStatutLabel } from '@/features/recouvrements/utils/facture.utils';
@@ -24,12 +25,18 @@ const formatDate = (dateString: string) => {
 // Composant pour les actions de facture — partagé colonne (desktop) + carte mobile.
 export const FactureActions = ({ facture }: { facture: IFacture }) => {
   const [showValidateDialog, setShowValidateDialog] = useState(false);
+  const [showRecalculateDialog, setShowRecalculateDialog] = useState(false);
   const canValidate = facture.statut?.toUpperCase() === 'DRAFT';
 
   return (
     <>
       <div className="flex items-center space-x-2">
         <FacturePdfViewer factureId={facture.id} />
+        <Tooltip content="Recalculer le montant (même période)">
+          <Button size={'icon'} onClick={() => setShowRecalculateDialog(true)} variant="outline">
+            <RefreshCw className="size-4" />
+          </Button>
+        </Tooltip>
         {canValidate && (
           <Tooltip content="Valider la facture">
             <Button size={'icon'} onClick={() => setShowValidateDialog(true)} variant="secondary">
@@ -40,6 +47,7 @@ export const FactureActions = ({ facture }: { facture: IFacture }) => {
       </div>
 
       <ValiderFactureDialog facture={facture} open={showValidateDialog} onOpenChange={setShowValidateDialog} />
+      <RecalculerFactureDialog facture={facture} open={showRecalculateDialog} onOpenChange={setShowRecalculateDialog} />
     </>
   );
 };
