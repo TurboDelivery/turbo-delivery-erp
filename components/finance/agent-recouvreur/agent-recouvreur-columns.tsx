@@ -201,62 +201,6 @@ export function createAgentRecouvreurColumns(
       ),
     },
     {
-      accessorKey: 'montantRecouvre',
-      header: 'RECOUVRÉ',
-      cell: ({ row }) => {
-        const { montantRecouvre, pourcentageRecouvre } = row.original;
-        if (!montantRecouvre) return <span className="text-gray-400 text-xs">—</span>;
-        return (
-          <div className="flex flex-col gap-1">
-            <span className="text-xs">{formatMontant(montantRecouvre)}</span>
-            <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 text-xs px-2 py-0.5 w-fit font-medium">
-              {pourcentageRecouvre}%
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: 'cycle',
-      header: 'CYCLE',
-      cell: ({ row }) => <span className="text-xs">{row.original.cycle}</span>,
-    },
-    {
-      accessorKey: 'emission',
-      header: 'ÉMISSION',
-      cell: ({ row }) => <span className="text-xs">{row.original.emission}</span>,
-    },
-    {
-      accessorKey: 'depotPartenaire',
-      header: 'DÉPÔT PARTENAIRE',
-      cell: ({ row }) => {
-        const d = row.original.depotPartenaire;
-        if (!d) return <span className="text-gray-400 text-xs">—</span>;
-        return (
-          <div className="flex flex-col gap-1">
-            <span className="text-xs">{d.date}</span>
-            <span className="text-xs text-gray-500">{d.agent}</span>
-            <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 text-xs px-2 py-0.5 w-fit font-medium">
-              ✓ Preuve
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: 'depotBanque',
-      header: 'DÉPÔT BANQUE',
-      cell: ({ row }) => {
-        const d = row.original.depotBanque;
-        return d ? <span className="text-xs">{d}</span> : <span className="text-gray-400 text-xs">—</span>;
-      },
-    },
-    {
-      accessorKey: 'agent',
-      header: 'AGENT',
-      cell: ({ row }) => <span className="text-xs">{row.original.agent}</span>,
-    },
-    {
       accessorKey: 'statut',
       header: 'STATUT',
       cell: ({ row }) => {

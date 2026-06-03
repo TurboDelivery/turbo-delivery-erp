@@ -285,11 +285,6 @@ export default function AgentRecouvreurView() {
                 montant={formatMontant(f.montant)}
                 statut={cfg.label}
                 statutClassName={cfg.className}
-                fields={[
-                  { label: 'Recouvré', value: f.montantRecouvre ? `${formatMontant(f.montantRecouvre)} (${f.pourcentageRecouvre ?? 0}%)` : '—' },
-                  { label: 'Cycle', value: f.cycle },
-                  { label: 'Dépôt partenaire', value: f.depotPartenaire ? f.depotPartenaire.date : '—' },
-                ]}
                 actions={renderAgentActions(f, setFactureDepot, setFactureEncaissement, setFactureVersement)}
               />
             );
