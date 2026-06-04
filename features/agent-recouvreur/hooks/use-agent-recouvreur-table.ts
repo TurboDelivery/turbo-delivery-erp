@@ -1,13 +1,28 @@
 'use client';
 
-import { ColumnDef, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import {
+  ColumnDef,
+  getCoreRowModel,
+  useReactTable,
+  type OnChangeFn,
+  type Row,
+  type RowSelectionState,
+} from '@tanstack/react-table';
 import { useAgentFacturesQuery } from '../queries';
 import type { IAgentFacture, IAgentFactureParams } from '../types';
+
+// Options de sélection de lignes (encaissement en masse côté agent-recouvreur-view).
+interface AgentTableSelectionOptions {
+  state?: { rowSelection?: RowSelectionState };
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  enableRowSelection?: boolean | ((row: Row<IAgentFacture>) => boolean);
+}
 
 export function useAgentRecouvreurTable(
   columns: ColumnDef<IAgentFacture>[],
   params: IAgentFactureParams,
   agentIdOverride?: string,
+  options?: AgentTableSelectionOptions,
 ) {
   const { data, isLoading, isFetching, isError, error } = useAgentFacturesQuery(params, agentIdOverride);
 
@@ -20,6 +35,11 @@ export function useAgentRecouvreurTable(
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     pageCount: data?.totalPages ?? -1,
+    // id stable = id facture → la sélection survit aux refetch/optimistic updates.
+    getRowId: (row) => row.id,
+    enableRowSelection: options?.enableRowSelection,
+    state: options?.state,
+    onRowSelectionChange: options?.onRowSelectionChange,
   });
 
   return {

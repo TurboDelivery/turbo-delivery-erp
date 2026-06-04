@@ -173,8 +173,38 @@ export function createAgentRecouvreurColumns(
   onDepotPartenaire: (facture: IFactureAgent) => void,
   onEncaisser: (facture: IFactureAgent) => void,
   onVerserCaissier: (facture: IFactureAgent) => void,
+  // Ajoute une colonne de cases à cocher en tête (encaissement en masse). La
+  // sélectivité ligne par ligne est portée par `enableRowSelection` côté table.
+  withSelection = false,
 ): ColumnDef<IFactureAgent>[] {
-  return [
+  const selectionColumn: ColumnDef<IFactureAgent> = {
+    id: 'select',
+    header: ({ table }) => (
+      <input
+        type="checkbox"
+        aria-label="Tout sélectionner"
+        className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer accent-green-600"
+        checked={table.getIsAllPageRowsSelected()}
+        ref={(el) => {
+          if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
+        }}
+        onChange={table.getToggleAllPageRowsSelectedHandler()}
+      />
+    ),
+    cell: ({ row }) =>
+      row.getCanSelect() ? (
+        <input
+          type="checkbox"
+          aria-label="Sélectionner la facture"
+          className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer accent-green-600"
+          checked={row.getIsSelected()}
+          onChange={row.getToggleSelectedHandler()}
+        />
+      ) : null,
+    enableSorting: false,
+  };
+
+  const columns: ColumnDef<IFactureAgent>[] = [
     {
       accessorKey: 'numero',
       header: 'N° FACTURE',
@@ -218,4 +248,6 @@ export function createAgentRecouvreurColumns(
       cell: ({ row }) => renderAgentActions(row.original, onDepotPartenaire, onEncaisser, onVerserCaissier),
     },
   ];
+
+  return withSelection ? [selectionColumn, ...columns] : columns;
 }
