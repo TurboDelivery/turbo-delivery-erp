@@ -82,6 +82,10 @@ export type AppSubjects =
   | 'HistoriqueCreneaux'
   | 'VerrouillageV2'
   | 'GrillePaiement'
+  // 2026-06 — Page « Approbation finale » réservée au DG/PDG. Sujet dédié car
+  // le DGA a 'manage Ticket' + 'read all' : un garde read/Ticket le laisserait
+  // passer. Seul le DG (manage all) satisfait 'approuver-dg' PageApprobationFinale.
+  | 'PageApprobationFinale'
   | 'all';
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;

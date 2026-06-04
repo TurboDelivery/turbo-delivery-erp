@@ -1,6 +1,8 @@
 'use client';
 
-import { Info } from 'lucide-react';
+import { Info, Lock } from 'lucide-react';
+import { useAbility } from '@casl/react';
+import { AbilityContext } from '@/lib/casl/ability-context';
 import { Skeleton } from '@/components/ui/skeleton';
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
 import useApprobationFinale from '../hooks/use-approbation-finale';
@@ -12,6 +14,12 @@ import ApprobationFinaleApprouverModal from './ApprobationFinaleApprouverModal';
 import ApprobationFinaleRejetModal from './ApprobationFinaleRejetModal';
 
 export default function ApprobationFinaleContent() {
+  // Garde page : l'approbation finale (déclenche les virements Wave) est
+  // réservée au DG/PDG. Défense en profondeur en plus du masquage du menu —
+  // un DGA (manage Ticket + read all) ne doit pas pouvoir y accéder par l'URL.
+  const ability = useAbility(AbilityContext);
+  const canApprouver = ability.can('approuver-dg', 'PageApprobationFinale');
+
   const {
     creneauActif,
     creneaux,
@@ -38,6 +46,18 @@ export default function ApprobationFinaleContent() {
     handleApprouver,
     handleRejeter,
   } = useApprobationFinale();
+
+  if (!canApprouver) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 p-16 text-center">
+        <Lock className="h-8 w-8 text-gray-300" />
+        <h1 className="text-lg font-bold text-gray-700">Accès réservé au DG</h1>
+        <p className="max-w-md text-sm text-gray-400">
+          L&apos;approbation finale (déclenchement des virements Wave) est réservée à la Présidence (DG/PDG).
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
