@@ -10,6 +10,7 @@ export interface IFactureApi {
   obtenirSummaryRecouvrements(params?: IFactureSummaryParams): Promise<IFactureSummary>;
   validerFacture(id: string): Promise<IFacture>;
   recalculerFacture(id: string): Promise<IFacture>;
+  reinitialiserFacture(id: string): Promise<void>;
 }
 
 export const factureAPI: IFactureApi = {
@@ -72,6 +73,15 @@ export const factureAPI: IFactureApi = {
   recalculerFacture(id: string): Promise<IFacture> {
     return api.request<IFacture>({
       endpoint: `erp/factures/${id}/recalculer`,
+      method: 'POST',
+      data: { id },
+    });
+  },
+
+  // Endpoint porté par FinanceResource (/api/finance) — base `finance`, pas `erp`.
+  reinitialiserFacture(id: string): Promise<void> {
+    return api.request<void>({
+      endpoint: `finance/factures/${id}/reinitialiser`,
       method: 'POST',
       data: { id },
     });

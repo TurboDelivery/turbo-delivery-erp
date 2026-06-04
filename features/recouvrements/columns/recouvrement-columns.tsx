@@ -26,7 +26,7 @@ import { IFacture } from '@/features/recouvrements/types';
 
 export function RecouvrementActionsCell({ recouvrement }: { recouvrement: IRecouvrement }) {
   const [openEdit, setOpenEdit] = useState(false);
-  const { mutate: supprimerMutation, isPending: isDeleting } = useSupprimerRecouvrementMutation();
+  const { mutate: supprimerMutation, isLoading: isDeleting } = useSupprimerRecouvrementMutation();
 
   const handleDownload = () => {
     if (recouvrement.preuve) {
@@ -62,7 +62,8 @@ export function RecouvrementActionsCell({ recouvrement }: { recouvrement: IRecou
               <AlertDialogTitle>Supprimer le recouvrement ?</AlertDialogTitle>
               <AlertDialogDescription>
                 Cette action est irréversible. Le recouvrement de <strong>{formatCFA(recouvrement.montant)}</strong> du{' '}
-                <strong>{format(new Date(recouvrement.dateRecouvrement), 'dd MMM yyyy', { locale: fr })}</strong> sera définitivement supprimé.
+                <strong>{format(new Date(recouvrement.dateRecouvrement), 'dd MMM yyyy', { locale: fr })}</strong> sera définitivement supprimé,
+                et la ou les factures liées repartent à l’étape « validée, non payée » (dépôts, visa et orientation des fonds effacés).
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
