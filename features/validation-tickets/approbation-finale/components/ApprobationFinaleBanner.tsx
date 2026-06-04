@@ -33,7 +33,7 @@ export default function ApprobationFinaleBanner({ visePar, viseAt, totalNet, tot
 
       <div className="text-left sm:text-right shrink-0">
         <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-          Montant total à virer
+          Montant total à virer (Indépendants)
         </p>
         <p className="text-2xl sm:text-3xl font-bold text-green-600 mt-0.5">
           {totalNet.toLocaleString('fr-FR')}

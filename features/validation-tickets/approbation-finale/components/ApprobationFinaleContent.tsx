@@ -97,8 +97,8 @@ export default function ApprobationFinaleContent() {
           <ApprobationFinaleBanner
             visePar={grilleMeta.visePar}
             viseAt={grilleMeta.viseAt}
-            totalNet={grilleMeta.stats.totalNet}
-            totalLivreurs={grilleMeta.stats.totalLivreurs}
+            totalNet={grilleMeta.stats.totalAPayer ?? grilleMeta.stats.totalNet}
+            totalLivreurs={grilleMeta.stats.nbIndependants ?? grilleMeta.stats.totalLivreurs}
           />
 
           <ApprobationFinaleWaveTable
@@ -128,8 +128,8 @@ export default function ApprobationFinaleContent() {
             isLoading={isApprouvant}
             codeCreneau={creneauActif.label}
             totaux={{
-              livreurs: grilleMeta.stats.totalLivreurs,
-              net: grilleMeta.stats.totalNet,
+              livreurs: grilleMeta.stats.nbIndependants ?? grilleMeta.stats.totalLivreurs,
+              net: grilleMeta.stats.totalAPayer ?? grilleMeta.stats.totalNet,
             }}
           />
           <ApprobationFinaleRejetModal

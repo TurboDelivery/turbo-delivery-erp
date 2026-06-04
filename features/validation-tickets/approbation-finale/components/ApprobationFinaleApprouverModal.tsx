@@ -42,7 +42,7 @@ export default function ApprobationFinaleApprouverModal({
               <span className="font-medium text-gray-900">{totaux.livreurs}</span>
             </div>
             <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-              <span className="text-gray-500">Montant total à virer</span>
+              <span className="text-gray-500">Montant total à virer (Indépendants)</span>
               <span className="font-semibold text-emerald-600">{formatNumber(totaux.net)} FCFA</span>
             </div>
           </div>
