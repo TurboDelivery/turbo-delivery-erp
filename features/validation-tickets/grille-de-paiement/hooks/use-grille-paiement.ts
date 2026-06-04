@@ -98,8 +98,13 @@ export default function useGrillePaiement() {
   );
 
   const waveManquants = grille?.stats.waveManquants ?? 0;
+  // V58 — lignes encore en attente de validation comptable (flag_attente).
+  const lignesAValider = grille?.stats.lignesAValider ?? 0;
 
-  const canSoumettre = !!grille && waveManquants === 0;
+  // La soumission au DGA exige (mêmes préconditions que soumettreDga) :
+  //  - aucun numéro Wave manquant,
+  //  - toutes les lignes validées (flag_attente = false).
+  const canSoumettre = !!grille && waveManquants === 0 && lignesAValider === 0;
 
   const handleSoumettre = () => {
     if (!grille || !canSoumettre) return;
@@ -167,6 +172,7 @@ export default function useGrillePaiement() {
     handleSoumettre,
     updateWave,
     waveManquants,
+    lignesAValider,
     selectedLigne,
     openDetail: setSelectedLigne,
     closeDetail: () => setSelectedLigne(null),

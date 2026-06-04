@@ -11,7 +11,7 @@ import GrillePaiementBanner from './GrillePaiementBanner';
 import GrillePaiementStats from './GrillePaiementStats';
 import GrillePaiementTable from './GrillePaiementTable';
 import GrillePaiementDetailModal from './GrillePaiementDetailModal';
-import GrillePaiementSubmitFooter from './GrillePaiementSubmitFooter';
+import GrillePaiementSubmitFooter, { blocagesSoumission } from './GrillePaiementSubmitFooter';
 import GrillePaiementExportButton from './GrillePaiementExportButton';
 import JustificationInclusionModal from './JustificationInclusionModal';
 import SoumettreConfirmModal from './SoumettreConfirmModal';
@@ -31,6 +31,7 @@ export default function GrillePaiementContent() {
     handleSoumettre,
     updateWave,
     waveManquants,
+    lignesAValider,
     page,
     setPage,
     totalPages,
@@ -130,10 +131,16 @@ export default function GrillePaiementContent() {
             <Send className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
             <div className="text-sm">
               <p className="font-semibold text-amber-900">Grille calculée — pas encore transmise au DGA</p>
-              <p className="text-amber-700">
-                Le lot est prêt mais n&apos;a pas encore été soumis (ou une modification l&apos;a remis en
-                calcul). Cliquez « Soumettre au DGA » pour le transmettre — le DGA pourra alors le viser.
-              </p>
+              {canSoumettre ? (
+                <p className="text-amber-700">
+                  Le lot est prêt mais n&apos;a pas encore été soumis (ou une modification l&apos;a remis en
+                  calcul). Cliquez « Soumettre au DGA » pour le transmettre — le DGA pourra alors le viser.
+                </p>
+              ) : (
+                <p className="text-amber-700">
+                  À finaliser avant de pouvoir soumettre : {blocagesSoumission(waveManquants, lignesAValider).join(' · ')}.
+                </p>
+              )}
             </div>
           </div>
           <Button
@@ -178,6 +185,8 @@ export default function GrillePaiementContent() {
         <GrillePaiementSubmitFooter
           canSoumettre={canSoumettre}
           isSoumettant={isSoumettant}
+          waveManquants={waveManquants}
+          lignesAValider={lignesAValider}
           onSoumettre={handleSoumettre}
         />
       )}

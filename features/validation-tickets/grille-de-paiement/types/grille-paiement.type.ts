@@ -102,6 +102,9 @@ export interface IGrillePaiementCreneau {
     nbSuperviseurs?: number;
     dontACategoriser?: number;
     nbACategoriser?: number;
+    // V58 (2026-06) — Lignes encore en attente de validation comptable
+    // (flag_attente). Bloque la soumission au DGA tant que > 0.
+    lignesAValider?: number;
   };
 }
 
