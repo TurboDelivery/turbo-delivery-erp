@@ -37,6 +37,11 @@ export interface IFactureRF {
   pourcentageRecouvre: number | null;
   cycle: string;
   emission: string;
+  // Bornes de la période facturée (VM backend) → colonne « Période facturée »
+  // formatée selon le cycle. LocalDate sérialisé "2026-06-01". Optionnelles
+  // (absentes des mock-data / réponses legacy ; le formateur gère).
+  periodeDebut?: string;
+  periodeFin?: string;
   depotPartenaire: { date: string; agent: string } | null;
   depotBanque: string | null;
   agent: string;

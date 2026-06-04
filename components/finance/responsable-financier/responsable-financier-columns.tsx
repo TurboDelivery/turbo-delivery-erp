@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { formatPeriodeFacturee } from '@/lib/finance/periode-facturee';
 
 // Statuts locaux alignés sur CDC v5
 export type StatutFacture =
@@ -35,6 +36,11 @@ export interface IFactureRF {
   pourcentageRecouvre: number | null;
   cycle: string;
   emission: string;
+  // Bornes de la période facturée (exposées par le VM backend) — formatées en
+  // « Période facturée » selon le cycle. Format LocalDate sérialisé : "2026-06-01".
+  // Optionnelles : absentes des mock-data / réponses legacy (le formateur gère).
+  periodeDebut?: string;
+  periodeFin?: string;
   depotPartenaire: { date: string; agent: string } | null;
   depotBanque: string | null;
   agent: string;
@@ -123,6 +129,15 @@ export function createResponsableFinancierColumns(
     accessorKey: 'cycle',
     header: 'CYCLE',
     cell: ({ row }) => <span className="text-sm">{row.original.cycle}</span>,
+  },
+  {
+    id: 'periodeFacturee',
+    header: 'PÉRIODE FACTURÉE',
+    cell: ({ row }) => (
+      <span className="text-sm whitespace-nowrap">
+        {formatPeriodeFacturee(row.original.cycle, row.original.periodeDebut, row.original.periodeFin)}
+      </span>
+    ),
   },
   {
     accessorKey: 'emission',

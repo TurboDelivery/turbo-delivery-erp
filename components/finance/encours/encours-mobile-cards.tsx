@@ -2,6 +2,7 @@
 
 import { Card, CardBody, CardHeader, Chip } from '@heroui/react';
 import { IEncoursReleve, cycleLabel, formatFcfa } from '@/features/encours';
+import { formatPeriodeFactureeEncours } from '@/lib/finance/periode-facturee';
 
 const STATUT_COLOR: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
   Payé: 'success',
@@ -52,10 +53,10 @@ export function EncoursMobileCards({ releve }: { releve: IEncoursReleve }) {
                   {s.factures.map((f, fi) => (
                     <div key={fi} className="flex items-center justify-between gap-2 px-2.5 py-2 text-sm">
                       <div className="min-w-0">
-                        <p className="truncate font-medium">{f.libelle}</p>
-                        <p className="text-xs text-default-400">
-                          {f.periode} · payé {formatFcfa(f.acompte)}
+                        <p className="truncate font-medium">
+                          {formatPeriodeFactureeEncours(releve.annee, f.mois, p.cycle, f.libelle)}
                         </p>
+                        <p className="text-xs text-default-400">payé {formatFcfa(f.acompte)}</p>
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-1">
                         <span className="font-semibold tabular-nums">{formatFcfa(f.solde)}</span>

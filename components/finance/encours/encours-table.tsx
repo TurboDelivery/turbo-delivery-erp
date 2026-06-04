@@ -11,6 +11,7 @@ import {
   TableRow,
 } from '@heroui/react';
 import { IEncoursReleve, cycleLabel, formatFcfa } from '@/features/encours';
+import { formatPeriodeFactureeEncours } from '@/lib/finance/periode-facturee';
 
 type Cell = { node: ReactNode; cn?: string };
 type Line = { key: string; cn?: string; cells: Cell[] };
@@ -39,8 +40,9 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
   const numCn = 'text-right tabular-nums whitespace-nowrap';
   const cols = [
     { key: 'store', label: 'Store', cn: 'text-left' },
-    { key: 'periode', label: 'Période', cn: 'text-left' },
-    { key: 'facture', label: 'Facture', cn: 'text-left' },
+    // « Période facturée » : fusion des anciennes colonnes Période + Facture,
+    // formatée selon le cycle du partenaire (logique partagée avec Finance-Recouvrement).
+    { key: 'periode', label: 'Période facturée', cn: 'text-left' },
     { key: 'tap', label: 'Total à payer', cn: 'text-right' },
     { key: 'acompte', label: 'Acompte', cn: 'text-right' },
     { key: 'solde', label: 'Solde', cn: 'text-right' },
@@ -70,7 +72,7 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
             </div>
           ),
         },
-        ...empt(6),
+        ...empt(5),
       ],
     });
 
@@ -92,8 +94,7 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
                   ''
                 ),
             },
-            { node: f.periode, cn: 'text-default-500' },
-            { node: f.libelle },
+            { node: formatPeriodeFactureeEncours(releve.annee, f.mois, p.cycle, f.libelle), cn: 'text-default-600 whitespace-nowrap' },
             { node: formatFcfa(f.totalAPayer), cn: numCn },
             {
               node: f.acompte ? formatFcfa(f.acompte) : <span className="text-default-300">—</span>,
@@ -111,7 +112,6 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
       cn: 'bg-amber-50/70',
       cells: [
         { node: <span className="font-semibold text-amber-800">Sous-total {p.groupe}</span> },
-        { node: '' },
         { node: '' },
         { node: <span className="font-semibold text-amber-800">{formatFcfa(p.sousTotalFacture)}</span>, cn: numCn },
         {
@@ -133,7 +133,6 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
     cn: 'bg-primary/10',
     cells: [
       { node: <span className="font-bold text-primary">TOTAL GÉNÉRAL</span> },
-      { node: '' },
       { node: '' },
       { node: <span className="font-bold text-primary">{formatFcfa(releve.totalFacture)}</span>, cn: numCn },
       {

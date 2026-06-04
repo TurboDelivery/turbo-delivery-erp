@@ -20,6 +20,7 @@ import type { DateRange } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
 import { createResponsableFinancierColumns, getStatutConfig, formatMontant, type IFactureRF } from './responsable-financier-columns';
 import { FactureMobileCard, MobileCardList } from '@/components/finance/shared/facture-mobile-card';
+import { formatPeriodeFacturee } from '@/lib/finance/periode-facturee';
 import { cycleOptions } from '@/features/responsable-financier/filters/responsable-financier.filter';
 import type { IFactureRFParams } from '@/features/responsable-financier/types/responsable-financier.types';
 import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
@@ -326,6 +327,7 @@ export default function ResponsableFinancierView() {
                   { label: 'Recouvré', value: f.montantRecouvre ? `${formatMontant(f.montantRecouvre)} (${f.pourcentageRecouvre ?? 0}%)` : '—' },
                   { label: 'Cycle', value: f.cycle },
                   { label: 'Agent', value: f.agent },
+                  { label: 'Période facturée', value: formatPeriodeFacturee(f.cycle, f.periodeDebut, f.periodeFin) },
                   { label: 'Émission', value: f.emission },
                 ]}
                 actions={
