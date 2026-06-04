@@ -1,7 +1,8 @@
 'use client';
 
 import { Pagination } from '@heroui/react';
-import { Lock } from 'lucide-react';
+import { Lock, Send } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import useGrillePaiement from '../hooks/use-grille-paiement';
 import { lotStatutLabel } from '../utils/lot-statut-label';
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
@@ -118,6 +119,33 @@ export default function GrillePaiementContent() {
       </div>
 
       <GrillePaiementBanner grille={grille} />
+
+      {/* Lot calculé mais pas encore transmis au DGA : la soumission s'est arrêtée
+          à l'étape 1 (CALCUL_EN_COURS), ou une modif d'inclusion a remis le lot en
+          calcul. Rien ne le signalait → le comptable ne savait pas qu'il fallait
+          re-cliquer « Soumettre au DGA ». On l'affiche clairement + action directe. */}
+      {!isLotVerrouille && lotStatut === 'CALCUL_EN_COURS' && (
+        <div className="flex flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <Send className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div className="text-sm">
+              <p className="font-semibold text-amber-900">Grille calculée — pas encore transmise au DGA</p>
+              <p className="text-amber-700">
+                Le lot est prêt mais n&apos;a pas encore été soumis (ou une modification l&apos;a remis en
+                calcul). Cliquez « Soumettre au DGA » pour le transmettre — le DGA pourra alors le viser.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleSoumettre}
+            disabled={!canSoumettre || isSoumettant}
+            className="shrink-0 gap-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40"
+          >
+            <Send className="h-4 w-4" />
+            {isSoumettant ? 'Envoi…' : 'Soumettre au DGA'}
+          </Button>
+        </div>
+      )}
 
       <GrillePaiementStats stats={grille.stats} />
 
