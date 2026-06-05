@@ -78,3 +78,27 @@ export const useReinitialiserFactureMutation = () => {
   });
 };
 
+export const useSupprimerFactureMutation = () => {
+  const invalidateFacturesQuery = useInvalidateFacturesQuery();
+  const invalidateRecouvrementQuery = useInvalidateRecouvrementQuery();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (!id) {
+        throw new Error("L'identifiant de la facture est requis.");
+      }
+      return await factureAPI.supprimerFacture(id);
+    },
+    onSuccess: async () => {
+      // La suppression retire aussi les recouvrements orphelins → invalider les deux caches.
+      await Promise.all([invalidateFacturesQuery(), invalidateRecouvrementQuery()]);
+      toast.success('Facture supprimée définitivement');
+    },
+    onError: async (error) => {
+      toast.error('Erreur lors de la suppression de la facture', {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
+

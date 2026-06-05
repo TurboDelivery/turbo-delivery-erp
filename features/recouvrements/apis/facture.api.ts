@@ -11,6 +11,7 @@ export interface IFactureApi {
   validerFacture(id: string): Promise<IFacture>;
   recalculerFacture(id: string): Promise<IFacture>;
   reinitialiserFacture(id: string): Promise<void>;
+  supprimerFacture(id: string): Promise<void>;
 }
 
 export const factureAPI: IFactureApi = {
@@ -84,6 +85,14 @@ export const factureAPI: IFactureApi = {
       endpoint: `finance/factures/${id}/reinitialiser`,
       method: 'POST',
       data: { id },
+    });
+  },
+
+  // Suppression DÉFINITIVE — FinanceResource (/api/finance), base `finance`, pas `erp`.
+  supprimerFacture(id: string): Promise<void> {
+    return api.request<void>({
+      endpoint: `finance/factures/${id}`,
+      method: 'DELETE',
     });
   },
 };

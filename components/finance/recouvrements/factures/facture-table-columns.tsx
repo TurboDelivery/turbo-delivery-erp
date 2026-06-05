@@ -5,11 +5,12 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, CheckCircle, RefreshCw, RotateCcw } from 'lucide-react';
+import { AlertCircle, CheckCircle, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
 import FacturePdfViewer from '@/components/finance/recouvrements/factures/pdf/facture-pdf-viewer';
 import { ValiderFactureDialog } from '@/components/finance/recouvrements/factures/valider-facture-dialog';
 import { RecalculerFactureDialog } from '@/components/finance/recouvrements/factures/recalculer-facture-dialog';
 import { ReinitialiserFactureDialog } from '@/components/finance/recouvrements/factures/reinitialiser-facture-dialog';
+import { SupprimerFactureDialog } from '@/components/finance/recouvrements/factures/supprimer-facture-dialog';
 import React, { useState } from 'react';
 import { Tooltip } from '@heroui/react';
 import { getStatutBadgeVariant, getStatutColor, getStatutLabel } from '@/features/recouvrements/utils/facture.utils';
@@ -28,6 +29,7 @@ export const FactureActions = ({ facture }: { facture: IFacture }) => {
   const [showValidateDialog, setShowValidateDialog] = useState(false);
   const [showRecalculateDialog, setShowRecalculateDialog] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const canValidate = facture.statut?.toUpperCase() === 'DRAFT';
   // Réinitialiser n'a de sens qu'une fois la facture validée / en cours de recouvrement.
   const canReset = facture.statut?.toUpperCase() !== 'DRAFT';
@@ -60,11 +62,22 @@ export const FactureActions = ({ facture }: { facture: IFacture }) => {
             </Button>
           </Tooltip>
         )}
+        <Tooltip content="Supprimer définitivement (doublon / facture erronée)">
+          <Button
+            size={'icon'}
+            onClick={() => setShowDeleteDialog(true)}
+            variant="outline"
+            className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </Tooltip>
       </div>
 
       <ValiderFactureDialog facture={facture} open={showValidateDialog} onOpenChange={setShowValidateDialog} />
       <RecalculerFactureDialog facture={facture} open={showRecalculateDialog} onOpenChange={setShowRecalculateDialog} />
       <ReinitialiserFactureDialog facture={facture} open={showResetDialog} onOpenChange={setShowResetDialog} />
+      <SupprimerFactureDialog facture={facture} open={showDeleteDialog} onOpenChange={setShowDeleteDialog} />
     </>
   );
 };
