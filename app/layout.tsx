@@ -6,7 +6,7 @@ import { Inter } from 'next/font/google';
 import NextAuthSessionProvider from '@/providers/next-auth-session.provider';
 import ProviderComponent from '@/components/layouts/provider-component';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
-import { Toaster } from 'sonner';
+import { AppToaster } from '@/components/layouts/app-toaster';
 export const metadata: Metadata = {
   title: {
     template: '%s | Turbo Delivery - management platform',
@@ -129,7 +129,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ProviderComponent>
             <NuqsAdapter>{children}</NuqsAdapter>
           </ProviderComponent>
-          <Toaster />
+          <AppToaster />
         </body>
       </html>
     </NextAuthSessionProvider>
