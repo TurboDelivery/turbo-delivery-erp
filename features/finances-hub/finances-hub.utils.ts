@@ -77,8 +77,19 @@ export function mapChargeVariable(cv: any): IFinanceItem {
   };
 }
 
-/** > seuil → accord DG requis ; ≤ seuil → visa DGA suffit. */
-export const needsDG = (montant: number, seuil: number) => seuil > 0 && montant > seuil;
+/**
+ * Accord DG OBLIGATOIRE pour TOUTES les depenses, quel que soit le montant.
+ *
+ * Regle metier (signalee le 2026-06-05) : le workflow standard est
+ *   Comptable cree -> DGA vise -> DG approuve -> Comptable decaisse.
+ * Pas de skip conditionnel selon un seuil. La signature garde les params seuil
+ * et montant pour ne pas casser les appelants, mais la valeur est toujours true.
+ *
+ * Si un jour on veut reactiver une feature "auto-pass DG sous seuil", remplacer
+ * le `true` par `(seuil > 0 && montant > seuil)` et la version precedente est
+ * dispo dans l'historique git.
+ */
+export const needsDG = (_montant: number, _seuil: number) => true;
 
 /** Prochaine action possible selon le statut + le seuil (null = rien à faire). */
 export function nextAction(item: IFinanceItem, seuil: number): 'vise' | 'approuve' | 'pay' | null {
