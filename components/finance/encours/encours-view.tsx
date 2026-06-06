@@ -15,6 +15,7 @@ import { EncoursMobileCards } from './encours-mobile-cards';
 import { EncoursDeductionsTable } from './encours-deductions-table';
 import { EncoursDeductionsManager } from './encours-deductions-manager';
 import { EncoursExportButton } from './encours-export-button';
+import { EncoursExportDusButton } from './encours-export-dus-button';
 import { EncoursStoreFilter } from './encours-store-filter';
 
 const anneeCourante = new Date().getFullYear();
@@ -53,6 +54,7 @@ export function EncoursView() {
         </div>
         <div className="flex flex-wrap gap-2">
           <EncoursDeductionsManager annee={filters.annee} />
+          <EncoursExportDusButton releve={releve} isDisabled={isLoading} />
           <EncoursExportButton params={params} isDisabled={!releve || isLoading} />
         </div>
       </div>
