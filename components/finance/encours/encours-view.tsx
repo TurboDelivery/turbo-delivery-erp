@@ -54,7 +54,7 @@ export function EncoursView() {
         </div>
         <div className="flex flex-wrap gap-2">
           <EncoursDeductionsManager annee={filters.annee} />
-          <EncoursExportDusButton releve={releve} isDisabled={isLoading} />
+          <EncoursExportDusButton releve={releve} params={params} isDisabled={isLoading} />
           <EncoursExportButton params={params} isDisabled={!releve || isLoading} />
         </div>
       </div>
