@@ -43,8 +43,51 @@ const MOIS_NOMS = [
   'Décembre',
 ];
 
+/**
+ * Formate un montant en FCFA pour le PDF.
+ *
+ * IMPORTANT (fix 2026-06-06) : `toLocaleString('fr-FR')` insere des espaces
+ * etroits insecables (U+202F) entre les milliers. Helvetica built-in de
+ * jsPDF (encodage WinAnsi/CP1252) ne supporte PAS ce glyphe -> rendu comme
+ * "/" en sortie ("14/544/368 FCFA" au lieu de "14 544 368 FCFA"). On
+ * remplace par des espaces standards (U+0020). Idem pour U+00A0 (NBSP)
+ * qui pose le meme probleme.
+ */
 function fmtFcfa(n: number): string {
-  return `${n.toLocaleString('fr-FR')} FCFA`;
+  const rounded = Math.round(n);
+  const formatted = rounded
+    .toLocaleString('fr-FR')
+    .replace(/ /g, ' ')
+    .replace(/ /g, ' ');
+  return `${formatted} FCFA`;
+}
+
+/**
+ * Calcule la fontSize maximum qui fait tenir `text` dans `maxWidth`. Decremente
+ * d'1pt a chaque iteration jusqu'a `minSize`. Utile pour les KPI cards quand
+ * la valeur formatee est plus large que la carte (ex. "14 544 368 FCFA" a 18pt).
+ */
+function fitFontSize(doc: jsPDF, text: string, maxWidth: number, startSize: number, minSize: number): number {
+  let size = startSize;
+  doc.setFontSize(size);
+  while (doc.getTextWidth(text) > maxWidth && size > minSize) {
+    size -= 1;
+    doc.setFontSize(size);
+  }
+  return size;
+}
+
+/**
+ * Tronque `text` avec "..." si plus large que `maxWidth` a la `fontSize`
+ * courante. Boucle reduisant char par char jusqu'a ce que ca tienne.
+ */
+function truncateToFit(doc: jsPDF, text: string, maxWidth: number): string {
+  if (doc.getTextWidth(text) <= maxWidth) return text;
+  let s = text;
+  while (s.length > 1 && doc.getTextWidth(s + '…') > maxWidth) {
+    s = s.slice(0, -1);
+  }
+  return s + '…';
 }
 
 function fmtDateLong(d = new Date()): string {
@@ -76,6 +119,20 @@ interface PartenaireResume {
   periodes: string[];
 }
 
+/**
+ * Dedupe les libelles de periodes identiques (cas frequent quand un partenaire
+ * a plusieurs stores qui ont chacun la meme facture mensuelle). Affiche un
+ * compteur "(×N)" si la periode apparait plusieurs fois.
+ *
+ * Decouvert 2026-06-06 sur MARROUCHE ZONE 4 : 53 factures pour "Janvier — Mois"
+ * et "Février — Mois" rendaient le PDF illisible.
+ */
+function dedupPeriodes(periodes: string[]): string[] {
+  const counts = new Map<string, number>();
+  for (const p of periodes) counts.set(p, (counts.get(p) ?? 0) + 1);
+  return Array.from(counts.entries()).map(([p, c]) => (c > 1 ? `${p} (×${c})` : p));
+}
+
 function buildResumeDus(releve: IEncoursReleve): PartenaireResume[] {
   return releve.partenaires
     .map<PartenaireResume | null>((p) => {
@@ -85,14 +142,17 @@ function buildResumeDus(releve: IEncoursReleve): PartenaireResume[] {
           (f) => (f.solde ?? 0) > 0 && f.statut !== 'À venir' && f.libelle !== '—',
         );
       if (facturesDues.length === 0) return null;
+      // Inclut l'annee dans le libelle (fix 2026-06-06 : `f.periode` est juste
+      // le nom du mois "Mai", pas "Mai 2026" -> ambigu sur un releve annuel).
+      const periodesRaw = facturesDues.map((f) =>
+        `${f.periode} ${releve.annee}${f.libelle ? ' — ' + f.libelle : ''}`.trim(),
+      );
       return {
         partenaire: p.groupe,
         cycle: p.cycle,
         totalDu: facturesDues.reduce((s, f) => s + (f.solde ?? 0), 0),
         nbFactures: facturesDues.length,
-        periodes: facturesDues.map((f) =>
-          `${f.periode}${f.libelle ? ' — ' + f.libelle : ''}`.trim(),
-        ),
+        periodes: dedupPeriodes(periodesRaw),
       };
     })
     .filter((x): x is PartenaireResume => x !== null)
@@ -175,13 +235,21 @@ function drawKpiCard(
   doc.setFontSize(8);
   doc.text(label, x + 12, y + 22);
 
-  // Value
+  // Value : shrink-to-fit pour eviter le debordement type "14 544 368 FCFA"
+  // qui ne tient pas a 18pt dans une card de ~160pt (fix 2026-06-06).
   setText(doc, emphasis === 'brand' ? BRAND_DARK : INK);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(emphasis === 'brand' ? 16 : 18);
-  // splitTextToSize au cas où la valeur déborde (ex. nom de partenaire long)
-  const lines = doc.splitTextToSize(value, w - 24);
-  doc.text(lines, x + 12, y + 44);
+  const startSize = emphasis === 'brand' ? 16 : 18;
+  // Si la valeur tient en 1 ligne -> shrink-to-fit. Sinon (texte multiligne
+  // type nom de partenaire long), garder splitTextToSize qui wrap propre.
+  const fits = doc.splitTextToSize(value, w - 24);
+  if (fits.length === 1) {
+    fitFontSize(doc, value, w - 24, startSize, 9);
+    doc.text(value, x + 12, y + 44);
+  } else {
+    doc.setFontSize(startSize - 4);
+    doc.text(doc.splitTextToSize(value, w - 24), x + 12, y + 40);
+  }
 
   if (sub) {
     setText(doc, INK_2);
@@ -329,11 +397,14 @@ export function buildEncoursDusPdf(releve: IEncoursReleve, params: IEncoursParam
     doc.setFontSize(9);
     doc.text(`${i + 1}`, MARGIN + 8, y + 14);
 
-    // Partenaire (bold INK)
+    // Partenaire (bold INK) avec truncate si trop long (fix 2026-06-06 :
+    // "LE GRILL MECHOUI ET L'ATELIER MECHOUI" debordait sur la colonne CYCLE).
+    // Largeur dispo : de MARGIN+32 jusqu'a MARGIN+232 (8pt avant la colonne CYCLE).
     setText(doc, INK);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.text(r.partenaire, MARGIN + 32, y + 14);
+    const partenaireText = truncateToFit(doc, r.partenaire, 200);
+    doc.text(partenaireText, MARGIN + 32, y + 14);
 
     // Cycle
     setText(doc, INK_2);
