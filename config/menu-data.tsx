@@ -102,6 +102,7 @@ const menuData: IMenuData[] = [
       { icon: SquareUser, title: 'Recouvrements', path: '/finance/recouvrement', can: { action: 'read', subject: 'Finance' } },
       { icon: BarChart, title: 'Dashboard Performance', path: '/finance/rapports-performance/dashboard-performance', can: { action: 'read', subject: 'DashboardPerformance' } },
       { icon: IconSettings2, title: 'Configuration', path: '/finance/configuration', can: { action: 'read', subject: 'PageFinanceConfig' } },
+      { icon: IconSettings2, title: 'Primes & commission', path: '/finance/primes', can: { action: 'read', subject: 'GrillePaiement' } },
     ],
   },
   {
