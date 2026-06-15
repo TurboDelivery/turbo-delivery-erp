@@ -14,6 +14,6 @@ export const viewport = {
 export default async function DeliveryManPage({ params }: { params: { driver_id: string } }) {
     const driver = await getDeliveryDetail(params.driver_id ?? "");
     return (
-        <Content driver={driver} />
+        <Content driver={driver} driverId={params.driver_id ?? ''} />
     );
 }

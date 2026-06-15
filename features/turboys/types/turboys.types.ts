@@ -39,6 +39,17 @@ export interface ITurboy {
   ficheIdentificationUrl: string | null;
   numeroPersonneAContacter: string | null;
   permisConduire: boolean | null;
+
+  // ─── M1 (2026-06) — Comptes & habilitations (CDC v1.5) ───────────────────
+  cniStatut: 'A_VERIFIER' | 'CONFORME' | 'REFUSE' | null;
+  ficheStatut: 'A_VERIFIER' | 'CONFORME' | 'REFUSE' | null;
+  contratStatut: 'A_VERIFIER' | 'CONFORME' | 'REFUSE' | null;
+  cniMotifRefus: string | null;
+  ficheMotifRefus: string | null;
+  contratMotifRefus: string | null;
+  sitePartnerId: string | null;
+  deviceId: string | null;
+  deviceLabel: string | null;
 }
 
 export interface ITurboyParams {

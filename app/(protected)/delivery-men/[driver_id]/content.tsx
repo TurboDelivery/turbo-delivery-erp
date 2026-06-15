@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { Card, CardBody, CardHeader, Input, Select, SelectItem } from "@heroui/react";
 import { createUrlFile } from '@/utils/createUrlFile';
 import { DeliveryMan } from '@/types/models';
+import CompteHabilitationPanel from '@/components/turboys/compte/compte-habilitation-panel';
 
-export default function Content({ driver }: { driver: DeliveryMan | null }) {
+export default function Content({ driver, driverId }: { driver: DeliveryMan | null; driverId: string }) {
     const router = useRouter();
     return (
         <div className="min-h-screen">
@@ -91,6 +92,8 @@ export default function Content({ driver }: { driver: DeliveryMan | null }) {
                             </div> */}
                         </CardBody>
                     </Card>
+
+                    {driverId && <CompteHabilitationPanel driverId={driverId} />}
                 </div>
             </main>
         </div>
