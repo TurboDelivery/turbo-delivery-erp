@@ -20,6 +20,7 @@ import {
 } from '@/features/turboys/queries/programme.query';
 import { buildProgrammeColumns } from './programmes-table-columns';
 import { ProgrammeFormModal } from './programme-form-modal';
+import { AutosuffisancePanel } from './autosuffisance-panel';
 
 /**
  * Numéro de semaine ALIGNÉ sur le backend : `WeekFields.of(Locale.FRANCE).weekOfYear()`
@@ -43,6 +44,31 @@ function semaineCouranteBackend(): { annee: number; semaine: number } {
 }
 
 const CURRENT_WEEK = semaineCouranteBackend();
+
+const JOURS_ORDRE = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
+
+/** Export CSV (séparateur ';' + BOM, ouvrable Excel) du planning de la semaine — RG-26. */
+function exporterCsv(programmes: IProgramme[], annee: number, semaine: number) {
+  const entete = ['Livreur', 'Statut', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  const lignes = programmes.map((p) => {
+    const cellules = JOURS_ORDRE.map((jk) => {
+      const j = p.jours?.find((x) => (x.jour ?? '').toUpperCase() === jk);
+      if (!j || !j.actif) return 'Repos';
+      return `${(j.debut ?? '').slice(0, 5)}-${(j.fin ?? '').slice(0, 5)}`;
+    });
+    return [p.livreurNom ?? '', p.statut ?? '', ...cellules];
+  });
+  const csv = [entete, ...lignes]
+    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';'))
+    .join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `programmes_${annee}_S${semaine}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function ProgrammesSection() {
   const [{ annee, semaine }, setWeek] = useQueryStates({
@@ -112,6 +138,14 @@ export default function ProgrammesSection() {
           <Button size="sm" variant="flat" onPress={() => changeWeek(1)}>
             Sem. suiv. →
           </Button>
+          <Button
+            size="sm"
+            variant="flat"
+            onPress={() => exporterCsv(data ?? [], annee, semaine)}
+            isDisabled={!data || data.length === 0}
+          >
+            Exporter CSV
+          </Button>
           <Button color="primary" onPress={() => setCreateOpen(true)}>
             Nouveau programme
           </Button>
@@ -140,6 +174,8 @@ export default function ProgrammesSection() {
           ))}
         </TableBody>
       </Table>
+
+      <AutosuffisancePanel annee={annee} semaine={semaine} />
 
       <ProgrammeFormModal
         isOpen={createOpen}

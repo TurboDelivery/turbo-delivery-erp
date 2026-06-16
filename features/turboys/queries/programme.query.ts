@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import {
   listerProgrammesSemaineAction,
+  listerAutosuffisanceAction,
   creerProgrammeAction,
   modifierProgrammeAction,
   planifierProgrammeAction,
@@ -14,12 +15,21 @@ import { ICreerProgrammePayload, IModifierProgrammePayload } from '@/features/tu
 export const programmeKeys = {
   all: ['programme'] as const,
   semaine: (annee: number, semaine: number) => [...programmeKeys.all, 'semaine', annee, semaine] as const,
+  autosuffisance: (annee: number, semaine: number) => [...programmeKeys.all, 'autosuffisance', annee, semaine] as const,
 };
 
 export const useProgrammesSemaineQuery = (annee: number, semaine: number) =>
   useQuery({
     queryKey: programmeKeys.semaine(annee, semaine),
     queryFn: () => listerProgrammesSemaineAction(annee, semaine),
+    enabled: !!annee && !!semaine,
+    staleTime: 30 * 1000,
+  });
+
+export const useAutosuffisanceSemaineQuery = (annee: number, semaine: number) =>
+  useQuery({
+    queryKey: programmeKeys.autosuffisance(annee, semaine),
+    queryFn: () => listerAutosuffisanceAction(annee, semaine),
     enabled: !!annee && !!semaine,
     staleTime: 30 * 1000,
   });

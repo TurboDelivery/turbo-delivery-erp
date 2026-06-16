@@ -39,3 +39,11 @@ export interface IModifierProgrammePayload {
   id: string;
   jours: IJourProgramme[];
 }
+
+// RG-32 — autosuffisance : livreurs actifs par jour, indépendants vs planifiés.
+export interface IAutosuffisanceJour {
+  jour: string; // LUNDI..DIMANCHE
+  independants: number;
+  planifies: number;
+  total: number;
+}

@@ -1,7 +1,7 @@
 'use server';
 
 import { programmeAPI } from '@/features/turboys/apis/programme.api';
-import { IProgramme, ICreerProgrammePayload, IModifierProgrammePayload } from '@/features/turboys/types/programme.types';
+import { IProgramme, ICreerProgrammePayload, IModifierProgrammePayload, IAutosuffisanceJour } from '@/features/turboys/types/programme.types';
 import { ActionResponse } from '@/types';
 import { handleServerActionError } from '@/utils/handleServerActionError';
 import { AxiosError } from 'axios';
@@ -9,6 +9,10 @@ import { AxiosError } from 'axios';
 // Liste (query directe, non enveloppée — comme getTurboysByType).
 export async function listerProgrammesSemaineAction(annee: number, semaine: number): Promise<IProgramme[]> {
   return programmeAPI.listerSemaine(annee, semaine);
+}
+
+export async function listerAutosuffisanceAction(annee: number, semaine: number): Promise<IAutosuffisanceJour[]> {
+  return programmeAPI.autosuffisance(annee, semaine);
 }
 
 // Remonte le message métier du backend (ex. 409 « le programme doit être en BROUILLON »).
