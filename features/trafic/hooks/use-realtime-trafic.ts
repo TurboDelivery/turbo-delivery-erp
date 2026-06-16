@@ -45,6 +45,10 @@ export function useRealtimeTrafic() {
             ...base.indisponibles,
             liste: patchInCategorie(base.indisponibles.liste, updated),
           },
+          horsRayon: {
+            ...base.horsRayon,
+            liste: patchInCategorie(base.horsRayon.liste, updated),
+          },
         };
       });
     };

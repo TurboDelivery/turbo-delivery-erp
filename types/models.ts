@@ -300,6 +300,9 @@ export enum TypeEnum {
 // {@code features/turboys/types/turboys.types.ts > TurboyType} (même union).
 export type TypeLivreur = 'INDEPENDANT' | 'JOURNALIER' | 'SUPERVISEUR_LIVREUR';
 
+// M4 (RG-33) — statut riche renvoyé par le backend pour la carte temps réel.
+export type StatutTrafic = 'DISPONIBLE' | 'EN_COURSE' | 'INDISPONIBLE' | 'HORS_RAYON';
+
 export interface LivreurTrafic {
     livreurId: string;
     avatarUrl: string;
@@ -311,6 +314,11 @@ export interface LivreurTrafic {
     };
     course?: boolean; // false si pas de course en cours
     typeLivreur?: TypeLivreur;
+    // M4 (RG-33) — enrichissements de la classification trafic.
+    statut?: StatutTrafic;
+    quartier?: string | null;
+    distanceSiegeMetres?: number | null;
+    dernierPointAt?: string | null;
 }
 
 export interface LivreurCategorie {
@@ -322,7 +330,19 @@ export interface TraficLivreursResponse {
     disponibles: LivreurCategorie;
     enActivite: LivreurCategorie;
     indisponibles: LivreurCategorie;
+    horsRayon: LivreurCategorie; // M4 (RG-33)
     totalLivreurs: number;
+}
+
+// M4 (RG-33) — quartier de la carte TRAFIC (légende + cercles).
+export interface QuartierZone {
+    id: string;
+    libelle: string;
+    centreLat: number;
+    centreLon: number;
+    rayonM: number;
+    couleur?: string | null;
+    actif: boolean;
 }
 
 export interface Restaurant {

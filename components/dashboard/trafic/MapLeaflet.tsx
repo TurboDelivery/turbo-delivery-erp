@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { LivreurTrafic } from '@/types/models';
+import { LivreurTrafic, QuartierZone, StatutTrafic } from '@/types/models';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { createUrlFile } from '@/utils/createUrlFile';
 
@@ -12,6 +12,20 @@ const AVATAR_FALLBACK = '/assets/images/avatar.png';
 // rouge, SUPERVISEUR_LIVREUR violet. Avant cette fix, la map ignorait
 // silencieusement les superviseurs-livreurs (PIN_DEFAULT_COLOR gris).
 const PIN_DEFAULT_COLOR = '#6b7280'; // fallback si type non assigné côté backend
+
+// M4 (RG-33) — couleur/libellé du pin par statut riche (prioritaire sur le type).
+const STATUS_COLOR: Record<StatutTrafic, string> = {
+  DISPONIBLE: '#16a34a',
+  EN_COURSE: '#ea580c',
+  HORS_RAYON: '#dc2626',
+  INDISPONIBLE: '#6b7280',
+};
+const STATUS_LABEL: Record<StatutTrafic, string> = {
+  DISPONIBLE: 'Disponible',
+  EN_COURSE: 'En livraison',
+  HORS_RAYON: 'Hors rayon',
+  INDISPONIBLE: 'Indisponible',
+};
 
 function escapeHtml(input: string): string {
   return input.replace(/[&<>"']/g, (c) => {
@@ -52,12 +66,14 @@ function buildPinHtml(color: string, avatarSrc: string, label: string): string {
 interface MapLeafletProps {
   positions: LivreurTrafic[];
   focusPosition?: [number, number, number] | null;
+  quartiers?: QuartierZone[];
 }
 
-export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps) {
+export default function MapLeaflet({ positions, focusPosition, quartiers }: MapLeafletProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<any>(null);
   const markersLayer = useRef<any>(null);
+  const quartiersLayer = useRef<any>(null);
   const leafletRef = useRef<any>(null);
   const hasFittedRef = useRef<boolean>(false);
   const [mapReady, setMapReady] = useState(false);
@@ -82,6 +98,7 @@ export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps
         maxZoom: 19,
       }).addTo(map);
 
+      quartiersLayer.current = L.layerGroup().addTo(map);
       markersLayer.current = L.layerGroup().addTo(map);
       mapInstance.current = map;
 
@@ -104,6 +121,7 @@ export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps
         mapInstance.current.remove();
         mapInstance.current = null;
         markersLayer.current = null;
+        quartiersLayer.current = null;
         leafletRef.current = null;
         hasFittedRef.current = false;
       }
@@ -127,7 +145,9 @@ export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps
       const safePhone = escapeHtml(item.telephone ?? '');
       // V54 (2026-05-29) — Couleur dérivée du helper central pour rester
       // cohérent avec le reste de l'UI (3 types + fallback).
-      const pinColor = item.typeLivreur
+      const pinColor = item.statut
+        ? STATUS_COLOR[item.statut]
+        : item.typeLivreur
         ? getTurboyTypeDisplay(item.typeLivreur).hexColor
         : PIN_DEFAULT_COLOR;
       const primarySrc = item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : AVATAR_FALLBACK;
@@ -141,9 +161,15 @@ export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps
         popupAnchor: [0, -56],
       });
 
+      const statutLabel = item.statut ? STATUS_LABEL[item.statut] : item.course ? 'En livraison' : 'Disponible';
       L.marker([item.position.latitude, item.position.longitude], { icon: customIcon })
         .addTo(layer)
-        .bindPopup(`<b>${safeName}</b><br><b>Statut</b>: ${item.course ? 'En livraison' : 'Disponible'}<br><b>Téléphone</b>: ${safePhone}`);
+        .bindPopup(
+          `<b>${safeName}</b>` +
+            `<br><b>Statut</b>: ${statutLabel}` +
+            (item.quartier ? `<br><b>Quartier</b>: ${escapeHtml(item.quartier)}` : '') +
+            `<br><b>Téléphone</b>: ${safePhone}`,
+        );
     });
 
     if (!hasFittedRef.current && validPositions.length > 0) {
@@ -152,6 +178,30 @@ export default function MapLeaflet({ positions, focusPosition }: MapLeafletProps
       hasFittedRef.current = true;
     }
   }, [positions, mapReady]);
+
+  // M4 (RG-33) — cercles de quartiers (calque dédié, redessiné seulement si la liste change).
+  useEffect(() => {
+    if (!mapReady) return;
+    const L = leafletRef.current;
+    const layer = quartiersLayer.current;
+    if (!L || !layer) return;
+
+    layer.clearLayers();
+    (quartiers || [])
+      .filter((q) => q.actif)
+      .forEach((q) => {
+        const couleur = q.couleur || '#2563eb';
+        L.circle([q.centreLat, q.centreLon], {
+          radius: q.rayonM,
+          color: couleur,
+          fillColor: couleur,
+          fillOpacity: 0.06,
+          weight: 1,
+        })
+          .addTo(layer)
+          .bindTooltip(q.libelle, { direction: 'center' });
+      });
+  }, [quartiers, mapReady]);
 
   useEffect(() => {
     if (!mapReady || !focusPosition) return;

@@ -3,13 +3,14 @@
 import TraficLivreurItem from '@/features/trafic/components/trafic-livreur-item';
 import { LivreurTrafic } from '@/features/trafic/types/trafic.type';
 
-type LivreurStatus = 'disponible' | 'enActivite' | 'indisponible';
+type LivreurStatus = 'disponible' | 'enActivite' | 'indisponible' | 'horsRayon';
 
 interface TraficLivreurListProps {
   livreurs: LivreurTrafic[];
   status: LivreurStatus;
   selectedLivreurId: string | null;
   onSelect: (livreurId: string) => void;
+  onAffecter?: (livreur: LivreurTrafic) => void;
   emptyLabel?: string;
 }
 
@@ -18,6 +19,7 @@ export default function TraficLivreurList({
   status,
   selectedLivreurId,
   onSelect,
+  onAffecter,
   emptyLabel = 'Aucun livreur',
 }: TraficLivreurListProps) {
   if (livreurs.length === 0) {
@@ -37,6 +39,7 @@ export default function TraficLivreurList({
             status={status}
             isSelected={selectedLivreurId === livreur.livreurId}
             onSelect={onSelect}
+            onAffecter={onAffecter}
           />
         ))}
       </div>

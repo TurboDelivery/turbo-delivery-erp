@@ -26,7 +26,7 @@ export function useTrafic({ initialData, enableRealtime = true }: UseTraficOptio
 
   const positions = useMemo<LivreurTrafic[]>(
     () =>
-      [...data.disponibles.liste, ...data.enActivite.liste].filter(
+      [...data.disponibles.liste, ...data.enActivite.liste, ...data.horsRayon.liste].filter(
         (l) => l.position.latitude !== 0 && l.position.longitude !== 0,
       ),
     [data],
@@ -46,6 +46,7 @@ export function useTrafic({ initialData, enableRealtime = true }: UseTraficOptio
     return (
       data.enActivite.liste.find((l) => l.livreurId === selectedLivreurId) ||
       data.disponibles.liste.find((l) => l.livreurId === selectedLivreurId) ||
+      data.horsRayon.liste.find((l) => l.livreurId === selectedLivreurId) ||
       data.indisponibles.liste.find((l) => l.livreurId === selectedLivreurId) ||
       null
     );

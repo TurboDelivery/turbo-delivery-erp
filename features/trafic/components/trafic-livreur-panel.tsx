@@ -1,10 +1,13 @@
 'use client';
 
+import { useState } from 'react';
 import { Button, Card, CardBody, CardHeader, Chip, Tab, Tabs } from '@heroui/react';
 import { ChevronDown } from 'lucide-react';
 
 import TraficLivreurList from '@/features/trafic/components/trafic-livreur-list';
-import { TraficLivreursResponse } from '@/features/trafic/types/trafic.type';
+import { AffecterCourseModal } from '@/features/trafic/components/affecter-course-modal';
+import { LivreurTrafic, TraficLivreursResponse } from '@/features/trafic/types/trafic.type';
+import { useAbility } from '@/hooks/use-ability';
 
 interface TraficLivreurPanelProps {
   data: TraficLivreursResponse;
@@ -19,6 +22,19 @@ export default function TraficLivreurPanel({
   onSelectLivreur,
   onClose,
 }: TraficLivreurPanelProps) {
+  const ability = useAbility();
+  const canAffecter = ability.can('manage', 'Trafic');
+
+  const [affectLivreur, setAffectLivreur] = useState<LivreurTrafic | null>(null);
+  const [affectOpen, setAffectOpen] = useState(false);
+
+  const onAffecter = canAffecter
+    ? (livreur: LivreurTrafic) => {
+        setAffectLivreur(livreur);
+        setAffectOpen(true);
+      }
+    : undefined;
+
   return (
     <Card className="w-full max-w-full sm:max-w-5xl mx-auto rounded-xl shadow-2xl border border-default-200 max-h-[65vh] flex flex-col">
       <CardHeader className="flex justify-between items-center gap-3 px-4 py-3 bg-default-50 shrink-0">
@@ -55,6 +71,7 @@ export default function TraficLivreurPanel({
               status="disponible"
               selectedLivreurId={selectedLivreurId}
               onSelect={onSelectLivreur}
+              onAffecter={onAffecter}
               emptyLabel="Aucun livreur disponible"
             />
           </Tab>
@@ -78,6 +95,26 @@ export default function TraficLivreurPanel({
             />
           </Tab>
           <Tab
+            key="horsRayon"
+            title={
+              <div className="flex items-center gap-2">
+                <span>Hors rayon</span>
+                <Chip size="sm" variant="flat" color="danger">
+                  {data.horsRayon.total}
+                </Chip>
+              </div>
+            }
+          >
+            <TraficLivreurList
+              livreurs={data.horsRayon.liste}
+              status="horsRayon"
+              selectedLivreurId={selectedLivreurId}
+              onSelect={onSelectLivreur}
+              onAffecter={onAffecter}
+              emptyLabel="Aucun livreur hors rayon"
+            />
+          </Tab>
+          <Tab
             key="indisponibles"
             title={
               <div className="flex items-center gap-2">
@@ -98,6 +135,8 @@ export default function TraficLivreurPanel({
           </Tab>
         </Tabs>
       </CardBody>
+
+      <AffecterCourseModal livreur={affectLivreur} isOpen={affectOpen} onOpenChange={setAffectOpen} />
     </Card>
   );
 }

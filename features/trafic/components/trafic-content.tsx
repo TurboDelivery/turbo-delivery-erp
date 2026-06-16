@@ -1,18 +1,44 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Button, Chip } from '@heroui/react';
+import { Button, Chip, Select, SelectItem } from '@heroui/react';
 import { LayoutDashboard } from 'lucide-react';
 
 import TraficLivreurPanel from '@/features/trafic/components/trafic-livreur-panel';
 import { useTrafic } from '@/features/trafic/hooks/use-trafic';
+import { useQuartiersQuery } from '@/features/trafic/queries/quartier.query';
+import { TypeLivreur } from '@/types/models';
 
 const MapLeaflet = dynamic(() => import('@/components/dashboard/trafic/MapLeaflet'), { ssr: false });
 
+const LEGENDE: { key: keyof TraficCounts; label: string; color: string }[] = [
+  { key: 'disponibles', label: 'Disponibles', color: '#16a34a' },
+  { key: 'enActivite', label: 'En livraison', color: '#ea580c' },
+  { key: 'horsRayon', label: 'Hors rayon', color: '#dc2626' },
+  { key: 'indisponibles', label: 'Indisponibles', color: '#6b7280' },
+];
+
+type TraficCounts = {
+  disponibles: number;
+  enActivite: number;
+  horsRayon: number;
+  indisponibles: number;
+};
+
+const TYPES: { value: TypeLivreur; label: string }[] = [
+  { value: 'INDEPENDANT', label: 'Indépendant' },
+  { value: 'JOURNALIER', label: 'Journalier' },
+  { value: 'SUPERVISEUR_LIVREUR', label: 'Superviseur' },
+];
+
 export default function TraficContent() {
   const { data, positions, selectedLivreurId, focusPosition, focusOnLivreur, openDashboard, toggleDashboard } = useTrafic();
+  const { data: quartiers } = useQuartiersQuery();
+
+  const [filtreQuartier, setFiltreQuartier] = useState<string>('');
+  const [filtreType, setFiltreType] = useState<string>('');
 
   const handleSelectLivreur = useCallback(
     (livreurId: string) => {
@@ -21,6 +47,25 @@ export default function TraficContent() {
     },
     [focusOnLivreur, openDashboard, toggleDashboard],
   );
+
+  const positionsFiltrees = useMemo(
+    () =>
+      positions.filter(
+        (p) =>
+          (!filtreQuartier || p.quartier === filtreQuartier) &&
+          (!filtreType || p.typeLivreur === filtreType),
+      ),
+    [positions, filtreQuartier, filtreType],
+  );
+
+  const counts: TraficCounts = {
+    disponibles: data.disponibles.total,
+    enActivite: data.enActivite.total,
+    horsRayon: data.horsRayon.total,
+    indisponibles: data.indisponibles.total,
+  };
+
+  const quartiersActifs = (quartiers ?? []).filter((q) => q.actif);
 
   return (
     <div className="flex flex-col w-full h-[calc(100vh-8rem)] min-h-[600px] bg-blue-500 overflow-hidden rounded-xl shadow-md">
@@ -31,8 +76,52 @@ export default function TraficContent() {
         </Chip>
       </div>
 
+      {/* M4 (RG-33) — légende des statuts + compteurs + filtres quartier/type */}
+      <div className="bg-white border-b border-default-100 px-4 py-2 shrink-0 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-center gap-3">
+          {LEGENDE.map((l) => (
+            <span key={l.key} className="flex items-center gap-1.5 text-xs text-default-600">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: l.color }} />
+              {l.label}
+              <span className="font-semibold text-default-800">{counts[l.key]}</span>
+            </span>
+          ))}
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+          <Select
+            aria-label="Filtrer par quartier"
+            size="sm"
+            placeholder="Quartier"
+            className="w-40"
+            selectedKeys={filtreQuartier ? [filtreQuartier] : []}
+            onSelectionChange={(keys) => setFiltreQuartier((Array.from(keys)[0] as string) ?? '')}
+          >
+            {/* Option "Tous" + quartiers actifs */}
+            {[{ libelle: '' }, ...quartiersActifs].map((q) => (
+              <SelectItem key={q.libelle} value={q.libelle}>
+                {q.libelle === '' ? 'Tous les quartiers' : q.libelle}
+              </SelectItem>
+            ))}
+          </Select>
+          <Select
+            aria-label="Filtrer par type"
+            size="sm"
+            placeholder="Type"
+            className="w-36"
+            selectedKeys={filtreType ? [filtreType] : []}
+            onSelectionChange={(keys) => setFiltreType((Array.from(keys)[0] as string) ?? '')}
+          >
+            {[{ value: '', label: 'Tous les types' }, ...TYPES].map((t) => (
+              <SelectItem key={t.value} value={t.value}>
+                {t.label}
+              </SelectItem>
+            ))}
+          </Select>
+        </div>
+      </div>
+
       <div className="relative flex-1 min-h-0 overflow-hidden">
-        <MapLeaflet positions={positions} focusPosition={focusPosition} />
+        <MapLeaflet positions={positionsFiltrees} focusPosition={focusPosition} quartiers={quartiersActifs} />
 
         <div className="absolute inset-x-0 bottom-0 pointer-events-none z-[1000] flex flex-col items-center">
           <AnimatePresence initial={false}>
