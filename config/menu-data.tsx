@@ -73,6 +73,7 @@ const menuData: IMenuData[] = [
       { icon: IconBuildingSkyscraper, title: 'Programmes hebdo', path: '/delivery-men/programmes', can: { action: 'read', subject: 'Creneau' } },
       { icon: IconMotorbike, title: 'Men', path: '/delivery-men/men', can: { action: 'read', subject: 'Livreur' } },
       { icon: IconBuildingSkyscraper, title: 'performance', path: '/delivery-men/performance', can: { action: 'read', subject: 'Performance' } },
+      { icon: History, title: 'Reporting & historisation', path: '/reporting', can: { action: 'read', subject: 'Reporting' } },
     ],
   },
   {

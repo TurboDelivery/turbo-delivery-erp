@@ -18,6 +18,8 @@ export type AppSubjects =
   // M7 (2026-06) — Sous-module « STANDARD » (incidents) de TRAFIC, isolé de
   // 'Trafic' pour un gating dédié du centre de contrôle /trafic/standard.
   | 'Incident'
+  // M6 (2026-06) — Reporting & historisation transverse (RG-11/21), écran /reporting.
+  | 'Reporting'
   | 'Commande'
   // 2026-05 — "Commandes / Client" (menu racine, /commandes) isolé de 'Commande'
   // (qui gate les sous-pages Courses externes Nouvelles/Journalières/Toutes) pour
@@ -183,6 +185,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       break;
 
     case 'COMPTABLE':
+      can('read', 'Reporting'); // M6 — reporting & historisation
       can('read', ['ChargeFixe', 'ChargeVariable', 'Depense', 'Paiement', 'Livreur', 'Restaurant']);
       can('create', ['ChargeFixe', 'ChargeVariable', 'Depense']);
       can('update', ['ChargeFixe', 'ChargeVariable', 'Depense']);
@@ -235,6 +238,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       break;
 
     case 'OPS_MANAGER':
+      can('read', 'Reporting'); // M6 — reporting & historisation
       can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
       can(['read', 'update'], 'Incident'); // M7 — supervision des incidents STANDARD
       // Sujets isolés pour AGENT_V1 (cf. AppSubjects) — re-accordés ici pour
@@ -282,6 +286,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       break;
 
     case 'RESPONSABLE_VA':
+      can('read', 'Reporting'); // M6 — reporting & historisation
       can('manage', 'Ticket');
       can('authentifier', 'Ticket');
       can('manage', 'ValidationTicket');
@@ -319,6 +324,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       break;
 
     case 'DIRECTEUR_OPERATIONS':
+      can('read', 'Reporting'); // M6 — reporting & historisation
       // 2026-05 (révision après clarification user) — Le Directeur des
       // Opérations a les permissions d'OPS_MANAGER + l'accès au SEUL sous-menu
       // "Comptabilité > Agent Recouvreur" pour suivre les recouvrements terrain.
