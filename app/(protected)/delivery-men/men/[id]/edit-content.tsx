@@ -24,6 +24,7 @@ import { SectionVehicule } from './_components/section-vehicule';
 import { SectionCompte } from './_components/section-compte';
 import { SectionAvenantsCommission } from './_components/section-avenants-commission';
 import CompteHabilitationPanel from '@/components/turboys/compte/compte-habilitation-panel';
+import PointagesSection from '@/components/turboys/pointages/pointages-section';
 
 export default function EditContent({ id }: { id: string }) {
   const router = useRouter();
@@ -226,6 +227,11 @@ export default function EditContent({ id }: { id: string }) {
       {/* M1 — Comptes & habilitations (validation, pièces, clé d'activation, historique) */}
       <div className="mt-6">
         <CompteHabilitationPanel driverId={id} />
+      </div>
+
+      {/* M3 — Pointages détaillés (montée / relances / fin / hors-zone + cote) */}
+      <div className="mt-6">
+        <PointagesSection driverId={id} />
       </div>
     </div>
   );
