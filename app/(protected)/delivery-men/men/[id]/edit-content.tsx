@@ -23,6 +23,7 @@ import { SectionDocumentIdentite } from './_components/section-document-identite
 import { SectionVehicule } from './_components/section-vehicule';
 import { SectionCompte } from './_components/section-compte';
 import { SectionAvenantsCommission } from './_components/section-avenants-commission';
+import CompteHabilitationPanel from '@/components/turboys/compte/compte-habilitation-panel';
 
 export default function EditContent({ id }: { id: string }) {
   const router = useRouter();
@@ -221,6 +222,11 @@ export default function EditContent({ id }: { id: string }) {
           </Button>
         </div>
       </form>
+
+      {/* M1 — Comptes & habilitations (validation, pièces, clé d'activation, historique) */}
+      <div className="mt-6">
+        <CompteHabilitationPanel driverId={id} />
+      </div>
     </div>
   );
 }
