@@ -22,7 +22,7 @@ const DeliveryMenTools = ({ deliveryMan, validateBy }: { deliveryMan: DeliveryMa
           </Button>
         </DropdownTrigger>
         <DropdownMenu aria-label="Static Actions">
-          <DropdownItem as={Link} href={`/delivery-men/${deliveryMan.id}`} key="details">
+          <DropdownItem as={Link} href={`/delivery-men/men/${deliveryMan.id}`} key="details">
             Détails
           </DropdownItem>
 

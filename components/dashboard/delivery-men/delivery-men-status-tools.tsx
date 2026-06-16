@@ -18,7 +18,7 @@ const DeliveryMenStatusTools = ({ deliveryMan, validateBy }: { deliveryMan: Livr
                     </Button>
                 </DropdownTrigger>
                 <DropdownMenu aria-label="Static Actions">
-                    <DropdownItem as={Link} href={`/delivery-men/${deliveryMan && deliveryMan.livreurId}`} key="details">
+                    <DropdownItem as={Link} href={`/delivery-men/men/${deliveryMan && deliveryMan.livreurId}`} key="details">
                         Détails
                     </DropdownItem>
                     {validateBy === "auth" ?
