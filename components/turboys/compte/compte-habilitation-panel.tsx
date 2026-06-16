@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Card, CardBody, CardHeader, Chip, Input, Select, SelectItem, Spinner } from '@heroui/react';
+import { Button, Chip, Input, Select, SelectItem, Spinner } from '@heroui/react';
 import { useTurboyQuery } from '@/features/turboys/queries/turboy-list.query';
 import {
   useChangerStatutPieceMutation,
@@ -24,7 +24,7 @@ const STATUT_LABEL: Record<string, string> = {
   REFUSE: 'Refusé',
 };
 
-/** Première clé sélectionnée d'un Select HeroUI (SharedSelection -> string). */
+/** Première clé d'un Select HeroUI (Set -> string). */
 const premiereCle = (keys: unknown): string => Array.from((keys as Set<string>) ?? []).at(0) ?? '';
 
 function formatDate(value: string | null): string {
@@ -47,18 +47,19 @@ function PieceRow({ driverId, cible, libelle, statut, motif }: PieceRowProps) {
   const mutation = useChangerStatutPieceMutation(driverId);
 
   return (
-    <div className="flex flex-col gap-2 border-b py-3 last:border-b-0 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-3 rounded-lg border border-gray-100 p-3 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3">
-        <span className="font-medium">{libelle}</span>
+        <span className="text-sm font-medium text-gray-700">{libelle}</span>
         <Chip size="sm" variant="flat" color={STATUT_COLOR[statut]}>
           {STATUT_LABEL[statut]}
         </Chip>
       </div>
-      <div className="flex flex-col gap-2 md:flex-row md:items-center">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Select
           size="sm"
+          variant="bordered"
           aria-label={`Statut ${libelle}`}
-          className="w-40"
+          className="w-full sm:w-40"
           selectedKeys={[valeur]}
           onSelectionChange={(keys) => setValeur((premiereCle(keys) || 'A_VERIFIER') as PieceStatut)}
         >
@@ -69,8 +70,9 @@ function PieceRow({ driverId, cible, libelle, statut, motif }: PieceRowProps) {
         {valeur === 'REFUSE' && (
           <Input
             size="sm"
+            variant="bordered"
             aria-label={`Motif ${libelle}`}
-            className="w-52"
+            className="w-full sm:w-52"
             placeholder="Motif du refus"
             value={motifRefus}
             onValueChange={setMotifRefus}
@@ -79,6 +81,7 @@ function PieceRow({ driverId, cible, libelle, statut, motif }: PieceRowProps) {
         <Button
           size="sm"
           color="primary"
+          className="shrink-0"
           isLoading={mutation.isPending}
           onPress={() =>
             mutation.mutate({ piece: cible, statut: valeur, motif: valeur === 'REFUSE' ? motifRefus : undefined })
@@ -90,6 +93,9 @@ function PieceRow({ driverId, cible, libelle, statut, motif }: PieceRowProps) {
     </div>
   );
 }
+
+const sectionClass = 'bg-white rounded-xl border border-gray-100 shadow-sm p-6';
+const titleClass = 'text-base font-semibold text-primary mb-4';
 
 export default function CompteHabilitationPanel({ driverId }: { driverId: string }) {
   const { data: turboy, isLoading } = useTurboyQuery(driverId);
@@ -106,11 +112,9 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
 
   if (isLoading || !turboy) {
     return (
-      <Card>
-        <CardBody className="flex items-center justify-center py-10">
-          <Spinner label="Chargement du compte…" />
-        </CardBody>
-      </Card>
+      <section className={`${sectionClass} flex items-center justify-center py-10`}>
+        <Spinner label="Chargement du compte…" />
+      </section>
     );
   }
 
@@ -122,157 +126,161 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
   const dejaValide = (turboy.status ?? 0) >= 4;
 
   return (
-    <Card>
-      <CardHeader>
-        <h2 className="text-xl font-semibold text-red-600">Comptes &amp; habilitations</h2>
-      </CardHeader>
-      <CardBody className="space-y-8">
-        {codeEmis && (
-          <div className="rounded-lg border border-green-500 bg-green-50 p-4 dark:bg-green-950">
-            <p className="text-sm font-medium text-green-800 dark:text-green-300">
-              Clé d’activation — à communiquer une seule fois au livreur
-            </p>
-            <p className="mt-1 font-mono text-2xl tracking-widest">{codeEmis}</p>
-            <button className="mt-1 text-xs text-green-700 underline" onClick={() => setCodeEmis(null)}>
-              Masquer
-            </button>
-          </div>
-        )}
+    <div className="space-y-6">
+      {codeEmis && (
+        <div className="rounded-xl border border-green-200 bg-green-50 p-4">
+          <p className="text-sm font-medium text-green-800">
+            Clé d’activation — à communiquer une seule fois au livreur
+          </p>
+          <p className="mt-1 font-mono text-2xl font-semibold tracking-[0.3em] text-green-900">{codeEmis}</p>
+          <button type="button" onClick={() => setCodeEmis(null)} className="mt-1 text-xs text-green-700 underline">
+            Masquer
+          </button>
+        </div>
+      )}
 
-        {/* Conformité des pièces (RG-05) */}
-        <section>
-          <h3 className="mb-2 font-semibold">Conformité des pièces</h3>
+      {/* Conformité des pièces (RG-05) */}
+      <section className={sectionClass}>
+        <h2 className={titleClass}>Conformité des pièces</h2>
+        <div className="space-y-3">
           <PieceRow driverId={driverId} cible="CNI" libelle="CNI" statut={cni} motif={turboy.cniMotifRefus} />
           <PieceRow driverId={driverId} cible="FICHE" libelle="Fiche d’identification" statut={fiche} motif={turboy.ficheMotifRefus} />
           <PieceRow driverId={driverId} cible="CONTRAT" libelle="Contrat" statut={contrat} motif={turboy.contratMotifRefus} />
-        </section>
+        </div>
+      </section>
 
-        {/* Validation du compte (RG-07) */}
-        <section>
-          <h3 className="mb-3 font-semibold">Validation du compte</h3>
-          {dejaValide ? (
-            <Chip color="success" variant="flat">
-              Compte déjà validé{turboy.type ? ` — ${turboy.type}` : ''}
-            </Chip>
-          ) : (
-            <>
-              <div className="flex flex-col gap-3 md:flex-row md:items-end">
-                <Select
-                  label="Type de livreur"
-                  labelPlacement="outside"
-                  className="md:w-52"
-                  selectedKeys={[typeLivreur]}
-                  onSelectionChange={(keys) => setTypeLivreur((premiereCle(keys) || 'INDEPENDANT') as TurboyType)}
-                >
-                  <SelectItem key="INDEPENDANT">Indépendant</SelectItem>
-                  <SelectItem key="JOURNALIER">Journalier</SelectItem>
-                  <SelectItem key="SUPERVISEUR_LIVREUR">Superviseur</SelectItem>
-                </Select>
-                <Select
-                  label="Rattachement"
-                  labelPlacement="outside"
-                  className="md:w-56"
-                  selectedKeys={[rattachement]}
-                  onSelectionChange={(keys) => setRattachement((premiereCle(keys) || 'SITE_PARTNER') as Rattachement)}
-                >
-                  <SelectItem key="SITE_PARTNER">Site partenaire (TURBO)</SelectItem>
-                  <SelectItem key="BIRD">BIRD (indépendant)</SelectItem>
-                </Select>
-                {rattachement === 'SITE_PARTNER' && (
-                  <Input
-                    label="ID site partenaire"
-                    labelPlacement="outside"
-                    className="md:w-64"
-                    value={sitePartnerId}
-                    onValueChange={setSitePartnerId}
-                  />
-                )}
-                <Button
-                  color="primary"
-                  isDisabled={!toutConforme || siteManquant}
-                  isLoading={valider.isPending}
-                  onPress={() =>
-                    valider.mutate({
-                      typeLivreur,
-                      rattachement,
-                      sitePartnerId: rattachement === 'SITE_PARTNER' ? sitePartnerId.trim() : null,
-                    })
+      {/* Validation du compte (RG-07) */}
+      <section className={sectionClass}>
+        <h2 className={titleClass}>Validation du compte</h2>
+        {dejaValide ? (
+          <Chip color="success" variant="flat">
+            Compte déjà validé{turboy.type ? ` — ${turboy.type}` : ''}
+          </Chip>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Select
+                label="Type de livreur"
+                variant="bordered"
+                selectedKeys={[typeLivreur]}
+                onSelectionChange={(keys) => setTypeLivreur((premiereCle(keys) || 'INDEPENDANT') as TurboyType)}
+              >
+                <SelectItem key="INDEPENDANT">Indépendant</SelectItem>
+                <SelectItem key="JOURNALIER">Journalier</SelectItem>
+                <SelectItem key="SUPERVISEUR_LIVREUR">Superviseur</SelectItem>
+              </Select>
+              <Select
+                label="Rattachement"
+                variant="bordered"
+                selectedKeys={[rattachement]}
+                onSelectionChange={(keys) => setRattachement((premiereCle(keys) || 'SITE_PARTNER') as Rattachement)}
+              >
+                <SelectItem key="SITE_PARTNER">Site partenaire (TURBO)</SelectItem>
+                <SelectItem key="BIRD">BIRD (indépendant)</SelectItem>
+              </Select>
+              {rattachement === 'SITE_PARTNER' && (
+                <Input
+                  label="ID site partenaire"
+                  variant="bordered"
+                  placeholder="UUID du site"
+                  value={sitePartnerId}
+                  onValueChange={setSitePartnerId}
+                />
+              )}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-gray-400">
+                {toutConforme
+                  ? 'Les 3 pièces sont conformes — validation possible.'
+                  : 'Les 3 pièces doivent être conformes avant de valider.'}
+              </p>
+              <Button
+                color="primary"
+                isDisabled={!toutConforme || siteManquant}
+                isLoading={valider.isPending}
+                onPress={() =>
+                  valider.mutate({
+                    typeLivreur,
+                    rattachement,
+                    sitePartnerId: rattachement === 'SITE_PARTNER' ? sitePartnerId.trim() : null,
+                  })
+                }
+              >
+                Valider le compte
+              </Button>
+            </div>
+          </>
+        )}
+      </section>
+
+      {/* Clé d'activation (RG-08/10) */}
+      <section className={sectionClass}>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-primary">Clé d’activation</h2>
+          <Button
+            size="sm"
+            variant="bordered"
+            isLoading={emettre.isPending}
+            onPress={() => emettre.mutate(undefined)}
+          >
+            Réémettre une clé
+          </Button>
+        </div>
+        <p className="mb-3 text-xs text-gray-400">
+          Appareil lié : {turboy.deviceLabel ?? turboy.deviceId ?? '— aucun'}
+        </p>
+        {cles.isLoading ? (
+          <Spinner size="sm" />
+        ) : cles.data && cles.data.length > 0 ? (
+          <div className="space-y-1.5">
+            {cles.data.map((c) => (
+              <div key={c.id} className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+                <Chip
+                  size="sm"
+                  variant="flat"
+                  color={
+                    c.statut === 'ACTIVE'
+                      ? 'success'
+                      : c.statut === 'CONSOMMEE'
+                        ? 'primary'
+                        : c.statut === 'REVOQUEE'
+                          ? 'danger'
+                          : 'default'
                   }
                 >
-                  Valider le compte
-                </Button>
+                  {c.statut}
+                </Chip>
+                <span className="font-mono">••••{c.codeApercu ?? '????'}</span>
+                {c.expireLe && <span className="text-gray-400">exp. {formatDate(c.expireLe)}</span>}
               </div>
-              {!toutConforme && (
-                <p className="mt-2 text-sm text-amber-600">Les 3 pièces doivent être conformes avant validation.</p>
-              )}
-            </>
-          )}
-        </section>
-
-        {/* Clé d'activation (RG-08/10) */}
-        <section>
-          <div className="mb-2 flex items-center justify-between">
-            <h3 className="font-semibold">Clé d’activation</h3>
-            <Button size="sm" variant="bordered" isLoading={emettre.isPending} onPress={() => emettre.mutate(undefined)}>
-              Réémettre une clé
-            </Button>
+            ))}
           </div>
-          <p className="mb-2 text-xs text-gray-500">
-            Appareil lié : {turboy.deviceLabel ?? turboy.deviceId ?? '— aucun'}
-          </p>
-          {cles.isLoading ? (
-            <Spinner size="sm" />
-          ) : cles.data && cles.data.length > 0 ? (
-            <div className="space-y-1">
-              {cles.data.map((c) => (
-                <div key={c.id} className="flex flex-wrap items-center gap-3 text-sm">
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    color={
-                      c.statut === 'ACTIVE'
-                        ? 'success'
-                        : c.statut === 'CONSOMMEE'
-                          ? 'primary'
-                          : c.statut === 'REVOQUEE'
-                            ? 'danger'
-                            : 'default'
-                    }
-                  >
-                    {c.statut}
-                  </Chip>
-                  <span className="font-mono">••••{c.codeApercu ?? '????'}</span>
-                  {c.expireLe && <span className="text-gray-500">exp. {formatDate(c.expireLe)}</span>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-500">Aucune clé émise.</p>
-          )}
-        </section>
+        ) : (
+          <p className="text-sm text-gray-400">Aucune clé émise.</p>
+        )}
+      </section>
 
-        {/* Historique (RG-11) */}
-        <section>
-          <h3 className="mb-2 font-semibold">Historique du compte</h3>
-          {evenements.isLoading ? (
-            <Spinner size="sm" />
-          ) : evenements.data && evenements.data.length > 0 ? (
-            <ul className="space-y-1 text-sm">
-              {evenements.data.map((e) => (
-                <li key={e.id} className="flex flex-wrap items-center gap-2">
-                  <span className="text-gray-400">{formatDate(e.horodatage)}</span>
-                  <Chip size="sm" variant="flat">
-                    {e.type}
-                  </Chip>
-                  {e.auteurRole && <span className="text-gray-500">par {e.auteurRole}</span>}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-gray-500">Aucun événement.</p>
-          )}
-        </section>
-      </CardBody>
-    </Card>
+      {/* Historique (RG-11) */}
+      <section className={sectionClass}>
+        <h2 className={titleClass}>Historique du compte</h2>
+        {evenements.isLoading ? (
+          <Spinner size="sm" />
+        ) : evenements.data && evenements.data.length > 0 ? (
+          <ul className="space-y-1.5 text-sm text-gray-600">
+            {evenements.data.map((e) => (
+              <li key={e.id} className="flex flex-wrap items-center gap-2">
+                <span className="text-gray-400">{formatDate(e.horodatage)}</span>
+                <Chip size="sm" variant="flat">
+                  {e.type}
+                </Chip>
+                {e.auteurRole && <span className="text-gray-400">par {e.auteurRole}</span>}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-gray-400">Aucun événement.</p>
+        )}
+      </section>
+    </div>
   );
 }
