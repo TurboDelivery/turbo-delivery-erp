@@ -1,0 +1,57 @@
+'use server';
+
+import { programmeAPI } from '@/features/turboys/apis/programme.api';
+import { IProgramme, ICreerProgrammePayload, IModifierProgrammePayload } from '@/features/turboys/types/programme.types';
+import { ActionResponse } from '@/types';
+import { handleServerActionError } from '@/utils/handleServerActionError';
+import { AxiosError } from 'axios';
+
+// Liste (query directe, non enveloppée — comme getTurboysByType).
+export async function listerProgrammesSemaineAction(annee: number, semaine: number): Promise<IProgramme[]> {
+  return programmeAPI.listerSemaine(annee, semaine);
+}
+
+// Remonte le message métier du backend (ex. 409 « le programme doit être en BROUILLON »).
+function erreurMetier(error: unknown, fallback: string): ActionResponse<IProgramme> {
+  if (error instanceof AxiosError) {
+    const serverMsg = error.response?.data?.message || error.response?.data || error.message;
+    return { success: false, error: typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg) };
+  }
+  return handleServerActionError(error, fallback);
+}
+
+export async function creerProgrammeAction(payload: ICreerProgrammePayload): Promise<ActionResponse<IProgramme>> {
+  try {
+    const data = await programmeAPI.creer(payload);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, 'Erreur lors de la création du programme');
+  }
+}
+
+export async function modifierProgrammeAction(payload: IModifierProgrammePayload): Promise<ActionResponse<IProgramme>> {
+  try {
+    const data = await programmeAPI.modifier(payload.id, payload.jours);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, 'Erreur lors de la modification du programme');
+  }
+}
+
+export async function planifierProgrammeAction(id: string): Promise<ActionResponse<IProgramme>> {
+  try {
+    const data = await programmeAPI.planifier(id);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, 'Erreur lors de la planification du programme');
+  }
+}
+
+export async function publierProgrammeAction(id: string): Promise<ActionResponse<IProgramme>> {
+  try {
+    const data = await programmeAPI.publier(id);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, 'Erreur lors de la publication du programme');
+  }
+}
