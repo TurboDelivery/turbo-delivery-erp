@@ -15,6 +15,9 @@ export type AppSubjects =
   | 'Analytics'
   | 'Parametre'
   | 'Trafic'
+  // M7 (2026-06) — Sous-module « STANDARD » (incidents) de TRAFIC, isolé de
+  // 'Trafic' pour un gating dédié du centre de contrôle /trafic/standard.
+  | 'Incident'
   | 'Commande'
   // 2026-05 — "Commandes / Client" (menu racine, /commandes) isolé de 'Commande'
   // (qui gate les sous-pages Courses externes Nouvelles/Journalières/Toutes) pour
@@ -157,6 +160,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
 
     case 'DGA':
       can('read', 'all');
+      can('update', 'Incident'); // M7 — peut traiter les incidents (lecture via read-all)
       // can('read', 'all') couvre déjà PageResponsableFinancier et PageAgentRecouvreur,
       // pas besoin de re-déclarer explicitement.
       can('create', ['ChargeFixe', 'ChargeVariable', 'Depense']);
@@ -232,6 +236,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
 
     case 'OPS_MANAGER':
       can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
+      can(['read', 'update'], 'Incident'); // M7 — supervision des incidents STANDARD
       // Sujets isolés pour AGENT_V1 (cf. AppSubjects) — re-accordés ici pour
       // préserver l'existant : "Commandes / Client", "Historique des Créneaux",
       // "Partenaires > Rapports Performance".
@@ -267,6 +272,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // NB : Notifications/Paramètres retirés du menu (spec) ; 'Menu'/'Route'
       // conservés (infra). Tableau de bord retiré (cannot Analytics).
       can('manage', 'Trafic');
+      can(['read', 'update'], 'Incident');          // M7 — centre de contrôle STANDARD (file + transitions de statut)
       can(['read', 'create', 'update'], 'Ticket'); // créer + éditer (PAS delete/authentifier/valider)
       can('manage', 'Creneau');                     // Livreurs > Créneaux (voir+modifier)
       can('read', 'Livreur');                       // Livreurs > Liste des livreurs (lecture seule)
@@ -326,6 +332,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // Validation DGA, NI au module "Finance" principal (Charges, Validation,
       // Rapports Financiers, Rentabilité, Paiements, Revenus, Recouvrements).
       can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
+      can(['read', 'update'], 'Incident'); // M7 — supervision des incidents STANDARD
       // Sujets isolés pour AGENT_V1 (cf. AppSubjects) — re-accordés ici pour
       // préserver l'existant : "Commandes / Client", "Historique des Créneaux",
       // "Partenaires > Rapports Performance".

@@ -1,6 +1,6 @@
 'use client';
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconUser, IconUsers } from '@tabler/icons-react';
-import { BarChart, Bell, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Wallet } from 'lucide-react';
+import { AlertTriangle, BarChart, Bell, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
 import type { AppActions, AppSubjects } from '@/lib/casl/ability';
@@ -23,6 +23,7 @@ const menuData: IMenuData[] = [
     children: [
       { icon: IconMap, title: 'Localisation des Turboys (Maps)', path: '/trafic', can: { action: 'read', subject: 'Trafic' } },
       { icon: SquareUser, title: "File d'attente", path: '/file-attente', can: { action: 'read', subject: 'Trafic' } },
+      { icon: AlertTriangle, title: 'Centre de contrôle STANDARD', path: '/trafic/standard', can: { action: 'read', subject: 'Incident' } },
     ],
   },
   { icon: ShoppingCartIcon, title: 'Commandes / Client', path: '/commandes', can: { action: 'read', subject: 'CommandeClient' } },
