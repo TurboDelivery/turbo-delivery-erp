@@ -3,6 +3,7 @@ import { ITurboy } from '@/features/turboys/types/turboys.types';
 import {
   ChangerStatutPieceDTO,
   CleActivationVm,
+  CoteVm,
   EmissionCle,
   LivreurEvenementVm,
   ValiderCompteDTO,
@@ -48,6 +49,13 @@ export const compteLivreurAPI = {
   async listerEvenements(id: string): Promise<LivreurEvenementVm[]> {
     return await apiClientHttp.request<LivreurEvenementVm[]>({
       endpoint: `/api/erp/livreur/${id}/evenements`,
+      method: 'GET',
+    });
+  },
+
+  async listerCote(id: string): Promise<CoteVm> {
+    return await apiClientHttp.request<CoteVm>({
+      endpoint: `/api/erp/livreur/${id}/cote`,
       method: 'GET',
     });
   },

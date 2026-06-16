@@ -50,6 +50,8 @@ export interface ITurboy {
   sitePartnerId: string | null;
   deviceId: string | null;
   deviceLabel: string | null;
+  /** Cote de fiabilité 0–100 (RG-29). */
+  cote: number | null;
 }
 
 export interface ITurboyParams {

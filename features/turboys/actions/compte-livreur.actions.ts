@@ -5,6 +5,7 @@ import { ITurboy } from '@/features/turboys/types/turboys.types';
 import {
   ChangerStatutPieceDTO,
   CleActivationVm,
+  CoteVm,
   EmissionCle,
   LivreurEvenementVm,
   ValiderCompteDTO,
@@ -59,4 +60,8 @@ export async function listerClesAction(id: string): Promise<CleActivationVm[]> {
 
 export async function listerEvenementsAction(id: string): Promise<LivreurEvenementVm[]> {
   return compteLivreurAPI.listerEvenements(id);
+}
+
+export async function listerCoteAction(id: string): Promise<CoteVm> {
+  return compteLivreurAPI.listerCote(id);
 }

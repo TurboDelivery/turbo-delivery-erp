@@ -61,3 +61,20 @@ export interface LivreurEvenementVm {
   horodatage: string | null;
   payloadJson: string | null;
 }
+
+/** Une variation de cote de fiabilité (RG-29). */
+export interface CoteHistorique {
+  id: string;
+  delta: number;
+  coteAvant: number;
+  coteApres: number;
+  raison: string | null;
+  dateRef: string | null;
+  horodatage: string | null;
+}
+
+/** Cote courante + historique. */
+export interface CoteVm {
+  cote: number;
+  historique: CoteHistorique[];
+}

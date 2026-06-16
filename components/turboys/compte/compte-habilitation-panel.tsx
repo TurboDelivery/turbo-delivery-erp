@@ -6,6 +6,7 @@ import { useTurboyQuery } from '@/features/turboys/queries/turboy-list.query';
 import {
   useChangerStatutPieceMutation,
   useClesQuery,
+  useCoteQuery,
   useEmettreCleMutation,
   useEvenementsQuery,
   useValiderCompteMutation,
@@ -101,6 +102,7 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
   const { data: turboy, isLoading } = useTurboyQuery(driverId);
   const cles = useClesQuery(driverId);
   const evenements = useEvenementsQuery(driverId);
+  const cote = useCoteQuery(driverId);
 
   const [typeLivreur, setTypeLivreur] = useState<TurboyType>('INDEPENDANT');
   const [rattachement, setRattachement] = useState<Rattachement>('SITE_PARTNER');
@@ -125,6 +127,13 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
   const siteManquant = rattachement === 'SITE_PARTNER' && !sitePartnerId.trim();
   const dejaValide = (turboy.status ?? 0) >= 4;
 
+  const score = cote.data?.cote ?? turboy.cote ?? null;
+  const coteColor: 'success' | 'warning' | 'danger' | 'default' =
+    score == null ? 'default' : score >= 80 ? 'success' : score >= 50 ? 'warning' : 'danger';
+  const coteBar =
+    score == null ? 'bg-gray-300' : score >= 80 ? 'bg-green-500' : score >= 50 ? 'bg-amber-500' : 'bg-red-500';
+  const coteLabel = score == null ? 'Non évaluée' : score >= 80 ? 'Fiable' : score >= 50 ? 'Moyenne' : 'Faible';
+
   return (
     <div className="space-y-6">
       {codeEmis && (
@@ -138,6 +147,45 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
           </button>
         </div>
       )}
+
+      {/* Cote de fiabilité (RG-29) */}
+      <section className={sectionClass}>
+        <h2 className={titleClass}>Cote de fiabilité</h2>
+        {cote.isLoading ? (
+          <Spinner size="sm" />
+        ) : (
+          <>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl font-bold text-gray-800">
+                {score ?? '—'}
+                <span className="ml-0.5 text-base font-normal text-gray-400">/100</span>
+              </span>
+              <Chip variant="flat" color={coteColor}>
+                {coteLabel}
+              </Chip>
+            </div>
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+              <div className={`h-full rounded-full ${coteBar}`} style={{ width: `${score ?? 0}%` }} />
+            </div>
+            {cote.data && cote.data.historique.length > 0 ? (
+              <ul className="mt-4 space-y-1.5 text-sm text-gray-600">
+                {cote.data.historique.slice(0, 8).map((h) => (
+                  <li key={h.id} className="flex flex-wrap items-center gap-2">
+                    <span className="text-gray-400">{formatDate(h.horodatage)}</span>
+                    <Chip size="sm" variant="flat" color={h.delta < 0 ? 'danger' : 'success'}>
+                      {h.delta > 0 ? `+${h.delta}` : h.delta}
+                    </Chip>
+                    {h.raison && <span>{h.raison}</span>}
+                    <span className="text-gray-400">→ {h.coteApres}/100</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 text-sm text-gray-400">Aucune variation enregistrée.</p>
+            )}
+          </>
+        )}
+      </section>
 
       {/* Conformité des pièces (RG-05) */}
       <section className={sectionClass}>

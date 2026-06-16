@@ -7,6 +7,7 @@ import {
   changerStatutPieceAction,
   emettreCleAction,
   listerClesAction,
+  listerCoteAction,
   listerEvenementsAction,
   validerCompteAction,
 } from '@/features/turboys/actions/compte-livreur.actions';
@@ -21,6 +22,7 @@ export const compteLivreurKeys = {
   all: ['compte-livreur'] as const,
   cles: (id: string) => [...compteLivreurKeys.all, 'cles', id] as const,
   evenements: (id: string) => [...compteLivreurKeys.all, 'evenements', id] as const,
+  cote: (id: string) => [...compteLivreurKeys.all, 'cote', id] as const,
 };
 
 export const useClesQuery = (id: string) =>
@@ -35,6 +37,14 @@ export const useEvenementsQuery = (id: string) =>
   useQuery({
     queryKey: compteLivreurKeys.evenements(id),
     queryFn: () => listerEvenementsAction(id),
+    enabled: !!id,
+    staleTime: 0,
+  });
+
+export const useCoteQuery = (id: string) =>
+  useQuery({
+    queryKey: compteLivreurKeys.cote(id),
+    queryFn: () => listerCoteAction(id),
     enabled: !!id,
     staleTime: 0,
   });
