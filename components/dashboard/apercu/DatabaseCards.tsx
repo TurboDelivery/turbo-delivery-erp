@@ -3,9 +3,11 @@ import { title } from '@/components/primitives';
 import { Card, CardBody, CardHeader, Divider, Link, Skeleton } from '@heroui/react';
 import { TurboysButton } from '@/components/dashboard/apercu/TurboysButton';
 import { usePersonnelStatsQuery } from '@/features/dashboard/queries/personnel-stats.query';
+import { useComptesEnAttenteQuery } from '@/features/dashboard/queries/comptes-attente.query';
 
 export default function DatabaseCards() {
   const { data, isLoading, isError } = usePersonnelStatsQuery({});
+  const { data: comptesEnAttente } = useComptesEnAttenteQuery();
   if (isLoading) {
     return (
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -50,6 +52,8 @@ export default function DatabaseCards() {
     { label: 'Turboys', value: data?.turboys ?? 0, href: '/delivery-men/men' },
     { label: 'Personnel TURBO', value: data?.personnel ?? 0, href: '/personnel' },
     { label: 'Utilisateurs Actifs', value: data?.utilisateurs ?? 0, href: 'users' },
+    // M1 (RG-07) — comptes livreur en attente de validation, raccourci vers la file.
+    { label: 'Comptes en attente', value: comptesEnAttente ?? 0, href: '/delivery-men/not-valide' },
   ];
 
   return (

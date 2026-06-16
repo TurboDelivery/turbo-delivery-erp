@@ -60,6 +60,10 @@ export default function Content({ initialData }: ContentProps) {
                                 <span className="text-xs text-gray-400 shrink-0">Téléphone</span>
                                 <span className="text-sm text-gray-700 text-right truncate">{renderCell(item, 'telephone') as React.ReactNode}</span>
                             </div>
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs text-gray-400 shrink-0">Pièces conformes</span>
+                                <span className="text-sm text-gray-700 text-right">{renderCell(item, 'pieces') as React.ReactNode}</span>
+                            </div>
                             <div className="pt-2 flex flex-wrap gap-2">{renderCell(item, 'actions') as React.ReactNode}</div>
                         </div>
                     ))

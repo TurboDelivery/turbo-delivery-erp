@@ -14,6 +14,7 @@ export const columns = [
     { name: 'Prénoms & Nom', uid: 'nom' },
     { name: 'Téléphone', uid: 'telephone' },
     { name: 'État du compte', uid: 'status' },
+    { name: 'Pièces', uid: 'pieces' },
     { name: 'Actions', uid: 'actions' },
 ];
 
@@ -67,6 +68,19 @@ export default function useContentCtx({ initialData }: Props) {
                         {cellValue == 2 ? 'Nouveau' : 'Inconnu'}
                     </Chip>
                 );
+
+            case 'pieces': {
+                // M1 (RG-05) — n/3 pièces conformes (CNI, fiche, contrat). 3/3 = prêt à valider.
+                const statuts = [livreur.cniStatut, livreur.ficheStatut, livreur.contratStatut];
+                const conformes = statuts.filter((s) => s === 'CONFORME').length;
+                const renseignees = statuts.filter((s) => s != null).length;
+                const color = conformes === 3 ? 'success' : conformes > 0 ? 'warning' : 'default';
+                return (
+                    <Chip size="sm" variant="flat" color={color} title={`${renseignees}/3 pièces déposées`}>
+                        {conformes}/3
+                    </Chip>
+                );
+            }
 
             case 'actions':
                 return <DeliveryMenTools deliveryMan={livreur} validateBy="auth" />;

@@ -116,6 +116,11 @@ export interface DeliveryMan {
     immatriculation: string | null;
     numeroCni: string | null;
     matricule: string;
+    // M1 (RG-05) — statuts de conformité des pièces (servis par LivreurVm). Optionnels
+    // (rétrocompat avec les écrans/back qui ne les renvoient pas).
+    cniStatut?: 'A_VERIFIER' | 'CONFORME' | 'REFUSE' | null;
+    ficheStatut?: 'A_VERIFIER' | 'CONFORME' | 'REFUSE' | null;
+    contratStatut?: 'A_VERIFIER' | 'CONFORME' | 'REFUSE' | null;
 }
 
 export interface Collection {
