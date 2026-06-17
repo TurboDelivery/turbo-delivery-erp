@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-toastify';
-import { Button, Spinner } from '@heroui/react';
-import { ArrowLeft } from 'lucide-react';
+import { Avatar, Button, Chip, Spinner, Tab, Tabs } from '@heroui/react';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import {
   updateTurboyInfoSchema,
   type UpdateTurboyInfoDTO,
@@ -15,6 +15,10 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { updateLivreur } from '@/features/turboys/actions/update-turboy-info.action';
 import { useTurboyQuery, turboyKeys } from '@/features/turboys/queries/turboy-list.query';
+import { useDeleteTurboyMutation } from '@/features/turboys/queries';
+import { useAbility } from '@/hooks/use-ability';
+import { StatusChip } from '@/features/men/components/status-chip';
+import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { toAbsoluteUrl } from './_components/to-absolute-url';
 import { SectionDocumentsActuels } from './_components/section-documents-actuels';
 import { SectionPhotoProfil } from './_components/section-photo-profil';
@@ -25,6 +29,16 @@ import { SectionCompte } from './_components/section-compte';
 import { SectionAvenantsCommission } from './_components/section-avenants-commission';
 import CompteHabilitationPanel from '@/components/turboys/compte/compte-habilitation-panel';
 import PointagesSection from '@/components/turboys/pointages/pointages-section';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function EditContent({ id }: { id: string }) {
   const router = useRouter();
@@ -39,6 +53,14 @@ export default function EditContent({ id }: { id: string }) {
   // V48 — fiche d'identification (PDF/image)
   const [ficheIdentificationFile, setFicheIdentificationFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Suppression d'un coursier : action irréversible réservée au DG.
+  // `can('manage','all')` n'est accordé qu'au DG (les autres rôles d'édition
+  // n'ont que `manage Livreur`) — voir lib/casl/ability.ts.
+  const ability = useAbility();
+  const canDelete = ability.can('manage', 'all');
+  const [openDelete, setOpenDelete] = useState(false);
+  const deleteMutation = useDeleteTurboyMutation(() => router.push('/delivery-men/men'));
 
   const {
     control,
@@ -69,14 +91,6 @@ export default function EditContent({ id }: { id: string }) {
 
   useEffect(() => {
     if (turboy) {
-      console.log('📎 Documents livreur:', {
-        avatarUrl: turboy.avatarUrl,
-        cniUrlR: turboy.cniUrlR,
-        cniUrlV: turboy.cniUrlV,
-        vehiclePhotoUrl: turboy.vehiclePhotoUrl,
-        contratUrl: turboy.contratUrl,
-        raw: turboy,
-      });
       setAvatarPreview(toAbsoluteUrl(turboy.avatarUrl));
       reset({
         nom: turboy.nom ?? '',
@@ -153,6 +167,18 @@ export default function EditContent({ id }: { id: string }) {
     );
   }
 
+  const typeDisplay = getTurboyTypeDisplay(turboy.typeLivreur);
+  const assignationChip =
+    turboy.type === 'TURBO' ? (
+      <Chip color="success" size="sm" variant="flat">Assigné</Chip>
+    ) : turboy.type === 'FREE' ? (
+      <Chip color="primary" size="sm" variant="flat">Bird / Libre</Chip>
+    ) : turboy.type === 'WAITING' ? (
+      <Chip color="warning" size="sm" variant="flat">{"En attente d'assignation"}</Chip>
+    ) : (
+      <Chip color="default" size="sm" variant="flat">Non assigné</Chip>
+    );
+
   return (
     <div className="max-w-7xl mx-auto pb-16">
       <Link
@@ -163,76 +189,149 @@ export default function EditContent({ id }: { id: string }) {
         Retour à la liste
       </Link>
 
-      <h1 className="text-2xl font-bold text-primary mb-1">Modifier le profil</h1>
-      <p className="text-sm text-gray-500 mb-8">
-        {turboy.prenoms} {turboy.nom} — {turboy.matricule ?? turboy.id}
-      </p>
-
-      <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
-        <SectionDocumentsActuels
-          avatarUrl={turboy.avatarUrl}
-          cniUrlR={turboy.cniUrlR}
-          cniUrlV={turboy.cniUrlV}
-          vehiclePhotoUrl={turboy.vehiclePhotoUrl}
-          contratUrl={turboy.contratUrl}
-          avenants={turboy.avenantUrls}
-        />
-
-        <SectionPhotoProfil
-          avatarPreview={avatarPreview}
-          prenom={turboy.prenoms}
-          contratFile={contratFile}
-          onAvatarChange={handleAvatarChange}
-          onContratChange={setContratFile}
-        />
-
-        <SectionInfosPersonnelles control={control} errors={errors} />
-
-        <SectionDocumentIdentite
-          control={control}
-          errors={errors}
-          cniFiles={cniFiles}
-          onCniChange={setCniFiles}
-          ficheIdentificationFile={ficheIdentificationFile}
-          onFicheIdentificationChange={setFicheIdentificationFile}
-        />
-
-        <SectionVehicule
-          control={control}
-          errors={errors}
-          vehicleFile={vehicleFile}
-          onVehicleChange={setVehicleFile}
-        />
-
-        <SectionCompte control={control} errors={errors} />
-
-        <SectionAvenantsCommission
-          control={control}
-          errors={errors}
-          avenantFiles={avenantFiles}
-          existingAvenants={turboy.avenantUrls}
-          onAvenantsChange={setAvenantFiles}
-        />
-
-        <div className="flex items-center justify-end gap-3 pt-2">
-          <Button type="button" variant="flat" as={Link} href="/delivery-men/men">
-            Annuler
-          </Button>
-          <Button type="submit" color="primary" isLoading={isSubmitting}>
-            Enregistrer les modifications
-          </Button>
+      {/* En-tête identité — synthèse du coursier en un coup d'œil */}
+      <div className="bg-white rounded-xl border border-default-200 p-5 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <Avatar
+            src={toAbsoluteUrl(turboy.avatarUrl) ?? undefined}
+            name={`${turboy.prenoms} ${turboy.nom}`}
+            className="w-16 h-16 shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold text-gray-800 truncate">
+              {turboy.prenoms} {turboy.nom}
+            </h1>
+            <p className="text-sm text-gray-400">
+              {turboy.matricule ?? turboy.id}
+              {turboy.telephone ? ` · ${turboy.telephone}` : ''}
+            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <Chip color={typeDisplay.chipColor} size="sm" variant="flat">
+                {typeDisplay.label}
+              </Chip>
+              <StatusChip status={turboy.status} />
+              {assignationChip}
+              {turboy.cote != null && (
+                <Chip color="secondary" size="sm" variant="flat">
+                  Cote {turboy.cote}/100
+                </Chip>
+              )}
+            </div>
+          </div>
+          {canDelete && (
+            <Button
+              color="danger"
+              variant="flat"
+              startContent={<Trash2 className="w-4 h-4" />}
+              onPress={() => setOpenDelete(true)}
+              className="shrink-0"
+            >
+              Supprimer
+            </Button>
+          )}
         </div>
-      </form>
-
-      {/* M1 — Comptes & habilitations (validation, pièces, clé d'activation, historique) */}
-      <div className="mt-6">
-        <CompteHabilitationPanel driverId={id} />
       </div>
 
-      {/* M3 — Pointages détaillés (montée / relances / fin / hors-zone + cote) */}
-      <div className="mt-6">
-        <PointagesSection driverId={id} />
-      </div>
+      <Tabs
+        aria-label="Sections du coursier"
+        variant="underlined"
+        color="primary"
+        classNames={{ tabList: 'gap-6', panel: 'pt-6' }}
+        destroyInactiveTabPanel={false}
+      >
+        <Tab key="profil" title="Profil & documents">
+          <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
+            <SectionDocumentsActuels
+              avatarUrl={turboy.avatarUrl}
+              cniUrlR={turboy.cniUrlR}
+              cniUrlV={turboy.cniUrlV}
+              vehiclePhotoUrl={turboy.vehiclePhotoUrl}
+              contratUrl={turboy.contratUrl}
+              avenants={turboy.avenantUrls}
+            />
+
+            <SectionPhotoProfil
+              avatarPreview={avatarPreview}
+              prenom={turboy.prenoms}
+              contratFile={contratFile}
+              onAvatarChange={handleAvatarChange}
+              onContratChange={setContratFile}
+            />
+
+            <SectionInfosPersonnelles control={control} errors={errors} />
+
+            <SectionDocumentIdentite
+              control={control}
+              errors={errors}
+              cniFiles={cniFiles}
+              onCniChange={setCniFiles}
+              ficheIdentificationFile={ficheIdentificationFile}
+              onFicheIdentificationChange={setFicheIdentificationFile}
+            />
+
+            <SectionVehicule
+              control={control}
+              errors={errors}
+              vehicleFile={vehicleFile}
+              onVehicleChange={setVehicleFile}
+            />
+
+            <SectionCompte control={control} errors={errors} />
+
+            <SectionAvenantsCommission
+              control={control}
+              errors={errors}
+              avenantFiles={avenantFiles}
+              existingAvenants={turboy.avenantUrls}
+              onAvenantsChange={setAvenantFiles}
+            />
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <Button type="button" variant="flat" as={Link} href="/delivery-men/men">
+                Annuler
+              </Button>
+              <Button type="submit" color="primary" isLoading={isSubmitting}>
+                Enregistrer les modifications
+              </Button>
+            </div>
+          </form>
+        </Tab>
+
+        <Tab key="habilitation" title="Habilitation & pièces">
+          {/* M1 — validation, conformité des pièces, clé d'activation, historique */}
+          <CompteHabilitationPanel driverId={id} />
+        </Tab>
+
+        <Tab key="activite" title="Activité & pointages">
+          {/* M3 — cote de fiabilité, montée / relances / fin / hors-zone */}
+          <PointagesSection driverId={id} />
+        </Tab>
+      </Tabs>
+
+      {/* Suppression — réservée au DG, action irréversible */}
+      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le coursier</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer définitivement{' '}
+              <strong>
+                {turboy.prenoms} {turboy.nom}
+              </strong>{' '}? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate(id)}
+            >
+              {deleteMutation.isPending ? 'Suppression...' : 'Supprimer'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

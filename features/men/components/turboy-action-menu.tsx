@@ -9,8 +9,9 @@ import { type ITurboy } from '@/features/turboys/types/turboys.types';
 import { type LivreurStatutVM, type Restaurant } from '@/types/models';
 import DeliveryMenStatusValidate from '@/components/dashboard/delivery-men/delivery-men-status-validate';
 import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
-import { useDeleteTurboyMutation, useRejectTurboyMutation, usePasserEnBirdMutation, turboyKeys } from '@/features/turboys/queries';
+import { useRejectTurboyMutation, usePasserEnBirdMutation, turboyKeys } from '@/features/turboys/queries';
 import { UpdateDeliveryDialog } from '@/app/(protected)/delivery-men/update-delivery/update-delivery';
+import { useAbility } from '@/hooks/use-ability';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,18 +37,18 @@ export function turboyToLivreurStatut(turboy: ITurboy): LivreurStatutVM {
   };
 }
 
-type MenuItem = { key: string; label: string };
+type MenuItem = { key: string; label: string; danger?: boolean; showDivider?: boolean };
 
 export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; restaurants?: Restaurant[] }) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const ability = useAbility();
+  const canEdit = ability.can('update', 'Livreur');
   const [openValidate, setOpenValidate] = useState(false);
   const [openUpdateType, setOpenUpdateType] = useState(false);
-  const [openDelete, setOpenDelete] = useState(false);
   const [openReject, setOpenReject] = useState(false);
   const [openAssign, setOpenAssign] = useState(false);
   const [openBird, setOpenBird] = useState(false);
-  const deleteMutation = useDeleteTurboyMutation();
   const rejectMutation = useRejectTurboyMutation();
   const birdMutation = usePasserEnBirdMutation();
 
@@ -77,6 +78,7 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
     mapped.status === 2 ? 'auth' : mapped.status === 3 ? 'ops' : 'no-body';
 
   const isInactive = turboy.status === 0 || turboy.status === 5;
+  const isActive = turboy.status === 4;
 
   // Pour le modal : on réutilise 'ops' pour réactiver un livreur inactif
   const modalValidateBy: 'auth' | 'ops' = validateBy !== 'no-body' ? validateBy : 'ops';
@@ -90,17 +92,43 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
     ? "Confirmer l'assignation"
     : 'Assigner';
 
-  const items: MenuItem[] = [
-    { key: 'details', label: 'Détails' },
-    { key: 'edit', label: 'Modifier' },
-    { key: 'change-type', label: 'Changer le type' },
-    ...(validateBy === 'auth' ? [{ key: 'validate', label: 'Valider' }] : []),
-    ...(validateBy === 'ops' || isInactive ? [{ key: 'activate', label: 'Activer' }] : []),
-    { key: 'assign', label: assignLabel },
-    ...(isAssigned ? [{ key: 'bird', label: 'Passer en Bird' }] : []),
-    { key: 'reject', label: 'Désactiver' },
-    { key: 'delete', label: 'Supprimer' },
+  // Actions regroupées par finalité, visibilité contextuelle selon l'état du
+  // compte (status) et de l'assignation (type). Tout sauf « Détails » exige le
+  // droit d'édition. « Supprimer » n'est volontairement plus dans le menu rapide
+  // (action trop sensible — réservée à la fiche détail).
+  const groups: MenuItem[][] = [
+    // Consulter / éditer
+    [
+      { key: 'details', label: 'Détails' },
+      ...(canEdit ? [{ key: 'edit', label: 'Modifier' }] : []),
+    ],
+    // Cycle de vie du compte
+    canEdit
+      ? [
+          ...(validateBy === 'auth' ? [{ key: 'validate', label: 'Valider' }] : []),
+          ...(validateBy === 'ops' || isInactive ? [{ key: 'activate', label: 'Activer' }] : []),
+          ...(isActive ? [{ key: 'reject', label: 'Désactiver', danger: true }] : []),
+        ]
+      : [],
+    // Affectation (pertinente seulement pour un compte actif ou en attente d'assignation)
+    canEdit
+      ? [
+          ...(isWaiting || isActive ? [{ key: 'assign', label: assignLabel }] : []),
+          ...(isAssigned ? [{ key: 'bird', label: 'Passer en Bird', danger: true }] : []),
+        ]
+      : [],
+    // Classification (sensible — uniquement sur un compte actif)
+    canEdit && isActive ? [{ key: 'change-type', label: 'Changer le type' }] : [],
   ];
+
+  // On aplatit en marquant un séparateur à la fin de chaque groupe non terminal.
+  const visibleGroups = groups.filter((g) => g.length > 0);
+  const items: MenuItem[] = visibleGroups.flatMap((g, gi) =>
+    g.map((it, ii) => ({
+      ...it,
+      showDivider: ii === g.length - 1 && gi !== visibleGroups.length - 1,
+    })),
+  );
 
   return (
     <>
@@ -121,14 +149,14 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
             if (key === 'assign') setOpenAssign(true);
             if (key === 'bird') setOpenBird(true);
             if (key === 'reject') setOpenReject(true);
-            if (key === 'delete') setOpenDelete(true);
           }}
         >
           {(item) => (
             <DropdownItem
               key={item.key}
-              className={item.key === 'delete' || item.key === 'reject' || item.key === 'bird' ? 'text-danger' : ''}
-              color={item.key === 'delete' || item.key === 'reject' || item.key === 'bird' ? 'danger' : 'default'}
+              showDivider={item.showDivider}
+              className={item.danger ? 'text-danger' : ''}
+              color={item.danger ? 'danger' : 'default'}
             >
               {item.label}
             </DropdownItem>
@@ -198,29 +226,6 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
               onClick={() => birdMutation.mutate(turboy.id)}
             >
               {birdMutation.isPending ? 'En cours...' : 'Passer en Bird'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer le livreur</AlertDialogTitle>
-            <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer{' '}
-              <strong>
-                {turboy.prenoms} {turboy.nom}
-              </strong>{' '}? Cette action est irréversible.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteMutation.isPending}
-              onClick={() => deleteMutation.mutate(turboy.id)}
-            >
-              {deleteMutation.isPending ? 'Suppression...' : 'Supprimer'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
