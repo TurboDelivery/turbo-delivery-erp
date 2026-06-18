@@ -271,11 +271,15 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
             isLoading={emettre.isPending}
             onPress={() => emettre.mutate(undefined)}
           >
-            Réémettre une clé
+            Réémettre une clé (changer d’appareil)
           </Button>
         </div>
-        <p className="mb-3 text-xs text-gray-400">
+        <p className="mb-1 text-xs text-gray-400">
           Appareil lié : {turboy.deviceLabel ?? turboy.deviceId ?? '— aucun'}
+        </p>
+        <p className="mb-3 text-xs text-gray-400">
+          Réémettre une clé délie l’appareil actuel : le livreur pourra se
+          connecter sur un nouveau téléphone en saisissant la nouvelle clé.
         </p>
         {cles.isLoading ? (
           <Spinner size="sm" />
