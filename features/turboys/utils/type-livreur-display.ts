@@ -63,7 +63,7 @@ const FALLBACK_DISPLAY: TurboyTypeDisplay = {
   labelPlural: 'À catégoriser',
   chipColor: 'default',
   hexColor: '#6b7280',
-  description: 'Type non assigné — la RH doit qualifier ce profil.',
+  description: 'Contrat non catégorisé — la RH doit qualifier ce profil.',
 };
 
 /**

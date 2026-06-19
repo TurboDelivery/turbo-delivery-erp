@@ -223,8 +223,8 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
                 selectedKeys={[rattachement]}
                 onSelectionChange={(keys) => setRattachement((premiereCle(keys) || 'SITE_PARTNER') as Rattachement)}
               >
-                <SelectItem key="SITE_PARTNER">Site partenaire (TURBO)</SelectItem>
-                <SelectItem key="BIRD">BIRD (indépendant)</SelectItem>
+                <SelectItem key="SITE_PARTNER">Site partenaire — assigné</SelectItem>
+                <SelectItem key="BIRD">BIRD — non rattaché (libre)</SelectItem>
               </Select>
               {rattachement === 'SITE_PARTNER' && (
                 <Input
@@ -235,6 +235,10 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
                   onValueChange={setSitePartnerId}
                 />
               )}
+              <p className="col-span-full text-xs text-gray-400">
+                Le rattachement est indépendant du type de livreur : tout contrat
+                (y compris journalier / superviseur) peut être BIRD ou assigné.
+              </p>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs text-gray-400">

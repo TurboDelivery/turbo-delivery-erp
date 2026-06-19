@@ -103,7 +103,7 @@ export default function Content({ initialData, restaurants }: Props) {
 
                 {livreurAssigneCtrl.updateLivreurId === item?.livreurId && (
                     <Button variant="outline" className="text-sm h-8" onClick={() => livreurAssigneCtrl.onConfirmStatut(item, "FREE")}>
-                        Modifier le turbo en bird
+                        Désassigner (passer en Bird)
                     </Button>
                 )}
                 </div>
