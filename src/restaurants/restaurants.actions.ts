@@ -73,7 +73,7 @@ export async function getDetailRestaurant(idRestaurant: string): Promise<IRestau
     return await apiClientHttp.request<IRestaurant>({
       endpoint: restaurantEndpoints.getDetailRestaurant.endpoint(idRestaurant),
       method: restaurantEndpoints.getDetailRestaurant.method,
-      service: 'restaurant',
+      service: 'backend',
     });
   } catch (error) {
     console.error(error);
@@ -99,7 +99,7 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
     const data = await apiClientHttp.request({
       endpoint: restaurantEndpoints.getAlls.endpoint,
       method: restaurantEndpoints.getAlls.method,
-      service: 'restaurant',
+      service: 'backend',
     });
     return data;
   } catch (error) {
@@ -152,7 +152,7 @@ export async function getRestaurantsValidated(page: number): Promise<PaginatedRe
     const all = await apiClientHttp.request<Restaurant[]>({
       endpoint: `/api/V1/turbo/restaurant/get/all`,
       method: 'GET',
-      service: 'restaurant',
+      service: 'backend',
     });
     return wrapPaginated(all ?? [], page);
   } catch (error) {
