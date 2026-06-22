@@ -102,25 +102,13 @@ export default function DashboardFinanceStatistics() {
           onDownload={handleDownloadDetails}
         />
 
-        {/* Indicateurs financiers — grille régulière (3 colonnes), hauteurs alignées par rangée */}
+        {/* Indicateurs de la période */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <FinanceHighlightCard
             title="Revenus encaissés"
             value={formatCFA(resume?.totalRevenus ?? 0)}
             icon={Banknote}
             tone="blue"
-          />
-          <FinanceHighlightCard
-            title="Encours"
-            value={formatCFA(resume?.totalFacturesEnCours ?? 0)}
-            icon={Clock}
-            tone="purple"
-          />
-          <FinanceHighlightCard
-            title="Encours cumulé"
-            value={formatCFA(resume?.totalFacturesEnCoursCumule ?? 0)}
-            icon={Layers}
-            tone="indigo"
           />
           <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/charges" ariaLabel="Voir la liste des dépenses">
             <div className="flex flex-col gap-0.5">
@@ -134,19 +122,52 @@ export default function DashboardFinanceStatistics() {
               </div>
             </div>
           </FinanceHighlightCard>
+          <FinanceHighlightCard title="Marge" value={formattedMarge} icon={DollarSign} tone="orange" />
+          <FinanceHighlightCard
+            title="Encours"
+            value={formatCFA(resume?.totalFacturesEnCours ?? 0)}
+            icon={Clock}
+            tone="purple"
+          />
           <FinanceHighlightCard
             title="Investissements"
             value={formatCFA(resume?.totalInvestissements ?? 0)}
             icon={TrendingUp}
             tone="yellow"
           />
-          <FinanceHighlightCard title="Marge" value={formattedMarge} icon={DollarSign} tone="orange" />
         </div>
+
         <div className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 border ${margeStateClassName}`}>
           {isDeficit ? <ArrowDown className="size-4" /> : <TrendingUp className="size-4" />}
           <p className="text-sm 2xl:text-base font-medium">
-            {margeStateLabel} : {formattedMarge}
+            {margeStateLabel} (période) : {formattedMarge}
           </p>
+        </div>
+
+        {/* Cumul — tout l'historique */}
+        <div className="flex items-center gap-2 pt-2">
+          <Layers className="size-4 text-indigo-500" />
+          <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Cumul — tout l&apos;historique</h3>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <FinanceHighlightCard
+            title="Encours cumulé"
+            value={formatCFA(resume?.totalFacturesEnCoursCumule ?? 0)}
+            icon={Clock}
+            tone="indigo"
+          />
+          <FinanceHighlightCard
+            title="Dépenses cumulées"
+            value={formatCFA(resume?.totalDepensesCumule ?? 0)}
+            icon={ArrowDown}
+            tone="red"
+          />
+          <FinanceHighlightCard
+            title="Marge cumulée"
+            value={formatCFA(resume?.margeCumule ?? 0)}
+            icon={DollarSign}
+            tone="orange"
+          />
         </div>
       </div>
     </div>
