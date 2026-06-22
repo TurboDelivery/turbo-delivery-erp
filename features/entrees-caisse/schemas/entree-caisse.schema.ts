@@ -5,6 +5,7 @@ export const entreeCaisseSchema = z.object({
   montant: z.number().min(0, 'Le montant doit être positif'),
   dateEntree: z.string().min(1, "La date d'entrée est obligatoire"),
   commentaire: z.string().optional().default(''),
+  paye: z.boolean().optional().default(false),
 });
 
 export type EntreeCaisseCreateDTO = z.infer<typeof entreeCaisseSchema>;

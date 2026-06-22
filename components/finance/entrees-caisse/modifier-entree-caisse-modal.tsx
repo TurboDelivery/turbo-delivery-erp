@@ -45,6 +45,7 @@ export function ModifierEntreeCaisseModal({ entreeCaisse }: ModifierEntreeCaisse
             montant: entreeCaisse.montant,
             dateEntree: entreeCaisse.dateEntree,
             commentaire: entreeCaisse.commentaire,
+            paye: entreeCaisse.paye,
           }}
           onSubmit={onSubmit}
           isPending={mutation.isPending}

@@ -14,6 +14,7 @@ import { ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEntreeCaisseListQuery } from '@/features/entrees-caisse/queries/entree-caisse-list.query';
+import { EntreeCaisseStatutCell } from '@/components/finance/entrees-caisse/statut-cell';
 
 export function EntreeCaisseMiniTable() {
   const router = useRouter();
@@ -42,6 +43,7 @@ export function EntreeCaisseMiniTable() {
           <TableHeader>
             <TableColumn>Libellé</TableColumn>
             <TableColumn>Montant</TableColumn>
+            <TableColumn>Statut</TableColumn>
             <TableColumn>Date</TableColumn>
           </TableHeader>
           <TableBody
@@ -60,6 +62,9 @@ export function EntreeCaisseMiniTable() {
                 <TableCell className="text-sm">{entry.libelle}</TableCell>
                 <TableCell className="text-sm font-semibold">
                   {entry.montant.toLocaleString('fr-FR')} FCFA
+                </TableCell>
+                <TableCell>
+                  <EntreeCaisseStatutCell entree={entry} />
                 </TableCell>
                 <TableCell className="text-sm text-gray-500">
                   {format(new Date(entry.dateEntree), 'dd/MM/yyyy', { locale: fr })}
@@ -88,6 +93,10 @@ export function EntreeCaisseMiniTable() {
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xs text-gray-400">Date</span>
                 <span className="text-sm text-gray-500">{format(new Date(entry.dateEntree), 'dd/MM/yyyy', { locale: fr })}</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-xs text-gray-400">Statut</span>
+                <EntreeCaisseStatutCell entree={entry} />
               </div>
             </div>
           ))

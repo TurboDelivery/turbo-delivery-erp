@@ -6,6 +6,8 @@ export interface IEntreeCaisse {
   montant: number;
   dateEntree: string;
   commentaire: string;
+  /** true = payée (comptée dans l'encaissé) ; false = non payée (dans le CA mais pas l'encaissé). */
+  paye: boolean;
 }
 
 export interface IEntreeCaisseParams {

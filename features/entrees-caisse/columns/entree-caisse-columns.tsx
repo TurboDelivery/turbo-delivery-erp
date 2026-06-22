@@ -6,6 +6,7 @@ import { fr } from 'date-fns/locale';
 import { IEntreeCaisse } from '../types/entree-caisse.types';
 import { ModifierEntreeCaisseModal } from '@/components/finance/entrees-caisse/modifier-entree-caisse-modal';
 import { SupprimerEntreeCaisseModal } from '@/components/finance/entrees-caisse/supprimer-entree-caisse-modal';
+import { EntreeCaisseStatutCell } from '@/components/finance/entrees-caisse/statut-cell';
 
 export const entreeCaisseColumns: ColumnDef<IEntreeCaisse>[] = [
   {
@@ -23,6 +24,11 @@ export const entreeCaisseColumns: ColumnDef<IEntreeCaisse>[] = [
     header: 'Date',
     cell: ({ row }) =>
       format(new Date(row.original.dateEntree), 'dd/MM/yyyy', { locale: fr }),
+  },
+  {
+    accessorKey: 'paye',
+    header: 'Statut',
+    cell: ({ row }) => <EntreeCaisseStatutCell entree={row.original} />,
   },
   {
     accessorKey: 'commentaire',

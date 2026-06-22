@@ -72,6 +72,7 @@ export function EntreeCaisseForm({
 
   const [selectedMonth, setSelectedMonth] = useState(initialDate.month);
   const [selectedYear, setSelectedYear] = useState(initialDate.year);
+  const [statut, setStatut] = useState(defaultValues?.paye ? 'paye' : 'non_paye');
 
   const {
     register,
@@ -84,10 +85,16 @@ export function EntreeCaisseForm({
       libelle: '',
       montant: 0,
       commentaire: '',
+      paye: false,
       ...defaultValues,
       dateEntree: buildDateEntree(initialDate.month, initialDate.year),
     },
   });
+
+  const handleStatutChange = (value: string) => {
+    setStatut(value);
+    setValue('paye', value === 'paye');
+  };
 
   const handleMonthChange = (month: string) => {
     setSelectedMonth(month);
@@ -159,6 +166,22 @@ export function EntreeCaisseForm({
             <p className="text-red-500 text-xs">{errors.montant.message}</p>
           )}
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Statut</Label>
+        <Select value={statut} onValueChange={handleStatutChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Statut" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="non_paye">Non payée</SelectItem>
+            <SelectItem value="paye">Payée</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          Une entrée non payée reste dans le CA mais n&apos;est pas comptée dans l&apos;encaissé.
+        </p>
       </div>
 
       <div className="space-y-2">
