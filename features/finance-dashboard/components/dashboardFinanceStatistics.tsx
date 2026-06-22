@@ -6,7 +6,7 @@ import { useCAExport } from '@/features/finance-dashboard/hooks/use-ca-export';
 import { useGlobalStats } from '@/features/finance-dashboard/queries/global-stats.query';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { DateRange } from 'react-day-picker';
-import { endOfMonth, startOfMonth } from 'date-fns';
+import { endOfMonth, format, startOfMonth } from 'date-fns';
 import CACard from './ca-card';
 import FinanceHighlightCard from './finance-highlight-card';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
@@ -49,6 +49,17 @@ export default function DashboardFinanceStatistics() {
   const formattedRecurrentes = formatCFA(totalRecurrentes);
   const formattedNonRecurrentes = formatCFA(totalNonRecurrentes);
   //   const investissement = globalStats?.investissement || 0;
+
+  // Liens de drill-down : on ouvre la page concernée avec la période pré-appliquée.
+  const toIso = (d?: Date) => (d ? format(d, 'yyyy-MM-dd') : '');
+  const periodeQS = debut && fin ? `?debut=${toIso(debut)}&fin=${toIso(fin)}` : '';
+  const facturesPeriodeQS =
+    debut && fin ? `?tab=factures&fPeriodeDebut=${toIso(debut)}&fPeriodeFin=${toIso(fin)}` : '';
+  // Cumul : plage « tout l'historique » (l'app démarre en 2024 → aujourd'hui).
+  const ALL_TIME_DEBUT = '2024-01-01';
+  const allTimeFin = format(new Date(), 'yyyy-MM-dd');
+  const depensesCumuleHref = `/finance/charges?debut=${ALL_TIME_DEBUT}&fin=${allTimeFin}`;
+  const encoursCumuleHref = `/finance/recouvrement?tab=factures&fPeriodeDebut=${ALL_TIME_DEBUT}&fPeriodeFin=${allTimeFin}`;
 
   // Titre dynamique pour la carte CA
   const caTitle = dateRange ? 'CA de la Période' : 'CA du Mois';
@@ -100,6 +111,7 @@ export default function DashboardFinanceStatistics() {
           isLoading={isLoading}
           isLoadingExport={isLoadingCAExport}
           onDownload={handleDownloadDetails}
+          detailHref="/finance/revenue"
         />
 
         {/* ── Section : indicateurs de la période ── */}
@@ -113,8 +125,10 @@ export default function DashboardFinanceStatistics() {
             value={formatCFA(resume?.totalRevenus ?? 0)}
             icon={Banknote}
             tone="blue"
+            href={`/finance/recouvrement${periodeQS}`}
+            ariaLabel="Voir les recouvrements de la période"
           />
-          <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/charges" ariaLabel="Voir la liste des dépenses">
+          <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href={`/finance/charges${periodeQS}`} ariaLabel="Voir les dépenses de la période">
             <div className="flex flex-col gap-0.5">
               <div className="bg-red-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium 2xl:text-lg">
                 <span>Charges fixes</span>
@@ -126,18 +140,22 @@ export default function DashboardFinanceStatistics() {
               </div>
             </div>
           </FinanceHighlightCard>
-          <FinanceHighlightCard title="Marge" value={formattedMarge} icon={DollarSign} tone="orange" />
+          <FinanceHighlightCard title="Marge" value={formattedMarge} icon={DollarSign} tone="orange" href="/finance/analyse-rentabilite" ariaLabel="Voir l'analyse de rentabilité" />
           <FinanceHighlightCard
             title="Encours"
             value={formatCFA(resume?.totalFacturesEnCours ?? 0)}
             icon={Clock}
             tone="purple"
+            href={`/finance/recouvrement${facturesPeriodeQS}`}
+            ariaLabel="Voir les factures en cours de la période"
           />
           <FinanceHighlightCard
             title="Investissements"
             value={formatCFA(resume?.totalInvestissements ?? 0)}
             icon={TrendingUp}
             tone="yellow"
+            href={`/finance/revenue/investissement${periodeQS}`}
+            ariaLabel="Voir les investissements de la période"
           />
         </div>
 
@@ -160,24 +178,32 @@ export default function DashboardFinanceStatistics() {
               value={formatCFA(resume?.chiffreAffaireCumule ?? 0)}
               icon={Wallet}
               tone="green"
+              href="/finance/revenue"
+              ariaLabel="Voir le cumul des revenus"
             />
             <FinanceHighlightCard
               title="Dépenses cumulées"
               value={formatCFA(resume?.totalDepensesCumule ?? 0)}
               icon={ArrowDown}
               tone="red"
+              href={depensesCumuleHref}
+              ariaLabel="Voir toutes les dépenses (cumul)"
             />
             <FinanceHighlightCard
               title="Marge cumulée"
               value={formatCFA(resume?.margeCumule ?? 0)}
               icon={DollarSign}
               tone="orange"
+              href="/finance/analyse-rentabilite"
+              ariaLabel="Voir l'analyse de rentabilité"
             />
             <FinanceHighlightCard
               title="Encours cumulé"
               value={formatCFA(resume?.totalFacturesEnCoursCumule ?? 0)}
               icon={Clock}
               tone="indigo"
+              href={encoursCumuleHref}
+              ariaLabel="Voir toutes les factures en cours (cumul)"
             />
           </div>
         </div>

@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Card } from '@/components/ui/card';
-import { ArrowUp, Download, Receipt, TrendingUp, Wallet } from 'lucide-react';
+import { ArrowRight, ArrowUp, Download, Receipt, TrendingUp, Wallet } from 'lucide-react';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import CommissionBadge from './commission-badge';
 
@@ -16,9 +17,10 @@ interface CACardProps {
   onDownload?: () => void;
   commissionFixe?: number;
   commissionPourcentage?: number;
+  detailHref?: string;
 }
 
-export default function CACard({ title, totalAmount, fraisLivraison, commissions, commissionFixe = 0, commissionPourcentage = 0, isLoading, isLoadingExport = false, onDownload }: CACardProps) {
+export default function CACard({ title, totalAmount, fraisLivraison, commissions, commissionFixe = 0, commissionPourcentage = 0, isLoading, isLoadingExport = false, onDownload, detailHref }: CACardProps) {
   const commissionItems = [
     { label: 'Commission fixe', amount: commissionFixe },
     { label: 'Commission pourcentage', amount: commissionPourcentage },
@@ -80,6 +82,15 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
                 </>
               )}
             </button>
+          )}
+          {detailHref && (
+            <Link
+              href={detailHref}
+              className="mt-1 inline-flex w-fit items-center gap-1 text-xs font-medium text-green-700 hover:underline"
+            >
+              Voir le détail
+              <ArrowRight className="w-3 h-3" />
+            </Link>
           )}
         </div>
 
