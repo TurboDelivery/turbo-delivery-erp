@@ -8,6 +8,7 @@ export interface IFinanceResume {
   totalFacturesEnCoursCumule: number;
   totalDepensesCumule: number;
   margeCumule: number;
+  chiffreAffaireCumule: number;
 }
 
 export interface IFinanceResumeParams {

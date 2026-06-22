@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
-import { ArrowDown, Banknote, Clock, DollarSign, Layers, TrendingUp } from 'lucide-react';
+import { ArrowDown, Banknote, CalendarRange, Clock, DollarSign, Layers, TrendingUp, Wallet } from 'lucide-react';
 import { useCAExport } from '@/features/finance-dashboard/hooks/use-ca-export';
 import { useGlobalStats } from '@/features/finance-dashboard/queries/global-stats.query';
 import DateFilterInput from '@/components/finance/date-filter-input';
@@ -102,7 +102,11 @@ export default function DashboardFinanceStatistics() {
           onDownload={handleDownloadDetails}
         />
 
-        {/* Indicateurs de la période */}
+        {/* ── Section : indicateurs de la période ── */}
+        <div className="flex items-center gap-2 pt-1">
+          <CalendarRange className="size-4 text-primary" />
+          <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Indicateurs de la période</h3>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <FinanceHighlightCard
             title="Revenus encaissés"
@@ -144,30 +148,38 @@ export default function DashboardFinanceStatistics() {
           </p>
         </div>
 
-        {/* Cumul — tout l'historique */}
-        <div className="flex items-center gap-2 pt-2">
-          <Layers className="size-4 text-indigo-500" />
-          <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Cumul — tout l&apos;historique</h3>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <FinanceHighlightCard
-            title="Encours cumulé"
-            value={formatCFA(resume?.totalFacturesEnCoursCumule ?? 0)}
-            icon={Clock}
-            tone="indigo"
-          />
-          <FinanceHighlightCard
-            title="Dépenses cumulées"
-            value={formatCFA(resume?.totalDepensesCumule ?? 0)}
-            icon={ArrowDown}
-            tone="red"
-          />
-          <FinanceHighlightCard
-            title="Marge cumulée"
-            value={formatCFA(resume?.margeCumule ?? 0)}
-            icon={DollarSign}
-            tone="orange"
-          />
+        {/* ── Section : cumul tout l'historique (bloc visuellement distinct) ── */}
+        <div className="rounded-xl border border-indigo-100 bg-indigo-50/30 p-4 space-y-3 mt-1">
+          <div className="flex items-center gap-2">
+            <Layers className="size-4 text-indigo-500" />
+            <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Cumul · tout l&apos;historique</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <FinanceHighlightCard
+              title="CA cumulé"
+              value={formatCFA(resume?.chiffreAffaireCumule ?? 0)}
+              icon={Wallet}
+              tone="green"
+            />
+            <FinanceHighlightCard
+              title="Dépenses cumulées"
+              value={formatCFA(resume?.totalDepensesCumule ?? 0)}
+              icon={ArrowDown}
+              tone="red"
+            />
+            <FinanceHighlightCard
+              title="Marge cumulée"
+              value={formatCFA(resume?.margeCumule ?? 0)}
+              icon={DollarSign}
+              tone="orange"
+            />
+            <FinanceHighlightCard
+              title="Encours cumulé"
+              value={formatCFA(resume?.totalFacturesEnCoursCumule ?? 0)}
+              icon={Clock}
+              tone="indigo"
+            />
+          </div>
         </div>
       </div>
     </div>
