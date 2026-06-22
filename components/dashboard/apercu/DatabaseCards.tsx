@@ -1,6 +1,7 @@
 "use client";
 import { title } from '@/components/primitives';
 import { Card, CardBody, CardHeader, Divider, Link, Skeleton } from '@heroui/react';
+import { ChevronRight } from 'lucide-react';
 import { TurboysButton } from '@/components/dashboard/apercu/TurboysButton';
 import { usePersonnelStatsQuery } from '@/features/dashboard/queries/personnel-stats.query';
 import { useComptesEnAttenteQuery } from '@/features/dashboard/queries/comptes-attente.query';
@@ -10,8 +11,8 @@ export default function DatabaseCards() {
   const { data: comptesEnAttente } = useComptesEnAttenteQuery();
   if (isLoading) {
     return (
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-        {Array.from({ length: 4 }).map((_, index) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
+        {Array.from({ length: 5 }).map((_, index) => (
           <Card key={`skeleton-${index}`}>
             <CardHeader>
               <Skeleton className="h-5 w-32 rounded-lg" />
@@ -31,8 +32,8 @@ export default function DatabaseCards() {
 
   if (isError && !data) {
     return (
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-        <Card className="md:col-span-2 lg:col-span-4 border-danger/40">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
+        <Card className="sm:col-span-2 lg:col-span-3 xl:col-span-5 border-danger/40">
           <CardHeader>
             <h3 className={title({ size: 'h6', class: 'text-danger' })}>Erreur de chargement</h3>
           </CardHeader>
@@ -57,13 +58,13 @@ export default function DatabaseCards() {
   ];
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
       {statsItems.map((item) => (
-        <Card as={Link} key={item.label} href={item.href ?? '#'}>
+        <Card as={Link} key={item.label} href={item.href ?? '#'} className="transition-shadow hover:shadow-md">
           <CardHeader>
             <h3 className={title({ size: 'h6', class: 'text-primary' })}>{item.label}</h3>
           </CardHeader>
-          <CardBody>
+          <CardBody className="flex flex-col justify-between gap-3">
             <div className="flex justify-between gap-1 items-center overflow-x-hidden">
               <p className={title({ size: 'h4' })}>{item.value}</p>
               {item.label === 'Turboys' && (
@@ -88,6 +89,12 @@ export default function DatabaseCards() {
                 </div>
               )}
             </div>
+            {item.label !== 'Turboys' && (
+              <div className="flex items-center gap-1 text-xs text-default-400">
+                <span>Voir le détail</span>
+                <ChevronRight className="size-3.5" />
+              </div>
+            )}
           </CardBody>
         </Card>
       ))}

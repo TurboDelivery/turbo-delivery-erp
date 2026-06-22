@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
-import { ArrowDown, Banknote, Clock, DollarSign, TrendingUp } from 'lucide-react';
+import { ArrowDown, Banknote, Clock, DollarSign, Layers, TrendingUp } from 'lucide-react';
 import { useCAExport } from '@/features/finance-dashboard/hooks/use-ca-export';
 import { useGlobalStats } from '@/features/finance-dashboard/queries/global-stats.query';
 import DateFilterInput from '@/components/finance/date-filter-input';
@@ -102,7 +102,8 @@ export default function DashboardFinanceStatistics() {
           onDownload={handleDownloadDetails}
         />
 
-        <div className="flex max-md:flex-col items-center justify-between gap-4">
+        {/* Indicateurs financiers — grille régulière (3 colonnes), hauteurs alignées par rangée */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <FinanceHighlightCard
             title="Revenus encaissés"
             value={formatCFA(resume?.totalRevenus ?? 0)}
@@ -110,20 +111,17 @@ export default function DashboardFinanceStatistics() {
             tone="blue"
           />
           <FinanceHighlightCard
-            title="Investissements"
-            value={formatCFA(resume?.totalInvestissements ?? 0)}
-            icon={TrendingUp}
-            tone="yellow"
-          />
-          <FinanceHighlightCard
             title="Encours"
             value={formatCFA(resume?.totalFacturesEnCours ?? 0)}
             icon={Clock}
             tone="purple"
           />
-        </div>
-
-        <div className="flex max-md:flex-col items-center justify-between gap-4">
+          <FinanceHighlightCard
+            title="Encours cumulé"
+            value={formatCFA(resume?.totalFacturesEnCoursCumule ?? 0)}
+            icon={Layers}
+            tone="indigo"
+          />
           <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/charges" ariaLabel="Voir la liste des dépenses">
             <div className="flex flex-col gap-0.5">
               <div className="bg-red-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium 2xl:text-lg">
@@ -136,10 +134,19 @@ export default function DashboardFinanceStatistics() {
               </div>
             </div>
           </FinanceHighlightCard>
+          <FinanceHighlightCard
+            title="Investissements"
+            value={formatCFA(resume?.totalInvestissements ?? 0)}
+            icon={TrendingUp}
+            tone="yellow"
+          />
           <FinanceHighlightCard title="Marge" value={formattedMarge} icon={DollarSign} tone="orange" />
         </div>
-        <div className={`rounded-xl px-4 py-3 border ${margeStateClassName}`}>
-          <p className="text-sm 2xl:text-base font-medium text-center">{margeStateLabel}</p>
+        <div className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 border ${margeStateClassName}`}>
+          {isDeficit ? <ArrowDown className="size-4" /> : <TrendingUp className="size-4" />}
+          <p className="text-sm 2xl:text-base font-medium">
+            {margeStateLabel} : {formattedMarge}
+          </p>
         </div>
       </div>
     </div>

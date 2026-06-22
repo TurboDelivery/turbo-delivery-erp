@@ -5,6 +5,7 @@ export interface IFinanceResume {
   totalRevenus: number;
   totalInvestissements: number;
   totalFacturesEnCours: number;
+  totalFacturesEnCoursCumule: number;
 }
 
 export interface IFinanceResumeParams {
