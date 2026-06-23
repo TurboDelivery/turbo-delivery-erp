@@ -454,8 +454,9 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
     case 'RESPONSABLE_AUTH_COUPONS':
       // 2026-05 — « Responsable Authentification de coupons ». Gère les tickets :
       // créer/éditer, AUTHENTIFIER, régulariser les retardés (page Régularisation).
-      // NE VALIDE PAS (ni V1 ni V2). Menus en voir+modifier : Livreurs (Créneaux +
-      // Liste), Partenaires, Trafic.
+      // NE VALIDE PAS (ni V1 ni V2). Menus en voir+modifier : Partenaires, Trafic.
+      // 2026-06-23 (choix owner) — Groupe « Turboys » retiré (plus de manage
+      // Creneau / Livreur → Créneaux, Programmes hebdo, Men masqués).
       // 2026-06-23 (choix owner) — Sous « Validation des tickets » : UNIQUEMENT
       // Régularisation. La « Grille de paiement » est retirée (plus de read
       // GrillePaiement) ; les autres sous-pages (Verification V1, Verrouillage V2,
@@ -464,8 +465,6 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // NB : « Contacts » = page inexistante dans l'app → non mappée (choix user).
       // Notifications/Paramètres hors périmètre (menu masqué) ; Menu/Route = infra.
       can('manage', 'Trafic');
-      can('manage', 'Creneau');             // Menu Livreurs > Créneaux
-      can('manage', 'Livreur');             // Menu Livreurs > Liste des livreurs
       can('manage', 'Restaurant');          // Menu Partners
       can('valider', 'Restaurant');
       // Tickets : créer/éditer + authentifier (PAS valider V1/V2). 'read Ticket'
