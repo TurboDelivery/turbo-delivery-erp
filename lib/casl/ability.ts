@@ -455,7 +455,12 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // 2026-05 — « Responsable Authentification de coupons ». Gère les tickets :
       // créer/éditer, AUTHENTIFIER, régulariser les retardés (page Régularisation).
       // NE VALIDE PAS (ni V1 ni V2). Menus en voir+modifier : Livreurs (Créneaux +
-      // Liste), Partenaires, Trafic. Grille de paiement : consultation seule.
+      // Liste), Partenaires, Trafic.
+      // 2026-06-23 (choix owner) — Sous « Validation des tickets » : UNIQUEMENT
+      // Régularisation. La « Grille de paiement » est retirée (plus de read
+      // GrillePaiement) ; les autres sous-pages (Verification V1, Verrouillage V2,
+      // Visa DGA, Approbation finale, Historique des Créneaux) n'étaient déjà pas
+      // accordées → menu réduit à la seule Régularisation.
       // NB : « Contacts » = page inexistante dans l'app → non mappée (choix user).
       // Notifications/Paramètres hors périmètre (menu masqué) ; Menu/Route = infra.
       can('manage', 'Trafic');
@@ -468,7 +473,6 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       // (les 3 autres sous-pages Courses restent masquées, pas de 'Commande').
       can(['read', 'create', 'update', 'authentifier'], 'Ticket');
       can('manage', 'ValidationTicket');    // Régularisation (régulariser les tickets retardés)
-      can('read', 'GrillePaiement');        // Grille de paiement : lecture seule
       can('access', ['Menu', 'Route']);
       cannot('access', 'Analytics');
       break;
