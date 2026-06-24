@@ -39,6 +39,8 @@ export interface IRapportSignal {
   statut: string | null;
   conforme: boolean | null;
   distanceMetres: number | null;
+  horsZone: boolean;
+  horsZoneJustifiee: boolean | null;
 }
 
 export interface IRapportJour {

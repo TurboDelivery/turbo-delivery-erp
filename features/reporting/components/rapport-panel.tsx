@@ -16,7 +16,7 @@ import {
 } from '@heroui/react';
 
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
-import { IRapportSignal, useRapportPresenceQuery } from '@/features/reporting';
+import { IRapportJour, IRapportSignal, useRapportPresenceQuery } from '@/features/reporting';
 
 function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
   return (
@@ -36,15 +36,39 @@ function SignalCell({ signal }: { signal: IRapportSignal | null }) {
       return signal.heure;
     }
   })();
+  // RG-29 : hors-zone explicite (jaune = justifié par ticket, rouge = non justifié) ;
+  // repli sur `conforme === false` (distance) pour les anciennes données sans le flag.
+  const horsZone = signal.horsZone || signal.conforme === false;
+  const justifie = signal.horsZoneJustifiee === true;
   return (
     <div className="flex items-center gap-1">
       <span>{heure}</span>
-      {signal.conforme === false && (
-        <Chip size="sm" variant="flat" color="danger" className="h-4 text-[10px] px-1">
+      {horsZone && (
+        <Chip
+          size="sm"
+          variant="flat"
+          color={justifie ? 'warning' : 'danger'}
+          className="h-4 text-[10px] px-1"
+        >
           hors zone
         </Chip>
       )}
     </div>
+  );
+}
+
+/** Synthèse hors-zone d'une journée : justifié (ticket) / non justifié (pénalité) / — (RG-29). */
+function HorsZoneCell({ jour }: { jour: IRapportJour }) {
+  const signaux = [jour.montee, jour.intermediaire, jour.intermediaire2, jour.fin].filter(
+    (s): s is IRapportSignal => s != null,
+  );
+  const horsZone = signaux.filter((s) => s.horsZone || s.conforme === false);
+  if (horsZone.length === 0) return <span className="text-default-300">—</span>;
+  const tousJustifies = horsZone.every((s) => s.horsZoneJustifiee === true);
+  return (
+    <Chip size="sm" variant="flat" color={tousJustifies ? 'success' : 'danger'}>
+      {tousJustifies ? 'Ticket joint — justifié' : 'Non justifié'}
+    </Chip>
   );
 }
 
@@ -104,6 +128,7 @@ export function RapportPanel() {
               <TableColumn className="text-primary">RELANCE 1</TableColumn>
               <TableColumn className="text-primary">RELANCE 2</TableColumn>
               <TableColumn className="text-primary">FIN</TableColumn>
+              <TableColumn className="text-primary">HORS ZONE</TableColumn>
               <TableColumn className="text-primary">PÉNALITÉ</TableColumn>
             </TableHeader>
             <TableBody emptyContent="Aucun jour sur la période">
@@ -123,6 +148,7 @@ export function RapportPanel() {
                   <TableCell><SignalCell signal={j.intermediaire} /></TableCell>
                   <TableCell><SignalCell signal={j.intermediaire2} /></TableCell>
                   <TableCell><SignalCell signal={j.fin} /></TableCell>
+                  <TableCell><HorsZoneCell jour={j} /></TableCell>
                   <TableCell className="text-default-500">
                     {j.penaliteFcfa ? `${j.penaliteFcfa} F` : '—'}
                   </TableCell>
