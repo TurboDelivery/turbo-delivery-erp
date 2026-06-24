@@ -101,7 +101,8 @@ export function RapportPanel() {
               <TableColumn className="text-primary">JOUR</TableColumn>
               <TableColumn className="text-primary">STATUT</TableColumn>
               <TableColumn className="text-primary">MONTÉE</TableColumn>
-              <TableColumn className="text-primary">INTERMÉDIAIRE</TableColumn>
+              <TableColumn className="text-primary">RELANCE 1</TableColumn>
+              <TableColumn className="text-primary">RELANCE 2</TableColumn>
               <TableColumn className="text-primary">FIN</TableColumn>
               <TableColumn className="text-primary">PÉNALITÉ</TableColumn>
             </TableHeader>
@@ -120,6 +121,7 @@ export function RapportPanel() {
                   <TableCell>{j.statutJour ?? '—'}</TableCell>
                   <TableCell><SignalCell signal={j.montee} /></TableCell>
                   <TableCell><SignalCell signal={j.intermediaire} /></TableCell>
+                  <TableCell><SignalCell signal={j.intermediaire2} /></TableCell>
                   <TableCell><SignalCell signal={j.fin} /></TableCell>
                   <TableCell className="text-default-500">
                     {j.penaliteFcfa ? `${j.penaliteFcfa} F` : '—'}

@@ -47,6 +47,7 @@ export interface IRapportJour {
   statutJour: string | null;
   montee: IRapportSignal | null;
   intermediaire: IRapportSignal | null;
+  intermediaire2: IRapportSignal | null;
   fin: IRapportSignal | null;
   absenceJustifiee: boolean | null;
   absenceMotif: string | null;

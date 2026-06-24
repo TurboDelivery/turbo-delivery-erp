@@ -3,7 +3,7 @@
 
 export type StatutSignalement = 'ON_TIME' | 'LATE' | 'MISSED';
 
-/** Un signalement GPS (montée / relance 1 / relance 2). */
+/** Un signalement GPS (montée / relance 1 / relance 2 / fin). */
 export interface ISignalementPointage {
   pointeAt: string | null; // ISO datetime du pointage
   statut: StatutSignalement | null;
@@ -12,7 +12,7 @@ export interface ISignalementPointage {
   distanceMetres: number | null; // distance au site assigné (> rayon = hors-zone)
 }
 
-/** Un jour de service avec ses 3 signalements + statut. */
+/** Un jour de service avec ses 4 signalements (RG-16) + statut. */
 export interface IJourPointage {
   jour: string; // LUNDI, MARDI…
   date: string; // ISO date
@@ -20,8 +20,9 @@ export interface IJourPointage {
   fin: string | null; // heure prévue de fin (LocalTime)
   actif: boolean;
   startSignalement: ISignalementPointage | null; // Montée
-  midSignalement: ISignalementPointage | null; // Relance 1
-  endSignalement: ISignalementPointage | null; // Relance 2
+  midSignalement: ISignalementPointage | null; // Relance 1 (+1/3)
+  mid2Signalement: ISignalementPointage | null; // Relance 2 (+2/3)
+  endSignalement: ISignalementPointage | null; // Fin de service
   statutJour: string | null; // PRESENT | ABSENT | RETARD | JUSTIFIE | NON_INSCRIT
   penaliteFcfa: number | null;
   absenceJustifiee: boolean | null;

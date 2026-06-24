@@ -49,7 +49,7 @@ const STATUT_JOUR_CLS: Record<string, string> = {
 
 /** Au moins un signalement du jour hors du rayon. */
 export function jourHorsZone(r: IPointageRow): boolean {
-  return [r.startSignalement, r.midSignalement, r.endSignalement].some(
+  return [r.startSignalement, r.midSignalement, r.mid2Signalement, r.endSignalement].some(
     (s) => s?.distanceMetres != null && s.distanceMetres > RAYON_M,
   );
 }
@@ -70,12 +70,8 @@ export const pointageColumns: ColumnDef<IPointageRow>[] = [
   },
   { id: 'montee', header: 'Montée', cell: ({ row }) => <SignalementCell s={row.original.startSignalement} /> },
   { id: 'relance1', header: 'Relance 1', cell: ({ row }) => <SignalementCell s={row.original.midSignalement} /> },
-  { id: 'relance2', header: 'Relance 2', cell: ({ row }) => <SignalementCell s={row.original.endSignalement} /> },
-  {
-    id: 'fin',
-    header: 'Fin',
-    cell: ({ row }) => <span className="whitespace-nowrap text-xs text-gray-500">{row.original.fin ?? '—'}</span>,
-  },
+  { id: 'relance2', header: 'Relance 2', cell: ({ row }) => <SignalementCell s={row.original.mid2Signalement} /> },
+  { id: 'fin', header: 'Fin', cell: ({ row }) => <SignalementCell s={row.original.endSignalement} /> },
   {
     id: 'horsZone',
     header: 'Hors-zone',

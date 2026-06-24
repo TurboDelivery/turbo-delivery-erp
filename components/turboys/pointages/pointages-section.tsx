@@ -69,8 +69,8 @@ export default function PointagesSection({ driverId }: { driverId: string }) {
         r.jour,
         sigCsv(r.startSignalement),
         sigCsv(r.midSignalement),
+        sigCsv(r.mid2Signalement),
         sigCsv(r.endSignalement),
-        r.fin ?? '',
         jourHorsZone(r) ? (r.absenceJustifiee ? 'Justifié' : 'Hors-zone') : '',
         r.statutJour ?? '',
       ]
