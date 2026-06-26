@@ -1,11 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Button, Select, SelectItem } from '@heroui/react';
-import { useQuery } from '@tanstack/react-query';
+import { Button, Select, SelectItem, Tooltip } from '@heroui/react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-toastify';
 import { parseAsInteger, useQueryStates } from 'nuqs';
 import { IProgramme } from '@/features/turboys/types/programme.types';
+import { creerProgrammeAction, listerProgrammesSemaineAction } from '@/features/turboys/actions/programme.actions';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
+import { joursAvecDates } from './weekly-jours-editor';
 import {
   useProgrammesSemaineQuery,
   useProgrammesIndependantsQuery,
@@ -112,6 +115,46 @@ export default function ProgrammesSection() {
     return liste;
   }, [data, typeFiltre, partenaireFiltre]);
 
+  // Importer = copier le planning de la semaine précédente (brouillons), pour
+  // les livreurs qui n'ont pas déjà un programme cette semaine. Orchestré côté
+  // front via creer + joursAvecDates (recalcule les dates de la semaine cible).
+  const qc = useQueryClient();
+  const [importing, setImporting] = React.useState(false);
+  const copierSemainePrecedente = async () => {
+    let srcAnnee = annee;
+    let srcSemaine = semaine - 1;
+    if (srcSemaine < 1) {
+      srcAnnee -= 1;
+      srcSemaine = 52;
+    }
+    setImporting(true);
+    try {
+      const sources = await listerProgrammesSemaineAction(srcAnnee, srcSemaine);
+      const dejaPresent = new Set((data ?? []).map((p) => p.livreurId));
+      const aCreer = sources.filter((p) => p.livreurId && !dejaPresent.has(p.livreurId));
+      if (aCreer.length === 0) {
+        toast.info(`Rien à importer depuis la semaine ${srcSemaine}/${srcAnnee}.`);
+        return;
+      }
+      let ok = 0;
+      for (const src of aCreer) {
+        const r = await creerProgrammeAction({
+          livreurId: src.livreurId!,
+          annee,
+          semaine,
+          jours: joursAvecDates(src.jours, annee, semaine),
+        });
+        if (r.success) ok += 1;
+      }
+      await qc.invalidateQueries({ queryKey: ['programme'] });
+      toast.success(`${ok} programme(s) importé(s) depuis la semaine ${srcSemaine}/${srcAnnee}.`);
+    } catch {
+      toast.error("Échec de l'import depuis la semaine précédente.");
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <section className="rounded-xl border border-default-200 bg-white p-4">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -128,6 +171,11 @@ export default function ProgrammesSection() {
           <Button size="sm" variant="flat" onPress={() => changeWeek(1)}>
             Sem. suiv. →
           </Button>
+          <Tooltip content="Copier le planning de la semaine précédente" size="sm">
+            <Button size="sm" variant="flat" onPress={copierSemainePrecedente} isLoading={importing}>
+              Importer
+            </Button>
+          </Tooltip>
           <Button
             size="sm"
             variant="flat"
