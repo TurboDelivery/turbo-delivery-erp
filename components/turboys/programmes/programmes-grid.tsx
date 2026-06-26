@@ -56,6 +56,7 @@ function CelluleJour({ jour }: { jour?: IJourProgramme }) {
 }
 
 export interface ProgrammeGridHandlers {
+  onApercu: (p: IProgramme) => void;
   onEdit: (p: IProgramme) => void;
   onPlanifier: (p: IProgramme) => void;
   onPublier: (p: IProgramme) => void;
@@ -67,6 +68,9 @@ function LigneActions({ p, h }: { p: IProgramme; h: ProgrammeGridHandlers }) {
   const busy = h.pendingId === p.id;
   return (
     <div className="flex flex-wrap justify-end gap-1">
+      <Button size="sm" variant="light" onPress={() => h.onApercu(p)}>
+        Aperçu
+      </Button>
       {s === 'BROUILLON' && (
         <Button size="sm" variant="flat" onPress={() => h.onEdit(p)} isDisabled={busy}>
           Éditer

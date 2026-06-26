@@ -183,3 +183,72 @@ export function exporterProgrammesPdf(
 
   doc.save(`programmes_${annee}_S${semaine}.pdf`);
 }
+
+// ── PDF individuel (un livreur) ────────────────────────────────────────────────
+const JOURS_LONG: Array<{ key: string; label: string }> = [
+  { key: 'LUNDI', label: 'Lundi' },
+  { key: 'MARDI', label: 'Mardi' },
+  { key: 'MERCREDI', label: 'Mercredi' },
+  { key: 'JEUDI', label: 'Jeudi' },
+  { key: 'VENDREDI', label: 'Vendredi' },
+  { key: 'SAMEDI', label: 'Samedi' },
+  { key: 'DIMANCHE', label: 'Dimanche' },
+];
+
+/** Document portrait « X, voici ton programme cette semaine » pour un livreur. */
+export function exporterProgrammeIndividuelPdf(programme: IProgramme, annee: number, semaine: number): void {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const nom = programme.livreurNom ?? '—';
+  const prenom = (programme.livreurNom ?? '').split(' ')[0] || 'Bonjour';
+
+  doc.setFillColor(...RED);
+  doc.rect(0, 0, pageW, 30, 'F');
+  doc.setFillColor(...YELLOW);
+  doc.rect(0, 27, pageW, 3, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(255, 255, 255);
+  doc.text('Mon programme', 14, 14);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.setTextColor(255, 230, 150);
+  doc.text(`${nom}${programme.typeLivreur ? ' • ' + libelleType(programme) : ''}  •  Semaine ${semaine} / ${annee}`, 14, 22);
+  doc.setTextColor(...DARK);
+
+  let y = 44;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text(`${prenom}, voici ton programme cette semaine`, 14, y);
+  y += 10;
+
+  doc.setFontSize(11);
+  for (const jr of JOURS_LONG) {
+    const j = programme.jours?.find((x) => (x.jour ?? '').toUpperCase() === jr.key);
+    const repos = !j || !j.actif;
+    doc.setDrawColor(...BORDER);
+    doc.line(14, y + 8, pageW - 14, y + 8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...DARK);
+    doc.text(jr.label, 16, y + 5.5);
+    doc.setFont('helvetica', 'normal');
+    if (repos) {
+      doc.setTextColor(...RED);
+      doc.text('Repos', pageW - 16, y + 5.5, { align: 'right' });
+    } else {
+      doc.setTextColor(...DARK);
+      doc.text(`${hhmm(j!.debut)} – ${hhmm(j!.fin)}`, pageW - 16, y + 5.5, { align: 'right' });
+    }
+    y += 11;
+  }
+
+  doc.setFontSize(8);
+  doc.setTextColor(...GRAY);
+  doc.text(
+    `Exporté le ${new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`,
+    14,
+    y + 6,
+  );
+
+  doc.save(`programme_${nom.replace(/\s+/g, '_')}_S${semaine}.pdf`);
+}

@@ -12,6 +12,7 @@ import {
 import { exporterProgrammesExcel, exporterProgrammesPdf } from '@/features/turboys/utils/programmes-export.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { ProgrammesGrid } from './programmes-grid';
+import { ProgrammeApercuModal } from './programme-apercu-modal';
 import { ProgrammeFormModal } from './programme-form-modal';
 import { AutosuffisancePanel } from './autosuffisance-panel';
 
@@ -55,6 +56,7 @@ export default function ProgrammesSection() {
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<IProgramme | null>(null);
+  const [apercu, setApercu] = React.useState<IProgramme | null>(null);
   const [pendingId, setPendingId] = React.useState<string | null>(null);
 
   const planifier = usePlanifierProgrammeMutation();
@@ -156,6 +158,7 @@ export default function ProgrammesSection() {
         emptyContent={
           isLoading ? 'Chargement…' : isError ? 'Erreur de chargement des programmes' : 'Aucun programme pour cette semaine'
         }
+        onApercu={(p) => setApercu(p)}
         onEdit={(p) => setEditing(p)}
         onPlanifier={(p) => runAction(p.id, planifier.mutateAsync)}
         onPublier={(p) => runAction(p.id, publier.mutateAsync)}
@@ -178,6 +181,15 @@ export default function ProgrammesSection() {
         programme={editing}
         anneeInitiale={annee}
         semaineInitiale={semaine}
+      />
+      <ProgrammeApercuModal
+        programme={apercu}
+        annee={annee}
+        semaine={semaine}
+        isOpen={!!apercu}
+        onOpenChange={(open) => {
+          if (!open) setApercu(null);
+        }}
       />
     </section>
   );
