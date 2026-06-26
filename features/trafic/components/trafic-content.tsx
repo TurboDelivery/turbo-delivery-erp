@@ -70,7 +70,7 @@ export default function TraficContent() {
   return (
     <div className="flex flex-col w-full h-[calc(100vh-8rem)] min-h-[600px] bg-blue-500 overflow-hidden rounded-xl shadow-md">
       <div className="bg-primary text-white flex justify-between items-center px-4 py-3 shrink-0">
-        <h3 className="text-lg 2xl:text-xl font-semibold flex items-center gap-2">📍 Trafic des Livreurs en Temps Réel</h3>
+        <h3 className="text-lg 2xl:text-xl font-semibold flex items-center gap-2">ERP-TRAFIC — Suivi temps réel</h3>
         <Chip variant="solid" className="bg-white text-primary font-medium">
           Total : {data.totalLivreurs}
         </Chip>
