@@ -1,12 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Button, Select, SelectItem, Tooltip } from '@heroui/react';
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Select, SelectItem } from '@heroui/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { parseAsInteger, useQueryStates } from 'nuqs';
 import { IProgramme } from '@/features/turboys/types/programme.types';
 import { creerProgrammeAction, listerProgrammesSemaineAction } from '@/features/turboys/actions/programme.actions';
+import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
+import { lireFichierProgrammes, telechargerModeleProgrammes } from '@/features/turboys/utils/programmes-import.utils';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import { joursAvecDates } from './weekly-jours-editor';
 import {
@@ -104,6 +106,7 @@ export default function ProgrammesSection() {
     () => (restaurantsQuery.data ?? []).map((r) => ({ id: r.id, nom: r.nomEtablissement })),
     [restaurantsQuery.data],
   );
+  const livreursQuery = useLivreursListQuery();
   const programmesFiltres = React.useMemo(() => {
     let liste = data ?? [];
     if (typeFiltre !== 'TOUS') liste = liste.filter((p) => (p.typeLivreur ?? '') === typeFiltre);
@@ -155,6 +158,62 @@ export default function ProgrammesSection() {
     }
   };
 
+  // Import par fichier (.xlsx/.csv) : correspondance livreur par matricule puis
+  // téléphone, création de brouillons pour la semaine affichée.
+  const fileRef = React.useRef<HTMLInputElement>(null);
+  const onFichier = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setImporting(true);
+    try {
+      const lignes = await lireFichierProgrammes(file);
+      const normMat = (s?: string | null) => (s ?? '').trim().toUpperCase();
+      const normTel = (s?: string | null) => (s ?? '').replace(/\D/g, '').slice(-10);
+      const parMat = new Map<string, string>();
+      const parTel = new Map<string, string>();
+      for (const l of livreursQuery.data ?? []) {
+        if (l.matricule) parMat.set(normMat(l.matricule), l.id);
+        if (l.telephone) parTel.set(normTel(l.telephone), l.id);
+      }
+      const dejaPresent = new Set((data ?? []).map((p) => p.livreurId));
+      let ok = 0;
+      let nonTrouves = 0;
+      let ignores = 0;
+      for (const lg of lignes) {
+        const id =
+          (lg.matricule && parMat.get(normMat(lg.matricule))) ||
+          (lg.telephone && parTel.get(normTel(lg.telephone))) ||
+          null;
+        if (!id) {
+          nonTrouves += 1;
+          continue;
+        }
+        if (dejaPresent.has(id)) {
+          ignores += 1;
+          continue;
+        }
+        const r = await creerProgrammeAction({
+          livreurId: id,
+          annee,
+          semaine,
+          jours: joursAvecDates(lg.jours, annee, semaine),
+        });
+        if (r.success) ok += 1;
+        dejaPresent.add(id);
+      }
+      await qc.invalidateQueries({ queryKey: ['programme'] });
+      const details = [nonTrouves ? `${nonTrouves} non trouvé(s)` : '', ignores ? `${ignores} déjà présent(s)` : '']
+        .filter(Boolean)
+        .join(', ');
+      toast.success(`${ok} programme(s) importé(s)${details ? ` (${details})` : ''}.`);
+    } catch {
+      toast.error('Fichier illisible ou format invalide.');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <section className="rounded-xl border border-default-200 bg-white p-4">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -171,11 +230,36 @@ export default function ProgrammesSection() {
           <Button size="sm" variant="flat" onPress={() => changeWeek(1)}>
             Sem. suiv. →
           </Button>
-          <Tooltip content="Copier le planning de la semaine précédente" size="sm">
-            <Button size="sm" variant="flat" onPress={copierSemainePrecedente} isLoading={importing}>
-              Importer
-            </Button>
-          </Tooltip>
+          <Dropdown>
+            <DropdownTrigger>
+              <Button size="sm" variant="flat" isLoading={importing}>
+                Importer
+              </Button>
+            </DropdownTrigger>
+            <DropdownMenu aria-label="Options d'import">
+              <DropdownItem key="copier" onPress={copierSemainePrecedente}>
+                Copier la semaine précédente
+              </DropdownItem>
+              <DropdownItem key="fichier" onPress={() => fileRef.current?.click()}>
+                Importer un fichier (.xlsx, .csv)
+              </DropdownItem>
+              <DropdownItem
+                key="modele"
+                onPress={() =>
+                  telechargerModeleProgrammes(
+                    (livreursQuery.data ?? []).map((l) => ({
+                      matricule: l.matricule,
+                      telephone: l.telephone,
+                      nom: `${l.prenoms ?? ''} ${l.nom ?? ''}`.trim(),
+                    })),
+                  )
+                }
+              >
+                Télécharger le modèle
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+          <input ref={fileRef} type="file" accept=".xlsx,.csv" className="hidden" onChange={onFichier} />
           <Button
             size="sm"
             variant="flat"
