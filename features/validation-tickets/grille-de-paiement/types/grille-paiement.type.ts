@@ -28,6 +28,8 @@ export interface IGrillePaiementTurboy {
   id: string;
   nom: string;
   code?: string;
+  // Maquette M5 — affiché à la place du code (colonne NUMÉRO).
+  telephone?: string;
 }
 
 /**
