@@ -4,6 +4,7 @@ import React from 'react';
 import { Button, Chip, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 
 import { IJourProgramme, IProgramme } from '@/features/turboys/types/programme.types';
+import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 
 type ChipColor = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
 
@@ -15,12 +16,6 @@ const STATUT_UI: Record<string, { label: string; color: ChipColor }> = {
   NOTIFIE: { label: 'Publié', color: 'warning' },
   ACCEPTE: { label: 'Accepté', color: 'success' },
   REFUSE: { label: 'Refusé', color: 'danger' },
-};
-
-export const TYPE_LIVREUR_LABEL: Record<string, string> = {
-  JOURNALIER: 'Turboy',
-  SUPERVISEUR_LIVREUR: 'Superviseur-livreur',
-  INDEPENDANT: 'Indépendant',
 };
 
 const JOURS = [
@@ -102,7 +97,7 @@ function renderCellule(p: IProgramme, colKey: string, h: ProgrammeGridHandlers):
       <div className="min-w-[140px]">
         <div className="font-medium text-default-800">{p.livreurNom ?? '—'}</div>
         {p.typeLivreur && (
-          <div className="text-xs text-default-400">{TYPE_LIVREUR_LABEL[p.typeLivreur] ?? p.typeLivreur}</div>
+          <div className="text-xs text-default-400">{getTurboyTypeDisplay(p.typeLivreur).label}</div>
         )}
       </div>
     );

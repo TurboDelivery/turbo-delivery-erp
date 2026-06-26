@@ -9,15 +9,17 @@ import {
   usePlanifierProgrammeMutation,
   usePublierProgrammeMutation,
 } from '@/features/turboys/queries/programme.query';
+import { exporterProgrammesExcel, exporterProgrammesPdf } from '@/features/turboys/utils/programmes-export.utils';
+import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { ProgrammesGrid } from './programmes-grid';
 import { ProgrammeFormModal } from './programme-form-modal';
 import { AutosuffisancePanel } from './autosuffisance-panel';
 
 const TYPE_OPTIONS = [
   { key: 'TOUS', label: 'Tous' },
-  { key: 'JOURNALIER', label: 'Turboys' },
-  { key: 'SUPERVISEUR_LIVREUR', label: 'Superviseurs-livreurs' },
-  { key: 'INDEPENDANT', label: 'Indépendants' },
+  { key: 'JOURNALIER', label: getTurboyTypeDisplay('JOURNALIER').labelPlural },
+  { key: 'SUPERVISEUR_LIVREUR', label: getTurboyTypeDisplay('SUPERVISEUR_LIVREUR').labelPlural },
+  { key: 'INDEPENDANT', label: getTurboyTypeDisplay('INDEPENDANT').labelPlural },
 ];
 
 /**
@@ -42,31 +44,6 @@ function semaineCouranteBackend(): { annee: number; semaine: number } {
 }
 
 const CURRENT_WEEK = semaineCouranteBackend();
-
-const JOURS_ORDRE = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
-
-/** Export CSV (séparateur ';' + BOM, ouvrable Excel) du planning de la semaine — RG-26. */
-function exporterCsv(programmes: IProgramme[], annee: number, semaine: number) {
-  const entete = ['Livreur', 'Statut', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-  const lignes = programmes.map((p) => {
-    const cellules = JOURS_ORDRE.map((jk) => {
-      const j = p.jours?.find((x) => (x.jour ?? '').toUpperCase() === jk);
-      if (!j || !j.actif) return 'Repos';
-      return `${(j.debut ?? '').slice(0, 5)}-${(j.fin ?? '').slice(0, 5)}`;
-    });
-    return [p.livreurNom ?? '', p.statut ?? '', ...cellules];
-  });
-  const csv = [entete, ...lignes]
-    .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';'))
-    .join('\n');
-  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `programmes_${annee}_S${semaine}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 export default function ProgrammesSection() {
   const [{ annee, semaine }, setWeek] = useQueryStates({
@@ -133,10 +110,25 @@ export default function ProgrammesSection() {
           <Button
             size="sm"
             variant="flat"
-            onPress={() => exporterCsv(programmesFiltres, annee, semaine)}
+            onPress={() => exporterProgrammesExcel(programmesFiltres, annee, semaine)}
             isDisabled={programmesFiltres.length === 0}
           >
-            Exporter CSV
+            Exporter Excel
+          </Button>
+          <Button
+            size="sm"
+            variant="flat"
+            onPress={() =>
+              exporterProgrammesPdf(
+                programmesFiltres,
+                annee,
+                semaine,
+                TYPE_OPTIONS.find((o) => o.key === typeFiltre)?.label ?? 'Tous',
+              )
+            }
+            isDisabled={programmesFiltres.length === 0}
+          >
+            Exporter PDF
           </Button>
           <Button color="primary" onPress={() => setCreateOpen(true)}>
             Nouveau programme

@@ -1,0 +1,185 @@
+// Module M2 — Export de la grille hebdomadaire des programmes (RG-26).
+// Excel via `xlsx`, PDF via `jsPDF` (table dessinée à la main, même pattern de
+// marque que features/men/utils/export-pdf.ts — jspdf-autotable n'est pas une dép).
+
+import jsPDF from 'jspdf';
+import * as XLSX from 'xlsx';
+
+import { IProgramme } from '../types/programme.types';
+import { getTurboyTypeDisplay } from './type-livreur-display';
+
+const JOURS: Array<{ key: string; court: string }> = [
+  { key: 'LUNDI', court: 'Lun' },
+  { key: 'MARDI', court: 'Mar' },
+  { key: 'MERCREDI', court: 'Mer' },
+  { key: 'JEUDI', court: 'Jeu' },
+  { key: 'VENDREDI', court: 'Ven' },
+  { key: 'SAMEDI', court: 'Sam' },
+  { key: 'DIMANCHE', court: 'Dim' },
+];
+
+const STATUT_LABEL: Record<string, string> = {
+  BROUILLON: 'Brouillon',
+  PLANIFIE: 'Planifié',
+  NOTIFIE: 'Publié',
+  ACCEPTE: 'Accepté',
+  REFUSE: 'Refusé',
+};
+
+const hhmm = (t?: string | null) => (t ?? '').slice(0, 5);
+
+function libelleType(p: IProgramme): string {
+  return p.typeLivreur ? getTurboyTypeDisplay(p.typeLivreur).label : '';
+}
+
+function libelleStatut(p: IProgramme): string {
+  return STATUT_LABEL[p.statut ?? ''] ?? p.statut ?? '';
+}
+
+/** Cellule d'un jour : "10:00-22:00" si travaillé, sinon "Repos". */
+function celluleJour(p: IProgramme, jourKey: string): string {
+  const j = p.jours?.find((x) => (x.jour ?? '').toUpperCase() === jourKey);
+  if (!j || !j.actif) return 'Repos';
+  return `${hhmm(j.debut)}-${hhmm(j.fin)}`;
+}
+
+// ── Excel ─────────────────────────────────────────────────────────────────────
+export function exporterProgrammesExcel(programmes: IProgramme[], annee: number, semaine: number): void {
+  const entete = ['Livreur', 'Type', 'Statut', ...JOURS.map((j) => j.court)];
+  const lignes = programmes.map((p) => [
+    p.livreurNom ?? '',
+    libelleType(p),
+    libelleStatut(p),
+    ...JOURS.map((j) => celluleJour(p, j.key)),
+  ]);
+  const sheet = XLSX.utils.aoa_to_sheet([entete, ...lignes]);
+  sheet['!cols'] = [{ wch: 24 }, { wch: 18 }, { wch: 12 }, ...JOURS.map(() => ({ wch: 13 }))];
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, sheet, `S${semaine}-${annee}`);
+  XLSX.writeFile(workbook, `programmes_${annee}_S${semaine}.xlsx`);
+}
+
+// ── PDF ───────────────────────────────────────────────────────────────────────
+const RED = [220, 38, 38] as const;
+const YELLOW = [250, 204, 21] as const;
+const DARK = [30, 30, 30] as const;
+const GRAY = [100, 100, 100] as const;
+const LIGHT = [241, 245, 249] as const;
+const BORDER = [210, 218, 230] as const;
+
+interface ColPdf {
+  header: string;
+  w: number;
+  value: (p: IProgramme) => string;
+}
+
+const COLS_PDF: ColPdf[] = [
+  { header: 'Livreur', w: 38, value: (p) => p.livreurNom ?? '—' },
+  { header: 'Type', w: 30, value: libelleType },
+  ...JOURS.map((j) => ({ header: j.court, w: 26, value: (p: IProgramme) => celluleJour(p, j.key) })),
+  { header: 'Statut', w: 22, value: libelleStatut },
+];
+
+const TABLE_W = COLS_PDF.reduce((s, c) => s + c.w, 0);
+const START_X = 14;
+const ROW_H = 7;
+const HEADER_H = 9;
+const HEADER_BAND_H = 26;
+const PAGE_MARGIN_BOTTOM = 15;
+
+const truncate = (t: string, max: number) => (t.length > max ? t.slice(0, max - 1) + '…' : t);
+
+export function exporterProgrammesPdf(
+  programmes: IProgramme[],
+  annee: number,
+  semaine: number,
+  filtreLabel = 'Tous',
+): void {
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+
+  function drawPageHeader() {
+    doc.setFillColor(...RED);
+    doc.rect(0, 0, pageW, HEADER_BAND_H, 'F');
+    doc.setFillColor(...YELLOW);
+    doc.rect(0, HEADER_BAND_H - 3, pageW, 3, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`Programmes — Semaine ${semaine} / ${annee}`, START_X, 12);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 230, 150);
+    doc.text(
+      `Type : ${filtreLabel}   •   ${programmes.length} livreur(s)   •   Exporté le ${new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}`,
+      START_X,
+      19,
+    );
+    doc.setTextColor(...DARK);
+  }
+
+  function drawTableHeader(y: number): number {
+    doc.setFillColor(...RED);
+    doc.roundedRect(START_X, y, TABLE_W, HEADER_H, 1.5, 1.5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    let x = START_X;
+    for (const col of COLS_PDF) {
+      doc.text(col.header, x + 2.5, y + 6);
+      x += col.w;
+    }
+    doc.setTextColor(...DARK);
+    return y + HEADER_H;
+  }
+
+  drawPageHeader();
+  let y = drawTableHeader(HEADER_BAND_H + 4);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7.5);
+
+  for (let i = 0; i < programmes.length; i++) {
+    if (y + ROW_H > pageH - PAGE_MARGIN_BOTTOM) {
+      doc.addPage();
+      drawPageHeader();
+      y = drawTableHeader(HEADER_BAND_H + 4);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+    }
+
+    if (i % 2 === 0) {
+      doc.setFillColor(...LIGHT);
+      doc.rect(START_X, y, TABLE_W, ROW_H, 'F');
+    }
+    doc.setDrawColor(...BORDER);
+    doc.line(START_X, y + ROW_H, START_X + TABLE_W, y + ROW_H);
+
+    const p = programmes[i];
+    let x = START_X;
+    for (const col of COLS_PDF) {
+      const raw = col.value(p);
+      if (raw === 'Repos') doc.setTextColor(...GRAY);
+      else if (col.header === 'Statut') doc.setTextColor(...DARK);
+      else doc.setTextColor(...DARK);
+      doc.text(truncate(raw, Math.floor(col.w / 1.7)), x + 2.5, y + 4.7);
+      x += col.w;
+    }
+    y += ROW_H;
+  }
+
+  const totalPages = doc.getNumberOfPages();
+  for (let pg = 1; pg <= totalPages; pg++) {
+    doc.setPage(pg);
+    doc.setFontSize(7.5);
+    doc.setTextColor(...GRAY);
+    doc.text(`Page ${pg} / ${totalPages}`, pageW - 28, pageH - 6);
+    doc.setFillColor(...RED);
+    doc.rect(0, pageH - 5, pageW, 5, 'F');
+  }
+
+  doc.save(`programmes_${annee}_S${semaine}.pdf`);
+}

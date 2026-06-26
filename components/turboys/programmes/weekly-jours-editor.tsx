@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Input, Switch } from '@heroui/react';
+import { Button, Input, Switch, Tooltip } from '@heroui/react';
+import { Copy } from 'lucide-react';
 import { IJourProgramme } from '@/features/turboys/types/programme.types';
 
 const JOURS_ORDRE = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
@@ -70,6 +71,10 @@ export function WeeklyJoursEditor({
   const set = (jour: string, patch: Partial<IJourProgramme>) =>
     onChange(value.map((j) => (j.jour === jour ? { ...j, ...patch } : j)));
 
+  // Recopie les horaires d'un jour vers tous les jours travaillés (actifs).
+  const appliquerHorairesATous = (debut?: string | null, fin?: string | null) =>
+    onChange(value.map((j) => (j.actif ? { ...j, debut: hhmm(debut), fin: hhmm(fin) } : j)));
+
   return (
     <div className="space-y-2">
       {value.map((j) => (
@@ -106,7 +111,22 @@ export function WeeklyJoursEditor({
             className="max-w-[130px]"
           />
 
-          {!j.actif && <span className="text-xs text-default-400">Repos</span>}
+          {j.actif ? (
+            <Tooltip content="Appliquer ces horaires à tous les jours travaillés" size="sm">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="light"
+                isDisabled={disabled}
+                aria-label="Appliquer ces horaires à tous les jours travaillés"
+                onPress={() => appliquerHorairesATous(j.debut, j.fin)}
+              >
+                <Copy className="h-4 w-4 text-default-400" />
+              </Button>
+            </Tooltip>
+          ) : (
+            <span className="text-xs text-default-400">Repos</span>
+          )}
         </div>
       ))}
     </div>
