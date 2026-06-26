@@ -4,6 +4,10 @@
 
 export type StatutProgramme = 'BROUILLON' | 'PLANIFIE' | 'NOTIFIE' | 'ACCEPTE' | 'REFUSE';
 
+// Type de collaborateur (axe « contrat ») renvoyé par le backend pour le
+// filtre TYPE et le sous-libellé de la grille. Aligné sur LivreurType.
+export type TypeLivreurProgramme = 'JOURNALIER' | 'SUPERVISEUR_LIVREUR' | 'INDEPENDANT';
+
 export interface IJourProgramme {
   jour: string; // LUNDI, MARDI, ... DIMANCHE
   date?: string | null;
@@ -16,6 +20,7 @@ export interface IProgramme {
   id: string;
   livreurId: string | null;
   livreurNom: string | null;
+  typeLivreur?: TypeLivreurProgramme | string | null;
   annee: number;
   semaine: number;
   jours: IJourProgramme[];

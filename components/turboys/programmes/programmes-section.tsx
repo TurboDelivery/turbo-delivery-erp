@@ -1,16 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@heroui/react';
-import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { Button, Select, SelectItem } from '@heroui/react';
 import { parseAsInteger, useQueryStates } from 'nuqs';
 import { IProgramme } from '@/features/turboys/types/programme.types';
 import {
@@ -18,9 +9,16 @@ import {
   usePlanifierProgrammeMutation,
   usePublierProgrammeMutation,
 } from '@/features/turboys/queries/programme.query';
-import { buildProgrammeColumns } from './programmes-table-columns';
+import { ProgrammesGrid } from './programmes-grid';
 import { ProgrammeFormModal } from './programme-form-modal';
 import { AutosuffisancePanel } from './autosuffisance-panel';
+
+const TYPE_OPTIONS = [
+  { key: 'TOUS', label: 'Tous' },
+  { key: 'JOURNALIER', label: 'Turboys' },
+  { key: 'SUPERVISEUR_LIVREUR', label: 'Superviseurs-livreurs' },
+  { key: 'INDEPENDANT', label: 'Indépendants' },
+];
 
 /**
  * Numéro de semaine ALIGNÉ sur le backend : `WeekFields.of(Locale.FRANCE).weekOfYear()`
@@ -109,18 +107,12 @@ export default function ProgrammesSection() {
     }
   };
 
-  const columns = buildProgrammeColumns({
-    onEdit: (p) => setEditing(p),
-    onPlanifier: (p) => runAction(p.id, planifier.mutateAsync),
-    onPublier: (p) => runAction(p.id, publier.mutateAsync),
-    pendingId,
-  });
-
-  const table = useReactTable({
-    data: data ?? [],
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-  });
+  const [typeFiltre, setTypeFiltre] = React.useState<string>('TOUS');
+  const programmesFiltres = React.useMemo(() => {
+    const liste = data ?? [];
+    if (typeFiltre === 'TOUS') return liste;
+    return liste.filter((p) => (p.typeLivreur ?? '') === typeFiltre);
+  }, [data, typeFiltre]);
 
   return (
     <section className="rounded-xl border border-default-200 bg-white p-4">
@@ -141,8 +133,8 @@ export default function ProgrammesSection() {
           <Button
             size="sm"
             variant="flat"
-            onPress={() => exporterCsv(data ?? [], annee, semaine)}
-            isDisabled={!data || data.length === 0}
+            onPress={() => exporterCsv(programmesFiltres, annee, semaine)}
+            isDisabled={programmesFiltres.length === 0}
           >
             Exporter CSV
           </Button>
@@ -152,28 +144,31 @@ export default function ProgrammesSection() {
         </div>
       </header>
 
-      <Table aria-label="Programmes hebdomadaires" isStriped removeWrapper>
-        <TableHeader>
-          {table.getFlatHeaders().map((header) => (
-            <TableColumn key={header.id}>
-              {flexRender(header.column.columnDef.header, header.getContext())}
-            </TableColumn>
-          ))}
-        </TableHeader>
-        <TableBody
-          emptyContent={
-            isLoading ? 'Chargement…' : isError ? 'Erreur de chargement des programmes' : 'Aucun programme pour cette semaine'
-          }
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <Select
+          aria-label="Filtrer par type de livreur"
+          label="Type"
+          size="sm"
+          className="w-56"
+          selectedKeys={new Set([typeFiltre])}
+          onSelectionChange={(keys) => setTypeFiltre((Array.from(keys)[0] as string) ?? 'TOUS')}
         >
-          {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-              ))}
-            </TableRow>
+          {TYPE_OPTIONS.map((o) => (
+            <SelectItem key={o.key}>{o.label}</SelectItem>
           ))}
-        </TableBody>
-      </Table>
+        </Select>
+      </div>
+
+      <ProgrammesGrid
+        programmes={programmesFiltres}
+        emptyContent={
+          isLoading ? 'Chargement…' : isError ? 'Erreur de chargement des programmes' : 'Aucun programme pour cette semaine'
+        }
+        onEdit={(p) => setEditing(p)}
+        onPlanifier={(p) => runAction(p.id, planifier.mutateAsync)}
+        onPublier={(p) => runAction(p.id, publier.mutateAsync)}
+        pendingId={pendingId}
+      />
 
       <AutosuffisancePanel annee={annee} semaine={semaine} />
 
