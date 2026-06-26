@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
-import { Download } from 'lucide-react';
+import { Download, Send } from 'lucide-react';
 
 import { IProgramme } from '@/features/turboys/types/programme.types';
+import { useEnvoyerProgrammeMutation } from '@/features/turboys/queries/programme.query';
 import { exporterProgrammeIndividuelPdf } from '@/features/turboys/utils/programmes-export.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 
@@ -34,6 +35,7 @@ interface Props {
  */
 export function ProgrammeApercuModal({ programme, annee, semaine, isOpen, onOpenChange }: Props) {
   const prenom = (programme?.livreurNom ?? '').split(' ')[0] || 'Bonjour';
+  const envoyer = useEnvoyerProgrammeMutation();
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="md">
       <ModalContent>
@@ -78,12 +80,21 @@ export function ProgrammeApercuModal({ programme, annee, semaine, isOpen, onOpen
                 Fermer
               </Button>
               <Button
-                color="primary"
+                variant="flat"
                 isDisabled={!programme}
                 startContent={<Download className="h-4 w-4" />}
                 onPress={() => programme && exporterProgrammeIndividuelPdf(programme, annee, semaine)}
               >
                 Exporter PDF
+              </Button>
+              <Button
+                color="primary"
+                isDisabled={!programme}
+                isLoading={envoyer.isLoading}
+                startContent={!envoyer.isLoading && <Send className="h-4 w-4" />}
+                onPress={() => programme && envoyer.mutate(programme.id)}
+              >
+                Envoyer au livreur
               </Button>
             </ModalFooter>
           </>

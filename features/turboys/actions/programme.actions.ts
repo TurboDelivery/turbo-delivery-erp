@@ -59,3 +59,16 @@ export async function publierProgrammeAction(id: string): Promise<ActionResponse
     return erreurMetier(error, 'Erreur lors de la publication du programme');
   }
 }
+
+export async function envoyerProgrammeAction(id: string): Promise<ActionResponse<IProgramme>> {
+  try {
+    const data = await programmeAPI.envoyer(id);
+    return { success: true, data };
+  } catch (error) {
+    return erreurMetier(error, "Erreur lors de l'envoi du programme au livreur");
+  }
+}
+
+export async function listerIndependantsAction(annee: number, semaine: number): Promise<IProgramme[]> {
+  return programmeAPI.independants(annee, semaine);
+}

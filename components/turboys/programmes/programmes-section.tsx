@@ -8,6 +8,7 @@ import { IProgramme } from '@/features/turboys/types/programme.types';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import {
   useProgrammesSemaineQuery,
+  useProgrammesIndependantsQuery,
   usePlanifierProgrammeMutation,
   usePublierProgrammeMutation,
 } from '@/features/turboys/queries/programme.query';
@@ -55,6 +56,7 @@ export default function ProgrammesSection() {
   });
 
   const { data, isLoading, isError } = useProgrammesSemaineQuery(annee, semaine);
+  const independantsQuery = useProgrammesIndependantsQuery(annee, semaine);
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<IProgramme | null>(null);
@@ -196,6 +198,19 @@ export default function ProgrammesSection() {
       />
 
       <AutosuffisancePanel annee={annee} semaine={semaine} />
+
+      <div className="mt-6">
+        <h3 className="mb-2 text-sm font-semibold text-default-700">
+          Indépendants — créneaux déclarés via l&apos;app (lecture seule)
+        </h3>
+        <ProgrammesGrid
+          readOnly
+          programmes={independantsQuery.data ?? []}
+          emptyContent={
+            independantsQuery.isLoading ? 'Chargement…' : 'Aucun indépendant déclaré cette semaine'
+          }
+        />
+      </div>
 
       <ProgrammeFormModal
         isOpen={createOpen}

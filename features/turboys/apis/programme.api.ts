@@ -58,4 +58,19 @@ export const programmeAPI = {
       method: 'POST',
     });
   },
+
+  async envoyer(id: string): Promise<IProgramme> {
+    return apiClientHttp.request<IProgramme>({
+      endpoint: `/api/erp/programmes/${id}/envoyer`,
+      method: 'POST',
+    });
+  },
+
+  async independants(annee: number, semaine: number): Promise<IProgramme[]> {
+    return apiClientHttp.request<IProgramme[]>({
+      endpoint: '/api/erp/programmes/independants',
+      method: 'GET',
+      params: { annee, semaine },
+    });
+  },
 };

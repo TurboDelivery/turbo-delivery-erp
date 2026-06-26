@@ -66,10 +66,10 @@ function CelluleJour({ jour }: { jour?: IJourProgramme }) {
 }
 
 export interface ProgrammeGridHandlers {
-  onApercu: (p: IProgramme) => void;
-  onEdit: (p: IProgramme) => void;
-  onPlanifier: (p: IProgramme) => void;
-  onPublier: (p: IProgramme) => void;
+  onApercu?: (p: IProgramme) => void;
+  onEdit?: (p: IProgramme) => void;
+  onPlanifier?: (p: IProgramme) => void;
+  onPublier?: (p: IProgramme) => void;
   pendingId?: string | null;
 }
 
@@ -78,21 +78,21 @@ function LigneActions({ p, h }: { p: IProgramme; h: ProgrammeGridHandlers }) {
   const busy = h.pendingId === p.id;
   return (
     <div className="flex flex-wrap justify-end gap-1">
-      <Button size="sm" variant="light" onPress={() => h.onApercu(p)}>
+      <Button size="sm" variant="light" onPress={() => h.onApercu?.(p)}>
         Aperçu
       </Button>
       {s === 'BROUILLON' && (
-        <Button size="sm" variant="flat" onPress={() => h.onEdit(p)} isDisabled={busy}>
+        <Button size="sm" variant="flat" onPress={() => h.onEdit?.(p)} isDisabled={busy}>
           Éditer
         </Button>
       )}
       {s === 'BROUILLON' && (
-        <Button size="sm" variant="flat" color="secondary" onPress={() => h.onPlanifier(p)} isLoading={busy}>
+        <Button size="sm" variant="flat" color="secondary" onPress={() => h.onPlanifier?.(p)} isLoading={busy}>
           Planifier
         </Button>
       )}
       {(s === 'BROUILLON' || s === 'PLANIFIE') && (
-        <Button size="sm" color="primary" onPress={() => h.onPublier(p)} isLoading={busy}>
+        <Button size="sm" color="primary" onPress={() => h.onPublier?.(p)} isLoading={busy}>
           Publier
         </Button>
       )}
@@ -142,13 +142,16 @@ function renderCellule(p: IProgramme, colKey: string, h: ProgrammeGridHandlers):
 interface Props extends ProgrammeGridHandlers {
   programmes: IProgramme[];
   emptyContent?: React.ReactNode;
+  // Lecture seule (section Indépendants) : masque la colonne d'actions.
+  readOnly?: boolean;
 }
 
 /**
  * Grille hebdomadaire 2D (maquette M2) : une ligne par livreur, une colonne par
  * jour avec montée ↑ / descente ↓ ou REPOS, + statut et actions de workflow.
  */
-export function ProgrammesGrid({ programmes, emptyContent, ...handlers }: Props) {
+export function ProgrammesGrid({ programmes, emptyContent, readOnly, ...handlers }: Props) {
+  const colonnes = readOnly ? COLONNES.filter((c) => c.key !== 'actions') : COLONNES;
   return (
     <div className="overflow-x-auto">
       <Table
@@ -160,7 +163,7 @@ export function ProgrammesGrid({ programmes, emptyContent, ...handlers }: Props)
         }}
       >
         <TableHeader>
-          {COLONNES.map((c) => (
+          {colonnes.map((c) => (
             <TableColumn key={c.key} className={c.center ? 'text-center' : undefined}>
               {c.label}
             </TableColumn>
@@ -169,7 +172,7 @@ export function ProgrammesGrid({ programmes, emptyContent, ...handlers }: Props)
         <TableBody emptyContent={emptyContent ?? 'Aucun programme pour cette semaine'}>
           {programmes.map((p) => (
             <TableRow key={p.id}>
-              {COLONNES.map((c) => (
+              {colonnes.map((c) => (
                 <TableCell key={c.key} className={c.center ? 'px-1.5 text-center' : undefined}>
                   {renderCellule(p, c.key, handlers)}
                 </TableCell>

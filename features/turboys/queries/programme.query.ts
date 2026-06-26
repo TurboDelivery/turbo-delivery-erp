@@ -5,10 +5,12 @@ import { toast } from 'react-toastify';
 import {
   listerProgrammesSemaineAction,
   listerAutosuffisanceAction,
+  listerIndependantsAction,
   creerProgrammeAction,
   modifierProgrammeAction,
   planifierProgrammeAction,
   publierProgrammeAction,
+  envoyerProgrammeAction,
 } from '@/features/turboys/actions/programme.actions';
 import { ICreerProgrammePayload, IModifierProgrammePayload } from '@/features/turboys/types/programme.types';
 
@@ -16,12 +18,21 @@ export const programmeKeys = {
   all: ['programme'] as const,
   semaine: (annee: number, semaine: number) => [...programmeKeys.all, 'semaine', annee, semaine] as const,
   autosuffisance: (annee: number, semaine: number) => [...programmeKeys.all, 'autosuffisance', annee, semaine] as const,
+  independants: (annee: number, semaine: number) => [...programmeKeys.all, 'independants', annee, semaine] as const,
 };
 
 export const useProgrammesSemaineQuery = (annee: number, semaine: number) =>
   useQuery({
     queryKey: programmeKeys.semaine(annee, semaine),
     queryFn: () => listerProgrammesSemaineAction(annee, semaine),
+    enabled: !!annee && !!semaine,
+    staleTime: 30 * 1000,
+  });
+
+export const useProgrammesIndependantsQuery = (annee: number, semaine: number) =>
+  useQuery({
+    queryKey: programmeKeys.independants(annee, semaine),
+    queryFn: () => listerIndependantsAction(annee, semaine),
     enabled: !!annee && !!semaine,
     staleTime: 30 * 1000,
   });
@@ -98,6 +109,23 @@ export const usePublierProgrammeMutation = (onDone?: () => void) => {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: programmeKeys.all });
       toast.success('Programme publié — le livreur est notifié.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+export const useEnvoyerProgrammeMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const r = await envoyerProgrammeAction(id);
+      if (!r.success) throw new Error(r.error || "Erreur lors de l'envoi du programme");
+      return r.data!;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      toast.success('Programme envoyé — le livreur est notifié.');
       onDone?.();
     },
     onError: (error) => toast.error(messageErreur(error)),
