@@ -55,6 +55,11 @@ export interface IGrillePaiementLigne {
   netAPayer: number;
   numeroWave?: string;
   commission?: number;
+  // CDC RG-19 — Prime hebdomadaire (par défaut 10 % du brut), versée
+  // séparément de la commission et déjà incluse dans netAPayer. 0 si non
+  // éligible. Le backend l'expose à part (GrillePaiementVm.Ligne.prime)
+  // pour l'affichage en colonne.
+  prime?: number;
   statut?: StatutLignePaiement;
   flagAttente?: boolean;
   checked: boolean;

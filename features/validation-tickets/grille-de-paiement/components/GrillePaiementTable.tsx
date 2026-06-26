@@ -271,6 +271,20 @@ export default function GrillePaiementTable({
         header: () => <div className="w-full text-right">Commission</div>,
         cell: ({ row }) => <div className="text-right font-semibold text-emerald-600">{formatNumber(row.original.netAPayer)}</div>,
       },
+      // CDC RG-19 — Prime hebdomadaire (10 % du brut) versée séparément ; 0 si
+      // non éligible. Montant déjà renvoyé par ligne par le backend (prime).
+      {
+        id: 'prime',
+        header: () => <div className="w-full text-right">Prime 10%</div>,
+        cell: ({ row }) => {
+          const prime = row.original.prime ?? 0;
+          return prime > 0 ? (
+            <div className="text-right font-medium text-violet-600">{formatNumber(prime)}</div>
+          ) : (
+            <div className="text-right text-gray-400">—</div>
+          );
+        },
+      },
       {
         id: 'wave',
         header: 'N° Wave',
@@ -451,6 +465,12 @@ export default function GrillePaiementTable({
                 <div className="flex items-center justify-between gap-3">
                   <span className="shrink-0 text-xs text-gray-400">Commission</span>
                   <span className="text-right text-sm font-semibold text-emerald-600">{formatNumber(ligne.netAPayer)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="shrink-0 text-xs text-gray-400">Prime 10%</span>
+                  <span className="text-right text-sm font-medium text-violet-600">
+                    {(ligne.prime ?? 0) > 0 ? formatNumber(ligne.prime ?? 0) : '—'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <span className="shrink-0 text-xs text-gray-400">Inclus</span>
