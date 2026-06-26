@@ -12,10 +12,12 @@ import {
   Select,
   SelectItem,
 } from '@heroui/react';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { IJourProgramme, IProgramme } from '@/features/turboys/types/programme.types';
 import { useCreerProgrammeMutation, useModifierProgrammeMutation } from '@/features/turboys/queries/programme.query';
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
+import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import { defaultJours, joursAvecDates, normaliserJours, WeeklyJoursEditor } from './weekly-jours-editor';
 
 const nomLivreur = (l: { nom: string | null; prenoms: string | null; telephone?: string; matricule?: string }) =>
@@ -36,6 +38,15 @@ export function ProgrammeFormModal({
 }) {
   const isEdit = !!programme;
   const livreursQuery = useLivreursListQuery();
+  const restaurantsQuery = useQuery({
+    queryKey: ['restaurants', 'all', 'programmes'],
+    queryFn: getAllRestaurants,
+    staleTime: 5 * 60 * 1000,
+  });
+  const restaurants = React.useMemo(
+    () => (restaurantsQuery.data ?? []).map((r) => ({ id: r.id, nom: r.nomEtablissement })),
+    [restaurantsQuery.data],
+  );
 
   const [livreurId, setLivreurId] = React.useState('');
   const [annee, setAnnee] = React.useState(anneeInitiale);
@@ -121,7 +132,7 @@ export function ProgrammeFormModal({
 
           <div className="mt-1">
             <p className="mb-2 text-sm font-medium text-default-600">Jours travaillés</p>
-            <WeeklyJoursEditor value={jours} onChange={setJours} disabled={isLoading} />
+            <WeeklyJoursEditor value={jours} onChange={setJours} disabled={isLoading} restaurants={restaurants} />
           </div>
         </ModalBody>
         <ModalFooter>

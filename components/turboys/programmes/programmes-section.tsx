@@ -2,8 +2,10 @@
 
 import React from 'react';
 import { Button, Select, SelectItem } from '@heroui/react';
+import { useQuery } from '@tanstack/react-query';
 import { parseAsInteger, useQueryStates } from 'nuqs';
 import { IProgramme } from '@/features/turboys/types/programme.types';
+import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import {
   useProgrammesSemaineQuery,
   usePlanifierProgrammeMutation,
@@ -87,11 +89,26 @@ export default function ProgrammesSection() {
   };
 
   const [typeFiltre, setTypeFiltre] = React.useState<string>('TOUS');
+  const [partenaireFiltre, setPartenaireFiltre] = React.useState<string>('TOUS');
+  const restaurantsQuery = useQuery({
+    queryKey: ['restaurants', 'all', 'programmes'],
+    queryFn: getAllRestaurants,
+    staleTime: 5 * 60 * 1000,
+  });
+  const restaurants = React.useMemo(
+    () => (restaurantsQuery.data ?? []).map((r) => ({ id: r.id, nom: r.nomEtablissement })),
+    [restaurantsQuery.data],
+  );
   const programmesFiltres = React.useMemo(() => {
-    const liste = data ?? [];
-    if (typeFiltre === 'TOUS') return liste;
-    return liste.filter((p) => (p.typeLivreur ?? '') === typeFiltre);
-  }, [data, typeFiltre]);
+    let liste = data ?? [];
+    if (typeFiltre !== 'TOUS') liste = liste.filter((p) => (p.typeLivreur ?? '') === typeFiltre);
+    if (partenaireFiltre !== 'TOUS') {
+      liste = liste.filter((p) =>
+        (p.jours ?? []).some((j) => (j.postes ?? []).some((po) => po.restaurantId === partenaireFiltre)),
+      );
+    }
+    return liste;
+  }, [data, typeFiltre, partenaireFiltre]);
 
   return (
     <section className="rounded-xl border border-default-200 bg-white p-4">
@@ -149,6 +166,19 @@ export default function ProgrammesSection() {
         >
           {TYPE_OPTIONS.map((o) => (
             <SelectItem key={o.key}>{o.label}</SelectItem>
+          ))}
+        </Select>
+        <Select
+          aria-label="Filtrer par partenaire"
+          label="Partenaire"
+          size="sm"
+          className="w-64"
+          isLoading={restaurantsQuery.isLoading}
+          selectedKeys={new Set([partenaireFiltre])}
+          onSelectionChange={(keys) => setPartenaireFiltre((Array.from(keys)[0] as string) ?? 'TOUS')}
+        >
+          {[{ id: 'TOUS', nom: 'Tous les partenaires' }, ...restaurants].map((r) => (
+            <SelectItem key={r.id}>{r.nom}</SelectItem>
           ))}
         </Select>
       </div>

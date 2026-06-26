@@ -32,10 +32,20 @@ const JOURS = [
 // mappé pour l'en-tête ET les cellules (pattern React-Aria du codebase).
 const COLONNES = [
   { key: 'livreur', label: 'Livreur', center: false },
+  { key: 'poste', label: 'Poste / Site', center: false },
   ...JOURS.map((j) => ({ key: j.key, label: j.label, center: true })),
   { key: 'statut', label: 'Statut', center: true },
   { key: 'actions', label: ' ', center: false },
 ];
+
+/** Partenaires distincts desservis sur la semaine (toutes journées). */
+function postesSemaine(p: IProgramme): string[] {
+  return Array.from(
+    new Set(
+      (p.jours ?? []).flatMap((j) => (j.postes ?? []).map((po) => po.restaurantNom).filter((n): n is string => !!n)),
+    ),
+  );
+}
 
 const hhmm = (t?: string | null) => (t ?? '').slice(0, 5);
 
@@ -104,6 +114,14 @@ function renderCellule(p: IProgramme, colKey: string, h: ProgrammeGridHandlers):
           <div className="text-xs text-default-400">{getTurboyTypeDisplay(p.typeLivreur).label}</div>
         )}
       </div>
+    );
+  }
+  if (colKey === 'poste') {
+    const noms = postesSemaine(p);
+    return noms.length ? (
+      <div className="min-w-[150px] max-w-[220px] text-xs text-default-600">{noms.join(' · ')}</div>
+    ) : (
+      <span className="text-xs text-default-300">—</span>
     );
   }
   if (colKey === 'statut') {

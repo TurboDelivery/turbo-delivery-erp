@@ -8,12 +8,20 @@ export type StatutProgramme = 'BROUILLON' | 'PLANIFIE' | 'NOTIFIE' | 'ACCEPTE' |
 // filtre TYPE et le sous-libellé de la grille. Aligné sur LivreurType.
 export type TypeLivreurProgramme = 'JOURNALIER' | 'SUPERVISEUR_LIVREUR' | 'INDEPENDANT';
 
+// Maquette M2 — un poste/partenaire (restaurant) desservi sur un jour. Le nom
+// est dénormalisé (le backend le stocke tel quel dans le JSON du jour).
+export interface IPosteJour {
+  restaurantId: string;
+  restaurantNom: string;
+}
+
 export interface IJourProgramme {
   jour: string; // LUNDI, MARDI, ... DIMANCHE
   date?: string | null;
   debut?: string | null; // "HH:mm" ou "HH:mm:ss"
   fin?: string | null;
   actif: boolean;
+  postes?: IPosteJour[] | null;
 }
 
 export interface IProgramme {

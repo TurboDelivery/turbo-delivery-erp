@@ -1,9 +1,14 @@
 'use client';
 
 import React from 'react';
-import { Button, Input, Switch, Tooltip } from '@heroui/react';
+import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@heroui/react';
 import { Copy } from 'lucide-react';
 import { IJourProgramme } from '@/features/turboys/types/programme.types';
+
+export interface OptionResto {
+  id: string;
+  nom: string;
+}
 
 const JOURS_ORDRE = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
 const LABEL: Record<string, string> = {
@@ -63,10 +68,12 @@ export function WeeklyJoursEditor({
   value,
   onChange,
   disabled,
+  restaurants = [],
 }: {
   value: IJourProgramme[];
   onChange: (jours: IJourProgramme[]) => void;
   disabled?: boolean;
+  restaurants?: OptionResto[];
 }) {
   const set = (jour: string, patch: Partial<IJourProgramme>) =>
     onChange(value.map((j) => (j.jour === jour ? { ...j, ...patch } : j)));
@@ -75,57 +82,82 @@ export function WeeklyJoursEditor({
   const appliquerHorairesATous = (debut?: string | null, fin?: string | null) =>
     onChange(value.map((j) => (j.actif ? { ...j, debut: hhmm(debut), fin: hhmm(fin) } : j)));
 
+  const nomResto = (id: string) => restaurants.find((r) => r.id === id)?.nom ?? id;
+
   return (
     <div className="space-y-2">
       {value.map((j) => (
-        <div
-          key={j.jour}
-          className="flex items-center gap-3 rounded-lg border border-default-200 px-3 py-2"
-        >
-          <Switch
-            size="sm"
-            isSelected={j.actif}
-            isDisabled={disabled}
-            onValueChange={(v) => set(j.jour, { actif: v })}
-          >
-            <span className="inline-block w-20 text-sm font-medium">{LABEL[j.jour] ?? j.jour}</span>
-          </Switch>
+        <div key={j.jour} className="space-y-2 rounded-lg border border-default-200 px-3 py-2">
+          <div className="flex items-center gap-3">
+            <Switch
+              size="sm"
+              isSelected={j.actif}
+              isDisabled={disabled}
+              onValueChange={(v) => set(j.jour, { actif: v })}
+            >
+              <span className="inline-block w-20 text-sm font-medium">{LABEL[j.jour] ?? j.jour}</span>
+            </Switch>
 
-          <Input
-            type="time"
-            size="sm"
-            aria-label={`Début ${LABEL[j.jour] ?? j.jour}`}
-            value={hhmm(j.debut)}
-            isDisabled={disabled || !j.actif}
-            onValueChange={(v) => set(j.jour, { debut: v })}
-            className="max-w-[130px]"
-          />
-          <span className="text-default-400">→</span>
-          <Input
-            type="time"
-            size="sm"
-            aria-label={`Fin ${LABEL[j.jour] ?? j.jour}`}
-            value={hhmm(j.fin)}
-            isDisabled={disabled || !j.actif}
-            onValueChange={(v) => set(j.jour, { fin: v })}
-            className="max-w-[130px]"
-          />
+            <Input
+              type="time"
+              size="sm"
+              aria-label={`Début ${LABEL[j.jour] ?? j.jour}`}
+              value={hhmm(j.debut)}
+              isDisabled={disabled || !j.actif}
+              onValueChange={(v) => set(j.jour, { debut: v })}
+              className="max-w-[130px]"
+            />
+            <span className="text-default-400">→</span>
+            <Input
+              type="time"
+              size="sm"
+              aria-label={`Fin ${LABEL[j.jour] ?? j.jour}`}
+              value={hhmm(j.fin)}
+              isDisabled={disabled || !j.actif}
+              onValueChange={(v) => set(j.jour, { fin: v })}
+              className="max-w-[130px]"
+            />
 
-          {j.actif ? (
-            <Tooltip content="Appliquer ces horaires à tous les jours travaillés" size="sm">
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                isDisabled={disabled}
-                aria-label="Appliquer ces horaires à tous les jours travaillés"
-                onPress={() => appliquerHorairesATous(j.debut, j.fin)}
-              >
-                <Copy className="h-4 w-4 text-default-400" />
-              </Button>
-            </Tooltip>
-          ) : (
-            <span className="text-xs text-default-400">Repos</span>
+            {j.actif ? (
+              <Tooltip content="Appliquer ces horaires à tous les jours travaillés" size="sm">
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  isDisabled={disabled}
+                  aria-label="Appliquer ces horaires à tous les jours travaillés"
+                  onPress={() => appliquerHorairesATous(j.debut, j.fin)}
+                >
+                  <Copy className="h-4 w-4 text-default-400" />
+                </Button>
+              </Tooltip>
+            ) : (
+              <span className="text-xs text-default-400">Repos</span>
+            )}
+          </div>
+
+          {/* Maquette M2 — postes/partenaires desservis ce jour (jours travaillés). */}
+          {j.actif && restaurants.length > 0 && (
+            <Select
+              size="sm"
+              selectionMode="multiple"
+              label="Postes / partenaires desservis"
+              aria-label={`Postes ${LABEL[j.jour] ?? j.jour}`}
+              isDisabled={disabled}
+              selectedKeys={new Set((j.postes ?? []).map((p) => p.restaurantId))}
+              onSelectionChange={(keys) =>
+                set(j.jour, {
+                  postes: Array.from(keys).map((id) => ({
+                    restaurantId: String(id),
+                    restaurantNom: nomResto(String(id)),
+                  })),
+                })
+              }
+            >
+              {restaurants.map((r) => (
+                <SelectItem key={r.id}>{r.nom}</SelectItem>
+              ))}
+            </Select>
           )}
         </div>
       ))}
