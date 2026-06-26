@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import {
+  Button,
   Chip,
   Input,
   Pagination,
@@ -15,9 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from '@heroui/react';
-import { Search } from 'lucide-react';
+import { Download, Search } from 'lucide-react';
+import { toast } from 'sonner';
 
 import {
+  exporterJournalCsv,
   IJournalFiltre,
   ModuleActivite,
   MODULE_LABELS,
@@ -70,6 +73,21 @@ export function JournalPanel() {
 
   const patch = (p: Partial<IJournalFiltre>) => setFiltre((f) => ({ ...f, ...p, page: 0 }));
 
+  // RG-11 — export CSV de TOUT le jeu filtré (pas seulement la page affichée).
+  const [exportEnCours, setExportEnCours] = useState(false);
+  const handleExport = async () => {
+    setExportEnCours(true);
+    try {
+      const n = await exporterJournalCsv(filtre);
+      if (n === 0) toast.info('Aucune activité à exporter.');
+      else toast.success(`${n} ligne${n > 1 ? 's' : ''} exportée${n > 1 ? 's' : ''}.`);
+    } catch {
+      toast.error("Échec de l'export du journal.");
+    } finally {
+      setExportEnCours(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Filtres */}
@@ -114,6 +132,16 @@ export function JournalPanel() {
           value={filtre.keysearch}
           onValueChange={(v) => patch({ keysearch: v })}
         />
+        <Button
+          color="primary"
+          variant="flat"
+          size="sm"
+          startContent={!exportEnCours && <Download className="h-4 w-4" />}
+          isLoading={exportEnCours}
+          onPress={handleExport}
+        >
+          Exporter CSV
+        </Button>
       </div>
 
       {/* Table */}
