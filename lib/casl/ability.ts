@@ -228,6 +228,7 @@ export function defineAbilityFor(role: AppRole | null): AppAbility {
       can('manage', 'Creneau');             // Turboys > Créneaux
       can('manage', 'Performance');         // Turboys > Performance
       can('read', 'DashboardPerformance');  // Finance > Dashboard Performance
+      can('read', 'RapportPerformancePartenaire'); // Partenaires > Rapports Performance
       can('manage', 'Commande');            // Courses externes (Nouvelles/Journalières/Toutes)
       can('authentifier', 'Ticket');
       can('manage', 'ValidationTicket');    // Régularisation en voir+modifier
