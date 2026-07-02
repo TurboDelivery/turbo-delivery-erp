@@ -89,6 +89,12 @@ const menuData: IMenuData[] = [
     can: { action: 'read', subject: 'Utilisateur' },
   },
   {
+    icon: Lock,
+    title: 'Privilèges',
+    path: '/privileges',
+    can: { action: 'read', subject: 'Utilisateur' },
+  },
+  {
     icon: IconMap,
     title: 'Finance',
     can: { action: 'read', subject: 'Finance' },
