@@ -145,360 +145,228 @@ export function normalizeRole(raw?: string | { libelle?: string } | null): AppRo
   return SESSION_ROLE_ALIASES[key] ?? null;
 }
 
+/**
+ * Refactor 2026-07 (option C) — SOURCE UNIQUE de vérité des privilèges : chaque
+ * rôle = une liste de règles {action, subject}, au lieu du `switch` codé en dur
+ * (équivalence règle-par-règle vérifiée sur les 15 rôles + anonyme avant de
+ * retirer l'ancien switch).
+ * Ordre significatif : BASE_RULES puis les règles du rôle ; en CASL la DERNIÈRE
+ * règle qui matche gagne, donc un `cannot` en fin de liste révoque (ex. retirer
+ * le tableau de bord). La page /parametres/privileges affiche cette matrice.
+ */
+export interface PermissionRule {
+  /** 'can' par défaut ; 'cannot' révoque (placé après les 'can' concernés). */
+  effect?: 'can' | 'cannot';
+  action: AppActions | AppActions[];
+  subject: AppSubjects | 'all' | (AppSubjects | 'all')[];
+}
+
+/** Règles accordées à TOUS les rôles, appliquées avant les règles spécifiques. */
+export const BASE_RULES: PermissionRule[] = [
+  { action: 'access', subject: 'Analytics' },
+];
+
+/** Permissions par rôle (ordre significatif — les `cannot` finaux révoquent). */
+export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
+  DG: [
+    { action: 'manage', subject: 'all' },
+    { action: 'approuver-dg', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
+    { action: 'rejeter-dg', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
+  ],
+  DGA: [
+    { action: 'read', subject: 'all' },
+    { action: 'update', subject: 'Incident' },
+    { action: 'create', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
+    { action: 'update', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
+    { action: 'delete', subject: ['ChargeFixe', 'ChargeVariable'] },
+    { action: 'valider-dga', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
+    { action: 'rejeter-dga', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
+    { action: 'decaisser', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
+    { action: 'valider', subject: 'Restaurant' },
+    { action: 'manage', subject: 'Ticket' },
+    { action: 'authentifier', subject: 'Ticket' },
+    { action: 'manage', subject: 'Creneau' },
+    { action: 'manage', subject: 'Performance' },
+    { action: 'manage', subject: 'ValidationTicket' },
+    { action: 'manage', subject: 'VerificationV1' },
+    { action: 'manage', subject: 'VerrouillageV2' },
+    { action: 'manage', subject: 'GrillePaiement' },
+    { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
+  ],
+  COMPTABLE: [
+    { action: 'read', subject: 'Reporting' },
+    { action: 'read', subject: ['ChargeFixe', 'ChargeVariable', 'Depense', 'Paiement', 'Livreur', 'Restaurant'] },
+    { action: 'create', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
+    { action: 'update', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
+    { action: 'delete', subject: ['ChargeFixe', 'ChargeVariable'] },
+    { action: 'decaisser', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
+    { action: 'create', subject: 'Ticket' },
+    { action: 'read', subject: 'Ticket' },
+    { action: 'read', subject: 'ValidationTicket' },
+    { action: 'read', subject: 'VerificationV1' },
+    { action: 'read', subject: 'HistoriqueCreneaux' },
+    { action: 'read', subject: 'VerrouillageV2' },
+    { action: 'read', subject: 'GrillePaiement' },
+    { action: 'update-inclusion', subject: 'GrillePaiement' },
+    { action: 'manage', subject: 'Personnel' },
+    { action: 'read', subject: 'Finance' },
+    { action: 'read', subject: ['PageResponsableFinancier', 'PageCaissier', 'PageEncours'] },
+    { action: 'read', subject: 'VerificationDepots' },
+    { action: 'manage', subject: 'Trafic' },
+    { action: 'manage', subject: 'Livreur' },
+    { action: 'manage', subject: 'Creneau' },
+    { action: 'manage', subject: 'Performance' },
+    { action: 'read', subject: 'DashboardPerformance' },
+    { action: 'read', subject: 'RapportPerformancePartenaire' },
+    { action: 'manage', subject: 'Commande' },
+    { action: 'authentifier', subject: 'Ticket' },
+    { action: 'manage', subject: 'ValidationTicket' },
+    { action: 'manage', subject: 'VerificationV1' },
+    { action: 'manage', subject: 'VerrouillageV2' },
+    { action: 'manage', subject: 'Finance' },
+    { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
+  ],
+  OPS_MANAGER: [
+    { action: 'read', subject: 'Reporting' },
+    { action: 'read', subject: ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande'] },
+    { action: ['read', 'update'], subject: 'Incident' },
+    { action: 'read', subject: ['CommandeClient', 'HistoriqueCreneaux', 'RapportPerformancePartenaire'] },
+    { action: 'valider', subject: 'Restaurant' },
+    { action: 'manage', subject: 'Ticket' },
+    { action: 'authentifier', subject: 'Ticket' },
+    { action: 'manage', subject: 'Creneau' },
+    { action: 'manage', subject: 'Performance' },
+    { action: 'read', subject: 'DashboardPerformance' },
+    { action: 'manage', subject: 'ValidationTicket' },
+    { action: 'manage', subject: 'VerificationV1' },
+    { action: 'manage', subject: 'GrillePaiement' },
+    { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
+  ],
+  BUSINESS_DEVELOPER: [
+    { action: 'read', subject: ['Livreur', 'Restaurant', 'Ticket'] },
+    { action: 'create', subject: 'Ticket' },
+    { action: 'valider', subject: 'Restaurant' },
+    { action: 'manage', subject: 'Creneau' },
+    { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
+  ],
+  STANDARD: [
+    { action: 'manage', subject: 'Trafic' },
+    { action: ['read', 'update'], subject: 'Incident' },
+    { action: ['read', 'create', 'update'], subject: 'Ticket' },
+    { action: 'manage', subject: 'Creneau' },
+    { action: 'read', subject: 'Livreur' },
+    { action: 'read', subject: 'Restaurant' },
+    { action: 'access', subject: ['Menu', 'Route'] },
+    { effect: 'cannot', action: 'access', subject: 'Analytics' },
+  ],
+  RESPONSABLE_VA: [
+    { action: 'read', subject: 'Reporting' },
+    { action: 'manage', subject: 'Ticket' },
+    { action: 'authentifier', subject: 'Ticket' },
+    { action: 'manage', subject: 'ValidationTicket' },
+    { action: 'manage', subject: 'VerificationV1' },
+    { action: 'read', subject: ['HistoriqueCreneaux', 'RapportPerformancePartenaire'] },
+    { action: 'manage', subject: 'Livreur' },
+    { action: 'read', subject: 'Creneau' },
+    { action: 'manage', subject: 'Performance' },
+    { action: 'read', subject: 'DashboardPerformance' },
+    { action: 'manage', subject: 'Restaurant' },
+    { action: 'valider', subject: 'Restaurant' },
+    { action: 'manage', subject: 'Trafic' },
+    { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
+  ],
+  RECOUVREUR: [
+    { action: 'read', subject: 'Trafic' },
+    { action: 'create', subject: 'Ticket' },
+    { action: 'read', subject: 'Ticket' },
+    { action: 'manage', subject: 'Creneau' },
+    { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
+    { action: 'read', subject: 'Finance' },
+    { action: 'manage', subject: 'Finance' },
+    { action: 'read', subject: 'PageAgentRecouvreur' },
+  ],
+  DIRECTEUR_OPERATIONS: [
+    { action: 'read', subject: 'Reporting' },
+    { action: 'read', subject: ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande'] },
+    { action: ['read', 'update'], subject: 'Incident' },
+    { action: 'read', subject: ['CommandeClient', 'HistoriqueCreneaux', 'RapportPerformancePartenaire'] },
+    { action: 'valider', subject: 'Restaurant' },
+    { action: 'manage', subject: 'Ticket' },
+    { action: 'authentifier', subject: 'Ticket' },
+    { action: 'manage', subject: 'Creneau' },
+    { action: 'manage', subject: 'Performance' },
+    { action: 'manage', subject: 'ValidationTicket' },
+    { action: 'manage', subject: 'VerificationV1' },
+    { action: 'manage', subject: 'GrillePaiement' },
+    { action: 'read', subject: 'PageAgentRecouvreur' },
+    { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
+  ],
+  TRESORIER: [],
+  CAISSIER: [
+    { action: 'read', subject: 'Trafic' },
+    { action: 'create', subject: 'Ticket' },
+    { action: 'read', subject: 'Ticket' },
+    { action: 'manage', subject: 'Creneau' },
+    { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
+    { action: 'read', subject: 'Finance' },
+    { action: 'manage', subject: 'Finance' },
+    { action: 'read', subject: ['PageResponsableFinancier', 'PageAgentRecouvreur', 'PageCaissier'] },
+    { action: 'read', subject: 'VerificationDepots' },
+  ],
+  AUTHENTIFICATION_VERIFICATION: [
+    { action: 'read', subject: 'Ticket' },
+    { action: 'read', subject: 'VerificationV1' },
+    { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
+    { effect: 'cannot', action: 'access', subject: 'Analytics' },
+  ],
+  AGENT_V1: [
+    { action: 'manage', subject: 'Trafic' },
+    { action: 'manage', subject: 'Livreur' },
+    { action: 'manage', subject: 'Creneau' },
+    { action: 'manage', subject: 'Performance' },
+    { action: 'manage', subject: 'Commande' },
+    { action: ['read', 'create', 'update', 'authentifier'], subject: 'Ticket' },
+    { action: 'manage', subject: 'ValidationTicket' },
+    { action: 'manage', subject: 'VerificationV1' },
+    { action: 'read', subject: 'VerrouillageV2' },
+    { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
+    { effect: 'cannot', action: 'access', subject: 'Analytics' },
+  ],
+  RESPONSABLE_AUTH_COUPONS: [
+    { action: 'manage', subject: 'Trafic' },
+    { action: 'manage', subject: 'Restaurant' },
+    { action: 'valider', subject: 'Restaurant' },
+    { action: ['read', 'create', 'update', 'authentifier'], subject: 'Ticket' },
+    { action: 'manage', subject: 'ValidationTicket' },
+    { action: 'access', subject: ['Menu', 'Route'] },
+    { effect: 'cannot', action: 'access', subject: 'Analytics' },
+  ],
+  ASSISTANT_COMPTABLE: [
+    { action: ['read', 'create', 'update', 'authentifier'], subject: 'Ticket' },
+    { action: 'manage', subject: 'VerificationV1' },
+    { action: 'manage', subject: 'VerrouillageV2' },
+    { action: 'manage', subject: 'ChargeFixe' },
+    { action: 'read', subject: 'PageCaissier' },
+    { action: 'read', subject: 'Livreur' },
+    { action: 'read', subject: 'Restaurant' },
+    { action: 'access', subject: ['Menu', 'Route'] },
+    { effect: 'cannot', action: 'access', subject: 'Analytics' },
+  ],
+};
+
+type AbilityCan = AbilityBuilder<AppAbility>['can'];
+
+function appliquerRegles(can: AbilityCan, cannot: AbilityCan, rules: PermissionRule[]): void {
+  for (const r of rules) {
+    const fn = r.effect === 'cannot' ? cannot : can;
+    fn(r.action as Parameters<AbilityCan>[0], r.subject as Parameters<AbilityCan>[1]);
+  }
+}
+
 export function defineAbilityFor(role: AppRole | null): AppAbility {
   const { can, cannot, build } = new AbilityBuilder<AppAbility>(createMongoAbility);
-
-  // Accordé globalement, puis révoqué (cannot) pour les rôles qui ne doivent
-  // pas voir le tableau de bord (STANDARD, AUTHENTIFICATION_VERIFICATION).
-  // En CASL la dernière règle qui matche gagne → le cannot l'emporte.
-  can('access', 'Analytics');
-
-  switch (role) {
-    case 'DG':
-      can('manage', 'all');
-      can('approuver-dg', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('rejeter-dg', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      break;
-
-    case 'DGA':
-      can('read', 'all');
-      can('update', 'Incident'); // M7 — peut traiter les incidents (lecture via read-all)
-      // can('read', 'all') couvre déjà PageResponsableFinancier et PageAgentRecouvreur,
-      // pas besoin de re-déclarer explicitement.
-      can('create', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('update', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('delete', ['ChargeFixe', 'ChargeVariable']);
-      can('valider-dga', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('rejeter-dga', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('decaisser', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('valider', 'Restaurant');
-      can('manage', 'Ticket');
-      can('authentifier', 'Ticket');
-      can('manage', 'Creneau');
-      can('manage', 'Performance');
-      can('manage', 'ValidationTicket');
-      // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
-      can('manage', 'VerificationV1');
-      can('manage', 'VerrouillageV2');
-      can('manage', 'GrillePaiement');
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      break;
-
-    case 'COMPTABLE':
-      can('read', 'Reporting'); // M6 — reporting & historisation
-      can('read', ['ChargeFixe', 'ChargeVariable', 'Depense', 'Paiement', 'Livreur', 'Restaurant']);
-      can('create', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('update', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('delete', ['ChargeFixe', 'ChargeVariable']);
-      can('decaisser', ['ChargeFixe', 'ChargeVariable', 'Depense']);
-      can('create', 'Ticket');
-      can('read', 'Ticket');
-      can('read', 'ValidationTicket');
-      // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
-      can('read', 'VerificationV1');
-      // Historique des Créneaux (sujet dédié isolé de ValidationTicket pour le
-      // cacher à AGENT_V1) — re-accordé ici pour préserver l'existant.
-      can('read', 'HistoriqueCreneaux');
-      can('read', 'VerrouillageV2');
-      can('read', 'GrillePaiement');
-      // V54 (2026-05) — Le COMPTABLE peut overrider l'inclusion d'une ligne
-      // dans le "Total à payer" (action 'update-inclusion'). Backend audité
-      // par JournalSecurite(LIGNE_INCLUSION_MODIFIEE) + justification ≥30c.
-      can('update-inclusion', 'GrillePaiement');
-      can('manage', 'Personnel');
-      can('read', 'Finance');
-      // 2026-05 (correction) — Le COMPTABLE (qui occupe la fonction de
-      // Responsable Financier dans le workflow facture) ne doit voir et
-      // mener des actions QUE sur "Responsable Financier" et "Caissier".
-      // PAS "Agent Recouvreur" (vue terrain de l'agent recouvreur) ni
-      // "Validation DGA" (vue DGA-only). Le DG et le DGA gardent l'accès
-      // à toutes les sous-pages via leur 'manage all' / 'read all'.
-      can('read', ['PageResponsableFinancier', 'PageCaissier', 'PageEncours']);
-      // SPEC-RECOUV-002 — le Comptable voit l'écran de vérification des dépôts
-      // (rapprochement visa↔bordereau + caisse). L'orientation reste DG/DGA.
-      can('read', 'VerificationDepots');
-      // 2026-05 — « Comptable - Agent V2 » (enrichissement du rôle Comptable, sur
-      // choix user "enrichir") : reprend les droits opérationnels de l'Agent V1
-      // en voir+modifier + Verrouillage V2 modifiable (peut valider V2) +
-      // Dashboard Performance + module Finances en modification. Tout l'existant
-      // ci-dessus est conservé (soumission grille→DGA, recouvrement/factures,
-      // charges, comptabilité Resp.Financier+Caissier).
-      can('manage', 'Trafic');
-      can('manage', 'Livreur');             // Turboys > Men en voir+modifier
-      can('manage', 'Creneau');             // Turboys > Créneaux
-      can('manage', 'Performance');         // Turboys > Performance
-      can('read', 'DashboardPerformance');  // Finance > Dashboard Performance
-      can('read', 'RapportPerformancePartenaire'); // Partenaires > Rapports Performance
-      can('manage', 'Commande');            // Courses externes (Nouvelles/Journalières/Toutes)
-      can('authentifier', 'Ticket');
-      can('manage', 'ValidationTicket');    // Régularisation en voir+modifier
-      can('manage', 'VerificationV1');      // Verification V1 en voir+modifier (valide V1)
-      can('manage', 'VerrouillageV2');      // Verrouillage V2 en voir+modifier (valide V2)
-      can('manage', 'Finance');             // module Finances en voir+modifier
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      break;
-
-    case 'OPS_MANAGER':
-      can('read', 'Reporting'); // M6 — reporting & historisation
-      can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
-      can(['read', 'update'], 'Incident'); // M7 — supervision des incidents STANDARD
-      // Sujets isolés pour AGENT_V1 (cf. AppSubjects) — re-accordés ici pour
-      // préserver l'existant : "Commandes / Client", "Historique des Créneaux",
-      // "Partenaires > Rapports Performance".
-      can('read', ['CommandeClient', 'HistoriqueCreneaux', 'RapportPerformancePartenaire']);
-      can('valider', 'Restaurant');
-      can('manage', 'Ticket');
-      can('authentifier', 'Ticket');
-      can('manage', 'Creneau');
-      can('manage', 'Performance');
-      // Sous-menu "Finance > Dashboard Performance" (sujet dédié, cf. plus haut).
-      can('read', 'DashboardPerformance');
-      can('manage', 'ValidationTicket');
-      // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
-      can('manage', 'VerificationV1');
-      can('manage', 'GrillePaiement');
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      break;
-
-    case 'BUSINESS_DEVELOPER':
-      can('read', ['Livreur', 'Restaurant', 'Ticket']);
-      can('create', 'Ticket');
-      can('valider', 'Restaurant');
-      can('manage', 'Creneau');
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      break;
-
-    case 'STANDARD':
-      // 2026-05 — « Agent de saisie - Standard » : saisie de tickets (création +
-      // édition, SANS suppression) ; n'authentifie PAS, ne régularise PAS, ne
-      // valide PAS (ni V1 ni V2). Trafic en voir+modifier. Menu Livreurs :
-      // Créneaux voir+modifier, Liste des livreurs en lecture seule. Partenaires :
-      // lecture seule. Rien d'autre.
-      // NB : Notifications/Paramètres retirés du menu (spec) ; 'Menu'/'Route'
-      // conservés (infra). Tableau de bord retiré (cannot Analytics).
-      can('manage', 'Trafic');
-      can(['read', 'update'], 'Incident');          // M7 — centre de contrôle STANDARD (file + transitions de statut)
-      can(['read', 'create', 'update'], 'Ticket'); // créer + éditer (PAS delete/authentifier/valider)
-      can('manage', 'Creneau');                     // Livreurs > Créneaux (voir+modifier)
-      can('read', 'Livreur');                       // Livreurs > Liste des livreurs (lecture seule)
-      can('read', 'Restaurant');                    // Partenaires (lecture seule)
-      can('access', ['Menu', 'Route']);
-      cannot('access', 'Analytics');
-      break;
-
-    case 'RESPONSABLE_VA':
-      can('read', 'Reporting'); // M6 — reporting & historisation
-      can('manage', 'Ticket');
-      can('authentifier', 'Ticket');
-      can('manage', 'ValidationTicket');
-      // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
-      can('manage', 'VerificationV1');
-      // Sujets isolés pour AGENT_V1 — re-accordés pour préserver l'existant.
-      can('read', ['HistoriqueCreneaux', 'RapportPerformancePartenaire']);
-      can('manage', 'Livreur');
-      can('read', 'Creneau');
-      can('manage', 'Performance');
-      // Sous-menu "Finance > Dashboard Performance" (sujet dédié, cf. plus haut).
-      can('read', 'DashboardPerformance');
-      can('manage', 'Restaurant');
-      can('valider', 'Restaurant');
-      can('manage', 'Trafic');
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      break;
-
-    case 'RECOUVREUR':
-      // Mêmes permissions que STANDARD
-      can('read', 'Trafic');
-      can('create', 'Ticket');
-      can('read', 'Ticket');
-      can('manage', 'Creneau');
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      // + accès page agent-recouvreur UNIQUEMENT (pas Responsable Financier).
-      // can('read', 'Finance') reste pour permettre l'accès au parent
-      // "Comptabilité" du menu ; le sous-menu Responsable Financier est
-      // filtré par la permission spécifique PageResponsableFinancier qu'on
-      // ne donne PAS au RECOUVREUR (fix 2026-05).
-      can('read', 'Finance');
-      can('manage', 'Finance');
-      can('read', 'PageAgentRecouvreur');
-      // Note : PAS de can('read', 'PageResponsableFinancier') ici.
-      break;
-
-    case 'DIRECTEUR_OPERATIONS':
-      can('read', 'Reporting'); // M6 — reporting & historisation
-      // 2026-05 (révision après clarification user) — Le Directeur des
-      // Opérations a les permissions d'OPS_MANAGER + l'accès au SEUL sous-menu
-      // "Comptabilité > Agent Recouvreur" pour suivre les recouvrements terrain.
-      //
-      // Différence avec OPS_MANAGER : uniquement l'ajout de PageAgentRecouvreur.
-      // Tout le reste est identique (tickets, validation, créneaux, performance,
-      // grille paiement, etc.) — sauf "Dashboard Performance" sous Finance,
-      // volontairement masqué (cf. plus bas : on ne donne PAS 'DashboardPerformance').
-      //
-      // PAS d'accès à : Comptabilité > Responsable Financier / Caissier /
-      // Validation DGA, NI au module "Finance" principal (Charges, Validation,
-      // Rapports Financiers, Rentabilité, Paiements, Revenus, Recouvrements).
-      can('read', ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande']);
-      can(['read', 'update'], 'Incident'); // M7 — supervision des incidents STANDARD
-      // Sujets isolés pour AGENT_V1 (cf. AppSubjects) — re-accordés ici pour
-      // préserver l'existant : "Commandes / Client", "Historique des Créneaux",
-      // "Partenaires > Rapports Performance".
-      can('read', ['CommandeClient', 'HistoriqueCreneaux', 'RapportPerformancePartenaire']);
-      can('valider', 'Restaurant');
-      can('manage', 'Ticket');
-      can('authentifier', 'Ticket');
-      can('manage', 'Creneau');
-      can('manage', 'Performance');
-      can('manage', 'ValidationTicket');
-      // Verification V1 (sujet dédié séparé de ValidationTicket, cf. plus haut).
-      can('manage', 'VerificationV1');
-      can('manage', 'GrillePaiement');
-      // Spécifique DIRECTEUR_OPERATIONS — accès suivi recouvrement UNIQUEMENT.
-      // PAS de can('read','Finance') : ça réafficherait le module "Finance"
-      // principal. Le parent "Comptabilité" reste visible via son enfant
-      // "Agent Recouvreur" (PageAgentRecouvreur) — filterMenuByAbility affiche
-      // un parent dès qu'au moins un enfant passe. Le module "Finance" disparaît
-      // donc entièrement : son seul enfant potentiellement visible pour ce rôle,
-      // "Dashboard Performance", est gaté par 'DashboardPerformance' qu'on ne
-      // donne pas ici (DO garde 'Performance' pour les autres menus perf).
-      can('read', 'PageAgentRecouvreur');
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      break;
-
-    case 'TRESORIER':
-      break;
-
-    case 'CAISSIER':
-      // 2026-05 (fix post-test mardi) — Le CAISSIER reçoit physiquement les
-      // versements des agents recouvreurs dans le workflow facture (étape D2).
-      // Avant ce fix : rôle absent de l'énumération → ability vide → page
-      // /finance/comptabilite vide, aucun accès. Sans ces droits le métier
-      // était cassé en prod.
-      //
-      // Mirror minimal du RECOUVREUR + accès Finance (vue comptabilité et
-      // tableau des factures à confirmer).
-      can('read', 'Trafic');
-      can('create', 'Ticket');
-      can('read', 'Ticket');
-      can('manage', 'Creneau');
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      // Accès vue comptabilité (lecture + actions sur les versements à confirmer).
-      can('read', 'Finance');
-      can('manage', 'Finance');
-      // 2026-05 — Caissier a SA page dédiée + visibilité sur Responsable
-      // Financier (factures à recevoir) et Agent Recouvreur (versements en cours).
-      // PAS PageValidationDga (rôle DGA-only).
-      can('read', ['PageResponsableFinancier', 'PageAgentRecouvreur', 'PageCaissier']);
-      // SPEC-RECOUV-002 — le Caissier accède à l'écran de vérification pour
-      // saisir l'attestation de comptage physique (contrôle des fonds conservés).
-      can('read', 'VerificationDepots');
-      break;
-
-    case 'AUTHENTIFICATION_VERIFICATION':
-      // 2026-05 — Agent d'authentification / vérification V1. Rôle volontairement
-      // minimaliste : il valide les tickets en V1 et consulte les tickets des
-      // courses externes. RIEN d'autre.
-      //
-      // VOIT : "Courses externes > Tickets" (read Ticket) et "Validation des
-      // tickets > Verification V1" (read VerificationV1 — sujet dédié pour NE PAS
-      // exposer Régularisation ni Historique des Créneaux, qui partagent
-      // 'ValidationTicket'). + Notifications / Paramètres.
-      //
-      // NE VOIT PAS : tableau de bord (cannot Analytics ci-dessous), Approbation
-      // finale (approuver-dg Ticket non accordé), Historique des Créneaux
-      // (ValidationTicket non accordé), ni AUCUN module Finance (Finance / Page*
-      // non accordés).
-      can('read', 'Ticket');
-      can('read', 'VerificationV1');
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      // Tableau de bord retiré (Analytics accordé globalement plus haut).
-      cannot('access', 'Analytics');
-      break;
-
-    case 'AGENT_V1':
-      // Rôle « Agent V1 » (cadrage dépt développement, 2026-05) — périmètre
-      // STRICT. Lecture + modification sur : Trafic, Turboys (Créneaux/Men/
-      // Performance), Courses externes (Nouvelles/Journalières/Toutes + Tickets),
-      // Validation des tickets > Régularisation + Verification V1.
-      // Verrouillage V2 : CONSULTATION uniquement (read, PAS manage → les boutons
-      // d'action V2 sont masqués, cf. verrouillage-v2-content). + Notifications /
-      // Paramètres. RIEN d'autre.
-      //
-      // Chaîne ticket autorisée : créer, authentifier, valider V1. PAS de
-      // 'manage Ticket' (sinon 'approuver-dg Ticket' réafficherait "Approbation
-      // finale") → on liste des actions ciblées.
-      //
-      // Sujets volontairement NON accordés (isolés exprès, cf. AppSubjects) pour
-      // tenir le périmètre — chacun partage un sujet avec une page autorisée :
-      //   - PAS 'CommandeClient'              → cache "Commandes / Client"
-      //   - PAS 'HistoriqueCreneaux'          → cache "Historique des Créneaux"
-      //   - PAS 'RapportPerformancePartenaire' → cache "Partenaires > Rapports Performance"
-      // Non accordés non plus : GrillePaiement, Visa DGA (valider-dga), Approbation
-      // finale (approuver-dg), Restaurant/Partenaires, Personnel, Utilisateur,
-      // Finance/Comptabilité, Analytics.
-      can('manage', 'Trafic');
-      can('manage', 'Livreur');
-      can('manage', 'Creneau');
-      can('manage', 'Performance');
-      can('manage', 'Commande');
-      can(['read', 'create', 'update', 'authentifier'], 'Ticket');
-      can('manage', 'ValidationTicket');
-      can('manage', 'VerificationV1');
-      // Verrouillage V2 — consultation seule : PAS de 'manage' → l'UI masque les
-      // actions (Valider V2 / Rejeter) pour qui n'a pas manage VerrouillageV2.
-      can('read', 'VerrouillageV2');
-      can('access', ['Menu', 'Route', 'Parametre', 'Notification']);
-      // Pas de tableau de bord (non listé dans le périmètre).
-      cannot('access', 'Analytics');
-      break;
-
-    case 'RESPONSABLE_AUTH_COUPONS':
-      // 2026-05 — « Responsable Authentification de coupons ». Gère les tickets :
-      // créer/éditer, AUTHENTIFIER, régulariser les retardés (page Régularisation).
-      // NE VALIDE PAS (ni V1 ni V2). Menus en voir+modifier : Partenaires, Trafic.
-      // 2026-06-23 (choix owner) — Groupe « Turboys » retiré (plus de manage
-      // Creneau / Livreur → Créneaux, Programmes hebdo, Men masqués).
-      // 2026-06-23 (choix owner) — Sous « Validation des tickets » : UNIQUEMENT
-      // Régularisation. La « Grille de paiement » est retirée (plus de read
-      // GrillePaiement) ; les autres sous-pages (Verification V1, Verrouillage V2,
-      // Visa DGA, Approbation finale, Historique des Créneaux) n'étaient déjà pas
-      // accordées → menu réduit à la seule Régularisation.
-      // NB : « Contacts » = page inexistante dans l'app → non mappée (choix user).
-      // Notifications/Paramètres hors périmètre (menu masqué) ; Menu/Route = infra.
-      can('manage', 'Trafic');
-      can('manage', 'Restaurant');          // Menu Partners
-      can('valider', 'Restaurant');
-      // Tickets : créer/éditer + authentifier (PAS valider V1/V2). 'read Ticket'
-      // affiche "Courses externes > Tickets" = la surface de gestion des tickets
-      // (les 3 autres sous-pages Courses restent masquées, pas de 'Commande').
-      can(['read', 'create', 'update', 'authentifier'], 'Ticket');
-      can('manage', 'ValidationTicket');    // Régularisation (régulariser les tickets retardés)
-      can('access', ['Menu', 'Route']);
-      cannot('access', 'Analytics');
-      break;
-
-    case 'ASSISTANT_COMPTABLE':
-      // 2026-05 — « Assistant Comptable ». Tickets : voir+modifier, authentifier,
-      // valider V1 ET V2. Module Finances : Charges + Validation uniquement
-      // (voir+modifier). Module Comptabilité : Caissiers uniquement. Livreurs
-      // (liste) + Partenaires : lecture seule. Rien d'autre.
-      // NB : 'read Ticket' affiche "Courses externes > Tickets" (surface tickets).
-      // Notifications/Paramètres hors périmètre (menu masqué) ; Menu/Route = infra.
-      can(['read', 'create', 'update', 'authentifier'], 'Ticket');
-      can('manage', 'VerificationV1');      // valider V1
-      can('manage', 'VerrouillageV2');      // valider V2
-      can('manage', 'ChargeFixe');          // Finances > Charges + Validation (voir+modifier)
-      can('read', 'PageCaissier');          // Comptabilité > Caissier uniquement
-      can('read', 'Livreur');               // Livreurs > Liste des livreurs (lecture seule)
-      can('read', 'Restaurant');            // Partenaires (lecture seule)
-      can('access', ['Menu', 'Route']);
-      cannot('access', 'Analytics');
-      break;
-
-    default:
-      break;
-  }
-
+  appliquerRegles(can, cannot, BASE_RULES);
+  if (role) appliquerRegles(can, cannot, ROLE_RULES[role] ?? []);
   return build({
     detectSubjectType: (item) => (typeof item === 'string' ? item : (item as { __type?: AppSubjects }).__type) as ExtractSubjectType<InferSubjects<AppSubjects>>,
   });
