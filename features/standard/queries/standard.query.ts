@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { standardAPI } from '../apis/standard.api';
-import { IChangerStatutIncident, ICreerMotifIncident, IModifierMotifIncident, StatutIncident } from '../types/standard.types';
+import { IAccepterAppel, IChangerStatutIncident, ICreerMotifIncident, IInitierAppel, IModifierMotifIncident, StatutIncident } from '../types/standard.types';
 
 export const standardKeys = {
   all: ['standard'] as const,
@@ -88,3 +88,44 @@ export const useModifierMotifMutation = () => {
     },
   });
 };
+
+// ─── Appel audio in-app (LUNION Meet) ─────────────────────────────────────────
+
+/** Historique paginé des appels (journal STANDARD). */
+export const useAppelsQuery = (page = 0, size = 20) =>
+  useQuery({
+    queryKey: standardKeys.appels(page),
+    queryFn: () => standardAPI.listerAppels({ page, size }),
+    staleTime: 30 * 1000,
+    keepPreviousData: true,
+  });
+
+/** STANDARD → livreur : initie l'appel (renvoie la session à rejoindre). */
+export const useInitierAppelMutation = () =>
+  useMutation({
+    mutationFn: (dto: IInitierAppel) => standardAPI.initierAppel(dto),
+    onError: (error: unknown) => {
+      const description = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error("Impossible de lancer l'appel", { description });
+    },
+  });
+
+/** Un agent STANDARD décroche un appel entrant. */
+export const useAccepterAppelMutation = () =>
+  useMutation({
+    mutationFn: ({ id, dto }: { id: string; dto: IAccepterAppel }) => standardAPI.accepterAppel(id, dto),
+    onError: (error: unknown) => {
+      const description = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error("Impossible de rejoindre l'appel", { description });
+    },
+  });
+
+/** Rejeter / raccrocher / annuler un appel (best-effort). */
+export const useRejeterAppelMutation = () =>
+  useMutation({ mutationFn: (id: string) => standardAPI.rejeterAppel(id) });
+
+export const useRaccrocherAppelMutation = () =>
+  useMutation({ mutationFn: (id: string) => standardAPI.raccrocherAppel(id) });
+
+export const useAnnulerAppelMutation = () =>
+  useMutation({ mutationFn: (id: string) => standardAPI.annulerAppel(id) });

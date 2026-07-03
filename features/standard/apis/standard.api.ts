@@ -1,11 +1,14 @@
 import { apiClientHttp } from '@/lib/api-client-http';
 import { PaginatedResponse } from '@/types/general';
 import {
+  IAccepterAppel,
   IAppelLog,
+  IAppelSession,
   IChangerStatutIncident,
   ICreerMotifIncident,
   IIncident,
   IIncidentMotif,
+  IInitierAppel,
   IModifierMotifIncident,
   StatutIncident,
 } from '../types/standard.types';
@@ -88,5 +91,40 @@ export const standardAPI = {
       method: 'GET',
       params: { page: String(params.page ?? 0), size: String(params.size ?? 20) },
     });
+  },
+
+  // ─── Appel audio in-app (LUNION Meet) ────────────────────────────────────────
+
+  /** STANDARD initie un appel audio in-app vers un livreur. Renvoie token + url. */
+  initierAppel(dto: IInitierAppel): Promise<IAppelSession> {
+    return apiClientHttp.request<IAppelSession>({
+      endpoint: '/api/erp/appel/initier',
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  /** Un agent STANDARD décroche un appel entrant (livreur → STANDARD). */
+  accepterAppel(id: string, dto: IAccepterAppel): Promise<IAppelSession> {
+    return apiClientHttp.request<IAppelSession>({
+      endpoint: `/api/erp/appel/${id}/accepter`,
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  /** Refuse un appel entrant. */
+  rejeterAppel(id: string): Promise<void> {
+    return apiClientHttp.request<void>({ endpoint: `/api/erp/appel/${id}/rejeter`, method: 'POST' });
+  },
+
+  /** Raccroche un appel en cours. */
+  raccrocherAppel(id: string): Promise<void> {
+    return apiClientHttp.request<void>({ endpoint: `/api/erp/appel/${id}/raccrocher`, method: 'POST' });
+  },
+
+  /** Annule un appel sortant avant décrochage. */
+  annulerAppel(id: string): Promise<void> {
+    return apiClientHttp.request<void>({ endpoint: `/api/erp/appel/${id}/annuler`, method: 'POST' });
   },
 };

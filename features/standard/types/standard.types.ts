@@ -80,3 +80,36 @@ export const STATUT_LABEL: Record<StatutIncident, string> = {
   TRAITE: 'Traité',
   CLOTURE: 'Clôturé',
 };
+
+// ─── Appel audio in-app (LUNION Meet) ─────────────────────────────────────────
+
+export type StatutAppel = 'INITIE' | 'SONNE' | 'EN_COURS' | 'TERMINE' | 'REJETE' | 'MANQUE' | 'ANNULE';
+
+/** Corps d'initiation d'un appel (InitierAppelDto backend). */
+export interface IInitierAppel {
+  appelantId: string;
+  appelantType: ActeurAppel;
+  appeleId?: string | null;
+  appeleType: ActeurAppel;
+  contexte: ContexteAppel;
+  incidentId?: string | null;
+  appeleTelephone?: string | null;
+}
+
+/** Acceptation d'un appel entrant (AccepterAppelDto backend). */
+export interface IAccepterAppel {
+  appeleId: string;
+  appeleNom?: string;
+}
+
+/** Session d'appel LUNION à rejoindre (AppelSessionVm backend) — token + url pour le SDK. */
+export interface IAppelSession {
+  appelId: string;
+  roomSlug: string;
+  token: string;
+  url: string;
+  statut: StatutAppel;
+  contexte: ContexteAppel;
+  appelantNom: string;
+  appeleNom: string;
+}
