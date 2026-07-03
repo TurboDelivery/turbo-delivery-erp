@@ -269,7 +269,7 @@ export default function CreateContent() {
               name="telephone"
               control={control}
               render={({ field }) => (
-                <Input {...field} label="Téléphone" placeholder="+225 0000000000" isInvalid={!!errors.telephone} errorMessage={errors.telephone?.message} variant="bordered" startContent={<span className="text-gray-400 text-sm">📞</span>} />
+                <Input {...field} label="Téléphone" placeholder="+225 0000000000" description="Laisser vide si le numéro n'est pas connu" isInvalid={!!errors.telephone} errorMessage={errors.telephone?.message} variant="bordered" startContent={<span className="text-gray-400 text-sm">📞</span>} />
               )}
             />
             <Controller

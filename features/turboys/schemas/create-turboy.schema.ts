@@ -6,7 +6,10 @@ export const createTurboySchema = z.object({
   prenoms: z.string().min(1, 'Le prénom est requis'),
   birthDay: z.string().min(1, 'La date de naissance est requise'),
   habitation: z.string().min(1, 'Le domicile est requis'),
-  telephone: z.string().min(1, 'Le téléphone est requis'),
+  // Numéro OPTIONNEL : un agent peut créer une fiche sans numéro connu (laisser
+  // vide -> stocké NULL côté serveur, pas de collision avec l'unicité RG-04).
+  // Ne plus forcer un placeholder partagé.
+  telephone: z.string().optional(),
   email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Adresse email invalide').or(z.literal('')).optional(),
 
   // Document d'identité
@@ -23,7 +26,7 @@ export const createTurboySchema = z.object({
   permisConduire: z.boolean().optional(),
 
   // Compte
-  telephoneCompte: z.string().min(1, 'Le numéro de téléphone du compte est requis'),
+  telephoneCompte: z.string().optional(),
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 });
 
