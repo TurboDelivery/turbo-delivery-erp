@@ -15,6 +15,7 @@ import MainContainer from '@/components/layouts/main-container';
 import ContentAnimation from '@/components/layouts/content-animation';
 import { FormChangePassword } from '@/components/auth/form-change-password';
 import { NotificationSocketProvider } from '@/providers/notification-socket.provider';
+import { AppelProvider } from '@/features/standard/components/appel-provider';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const profile = await getProfile();
@@ -26,6 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       {profile && !profile.changePassword && <FormChangePassword userName={profile.username} />}
       <AbilityProvider role={profile?.role?.libelle ?? null}>
       <NotificationSocketProvider>
+      <AppelProvider>
       <ProtectedPage profile={profile!}>
         {/* BEGIN MAIN CONTAINER */}
         <div className="relative">
@@ -54,6 +56,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </MainContainer>
         </div>
       </ProtectedPage>
+      </AppelProvider>
       </NotificationSocketProvider>
       </AbilityProvider>
     </>

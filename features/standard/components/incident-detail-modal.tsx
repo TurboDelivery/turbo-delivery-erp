@@ -11,11 +11,12 @@ import {
   ModalHeader,
   Textarea,
 } from '@heroui/react';
-import { Camera, Clock, ExternalLink, MapPin, MessageSquare, User } from 'lucide-react';
+import { Camera, Clock, ExternalLink, MapPin, MessageSquare, Phone, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { IIncident, STATUT_ORDRE, StatutIncident, useChangerStatutMutation } from '@/features/standard';
 import { IncidentStatutChip } from './incident-statut-chip';
+import { useAppel } from './appel-provider';
 
 interface Props {
   incident: IIncident | null;
@@ -62,6 +63,7 @@ export function IncidentDetailModal({ incident, isOpen, onOpenChange, canUpdate 
   const session = useSession();
   const userId = session.data?.user?.id;
   const changerStatut = useChangerStatutMutation();
+  const { appelerLivreur, enAppel } = useAppel();
   const [commentaire, setCommentaire] = useState('');
 
   useEffect(() => {
@@ -108,6 +110,20 @@ export function IncidentDetailModal({ incident, isOpen, onOpenChange, canUpdate 
                 </InfoRow>
                 <InfoRow icon={Clock} label="Signalé le">{formatInstant(incident.signaleLe)}</InfoRow>
               </div>
+
+              {incident.livreurId && (
+                <Button
+                  size="sm"
+                  color="success"
+                  variant="flat"
+                  startContent={<Phone className="h-4 w-4" />}
+                  isDisabled={enAppel}
+                  onPress={() => appelerLivreur(incident.livreurId, incident.livreurNom ?? 'Livreur', incident.id)}
+                  className="w-fit"
+                >
+                  Appeler le livreur (audio)
+                </Button>
+              )}
 
               {incident.description && (
                 <>

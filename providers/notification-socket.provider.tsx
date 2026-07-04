@@ -113,6 +113,10 @@ export function NotificationSocketProvider({ children }: { children: React.React
 
         if (!data || (!data.titre && !data.message)) return;
 
+        // Signaling d'appel in-app (APPEL_*) : géré par AppelProvider (modale + widget).
+        // On n'affiche pas de toast/son redondant ici.
+        if (String(data.type ?? '').startsWith('APPEL_')) return;
+
         // Push toast immédiat (niveau 1 — temps réel)
         toast.info(data.titre || 'Nouvelle notification', {
           description: data.message,
