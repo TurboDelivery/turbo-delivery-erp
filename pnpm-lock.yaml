@@ -66,8 +66,8 @@ importers:
         specifier: 3.7.0
         version: 3.7.0
       '@lunionlab/meet-react':
-        specifier: ^0.2.0
-        version: 0.2.0(react@18.3.1)
+        specifier: ^0.3.0
+        version: 0.3.0(react@18.3.1)
       '@mantine/core':
         specifier: ^5.10.5
         version: 5.10.5(@emotion/react@11.14.0(@types/react@18.3.28)(react@18.3.1))(@mantine/hooks@5.10.5(react@18.3.1))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1446,11 +1446,11 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@lunionlab/meet-client-js@0.2.0':
-    resolution: {integrity: sha512-nmNv24gdcnA10nFVOuuTrHffe3F/Eve3NPe6UF9SXsgwhKD3koi7ro9UFzro/2Rbh2UpHMN7tUyF0MJ2rMRUlQ==}
+  '@lunionlab/meet-client-js@1.0.0':
+    resolution: {integrity: sha512-Vks1laEqbXhX15p2opxA+EyuLCJlZHEwyKYAkJrHj9/fVZhW+/+eN0elGJDm3LlRqR5c4Ceg4FIpShl4jJLaLw==}
 
-  '@lunionlab/meet-react@0.2.0':
-    resolution: {integrity: sha512-FB05xHYNPyZznry2q4ZzFYhSx7wI4puil5h76blnvLeqXoZxLlZPBFj3L4kVlTjGBzaaBVSAKwGQCP+0qKrn6g==}
+  '@lunionlab/meet-react@0.3.0':
+    resolution: {integrity: sha512-DF/0bwZ2M6LgL8TMRiFZ3ijsc/cwutEheMh8CcbC1D+woPwsG7X/+3cIYJgV7BjazUTYyoZn0MMuvfDSIo5A0A==}
     peerDependencies:
       react: '>=18'
 
@@ -7780,11 +7780,11 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@lunionlab/meet-client-js@0.2.0': {}
+  '@lunionlab/meet-client-js@1.0.0': {}
 
-  '@lunionlab/meet-react@0.2.0(react@18.3.1)':
+  '@lunionlab/meet-react@0.3.0(react@18.3.1)':
     dependencies:
-      '@lunionlab/meet-client-js': 0.2.0
+      '@lunionlab/meet-client-js': 1.0.0
       react: 18.3.1
 
   '@mantine/core@5.10.5(@emotion/react@11.14.0(@types/react@18.3.28)(react@18.3.1))(@mantine/hooks@5.10.5(react@18.3.1))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
