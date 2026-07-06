@@ -16,6 +16,7 @@ import { useSession } from 'next-auth/react';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { IIncident, STATUT_ORDRE, StatutIncident, useChangerStatutMutation } from '@/features/standard';
 import { IncidentStatutChip } from './incident-statut-chip';
+import { IncidentStatutStepper } from './incident-statut-stepper';
 import { useAppel } from './appel-provider';
 
 interface Props {
@@ -104,6 +105,10 @@ export function IncidentDetailModal({ incident, isOpen, onOpenChange, canUpdate 
             </ModalHeader>
 
             <ModalBody>
+              <div className="rounded-large bg-default-50 px-4 py-3">
+                <IncidentStatutStepper statut={incident.statut} />
+              </div>
+
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <InfoRow icon={User} label="Livreur">
                   {incident.livreurNom ?? <span className="text-default-400">Inconnu</span>}

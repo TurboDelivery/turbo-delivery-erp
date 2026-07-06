@@ -27,6 +27,7 @@ import { IncidentStatutChip } from './incident-statut-chip';
 import { IncidentDetailModal } from './incident-detail-modal';
 import { MotifsAdminModal } from './motifs-admin-modal';
 import { AppelRapideModal } from './appel-rapide-modal';
+import { useAppel } from './appel-provider';
 
 type FiltreStatut = 'TOUS' | StatutIncident;
 
@@ -55,6 +56,7 @@ export function StandardControlCenter() {
   const ability = useAbility();
   const canRead = ability.can('read', 'Incident');
   const canUpdate = ability.can('update', 'Incident');
+  const { appelerLivreur, enAppel } = useAppel();
 
   const [filtre, setFiltre] = useState<FiltreStatut>('TOUS');
   const [page, setPage] = useState(0);
@@ -182,6 +184,7 @@ export function StandardControlCenter() {
           <TableColumn className="text-primary">LIVREUR</TableColumn>
           <TableColumn className="text-primary">SIGNALÉ LE</TableColumn>
           <TableColumn className="text-primary">PREUVE</TableColumn>
+          <TableColumn className="text-primary text-right">ACTIONS</TableColumn>
         </TableHeader>
         <TableBody
           emptyContent={isLoading ? ' ' : 'Aucun incident'}
@@ -199,6 +202,26 @@ export function StandardControlCenter() {
               <TableCell>
                 {inc.preuveUrl ? (
                   <Camera className="h-4 w-4 text-primary" />
+                ) : (
+                  <span className="text-default-300">—</span>
+                )}
+              </TableCell>
+              <TableCell className="text-right">
+                {inc.livreurId ? (
+                  <div onClick={(e) => e.stopPropagation()} className="inline-flex">
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      color="success"
+                      variant="flat"
+                      aria-label="Appeler le livreur"
+                      title="Appeler le livreur (audio)"
+                      isDisabled={enAppel}
+                      onPress={() => appelerLivreur(inc.livreurId!, inc.livreurNom ?? 'Livreur', inc.id)}
+                    >
+                      <Phone className="h-4 w-4" />
+                    </Button>
+                  </div>
                 ) : (
                   <span className="text-default-300">—</span>
                 )}
