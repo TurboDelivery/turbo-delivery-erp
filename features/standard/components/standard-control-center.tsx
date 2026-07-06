@@ -15,7 +15,7 @@ import {
   Tab,
   Tabs,
 } from '@heroui/react';
-import { AlertTriangle, Camera, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { AlertTriangle, Camera, Phone, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { useAbility } from '@/hooks/use-ability';
 import {
   IIncident,
@@ -26,6 +26,7 @@ import {
 import { IncidentStatutChip } from './incident-statut-chip';
 import { IncidentDetailModal } from './incident-detail-modal';
 import { MotifsAdminModal } from './motifs-admin-modal';
+import { AppelRapideModal } from './appel-rapide-modal';
 
 type FiltreStatut = 'TOUS' | StatutIncident;
 
@@ -60,6 +61,7 @@ export function StandardControlCenter() {
   const [selected, setSelected] = useState<IIncident | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [motifsOpen, setMotifsOpen] = useState(false);
+  const [appelOpen, setAppelOpen] = useState(false);
 
   const statut = filtre === 'TOUS' ? undefined : filtre;
   const { data, isLoading, isFetching, refetch } = useIncidentsQuery(statut, page);
@@ -114,6 +116,14 @@ export function StandardControlCenter() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            color="success"
+            variant="flat"
+            startContent={<Phone className="h-4 w-4" />}
+            onPress={() => setAppelOpen(true)}
+          >
+            Appeler un livreur
+          </Button>
           <Button
             variant="flat"
             startContent={<RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />}
@@ -205,6 +215,7 @@ export function StandardControlCenter() {
         canUpdate={canUpdate}
       />
       <MotifsAdminModal isOpen={motifsOpen} onOpenChange={setMotifsOpen} />
+      <AppelRapideModal isOpen={appelOpen} onOpenChange={setAppelOpen} />
     </div>
   );
 }

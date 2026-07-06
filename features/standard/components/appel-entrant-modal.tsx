@@ -3,6 +3,8 @@
 import { Button, Modal, ModalBody, ModalContent, ModalFooter } from '@heroui/react';
 import { IconPhone, IconPhoneOff } from '@tabler/icons-react';
 
+import { useRingtone } from '../hooks/use-ringtone';
+
 interface AppelEntrantModalProps {
   titre: string;
   message: string;
@@ -10,8 +12,9 @@ interface AppelEntrantModalProps {
   onRefuser: () => void;
 }
 
-/** Modale d'appel AUDIO entrant (livreur → STANDARD) sur la console. */
+/** Modale d'appel AUDIO entrant (livreur → STANDARD) sur la console, avec sonnerie. */
 export function AppelEntrantModal({ titre, message, onAccepter, onRefuser }: AppelEntrantModalProps) {
+  useRingtone(true);
   return (
     <Modal isOpen isDismissable={false} hideCloseButton placement="center" size="sm">
       <ModalContent>

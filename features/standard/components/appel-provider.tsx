@@ -2,12 +2,16 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { socket } from '@/socket';
+import { useAbility } from '@/hooks/use-ability';
 
 import { IAppelSession } from '../types/standard.types';
 import {
+  standardKeys,
   useAccepterAppelMutation,
+  useAppelsEntrantsQuery,
   useInitierAppelMutation,
   useRejeterAppelMutation,
 } from '../queries/standard.query';
@@ -18,11 +22,6 @@ interface SessionActive {
   session: IAppelSession;
   interlocuteur: string;
   moiNom: string;
-}
-interface AppelEntrant {
-  appelId: string;
-  titre: string;
-  message: string;
 }
 
 interface AppelContextValue {
@@ -44,12 +43,24 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   const agentId = session?.user?.id;
   const agentNom = session?.user?.name ?? 'STANDARD';
 
+  const ability = useAbility();
+  const estOperateurStandard = ability.can('read', 'Incident');
+
+  const queryClient = useQueryClient();
   const initier = useInitierAppelMutation();
   const accepter = useAccepterAppelMutation();
   const rejeter = useRejeterAppelMutation();
 
   const [active, setActive] = useState<SessionActive | null>(null);
-  const [entrant, setEntrant] = useState<AppelEntrant | null>(null);
+
+  // Repli de signalisation : poll des appels entrants SONNE vers STANDARD.
+  // Fait « sonner » la console même quand l'agent connecté n'est pas un notifier
+  // socket (ex. compte admin). Coupé pendant un appel actif.
+  const { data: entrants } = useAppelsEntrantsQuery(estOperateurStandard && !active);
+  const premier = (estOperateurStandard && !active && entrants?.[0]) || null;
+  const entrant = premier
+    ? { appelId: premier.appelId, titre: 'Appel entrant', message: `${premier.appelantNom} vous appelle` }
+    : null;
 
   const appelerLivreur = useCallback(
     (livreurId: string, livreurNom: string, incidentId?: string) => {
@@ -72,12 +83,13 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
     [agentId, agentNom, active, initier],
   );
 
-  // Écoute des appels entrants + fins d'appel sur le canal de l'agent.
+  // Socket : accélère le repli (refetch immédiat des entrants pour les notifiers)
+  // et coupe l'appel actif quand l'autre partie raccroche/annule.
   useEffect(() => {
     if (!agentId) return;
     const channel = `/notification/erp/${agentId}`;
     const onNotif = (raw: unknown) => {
-      let d: { type?: string; lien?: string | null; titre?: string; message?: string } | null = null;
+      let d: { type?: string; lien?: string | null } | null = null;
       try {
         d = typeof raw === 'string' ? JSON.parse(raw) : (raw as typeof d);
       } catch {
@@ -85,39 +97,43 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
       }
       const type = String(d?.type ?? '');
       const appelId = d?.lien ?? undefined;
-      if (!appelId) return;
 
       if (type === 'APPEL_ENTRANT_LIVREUR') {
-        setEntrant((e) => e ?? { appelId, titre: d?.titre ?? 'Appel entrant', message: d?.message ?? '' });
+        queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() });
       } else if (type === 'APPEL_TERMINE' || type === 'APPEL_ANNULE') {
-        setEntrant((e) => (e?.appelId === appelId ? null : e));
-        setActive((a) => (a?.session.appelId === appelId ? null : a));
+        if (appelId) setActive((a) => (a?.session.appelId === appelId ? null : a));
+        queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() });
       }
     };
     socket.on(channel, onNotif);
     return () => {
       socket.off(channel, onNotif);
     };
-  }, [agentId]);
+  }, [agentId, queryClient]);
 
   const accepterEntrant = () => {
     if (!entrant || !agentId) return;
     accepter.mutate(
       { id: entrant.appelId, dto: { appeleId: agentId, appeleNom: agentNom } },
       {
-        onSuccess: (s) => {
-          setActive({ session: s, interlocuteur: s.appelantNom, moiNom: agentNom });
-          setEntrant(null);
-        },
-        onError: () => setEntrant(null),
+        onSuccess: (s) => setActive({ session: s, interlocuteur: s.appelantNom, moiNom: agentNom }),
+        onSettled: () =>
+          queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() }),
       },
     );
   };
 
   const refuserEntrant = () => {
     if (!entrant) return;
-    rejeter.mutate(entrant.appelId);
-    setEntrant(null);
+    const id = entrant.appelId;
+    rejeter.mutate(id, {
+      onSettled: () =>
+        queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() }),
+    });
+    // Retrait optimiste immédiat de la modale (le poll confirmera).
+    queryClient.setQueryData(standardKeys.appelsEntrants(), (old: typeof entrants) =>
+      (old ?? []).filter((x) => x.appelId !== id),
+    );
   };
 
   return (

@@ -12,6 +12,7 @@ export const standardKeys = {
   ouverts: () => [...standardKeys.all, 'ouverts'] as const,
   motifs: () => [...standardKeys.all, 'motifs'] as const,
   appels: (page?: number) => [...standardKeys.all, 'appels', page ?? 0] as const,
+  appelsEntrants: () => [...standardKeys.all, 'appels-entrants'] as const,
 };
 
 export const useIncidentsQuery = (statut: StatutIncident | undefined, page: number, size = 20) =>
@@ -98,6 +99,21 @@ export const useAppelsQuery = (page = 0, size = 20) =>
     queryFn: () => standardAPI.listerAppels({ page, size }),
     staleTime: 30 * 1000,
     keepPreviousData: true,
+  });
+
+/**
+ * Repli de signalisation : poll des appels entrants (SONNE) vers STANDARD.
+ * Garantit que la console « sonne » même si l'agent connecté n'est pas un
+ * notifier socket. `enabled` permet de couper le poll pendant un appel actif.
+ */
+export const useAppelsEntrantsQuery = (enabled = true) =>
+  useQuery({
+    queryKey: standardKeys.appelsEntrants(),
+    queryFn: () => standardAPI.listerAppelsEntrants(),
+    enabled,
+    refetchInterval: enabled ? 4000 : false,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
 /** STANDARD → livreur : initie l'appel (renvoie la session à rejoindre). */

@@ -113,3 +113,11 @@ export interface IAppelSession {
   appelantNom: string;
   appeleNom: string;
 }
+
+/** Appel entrant SONNE vers STANDARD (AppelEntrantVm backend) — repli de signalisation pollé. */
+export interface IAppelEntrant {
+  appelId: string;
+  appelantNom: string;
+  contexte: ContexteAppel;
+  declencheLe: string;
+}

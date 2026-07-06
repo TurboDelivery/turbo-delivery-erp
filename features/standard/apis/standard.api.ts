@@ -2,6 +2,7 @@ import { apiClientHttp } from '@/lib/api-client-http';
 import { PaginatedResponse } from '@/types/general';
 import {
   IAccepterAppel,
+  IAppelEntrant,
   IAppelLog,
   IAppelSession,
   IChangerStatutIncident,
@@ -90,6 +91,14 @@ export const standardAPI = {
       endpoint: '/api/erp/appel',
       method: 'GET',
       params: { page: String(params.page ?? 0), size: String(params.size ?? 20) },
+    });
+  },
+
+  /** Appels entrants SONNE vers STANDARD (repli de signalisation, pollé par la console). */
+  listerAppelsEntrants(): Promise<IAppelEntrant[]> {
+    return apiClientHttp.request<IAppelEntrant[]>({
+      endpoint: '/api/erp/appel/entrants',
+      method: 'GET',
     });
   },
 
