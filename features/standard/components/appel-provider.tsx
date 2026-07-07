@@ -57,14 +57,15 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   // Fait « sonner » la console même quand l'agent connecté n'est pas un notifier
   // socket (ex. compte admin). Coupé pendant un appel actif.
   const { data: entrants } = useAppelsEntrantsQuery(estOperateurStandard && !active);
-  // Timeout ~1 min : on ignore un appel qui « sonne » depuis plus de 65 s
-  // (l'appelant l'abandonne de son côté ; sécurité si la fin n'a pas été reçue).
-  const maintenant = Date.now();
-  const premier =
-    (estOperateurStandard &&
-      !active &&
-      (entrants ?? []).find((e) => maintenant - Date.parse(e.declencheLe) < 65_000)) ||
-    null;
+  // La console affiche simplement l'appel qui « sonne » encore. L'expiration ~1 min
+  // d'un appel sans réponse est décidée CÔTÉ SERVEUR (SONNE > 60 s → MANQUE, qui
+  // le retire du poll) et par le timeout de l'appelant. PAS de filtre d'âge client :
+  // il coupait la modale au retour de focus alors que l'appel sonnait toujours
+  // (re-rendus gelés en arrière-plan → l'âge « sautait » à >65 s au focus).
+  // Gate uniquement sur `!active` + présence d'un entrant : `estOperateurStandard`
+  // ne sert qu'au `enabled` du poll (le backend ne renvoie d'entrants qu'aux
+  // opérateurs) — évite qu'un flip transitoire d'ability au focus coupe la modale.
+  const premier = (!active && entrants?.[0]) || null;
   const entrant = premier
     ? { appelId: premier.appelId, titre: 'Appel entrant', message: `${premier.appelantNom} vous appelle` }
     : null;
@@ -144,7 +145,7 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
 
       if (type === 'APPEL_ENTRANT_LIVREUR') {
         queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() });
-      } else if (type === 'APPEL_TERMINE' || type === 'APPEL_ANNULE') {
+      } else if (type === 'APPEL_TERMINE' || type === 'APPEL_ANNULE' || type === 'APPEL_MANQUE') {
         if (appelId) setActive((a) => (a?.session.appelId === appelId ? null : a));
         queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() });
       }
