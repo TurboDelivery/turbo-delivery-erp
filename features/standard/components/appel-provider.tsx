@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -57,10 +57,54 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   // Fait « sonner » la console même quand l'agent connecté n'est pas un notifier
   // socket (ex. compte admin). Coupé pendant un appel actif.
   const { data: entrants } = useAppelsEntrantsQuery(estOperateurStandard && !active);
-  const premier = (estOperateurStandard && !active && entrants?.[0]) || null;
+  // Timeout ~1 min : on ignore un appel qui « sonne » depuis plus de 65 s
+  // (l'appelant l'abandonne de son côté ; sécurité si la fin n'a pas été reçue).
+  const maintenant = Date.now();
+  const premier =
+    (estOperateurStandard &&
+      !active &&
+      (entrants ?? []).find((e) => maintenant - Date.parse(e.declencheLe) < 65_000)) ||
+    null;
   const entrant = premier
     ? { appelId: premier.appelId, titre: 'Appel entrant', message: `${premier.appelantNom} vous appelle` }
     : null;
+
+  // Alerte navigateur (OS) quand un appel arrive alors que l'onglet n'est pas
+  // visible : la sonnerie Web Audio est étouffée en arrière-plan, la notif prend le relais.
+  const dernierAppelNotifie = useRef<string | null>(null);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('Notification' in window)) return;
+    if (Notification.permission === 'default') Notification.requestPermission().catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (!entrant) {
+      dernierAppelNotifie.current = null;
+      return;
+    }
+    if (dernierAppelNotifie.current === entrant.appelId) return;
+    dernierAppelNotifie.current = entrant.appelId;
+    if (
+      typeof document !== 'undefined' &&
+      document.hidden &&
+      'Notification' in window &&
+      Notification.permission === 'granted'
+    ) {
+      try {
+        const notif = new Notification('Appel entrant', {
+          body: entrant.message,
+          tag: 'appel-entrant',
+          requireInteraction: true,
+        });
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+        };
+      } catch {
+        /* ignore */
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entrant?.appelId]);
 
   const appelerLivreur = useCallback(
     (livreurId: string, livreurNom: string, incidentId?: string) => {

@@ -56,6 +56,15 @@ export function AppelWidget({ session, moiNom, interlocuteur, onClose }: AppelWi
     onClose();
   };
 
+  // Timeout ~1 min : tant que l'interlocuteur n'a pas décroché, l'appel s'arrête
+  // seul au bout de 60 s (sonnerie sans réponse → raccroché automatiquement).
+  useEffect(() => {
+    if (connecte) return;
+    const t = setTimeout(() => terminer(), 60_000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connecte]);
+
   const minuteur = useMemo(() => {
     const m = Math.floor(secondes / 60).toString().padStart(2, '0');
     const s = (secondes % 60).toString().padStart(2, '0');

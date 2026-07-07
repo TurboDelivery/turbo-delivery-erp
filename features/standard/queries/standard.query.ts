@@ -112,6 +112,9 @@ export const useAppelsEntrantsQuery = (enabled = true) =>
     queryFn: () => standardAPI.listerAppelsEntrants(),
     enabled,
     refetchInterval: enabled ? 4000 : false,
+    // Continue à poller même quand l'onglet n'est PAS au premier plan : sinon la
+    // console ne « voit » pas l'appel entrant tant que l'agent n'a pas le focus.
+    refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
     staleTime: 0,
   });
