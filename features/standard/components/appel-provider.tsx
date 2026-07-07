@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 import { socket } from '@/socket';
 import { useAbility } from '@/hooks/use-ability';
@@ -52,6 +53,11 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   const rejeter = useRejeterAppelMutation();
 
   const [active, setActive] = useState<SessionActive | null>(null);
+  // Ref vers l'appel actif pour le lire dans le handler socket (closure figée).
+  const activeRef = useRef<SessionActive | null>(null);
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
 
   // Repli de signalisation : poll des appels entrants SONNE vers STANDARD.
   // Fait « sonner » la console même quand l'agent connecté n'est pas un notifier
@@ -144,6 +150,15 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
       const appelId = d?.lien ?? undefined;
 
       if (type === 'APPEL_ENTRANT_LIVREUR') {
+        queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() });
+      } else if (type === 'APPEL_REJETE') {
+        // L'appelé (livreur) a refusé : on ferme le widget côté appelant + raison.
+        if (appelId && activeRef.current?.session.appelId === appelId) {
+          toast.info('Appel refusé', {
+            description: `${activeRef.current.interlocuteur} a refusé l'appel.`,
+          });
+        }
+        if (appelId) setActive((a) => (a?.session.appelId === appelId ? null : a));
         queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() });
       } else if (type === 'APPEL_TERMINE' || type === 'APPEL_ANNULE' || type === 'APPEL_MANQUE') {
         if (appelId) setActive((a) => (a?.session.appelId === appelId ? null : a));
