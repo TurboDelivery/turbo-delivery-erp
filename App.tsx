@@ -18,6 +18,16 @@ function App({ children }: PropsWithChildren) {
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
+    // React Aria (calendriers / date-pickers HeroUI) déduit le PREMIER JOUR DE SEMAINE
+    // et les libellés de jours depuis la locale. Une locale SANS région ('fr') est
+    // résolue de façon incohérente entre les versions de @internationalized/date
+    // présentes dans l'arbre (grille dimanche-d'abord mais libellés lundi-d'abord →
+    // calendrier décalé d'un jour). On force une locale AVEC région (lundi non ambigu)
+    // pour ces composants, sans toucher themeConfig.locale (clé des traductions).
+    const localeAria =
+        ({ fr: 'fr-FR', en: 'en-US' } as Record<string, string>)[themeConfig.locale] ??
+        themeConfig.locale;
+
     useEffect(() => {
         dispatch(toggleTheme(localStorage.getItem('theme') || themeConfig.theme));
         dispatch(toggleMenu(localStorage.getItem('menu') || themeConfig.menu));
@@ -35,7 +45,7 @@ function App({ children }: PropsWithChildren) {
     return (
         <HeroUIProvider navigate={router.push}>
             <NextThemesProvider attribute="class" defaultTheme={'light'}>
-                <I18nProvider locale={themeConfig.locale}>
+                <I18nProvider locale={localeAria}>
                     <div
                         className={`${(themeConfig.sidebar && 'toggle-sidebar') || ''} ${themeConfig.menu} ${themeConfig.layout} ${themeConfig.rtlClass
                             } main-section relative font-nunito text-sm font-normal antialiased`}
