@@ -140,15 +140,16 @@ export function MotifsAdminModal({ isOpen, onOpenChange }: Props) {
                 <div className="flex flex-wrap items-end gap-2">
                   <Input
                     label="Code"
+                    labelPlacement="outside"
                     size="sm"
                     placeholder="EX: PANNE"
                     value={code}
                     onValueChange={(v) => setCode(v.toUpperCase())}
                     className="w-36"
-                    description="Identifiant unique"
                   />
                   <Input
                     label="Libellé"
+                    labelPlacement="outside"
                     size="sm"
                     placeholder="Panne"
                     value={libelle}
@@ -157,9 +158,11 @@ export function MotifsAdminModal({ isOpen, onOpenChange }: Props) {
                   />
                   <Input
                     label="Ordre"
+                    labelPlacement="outside"
                     size="sm"
                     type="number"
                     min={0}
+                    placeholder="0"
                     value={ordre}
                     onValueChange={setOrdre}
                     className="w-20"
@@ -175,6 +178,9 @@ export function MotifsAdminModal({ isOpen, onOpenChange }: Props) {
                     Ajouter
                   </Button>
                 </div>
+                <p className="mt-2 text-xs text-default-400">
+                  Le « code » est un identifiant unique en majuscules (ex : PANNE).
+                </p>
               </div>
             </ModalBody>
 
