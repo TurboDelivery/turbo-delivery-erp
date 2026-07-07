@@ -15,7 +15,7 @@ import {
   Tab,
   Tabs,
 } from '@heroui/react';
-import { AlertTriangle, Camera, Phone, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { AlertTriangle, Camera, Phone, PhoneIncoming, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { useAbility } from '@/hooks/use-ability';
 import {
   IIncident,
@@ -27,6 +27,7 @@ import { IncidentStatutChip } from './incident-statut-chip';
 import { IncidentDetailModal } from './incident-detail-modal';
 import { MotifsAdminModal } from './motifs-admin-modal';
 import { AppelRapideModal } from './appel-rapide-modal';
+import { AppelConfigModal } from './appel-config-modal';
 import { useAppel } from './appel-provider';
 
 type FiltreStatut = 'TOUS' | StatutIncident;
@@ -64,6 +65,7 @@ export function StandardControlCenter() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [motifsOpen, setMotifsOpen] = useState(false);
   const [appelOpen, setAppelOpen] = useState(false);
+  const [configAppelOpen, setConfigAppelOpen] = useState(false);
 
   const statut = filtre === 'TOUS' ? undefined : filtre;
   const { data, isLoading, isFetching, refetch } = useIncidentsQuery(statut, page);
@@ -141,6 +143,16 @@ export function StandardControlCenter() {
               onPress={() => setMotifsOpen(true)}
             >
               Motifs
+            </Button>
+          )}
+          {canUpdate && (
+            <Button
+              color="primary"
+              variant="flat"
+              startContent={<PhoneIncoming className="h-4 w-4" />}
+              onPress={() => setConfigAppelOpen(true)}
+            >
+              Répondants
             </Button>
           )}
         </div>
@@ -239,6 +251,7 @@ export function StandardControlCenter() {
       />
       <MotifsAdminModal isOpen={motifsOpen} onOpenChange={setMotifsOpen} />
       <AppelRapideModal isOpen={appelOpen} onOpenChange={setAppelOpen} />
+      <AppelConfigModal isOpen={configAppelOpen} onOpenChange={setConfigAppelOpen} />
     </div>
   );
 }

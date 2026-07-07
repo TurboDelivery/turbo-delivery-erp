@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { standardAPI } from '../apis/standard.api';
-import { IAccepterAppel, IChangerStatutIncident, ICreerMotifIncident, IInitierAppel, IModifierMotifIncident, StatutIncident } from '../types/standard.types';
+import { IAccepterAppel, IAppelConfig, IChangerStatutIncident, ICreerMotifIncident, IInitierAppel, IModifierMotifIncident, StatutIncident } from '../types/standard.types';
 
 export const standardKeys = {
   all: ['standard'] as const,
@@ -13,6 +13,7 @@ export const standardKeys = {
   motifs: () => [...standardKeys.all, 'motifs'] as const,
   appels: (page?: number) => [...standardKeys.all, 'appels', page ?? 0] as const,
   appelsEntrants: () => [...standardKeys.all, 'appels-entrants'] as const,
+  appelConfig: () => [...standardKeys.all, 'appel-config'] as const,
 };
 
 export const useIncidentsQuery = (statut: StatutIncident | undefined, page: number, size = 20) =>
@@ -118,6 +119,31 @@ export const useAppelsEntrantsQuery = (enabled = true) =>
     refetchOnWindowFocus: true,
     staleTime: 0,
   });
+
+/** Configuration du groupe de réponse : rôles qui sonnent sur un appel livreur → STANDARD. */
+export const useAppelConfigQuery = (enabled = true) =>
+  useQuery({
+    queryKey: standardKeys.appelConfig(),
+    queryFn: () => standardAPI.getAppelConfig(),
+    enabled,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
+export const useModifierAppelConfigMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: IAppelConfig) => standardAPI.modifierAppelConfig(dto),
+    onSuccess: (data) => {
+      queryClient.setQueryData(standardKeys.appelConfig(), data);
+      toast.success('Répondants mis à jour');
+    },
+    onError: (error: unknown) => {
+      const description = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error('Impossible de mettre à jour les répondants', { description });
+    },
+  });
+};
 
 /** STANDARD → livreur : initie l'appel (renvoie la session à rejoindre). */
 export const useInitierAppelMutation = () =>

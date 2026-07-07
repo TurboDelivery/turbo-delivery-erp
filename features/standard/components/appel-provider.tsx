@@ -6,15 +6,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { socket } from '@/socket';
-import { useAbility } from '@/hooks/use-ability';
+import { normalizeRole } from '@/lib/casl/ability';
 
 import { IAppelSession } from '../types/standard.types';
 import {
   standardKeys,
   useAccepterAppelMutation,
+  useAppelConfigQuery,
   useAppelsEntrantsQuery,
   useInitierAppelMutation,
-  useRejeterAppelMutation,
 } from '../queries/standard.query';
 import { AppelEntrantModal } from './appel-entrant-modal';
 import { AppelWidget } from './appel-widget';
@@ -44,13 +44,17 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   const agentId = session?.user?.id;
   const agentNom = session?.user?.name ?? 'STANDARD';
 
-  const ability = useAbility();
-  const estOperateurStandard = ability.can('read', 'Incident');
+  // Groupe de réponse configurable : seuls les utilisateurs dont le RÔLE figure
+  // dans la config (défaut STANDARD) sonnent sur un appel livreur → STANDARD.
+  const roleKey = normalizeRole(
+    (session?.user?.role as unknown as string | { libelle?: string } | null | undefined) ?? null,
+  );
+  const { data: config } = useAppelConfigQuery(!!roleKey);
+  const estRepondant = !!roleKey && (config?.rolesRepondants ?? ['STANDARD']).includes(roleKey);
 
   const queryClient = useQueryClient();
   const initier = useInitierAppelMutation();
   const accepter = useAccepterAppelMutation();
-  const rejeter = useRejeterAppelMutation();
 
   const [active, setActive] = useState<SessionActive | null>(null);
   // Ref vers l'appel actif pour le lire dans le handler socket (closure figée).
@@ -59,19 +63,20 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
     activeRef.current = active;
   }, [active]);
 
+  // Refus LOCAL (groupe d'appel) : « Refuser » masque la modale POUR CET AGENT
+  // seulement — l'appel continue de sonner chez les autres répondants jusqu'au
+  // décroché ou au timeout serveur (~1 min → MANQUE). Aucun rejet côté serveur.
+  const [ignores, setIgnores] = useState<ReadonlySet<string>>(new Set());
+
   // Repli de signalisation : poll des appels entrants SONNE vers STANDARD.
-  // Fait « sonner » la console même quand l'agent connecté n'est pas un notifier
-  // socket (ex. compte admin). Coupé pendant un appel actif.
-  const { data: entrants } = useAppelsEntrantsQuery(estOperateurStandard && !active);
-  // La console affiche simplement l'appel qui « sonne » encore. L'expiration ~1 min
-  // d'un appel sans réponse est décidée CÔTÉ SERVEUR (SONNE > 60 s → MANQUE, qui
-  // le retire du poll) et par le timeout de l'appelant. PAS de filtre d'âge client :
-  // il coupait la modale au retour de focus alors que l'appel sonnait toujours
-  // (re-rendus gelés en arrière-plan → l'âge « sautait » à >65 s au focus).
-  // Gate uniquement sur `!active` + présence d'un entrant : `estOperateurStandard`
-  // ne sert qu'au `enabled` du poll (le backend ne renvoie d'entrants qu'aux
-  // opérateurs) — évite qu'un flip transitoire d'ability au focus coupe la modale.
-  const premier = (!active && entrants?.[0]) || null;
+  // Fiable même hors socket. Coupé pendant un appel actif ou si non-répondant.
+  const { data: entrants } = useAppelsEntrantsQuery(estRepondant && !active);
+  // La console affiche le premier appel qui « sonne » encore et non ignoré ici.
+  // L'expiration ~1 min d'un appel sans réponse est décidée CÔTÉ SERVEUR (SONNE
+  // > 60 s → MANQUE, qui le retire du poll). PAS de filtre d'âge client (il
+  // coupait la modale au retour de focus alors que l'appel sonnait toujours).
+  const premier =
+    (estRepondant && !active && (entrants ?? []).find((e) => !ignores.has(e.appelId))) || null;
   const entrant = premier
     ? { appelId: premier.appelId, titre: 'Appel entrant', message: `${premier.appelantNom} vous appelle` }
     : null;
@@ -149,7 +154,9 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
       const type = String(d?.type ?? '');
       const appelId = d?.lien ?? undefined;
 
-      if (type === 'APPEL_ENTRANT_LIVREUR') {
+      if (type === 'APPEL_ENTRANT_LIVREUR' || type === 'APPEL_ACCEPTE') {
+        // Entrant : fait sonner plus vite. Accepté (par un AUTRE répondant) :
+        // coupe la sonnerie ici sur-le-champ (l'appel sort du poll des SONNE).
         queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() });
       } else if (type === 'APPEL_REJETE') {
         // L'appelé (livreur) a refusé : on ferme le widget côté appelant + raison.
@@ -186,14 +193,13 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   const refuserEntrant = () => {
     if (!entrant) return;
     const id = entrant.appelId;
-    rejeter.mutate(id, {
-      onSettled: () =>
-        queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() }),
+    // Refus LOCAL uniquement (groupe d'appel) : l'appel continue de sonner chez
+    // les autres répondants ; ici on masque simplement la modale pour cet agent.
+    setIgnores((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
     });
-    // Retrait optimiste immédiat de la modale (le poll confirmera).
-    queryClient.setQueryData(standardKeys.appelsEntrants(), (old: typeof entrants) =>
-      (old ?? []).filter((x) => x.appelId !== id),
-    );
   };
 
   return (

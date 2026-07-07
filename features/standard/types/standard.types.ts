@@ -121,3 +121,11 @@ export interface IAppelEntrant {
   contexte: ContexteAppel;
   declencheLe: string;
 }
+
+/**
+ * Configuration du groupe de réponse (AppelConfigVm backend) : clés de rôle
+ * frontend (AppRole) dont les utilisateurs « sonnent » sur un appel livreur → STANDARD.
+ */
+export interface IAppelConfig {
+  rolesRepondants: string[];
+}

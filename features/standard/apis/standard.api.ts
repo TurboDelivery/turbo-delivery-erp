@@ -2,6 +2,7 @@ import { apiClientHttp } from '@/lib/api-client-http';
 import { PaginatedResponse } from '@/types/general';
 import {
   IAccepterAppel,
+  IAppelConfig,
   IAppelEntrant,
   IAppelLog,
   IAppelSession,
@@ -99,6 +100,23 @@ export const standardAPI = {
     return apiClientHttp.request<IAppelEntrant[]>({
       endpoint: '/api/erp/appel/entrants',
       method: 'GET',
+    });
+  },
+
+  /** Configuration du groupe de réponse (rôles qui sonnent). */
+  getAppelConfig(): Promise<IAppelConfig> {
+    return apiClientHttp.request<IAppelConfig>({
+      endpoint: '/api/erp/appel/config',
+      method: 'GET',
+    });
+  },
+
+  /** Met à jour les rôles répondants (≥ 1 requis). */
+  modifierAppelConfig(dto: IAppelConfig): Promise<IAppelConfig> {
+    return apiClientHttp.request<IAppelConfig>({
+      endpoint: '/api/erp/appel/config',
+      method: 'PUT',
+      data: dto,
     });
   },
 
