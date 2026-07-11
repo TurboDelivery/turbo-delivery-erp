@@ -29,6 +29,7 @@ import { MotifsAdminModal } from './motifs-admin-modal';
 import { AppelRapideModal } from './appel-rapide-modal';
 import { AppelConfigModal } from './appel-config-modal';
 import { useAppel } from './appel-provider';
+import { AppelHistoriqueTable } from './appel-historique-table';
 
 type FiltreStatut = 'TOUS' | StatutIncident;
 
@@ -242,6 +243,9 @@ export function StandardControlCenter() {
           ))}
         </TableBody>
       </Table>
+
+      {/* Historique des appels (journal STANDARD — appels tel: + audio in-app LUNION) */}
+      <AppelHistoriqueTable />
 
       <IncidentDetailModal
         incident={selected}

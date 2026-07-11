@@ -45,6 +45,10 @@ export interface IAppelLog {
   contexte: ContexteAppel;
   incidentId: string | null;
   declencheLe: string; // ISO instant
+  // Issue de l'appel (exposée par AppelLogVm) — pour l'historique.
+  statut: StatutAppel | null;
+  dureeSec: number | null;
+  termineLe: string | null;
 }
 
 export interface IChangerStatutIncident {
@@ -84,6 +88,16 @@ export const STATUT_LABEL: Record<StatutIncident, string> = {
 // ─── Appel audio in-app (LUNION Meet) ─────────────────────────────────────────
 
 export type StatutAppel = 'INITIE' | 'SONNE' | 'EN_COURS' | 'TERMINE' | 'REJETE' | 'MANQUE' | 'ANNULE';
+
+export const STATUT_APPEL_LABEL: Record<StatutAppel, string> = {
+  INITIE: 'Initié',
+  SONNE: 'Sonnerie',
+  EN_COURS: 'En cours',
+  TERMINE: 'Terminé',
+  REJETE: 'Rejeté',
+  MANQUE: 'Manqué',
+  ANNULE: 'Annulé',
+};
 
 /** Corps d'initiation d'un appel (InitierAppelDto backend). */
 export interface IInitierAppel {
