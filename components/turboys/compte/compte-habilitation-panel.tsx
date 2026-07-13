@@ -243,8 +243,13 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
                   selectedKey={sitePartnerId || null}
                   onSelectionChange={(key) => setSitePartnerId((key as string) ?? '')}
                   placeholder="Rechercher un restaurant…"
+                  listboxProps={{ itemClasses: { base: 'py-2 data-[hover=true]:bg-default-100' } }}
                 >
-                  {(r) => <AutocompleteItem key={r.id}>{r.nom}</AutocompleteItem>}
+                  {(r) => (
+                    <AutocompleteItem key={r.id} textValue={r.nom}>
+                      <span className="text-sm">{r.nom}</span>
+                    </AutocompleteItem>
+                  )}
                 </Autocomplete>
               )}
               <p className="col-span-full text-xs text-gray-400">

@@ -110,14 +110,15 @@ export function ProgrammeFormModal({
                 selectedKey={livreurId || null}
                 onSelectionChange={(key) => setLivreurId((key as string) ?? '')}
                 placeholder="Rechercher un livreur…"
+                listboxProps={{ itemClasses: { base: 'py-2 data-[hover=true]:bg-default-100' } }}
               >
                 {(l) => (
                   <AutocompleteItem
                     key={l.id}
                     textValue={`${nomLivreur(l)}${l.matricule ? ` ${l.matricule}` : ''}${l.telephone ? ` ${l.telephone}` : ''}`}
                   >
-                    <div className="flex flex-col">
-                      <span>{nomLivreur(l)}</span>
+                    <div className="flex flex-col gap-0.5 py-0.5">
+                      <span className="text-sm font-medium text-default-700">{nomLivreur(l)}</span>
                       {(l.matricule || l.telephone) && (
                         <span className="text-xs text-default-400">
                           {[l.matricule, l.telephone].filter(Boolean).join(' · ')}
