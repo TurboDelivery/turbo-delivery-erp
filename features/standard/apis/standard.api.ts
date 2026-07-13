@@ -3,6 +3,7 @@ import { PaginatedResponse } from '@/types/general';
 import {
   IAccepterAppel,
   IAppelConfig,
+  IAppelEnCours,
   IAppelEntrant,
   IAppelLog,
   IAppelSession,
@@ -111,11 +112,28 @@ export const standardAPI = {
     });
   },
 
-  /** Met à jour les rôles répondants (≥ 1 requis). */
+  /** Met à jour les rôles répondants (≥ 1 requis) et superviseurs. */
   modifierAppelConfig(dto: IAppelConfig): Promise<IAppelConfig> {
     return apiClientHttp.request<IAppelConfig>({
       endpoint: '/api/erp/appel/config',
       method: 'PUT',
+      data: dto,
+    });
+  },
+
+  /** Appels EN COURS (supervision). */
+  listerAppelsEnCours(): Promise<IAppelEnCours[]> {
+    return apiClientHttp.request<IAppelEnCours[]>({
+      endpoint: '/api/erp/appel/en-cours',
+      method: 'GET',
+    });
+  },
+
+  /** Rejoint un appel en cours pour l'écouter (renvoie un token d'écoute). */
+  superviserAppel(id: string, dto: { superviseurId: string; superviseurNom: string }): Promise<IAppelSession> {
+    return apiClientHttp.request<IAppelSession>({
+      endpoint: `/api/erp/appel/${id}/superviser`,
+      method: 'POST',
       data: dto,
     });
   },

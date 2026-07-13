@@ -140,9 +140,19 @@ export interface IAppelEntrant {
 }
 
 /**
- * Configuration du groupe de réponse (AppelConfigVm backend) : clés de rôle
- * frontend (AppRole) dont les utilisateurs « sonnent » sur un appel livreur → STANDARD.
+ * Configuration des appels (AppelConfigVm backend) : rôles qui « sonnent »
+ * (répondants) et rôles qui peuvent écouter un appel en cours (superviseurs).
  */
 export interface IAppelConfig {
   rolesRepondants: string[];
+  rolesSuperviseurs: string[];
+}
+
+/** Appel EN COURS (AppelEnCoursVm backend) — supervision. */
+export interface IAppelEnCours {
+  appelId: string;
+  appelantNom: string;
+  appeleNom: string;
+  contexte: ContexteAppel;
+  demarreLe: string | null;
 }

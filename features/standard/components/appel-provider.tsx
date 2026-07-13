@@ -15,6 +15,7 @@ import {
   useAppelConfigQuery,
   useAppelsEntrantsQuery,
   useInitierAppelMutation,
+  useSuperviserAppelMutation,
 } from '../queries/standard.query';
 import { AppelEntrantModal } from './appel-entrant-modal';
 import { AppelWidget } from './appel-widget';
@@ -23,11 +24,17 @@ interface SessionActive {
   session: IAppelSession;
   interlocuteur: string;
   moiNom: string;
+  /** Écoute seule (supervision) : ne publie pas le micro, ne raccroche pas l'appel. */
+  ecouteSeule?: boolean;
 }
 
 interface AppelContextValue {
   /** STANDARD → livreur : lance un appel audio in-app. */
   appelerLivreur: (livreurId: string, livreurNom: string, incidentId?: string) => void;
+  /** Supervision : rejoint un appel en cours pour l'écouter (écoute seule). */
+  superviser: (appelId: string, titre?: string) => void;
+  /** L'utilisateur courant peut-il superviser (écouter) un appel en cours ? */
+  estSuperviseur: boolean;
   enAppel: boolean;
 }
 
@@ -51,10 +58,12 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   );
   const { data: config } = useAppelConfigQuery(!!roleKey);
   const estRepondant = !!roleKey && (config?.rolesRepondants ?? ['STANDARD']).includes(roleKey);
+  const estSuperviseur = !!roleKey && (config?.rolesSuperviseurs ?? []).includes(roleKey);
 
   const queryClient = useQueryClient();
   const initier = useInitierAppelMutation();
   const accepter = useAccepterAppelMutation();
+  const superviserMut = useSuperviserAppelMutation();
 
   const [active, setActive] = useState<SessionActive | null>(null);
   // Ref vers l'appel actif pour le lire dans le handler socket (closure figée).
@@ -139,6 +148,25 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
     [agentId, agentNom, active, initier],
   );
 
+  const superviser = useCallback(
+    (appelId: string, titre?: string) => {
+      if (!agentId || active) return;
+      superviserMut.mutate(
+        { id: appelId, superviseurId: agentId, superviseurNom: agentNom },
+        {
+          onSuccess: (s) =>
+            setActive({
+              session: s,
+              interlocuteur: titre || `${s.appelantNom} ↔ ${s.appeleNom}`,
+              moiNom: agentNom,
+              ecouteSeule: true,
+            }),
+        },
+      );
+    },
+    [agentId, agentNom, active, superviserMut],
+  );
+
   // Socket : accélère le repli (refetch immédiat des entrants pour les notifiers)
   // et coupe l'appel actif quand l'autre partie raccroche/annule.
   useEffect(() => {
@@ -203,7 +231,7 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AppelContext.Provider value={{ appelerLivreur, enAppel: !!active }}>
+    <AppelContext.Provider value={{ appelerLivreur, superviser, estSuperviseur, enAppel: !!active }}>
       {children}
       {entrant && !active && (
         <AppelEntrantModal
@@ -218,6 +246,7 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
           session={active.session}
           moiNom={active.moiNom}
           interlocuteur={active.interlocuteur}
+          ecouteSeule={active.ecouteSeule}
           onClose={() => setActive(null)}
         />
       )}

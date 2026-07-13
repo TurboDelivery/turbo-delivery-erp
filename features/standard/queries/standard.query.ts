@@ -13,6 +13,7 @@ export const standardKeys = {
   motifs: () => [...standardKeys.all, 'motifs'] as const,
   appels: (page?: number) => [...standardKeys.all, 'appels', page ?? 0] as const,
   appelsEntrants: () => [...standardKeys.all, 'appels-entrants'] as const,
+  appelsEnCours: () => [...standardKeys.all, 'appels-en-cours'] as const,
   appelConfig: () => [...standardKeys.all, 'appel-config'] as const,
 };
 
@@ -144,6 +145,27 @@ export const useModifierAppelConfigMutation = () => {
     },
   });
 };
+
+/** Supervision : appels EN COURS qu'un superviseur peut rejoindre pour écouter. */
+export const useAppelsEnCoursQuery = (enabled = true) =>
+  useQuery({
+    queryKey: standardKeys.appelsEnCours(),
+    queryFn: () => standardAPI.listerAppelsEnCours(),
+    enabled,
+    refetchInterval: enabled ? 5000 : false,
+    refetchIntervalInBackground: false,
+    staleTime: 0,
+  });
+
+export const useSuperviserAppelMutation = () =>
+  useMutation({
+    mutationFn: ({ id, superviseurId, superviseurNom }: { id: string; superviseurId: string; superviseurNom: string }) =>
+      standardAPI.superviserAppel(id, { superviseurId, superviseurNom }),
+    onError: (error: unknown) => {
+      const description = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error("Impossible de rejoindre l'appel", { description });
+    },
+  });
 
 /** STANDARD → livreur : initie l'appel (renvoie la session à rejoindre). */
 export const useInitierAppelMutation = () =>

@@ -57,17 +57,21 @@ const ROLES_ORDONNES: AppRole[] = [
 export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
   const { data: config, isLoading } = useAppelConfigQuery(isOpen);
   const modifier = useModifierAppelConfigMutation();
-  const [selection, setSelection] = useState<string[]>([]);
+  const [repondants, setRepondants] = useState<string[]>([]);
+  const [superviseurs, setSuperviseurs] = useState<string[]>([]);
 
   useEffect(() => {
-    // (Ré)initialise la sélection à l'ouverture, depuis la config serveur.
-    if (isOpen && config) setSelection(config.rolesRepondants);
+    // (Ré)initialise les sélections à l'ouverture, depuis la config serveur.
+    if (isOpen && config) {
+      setRepondants(config.rolesRepondants);
+      setSuperviseurs(config.rolesSuperviseurs ?? []);
+    }
   }, [isOpen, config]);
 
   const enregistrer = () => {
-    if (selection.length === 0) return;
+    if (repondants.length === 0) return;
     modifier.mutate(
-      { rolesRepondants: selection },
+      { rolesRepondants: repondants, rolesSuperviseurs: superviseurs },
       { onSuccess: () => onOpenChange(false) },
     );
   };
@@ -80,11 +84,10 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
             <ModalHeader className="flex flex-col gap-1">
               <span className="flex items-center gap-2 text-primary">
                 <PhoneIncoming className="h-5 w-5" />
-                Répondants aux appels
+                Paramètres des appels
               </span>
               <span className="text-xs font-normal text-default-400">
-                Les utilisateurs de ces rôles sonnent quand un livreur appelle. Le premier qui
-                décroche prend l&apos;appel ; un refus n&apos;arrête la sonnerie que chez soi.
+                Qui reçoit les appels des livreurs, et qui peut écouter un appel en cours.
               </span>
             </ModalHeader>
 
@@ -94,18 +97,44 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
                   <Spinner color="primary" label="Chargement…" />
                 </div>
               ) : (
-                <CheckboxGroup value={selection} onValueChange={setSelection}>
-                  {ROLES_ORDONNES.map((role) => (
-                    <Checkbox key={role} value={role}>
-                      {ROLE_LABELS[role] ?? role}
-                    </Checkbox>
-                  ))}
-                </CheckboxGroup>
-              )}
-              {selection.length === 0 && !isLoading && (
-                <p className="text-xs text-danger">
-                  Au moins un rôle est requis, sinon plus personne ne reçoit les appels.
-                </p>
+                <div className="space-y-5">
+                  <div>
+                    <p className="mb-1 text-sm font-semibold text-default-700">Répondants</p>
+                    <p className="mb-2 text-xs text-default-400">
+                      Ces rôles sonnent quand un livreur appelle. Le premier qui décroche prend
+                      l&apos;appel ; un refus n&apos;arrête la sonnerie que chez soi.
+                    </p>
+                    <CheckboxGroup value={repondants} onValueChange={setRepondants}>
+                      {ROLES_ORDONNES.map((role) => (
+                        <Checkbox key={role} value={role}>
+                          {ROLE_LABELS[role] ?? role}
+                        </Checkbox>
+                      ))}
+                    </CheckboxGroup>
+                    {repondants.length === 0 && (
+                      <p className="mt-1 text-xs text-danger">
+                        Au moins un rôle répondant est requis.
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="mb-1 text-sm font-semibold text-default-700">
+                      Superviseurs (écoute)
+                    </p>
+                    <p className="mb-2 text-xs text-default-400">
+                      Ces rôles ne sonnent pas, mais peuvent rejoindre un appel en cours pour
+                      l&apos;écouter (micro coupé). Laisser vide = personne.
+                    </p>
+                    <CheckboxGroup value={superviseurs} onValueChange={setSuperviseurs}>
+                      {ROLES_ORDONNES.map((role) => (
+                        <Checkbox key={role} value={role}>
+                          {ROLE_LABELS[role] ?? role}
+                        </Checkbox>
+                      ))}
+                    </CheckboxGroup>
+                  </div>
+                </div>
               )}
             </ModalBody>
 
@@ -116,7 +145,7 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
               <Button
                 color="primary"
                 isLoading={modifier.isLoading}
-                isDisabled={selection.length === 0}
+                isDisabled={repondants.length === 0}
                 onPress={enregistrer}
               >
                 Enregistrer
