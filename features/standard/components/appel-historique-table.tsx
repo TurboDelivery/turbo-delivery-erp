@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import {
+  Button,
   Chip,
   Pagination,
   Spinner,
@@ -12,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@heroui/react';
-import { Phone, PhoneIncoming, PhoneOutgoing } from 'lucide-react';
+import { Ear, Phone, PhoneIncoming, PhoneOutgoing } from 'lucide-react';
 import {
   ContexteAppel,
   IAppelLog,
@@ -20,6 +21,8 @@ import {
   STATUT_APPEL_LABEL,
   useAppelsQuery,
 } from '@/features/standard';
+
+import { useAppel } from './appel-provider';
 
 const CONTEXTE_LABEL: Record<ContexteAppel, string> = {
   LIVREUR_VERS_STANDARD: 'Livreur → Standard',
@@ -62,7 +65,9 @@ function formatDuree(sec: number | null): string {
 
 export function AppelHistoriqueTable() {
   const [page, setPage] = useState(0);
-  const { data, isLoading } = useAppelsQuery(page);
+  // Rafraîchit périodiquement pour faire remonter les appels EN COURS (écoute).
+  const { data, isLoading } = useAppelsQuery(page, 15, 8000);
+  const { superviser, estSuperviseur, enAppel } = useAppel();
   const appels: IAppelLog[] = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
 
@@ -95,6 +100,7 @@ export function AppelHistoriqueTable() {
           <TableColumn className="text-primary">N° / DESTINATAIRE</TableColumn>
           <TableColumn className="text-primary">STATUT</TableColumn>
           <TableColumn className="text-primary">DURÉE</TableColumn>
+          <TableColumn className="text-primary text-right">ÉCOUTER</TableColumn>
         </TableHeader>
         <TableBody
           emptyContent={isLoading ? ' ' : 'Aucun appel enregistré'}
@@ -131,6 +137,27 @@ export function AppelHistoriqueTable() {
                   )}
                 </TableCell>
                 <TableCell className="tabular-nums">{formatDuree(a.dureeSec)}</TableCell>
+                <TableCell className="text-right">
+                  {a.statut === 'EN_COURS' && estSuperviseur ? (
+                    <Button
+                      size="sm"
+                      color="primary"
+                      variant="flat"
+                      startContent={<Ear className="h-4 w-4" />}
+                      isDisabled={enAppel}
+                      onPress={() =>
+                        superviser(
+                          a.id,
+                          `${a.appelantNom ?? 'Appelant'} ↔ ${a.appeleNom ?? a.appeleTelephone ?? 'Appelé'}`,
+                        )
+                      }
+                    >
+                      Écouter
+                    </Button>
+                  ) : (
+                    <span className="text-default-300">—</span>
+                  )}
+                </TableCell>
               </TableRow>
             );
           })}

@@ -94,13 +94,15 @@ export const useModifierMotifMutation = () => {
 
 // ─── Appel audio in-app (LUNION Meet) ─────────────────────────────────────────
 
-/** Historique paginé des appels (journal STANDARD). */
-export const useAppelsQuery = (page = 0, size = 20) =>
+/** Historique paginé des appels (journal STANDARD). `refetchInterval` optionnel
+ * pour faire remonter les appels EN COURS (colonne « Écouter »). */
+export const useAppelsQuery = (page = 0, size = 20, refetchInterval?: number) =>
   useQuery({
     queryKey: standardKeys.appels(page),
     queryFn: () => standardAPI.listerAppels({ page, size }),
-    staleTime: 30 * 1000,
+    staleTime: refetchInterval ?? 30 * 1000,
     keepPreviousData: true,
+    refetchInterval: refetchInterval ?? false,
   });
 
 /**
