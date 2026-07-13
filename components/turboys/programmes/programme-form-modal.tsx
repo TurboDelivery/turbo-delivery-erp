@@ -145,6 +145,14 @@ export function ProgrammeFormModal({
             </div>
           )}
 
+          {isEdit && ['NOTIFIE', 'ACCEPTE', 'REFUSE'].includes(programme?.statut ?? '') && (
+            <div className="rounded-lg border border-warning-200 bg-warning-50 p-3 text-xs text-warning-700">
+              Ce programme a déjà été envoyé au livreur
+              {programme?.statut === 'ACCEPTE' ? ' et accepté' : programme?.statut === 'REFUSE' ? ' (refusé)' : ''}.
+              L&apos;enregistrer le renverra pour une <strong>nouvelle acceptation</strong> — le livreur sera notifié.
+            </div>
+          )}
+
           <div className="mt-1">
             <p className="mb-2 text-sm font-medium text-default-600">Jours travaillés</p>
             <WeeklyJoursEditor value={jours} onChange={setJours} disabled={isLoading} restaurants={restaurants} />

@@ -83,7 +83,9 @@ function LigneActions({ p, h }: { p: IProgramme; h: ProgrammeGridHandlers }) {
       <Button size="sm" variant="light" onPress={() => h.onApercu?.(p)}>
         Aperçu
       </Button>
-      {(s === 'BROUILLON' || s === 'PLANIFIE') && (
+      {/* Éditer disponible sur TOUS les statuts : modifier un programme confirmé
+          le renvoie au livreur pour une nouvelle acceptation (re-notification). */}
+      {h.onEdit && (
         <Button size="sm" variant="flat" onPress={() => h.onEdit?.(p)} isDisabled={busy}>
           Éditer
         </Button>
