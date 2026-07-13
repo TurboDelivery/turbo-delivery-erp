@@ -159,18 +159,35 @@ export function StandardControlCenter() {
         </div>
       </div>
 
-      {/* Filtre par statut */}
-      <Tabs
-        aria-label="Filtrer par statut"
-        selectedKey={filtre}
-        onSelectionChange={(k) => onChangeFiltre(k as FiltreStatut)}
-        color="primary"
-        variant="bordered"
-      >
-        {FILTRES.map((f) => (
-          <Tab key={f.key} title={f.label} />
-        ))}
-      </Tabs>
+      {/* Onglets principaux : Incidents / Historique des appels */}
+      <Tabs aria-label="Sections du centre STANDARD" color="primary" variant="underlined" size="lg">
+        <Tab
+          key="incidents"
+          title={
+            <span className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Incidents
+              {(ouverts?.ouverts ?? 0) > 0 && (
+                <Chip color="danger" variant="flat" size="sm">
+                  {ouverts?.ouverts}
+                </Chip>
+              )}
+            </span>
+          }
+        >
+          <div className="space-y-4 pt-2">
+            {/* Filtre par statut */}
+            <Tabs
+              aria-label="Filtrer par statut"
+              selectedKey={filtre}
+              onSelectionChange={(k) => onChangeFiltre(k as FiltreStatut)}
+              color="primary"
+              variant="bordered"
+            >
+              {FILTRES.map((f) => (
+                <Tab key={f.key} title={f.label} />
+              ))}
+            </Tabs>
 
       {/* File des incidents */}
       <Table
@@ -244,8 +261,24 @@ export function StandardControlCenter() {
         </TableBody>
       </Table>
 
-      {/* Historique des appels (journal STANDARD — appels tel: + audio in-app LUNION) */}
-      <AppelHistoriqueTable />
+          </div>
+        </Tab>
+
+        <Tab
+          key="appels"
+          title={
+            <span className="flex items-center gap-2">
+              <Phone className="h-4 w-4" />
+              Historique des appels
+            </span>
+          }
+        >
+          {/* Journal STANDARD — appels tel: + audio in-app LUNION (colonne « Écouter » pour les EN_COURS) */}
+          <div className="pt-2">
+            <AppelHistoriqueTable />
+          </div>
+        </Tab>
+      </Tabs>
 
       <IncidentDetailModal
         incident={selected}
