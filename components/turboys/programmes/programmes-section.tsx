@@ -16,9 +16,11 @@ import {
   useProgrammesIndependantsQuery,
   usePlanifierProgrammeMutation,
   usePublierProgrammeMutation,
+  useSupprimerProgrammeMutation,
 } from '@/features/turboys/queries/programme.query';
 import { exporterProgrammesExcel, exporterProgrammesPdf } from '@/features/turboys/utils/programmes-export.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
+import { ErrorBoundary } from '@/components/common/error-boundary';
 import { ProgrammesGrid } from './programmes-grid';
 import { ProgrammeApercuModal } from './programme-apercu-modal';
 import { ProgrammeFormModal } from './programme-form-modal';
@@ -70,6 +72,7 @@ export default function ProgrammesSection() {
 
   const planifier = usePlanifierProgrammeMutation();
   const publier = usePublierProgrammeMutation();
+  const supprimer = useSupprimerProgrammeMutation();
 
   const changeWeek = (delta: number) => {
     let s = semaine + delta;
@@ -95,6 +98,13 @@ export default function ProgrammesSection() {
     }
   };
 
+  const demanderSuppression = (p: IProgramme) => {
+    const ok = window.confirm(
+      `Supprimer le programme de ${p.livreurNom ?? 'ce livreur'} (semaine ${p.semaine}/${p.annee}) ?`,
+    );
+    if (ok) runAction(p.id, supprimer.mutateAsync);
+  };
+
   const [typeFiltre, setTypeFiltre] = React.useState<string>('TOUS');
   const [partenaireFiltre, setPartenaireFiltre] = React.useState<string>('TOUS');
   const restaurantsQuery = useQuery({
@@ -108,7 +118,9 @@ export default function ProgrammesSection() {
   );
   const livreursQuery = useLivreursListQuery();
   const programmesFiltres = React.useMemo(() => {
-    let liste = data ?? [];
+    // Durcissement : une réponse non-tableau (erreur backend renvoyée en 200,
+    // shape inattendue…) ne doit jamais faire planter `.filter` au rendu.
+    let liste = Array.isArray(data) ? data : [];
     if (typeFiltre !== 'TOUS') liste = liste.filter((p) => (p.typeLivreur ?? '') === typeFiltre);
     if (partenaireFiltre !== 'TOUS') {
       liste = liste.filter((p) =>
@@ -317,32 +329,40 @@ export default function ProgrammesSection() {
         </Select>
       </div>
 
-      <ProgrammesGrid
-        programmes={programmesFiltres}
-        emptyContent={
-          isLoading ? 'Chargement…' : isError ? 'Erreur de chargement des programmes' : 'Aucun programme pour cette semaine'
-        }
-        onApercu={(p) => setApercu(p)}
-        onEdit={(p) => setEditing(p)}
-        onPlanifier={(p) => runAction(p.id, planifier.mutateAsync)}
-        onPublier={(p) => runAction(p.id, publier.mutateAsync)}
-        pendingId={pendingId}
-      />
-
-      <AutosuffisancePanel annee={annee} semaine={semaine} />
-
-      <div className="mt-6">
-        <h3 className="mb-2 text-sm font-semibold text-default-700">
-          Indépendants — créneaux déclarés via l&apos;app (lecture seule)
-        </h3>
+      {/* Boundary rekeyé par semaine : un rendu qui throw sur les données d'une
+          semaine n'emporte plus toute la page — et naviguer réarme l'affichage. */}
+      <ErrorBoundary
+        resetKey={`${annee}-${semaine}`}
+        title="Impossible d'afficher les programmes de cette semaine"
+      >
         <ProgrammesGrid
-          readOnly
-          programmes={independantsQuery.data ?? []}
+          programmes={programmesFiltres}
           emptyContent={
-            independantsQuery.isLoading ? 'Chargement…' : 'Aucun indépendant déclaré cette semaine'
+            isLoading ? 'Chargement…' : isError ? 'Erreur de chargement des programmes' : 'Aucun programme pour cette semaine'
           }
+          onApercu={(p) => setApercu(p)}
+          onEdit={(p) => setEditing(p)}
+          onPlanifier={(p) => runAction(p.id, planifier.mutateAsync)}
+          onPublier={(p) => runAction(p.id, publier.mutateAsync)}
+          onDelete={demanderSuppression}
+          pendingId={pendingId}
         />
-      </div>
+
+        <AutosuffisancePanel annee={annee} semaine={semaine} />
+
+        <div className="mt-6">
+          <h3 className="mb-2 text-sm font-semibold text-default-700">
+            Indépendants — créneaux déclarés via l&apos;app (lecture seule)
+          </h3>
+          <ProgrammesGrid
+            readOnly
+            programmes={Array.isArray(independantsQuery.data) ? independantsQuery.data : []}
+            emptyContent={
+              independantsQuery.isLoading ? 'Chargement…' : 'Aucun indépendant déclaré cette semaine'
+            }
+          />
+        </div>
+      </ErrorBoundary>
 
       <ProgrammeFormModal
         isOpen={createOpen}

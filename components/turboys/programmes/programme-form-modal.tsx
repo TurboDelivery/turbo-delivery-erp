@@ -2,6 +2,8 @@
 
 import React from 'react';
 import {
+  Autocomplete,
+  AutocompleteItem,
   Button,
   Input,
   Modal,
@@ -9,8 +11,6 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Select,
-  SelectItem,
 } from '@heroui/react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
@@ -99,20 +99,34 @@ export function ProgrammeFormModal({
         <ModalBody>
           {!isEdit && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <Select
+              {/* Autocomplete (recherche par nom / matricule / téléphone) — la
+                  liste des livreurs peut être longue, le Select simple ne filtrait pas. */}
+              <Autocomplete
                 label="Livreur"
                 className="sm:col-span-3"
                 isLoading={livreursQuery.isLoading}
-                selectedKeys={livreurId ? [livreurId] : []}
-                onSelectionChange={(keys) => setLivreurId((Array.from(keys)[0] as string) ?? '')}
                 isDisabled={isLoading}
+                defaultItems={livreursQuery.data ?? []}
+                selectedKey={livreurId || null}
+                onSelectionChange={(key) => setLivreurId((key as string) ?? '')}
+                placeholder="Rechercher un livreur…"
               >
-                {(livreursQuery.data ?? []).map((l) => (
-                  <SelectItem key={l.id} value={l.id}>
-                    {nomLivreur(l)}
-                  </SelectItem>
-                ))}
-              </Select>
+                {(l) => (
+                  <AutocompleteItem
+                    key={l.id}
+                    textValue={`${nomLivreur(l)}${l.matricule ? ` ${l.matricule}` : ''}${l.telephone ? ` ${l.telephone}` : ''}`}
+                  >
+                    <div className="flex flex-col">
+                      <span>{nomLivreur(l)}</span>
+                      {(l.matricule || l.telephone) && (
+                        <span className="text-xs text-default-400">
+                          {[l.matricule, l.telephone].filter(Boolean).join(' · ')}
+                        </span>
+                      )}
+                    </div>
+                  </AutocompleteItem>
+                )}
+              </Autocomplete>
               <Input
                 type="number"
                 label="Année"

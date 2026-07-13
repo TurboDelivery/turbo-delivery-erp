@@ -1,8 +1,19 @@
 'use client';
 
-import { useState } from 'react';
-import { Button, Chip, Input, Select, SelectItem, Spinner } from '@heroui/react';
+import { useMemo, useState } from 'react';
+import {
+  Autocomplete,
+  AutocompleteItem,
+  Button,
+  Chip,
+  Input,
+  Select,
+  SelectItem,
+  Spinner,
+} from '@heroui/react';
+import { useQuery } from '@tanstack/react-query';
 import { useTurboyQuery } from '@/features/turboys/queries/turboy-list.query';
+import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import {
   useChangerStatutPieceMutation,
   useClesQuery,
@@ -103,6 +114,15 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
   const cles = useClesQuery(driverId);
   const evenements = useEvenementsQuery(driverId);
   const cote = useCoteQuery(driverId);
+  const restaurantsQuery = useQuery({
+    queryKey: ['restaurants', 'all', 'habilitation'],
+    queryFn: getAllRestaurants,
+    staleTime: 5 * 60 * 1000,
+  });
+  const restaurants = useMemo(
+    () => (restaurantsQuery.data ?? []).map((r) => ({ id: r.id, nom: r.nomEtablissement })),
+    [restaurantsQuery.data],
+  );
 
   const [typeLivreur, setTypeLivreur] = useState<TurboyType>('INDEPENDANT');
   const [rattachement, setRattachement] = useState<Rattachement>('SITE_PARTNER');
@@ -136,18 +156,6 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
 
   return (
     <div className="space-y-6">
-      {codeEmis && (
-        <div className="rounded-xl border border-green-200 bg-green-50 p-4">
-          <p className="text-sm font-medium text-green-800">
-            Clé d’activation — à communiquer une seule fois au livreur
-          </p>
-          <p className="mt-1 font-mono text-2xl font-semibold tracking-[0.3em] text-green-900">{codeEmis}</p>
-          <button type="button" onClick={() => setCodeEmis(null)} className="mt-1 text-xs text-green-700 underline">
-            Masquer
-          </button>
-        </div>
-      )}
-
       {/* Cote de fiabilité (RG-29) */}
       <section className={sectionClass}>
         <h2 className={titleClass}>Cote de fiabilité</h2>
@@ -227,13 +235,17 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
                 <SelectItem key="BIRD">BIRD — non rattaché (libre)</SelectItem>
               </Select>
               {rattachement === 'SITE_PARTNER' && (
-                <Input
-                  label="ID site partenaire"
+                <Autocomplete
+                  label="Site partenaire"
                   variant="bordered"
-                  placeholder="UUID du site"
-                  value={sitePartnerId}
-                  onValueChange={setSitePartnerId}
-                />
+                  isLoading={restaurantsQuery.isLoading}
+                  defaultItems={restaurants}
+                  selectedKey={sitePartnerId || null}
+                  onSelectionChange={(key) => setSitePartnerId((key as string) ?? '')}
+                  placeholder="Rechercher un restaurant…"
+                >
+                  {(r) => <AutocompleteItem key={r.id}>{r.nom}</AutocompleteItem>}
+                </Autocomplete>
               )}
               <p className="col-span-full text-xs text-gray-400">
                 Le rattachement est indépendant du type de livreur : tout contrat
@@ -278,6 +290,19 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
             Réémettre une clé (changer d’appareil)
           </Button>
         </div>
+        {/* Clé fraîchement émise (validation OU réémission) — affichée ICI, au même
+            niveau que le bouton, plus en bandeau tout en haut de la page. */}
+        {codeEmis && (
+          <div className="mb-4 rounded-xl border border-green-200 bg-green-50 p-4">
+            <p className="text-sm font-medium text-green-800">
+              Clé d’activation — à communiquer une seule fois au livreur
+            </p>
+            <p className="mt-1 font-mono text-2xl font-semibold tracking-[0.3em] text-green-900">{codeEmis}</p>
+            <button type="button" onClick={() => setCodeEmis(null)} className="mt-1 text-xs text-green-700 underline">
+              Masquer
+            </button>
+          </div>
+        )}
         <p className="mb-1 text-xs text-gray-400">
           Appareil lié : {turboy.deviceLabel ?? turboy.deviceId ?? '— aucun'}
         </p>

@@ -19,7 +19,7 @@ const HAUTEUR = 96; // px de la zone de barre
 /** RG-32 — barres empilées indépendants (base) + planifiés, par jour de la semaine. */
 export function AutosuffisancePanel({ annee, semaine }: { annee: number; semaine: number }) {
   const { data, isLoading, isError } = useAutosuffisanceSemaineQuery(annee, semaine);
-  const jours = data ?? [];
+  const jours = Array.isArray(data) ? data : [];
   const max = Math.max(1, ...jours.map((j) => j.total));
 
   return (

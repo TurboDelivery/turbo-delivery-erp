@@ -39,7 +39,17 @@ export function turboyToLivreurStatut(turboy: ITurboy): LivreurStatutVM {
 
 type MenuItem = { key: string; label: string; danger?: boolean; showDivider?: boolean };
 
-export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; restaurants?: Restaurant[] }) {
+export function TurboyActionMenu({
+  turboy,
+  restaurants,
+  hideNavigation,
+}: {
+  turboy: ITurboy;
+  restaurants?: Restaurant[];
+  // Masque « Détails » / « Modifier » quand le menu est rendu DANS la fiche détail
+  // (ces items y sont redondants — on ne garde que le cycle de vie / l'affectation).
+  hideNavigation?: boolean;
+}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const ability = useAbility();
@@ -54,6 +64,9 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
 
   const invalidateTurboys = () => {
     queryClient.invalidateQueries({ queryKey: turboyKeys.lists() });
+    // Rafraîchit aussi la fiche détail (le menu peut y être rendu — l'en-tête,
+    // le statut et le panneau habilitation doivent refléter la nouvelle valeur).
+    queryClient.invalidateQueries({ queryKey: turboyKeys.detail(turboy.id) });
   };
 
   if (turboy.status == null) {
@@ -97,11 +110,13 @@ export function TurboyActionMenu({ turboy, restaurants }: { turboy: ITurboy; res
   // droit d'édition. « Supprimer » n'est volontairement plus dans le menu rapide
   // (action trop sensible — réservée à la fiche détail).
   const groups: MenuItem[][] = [
-    // Consulter / éditer
-    [
-      { key: 'details', label: 'Détails' },
-      ...(canEdit ? [{ key: 'edit', label: 'Modifier' }] : []),
-    ],
+    // Consulter / éditer (masqué dans la fiche détail — cf. hideNavigation)
+    hideNavigation
+      ? []
+      : [
+          { key: 'details', label: 'Détails' },
+          ...(canEdit ? [{ key: 'edit', label: 'Modifier' }] : []),
+        ],
     // Cycle de vie du compte
     canEdit
       ? [

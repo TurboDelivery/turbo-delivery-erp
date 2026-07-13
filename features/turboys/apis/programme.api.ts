@@ -73,4 +73,11 @@ export const programmeAPI = {
       params: { annee, semaine },
     });
   },
+
+  async supprimer(id: string): Promise<void> {
+    await apiClientHttp.request<void>({
+      endpoint: `/api/erp/programmes/${id}`,
+      method: 'DELETE',
+    });
+  },
 };

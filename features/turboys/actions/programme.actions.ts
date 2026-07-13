@@ -69,6 +69,19 @@ export async function envoyerProgrammeAction(id: string): Promise<ActionResponse
   }
 }
 
+export async function supprimerProgrammeAction(id: string): Promise<ActionResponse<null>> {
+  try {
+    await programmeAPI.supprimer(id);
+    return { success: true, data: null };
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      const serverMsg = error.response?.data?.message || error.response?.data || error.message;
+      return { success: false, error: typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg) };
+    }
+    return { success: false, error: error instanceof Error ? error.message : 'Erreur lors de la suppression du programme' };
+  }
+}
+
 export async function listerIndependantsAction(annee: number, semaine: number): Promise<IProgramme[]> {
   return programmeAPI.independants(annee, semaine);
 }

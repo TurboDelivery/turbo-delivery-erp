@@ -12,12 +12,14 @@ import {
   updateTurboyInfoSchema,
   type UpdateTurboyInfoDTO,
 } from '@/features/turboys/schemas/update-turboy-info.schema';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { updateLivreur } from '@/features/turboys/actions/update-turboy-info.action';
 import { useTurboyQuery, turboyKeys } from '@/features/turboys/queries/turboy-list.query';
 import { useDeleteTurboyMutation } from '@/features/turboys/queries';
 import { useAbility } from '@/hooks/use-ability';
 import { StatusChip } from '@/features/men/components/status-chip';
+import { TurboyActionMenu } from '@/features/men/components/turboy-action-menu';
+import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { toAbsoluteUrl } from './_components/to-absolute-url';
 import { SectionDocumentsActuels } from './_components/section-documents-actuels';
@@ -61,6 +63,13 @@ export default function EditContent({ id }: { id: string }) {
   const canDelete = ability.can('manage', 'all');
   const [openDelete, setOpenDelete] = useState(false);
   const deleteMutation = useDeleteTurboyMutation(() => router.push('/delivery-men/men'));
+
+  // Restaurants pour l'action « Assigner » du menu cycle-de-vie rendu dans l'en-tête.
+  const { data: restaurants } = useQuery({
+    queryKey: ['restaurants', 'all', 'detail-livreur'],
+    queryFn: getAllRestaurants,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const {
     control,
@@ -218,17 +227,25 @@ export default function EditContent({ id }: { id: string }) {
               )}
             </div>
           </div>
-          {canDelete && (
-            <Button
-              color="danger"
-              variant="flat"
-              startContent={<Trash2 className="w-4 h-4" />}
-              onPress={() => setOpenDelete(true)}
-              className="shrink-0"
-            >
-              Supprimer
-            </Button>
-          )}
+          <div className="flex shrink-0 items-center gap-2">
+            {/* Cycle de vie DEPUIS le détail : accepter la demande (Valider),
+                Activer, Désactiver, Assigner… — plus besoin de repasser par le
+                menu du listing (corrige l'aller-retour détail ↔ listing). */}
+            <div className="flex items-center gap-1 rounded-lg border border-default-200 px-1">
+              <span className="pl-2 text-xs text-default-400">Actions</span>
+              <TurboyActionMenu turboy={turboy} restaurants={restaurants} hideNavigation />
+            </div>
+            {canDelete && (
+              <Button
+                color="danger"
+                variant="flat"
+                startContent={<Trash2 className="w-4 h-4" />}
+                onPress={() => setOpenDelete(true)}
+              >
+                Supprimer
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

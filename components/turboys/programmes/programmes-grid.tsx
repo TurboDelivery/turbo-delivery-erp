@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Button, Chip, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Trash2 } from 'lucide-react';
 
 import { IJourProgramme, IProgramme } from '@/features/turboys/types/programme.types';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
@@ -70,6 +71,7 @@ export interface ProgrammeGridHandlers {
   onEdit?: (p: IProgramme) => void;
   onPlanifier?: (p: IProgramme) => void;
   onPublier?: (p: IProgramme) => void;
+  onDelete?: (p: IProgramme) => void;
   pendingId?: string | null;
 }
 
@@ -81,7 +83,7 @@ function LigneActions({ p, h }: { p: IProgramme; h: ProgrammeGridHandlers }) {
       <Button size="sm" variant="light" onPress={() => h.onApercu?.(p)}>
         Aperçu
       </Button>
-      {s === 'BROUILLON' && (
+      {(s === 'BROUILLON' || s === 'PLANIFIE') && (
         <Button size="sm" variant="flat" onPress={() => h.onEdit?.(p)} isDisabled={busy}>
           Éditer
         </Button>
@@ -100,6 +102,21 @@ function LigneActions({ p, h }: { p: IProgramme; h: ProgrammeGridHandlers }) {
         <span className="text-xs italic text-danger" title={p.motifRefus}>
           Refusé
         </span>
+      )}
+      {/* Suppression : programme non engagé (le livreur ne l'a pas encore / l'a refusé). */}
+      {(s === 'BROUILLON' || s === 'PLANIFIE' || s === 'REFUSE') && h.onDelete && (
+        <Button
+          size="sm"
+          isIconOnly
+          variant="light"
+          color="danger"
+          aria-label="Supprimer le programme"
+          title="Supprimer le programme"
+          isDisabled={busy}
+          onPress={() => h.onDelete?.(p)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       )}
     </div>
   );

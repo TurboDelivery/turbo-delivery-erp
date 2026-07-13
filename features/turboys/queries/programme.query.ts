@@ -11,6 +11,7 @@ import {
   planifierProgrammeAction,
   publierProgrammeAction,
   envoyerProgrammeAction,
+  supprimerProgrammeAction,
 } from '@/features/turboys/actions/programme.actions';
 import { ICreerProgrammePayload, IModifierProgrammePayload } from '@/features/turboys/types/programme.types';
 
@@ -109,6 +110,23 @@ export const usePublierProgrammeMutation = (onDone?: () => void) => {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: programmeKeys.all });
       toast.success('Programme publié — le livreur est notifié.');
+      onDone?.();
+    },
+    onError: (error) => toast.error(messageErreur(error)),
+  });
+};
+
+export const useSupprimerProgrammeMutation = (onDone?: () => void) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const r = await supprimerProgrammeAction(id);
+      if (!r.success) throw new Error(r.error || 'Erreur lors de la suppression');
+      return true;
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: programmeKeys.all });
+      toast.success('Programme supprimé.');
       onDone?.();
     },
     onError: (error) => toast.error(messageErreur(error)),
