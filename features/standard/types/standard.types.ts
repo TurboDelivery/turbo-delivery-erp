@@ -49,6 +49,9 @@ export interface IAppelLog {
   statut: StatutAppel | null;
   dureeSec: number | null;
   termineLe: string | null;
+  // Noms d'affichage résolus (journal ERP).
+  appelantNom: string | null;
+  appeleNom: string | null;
 }
 
 export interface IChangerStatutIncident {

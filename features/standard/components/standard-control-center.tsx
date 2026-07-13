@@ -15,7 +15,7 @@ import {
   Tab,
   Tabs,
 } from '@heroui/react';
-import { AlertTriangle, Camera, Phone, PhoneIncoming, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { AlertTriangle, Camera, ListChecks, Phone, PhoneIncoming, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import { useAbility } from '@/hooks/use-ability';
 import {
   IIncident,
@@ -28,6 +28,7 @@ import { IncidentDetailModal } from './incident-detail-modal';
 import { MotifsAdminModal } from './motifs-admin-modal';
 import { AppelRapideModal } from './appel-rapide-modal';
 import { AppelConfigModal } from './appel-config-modal';
+import { JournalAppelsModal } from './journal-appels-modal';
 import { useAppel } from './appel-provider';
 import { AppelHistoriqueTable } from './appel-historique-table';
 
@@ -67,6 +68,7 @@ export function StandardControlCenter() {
   const [motifsOpen, setMotifsOpen] = useState(false);
   const [appelOpen, setAppelOpen] = useState(false);
   const [configAppelOpen, setConfigAppelOpen] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(false);
 
   const statut = filtre === 'TOUS' ? undefined : filtre;
   const { data, isLoading, isFetching, refetch } = useIncidentsQuery(statut, page);
@@ -128,6 +130,13 @@ export function StandardControlCenter() {
             onPress={() => setAppelOpen(true)}
           >
             Appeler un livreur
+          </Button>
+          <Button
+            variant="flat"
+            startContent={<ListChecks className="h-4 w-4" />}
+            onPress={() => setJournalOpen(true)}
+          >
+            Journal des appels
           </Button>
           <Button
             variant="flat"
@@ -256,6 +265,7 @@ export function StandardControlCenter() {
       <MotifsAdminModal isOpen={motifsOpen} onOpenChange={setMotifsOpen} />
       <AppelRapideModal isOpen={appelOpen} onOpenChange={setAppelOpen} />
       <AppelConfigModal isOpen={configAppelOpen} onOpenChange={setConfigAppelOpen} />
+      <JournalAppelsModal isOpen={journalOpen} onOpenChange={setJournalOpen} />
     </div>
   );
 }
