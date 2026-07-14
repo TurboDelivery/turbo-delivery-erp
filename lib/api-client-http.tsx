@@ -65,6 +65,12 @@ export class ApiClientHttp {
       headers.set('Authorization', session?.user?.token ? `Bearer ${session.user.token}` : '');
     }
 
+    // Rôle ERP de l'utilisateur (libellé, ex. "ADMIN") transmis au backend : le RBAC
+    // backend est désactivé, c'est donc le front qui communique le rôle (consommé par
+    // les endpoints qui distinguent l'admin, ex. rejet fraude d'un ticket déjà validé V2).
+    const role = session?.user?.role;
+    if (role) headers.set('X-User-Roles', String(role));
+
     return headers;
   }
 
@@ -95,6 +101,7 @@ export class ApiClientHttp {
 
       const headers = await this.getHeaders(service);
       const authToken = headers.get('Authorization');
+      const userRoles = headers.get('X-User-Roles');
       config = {
         ...config,
         baseURL: baseUrl,
@@ -102,6 +109,7 @@ export class ApiClientHttp {
           'Content-Type': 'application/json',
           ...config?.headers,
           ...(authToken ? { Authorization: authToken } : {}),
+          ...(userRoles ? { 'X-User-Roles': userRoles } : {}),
         },
       };
     }
