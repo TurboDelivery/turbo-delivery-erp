@@ -59,6 +59,8 @@ export function TicketMobileCard({ ticket: rowTicket, meta, isSelected, onToggle
 
   const originalStatut = rowTicket.statutControle;
   const canMutate = !originalStatut || MODIFIABLE_STATUTS.has(originalStatut);
+  // L'admin/direction peut supprimer un ticket quel que soit son statut (V2 inclus).
+  const canDelete = meta.permissions.isAdmin || canMutate;
 
   return (
     <div className={`bg-white border rounded-xl p-4 shadow-sm space-y-2 ${isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}>
@@ -249,12 +251,12 @@ export function TicketMobileCard({ ticket: rowTicket, meta, isSelected, onToggle
               </Tooltip>
             )}
             {meta.permissions.canUpdate && (
-              <Tooltip content="Ce ticket n'est pas supprimable" isDisabled={canMutate} size="sm">
+              <Tooltip content="Ce ticket n'est pas supprimable" isDisabled={canDelete} size="sm">
                 <span className="flex-1">
                   <button
-                    onClick={() => (canMutate ? meta.onDeleteRow(ticket.id) : undefined)}
-                    disabled={!canMutate}
-                    className={`w-full h-9 bg-red-500 text-white rounded text-sm flex items-center justify-center gap-1 ${canMutate ? 'hover:bg-red-600' : 'opacity-40 cursor-not-allowed'}`}
+                    onClick={() => (canDelete ? meta.onDeleteRow(ticket.id) : undefined)}
+                    disabled={!canDelete}
+                    className={`w-full h-9 bg-red-500 text-white rounded text-sm flex items-center justify-center gap-1 ${canDelete ? 'hover:bg-red-600' : 'opacity-40 cursor-not-allowed'}`}
                   >
                     <Trash2 className="w-4 h-4" /> Supprimer
                   </button>

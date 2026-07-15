@@ -55,6 +55,9 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
     canUpdate: ability.can('update', 'Ticket'),
     canDelete: ability.can('delete', 'Ticket'),
     canAuthentifier: ability.can('authentifier', 'Ticket'),
+    // Admin/direction (manage all) : peut supprimer un ticket QUEL QUE SOIT son statut
+    // (y compris V2 validé), là où les autres rôles sont limités aux statuts non figés.
+    isAdmin: ability.can('manage', 'all'),
   }), [ability]);
 
   const [ticketsToDelete, setTicketsToDelete] = useState<string[] | null>(null);

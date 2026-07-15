@@ -18,7 +18,7 @@ export interface TicketColumnMeta {
   editingIds: Set<string>;
   editedTickets: Map<string, Ticket>;
   newTicketIds: Set<string>;
-  permissions: { canCreate: boolean; canUpdate: boolean; canDelete: boolean; canAuthentifier: boolean };
+  permissions: { canCreate: boolean; canUpdate: boolean; canDelete: boolean; canAuthentifier: boolean; isAdmin: boolean };
   authenticatedIds: Set<string>;
   onTicketChange: (id: string, field: keyof Ticket, value: string) => void;
   onTicketPatch: (id: string, patch: Partial<Ticket>) => void;
@@ -318,6 +318,9 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
         const MODIFIABLE_STATUTS = new Set<string>([StatutControle.PENDING, StatutControle.TARDIF, StatutControle.REJETE_FRAUDE]);
         const originalStatut = row.original.statutControle;
         const canMutate = !originalStatut || MODIFIABLE_STATUTS.has(originalStatut);
+        // L'admin/direction peut SUPPRIMER un ticket quel que soit son statut (V2 inclus) ;
+        // l'édition reste limitée aux statuts non figés pour tout le monde.
+        const canDelete = meta.permissions.isAdmin || canMutate;
 
         return (
           <div className="flex gap-2">
@@ -332,12 +335,12 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
                 </button>
               </span>
             </Tooltip>
-            <Tooltip content="Ce ticket n'est pas supprimable" isDisabled={canMutate} size="sm">
+            <Tooltip content="Ce ticket n'est pas supprimable" isDisabled={canDelete} size="sm">
               <span>
                 <button
-                  onClick={() => canMutate ? meta.onDeleteRow(ticket.id) : undefined}
-                  disabled={!canMutate}
-                  className={`px-2 py-1 bg-red-500 text-white rounded text-xs flex items-center justify-center ${canMutate ? 'hover:bg-red-600' : 'opacity-40 cursor-not-allowed'}`}
+                  onClick={() => canDelete ? meta.onDeleteRow(ticket.id) : undefined}
+                  disabled={!canDelete}
+                  className={`px-2 py-1 bg-red-500 text-white rounded text-xs flex items-center justify-center ${canDelete ? 'hover:bg-red-600' : 'opacity-40 cursor-not-allowed'}`}
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
