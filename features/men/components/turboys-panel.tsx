@@ -21,7 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from '@heroui/react';
-import { CheckCheck, Grid2x2, List, Search, SlidersHorizontal, ToggleLeft, ToggleRight } from 'lucide-react';
+import { CheckCheck, GitMerge, Grid2x2, List, Search, SlidersHorizontal, ToggleLeft, ToggleRight } from 'lucide-react';
+import { FusionLivreursDialog } from '@/components/turboys/fusion/fusion-livreurs-dialog';
 import { useTurboysByTypeQuery } from '@/features/turboys/queries/turboy-list.query';
 import { useTurboyFilters } from '@/features/turboys/hooks/use-turboy-filters';
 import { type TurboyType } from '@/features/turboys/types/turboys.types';
@@ -46,6 +47,7 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
   const viewMode = filters.viewMode;
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [fusionOpen, setFusionOpen] = useState(false);
 
   // Debounce: attend 350ms avant d'envoyer la requête
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search ?? '');
@@ -218,6 +220,18 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
           >
             Désactiver
           </Button>
+          {selectedCount >= 2 && (
+            <Button
+              size="sm"
+              color="secondary"
+              variant="flat"
+              startContent={<GitMerge className="w-4 h-4" />}
+              onPress={() => setFusionOpen(true)}
+              isDisabled={bulkActiver.isPending || bulkDesactiver.isPending}
+            >
+              Fusionner
+            </Button>
+          )}
           <Button
             size="sm"
             variant="light"
@@ -252,6 +266,13 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
         </div>
         {pagination}
       </div>
+
+      <FusionLivreursDialog
+        ids={selectedIds}
+        isOpen={fusionOpen}
+        onOpenChange={setFusionOpen}
+        onDone={() => setRowSelection({})}
+      />
     </>
   );
 }
