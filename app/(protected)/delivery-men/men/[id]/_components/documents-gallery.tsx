@@ -31,23 +31,24 @@ function extensionDepuisUrl(url: string): string {
   return m ? m[1].toLowerCase() : 'jpg';
 }
 
-/** Téléchargement RÉEL (blob) avec repli ouverture d'onglet si CORS bloque. */
-async function telecharger(url: string, nomFichier: string) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('fetch');
-    const blob = await res.blob();
-    const objUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = objUrl;
-    a.download = nomFichier;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(objUrl);
-  } catch {
-    window.open(url, '_blank', 'noreferrer');
-  }
+/** URL du proxy ERP : affichage INLINE (PDF/image affichés, jamais téléchargés). */
+function urlInline(url: string): string {
+  return `/api/fichier?u=${encodeURIComponent(url)}`;
+}
+
+/** URL du proxy ERP en mode TÉLÉCHARGEMENT (attachment + nom de fichier). */
+function urlTelechargement(url: string, nom: string): string {
+  return `/api/fichier?u=${encodeURIComponent(url)}&dl=1&nom=${encodeURIComponent(nom)}`;
+}
+
+/** Télécharge via le proxy (même origine → pas de CORS, disposition attachment fiable). */
+function telecharger(url: string, nomFichier: string) {
+  const a = document.createElement('a');
+  a.href = urlTelechargement(url, nomFichier);
+  a.rel = 'noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
@@ -182,7 +183,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                       size="sm"
                       variant="light"
                       className="text-white"
-                      onPress={() => window.open(doc.url, '_blank', 'noreferrer')}
+                      onPress={() => window.open(urlInline(doc.url), '_blank', 'noreferrer')}
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Button>
@@ -220,7 +221,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
 
                   {estPdf(doc.url) ? (
                     <iframe
-                      src={doc.url}
+                      src={urlInline(doc.url)}
                       title={doc.label}
                       className="h-[75vh] w-full rounded-lg bg-white"
                     />
