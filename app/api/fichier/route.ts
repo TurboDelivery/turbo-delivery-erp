@@ -11,6 +11,28 @@ export const runtime = 'nodejs';
  * - `?u=<url absolue backend>` : le fichier à servir (host whitelisté).
  * - `?dl=1&nom=<nom>` : forcer le TÉLÉCHARGEMENT (attachment) au lieu de l'inline.
  */
+/** Type MIME d'après l'extension — le backend sert souvent application/octet-stream,
+ *  ce qui fait TÉLÉCHARGER au lieu d'afficher. On corrige pour les types affichables. */
+function typeDepuisExtension(pathname: string, fallback: string): string {
+  const ext = pathname.toLowerCase().split('?')[0].match(/\.([a-z0-9]+)$/)?.[1];
+  const map: Record<string, string> = {
+    pdf: 'application/pdf',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    png: 'image/png',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    bmp: 'image/bmp',
+    svg: 'image/svg+xml',
+  };
+  if (ext && map[ext]) return map[ext];
+  // Si le backend a donné un type spécifique (pas générique), on le garde.
+  if (fallback && fallback !== 'application/octet-stream' && fallback !== 'binary/octet-stream') {
+    return fallback;
+  }
+  return fallback || 'application/octet-stream';
+}
+
 const HOSTS_AUTORISES = new Set<string>(
   [
     'backend-prod.turbodeliveryapp.com',
@@ -51,7 +73,10 @@ export async function GET(req: NextRequest) {
     return new NextResponse('Fichier introuvable', { status: upstream.status || 404 });
   }
 
-  const contentType = upstream.headers.get('content-type') ?? 'application/octet-stream';
+  const contentType = typeDepuisExtension(
+    cible.pathname,
+    upstream.headers.get('content-type') ?? 'application/octet-stream',
+  );
   const disposition = dl ? `attachment; filename="${nom}"` : 'inline';
 
   return new NextResponse(upstream.body, {
