@@ -145,15 +145,6 @@ export function FusionLivreursDialog({ ids, isOpen, onOpenChange, onDone }: Prop
                                     + de données
                                   </Chip>
                                 )}
-                                {c.aPhoto ? (
-                                  <Chip size="sm" variant="flat" color="warning">
-                                    photo (ancien ?)
-                                  </Chip>
-                                ) : (
-                                  <Chip size="sm" variant="flat">
-                                    sans photo
-                                  </Chip>
-                                )}
                               </div>
                               <p className="truncate text-xs text-default-400">{c.email ?? c.telephone ?? '—'}</p>
                             </div>
