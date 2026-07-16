@@ -19,6 +19,7 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'react-toastify';
 import { AlertTriangle, GitMerge } from 'lucide-react';
 
+import { createUrlFile } from '@/utils/createUrlFile';
 import {
   donneesRattacheesRequest,
   fusionnerLivreursRequest,
@@ -129,7 +130,7 @@ export function FusionLivreursDialog({ ids, isOpen, onOpenChange, onDone }: Prop
                           <div className="flex items-start gap-3">
                             <Radio value={c.livreurId} className="mt-1" />
                             <Avatar
-                              src={c.avatarUrl ?? undefined}
+                              src={c.avatarUrl ? createUrlFile(c.avatarUrl, 'backend') : undefined}
                               name={c.nomComplet}
                               size="sm"
                               className="shrink-0"
