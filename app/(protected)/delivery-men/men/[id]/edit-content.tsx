@@ -264,6 +264,7 @@ export default function EditContent({ id }: { id: string }) {
               cniUrlV={turboy.cniUrlV}
               vehiclePhotoUrl={turboy.vehiclePhotoUrl}
               contratUrl={turboy.contratUrl}
+              ficheIdentificationUrl={turboy.ficheIdentificationUrl}
               avenants={turboy.avenantUrls}
             />
 
