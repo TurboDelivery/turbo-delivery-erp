@@ -10,14 +10,24 @@ import { IFinanceItem, mapChargeFixe, mapChargeVariable } from './finances-hub.u
 
 type WorkflowAction = 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser';
 
-/** Agrège charges fixes + variables (mappées en items unifiés) + config (seuil) + rentabilité. */
-export function useFinancesHub(dateArret: string) {
+/**
+ * Agrège charges fixes + variables (mappées en items unifiés) + config (seuil) + rentabilité.
+ * Le filtrage période (debut/fin) + catégorie est fait CÔTÉ SERVEUR (mêmes params que la
+ * page /finance/charges) — c'est ce qui fait que le sélecteur de mois s'applique au tableau.
+ */
+export function useFinancesHub(
+  dateArret: string,
+  debut?: string,
+  fin?: string,
+  categorieIds?: string[],
+) {
   const { data: config } = useModuleConfigQuery();
   const seuil = config?.seuilDga ?? 0;
   const nbJours = config?.nbJoursMois ?? 30;
 
-  const fixesQ = useChargesFixesQuery({ page: 0, size: 500 } as any);
-  const variablesQ = useChargesVariablesQuery({ page: 0, size: 500 } as any);
+  const cat = categorieIds && categorieIds.length > 0 ? categorieIds : undefined;
+  const fixesQ = useChargesFixesQuery({ page: 0, size: 500, debut, fin, categorieIds: cat } as any);
+  const variablesQ = useChargesVariablesQuery({ page: 0, size: 500, debut, fin, categorieIds: cat } as any);
   const rentaQ = useRentabiliteQuery(dateArret);
 
   const fixes: IFinanceItem[] = ((fixesQ.data as any)?.content ?? []).map(mapChargeFixe);

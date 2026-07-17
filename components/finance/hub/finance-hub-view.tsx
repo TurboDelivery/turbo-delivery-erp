@@ -31,9 +31,11 @@ import {
   steps,
   useFinancesHub,
 } from '@/features/finances-hub';
-import { buildMonthOptions } from '@/features/charges/utils/month-filter.utils';
+import { buildMonthOptions, monthKeyToRange } from '@/features/charges/utils/month-filter.utils';
 import AddChargeFixeModal from '@/features/charges/components/add-charge-fixe-modal';
 import AddDepenseVariableModal from '@/features/charges/components/add-depense-variable-modal';
+import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
+import RepartitionDepensePieChart from '@/features/depenses/components/repartition/repartition-depense-pie-chart';
 import { Can } from '@/components/auth/Can';
 
 const NOW = new Date();
@@ -100,13 +102,25 @@ export function FinanceHubView() {
   const [dateArret, setDateArret] = useState(buildDate(CUR_MONTH_KEY, Math.min(NOW.getDate(), daysInMonth(CUR_MONTH_KEY))));
   const [tab, setTab] = useState<(typeof TABS)[number]['k']>('fixe');
   const [sel, setSel] = useState<Set<string>>(new Set());
-  const [categorieFilter, setCategorieFilter] = useState<string[]>([]);
   const [page, setPage] = useState(1);
+  // Filtre catégorie partagé (nuqs) — même source que le graphique de répartition.
+  const { filters: depenseFilters, handleCategoriesChange } = useDepenseDashboardFilters();
+  const categorieFilter = depenseFilters.categoriesDepense ?? [];
   const [isFixeModalOpen, setIsFixeModalOpen] = useState(false);
   const [isVariableModalOpen, setIsVariableModalOpen] = useState(false);
   const monthOptions = useMemo(() => buildMonthOptions(), []);
 
-  const { items, seuil, nbJours, renta, isLoading, busy, runAction } = useFinancesHub(dateArret);
+  // Période = le mois sélectionné (debut/fin), appliquée CÔTÉ SERVEUR au tableau + au graphique.
+  const { debut: periodeDebut, fin: periodeFin } = monthKeyToRange(monthKey);
+  const { items, seuil, nbJours, renta, isLoading, busy, runAction } = useFinancesHub(
+    dateArret,
+    periodeDebut,
+    periodeFin,
+    categorieFilter,
+  );
+  // Dates (objets) mémoïsées pour le graphique — stables tant que le mois ne change pas.
+  const chartDebut = useMemo(() => new Date(periodeDebut), [periodeDebut]);
+  const chartFin = useMemo(() => new Date(periodeFin), [periodeFin]);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
   // Changement de mois : on repositionne le curseur (jour courant si mois en
@@ -147,33 +161,23 @@ export function FinanceHubView() {
   // Encours = CA pas encore encaissé (cf. tableau de bord principal).
   const encours = Math.max(0, k.ca - k.revenuEncaisse);
   const realDays = daysInMonth(monthKey); // borne du curseur = vrai dernier jour du mois
-  // Périmètre = items filtrés par CATÉGORIE + MOIS. C'est ce qui fait enfin
-  // « appliquer la date au tableau » : date null = charge récurrente (toujours
-  // affichée), sinon on ne garde que le mois sélectionné.
-  const scoped = useMemo(() => {
-    let base = items;
-    if (categorieFilter.length) {
-      base = base.filter((i) => i.categorieId != null && categorieFilter.includes(i.categorieId));
-    }
-    base = base.filter((i) => !i.date || i.date.slice(0, 7) === monthKey);
-    return base;
-  }, [items, categorieFilter, monthKey]);
-
-  const bap = useMemo(() => scoped.filter((i) => nextAction(i, seuil) === 'pay'), [scoped, seuil]);
+  // `items` est DÉJÀ filtré par mois + catégorie côté serveur (useFinancesHub).
+  const bap = useMemo(() => items.filter((i) => nextAction(i, seuil) === 'pay'), [items, seuil]);
   const bapTotal = bap.reduce((s, i) => s + i.montant, 0);
 
   const list = useMemo(() => {
-    if (tab === 'fixe') return scoped.filter((i) => i.type === 'fixe');
-    if (tab === 'variable') return scoped.filter((i) => i.type === 'variable');
+    if (tab === 'fixe') return items.filter((i) => i.type === 'fixe');
+    if (tab === 'variable') return items.filter((i) => i.type === 'variable');
     if (tab === 'bap') return bap;
-    return scoped;
-  }, [scoped, tab, bap]);
+    return items;
+  }, [items, tab, bap]);
 
   // Pagination
   const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
   const paged = useMemo(() => list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [list, page]);
 
-  useEffect(() => { setSel(new Set()); setPage(1); }, [tab, categorieFilter, monthKey]);
+  const catKey = categorieFilter.join(',');
+  useEffect(() => { setSel(new Set()); setPage(1); }, [tab, catKey, monthKey]);
   useEffect(() => { if (page > pageCount) setPage(1); }, [page, pageCount]);
 
   // Sélection multiple (par id) + actions groupées sur la sélection de l'onglet.
@@ -268,9 +272,9 @@ export function FinanceHubView() {
   };
 
   const countFor = (kk: string) =>
-    kk === 'fixe' ? scoped.filter((i) => i.type === 'fixe').length
-    : kk === 'variable' ? scoped.filter((i) => i.type === 'variable').length
-    : kk === 'bap' ? bap.length : scoped.length;
+    kk === 'fixe' ? items.filter((i) => i.type === 'fixe').length
+    : kk === 'variable' ? items.filter((i) => i.type === 'variable').length
+    : kk === 'bap' ? bap.length : items.length;
 
   const pf = k.dep ? (k.fixeProrata / k.dep) * 100 : 50;
 
@@ -385,12 +389,21 @@ export function FinanceHubView() {
         </CardBody>
       </Card>
 
+      {/* Graphique — répartition des dépenses par catégorie (déplacé depuis /finance/charges,
+          câblé sur le mois + le filtre catégorie du dashboard). */}
+      <Card shadow="none" className="border border-default-200">
+        <CardBody className="p-4">
+          <p className="mb-2 text-sm font-semibold text-default-700">Répartition des dépenses par catégorie</p>
+          <RepartitionDepensePieChart debut={chartDebut} fin={chartFin} />
+        </CardBody>
+      </Card>
+
       {/* Filtre catégorie (à gauche) + onglets */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="w-full sm:w-72">
           <CategoriesSelectFilter
             selectedCategories={categorieFilter}
-            onCategoriesChange={(c) => setCategorieFilter(c ?? [])}
+            onCategoriesChange={handleCategoriesChange}
           />
         </div>
         <div className="flex flex-1 flex-wrap gap-1.5">
