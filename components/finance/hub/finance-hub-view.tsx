@@ -309,6 +309,28 @@ export function FinanceHubView() {
   };
   const bulkDecaisser = () => openPay(selByAction('pay'));
 
+  // Boutons d'action d'une ligne — partagés entre le tableau (desktop) et les
+  // cartes tactiles (mobile) pour éviter toute divergence.
+  const rowActions = (item: IFinanceItem) => {
+    const a = nextAction(item, seuil);
+    return (
+      <>
+        {a === 'vise' && <Button size="sm" variant="flat" color="primary" isLoading={busy} onPress={() => act(item, 'valider-dga', 'Visa DGA')}>Viser</Button>}
+        {a === 'approuve' && <Button size="sm" variant="flat" color="secondary" isLoading={busy} onPress={() => act(item, 'approuver-dg', 'Accord DG')}>Approuver</Button>}
+        {a === 'pay' && <Button size="sm" color="success" isLoading={busy} onPress={() => openPay([item])}>Décaisser</Button>}
+        {a && item.statut !== 'paye' && <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => onReject(item)} title="Rejeter">✕</Button>}
+        {item.statut === 'paye' && <span className="text-[11px] text-default-400">Payé</span>}
+        {/* Admin : modifier / supprimer QUEL QUE SOIT le statut (hors charges système RH). */}
+        {isAdmin && !item.dyn && (
+          <>
+            <Button size="sm" variant="light" isIconOnly onPress={() => openEdit(item)} title="Modifier" aria-label="Modifier"><Pencil className="h-4 w-4" /></Button>
+            <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => setItemToDelete(item)} title="Supprimer" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></Button>
+          </>
+        )}
+      </>
+    );
+  };
+
   // Métadonnées d'en-tête communes aux exports (période + KPI du mois sélectionné).
   const exportMeta = () => ({
     monthLabel: monthOptions.find((m) => m.key === monthKey)?.label ?? monthKey,
@@ -522,7 +544,7 @@ export function FinanceHubView() {
               </div>
             </div>
           )}
-          <div className="overflow-x-auto">
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[800px] text-sm">
               <thead>
                 <tr className="bg-default-100 text-left text-[11px] uppercase tracking-wide text-default-600">
@@ -548,9 +570,7 @@ export function FinanceHubView() {
                 {list.length === 0 && (
                   <tr><td colSpan={8} className="px-3 py-10 text-center text-default-400">Aucune dépense ici.</td></tr>
                 )}
-                {paged.map((item) => {
-                  const a = nextAction(item, seuil);
-                  return (
+                {paged.map((item) => (
                     <tr id={`dep-row-${item.id}`} key={`${item.type}-${item.id}`} className={`border-b border-default-100 hover:bg-default-50 ${highlightId === item.id ? 'bg-primary/10 ring-2 ring-inset ring-primary' : ''}`}>
                       <td className="px-3 py-2.5">
                         <Checkbox size="sm" isSelected={sel.has(item.id)} onValueChange={(v) => toggleOne(item.id, v)} aria-label={`Sélectionner ${item.designation}`} />
@@ -570,25 +590,51 @@ export function FinanceHubView() {
                       <td className="px-3 py-2.5"><Chip size="sm" variant="flat" color={STATUT[item.statut].color} className="h-5">{STATUT[item.statut].label}</Chip></td>
                       <td className="px-3 py-2.5">
                         <div className="flex justify-end gap-1.5">
-                          {a === 'vise' && <Button size="sm" variant="flat" color="primary" isLoading={busy} onPress={() => act(item, 'valider-dga', 'Visa DGA')}>Viser</Button>}
-                          {a === 'approuve' && <Button size="sm" variant="flat" color="secondary" isLoading={busy} onPress={() => act(item, 'approuver-dg', 'Accord DG')}>Approuver</Button>}
-                          {a === 'pay' && <Button size="sm" color="success" isLoading={busy} onPress={() => openPay([item])}>Décaisser</Button>}
-                          {a && item.statut !== 'paye' && <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => onReject(item)} title="Rejeter">✕</Button>}
-                          {item.statut === 'paye' && <span className="text-[11px] text-default-400">Payé</span>}
-                          {/* Admin : modifier / supprimer QUEL QUE SOIT le statut (hors charges système RH). */}
-                          {isAdmin && !item.dyn && (
-                            <>
-                              <Button size="sm" variant="light" isIconOnly onPress={() => openEdit(item)} title="Modifier" aria-label="Modifier"><Pencil className="h-4 w-4" /></Button>
-                              <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => setItemToDelete(item)} title="Supprimer" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></Button>
-                            </>
-                          )}
+                          {rowActions(item)}
                         </div>
                       </td>
                     </tr>
-                  );
-                })}
+                ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Cartes tactiles — mobile (< md), remplacent le tableau à scroll horizontal */}
+          <div className="divide-y divide-default-100 md:hidden">
+            {list.length === 0 && (
+              <p className="px-3 py-10 text-center text-default-400">Aucune dépense ici.</p>
+            )}
+            {paged.map((item) => (
+              <div
+                id={`dep-row-m-${item.id}`}
+                key={`m-${item.type}-${item.id}`}
+                className={`p-3 ${highlightId === item.id ? 'bg-primary/10 ring-2 ring-inset ring-primary' : ''}`}
+              >
+                <div className="flex items-start gap-2.5">
+                  <Checkbox size="sm" className="mt-0.5" isSelected={sel.has(item.id)} onValueChange={(v) => toggleOne(item.id, v)} aria-label={`Sélectionner ${item.designation}`} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="truncate font-semibold text-foreground">{item.designation}{item.dyn && <span className="ml-1.5 rounded bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-teal-700">RH dyn.</span>}</div>
+                        <div className="text-[11px] text-default-400">{item.src} · {item.justif ? 'Reçu' : 'sans pièce'}</div>
+                      </div>
+                      <Chip size="sm" variant="flat" color={STATUT[item.statut].color} className="h-5 shrink-0">{STATUT[item.statut].label}</Chip>
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between gap-2">
+                      <span className="text-base font-bold tabular-nums text-foreground">{fmtFcfa(item.montant)}</span>
+                      <span className="truncate text-xs text-default-500">
+                        {tab === 'bap' ? (item.type === 'fixe' ? 'Charge fixe' : 'Dépense variable') : item.categorie}
+                      </span>
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-default-400">Échéance : {item.echeance}</div>
+                    {tab !== 'bap' && <div className="mt-2"><Stepper item={item} seuil={seuil} /></div>}
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      {rowActions(item)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
           {/* Pagination */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-default-200 px-4 py-3">
