@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   Card,
@@ -106,6 +106,14 @@ export function FinanceHubView() {
   // Filtre catégorie partagé (nuqs) — même source que le graphique de répartition.
   const { filters: depenseFilters, handleCategoriesChange } = useDepenseDashboardFilters();
   const categorieFilter = depenseFilters.categoriesDepense ?? [];
+  // Deep-link email : /finance/dashboard?depense=<id>&mois=<YYYY-MM> → cibler la dépense.
+  const [focus, setFocus] = useState<{ depense?: string; mois?: string }>({});
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  const focusDoneRef = useRef(false);
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search);
+    setFocus({ depense: sp.get('depense') ?? undefined, mois: sp.get('mois') ?? undefined });
+  }, []);
   const [isFixeModalOpen, setIsFixeModalOpen] = useState(false);
   const [isVariableModalOpen, setIsVariableModalOpen] = useState(false);
   const monthOptions = useMemo(() => buildMonthOptions(), []);
@@ -135,6 +143,32 @@ export function FinanceHubView() {
     setJour(day);
     setDateArret(buildDate(key, day));
   };
+
+  // Deep-link (mail) : applique le mois de la dépense ciblée, une seule fois.
+  useEffect(() => {
+    if (focus.mois) changeMonth(focus.mois);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focus.mois]);
+
+  // Deep-link : dès que les données du mois sont là, cible la dépense —
+  // bon onglet + bonne page + scroll + surbrillance temporaire.
+  useEffect(() => {
+    if (!focus.depense || focusDoneRef.current || isLoading || items.length === 0) return;
+    const it = items.find((i) => i.id === focus.depense);
+    if (!it) return; // pas dans ce mois (on attend le refetch) ou déjà traitée
+    focusDoneRef.current = true;
+    const targetTab = (nextAction(it, seuil) === 'pay' ? 'bap' : it.type) as (typeof TABS)[number]['k'];
+    const targetList = targetTab === 'bap'
+      ? items.filter((i) => nextAction(i, seuil) === 'pay')
+      : items.filter((i) => i.type === targetTab);
+    const idx = targetList.findIndex((i) => i.id === it.id);
+    setTab(targetTab);
+    setPage(idx >= 0 ? Math.floor(idx / PAGE_SIZE) + 1 : 1);
+    setHighlightId(it.id);
+    setTimeout(() => document.getElementById(`dep-row-${it.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+    setTimeout(() => setHighlightId(null), 4500);
+  }, [focus.depense, isLoading, items, seuil]);
+
   const [payTargets, setPayTargets] = useState<IFinanceItem[]>([]);
   const [acc, setAcc] = useState('Caisse physique');
   const [moy, setMoy] = useState('Espèces');
@@ -177,7 +211,10 @@ export function FinanceHubView() {
   const paged = useMemo(() => list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [list, page]);
 
   const catKey = categorieFilter.join(',');
-  useEffect(() => { setSel(new Set()); setPage(1); }, [tab, catKey, monthKey]);
+  // Changement d'onglet : on efface juste la sélection (la page reste, utile pour le deep-link).
+  useEffect(() => { setSel(new Set()); }, [tab]);
+  // Changement de filtre (catégorie / mois) : on repart page 1.
+  useEffect(() => { setSel(new Set()); setPage(1); }, [catKey, monthKey]);
   useEffect(() => { if (page > pageCount) setPage(1); }, [page, pageCount]);
 
   // Sélection multiple (par id) + actions groupées sur la sélection de l'onglet.
@@ -472,7 +509,7 @@ export function FinanceHubView() {
                 {paged.map((item) => {
                   const a = nextAction(item, seuil);
                   return (
-                    <tr key={`${item.type}-${item.id}`} className="border-b border-default-100 hover:bg-default-50">
+                    <tr id={`dep-row-${item.id}`} key={`${item.type}-${item.id}`} className={`border-b border-default-100 hover:bg-default-50 ${highlightId === item.id ? 'bg-primary/10 ring-2 ring-inset ring-primary' : ''}`}>
                       <td className="px-3 py-2.5">
                         <Checkbox size="sm" isSelected={sel.has(item.id)} onValueChange={(v) => toggleOne(item.id, v)} aria-label={`Sélectionner ${item.designation}`} />
                       </td>
