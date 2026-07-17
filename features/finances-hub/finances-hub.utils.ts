@@ -8,8 +8,10 @@ export interface IFinanceItem {
   type: FinanceType;
   designation: string;
   categorie: string;
+  categorieId: string | null; // id de catégorie → filtre par catégorie
   montant: number;
   echeance: string; // libellé court (« le 7 » / « 07/04 »)
+  date: string | null; // date brute (ISO) → filtre par mois ; null = récurrent (toujours affiché)
   statut: FinanceStatut;
   justif: boolean;
   src: string; // 'Auto' | 'Manuel' | 'RH'
@@ -53,8 +55,10 @@ export function mapChargeFixe(cf: any): IFinanceItem {
     type: 'fixe',
     designation: cf.designation,
     categorie: cf.categorie?.nomCategorie ?? '—',
+    categorieId: cf.categorie?.id != null ? String(cf.categorie.id) : null,
     montant: cf.montant ?? 0,
     echeance: echeanceLabel(cf.echeanceJour, cf.dateEcheance),
+    date: cf.dateEcheance ?? null,
     statut: unifiedStatut(cf.statut),
     justif: true,
     src: cf.codeSysteme ? 'RH' : cf.automatique ? 'Auto' : 'Manuel',
@@ -68,8 +72,10 @@ export function mapChargeVariable(cv: any): IFinanceItem {
     type: 'variable',
     designation: cv.designation,
     categorie: cv.categorie?.nomCategorie ?? '—',
+    categorieId: cv.categorie?.id != null ? String(cv.categorie.id) : null,
     montant: cv.montant ?? 0,
     echeance: echeanceLabel(cv.echeanceJour, cv.dateDepense),
+    date: cv.dateDepense ?? null,
     statut: unifiedStatut(cv.statut),
     justif: !!cv.justificatif,
     src: 'Manuel',

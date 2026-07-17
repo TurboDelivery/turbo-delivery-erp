@@ -12,12 +12,14 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Pagination,
   Select,
   SelectItem,
   Spinner,
   useDisclosure,
 } from '@heroui/react';
-import { Banknote, Clock, Download, FileText, Plus, TrendingUp, Wallet } from 'lucide-react';
+import { Banknote, CheckCircle2, Clock, Download, FileText, Plus, ShieldCheck, TrendingUp, Wallet } from 'lucide-react';
+import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
 import { toast } from 'sonner';
 import {
   FinanceStatut,
@@ -90,12 +92,16 @@ const TABS = [
   { k: 'all', label: 'Toutes' },
 ] as const;
 
+const PAGE_SIZE = 12;
+
 export function FinanceHubView() {
   const [monthKey, setMonthKey] = useState(CUR_MONTH_KEY);
   const [jour, setJour] = useState(Math.min(NOW.getDate(), daysInMonth(CUR_MONTH_KEY)));
   const [dateArret, setDateArret] = useState(buildDate(CUR_MONTH_KEY, Math.min(NOW.getDate(), daysInMonth(CUR_MONTH_KEY))));
   const [tab, setTab] = useState<(typeof TABS)[number]['k']>('fixe');
   const [sel, setSel] = useState<Set<string>>(new Set());
+  const [categorieFilter, setCategorieFilter] = useState<string[]>([]);
+  const [page, setPage] = useState(1);
   const [isFixeModalOpen, setIsFixeModalOpen] = useState(false);
   const [isVariableModalOpen, setIsVariableModalOpen] = useState(false);
   const monthOptions = useMemo(() => buildMonthOptions(), []);
@@ -141,17 +147,44 @@ export function FinanceHubView() {
   // Encours = CA pas encore encaissé (cf. tableau de bord principal).
   const encours = Math.max(0, k.ca - k.revenuEncaisse);
   const realDays = daysInMonth(monthKey); // borne du curseur = vrai dernier jour du mois
-  const bap = useMemo(() => items.filter((i) => nextAction(i, seuil) === 'pay'), [items, seuil]);
+  // Périmètre = items filtrés par CATÉGORIE + MOIS. C'est ce qui fait enfin
+  // « appliquer la date au tableau » : date null = charge récurrente (toujours
+  // affichée), sinon on ne garde que le mois sélectionné.
+  const scoped = useMemo(() => {
+    let base = items;
+    if (categorieFilter.length) {
+      base = base.filter((i) => i.categorieId != null && categorieFilter.includes(i.categorieId));
+    }
+    base = base.filter((i) => !i.date || i.date.slice(0, 7) === monthKey);
+    return base;
+  }, [items, categorieFilter, monthKey]);
+
+  const bap = useMemo(() => scoped.filter((i) => nextAction(i, seuil) === 'pay'), [scoped, seuil]);
   const bapTotal = bap.reduce((s, i) => s + i.montant, 0);
 
   const list = useMemo(() => {
-    if (tab === 'fixe') return items.filter((i) => i.type === 'fixe');
-    if (tab === 'variable') return items.filter((i) => i.type === 'variable');
+    if (tab === 'fixe') return scoped.filter((i) => i.type === 'fixe');
+    if (tab === 'variable') return scoped.filter((i) => i.type === 'variable');
     if (tab === 'bap') return bap;
-    return items;
-  }, [items, tab, bap]);
+    return scoped;
+  }, [scoped, tab, bap]);
 
-  useEffect(() => setSel(new Set()), [tab]);
+  // Pagination
+  const pageCount = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  const paged = useMemo(() => list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [list, page]);
+
+  useEffect(() => { setSel(new Set()); setPage(1); }, [tab, categorieFilter, monthKey]);
+  useEffect(() => { if (page > pageCount) setPage(1); }, [page, pageCount]);
+
+  // Sélection multiple (par id) + actions groupées sur la sélection de l'onglet.
+  const selItems = useMemo(() => list.filter((i) => sel.has(i.id)), [list, sel]);
+  const selByAction = (a: 'vise' | 'approuve' | 'pay') => selItems.filter((i) => nextAction(i, seuil) === a);
+  const pageIds = paged.map((i) => i.id);
+  const allPageSelected = pageIds.length > 0 && pageIds.every((id) => sel.has(id));
+  const togglePage = (v: boolean) =>
+    setSel((p) => { const n = new Set(p); pageIds.forEach((id) => (v ? n.add(id) : n.delete(id))); return n; });
+  const toggleOne = (id: string, v: boolean) =>
+    setSel((p) => { const n = new Set(p); v ? n.add(id) : n.delete(id); return n; });
 
   const act = async (item: IFinanceItem, action: 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser', label: string, comment?: string) => {
     try {
@@ -179,6 +212,24 @@ export function FinanceHubView() {
     setSel(new Set());
     toast.success(`Décaissé ${fmtFcfa(payTargets.reduce((s, i) => s + i.montant, 0))} depuis ${acc}`);
   };
+
+  // Actions GROUPÉES sur la sélection : chaque bouton n'agit que sur le sous-ensemble
+  // éligible (à viser / à approuver / à décaisser), quel que soit l'onglet.
+  const bulkViser = async () => {
+    for (const it of selByAction('vise')) {
+      // eslint-disable-next-line no-await-in-loop
+      await act(it, 'valider-dga', 'Visa DGA');
+    }
+    setSel(new Set());
+  };
+  const bulkApprouver = async () => {
+    for (const it of selByAction('approuve')) {
+      // eslint-disable-next-line no-await-in-loop
+      await act(it, 'approuver-dg', 'Accord DG');
+    }
+    setSel(new Set());
+  };
+  const bulkDecaisser = () => openPay(selByAction('pay'));
 
   // Métadonnées d'en-tête communes aux exports (période + KPI du mois sélectionné).
   const exportMeta = () => ({
@@ -217,9 +268,9 @@ export function FinanceHubView() {
   };
 
   const countFor = (kk: string) =>
-    kk === 'fixe' ? items.filter((i) => i.type === 'fixe').length
-    : kk === 'variable' ? items.filter((i) => i.type === 'variable').length
-    : kk === 'bap' ? bap.length : items.length;
+    kk === 'fixe' ? scoped.filter((i) => i.type === 'fixe').length
+    : kk === 'variable' ? scoped.filter((i) => i.type === 'variable').length
+    : kk === 'bap' ? bap.length : scoped.length;
 
   const pf = k.dep ? (k.fixeProrata / k.dep) * 100 : 50;
 
@@ -334,33 +385,64 @@ export function FinanceHubView() {
         </CardBody>
       </Card>
 
-      {/* Onglets */}
-      <div className="flex flex-wrap gap-1.5">
-        {TABS.map((t) => (
-          <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-content1 text-foreground shadow-sm ring-1 ring-default-200' : 'text-default-500 hover:text-foreground'}`}>
-            {t.label}<span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-primary/10 text-primary' : 'bg-default-100 text-default-500'}`}>{countFor(t.k)}</span>
-          </button>
-        ))}
+      {/* Filtre catégorie (à gauche) + onglets */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="w-full sm:w-72">
+          <CategoriesSelectFilter
+            selectedCategories={categorieFilter}
+            onCategoriesChange={(c) => setCategorieFilter(c ?? [])}
+          />
+        </div>
+        <div className="flex flex-1 flex-wrap gap-1.5">
+          {TABS.map((t) => (
+            <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-content1 text-foreground shadow-sm ring-1 ring-default-200' : 'text-default-500 hover:text-foreground'}`}>
+              {t.label}<span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-primary/10 text-primary' : 'bg-default-100 text-default-500'}`}>{countFor(t.k)}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center py-16"><Spinner color="primary" label="Chargement…" /></div>
       ) : (
         <Card shadow="none" className="border border-default-200">
-          {tab === 'bap' && bap.length > 0 && (
-            <div className="flex items-center justify-between border-b border-default-200 px-4 py-2.5">
-              <span className="text-sm text-default-500">Sélection : {sel.size} / {bap.length}</span>
-              <Button size="sm" color="success" isLoading={busy} startContent={<Banknote className="h-4 w-4" />}
-                onPress={() => openPay(bap.filter((i) => sel.has(i.id)))} isDisabled={sel.size === 0}>
-                Décaisser la sélection ({sel.size})
-              </Button>
+          {/* Barre d'actions GROUPÉES sur la sélection (tous les onglets) */}
+          {sel.size > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default-200 bg-primary/5 px-4 py-2.5">
+              <span className="text-sm font-medium text-default-600">{sel.size} sélectionné{sel.size > 1 ? 's' : ''}</span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {selByAction('vise').length > 0 && (
+                  <Button size="sm" variant="flat" color="primary" isLoading={busy} startContent={<ShieldCheck className="h-4 w-4" />} onPress={bulkViser}>
+                    Viser ({selByAction('vise').length})
+                  </Button>
+                )}
+                {selByAction('approuve').length > 0 && (
+                  <Button size="sm" variant="flat" color="secondary" isLoading={busy} startContent={<CheckCircle2 className="h-4 w-4" />} onPress={bulkApprouver}>
+                    Approuver ({selByAction('approuve').length})
+                  </Button>
+                )}
+                {selByAction('pay').length > 0 && (
+                  <Button size="sm" color="success" isLoading={busy} startContent={<Banknote className="h-4 w-4" />} onPress={bulkDecaisser}>
+                    Décaisser ({selByAction('pay').length})
+                  </Button>
+                )}
+                <Button size="sm" variant="light" onPress={() => setSel(new Set())}>Effacer</Button>
+              </div>
             </div>
           )}
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] text-sm">
+            <table className="w-full min-w-[800px] text-sm">
               <thead>
                 <tr className="bg-default-100 text-left text-[11px] uppercase tracking-wide text-default-600">
-                  {tab === 'bap' && <th className="w-10 px-3 py-2.5" />}
+                  <th className="w-10 px-3 py-2.5">
+                    <Checkbox
+                      size="sm"
+                      isSelected={allPageSelected}
+                      isIndeterminate={!allPageSelected && pageIds.some((id) => sel.has(id))}
+                      onValueChange={togglePage}
+                      aria-label="Tout sélectionner (page)"
+                    />
+                  </th>
                   <th className="px-3 py-2.5">Désignation</th>
                   <th className="px-3 py-2.5">{tab === 'bap' ? 'Type' : 'Catégorie'}</th>
                   <th className="px-3 py-2.5 text-right">Montant</th>
@@ -374,15 +456,13 @@ export function FinanceHubView() {
                 {list.length === 0 && (
                   <tr><td colSpan={8} className="px-3 py-10 text-center text-default-400">Aucune dépense ici.</td></tr>
                 )}
-                {list.map((item) => {
+                {paged.map((item) => {
                   const a = nextAction(item, seuil);
                   return (
                     <tr key={`${item.type}-${item.id}`} className="border-b border-default-100 hover:bg-default-50">
-                      {tab === 'bap' && (
-                        <td className="px-3 py-2.5">
-                          <Checkbox size="sm" isSelected={sel.has(item.id)} onValueChange={(v) => setSel((p) => { const n = new Set(p); v ? n.add(item.id) : n.delete(item.id); return n; })} />
-                        </td>
-                      )}
+                      <td className="px-3 py-2.5">
+                        <Checkbox size="sm" isSelected={sel.has(item.id)} onValueChange={(v) => toggleOne(item.id, v)} aria-label={`Sélectionner ${item.designation}`} />
+                      </td>
                       <td className="px-3 py-2.5">
                         <div className="font-semibold text-foreground">{item.designation}{item.dyn && <span className="ml-1.5 rounded bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-teal-700">RH dyn.</span>}</div>
                         <div className="text-[11px] text-default-400">{item.src} · {item.justif ? 'Reçu' : 'sans pièce'}</div>
@@ -410,6 +490,16 @@ export function FinanceHubView() {
                 })}
               </tbody>
             </table>
+          </div>
+          {/* Pagination */}
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-default-200 px-4 py-3">
+            <span className="text-xs text-default-400">
+              {list.length} ligne{list.length > 1 ? 's' : ''}
+              {sel.size > 0 ? ` · ${sel.size} sélectionnée${sel.size > 1 ? 's' : ''}` : ''}
+            </span>
+            {pageCount > 1 && (
+              <Pagination total={pageCount} page={page} onChange={setPage} size="sm" color="primary" showControls />
+            )}
           </div>
         </Card>
       )}
