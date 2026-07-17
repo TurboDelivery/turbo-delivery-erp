@@ -318,18 +318,20 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
         const MODIFIABLE_STATUTS = new Set<string>([StatutControle.PENDING, StatutControle.TARDIF, StatutControle.REJETE_FRAUDE]);
         const originalStatut = row.original.statutControle;
         const canMutate = !originalStatut || MODIFIABLE_STATUTS.has(originalStatut);
-        // L'admin/direction peut SUPPRIMER un ticket quel que soit son statut (V2 inclus) ;
-        // l'édition reste limitée aux statuts non figés pour tout le monde.
+        // L'admin/direction peut MODIFIER ou SUPPRIMER un ticket quel que soit son statut
+        // (V2 inclus, ex. corriger le restaurant lié) ; les autres rôles restent limités
+        // aux statuts non figés.
+        const canEdit = meta.permissions.isAdmin || canMutate;
         const canDelete = meta.permissions.isAdmin || canMutate;
 
         return (
           <div className="flex gap-2">
-            <Tooltip content="Ce ticket n'est pas modifiable" isDisabled={canMutate} size="sm">
+            <Tooltip content="Ce ticket n'est pas modifiable" isDisabled={canEdit} size="sm">
               <span>
                 <button
-                  onClick={() => canMutate ? meta.onEditRow(ticket.id) : undefined}
-                  disabled={!canMutate}
-                  className={`px-2 py-1 bg-blue-500 text-white rounded text-xs flex items-center justify-center ${canMutate ? 'hover:bg-blue-600' : 'opacity-40 cursor-not-allowed'}`}
+                  onClick={() => canEdit ? meta.onEditRow(ticket.id) : undefined}
+                  disabled={!canEdit}
+                  className={`px-2 py-1 bg-blue-500 text-white rounded text-xs flex items-center justify-center ${canEdit ? 'hover:bg-blue-600' : 'opacity-40 cursor-not-allowed'}`}
                 >
                   <Pen className="w-4 h-4" />
                 </button>

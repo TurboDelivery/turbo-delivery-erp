@@ -59,7 +59,8 @@ export function TicketMobileCard({ ticket: rowTicket, meta, isSelected, onToggle
 
   const originalStatut = rowTicket.statutControle;
   const canMutate = !originalStatut || MODIFIABLE_STATUTS.has(originalStatut);
-  // L'admin/direction peut supprimer un ticket quel que soit son statut (V2 inclus).
+  // L'admin/direction peut modifier ET supprimer un ticket quel que soit son statut (V2 inclus).
+  const canEdit = meta.permissions.isAdmin || canMutate;
   const canDelete = meta.permissions.isAdmin || canMutate;
 
   return (
@@ -238,12 +239,12 @@ export function TicketMobileCard({ ticket: rowTicket, meta, isSelected, onToggle
               </button>
             )}
             {meta.permissions.canUpdate && (
-              <Tooltip content="Ce ticket n'est pas modifiable" isDisabled={canMutate} size="sm">
+              <Tooltip content="Ce ticket n'est pas modifiable" isDisabled={canEdit} size="sm">
                 <span className="flex-1">
                   <button
-                    onClick={() => (canMutate ? meta.onEditRow(ticket.id) : undefined)}
-                    disabled={!canMutate}
-                    className={`w-full h-9 bg-blue-500 text-white rounded text-sm flex items-center justify-center gap-1 ${canMutate ? 'hover:bg-blue-600' : 'opacity-40 cursor-not-allowed'}`}
+                    onClick={() => (canEdit ? meta.onEditRow(ticket.id) : undefined)}
+                    disabled={!canEdit}
+                    className={`w-full h-9 bg-blue-500 text-white rounded text-sm flex items-center justify-center gap-1 ${canEdit ? 'hover:bg-blue-600' : 'opacity-40 cursor-not-allowed'}`}
                   >
                     <Pen className="w-4 h-4" /> Modifier
                   </button>
