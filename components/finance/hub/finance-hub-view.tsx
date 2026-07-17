@@ -18,9 +18,15 @@ import {
   Spinner,
   useDisclosure,
 } from '@heroui/react';
-import { Banknote, CheckCircle2, Clock, Download, FileText, Plus, ShieldCheck, TrendingUp, Wallet } from 'lucide-react';
+import { Banknote, CheckCircle2, Clock, Download, FileText, Pencil, Plus, ShieldCheck, Trash2, TrendingUp, Wallet } from 'lucide-react';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
 import { toast } from 'sonner';
+import ConfirmModal from '@/components/ui/confirm-modal';
+import { useAbility } from '@/hooks/use-ability';
+import { useSupprimerChargeFixeMutation } from '@/features/charges/queries/charge-fixe.mutation';
+import { useSupprimerChargeVariableMutation } from '@/features/charges/queries/charge-variable.mutation';
+import { IChargeFixe } from '@/features/charges/types/charge-fixe.type';
+import { IChargeVariable } from '@/features/charges/types/charge-variable.type';
 import {
   FinanceStatut,
   IFinanceItem,
@@ -116,16 +122,45 @@ export function FinanceHubView() {
   }, []);
   const [isFixeModalOpen, setIsFixeModalOpen] = useState(false);
   const [isVariableModalOpen, setIsVariableModalOpen] = useState(false);
+  // Édition / suppression admin (quel que soit le statut visé/approuvé/décaissé).
+  const [chargeFixeToEdit, setChargeFixeToEdit] = useState<IChargeFixe | null>(null);
+  const [chargeVariableToEdit, setChargeVariableToEdit] = useState<IChargeVariable | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<IFinanceItem | null>(null);
   const monthOptions = useMemo(() => buildMonthOptions(), []);
+
+  // Seul l'admin/direction peut modifier ou supprimer une dépense déjà avancée
+  // dans le workflow (le backend l'autorise via X-User-Roles, RBAC désactivé).
+  const ability = useAbility();
+  const isAdmin = ability.can('manage', 'all');
+  const delFixe = useSupprimerChargeFixeMutation();
+  const delVar = useSupprimerChargeVariableMutation();
 
   // Période = le mois sélectionné (debut/fin), appliquée CÔTÉ SERVEUR au tableau + au graphique.
   const { debut: periodeDebut, fin: periodeFin } = monthKeyToRange(monthKey);
-  const { items, seuil, nbJours, renta, isLoading, busy, runAction } = useFinancesHub(
+  const { items, rawFixes, rawVariables, seuil, nbJours, renta, isLoading, busy, runAction } = useFinancesHub(
     dateArret,
     periodeDebut,
     periodeFin,
     categorieFilter,
   );
+
+  // Édition : retrouve l'objet BRUT (IChargeFixe / IChargeVariable) à partir de la
+  // ligne unifiée pour ré-alimenter le formulaire de la modale.
+  const openEdit = (item: IFinanceItem) => {
+    if (item.type === 'fixe') {
+      const raw = rawFixes.find((c: any) => c.id === item.id);
+      if (raw) setChargeFixeToEdit(raw as IChargeFixe);
+    } else {
+      const raw = rawVariables.find((c: any) => c.id === item.id);
+      if (raw) setChargeVariableToEdit(raw as IChargeVariable);
+    }
+  };
+  const confirmDelete = () => {
+    if (!itemToDelete) return;
+    const opts = { onSuccess: () => setItemToDelete(null) };
+    if (itemToDelete.type === 'fixe') delFixe.mutate(itemToDelete.id, opts);
+    else delVar.mutate(itemToDelete.id, opts);
+  };
   // Dates (objets) mémoïsées pour le graphique — stables tant que le mois ne change pas.
   const chartDebut = useMemo(() => new Date(periodeDebut), [periodeDebut]);
   const chartFin = useMemo(() => new Date(periodeFin), [periodeFin]);
@@ -529,6 +564,13 @@ export function FinanceHubView() {
                           {a === 'pay' && <Button size="sm" color="success" isLoading={busy} onPress={() => openPay([item])}>Décaisser</Button>}
                           {a && item.statut !== 'paye' && <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => onReject(item)} title="Rejeter">✕</Button>}
                           {item.statut === 'paye' && <span className="text-[11px] text-default-400">Payé</span>}
+                          {/* Admin : modifier / supprimer QUEL QUE SOIT le statut (hors charges système RH). */}
+                          {isAdmin && !item.dyn && (
+                            <>
+                              <Button size="sm" variant="light" isIconOnly onPress={() => openEdit(item)} title="Modifier" aria-label="Modifier"><Pencil className="h-4 w-4" /></Button>
+                              <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => setItemToDelete(item)} title="Supprimer" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></Button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -585,6 +627,26 @@ export function FinanceHubView() {
       {/* Modales de création (reprises de la page Charges, désormais pilotées ici) */}
       <AddChargeFixeModal isOpen={isFixeModalOpen} onClose={() => setIsFixeModalOpen(false)} chargeToEdit={null} />
       <AddDepenseVariableModal isOpen={isVariableModalOpen} onClose={() => setIsVariableModalOpen(false)} chargeToEdit={null} />
+
+      {/* Modales d'ÉDITION admin (pré-remplies avec l'objet brut) */}
+      <AddChargeFixeModal isOpen={!!chargeFixeToEdit} onClose={() => setChargeFixeToEdit(null)} chargeToEdit={chargeFixeToEdit} />
+      <AddDepenseVariableModal isOpen={!!chargeVariableToEdit} onClose={() => setChargeVariableToEdit(null)} chargeToEdit={chargeVariableToEdit} />
+
+      {/* Confirmation de SUPPRESSION admin (charge fixe ou dépense variable) */}
+      <ConfirmModal
+        isOpen={!!itemToDelete}
+        onClose={() => setItemToDelete(null)}
+        title="Supprimer la dépense"
+        isLoading={delFixe.isPending || delVar.isPending}
+        actions={[
+          { label: 'Annuler', variant: 'bordered', onPress: () => setItemToDelete(null) },
+          { label: 'Supprimer', color: 'danger', onPress: confirmDelete },
+        ]}
+      >
+        <p className="text-sm text-gray-700">
+          Voulez-vous vraiment supprimer <span className="font-semibold">{itemToDelete?.designation}</span> ? Cette action est irréversible.
+        </p>
+      </ConfirmModal>
     </div>
   );
 }

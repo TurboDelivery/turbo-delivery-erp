@@ -30,8 +30,12 @@ export function useFinancesHub(
   const variablesQ = useChargesVariablesQuery({ page: 0, size: 500, debut, fin, categorieIds: cat } as any);
   const rentaQ = useRentabiliteQuery(dateArret);
 
-  const fixes: IFinanceItem[] = ((fixesQ.data as any)?.content ?? []).map(mapChargeFixe);
-  const variables: IFinanceItem[] = ((variablesQ.data as any)?.content ?? []).map(mapChargeVariable);
+  // Objets BRUTS (avant mapping unifié) — nécessaires pour ré-alimenter les modales
+  // d'édition (AddChargeFixeModal / AddDepenseVariableModal attendent le type brut).
+  const rawFixes: any[] = (fixesQ.data as any)?.content ?? [];
+  const rawVariables: any[] = (variablesQ.data as any)?.content ?? [];
+  const fixes: IFinanceItem[] = rawFixes.map(mapChargeFixe);
+  const variables: IFinanceItem[] = rawVariables.map(mapChargeVariable);
   const items = [...fixes, ...variables];
 
   const actFixe = useActionChargeFixeMutation();
@@ -46,6 +50,8 @@ export function useFinancesHub(
 
   return {
     items,
+    rawFixes,
+    rawVariables,
     seuil,
     nbJours,
     renta: rentaQ.data,

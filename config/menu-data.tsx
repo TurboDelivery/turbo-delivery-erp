@@ -100,7 +100,6 @@ const menuData: IMenuData[] = [
     can: { action: 'read', subject: 'Finance' },
     children: [
       { icon: IconMap, title: 'Tableau de bord', path: '/finance/dashboard', can: { action: 'read', subject: 'Finance' } },
-      { icon: Receipt, title: 'Charges', path: '/finance/charges', can: { action: 'read', subject: 'ChargeFixe' } },
       { icon: CheckCircle, title: 'Validation', path: '/finance/validation', can: { action: 'read', subject: 'ChargeFixe' } },
       { icon: TrendingUp, title: 'Analyse de Rentabilité', path: '/finance/analyse-rentabilite', can: { action: 'read', subject: 'Finance' } },
       { icon: TrendingUp, title: 'Rentabilité (temps réel)', path: '/finance/rentabilite', can: { action: 'read', subject: 'Finance' } },

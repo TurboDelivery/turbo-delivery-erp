@@ -58,7 +58,9 @@ export default function DashboardFinanceStatistics() {
   // Cumul : plage « tout l'historique » (l'app démarre en 2024 → aujourd'hui).
   const ALL_TIME_DEBUT = '2024-01-01';
   const allTimeFin = format(new Date(), 'yyyy-MM-dd');
-  const depensesCumuleHref = `/finance/charges?debut=${ALL_TIME_DEBUT}&fin=${allTimeFin}`;
+  // La page /finance/charges a été supprimée : les dépenses sont désormais pilotées
+  // depuis le tableau de bord Finance unifié (/finance/dashboard).
+  const depensesCumuleHref = '/finance/dashboard';
   const encoursCumuleHref = `/finance/recouvrement?tab=factures&fPeriodeDebut=${ALL_TIME_DEBUT}&fPeriodeFin=${allTimeFin}`;
 
   // Titre dynamique pour la carte CA
@@ -128,7 +130,7 @@ export default function DashboardFinanceStatistics() {
             href={`/finance/recouvrement${periodeQS}`}
             ariaLabel="Voir les recouvrements de la période"
           />
-          <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href={`/finance/charges${periodeQS}`} ariaLabel="Voir les dépenses de la période">
+          <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/dashboard" ariaLabel="Voir les dépenses de la période">
             <div className="flex flex-col gap-0.5">
               <div className="bg-red-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium 2xl:text-lg">
                 <span>Charges fixes</span>
