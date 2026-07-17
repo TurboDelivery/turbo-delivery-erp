@@ -1,5 +1,6 @@
 'use client';
 
+import { useSession } from 'next-auth/react';
 import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
 import { useChargesVariablesQuery } from '@/features/charges/queries/charges-variables.query';
 import { useActionChargeFixeMutation } from '@/features/charges/queries/charge-fixe.mutation';
@@ -25,6 +26,13 @@ export function useFinancesHub(
   const seuil = config?.seuilDga ?? 0;
   const nbJours = config?.nbJoursMois ?? 30;
 
+  // Acteur réel des actions (visa/accord/décaissement) — enregistré dans
+  // valide_par / approuve_par et exploité par « Mon historique ». On utilise
+  // session.user.name (login), IDENTIQUE à la page de validation, pour que les
+  // actions faites des deux côtés soient attribuées au même acteur.
+  const { data: session } = useSession();
+  const actor = session?.user?.name ?? 'Inconnu';
+
   const cat = categorieIds && categorieIds.length > 0 ? categorieIds : undefined;
   const fixesQ = useChargesFixesQuery({ page: 0, size: 500, debut, fin, categorieIds: cat } as any);
   const variablesQ = useChargesVariablesQuery({ page: 0, size: 500, debut, fin, categorieIds: cat } as any);
@@ -43,15 +51,16 @@ export function useFinancesHub(
 
   const runAction = (item: IFinanceItem, action: WorkflowAction, commentaire?: string) => {
     if (item.type === 'fixe') {
-      return actFixe.mutateAsync({ id: item.id, action, dto: { commentaire, par: 'Admin' } } as any);
+      return actFixe.mutateAsync({ id: item.id, action, dto: { commentaire, par: actor } } as any);
     }
-    return actVar.mutateAsync({ id: item.id, action, dto: { commentaire, par: 'Admin' } } as any);
+    return actVar.mutateAsync({ id: item.id, action, dto: { commentaire, par: actor } } as any);
   };
 
   return {
     items,
     rawFixes,
     rawVariables,
+    actor,
     seuil,
     nbJours,
     renta: rentaQ.data,

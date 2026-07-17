@@ -43,6 +43,7 @@ import AddDepenseVariableModal from '@/features/charges/components/add-depense-v
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
 import RepartitionDepense from '@/features/depenses/components/repartition';
 import { Can } from '@/components/auth/Can';
+import { FinanceHistoriqueTab } from './finance-historique-tab';
 
 const NOW = new Date();
 const CUR_MONTH_KEY = `${NOW.getFullYear()}-${String(NOW.getMonth() + 1).padStart(2, '0')}`;
@@ -98,6 +99,7 @@ const TABS = [
   { k: 'variable', label: 'Dépenses variables' },
   { k: 'bap', label: 'Bon à payer' },
   { k: 'all', label: 'Toutes' },
+  { k: 'histo', label: 'Mon historique' },
 ] as const;
 
 const PAGE_SIZE = 12;
@@ -137,7 +139,7 @@ export function FinanceHubView() {
 
   // Période = le mois sélectionné (debut/fin), appliquée CÔTÉ SERVEUR au tableau + au graphique.
   const { debut: periodeDebut, fin: periodeFin } = monthKeyToRange(monthKey);
-  const { items, rawFixes, rawVariables, seuil, nbJours, renta, isLoading, busy, runAction } = useFinancesHub(
+  const { items, rawFixes, rawVariables, actor, seuil, nbJours, renta, isLoading, busy, runAction } = useFinancesHub(
     dateArret,
     periodeDebut,
     periodeFin,
@@ -343,10 +345,12 @@ export function FinanceHubView() {
     setTimeout(() => w.print(), 250);
   };
 
-  const countFor = (kk: string) =>
+  const countFor = (kk: string): number | null =>
     kk === 'fixe' ? items.filter((i) => i.type === 'fixe').length
     : kk === 'variable' ? items.filter((i) => i.type === 'variable').length
-    : kk === 'bap' ? bap.length : items.length;
+    : kk === 'bap' ? bap.length
+    : kk === 'all' ? items.length
+    : null; // histo : compteur non pertinent (pagination côté serveur)
 
   const pf = k.dep ? (k.fixeProrata / k.dep) * 100 : 50;
 
@@ -466,24 +470,31 @@ export function FinanceHubView() {
           et câblée sur le mois + le filtre catégorie du dashboard. */}
       <RepartitionDepense debut={chartDebut} fin={chartFin} />
 
-      {/* Filtre catégorie (à gauche) + onglets */}
+      {/* Filtre catégorie (à gauche, masqué en « Mon historique ») + onglets */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="w-full sm:w-72">
-          <CategoriesSelectFilter
-            selectedCategories={categorieFilter}
-            onCategoriesChange={handleCategoriesChange}
-          />
-        </div>
+        {tab !== 'histo' && (
+          <div className="w-full sm:w-72">
+            <CategoriesSelectFilter
+              selectedCategories={categorieFilter}
+              onCategoriesChange={handleCategoriesChange}
+            />
+          </div>
+        )}
         <div className="flex flex-1 flex-wrap gap-1.5">
-          {TABS.map((t) => (
-            <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-content1 text-foreground shadow-sm ring-1 ring-default-200' : 'text-default-500 hover:text-foreground'}`}>
-              {t.label}<span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-primary/10 text-primary' : 'bg-default-100 text-default-500'}`}>{countFor(t.k)}</span>
-            </button>
-          ))}
+          {TABS.map((t) => {
+            const c = countFor(t.k);
+            return (
+              <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-content1 text-foreground shadow-sm ring-1 ring-default-200' : 'text-default-500 hover:text-foreground'}`}>
+                {t.label}{c != null && <span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-primary/10 text-primary' : 'bg-default-100 text-default-500'}`}>{c}</span>}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {isLoading ? (
+      {tab === 'histo' ? (
+        <FinanceHistoriqueTab debut={periodeDebut} fin={periodeFin} isAdmin={isAdmin} moi={actor} />
+      ) : isLoading ? (
         <div className="flex justify-center py-16"><Spinner color="primary" label="Chargement…" /></div>
       ) : (
         <Card shadow="none" className="border border-default-200">

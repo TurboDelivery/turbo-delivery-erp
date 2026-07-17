@@ -25,3 +25,12 @@ export const useHistoriqueChargesQuery = (params: IHistoriqueChargeParams, enabl
 
   return query;
 };
+
+/** Acteurs distincts de l'historique — alimente le filtre « par utilisateur » de l'admin. */
+export const useActeursHistoriqueQuery = (enabled: boolean = true) =>
+  useQuery({
+    queryKey: ['historique-charges', 'acteurs'] as const,
+    queryFn: () => historiqueChargeAPI.obtenirActeurs(),
+    staleTime: 5 * 60 * 1000,
+    enabled,
+  });

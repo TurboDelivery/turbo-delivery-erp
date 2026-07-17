@@ -4,6 +4,7 @@ import { PaginatedResponse } from '@/types';
 
 export interface IHistoriqueChargeAPI {
   obtenirHistoriqueCharges(params: IHistoriqueChargeParams): Promise<PaginatedResponse<IHistoriqueCharge>>;
+  obtenirActeurs(): Promise<string[]>;
 }
 
 export const historiqueChargeAPI: IHistoriqueChargeAPI = {
@@ -13,6 +14,14 @@ export const historiqueChargeAPI: IHistoriqueChargeAPI = {
       endpoint: `/erp/historique-charges`,
       method: 'GET',
       searchParams: params,
+    });
+  },
+
+  // Acteurs distincts (créateurs / valideurs / approbateurs) — filtre « par utilisateur » admin.
+  obtenirActeurs(): Promise<string[]> {
+    return api.request<string[]>({
+      endpoint: `/erp/historique-charges/acteurs`,
+      method: 'GET',
     });
   },
 };

@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { CreerCategorieModal } from './creer-categorie';
@@ -5,14 +8,23 @@ import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react';
+import { Button as HButton, Checkbox } from '@heroui/react';
+import { GitMerge, MoreHorizontal } from 'lucide-react';
 import { CategorieDetailModal } from '@/features/depenses/components/depense-list/detail/categorie-detail';
 import { ModifierCategorieModal } from '@/features/depenses/components/modifier/modifier-categorie-modal';
 import SupprimerCategorieModal from '@/features/depenses/components/supprimer/supprimer-categorie-modal';
 import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
+import { FusionCategoriesDialog } from '@/components/finance/configuration/fusion-categories-dialog';
 
 export function CategorieDepenseList() {
   const { categories: categorie_depenses } = useCategorieDepense();
+
+  // Sélection multiple → fusion de catégories en doublon (≥ 2).
+  const [sel, setSel] = useState<Set<string>>(new Set());
+  const [fusionOpen, setFusionOpen] = useState(false);
+  const toggle = (id: string, v: boolean) =>
+    setSel((p) => { const n = new Set(p); v ? n.add(id) : n.delete(id); return n; });
+  const selectedIds = Array.from(sel);
 
   // Couleur des résultats
   const getCategoriesStyle = (nomCategorie: string) => {
@@ -41,9 +53,26 @@ export function CategorieDepenseList() {
       <Card className="">
         <CardHeader className="">
           <CardTitle>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-2">
               <span className="text-lg font-normal">Liste des catégories de dépenses</span>
-              <CreerCategorieModal />
+              <div className="flex items-center gap-2">
+                {sel.size > 0 && (
+                  <>
+                    <span className="text-sm text-gray-500">{sel.size} sélectionnée{sel.size > 1 ? 's' : ''}</span>
+                    <HButton
+                      size="sm"
+                      color="primary"
+                      startContent={<GitMerge className="h-4 w-4" />}
+                      isDisabled={sel.size < 2}
+                      onPress={() => setFusionOpen(true)}
+                    >
+                      Fusionner{sel.size >= 2 ? ` (${sel.size})` : ''}
+                    </HButton>
+                    <HButton size="sm" variant="light" onPress={() => setSel(new Set())}>Effacer</HButton>
+                  </>
+                )}
+                <CreerCategorieModal />
+              </div>
             </div>
           </CardTitle>
         </CardHeader>
@@ -52,6 +81,7 @@ export function CategorieDepenseList() {
           <Table className="hidden md:table">
             <TableHeader className="">
               <TableRow className="bg-red-500 hover:bg-red-600">
+                <TableHead className="w-10"></TableHead>
                 <TableHead className="font-semibold">Date</TableHead>
                 <TableHead className="font-semibold">Nom </TableHead>
                 <TableHead className="font-semibold">Montant total</TableHead>
@@ -61,6 +91,14 @@ export function CategorieDepenseList() {
             <TableBody>
               {categorie_depenses.map((categorie_depense) => (
                 <TableRow key={categorie_depense.id} className="transition-colors">
+                  <TableCell className="border-b-2">
+                    <Checkbox
+                      size="sm"
+                      isSelected={sel.has(categorie_depense.id)}
+                      onValueChange={(v) => toggle(categorie_depense.id, v)}
+                      aria-label={`Sélectionner ${categorie_depense.nomCategorie}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium border-b-2">{formatDate(categorie_depense.createdAt)}</TableCell>
                   <TableCell className="border-b-2">
                     <span className={`font-semibold rounded-full px-2 py-1 ${getCategoriesStyle(categorie_depense.nomCategorie)}`}>{categorie_depense.nomCategorie}</span>
@@ -99,7 +137,15 @@ export function CategorieDepenseList() {
               categorie_depenses.map((categorie_depense) => (
                 <div key={categorie_depense.id} className="bg-white dark:bg-transparent border border-gray-100 dark:border-gray-700 rounded-xl p-4 shadow-sm space-y-2">
                   <div className="flex items-start justify-between gap-2">
-                    <span className={`font-semibold rounded-full px-2 py-1 text-sm ${getCategoriesStyle(categorie_depense.nomCategorie)}`}>{categorie_depense.nomCategorie}</span>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Checkbox
+                        size="sm"
+                        isSelected={sel.has(categorie_depense.id)}
+                        onValueChange={(v) => toggle(categorie_depense.id, v)}
+                        aria-label={`Sélectionner ${categorie_depense.nomCategorie}`}
+                      />
+                      <span className={`font-semibold rounded-full px-2 py-1 text-sm ${getCategoriesStyle(categorie_depense.nomCategorie)}`}>{categorie_depense.nomCategorie}</span>
+                    </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button size="icon" variant="secondary" className="shrink-0">
@@ -133,6 +179,13 @@ export function CategorieDepenseList() {
           </div>
         </CardContent>
       </Card>
+
+      <FusionCategoriesDialog
+        ids={selectedIds}
+        isOpen={fusionOpen}
+        onOpenChange={setFusionOpen}
+        onDone={() => setSel(new Set())}
+      />
     </div>
   );
 }

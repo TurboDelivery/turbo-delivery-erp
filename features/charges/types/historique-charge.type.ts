@@ -31,4 +31,7 @@ export interface IHistoriqueChargeParams {
   debut?: string;
   fin?: string;
   role?: 'DGA' | 'DG' | 'COMPTABLE';
+  categorieIds?: string[];
+  /** « Mon historique » : nom de l'acteur ciblé (création/visa/accord, tous stades). */
+  par?: string;
 }
