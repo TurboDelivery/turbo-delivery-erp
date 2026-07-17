@@ -35,7 +35,7 @@ import { buildMonthOptions, monthKeyToRange } from '@/features/charges/utils/mon
 import AddChargeFixeModal from '@/features/charges/components/add-charge-fixe-modal';
 import AddDepenseVariableModal from '@/features/charges/components/add-depense-variable-modal';
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
-import RepartitionDepensePieChart from '@/features/depenses/components/repartition/repartition-depense-pie-chart';
+import RepartitionDepense from '@/features/depenses/components/repartition';
 import { Can } from '@/components/auth/Can';
 
 const NOW = new Date();
@@ -426,14 +426,10 @@ export function FinanceHubView() {
         </CardBody>
       </Card>
 
-      {/* Graphique — répartition des dépenses par catégorie (déplacé depuis /finance/charges,
-          câblé sur le mois + le filtre catégorie du dashboard). */}
-      <Card shadow="none" className="border border-default-200">
-        <CardBody className="p-4">
-          <p className="mb-2 text-sm font-semibold text-default-700">Répartition des dépenses par catégorie</p>
-          <RepartitionDepensePieChart debut={chartDebut} fin={chartFin} />
-        </CardBody>
-      </Card>
+      {/* Graphiques — section « Répartition des dépenses » complète (résumé récurrentes/
+          non récurrentes + Top 10 catégories + évolution), déplacée depuis /finance/charges
+          et câblée sur le mois + le filtre catégorie du dashboard. */}
+      <RepartitionDepense debut={chartDebut} fin={chartFin} />
 
       {/* Filtre catégorie (à gauche) + onglets */}
       <div className="flex flex-wrap items-center gap-3">
