@@ -264,12 +264,14 @@ export function FinanceHubView() {
   const toggleOne = (id: string, v: boolean) =>
     setSel((p) => { const n = new Set(p); v ? n.add(id) : n.delete(id); return n; });
 
-  const act = async (item: IFinanceItem, action: 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser', label: string, comment?: string) => {
+  const act = async (item: IFinanceItem, action: 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser', label: string, comment?: string): Promise<boolean> => {
     try {
       await runAction(item, action, comment);
       toast.success(`${label} · ${item.designation}`);
+      return true;
     } catch (e) {
       toast.error("Action impossible", { description: e instanceof Error ? e.message : 'Erreur' });
+      return false;
     }
   };
   const onReject = (item: IFinanceItem) =>
@@ -282,13 +284,17 @@ export function FinanceHubView() {
   };
   const confirmPay = async () => {
     const comment = `${acc} · ${moy}`;
+    const ok: IFinanceItem[] = [];
     for (const item of payTargets) {
       // eslint-disable-next-line no-await-in-loop
-      await act(item, 'decaisser', 'Décaissé', comment);
+      if (await act(item, 'decaisser', 'Décaissé', comment)) ok.push(item);
     }
     onClose();
     setSel(new Set());
-    toast.success(`Décaissé ${fmtFcfa(payTargets.reduce((s, i) => s + i.montant, 0))} depuis ${acc}`);
+    // Résumé UNIQUEMENT sur les décaissements réellement réussis (plus de faux succès).
+    if (ok.length > 0) {
+      toast.success(`Décaissé ${fmtFcfa(ok.reduce((s, i) => s + i.montant, 0))} depuis ${acc}`);
+    }
   };
 
   // Actions GROUPÉES sur la sélection : chaque bouton n'agit que sur le sous-ensemble
@@ -318,7 +324,9 @@ export function FinanceHubView() {
         {a === 'vise' && <Button size="sm" variant="flat" color="primary" isLoading={busy} onPress={() => act(item, 'valider-dga', 'Visa DGA')}>Viser</Button>}
         {a === 'approuve' && <Button size="sm" variant="flat" color="secondary" isLoading={busy} onPress={() => act(item, 'approuver-dg', 'Accord DG')}>Approuver</Button>}
         {a === 'pay' && <Button size="sm" color="success" isLoading={busy} onPress={() => openPay([item])}>Décaisser</Button>}
-        {a && item.statut !== 'paye' && <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => onReject(item)} title="Rejeter">✕</Button>}
+        {/* Rejet : seules les dépenses VARIABLES ont un état REJETE côté backend
+            (les charges fixes n'ont pas d'endpoint de rejet → on masque le bouton). */}
+        {a && item.statut !== 'paye' && item.type === 'variable' && <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => onReject(item)} title="Rejeter">✕</Button>}
         {item.statut === 'paye' && <span className="text-[11px] text-default-400">Payé</span>}
         {/* Admin : modifier / supprimer QUEL QUE SOIT le statut (hors charges système RH). */}
         {isAdmin && !item.dyn && (
