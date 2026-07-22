@@ -1,73 +1,89 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+
+/** Sonneries : `entrant` = ça sonne CHEZ MOI, `retour` = tonalité d'attente CHEZ L'APPELANT. */
+export type TypeSonnerie = 'entrant' | 'retour';
+
+const FICHIERS: Record<TypeSonnerie, string> = {
+  entrant: '/sons/sonnerie-entrante.mp3',
+  retour: '/sons/retour-appel.mp3',
+};
+
+const VOLUMES: Record<TypeSonnerie, number> = {
+  entrant: 0.9,
+  retour: 0.45, // tonalité d'attente : discrète
+};
 
 /**
- * Joue une sonnerie d'appel en boucle tant que {@code actif} est vrai, générée
- * via l'API Web Audio (aucun fichier externe → compatible CSP stricte). Motif
- * type téléphone : deux salves d'~0,4 s séparées d'un court silence, puis pause,
- * en boucle. En complément, fait clignoter le titre de l'onglet pour attirer
- * l'attention même quand l'onglet n'est pas au premier plan.
+ * Joue une sonnerie en boucle tant que {@code actif} est vrai.
  *
- * Note navigateur : l'{@code AudioContext} peut démarrer suspendu si aucune
- * interaction récente n'a eu lieu ; on tente {@code resume()}. Un opérateur
- * STANDARD actif a normalement déjà interagi avec la page → le son se joue.
+ * <p>Implémentation via un élément {@code <audio loop>} (et NON l'API Web Audio
+ * pilotée par des timers) : c'est ce qui permet à la sonnerie de continuer quand
+ * l'onglet n'est pas au premier plan — les navigateurs throttlent lourdement
+ * {@code setInterval} dans un onglet caché, ce qui hachait puis arrêtait l'ancienne
+ * sonnerie synthétisée, alors que la lecture d'un média n'est pas suspendue.</p>
+ *
+ * <p>Autoplay : si le navigateur refuse la lecture (aucune interaction préalable),
+ * on réessaie automatiquement au premier geste de l'utilisateur (clic/touche/tap).</p>
+ *
+ * <p>Pour un appel entrant, le titre de l'onglet clignote également afin d'attirer
+ * l'œil quand la console est en arrière-plan.</p>
  */
-export function useRingtone(actif: boolean) {
+export function useRingtone(actif: boolean, type: TypeSonnerie = 'entrant') {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   useEffect(() => {
-    if (!actif) return;
+    if (!actif || typeof window === 'undefined') return;
 
-    const AudioCtx =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioCtx) return;
+    const audio = new Audio(FICHIERS[type]);
+    audio.loop = true;
+    audio.volume = VOLUMES[type];
+    audio.preload = 'auto';
+    audioRef.current = audio;
 
-    const ctx = new AudioCtx();
-    ctx.resume().catch(() => {});
-
-    let stopped = false;
-
-    const salve = (debut: number) => {
-      // Deux tonalités superposées (proche d'un « ringback ») avec enveloppe douce.
-      [440, 480].forEach((freq) => {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0, debut);
-        gain.gain.linearRampToValueAtTime(0.15, debut + 0.03);
-        gain.gain.setValueAtTime(0.15, debut + 0.37);
-        gain.gain.linearRampToValueAtTime(0, debut + 0.4);
-        osc.connect(gain).connect(ctx.destination);
-        osc.start(debut);
-        osc.stop(debut + 0.42);
-      });
+    let annule = false;
+    const retirerEcouteurs = () => {
+      window.removeEventListener('pointerdown', relancer);
+      window.removeEventListener('keydown', relancer);
+      window.removeEventListener('touchstart', relancer);
     };
+    function relancer() {
+      if (annule) return;
+      audio.play().catch(() => {});
+      retirerEcouteurs();
+    }
 
-    const jouerCycle = () => {
-      if (stopped) return;
-      const t = ctx.currentTime + 0.05;
-      salve(t); // « dring »
-      salve(t + 0.6); // « dring »
-    };
+    audio.play().catch(() => {
+      // Lecture bloquée (politique autoplay) → on retente au premier geste.
+      window.addEventListener('pointerdown', relancer, { once: true });
+      window.addEventListener('keydown', relancer, { once: true });
+      window.addEventListener('touchstart', relancer, { once: true });
+    });
 
-    jouerCycle();
-    const interval = window.setInterval(jouerCycle, 3000);
-
-    // Clignotement du titre de l'onglet.
+    // Clignotement du titre de l'onglet (appel entrant uniquement).
+    let flash: number | undefined;
     const titreInitial = document.title;
-    let visible = true;
-    const flash = window.setInterval(() => {
-      document.title = visible ? '● Appel entrant…' : titreInitial;
-      visible = !visible;
-    }, 900);
+    if (type === 'entrant') {
+      let visible = true;
+      flash = window.setInterval(() => {
+        document.title = visible ? '📞 Appel entrant…' : titreInitial;
+        visible = !visible;
+      }, 900);
+    }
 
     return () => {
-      stopped = true;
-      window.clearInterval(interval);
-      window.clearInterval(flash);
+      annule = true;
+      retirerEcouteurs();
+      if (flash) window.clearInterval(flash);
       document.title = titreInitial;
-      ctx.close().catch(() => {});
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch {
+        /* best-effort */
+      }
+      audioRef.current = null;
     };
-  }, [actif]);
+  }, [actif, type]);
 }

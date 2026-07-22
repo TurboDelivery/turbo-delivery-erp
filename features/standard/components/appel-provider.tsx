@@ -26,6 +26,8 @@ interface SessionActive {
   moiNom: string;
   /** Écoute seule (supervision) : ne publie pas le micro, ne raccroche pas l'appel. */
   ecouteSeule?: boolean;
+  /** Appel SORTANT : joue la tonalité de retour d'appel tant que ça sonne en face. */
+  sortant?: boolean;
 }
 
 interface AppelContextValue {
@@ -87,7 +89,14 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   const premier =
     (estRepondant && !active && (entrants ?? []).find((e) => !ignores.has(e.appelId))) || null;
   const entrant = premier
-    ? { appelId: premier.appelId, titre: 'Appel entrant', message: `${premier.appelantNom} vous appelle` }
+    ? {
+        appelId: premier.appelId,
+        titre: 'Appel entrant',
+        appelantNom: premier.appelantNom || 'Appelant inconnu',
+        sousTitre:
+          premier.contexte === 'LIVREUR_VERS_STANDARD' ? 'Livreur · appel in-app' : 'Appel in-app',
+        message: `${premier.appelantNom} vous appelle`,
+      }
     : null;
 
   // Alerte navigateur (OS) quand un appel arrive alors que l'onglet n'est pas
@@ -129,7 +138,8 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
 
   const appelerLivreur = useCallback(
     (livreurId: string, livreurNom: string, incidentId?: string) => {
-      if (!agentId || active) return;
+      // Anti double-déclenchement : déjà en appel ou initiation déjà en vol.
+      if (!agentId || active || initier.isPending) return;
       initier.mutate(
         {
           appelantId: agentId,
@@ -141,7 +151,12 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
         },
         {
           onSuccess: (s) =>
-            setActive({ session: s, interlocuteur: s.appeleNom || livreurNom, moiNom: agentNom }),
+            setActive({
+              session: s,
+              interlocuteur: s.appeleNom || livreurNom,
+              moiNom: agentNom,
+              sortant: true,
+            }),
         },
       );
     },
@@ -150,7 +165,7 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
 
   const superviser = useCallback(
     (appelId: string, titre?: string) => {
-      if (!agentId || active) return;
+      if (!agentId || active || superviserMut.isPending) return;
       superviserMut.mutate(
         { id: appelId, superviseurId: agentId, superviseurNom: agentNom },
         {
@@ -207,7 +222,8 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   }, [agentId, queryClient]);
 
   const accepterEntrant = () => {
-    if (!entrant || !agentId) return;
+    // Anti double-clic : un seul décroché, même si l'opérateur clique plusieurs fois.
+    if (!entrant || !agentId || accepter.isPending) return;
     accepter.mutate(
       { id: entrant.appelId, dto: { appeleId: agentId, appeleNom: agentNom } },
       {
@@ -231,14 +247,25 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AppelContext.Provider value={{ appelerLivreur, superviser, estSuperviseur, enAppel: !!active }}>
+    <AppelContext.Provider
+      value={{
+        appelerLivreur,
+        superviser,
+        estSuperviseur,
+        // « Occupé » inclut la fenêtre de LANCEMENT (mutation en vol) : sans ça, les
+        // boutons « Appeler » restaient cliquables tant que la session n'existait pas.
+        enAppel: !!active || initier.isPending || accepter.isPending || superviserMut.isPending,
+      }}
+    >
       {children}
       {entrant && !active && (
         <AppelEntrantModal
           titre={entrant.titre}
-          message={entrant.message}
+          appelantNom={entrant.appelantNom}
+          sousTitre={entrant.sousTitre}
           onAccepter={accepterEntrant}
           onRefuser={refuserEntrant}
+          enCours={accepter.isPending}
         />
       )}
       {active && (
@@ -247,6 +274,7 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
           moiNom={active.moiNom}
           interlocuteur={active.interlocuteur}
           ecouteSeule={active.ecouteSeule}
+          sortant={active.sortant}
           onClose={() => setActive(null)}
         />
       )}

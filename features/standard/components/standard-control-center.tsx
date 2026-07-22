@@ -29,6 +29,7 @@ import { MotifsAdminModal } from './motifs-admin-modal';
 import { AppelRapideModal } from './appel-rapide-modal';
 import { AppelConfigModal } from './appel-config-modal';
 import { AppelHistoriqueTable } from './appel-historique-table';
+import { AppelsManquesPanel } from './appels-manques-panel';
 import { useAppel } from './appel-provider';
 
 type FiltreStatut = 'TOUS' | StatutIncident;
@@ -274,7 +275,8 @@ export function StandardControlCenter() {
           }
         >
           {/* Journal STANDARD — appels tel: + audio in-app LUNION (colonne « Écouter » pour les EN_COURS) */}
-          <div className="pt-2">
+          <div className="space-y-4 pt-2">
+            <AppelsManquesPanel />
             <AppelHistoriqueTable />
           </div>
         </Tab>
