@@ -28,6 +28,7 @@ import {
   chargeVariableFormSchema,
 } from '@/features/charges/schemas/charge-variable.schema';
 import { getTodayDateInput } from '@/lib/date-utils';
+import { createUrlFile } from '@/utils/createUrlFile';
 
 interface AddDepenseVariableModalProps {
   isOpen: boolean;
@@ -118,6 +119,13 @@ export default function AddDepenseVariableModal({
   const formValues = watch();
 
   const hasJustificatif = justificatifFile !== null || !!chargeToEdit?.justificatif;
+
+  // Aperçu du justificatif déjà enregistré : on sert le fichier via le proxy
+  // /api/fichier (Content-Type correct + inline) plutôt que d'afficher son nom UUID.
+  const justificatifUrl = chargeToEdit?.justificatif
+    ? `/api/fichier?u=${encodeURIComponent(createUrlFile(chargeToEdit.justificatif, 'backend'))}`
+    : null;
+  const justificatifEstPdf = (chargeToEdit?.justificatif ?? '').toLowerCase().includes('.pdf');
 
   const onSubmit = (values: ChargeVariableFormDTO) => {
     if (!hasJustificatif) return;
@@ -279,10 +287,35 @@ export default function AddDepenseVariableModal({
                   Joindre un fichier (image ou PDF)
                 </button>
               )}
-              {chargeToEdit?.justificatif && !justificatifFile && (
-                <p className="text-xs text-gray-400 mt-1">
-                  Fichier actuel : {chargeToEdit.justificatif.split('/').pop()}
-                </p>
+              {justificatifUrl && !justificatifFile && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-400 mb-1">Justificatif actuel</p>
+                  {justificatifEstPdf ? (
+                    <iframe
+                      src={justificatifUrl}
+                      title="Justificatif actuel (PDF)"
+                      className="w-full h-56 rounded-lg border border-gray-200 bg-gray-50"
+                    />
+                  ) : (
+                    <a
+                      href={justificatifUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Ouvrir le justificatif en grand"
+                      className="block"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={justificatifUrl}
+                        alt="Justificatif actuel"
+                        className="max-h-56 w-auto rounded-lg border border-gray-200 object-contain hover:opacity-90 transition-opacity"
+                      />
+                    </a>
+                  )}
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    Joindre un nouveau fichier remplacera ce justificatif.
+                  </p>
+                </div>
               )}
               {!hasJustificatif && (
                 <p className="text-xs text-red-500 mt-1">Le justificatif est obligatoire</p>
