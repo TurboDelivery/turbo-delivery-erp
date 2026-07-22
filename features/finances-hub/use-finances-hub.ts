@@ -1,6 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
 import { useChargesVariablesQuery } from '@/features/charges/queries/charges-variables.query';
 import { useActionChargeFixeMutation } from '@/features/charges/queries/charge-fixe.mutation';
@@ -48,12 +49,23 @@ export function useFinancesHub(
 
   const actFixe = useActionChargeFixeMutation();
   const actVar = useActionChargeVariableMutation();
+  const queryClient = useQueryClient();
 
-  const runAction = (item: IFinanceItem, action: WorkflowAction, commentaire?: string) => {
-    if (item.type === 'fixe') {
-      return actFixe.mutateAsync({ id: item.id, action, dto: { commentaire, par: actor } } as any);
-    }
-    return actVar.mutateAsync({ id: item.id, action, dto: { commentaire, par: actor } } as any);
+  const runAction = async (item: IFinanceItem, action: WorkflowAction, commentaire?: string) => {
+    const res =
+      item.type === 'fixe'
+        ? await actFixe.mutateAsync({ id: item.id, action, dto: { commentaire, par: actor } } as any)
+        : await actVar.mutateAsync({ id: item.id, action, dto: { commentaire, par: actor } } as any);
+
+    // Un visa / accord / décaissement change les montants engagés et décaissés :
+    // sans ça, seul le statut de la ligne bougeait — les compteurs d'onglets, les
+    // KPI (dépenses cumulées, bon à payer, marge) et les graphiques restaient figés
+    // jusqu'à un rechargement manuel de la page.
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['rentabilite'] }),
+      queryClient.invalidateQueries({ queryKey: ['depense'] }),
+    ]);
+    return res;
   };
 
   return {

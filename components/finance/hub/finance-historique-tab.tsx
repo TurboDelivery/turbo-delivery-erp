@@ -139,6 +139,7 @@ export function FinanceHistoriqueTab({
                           {r.creerPar && (
                             <span className="inline-flex items-center gap-1.5 text-default-600">
                               <PenLine className="h-3.5 w-3.5 text-default-400" />Créé par <b>{r.creerPar}</b>
+                              {r.createdAt && <span className="text-default-400">· {fmtDate(r.createdAt, true)}</span>}
                             </span>
                           )}
                           {r.validePar && (
