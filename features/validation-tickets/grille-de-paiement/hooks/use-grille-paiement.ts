@@ -12,6 +12,7 @@ import {
   useSoumettreGrilleMutation,
   useUpdateNumeroWaveMutation,
   useValiderLigneMutation,
+  useValiderToutesLignesMutation,
 } from '../queries/grille-paiement.query';
 import { IGrillePaiementLigne } from '../types/grille-paiement.type';
 import { grillePaiementFiltersConfig, grillePaiementFiltersOptions } from '../filters/grille-paiement.filters';
@@ -34,6 +35,7 @@ export default function useGrillePaiement() {
   const { mutate: soumettre, isPending: isSoumettant } = useSoumettreGrilleMutation();
   const { mutate: persistWave } = useUpdateNumeroWaveMutation();
   const { mutate: validerLigne, isPending: isValidating } = useValiderLigneMutation();
+  const { mutate: validerToutesLignes, isPending: isValidantTout } = useValiderToutesLignesMutation();
   const { mutate: modifierInclusion, isPending: isModifyingInclusion } = useModifierInclusionMutation();
 
   const [selectedLigne, setSelectedLigne] = useState<IGrillePaiementLigne | null>(null);
@@ -111,6 +113,14 @@ export default function useGrillePaiement() {
     setConfirmOpen(true);
   };
 
+  // Certification GROUPÉE : crée/valide toutes les lignes du lot d'un coup.
+  // Sans ça, il fallait valider chaque livreur individuellement (les lignes
+  // n'existent en base qu'à la validation) avant de pouvoir soumettre au DGA.
+  const handleToutValider = () => {
+    if (!grille?.lot?.id || isValidantTout) return;
+    validerToutesLignes({ lotId: grille.lot.id, userId });
+  };
+
   const handleValiderLigne = (ligne: IGrillePaiementLigne) => setLigneAValider(ligne);
 
   const handleConfirmerValidation = () => {
@@ -170,6 +180,8 @@ export default function useGrillePaiement() {
     canSoumettre,
     isSoumettant,
     handleSoumettre,
+    isValidantTout,
+    handleToutValider,
     updateWave,
     waveManquants,
     lignesAValider,

@@ -8,6 +8,7 @@ import {
   getGrillePaiementApi,
   modifierInclusionLigneApi,
   soumettreDgaApi,
+  validerToutesLignesApi,
   soumettrGrillePaiementApi,
   updateNumeroWaveApi,
   validerLigneApi,
@@ -97,6 +98,31 @@ export const useSoumettreGrilleMutation = () => {
     onError: (error: any) => {
       const serverMsg = error?.response?.data?.message ?? error?.response?.data ?? null;
       toast.error('Erreur lors de la soumission', {
+        description: serverMsg ? String(serverMsg) : error?.message ?? 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+/**
+ * Certification comptable GROUPÉE — valide toutes les lignes du lot d'un coup.
+ * Indispensable avant la soumission au DGA : les lignes ne sont matérialisées
+ * qu'à la validation, et `soumettre-dga` refuse un lot vide.
+ */
+export const useValiderToutesLignesMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ lotId, userId }: { lotId: string; userId: string }) =>
+      validerToutesLignesApi(lotId, userId),
+    onSuccess: (res) => {
+      toast.success(`${res?.lignesValidees ?? 0} ligne(s) validée(s)`, {
+        description: 'La grille est certifiée — vous pouvez soumettre au DGA.',
+      });
+      queryClient.invalidateQueries({ queryKey: grillePaiementKeys.all });
+    },
+    onError: (error: any) => {
+      const serverMsg = error?.response?.data?.message ?? error?.response?.data ?? null;
+      toast.error('Erreur lors de la validation groupée', {
         description: serverMsg ? String(serverMsg) : error?.message ?? 'Erreur inconnue',
       });
     },

@@ -71,6 +71,23 @@ export async function soumettreDgaApi(lotId: string, userId: string): Promise<vo
   });
 }
 
+/**
+ * Certification comptable GROUPÉE : valide TOUTES les lignes du lot en une action.
+ * Les lignes du lot n'existent en base qu'une fois validées (une par une) ; sans
+ * ce lot-validation, soumettre un créneau de 74 livreurs demandait 74 clics et la
+ * soumission au DGA échouait sur « lot vide ». Idempotent.
+ */
+export async function validerToutesLignesApi(
+  lotId: string,
+  userId: string,
+): Promise<{ lignesValidees: number; lotId: string }> {
+  return apiClientHttp.request<{ lignesValidees: number; lotId: string }>({
+    endpoint: `/api/lots/${lotId}/valider-lignes`,
+    method: 'POST',
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
 export async function validerLigneApi(lotId: string, turboyId: string, userId: string): Promise<void> {
   return apiClientHttp.request<void>({
     endpoint: `/api/lots/${lotId}/valider-ligne/${turboyId}`,

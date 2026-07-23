@@ -29,6 +29,8 @@ export default function GrillePaiementContent() {
     canSoumettre,
     isSoumettant,
     handleSoumettre,
+    isValidantTout,
+    handleToutValider,
     updateWave,
     waveManquants,
     lignesAValider,
@@ -188,6 +190,8 @@ export default function GrillePaiementContent() {
           waveManquants={waveManquants}
           lignesAValider={lignesAValider}
           onSoumettre={handleSoumettre}
+          onToutValider={handleToutValider}
+          isValidantTout={isValidantTout}
         />
       )}
 
