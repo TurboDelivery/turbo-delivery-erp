@@ -30,13 +30,17 @@ type GrillePaiementVmRaw = {
   };
 };
 
+// Chaîne officielle du workflow : Saisie → Authentification → V1 → V2 →
+// Comptabilité → Visa DGA → Approbation PDG. L'étape « Authentification »
+// (contrôle du ticket avant la vérification croisée) manquait à l'affichage.
 const CHAINE_VALIDATION_DEFAULT: IEtapeValidation[] = [
   { numero: 1, label: 'Saisie ticket',                 agent: '', statut: 'done'    },
-  { numero: 2, label: 'V1 — Vérification croisée',     agent: '', statut: 'done'    },
-  { numero: 3, label: 'V2 — Verrouillage créneau',     agent: '', statut: 'done'    },
-  { numero: 4, label: 'Comptabilité — Grille générée', agent: '', statut: 'done'    },
-  { numero: 5, label: 'Visa DGA',                      agent: 'Vous', statut: 'current' },
-  { numero: 6, label: 'Approbation PDG',               agent: '—', statut: 'pending' },
+  { numero: 2, label: 'Authentification',              agent: '', statut: 'done'    },
+  { numero: 3, label: 'V1 — Vérification croisée',     agent: '', statut: 'done'    },
+  { numero: 4, label: 'V2 — Verrouillage créneau',     agent: '', statut: 'done'    },
+  { numero: 5, label: 'Comptabilité — Grille générée', agent: '', statut: 'done'    },
+  { numero: 6, label: 'Visa DGA',                      agent: 'Vous', statut: 'current' },
+  { numero: 7, label: 'Approbation PDG',               agent: '—', statut: 'pending' },
 ];
 
 export async function getVisaDgaApi(creneauId?: string): Promise<IVisaDgaCreneau | null> {

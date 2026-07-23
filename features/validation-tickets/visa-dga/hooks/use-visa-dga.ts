@@ -15,7 +15,13 @@ export default function useVisaDga() {
   const { data: session } = useSession();
   const userId = session?.user?.id ?? '';
 
-  const [selectedCreneauId, setSelectedCreneauId] = useState<string | undefined>(undefined);
+  // Deep-link email « Lot soumis — visa requis » : /validation-tickets/visa-dga?creneau=<id>
+  // ouvre directement la semaine concernée. Sans ce paramètre, la page retombait sur le
+  // dernier créneau et le DGA visait/cherchait la mauvaise semaine.
+  const [selectedCreneauId, setSelectedCreneauId] = useState<string | undefined>(() => {
+    if (typeof window === 'undefined') return undefined;
+    return new URLSearchParams(window.location.search).get('creneau') ?? undefined;
+  });
   const { data: creneauList, isLoading: isLoadingCreneaux } = useCreneauxListQuery();
   const creneaux = creneauList?.content ?? [];
 

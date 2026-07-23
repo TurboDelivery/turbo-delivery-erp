@@ -18,7 +18,13 @@ export default function useApprobationFinale() {
 
   const { data: creneauActif, isLoading: isLoadingCreneau } = useCreneauActifQuery();
 
-  const [selectedCreneauId, setSelectedCreneauId] = useState<string | undefined>(undefined);
+  // Deep-link email « Lot visé DGA — approbation finale requise » :
+  // /validation-tickets/approbation-finale?creneau=<id> ouvre la bonne semaine
+  // (sinon la page retombe sur le créneau actif).
+  const [selectedCreneauId, setSelectedCreneauId] = useState<string | undefined>(() => {
+    if (typeof window === 'undefined') return undefined;
+    return new URLSearchParams(window.location.search).get('creneau') ?? undefined;
+  });
   const { data: creneauList, isLoading: isLoadingCreneaux } = useCreneauxListQuery();
   const creneaux = creneauList?.content ?? [];
 
