@@ -72,6 +72,22 @@ export async function soumettreDgaApi(lotId: string, userId: string): Promise<vo
 }
 
 /**
+ * Clôture MANUELLE du créneau (→ VERROUILLE_V2), depuis la grille de paiement.
+ * Après clôture, tout ticket saisi sur ce créneau part en circuit Régularisation
+ * (TARDIF) au lieu d'être comptabilisé normalement — sans attendre le CRON de nuit.
+ */
+export async function cloturerCreneauApi(
+  creneauId: string,
+  userId: string,
+): Promise<{ id: string; statut: string }> {
+  return apiClientHttp.request<{ id: string; statut: string }>({
+    endpoint: `/api/creneaux/${creneauId}/cloturer`,
+    method: 'POST',
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
+/**
  * Certification comptable GROUPÉE : valide TOUTES les lignes du lot en une action.
  * Les lignes du lot n'existent en base qu'une fois validées (une par une) ; sans
  * ce lot-validation, soumettre un créneau de 74 livreurs demandait 74 clics et la

@@ -9,6 +9,7 @@ import {
   modifierInclusionLigneApi,
   soumettreDgaApi,
   validerToutesLignesApi,
+  cloturerCreneauApi,
   soumettrGrillePaiementApi,
   updateNumeroWaveApi,
   validerLigneApi,
@@ -98,6 +99,29 @@ export const useSoumettreGrilleMutation = () => {
     onError: (error: any) => {
       const serverMsg = error?.response?.data?.message ?? error?.response?.data ?? null;
       toast.error('Erreur lors de la soumission', {
+        description: serverMsg ? String(serverMsg) : error?.message ?? 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+/** Clôture manuelle du créneau (→ VERROUILLE_V2). Les tickets ultérieurs → Régularisation. */
+export const useCloturerCreneauMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ creneauId, userId }: { creneauId: string; userId: string }) =>
+      cloturerCreneauApi(creneauId, userId),
+    onSuccess: () => {
+      toast.success('Créneau clôturé', {
+        description: 'Les tickets saisis après clôture passeront en Régularisation.',
+      });
+      queryClient.invalidateQueries({ queryKey: grillePaiementKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['creneaux-list'] });
+      queryClient.invalidateQueries({ queryKey: ['historique-creneaux'] });
+    },
+    onError: (error: any) => {
+      const serverMsg = error?.response?.data?.message ?? error?.response?.data ?? null;
+      toast.error('Clôture impossible', {
         description: serverMsg ? String(serverMsg) : error?.message ?? 'Erreur inconnue',
       });
     },

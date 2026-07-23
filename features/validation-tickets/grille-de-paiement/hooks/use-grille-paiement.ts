@@ -13,6 +13,7 @@ import {
   useUpdateNumeroWaveMutation,
   useValiderLigneMutation,
   useValiderToutesLignesMutation,
+  useCloturerCreneauMutation,
 } from '../queries/grille-paiement.query';
 import { IGrillePaiementLigne } from '../types/grille-paiement.type';
 import { grillePaiementFiltersConfig, grillePaiementFiltersOptions } from '../filters/grille-paiement.filters';
@@ -36,6 +37,7 @@ export default function useGrillePaiement() {
   const { mutate: persistWave } = useUpdateNumeroWaveMutation();
   const { mutate: validerLigne, isPending: isValidating } = useValiderLigneMutation();
   const { mutate: validerToutesLignes, isPending: isValidantTout } = useValiderToutesLignesMutation();
+  const { mutate: cloturerCreneau, isPending: isCloturant } = useCloturerCreneauMutation();
   const { mutate: modifierInclusion, isPending: isModifyingInclusion } = useModifierInclusionMutation();
 
   const [selectedLigne, setSelectedLigne] = useState<IGrillePaiementLigne | null>(null);
@@ -59,6 +61,16 @@ export default function useGrillePaiement() {
   // bouton pour repartir vers le DGA.
   const STATUTS_SOUMETTABLES = ['EN_ATTENTE', 'REJETE', 'CALCUL_EN_COURS'];
   const isLotVerrouille = !!grille?.lot && !STATUTS_SOUMETTABLES.includes(lotStatut ?? '');
+
+  // Statut du CRÉNEAU (≠ statut du lot) : clôturable tant qu'il n'est pas verrouillé.
+  const creneauCourant = creneaux.find((c: any) => c.id === (selectedCreneauId ?? grille?.id));
+  const creneauStatut = (creneauCourant as any)?.statut as string | undefined;
+  const canCloturer = creneauStatut === 'OUVERT' || creneauStatut === 'TOLERANCE';
+  const handleCloturerCreneau = () => {
+    const creneauId = selectedCreneauId ?? grille?.id;
+    if (!creneauId || !canCloturer || isCloturant) return;
+    cloturerCreneau({ creneauId, userId });
+  };
 
   const handleCreneauChange = useCallback((id: string | undefined) => {
     setFilters({ creneauId: id ?? '', page: 0 });
@@ -182,6 +194,9 @@ export default function useGrillePaiement() {
     handleSoumettre,
     isValidantTout,
     handleToutValider,
+    canCloturer,
+    isCloturant,
+    handleCloturerCreneau,
     updateWave,
     waveManquants,
     lignesAValider,

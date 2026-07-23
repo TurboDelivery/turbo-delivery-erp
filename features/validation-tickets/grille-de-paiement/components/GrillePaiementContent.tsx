@@ -1,8 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { Pagination } from '@heroui/react';
-import { Lock, Send } from 'lucide-react';
+import { Lock, LockKeyhole, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import ConfirmModal from '@/components/ui/confirm-modal';
 import useGrillePaiement from '../hooks/use-grille-paiement';
 import { lotStatutLabel } from '../utils/lot-statut-label';
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
@@ -31,6 +33,9 @@ export default function GrillePaiementContent() {
     handleSoumettre,
     isValidantTout,
     handleToutValider,
+    canCloturer,
+    isCloturant,
+    handleCloturerCreneau,
     updateWave,
     waveManquants,
     lignesAValider,
@@ -59,6 +64,8 @@ export default function GrillePaiementContent() {
     handleConfirmerInclusion,
     closeInclusionRequest,
   } = useGrillePaiement();
+
+  const [cloturerOpen, setCloturerOpen] = useState(false);
 
   if (isLoading) return <GrillePaiementSkeleton />;
 
@@ -104,6 +111,19 @@ export default function GrillePaiementContent() {
               <Lock className="h-3 w-3" />
               {lotStatutLabel(lotStatut)}
             </span>
+          )}
+
+          {/* Clôture manuelle du créneau : visible tant qu'il n'est pas verrouillé.
+              Après clôture, tout ticket saisi part en Régularisation. */}
+          {canCloturer && (
+            <Button
+              onClick={() => setCloturerOpen(true)}
+              disabled={isCloturant}
+              className="flex items-center gap-2 bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-40"
+            >
+              <LockKeyhole className="h-4 w-4" />
+              {isCloturant ? 'Clôture…' : 'Clôturer le créneau'}
+            </Button>
           )}
 
           <GrillePaiementExportButton
@@ -239,6 +259,31 @@ export default function GrillePaiementContent() {
         onClose={closeInclusionRequest}
         onConfirm={handleConfirmerInclusion}
       />
+
+      {/* Confirmation de clôture manuelle du créneau. */}
+      <ConfirmModal
+        isOpen={cloturerOpen}
+        onClose={() => setCloturerOpen(false)}
+        title="Clôturer le créneau"
+        isLoading={isCloturant}
+        actions={[
+          { label: 'Annuler', variant: 'bordered', onPress: () => setCloturerOpen(false) },
+          {
+            label: 'Clôturer',
+            color: 'warning',
+            onPress: () => {
+              handleCloturerCreneau();
+              setCloturerOpen(false);
+            },
+          },
+        ]}
+      >
+        <p className="text-sm text-gray-700">
+          Le créneau sera verrouillé. Tout ticket saisi <span className="font-semibold">après</span> la
+          clôture ne sera plus comptabilisé directement : il passera par la{' '}
+          <span className="font-semibold">Régularisation</span> (circuit tickets en retard).
+        </p>
+      </ConfirmModal>
     </div>
   );
 }
