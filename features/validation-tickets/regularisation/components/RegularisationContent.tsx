@@ -4,6 +4,7 @@ import RegularisationPageHeader from './RegularisationPageHeader';
 import RegularisationQueue from './RegularisationQueue';
 import RegularisationDetail from './RegularisationDetail';
 import RegularisationTicketsTable from './RegularisationTicketsTable';
+import { RegularisationRecapPanel } from './RegularisationRecapPanel';
 import useRegularisation from '../hooks/use-regularisation';
 import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
 
@@ -52,6 +53,9 @@ export default function RegularisationContent() {
       </div>
 
       <RegularisationTicketsTable />
+
+      {/* Point par livreur + paiement des régularisations (lot contrôlé → Wave). */}
+      <RegularisationRecapPanel />
     </div>
   );
 }
