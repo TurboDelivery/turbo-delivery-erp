@@ -15,10 +15,12 @@ import {
   useAppelConfigQuery,
   useAppelsEntrantsQuery,
   useInitierAppelMutation,
+  useRejeterAppelMutation,
   useSuperviserAppelMutation,
 } from '../queries/standard.query';
 import { AppelEntrantModal } from './appel-entrant-modal';
 import { AppelWidget } from './appel-widget';
+import { PersonnelCallPanel } from './personnel-call-panel';
 
 interface SessionActive {
   session: IAppelSession;
@@ -33,10 +35,14 @@ interface SessionActive {
 interface AppelContextValue {
   /** STANDARD → livreur : lance un appel audio in-app. */
   appelerLivreur: (livreurId: string, livreurNom: string, incidentId?: string) => void;
+  /** Appel audio in-app entre membres du personnel Turbo (pair-à-pair). */
+  appelerPersonnel: (userId: string, nom: string) => void;
   /** Supervision : rejoint un appel en cours pour l'écouter (écoute seule). */
   superviser: (appelId: string, titre?: string) => void;
   /** L'utilisateur courant peut-il superviser (écouter) un appel en cours ? */
   estSuperviseur: boolean;
+  /** Les appels entre personnel sont-ils activés dans la config ? */
+  appelsPersonnelActifs: boolean;
   enAppel: boolean;
 }
 
@@ -62,12 +68,18 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   const estRepondant = !!roleKey && (config?.rolesRepondants ?? ['STANDARD']).includes(roleKey);
   const estSuperviseur = !!roleKey && (config?.rolesSuperviseurs ?? []).includes(roleKey);
 
+  const appelsPersonnelActifs = !!config?.appelsPersonnelActifs;
+
   const queryClient = useQueryClient();
   const initier = useInitierAppelMutation();
   const accepter = useAccepterAppelMutation();
   const superviserMut = useSuperviserAppelMutation();
+  const rejeter = useRejeterAppelMutation();
 
   const [active, setActive] = useState<SessionActive | null>(null);
+  // Appel PAIR entrant détecté par SOCKET (le poll ne couvre que les appels vers
+  // STANDARD). {appelId, appelantNom} tant qu'il sonne chez moi.
+  const [pairEntrant, setPairEntrant] = useState<{ appelId: string; appelantNom: string } | null>(null);
   // Ref vers l'appel actif pour le lire dans le handler socket (closure figée).
   const activeRef = useRef<SessionActive | null>(null);
   useEffect(() => {
@@ -163,6 +175,34 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
     [agentId, agentNom, active, initier],
   );
 
+  const appelerPersonnel = useCallback(
+    (userId: string, nom: string) => {
+      if (!agentId || active || initier.isPending) return;
+      initier.mutate(
+        {
+          appelantId: agentId,
+          appelantType: 'PERSONNEL',
+          appeleId: userId,
+          appeleType: 'PERSONNEL',
+          contexte: 'PAIR_VERS_PAIR',
+          // Le backend ne résout pas les noms d'utilisateurs ERP par id → on les fournit.
+          appelantNom: agentNom,
+          appeleNom: nom,
+        },
+        {
+          onSuccess: (s) =>
+            setActive({
+              session: s,
+              interlocuteur: s.appeleNom || nom,
+              moiNom: agentNom,
+              sortant: true,
+            }),
+        },
+      );
+    },
+    [agentId, agentNom, active, initier],
+  );
+
   const superviser = useCallback(
     (appelId: string, titre?: string) => {
       if (!agentId || active || superviserMut.isPending) return;
@@ -188,7 +228,7 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
     if (!agentId) return;
     const channel = `/notification/erp/${agentId}`;
     const onNotif = (raw: unknown) => {
-      let d: { type?: string; lien?: string | null } | null = null;
+      let d: { type?: string; lien?: string | null; message?: string | null } | null = null;
       try {
         d = typeof raw === 'string' ? JSON.parse(raw) : (raw as typeof d);
       } catch {
@@ -197,21 +237,31 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
       const type = String(d?.type ?? '');
       const appelId = d?.lien ?? undefined;
 
-      if (type === 'APPEL_ENTRANT_LIVREUR' || type === 'APPEL_ACCEPTE') {
+      if (type === 'APPEL_ENTRANT_PAIR') {
+        // Appel PAIR entrant ciblé sur MOI (pas de poll pour ce cas) : on fait
+        // sonner directement depuis le socket. Nom appelant = message « X vous appelle ».
+        if (appelId && !activeRef.current) {
+          const nom = String(d?.message ?? '').replace(/\s*vous appelle\.?$/i, '').trim() || 'Personnel Turbo';
+          setPairEntrant({ appelId, appelantNom: nom });
+        }
+      } else if (type === 'APPEL_ENTRANT_LIVREUR' || type === 'APPEL_ACCEPTE') {
         // Entrant : fait sonner plus vite. Accepté (par un AUTRE répondant) :
         // coupe la sonnerie ici sur-le-champ (l'appel sort du poll des SONNE).
         queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() });
       } else if (type === 'APPEL_REJETE') {
-        // L'appelé (livreur) a refusé : on ferme le widget côté appelant + raison.
+        // L'appelé a refusé : on ferme le widget côté appelant + raison.
         if (appelId && activeRef.current?.session.appelId === appelId) {
           toast.info('Appel refusé', {
             description: `${activeRef.current.interlocuteur} a refusé l'appel.`,
           });
         }
         if (appelId) setActive((a) => (a?.session.appelId === appelId ? null : a));
+        setPairEntrant((p) => (p && p.appelId === appelId ? null : p));
         queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() });
       } else if (type === 'APPEL_TERMINE' || type === 'APPEL_ANNULE' || type === 'APPEL_MANQUE') {
         if (appelId) setActive((a) => (a?.session.appelId === appelId ? null : a));
+        // L'appelant a annulé / timeout : on retire la sonnerie PAIR entrante.
+        setPairEntrant((p) => (p && p.appelId === appelId ? null : p));
         queryClient.invalidateQueries({ queryKey: standardKeys.appelsEntrants() });
       }
     };
@@ -246,12 +296,34 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // ── Appel PAIR entrant (ciblé sur moi) : décroché / refus DIRECTS (pas de groupe) ──
+  const accepterPair = () => {
+    if (!pairEntrant || !agentId || accepter.isPending) return;
+    accepter.mutate(
+      { id: pairEntrant.appelId, dto: { appeleId: agentId, appeleNom: agentNom } },
+      {
+        onSuccess: (s) => {
+          setPairEntrant(null);
+          setActive({ session: s, interlocuteur: pairEntrant.appelantNom || s.appelantNom, moiNom: agentNom });
+        },
+      },
+    );
+  };
+  const refuserPair = () => {
+    if (!pairEntrant) return;
+    // Appel direct : le refus REJETTE réellement (l'appelant est prévenu).
+    rejeter.mutate(pairEntrant.appelId);
+    setPairEntrant(null);
+  };
+
   return (
     <AppelContext.Provider
       value={{
         appelerLivreur,
+        appelerPersonnel,
         superviser,
         estSuperviseur,
+        appelsPersonnelActifs,
         // « Occupé » inclut la fenêtre de LANCEMENT (mutation en vol) : sans ça, les
         // boutons « Appeler » restaient cliquables tant que la session n'existait pas.
         enAppel: !!active || initier.isPending || accepter.isPending || superviserMut.isPending,
@@ -268,6 +340,17 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
           enCours={accepter.isPending}
         />
       )}
+      {/* Appel PAIR entrant (priorité au poll STANDARD s'il y en a un). */}
+      {pairEntrant && !entrant && !active && (
+        <AppelEntrantModal
+          titre="Appel entrant"
+          appelantNom={pairEntrant.appelantNom}
+          sousTitre="Personnel Turbo · appel in-app"
+          onAccepter={accepterPair}
+          onRefuser={refuserPair}
+          enCours={accepter.isPending}
+        />
+      )}
       {active && (
         <AppelWidget
           session={active.session}
@@ -278,6 +361,8 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
           onClose={() => setActive(null)}
         />
       )}
+      {/* Bouton + panneau d'appel du personnel (gaté sur la config, non affiché sinon). */}
+      <PersonnelCallPanel />
     </AppelContext.Provider>
   );
 }

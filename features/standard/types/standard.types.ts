@@ -3,7 +3,7 @@
 
 export type StatutIncident = 'RECU' | 'EN_COURS' | 'TRAITE' | 'CLOTURE';
 
-export type ActeurAppel = 'LIVREUR' | 'STANDARD';
+export type ActeurAppel = 'LIVREUR' | 'STANDARD' | 'PERSONNEL';
 
 export type ContexteAppel = 'LIVREUR_VERS_STANDARD' | 'STANDARD_VERS_LIVREUR' | 'PAIR_VERS_PAIR';
 
@@ -111,6 +111,9 @@ export interface IInitierAppel {
   contexte: ContexteAppel;
   incidentId?: string | null;
   appeleTelephone?: string | null;
+  /** Noms fournis par le front (appels PERSONNEL : le backend ne résout pas les ids ERP). */
+  appelantNom?: string | null;
+  appeleNom?: string | null;
 }
 
 /** Acceptation d'un appel entrant (AccepterAppelDto backend). */
