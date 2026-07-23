@@ -146,6 +146,10 @@ export interface IAppelEntrant {
 export interface IAppelConfig {
   rolesRepondants: string[];
   rolesSuperviseurs: string[];
+  /** Appels audio in-app entre membres du personnel Turbo (pair-à-pair). */
+  appelsPersonnelActifs?: boolean;
+  /** Partage d'écran pendant les appels du personnel Turbo. */
+  partageEcranActif?: boolean;
 }
 
 /** Appel EN COURS (AppelEnCoursVm backend) — supervision. */

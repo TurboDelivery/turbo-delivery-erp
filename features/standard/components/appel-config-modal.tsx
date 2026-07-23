@@ -11,8 +11,9 @@ import {
   ModalFooter,
   ModalHeader,
   Spinner,
+  Switch,
 } from '@heroui/react';
-import { PhoneIncoming } from 'lucide-react';
+import { MonitorUp, PhoneIncoming, Users } from 'lucide-react';
 
 import { APP_ROLES, type AppRole } from '@/lib/casl/ability';
 
@@ -59,19 +60,29 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
   const modifier = useModifierAppelConfigMutation();
   const [repondants, setRepondants] = useState<string[]>([]);
   const [superviseurs, setSuperviseurs] = useState<string[]>([]);
+  const [appelsPersonnel, setAppelsPersonnel] = useState(false);
+  const [partageEcran, setPartageEcran] = useState(false);
 
   useEffect(() => {
     // (Ré)initialise les sélections à l'ouverture, depuis la config serveur.
     if (isOpen && config) {
       setRepondants(config.rolesRepondants);
       setSuperviseurs(config.rolesSuperviseurs ?? []);
+      setAppelsPersonnel(!!config.appelsPersonnelActifs);
+      setPartageEcran(!!config.partageEcranActif);
     }
   }, [isOpen, config]);
 
   const enregistrer = () => {
     if (repondants.length === 0) return;
     modifier.mutate(
-      { rolesRepondants: repondants, rolesSuperviseurs: superviseurs },
+      {
+        rolesRepondants: repondants,
+        rolesSuperviseurs: superviseurs,
+        appelsPersonnelActifs: appelsPersonnel,
+        // Le partage d'écran n'a de sens que si les appels personnel sont actifs.
+        partageEcranActif: appelsPersonnel && partageEcran,
+      },
       { onSuccess: () => onOpenChange(false) },
     );
   };
@@ -133,6 +144,49 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
                         </Checkbox>
                       ))}
                     </CheckboxGroup>
+                  </div>
+
+                  {/* Appels entre personnel Turbo (pair-à-pair) + partage d'écran. */}
+                  <div className="rounded-xl border border-default-200 p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-1.5 text-sm font-semibold text-default-700">
+                          <Users className="h-4 w-4 text-primary" /> Appels entre personnel Turbo
+                        </p>
+                        <p className="mt-0.5 text-xs text-default-400">
+                          Autorise les appels audio in-app entre membres du personnel (en plus du
+                          circuit Standard ↔ livreur).
+                        </p>
+                      </div>
+                      <Switch
+                        size="sm"
+                        isSelected={appelsPersonnel}
+                        onValueChange={setAppelsPersonnel}
+                        aria-label="Activer les appels entre personnel Turbo"
+                      />
+                    </div>
+
+                    <div
+                      className={`mt-3 flex items-start justify-between gap-3 border-t border-default-100 pt-3 ${
+                        appelsPersonnel ? '' : 'opacity-50'
+                      }`}
+                    >
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-1.5 text-sm font-semibold text-default-700">
+                          <MonitorUp className="h-4 w-4 text-primary" /> Partage d&apos;écran
+                        </p>
+                        <p className="mt-0.5 text-xs text-default-400">
+                          Autorise le partage d&apos;écran pendant les appels du personnel.
+                        </p>
+                      </div>
+                      <Switch
+                        size="sm"
+                        isSelected={appelsPersonnel && partageEcran}
+                        isDisabled={!appelsPersonnel}
+                        onValueChange={setPartageEcran}
+                        aria-label="Activer le partage d'écran pendant les appels du personnel"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
