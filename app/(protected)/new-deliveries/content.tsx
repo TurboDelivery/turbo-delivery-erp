@@ -1,97 +1,108 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
+import dayjs from 'dayjs';
+import { Chip, Pagination, Skeleton } from '@heroui/react';
+
 import { PaginatedResponse } from '@/types';
 import { Restaurant } from '@/types/models';
-import { useState, useEffect } from 'react';
-import { title } from '@/components/primitives';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
-import { Card, CardBody, CardHeader, Pagination } from "@heroui/react";
 import { getPaginationCourseExterneJournaliere } from '@/src/actions/courses.actions';
 import CourseJournaliere from '../external_delivery/component/course-journaliere';
 
 interface Props {
-    data: PaginatedResponse<Restaurant> | null;
+  data: PaginatedResponse<Restaurant> | null;
 }
 
-export default function Content({ data }: Props) {
-    const [pageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [restaurants, setRestaurants] = useState<Restaurant[]>(data?.content ?? []);
+/**
+ * Point du jour, restaurant par restaurant : combien de courses sont encore en
+ * cours et combien sont terminées. Rafraîchi automatiquement toutes les 30 s.
+ */
+export default function Content({ data: initialData }: Props) {
+  const [pageSize] = useState(12);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [data, setData] = useState<PaginatedResponse<Restaurant> | null>(initialData);
+  const [isLoading, setIsLoading] = useState(false);
 
+  const restaurants = data?.content ?? [];
+  const totalEnCours = useMemo(
+    () => restaurants.reduce((s, r) => s + (r.coursesEnCours ?? 0), 0),
+    [restaurants],
+  );
 
-    // Refresh auto toutes les 15s
-    // useEffect(() => {
-    //     const refreshInterval = setInterval(() => {
-    //         fetchData(currentPage);
-    //     }, 15000);
+  const fetchData = async (page: number) => {
+    setCurrentPage(page);
+    setIsLoading(true);
+    try {
+      const newData = await getPaginationCourseExterneJournaliere(page - 1, pageSize);
+      setData(newData);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    //     return () => clearInterval(refreshInterval);
-    // }, [currentPage]);
+  // Rafraîchissement silencieux toutes les 30 s (supervision du jour).
+  useEffect(() => {
+    const id = setInterval(async () => {
+      try {
+        const newData = await getPaginationCourseExterneJournaliere(currentPage - 1, pageSize);
+        setData(newData);
+      } catch {
+        /* silencieux */
+      }
+    }, 30000);
+    return () => clearInterval(id);
+  }, [currentPage, pageSize]);
 
-    const fetchData = async (page: number) => {
-        setCurrentPage(page);
-        try {
-            const newData = await getPaginationCourseExterneJournaliere(page - 1, pageSize);
-            setRestaurants(newData?.content ?? []);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-    };
-
-    return (
-        <div className="w-full h-full pb-10">
-            <div className="flex items-center justify-between mb-4">
-                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Nouvelles courses</h1>
-            </div>
-
-            <div>
-                {data?.content.length ? (
-                    <>
-                        <Card className={`w-full bg-white shadow-md rounded-md`}>
-                            <CardHeader>
-                                <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 sm:pt-6">
-                                    {/* Info de page (facultatif, mais UX ++ sur mobile) */}
-                                    <span className="text-sm text-gray-600 text-center sm:text-left whitespace-nowrap">
-                                        Page <span className="font-semibold text-gray-800">{currentPage ?? 1}</span> /{" "}
-                                        <span className="font-semibold text-gray-800">{data?.totalPages ?? 1}</span>
-                                    </span>
-
-
-                                    {/* Pagination principale */}
-                                    <div className="flex justify-center sm:justify-end w-full">
-                                        <Pagination
-                                            total={data?.totalPages ?? 1}
-                                            page={currentPage}
-                                            onChange={fetchData}
-                                            showControls
-                                            size="md"
-                                            color="primary"
-                                            classNames={{
-                                                item: "rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-red-50 hover:border-red-400 transition-colors duration-150",
-                                                cursor: "rounded-md bg-red-600 text-white border-red-600 hover:bg-red-700",
-                                                next: "rounded-md bg-gray-50 hover:bg-gray-100",
-                                                prev: "rounded-md bg-gray-50 hover:bg-gray-100",
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </CardHeader>
-                            <CardBody className="py-3">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                    {restaurants.map((restaurant) => (
-                                        <CourseJournaliere key={restaurant.id} restaurant={restaurant} />
-                                    ))}
-                                </div>
-                            </CardBody>
-                        </Card>
-                    </>
-                ) : (
-                    <EmptyDataTable
-                        title="Aucune Course Trouvée"
-                        message="Aucune course ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
-                    />
-                )}
-            </div>
+  return (
+    <div className="w-full h-full pb-10 flex flex-col gap-5">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Courses journalières</h1>
+          <p className="text-sm text-gray-500 mt-0.5 capitalize">
+            {dayjs().format('dddd DD/MM/YYYY')} — point par restaurant partenaire
+          </p>
         </div>
-    );
+        <Chip color={totalEnCours > 0 ? 'warning' : 'success'} variant="flat">
+          {totalEnCours > 0 ? `${totalEnCours} course${totalEnCours > 1 ? 's' : ''} à suivre` : 'Tout est à jour'}
+        </Chip>
+      </div>
+
+      {/* Grille des restaurants */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
+            <Skeleton key={i} className="rounded-xl h-36" />
+          ))}
+        </div>
+      ) : restaurants.length ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {restaurants.map((restaurant) => (
+            <CourseJournaliere key={restaurant.restaurantId} restaurant={restaurant} />
+          ))}
+        </div>
+      ) : (
+        <EmptyDataTable
+          title="Aucune course aujourd'hui"
+          message="Les restaurants ayant émis des courses aujourd'hui apparaîtront ici avec leur point en cours / terminées."
+        />
+      )}
+
+      {/* Pagination */}
+      {(data?.totalPages ?? 0) > 1 && (
+        <div className="flex justify-center mt-2 w-full">
+          <Pagination
+            total={data?.totalPages ?? 1}
+            page={currentPage}
+            onChange={fetchData}
+            showControls
+            color="primary"
+            variant="bordered"
+            isDisabled={isLoading}
+          />
+        </div>
+      )}
+    </div>
+  );
 }

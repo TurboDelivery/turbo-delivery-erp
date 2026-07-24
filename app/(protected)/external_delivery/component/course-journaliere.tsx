@@ -2,80 +2,69 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { Button, Chip } from '@heroui/react';
+import { ArrowRight, CheckCircle2, Store } from 'lucide-react';
 import { Restaurant } from '@/types/models';
 
-
+const AVATAR_COLORS = [
+  'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
+  'bg-green-500', 'bg-teal-500', 'bg-blue-500', 'bg-indigo-500',
+  'bg-purple-500', 'bg-pink-500',
+];
 
 interface CourseJournaliereProps {
-    restaurant: Restaurant;
+  restaurant: Restaurant;
 }
 
+/**
+ * Carte du point journalier d'un restaurant : courses encore en cours (à suivre)
+ * et terminées aujourd'hui, avec accès direct à ses courses.
+ */
 const CourseJournaliere: React.FC<CourseJournaliereProps> = ({ restaurant: r }) => {
-    // 🔹 Détermination automatique du statut
-    let status: 'danger' | 'success' | 'neutral' = 'neutral';
-    if (r.coursesEnCours >= 1) status = 'danger';
-    else if (r.coursesTerminees >= 1 && r.coursesEnCours === 0) status = 'success';
+  const enCours = r.coursesEnCours ?? 0;
+  const terminees = r.coursesTerminees ?? 0;
+  const nom = r.nomRestaurant ?? '—';
+  const color = AVATAR_COLORS[(nom.charCodeAt(0) || 0) % AVATAR_COLORS.length];
+  const aSuivre = enCours > 0;
 
-    return (
-        <div
-            key={r.restaurantId}
-            className={`
-        rounded-2xl shadow-md flex flex-col justify-between items-center 
-        bg-gray-50 border border-gray-200 
-        transition-all duration-200 hover:shadow-lg hover:scale-[1.02]
-      `}
-        >
-            {/* Zone d’état (icônes / alertes) */}
-            <div className="grid grid-cols-4 gap-2 m-4 justify-items-center flex-1">
-                {/* Pastilles jaunes pour les courses en cours */}
-                {r.coursesEnCours > 0 &&
-                    Array.from({ length: r.coursesEnCours }).map((_, idx) => (
-                        <span
-                            key={`en-cours-${idx}`}
-                            className="w-10 h-10 flex items-center justify-center bg-yellow-400 rounded-full text-red-600 font-bold text-md"
-                        >
-                            !
-                        </span>
-                    ))}
-
-                {/* Pastilles vertes pour les courses terminées (uniquement si coursesEnCours = 0) */}
-                {r.coursesEnCours === 0 && r.coursesTerminees > 0 &&
-                    Array.from({ length: r.coursesTerminees }).map((_, idx) => (
-                        <span
-                            key={`terminees-${idx}`}
-                            className="w-10 h-10 flex items-center justify-center bg-green-600 rounded-full text-white font-bold text-md"
-                        >
-                            ✔
-                        </span>
-                    ))}
-            </div>
-
-
-            {/* Nom du restaurant (lien cliquable) */}
-            <Link
-                href={`/external_delivery/restaurant/${r.restaurantId}`}
-                className={`
-          font-semibold w-full h-10 flex items-center justify-between 
-          rounded-xl px-4 text-xs md:text-sm lg:text-base border-t
-          transition-colors duration-200
-          ${status === 'danger'
-                        ? 'bg-red-100 border-red-500 text-red-800 hover:bg-red-200'
-                        : status === 'success'
-                            ? 'bg-green-100 border-green-500 text-green-800 hover:bg-green-200'
-                            : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'}
-        `}
-            >
-                {/* 🏷️ Nom du restaurant */}
-                <span className="truncate">{r.nomRestaurant}</span>
-
-                {/* 🟡 Icône ronde à droite */}
-                <span
-                    className={`w-3.5 h-3.5 md:w-4 md:h-4 rounded-full ${status === 'danger' ? 'bg-yellow-400' : 'bg-gray-300'
-                        }`}
-                ></span>
-            </Link>
+  return (
+    <div
+      className={`bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow p-4 flex flex-col gap-3 ${
+        aSuivre ? 'border-amber-200' : 'border-gray-100'
+      }`}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <div className={`w-9 h-9 rounded-full ${color} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
+          {nom[0]?.toUpperCase() ?? <Store className="w-4 h-4" />}
         </div>
-    );
+        <p className="font-semibold text-sm text-gray-900 truncate" title={nom}>
+          {nom}
+        </p>
+        {aSuivre && <span className="ml-auto w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" />}
+      </div>
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <Chip size="sm" variant="flat" color={aSuivre ? 'warning' : 'default'}>
+          {enCours} en cours
+        </Chip>
+        <Chip size="sm" variant="flat" color={terminees > 0 ? 'success' : 'default'} startContent={terminees > 0 ? <CheckCircle2 className="w-3 h-3" /> : undefined}>
+          {terminees} terminée{terminees > 1 ? 's' : ''}
+        </Chip>
+      </div>
+
+      <Button
+        as={Link}
+        href={`/external_delivery/restaurant/${r.restaurantId}`}
+        size="sm"
+        variant={aSuivre ? 'flat' : 'light'}
+        color={aSuivre ? 'primary' : 'default'}
+        className="justify-between"
+        endContent={<ArrowRight className="w-4 h-4" />}
+      >
+        Voir les courses
+      </Button>
+    </div>
+  );
 };
 
 export default CourseJournaliere;
