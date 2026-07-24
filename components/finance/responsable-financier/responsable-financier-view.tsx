@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -12,10 +12,14 @@ import {
   Skeleton,
   Select,
   SelectItem,
+  Checkbox,
 } from '@heroui/react';
+import type { ColumnDef } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import Link from 'next/link';
 import { TrendingUp, FileText, Users, Percent } from 'lucide-react';
+import BulkActionsBar from './bulk-actions-bar';
+import type { IActionsGroupeesFiltres } from '@/features/responsable-financier/types/responsable-financier.types';
 import type { DateRange } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
 import { createResponsableFinancierColumns, getStatutConfig, formatMontant, type IFactureRF } from './responsable-financier-columns';
@@ -74,24 +78,96 @@ export default function ResponsableFinancierView() {
   const [factureRecouvrement, setFactureRecouvrement] = useState<IFactureRF | null>(null);
   const [factureDepotBanque, setFactureDepotBanque] = useState<IFactureRF | null>(null);
 
+  // ── Sélection pour les actions groupées ──
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectAllMatching, setSelectAllMatching] = useState(false);
+
+  const toggleRow = (id: string) => {
+    setSelectAllMatching(false);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setSelectAllMatching(false);
+  };
+
   const confirmerReceptionMutation = useConfirmerReceptionComptableMutation();
 
-  const columns = useMemo(
-    () => createResponsableFinancierColumns(
-      (facture) => setFactureAValider(facture),
-      (facture) => setFactureRecouvrement(facture),
-      (facture) => setFactureDepotBanque(facture),
-      // 2026-05 (fix post-test mardi) — D3 : Comptable confirme physiquement
-      // la réception des fonds versés par le caissier. Click direct (pas de
-      // modal), c'est une simple confirmation idempotente. La sécurité reste
-      // côté backend qui vérifie le statut autorisé et renvoie 400 sinon.
-      (facture) => confirmerReceptionMutation.mutate(facture.id),
-    ),
-    [confirmerReceptionMutation],
+  const selectColumn: ColumnDef<IFactureRF> = useMemo(
+    () => ({
+      id: '__select',
+      header: () => <span className="sr-only">Sélection</span>,
+      cell: ({ row }) => (
+        <Checkbox
+          aria-label={`Sélectionner ${row.original.numero}`}
+          isSelected={selectAllMatching || selectedIds.has(row.original.id)}
+          isDisabled={selectAllMatching}
+          onValueChange={() => toggleRow(row.original.id)}
+        />
+      ),
+      enableSorting: false,
+    }),
+    [selectedIds, selectAllMatching],
   );
 
-  const { table, filters, setFilters, isLoading, totalPages } =
+  const columns = useMemo(
+    () => [
+      selectColumn,
+      ...createResponsableFinancierColumns(
+        (facture) => setFactureAValider(facture),
+        (facture) => setFactureRecouvrement(facture),
+        (facture) => setFactureDepotBanque(facture),
+        // 2026-05 (fix post-test mardi) — D3 : Comptable confirme physiquement
+        // la réception des fonds versés par le caissier. Click direct (pas de
+        // modal), c'est une simple confirmation idempotente. La sécurité reste
+        // côté backend qui vérifie le statut autorisé et renvoie 400 sinon.
+        (facture) => confirmerReceptionMutation.mutate(facture.id),
+      ),
+    ],
+    [confirmerReceptionMutation, selectColumn],
+  );
+
+  const { table, filters, setFilters, isLoading, totalPages, totalElements } =
     useResponsableFinancierTable(columns);
+
+  // Ids de la page courante + états de la case « page ».
+  const pageIds = table.getRowModel().rows.map((r) => r.original.id);
+  const pageSelectedCount = pageIds.filter((id) => selectedIds.has(id)).length;
+  const allPageSelected = pageIds.length > 0 && pageSelectedCount === pageIds.length;
+  const somePageSelected = pageSelectedCount > 0 && !allPageSelected;
+
+  const togglePage = () => {
+    setSelectAllMatching(false);
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allPageSelected) pageIds.forEach((id) => next.delete(id));
+      else pageIds.forEach((id) => next.add(id));
+      return next;
+    });
+  };
+
+  // La sélection ne doit jamais survivre à un changement de filtre / de page.
+  useEffect(() => {
+    clearSelection();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.statut, filters.cycle, filters.restaurantId, filters.dateDebut, filters.dateFin, filters.page]);
+
+  const bulkFiltres: IActionsGroupeesFiltres = useMemo(
+    () => ({
+      periode: 'plage',
+      debut: filters.dateDebut ? filters.dateDebut.toISOString().split('T')[0] : undefined,
+      fin: filters.dateFin ? filters.dateFin.toISOString().split('T')[0] : undefined,
+      statut: filters.statut || 'Tous',
+      cycle: filters.cycle && filters.cycle !== 'TOUT' ? filters.cycle : undefined,
+      restaurantId: filters.restaurantId || undefined,
+    }),
+    [filters],
+  );
 
   const statsParams = useMemo((): IFactureRFParams => ({
     periode: 'plage',
@@ -241,6 +317,35 @@ export default function ResponsableFinancierView() {
           </div>
         </div>
       </div>
+
+      {/* Barre de sélection (desktop) */}
+      {!isLoading && pageIds.length > 0 && (
+        <div className="hidden md:flex items-center gap-4 text-sm px-1 -mb-2">
+          <Checkbox
+            isSelected={allPageSelected || selectAllMatching}
+            isIndeterminate={somePageSelected && !selectAllMatching}
+            onValueChange={togglePage}
+          >
+            <span className="text-gray-600">Sélectionner la page</span>
+          </Checkbox>
+          {allPageSelected && !selectAllMatching && totalElements > pageIds.length && (
+            <button
+              onClick={() => setSelectAllMatching(true)}
+              className="text-primary font-medium hover:underline"
+            >
+              Sélectionner les {totalElements} factures de toutes les pages
+            </button>
+          )}
+          {selectAllMatching && (
+            <span className="text-gray-600">
+              Les <b>{totalElements}</b> factures du filtre sont sélectionnées ·{' '}
+              <button onClick={clearSelection} className="text-primary font-medium hover:underline">
+                Effacer
+              </button>
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Table — desktop uniquement (≥ md) */}
       <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
@@ -394,6 +499,15 @@ export default function ResponsableFinancierView() {
           depotBanqueMutation.mutate({ id: facture.id, data });
           setFactureDepotBanque(null);
         }}
+      />
+
+      {/* Actions groupées (barre flottante) */}
+      <BulkActionsBar
+        selectedIds={Array.from(selectedIds)}
+        selectAllMatching={selectAllMatching}
+        totalElements={totalElements}
+        filtres={bulkFiltres}
+        onClear={clearSelection}
       />
     </div>
   );

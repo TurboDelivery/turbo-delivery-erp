@@ -180,3 +180,40 @@ export interface IFactureRFListResponse {
   factures: PaginatedResponse<IFactureRF>;
 }
 
+
+// ─── Actions groupées ──────────────────────────────────────────────────────────
+
+/** Actions applicables en masse (sans saisie par facture). */
+export type ActionGroupee =
+  | 'VALIDER'
+  | 'RECOUVREMENT'
+  | 'VISER_DGA'
+  | 'REJETER_DGA'
+  | 'CONFIRMER_RECEPTION';
+
+/** Filtres courants transmis quand on cible « tout » (toutes les pages). */
+export interface IActionsGroupeesFiltres {
+  periode?: string;
+  debut?: string;
+  fin?: string;
+  statut?: string;
+  cycle?: string;
+  restaurantId?: string;
+}
+
+export interface IActionsGroupeesRequest {
+  action: ActionGroupee;
+  selectAll: boolean;
+  ids?: string[];
+  filtres?: IActionsGroupeesFiltres;
+  agentId?: string; // requis pour RECOUVREMENT
+  motif?: string; // requis pour REJETER_DGA
+}
+
+export interface IActionsGroupeesResultat {
+  action: string;
+  cible: number;
+  traitees: number;
+  nonTraitees: number;
+  details: { factureId: string; raison: string }[];
+}

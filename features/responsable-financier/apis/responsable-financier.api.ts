@@ -1,6 +1,8 @@
 import { api } from '@/lib/api';
 import { SearchParams } from 'ak-api-http';
 import {
+  IActionsGroupeesRequest,
+  IActionsGroupeesResultat,
   IAgentRecouvrement,
   IAjouterPreuveDTO,
   IDepotBanqueDTO,
@@ -50,6 +52,7 @@ export interface IResponsableFinancierApi {
   // Émet un event d'historique + notif DGA + DG (sans changer le statut).
   confirmerReceptionComptable(id: string, userId?: string): Promise<IFactureRFStatutVm>;
   obtenirAgents(): Promise<IAgentRecouvrement[]>;
+  actionsGroupees(body: IActionsGroupeesRequest, userId?: string): Promise<IActionsGroupeesResultat>;
 }
 
 export const responsableFinancierAPI: IResponsableFinancierApi = {
@@ -143,6 +146,15 @@ export const responsableFinancierAPI: IResponsableFinancierApi = {
     return api.request<IAgentRecouvrement[]>({
       endpoint: 'finance/responsable-financier/agents',
       method: 'GET',
+    });
+  },
+
+  actionsGroupees(body: IActionsGroupeesRequest, userId?: string): Promise<IActionsGroupeesResultat> {
+    return api.request<IActionsGroupeesResultat>({
+      endpoint: 'finance/responsable-financier/factures/actions-groupees',
+      method: 'POST',
+      data: body,
+      config: withUserHeader(userId),
     });
   },
 };

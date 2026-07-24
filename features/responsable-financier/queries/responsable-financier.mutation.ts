@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { responsableFinancierAPI } from '../apis/responsable-financier.api';
 import {
+  IActionsGroupeesRequest,
   IAjouterPreuveDTO,
   IDepotBanqueDTO,
   IDepotPartenaireDTO,
@@ -39,6 +40,41 @@ function useCurrentUserId(): string | undefined {
   const { data: session } = useSession();
   return (session?.user as { id?: string } | undefined)?.id;
 }
+
+// ─── Actions groupées ───────────────────────────────────────────────────────────
+
+/**
+ * Action groupée sur une sélection de factures (ou toutes celles du filtre
+ * courant). Le backend n'applique l'action qu'aux factures dont le statut le
+ * permet et renvoie le détail des non traitées → on résume dans un toast.
+ */
+export const useActionsGroupeesMutation = () => {
+  const invalidate = useInvalidateFacturesRFQuery();
+  const userId = useCurrentUserId();
+
+  return useMutation({
+    mutationFn: (body: IActionsGroupeesRequest) => responsableFinancierAPI.actionsGroupees(body, userId),
+    onSuccess: async (res) => {
+      await invalidate();
+      if (res.traitees > 0 && res.nonTraitees === 0) {
+        toast.success(`${res.traitees} facture(s) traitée(s)`);
+      } else if (res.traitees > 0) {
+        toast.success(`${res.traitees} traitée(s)`, {
+          description: `${res.nonTraitees} non traitée(s) (statut non compatible ou erreur).`,
+        });
+      } else {
+        toast.warning('Aucune facture traitée', {
+          description: `${res.nonTraitees} facture(s) au statut non compatible avec cette action.`,
+        });
+      }
+    },
+    onError: (error) => {
+      toast.error("Échec de l'action groupée", {
+        description: error instanceof Error ? error.message : 'Erreur inconnue',
+      });
+    },
+  });
+};
 
 // ─── Valider une facture ───────────────────────────────────────────────────────
 
