@@ -12,6 +12,8 @@ export const restaurantFiltersClient = {
     telephone: parseAsString.withDefault(''),
     commune: parseAsString.withDefault(''),
     methodRecouvrement: parseAsString.withDefault(''),
+    // Vue par état du compte : '' (tous) | 'valides' | 'partiels' | 'nouveaux' | 'inactifs'
+    statut: parseAsString.withDefault(''),
   },
   options: {
     shallow: true,

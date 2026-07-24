@@ -19,7 +19,8 @@ import {
 } from '@heroui/react';
 import { ChevronDown, ChevronUp, Download, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useRestaurantTable } from '@/features/restaurants/hooks/use-restaurant-table';
-import { RestaurantStatsSection } from '@/components/restaurants/restaurant-stats-section';
+import { useRestaurantStatusCountsQuery } from '@/features/restaurants/queries/restaurant-list.query';
+import { StatCard } from '@/features/men/components/stat-card';
 import { RestaurantMobileCard, RestaurantMobileCardList } from '@/components/restaurants/restaurant-mobile-card';
 import { StatusChip, ActionsMenu } from '@/components/restaurants/table/restaurant-table-columns';
 
@@ -38,16 +39,26 @@ const TYPE_OPTIONS = [
   { label: 'Quinzaine', value: 'QUINZAINE' },
 ];
 
+/** Vues par état du compte (cartes cliquables — même code que le backend). */
+type VueStatut = '' | 'valides' | 'partiels' | 'nouveaux' | 'inactifs';
+
 export default function Content() {
   const { table, isLoading, isFetching, pagination, filters, setSearch, setFilters, handleExport, isExporting } = useRestaurantTable();
+  const { data: counts } = useRestaurantStatusCountsQuery();
   const colsCount = table.getAllColumns().length;
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const vue = (filters.statut ?? '') as VueStatut;
+  const setVue = (statut: VueStatut) => setFilters((prev) => ({ ...prev, statut, page: 0 }));
 
   return (
     <div className="w-full pb-10 flex flex-col gap-6">
       {/* ── Header ── */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-primary">Partenaires</h1>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Partenaires ({counts?.total ?? '…'})</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Gérez tous vos partenaires en un seul endroit</p>
+        </div>
         <div className="flex items-center gap-3">
           <Button variant="bordered" startContent={<Download className="w-4 h-4" />} size="sm" onPress={handleExport} isLoading={isExporting}>
             Exporter
@@ -58,8 +69,40 @@ export default function Content() {
         </div>
       </div>
 
-      {/* ── Stats ── */}
-      <RestaurantStatsSection />
+      {/* ── Cartes par état du compte (cliquables — filtrent le tableau) ── */}
+      <div className="grid grid-cols-2 gap-4 w-full sm:grid-cols-3 lg:grid-cols-5">
+        <StatCard
+          label="Tous les partenaires"
+          value={counts?.total ?? 0}
+          highlight
+          isActive={vue === ''}
+          onClick={() => setVue('')}
+        />
+        <StatCard
+          label="Validés"
+          value={counts?.valides ?? 0}
+          isActive={vue === 'valides'}
+          onClick={() => setVue('valides')}
+        />
+        <StatCard
+          label="Partiellement validés"
+          value={counts?.partiels ?? 0}
+          isActive={vue === 'partiels'}
+          onClick={() => setVue('partiels')}
+        />
+        <StatCard
+          label="Nouveaux (30 j)"
+          value={counts?.nouveaux ?? 0}
+          isActive={vue === 'nouveaux'}
+          onClick={() => setVue('nouveaux')}
+        />
+        <StatCard
+          label="Inactifs"
+          value={counts?.inactifs ?? 0}
+          isActive={vue === 'inactifs'}
+          onClick={() => setVue('inactifs')}
+        />
+      </div>
 
       {/* ── Search + filter ── */}
       <div className="flex flex-col gap-3">
@@ -215,7 +258,7 @@ export default function Content() {
               <RestaurantMobileCard
                 key={r.id}
                 nom={r.nomEtablissement}
-                verified={r.status === 3 && !isGratuite}
+                verified={r.status != null && r.status >= 1 && !isGratuite}
                 gratuite={isGratuite}
                 statut={<StatusChip status={r.status} typeCommission={r.typeCommission} />}
                 fields={[

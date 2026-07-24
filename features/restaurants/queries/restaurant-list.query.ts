@@ -1,7 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { getRestaurantsPaginated, getRestaurantById, getRestaurantStats, deleteRestaurant, deleteRestaurantForce, toggleRestaurantStatus } from '@/features/restaurants/actions/restaurant.actions';
+import { getRestaurantsPaginated, getRestaurantById, getRestaurantStats, getRestaurantStatusCounts, deleteRestaurant, deleteRestaurantForce, toggleRestaurantStatus } from '@/features/restaurants/actions/restaurant.actions';
+import { getGrilleTarifaireApi } from '@/features/restaurants/apis/frais-livraison.api';
 import { IRestaurantParams, IRestaurantStatsParams } from '@/features/restaurants/types/restaurant.type';
 
 export const restaurantKeys = {
@@ -36,6 +37,25 @@ export const useRestaurantStatsQuery = (params: IRestaurantStatsParams, options?
     queryFn: () => getRestaurantStats(params),
     staleTime: 5 * 60 * 1000,
     enabled: options?.enabled ?? true,
+  });
+};
+
+/** Compteurs par état du compte (cartes de la page Liste). */
+export const useRestaurantStatusCountsQuery = () => {
+  return useQuery({
+    queryKey: [...restaurantKeys.all, 'status-counts'],
+    queryFn: () => getRestaurantStatusCounts(),
+    staleTime: 60 * 1000,
+  });
+};
+
+/** Grille tarifaire (zones de livraison) d'un restaurant — onglet fiche détail. */
+export const useGrilleTarifaireQuery = (restaurantId?: string) => {
+  return useQuery({
+    queryKey: [...restaurantKeys.all, 'grille-tarifaire', restaurantId ?? ''],
+    queryFn: () => getGrilleTarifaireApi(restaurantId as string),
+    enabled: !!restaurantId,
+    staleTime: 5 * 60 * 1000,
   });
 };
 

@@ -1,15 +1,6 @@
-import { getRestaurantsNoValidated } from '@/src/restaurants/restaurants.actions';
-import { Metadata } from 'next';
-import Content from './content';
-export const metadata: Metadata = {
-    title: 'Restaurants',
-};
+import { redirect } from 'next/navigation';
 
-export default async function Restaurants() {
-    const restaurants = await getRestaurantsNoValidated(0);
-
-    return (
-        <Content initialData={restaurants} />
-
-    );
+/** Page fusionnée dans la Liste unifiée des partenaires (vue « Nouveaux »). */
+export default function Restaurants() {
+  redirect('/restaurants?statut=nouveaux');
 }

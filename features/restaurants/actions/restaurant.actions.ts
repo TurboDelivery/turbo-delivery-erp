@@ -1,7 +1,7 @@
 'use server';
 
 import { apiClientHttp } from '@/lib/api-client-http';
-import { IRestaurant, IRestaurantParams, IRestaurantStatsParams, IRestaurantStatsResponse } from '@/features/restaurants/types/restaurant.type';
+import { IRestaurant, IRestaurantParams, IRestaurantStatsParams, IRestaurantStatsResponse, IRestaurantStatusCounts } from '@/features/restaurants/types/restaurant.type';
 import { PaginatedResponse } from '@/types/general';
 import axios from 'axios';
 import { auth } from '@/auth';
@@ -13,6 +13,36 @@ const RESTAURANT_EXPORT_ENDPOINT = '/api/V1/turbo/restaurant/export';
 const RESTAURANT_DETAIL_ENDPOINT = '/api/V1/turbo/restaurant';
 const RESTAURANT_STATS_ENDPOINT = '/api/V1/turbo/restaurant/stats';
 const RESTAURANT_DELETE_ENDPOINT = '/api/V1/turbo/restaurant';
+
+/**
+ * Vues par état du compte. Codes backend (RestaurantTable.status) : 0 = désactivé,
+ * 2 = partiellement validé (état legacy intermédiaire), 1/3 = compte actif normal
+ * (1 = valeur par défaut à la création et après réactivation). En données réelles,
+ * quasiment tout est à 1 → « Validés » = status ≥ 1, et « Nouveaux » est défini par
+ * la date de création (30 derniers jours), pas par un code.
+ */
+const TRENTE_JOURS_MS = 30 * 24 * 60 * 60 * 1000;
+
+function estNouveau(createdAt?: string | null): boolean {
+  if (!createdAt) return false;
+  const t = Date.parse(createdAt);
+  return Number.isFinite(t) && Date.now() - t <= TRENTE_JOURS_MS;
+}
+
+function statutMatch(vue: string, r: IRestaurant): boolean {
+  switch (vue) {
+    case 'valides':
+      return (r.status ?? 0) >= 1;
+    case 'partiels':
+      return r.status === 2;
+    case 'nouveaux':
+      return estNouveau(r.createdAt);
+    case 'inactifs':
+      return r.status === 0;
+    default:
+      return true;
+  }
+}
 
 /**
  * Récupère la liste paginée des restaurants.
@@ -49,6 +79,7 @@ export async function getRestaurantsPaginated(params: IRestaurantParams): Promis
       if (telephone && !norm(r.telephone).includes(telephone)) return false;
       if (commune && !norm(r.commune).includes(commune)) return false;
       if (method && norm(r.methodRecouvrement) !== method) return false;
+      if (params.statut && !statutMatch(params.statut, r)) return false;
       return true;
     });
 
@@ -216,5 +247,27 @@ export async function toggleRestaurantStatus(id: string, activate: boolean): Pro
     method: 'PATCH',
     service: 'restaurant',
   });
+}
+
+/**
+ * Compteurs par état du compte pour les cartes cliquables de la page Liste
+ * (même source que la liste : /restaurant/get/all).
+ */
+export async function getRestaurantStatusCounts(): Promise<IRestaurantStatusCounts> {
+  const all = await apiClientHttp.request<IRestaurant[]>({
+    endpoint: RESTAURANT_GET_ALL_ENDPOINT,
+    method: 'GET',
+    service: 'restaurant',
+  });
+  // Vues non exclusives : un partenaire récemment créé est aussi compté dans « Validés ».
+  const counts: IRestaurantStatusCounts = { total: 0, valides: 0, partiels: 0, nouveaux: 0, inactifs: 0 };
+  for (const r of all ?? []) {
+    counts.total += 1;
+    if ((r.status ?? 0) >= 1) counts.valides += 1;
+    if (r.status === 2) counts.partiels += 1;
+    if (estNouveau(r.createdAt)) counts.nouveaux += 1;
+    if (r.status === 0) counts.inactifs += 1;
+  }
+  return counts;
 }
 

@@ -56,9 +56,7 @@ const menuData: IMenuData[] = [
     title: 'Partenaires',
     can: { action: 'read', subject: 'Restaurant' },
     children: [
-      { icon: IconBuildingSkyscraper, title: 'Partners validés', path: '/restaurants', can: { action: 'read', subject: 'Restaurant' } },
-      { icon: IconBuildingSkyscraper, title: 'Partners partiellement validés', path: '/restaurants/valide', can: { action: 'valider', subject: 'Restaurant' } },
-      { icon: IconBuildingSkyscraper, title: 'News Partners', path: '/restaurants/not-valide', can: { action: 'valider', subject: 'Restaurant' } },
+      { icon: IconBuildingSkyscraper, title: 'Liste', path: '/restaurants', can: { action: 'read', subject: 'Restaurant' } },
       { icon: AiOutlineDollarCircle, title: 'Grille tarifaire', path: '/price-list', can: { action: 'read', subject: 'Restaurant' } },
       { icon: BarChart, title: 'Rapports Performance', path: '/finance/rapports-performance', can: { action: 'read', subject: 'RapportPerformancePartenaire' } },
     ],

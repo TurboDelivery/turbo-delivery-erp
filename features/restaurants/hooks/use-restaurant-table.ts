@@ -68,9 +68,10 @@ export const useRestaurantTable = () => {
       telephone: debouncedFilters.telephone || undefined,
       commune: debouncedFilters.commune || undefined,
       methodRecouvrement: filters.methodRecouvrement || undefined,
+      statut: filters.statut || undefined,
     };
   }, [filters.page, filters.limit, debouncedFilters.search, filters.orderBy, filters.orderDirection,
-      debouncedFilters.localisation, debouncedFilters.email, debouncedFilters.telephone, debouncedFilters.commune, filters.methodRecouvrement]);
+      debouncedFilters.localisation, debouncedFilters.email, debouncedFilters.telephone, debouncedFilters.commune, filters.methodRecouvrement, filters.statut]);
 
   const { data: restaurantsData, isLoading, error, isError, isFetching } = useRestaurantsListQuery(currentSearchParams);
   const restaurants = restaurantsData?.content || [];

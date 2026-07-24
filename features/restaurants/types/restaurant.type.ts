@@ -45,6 +45,8 @@ export interface IRestaurant {
   typeCommission: string;
   commission: number;
   methodRecouvrement: MethodRecouvrementType;
+  /** Date de création (ISO) — renvoyée par /restaurant/get/all, sert à la vue « Nouveaux ». */
+  createdAt?: string;
 }
 
 export interface IRestaurantStatsParams {
@@ -82,5 +84,16 @@ export interface IRestaurantParams {
   methodRecouvrement?: string;
   orderBy?: string;
   orderDirection?: 'asc' | 'desc';
+  /** Vue par état du compte : 'valides' (3) | 'partiels' (2) | 'nouveaux' (1) | 'inactifs' (0) */
+  statut?: string;
+}
+
+/** Compteurs par état du compte (cartes cliquables de la page Liste). */
+export interface IRestaurantStatusCounts {
+  total: number;
+  valides: number;
+  partiels: number;
+  nouveaux: number;
+  inactifs: number;
 }
 

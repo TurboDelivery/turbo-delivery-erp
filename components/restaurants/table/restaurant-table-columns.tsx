@@ -29,12 +29,15 @@ export function getAvatarColor(name: string) {
 }
 
 // ── Statut ───────────────────────────────────────────────────────────────────
-export function StatusChip({ status, typeCommission }: { status: number; typeCommission?: string }) {
+// Codes backend (RestaurantTable.status) : 0 = désactivé, 2 = partiellement
+// validé (état legacy intermédiaire), 1/3 = compte actif normal. Même source de
+// vérité et même règle que le badge ACTIF/INACTIF de la fiche (actif = status ≠ 0).
+export function StatusChip({ status, typeCommission }: { status: number | null | undefined; typeCommission?: string }) {
   if (typeCommission === 'GRATUIT') return <Chip color="warning" size="sm" variant="flat">Gratuite</Chip>;
-  if (status === 3) return <Chip color="success" size="sm" variant="flat">Validé</Chip>;
-  if (status === 2) return <Chip color="warning" size="sm" variant="flat">En attente</Chip>;
-  if (status === 1) return <Chip color="secondary" size="sm" variant="flat">Validé Auth</Chip>;
-  return <Chip color="default" size="sm" variant="flat">Inactif</Chip>;
+  if (status === 0) return <Chip color="danger" size="sm" variant="flat">Inactif</Chip>;
+  if (status === 2) return <Chip color="warning" size="sm" variant="flat">Partiellement validé</Chip>;
+  if (status != null && status >= 1) return <Chip color="success" size="sm" variant="flat">Validé</Chip>;
+  return <Chip color="default" size="sm" variant="flat">—</Chip>;
 }
 
 // ── Cycle de paiement ────────────────────────────────────────────────────────
@@ -217,7 +220,7 @@ export const restaurantColumns: ColumnDef<IRestaurant>[] = [
       const r = row.original;
       const letter = r.nomEtablissement?.[0]?.toUpperCase() ?? '?';
       const color = getAvatarColor(r.nomEtablissement ?? '');
-      const isVerified = r.status === 3;
+      const isVerified = r.status != null && r.status >= 1;
       const isGratuite = r.typeCommission === 'GRATUIT';
       return (
         <div className="flex items-center gap-3 min-w-[160px]">
