@@ -1,120 +1,153 @@
 'use client';
 
-import IconX from '@/components/icon/icon-x';
-import { CourseExterne, LivreurDisponible } from '@/types/models';
-import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
-import { Button } from "@heroui/react";
-import React, { Fragment, useState } from 'react';
-import { toast } from 'react-toastify';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
+import {
+  Avatar,
+  Button,
+  Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  Select,
+  SelectItem,
+} from '@heroui/react';
+import { BikeIcon, Info } from 'lucide-react';
+
+import { CourseExterne, CourseExterneDetail, LivreurDisponible } from '@/types/models';
 import { assignCourseExterne } from '@/src/actions/courses.actions';
+import { fmtXof } from './course-statut';
 
-const DeliveryAssign = ({ delivery, delivers, open, setOpen }: { delivery: CourseExterne; delivers: LivreurDisponible[]; open: boolean; setOpen: (open: boolean) => void }) => {
-    const [pending, setPending] = useState(false);
-    const [selectedDeliverer, setSelectedDeliverer] = useState('');
-    const [deliveryPrice, setDeliveryPrice] = useState('');
-    const router = useRouter();
+interface Props {
+  delivery: CourseExterne | CourseExterneDetail;
+  delivers: LivreurDisponible[];
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  /** Appelé après une assignation réussie (en plus du router.refresh). */
+  onAssigned?: () => void;
+}
 
-    const handleSubmit = async () => {
-        if (!selectedDeliverer) {
-            toast.error('Veuillez sélectionner un livreur');
-            return;
-        }
+/**
+ * Assignation d'un livreur à une course externe. Les frais sont pré-remplis avec
+ * les frais déjà résolus par zone sur les commandes (le backend les conserve pour
+ * les commandes qui ont un statut) ; le champ reste modifiable pour les cas manuels.
+ */
+export default function DeliveryAssign({ delivery, delivers, open, setOpen, onAssigned }: Props) {
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+  const [livreurId, setLivreurId] = useState('');
+  const [frais, setFrais] = useState('');
 
-        if (!deliveryPrice || isNaN(Number(deliveryPrice)) || Number(deliveryPrice) <= 0) {
-            toast.error('Veuillez entrer un prix de livraison valide');
-            return;
-        }
+  const fraisResolus = useMemo(
+    () => (delivery.commandes ?? []).reduce((sum, c) => sum + (c.fraisLivraison ?? 0), 0),
+    [delivery.commandes],
+  );
 
-        try {
-            const result = await assignCourseExterne(delivery.id, selectedDeliverer, Number(deliveryPrice));
+  useEffect(() => {
+    if (open) {
+      setLivreurId('');
+      setFrais(fraisResolus > 0 ? String(fraisResolus) : '');
+    }
+  }, [open, fraisResolus]);
 
-            if (result.status === 'success') {
-                toast.success(result.message || 'Course assignée avec succès');
-                router.refresh();
-                setOpen(false);
-            } else {
-                toast.error(result.message || "Erreur lors de l'assignation de la course");
-            }
-        } catch (error) {
-            toast.error("Une erreur est survenue lors de l'assignation");
-        } finally {
-            setPending(false);
-        }
-    };
-    
-    return (
-        <Transition appear show={open} as={Fragment}>
-            <Dialog as="div" open={open} onClose={() => setOpen(false)} className="relative z-50">
-                <TransitionChild as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
-                    <div className="fixed inset-0 bg-[black]/60" />
-                </TransitionChild>
-                <div className="fixed inset-0 overflow-y-auto">
-                    <div className="flex min-h-full items-center justify-center px-4 py-8">
-                        <TransitionChild
-                            as={Fragment}
-                            enter="ease-out duration-300"
-                            enterFrom="opacity-0 scale-95"
-                            enterTo="opacity-100 scale-100"
-                            leave="ease-in duration-200"
-                            leaveFrom="opacity-100 scale-100"
-                            leaveTo="opacity-0 scale-95"
-                        >
-                            <DialogPanel className="panel w-full max-w-lg overflow-hidden rounded-lg border-0 p-0 text-black dark:text-white-dark">
-                                <button
-                                    type="button"
-                                    onClick={() => setOpen(false)}
-                                    className="absolute top-4 text-gray-400 outline-none hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
-                                >
-                                    <IconX />
-                                </button>
-                                <div className="bg-[#fbfbfb] py-3 text-lg font-medium ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5 dark:bg-[#121c2c] text-primary">Assigner la course</div>
-                                <div className="p-5">
-                                    <div className="mb-5">
-                                        <label className="block mb-2 text-sm font-medium">Sélectionner un livreur</label>
-                                        <select
-                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                                            value={selectedDeliverer}
-                                            onChange={(e) => setSelectedDeliverer(e.target.value)}
-                                        >
-                                            <option value="">Choisir un livreur</option>
-                                            {delivers.map((deliverer) => (
-                                                <option key={deliverer.livreurId} value={deliverer.livreurId}>
-                                                    {deliverer.nomComplet} - {deliverer.telephone}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+  async function handleSubmit(close: () => void) {
+    if (!livreurId) {
+      toast.error('Veuillez sélectionner un livreur');
+      return;
+    }
+    const montant = Number(frais);
+    if (!frais || isNaN(montant) || montant <= 0) {
+      toast.error('Veuillez entrer des frais de livraison valides');
+      return;
+    }
+    setPending(true);
+    try {
+      const result = await assignCourseExterne(delivery.id, livreurId, montant);
+      if (result.status === 'success') {
+        toast.success('Course assignée — le livreur est notifié');
+        router.refresh();
+        onAssigned?.();
+        close();
+      } else {
+        toast.error(result.message || "Erreur lors de l'assignation de la course");
+      }
+    } catch {
+      toast.error("Une erreur est survenue lors de l'assignation");
+    } finally {
+      setPending(false);
+    }
+  }
 
-                                    <div className="mb-5">
-                                        <label className="block mb-2 text-sm font-medium">Prix de livraison (XOF)</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                                            value={deliveryPrice}
-                                            onChange={(e) => setDeliveryPrice(e.target.value)}
-                                            placeholder="Entrez le prix de livraison"
-                                        />
-                                    </div>
-
-                                    <div className="mt-8 flex items-center justify-end gap-4">
-                                        <button type="button" className="btn btn-outline-danger" onClick={() => setOpen(false)}>
-                                            Annuler
-                                        </button>
-                                        <Button className="btn btn-primary" color="primary" disabled={pending} isLoading={pending} onClick={handleSubmit}>
-                                            Assigner
-                                        </Button>
-                                    </div>
-                                </div>
-                            </DialogPanel>
-                        </TransitionChild>
+  return (
+    <Modal isOpen={open} onOpenChange={setOpen} placement="center">
+      <ModalContent>
+        {(close) => (
+          <>
+            <ModalHeader className="flex flex-col gap-1">
+              <span className="flex items-center gap-2">
+                <BikeIcon className="w-5 h-5 text-primary" />
+                Assigner la course {delivery.code ? `· ${delivery.code}` : ''}
+              </span>
+              <span className="text-xs font-normal text-gray-500">
+                Le livreur sélectionné reçoit la course immédiatement dans son application.
+              </span>
+            </ModalHeader>
+            <ModalBody>
+              <Select
+                label="Livreur"
+                placeholder="Choisir un livreur disponible"
+                variant="bordered"
+                selectedKeys={livreurId ? [livreurId] : []}
+                onSelectionChange={(keys) => setLivreurId(Array.from(keys as Set<string>)[0] ?? '')}
+                items={delivers}
+              >
+                {(l) => (
+                  <SelectItem key={l.livreurId} textValue={`${l.nomComplet} — ${l.telephone}`}>
+                    <div className="flex items-center gap-3">
+                      <Avatar src={l.avatarUrl || undefined} name={l.nomComplet?.[0] ?? '?'} size="sm" />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{l.nomComplet}</span>
+                        <span className="text-xs text-gray-500">{l.telephone}</span>
+                      </div>
                     </div>
-                </div>
-            </Dialog>
-        </Transition>
-    );
-};
+                  </SelectItem>
+                )}
+              </Select>
+              {delivers.length === 0 && (
+                <p className="text-xs text-amber-600">Aucun livreur disponible pour le moment.</p>
+              )}
 
-export default DeliveryAssign;
+              <Input
+                label="Frais de livraison (XOF)"
+                type="number"
+                min={0}
+                variant="bordered"
+                value={frais}
+                onValueChange={setFrais}
+                placeholder="Ex. : 1500"
+              />
+              {fraisResolus > 0 && (
+                <p className="flex items-start gap-1.5 text-xs text-gray-500">
+                  <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-primary" />
+                  Frais résolus automatiquement depuis la grille tarifaire du partenaire :{' '}
+                  <b>{fmtXof(fraisResolus)}</b>. Ils restent appliqués aux commandes de cette course.
+                </p>
+              )}
+            </ModalBody>
+            <ModalFooter>
+              <Button variant="flat" onPress={close} isDisabled={pending}>
+                Annuler
+              </Button>
+              <Button color="primary" onPress={() => handleSubmit(close)} isLoading={pending} isDisabled={!livreurId}>
+                Assigner
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+  );
+}

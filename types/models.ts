@@ -226,6 +226,31 @@ export interface CommandeCourseExterne {
     fraisLivraison: number;
     prix: number;
     livraisonPaye: boolean;
+    /** Zone tarifaire résolue (libellé) — renvoyée par le backend sur le détail. */
+    zone?: string | null;
+}
+
+/** Livreur assigné à une course externe (LivreurVm backend, champs utiles). */
+export interface LivreurCourseExterne {
+    id: string;
+    nom: string;
+    prenoms: string;
+    telephone: string;
+    avatarUrl?: string | null;
+    matricule?: string | null;
+}
+
+/** Détail complet d'une course externe (GET /api/erp/course-externe/{id}). */
+export interface CourseExterneDetail {
+    id: string;
+    code: string;
+    statut: string;
+    dateHeureDebut?: string | null;
+    dateHeureFin?: string | null;
+    total: number;
+    commandes: CommandeCourseExterne[];
+    restaurant: Partial<Restaurant>;
+    livreur?: LivreurCourseExterne | null;
 }
 export interface CourseExterne {
     id: string;

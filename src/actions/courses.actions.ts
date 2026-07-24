@@ -1,7 +1,7 @@
 'use server';
 
 import { ActionResult } from '@/types';
-import { CourseExterne, Restaurant } from '@/types/models';
+import { CourseExterne, CourseExterneDetail, Restaurant } from '@/types/models';
 import { PaginatedResponse } from '@/types';
 import { apiClientHttp } from '@/lib/api-client-http';
 
@@ -11,11 +11,13 @@ const BASE_URL_RESTAURANT = '/api/restaurant/course-externe';
 
 const courseEndpoints = {
     updateCourseExterne: { endpoint: BASE_URL, method: 'PUT' },
+    // ⚠️ Terminer/Annuler vivent sous /api/restaurant/course-externe (CourseExterneResource),
+    // PAS sous /api/erp/course-externe — les anciens chemins /api/erp/... renvoyaient 404.
     terminerCourseExterne: {
-        endpoint: `${BASE_URL}/terminer`,
+        endpoint: `${BASE_URL_RESTAURANT}/terminer`,
         method: 'PUT',
     },
-    annulerCourseExterne: { endpoint: `${BASE_URL}/annuler`, method: 'PUT' }, //retirer
+    annulerCourseExterne: { endpoint: `${BASE_URL_RESTAURANT}/annuler`, method: 'PUT' },
     getPaginationCourseExterneEnAttente: {
         endpoint: `${BASE_URL}/en-attente/pagination`,
         method: 'GET',
@@ -116,9 +118,9 @@ export async function getPaginationCourseExterneAutreStatus(page: number = 0, si
         return null;
     }
 }
-export async function getCourseExterne(idCourse: string): Promise<CourseExterne | null> {
+export async function getCourseExterne(idCourse: string): Promise<CourseExterneDetail | null> {
     try {
-        const data = await apiClientHttp.request<CourseExterne>({
+        const data = await apiClientHttp.request<CourseExterneDetail>({
             endpoint: courseEndpoints.getCourseExterne.endpoint(idCourse),
             method: courseEndpoints.getCourseExterne.method,
             service: 'backend',

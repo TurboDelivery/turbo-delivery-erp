@@ -1,246 +1,230 @@
 'use client';
-import { PaginatedResponse } from '@/types';
-import { title } from '@/components/primitives';
-import { Clock, Package, Store, Link } from 'lucide-react';
-import { CourseExterne, LivreurDisponible } from '@/types/models';
-import { Avatar, Card, CardBody, CardFooter, CardHeader, Chip, Pagination, Skeleton } from "@heroui/react";
+
 import { useState, useEffect, useRef } from 'react';
-import { SORT_OPTIONS } from '@/data';
-import DeliveryTools from './component/deliveryTools';
+import Link from 'next/link';
+import dayjs from 'dayjs';
+import { Avatar, Button, Chip, Pagination, Skeleton } from '@heroui/react';
+import { Clock, Eye, MapPin, Package, Phone, UserRoundPlus } from 'lucide-react';
+
+import { PaginatedResponse } from '@/types';
+import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { getPaginationCourseExterneEnAttente } from '@/src/actions/courses.actions';
 import { createUrlFile } from '@/utils/createUrlFile';
-import dayjs from 'dayjs';
+import { useAbility } from '@/hooks/use-ability';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
+import DeliveryTools from './component/deliveryTools';
+import DeliveryAssign from './component/delivery-assign';
+import { COURSE_STATUT_ACCENTS, CourseStatutChip, fmtXof, montantCourse } from './component/course-statut';
 
-type SortOption = (typeof SORT_OPTIONS)[keyof typeof SORT_OPTIONS];
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+function timeAgo(iso?: string | null): string {
+  if (!iso) return '—';
+  const diffMin = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (diffMin < 1) return "à l'instant";
+  if (diffMin < 60) return `il y a ${diffMin} min`;
+  const h = Math.floor(diffMin / 60);
+  if (h < 24) return `il y a ${h} h ${diffMin % 60 ? `${diffMin % 60} min` : ''}`.trim();
+  return dayjs(iso).format('DD/MM à HH:mm');
+}
 
-const getStatusColor = (statut: string) => {
-    switch (statut?.toUpperCase()) {
-        case 'VALIDER': return 'warning';
-        case 'TERMINER': return 'success';
-        case 'ANNULER': return 'danger';
-        case 'EN_ATTENTE': return 'secondary';
-        default: return 'default';
-    }
-};
+// ─── Carte d'une course ────────────────────────────────────────────────────────
+function CourseCard({ course, delivers, canUpdate }: { course: CourseExterne; delivers: LivreurDisponible[]; canUpdate: boolean }) {
+  const [openAssign, setOpenAssign] = useState(false);
+  const premiere = course.commandes?.[0];
+  const enAttente = course.statut?.toUpperCase() === 'EN_ATTENTE';
+  const accent = COURSE_STATUT_ACCENTS[course.statut?.toUpperCase() ?? ''] ?? 'border-l-gray-200';
 
-const getStatusTextColor = (statut: string) => {
-    switch (statut?.toUpperCase()) {
-        case 'VALIDER': return 'text-yellow-700';
-        case 'TERMINER': return 'text-green-700';
-        case 'ANNULER': return 'text-red-700';
-        case 'EN_ATTENTE': return 'text-gray-500';
-        case 'PREPARATION': return 'text-orange-600';
-        default: return 'text-gray-600';
-    }
-};
+  return (
+    <div className={`bg-white rounded-xl border border-gray-100 border-l-4 ${accent} shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col gap-3`}>
+      {/* Header : partenaire + montant */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <Avatar
+            src={course.restaurant?.logo ? createUrlFile(course.restaurant.logo, 'restaurant') : undefined}
+            name={course.restaurant?.nomEtablissement?.[0] ?? '?'}
+            size="md"
+          />
+          <div className="min-w-0">
+            <p className="font-semibold text-sm text-gray-900 truncate">{course.restaurant?.nomEtablissement ?? '—'}</p>
+            <p className="text-xs text-gray-500 truncate">{course.restaurant?.commune ?? ''}</p>
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span className="bg-gray-900 text-white text-sm font-semibold rounded-lg px-2.5 py-1">
+            {fmtXof(montantCourse(course.commandes))}
+          </span>
+          <span className="flex items-center gap-1 text-[11px] text-gray-400">
+            <Clock className="w-3 h-3" />
+            {timeAgo(course.createdAt)}
+          </span>
+        </div>
+      </div>
 
-const getCommandeStatusColor = (statut: string) => {
-    switch (statut?.toUpperCase()) {
-        case 'EN_ATTENTE_VERSEMENT': return 'warning';
-        case 'TERMINER': return 'success';
-        case 'ANNULER': return 'danger';
-        case 'RECUPERER':
-        case 'EN_COURS_LIVRAISON': return 'secondary';
-        default: return 'default';
-    }
-};
+      {/* Meta */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600">
+        <span className="font-mono font-semibold text-gray-800">{course.code}</span>
+        <span className="flex items-center gap-1">
+          <Package className="w-3.5 h-3.5 text-gray-400" />
+          {course.nombreCommande ?? course.commandes?.length ?? 0} commande{(course.nombreCommande ?? 0) > 1 ? 's' : ''}
+        </span>
+        {premiere?.destinataire?.nomComplet && (
+          <span className="flex items-center gap-1 truncate max-w-[220px]">
+            <Phone className="w-3.5 h-3.5 text-gray-400" />
+            {premiere.destinataire.nomComplet}
+          </span>
+        )}
+        {premiere?.zone && (
+          <span className="flex items-center gap-1 truncate max-w-[220px]">
+            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+            {premiere.zone}
+          </span>
+        )}
+      </div>
 
-const getStatusBorderClass = (statut: string) => {
-    switch (statut?.toUpperCase()) {
-        case 'VALIDER': return 'border-2 border-warning';
-        case 'TERMINER': return 'border-2 border-success';
-        case 'ANNULER': return 'border-2 border-danger';
-        case 'EN_ATTENTE': return 'border-2 border-secondary';
-        default: return 'border border-default';
-    }
-};
+      {/* Footer : statut + actions */}
+      <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-50">
+        <CourseStatutChip statut={course.statut} />
+        <div className="flex items-center gap-1.5">
+          {enAttente && canUpdate && (
+            <Button size="sm" color="primary" startContent={<UserRoundPlus className="w-4 h-4" />} onPress={() => setOpenAssign(true)}>
+              Assigner
+            </Button>
+          )}
+          <Button size="sm" variant="bordered" startContent={<Eye className="w-4 h-4" />} as={Link} href={`/external_delivery/${course.id}`}>
+            Détail
+          </Button>
+          <DeliveryTools delivery={course} delivers={delivers} />
+        </div>
+      </div>
 
+      <DeliveryAssign delivery={course} delivers={delivers} open={openAssign} setOpen={setOpenAssign} />
+    </div>
+  );
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────────
 interface Props {
-    initialData: PaginatedResponse<CourseExterne> | null;
-    delivers: LivreurDisponible[];
+  initialData: PaginatedResponse<CourseExterne> | null;
+  delivers: LivreurDisponible[];
 }
 
 export default function Content({ initialData, delivers }: Props) {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState('all');
-    const [sortBy, setSortBy] = useState<SortOption>(SORT_OPTIONS.DATE_DESC);
-    const [expandedDelivery, setExpandedDelivery] = useState<string | null>(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(10);
-    const [data, setData] = useState<PaginatedResponse<CourseExterne> | null>(initialData);
-    const [dataFilter, setDataFilter] = useState<CourseExterne[]>(data?.content ?? []);
-    const [isLoading, setIsLoading] = useState(!initialData);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [data, setData] = useState<PaginatedResponse<CourseExterne> | null>(initialData);
+  const [isLoading, setIsLoading] = useState(!initialData);
+  const ability = useAbility();
+  const canUpdate = ability.can('update', 'Commande');
 
-    // 🔊 Audio setup
-    const audioRef = useRef<HTMLAudioElement | null>(null);
-    const [canPlayAudio, setCanPlayAudio] = useState(false);
+  const courses = data?.content ?? [];
 
-    // Autoriser lecture du son après interaction utilisateur
-    useEffect(() => {
-        const unlockAudio = () => {
-            setCanPlayAudio(true);
-            window.removeEventListener('click', unlockAudio);
-            window.removeEventListener('keydown', unlockAudio);
-        };
-        window.addEventListener('click', unlockAudio);
-        window.addEventListener('keydown', unlockAudio);
-        return () => {
-            window.removeEventListener('click', unlockAudio);
-            window.removeEventListener('keydown', unlockAudio);
-        };
-    }, []);
+  // 🔊 Alerte sonore tant qu'il y a des courses en attente (dispatch)
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [canPlayAudio, setCanPlayAudio] = useState(false);
 
-    // Jouer/stopper le son selon dataFilter
-    useEffect(() => {
-        if (!canPlayAudio || !audioRef.current) return;
-
-        if (dataFilter.length > 0) {
-            audioRef.current.loop = true;
-            audioRef.current.play().catch(() => {
-                alert("🔴Nouvelle Course🔴, Cliquez sur OK pour activer 🔔.");
-                audioRef.current?.play();
-            });
-        } else {
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-        }
-    }, [dataFilter, canPlayAudio]);
-
-    // Refresh auto toutes les 15s
-    useEffect(() => {
-        const refreshInterval = setInterval(() => {
-            fetchDataSilently(currentPage);
-        }, 15000);
-
-        return () => clearInterval(refreshInterval);
-    }, [currentPage]);
-
-    const fetchData = async (page: number) => {
-        setCurrentPage(page);
-        setIsLoading(true);
-        try {
-            const newData = await getPaginationCourseExterneEnAttente(page - 1, pageSize);
-            setData(newData);
-            setDataFilter(newData?.content ?? []);
-            setStatusFilter('all');
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        } finally {
-            setIsLoading(false);
-        }
+  useEffect(() => {
+    const unlockAudio = () => {
+      setCanPlayAudio(true);
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
     };
-
-    const fetchDataSilently = async (page: number) => {
-        try {
-            const newData = await getPaginationCourseExterneEnAttente(page - 1, pageSize);
-            setData(newData);
-            if (statusFilter === 'all') {
-                setDataFilter(newData?.content ?? []);
-            } else {
-                const filtered = newData?.content.filter((d) => d.statut?.toUpperCase() === statusFilter) ?? [];
-                setDataFilter(filtered);
-            }
-        } catch (error) {
-            console.error('Error refreshing data:', error);
-        }
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('keydown', unlockAudio);
+    return () => {
+      window.removeEventListener('click', unlockAudio);
+      window.removeEventListener('keydown', unlockAudio);
     };
+  }, []);
 
-    return (
-        <div className="w-full h-full pb-10">
-            <audio ref={audioRef} src="/assets/sounds/notification.wav" preload="auto" />
-            <div className="flex items-center justify-between mb-4">
-                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Nouvelles courses</h1>
-            </div>
+  useEffect(() => {
+    if (!canPlayAudio || !audioRef.current) return;
+    if (courses.length > 0) {
+      audioRef.current.loop = true;
+      audioRef.current.play().catch(() => {
+        alert('🔴 Nouvelle course 🔴 — cliquez sur OK pour activer la sonnerie.');
+        audioRef.current?.play();
+      });
+    } else {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  }, [courses.length, canPlayAudio]);
 
-            <div>
-                {isLoading ? (
-                    <div className="flex flex-col gap-6">
-                        {[...Array(2)].map((_, index) => (
-                            <Skeleton key={index} className="rounded-lg h-52" />
-                        ))}
-                    </div>
-                ) : data?.content.length ? (
-                    <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {dataFilter.map((delivery) => (
-                                <Card key={delivery.id} className={`w-full bg-white ${getStatusBorderClass(delivery.statut)} shadow-md rounded-md`}>
-                                    <CardHeader className="flex justify-between items-center py-3 border-b">
-                                        <div className="flex items-center gap-5">
-                                            <span className={`font-bold text-base ${getStatusTextColor(delivery.statut)}`}>Code: {delivery.code}</span>
-                                            <span className="bg-gray-900 text-white font-semibold rounded px-2 ml-2 py-1">
-                                                {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(
-                                                    (delivery.commandes?.reduce((sum, cmd) => sum + (cmd.prix ?? 0), 0) || 0) +
-                                                    (delivery.commandes?.reduce((sum, cmd) => sum + (cmd.fraisLivraison ?? 0), 0) || 0)
-                                                )}
-                                            </span>
-                                        </div>
-                                        <div className="flex gap-2 items-center">
-                                            <DeliveryTools delivery={delivery} delivers={delivers} />
-                                        </div>
-                                    </CardHeader>
-                                    <CardBody className="py-3">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Package className="text-gray-400" />
-                                            <span className="font-medium">
-                                                {delivery.nombreCommande} commande{delivery.nombreCommande > 1 ? 's' : ''}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Clock className="text-gray-400" />
-                                            <span>Créé le {delivery.createdAt ? dayjs(delivery.createdAt).format('DD/MM/YYYY HH:mm:ss') : '-'}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Clock className="text-gray-400" />                                        
+  // Rafraîchissement silencieux toutes les 15 s
+  useEffect(() => {
+    const refreshInterval = setInterval(async () => {
+      try {
+        const newData = await getPaginationCourseExterneEnAttente(currentPage - 1, pageSize);
+        setData(newData);
+      } catch {
+        /* silencieux */
+      }
+    }, 15000);
+    return () => clearInterval(refreshInterval);
+  }, [currentPage, pageSize]);
 
-                                            {/* Statut */}
-                                            <Chip
-                                                color={getStatusColor(delivery.statut)}
-                                                variant="flat" className="text-sm font-medium px-2 py-0.5 rounded-md">
-                                                {delivery.statut}
-                                            </Chip>
-                                        </div>
-                                    </CardBody>
-                                    <CardFooter>
-                                        <div className="flex items-center justify-between w-full mb-2">
-                                            {/* Partie gauche : infos restaurant */}
-                                            <div className="flex items-center gap-2">
-                                                {delivery?.restaurant?.logo ? (
-                                                    <Avatar src={createUrlFile(delivery.restaurant.logo, 'restaurant')} size="sm" />
-                                                ) : (
-                                                    <Store className="text-gray-400" />
-                                                )}
-                                                <div>
-                                                    <p className="font-semibold text-gray-900">{delivery?.restaurant?.nomEtablissement}</p>
-                                                    <p className="text-gray-500 text-sm">{delivery?.restaurant?.commune}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardFooter>
-                                </Card>
-                            ))}
-                        </div>
-                    </>
-                ) : (
-                    <EmptyDataTable
-                        title="Aucune Course Trouvée"
-                        message="Aucune course ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
-                    />
-                )}
-            </div>
+  const fetchData = async (page: number) => {
+    setCurrentPage(page);
+    setIsLoading(true);
+    try {
+      const newData = await getPaginationCourseExterneEnAttente(page - 1, pageSize);
+      setData(newData);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-            {/* PAGINATION */}
-            <div className="flex justify-center mt-8 w-full">
-                <Pagination
-                    total={data?.totalPages ?? 1}
-                    page={currentPage}
-                    onChange={fetchData}
-                    showControls
-                    color="danger"
-                    variant="flat"
-                    isDisabled={isLoading}
-                />
-            </div>
+  return (
+    <div className="w-full h-full pb-10 flex flex-col gap-5">
+      <audio ref={audioRef} src="/assets/sounds/notification.wav" preload="auto" />
+
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-primary">Nouvelles courses</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Courses envoyées par les partenaires via l&apos;intégration — à dispatcher aux livreurs.
+          </p>
         </div>
-    );
+        <Chip color={courses.length > 0 ? 'warning' : 'default'} variant="flat">
+          {data?.totalElements ?? 0} en attente
+        </Chip>
+      </div>
+
+      {/* Cartes */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {[...Array(4)].map((_, index) => (
+            <Skeleton key={index} className="rounded-xl h-44" />
+          ))}
+        </div>
+      ) : courses.length ? (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {courses.map((course) => (
+            <CourseCard key={course.id} course={course} delivers={delivers} canUpdate={canUpdate} />
+          ))}
+        </div>
+      ) : (
+        <EmptyDataTable
+          title="Aucune course en attente"
+          message="Les nouvelles courses envoyées par les partenaires apparaîtront ici en temps réel."
+        />
+      )}
+
+      {/* Pagination */}
+      {(data?.totalPages ?? 0) > 1 && (
+        <div className="flex justify-center mt-2 w-full">
+          <Pagination
+            total={data?.totalPages ?? 1}
+            page={currentPage}
+            onChange={fetchData}
+            showControls
+            color="primary"
+            variant="bordered"
+            isDisabled={isLoading}
+          />
+        </div>
+      )}
+    </div>
+  );
 }
