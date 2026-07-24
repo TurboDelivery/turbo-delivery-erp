@@ -22,6 +22,7 @@ import { updateRestaurant } from '@/features/restaurants/actions/update-restaura
 import { useInvalidateRestaurantsQuery, useToggleRestaurantMutation } from '@/features/restaurants/queries/restaurant-list.query';
 import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { createUrlFile } from '@/utils/createUrlFile';
+import IntegrationSection from './_sections/integration-section';
 
 // ─── Section title ─────────────────────────────────────────────────────────────
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -467,6 +468,11 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
           </Button>
         </div>
       </form>
+
+      {/* ── Intégration (clé API, endpoint, webhooks, journal réseau) ── */}
+      <div className="mt-8">
+        <IntegrationSection restaurantId={restaurant.id} />
+      </div>
     </div>
   );
 }
