@@ -41,21 +41,25 @@ import {
   useConfirmerReceptionComptableMutation,
 } from '@/features/responsable-financier';
 
+// Onglets de statut. 2026-07-27 : l'onglet « Visé DGA » devient « Orientation des fonds »
+// (le visa est implicite depuis « En attente visa DGA » — plus d'étape manuelle de visa).
+// La valeur backend reste « Visé DGA » : l'onglet liste le stock visé non encore orienté,
+// sur lequel l'action groupée « Orientation des fonds » s'applique aussi.
 const statutFilters = [
-  'Tous',
-  'DRAFT',
-  'À valider',
-  'Validé',
-  'Recouvrement',
-  'En cours',
-  'Déposé partenaire',
-  'Preuve ajoutée',
-  'Soldé',
-  'Versé au caissier',
-  'En attente visa DGA',
-  'Visé DGA',
-  'Rejeté DGA',
-  'Clôturé',
+  { label: 'Tous', value: 'Tous' },
+  { label: 'DRAFT', value: 'DRAFT' },
+  { label: 'À valider', value: 'À valider' },
+  { label: 'Validé', value: 'Validé' },
+  { label: 'Recouvrement', value: 'Recouvrement' },
+  { label: 'En cours', value: 'En cours' },
+  { label: 'Déposé partenaire', value: 'Déposé partenaire' },
+  { label: 'Preuve ajoutée', value: 'Preuve ajoutée' },
+  { label: 'Soldé', value: 'Soldé' },
+  { label: 'Versé au caissier', value: 'Versé au caissier' },
+  { label: 'En attente visa DGA', value: 'En attente visa DGA' },
+  { label: 'Orientation des fonds', value: 'Visé DGA' },
+  { label: 'Rejeté DGA', value: 'Rejeté DGA' },
+  { label: 'Clôturé', value: 'Clôturé' },
 ] as const;
 
 function StatCard({ icon: Icon, color, label, value, sub }: { icon: React.ElementType; color: string; label: string; value: string; sub: string }) {
@@ -302,15 +306,15 @@ export default function ResponsableFinancierView() {
             <div className="flex flex-wrap gap-1.5">
               {statutFilters.map((s) => (
                 <button
-                  key={s}
-                  onClick={() => setFilters({ statut: s === 'Tous' ? '' : s, page: 0 })}
+                  key={s.value}
+                  onClick={() => setFilters({ statut: s.value === 'Tous' ? '' : s.value, page: 0 })}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    (s === 'Tous' && !filters.statut) || filters.statut === s
+                    (s.value === 'Tous' && !filters.statut) || filters.statut === s.value
                       ? 'bg-green-600 text-white border-green-600'
                       : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  {s}
+                  {s.label}
                 </button>
               ))}
             </div>
