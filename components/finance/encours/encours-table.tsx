@@ -128,6 +128,12 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
     });
   });
 
+  // 2026-07-27 — la ligne TOTAL n'affiche que les déductions réellement APPLIQUÉES aux
+  // groupes du relevé courant (Σ partenaires[].deduction, déjà soustraites de totalReste).
+  // totalDeductions = registre ANNUEL (dont des groupes absents : AGHA, CHICKEN NATION…)
+  // → l'afficher ici rendait la ligne arithmétiquement fausse (facture − déductions ≠ reste).
+  // Le registre annuel complet reste visible dans le « Récapitulatif des déductions ».
+  const deductionsAppliquees = releve.partenaires.reduce((s, p) => s + (p.deduction || 0), 0);
   lines.push({
     key: 'total-general',
     cn: 'bg-primary/10',
@@ -138,7 +144,7 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
       {
         node: (
           <span className="font-semibold text-primary/80">
-            {releve.totalDeductions ? `- ${formatFcfa(releve.totalDeductions)}` : '—'}
+            {deductionsAppliquees ? `- ${formatFcfa(deductionsAppliquees)}` : '—'}
           </span>
         ),
         cn: numCn,

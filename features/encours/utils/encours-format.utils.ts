@@ -68,5 +68,5 @@ export function computeKpis(input: {
   );
   const recouvre = Math.max(0, facture - reste - deductionsAppliquees);
   const taux = facture > 0 ? Math.round((recouvre / facture) * 100) : 0;
-  return { facture, reste, deductions, recouvre, taux };
+  return { facture, reste, deductions, deductionsAppliquees, recouvre, taux };
 }
