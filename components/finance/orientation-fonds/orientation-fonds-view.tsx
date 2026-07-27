@@ -49,12 +49,14 @@ function FactureCard({ facture, children }: { facture: IFactureRF; children: Rea
         </div>
         <p className="text-sm font-bold text-red-600 whitespace-nowrap">{formatMontant(facture.montant)}</p>
       </div>
-      {facture.numeroVisa && (
+      {facture.numeroVisa ? (
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-400">
           <span className="font-semibold text-indigo-600">{facture.numeroVisa}</span>
           {facture.dateVisa && <span>visa du {formatDateFr(facture.dateVisa)}</span>}
           {facture.viseur && <span>par {facture.viseur}</span>}
         </div>
+      ) : (
+        <p className="mt-2 text-[11px] text-amber-600">Visa DGA posé automatiquement à l&apos;orientation</p>
       )}
       <div className="mt-3">{children}</div>
     </div>
@@ -62,11 +64,19 @@ function FactureCard({ facture, children }: { facture: IFactureRF; children: Rea
 }
 
 export default function OrientationFondsView() {
-  // Factures visées en attente d'orientation + factures conservées (ré-orientables).
+  // 2026-07-27 (choix métier) — le visa DGA n'est plus une étape manuelle : décider de
+  // l'orientation VAUT visa. On liste donc les factures « En attente visa DGA » (le visa
+  // sera posé implicitement par le backend) + le stock « Visé DGA » historique,
+  // + les conservées en caisse (ré-orientables).
+  const { data: attenteData, isLoading: loadingAttente } = useFacturesRFQuery({ periode: 'cycle', statut: 'En attente visa DGA', size: 100 });
   const { data: viseData, isLoading: loadingVise } = useFacturesRFQuery({ periode: 'cycle', statut: 'Visé DGA', size: 100 });
   const { data: caisseData, isLoading: loadingCaisse } = useFacturesRFQuery({ periode: 'cycle', statut: 'Conservé en caisse', size: 100 });
 
-  const aOrienter = viseData?.factures?.content ?? [];
+  const aOrienter = [
+    ...(attenteData?.factures?.content ?? []),
+    ...(viseData?.factures?.content ?? []),
+  ];
+  const chargementOrient = loadingAttente || loadingVise;
   const conservees = caisseData?.factures?.content ?? [];
 
   const orienter = useOrienterFondsMutation();
@@ -109,7 +119,8 @@ export default function OrientationFondsView() {
         <p className="text-sm text-gray-500">Comptabilité — Direction</p>
         <h1 className="text-2xl font-bold text-indigo-600">Orientation des fonds</h1>
         <p className="text-sm text-gray-400 mt-0.5">
-          Après le visa, la Direction décide de la destination des fonds : dépôt en banque ou conservation en caisse (fonds de roulement).
+          La Direction décide de la destination des fonds : dépôt en banque ou conservation en caisse (fonds de roulement).
+          Décider vaut visa — depuis « En attente visa DGA », le visa DGA est posé automatiquement.
         </p>
       </div>
 
@@ -118,7 +129,7 @@ export default function OrientationFondsView() {
         <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3">
           En attente d&apos;orientation ({aOrienter.length})
         </h2>
-        {loadingVise ? (
+        {chargementOrient ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-28 rounded-xl bg-gray-100 animate-pulse" />)}
           </div>
@@ -221,7 +232,10 @@ export default function OrientationFondsView() {
                   />
                 )}
                 <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-700">
-                  <span>La décision est tracée (auteur + horodatage) et vaut autorisation : c&apos;est elle qui débloque (ou non) l&apos;action du Comptable.</span>
+                  <span>
+                    La décision est tracée (auteur + horodatage) et vaut autorisation : c&apos;est elle qui débloque (ou non) l&apos;action du Comptable.
+                    {!orientFacture?.numeroVisa && ' Le visa DGA est posé automatiquement (N° de visa généré) par cette décision.'}
+                  </span>
                 </div>
               </ModalBody>
               <ModalFooter>

@@ -190,7 +190,8 @@ export type ActionGroupee =
   | 'VISER_DGA'
   | 'REJETER_DGA'
   | 'CONFIRMER_RECEPTION'
-  // SPEC-RECOUV-002 (A) — orientation des fonds en masse, sur les factures « Visé DGA ».
+  // SPEC-RECOUV-002 (A) — orientation des fonds en masse. Éligible « En attente visa DGA »
+  // (décider vaut visa : le backend pose le visa implicitement) ou « Visé DGA » (stock).
   | 'ORIENTER_BANQUE'
   | 'ORIENTER_CAISSE';
 

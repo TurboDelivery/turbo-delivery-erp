@@ -16,7 +16,7 @@ import {
   SelectItem,
   Textarea,
 } from '@heroui/react';
-import { AlertTriangle, ArrowLeftRight, CheckCircle2, ChevronDown, HandCoins, Landmark, PiggyBank, Stamp, Wallet, X, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowLeftRight, CheckCircle2, ChevronDown, HandCoins, Landmark, PiggyBank, Wallet, X, XCircle } from 'lucide-react';
 
 import {
   useActionsGroupeesMutation,
@@ -38,13 +38,14 @@ interface ActionMeta {
   hint: string;
 }
 
+// Ordre = déroulé du workflow. 2026-07-27 : « Viser (DGA) » supprimé — décider de
+// l'orientation VAUT visa (posé implicitement par le backend depuis « En attente visa DGA »).
 const ACTIONS: ActionMeta[] = [
   { key: 'VALIDER', label: 'Valider les factures', verbe: 'Valider', icon: CheckCircle2, color: 'success', hint: 'Factures « À valider ».' },
   { key: 'RECOUVREMENT', label: 'Lancer le recouvrement', verbe: 'Lancer le recouvrement', icon: HandCoins, color: 'primary', besoin: 'agent', hint: 'Factures « Validé ».' },
-  { key: 'VISER_DGA', label: 'Viser (DGA)', verbe: 'Viser', icon: Stamp, color: 'secondary', hint: 'Factures « En attente visa DGA ».' },
-  { key: 'REJETER_DGA', label: 'Rejeter (DGA)', verbe: 'Rejeter', icon: XCircle, color: 'danger', besoin: 'motif', hint: 'Factures « En attente visa DGA ».' },
   { key: 'CONFIRMER_RECEPTION', label: 'Confirmer la réception', verbe: 'Confirmer la réception', icon: Wallet, color: 'warning', hint: 'Factures « Versé au caissier ».' },
-  { key: 'ORIENTER', label: 'Orientation des fonds', verbe: 'Orientation des fonds', icon: ArrowLeftRight, color: 'primary', besoin: 'orientation', hint: 'Factures « Visé DGA » → banque ou caisse.' },
+  { key: 'ORIENTER', label: 'Orientation des fonds', verbe: 'Orientation des fonds', icon: ArrowLeftRight, color: 'primary', besoin: 'orientation', hint: 'Factures « En attente visa DGA » : vise + oriente (banque ou caisse).' },
+  { key: 'REJETER_DGA', label: 'Rejeter (DGA)', verbe: 'Rejeter', icon: XCircle, color: 'danger', besoin: 'motif', hint: 'Factures « En attente visa DGA ».' },
 ];
 
 export interface BulkActionsBarProps {
@@ -233,6 +234,9 @@ export default function BulkActionsBar({
                         <span className="text-[11px] text-gray-500">Fonds de roulement · motif requis</span>
                       </button>
                     </div>
+                    <p className="text-[11px] text-gray-400">
+                      Le visa DGA est posé automatiquement (auteur, date, N° de visa) au moment de la décision.
+                    </p>
                     {orientation === 'CAISSE' && (
                       <Textarea
                         label="Motif de conservation en caisse"
