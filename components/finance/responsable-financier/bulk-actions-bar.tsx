@@ -16,7 +16,7 @@ import {
   SelectItem,
   Textarea,
 } from '@heroui/react';
-import { AlertTriangle, CheckCircle2, ChevronDown, HandCoins, Stamp, Wallet, X, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowLeftRight, CheckCircle2, ChevronDown, HandCoins, Landmark, PiggyBank, Stamp, Wallet, X, XCircle } from 'lucide-react';
 
 import {
   useActionsGroupeesMutation,
@@ -26,13 +26,15 @@ import {
   type IActionsGroupeesRequest,
 } from '@/features/responsable-financier';
 
+type UiActionKey = ActionGroupee | 'ORIENTER';
+
 interface ActionMeta {
-  key: ActionGroupee;
+  key: UiActionKey;
   label: string;
   verbe: string;
   icon: React.ElementType;
   color: 'primary' | 'success' | 'warning' | 'danger' | 'secondary';
-  besoin?: 'agent' | 'motif';
+  besoin?: 'agent' | 'motif' | 'orientation';
   hint: string;
 }
 
@@ -42,6 +44,7 @@ const ACTIONS: ActionMeta[] = [
   { key: 'VISER_DGA', label: 'Viser (DGA)', verbe: 'Viser', icon: Stamp, color: 'secondary', hint: 'Factures « En attente visa DGA ».' },
   { key: 'REJETER_DGA', label: 'Rejeter (DGA)', verbe: 'Rejeter', icon: XCircle, color: 'danger', besoin: 'motif', hint: 'Factures « En attente visa DGA ».' },
   { key: 'CONFIRMER_RECEPTION', label: 'Confirmer la réception', verbe: 'Confirmer la réception', icon: Wallet, color: 'warning', hint: 'Factures « Versé au caissier ».' },
+  { key: 'ORIENTER', label: 'Orientation des fonds', verbe: 'Orientation des fonds', icon: ArrowLeftRight, color: 'primary', besoin: 'orientation', hint: 'Factures « Visé DGA » → banque ou caisse.' },
 ];
 
 export interface BulkActionsBarProps {
@@ -70,6 +73,7 @@ export default function BulkActionsBar({
   const [action, setAction] = useState<ActionMeta | null>(null);
   const [agentId, setAgentId] = useState('');
   const [motif, setMotif] = useState('');
+  const [orientation, setOrientation] = useState<'' | 'BANQUE' | 'CAISSE'>('');
 
   const mutation = useActionsGroupeesMutation();
   const { data: agents } = useAgentsRecouvrementQuery();
@@ -79,6 +83,7 @@ export default function BulkActionsBar({
   const ouvrir = (meta: ActionMeta) => {
     setAgentId('');
     setMotif('');
+    setOrientation('');
     setAction(meta);
   };
 
@@ -86,16 +91,29 @@ export default function BulkActionsBar({
     if (!action) return false;
     if (action.besoin === 'agent') return !!agentId;
     if (action.besoin === 'motif') return motif.trim().length > 0;
+    if (action.besoin === 'orientation') {
+      if (orientation === 'BANQUE') return true;
+      if (orientation === 'CAISSE') return motif.trim().length >= 30;
+      return false;
+    }
     return true;
-  }, [action, agentId, motif]);
+  }, [action, agentId, motif, orientation]);
 
   const confirmer = () => {
     if (!action) return;
+    // Une seule entrée « Orientation des fonds » → on dérive l'action réelle du choix banque/caisse.
+    const key: ActionGroupee =
+      action.besoin === 'orientation'
+        ? orientation === 'BANQUE'
+          ? 'ORIENTER_BANQUE'
+          : 'ORIENTER_CAISSE'
+        : (action.key as ActionGroupee);
     const body: IActionsGroupeesRequest = selectAllMatching
-      ? { action: action.key, selectAll: true, filtres }
-      : { action: action.key, selectAll: false, ids: selectedIds };
+      ? { action: key, selectAll: true, filtres }
+      : { action: key, selectAll: false, ids: selectedIds };
     if (action.besoin === 'agent') body.agentId = agentId;
     if (action.besoin === 'motif') body.motif = motif.trim();
+    if (action.besoin === 'orientation' && orientation === 'CAISSE') body.motif = motif.trim();
 
     mutation.mutate(body, {
       onSuccess: () => {
@@ -186,6 +204,49 @@ export default function BulkActionsBar({
                     isRequired
                     minRows={2}
                   />
+                )}
+
+                {action?.besoin === 'orientation' && (
+                  <div className="flex flex-col gap-3">
+                    <p className="text-xs font-medium text-gray-500">Décision d&apos;orientation des fonds :</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setOrientation('BANQUE')}
+                        className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-4 text-center transition ${
+                          orientation === 'BANQUE' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <Landmark className={`w-6 h-6 ${orientation === 'BANQUE' ? 'text-primary' : 'text-gray-400'}`} />
+                        <span className="text-sm font-semibold text-gray-800">Dépôt en banque</span>
+                        <span className="text-[11px] text-gray-500">Débloque le dépôt du Comptable</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOrientation('CAISSE')}
+                        className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-4 text-center transition ${
+                          orientation === 'CAISSE' ? 'border-warning bg-warning/5' : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <PiggyBank className={`w-6 h-6 ${orientation === 'CAISSE' ? 'text-warning' : 'text-gray-400'}`} />
+                        <span className="text-sm font-semibold text-gray-800">Conserver en caisse</span>
+                        <span className="text-[11px] text-gray-500">Fonds de roulement · motif requis</span>
+                      </button>
+                    </div>
+                    {orientation === 'CAISSE' && (
+                      <Textarea
+                        label="Motif de conservation en caisse"
+                        placeholder="Expliquez pourquoi les fonds sont conservés (min. 30 caractères)"
+                        variant="bordered"
+                        value={motif}
+                        onValueChange={setMotif}
+                        isRequired
+                        minRows={2}
+                        color={motif.trim().length > 0 && motif.trim().length < 30 ? 'warning' : 'default'}
+                        description={`${motif.trim().length}/30 caractères minimum`}
+                      />
+                    )}
+                  </div>
                 )}
 
                 <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-100 text-amber-800 text-xs">

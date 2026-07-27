@@ -189,7 +189,10 @@ export type ActionGroupee =
   | 'RECOUVREMENT'
   | 'VISER_DGA'
   | 'REJETER_DGA'
-  | 'CONFIRMER_RECEPTION';
+  | 'CONFIRMER_RECEPTION'
+  // SPEC-RECOUV-002 (A) — orientation des fonds en masse, sur les factures « Visé DGA ».
+  | 'ORIENTER_BANQUE'
+  | 'ORIENTER_CAISSE';
 
 /** Filtres courants transmis quand on cible « tout » (toutes les pages). */
 export interface IActionsGroupeesFiltres {
@@ -207,7 +210,7 @@ export interface IActionsGroupeesRequest {
   ids?: string[];
   filtres?: IActionsGroupeesFiltres;
   agentId?: string; // requis pour RECOUVREMENT
-  motif?: string; // requis pour REJETER_DGA
+  motif?: string; // requis pour REJETER_DGA, et pour ORIENTER_CAISSE (≥30 caractères)
 }
 
 export interface IActionsGroupeesResultat {
