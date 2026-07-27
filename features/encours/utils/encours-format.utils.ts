@@ -50,11 +50,23 @@ export function computeKpis(input: {
   totalFacture?: number;
   totalReste?: number;
   totalDeductions?: number;
+  partenaires?: { deduction?: number }[];
 }) {
   const facture = input.totalFacture || 0;
   const reste = input.totalReste || 0;
   const deductions = input.totalDeductions || 0;
-  const recouvre = Math.max(0, facture - reste - deductions);
+  // 2026-07-27 (fix taux 0 %) — `totalDeductions` = registre ANNUEL des déductions
+  // (dont des groupes absents du relevé courant : AGHA, CHICKEN NATION…), alors que
+  // facture/reste sont bornés aux filtres. L'ancienne formule (facture − reste −
+  // totalDeductions) devenait négative → clamp à 0 %. Le recouvré réel (cash) =
+  // facture − reste-avant-déductions, où reste-avant-déductions = totalReste + Σ des
+  // déductions effectivement APPLIQUÉES aux groupes affichés (partenaires[].deduction,
+  // déjà soustraites de totalReste côté backend).
+  const deductionsAppliquees = (input.partenaires ?? []).reduce(
+    (s, p) => s + (p.deduction || 0),
+    0,
+  );
+  const recouvre = Math.max(0, facture - reste - deductionsAppliquees);
   const taux = facture > 0 ? Math.round((recouvre / facture) * 100) : 0;
   return { facture, reste, deductions, recouvre, taux };
 }
