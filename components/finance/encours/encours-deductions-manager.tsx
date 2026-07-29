@@ -11,7 +11,7 @@ import {
   ModalHeader,
   useDisclosure,
 } from '@heroui/react';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Lock, Pencil, Plus, Trash2 } from 'lucide-react';
 import {
   useDeductionsQuery,
   useCreerDeductionMutation,
@@ -33,6 +33,24 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
   const [groupe, setGroupe] = useState('');
   const [montant, setMontant] = useState('');
   const [motif, setMotif] = useState('');
+
+  // Suppression sous code secret DG : le modal recueille le code, le backend
+  // est seul juge (403 tant que le code n'est pas correct).
+  const [suppression, setSuppression] = useState<IDeductionPartenaire | null>(null);
+  const [codeSecret, setCodeSecret] = useState('');
+
+  const confirmerSuppression = () => {
+    if (!suppression || !codeSecret.trim()) return;
+    supprimer.mutate(
+      { id: suppression.id, codeSecret: codeSecret.trim() },
+      {
+        onSuccess: () => {
+          setSuppression(null);
+          setCodeSecret('');
+        },
+      },
+    );
+  };
 
   const reset = () => {
     setEditingId(null);
@@ -113,8 +131,10 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
                           size="sm"
                           variant="light"
                           color="danger"
-                          isLoading={supprimer.isLoading}
-                          onPress={() => supprimer.mutate(d.id)}
+                          onPress={() => {
+                            setCodeSecret('');
+                            setSuppression(d);
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -129,6 +149,61 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
               <ModalFooter>
                 <Button variant="light" onPress={onClose}>
                   Fermer
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      {/* Confirmation DG : la suppression n'aboutit que si le code secret est correct. */}
+      <Modal
+        isOpen={suppression !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSuppression(null);
+            setCodeSecret('');
+          }
+        }}
+        size="sm"
+      >
+        <ModalContent>
+          {(fermer) => (
+            <>
+              <ModalHeader className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-danger" />
+                Confirmation du DG requise
+              </ModalHeader>
+              <ModalBody className="gap-3">
+                <p className="text-sm text-gray-600">
+                  Supprimer la déduction{' '}
+                  <span className="font-medium">{suppression?.groupePartenaire}</span> de{' '}
+                  <span className="font-semibold">{formatFcfa(suppression?.montant ?? 0)}</span> ?
+                  Cette action exige le code secret du DG.
+                </p>
+                <Input
+                  autoFocus
+                  label="Code secret du DG"
+                  size="sm"
+                  type="password"
+                  value={codeSecret}
+                  onValueChange={setCodeSecret}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') confirmerSuppression();
+                  }}
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={fermer}>
+                  Annuler
+                </Button>
+                <Button
+                  color="danger"
+                  isDisabled={!codeSecret.trim()}
+                  isLoading={supprimer.isLoading}
+                  onPress={confirmerSuppression}
+                >
+                  Supprimer
                 </Button>
               </ModalFooter>
             </>

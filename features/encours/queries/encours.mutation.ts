@@ -40,14 +40,23 @@ export const useModifierDeductionMutation = () => {
 export const useSupprimerDeductionMutation = () => {
   const invalidate = useInvalidateEncours();
   return useMutation({
-    mutationFn: (id: string) => encoursAPI.supprimerDeduction(id),
+    mutationFn: ({ id, codeSecret }: { id: string; codeSecret: string }) =>
+      encoursAPI.supprimerDeduction(id, codeSecret),
     onSuccess: async () => {
       await invalidate();
       toast.success('Déduction supprimée');
     },
-    onError: (error) =>
-      toast.error('Erreur lors de la suppression', {
-        description: error instanceof Error ? error.message : 'Erreur inconnue',
-      }),
+    onError: (error) => {
+      const statut = (error as { status?: number; response?: { status?: number } });
+      const est403 = statut?.status === 403 || statut?.response?.status === 403;
+      toast.error(
+        est403 ? 'Code secret incorrect' : 'Erreur lors de la suppression',
+        {
+          description: est403
+            ? 'La suppression est refusée tant que le code secret du DG n\'est pas correct.'
+            : error instanceof Error ? error.message : 'Erreur inconnue',
+        },
+      );
+    },
   });
 };

@@ -77,10 +77,13 @@ export const encoursAPI = {
     });
   },
 
-  supprimerDeduction(id: string): Promise<void> {
+  supprimerDeduction(id: string, codeSecret: string): Promise<void> {
+    // Le code secret DG transite en header (jamais dans l'URL) ; le backend
+    // vérifie contre les comptes du rôle DG et répond 403 si incorrect.
     return api.request<void>({
       endpoint: `finance/deductions-partenaire/${id}`,
       method: 'DELETE',
+      config: { headers: { 'X-Code-Secret': codeSecret } },
     });
   },
 };
