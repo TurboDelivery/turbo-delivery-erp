@@ -6,7 +6,6 @@ settings:
 
 overrides:
   '@internationalized/date': 3.12.0
-  '@lunionlab/meet-client-js': file:vendor/lunionlab-meet-client-js-1.2.0.tgz
 
 importers:
 
@@ -69,12 +68,9 @@ importers:
       '@internationalized/date':
         specifier: 3.12.0
         version: 3.12.0
-      '@lunionlab/meet-client-js':
-        specifier: file:vendor/lunionlab-meet-client-js-1.2.0.tgz
-        version: file:vendor/lunionlab-meet-client-js-1.2.0.tgz
       '@lunionlab/meet-react':
-        specifier: file:vendor/lunionlab-meet-react-0.5.0.tgz
-        version: file:vendor/lunionlab-meet-react-0.5.0.tgz(react@18.3.1)
+        specifier: ^0.5.0
+        version: 0.5.0(react@18.3.1)
       '@mantine/core':
         specifier: ^5.10.5
         version: 5.10.5(@emotion/react@11.14.0(@types/react@18.3.28)(react@18.3.1))(@mantine/hooks@5.10.5(react@18.3.1))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1447,13 +1443,11 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@lunionlab/meet-client-js@file:vendor/lunionlab-meet-client-js-1.2.0.tgz':
-    resolution: {integrity: sha512-p3jFiHh8TDgGPbI8E2Rlb7FjlGaeuPeLqX2Gm7ah36m2yQdRaT0lBczENYtukr5B8cjTfeQ8YEQPCs6MdBOuJA==, tarball: file:vendor/lunionlab-meet-client-js-1.2.0.tgz}
-    version: 1.2.0
+  '@lunionlab/meet-client-js@1.2.0':
+    resolution: {integrity: sha512-hs1p3QaJdFFs2Kzuqi6ymOIIixlmE0aLS8xYn9VGRjSeXXe3cVT+i9dS/4RdBbovuRvk+nk6OYM7QtVcOTzgng==}
 
-  '@lunionlab/meet-react@file:vendor/lunionlab-meet-react-0.5.0.tgz':
-    resolution: {integrity: sha512-QZwoX77npKcURpxLtsIs+gpRv3DT4mzNmXIoII0ae/9BEK9awIBottCWs1wmcF163C4O/1OCzbTZma1YTVXcyA==, tarball: file:vendor/lunionlab-meet-react-0.5.0.tgz}
-    version: 0.5.0
+  '@lunionlab/meet-react@0.5.0':
+    resolution: {integrity: sha512-mM8jejrA0f3tYGsFMRZXnts+mjnN6GDzj1xc44G7x28Syt1nyHzObkREfhZy7QQ6AEuHX/QKHuV0uhn+yKS9/w==}
     peerDependencies:
       react: '>=18'
 
@@ -7775,11 +7769,11 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@lunionlab/meet-client-js@file:vendor/lunionlab-meet-client-js-1.2.0.tgz': {}
+  '@lunionlab/meet-client-js@1.2.0': {}
 
-  '@lunionlab/meet-react@file:vendor/lunionlab-meet-react-0.5.0.tgz(react@18.3.1)':
+  '@lunionlab/meet-react@0.5.0(react@18.3.1)':
     dependencies:
-      '@lunionlab/meet-client-js': file:vendor/lunionlab-meet-client-js-1.2.0.tgz
+      '@lunionlab/meet-client-js': 1.2.0
       react: 18.3.1
 
   '@mantine/core@5.10.5(@emotion/react@11.14.0(@types/react@18.3.28)(react@18.3.1))(@mantine/hooks@5.10.5(react@18.3.1))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
