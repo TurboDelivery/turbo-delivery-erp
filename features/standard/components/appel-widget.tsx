@@ -13,8 +13,9 @@ import {
   IconScreenShareOff,
 } from '@tabler/icons-react';
 
-// Hook VENDORISÉ (copie du SDK + partage d'écran) — pas celui de @lunionlab/meet-react.
-import { useLunionRoom } from '../hooks/use-lunion-room';
+// SDK officiel 0.5.0 (tarball vendorisé, commit 9c6bbc6) : partage d'écran natif
+// (résilient à la reconnexion, option audio système) + reconnexion réseau auto.
+import { useLunionRoom } from '@lunionlab/meet-react';
 
 import { IAppelSession } from '../types/standard.types';
 import { useRaccrocherAppelMutation } from '../queries/standard.query';
@@ -62,11 +63,10 @@ export function AppelWidget({
     status,
     error,
     participants,
-    ecransDistants,
     micEnabled,
-    partageActif,
+    isScreenSharing,
     toggleMic,
-    startScreenShare,
+    shareScreen,
     stopScreenShare,
     leave,
   } = useLunionRoom({
@@ -76,6 +76,8 @@ export function AppelWidget({
     token: session.token,
     video: false,
     audio: !ecouteSeule,
+    // Superviseur : récepteur pur — aucun getUserMedia, aucune permission micro.
+    receiveOnly: ecouteSeule,
   });
   const raccrocher = useRaccrocherAppelMutation();
   const [secondes, setSecondes] = useState(0);
@@ -182,7 +184,11 @@ export function AppelWidget({
     );
   }
 
-  const ecran = ecransDistants[0] ?? null;
+  const participantAvecEcran =
+    participants.find((p) => p.stream.getVideoTracks().length > 0) ?? null;
+  const ecran = participantAvecEcran
+    ? { name: participantAvecEcran.name, stream: participantAvecEcran.stream }
+    : null;
 
   // ── Mode plein : feuille basse (mobile) / carte flottante (desktop) ──
   // Un écran partagé en face élargit le panneau pour rester lisible.
@@ -267,17 +273,17 @@ export function AppelWidget({
                 onClick={() => {
                   // getDisplayMedia exige un geste utilisateur : l'appel reste
                   // dans le handler du clic (pas de setTimeout/async détaché).
-                  if (partageActif) stopScreenShare();
-                  else startScreenShare().catch(() => {/* refus du navigateur */});
+                  if (isScreenSharing) stopScreenShare();
+                  else void shareScreen();
                 }}
-                aria-label={partageActif ? 'Arrêter le partage' : "Partager l'écran"}
+                aria-label={isScreenSharing ? 'Arrêter le partage' : "Partager l'écran"}
                 className={`flex h-14 w-14 items-center justify-center rounded-full transition active:scale-95 ${
-                  partageActif ? 'bg-sky-500 hover:bg-sky-400' : 'bg-white/10 hover:bg-white/20'
+                  isScreenSharing ? 'bg-sky-500 hover:bg-sky-400' : 'bg-white/10 hover:bg-white/20'
                 }`}
               >
-                {partageActif ? <IconScreenShareOff size={22} /> : <IconScreenShare size={22} />}
+                {isScreenSharing ? <IconScreenShareOff size={22} /> : <IconScreenShare size={22} />}
               </button>
-              <span className="text-[11px] text-white/60">{partageActif ? 'Partagé' : 'Écran'}</span>
+              <span className="text-[11px] text-white/60">{isScreenSharing ? 'Partagé' : 'Écran'}</span>
             </div>
           )}
           <div className="flex flex-col items-center gap-1.5">
