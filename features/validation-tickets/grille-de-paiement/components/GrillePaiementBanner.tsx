@@ -26,7 +26,11 @@ export default function GrillePaiementBanner({ grille }: Props) {
           Créneau verrouillé par le Pôle V&A
         </p>
         <p className="text-lg font-bold leading-tight">
-          {grille.code} · {formatDate(grille.debut)} → {formatDate(grille.fin)}
+          {/* Le libellé du créneau contient déjà les dates : on n'affiche que
+              « Semaine N » suivi des dates en toutes lettres — fini le doublon
+              « 20 au 26 Juil.. 2026 · 20 juillet 2026 → 26 juillet 2026 ». */}
+          {grille.code.split('—')[0]?.trim() || grille.code} · {formatDate(grille.debut)} →{' '}
+          {formatDate(grille.fin)}
         </p>
         {grille.visePar && grille.viseAt && (
           <p className="mt-1 text-sm text-blue-100">
