@@ -285,6 +285,14 @@ function JournalAppels({
           minute: '2-digit',
         });
         const Direction = manque ? PhoneMissed : sortant ? PhoneOutgoing : PhoneIncoming;
+        // Direction et issue en TOUTES LETTRES : la flèche seule ne se lit pas.
+        const libelleDirection = manque
+          ? a.statut === 'MANQUE'
+            ? 'Manqué'
+            : 'Rejeté'
+          : sortant
+            ? 'Sortant'
+            : 'Entrant';
         return (
           <div
             key={a.id}
@@ -292,7 +300,11 @@ function JournalAppels({
           >
             <span
               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                manque ? 'bg-rose-500/20 text-rose-300' : 'bg-white/10 text-emerald-300'
+                manque
+                  ? 'bg-rose-500/20 text-rose-300'
+                  : sortant
+                    ? 'bg-white/10 text-emerald-300'
+                    : 'bg-sky-500/15 text-sky-300'
               }`}
             >
               <Direction className="h-4 w-4" />
@@ -302,9 +314,12 @@ function JournalAppels({
                 {nom}
               </span>
               <span className="block truncate text-[11px] text-white/40">
+                <span className={manque ? 'text-rose-300' : sortant ? 'text-emerald-300/80' : 'text-sky-300/80'}>
+                  {libelleDirection}
+                </span>
+                {' · '}
                 {quand}
                 {a.dureeSec != null && a.dureeSec > 0 && ` · ${formaterDuree(a.dureeSec)}`}
-                {manque && (a.statut === 'MANQUE' ? ' · manqué' : ' · rejeté')}
               </span>
             </span>
             {rappelable && (
