@@ -68,6 +68,9 @@ importers:
       '@internationalized/date':
         specifier: 3.12.0
         version: 3.12.0
+      '@lunionlab/meet-client-js':
+        specifier: 1.0.0
+        version: 1.0.0
       '@lunionlab/meet-react':
         specifier: ^0.3.0
         version: 0.3.0(react@18.3.1)

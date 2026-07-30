@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useLunionRoom } from '@lunionlab/meet-react';
+import { VideoTrack } from '@lunionlab/meet-react';
 import {
   IconChevronDown,
   IconChevronUp,
@@ -9,7 +9,12 @@ import {
   IconMicrophone,
   IconMicrophoneOff,
   IconPhoneOff,
+  IconScreenShare,
+  IconScreenShareOff,
 } from '@tabler/icons-react';
+
+// Hook VENDORISÉ (copie du SDK + partage d'écran) — pas celui de @lunionlab/meet-react.
+import { useLunionRoom } from '../hooks/use-lunion-room';
 
 import { IAppelSession } from '../types/standard.types';
 import { useRaccrocherAppelMutation } from '../queries/standard.query';
@@ -32,6 +37,8 @@ interface AppelWidgetProps {
   ecouteSeule?: boolean;
   /** Appel SORTANT : joue la tonalité de retour d'appel tant que ça sonne en face. */
   sortant?: boolean;
+  /** Partage d'écran autorisé (config « partage d'écran » du module d'appel). */
+  partageEcranAutorise?: boolean;
 }
 
 /**
@@ -49,8 +56,20 @@ export function AppelWidget({
   onClose,
   ecouteSeule = false,
   sortant = false,
+  partageEcranAutorise = false,
 }: AppelWidgetProps) {
-  const { status, error, participants, micEnabled, toggleMic, leave } = useLunionRoom({
+  const {
+    status,
+    error,
+    participants,
+    ecransDistants,
+    micEnabled,
+    partageActif,
+    toggleMic,
+    startScreenShare,
+    stopScreenShare,
+    leave,
+  } = useLunionRoom({
     sfuUrl: session.url,
     room: session.roomSlug,
     name: moiNom,
@@ -163,9 +182,16 @@ export function AppelWidget({
     );
   }
 
+  const ecran = ecransDistants[0] ?? null;
+
   // ── Mode plein : feuille basse (mobile) / carte flottante (desktop) ──
+  // Un écran partagé en face élargit le panneau pour rester lisible.
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[150] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-80">
+    <div
+      className={`fixed inset-x-0 bottom-0 z-[150] sm:inset-x-auto sm:bottom-6 sm:right-6 ${
+        ecran ? 'sm:w-[620px]' : 'sm:w-80'
+      }`}
+    >
       {flux}
       <div className="relative overflow-hidden bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 text-white shadow-2xl ring-1 ring-white/10 rounded-t-3xl sm:rounded-3xl">
         <div className="pointer-events-none absolute -top-20 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-emerald-500/15 blur-3xl" />
@@ -207,6 +233,16 @@ export function AppelWidget({
           )}
         </div>
 
+        {/* Écran partagé par l'interlocuteur */}
+        {ecran && (
+          <div className="relative mx-4 mt-3 overflow-hidden rounded-2xl bg-black ring-1 ring-white/15">
+            <VideoTrack stream={ecran.stream} muted className="max-h-[45vh] w-full object-contain" />
+            <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white/90">
+              Écran de {ecran.name}
+            </span>
+          </div>
+        )}
+
         {/* Contrôles */}
         <div className="relative mt-4 flex items-center justify-center gap-8 border-t border-white/10 bg-black/20 px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-5">
           {!ecouteSeule && (
@@ -222,6 +258,26 @@ export function AppelWidget({
                 {micEnabled ? <IconMicrophone size={22} /> : <IconMicrophoneOff size={22} />}
               </button>
               <span className="text-[11px] text-white/60">{micEnabled ? 'Micro' : 'Coupé'}</span>
+            </div>
+          )}
+          {partageEcranAutorise && !ecouteSeule && connecte && (
+            <div className="flex flex-col items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  // getDisplayMedia exige un geste utilisateur : l'appel reste
+                  // dans le handler du clic (pas de setTimeout/async détaché).
+                  if (partageActif) stopScreenShare();
+                  else startScreenShare().catch(() => {/* refus du navigateur */});
+                }}
+                aria-label={partageActif ? 'Arrêter le partage' : "Partager l'écran"}
+                className={`flex h-14 w-14 items-center justify-center rounded-full transition active:scale-95 ${
+                  partageActif ? 'bg-sky-500 hover:bg-sky-400' : 'bg-white/10 hover:bg-white/20'
+                }`}
+              >
+                {partageActif ? <IconScreenShareOff size={22} /> : <IconScreenShare size={22} />}
+              </button>
+              <span className="text-[11px] text-white/60">{partageActif ? 'Partagé' : 'Écran'}</span>
             </div>
           )}
           <div className="flex flex-col items-center gap-1.5">

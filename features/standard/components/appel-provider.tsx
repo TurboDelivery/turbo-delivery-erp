@@ -91,15 +91,37 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   // décroché ou au timeout serveur (~1 min → MANQUE). Aucun rejet côté serveur.
   const [ignores, setIgnores] = useState<ReadonlySet<string>>(new Set());
 
-  // Repli de signalisation : poll des appels entrants SONNE vers STANDARD.
-  // Fiable même hors socket. Coupé pendant un appel actif ou si non-répondant.
-  const { data: entrants } = useAppelsEntrantsQuery(estRepondant && !active);
-  // La console affiche le premier appel qui « sonne » encore et non ignoré ici.
+  // Repli de signalisation : poll des appels entrants SONNE. Depuis V108 il
+  // couvre STANDARD ET les appels PERSONNEL qui me ciblent — le socket seul
+  // perdait l'appel pair-à-pair si l'onglet était en rechargement ou le socket
+  // déconnecté (« quand il m'a appelé je n'ai pas été notifié »). Le poll est
+  // donc actif pour TOUT agent connecté, pas seulement les répondants ; coupé
+  // seulement pendant un appel actif.
+  const { data: entrants } = useAppelsEntrantsQuery(!!agentId && !active, agentId);
+
+  // Filet PERSONNEL : un appel pair qui me cible, vu par le poll alors que le
+  // socket ne l'a pas signalé → on le fait sonner comme s'il venait du socket.
+  useEffect(() => {
+    if (active || pairEntrant) return;
+    const pair = (entrants ?? []).find(
+      (e) => e.contexte === 'PAIR_VERS_PAIR' && !ignores.has(e.appelId),
+    );
+    if (pair) {
+      setPairEntrant({ appelId: pair.appelId, appelantNom: pair.appelantNom || 'Personnel Turbo' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entrants, active, pairEntrant]);
+
+  // La console affiche le premier appel de GROUPE (STANDARD) qui « sonne »
+  // encore et non ignoré ici — réservé aux répondants configurés.
   // L'expiration ~1 min d'un appel sans réponse est décidée CÔTÉ SERVEUR (SONNE
   // > 60 s → MANQUE, qui le retire du poll). PAS de filtre d'âge client (il
   // coupait la modale au retour de focus alors que l'appel sonnait toujours).
   const premier =
-    (estRepondant && !active && (entrants ?? []).find((e) => !ignores.has(e.appelId))) || null;
+    (estRepondant &&
+      !active &&
+      (entrants ?? []).find((e) => e.contexte !== 'PAIR_VERS_PAIR' && !ignores.has(e.appelId))) ||
+    null;
   const entrant = premier
     ? {
         appelId: premier.appelId,
@@ -118,13 +140,19 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
     if (Notification.permission === 'default') Notification.requestPermission().catch(() => {});
   }, []);
+  // Couvre les DEUX types d'appels : groupe STANDARD et pair-à-pair PERSONNEL.
+  const sonnerie = entrant
+    ? { appelId: entrant.appelId, message: entrant.message }
+    : pairEntrant
+      ? { appelId: pairEntrant.appelId, message: `${pairEntrant.appelantNom} vous appelle` }
+      : null;
   useEffect(() => {
-    if (!entrant) {
+    if (!sonnerie) {
       dernierAppelNotifie.current = null;
       return;
     }
-    if (dernierAppelNotifie.current === entrant.appelId) return;
-    dernierAppelNotifie.current = entrant.appelId;
+    if (dernierAppelNotifie.current === sonnerie.appelId) return;
+    dernierAppelNotifie.current = sonnerie.appelId;
     if (
       typeof document !== 'undefined' &&
       document.hidden &&
@@ -133,7 +161,7 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
     ) {
       try {
         const notif = new Notification('Appel entrant', {
-          body: entrant.message,
+          body: sonnerie.message,
           tag: 'appel-entrant',
           requireInteraction: true,
         });
@@ -146,7 +174,7 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entrant?.appelId]);
+  }, [sonnerie?.appelId]);
 
   const appelerLivreur = useCallback(
     (livreurId: string, livreurNom: string, incidentId?: string) => {
@@ -311,8 +339,16 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   };
   const refuserPair = () => {
     if (!pairEntrant) return;
+    const id = pairEntrant.appelId;
     // Appel direct : le refus REJETTE réellement (l'appelant est prévenu).
-    rejeter.mutate(pairEntrant.appelId);
+    // On l'ignore AUSSI localement : le poll pourrait le re-signaler pendant
+    // la fenêtre où la mutation n'a pas encore atteint le serveur.
+    setIgnores((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+    rejeter.mutate(id);
     setPairEntrant(null);
   };
 
@@ -358,6 +394,7 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
           interlocuteur={active.interlocuteur}
           ecouteSeule={active.ecouteSeule}
           sortant={active.sortant}
+          partageEcranAutorise={!!config?.partageEcranActif}
           onClose={() => setActive(null)}
         />
       )}

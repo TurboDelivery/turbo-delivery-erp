@@ -11,7 +11,8 @@ export const standardKeys = {
   incident: (id: string) => [...standardKeys.all, 'incident', id] as const,
   ouverts: () => [...standardKeys.all, 'ouverts'] as const,
   motifs: () => [...standardKeys.all, 'motifs'] as const,
-  appels: (page?: number) => [...standardKeys.all, 'appels', page ?? 0] as const,
+  appels: (page?: number, userId?: string) =>
+    [...standardKeys.all, 'appels', page ?? 0, userId ?? 'tous'] as const,
   appelsEntrants: () => [...standardKeys.all, 'appels-entrants'] as const,
   appelsEnCours: () => [...standardKeys.all, 'appels-en-cours'] as const,
   appelConfig: () => [...standardKeys.all, 'appel-config'] as const,
@@ -96,10 +97,10 @@ export const useModifierMotifMutation = () => {
 
 /** Historique paginé des appels (journal STANDARD). `refetchInterval` optionnel
  * pour faire remonter les appels EN COURS (colonne « Écouter »). */
-export const useAppelsQuery = (page = 0, size = 20, refetchInterval?: number) =>
+export const useAppelsQuery = (page = 0, size = 20, refetchInterval?: number, userId?: string) =>
   useQuery({
-    queryKey: standardKeys.appels(page),
-    queryFn: () => standardAPI.listerAppels({ page, size }),
+    queryKey: standardKeys.appels(page, userId),
+    queryFn: () => standardAPI.listerAppels({ page, size, userId }),
     staleTime: refetchInterval ?? 30 * 1000,
     keepPreviousData: true,
     refetchInterval: refetchInterval ?? false,
@@ -110,10 +111,10 @@ export const useAppelsQuery = (page = 0, size = 20, refetchInterval?: number) =>
  * Garantit que la console « sonne » même si l'agent connecté n'est pas un
  * notifier socket. `enabled` permet de couper le poll pendant un appel actif.
  */
-export const useAppelsEntrantsQuery = (enabled = true) =>
+export const useAppelsEntrantsQuery = (enabled = true, userId?: string) =>
   useQuery({
     queryKey: standardKeys.appelsEntrants(),
-    queryFn: () => standardAPI.listerAppelsEntrants(),
+    queryFn: () => standardAPI.listerAppelsEntrants(userId),
     enabled,
     refetchInterval: enabled ? 4000 : false,
     // Continue à poller même quand l'onglet n'est PAS au premier plan : sinon la

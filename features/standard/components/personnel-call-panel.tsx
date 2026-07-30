@@ -3,12 +3,24 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { Delete, Phone, Search, Users, X } from 'lucide-react';
+import {
+  Delete,
+  History,
+  Phone,
+  PhoneIncoming,
+  PhoneMissed,
+  PhoneOutgoing,
+  Search,
+  Users,
+  X,
+} from 'lucide-react';
 
 import { getUsers } from '@/src/actions/users.actions';
 
 import { useAppel } from './appel-provider';
-import { initialesDe } from '../utils/appel-ui.utils';
+import { useAppelsQuery } from '../queries/standard.query';
+import { IAppelLog } from '../types/standard.types';
+import { formaterDuree, initialesDe } from '../utils/appel-ui.utils';
 
 interface Contact {
   id: string;
@@ -30,7 +42,7 @@ export function PersonnelCallPanel() {
   const moiId = session?.user?.id;
 
   const [ouvert, setOuvert] = useState(false);
-  const [onglet, setOnglet] = useState<'contacts' | 'clavier'>('contacts');
+  const [onglet, setOnglet] = useState<'contacts' | 'clavier' | 'journal'>('contacts');
   const [recherche, setRecherche] = useState('');
   const [numero, setNumero] = useState('');
 
@@ -40,6 +52,16 @@ export function PersonnelCallPanel() {
     enabled: ouvert && appelsPersonnelActifs,
     staleTime: 5 * 60 * 1000,
   });
+
+  // Journal : MES appels (appelant ou appelé), rafraîchi à chaque ouverture
+  // de l'onglet — 15 s de refetch pour voir un appel qui vient de se terminer.
+  const journalActif = ouvert && onglet === 'journal' && !!moiId;
+  const { data: journal, isLoading: journalCharge } = useAppelsQuery(
+    0,
+    30,
+    journalActif ? 15_000 : undefined,
+    journalActif ? moiId : undefined,
+  );
 
   const contacts: Contact[] = useMemo(() => {
     const users = (data as any)?.content ?? [];
@@ -109,7 +131,7 @@ export function PersonnelCallPanel() {
 
             {/* Onglets */}
             <div className="flex gap-1 px-3 pt-3">
-              {(['contacts', 'clavier'] as const).map((t) => (
+              {(['contacts', 'clavier', 'journal'] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -118,12 +140,23 @@ export function PersonnelCallPanel() {
                     onglet === t ? 'bg-white/15 text-white' : 'text-white/50 hover:text-white'
                   }`}
                 >
-                  {t === 'contacts' ? 'Contacts' : 'Clavier'}
+                  {t === 'contacts' ? 'Contacts' : t === 'clavier' ? 'Clavier' : 'Journal'}
                 </button>
               ))}
             </div>
 
-            {onglet === 'contacts' ? (
+            {onglet === 'journal' ? (
+              <JournalAppels
+                moiId={moiId}
+                journal={(journal?.content ?? []) as IAppelLog[]}
+                charge={journalCharge}
+                onRappeler={(id, nom) => {
+                  if (enAppel) return;
+                  appelerPersonnel(id, nom);
+                  setOuvert(false);
+                }}
+              />
+            ) : onglet === 'contacts' ? (
               <>
                 <div className="p-3">
                   <div className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2">
@@ -211,5 +244,82 @@ export function PersonnelCallPanel() {
         </div>
       )}
     </>
+  );
+}
+
+/** Ligne du journal : direction, nom, heure, durée — style sombre du panneau. */
+function JournalAppels({
+  moiId,
+  journal,
+  charge,
+  onRappeler,
+}: {
+  moiId?: string;
+  journal: IAppelLog[];
+  charge: boolean;
+  onRappeler: (id: string, nom: string) => void;
+}) {
+  if (charge) {
+    return <p className="py-8 text-center text-sm text-white/40">Chargement…</p>;
+  }
+  if (journal.length === 0) {
+    return (
+      <p className="flex flex-col items-center gap-2 py-8 text-center text-sm text-white/40">
+        <History className="h-6 w-6" /> Aucun appel pour le moment.
+      </p>
+    );
+  }
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3 pt-2">
+      {journal.map((a) => {
+        const sortant = a.appelantId === moiId;
+        const manque = a.statut === 'MANQUE' || a.statut === 'REJETE';
+        // L'AUTRE partie de l'appel, vue de moi.
+        const nom = (sortant ? a.appeleNom : a.appelantNom) ?? 'Appel';
+        const autreId = sortant ? a.appeleId : a.appelantId;
+        const rappelable = !!autreId && a.contexte === 'PAIR_VERS_PAIR';
+        const quand = new Date(a.declencheLe).toLocaleString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        const Direction = manque ? PhoneMissed : sortant ? PhoneOutgoing : PhoneIncoming;
+        return (
+          <div
+            key={a.id}
+            className="flex w-full items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-white/10"
+          >
+            <span
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                manque ? 'bg-rose-500/20 text-rose-300' : 'bg-white/10 text-emerald-300'
+              }`}
+            >
+              <Direction className="h-4 w-4" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className={`block truncate text-sm font-medium ${manque ? 'text-rose-200' : ''}`}>
+                {nom}
+              </span>
+              <span className="block truncate text-[11px] text-white/40">
+                {quand}
+                {a.dureeSec != null && a.dureeSec > 0 && ` · ${formaterDuree(a.dureeSec)}`}
+                {manque && (a.statut === 'MANQUE' ? ' · manqué' : ' · rejeté')}
+              </span>
+            </span>
+            {rappelable && (
+              <button
+                type="button"
+                onClick={() => onRappeler(autreId!, nom)}
+                aria-label={`Rappeler ${nom}`}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-emerald-300 transition hover:bg-emerald-600 hover:text-white"
+              >
+                <Phone className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }

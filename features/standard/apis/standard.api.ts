@@ -87,20 +87,28 @@ export const standardAPI = {
 
   // ─── Appels ────────────────────────────────────────────────────────────────
 
-  /** Historique paginé des appels. */
-  listerAppels(params: { page?: number; size?: number }): Promise<PaginatedResponse<IAppelLog>> {
+  /** Historique paginé des appels. `userId` = journal restreint à cet utilisateur (appelant ou appelé). */
+  listerAppels(params: { page?: number; size?: number; userId?: string }): Promise<PaginatedResponse<IAppelLog>> {
     return apiClientHttp.request<PaginatedResponse<IAppelLog>>({
       endpoint: '/api/erp/appel',
       method: 'GET',
-      params: { page: String(params.page ?? 0), size: String(params.size ?? 20) },
+      params: {
+        page: String(params.page ?? 0),
+        size: String(params.size ?? 20),
+        ...(params.userId ? { userId: params.userId } : {}),
+      },
     });
   },
 
-  /** Appels entrants SONNE vers STANDARD (repli de signalisation, pollé par la console). */
-  listerAppelsEntrants(): Promise<IAppelEntrant[]> {
+  /**
+   * Appels entrants SONNE (repli de signalisation, pollé) : groupe STANDARD +
+   * appels PERSONNEL ciblant `userId` — le poll couvre les deux depuis V108.
+   */
+  listerAppelsEntrants(userId?: string): Promise<IAppelEntrant[]> {
     return apiClientHttp.request<IAppelEntrant[]>({
       endpoint: '/api/erp/appel/entrants',
       method: 'GET',
+      params: userId ? { userId } : undefined,
     });
   },
 
