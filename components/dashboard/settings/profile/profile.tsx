@@ -8,7 +8,11 @@ import { Avatar, Input } from "@heroui/react";
 import { SubmitButton } from '@/components/ui/form-ui/submit-button';
 import { IconMail, IconShield, IconUser } from '@tabler/icons-react';
 
+import { CodeSecuriteCard } from './code-securite-card';
+
 const UserProfile = ({ user }: { user: User }) => {
+    // Le code de sécurité (actions finance sensibles) n'existe que pour DG / DGA.
+    const peutDefinirCode = ['DG', 'DGA'].includes(user.role?.libelle ?? '');
     const [isEditing, setIsEditing] = useState(false);
 
     const handleSave = () => {
@@ -84,6 +88,11 @@ const UserProfile = ({ user }: { user: User }) => {
                         )}
                     </div>
                 </div>
+                {peutDefinirCode && (
+                    <div className="lg:col-span-1">
+                        <CodeSecuriteCard username={user.username} />
+                    </div>
+                )}
             </div>
         </div>
     );

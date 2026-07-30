@@ -26,6 +26,9 @@ const usersEndpoints = {
     // 2026-05 — Bascule du flag notification_email_primary (UI admin).
     // Limite le volume d'emails de workflow sous le quota Hostinger 50/h.
     toggleEmailPrimary: { endpoint: (id: string) => `${BASE_URL}/${id}/toggle-email-primary`, method: 'POST' },
+    // 2026-07-30 — Code de sécurité 4 chiffres (DG/DGA), distinct du mot de passe,
+    // exigé par main-backend pour les actions finance sensibles (suppression de déduction).
+    codeSecurite: { endpoint: `${BASE_URL}/code-securite`, method: 'POST' },
 };
 
 export async function loginUser(formData: FormData): Promise<ActionResult<any>> {
@@ -335,6 +338,36 @@ export async function toggleUserEmailPrimary(id: string): Promise<ActionResult<{
         return {
             status: 'error',
             message: error?.response?.data?.message || error?.response?.data || 'Erreur lors de la mise à jour du destinataire email',
+        };
+    }
+}
+
+/**
+ * Définit le code de sécurité (4 chiffres) d'un utilisateur DG / DGA.
+ * Le mot de passe du compte prouve l'identité ; le code est distinct du mot
+ * de passe et sert aux actions finance sensibles (suppression de déduction).
+ */
+export async function definirCodeSecurite(params: {
+    username: string;
+    password: string;
+    code: string;
+}): Promise<ActionResult<any>> {
+    if (!/^\d{4}$/.test(params.code)) {
+        return { status: 'error', message: 'Le code doit faire exactement 4 chiffres.' };
+    }
+    try {
+        await apiClientHttp.request({
+            endpoint: usersEndpoints.codeSecurite.endpoint,
+            method: usersEndpoints.codeSecurite.method,
+            data: params,
+            service: 'erp',
+        });
+        return { status: 'success', message: 'Code de sécurité enregistré.' };
+    } catch (error: any) {
+        return {
+            status: 'error',
+            message:
+                error?.data?.message ?? error?.message ?? 'Erreur serveur. Veuillez réessayer.',
         };
     }
 }

@@ -50,10 +50,10 @@ export const useSupprimerDeductionMutation = () => {
       const statut = (error as { status?: number; response?: { status?: number } });
       const est403 = statut?.status === 403 || statut?.response?.status === 403;
       toast.error(
-        est403 ? 'Code secret incorrect' : 'Erreur lors de la suppression',
+        est403 ? 'Code de sécurité incorrect' : 'Erreur lors de la suppression',
         {
           description: est403
-            ? 'La suppression est refusée tant que le code secret du DG n\'est pas correct.'
+            ? 'La suppression est refusée tant que le code de sécurité (DG/DGA) n\'est pas correct.'
             : error instanceof Error ? error.message : 'Erreur inconnue',
         },
       );

@@ -34,13 +34,13 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
   const [montant, setMontant] = useState('');
   const [motif, setMotif] = useState('');
 
-  // Suppression sous code secret DG : le modal recueille le code, le backend
-  // est seul juge (403 tant que le code n'est pas correct).
+  // Suppression sous code de sécurité (4 chiffres, défini par le DG ou le
+  // DGA) : le modal recueille le code, le backend est seul juge (403 sinon).
   const [suppression, setSuppression] = useState<IDeductionPartenaire | null>(null);
   const [codeSecret, setCodeSecret] = useState('');
 
   const confirmerSuppression = () => {
-    if (!suppression || !codeSecret.trim()) return;
+    if (!suppression || !/^\d{4}$/.test(codeSecret)) return;
     supprimer.mutate(
       { id: suppression.id, codeSecret: codeSecret.trim() },
       {
@@ -156,7 +156,7 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
         </ModalContent>
       </Modal>
 
-      {/* Confirmation DG : la suppression n'aboutit que si le code secret est correct. */}
+      {/* La suppression n'aboutit que si le code de sécurité (DG/DGA) est correct. */}
       <Modal
         isOpen={suppression !== null}
         onOpenChange={(open) => {
@@ -172,22 +172,24 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
             <>
               <ModalHeader className="flex items-center gap-2">
                 <Lock className="h-4 w-4 text-danger" />
-                Confirmation du DG requise
+                Code de sécurité requis
               </ModalHeader>
               <ModalBody className="gap-3">
                 <p className="text-sm text-gray-600">
                   Supprimer la déduction{' '}
                   <span className="font-medium">{suppression?.groupePartenaire}</span> de{' '}
                   <span className="font-semibold">{formatFcfa(suppression?.montant ?? 0)}</span> ?
-                  Cette action exige le code secret du DG.
+                  Cette action exige le code de sécurité à 4 chiffres défini par le DG ou le DGA.
                 </p>
                 <Input
                   autoFocus
-                  label="Code secret du DG"
+                  label="Code de sécurité (4 chiffres)"
                   size="sm"
                   type="password"
+                  inputMode="numeric"
+                  maxLength={4}
                   value={codeSecret}
-                  onValueChange={setCodeSecret}
+                  onValueChange={(v) => setCodeSecret(v.replace(/\D/g, '').slice(0, 4))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') confirmerSuppression();
                   }}
@@ -199,7 +201,7 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
                 </Button>
                 <Button
                   color="danger"
-                  isDisabled={!codeSecret.trim()}
+                  isDisabled={codeSecret.length !== 4}
                   isLoading={supprimer.isLoading}
                   onPress={confirmerSuppression}
                 >
