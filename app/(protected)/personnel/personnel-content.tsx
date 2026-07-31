@@ -14,6 +14,11 @@ import EmployeeTableNew from '@/components/personnel/employee-table/index';
 import DeductionTabContents from '@/components/personnel/deductions/deduction-tab-contents';
 import PayrollTable from '@/components/personnel/payroll/table/payroll-table';
 import { useLeaveRequestListQuery } from '@/features/personnel/queries/leave-request-list.query';
+import { AnomaliesTab } from '@/features/personnel/components/anomalies-tab';
+import { ContratsTab } from '@/features/personnel/components/contrats-tab';
+import { EffectifTab } from '@/features/personnel/components/effectif-tab';
+import { MasseSalarialeTab } from '@/features/personnel/components/masse-salariale-tab';
+import { PersonnelKpis } from '@/features/personnel/components/personnel-kpis';
 
 export default function PersonnelContent() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -66,12 +71,22 @@ export default function PersonnelContent() {
         </Button>
       </div>
 
+      {/* SPEC-ERP-TURBO-PERSONNEL-v1.1 — synthèse de tête, alimentée par les mêmes
+          requêtes que les nouveaux onglets (aucun appel supplémentaire). */}
+      <div className="mb-6">
+        <PersonnelKpis />
+      </div>
+
       <Tabs defaultValue="employees">
-        <TabsList className="grid max-w-2xl grid-cols-4 rounded-full">
+        <TabsList className="flex flex-wrap justify-start gap-1 rounded-2xl">
           <TabsTrigger value="employees">Employés</TabsTrigger>
           <TabsTrigger value="conge">Congés</TabsTrigger>
           <TabsTrigger value="deduction">Deductions</TabsTrigger>
           <TabsTrigger value="payroll">Paiements</TabsTrigger>
+          <TabsTrigger value="effectif">Effectif</TabsTrigger>
+          <TabsTrigger value="masse">Masse salariale</TabsTrigger>
+          <TabsTrigger value="contrats">Contrats &amp; déclarations</TabsTrigger>
+          <TabsTrigger value="anomalies">Anomalies</TabsTrigger>
         </TabsList>
 
         <TabsContent value="employees" className="mt-6">
@@ -85,6 +100,18 @@ export default function PersonnelContent() {
         </TabsContent>
         <TabsContent value="payroll" className="mt-6">
           <PayrollTable />
+        </TabsContent>
+        <TabsContent value="effectif" className="mt-6">
+          <EffectifTab />
+        </TabsContent>
+        <TabsContent value="masse" className="mt-6">
+          <MasseSalarialeTab />
+        </TabsContent>
+        <TabsContent value="contrats" className="mt-6">
+          <ContratsTab />
+        </TabsContent>
+        <TabsContent value="anomalies" className="mt-6">
+          <AnomaliesTab />
         </TabsContent>
       </Tabs>
 

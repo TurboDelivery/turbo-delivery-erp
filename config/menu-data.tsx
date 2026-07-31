@@ -1,5 +1,5 @@
 'use client';
-import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconUser, IconUsers } from '@tabler/icons-react';
+import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconShieldLock, IconUser, IconUsers } from '@tabler/icons-react';
 import { AlertTriangle, BarChart, Bell, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
@@ -82,6 +82,12 @@ const menuData: IMenuData[] = [
     title: 'Personnel TURBO',
     path: '/personnel',
     can: { action: 'read', subject: 'Personnel' },
+  },
+  {
+    icon: IconShieldLock,
+    title: 'Supervision & Audit',
+    path: '/supervision',
+    can: { action: 'read', subject: 'Supervision' },
   },
   {
     icon: IconUsers,

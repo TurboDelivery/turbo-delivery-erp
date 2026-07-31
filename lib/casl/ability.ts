@@ -27,6 +27,10 @@ export type AppSubjects =
   // Re-accordé à OPS_MANAGER + DIRECTEUR_OPERATIONS (DG/DGA via all).
   | 'CommandeClient'
   | 'Personnel'
+  // 2026-07-31 — SPEC-ERP-TURBO-AUDIT-v2.0 : supervision des sessions et audit
+  // global des activites. Sujet dedie (et non 'Parametre') car l'ecran est
+  // reserve aux profils Admin / Ops Manager : il expose qui fait quoi partout.
+  | 'Supervision'
   | 'Utilisateur'
   | 'Finance'
   // 2026-05 — Sous-menus dédiés du module Comptabilité pour contrôle granulaire
@@ -228,6 +232,12 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
   ],
   OPS_MANAGER: [
     { action: 'read', subject: 'Reporting' },
+    // SPEC-ERP-TURBO-AUDIT-v2.0 : l'Ops Manager est le pilote Audit & Controle de
+    // gestion — c'est le destinataire premier de l'ecran de supervision.
+    { action: 'read', subject: 'Supervision' },
+    // Le meme profil pilote la fiabilisation RH (SPEC-ERP-TURBO-PERSONNEL-v1.1) :
+    // masse salariale auditable, conformite des declarations, anomalies.
+    { action: 'read', subject: 'Personnel' },
     { action: 'read', subject: ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande'] },
     { action: ['read', 'update'], subject: 'Incident' },
     { action: 'read', subject: ['CommandeClient', 'HistoriqueCreneaux', 'RapportPerformancePartenaire'] },

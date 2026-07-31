@@ -3,6 +3,27 @@ import { auth } from '@/auth';
 
 export type ServiceType = 'erp' | 'restaurant' | 'livreur' | 'client' | 'backend';
 
+/**
+ * Clé de la session de travail de l'onglet, produite par le battement de cœur
+ * (`features/supervision/hooks/use-session-heartbeat`).
+ *
+ * Volontairement recopiée ici plutôt qu'importée : le module du hook porte la
+ * directive `'use client'`, et ce client HTTP est aussi utilisé depuis des server
+ * actions — importer un module client depuis le serveur transformerait la fonction
+ * en référence client, inappelable. Les deux constantes doivent rester identiques.
+ */
+const CLE_SESSION_SUPERVISION = 'turbo.supervision.session-id';
+
+/** Lecture non bloquante de la session de travail. Nulle côté serveur, par nature. */
+function lireSessionSupervision(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.sessionStorage.getItem(CLE_SESSION_SUPERVISION);
+  } catch {
+    return null;
+  }
+}
+
 export class ApiClientHttp {
   private axiosInstance: AxiosInstance;
 
@@ -32,6 +53,17 @@ export class ApiClientHttp {
       if (config.data instanceof FormData) {
         delete config.headers['Content-Type'];
       }
+
+      // Rattache chaque appel métier à la session de travail de l'onglet
+      // (SPEC-ERP-TURBO-AUDIT-v2.0 : imputabilité). L'identifiant est produit et
+      // tenu à jour par le battement de cœur (features/supervision). Posé ici, et
+      // non dans getHeaders(), pour couvrir AUSSI les appels sans `service` — la
+      // majorité des appels main-backend.
+      const sessionId = lireSessionSupervision();
+      if (sessionId) {
+        config.headers.set('X-Session-Id', sessionId);
+      }
+
       return config;
     });
   }

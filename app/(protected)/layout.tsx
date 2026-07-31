@@ -16,6 +16,7 @@ import ContentAnimation from '@/components/layouts/content-animation';
 import { FormChangePassword } from '@/components/auth/form-change-password';
 import { NotificationSocketProvider } from '@/providers/notification-socket.provider';
 import { AppelProvider } from '@/features/standard/components/appel-provider';
+import { SessionSupervisionProvider } from '@/components/providers/session-supervision-provider';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const profile = await getProfile();
@@ -25,6 +26,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <>
       {profile && !profile.changePassword && <FormChangePassword userName={profile.username} />}
+      {/* Battement de cœur de présence (supervision & audit). Ne rend rien ;
+          monté hors de ProtectedPage pour continuer à remonter la présence même
+          sur un écran interdit à l'utilisateur. */}
+      <SessionSupervisionProvider />
       <AbilityProvider role={profile?.role?.libelle ?? null}>
       <NotificationSocketProvider>
       <AppelProvider>

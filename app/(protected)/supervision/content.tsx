@@ -1,0 +1,131 @@
+'use client';
+
+import { useCallback, useRef, useState } from 'react';
+import { Button, Tab, Tabs } from '@heroui/react';
+import { useQueryClient } from '@tanstack/react-query';
+import { AlertTriangle, Download, RefreshCw } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+
+import { useAbility } from '@/hooks/use-ability';
+import { ActiviteModulesPanel } from '@/features/supervision/components/activite-modules-panel';
+import { AdoptionPanel } from '@/features/supervision/components/adoption-panel';
+import { ConnexionsPanel } from '@/features/supervision/components/connexions-panel';
+import { SessionsEnLignePanel } from '@/features/supervision/components/sessions-en-ligne-panel';
+import { SupervisionKpis } from '@/features/supervision/components/supervision-kpis';
+import { supervisionKeys, useSupervisionStatsQuery } from '@/features/supervision/queries/supervision.queries';
+import { ExporteurOnglet, OngletSupervision } from '@/features/supervision/types';
+
+/**
+ * Supervision des sessions & audit global des activités (SPEC-ERP-TURBO-AUDIT-v2.0).
+ *
+ * <b>Écran en lecture seule</b>, à une exception documentée près : la déconnexion
+ * forcée d'une session, réservée aux profils qui peuvent `manage` le sujet CASL
+ * Supervision. Aucune donnée d'audit n'est modifiable ni supprimable depuis
+ * l'ERP — le backend n'expose d'ailleurs aucune route d'écriture sur les
+ * journaux, et les tables portent des triggers PostgreSQL qui refusent tout
+ * UPDATE/DELETE.
+ */
+export function SupervisionContent() {
+  const ability = useAbility();
+  const { data: sessionAuth } = useSession();
+  const userId = sessionAuth?.user?.id ?? '';
+  const queryClient = useQueryClient();
+
+  const [onglet, setOnglet] = useState<OngletSupervision>('en-ligne');
+  const [exportEnCours, setExportEnCours] = useState(false);
+
+  // Le bouton d'export vit dans l'entête ; chaque panneau y publie sa propre
+  // fonction au montage. HeroUI ne monte que l'onglet sélectionné : la fonction
+  // présente ici est donc toujours celle de l'onglet visible.
+  const exporteurRef = useRef<ExporteurOnglet | null>(null);
+  const enregistrerExport = useCallback((exporteur: ExporteurOnglet | null) => {
+    exporteurRef.current = exporteur;
+  }, []);
+
+  const lancerExport = async () => {
+    if (!exporteurRef.current) return;
+    setExportEnCours(true);
+    try {
+      await exporteurRef.current();
+    } finally {
+      setExportEnCours(false);
+    }
+  };
+
+  const { data: stats, isLoading: statsEnCours } = useSupervisionStatsQuery(userId);
+
+  const peutForcerDeconnexion = ability.can('manage', 'Supervision');
+
+  if (!ability.can('read', 'Supervision')) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 py-24 text-default-400">
+        <AlertTriangle className="h-8 w-8" />
+        <p>Vous n&apos;avez pas accès à la supervision et à l&apos;audit.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 p-4">
+      {/* Entête */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-primary">Supervision des sessions &amp; audit global</h1>
+          <p className="mt-1 max-w-3xl text-sm text-default-500">
+            Présence en temps réel, journal des connexions et traçabilité des actions dans tous les modules de
+            l&apos;ERP. Écran en lecture seule : les journaux ne sont ni modifiables ni supprimables, quel que
+            soit le profil.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="flat"
+            startContent={!exportEnCours && <Download className="h-4 w-4" />}
+            isLoading={exportEnCours}
+            onPress={lancerExport}
+          >
+            Exporter l&apos;onglet (CSV)
+          </Button>
+          <Button
+            size="sm"
+            color="primary"
+            startContent={<RefreshCw className="h-4 w-4" />}
+            onPress={() => queryClient.invalidateQueries({ queryKey: supervisionKeys.all })}
+          >
+            Actualiser
+          </Button>
+        </div>
+      </div>
+
+      <SupervisionKpis stats={stats} isLoading={statsEnCours} />
+
+      <Tabs
+        aria-label="Supervision et audit"
+        color="primary"
+        variant="underlined"
+        selectedKey={onglet}
+        onSelectionChange={(cle) => setOnglet(cle as OngletSupervision)}
+      >
+        <Tab key="en-ligne" title="Utilisateurs en ligne">
+          <SessionsEnLignePanel
+            userId={userId}
+            peutForcerDeconnexion={peutForcerDeconnexion}
+            enregistrerExport={enregistrerExport}
+          />
+        </Tab>
+        <Tab key="activite" title="Activité des modules">
+          <ActiviteModulesPanel userId={userId} enregistrerExport={enregistrerExport} />
+        </Tab>
+        <Tab key="connexions" title="Connexions">
+          <ConnexionsPanel userId={userId} enregistrerExport={enregistrerExport} />
+        </Tab>
+        <Tab key="adoption" title="Premières connexions">
+          <AdoptionPanel userId={userId} enregistrerExport={enregistrerExport} />
+        </Tab>
+      </Tabs>
+    </div>
+  );
+}
+
+export default SupervisionContent;

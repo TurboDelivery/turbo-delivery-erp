@@ -1,11 +1,14 @@
 'use server';
 
 import { signIn } from '@/auth';
+import { auth } from '@/auth';
 import { User } from '@/types/models';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { signOut as signOutAuth } from '@/auth';
 import { apiClientHttp } from '@/lib/api-client-http';
+import { tracerConnexion } from './audit-connexion.actions';
 import { ActionResult, PaginatedResponse } from '@/types';
 import { processFormData } from '@/utils/formdata-zod.utilities';
 import { _createUserSchema, changePasswordSchema, createUserSchema, loginSchema } from '../schemas/users.schema';
@@ -31,6 +34,22 @@ const usersEndpoints = {
     codeSecurite: { endpoint: `${BASE_URL}/code-securite`, method: 'POST' },
 };
 
+/**
+ * Cookie miroir de la session de travail, posé par le battement de cœur
+ * (`features/supervision/hooks/use-session-heartbeat`). Recopié ici car le module du
+ * hook est un module client : les deux constantes doivent rester identiques.
+ */
+const COOKIE_SESSION_SUPERVISION = 'turbo_erp_session';
+
+/** Session de travail de l'onglet, quand le battement de cœur en a déjà ouvert une. */
+function lireSessionSupervision(): string | null {
+    try {
+        return cookies().get(COOKIE_SESSION_SUPERVISION)?.value ?? null;
+    } catch {
+        return null;
+    }
+}
+
 export async function loginUser(formData: FormData): Promise<ActionResult<any>> {
     const {
       success,
@@ -47,6 +66,11 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
         };
     }
   
+    // Une tentative de connexion ne doit produire qu'UNE ligne de journal. Ce drapeau
+    // évite qu'un incident survenu APRÈS l'émission (typiquement signIn() qui lève)
+    // ajoute un ECHEC derrière un LOGIN déjà enregistré pour la même tentative.
+    let evenementEmis = false;
+
     try {
         // 🔐 Envoie la requête login
         const result = await fetch(`${process.env.NEXT_PUBLIC_API_ERP_URL}${usersEndpoints.login.endpoint}`, {
@@ -66,6 +90,28 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
          * 🔴 CAS SPÉCIAL : 401 mais user retourné
          */
         if (result.status === 401 && json?.user) {
+            // LOG10 = mot de passe CORRECT, mais changement de mot de passe exigé.
+            // Ce n'est pas un échec d'authentification : c'est la signature d'une
+            // première connexion. Le classer en ECHEC noierait les vraies tentatives
+            // d'intrusion sous le bruit des primo-arrivants.
+            if (json?.code === 'LOG10') {
+                await tracerConnexion({
+                    typeEvenement: 'LOGIN',
+                    identifiant: formdata.username,
+                    utilisateurId: json?.user?.id ?? null,
+                    utilisateurNom: json?.user?.username ?? null,
+                    motif: 'Première connexion — changement de mot de passe requis',
+                });
+            } else {
+                await tracerConnexion({
+                    typeEvenement: 'ECHEC',
+                    identifiant: formdata.username,
+                    utilisateurId: json?.user?.id ?? null,
+                    motif: json?.message ?? 'Action requise',
+                });
+            }
+            evenementEmis = true;
+
             return {
                 status: 'error',
                 message: json.message ?? 'Action requise',
@@ -75,30 +121,60 @@ export async function loginUser(formData: FormData): Promise<ActionResult<any>> 
                 },
             };
         }
-    
+
         /**
          * ❌ Autres erreurs HTTP
          */
         if (!result.ok) {
+            // Journalisé même quand l'identifiant n'existe pas : sans cela, une
+            // énumération de comptes ne laisserait aucune trace.
+            await tracerConnexion({
+                typeEvenement: 'ECHEC',
+                identifiant: formdata.username,
+                motif: json?.message ?? 'Identifiants incorrects',
+            });
+            evenementEmis = true;
+
             return {
                 status: 'error',
                 message: json?.message ?? 'Identifiants incorrects',
             };
         }
-  
+
+        // ⚠️ Une connexion réussie appelle DEUX fois l'API de login : ici, puis dans
+        // authorize() de NextAuth juste en dessous. L'événement n'est émis QUE dans
+        // cette server action — instrumenter authorize() produirait deux lignes par
+        // connexion dans le journal.
+        await tracerConnexion({
+            typeEvenement: 'LOGIN',
+            identifiant: formdata.username,
+            utilisateurId: json?.user?.id ?? null,
+            utilisateurNom:
+                `${json?.user?.nom ?? ''} ${json?.user?.prenoms ?? ''}`.trim() || (json?.user?.username ?? null),
+        });
+        evenementEmis = true;
+
         // Authentifie via NextAuth
         await signIn('credentials-user', {
             username: formdata.username,
             password: formdata.password,
             redirect: false,
         });
-  
+
         return {
             status: 'success',
             message: 'Connexion réussie',
             data: json,
         };
     } catch (err: any) {
+        if (!evenementEmis) {
+            await tracerConnexion({
+                typeEvenement: 'ECHEC',
+                identifiant: formdata.username,
+                motif: 'Erreur serveur pendant la connexion',
+            });
+        }
+
         return {
             status: 'error',
             message: 'Erreur serveur. Veuillez réessayer.',
@@ -154,6 +230,29 @@ export async function changePassword(formData: FormData): Promise<ActionResult<a
 }
 
 export async function signOut(): Promise<void> {
+    // Déconnexion volontaire : on la journalise AVANT de détruire la session
+    // NextAuth, seule occasion de connaître encore l'identité de l'utilisateur.
+    // Le sessionId transmis fait fermer la session de présence côté serveur —
+    // sans lui, l'utilisateur resterait affiché « en ligne » jusqu'à expiration.
+    try {
+        const sessionAuth = await auth();
+        await tracerConnexion({
+            typeEvenement: 'LOGOUT',
+            identifiant: sessionAuth?.user?.name ?? sessionAuth?.user?.email ?? '',
+            utilisateurId: sessionAuth?.user?.id ?? null,
+            utilisateurNom: sessionAuth?.user?.nomComplet ?? sessionAuth?.user?.name ?? null,
+            sessionId: lireSessionSupervision(),
+        });
+    } catch {
+        /* le journal ne casse jamais la déconnexion */
+    }
+
+    try {
+        cookies().delete(COOKIE_SESSION_SUPERVISION);
+    } catch {
+        /* le hook nettoie de son côté au démontage */
+    }
+
     await signOutAuth();
     revalidatePath('/', 'layout');
     redirect('/auth');
