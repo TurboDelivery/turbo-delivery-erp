@@ -26,6 +26,7 @@ import {
   TYPE_POINTAGE_LABEL,
   pointagesValidationAPI,
 } from '@/features/pointages-validation/pointages-validation.api';
+import { createUrlFile } from '@/utils/createUrlFile';
 
 /**
  * Arbitrage des pointages HORS-ZONE (règle owner 2026-07-31).
@@ -95,6 +96,7 @@ export function PointagesAValiderContent() {
             <TableColumn>HEURE</TableColumn>
             <TableColumn>DISTANCE</TableColumn>
             <TableColumn>MOTIF DU LIVREUR</TableColumn>
+            <TableColumn>PREUVE</TableColumn>
             <TableColumn>ACTIONS</TableColumn>
           </TableHeader>
           <TableBody
@@ -128,6 +130,20 @@ export function PointagesAValiderContent() {
                   <span className="block truncate text-sm text-gray-600" title={p.motif ?? ''}>
                     {p.motif || <span className="text-gray-400">Aucun motif</span>}
                   </span>
+                </TableCell>
+                <TableCell>
+                  {p.preuveUrl ? (
+                    <a
+                      href={createUrlFile(p.preuveUrl, 'backend')}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-medium text-primary underline underline-offset-2"
+                    >
+                      Voir la preuve
+                    </a>
+                  ) : (
+                    <span className="text-sm text-gray-400">—</span>
+                  )}
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">

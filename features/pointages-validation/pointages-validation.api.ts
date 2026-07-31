@@ -18,6 +18,7 @@ export interface IPointageAValider {
   latitude: number | null;
   longitude: number | null;
   motif: string | null;
+  preuveUrl: string | null;
 }
 
 export const TYPE_POINTAGE_LABEL: Record<TypePointage, string> = {
