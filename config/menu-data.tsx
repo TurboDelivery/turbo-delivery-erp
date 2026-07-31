@@ -70,6 +70,9 @@ const menuData: IMenuData[] = [
       { icon: IconBuildingSkyscraper, title: 'Créneaux', path: '/delivery-men/creneaux', can: { action: 'read', subject: 'Creneau' } },
       { icon: IconBuildingSkyscraper, title: 'Programmes hebdo', path: '/delivery-men/programmes', can: { action: 'read', subject: 'Creneau' } },
       { icon: IconMotorbike, title: 'Men', path: '/delivery-men/men', can: { action: 'read', subject: 'Livreur' } },
+      // Arbitrage des pointages hors-zone (règle owner 2026-07-31) — un pointage
+      // validé compte (et fait entrer en file d'attente si c'est la montée).
+      { icon: IconMotorbike, title: 'Pointages à valider', path: '/delivery-men/pointages-a-valider', can: { action: 'read', subject: 'Livreur' } },
       { icon: IconBuildingSkyscraper, title: 'performance', path: '/delivery-men/performance', can: { action: 'read', subject: 'Performance' } },
       { icon: History, title: 'Reporting & historisation', path: '/reporting', can: { action: 'read', subject: 'Reporting' } },
     ],
