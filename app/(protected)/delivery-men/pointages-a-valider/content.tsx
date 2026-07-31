@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Button,
   Chip,
@@ -10,51 +10,69 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
+  Select,
+  SelectItem,
   Table,
   TableBody,
   TableCell,
   TableColumn,
   TableHeader,
   TableRow,
+  Tooltip,
 } from '@heroui/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 
 import {
-  IPointageAValider,
+  IPointageHorsZone,
   TYPE_POINTAGE_LABEL,
+  VALIDATION_LABEL,
+  ValidationPointage,
   pointagesValidationAPI,
 } from '@/features/pointages-validation/pointages-validation.api';
 import { createUrlFile } from '@/utils/createUrlFile';
 
+const COULEUR_VALIDATION: Record<ValidationPointage, 'warning' | 'success' | 'danger'> = {
+  EN_ATTENTE: 'warning',
+  VALIDE: 'success',
+  REJETE: 'danger',
+};
+
 /**
- * Arbitrage des pointages HORS-ZONE (règle owner 2026-07-31).
- *
- * Le livreur qui pointe loin de son poste ne se justifie plus lui-même : son
- * signalement attend ici. Valider = le pointage compte (et ouvre la file
- * d'attente si c'est la montée). Rejeter = pénalité de cote, commentaire
- * obligatoire.
+ * Registre des pointages HORS-ZONE (règle owner 2026-07-31) : la file
+ * d'arbitrage ET l'historique des décisions, filtrables (statut, dates,
+ * livreur, restaurant, type de signalement).
  */
 export function PointagesAValiderContent() {
   const { data: session } = useSession();
   const userId = session?.user?.id ?? '';
   const queryClient = useQueryClient();
 
+  // ── Filtres ────────────────────────────────────────────────────────────────
+  const [statutFiltre, setStatutFiltre] = useState<'TOUS' | ValidationPointage>('EN_ATTENTE');
+  const [rechercheLivreur, setRechercheLivreur] = useState('');
+  const [restaurantFiltre, setRestaurantFiltre] = useState('TOUS');
+  const [typeFiltre, setTypeFiltre] = useState('TOUS');
+  const [dateDebut, setDateDebut] = useState('');
+  const [dateFin, setDateFin] = useState('');
+
   const { data: pointages, isLoading } = useQuery({
-    queryKey: ['pointages-a-valider'],
-    queryFn: () => pointagesValidationAPI.lister(),
+    queryKey: ['pointages-hors-zone', dateDebut],
+    // La fenêtre serveur suit la borne basse choisie (défaut 30 j) ; le reste
+    // du filtrage est client — volumes faibles, réactivité immédiate.
+    queryFn: () => pointagesValidationAPI.lister(dateDebut || undefined),
     refetchInterval: 30_000,
   });
 
-  const [rejet, setRejet] = useState<IPointageAValider | null>(null);
+  const [rejet, setRejet] = useState<IPointageHorsZone | null>(null);
   const [commentaire, setCommentaire] = useState('');
 
   const invalider = () =>
-    queryClient.invalidateQueries({ queryKey: ['pointages-a-valider'] });
+    queryClient.invalidateQueries({ queryKey: ['pointages-hors-zone'] });
 
   const valider = useMutation({
-    mutationFn: (p: IPointageAValider) => pointagesValidationAPI.valider(p, userId),
+    mutationFn: (p: IPointageHorsZone) => pointagesValidationAPI.valider(p, userId),
     onSuccess: async () => {
       await invalider();
       toast.success('Pointage validé — il compte comme une présence normale.');
@@ -63,7 +81,7 @@ export function PointagesAValiderContent() {
   });
 
   const rejeter = useMutation({
-    mutationFn: ({ p, motif }: { p: IPointageAValider; motif: string }) =>
+    mutationFn: ({ p, motif }: { p: IPointageHorsZone; motif: string }) =>
       pointagesValidationAPI.rejeter(p, userId, motif),
     onSuccess: async () => {
       await invalider();
@@ -74,40 +92,124 @@ export function PointagesAValiderContent() {
     onError: () => toast.error('Rejet impossible. Réessayez.'),
   });
 
-  const lignes = pointages ?? [];
+  // Restaurants distincts observés — alimente le select sans référentiel dédié.
+  const restaurants = useMemo(() => {
+    const noms = new Set<string>();
+    (pointages ?? []).forEach((p) => {
+      if (p.restaurant) noms.add(p.restaurant);
+    });
+    return Array.from(noms).sort();
+  }, [pointages]);
+
+  const lignes = useMemo(() => {
+    const q = rechercheLivreur.trim().toLowerCase();
+    return (pointages ?? []).filter((p) => {
+      if (statutFiltre !== 'TOUS' && p.validation !== statutFiltre) return false;
+      if (q && !(p.livreur ?? '').toLowerCase().includes(q)) return false;
+      if (restaurantFiltre !== 'TOUS' && p.restaurant !== restaurantFiltre) return false;
+      if (typeFiltre !== 'TOUS' && p.type !== typeFiltre) return false;
+      if (dateFin && p.date > dateFin) return false;
+      return true;
+    });
+  }, [pointages, statutFiltre, rechercheLivreur, restaurantFiltre, typeFiltre, dateFin]);
+
+  const nbAttente = (pointages ?? []).filter((p) => p.validation === 'EN_ATTENTE').length;
 
   return (
     <div className="pt-5">
       <div className="mb-5 rounded-xl border bg-white p-5 dark:bg-black">
-        <h1 className="text-lg font-semibold text-primary">Pointages à valider</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Pointages effectués <span className="font-medium">hors de la zone du poste</span>. Un
-          pointage validé compte comme une présence normale (la montée fait entrer le livreur dans
-          la file d&apos;attente) ; un pointage rejeté entraîne la pénalité de cote.
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="text-lg font-semibold text-primary">Pointages hors zone</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              File d&apos;arbitrage et historique des décisions. Un pointage validé compte comme une
+              présence normale (la montée fait entrer le livreur dans la file d&apos;attente) ; un
+              rejet entraîne la pénalité de cote.
+            </p>
+          </div>
+          <Chip color="warning" variant="flat">
+            {nbAttente} en attente
+          </Chip>
+        </div>
+
+        {/* ── Barre de filtres ── */}
+        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-6">
+          <Select
+            label="Statut"
+            size="sm"
+            selectedKeys={[statutFiltre]}
+            onSelectionChange={(k) => setStatutFiltre((Array.from(k)[0] as typeof statutFiltre) ?? 'TOUS')}
+          >
+            <SelectItem key="EN_ATTENTE">En attente</SelectItem>
+            <SelectItem key="VALIDE">Validés</SelectItem>
+            <SelectItem key="REJETE">Rejetés</SelectItem>
+            <SelectItem key="TOUS">Tous</SelectItem>
+          </Select>
+          <Input
+            label="Livreur"
+            size="sm"
+            placeholder="Rechercher…"
+            value={rechercheLivreur}
+            onValueChange={setRechercheLivreur}
+          />
+          <Select
+            label="Restaurant"
+            size="sm"
+            selectedKeys={[restaurantFiltre]}
+            onSelectionChange={(k) => setRestaurantFiltre((Array.from(k)[0] as string) ?? 'TOUS')}
+          >
+            {[
+              <SelectItem key="TOUS">Tous</SelectItem>,
+              ...restaurants.map((r) => <SelectItem key={r}>{r}</SelectItem>),
+            ]}
+          </Select>
+          <Select
+            label="Signalement"
+            size="sm"
+            selectedKeys={[typeFiltre]}
+            onSelectionChange={(k) => setTypeFiltre((Array.from(k)[0] as string) ?? 'TOUS')}
+          >
+            <SelectItem key="TOUS">Tous</SelectItem>
+            <SelectItem key="START">Montée</SelectItem>
+            <SelectItem key="MID">Relance 1</SelectItem>
+            <SelectItem key="MID2">Relance 2</SelectItem>
+            <SelectItem key="END">Fin de service</SelectItem>
+          </Select>
+          <Input
+            label="Du"
+            size="sm"
+            type="date"
+            value={dateDebut}
+            onValueChange={setDateDebut}
+          />
+          <Input label="Au" size="sm" type="date" value={dateFin} onValueChange={setDateFin} />
+        </div>
       </div>
 
       <div className="rounded-xl border bg-white p-4 dark:bg-black">
-        <Table isStriped aria-label="Pointages hors zone en attente de validation">
+        <Table isStriped aria-label="Registre des pointages hors zone">
           <TableHeader>
             <TableColumn>LIVREUR</TableColumn>
+            <TableColumn>RESTAURANT</TableColumn>
             <TableColumn>DATE</TableColumn>
             <TableColumn>SIGNALEMENT</TableColumn>
             <TableColumn>HEURE</TableColumn>
             <TableColumn>DISTANCE</TableColumn>
-            <TableColumn>MOTIF DU LIVREUR</TableColumn>
+            <TableColumn>MOTIF</TableColumn>
             <TableColumn>PREUVE</TableColumn>
-            <TableColumn>ACTIONS</TableColumn>
+            <TableColumn>STATUT</TableColumn>
+            <TableColumn>DÉCISION</TableColumn>
           </TableHeader>
           <TableBody
-            emptyContent={isLoading ? 'Chargement…' : 'Aucun pointage en attente.'}
+            emptyContent={isLoading ? 'Chargement…' : 'Aucun pointage sur ces critères.'}
           >
             {lignes.map((p) => (
               <TableRow key={`${p.emploiId}-${p.date}-${p.type}`}>
                 <TableCell className="font-medium">{p.livreur ?? '—'}</TableCell>
+                <TableCell className="text-sm text-gray-600">{p.restaurant ?? '—'}</TableCell>
                 <TableCell>{new Date(p.date).toLocaleDateString('fr-FR')}</TableCell>
                 <TableCell>
-                  <Chip size="sm" variant="flat" color="warning">
+                  <Chip size="sm" variant="flat">
                     {TYPE_POINTAGE_LABEL[p.type] ?? p.type}
                   </Chip>
                 </TableCell>
@@ -126,9 +228,9 @@ export function PointagesAValiderContent() {
                       : `${Math.round(p.distanceMetres)} m`
                     : '—'}
                 </TableCell>
-                <TableCell className="max-w-[260px]">
+                <TableCell className="max-w-[200px]">
                   <span className="block truncate text-sm text-gray-600" title={p.motif ?? ''}>
-                    {p.motif || <span className="text-gray-400">Aucun motif</span>}
+                    {p.motif || <span className="text-gray-400">—</span>}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -139,35 +241,65 @@ export function PointagesAValiderContent() {
                       rel="noreferrer"
                       className="text-sm font-medium text-primary underline underline-offset-2"
                     >
-                      Voir la preuve
+                      Voir
                     </a>
                   ) : (
                     <span className="text-sm text-gray-400">—</span>
                   )}
                 </TableCell>
                 <TableCell>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      color="success"
-                      variant="flat"
-                      isLoading={valider.isLoading}
-                      onPress={() => valider.mutate(p)}
+                  <Chip size="sm" variant="flat" color={COULEUR_VALIDATION[p.validation]}>
+                    {VALIDATION_LABEL[p.validation]}
+                  </Chip>
+                </TableCell>
+                <TableCell>
+                  {p.validation === 'EN_ATTENTE' ? (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        color="success"
+                        variant="flat"
+                        isLoading={valider.isLoading}
+                        onPress={() => valider.mutate(p)}
+                      >
+                        Valider
+                      </Button>
+                      <Button
+                        size="sm"
+                        color="danger"
+                        variant="flat"
+                        onPress={() => {
+                          setCommentaire('');
+                          setRejet(p);
+                        }}
+                      >
+                        Rejeter
+                      </Button>
+                    </div>
+                  ) : (
+                    <Tooltip
+                      content={
+                        <div className="max-w-[260px] p-1 text-xs">
+                          {p.arbitre && <p className="font-semibold">{p.arbitre}</p>}
+                          {p.valideAt && (
+                            <p className="text-gray-500">
+                              {new Date(p.valideAt).toLocaleString('fr-FR')}
+                            </p>
+                          )}
+                          {p.commentaireValidation && (
+                            <p className="mt-1">{p.commentaireValidation}</p>
+                          )}
+                          {!p.arbitre && !p.commentaireValidation && (
+                            <p className="text-gray-500">Décision d&apos;avant la refonte.</p>
+                          )}
+                        </div>
+                      }
                     >
-                      Valider
-                    </Button>
-                    <Button
-                      size="sm"
-                      color="danger"
-                      variant="flat"
-                      onPress={() => {
-                        setCommentaire('');
-                        setRejet(p);
-                      }}
-                    >
-                      Rejeter
-                    </Button>
-                  </div>
+                      <span className="cursor-help text-sm text-gray-600 underline decoration-dotted underline-offset-2">
+                        {p.arbitre ?? 'Détail'}
+                      </span>
+                    </Tooltip>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
