@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Button, Select, SelectItem, Tooltip } from '@heroui/react';
 import { Navigation, RefreshCw, RotateCcw, Users } from 'lucide-react';
@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import TraficLivreurPanel from '@/features/trafic/components/trafic-livreur-panel';
 import { TraficKpis } from '@/features/trafic/components/trafic-kpis';
 import { TraficPointagesBanner } from '@/features/trafic/components/trafic-pointages-banner';
+import { useHauteurZoneCarte } from '@/features/trafic/hooks/use-hauteur-zone-carte';
 import { useTrafic } from '@/features/trafic/hooks/use-trafic';
 import { traficKeyQuery } from '@/features/trafic/queries/index.query';
 import { useQuartiersQuery } from '@/features/trafic/queries/quartier.query';
@@ -94,6 +95,11 @@ export default function TraficContent() {
   } = useTrafic();
   const { data: quartiers } = useQuartiersQuery();
   const queryClient = useQueryClient();
+
+  // La zone carte + liste tient dans ce qui reste de la fenêtre : sans cela, la liste
+  // (jusqu'à 172 livreurs) dicte la hauteur de la rangée et la carte s'étire avec elle.
+  const zoneCarteRef = useRef<HTMLDivElement>(null);
+  const hauteurZoneCarte = useHauteurZoneCarte(zoneCarteRef);
 
   const quartiersActifs = useMemo(() => (quartiers ?? []).filter((q) => q.actif), [quartiers]);
 
@@ -251,8 +257,18 @@ export default function TraficContent() {
       </div>
 
       {/* Carte + liste latérale */}
-      <div className="grid min-h-0 gap-3 lg:h-[calc(100vh-27rem)] lg:min-h-[480px] lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="relative h-[380px] overflow-hidden rounded-2xl border border-default-200/50 lg:h-full">
+      {/* Hauteur = ce qui reste réellement de la fenêtre, mesuré (voir le hook). Un `calc()`
+          écrit à la main réservait 27rem à l'en-tête et imposait un plancher de 480 px : sur
+          une fenêtre courte, la carte dépassait le bas de l'écran et la page défilait.
+          `grid-rows-[minmax(0,1fr)]` rend la rangée définie, sans quoi le `h-full` de la
+          liste retombe sur « auto », son défilement interne ne s'enclenche pas et les cartes
+          de livreurs allongent la rangée. Le `calc()` ne sert plus que de repli avant mesure. */}
+      <div
+        ref={zoneCarteRef}
+        className="grid min-h-0 gap-3 lg:h-[calc(100vh-14rem)] lg:min-h-[320px] lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[minmax(0,1fr)]"
+        style={hauteurZoneCarte ? { height: hauteurZoneCarte } : undefined}
+      >
+        <div className="relative h-[380px] min-h-0 overflow-hidden rounded-2xl border border-default-200/50 lg:h-full">
           <MapTrafic positions={positions} focusPosition={focusPosition} quartiers={quartiersActifs} />
 
           {/* Légende des pins — mêmes couleurs que les compteurs */}
@@ -271,7 +287,7 @@ export default function TraficContent() {
           </div>
         </div>
 
-        <div className="h-[520px] lg:h-full">
+        <div className="h-[520px] min-h-0 lg:h-full">
           <TraficLivreurPanel
             livreurs={livreursFiltres}
             recherche={filtres.recherche}

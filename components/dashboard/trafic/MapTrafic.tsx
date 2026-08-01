@@ -605,7 +605,10 @@ function MapTraficInner({ positions, focusPosition, quartiers, apiKey }: MapTraf
   }, [focusPosition, mapReady]);
 
   return (
-    <div className="relative w-full h-full" style={{ minHeight: '400px' }}>
+    // Pas de hauteur minimale ici : c'est le conteneur appelant qui sait ce qui reste de la
+    // fenêtre. Un plancher de 400 px imposé par la carte débordait sur les écrans courts et
+    // faisait défiler la page — le défaut même que l'on corrige.
+    <div className="relative h-full w-full">
       <div ref={mapContainer} className="w-full h-full" />
 
       {(loadError || echecAuth) && (
