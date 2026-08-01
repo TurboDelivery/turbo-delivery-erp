@@ -4,7 +4,10 @@ import { FicheAgentView } from '@/features/personnel/components/fiche/fiche-agen
 
 export default function FicheAgentContent({ employeId }: { employeId: string }) {
   return (
-    <div className="container mx-auto p-6">
+    // Pleine largeur, comme la liste : la fiche agent affiche côte à côte le dossier et
+    // l'historique mensuel de rémunération, qui a besoin de place. ContentAnimation pose
+    // déjà le padding autour de la page.
+    <div className="w-full">
       <FicheAgentView employeId={employeId} />
     </div>
   );

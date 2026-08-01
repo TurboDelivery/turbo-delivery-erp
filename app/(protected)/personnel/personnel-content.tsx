@@ -58,7 +58,12 @@ export default function PersonnelContent() {
   };
 
   return (
-    <div className="container mx-auto p-6">
+    // Pleine largeur : `container mx-auto` plafonnait la page au point de rupture Tailwind
+    // (1280 px en xl) et la centrait, laissant une large bande vide à droite alors que les
+    // tableaux d'effectif et de masse salariale ont beaucoup de colonnes. Le `p-6` est lui
+    // aussi retiré : ContentAnimation en pose déjà un autour de toutes les pages, il était
+    // donc appliqué deux fois.
+    <div className="w-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-primary">Personnel TURBO</h1>
         <Button
