@@ -271,9 +271,12 @@ export default function ValidationDgaView() {
 
   // Écran « poste de travail » : liste à gauche, preuve à droite, barre Viser/Rejeter en bas.
   // Il doit tenir dans la fenêtre, sinon la barre d'action passe sous la ligne de flottaison.
-  // La hauteur est mesurée : le `min-h-[calc(100vh-120px)]` d'avant supposait une coquille de
-  // 120 px alors qu'elle en fait environ 155 (en-tête applicatif + marges + pied de page),
-  // donc la page débordait d'emblée sur une fenêtre courte.
+  // La hauteur est mesurée : le plancher d'avant réservait 120 px à la coquille alors qu'elle
+  // en fait environ 155 (en-tête applicatif + marges de ContentAnimation + pied de page), donc
+  // la page débordait d'emblée sur une fenêtre courte.
+  //
+  // Ce commentaire ne cite volontairement PAS la classe supprimée : Tailwind extrait les noms
+  // de classes du texte brut des fichiers, commentaires inclus, et regénérerait la règle morte.
   const zoneTravailRef = useRef<HTMLDivElement>(null);
   const hauteurZoneTravail = useHauteurDisponible(zoneTravailRef);
 
