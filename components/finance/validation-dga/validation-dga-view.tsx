@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Building2, Calendar, Download, FileText, Landmark, X, ZoomIn } from 'lucide-react';
 import { toast } from 'sonner';
@@ -20,6 +20,7 @@ import {
   useRejeterDgaMutation,
   type IFactureRF,
 } from '@/features/responsable-financier';
+import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 
@@ -268,8 +269,20 @@ export default function ValidationDgaView() {
 
   const userName = session?.user?.name ?? 'DGA';
 
+  // Écran « poste de travail » : liste à gauche, preuve à droite, barre Viser/Rejeter en bas.
+  // Il doit tenir dans la fenêtre, sinon la barre d'action passe sous la ligne de flottaison.
+  // La hauteur est mesurée : le `min-h-[calc(100vh-120px)]` d'avant supposait une coquille de
+  // 120 px alors qu'elle en fait environ 155 (en-tête applicatif + marges + pied de page),
+  // donc la page débordait d'emblée sur une fenêtre courte.
+  const zoneTravailRef = useRef<HTMLDivElement>(null);
+  const hauteurZoneTravail = useHauteurDisponible(zoneTravailRef);
+
   return (
-    <div className="flex flex-col h-full min-h-[calc(100vh-120px)] gap-4 p-4 md:p-6">
+    <div
+      ref={zoneTravailRef}
+      className="flex flex-col gap-4 p-4 md:p-6 lg:h-[calc(100vh-11rem)]"
+      style={hauteurZoneTravail ? { height: hauteurZoneTravail } : undefined}
+    >
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>

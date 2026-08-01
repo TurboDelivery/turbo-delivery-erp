@@ -9,8 +9,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import TraficLivreurPanel from '@/features/trafic/components/trafic-livreur-panel';
 import { TraficKpis } from '@/features/trafic/components/trafic-kpis';
 import { TraficPointagesBanner } from '@/features/trafic/components/trafic-pointages-banner';
-import { useHauteurZoneCarte } from '@/features/trafic/hooks/use-hauteur-zone-carte';
 import { useTrafic } from '@/features/trafic/hooks/use-trafic';
+import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 import { traficKeyQuery } from '@/features/trafic/queries/index.query';
 import { useQuartiersQuery } from '@/features/trafic/queries/quartier.query';
 import { STATUT_TRAFIC_META, STATUTS_ORDONNES } from '@/features/trafic/utils/statut-trafic';
@@ -99,7 +99,7 @@ export default function TraficContent() {
   // La zone carte + liste tient dans ce qui reste de la fenêtre : sans cela, la liste
   // (jusqu'à 172 livreurs) dicte la hauteur de la rangée et la carte s'étire avec elle.
   const zoneCarteRef = useRef<HTMLDivElement>(null);
-  const hauteurZoneCarte = useHauteurZoneCarte(zoneCarteRef);
+  const hauteurZoneCarte = useHauteurDisponible(zoneCarteRef);
 
   const quartiersActifs = useMemo(() => (quartiers ?? []).filter((q) => q.actif), [quartiers]);
 
