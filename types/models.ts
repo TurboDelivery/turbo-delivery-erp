@@ -330,8 +330,19 @@ export enum TypeEnum {
 // {@code features/turboys/types/turboys.types.ts > TurboyType} (même union).
 export type TypeLivreur = 'INDEPENDANT' | 'JOURNALIER' | 'SUPERVISEUR_LIVREUR';
 
-// M4 (RG-33) — statut riche renvoyé par le backend pour la carte temps réel.
-export type StatutTrafic = 'DISPONIBLE' | 'EN_COURSE' | 'INDISPONIBLE' | 'HORS_RAYON';
+// Statut de service d'un livreur sur la carte TRAFIC.
+//
+// Refonte 2026-08-01 : la SOURCE DE VÉRITÉ est la file d'attente du jour,
+// alimentée par le pointage (montée = entrée, pause et fin = sortie) — c'est
+// elle qui décide qui reçoit une course. Le statut suit donc l'ordre
+// course > file > a servi aujourd'hui > rien.
+//
+// Ce qui a disparu de cette union est aussi important : « HORS_RAYON » n'est
+// plus un statut mais un DRAPEAU (`horsRayonPoste`), parce qu'un livreur peut
+// être disponible ET momentanément loin de son poste. Idem pour la fraîcheur
+// GPS (`positionAncienne`) : elle n'a jamais dit si un livreur travaillait,
+// seulement si son téléphone avait émis récemment.
+export type StatutTrafic = 'DISPONIBLE' | 'EN_COURSE' | 'EN_PAUSE' | 'HORS_SERVICE';
 
 export interface LivreurTrafic {
     livreurId: string;
@@ -342,13 +353,27 @@ export interface LivreurTrafic {
         latitude: number;
         longitude: number;
     };
-    course?: boolean; // false si pas de course en cours
-    typeLivreur?: TypeLivreur;
-    // M4 (RG-33) — enrichissements de la classification trafic.
+    course?: boolean; // true si une course est en cours
+    typeLivreur?: TypeLivreur; // contrat (INDEPENDANT / JOURNALIER / SUPERVISEUR_LIVREUR)
+    type?: string; // assignation (TURBO / FREE / WAITING)
     statut?: StatutTrafic;
     quartier?: string | null;
-    distanceSiegeMetres?: number | null;
     dernierPointAt?: string | null;
+    // ── Drapeaux : des signalements, pas des statuts ────────────────────────
+    /** Présent dans la file d'attente du jour → peut recevoir une course. */
+    enFile?: boolean;
+    /** Rang dans la file (1 = prochain servi), null hors file. */
+    rangFile?: number | null;
+    /** Position hors du rayon autour de SON poste (même règle que le pointage). */
+    horsRayonPoste?: boolean;
+    /** Distance à son poste, en mètres — null si aucune position connue. */
+    distancePosteMetres?: number | null;
+    /** Dernier point GPS trop ancien : le marqueur peut ne plus être à jour. */
+    positionAncienne?: boolean;
+    /** Une position GPS est connue (sinon : pas de marqueur, mais le livreur existe). */
+    aPosition?: boolean;
+    /** @deprecated alias historique de `distancePosteMetres` (l'écran n'en dépend plus). */
+    distanceSiegeMetres?: number | null;
 }
 
 export interface LivreurCategorie {
@@ -359,9 +384,14 @@ export interface LivreurCategorie {
 export interface TraficLivreursResponse {
     disponibles: LivreurCategorie;
     enActivite: LivreurCategorie;
+    enPause: LivreurCategorie;
+    horsService: LivreurCategorie;
+    /** Drapeau transverse : ces livreurs figurent AUSSI dans leur bucket de statut. */
+    horsRayon: LivreurCategorie;
+    /** Alias historique conservé par le backend = enPause + horsService. */
     indisponibles: LivreurCategorie;
-    horsRayon: LivreurCategorie; // M4 (RG-33)
     totalLivreurs: number;
+    totalEnService: number;
 }
 
 // M4 (RG-33) — quartier de la carte TRAFIC (légende + cercles).

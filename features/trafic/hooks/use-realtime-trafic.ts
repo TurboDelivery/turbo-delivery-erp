@@ -6,12 +6,22 @@ import { useQueryClient } from '@tanstack/react-query';
 import { socket } from '@/socket';
 import { traficKeyQuery } from '@/features/trafic/queries/index.query';
 import {
-  EMPTY_TRAFIC_RESPONSE,
   LivreurTrafic,
   TraficLivreursResponse,
+  traficVide,
 } from '@/features/trafic/types/trafic.type';
 
 const TRAFIC_EVENT = '/trafic/livreur/';
+
+/** Buckets du trafic à patcher lorsqu'un livreur émet une nouvelle position. */
+const BUCKETS = [
+  'disponibles',
+  'enActivite',
+  'enPause',
+  'horsService',
+  'horsRayon',
+  'indisponibles',
+] as const;
 
 function patchInCategorie(liste: LivreurTrafic[], updated: LivreurTrafic): LivreurTrafic[] {
   const exists = liste.some((l) => l.livreurId === updated.livreurId);
@@ -34,22 +44,16 @@ export function useRealtimeTrafic() {
       } catch {
         return;
       }
+      if (!updated?.livreurId) return;
 
       queryClient.setQueryData<TraficLivreursResponse>(traficKeyQuery('livreurs'), (prev) => {
-        const base = prev ?? { ...EMPTY_TRAFIC_RESPONSE };
-        return {
-          ...base,
-          disponibles: { ...base.disponibles, liste: patchInCategorie(base.disponibles.liste, updated) },
-          enActivite: { ...base.enActivite, liste: patchInCategorie(base.enActivite.liste, updated) },
-          indisponibles: {
-            ...base.indisponibles,
-            liste: patchInCategorie(base.indisponibles.liste, updated),
-          },
-          horsRayon: {
-            ...base.horsRayon,
-            liste: patchInCategorie(base.horsRayon.liste, updated),
-          },
-        };
+        const base = prev ?? traficVide();
+        const suivant: TraficLivreursResponse = { ...base };
+        BUCKETS.forEach((bucket) => {
+          const categorie = base[bucket] ?? { total: 0, liste: [] };
+          suivant[bucket] = { ...categorie, liste: patchInCategorie(categorie.liste, updated) };
+        });
+        return suivant;
       });
     };
 

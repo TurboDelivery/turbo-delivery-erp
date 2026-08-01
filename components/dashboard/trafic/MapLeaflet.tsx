@@ -13,18 +13,21 @@ const AVATAR_FALLBACK = '/assets/images/avatar.png';
 // silencieusement les superviseurs-livreurs (PIN_DEFAULT_COLOR gris).
 const PIN_DEFAULT_COLOR = '#6b7280'; // fallback si type non assigné côté backend
 
-// M4 (RG-33) — couleur/libellé du pin par statut riche (prioritaire sur le type).
+// Couleur/libellé du pin par statut de service (prioritaire sur le type).
+// Aligné sur MapTrafic depuis la refonte 2026-08-01 : le statut vient de la
+// file d'attente du jour, et « hors rayon » est devenu un drapeau porté par le
+// livreur, plus un statut.
 const STATUS_COLOR: Record<StatutTrafic, string> = {
-  DISPONIBLE: '#16a34a',
+  DISPONIBLE: '#1AA05A',
   EN_COURSE: '#ea580c',
-  HORS_RAYON: '#dc2626',
-  INDISPONIBLE: '#6b7280',
+  EN_PAUSE: '#6b7280',
+  HORS_SERVICE: '#9ca3af',
 };
 const STATUS_LABEL: Record<StatutTrafic, string> = {
   DISPONIBLE: 'Disponible',
-  EN_COURSE: 'En livraison',
-  HORS_RAYON: 'Hors rayon',
-  INDISPONIBLE: 'Indisponible',
+  EN_COURSE: 'En course',
+  EN_PAUSE: 'En pause',
+  HORS_SERVICE: 'Hors service',
 };
 
 function escapeHtml(input: string): string {

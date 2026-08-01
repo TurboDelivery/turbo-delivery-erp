@@ -2,7 +2,7 @@ import { StandardControlCenter } from '@/features/standard/components/standard-c
 
 export default function Page() {
   return (
-    <div className="min-h-[calc(100vh-10rem)]">
+    <div className="w-full">
       <StandardControlCenter />
     </div>
   );

@@ -9,6 +9,7 @@ import { darkMapStyle } from '@/data';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { LivreurTrafic, QuartierZone, StatutTrafic } from '@/types/models';
 import { createUrlFile } from '@/utils/createUrlFile';
+import { tempsEcoule } from '@/features/trafic/utils/statut-trafic';
 
 /**
  * Carte TRAFIC — Google Maps.
@@ -30,18 +31,21 @@ const AVATAR_FALLBACK = '/assets/images/avatar.png';
 // silencieusement les superviseurs-livreurs (PIN_DEFAULT_COLOR gris).
 const PIN_DEFAULT_COLOR = '#6b7280'; // fallback si type non assigné côté backend
 
-// M4 (RG-33) — couleur/libellé du pin par statut riche (prioritaire sur le type).
+// Couleur/libellé du pin par statut de service (prioritaire sur le type).
+// Refonte 2026-08-01 : le statut vient de la file d'attente du jour. « Hors
+// rayon » a quitté cette table — c'est un drapeau, signalé dans la liste
+// latérale, et non une couleur de pin qui masquerait le vrai statut.
 const STATUS_COLOR: Record<StatutTrafic, string> = {
-  DISPONIBLE: '#16a34a',
+  DISPONIBLE: '#1AA05A',
   EN_COURSE: '#ea580c',
-  HORS_RAYON: '#dc2626',
-  INDISPONIBLE: '#6b7280',
+  EN_PAUSE: '#6b7280',
+  HORS_SERVICE: '#9ca3af',
 };
 const STATUS_LABEL: Record<StatutTrafic, string> = {
   DISPONIBLE: 'Disponible',
-  EN_COURSE: 'En livraison',
-  HORS_RAYON: 'Hors rayon',
-  INDISPONIBLE: 'Indisponible',
+  EN_COURSE: 'En course',
+  EN_PAUSE: 'En pause',
+  HORS_SERVICE: 'Hors service',
 };
 
 // Abidjan — centre et zoom par défaut avant le premier cadrage sur les livreurs.
@@ -125,6 +129,13 @@ function buildInfoContent(item: LivreurTrafic): string {
     `<br><b>Statut</b>: ${statutLabel}` +
     (item.quartier ? `<br><b>Quartier</b>: ${escapeHtml(item.quartier)}` : '') +
     `<br><b>Téléphone</b>: ${safePhone}` +
+    // Honnêteté de la carte : le marqueur est à la DERNIÈRE position connue, qui peut
+    // dater. Un opérateur qui arbitre sur « il est chez lui, à 10 min » doit savoir si
+    // ce point a 2 minutes ou 14 heures.
+    `<br><b>Position</b>: ${escapeHtml(tempsEcoule(item.dernierPointAt) ?? 'inconnue')}` +
+    (item.positionAncienne
+      ? `<br><span style="color:#B45309">Dernière position connue — peut ne plus être à jour</span>`
+      : '') +
     `</div>`
   );
 }
@@ -258,6 +269,8 @@ interface MarkerEntry {
   lat: number;
   lng: number;
   color: string;
+  /** Mémorisé pour que l'opacité soit RAFRAÎCHIE quand la position redevient récente. */
+  positionAncienne: boolean;
   avatarSrc: string;
   data: LivreurTrafic;
 }
@@ -415,6 +428,10 @@ function MapTraficInner({ positions, focusPosition, quartiers, apiKey }: MapTraf
         const img = container.querySelector('img');
         if (img) wireAvatarFallback(img);
 
+        // Un point périmé se voit : le pin est estompé. Sans ce signal, la carte présente
+        // avec la même assurance une position d'il y a 2 minutes et une d'il y a 14 heures.
+        container.style.opacity = item.positionAncienne ? '0.5' : '1';
+
         const overlay = new PinOverlay({ lat, lng }, container, 'overlayMouseTarget');
         overlay.setMap(map);
 
@@ -425,6 +442,7 @@ function MapTraficInner({ positions, focusPosition, quartiers, apiKey }: MapTraf
           lat,
           lng,
           color,
+          positionAncienne: Boolean(item.positionAncienne),
           avatarSrc,
           data: item,
         };
@@ -456,6 +474,12 @@ function MapTraficInner({ positions, focusPosition, quartiers, apiKey }: MapTraf
       if (existing.color !== color) {
         existing.color = color;
         existing.pinPath?.setAttribute('fill', color);
+      }
+
+      const perimee = Boolean(item.positionAncienne);
+      if (existing.positionAncienne !== perimee) {
+        existing.positionAncienne = perimee;
+        existing.overlay.container.style.opacity = perimee ? '0.5' : '1';
       }
 
       if (existing.avatarSrc !== avatarSrc) {

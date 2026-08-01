@@ -72,9 +72,11 @@ export function AppelHistoriqueTable() {
   const totalPages = data?.totalPages ?? 0;
 
   return (
-    <section className="rounded-xl border border-default-200 bg-white p-4">
-      <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-primary">
-        <Phone className="h-5 w-5" />
+    <section className="rounded-2xl border border-default-200/50 bg-white p-4 dark:bg-content1">
+      <h2 className="mb-3 flex items-center gap-2.5 text-sm font-bold text-default-700">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <Phone className="h-5 w-5" />
+        </span>
         Historique des appels
       </h2>
       <Table

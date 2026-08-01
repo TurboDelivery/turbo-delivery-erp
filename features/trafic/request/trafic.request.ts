@@ -1,5 +1,5 @@
 import { apiClientHttp } from '@/lib/api-client-http';
-import { EMPTY_TRAFIC_RESPONSE, LivreurDisponible, TraficLivreursResponse } from '@/features/trafic/types/trafic.type';
+import { LivreurDisponible, TraficLivreursResponse, traficVide } from '@/features/trafic/types/trafic.type';
 
 const BASE_URL = '/api/erp';
 
@@ -28,6 +28,6 @@ export async function getTraficDeliversRequest(): Promise<TraficLivreursResponse
       service: 'backend',
     });
   } catch {
-    return { ...EMPTY_TRAFIC_RESPONSE };
+    return traficVide();
   }
 }

@@ -1,48 +1,52 @@
 'use client';
 
-import TraficLivreurItem from '@/features/trafic/components/trafic-livreur-item';
-import { LivreurTrafic } from '@/features/trafic/types/trafic.type';
+import { Skeleton } from '@heroui/react';
 
-type LivreurStatus = 'disponible' | 'enActivite' | 'indisponible' | 'horsRayon';
+import TraficLivreurItem from '@/features/trafic/components/trafic-livreur-item';
+import { LivreurTraficVue } from '@/features/trafic/utils/normaliser-trafic';
 
 interface TraficLivreurListProps {
-  livreurs: LivreurTrafic[];
-  status: LivreurStatus;
+  livreurs: LivreurTraficVue[];
   selectedLivreurId: string | null;
   onSelect: (livreurId: string) => void;
-  onAffecter?: (livreur: LivreurTrafic) => void;
+  onAffecter?: (livreur: LivreurTraficVue) => void;
+  isLoading?: boolean;
   emptyLabel?: string;
 }
 
 export default function TraficLivreurList({
   livreurs,
-  status,
   selectedLivreurId,
   onSelect,
   onAffecter,
-  emptyLabel = 'Aucun livreur',
+  isLoading = false,
+  emptyLabel = 'Aucun livreur ne correspond à ce filtre.',
 }: TraficLivreurListProps) {
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-2 p-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-[86px] w-full rounded-[14px]" />
+        ))}
+      </div>
+    );
+  }
+
   if (livreurs.length === 0) {
-    return <p className="text-sm italic text-default-500 py-6 text-center">{emptyLabel}</p>;
+    return <p className="px-4 py-10 text-center text-sm text-default-400">{emptyLabel}</p>;
   }
 
   return (
-    <div
-      className="overflow-y-auto overflow-x-hidden scrollbar-thin"
-      style={{ maxHeight: '15rem' }}
-    >
-      <div className="grid gap-2 pr-1 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {livreurs.map((livreur) => (
-          <TraficLivreurItem
-            key={livreur.livreurId}
-            livreur={livreur}
-            status={status}
-            isSelected={selectedLivreurId === livreur.livreurId}
-            onSelect={onSelect}
-            onAffecter={onAffecter}
-          />
-        ))}
-      </div>
+    <div className="flex flex-col gap-2 p-3">
+      {livreurs.map((livreur) => (
+        <TraficLivreurItem
+          key={livreur.livreurId}
+          livreur={livreur}
+          isSelected={selectedLivreurId === livreur.livreurId}
+          onSelect={onSelect}
+          onAffecter={onAffecter}
+        />
+      ))}
     </div>
   );
 }

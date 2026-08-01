@@ -163,3 +163,67 @@ export interface IAppelEnCours {
   contexte: ContexteAppel;
   demarreLe: string | null;
 }
+
+// ─── Trafic livreurs (lecture seule, pour la console STANDARD) ────────────────
+//
+// Le STANDARD a besoin de savoir, en une seconde, si le livreur qui signale un
+// incident est encore sur la route. On lit donc le MÊME endpoint que le module
+// Trafic (`GET /api/erp/livreur/statut/trafic`), mais avec un modèle local et
+// volontairement minimal : la console ne doit dépendre ni de la carte ni de ses
+// types, qui vivent leur propre vie dans `features/trafic`.
+//
+// Modèle de statut refondu : le SERVICE (file d'attente du jour, alimentée par le
+// pointage) décide — DISPONIBLE = présent dans la file, donc réellement
+// affectable. L'ancien drapeau `disponibilite` coché à la main n'est plus lu.
+
+export type StatutTraficLivreur = 'EN_COURSE' | 'DISPONIBLE' | 'EN_PAUSE' | 'HORS_SERVICE';
+
+export const STATUT_TRAFIC_LABEL: Record<StatutTraficLivreur, string> = {
+  EN_COURSE: 'En course',
+  DISPONIBLE: 'Disponible',
+  EN_PAUSE: 'En pause',
+  HORS_SERVICE: 'Hors service',
+};
+
+/** Un livreur tel que le voit le trafic (sous-ensemble utile au STANDARD). */
+export interface ILivreurTrafic {
+  livreurId: string;
+  nomComplet: string | null;
+  avatarUrl: string | null;
+  telephone: string | null;
+  statut: StatutTraficLivreur;
+  course: boolean;
+  enFile: boolean;
+  rangFile: number | null;
+  quartier: string | null;
+  horsRayonPoste: boolean;
+  positionAncienne: boolean;
+  aPosition: boolean;
+}
+
+export interface ILivreurTraficBucket {
+  total: number;
+  liste: ILivreurTrafic[];
+}
+
+/** Réponse de `GET /api/erp/livreur/statut/trafic` (buckets pilotés par le service). */
+export interface ITraficLivreurs {
+  disponibles: ILivreurTraficBucket;
+  enActivite: ILivreurTraficBucket;
+  enPause: ILivreurTraficBucket;
+  horsService: ILivreurTraficBucket;
+  horsRayon: ILivreurTraficBucket;
+  totalLivreurs: number;
+  totalEnService: number;
+}
+
+/** Réponse neutre : premier rendu ou échec réseau (le trafic ne doit jamais casser la console). */
+export const TRAFIC_LIVREURS_VIDE: ITraficLivreurs = {
+  disponibles: { total: 0, liste: [] },
+  enActivite: { total: 0, liste: [] },
+  enPause: { total: 0, liste: [] },
+  horsService: { total: 0, liste: [] },
+  horsRayon: { total: 0, liste: [] },
+  totalLivreurs: 0,
+  totalEnService: 0,
+};

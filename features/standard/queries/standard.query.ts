@@ -5,9 +5,17 @@ import { toast } from 'sonner';
 import { standardAPI } from '../apis/standard.api';
 import { IAccepterAppel, IAppelConfig, IChangerStatutIncident, ICreerMotifIncident, IInitierAppel, IModifierMotifIncident, StatutIncident } from '../types/standard.types';
 
+/** Cadence de rafraîchissement du poste STANDARD : c'est un écran d'urgence. */
+export const STANDARD_REFRESH_MS = 30 * 1000;
+
 export const standardKeys = {
   all: ['standard'] as const,
-  incidents: (statut?: StatutIncident, page?: number) => [...standardKeys.all, 'incidents', statut ?? 'TOUS', page ?? 0] as const,
+  // `size` fait partie de la clé : la console lit la MÊME page 0 avec deux
+  // tailles différentes (file d'urgence large, historique paginé court) — sans
+  // lui, les deux requêtes se partageraient un cache et se tronqueraient l'une
+  // l'autre.
+  incidents: (statut?: StatutIncident, page?: number, size?: number) =>
+    [...standardKeys.all, 'incidents', statut ?? 'TOUS', page ?? 0, size ?? 20] as const,
   incident: (id: string) => [...standardKeys.all, 'incident', id] as const,
   ouverts: () => [...standardKeys.all, 'ouverts'] as const,
   motifs: () => [...standardKeys.all, 'motifs'] as const,
@@ -16,15 +24,31 @@ export const standardKeys = {
   appelsEntrants: () => [...standardKeys.all, 'appels-entrants'] as const,
   appelsEnCours: () => [...standardKeys.all, 'appels-en-cours'] as const,
   appelConfig: () => [...standardKeys.all, 'appel-config'] as const,
+  traficLivreurs: () => [...standardKeys.all, 'trafic-livreurs'] as const,
 };
 
-export const useIncidentsQuery = (statut: StatutIncident | undefined, page: number, size = 20) =>
+/**
+ * File d'incidents. `refetchInterval` sert la veille temps réel de la console ;
+ * `enabled` permet de ne charger l'historique qu'une fois la section dépliée.
+ */
+export const useIncidentsQuery = (
+  statut: StatutIncident | undefined,
+  page: number,
+  size = 20,
+  options?: { refetchInterval?: number; enabled?: boolean },
+) =>
   useQuery({
-    queryKey: standardKeys.incidents(statut, page),
+    queryKey: standardKeys.incidents(statut, page, size),
     queryFn: () => standardAPI.listerIncidents({ statut, page, size }),
     staleTime: 30 * 1000,
     refetchOnWindowFocus: true,
     keepPreviousData: true,
+    enabled: options?.enabled ?? true,
+    refetchInterval: options?.refetchInterval ?? false,
+    // Le poste STANDARD est souvent affiché sur un écran qui n'a pas le focus
+    // (second moniteur). Sans cela, le compteur d'incidents non pris en charge
+    // se figerait exactement dans la situation où on le regarde de loin.
+    refetchIntervalInBackground: !!options?.refetchInterval,
   });
 
 export const useIncidentsOuvertsQuery = () =>
@@ -33,6 +57,20 @@ export const useIncidentsOuvertsQuery = () =>
     queryFn: () => standardAPI.compterOuverts(),
     staleTime: 30 * 1000,
     refetchInterval: 60 * 1000, // rafraîchit le badge périodiquement
+    refetchOnWindowFocus: true,
+  });
+
+/**
+ * État du terrain (module Trafic) lu par la console : livreurs en course,
+ * livreurs réellement disponibles (= dans la file du jour), et fiche courte du
+ * livreur qui a signalé un incident. Jamais en erreur (repli sur un état vide).
+ */
+export const useTraficLivreursQuery = (refetchInterval: number | false = STANDARD_REFRESH_MS) =>
+  useQuery({
+    queryKey: standardKeys.traficLivreurs(),
+    queryFn: () => standardAPI.resumeTraficLivreurs(),
+    staleTime: STANDARD_REFRESH_MS,
+    refetchInterval,
     refetchOnWindowFocus: true,
   });
 

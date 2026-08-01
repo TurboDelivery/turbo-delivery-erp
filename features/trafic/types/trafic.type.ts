@@ -2,15 +2,24 @@ export type {
   LivreurDisponible,
   LivreurTrafic,
   LivreurCategorie,
+  StatutTrafic,
   TraficLivreursResponse,
 } from '@/types/models';
 
-import type { TraficLivreursResponse } from '@/types/models';
+import type { LivreurCategorie, TraficLivreursResponse } from '@/types/models';
 
-export const EMPTY_TRAFIC_RESPONSE: TraficLivreursResponse = {
-  disponibles: { total: 0, liste: [] },
-  enActivite: { total: 0, liste: [] },
-  indisponibles: { total: 0, liste: [] },
-  horsRayon: { total: 0, liste: [] },
+const categorieVide = (): LivreurCategorie => ({ total: 0, liste: [] });
+
+/** Réponse neutre : premier rendu, échec réseau, ou cache vide côté socket. */
+export const traficVide = (): TraficLivreursResponse => ({
+  disponibles: categorieVide(),
+  enActivite: categorieVide(),
+  enPause: categorieVide(),
+  horsService: categorieVide(),
+  horsRayon: categorieVide(),
+  indisponibles: categorieVide(),
   totalLivreurs: 0,
-};
+  totalEnService: 0,
+});
+
+export const EMPTY_TRAFIC_RESPONSE: TraficLivreursResponse = traficVide();

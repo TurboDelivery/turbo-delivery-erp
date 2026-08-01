@@ -12,21 +12,28 @@ import {
   ModalHeader,
   Spinner,
 } from '@heroui/react';
-import { PackageCheck } from 'lucide-react';
+import { AlertTriangle, PackageCheck } from 'lucide-react';
 
-import { LivreurTrafic } from '@/features/trafic/types/trafic.type';
+import { LivreurTraficVue } from '@/features/trafic/utils/normaliser-trafic';
 import {
   useAssignerCourseMutation,
   useCoursesEnAttenteQuery,
 } from '@/features/trafic/queries/course-affectation.query';
 
 interface Props {
-  livreur: LivreurTrafic | null;
+  livreur: LivreurTraficVue | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-/** Affecte une course EN_ATTENTE à un livreur depuis la carte (CDC §5.4, M4). */
+/**
+ * Affecte une course EN_ATTENTE à un livreur depuis la carte (CDC §5.4, M4).
+ *
+ * Garde-fou : seul un livreur présent dans la file d'attente du jour peut
+ * recevoir une course. L'écran ne propose déjà le bouton qu'à ceux-là ; ce
+ * second contrôle couvre le cas où le livreur sort de la file entre l'ouverture
+ * de la fenêtre et la validation.
+ */
 export function AffecterCourseModal({ livreur, isOpen, onOpenChange }: Props) {
   const { data, isLoading } = useCoursesEnAttenteQuery(isOpen);
   const assigner = useAssignerCourseMutation();
@@ -40,9 +47,10 @@ export function AffecterCourseModal({ livreur, isOpen, onOpenChange }: Props) {
   }, [livreur?.livreurId, isOpen]);
 
   const courses = data?.content ?? [];
+  const enFile = !!livreur?.enFile;
 
   const confirmer = () => {
-    if (!livreur || !selectedId) return;
+    if (!livreur || !selectedId || !enFile) return;
     assigner.mutate(
       { courseId: selectedId, livreurId: livreur.livreurId, frais: Number(frais) || 0 },
       { onSuccess: () => onOpenChange(false) },
@@ -57,10 +65,22 @@ export function AffecterCourseModal({ livreur, isOpen, onOpenChange }: Props) {
             <ModalHeader className="flex flex-col gap-1">
               <span className="text-base font-semibold">Affecter une course</span>
               {livreur && (
-                <span className="text-xs font-normal text-default-400">à {livreur.nomComplet}</span>
+                <span className="text-xs font-normal text-default-400">
+                  à {livreur.nomComplet}
+                  {livreur.rangFile != null ? ` — N°${livreur.rangFile} dans la file du jour` : ''}
+                </span>
               )}
             </ModalHeader>
             <ModalBody>
+              {!enFile && (
+                <div className="flex items-start gap-2 rounded-[14px] bg-warning-50 px-3 py-2 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400">
+                  <AlertTriangle className="mt-[2px] h-4 w-4 shrink-0" aria-hidden />
+                  <p className="text-xs">
+                    Ce livreur n&apos;est plus dans la file d&apos;attente du jour : il ne peut pas
+                    recevoir de course. Faites-le repointer avant d&apos;affecter.
+                  </p>
+                </div>
+              )}
               {isLoading ? (
                 <div className="flex justify-center py-10">
                   <Spinner color="primary" label="Chargement des courses en attente…" />
@@ -125,7 +145,7 @@ export function AffecterCourseModal({ livreur, isOpen, onOpenChange }: Props) {
               <Button
                 color="primary"
                 startContent={<PackageCheck className="h-4 w-4" />}
-                isDisabled={!selectedId}
+                isDisabled={!selectedId || !enFile}
                 isLoading={assigner.isLoading}
                 onPress={confirmer}
               >

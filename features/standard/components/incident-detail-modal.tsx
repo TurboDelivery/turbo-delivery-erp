@@ -11,16 +11,26 @@ import {
   ModalHeader,
   Textarea,
 } from '@heroui/react';
-import { Camera, Clock, ExternalLink, MapPin, MessageSquare, Phone, User } from 'lucide-react';
+import { AlertTriangle, Camera, Clock, ExternalLink, MapPin, MessageSquare, Phone, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { createUrlFile } from '@/utils/createUrlFile';
-import { IIncident, STATUT_ORDRE, StatutIncident, useChangerStatutMutation } from '@/features/standard';
+import {
+  IIncident,
+  ILivreurTrafic,
+  STATUT_ORDRE,
+  STATUT_TRAFIC_LABEL,
+  StatutIncident,
+  useChangerStatutMutation,
+} from '@/features/standard';
 import { IncidentStatutChip } from './incident-statut-chip';
 import { IncidentStatutStepper } from './incident-statut-stepper';
 import { useAppel } from './appel-provider';
+import { TON_INCIDENT, TON_TRAFIC, lienTelephone } from '../utils/incident-ui.utils';
 
 interface Props {
   incident: IIncident | null;
+  /** Fiche terrain du livreur (téléphone, statut de service) si le trafic la connaît. */
+  livreur?: ILivreurTrafic;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   canUpdate: boolean;
@@ -60,7 +70,7 @@ function InfoRow({ icon: Icon, label, children }: { icon: typeof User; label: st
   );
 }
 
-export function IncidentDetailModal({ incident, isOpen, onOpenChange, canUpdate }: Props) {
+export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, canUpdate }: Props) {
   const session = useSession();
   const userId = session.data?.user?.id;
   const changerStatut = useChangerStatutMutation();
@@ -75,6 +85,7 @@ export function IncidentDetailModal({ incident, isOpen, onOpenChange, canUpdate 
   if (!incident) return null;
 
   const action = NEXT_ACTION[incident.statut];
+  const hrefTel = lienTelephone(livreur?.telephone);
   const preuveHref = incident.preuveUrl ? createUrlFile(incident.preuveUrl, 'backend') : null;
   const estPhoto = incident.preuveType === 'PHOTO' || incident.preuveType === null;
   const mapsHref =
@@ -97,11 +108,16 @@ export function IncidentDetailModal({ incident, isOpen, onOpenChange, canUpdate 
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-base font-semibold">{incident.motifLibelle}</span>
+            <ModalHeader className="flex items-center gap-3">
+              <span
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] ${TON_INCIDENT[incident.statut].pastille}`}
+              >
+                <AlertTriangle className="h-5 w-5" />
+              </span>
+              <span className="flex min-w-0 flex-wrap items-center gap-2">
+                <span className="truncate text-base font-bold">{incident.motifLibelle}</span>
                 <IncidentStatutChip statut={incident.statut} />
-              </div>
+              </span>
             </ModalHeader>
 
             <ModalBody>
@@ -111,7 +127,25 @@ export function IncidentDetailModal({ incident, isOpen, onOpenChange, canUpdate 
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <InfoRow icon={User} label="Livreur">
-                  {incident.livreurNom ?? <span className="text-default-400">Inconnu</span>}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span>
+                      {livreur?.nomComplet ?? incident.livreurNom ?? (
+                        <span className="text-default-400">Inconnu</span>
+                      )}
+                    </span>
+                    {livreur && (
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold ${TON_TRAFIC[livreur.statut]}`}
+                      >
+                        {STATUT_TRAFIC_LABEL[livreur.statut]}
+                      </span>
+                    )}
+                  </div>
+                  {hrefTel && (
+                    <a href={hrefTel} className="text-xs font-medium text-primary hover:underline">
+                      {livreur?.telephone}
+                    </a>
+                  )}
                 </InfoRow>
                 <InfoRow icon={Clock} label="Signalé le">{formatInstant(incident.signaleLe)}</InfoRow>
               </div>
@@ -119,12 +153,16 @@ export function IncidentDetailModal({ incident, isOpen, onOpenChange, canUpdate 
               {incident.livreurId && (
                 <Button
                   size="sm"
-                  color="success"
-                  variant="flat"
+                  className="w-fit bg-[#1AA05A]/10 font-semibold text-[#147A45]"
                   startContent={<Phone className="h-4 w-4" />}
                   isDisabled={enAppel}
-                  onPress={() => appelerLivreur(incident.livreurId, incident.livreurNom ?? 'Livreur', incident.id)}
-                  className="w-fit"
+                  onPress={() =>
+                    appelerLivreur(
+                      incident.livreurId,
+                      livreur?.nomComplet ?? incident.livreurNom ?? 'Livreur',
+                      incident.id,
+                    )
+                  }
                 >
                   Appeler le livreur (audio)
                 </Button>

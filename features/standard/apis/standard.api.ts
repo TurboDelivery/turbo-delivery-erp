@@ -13,7 +13,9 @@ import {
   IIncidentMotif,
   IInitierAppel,
   IModifierMotifIncident,
+  ITraficLivreurs,
   StatutIncident,
+  TRAFIC_LIVREURS_VIDE,
 } from '../types/standard.types';
 
 // Backend : main-backend, routes /api/erp/** (permitAll). Traçabilité via header X-User-Id.
@@ -179,5 +181,29 @@ export const standardAPI = {
   /** Annule un appel sortant avant décrochage. */
   annulerAppel(id: string): Promise<void> {
     return apiClientHttp.request<void>({ endpoint: `/api/erp/appel/${id}/annuler`, method: 'POST' });
+  },
+
+  // ─── Trafic livreurs (lecture) ─────────────────────────────────────────────
+
+  /**
+   * État du terrain vu par le module Trafic : combien de livreurs sont en course,
+   * combien sont réellement disponibles (= dans la file du jour), et le détail par
+   * livreur (photo, téléphone, statut) dont la console se sert pour qualifier
+   * l'auteur d'un incident.
+   *
+   * Ne remonte jamais d'erreur : un trafic indisponible dégrade l'affichage, il ne
+   * doit pas priver le STANDARD de sa file d'incidents.
+   */
+  async resumeTraficLivreurs(): Promise<ITraficLivreurs> {
+    try {
+      const reponse = await apiClientHttp.request<ITraficLivreurs>({
+        endpoint: '/api/erp/livreur/statut/trafic',
+        method: 'GET',
+        service: 'backend',
+      });
+      return { ...TRAFIC_LIVREURS_VIDE, ...reponse };
+    } catch {
+      return TRAFIC_LIVREURS_VIDE;
+    }
   },
 };
