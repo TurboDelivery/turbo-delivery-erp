@@ -11,23 +11,20 @@ import { useTrafic } from '@/features/trafic/hooks/use-trafic';
 import { useQuartiersQuery } from '@/features/trafic/queries/quartier.query';
 import { TypeLivreur } from '@/types/models';
 
-// Carte du trafic (l'API cartographique a besoin du navigateur → ssr: false).
+// Carte du trafic sur Google Maps (l'API a besoin du navigateur → ssr: false).
 //
-// ⚠ ON RESTE SUR LEAFLET/OSM POUR L'INSTANT, ET C'EST DÉLIBÉRÉ.
-// La version Google Maps est écrite et prête (components/dashboard/trafic/MapTrafic.tsx),
-// mais la brancher publierait `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` dans le bundle navigateur —
-// or cette clé est EXACTEMENT la même que `GOOGLE_API_KEY` utilisée côté serveur pour les
-// appels Directions facturés (vérifié : empreintes identiques en production). Aujourd'hui
-// aucun composant client ne la consomme réellement, elle ne quitte donc jamais le serveur.
+// Clé : celle du projet Chicken Nation, déjà réutilisée par le backend depuis la migration
+// ORS → Google (décision owner). Elle sert donc à la fois aux appels serveur (Directions,
+// géocodage, autocomplétion d'adresse) et, désormais, à cette carte côté navigateur.
 //
-// La bascule demande d'abord DEUX clés distinctes dans la console Google Cloud :
-//   - une clé NAVIGATEUR restreinte par référent HTTP (*.turbodeliveryapp.com) et limitée à
-//     l'API Maps JavaScript → à mettre dans NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ;
-//   - une clé SERVEUR restreinte par IP, lue par lib/googlemaps-server.tsx via une variable
-//     NON préfixée NEXT_PUBLIC_ (sinon restreindre la clé actuelle par référent casserait
-//     l'autocomplétion d'adresse, le géocodage et le calcul de distance des grilles).
-// Une fois les deux clés en place, il suffit de remplacer MapLeaflet par MapTrafic ici.
-const MapLeaflet = dynamic(() => import('@/components/dashboard/trafic/MapLeaflet'), { ssr: false });
+// Conséquence à connaître, imposée par Google : une clé n'accepte qu'UN type de restriction
+// d'application. Utilisée des deux côtés, elle ne peut donc être restreinte ni par référent
+// (les appels serveur n'en envoient pas) ni par IP (le navigateur n'a pas l'IP du serveur) —
+// elle reste lisible dans le source de la page. Le garde-fou praticable est la restriction
+// par API + un plafond de quota côté console Google Cloud.
+//
+// L'ancienne carte Leaflet/OSM (MapLeaflet) est conservée comme repli le temps de la recette.
+const MapTrafic = dynamic(() => import('@/components/dashboard/trafic/MapTrafic'), { ssr: false });
 
 const LEGENDE: { key: keyof TraficCounts; label: string; color: string }[] = [
   { key: 'disponibles', label: 'Disponibles', color: '#16a34a' },
@@ -137,7 +134,7 @@ export default function TraficContent() {
       </div>
 
       <div className="relative flex-1 min-h-0 overflow-hidden">
-        <MapLeaflet positions={positionsFiltrees} focusPosition={focusPosition} quartiers={quartiersActifs} />
+        <MapTrafic positions={positionsFiltrees} focusPosition={focusPosition} quartiers={quartiersActifs} />
 
         <div className="absolute inset-x-0 bottom-0 pointer-events-none z-[1000] flex flex-col items-center">
           <AnimatePresence initial={false}>
