@@ -68,7 +68,11 @@ export default function PersonnelContent() {
         <h1 className="text-2xl font-bold text-primary">Personnel TURBO</h1>
         <Button
           variant="bordered"
-          startContent={<RefreshCw size={16} className={syncJournaliersMutation.isPending ? 'animate-spin' : ''} />}
+          // Un seul indicateur d'attente : HeroUI affiche déjà son propre spinner quand
+          // `isLoading` est vrai, et il conserve `startContent`. Faire tourner l'icône en
+          // plus donnait deux cercles qui tournaient côte à côte. L'icône est donc masquée
+          // pendant le chargement et laisse la place au spinner du bouton.
+          startContent={syncJournaliersMutation.isPending ? undefined : <RefreshCw size={16} />}
           isLoading={syncJournaliersMutation.isPending}
           onPress={() => syncJournaliersMutation.mutate()}
         >
