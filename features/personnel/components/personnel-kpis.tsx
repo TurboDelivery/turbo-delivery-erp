@@ -57,10 +57,19 @@ export function PersonnelKpis() {
         note="instantané figé à la clôture"
         ton="info"
       />
+      {/*
+        Deux chiffres, pas un : « non déclaré » est une infraction constatée, « à confirmer »
+        un état jamais renseigné. Les confondre reviendrait soit à crier au loup, soit — bien
+        pire — à afficher une conformité que personne n'a vérifiée.
+      */}
       <Kpi
         libelle="Contrats non déclarés"
         valeur={data ? String(data.nonDeclares) : tiret}
-        note="risque de conformité sociale"
+        note={
+          data
+            ? `${data.aConfirmer} à confirmer (jamais renseigné) · risque de conformité sociale`
+            : 'risque de conformité sociale'
+        }
         ton="critique"
       />
       <Kpi

@@ -3,6 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { personnelHistorisationAPI, TypeLivreurBascule } from '../apis/personnel-historisation.api';
+import {
+  IContratDeclaration,
+  IRegularisationRemuneration,
+} from '../types/personnel-historisation.types';
 
 /**
  * Hooks du volet « historisation du personnel ». TanStack Query v4 : `keepPreviousData`,
@@ -123,6 +127,53 @@ export const useCloturerMasseSalarialeMutation = () => {
       queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.moisMasse() });
       queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.masse(variables.mois) });
       queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.comparaison(variables.mois) });
+      queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.effectif() });
+    },
+  });
+};
+
+/**
+ * Suivi de déclaration d'un contrat (F5). Une déclaration change à la fois le dossier de
+ * l'agent, la liste des contrats, les anomalies et les compteurs de l'effectif : on
+ * invalide les quatre, sinon l'écran continue d'afficher l'ancien état.
+ */
+export const useMarquerDeclarationContratMutation = (employeId?: string | null) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      contratId,
+      donnees,
+      userId,
+    }: {
+      contratId: string;
+      donnees: IContratDeclaration;
+      userId: string;
+    }) => personnelHistorisationAPI.marquerDeclarationContrat(contratId, donnees, userId),
+    onSuccess: () => {
+      if (employeId) {
+        queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.dossier(employeId) });
+        queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.auditFiche(employeId) });
+      }
+      queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.effectif() });
+      queryClient.invalidateQueries({ queryKey: [...personnelHistorisationKeys.all, 'contrats-echeance'] });
+      queryClient.invalidateQueries({ queryKey: [...personnelHistorisationKeys.all, 'anomalies'] });
+    },
+  });
+};
+
+/**
+ * Régularisation d'un mois clôturé sur un mois ouvert (règle 2). L'écriture atterrit sur le
+ * mois ouvert : l'historique de l'agent et la masse salariale de ce mois changent tous les deux.
+ */
+export const useCreerRegularisationMutation = (employeId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ donnees, userId }: { donnees: IRegularisationRemuneration; userId?: string | null }) =>
+      personnelHistorisationAPI.creerRegularisationRemuneration(donnees, userId),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.remunerations(employeId) });
+      queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.masse(variables.donnees.moisOuvert) });
+      queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.moisMasse() });
       queryClient.invalidateQueries({ queryKey: personnelHistorisationKeys.effectif() });
     },
   });

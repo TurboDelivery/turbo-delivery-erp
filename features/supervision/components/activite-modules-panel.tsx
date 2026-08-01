@@ -28,7 +28,7 @@ import {
   TYPE_ACTION_LABELS,
   TYPES_ACTION,
 } from '../types';
-import { exporterActions } from '../utils/supervision-export.utils';
+import { exporterActions, messageTroncature } from '../utils/supervision-export.utils';
 import { formatHeure, formatInstant, libelleObjet } from '../utils/supervision-format.utils';
 import { DiffValeurs } from './diff-valeurs';
 
@@ -81,8 +81,12 @@ export function ActiviteModulesPanel({ userId, enregistrerExport }: Props) {
 
   const exporter = useCallback(async () => {
     try {
-      const n = await exporterActions(userId, filtre);
+      const bilan = await exporterActions(userId, filtre);
+      const n = bilan.lignes;
       if (n === 0) toast.info('Aucune action à exporter pour ces critères.');
+      // Un export coupé n'est JAMAIS annoncé comme complet : l'avertissement est aussi
+      // écrit en première ligne du fichier (cf. supervision-export.utils).
+      else if (bilan.tronque) toast.warning(messageTroncature(bilan), { duration: 12000 });
       else toast.success(`${n} action${n > 1 ? 's' : ''} exportée${n > 1 ? 's' : ''}.`);
     } catch {
       toast.error("Échec de l'export du journal des actions.");

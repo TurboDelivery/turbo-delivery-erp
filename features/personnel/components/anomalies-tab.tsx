@@ -15,7 +15,10 @@ import {
   TableRow,
 } from '@heroui/react';
 import { ArrowRight, Download } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
+import { obtenirAnomalies } from '@/features/personnel/apis/personnel-historisation.api';
 import { useAnomaliesQuery } from '@/features/personnel/queries/personnel-historisation.query';
 import {
   LIBELLE_GRAVITE,
@@ -36,7 +39,11 @@ const TOUS = '__TOUS__';
  * serveur, on lui passe donc directement la clé choisie.
  */
 export function AnomaliesTab() {
+  const { data: session } = useSession();
+  const userId = session?.user?.id ? String(session.user.id) : null;
   const [type, setType] = useState<string>('');
+  // Verrou d'export : un double-clic écrirait deux traces d'audit pour un seul geste.
+  const [exportEnCours, setExportEnCours] = useState(false);
   const { data, isLoading, isFetching } = useAnomaliesQuery(type || null);
 
   const options = useMemo(() => {
@@ -52,18 +59,35 @@ export function AnomaliesTab() {
 
   const anomalies = data?.anomalies ?? [];
 
-  const exporter = () => {
-    telechargerCsv(
-      'anomalies_personnel',
-      ['gravite', 'anomalie', 'agent', 'matricule', 'detail'],
-      anomalies.map((a) => [
-        LIBELLE_GRAVITE[a.gravite] ?? a.gravite,
-        a.libelle,
-        a.employeNom ?? '',
-        a.matricule ?? '',
-        a.detail ?? '',
-      ]),
-    );
+  /**
+   * Export CSV.
+   *
+   * Règle de gestion 5 : un export est un événement d'audit à part entière — « qui a
+   * exporté quoi, avec quels filtres ». L'appel porte donc `export: true`, qui déclenche
+   * `AuditService.tracerExport` côté backend, et l'identité du demandeur. Le fichier reste
+   * celui de l'écran : si la trace échoue, l'utilisateur est averti mais garde son export.
+   */
+  const exporter = async () => {
+    if (exportEnCours) return;
+    setExportEnCours(true);
+    try {
+      await obtenirAnomalies(type || null, { export: true, userId });
+    } catch {
+      toast.warning("Export non journalisé : la trace d'audit n'a pas pu être écrite.");
+    } finally {
+      telechargerCsv(
+        'anomalies_personnel',
+        ['gravite', 'anomalie', 'agent', 'matricule', 'detail'],
+        anomalies.map((a) => [
+          LIBELLE_GRAVITE[a.gravite] ?? a.gravite,
+          a.libelle,
+          a.employeNom ?? '',
+          a.matricule ?? '',
+          a.detail ?? '',
+        ]),
+      );
+      setExportEnCours(false);
+    }
   };
 
   return (
@@ -92,7 +116,8 @@ export function AnomaliesTab() {
           size="sm"
           variant="flat"
           color="primary"
-          startContent={<Download className="h-4 w-4" />}
+          startContent={!exportEnCours && <Download className="h-4 w-4" />}
+          isLoading={exportEnCours}
           onPress={exporter}
           isDisabled={anomalies.length === 0}
         >

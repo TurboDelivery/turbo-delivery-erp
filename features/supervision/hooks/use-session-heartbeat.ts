@@ -42,6 +42,21 @@ const INTERVALLE_BATTEMENT_MS = 30_000;
 /** Un battement qui traîne est un battement perdu : on n'attend pas plus. */
 const DELAI_MAX_MS = 10_000;
 
+/**
+ * Gestes qui valent « l'utilisateur agit ».
+ *
+ * Volontairement PAS `mousemove` : un curseur qui frôle l'écran n'est pas une action, et
+ * l'écouter reviendrait à recréer le faux positif qu'on corrige. Un pointeur pressé, une
+ * touche, une molette ou un défilement, si.
+ */
+const EVENEMENTS_ACTIVITE = ['pointerdown', 'keydown', 'wheel', 'touchstart', 'scroll'] as const;
+
+/**
+ * Anti-rebond de la prise de note d'activité : inutile d'horodater 200 fois pendant un
+ * défilement. Très en dessous du seuil ACTIF (5 min), donc sans effet sur le verdict.
+ */
+const THROTTLE_ACTIVITE_MS = 1_000;
+
 const ENDPOINT_HEARTBEAT = '/api/erp/supervision/heartbeat';
 
 type ReponseHeartbeat = {
@@ -136,6 +151,15 @@ export function useSessionHeartbeat(): void {
     const enVolRef = useRef(false);
     /** Une fois la déconnexion déclenchée, plus rien ne repart. */
     const revoqueeRef = useRef(false);
+    /**
+     * Dernière action RÉELLE de l'utilisateur, distincte de la présence de l'onglet.
+     *
+     * Le battement dit « cet écran est ouvert » ; il ne dit pas « quelqu'un s'en sert ».
+     * Un onglet ouvert et oublié bat indéfiniment — sans cette horloge il resterait
+     * « Actif » toute la nuit, alors que la spec définit Actif par « action < 5 min ».
+     * C'est une ref et non un état : mesurer l'activité ne doit rien re-rendre.
+     */
+    const derniereActiviteRef = useRef<number>(Date.now());
 
     const battre = useCallback(async (): Promise<void> => {
         if (status !== 'authenticated' || !utilisateurId) return;
@@ -162,6 +186,10 @@ export function useSessionHeartbeat(): void {
                     sessionId,
                     route: routeRef.current,
                     routePrecedente: routePrecedenteRef.current,
+                    // Champ additif : un backend qui ne le connaît pas encore l'ignore
+                    // (Jackson ne tombe pas sur une propriété inconnue par défaut), et le
+                    // jour où il le lit, il peut enfin distinguer présence et activité.
+                    derniereActivite: new Date(derniereActiviteRef.current).toISOString(),
                 }),
                 signal: typeof AbortSignal?.timeout === 'function' ? AbortSignal.timeout(DELAI_MAX_MS) : undefined,
             });
@@ -194,13 +222,37 @@ export function useSessionHeartbeat(): void {
         }
     }, [status, utilisateurId]);
 
+    // Écoute passive de l'activité réelle. Aucun état React, aucun re-rendu : on ne fait
+    // qu'horodater une ref, au plus une fois par seconde. `{ passive: true }` garantit que
+    // l'écoute ne peut pas retarder le défilement, et `capture` la rend insensible aux
+    // `stopPropagation()` posés par les composants.
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const noter = () => {
+            const maintenant = Date.now();
+            if (maintenant - derniereActiviteRef.current >= THROTTLE_ACTIVITE_MS) {
+                derniereActiviteRef.current = maintenant;
+            }
+        };
+
+        const options: AddEventListenerOptions = { passive: true, capture: true };
+        EVENEMENTS_ACTIVITE.forEach((evenement) => window.addEventListener(evenement, noter, options));
+
+        return () => {
+            EVENEMENTS_ACTIVITE.forEach((evenement) => window.removeEventListener(evenement, noter, options));
+        };
+    }, []);
+
     // Changement d'écran : battement immédiat. C'est ce qui alimente la colonne
-    // « page en cours » de l'écran de supervision, sans attendre les 30 s.
+    // « page en cours » de l'écran de supervision, sans attendre les 30 s. Une navigation
+    // est aussi une action de l'utilisateur : elle rafraîchit l'horloge d'activité.
     useEffect(() => {
         if (!pathname) return;
         if (routeRef.current !== pathname) {
             routePrecedenteRef.current = routeRef.current;
             routeRef.current = pathname;
+            derniereActiviteRef.current = Date.now();
         }
         void battre();
     }, [pathname, battre]);

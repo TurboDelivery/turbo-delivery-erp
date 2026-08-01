@@ -4,10 +4,14 @@
 // tête pour qu'Excel FR ouvre le fichier sans écran d'import, champs encadrés de
 // guillemets pour survivre aux `;` et aux sauts de ligne, nom de fichier daté.
 //
-// ⚠ Un export est lui-même une action tracée côté backend (règle de gestion 5) :
-// chaque page relue par les boucles ci-dessous laisse une trace CONSULTATION_AUDIT.
-// C'est voulu et documenté — d'où le plafond de pages, qui évite de noyer le
-// journal des consultations sous un export accidentel de tout l'historique.
+// ⚠ Un export est lui-même une action tracée côté backend (règle de gestion 5 :
+// « qui a exporté quoi, avec quels filtres »). La PREMIÈRE relecture de chaque export
+// porte donc `export=true`, qui déclenche la trace EXPORT côté serveur ; les pages
+// suivantes ne la portent pas, pour ne pas écrire une trace par page.
+//
+// ⚠ Le plafond de pages ci-dessous évite qu'un export accidentel de tout l'historique
+// ne noie le journal — mais il ne COUPE JAMAIS EN SILENCE : au-delà, l'utilisateur est
+// averti (toast) et le fichier lui-même porte la mention en première ligne.
 
 import { supervisionAPI } from '../apis/supervision.api';
 import {
@@ -37,13 +41,59 @@ const TAILLE_PAGE_EXPORT = 200;
 /** Plafond de sécurité : 25 pages = 5 000 lignes. */
 const PAGES_MAX = 25;
 
-function champCsv(valeur: string): string {
-  return `"${(valeur ?? '').replace(/"/g, '""')}"`;
+/**
+ * Résultat d'un export.
+ *
+ * `total` est le volume annoncé par le backend pour les filtres appliqués ; `lignes` ce
+ * qui a réellement été écrit dans le fichier. L'écart n'est JAMAIS silencieux : un
+ * auditeur qui croit tenir le journal complet alors qu'il est coupé tire de fausses
+ * conclusions.
+ */
+export interface ResultatExport {
+  /** Lignes réellement écrites dans le fichier. */
+  lignes: number;
+  /** Lignes disponibles côté backend pour ces filtres. */
+  total: number;
+  /** Vrai si le plafond de relecture a coupé l'export. */
+  tronque: boolean;
 }
 
-/** Assemble entête + lignes en CSV `;`. Pur, testable. */
-export function construireCsv(entete: string[], lignes: string[][]): string {
-  return [entete, ...lignes].map((ligne) => ligne.map(champCsv).join(';')).join('\r\n');
+/** Message unique d'un export coupé — repris à l'identique dans le toast et dans le CSV. */
+export function messageTroncature(resultat: ResultatExport): string {
+  return (
+    `EXPORT PARTIEL : ${resultat.lignes} ligne(s) exportée(s) sur ${resultat.total} disponible(s) ` +
+    `pour ces filtres (plafond de ${PAGES_MAX} × ${TAILLE_PAGE_EXPORT} lignes). ` +
+    `Affinez la période ou les filtres pour obtenir le journal complet.`
+  );
+}
+
+/**
+ * Caractères qui font d'une cellule une FORMULE dans Excel et LibreOffice. Les colonnes
+ * exportées contiennent des chaînes saisies par des tiers (libellés d'objets, noms,
+ * appareils) : sans échappement, `=cmd|'…'!A1` s'exécute à l'ouverture du fichier
+ * (injection de formule CSV). Le guillemet CSV ne protège PAS de cela — seul le préfixe
+ * apostrophe, qui force le tableur à traiter la cellule comme du texte, protège.
+ */
+const PREFIXES_FORMULE = /^[=+\-@\t\r]/;
+/** Nombre pur (`-1500`, `+3`, `12,50`) : le tableur y voit un nombre, pas une formule. */
+const NOMBRE_SIMPLE = /^[+-]?\d+([.,]\d+)?$/;
+
+function champCsv(valeur: string): string {
+  const texte = valeur ?? '';
+  const protege = PREFIXES_FORMULE.test(texte) && !NOMBRE_SIMPLE.test(texte) ? `'${texte}` : texte;
+  return `"${protege.replace(/"/g, '""')}"`;
+}
+
+/**
+ * Assemble entête + lignes en CSV `;`. Pur, testable.
+ *
+ * `avertissement`, s'il est fourni, est écrit en toute première ligne du fichier : le
+ * fichier lui-même dit qu'il est partiel, même détaché de l'écran qui l'a produit.
+ */
+export function construireCsv(entete: string[], lignes: string[][], avertissement?: string): string {
+  const corps = [entete, ...lignes];
+  const toutes = avertissement ? [[avertissement], ...corps] : corps;
+  return toutes.map((ligne) => ligne.map(champCsv).join(';')).join('\r\n');
 }
 
 function telecharger(contenu: string, nomFichier: string): void {
@@ -76,8 +126,8 @@ function telechargerOnglet(onglet: OngletSupervision, contenu: string): void {
 // Onglet 1 — Utilisateurs en ligne (déjà entièrement chargé à l'écran)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function exporterSessions(sessions: ISessionErp[]): number {
-  if (sessions.length === 0) return 0;
+export function exporterSessions(sessions: ISessionErp[]): ResultatExport {
+  if (sessions.length === 0) return { lignes: 0, total: 0, tronque: false };
   const maintenant = Date.now();
   const contenu = construireCsv(
     ['Utilisateur', 'Rôle', 'Agence', 'Page en cours', 'Connecté à', 'Durée de session', 'Statut', 'IP', 'Appareil'],
@@ -94,15 +144,16 @@ export function exporterSessions(sessions: ISessionErp[]): number {
     ]),
   );
   telechargerOnglet('en-ligne', contenu);
-  return sessions.length;
+  // Liste non paginée, entièrement chargée à l'écran : rien ne peut être coupé.
+  return { lignes: sessions.length, total: sessions.length, tronque: false };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Onglet 4 — Premières connexions (liste complète, non paginée côté backend)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function exporterAdoption(comptes: IAdoptionCompte[]): number {
-  if (comptes.length === 0) return 0;
+export function exporterAdoption(comptes: IAdoptionCompte[]): ResultatExport {
+  if (comptes.length === 0) return { lignes: 0, total: 0, tronque: false };
   const contenu = construireCsv(
     ['Utilisateur', 'Identifiant', 'Rôle', 'Première connexion', 'Dernière connexion', 'Nombre de connexions', "Statut d'adoption"],
     comptes.map((c) => [
@@ -116,7 +167,8 @@ export function exporterAdoption(comptes: IAdoptionCompte[]): number {
     ]),
   );
   telechargerOnglet('adoption', contenu);
-  return comptes.length;
+  // Liste complète servie en un bloc par le backend : aucun plafond ne s'applique.
+  return { lignes: comptes.length, total: comptes.length, tronque: false };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -124,24 +176,37 @@ export function exporterAdoption(comptes: IAdoptionCompte[]): number {
 // la page affichée (un export partiel dans un écran d'audit serait trompeur).
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Relit toutes les pages du jeu filtré, dans la limite de {@link PAGES_MAX}, et rend
+ * AUSSI le volume annoncé par le backend : c'est l'écart entre les deux qui permet
+ * d'avertir d'un export coupé au lieu de le taire.
+ */
 async function relireTout<T>(
-  charger: (page: number) => Promise<{ content: T[]; totalPages?: number }>,
-): Promise<T[]> {
-  const premier = await charger(0);
+  charger: (page: number, premierAppel: boolean) => Promise<{ content: T[]; totalPages?: number; totalElements?: number }>,
+): Promise<{ lignes: T[]; total: number }> {
+  const premier = await charger(0, true);
   const lignes = [...(premier.content ?? [])];
-  const total = Math.min(premier.totalPages ?? 1, PAGES_MAX);
-  for (let page = 1; page < total; page++) {
-    const suivant = await charger(page);
+  const pages = Math.min(premier.totalPages ?? 1, PAGES_MAX);
+  for (let page = 1; page < pages; page++) {
+    const suivant = await charger(page, false);
     lignes.push(...(suivant.content ?? []));
   }
-  return lignes;
+  // À défaut de `totalElements` (backend plus ancien), on ne peut rien affirmer de plus
+  // que ce qu'on a lu : pas de fausse alerte de troncature.
+  return { lignes, total: premier.totalElements ?? lignes.length };
 }
 
-export async function exporterActions(userId: string, filtre: IActionsFiltre): Promise<number> {
-  const lignes = await relireTout<IAuditAction>((page) =>
-    supervisionAPI.actions(userId, { ...filtre, page }, TAILLE_PAGE_EXPORT),
+/** Assemble le résultat d'un export paginé et l'éventuelle mention de troncature. */
+function resultat(lignes: number, total: number): ResultatExport {
+  return { lignes, total, tronque: total > lignes };
+}
+
+export async function exporterActions(userId: string, filtre: IActionsFiltre): Promise<ResultatExport> {
+  const { lignes, total } = await relireTout<IAuditAction>((page, premierAppel) =>
+    supervisionAPI.actions(userId, { ...filtre, page }, TAILLE_PAGE_EXPORT, { export: premierAppel }),
   );
-  if (lignes.length === 0) return 0;
+  if (lignes.length === 0) return { lignes: 0, total: 0, tronque: false };
+  const bilan = resultat(lignes.length, total);
   const contenu = construireCsv(
     ['Horodatage', 'Utilisateur', 'Rôle', 'Module', 'Écran', 'Action', 'Objet concerné', 'Référence', 'Détail (avant → après)', 'Résultat'],
     lignes.map((a) => [
@@ -156,16 +221,18 @@ export async function exporterActions(userId: string, filtre: IActionsFiltre): P
       detailTexte(a),
       a.succes ? 'Succès' : 'Échec',
     ]),
+    bilan.tronque ? messageTroncature(bilan) : undefined,
   );
   telechargerOnglet('activite', contenu);
-  return lignes.length;
+  return bilan;
 }
 
-export async function exporterConnexions(userId: string, filtre: IConnexionsFiltre): Promise<number> {
-  const lignes = await relireTout<IConnexion>((page) =>
-    supervisionAPI.connexions(userId, { ...filtre, page }, TAILLE_PAGE_EXPORT),
+export async function exporterConnexions(userId: string, filtre: IConnexionsFiltre): Promise<ResultatExport> {
+  const { lignes, total } = await relireTout<IConnexion>((page, premierAppel) =>
+    supervisionAPI.connexions(userId, { ...filtre, page }, TAILLE_PAGE_EXPORT, { export: premierAppel }),
   );
-  if (lignes.length === 0) return 0;
+  if (lignes.length === 0) return { lignes: 0, total: 0, tronque: false };
+  const bilan = resultat(lignes.length, total);
   const contenu = construireCsv(
     ['Horodatage', 'Utilisateur', 'Événement', 'Motif', 'Adresse IP', 'Appareil', 'Session', 'Durée de session'],
     lignes.map((c) => [
@@ -178,7 +245,8 @@ export async function exporterConnexions(userId: string, filtre: IConnexionsFilt
       c.sessionId ?? '',
       c.dureeSessionS != null ? formatDuree(c.dureeSessionS) : '',
     ]),
+    bilan.tronque ? messageTroncature(bilan) : undefined,
   );
   telechargerOnglet('connexions', contenu);
-  return lignes.length;
+  return bilan;
 }

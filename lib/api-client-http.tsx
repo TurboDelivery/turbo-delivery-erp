@@ -64,8 +64,39 @@ export class ApiClientHttp {
         config.headers.set('X-Session-Id', sessionId);
       }
 
+      // Identité de l'appelant (SPEC-ERP-TURBO-AUDIT-v2.0 : imputabilité).
+      // Posée ICI, centralement, et non dans getHeaders() : les routes `/api/erp/**`
+      // du main-backend sont `permitAll` côté Spring Security, X-User-Id est donc le
+      // SEUL élément d'identité dont disposent les gardes serveur (supervision,
+      // personnel) et l'écrivain d'audit — un appel sans cet en-tête répond 403 ou
+      // journalise une action sans auteur. Même source que `Authorization` : la
+      // session next-auth.
+      //
+      // On n'écrase JAMAIS un X-User-Id déjà posé par l'appelant : certains appels
+      // visent volontairement un autre identifiant que celui de la session. Un en-tête
+      // présent mais VIDE (appelant dont la session n'était pas encore chargée) est en
+      // revanche traité comme absent — sinon il partirait vide et le backend répondrait 403.
+      const identiteAppelant = config.headers.get('X-User-Id');
+      if (!identiteAppelant || String(identiteAppelant).trim() === '') {
+        const userId = await this.lireIdentiteSession();
+        if (userId) {
+          config.headers.set('X-User-Id', userId);
+        }
+      }
+
       return config;
     });
+  }
+
+  /** Identifiant ERP de l'utilisateur courant. Jamais bloquant : null si indisponible. */
+  private async lireIdentiteSession(): Promise<string | null> {
+    try {
+      const session = await this.getSession();
+      const id = session?.user?.id;
+      return id ? String(id) : null;
+    } catch {
+      return null;
+    }
   }
 
   private async getSession() {

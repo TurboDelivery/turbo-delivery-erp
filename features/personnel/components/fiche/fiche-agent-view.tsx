@@ -1,9 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Chip, Spinner } from '@heroui/react';
+import { Button, Chip, Spinner } from '@heroui/react';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Undo2 } from 'lucide-react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/commons/tabs';
 import { TypeLivreurBascule } from '@/features/personnel/apis/personnel-historisation.api';
@@ -21,10 +22,12 @@ import {
   libelleTypeCollaborateur,
 } from '@/features/personnel/utils/personnel-historisation.utils';
 
+import { DeclarationContratAction } from '../shared/declaration-contrat-action';
 import { DeclarationChip, StatutEffectifChip, TypeContratChip } from '../shared/personnel-chips';
 import { BasculeTypeBouton } from './bascule-type-bouton';
 import { HistoriqueModifications } from './historique-modifications';
 import { ParcoursTimeline } from './parcours-timeline';
+import { RegularisationModal } from './regularisation-modal';
 import { RemunerationHistorique } from './remuneration-historique';
 
 /** Une ligne « libellé / valeur » du dossier d'enrôlement. */
@@ -48,6 +51,7 @@ const TYPES_BASCULABLES = ['JOURNALIER', 'INDEPENDANT'];
 export function FicheAgentView({ employeId }: { employeId: string }) {
   const { data: session } = useSession();
   const lecteurId = session?.user?.id ? String(session.user.id) : null;
+  const [regularisation, setRegularisation] = useState(false);
 
   const { data: dossier, isLoading, isError } = useDossierAgentQuery(employeId);
   const { data: remunerations, isLoading: chargementRemu } = useRemunerationHistoriqueQuery(employeId);
@@ -82,7 +86,11 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
   const type = contrat?.typeContrat ?? fiche.typeCollaborateur;
   const declaration = etatDeclarationDepuisContrat(contrat?.declare ?? null, type);
   const typeNormalise = (fiche.typeCollaborateur ?? '').trim().toUpperCase();
-  const basculable = !fiche.sorti && !!fiche.livreurId && TYPES_BASCULABLES.includes(typeNormalise);
+  // Volontairement indépendant de `sorti` : basculer en INDEPENDANT sort l'agent de
+  // l'effectif salarié (il n'est plus payé), et c'est justement l'état depuis lequel on doit
+  // pouvoir revenir en JOURNALIER. Le serveur réintègre alors la fiche de lui-même
+  // (`reintegrerSiSorti`) — masquer le bouton ici rendrait le retour impossible.
+  const basculable = !!fiche.livreurId && TYPES_BASCULABLES.includes(typeNormalise);
 
   return (
     <div className="space-y-4">
@@ -201,6 +209,18 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                             {contrat.dateDeclaration ? ` · ${formaterDate(contrat.dateDeclaration)}` : ''}
                           </span>
                         ) : null}
+                        {contrat ? (
+                          <span className="mt-1 flex justify-end">
+                            <DeclarationContratAction
+                              contratId={contrat.id}
+                              employeId={employeId}
+                              etat={declaration}
+                              dateDeclaration={contrat.dateDeclaration}
+                              referenceDeclaration={contrat.referenceDeclaration}
+                              declarationUrl={contrat.declarationUrl}
+                            />
+                          </span>
+                        ) : null}
                       </span>
                     )
                   }
@@ -285,16 +305,29 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                 <h2 className="text-[11px] font-semibold uppercase tracking-wide text-default-500">
                   Historique mensuel de rémunération
                 </h2>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Chip size="sm" variant="flat">
                     Net moyen {formaterMontant(remunerations?.netMoyen)}
                   </Chip>
                   <Chip size="sm" variant="flat">
                     Total perçu {formaterMontant(remunerations?.totalPercu)}
                   </Chip>
+                  <Button
+                    size="sm"
+                    variant="bordered"
+                    startContent={<Undo2 className="h-4 w-4" />}
+                    onPress={() => setRegularisation(true)}
+                  >
+                    Régulariser un mois clôturé
+                  </Button>
                 </div>
               </div>
               <RemunerationHistorique historique={remunerations} chargement={chargementRemu} />
+              <RegularisationModal
+                employeId={employeId}
+                ouvert={regularisation}
+                onFermer={() => setRegularisation(false)}
+              />
             </section>
           </div>
         </TabsContent>

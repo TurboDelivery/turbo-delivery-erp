@@ -18,6 +18,7 @@ import { AlertTriangle, Search } from 'lucide-react';
 
 import { toast } from 'sonner';
 
+import { supervisionAPI } from '../apis/supervision.api';
 import { useAdoptionQuery } from '../queries/supervision.queries';
 import { ExporteurOnglet } from '../types';
 import { exporterAdoption } from '../utils/supervision-export.utils';
@@ -53,10 +54,16 @@ export function AdoptionPanel({ userId, enregistrerExport }: Props) {
   }, [data, recherche]);
 
   const exporter = useCallback(() => {
-    const n = exporterAdoption(comptes);
-    if (n === 0) toast.info('Aucun compte à exporter.');
-    else toast.success(`${n} compte${n > 1 ? 's' : ''} exporté${n > 1 ? 's' : ''}.`);
-  }, [comptes]);
+    const { lignes: n } = exporterAdoption(comptes);
+    if (n === 0) {
+      toast.info('Aucun compte à exporter.');
+      return;
+    }
+    // Règle de gestion 5 : l'export est déclaré au backend, qui le trace avec ses filtres.
+    // Non bloquant : le fichier est déjà produit à partir de ce qui est à l'écran.
+    void supervisionAPI.adoption(userId, filtre === 'JAMAIS', { export: true }).catch(() => undefined);
+    toast.success(`${n} compte${n > 1 ? 's' : ''} exporté${n > 1 ? 's' : ''}.`);
+  }, [comptes, userId, filtre]);
 
   useEffect(() => {
     enregistrerExport(exporter);

@@ -151,9 +151,28 @@ export const COULEUR_PASTILLE_EVENEMENT: Record<NatureEvenement, string> = {
 // Export CSV
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Caractères qui font d'une cellule une FORMULE dans Excel et LibreOffice. Les colonnes
+ * exportées ici contiennent des chaînes saisies par des tiers (noms d'agents, postes,
+ * motifs de retenue) : sans échappement, une valeur commençant par `=`, `+`, `-`, `@`,
+ * une tabulation ou un retour chariot s'exécute à l'ouverture du fichier (injection de
+ * formule CSV). Les guillemets CSV ne protègent PAS de cela — seul le préfixe apostrophe,
+ * qui force le tableur à traiter la cellule comme du texte.
+ */
+const PREFIXES_FORMULE = /^[=+\-@\t\r]/;
+/**
+ * Exception : un nombre pur (`-1500`, `+3`, `12,50`) n'est pas une formule pour le
+ * tableur. On le laisse intact, sans quoi tout montant négatif de la masse salariale
+ * deviendrait du texte et les totaux d'un contrôleur ne tomberaient plus juste.
+ */
+const NOMBRE_SIMPLE = /^[+-]?\d+([.,]\d+)?$/;
+
 function echapper(valeur: unknown): string {
   const texte = valeur === null || valeur === undefined ? '' : String(valeur);
-  return /[";\n]/.test(texte) ? `"${texte.replace(/"/g, '""')}"` : texte;
+  const dangereux = PREFIXES_FORMULE.test(texte) && !NOMBRE_SIMPLE.test(texte);
+  const protege = dangereux ? `'${texte}` : texte;
+  // Une valeur neutralisée est toujours encadrée : le préfixe doit survivre à l'import.
+  return dangereux || /[";\n\r]/.test(protege) ? `"${protege.replace(/"/g, '""')}"` : protege;
 }
 
 /**

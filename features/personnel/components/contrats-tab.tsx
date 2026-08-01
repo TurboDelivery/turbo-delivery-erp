@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   Button,
   Chip,
@@ -34,6 +35,7 @@ import {
 } from '@/features/personnel/utils/personnel-historisation.utils';
 
 import { AgentCell } from './shared/agent-cell';
+import { DeclarationContratAction, usePeutDeclarer } from './shared/declaration-contrat-action';
 import { DeclarationChip, TypeContratChip } from './shared/personnel-chips';
 
 const FILTRES = [
@@ -45,6 +47,11 @@ const FILTRES = [
 interface LigneContrat {
   cle: string;
   employeId: string;
+  /** `null` quand l'agent n'a aucun contrat enregistré : il n'y a alors rien à déclarer. */
+  contratId: string | null;
+  dateDeclaration: string | null;
+  referenceDeclaration: string | null;
+  declarationUrl: string | null;
   nom: string;
   matricule: string | null;
   poste: string | null;
@@ -67,6 +74,7 @@ interface LigneContrat {
 export function ContratsTab() {
   const { data: effectif, isLoading: chargementEffectif } = useEffectifQuery();
   const { data: contrats, isLoading: chargementContrats } = useContratsEcheanceQuery();
+  const peutDeclarer = usePeutDeclarer();
   const [filtre, setFiltre] = useState('TOUS');
 
   const lignes = useMemo<LigneContrat[]>(() => {
@@ -83,6 +91,10 @@ export function ContratsTab() {
       return {
         cle: contrat?.id ?? l.employeId,
         employeId: l.employeId,
+        contratId: contrat?.id ?? null,
+        dateDeclaration: contrat?.dateDeclaration ?? null,
+        referenceDeclaration: contrat?.referenceDeclaration ?? null,
+        declarationUrl: contrat?.declarationUrl ?? null,
         nom: l.nom,
         matricule: l.matricule ?? contrat?.employeMatricule ?? null,
         poste: l.poste,
@@ -168,6 +180,7 @@ export function ContratsTab() {
           <TableColumn className="text-primary">FIN (CDD)</TableColumn>
           <TableColumn className="text-primary">DÉCLARÉ</TableColumn>
           <TableColumn className="text-primary">ALERTE</TableColumn>
+          <TableColumn className="text-right text-primary">{peutDeclarer ? 'SUIVI' : ' '}</TableColumn>
         </TableHeader>
         <TableBody
           emptyContent={chargement ? ' ' : 'Aucun contrat pour ce filtre.'}
@@ -196,6 +209,28 @@ export function ContratsTab() {
               </TableCell>
               <TableCell>
                 <AlerteContrat ligne={l} />
+              </TableCell>
+              <TableCell className="text-right">
+                {l.contratId ? (
+                  <DeclarationContratAction
+                    contratId={l.contratId}
+                    employeId={l.employeId}
+                    etat={l.declaration}
+                    dateDeclaration={l.dateDeclaration}
+                    referenceDeclaration={l.referenceDeclaration}
+                    declarationUrl={l.declarationUrl}
+                  />
+                ) : peutDeclarer ? (
+                  // Cette liste ne porte que les contrats datés (CDD) : l'absence de ligne
+                  // ne prouve pas l'absence de contrat. On renvoie donc vers la fiche, où le
+                  // contrat actif — CDI compris — est lu directement.
+                  <Link
+                    href={`/personnel/${l.employeId}`}
+                    className="text-[11px] font-medium text-primary hover:underline"
+                  >
+                    Sur la fiche
+                  </Link>
+                ) : null}
               </TableCell>
             </TableRow>
           ))}

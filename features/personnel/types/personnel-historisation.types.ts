@@ -62,6 +62,27 @@ export interface IRemunerationMois {
   regularisations: IRemunerationRegularisation[] | null;
 }
 
+/**
+ * Corps de `POST /api/erp/personnel/remunerations/regularisation`.
+ *
+ * Règle 2 de la spec : un mois clôturé ne se réécrit jamais. La correction est une écriture
+ * datée d'un mois OUVERT qui déclare le mois clôturé qu'elle rattrape, avec son motif —
+ * obligatoire côté serveur, sans quoi la régularisation serait inexploitable.
+ */
+export interface IRegularisationRemuneration {
+  employeId: string;
+  /** Mois ouvert sur lequel la correction est payée, format `YYYY-MM`. */
+  moisOuvert: string;
+  /** Mois clôturé que l'on corrige, format `YYYY-MM`. */
+  moisOrigine: string;
+  base?: number | null;
+  primes?: number | null;
+  retenues?: number | null;
+  modePaiement?: string | null;
+  datePaiement?: string | null;
+  motif: string;
+}
+
 export interface IRemunerationHistorique {
   employeId: string;
   nom: string | null;
@@ -270,6 +291,19 @@ export interface IEmployeContrat {
   employeMatricule: string | null;
 }
 
+/**
+ * Corps de `PATCH /api/erp/personnel/contrats/{id}/declaration`.
+ *
+ * `declare = null` remet l'état à « inconnu » : ce n'est pas la même chose que « non
+ * déclaré », et l'écran doit pouvoir dire les trois.
+ */
+export interface IContratDeclaration {
+  declare: boolean | null;
+  dateDeclaration?: string | null;
+  referenceDeclaration?: string | null;
+  declarationUrl?: string | null;
+}
+
 export interface IEmployeEvenement {
   id: string;
   employeId: string;
@@ -367,7 +401,14 @@ export interface IEffectif {
   dernierMoisClotureLibelle: string | null;
   totalActifs: number;
   totalSortis: number;
+  /** Contrats à déclarer dont on SAIT qu'ils ne sont pas déclarés (donnée négative constatée). */
   nonDeclares: number;
+  /**
+   * Contrats à déclarer dont l'état n'a jamais été renseigné. Volontairement compté à part :
+   * une conformité non constatée n'est pas une conformité, mais ce n'est pas non plus une
+   * infraction constatée — les deux chiffres ne se traitent pas de la même façon.
+   */
+  aConfirmer: number;
   totalAnomalies: number;
   masseDernierMoisCloture: number | null;
   agences: string[];

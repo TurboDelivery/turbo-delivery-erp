@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 
 import { useAbility } from '@/hooks/use-ability';
 import { normalizeRole } from '@/lib/casl/ability';
+import { obtenirMasseSalariale } from '@/features/personnel/apis/personnel-historisation.api';
 import {
   useCloturerMasseSalarialeMutation,
   useComparaisonMasseSalarialeQuery,
@@ -68,6 +69,8 @@ export function MasseSalarialeTab() {
   const { data: mois, isLoading: chargementMois } = useMoisMasseSalarialeQuery();
   const [moisSelectionne, setMoisSelectionne] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState(false);
+  // Verrou d'export : un double-clic écrirait deux traces d'audit pour un seul geste.
+  const [exportEnCours, setExportEnCours] = useState(false);
 
   useEffect(() => {
     if (!moisSelectionne && mois && mois.length > 0) {
@@ -86,8 +89,19 @@ export function MasseSalarialeTab() {
   );
   const estCloture = (masse?.statut ?? '').toUpperCase() === 'CLOTURE';
 
-  const exporter = () => {
-    if (!masse) return;
+  /**
+   * Export CSV. Règle de gestion 5 : l'export est un événement d'audit — l'appel porte
+   * `export: true` (déclenche `AuditService.tracerExport`) et l'identité du demandeur.
+   * Non bloquant : une trace impossible n'annule pas le fichier, elle est signalée.
+   */
+  const exporter = async () => {
+    if (!masse || exportEnCours) return;
+    setExportEnCours(true);
+    try {
+      await obtenirMasseSalariale(masse.mois, { export: true, userId });
+    } catch {
+      toast.warning("Export non journalisé : la trace d'audit n'a pas pu être écrite.");
+    }
     telechargerCsv(
       `masse_salariale_${masse.mois}`,
       ['agent', 'matricule', 'type', 'base', 'primes', 'retenues', 'motif_retenues', 'net', 'paiement', 'mois', 'etat'],
@@ -105,6 +119,7 @@ export function MasseSalarialeTab() {
         estCloture ? 'cloture' : 'brouillon',
       ]),
     );
+    setExportEnCours(false);
   };
 
   const confirmerCloture = () => {
@@ -164,7 +179,8 @@ export function MasseSalarialeTab() {
           size="sm"
           variant="flat"
           color="primary"
-          startContent={<Download className="h-4 w-4" />}
+          startContent={!exportEnCours && <Download className="h-4 w-4" />}
+          isLoading={exportEnCours}
           onPress={exporter}
           isDisabled={!masse || masse.lignes.length === 0}
         >

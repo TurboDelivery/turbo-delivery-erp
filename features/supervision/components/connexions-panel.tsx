@@ -27,7 +27,7 @@ import {
   TYPE_EVENEMENT_LABELS,
   TYPES_EVENEMENT,
 } from '../types';
-import { exporterConnexions } from '../utils/supervision-export.utils';
+import { exporterConnexions, messageTroncature } from '../utils/supervision-export.utils';
 import { formatDuree, formatInstant, utilisateurConnexion } from '../utils/supervision-format.utils';
 
 const TAILLE_PAGE = 25;
@@ -89,8 +89,12 @@ export function ConnexionsPanel({ userId, enregistrerExport }: Props) {
 
   const exporter = useCallback(async () => {
     try {
-      const n = await exporterConnexions(userId, filtre);
+      const bilan = await exporterConnexions(userId, filtre);
+      const n = bilan.lignes;
       if (n === 0) toast.info('Aucun événement à exporter pour ces critères.');
+      // Un export coupé n'est JAMAIS annoncé comme complet : l'avertissement est aussi
+      // écrit en première ligne du fichier (cf. supervision-export.utils).
+      else if (bilan.tronque) toast.warning(messageTroncature(bilan), { duration: 12000 });
       else toast.success(`${n} événement${n > 1 ? 's' : ''} exporté${n > 1 ? 's' : ''}.`);
     } catch {
       toast.error("Échec de l'export du journal des connexions.");

@@ -17,11 +17,12 @@ import {
 // `apiClientHttp` est utilisé SANS `service` → baseURL = NEXT_PUBLIC_API_BACKEND_URL,
 // comme les modules standard / créneaux.
 //
-// ⚠ X-User-Id n'est pas injecté automatiquement par le client HTTP : c'est le seul
-// élément d'identité que connaît la garde `GardeSupervision` côté backend (elle
-// redemande le rôle à l'annuaire ERP et refuse tout ce qui n'est pas
-// DG / DGA / Admin / Ops Manager). Sans cet en-tête, TOUS les appels ci-dessous
-// répondent 403 : il est donc obligatoire sur chaque méthode, pas optionnel.
+// ⚠ X-User-Id est le seul élément d'identité que connaît la garde `GardeSupervision`
+// côté backend (elle redemande le rôle à l'annuaire ERP et refuse tout ce qui n'est
+// pas DG / DGA / Admin / Ops Manager). Sans cet en-tête, TOUS les appels ci-dessous
+// répondent 403. Le client HTTP le pose désormais centralement depuis la session
+// next-auth ; on continue de le passer explicitement ici, car ces écrans exigent
+// l'identité du LECTEUR et ne doivent pas dépendre d'un défaut implicite.
 
 const entete = (userId: string) => ({ headers: { 'X-User-Id': userId } });
 
@@ -48,7 +49,11 @@ export const supervisionAPI = {
   },
 
   /** « Qui est connecté » : sessions ouvertes, écran courant, statut d'activité. */
-  enLigne(userId: string, filtre: Partial<ISessionsFiltre> = {}): Promise<ISessionErp[]> {
+  enLigne(
+    userId: string,
+    filtre: Partial<ISessionsFiltre> = {},
+    options: { export?: boolean } = {},
+  ): Promise<ISessionErp[]> {
     return apiClientHttp.request<ISessionErp[]>({
       endpoint: '/api/erp/supervision/en-ligne',
       method: 'GET',
@@ -56,6 +61,7 @@ export const supervisionAPI = {
         agence: filtre.agence,
         statut: filtre.statut,
         recherche: filtre.recherche,
+        export: options.export ? 'true' : undefined,
       }),
       config: entete(userId),
     });
@@ -74,19 +80,38 @@ export const supervisionAPI = {
   },
 
   /** Adoption des comptes ERP : première connexion, fréquence, jamais connectés. */
-  adoption(userId: string, jamaisConnectes = false): Promise<IAdoptionResultat> {
+  adoption(
+    userId: string,
+    jamaisConnectes = false,
+    options: { export?: boolean } = {},
+  ): Promise<IAdoptionResultat> {
     return apiClientHttp.request<IAdoptionResultat>({
       endpoint: '/api/erp/supervision/adoption',
       method: 'GET',
-      params: { jamaisConnectes: String(jamaisConnectes) },
+      params: nettoyer({
+        jamaisConnectes: String(jamaisConnectes),
+        export: options.export ? 'true' : undefined,
+      }),
       config: entete(userId),
     });
   },
 
   // ── Lecture du journal d'audit (aucune écriture n'existe côté backend) ─────
 
-  /** Journal des actions métier, paginé. */
-  actions(userId: string, filtre: Partial<IActionsFiltre>, size = 25): Promise<PaginatedResponse<IAuditAction>> {
+  /**
+   * Journal des actions métier, paginé.
+   *
+   * `options.export` marque l'appel comme relecture d'export : le backend écrit alors
+   * un événement d'audit EXPORT (règle de gestion 5 — « qui a exporté quoi, avec quels
+   * filtres »). Seule la PREMIÈRE page d'un export le porte, pour ne pas produire une
+   * trace par page relue.
+   */
+  actions(
+    userId: string,
+    filtre: Partial<IActionsFiltre>,
+    size = 25,
+    options: { export?: boolean } = {},
+  ): Promise<PaginatedResponse<IAuditAction>> {
     return apiClientHttp.request<PaginatedResponse<IAuditAction>>({
       endpoint: '/api/erp/audit/actions',
       method: 'GET',
@@ -98,13 +123,19 @@ export const supervisionAPI = {
         jusqua: filtre.jusqua,
         page: filtre.page ?? 0,
         size,
+        export: options.export ? 'true' : undefined,
       }),
       config: entete(userId),
     });
   },
 
-  /** Journal des connexions, déconnexions et échecs, paginé. */
-  connexions(userId: string, filtre: Partial<IConnexionsFiltre>, size = 25): Promise<PaginatedResponse<IConnexion>> {
+  /** Journal des connexions, déconnexions et échecs, paginé. Voir `actions` pour `export`. */
+  connexions(
+    userId: string,
+    filtre: Partial<IConnexionsFiltre>,
+    size = 25,
+    options: { export?: boolean } = {},
+  ): Promise<PaginatedResponse<IConnexion>> {
     return apiClientHttp.request<PaginatedResponse<IConnexion>>({
       endpoint: '/api/erp/audit/connexions',
       method: 'GET',
@@ -115,6 +146,7 @@ export const supervisionAPI = {
         jusqua: filtre.jusqua,
         page: filtre.page ?? 0,
         size,
+        export: options.export ? 'true' : undefined,
       }),
       config: entete(userId),
     });

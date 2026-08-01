@@ -23,6 +23,7 @@ import {
 import { Search } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { supervisionAPI } from '../apis/supervision.api';
 import { useForcerDeconnexionMutation, useSessionsEnLigneQuery } from '../queries/supervision.queries';
 import {
   ExporteurOnglet,
@@ -107,10 +108,20 @@ export function SessionsEnLignePanel({ userId, peutForcerDeconnexion, enregistre
 
   // ── Export CSV de l'onglet (déclenché depuis l'entête de page) ─────────────
   const exporter = useCallback(() => {
-    const n = exporterSessions(lignes);
-    if (n === 0) toast.info('Aucune session à exporter.');
-    else toast.success(`${n} session${n > 1 ? 's' : ''} exportée${n > 1 ? 's' : ''}.`);
-  }, [lignes]);
+    const { lignes: n } = exporterSessions(lignes);
+    if (n === 0) {
+      toast.info('Aucune session à exporter.');
+      return;
+    }
+    // Règle de gestion 5 : un export est un événement d'audit à part entière. Le fichier
+    // est produit à partir de ce qui est à l'écran ; l'appel ci-dessous ne sert qu'à
+    // déclarer l'export au backend (qui trace « qui a exporté quoi, avec quels filtres »).
+    // Volontairement non bloquant : un journal indisponible ne prive pas du fichier.
+    void supervisionAPI
+      .enLigne(userId, { agence: '', statut: '', recherche: '' }, { export: true })
+      .catch(() => undefined);
+    toast.success(`${n} session${n > 1 ? 's' : ''} exportée${n > 1 ? 's' : ''}.`);
+  }, [lignes, userId]);
 
   useEffect(() => {
     enregistrerExport(exporter);

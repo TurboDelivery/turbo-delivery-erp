@@ -6,6 +6,7 @@ import {
   EtatDeclaration,
   IAnomaliesPersonnel,
   IAuditActionFiche,
+  IContratDeclaration,
   IEffectif,
   IEffectifLigne,
   IEmployeContrat,
@@ -14,7 +15,9 @@ import {
   IMasseSalariale,
   IMasseSalarialeComparaison,
   IMasseSalarialeMois,
+  IRegularisationRemuneration,
   IRemunerationHistorique,
+  IRemunerationMois,
 } from '../types/personnel-historisation.types';
 
 /**
@@ -50,6 +53,25 @@ export function obtenirHistoriqueRemuneration(
     service: 'backend',
     params: { employeId, ...(options?.export ? { export: 'true' } : {}) },
     ...entete(options?.userId),
+  });
+}
+
+/**
+ * Régularisation d'un mois CLÔTURÉ, écrite sur un mois OUVERT (règle 2 de la spec,
+ * scénario de recette n°3). Le serveur refuse en 409 si le mois d'origine n'est pas
+ * clôturé, si le mois d'écriture l'est, ou si l'origine n'est pas antérieure ; en 400 si
+ * tous les montants sont nuls. L'identité voyage pour que l'écriture soit imputable.
+ */
+export function creerRegularisationRemuneration(
+  data: IRegularisationRemuneration,
+  userId?: string | null,
+): Promise<IRemunerationMois> {
+  return apiClientHttp.request<IRemunerationMois>({
+    endpoint: '/api/erp/personnel/remunerations/regularisation',
+    method: 'POST',
+    service: 'backend',
+    data,
+    ...entete(userId),
   });
 }
 
@@ -157,6 +179,27 @@ export function listerContratsEcheance(jours?: number): Promise<IEmployeContrat[
   });
 }
 
+/**
+ * Suivi de déclaration d'un contrat (F5).
+ *
+ * Endpoint gardé et fail-closed : sans `X-User-Id` reconnu — et hors profils habilités
+ * (DG, DGA, Ops Manager, Comptable) — le backend répond 403. `userId` est donc requis ici,
+ * pas facultatif : envoyer la requête sans identité serait un appel perdu d'avance.
+ */
+export function marquerDeclarationContrat(
+  contratId: string,
+  data: IContratDeclaration,
+  userId: string,
+): Promise<IEmployeContrat> {
+  return apiClientHttp.request<IEmployeContrat>({
+    endpoint: `/api/erp/personnel/contrats/${contratId}/declaration`,
+    method: 'PATCH',
+    service: 'backend',
+    data,
+    ...entete(userId),
+  });
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Audit — historique des modifications d'une fiche
 // ─────────────────────────────────────────────────────────────────────────────
@@ -242,21 +285,24 @@ function normaliser(valeur: string | null | undefined): string {
 /**
  * Effectif enrichi de l'onglet « Effectif ».
  *
- * Il n'existe pas d'endpoint dédié : la ligne est composée de quatre sources qui, elles,
- * existent — le roster (`/api/erp/employees`), la masse salariale du mois courant (matricule,
- * agence, type de collaborateur de tout l'effectif payable), celle du dernier mois clôturé
- * (net figé + agents sortis depuis) et le tableau d'anomalies (état de déclaration, qui n'est
- * exposé nulle part ailleurs en liste).
+ * Il n'existe pas d'endpoint dédié : la ligne est composée de sources qui, elles, existent —
+ * le roster (`/api/erp/employees`), la masse salariale du mois courant (matricule, agence,
+ * type de collaborateur de tout l'effectif payable), celle du dernier mois clôturé (net figé
+ * + agents sortis depuis), le tableau d'anomalies (déclarations manquantes ou jamais
+ * renseignées) et les contrats datés (seule source d'une déclaration POSITIVE en liste).
  *
- * Aucune de ces sources n'est appelée par employé : quatre requêtes au total, quel que soit
+ * Aucune de ces sources n'est appelée par employé : cinq requêtes au total, quel que soit
  * l'effectif. Le jour où le backend expose `GET /api/erp/personnel/effectif`, cette fonction
  * devient un GET et les écrans ne changent pas d'une ligne.
  */
 export async function obtenirEffectif(): Promise<IEffectif> {
-  const [roster, mois, anomalies] = await Promise.all([
+  const [roster, mois, anomalies, contrats] = await Promise.all([
     listerRoster(),
     listerMoisMasseSalariale(24).catch(() => [] as IMasseSalarialeMois[]),
     obtenirAnomalies().catch(() => null),
+    // Horizon large : on ne cherche pas les échéances mais l'état de déclaration réellement
+    // enregistré. C'est la seule liste transverse qui le porte.
+    listerContratsEcheance(3650).catch(() => [] as IEmployeContrat[]),
   ]);
 
   const moisOuvert = mois.find((m) => m.statut === 'OUVERT') ?? null;
@@ -313,16 +359,33 @@ export async function obtenirEffectif(): Promise<IEffectif> {
     }
   });
 
+  // Déclaration POSITIVE : un contrat réellement marqué déclaré. C'est la seule donnée qui
+  // autorise à écrire « Déclaré » — l'absence d'anomalie ne prouve rien (un agent dont le
+  // contrat n'a jamais été saisi ne produit aucune anomalie de déclaration).
+  const declarePositif = new Map<string, boolean>();
+  (contrats ?? []).forEach((c) => {
+    if (!c.employeId || c.declare === null || c.declare === undefined) return;
+    if (!declarePositif.has(c.employeId)) declarePositif.set(c.employeId, c.declare);
+  });
+
   const lignes: IEffectifLigne[] = (roster?.content ?? []).map((e) => {
     const enrichi = enrichissements.get(e.id);
     const type = enrichi?.typeCollaborateur ?? null;
     const actif = normaliser(e.statut) !== 'INACTIF';
     const signale = declarationParEmploye.get(e.id);
-    const declaration: EtatDeclaration = signale
-      ? signale
-      : TYPES_A_DECLARER.includes(normaliser(type))
-        ? 'DECLARE'
-        : 'NON_APPLICABLE';
+    const positif = declarePositif.get(e.id);
+    // Ordre : l'anomalie prime (elle est calculée sur le contrat actif), puis la donnée
+    // positive, puis le défaut INCONNU. Jamais « Déclaré » par défaut : afficher une
+    // conformité qu'on n'a pas constatée est précisément le risque que ce module éclaire.
+    const declaration: EtatDeclaration = !TYPES_A_DECLARER.includes(normaliser(type))
+      ? 'NON_APPLICABLE'
+      : signale
+        ? signale
+        : positif === true
+          ? 'DECLARE'
+          : positif === false
+            ? 'NON_DECLARE'
+            : 'INCONNU';
 
     return {
       employeId: e.id,
@@ -355,6 +418,7 @@ export async function obtenirEffectif(): Promise<IEffectif> {
     totalActifs: lignes.filter((l) => l.actif).length,
     totalSortis: lignes.filter((l) => !l.actif).length,
     nonDeclares: lignes.filter((l) => l.actif && l.declaration === 'NON_DECLARE').length,
+    aConfirmer: lignes.filter((l) => l.actif && l.declaration === 'INCONNU').length,
     totalAnomalies: anomalies?.total ?? 0,
     masseDernierMoisCloture: moisCloture?.totalNet ?? null,
     agences,
@@ -364,6 +428,8 @@ export async function obtenirEffectif(): Promise<IEffectif> {
 
 export const personnelHistorisationAPI = {
   obtenirHistoriqueRemuneration,
+  creerRegularisationRemuneration,
+  marquerDeclarationContrat,
   listerMoisMasseSalariale,
   obtenirMasseSalariale,
   obtenirComparaisonMasseSalariale,
