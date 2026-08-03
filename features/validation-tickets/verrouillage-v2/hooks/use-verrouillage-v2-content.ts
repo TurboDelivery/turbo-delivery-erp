@@ -8,6 +8,7 @@ import { useCreneauActifQuery } from '@/features/creneaux/queries/creneau.query'
 import { validationTicketFiltersConfig, validationTicketFiltersOptions, validationTicketV2ValideFiltersOptions } from '@/features/validation-tickets/filters/validation-tickets.filters';
 import { useTicketFilterOptions } from '@/features/validation-tickets/hooks/use-ticket-filter-options';
 import type { IVerrouillageParams } from '../types/tickets-v2.type';
+import { sansDoublons } from '../utils/sans-doublons';
 
 export function useVerrouillageV2Content() {
   const [rejectDialogId, setRejectDialogId] = useState<string | null>(null);
@@ -52,15 +53,17 @@ export function useVerrouillageV2Content() {
   const { mutate: validerV2EnMasse, isPending: isValidatingAll } = useValiderV2EnMasseMutation();
   const { mutate: rejeterFraude, isPending: isRejecting } = useRejeterV2FraudeMutation();
 
+  // Même dédoublonnage que sur l'écran V1 : les tickets validés quittent la liste, les pages
+  // se décalent, et un ticket déjà chargé réapparaît sur la page suivante.
   const tickets = useMemo(
-    () => data?.pages.flatMap((p) => p.content) ?? [],
+    () => sansDoublons(data?.pages.flatMap((p) => p.content) ?? []),
     [data],
   );
 
   const totalElements = data?.pages[0]?.totalElements ?? 0;
 
   const ticketsV2Valide = useMemo(
-    () => v2ValideData?.pages.flatMap((p) => p.content) ?? [],
+    () => sansDoublons(v2ValideData?.pages.flatMap((p) => p.content) ?? []),
     [v2ValideData],
   );
 
@@ -69,7 +72,7 @@ export function useVerrouillageV2Content() {
   const handleValidate = useCallback(
     (id: string) => {
       setValidatingId(id);
-      validerV2(id, { onSettled: () => setValidatingId(null) });
+      validerV2({ ticketId: id }, { onSettled: () => setValidatingId(null) });
     },
     [validerV2],
   );
