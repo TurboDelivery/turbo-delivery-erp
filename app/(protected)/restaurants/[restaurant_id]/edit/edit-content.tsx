@@ -25,6 +25,7 @@ import { CompteSection } from './_sections/CompteSection';
 import { PhotosSection } from './_sections/PhotosSection';
 import { HorairesSection, type Horaire } from './_sections/HorairesSection';
 import { AutresDocumentsSection } from './_sections/AutresDocumentsSection';
+import { compresserImage, compresserImages } from '@/lib/compresser-image';
 
 const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'] as const;
 
@@ -121,19 +122,28 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
 
   const typeCommission = watch('typeCommission');
 
-  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  // Mêmes réductions qu'à la création : la modification passe par le même service, avec la
+  // même limite de 10 Mo par requête.
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
+    if (!file) return;
+    const reduit = await compresserImage(file);
+    setLogoFile(reduit);
+    setLogoPreview(URL.createObjectURL(reduit));
   }
 
-  function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) { setCoverFile(file); setCoverPreview(URL.createObjectURL(file)); }
+    if (!file) return;
+    const reduit = await compresserImage(file);
+    setCoverFile(reduit);
+    setCoverPreview(URL.createObjectURL(reduit));
   }
 
-  function handlePicturesChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePicturesChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) return;
-    const combined = [...pictureFiles, ...Array.from(e.target.files)].slice(0, 8);
+    const reduits = await compresserImages(Array.from(e.target.files));
+    const combined = [...pictureFiles, ...reduits].slice(0, 8);
     setPictureFiles(combined);
     setPicturePreviews(combined.map((f) => URL.createObjectURL(f)));
   }

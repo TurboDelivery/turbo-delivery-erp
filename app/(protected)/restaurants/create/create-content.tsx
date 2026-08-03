@@ -13,6 +13,7 @@ import {
   type CreateRestaurantDTO,
 } from '@/features/restaurants/schemas/create-restaurant.schema';
 import { createRestaurant } from '@/features/restaurants/actions/create-restaurant.action';
+import { compresserImage, compresserImages } from '@/lib/compresser-image';
 import { CoverLogoSection } from './_sections/CoverLogoSection';
 import { InfoGeneralesSection } from './_sections/InfoGeneralesSection';
 import { CommissionSection } from './_sections/CommissionSection';
@@ -23,6 +24,17 @@ import { AutresDocumentsSection } from './_sections/AutresDocumentsSection';
 import { DocumentsPartenaireSection } from './_sections/DocumentsPartenaireSection';
 
 const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'] as const;
+
+/**
+ * Le serveur refuse l'envoi au-delà de 10 Mo pour l'ensemble des fichiers d'une même requête
+ * — mesuré en production : 11,6 Mo rejetés, 8,7 Mo acceptés. On s'arrête un peu avant, les
+ * champs texte du formulaire comptant eux aussi dans le total.
+ */
+const POIDS_TOTAL_MAX = 9 * 1024 * 1024;
+
+function enMegaoctets(octets: number): string {
+  return `${(octets / (1024 * 1024)).toFixed(1)} Mo`;
+}
 
 export default function CreateContent() {
   const router = useRouter();
@@ -73,17 +85,28 @@ export default function CreateContent() {
   const typeCommission = watch('typeCommission');
 
   // Handlers
-  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+  //
+  // Les images sont réduites dès la sélection, jamais au moment de l'envoi : l'utilisateur
+  // voit tout de suite l'aperçu de ce qui partira, et le poids total affiché plus bas est
+  // celui des fichiers réellement transmis.
+  async function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) { setLogoFile(file); setLogoPreview(URL.createObjectURL(file)); }
+    if (!file) return;
+    const reduit = await compresserImage(file);
+    setLogoFile(reduit);
+    setLogoPreview(URL.createObjectURL(reduit));
   }
-  function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) { setCoverFile(file); setCoverPreview(URL.createObjectURL(file)); }
+    if (!file) return;
+    const reduit = await compresserImage(file);
+    setCoverFile(reduit);
+    setCoverPreview(URL.createObjectURL(reduit));
   }
-  function handlePicturesChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePicturesChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files) return;
-    const combined = [...pictureFiles, ...Array.from(e.target.files)].slice(0, 8);
+    const reduits = await compresserImages(Array.from(e.target.files));
+    const combined = [...pictureFiles, ...reduits].slice(0, 8);
     setPictureFiles(combined);
     setPicturePreviews(combined.map((f) => URL.createObjectURL(f)));
   }
@@ -101,6 +124,23 @@ export default function CreateContent() {
       toast.error('Le logo du restaurant est requis');
       return;
     }
+
+    // Les images sont déjà réduites ; il reste les PDF (contrat, fiche, avenant), qu'on ne
+    // peut pas alléger. Mieux vaut le dire ici, formulaire intact, que laisser le serveur
+    // rejeter l'envoi après coup avec un message anglais.
+    const fichiers = [logoFile, coverFile, ...pictureFiles, autreDocFile,
+                      fichePartnerFile, contratPartnerFile, avenantFile]
+      .filter((f): f is File => f instanceof File);
+    const poidsTotal = fichiers.reduce((somme, f) => somme + f.size, 0);
+    if (poidsTotal > POIDS_TOTAL_MAX) {
+      const plusLourd = fichiers.reduce((a, b) => (a.size >= b.size ? a : b));
+      toast.error(
+        `Pièces jointes trop lourdes : ${enMegaoctets(poidsTotal)} au total, maximum ${enMegaoctets(POIDS_TOTAL_MAX)}. `
+        + `Le plus lourd est « ${plusLourd.name} » (${enMegaoctets(plusLourd.size)}) — retirez-le ou remplacez-le par un fichier plus léger.`,
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     const fd = new FormData();
 

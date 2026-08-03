@@ -3,6 +3,20 @@
 import { apiClientHttp } from '@/lib/api-client-http';
 import { ActionResult } from '@/types';
 
+/**
+ * Le service restaurant renvoie le message brut de Spring, en anglais et sans indiquer la
+ * limite : « Maximum upload size exceeded ». Affiché tel quel à un opérateur, il ne dit ni
+ * ce qui est trop lourd ni quoi faire. Filet de sécurité — le formulaire arrête normalement
+ * l'envoi avant, mais cette traduction couvre les autres chemins d'appel.
+ */
+function traduireErreur(message: string): string {
+  if (/maximum upload size|upload size exceeded|SizeLimitExceeded/i.test(message)) {
+    return "Les pièces jointes dépassent la taille acceptée par le serveur (10 Mo au total). "
+      + 'Retirez ou remplacez le fichier le plus lourd, puis réessayez.';
+  }
+  return message;
+}
+
 export async function createRestaurant(formData: FormData): Promise<ActionResult<any>> {
   try {
     const entries: Record<string, any> = {};
@@ -31,6 +45,6 @@ export async function createRestaurant(formData: FormData): Promise<ActionResult
       || error?.message
       || 'Erreur lors de la création du restaurant';
     console.error('[createRestaurant] error:', error?.response?.status, msg);
-    return { status: 'error', message: msg };
+    return { status: 'error', message: traduireErreur(msg) };
   }
 }
