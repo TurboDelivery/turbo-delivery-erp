@@ -52,12 +52,10 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
   const [nom, setNom] = useState('');
   const [role, setRole] = useState('OWNER');
 
-  // URL de connexion de l'Espace partenaire (origine connue côté client uniquement).
-  const [origin, setOrigin] = useState('');
-  useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-  const loginUrl = `${origin}/partenaire/connexion`;
+  // Adresse du PORTAIL PARTENAIRE — une application distincte de l'ERP. Ne jamais la
+  // dériver de window.location : l'ERP est l'outil interne, le portail est ailleurs.
+  // Tant que la variable n'est pas posée, on l'annonce plutôt que d'afficher une URL fausse.
+  const loginUrl = process.env.NEXT_PUBLIC_PORTAIL_PARTENAIRE_URL ?? '';
 
   const emailValid = /^\S+@\S+\.\S+$/.test(email.trim());
   const passwordValid = password.length >= 8;
@@ -226,9 +224,17 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
         <p className="text-xs text-gray-500 mb-2">
           Communiquez cette adresse au partenaire avec ses identifiants pour accéder à son espace.
         </p>
-        <Snippet symbol="" variant="bordered" className="w-full" codeString={loginUrl}>
-          <span className="font-mono text-xs break-all">{loginUrl}</span>
-        </Snippet>
+        {loginUrl ? (
+          <Snippet symbol="" variant="bordered" className="w-full" codeString={loginUrl}>
+            <span className="font-mono text-xs break-all">{loginUrl}</span>
+          </Snippet>
+        ) : (
+          <p className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs text-gray-500">
+            Le portail partenaire est une application distincte de l&apos;ERP. Son adresse
+            n&apos;est pas encore configurée&nbsp;: demandez-la à l&apos;équipe technique avant
+            de communiquer les identifiants.
+          </p>
+        )}
       </div>
     </section>
   );
