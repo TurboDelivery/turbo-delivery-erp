@@ -57,6 +57,7 @@ const menuData: IMenuData[] = [
     can: { action: 'read', subject: 'Restaurant' },
     children: [
       { icon: IconBuildingSkyscraper, title: 'Liste', path: '/restaurants', can: { action: 'read', subject: 'Restaurant' } },
+      { icon: Layers, title: 'Groupes', path: '/restaurants/groupes', can: { action: 'read', subject: 'GroupePartenaire' } },
       { icon: AiOutlineDollarCircle, title: 'Grille tarifaire', path: '/price-list', can: { action: 'read', subject: 'Restaurant' } },
       { icon: BarChart, title: 'Rapports Performance', path: '/finance/rapports-performance', can: { action: 'read', subject: 'RapportPerformancePartenaire' } },
     ],

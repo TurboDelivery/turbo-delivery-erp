@@ -31,6 +31,14 @@ export type AppSubjects =
   // global des activites. Sujet dedie (et non 'Parametre') car l'ecran est
   // reserve aux profils Admin / Ops Manager : il expose qui fait quoi partout.
   | 'Supervision'
+  // 2026-08-04 — Administration des groupes de partenaires (/restaurants/groupes).
+  // Sujet dedie et NON 'Restaurant' : constituer un groupe donne a un compte
+  // partenaire la vue sur TOUS les etablissements du groupe. C'est une decision
+  // d'habilitation, pas une mise a jour de fiche — elle ne doit pas suivre par
+  // ricochet les droits de lecture du parc restaurants (que 6 roles possedent).
+  // 'read' = consulter les groupes ; 'manage' = constituer, detacher, changer le
+  // compte principal. DG l'a via 'manage all', DGA en lecture via 'read all'.
+  | 'GroupePartenaire'
   | 'Utilisateur'
   | 'Finance'
   // 2026-05 — Sous-menus dédiés du module Comptabilité pour contrôle granulaire
@@ -239,6 +247,9 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
     // masse salariale auditable, conformite des declarations, anomalies.
     { action: 'read', subject: 'Personnel' },
     { action: 'read', subject: ['Livreur', 'Restaurant', 'Ticket', 'Trafic', 'Commande'] },
+    // 2026-08-04 — L'Ops Manager pilote la structure du parc partenaires : c'est lui
+    // qui constitue les groupes et designe le compte principal au quotidien.
+    { action: 'manage', subject: 'GroupePartenaire' },
     { action: ['read', 'update'], subject: 'Incident' },
     { action: 'read', subject: ['CommandeClient', 'HistoriqueCreneaux', 'RapportPerformancePartenaire'] },
     { action: 'valider', subject: 'Restaurant' },
@@ -254,6 +265,11 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
   ],
   BUSINESS_DEVELOPER: [
     { action: 'read', subject: ['Livreur', 'Restaurant', 'Ticket'] },
+    // 2026-08-04 — Le BD recrute les enseignes multi-etablissements : il doit VOIR les
+    // groupes pour savoir a qui rattacher un nouveau point de vente. La constitution
+    // reste hors de son perimetre (elle ouvre un acces a plusieurs etablissements) :
+    // 'read' seulement, a elargir en 'manage' si l'owner le demande.
+    { action: 'read', subject: 'GroupePartenaire' },
     { action: 'create', subject: 'Ticket' },
     { action: 'valider', subject: 'Restaurant' },
     { action: 'manage', subject: 'Creneau' },
