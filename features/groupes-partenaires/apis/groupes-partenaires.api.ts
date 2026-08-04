@@ -1,6 +1,7 @@
 import { apiClientHttp } from '@/lib/api-client-http';
 
 import {
+  IComptePartenaire,
   ICreerGroupePayload,
   IEtablissementCandidat,
   IGroupeDetail,
@@ -42,6 +43,128 @@ const BASE = '/api/erp/partenaire/groupes';
 
 const entete = (userId: string) => ({ headers: { 'X-User-Id': userId } });
 
+/* ─────────────────────────────────────────────────────────────────────────────
+ * PROJECTION DES RÉPONSES — relevée sur la production le 04/08/2026.
+ *
+ * Les chemins avaient été alignés sur le Java ; les FORMES ne l'avaient pas été,
+ * parce que l'écran a été écrit en parallèle du backend, sur un contrat supposé.
+ * L'écart a produit exactement ce qu'on pouvait craindre : « Aucun » à la place
+ * du compte principal, une cellule d'établissements vide, et un 500 sur la fiche
+ * (`Cannot read properties of undefined (reading 'length')` — l'écran lisait
+ * `etablissements`, le serveur rend `restaurants`).
+ *
+ *   l'écran dit          le serveur dit
+ *   nbEtablissements     nbRestaurants
+ *   proprietaire*        principal (un OBJET, pas trois champs plats)
+ *   etablissements       restaurants
+ *
+ * On traduit ici, et nulle part ailleurs : le vocabulaire « propriétaire /
+ * établissement » est celui que l'administrateur lit à l'écran, et c'est le rôle
+ * d'une couche d'appel d'absorber cet écart plutôt que de le propager.
+ * ────────────────────────────────────────────────────────────────────────── */
+
+/** Le compte principal tel que le serveur le rend, dans la liste comme dans la fiche. */
+interface PrincipalServeur {
+  userId: string;
+  nom: string | null;
+  email: string | null;
+  telephone: string | null;
+  roleCompte: string | null;
+  restaurantIdParDefaut: string | null;
+}
+
+interface GroupeResumeServeur {
+  id: string;
+  nom: string;
+  origine: string | null;
+  creeParErp: string | null;
+  principal: PrincipalServeur | null;
+  nbRestaurants: number | null;
+  nbMembres: number | null;
+  createdAt: string | null;
+}
+
+interface MembreServeur {
+  accesId: string | null;
+  userId: string;
+  nom: string | null;
+  email: string | null;
+  role: string | null;
+  portee: string;
+  restaurantId: string | null;
+  restaurantNom: string | null;
+  origine: string | null;
+  principal: boolean | null;
+}
+
+interface GroupeDetailServeur {
+  id: string;
+  nom: string;
+  origine: string | null;
+  creeParErp: string | null;
+  createdAt: string | null;
+  principal: PrincipalServeur | null;
+  restaurants: { restaurantId: string; nom: string | null; nbComptes: number | null }[] | null;
+  membres: MembreServeur[] | null;
+  invitationsEnAttente: number | null;
+}
+
+function versCompte(p: PrincipalServeur | null): IComptePartenaire | null {
+  if (!p) return null;
+  return {
+    accesId: null,
+    userId: p.userId,
+    nom: p.nom,
+    email: p.email,
+    role: p.roleCompte,
+    portee: 'GROUPE',
+    restaurantId: p.restaurantIdParDefaut,
+    restaurantNom: null,
+  };
+}
+
+function versResume(g: GroupeResumeServeur): IGroupeResume {
+  return {
+    id: g.id,
+    nom: g.nom,
+    nbEtablissements: g.nbRestaurants ?? 0,
+    proprietaireUserId: g.principal?.userId ?? null,
+    proprietaireNom: g.principal?.nom ?? null,
+    proprietaireEmail: g.principal?.email ?? null,
+    createdAt: g.createdAt,
+  };
+}
+
+function versDetail(g: GroupeDetailServeur): IGroupeDetail {
+  return {
+    id: g.id,
+    nom: g.nom,
+    createdAt: g.createdAt,
+    proprietaire: versCompte(g.principal),
+    // Les listes sont défendues contre l'absence : c'est précisément un `undefined`
+    // ici qui a produit le 500. Une liste vide s'affiche, `undefined` fait tomber
+    // l'écran entier.
+    etablissements: (g.restaurants ?? []).map((r) => ({
+      restaurantId: r.restaurantId,
+      nom: r.nom,
+      // TODO-BACKEND : la commune n'est pas rendue par /groupes/{id}. Le champ est
+      // conservé pour ne pas retoucher l'affichage le jour où elle arrivera.
+      commune: null,
+      nbComptes: r.nbComptes ?? 0,
+    })),
+    membres: (g.membres ?? []).map((m) => ({
+      accesId: m.accesId,
+      userId: m.userId,
+      nom: m.nom,
+      email: m.email,
+      role: m.role,
+      portee: m.portee,
+      restaurantId: m.restaurantId,
+      restaurantNom: m.restaurantNom,
+    })),
+  };
+}
+
 export const groupesPartenairesAPI = {
   // ── Lectures ───────────────────────────────────────────────────────────────
 
@@ -49,24 +172,27 @@ export const groupesPartenairesAPI = {
    * `GET /api/erp/partenaires/groupes`
    * La liste d'accueil : nom, nombre d'établissements, compte principal.
    */
-  lister(userId: string): Promise<IGroupeResume[]> {
-    return apiClientHttp.request<IGroupeResume[]>({
+  async lister(userId: string): Promise<IGroupeResume[]> {
+    const brut = await apiClientHttp.request<GroupeResumeServeur[]>({
       endpoint: BASE,
       method: 'GET',
       config: entete(userId),
     });
+    return (brut ?? []).map(versResume);
   },
 
   /**
    * `GET /api/erp/partenaires/groupes/{groupeId}`
    * La fiche : établissements rattachés + tous les membres avec rôle et portée.
    */
-  detail(groupeId: string, userId: string): Promise<IGroupeDetail> {
-    return apiClientHttp.request<IGroupeDetail>({
-      endpoint: `${BASE}/${groupeId}`,
-      method: 'GET',
-      config: entete(userId),
-    });
+  async detail(groupeId: string, userId: string): Promise<IGroupeDetail> {
+    return versDetail(
+      await apiClientHttp.request<GroupeDetailServeur>({
+        endpoint: `${BASE}/${groupeId}`,
+        method: 'GET',
+        config: entete(userId),
+      }),
+    );
   },
 
   /**
@@ -110,8 +236,8 @@ export const groupesPartenairesAPI = {
    * qui n'a rien reçu et pourquoi. Un compte écarté en silence serait exactement la
    * perte que ce module s'interdit.
    */
-  creer(payload: ICreerGroupePayload, userId: string): Promise<IGroupeDetail> {
-    return apiClientHttp.request<IGroupeDetail>({
+  async creer(payload: ICreerGroupePayload, userId: string): Promise<IGroupeDetail> {
+    return versDetail(await apiClientHttp.request<GroupeDetailServeur>({
       endpoint: `${BASE}/constituer`,
       method: 'POST',
       // Traduction de vocabulaire : l'écran dit « propriétaire », le backend dit
@@ -122,17 +248,17 @@ export const groupesPartenairesAPI = {
         principalUserId: payload.proprietaireUserId,
       },
       config: entete(userId),
-    });
+    }));
   },
 
   /** `POST /api/erp/partenaires/groupes/{groupeId}/restaurants` — rattache un établissement. */
-  rattacher(groupeId: string, restaurantId: string, userId: string): Promise<IGroupeDetail> {
-    return apiClientHttp.request<IGroupeDetail>({
+  async rattacher(groupeId: string, restaurantId: string, userId: string): Promise<IGroupeDetail> {
+    return versDetail(await apiClientHttp.request<GroupeDetailServeur>({
       endpoint: `${BASE}/${groupeId}/restaurants`,
       method: 'POST',
       data: { restaurantId },
       config: entete(userId),
-    });
+    }));
   },
 
   /**
@@ -142,12 +268,12 @@ export const groupesPartenairesAPI = {
    * l'établissement, pas au groupe, et survivent au détachement. Seul l'accès HÉRITÉ
    * du groupe disparaît — c'est ce que l'écran montre avant de demander confirmation.
    */
-  detacher(groupeId: string, restaurantId: string, userId: string): Promise<IGroupeDetail> {
-    return apiClientHttp.request<IGroupeDetail>({
+  async detacher(groupeId: string, restaurantId: string, userId: string): Promise<IGroupeDetail> {
+    return versDetail(await apiClientHttp.request<GroupeDetailServeur>({
       endpoint: `${BASE}/${groupeId}/restaurants/${restaurantId}`,
       method: 'DELETE',
       config: entete(userId),
-    });
+    }));
   },
 
   /**
@@ -157,13 +283,13 @@ export const groupesPartenairesAPI = {
    * Confirmé côté backend : le compte sortant RESTE membre du groupe avec son rôle.
    * Il perd le titre, pas son périmètre — c'est ce que l'écran annonce.
    */
-  changerProprietaire(groupeId: string, userId: string, nouveauProprietaireUserId: string): Promise<IGroupeDetail> {
-    return apiClientHttp.request<IGroupeDetail>({
+  async changerProprietaire(groupeId: string, userId: string, nouveauProprietaireUserId: string): Promise<IGroupeDetail> {
+    return versDetail(await apiClientHttp.request<GroupeDetailServeur>({
       endpoint: `${BASE}/${groupeId}/principal`,
       method: 'PUT',
       data: { principalUserId: nouveauProprietaireUserId },
       config: entete(userId),
-    });
+    }));
   },
 
   /**
