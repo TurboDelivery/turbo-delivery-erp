@@ -98,7 +98,7 @@ export default function Content() {
                     ))}
                   </TableRow>
                 ) : (
-                  <TableRow key={item.id}>
+                  <TableRow key={item.id} className={(item.actif ?? true) ? '' : 'opacity-50'}>
                     {priceListColumns.map((column) => (
                       <TableCell key={column.uid}>{renderCell(item, column.uid)}</TableCell>
                     ))}
@@ -119,7 +119,10 @@ export default function Content() {
             <EmptyDataTable title="Aucun Frais de Livraison" />
           ) : (
             deliveryFees.map((fee) => (
-              <div key={fee.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+              <div
+                key={fee.id}
+                className={`bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2 ${(fee.actif ?? true) ? '' : 'opacity-50'}`}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-gray-900 truncate">{fee.name || fee.zone}</p>
@@ -140,6 +143,10 @@ export default function Content() {
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-xs text-gray-400 shrink-0">Commission</span>
                   <span className="text-sm text-gray-700 text-right">{renderCell(fee, 'commission')}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs text-gray-400 shrink-0">Active</span>
+                  <span className="text-right" onClick={(e) => e.stopPropagation()}>{renderCell(fee, 'actif')}</span>
                 </div>
               </div>
             ))

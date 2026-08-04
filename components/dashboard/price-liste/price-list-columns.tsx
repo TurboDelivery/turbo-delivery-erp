@@ -3,6 +3,7 @@ import { Tooltip } from '@heroui/react';
 import { IconEdit } from '@tabler/icons-react';
 import { useCallback } from 'react';
 import { DeliveryFee } from '@/types/price-list';
+import { ZoneActifSwitch, ZoneHistoriqueButton } from '@/features/zones-demande-coursier';
 import PriceListeTools from './price-list-tools';
 
 export const priceListColumns = [
@@ -11,6 +12,7 @@ export const priceListColumns = [
   { name: 'Distance', uid: 'distance' },
   { name: 'Coût de livraison', uid: 'prix' },
   { name: 'Commission', uid: 'commission' },
+  { name: 'Active', uid: 'actif' },
   { name: 'Action', uid: 'actions' },
 ];
 
@@ -42,9 +44,12 @@ export function usePriceListRenderCell({ currentRestaurant, onEdit }: RenderCell
                   : ' (type non défini)'}
             </span>
           );
+        case 'actif':
+          return <ZoneActifSwitch fraisId={deliveryFee.id} actif={deliveryFee.actif} />;
         case 'actions':
           return (
             <div className="relative flex items-center gap-2">
+              <ZoneHistoriqueButton fraisId={deliveryFee.id} zoneLabel={deliveryFee.name || deliveryFee.zone} />
               <Tooltip content="Modifier">
                 <button
                   type="button"

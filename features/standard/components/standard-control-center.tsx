@@ -19,6 +19,7 @@ import {
   useIncidentsQuery,
   useTraficLivreursQuery,
 } from '@/features/standard';
+import { MessagesPartenairesBouton } from '@/features/chat-partenaires';
 
 import { AppelConfigModal } from './appel-config-modal';
 import { AppelHistoriqueTable } from './appel-historique-table';
@@ -271,6 +272,8 @@ export function StandardControlCenter() {
               Répondants
             </Button>
           )}
+          {/* Accès discret au chat partenaires (Demande de Coursier) + pastille non-lus. */}
+          <MessagesPartenairesBouton />
         </div>
       </div>
 

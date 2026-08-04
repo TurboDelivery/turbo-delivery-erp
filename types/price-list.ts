@@ -10,6 +10,8 @@ export interface DeliveryFee {
     prix: number;
     commission: number;
     seuilCommission?: number | null;
+    /** Zone active pour la demande de coursier — true par défaut quand absent de la réponse. */
+    actif?: boolean;
     createdAt?: string;
     updatedAt?: string;
 }

@@ -35,6 +35,7 @@ import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { createUrlFile } from '@/utils/createUrlFile';
 import IntegrationSection from './_sections/integration-section';
 import GrilleTarifaireSection from './_sections/grille-tarifaire-section';
+import AccesPartenaireSection from './_sections/acces-partenaire-section';
 
 // ─── Section title ─────────────────────────────────────────────────────────────
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -520,7 +521,10 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
 
         {/* ── Intégration ── */}
         <Tab key="integration" title={<TabTitle icon={<PlugZap className="w-4 h-4" />}>Intégration</TabTitle>}>
-          <IntegrationSection restaurantId={restaurant.id} />
+          <div className="flex flex-col gap-8">
+            <IntegrationSection restaurantId={restaurant.id} />
+            <AccesPartenaireSection restaurantId={restaurant.id} />
+          </div>
         </Tab>
       </Tabs>
     </div>
