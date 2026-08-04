@@ -8,31 +8,28 @@ import {
 } from '../types/groupes-partenaires.types';
 
 /**
- * ⚠️ CONTRAT À CONFIRMER — couche d'appel UNIQUE du module « Groupes de partenaires ».
+ * Couche d'appel UNIQUE du module « Groupes de partenaires ».
  *
- * Les routes ci-dessous sont écrites en parallèle par un autre intervenant, côté
- * main-backend, sous `/api/erp/**`. Elles n'ont donc PAS été relevées dans le Java :
- * ce fichier est une proposition de contrat, pas un relevé. Tant qu'il n'est pas
- * confirmé, TOUT l'écran se répare ici et nulle part ailleurs — aucun composant,
- * aucun hook, aucune query n'appelle le réseau directement.
+ * CONTRAT CONFIRMÉ le 04/08/2026 contre `GroupesAdminResource.java`, chemin par
+ * chemin. Cette couche a d'abord été écrite en parallèle du backend, sur une
+ * proposition de contrat : les quatre divergences suivantes ont été relevées et
+ * corrigées ici. Elles auraient produit un 404 sur CHAQUE appel de l'écran.
  *
- * Ce qui a été relevé en revanche (et qui fixe le vocabulaire des types) :
- *   · `GroupesPartenaireResource` — `/api/V1/turbo/resto/partenaire/groupes/**`,
- *     l'équivalent CÔTÉ PORTAIL PARTENAIRE. L'identité y vient du jeton partenaire
- *     (`PartenaireContexte`) : ces routes-là ne sont PAS utilisables depuis l'ERP,
- *     qui agit au nom d'un administrateur interne.
- *   · `AdminDemandeCoursierResource` — `/api/erp/demande-coursier/**`, le précédent
- *     ERP du même paquet ; c'est de lui qu'est repris le préfixe `/api/erp/partenaires`.
+ *   proposé                              →  réel
+ *   /api/erp/partenaires/groupes         →  /api/erp/partenaire/groupes  (singulier)
+ *   POST   …/groupes                     →  POST   …/groupes/constituer
+ *   GET    …/groupes/etablissements      →  GET    …/groupes/restaurants-eligibles
+ *   PUT    …/{id}/proprietaire           →  PUT    …/{id}/principal
  *
- * Points à trancher avec le backend (repris dans le compte rendu) :
- *   1. Préfixe exact : `/api/erp/partenaires/groupes` est une proposition.
- *   2. Côté portail, `rattacherRestaurant` exige que l'appelant ait DÉJÀ accès au
- *      restaurant (sinon 409). Côté ERP l'appelant est un administrateur interne :
- *      la vérification doit porter sur le PROPRIÉTAIRE DÉSIGNÉ, ou être levée — sans
- *      quoi constituer un groupe autour d'un compte mono-établissement échouerait.
- *   3. Le changement de compte principal n'existe pas côté portail ; c'est une route
- *      propre à l'ERP. Le compte sortant doit CONSERVER son accès de portée groupe
- *      (« on ne perd rien ») : à confirmer explicitement, l'écran l'annonce.
+ * Le vocabulaire diverge aussi : le backend dit `principalUserId` là où l'écran dit
+ * `proprietaireUserId`. On traduit ICI, au passage du réseau, plutôt que de renommer
+ * dans toute l'interface — c'est précisément le rôle d'une couche d'appel, et le
+ * mot « propriétaire » est celui que l'administrateur lit à l'écran.
+ *
+ * Routes NON utilisables depuis l'ERP, pour mémoire : `/api/V1/turbo/resto/partenaire/
+ * groupes/**` y résout l'identité depuis le jeton PARTENAIRE (`PartenaireContexte`) et
+ * exige que l'appelant ait déjà accès au restaurant. Un administrateur interne n'a
+ * accès à aucun restaurant — d'où l'existence d'un endpoint admin distinct.
  *
  * Transport : `apiClientHttp` sans `service` → baseURL = `NEXT_PUBLIC_API_BACKEND_URL`,
  * comme les modules supervision / créneaux / standard. Le client pose `X-User-Id`
@@ -41,7 +38,7 @@ import {
  * dépendre d'un défaut implicite.
  */
 
-const BASE = '/api/erp/partenaires/groupes';
+const BASE = '/api/erp/partenaire/groupes';
 
 const entete = (userId: string) => ({ headers: { 'X-User-Id': userId } });
 
@@ -73,7 +70,7 @@ export const groupesPartenairesAPI = {
   },
 
   /**
-   * `GET /api/erp/partenaires/groupes/etablissements`
+   * `GET /api/erp/partenaire/groupes/restaurants-eligibles`
    * Le sélecteur de constitution : chaque établissement, son groupe actuel s'il en a
    * un, et LES COMPTES qui y sont rattachés.
    *
@@ -81,12 +78,17 @@ export const groupesPartenairesAPI = {
    * par compte » se calcule alors sans un appel par établissement coché, donc sans
    * clignotement ni condition de course pendant que l'administrateur compose sa
    * sélection.
+   *
+   * ⚠ Le backend n'accepte AUCUN paramètre de recherche : il rend le catalogue
+   * complet en un appel. La recherche reste donc côté client — ce qui est cohérent
+   * avec la remarque ci-dessus (filtrer côté serveur rouvrirait le clignotement
+   * qu'on cherchait à éviter). Le paramètre est conservé dans la signature pour la
+   * clé de cache TanStack, mais n'est pas envoyé.
    */
-  etablissements(userId: string, recherche = ''): Promise<IEtablissementCandidat[]> {
+  etablissements(userId: string, _recherche = ''): Promise<IEtablissementCandidat[]> {
     return apiClientHttp.request<IEtablissementCandidat[]>({
-      endpoint: `${BASE}/etablissements`,
+      endpoint: `${BASE}/restaurants-eligibles`,
       method: 'GET',
-      params: recherche.trim() ? { recherche: recherche.trim() } : undefined,
       config: entete(userId),
     });
   },
@@ -94,16 +96,31 @@ export const groupesPartenairesAPI = {
   // ── Écritures ──────────────────────────────────────────────────────────────
 
   /**
-   * `POST /api/erp/partenaires/groupes`
-   * Crée le groupe, rattache les établissements et pose l'accès de portée GROUPE du
-   * compte principal — le tout dans la même transaction côté backend, sans quoi un
-   * échec partiel laisserait un groupe sans propriétaire.
+   * `POST /api/erp/partenaire/groupes/constituer`
+   * Crée le groupe, rattache les établissements, pose l'accès de portée GROUPE du
+   * compte principal ET matérialise l'accès de chaque autre compte sur SON
+   * établissement — le tout dans une seule transaction côté backend, sans quoi un
+   * échec partiel laisserait un groupe sans propriétaire ou des comptes orphelins.
+   *
+   * Rejouable : relancer la même constitution ne crée pas de doublon et répond
+   * proprement. Relancer avec un établissement de plus l'ajoute — c'est la façon la
+   * plus simple d'agrandir un groupe depuis l'écran.
+   *
+   * La réponse est un COMPTE RENDU, pas un accusé : lire `comptesEcartes`, qui dit
+   * qui n'a rien reçu et pourquoi. Un compte écarté en silence serait exactement la
+   * perte que ce module s'interdit.
    */
   creer(payload: ICreerGroupePayload, userId: string): Promise<IGroupeDetail> {
     return apiClientHttp.request<IGroupeDetail>({
-      endpoint: BASE,
+      endpoint: `${BASE}/constituer`,
       method: 'POST',
-      data: payload,
+      // Traduction de vocabulaire : l'écran dit « propriétaire », le backend dit
+      // « principal ». Voir l'en-tête du fichier.
+      data: {
+        nom: payload.nom,
+        restaurantIds: payload.restaurantIds,
+        principalUserId: payload.proprietaireUserId,
+      },
       config: entete(userId),
     });
   },
@@ -134,14 +151,32 @@ export const groupesPartenairesAPI = {
   },
 
   /**
-   * `PUT /api/erp/partenaires/groupes/{groupeId}/proprietaire`
-   * Désigne un autre compte principal. Route propre à l'ERP (voir l'entête).
+   * `PUT /api/erp/partenaire/groupes/{groupeId}/principal`
+   * Désigne un autre compte principal. Route propre à l'ERP (voir l'en-tête).
+   *
+   * Confirmé côté backend : le compte sortant RESTE membre du groupe avec son rôle.
+   * Il perd le titre, pas son périmètre — c'est ce que l'écran annonce.
    */
   changerProprietaire(groupeId: string, userId: string, nouveauProprietaireUserId: string): Promise<IGroupeDetail> {
     return apiClientHttp.request<IGroupeDetail>({
-      endpoint: `${BASE}/${groupeId}/proprietaire`,
+      endpoint: `${BASE}/${groupeId}/principal`,
       method: 'PUT',
-      data: { userId: nouveauProprietaireUserId },
+      data: { principalUserId: nouveauProprietaireUserId },
+      config: entete(userId),
+    });
+  },
+
+  /**
+   * `DELETE /api/erp/partenaire/groupes/{groupeId}`
+   * Dissout le groupe. Ne retire QUE les accès de portée GROUPE : les accès de portée
+   * restaurant et `restaurant_users.restaurant_id` sont intacts. La réponse énumère à
+   * la fois ce qui a été retiré et ce qui a été conservé — c'est cette seconde liste
+   * qui constitue la garantie, et c'est elle qu'il faut montrer.
+   */
+  dissoudre(groupeId: string, userId: string): Promise<Record<string, unknown>> {
+    return apiClientHttp.request<Record<string, unknown>>({
+      endpoint: `${BASE}/${groupeId}`,
+      method: 'DELETE',
       config: entete(userId),
     });
   },
