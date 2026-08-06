@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { socket } from '@/socket';
@@ -94,10 +95,32 @@ function playNotificationSound() {
   }
 }
 
+/**
+ * Types qui décrivent l'avancement d'une COURSE, et pas seulement une notification.
+ *
+ * Les écrans de courses externes de l'ERP sont rendus côté serveur : invalider le
+ * cache des notifications rafraîchit la cloche, pas la liste ni la fiche. Le standard
+ * voyait donc passer « Retrait confirmé » tout en gardant sous les yeux une course
+ * restée au statut précédent, jusqu'à ce qu'il recharge la page à la main.
+ *
+ * `router.refresh()` refait rendre les composants serveur de la route courante, ce
+ * qui met à jour la liste ET la fiche sans navigation ni perte de défilement.
+ */
+const TYPES_COURSE = new Set([
+  'NOUVELLE_COURSE',
+  'ACCEPTATION_COURSE',
+  'ASSIGNATION_COURSE',
+  'RETRAIT_CONFIRME',
+  'CLOTURE_COURSE',
+  'COURSE_CLOTURE_BLOQUEE',
+  'ANNULATION_COMMANDE',
+]);
+
 export function NotificationSocketProvider({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
   const utilisateurId = session?.user?.id;
   const invalidate = useInvalidateNotifications();
+  const router = useRouter();
 
   useEffect(() => {
     if (!utilisateurId) return;
@@ -128,6 +151,13 @@ export function NotificationSocketProvider({ children }: { children: React.React
 
         // Invalidate les queries notifications → badge cloche + page se refresh auto
         invalidate();
+
+        // Une course a bougé : les écrans de courses externes sont rendus côté
+        // serveur, seul `refresh()` les remet à jour. Sans lui, le standard lisait
+        // « Retrait confirmé » au-dessus d'une course affichée au statut d'avant.
+        if (TYPES_COURSE.has(String(data.type ?? ''))) {
+          router.refresh();
+        }
       } catch (e) {
         console.error('[NotifSocket] parse error', e);
       }
@@ -137,7 +167,7 @@ export function NotificationSocketProvider({ children }: { children: React.React
     return () => {
       socket.off(channel, onNotification);
     };
-  }, [utilisateurId, invalidate]);
+  }, [utilisateurId, invalidate, router]);
 
   return <>{children}</>;
 }
