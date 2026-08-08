@@ -19,7 +19,14 @@ export type NotificationType =
   | 'TICKET_AUTHENTIFIE' | 'TICKET_V1_VALIDE' | 'TICKET_V2_VALIDE'
   // V44 — Workflow dépenses (charges variables)
   | 'CHARGE_A_VISER_DGA' | 'CHARGE_A_APPROUVER_DG' | 'CHARGE_A_DECAISSER'
-  | 'CHARGE_DECAISSEE' | 'CHARGE_REJETEE';
+  | 'CHARGE_DECAISSEE' | 'CHARGE_REJETEE'
+  // Espace partenaire — types deja recus par le provider socket, qui les traitait
+  // en `String(data.type)` faute d'etre declares ici. L'union decrivait donc moins
+  // que ce que l'ERP recoit reellement.
+  | 'RETRAIT_CONFIRME' | 'COURSE_CLOTURE_BLOQUEE'
+  | 'NOUVEAU_MESSAGE_PARTENAIRE' | 'DEMANDE_RAPPEL_PARTENAIRE'
+  // V130 — un etablissement demande son ouverture, en attente d'activation.
+  | 'INSCRIPTION_PARTENAIRE';
 
 /**
  * Forme retournée par GET /api/erp/notification/{userId}/tous et /non-lu.

@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { socket } from '@/socket';
 import { useInvalidateNotifications } from '@/features/notifications';
+import { useInvalidateRestaurantsQuery } from '@/features/restaurants/queries/restaurant-list.query';
 import type { NotificationVm } from '@/features/notifications';
 
 /**
@@ -120,6 +121,7 @@ export function NotificationSocketProvider({ children }: { children: React.React
   const { data: session } = useSession();
   const utilisateurId = session?.user?.id;
   const invalidate = useInvalidateNotifications();
+  const invalidateRestaurants = useInvalidateRestaurantsQuery();
   const router = useRouter();
 
   useEffect(() => {
@@ -158,6 +160,13 @@ export function NotificationSocketProvider({ children }: { children: React.React
         if (TYPES_COURSE.has(String(data.type ?? ''))) {
           router.refresh();
         }
+
+        // Une inscription partenaire vient d'arriver : la liste des établissements et
+        // le compteur « Inactifs » sont servis par react-query, il faut les invalider
+        // pour que la demande apparaisse sans rechargement.
+        if (data.type === 'INSCRIPTION_PARTENAIRE') {
+          invalidateRestaurants();
+        }
       } catch (e) {
         console.error('[NotifSocket] parse error', e);
       }
@@ -167,7 +176,7 @@ export function NotificationSocketProvider({ children }: { children: React.React
     return () => {
       socket.off(channel, onNotification);
     };
-  }, [utilisateurId, invalidate, router]);
+  }, [utilisateurId, invalidate, invalidateRestaurants, router]);
 
   return <>{children}</>;
 }
