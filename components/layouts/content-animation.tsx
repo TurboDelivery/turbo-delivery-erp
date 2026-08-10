@@ -31,9 +31,14 @@ const ContentAnimation = ({ children }: { children: React.ReactNode }) => {
 
                 Le conteneur est A L INTERIEUR du bloc anime et non sur lui : les
                 classes d animation portent sur toute la zone, les rogner ferait
-                demarrer la transition sur une bande centree au lieu de la page. */}
+                demarrer la transition sur une bande centree au lieu de la page.
+
+                AUCUN PLAFOND : le contenu occupe toute la zone, et les seuls bords
+                sont le `p-6`, identique sur tous les ecrans. C'etait deja le cas de
+                149 ecrans sur 155 ; ce sont les six autres qui s'en ecartaient. La
+                largeur reste decidee ICI, sur cette seule ligne. */}
             <div className={`${animation} animate__animated p-6`}>
-                <div className="mx-auto w-full max-w-7xl">{children}</div>
+                <div className="w-full">{children}</div>
             </div>
             {/* END CONTENT AREA */}
         </>
