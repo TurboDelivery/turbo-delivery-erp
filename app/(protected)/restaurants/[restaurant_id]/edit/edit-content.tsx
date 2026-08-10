@@ -29,6 +29,14 @@ import { compresserImage, compresserImages } from '@/lib/compresser-image';
 
 const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'] as const;
 
+/**
+ * Mesure volontairement plus etroite que le conteneur de page.
+ *
+ * C'est le seul endroit de l'ERP ou l'ecart est justifie : les champs de ce
+ * formulaire sont en colonne unique, et une saisie de 1280px de large oblige
+ * l'oeil a traverser tout l'ecran entre l'etiquette et la valeur. La contrainte
+ * porte sur le FORMULAIRE, pas sur la page.
+ */
 export default function EditContent({ restaurant }: { restaurant: IRestaurant }) {
   const router = useRouter();
   const invalidateRestaurants = useInvalidateRestaurantsQuery();

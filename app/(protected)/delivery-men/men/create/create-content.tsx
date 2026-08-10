@@ -144,7 +144,7 @@ export default function CreateContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto pb-16">
+    <div className="pb-16">
       {/* Back link */}
       <Link
         href="/delivery-men/men"

@@ -206,7 +206,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
   const hasDocuments = logoUrl || docUrl || cniUrl || pictureUrls.length > 0;
 
   return (
-    <div className="max-w-7xl mx-auto pb-16">
+    <div className="pb-16">
       {/* Back link */}
       <Link
         href="/restaurants"

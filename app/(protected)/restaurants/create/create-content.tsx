@@ -36,6 +36,14 @@ function enMegaoctets(octets: number): string {
   return `${(octets / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
+/**
+ * Mesure volontairement plus etroite que le conteneur de page.
+ *
+ * C'est le seul endroit de l'ERP ou l'ecart est justifie : les champs de ce
+ * formulaire sont en colonne unique, et une saisie de 1280px de large oblige
+ * l'oeil a traverser tout l'ecran entre l'etiquette et la valeur. La contrainte
+ * porte sur le FORMULAIRE, pas sur la page.
+ */
 export default function CreateContent() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);

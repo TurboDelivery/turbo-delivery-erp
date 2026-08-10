@@ -151,7 +151,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
   const logoUrl = course.restaurant?.logo_Url ?? course.restaurant?.logo;
 
   return (
-    <div className="max-w-6xl mx-auto pb-16">
+    <div className="pb-16">
       {/* Back */}
       <Link
         href="/external_delivery"

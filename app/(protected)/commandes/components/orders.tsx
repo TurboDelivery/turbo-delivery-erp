@@ -130,7 +130,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
     ];    
 
     return (
-        <div className="p-2 w-full max-w-7xl mx-auto">
+        <div className="p-2 w-full ">
             <div className="w-full bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 mb-2 sm:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                     {/* Filtre période */}

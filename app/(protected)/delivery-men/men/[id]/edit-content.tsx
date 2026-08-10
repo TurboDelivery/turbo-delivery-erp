@@ -189,7 +189,7 @@ export default function EditContent({ id }: { id: string }) {
     );
 
   return (
-    <div className="max-w-7xl mx-auto pb-16">
+    <div className="pb-16">
       <Link
         href="/delivery-men/men"
         className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-4 transition-colors"
