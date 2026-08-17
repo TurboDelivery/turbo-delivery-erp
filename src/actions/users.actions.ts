@@ -26,6 +26,12 @@ const usersEndpoints = {
     disableEnable: { endpoint: (id: string) => `${BASE_URL}/disable/enable/${id}`, method: 'GET' },
     deleteRestaure: { endpoint: (id: string) => `${BASE_URL}/delete/restaured/${id}`, method: 'GET' },
     create: { endpoint: `${BASE_URL}/create`, method: 'POST' },
+    // Reinitialisation par un administrateur. L'ERP n'a pas de « mot de passe oublie » :
+    // c'est le seul chemin pour rendre l'acces a quelqu'un qui a perdu le sien.
+    reinitialiserMotDePasse: {
+        endpoint: (id: string) => `${BASE_URL}/generate/password/${id}`,
+        method: 'GET',
+    },
     // 2026-05 — Bascule du flag notification_email_primary (UI admin).
     // Limite le volume d'emails de workflow sous le quota Hostinger 50/h.
     toggleEmailPrimary: { endpoint: (id: string) => `${BASE_URL}/${id}/toggle-email-primary`, method: 'POST' },
@@ -221,7 +227,15 @@ export async function changePassword(formData: FormData): Promise<ActionResult<a
             message: "Mot de passe modifié avec succès"
         }
     } catch (error: any) {
-        console.log(error);
+        // NE JAMAIS journaliser l'erreur Axios entiere ICI : elle transporte `config.data`,
+        // c'est-a-dire le corps de la requete — donc l'ANCIEN et le NOUVEAU mot de passe en
+        // clair dans les journaux du serveur Next, a chaque echec de changement. On ne garde
+        // que le statut et le message, qui suffisent au diagnostic.
+        console.error(
+            'Echec du changement de mot de passe',
+            error?.response?.status ?? '',
+            error?.response?.data?.message ?? error?.message ?? '',
+        );
         return {
             status: 'error',
             message: error?.response?.data?.message || error?.response?.data || 'Erreur lors du changement de mot de passe',
@@ -388,9 +402,14 @@ export async function deleteRestaureUser(id: string, deleted: boolean): Promise<
 
 export async function disableEnableUser(id: string, status: number): Promise<ActionResult<User>> {
     try {
+        // CORRECTIF (17/08/2026) : cette action appelait `delete/restaured`, l'endpoint de
+        // SUPPRESSION. « Desactiver » supprimait donc l'utilisateur au lieu de le desactiver,
+        // et le drapeau `status` n'etait jamais touche. Les deux entrees du menu, « Desactiver »
+        // et « Supprimer », frappaient la meme route : l'une des deux mentait forcement.
+        // `usersEndpoints.disableEnable` etait declare mais n'etait appele nulle part.
         const data = await apiClientHttp.request<User>({
-            endpoint: usersEndpoints.deleteRestaure.endpoint(id),
-            method: usersEndpoints.deleteRestaure.method,
+            endpoint: usersEndpoints.disableEnable.endpoint(id),
+            method: usersEndpoints.disableEnable.method,
             service: 'erp',
         });
 
@@ -419,6 +438,52 @@ export async function disableEnableUser(id: string, status: number): Promise<Act
  * Retourne le nouvel état du flag, le caller peut s'en servir pour mettre à
  * jour la ligne de la table en optimiste sans refetch full list.
  */
+/**
+ * Reinitialise le mot de passe d'un utilisateur, a la demande d'un administrateur.
+ *
+ * L'ERP ne propose aucun « mot de passe oublie » sur l'ecran de connexion : quand
+ * quelqu'un perd son acces, c'est le seul moyen de le lui rendre.
+ *
+ * Le serveur (erp-backend, `@Secured("ROLE_ADMIN")`) genere le mot de passe, le hache,
+ * pose une date d'expiration et remet le drapeau qui FORCE un changement a la prochaine
+ * connexion : le mot de passe rendu ici est donc provisoire, et l'utilisateur choisira le
+ * sien. Il n'est renvoye qu'une seule fois et n'est stocke en clair nulle part.
+ */
+export async function reinitialiserMotDePasseUtilisateur(
+    id: string
+): Promise<ActionResult<{ newPassword: string; message?: string }>> {
+    try {
+        const data = await apiClientHttp.request<{ newPassword: string; message?: string }>({
+            endpoint: usersEndpoints.reinitialiserMotDePasse.endpoint(id),
+            method: usersEndpoints.reinitialiserMotDePasse.method,
+            service: 'erp',
+        });
+
+        if (!data?.newPassword) {
+            // Le serveur repond 200 avec un corps d'erreur quand le compte est introuvable :
+            // sans ce controle, l'ecran afficherait un mot de passe vide comme un succes.
+            return {
+                status: 'error',
+                message: "Le serveur n'a pas renvoyé de mot de passe. Rien n'a été modifié.",
+            };
+        }
+
+        return {
+            status: 'success',
+            message: 'Mot de passe réinitialisé',
+            data,
+        };
+    } catch (error: any) {
+        return {
+            status: 'error',
+            message:
+                error?.response?.data?.message ||
+                error?.response?.data ||
+                'Erreur lors de la réinitialisation du mot de passe',
+        };
+    }
+}
+
 export async function toggleUserEmailPrimary(id: string): Promise<ActionResult<{ id: string; notificationEmailPrimary: boolean; username: string }>> {
     try {
         const data = await apiClientHttp.request<{ id: string; notificationEmailPrimary: boolean; username: string }>({

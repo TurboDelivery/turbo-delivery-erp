@@ -7,12 +7,14 @@ import { useState } from 'react';
 import { IconDotsVertical } from '@tabler/icons-react';
 import UsersDeleteRestaure from './users-delete-restaure';
 import UsersDisableEnable from './users-disable-enable';
+import UsersResetPassword from './users-reset-password';
 import { useAbility } from '@/hooks/use-ability';
 
 const UsersTools = ({ user, value }: { user: User; value: 'list' | 'grid' }) => {
     const [open, setOpen] = useState<boolean>(false);
     const [openDelete, setOpenDelete] = useState<boolean>(false);
     const [openDisableEnable, setOpenDisableEnable] = useState<boolean>(false);
+    const [openResetPassword, setOpenResetPassword] = useState<boolean>(false);
     const ability = useAbility();
     const canUpdate = ability.can('update', 'Utilisateur');
     const canDelete = ability.can('delete', 'Utilisateur');
@@ -30,6 +32,11 @@ const UsersTools = ({ user, value }: { user: User; value: 'list' | 'grid' }) => 
                             {canUpdate ? (
                                 <DropdownItem key="edit" onPress={() => setOpen(true)}>
                                     Modifier
+                                </DropdownItem>
+                            ) : null}
+                            {canUpdate ? (
+                                <DropdownItem key="resetPassword" onPress={() => setOpenResetPassword(true)}>
+                                    Réinitialiser le mot de passe
                                 </DropdownItem>
                             ) : null}
                             {canUpdate ? (
@@ -64,12 +71,18 @@ const UsersTools = ({ user, value }: { user: User; value: 'list' | 'grid' }) => 
                             Modifier
                         </button>
                     )}
+                    {canUpdate && (
+                        <button type="button" onClick={() => setOpenResetPassword(true)} className="btn btn-sm btn-outline-primary w-1/2">
+                            Mot de passe
+                        </button>
+                    )}
                 </div>
             )}
 
             <UsersEdit user={user} open={open} setOpen={setOpen} />
             <UsersDeleteRestaure user={user} open={openDelete} setOpen={setOpenDelete} />
             <UsersDisableEnable user={user} open={openDisableEnable} setOpen={setOpenDisableEnable} />
+            <UsersResetPassword user={user} open={openResetPassword} setOpen={setOpenResetPassword} />
         </>
     );
 };
