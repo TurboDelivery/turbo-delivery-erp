@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosHeaders, AxiosRequestConfig, AxiosError } from 'axios';
 import { auth } from '@/auth';
+import type { Session } from 'next-auth';
 
 export type ServiceType = 'erp' | 'restaurant' | 'livreur' | 'client' | 'backend';
 
@@ -24,6 +25,38 @@ function lireSessionSupervision(): string | null {
   }
 }
 
+/**
+ * Session mémorisée côté navigateur.
+ *
+ * `getSession()` de next-auth NE lit PAS le contexte du SessionProvider : chaque appel
+ * part en requête réseau vers /api/auth/session. Or une requête sortante en réclame
+ * TROIS, séquentiellement, AVANT que la requête métier ne parte — `Authorization`,
+ * `X-User-Id`, `X-User-Roles`. Sur un poste distant, cela ajoute trois allers-retours
+ * HTTPS à la latence de CHAQUE appel, et l'écran de validation en enchaîne un par
+ * liste rechargée : c'est là que passaient les 20 à 30 secondes signalées.
+ *
+ * Relevé en production le 17/08/2026 : 369 201 appels à /api/auth/session pour 6 796
+ * requêtes métier, soit 54 pour 1.
+ *
+ * On mémorise donc brièvement le résultat et on partage la requête en vol, pour que
+ * plusieurs appels simultanés n'en déclenchent qu'une seule.
+ */
+const DUREE_CACHE_SESSION_MS = 30_000;
+
+// `Awaited<ReturnType<typeof auth>>` ne convient pas : en next-auth v5 beta, `auth`
+// est aussi un enrobeur de route handler, et TypeScript retient cette surcharge.
+// `Session` porte déjà l'augmentation du projet (token, role, id).
+type SessionMemorisee = Session | null;
+
+let sessionMemorisee: { valeur: SessionMemorisee; expireA: number } | null = null;
+let sessionEnVol: Promise<SessionMemorisee> | null = null;
+
+/** Vidé dès qu'un 401 prouve que la session mémorisée n'est plus valable. */
+function oublierSession() {
+  sessionMemorisee = null;
+  sessionEnVol = null;
+}
+
 export class ApiClientHttp {
   private axiosInstance: AxiosInstance;
 
@@ -38,6 +71,7 @@ export class ApiClientHttp {
       (response) => response,
       async (error: AxiosError) => {
         if (error.response?.status === 401) {
+          oublierSession();
           try {
             const base = process.env.NEXT_PUBLIC_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
             const url = new URL('/api/auth/logout', base);
@@ -123,17 +157,43 @@ export class ApiClientHttp {
     }
   }
 
-  private async getSession() {
-    let session;
-
+  private async getSession(): Promise<SessionMemorisee> {
+    // Côté serveur, `auth()` lit le cookie de la requête en cours : rien à mémoriser,
+    // et surtout rien à PARTAGER entre deux requêtes d'utilisateurs différents.
     if (typeof window === 'undefined') {
-      session = await auth();
-    } else {
-      const { getSession } = await import('next-auth/react');
-      session = await getSession();
+      return auth();
     }
 
-    return session;
+    if (sessionMemorisee && sessionMemorisee.expireA > Date.now()) {
+      return sessionMemorisee.valeur;
+    }
+
+    if (!sessionEnVol) {
+      sessionEnVol = this.chargerSession();
+    }
+
+    const enCours = sessionEnVol;
+    try {
+      return await enCours;
+    } finally {
+      if (sessionEnVol === enCours) {
+        sessionEnVol = null;
+      }
+    }
+  }
+
+  private async chargerSession(): Promise<SessionMemorisee> {
+    const { getSession } = await import('next-auth/react');
+    const valeur = await getSession();
+
+    // On ne mémorise QUE la session porteuse d'un jeton. Retenir une absence de session
+    // ferait partir sans `Authorization` les appels des trente secondes suivant une
+    // connexion — donc un 401, donc une déconnexion immédiate.
+    if (valeur?.user?.token) {
+      sessionMemorisee = { valeur, expireA: Date.now() + DUREE_CACHE_SESSION_MS };
+    }
+
+    return valeur;
   }
 
   private async setHeaders(): Promise<AxiosHeaders> {
