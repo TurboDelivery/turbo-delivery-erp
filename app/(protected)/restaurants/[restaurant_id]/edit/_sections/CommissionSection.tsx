@@ -1,11 +1,12 @@
 'use client';
 
+import Link from 'next/link';
+
 import React from 'react';
 import { Control, Controller } from 'react-hook-form';
 import { Input, Select, SelectItem } from '@heroui/react';
 import {
   UpdateRestaurantDTO,
-  METHOD_RECOUVREMENT_OPTIONS,
   TYPE_COMMISSION_OPTIONS,
 } from '@/features/restaurants/schemas/update-restaurant.schema';
 
@@ -47,17 +48,26 @@ export function CommissionSection({ control, typeCommission }: CommissionSection
             )} />
           )}
         </div>
-        <Controller name="methodRecouvrement" control={control} render={({ field }) => (
-          <Select
-            label="Choisissez la période de recouvrement"
-            placeholder="Choisissez la période de recouvrement"
-            selectedKeys={field.value ? [field.value] : []}
-            onSelectionChange={(keys) => field.onChange(Array.from(keys as Set<string>)[0] ?? undefined)}
-            variant="bordered"
+        {/* RG-03 — LE CYCLE NE SE REGLE PLUS ICI.
+          *
+          * Le cahier DOSSOU tranche : « il n'existe qu'un seul endroit pour definir la
+          * facon dont un partenaire est facture ». Ce champ etait ce second endroit, et
+          * c'etait lui qui pilotait reellement la facturation : deux ecrans pouvaient
+          * afficher deux cycles differents pour le meme partenaire, sans qu'aucun ne
+          * signale la contradiction. On renvoie donc vers l'ecran unique. */}
+        <div className="rounded-medium border border-default-200 bg-default-50 p-3">
+          <p className="text-sm font-medium text-default-700">Cycle de facturation</p>
+          <p className="mt-1 text-xs text-default-500">
+            Le cycle et l&apos;objet de la facturation se definissent dans l&apos;ecran unique
+            « Configuration cycle de facturation partenaire ».
+          </p>
+          <Link
+            href="/finance/cycle-facturation"
+            className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
           >
-            {METHOD_RECOUVREMENT_OPTIONS.map((o) => <SelectItem key={o.value}>{o.label}</SelectItem>)}
-          </Select>
-        )} />
+            Ouvrir la configuration des cycles
+          </Link>
+        </div>
       </div>
 
       <h2 className="text-base font-semibold text-primary mb-4 mt-8">Compte du partenaire</h2>

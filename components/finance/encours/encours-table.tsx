@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@heroui/react';
 import { IEncoursReleve, cycleLabel, formatFcfa } from '@/features/encours';
-import { formatPeriodeFactureeEncours } from '@/lib/finance/periode-facturee';
+import { formatPeriodeFacturee, formatPeriodeFactureeEncours } from '@/lib/finance/periode-facturee';
 
 type Cell = { node: ReactNode; cn?: string };
 type Line = { key: string; cn?: string; cells: Cell[] };
@@ -22,6 +22,26 @@ const STATUT_COLOR: Record<string, 'success' | 'warning' | 'danger' | 'default'>
   'En retard': 'danger',
   'En cours': 'default',
 };
+
+/**
+ * §5.1 — la periode reellement couverte.
+ *
+ * Une facture sur plage libre n'a pas de cycle : ses bornes SONT sa periode, et les
+ * afficher telles quelles est la seule reponse juste. La reconstruction depuis
+ * (annee, mois, cycle) affichait le mois entier pour une facture du 1er au 7 aout,
+ * c'est-a-dire une periode que la facture ne couvre pas. Les factures de cycle
+ * continuent de passer par le formateur partage, pour que le rendu reste identique a
+ * celui de Finance-Recouvrement.
+ */
+function formatPeriodeLibre(
+  debut: string,
+  fin: string | null | undefined,
+  mode: string | null | undefined,
+  cycle: string,
+): string {
+  const cycleEffectif = mode === 'Plage de dates' ? 'HEBDOMADAIRE' : cycle;
+  return formatPeriodeFacturee(cycleEffectif, debut, fin ?? debut);
+}
 
 function StatutChip({ statut }: { statut: string }) {
   return (
@@ -94,7 +114,35 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
                   ''
                 ),
             },
-            { node: formatPeriodeFactureeEncours(releve.annee, f.mois, p.cycle, f.libelle), cn: 'text-default-600 whitespace-nowrap' },
+            {
+              // §5.1 — « L'affichage doit indiquer clairement la PÉRIODE COUVERTE ».
+              // Quand le backend envoie les bornes réelles, on les utilise : la
+              // reconstruction depuis (année, mois, cycle) affichait le mois entier pour
+              // une facture du 1er au 7 août, c'est-à-dire une période que la facture ne
+              // couvre pas. Le repli sur la reconstruction reste pour les lignes
+              // « À venir », qui n'ont pas de facture derrière.
+              node: (
+                <div className="flex flex-col">
+                  <span className="whitespace-nowrap">
+                    {f.periodeDebut
+                      ? formatPeriodeLibre(f.periodeDebut, f.periodeFin, f.mode, p.cycle)
+                      : formatPeriodeFactureeEncours(releve.annee, f.mois, p.cycle, f.libelle)}
+                  </span>
+                  {f.objet && f.objet !== 'Globale' ? (
+                    <span className="text-[11px] text-secondary-600">
+                      {f.objet}
+                      {f.factureLieeCode ? ` · liée à ${f.factureLieeCode}` : ''}
+                    </span>
+                  ) : null}
+                  {f.mode === 'Plage de dates' ? (
+                    <span className="text-[11px] text-default-400">
+                      Plage de dates{f.origine === 'REPRISE' ? ' · reprise' : ''}
+                    </span>
+                  ) : null}
+                </div>
+              ),
+              cn: 'text-default-600',
+            },
             { node: formatFcfa(f.totalAPayer), cn: numCn },
             {
               node: f.acompte ? formatFcfa(f.acompte) : <span className="text-default-300">—</span>,

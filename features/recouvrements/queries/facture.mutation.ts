@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { factureAPI } from '../apis/facture.api';
 import { useInvalidateFacturesQuery } from './facture.query';
@@ -81,17 +81,25 @@ export const useReinitialiserFactureMutation = () => {
 export const useSupprimerFactureMutation = () => {
   const invalidateFacturesQuery = useInvalidateFacturesQuery();
   const invalidateRecouvrementQuery = useInvalidateRecouvrementQuery();
+  const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async (
+      variables: string | { id: string; motif?: string; supprimerLiee?: boolean },
+    ) => {
+      const { id, ...options } =
+        typeof variables === 'string' ? { id: variables } : variables;
       if (!id) {
         throw new Error("L'identifiant de la facture est requis.");
       }
-      return await factureAPI.supprimerFacture(id);
+      return await factureAPI.supprimerFacture(id, options);
     },
     onSuccess: async () => {
       // La suppression retire aussi les recouvrements orphelins → invalider les deux caches.
       await Promise.all([invalidateFacturesQuery(), invalidateRecouvrementQuery()]);
+      // RG-09 : la suppression libère des jours et change les encours. Sans cette
+      // invalidation, le relevé continuait d'afficher la facture supprimée.
+      queryClient.invalidateQueries({ queryKey: ['encours'] });
       toast.success('Facture supprimée définitivement');
     },
     onError: async (error) => {

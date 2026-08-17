@@ -117,11 +117,20 @@ const menuData: IMenuData[] = [
       { icon: Layers, title: 'Cumule des investissements internes', path: '/finance/revenue/investissement', can: { action: 'read', subject: 'Finance' } },
       { icon: SquareUser, title: 'Recouvrements', path: '/finance/recouvrement', can: { action: 'read', subject: 'Finance' } },
       { icon: BarChart, title: 'Dashboard Performance', path: '/finance/rapports-performance/dashboard-performance', can: { action: 'read', subject: 'DashboardPerformance' } },
-      { icon: FileText, title: 'Facturation par plage', path: '/finance/facturation-plage', can: { action: 'read', subject: 'Finance' } },
-      { icon: IconSettings2, title: 'Configuration cycle de facturation', path: '/finance/cycle-facturation', can: { action: 'read', subject: 'PageFinanceConfig' } },
+      { icon: Receipt, title: 'Facturation partenaire', path: '/finance/facturation-plage', can: { action: 'read', subject: 'Finance' } },
       { icon: IconSettings2, title: 'Configuration', path: '/finance/configuration', can: { action: 'read', subject: 'PageFinanceConfig' } },
       { icon: IconSettings2, title: 'Primes & commission', path: '/finance/primes', can: { action: 'read', subject: 'GrillePaiement' } },
     ],
+  },
+  // RG-03 — « accessible depuis le menu par un bouton express ». Volontairement AU
+  // PREMIER NIVEAU et non dans le sous-menu Finance : l'arbitrage du cahier est qu'il
+  // n'existe qu'un seul endroit pour definir comment un partenaire est facture, et cet
+  // endroit doit s'atteindre en un clic.
+  {
+    icon: Receipt,
+    title: 'Cycle de facturation partenaire',
+    path: '/finance/cycle-facturation',
+    can: { action: 'read', subject: 'PageFinanceConfig' },
   },
   {
     icon: FileText,

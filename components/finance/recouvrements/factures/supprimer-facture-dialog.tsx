@@ -16,6 +16,13 @@ import { useSupprimerFactureMutation } from '@/features/recouvrements/queries/fa
 import { getStatutLabel } from '@/features/recouvrements/utils/facture.utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { useEffect, useState } from 'react';
+import { Link2 } from 'lucide-react';
+
+import {
+  LIBELLE_COMPOSANTE,
+  useApercuSuppressionQuery,
+} from '@/features/facturation-plage';
 
 interface SupprimerFactureDialogProps {
   facture: IFacture;
@@ -35,15 +42,36 @@ const formatJour = (d?: string) => {
 export const SupprimerFactureDialog = ({ facture, open, onOpenChange }: SupprimerFactureDialogProps) => {
   const { mutate: supprimerFacture, isLoading } = useSupprimerFactureMutation();
 
+  // RG-06 / §5.3 — on demande au serveur ce que la suppression va emporter AVANT de
+  // proposer de confirmer. Sans ça, supprimer une facture de frais laissait sa jumelle
+  // de commission seule dans les encours, sans que rien ne l'annonce.
+  const { data: apercu } = useApercuSuppressionQuery(facture.id, open);
+  const [supprimerLiee, setSupprimerLiee] = useState(false);
+  const [motif, setMotif] = useState('');
+
+  useEffect(() => {
+    if (!open) {
+      // Le choix ne doit jamais survivre à la fermeture : le rouvrir sur une AUTRE
+      // facture avec « supprimer la jumelle » déjà coché emporterait une facture que
+      // personne n'a demandé de supprimer.
+      setSupprimerLiee(false);
+      setMotif('');
+    }
+  }, [open]);
+
   const montantRegle = facture.montantRegle || 0;
   const aDesEncaissements = montantRegle > 0;
+  const aUneJumelle = Boolean(apercu?.factureLieeId);
 
   const handleDelete = () => {
-    supprimerFacture(facture.id, {
-      onSuccess: () => {
-        onOpenChange(false);
+    supprimerFacture(
+      { id: facture.id, motif: motif.trim() || undefined, supprimerLiee },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+        },
       },
-    });
+    );
   };
 
   return (
@@ -93,8 +121,56 @@ export const SupprimerFactureDialog = ({ facture, open, onOpenChange }: Supprime
                 </p>
               )}
 
+              {aUneJumelle && (
+                <div className="space-y-2 rounded-md border border-amber-400/60 bg-amber-50 p-3 text-sm">
+                  <p className="flex items-center gap-2 font-medium text-amber-800">
+                    <Link2 className="h-4 w-4" />
+                    Cette facture est liée à une autre
+                  </p>
+                  <p className="text-amber-800">
+                    <strong>{apercu?.factureLieeCode}</strong> porte{' '}
+                    {LIBELLE_COMPOSANTE[apercu?.factureLieeComposante ?? ''] ??
+                      apercu?.factureLieeComposante}{' '}
+                    sur la même période, pour {formatCFA(apercu?.factureLieeMontant ?? 0)}. Les deux
+                    couvrent ensemble la totalité de ce qui est facturé au partenaire.
+                  </p>
+                  <label className="flex cursor-pointer items-start gap-2 pt-1">
+                    <input
+                      type="checkbox"
+                      className="mt-1"
+                      checked={supprimerLiee}
+                      onChange={(e) => setSupprimerLiee(e.target.checked)}
+                    />
+                    <span className="text-amber-900">
+                      Supprimer aussi <strong>{apercu?.factureLieeCode}</strong>
+                      <span className="block text-xs font-normal text-amber-700">
+                        Décoché, la facture liée est conservée et son lien est retiré. Elle reste
+                        seule dans les encours sur cette période.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground" htmlFor="motif-suppression">
+                  Motif de la suppression
+                </label>
+                <input
+                  id="motif-suppression"
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                  placeholder="Ex. doublon de la facture F20260801-AGHA-00123"
+                  value={motif}
+                  onChange={(e) => setMotif(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Journalisé avec votre nom et la période libérée (RG-06).
+                </p>
+              </div>
+
               <p className="text-xs text-muted-foreground">
                 Action <strong>irréversible</strong> : la facture ne pourra pas être récupérée.
+                La période qu&apos;elle couvrait redevient facturable.
               </p>
             </div>
           </AlertDialogDescription>
@@ -106,7 +182,11 @@ export const SupprimerFactureDialog = ({ facture, open, onOpenChange }: Supprime
             disabled={isLoading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isLoading ? 'Suppression...' : 'Supprimer définitivement'}
+            {isLoading
+              ? 'Suppression...'
+              : supprimerLiee
+                ? 'Supprimer les 2 factures'
+                : 'Supprimer définitivement'}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

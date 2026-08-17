@@ -6,7 +6,18 @@ export type CycleRecouvrement = 'QUINZAINE' | 'HEBDOMADAIRE' | 'MENSUEL';
 export interface IEncoursFacture {
   mois: number; // 1-12
   periode: string; // libellé mois, ex. « Avril »
-  libelle: string; // « Mois » | « Quinzaine 1/2 » | « Semaine N (dd–dd) » | « — » (À venir)
+  libelle: string; // « Mois » | « Quinzaine 1/2 » | « Semaine N (dd–dd) » | plage réelle | « — »
+  /** Bornes RÉELLES de la facture. Absentes sur les lignes « À venir ». */
+  periodeDebut?: string | null;
+  periodeFin?: string | null;
+  code?: string | null;
+  /** §5.1 — « Cycle » ou « Plage de dates ». */
+  mode?: string | null;
+  /** §5.1 — « Globale », « Frais de livraison » ou « Commission ». */
+  objet?: string | null;
+  origine?: string | null;
+  /** §5.1 — la référence croisée du couple frais/commission (RG-08). */
+  factureLieeCode?: string | null;
   totalAPayer: number | null;
   acompte: number | null; // déjà recouvré
   solde: number | null; // reste à payer

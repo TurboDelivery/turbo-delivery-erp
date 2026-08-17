@@ -53,6 +53,15 @@ export interface IConflitFacture {
   financeWorkflowStatus: string | null;
 }
 
+/** Une zone de livraison dans le récapitulatif (§3.1.4). */
+export interface ILigneZone {
+  zone: string;
+  nombreCourses: number;
+  fraisLivraison: number;
+  commission: number;
+  total: number;
+}
+
 export interface IApercuPlage {
   restaurantId: string;
   nomEtablissement: string;
@@ -65,6 +74,8 @@ export interface IApercuPlage {
   objetFacturation: ObjetFacturation;
   /** Les factures que la validation va créer, dans l'ordre. Deux si RG-08 s'applique. */
   composantes: string[];
+  /** La ventilation par zone de livraison (§3.1.4). */
+  zones: ILigneZone[];
   conflits: IConflitFacture[];
   generable: boolean;
 }

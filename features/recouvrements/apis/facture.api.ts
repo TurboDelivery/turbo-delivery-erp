@@ -1,5 +1,6 @@
 import { PaginatedResponse } from '@/types';
 import { api } from '@/lib/api';
+import { apiClientHttp } from '@/lib/api-client-http';
 import { SearchParams } from 'ak-api-http';
 import { IFacture, IFactureParams, IFactureSummary, IFactureSummaryParams, IFactureDetail } from '../types/facture.types';
 
@@ -11,7 +12,7 @@ export interface IFactureApi {
   validerFacture(id: string): Promise<IFacture>;
   recalculerFacture(id: string): Promise<IFacture>;
   reinitialiserFacture(id: string): Promise<void>;
-  supprimerFacture(id: string): Promise<void>;
+  supprimerFacture(id: string, options?: { motif?: string; supprimerLiee?: boolean }): Promise<void>;
 }
 
 export const factureAPI: IFactureApi = {
@@ -89,10 +90,24 @@ export const factureAPI: IFactureApi = {
   },
 
   // Suppression DÉFINITIVE — FinanceResource (/api/finance), base `finance`, pas `erp`.
-  supprimerFacture(id: string): Promise<void> {
-    return api.request<void>({
-      endpoint: `finance/factures/${id}`,
+  //
+  // Transport : `apiClientHttp` et non `api`, parce que lui seul pose `X-User-Id`.
+  // RG-06 exige que la suppression soit journalisée avec « qui » : le serveur le lit
+  // dans cet en-tête, et le journal partait avec un auteur systématiquement vide.
+  //
+  // `supprimerLiee` tranche le sort de la facture jumelle frais/commission (RG-08) :
+  // false conserve l'autre en la désolidarisant, true l'emporte avec celle-ci.
+  supprimerFacture(
+    id: string,
+    options?: { motif?: string; supprimerLiee?: boolean },
+  ): Promise<void> {
+    return apiClientHttp.request<void>({
+      endpoint: `/api/finance/factures/${id}`,
       method: 'DELETE',
+      params: {
+        ...(options?.motif ? { motif: options.motif } : {}),
+        supprimerLiee: options?.supprimerLiee ? 'true' : 'false',
+      },
     });
   },
 };

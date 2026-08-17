@@ -9,6 +9,7 @@ import {
   CardBody,
   CardHeader,
   Chip,
+  DatePicker,
   DateRangePicker,
   Divider,
   Input,
@@ -19,15 +20,17 @@ import {
   ModalHeader,
   RangeValue,
   Spinner,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableColumn,
   TableHeader,
   TableRow,
+  Tabs,
   Tooltip,
 } from '@heroui/react';
-import { getLocalTimeZone, parseDate, today } from '@internationalized/date';
+import { getLocalTimeZone, parseDate, startOfWeek, today } from '@internationalized/date';
 import type { DateValue } from '@internationalized/date';
 import {
   AlertTriangle,
@@ -36,6 +39,7 @@ import {
   CheckCircle2,
   FileStack,
   Layers,
+  MapPin,
   Receipt,
   Settings2,
   Store,
@@ -150,6 +154,12 @@ export function FacturationPlageView() {
   });
   const [repriseOuverte, setRepriseOuverte] = useState(false);
   const [reference, setReference] = useState('');
+  // §3.1.1 — le cahier decrit UN ecran de facturation avec les deux modes cote a cote :
+  // « Par plage de dates », a cote du mode hebdomadaire existant « Choisir un creneau ».
+  // Les separer en deux ecrans obligerait a savoir d'avance lequel utiliser.
+  const [mode, setMode] = useState<'creneau' | 'plage'>(
+    parametres.get('mode') === 'creneau' ? 'creneau' : 'plage',
+  );
 
   const debut = versIso(plage?.start);
   const fin = versIso(plage?.end);
@@ -169,6 +179,22 @@ export function FacturationPlageView() {
   const conflits = apercu?.conflits ?? [];
   const plageComplete = Boolean(restaurantId && debut && fin);
   const enCours = generer.isLoading || reprendre.isLoading;
+
+  /**
+   * Le mode creneau reste ce qu'il a toujours ete : une semaine calendaire, du lundi au
+   * dimanche. Il remplit simplement les deux bornes, apres quoi tout le reste du parcours
+   * est commun aux deux modes — meme apercu, meme controle de chevauchement, meme
+   * generation. C'est ce qui permet au mode « Au choix a chaque facture » d'exister
+   * vraiment : l'utilisateur bascule d'un mode a l'autre sans changer d'ecran.
+   */
+  const choisirCreneau = (jour: DateValue | null) => {
+    if (!jour) {
+      setPlage(null);
+      return;
+    }
+    const lundi = startOfWeek(jour, 'fr-FR');
+    setPlage({ start: lundi, end: lundi.add({ days: 6 }) });
+  };
 
   const lancerGeneration = () => {
     if (!restaurantId || !debut || !fin) return;
@@ -192,9 +218,9 @@ export function FacturationPlageView() {
     <div className="space-y-4 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-primary">Facturation par plage de dates</h1>
+          <h1 className="text-xl font-bold text-primary">Facturation partenaire</h1>
           <p className="text-sm text-default-500">
-            Facturer un partenaire du jour au jour, sans passer par les semaines calendaires.
+            Par créneau hebdomadaire, ou sur une plage de dates librement choisie.
           </p>
         </div>
         <Button
@@ -212,7 +238,21 @@ export function FacturationPlageView() {
           <CalendarRange className="h-4 w-4 text-primary" />
           Période à facturer
         </CardHeader>
-        <CardBody className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <CardBody className="space-y-4">
+          <Tabs
+            aria-label="Mode de facturation"
+            selectedKey={mode}
+            onSelectionChange={(k) => {
+              setMode(k === 'creneau' ? 'creneau' : 'plage');
+              setPlage(null);
+            }}
+            size="sm"
+          >
+            <Tab key="creneau" title="Choisir un créneau" />
+            <Tab key="plage" title="Par plage de dates" />
+          </Tabs>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Autocomplete
             label="Partenaire"
             placeholder="Rechercher un établissement"
@@ -235,17 +275,35 @@ export function FacturationPlageView() {
             ))}
           </Autocomplete>
 
-          <DateRangePicker
-            label="Du → au"
-            value={plage}
-            onChange={setPlage}
-            // RG-02 : la date de fin ne peut pas être postérieure à aujourd'hui. Le
-            // serveur refuse de toute façon ; le bloquer ici évite de laisser
-            // l'utilisateur composer une plage qui sera rejetée.
-            maxValue={today(ZONE)}
-            visibleMonths={2}
-            className="lg:col-span-2"
-          />
+          {mode === 'creneau' ? (
+            <div className="lg:col-span-2">
+              <DatePicker
+                label="Semaine à facturer"
+                aria-label="Semaine à facturer"
+                value={plage?.start ?? null}
+                onChange={choisirCreneau}
+                maxValue={today(ZONE)}
+                description={
+                  plage
+                    ? `Du ${enDate(versIso(plage.start)!)} au ${enDate(versIso(plage.end)!)}`
+                    : 'Choisissez un jour : la semaine complète, du lundi au dimanche, sera facturée.'
+                }
+              />
+            </div>
+          ) : (
+            <DateRangePicker
+              label="Du → au"
+              value={plage}
+              onChange={setPlage}
+              // RG-02 : la date de fin ne peut pas être postérieure à aujourd'hui. Le
+              // serveur refuse de toute façon ; le bloquer ici évite de laisser
+              // l'utilisateur composer une plage qui sera rejetée.
+              maxValue={today(ZONE)}
+              visibleMonths={2}
+              className="lg:col-span-2"
+            />
+          )}
+          </div>
         </CardBody>
       </Card>
 
@@ -262,6 +320,25 @@ export function FacturationPlageView() {
               Jamais modifié dans l&apos;écran de configuration
             </span>
           ) : null}
+        </div>
+      ) : null}
+
+      {partenaire && !['PLAGE_DATES', 'AU_CHOIX'].includes(partenaire.cycleEffectif ?? '') ? (
+        <div className="flex items-start gap-2 rounded-large border border-warning-200 bg-warning-50/50 p-3 text-sm">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+          <div>
+            <p className="font-medium text-default-700">
+              {partenaire.nomEtablissement} est sur un cycle généré automatiquement
+            </p>
+            <p className="text-xs text-default-500">
+              Ses factures sont produites chaque nuit sur son cycle{' '}
+              {LIBELLE_CYCLE[(partenaire.cycleEffectif ?? '') as keyof typeof LIBELLE_CYCLE] ??
+                partenaire.cycleEffectif}
+              . Facturer ici une période reste possible, et les jours facturés seront retirés du
+              cycle automatique. Pour basculer ce partenaire en facturation à la demande, passez
+              par la configuration des cycles.
+            </p>
+          </div>
         </div>
       ) : null}
 
@@ -340,6 +417,40 @@ export function FacturationPlageView() {
                 <Statistique libelle="Commission" valeur={formatMontant(apercu.commission)} />
                 <Statistique libelle="Total à facturer" valeur={formatMontant(apercu.total)} accent />
               </div>
+
+              {apercu.zones.length > 0 ? (
+                <>
+                  <Divider />
+                  <div>
+                    <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-default-700">
+                      <MapPin className="h-4 w-4 text-primary" />
+                      Détail par zone de livraison
+                    </p>
+                    <Table removeWrapper aria-label="Montant par zone">
+                      <TableHeader>
+                        <TableColumn>ZONE</TableColumn>
+                        <TableColumn>COURSES</TableColumn>
+                        <TableColumn>FRAIS DE LIVRAISON</TableColumn>
+                        <TableColumn>COMMISSION</TableColumn>
+                        <TableColumn>TOTAL</TableColumn>
+                      </TableHeader>
+                      <TableBody>
+                        {apercu.zones.map((z) => (
+                          <TableRow key={z.zone}>
+                            <TableCell className="text-sm">{z.zone}</TableCell>
+                            <TableCell className="text-sm">{formatNombre(z.nombreCourses)}</TableCell>
+                            <TableCell className="text-sm">{formatMontant(z.fraisLivraison)}</TableCell>
+                            <TableCell className="text-sm">{formatMontant(z.commission)}</TableCell>
+                            <TableCell className="text-sm font-semibold">
+                              {formatMontant(z.total)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              ) : null}
 
               {apercu.composantes.length > 1 ? (
                 <>

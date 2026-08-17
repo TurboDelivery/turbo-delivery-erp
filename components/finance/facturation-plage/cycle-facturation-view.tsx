@@ -111,7 +111,7 @@ export function CycleFacturationView() {
           variant="flat"
           startContent={<CalendarRange className="h-4 w-4" />}
         >
-          Facturer sur une plage
+          Facturer un partenaire
         </Button>
       </div>
 
@@ -251,9 +251,10 @@ export function CycleFacturationView() {
       </Card>
 
       <p className="text-xs text-default-400">
-        « Plage de dates » et « Au choix à chaque facture » ouvrent la facturation sur une période
-        librement définie, depuis l&apos;écran « Facturation par plage de dates ». Les quatre autres
-        cycles restent générés automatiquement, sans changement.
+        « Plage de dates » et « Au choix à chaque facture » suspendent la génération automatique :
+        les factures de ces partenaires se produisent depuis l&apos;écran « Facturation partenaire »,
+        par créneau hebdomadaire ou sur une plage librement définie. Les quatre autres cycles
+        restent générés chaque nuit, sans changement.
       </p>
     </div>
   );

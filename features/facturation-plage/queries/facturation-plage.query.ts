@@ -83,6 +83,20 @@ export const useReprendreFactureMutation = () => {
   });
 };
 
+/**
+ * Ce que la suppression va emporter (RG-06). Chargé à l'ouverture du dialogue : sans
+ * lui, l'utilisateur supprimait la facture de frais en croyant tout effacer et laissait
+ * la commission seule dans les encours.
+ */
+export const useApercuSuppressionQuery = (factureId: string | null, actif: boolean) =>
+  useQuery({
+    queryKey: [...facturationPlageKeys.all, 'suppression', factureId ?? ''],
+    queryFn: () => facturationPlageAPI.apercuSuppression(factureId!),
+    enabled: Boolean(factureId) && actif,
+    retry: false,
+    staleTime: 0,
+  });
+
 export const useConfigurationFacturationQuery = () =>
   useQuery({
     queryKey: facturationPlageKeys.configuration(),
