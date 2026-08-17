@@ -77,6 +77,10 @@ export interface IApercuPlage {
   /** La ventilation par zone de livraison (§3.1.4). */
   zones: ILigneZone[];
   conflits: IConflitFacture[];
+  /** Ce que les factures en conflit couvrent déjà sur la plage. */
+  dejaCouvert: number;
+  /** Ce qui reste à facturer sur la plage après déduction des factures existantes. */
+  restantAFacturer: number;
   generable: boolean;
 }
 

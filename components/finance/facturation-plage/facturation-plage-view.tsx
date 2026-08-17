@@ -407,6 +407,16 @@ export function FacturationPlageView() {
                     des jours du {enDate(apercu.debut)} au {enDate(apercu.fin)}. Supprimez ou annulez
                     la facture concernée pour libérer ces jours, ou choisissez une autre plage.
                   </p>
+                  {/* CE QUI RESTE A FACTURER, ET PAS SEULEMENT CE QUI BLOQUE.
+                    * Le bandeau nommait les factures en conflit sans dire ce qu'elles
+                    * couvraient : il fallait soustraire de tête pour s'apercevoir qu'il
+                    * manquait 2,6 millions sur la plage (cas vécu le 17/08/2026). */}
+                  {apercu.restantAFacturer > 0 ? (
+                    <p className="mt-1 text-xs font-semibold text-danger-700">
+                      {formatMontant(apercu.dejaCouvert)} sont déjà couverts sur cette plage, mais{' '}
+                      {formatMontant(apercu.restantAFacturer)} ne le sont par aucune facture.
+                    </p>
+                  ) : null}
                 </div>
               </CardHeader>
               <CardBody className="pt-0">
