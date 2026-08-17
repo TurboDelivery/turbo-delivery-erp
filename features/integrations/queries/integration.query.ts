@@ -92,5 +92,6 @@ export const useIntegrationLogsQuery = (params: IIntegrationLogsParams) =>
     enabled: !!params.restaurantId,
     staleTime: 10 * 1000,
     // Rafraîchit régulièrement pour une supervision « live » des appels réseau.
-    refetchInterval: 20 * 1000,
+    // 60 s : ce journal se consulte lors d'un diagnostic, pas en veille permanente.
+    refetchInterval: 60 * 1000,
   });

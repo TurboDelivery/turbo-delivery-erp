@@ -41,7 +41,11 @@ export default function Content({ data: initialData }: Props) {
     }
   };
 
-  // Rafraîchissement silencieux toutes les 30 s (supervision du jour).
+  // Rafraîchissement silencieux toutes les 60 s (supervision du jour).
+  //
+  // 60 et non 30 : c'est un écran de point du jour, pas un écran de dispatch. Les
+  // deux écrans de courses externes qui gardent 15 s, eux, portent une ALARME SONORE
+  // et doivent continuer à sonner onglet caché : leur cadence est justifiée.
   useEffect(() => {
     const id = setInterval(async () => {
       try {
@@ -50,7 +54,7 @@ export default function Content({ data: initialData }: Props) {
       } catch {
         /* silencieux */
       }
-    }, 30000);
+    }, 60000);
     return () => clearInterval(id);
   }, [currentPage, pageSize]);
 

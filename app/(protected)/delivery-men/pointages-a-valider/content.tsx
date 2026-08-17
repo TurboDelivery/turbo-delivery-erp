@@ -62,7 +62,9 @@ export function PointagesAValiderContent() {
     // La fenêtre serveur suit la borne basse choisie (défaut 30 j) ; le reste
     // du filtrage est client — volumes faibles, réactivité immédiate.
     queryFn: () => pointagesValidationAPI.lister(dateDebut || undefined),
-    refetchInterval: 30_000,
+    // Pas de `refetchInterval` : un arbitrage humain n'est pas une urgence à la
+    // demi-minute, `invalider()` rafraîchit déjà après chaque validation ou rejet,
+    // et chaque tick relisait 30 jours de registre.
   });
 
   const [rejet, setRejet] = useState<IPointageHorsZone | null>(null);

@@ -52,7 +52,13 @@ export function SupervisionContent() {
     }
   };
 
-  const { data: stats, isLoading: statsEnCours } = useSupervisionStatsQuery(userId);
+  // Le droit est passé au hook : le contrôle d'accès de cet écran est plus bas
+  // (les hooks ne peuvent pas être conditionnels), et sans cette garde la page
+  // sondait toutes les 30 s même pour quelqu'un qui n'a pas le droit de la lire.
+  const { data: stats, isLoading: statsEnCours } = useSupervisionStatsQuery(
+    userId,
+    ability.can('read', 'Supervision'),
+  );
 
   const peutForcerDeconnexion = ability.can('manage', 'Supervision');
 

@@ -72,6 +72,15 @@ export const useIncidentsOuvertsQuery = () =>
  */
 export const useTraficLivreursQuery = (refetchInterval: number | false = STANDARD_REFRESH_MS) =>
   useQuery({
+    // NOTE (17/08) : cet écran et le module Trafic lisent le MÊME endpoint
+    // (/api/erp/livreur/statut/trafic) sous DEUX clés de cache distinctes. La console
+    // entretient donc un second cache, que le patch socket de `use-realtime-trafic`
+    // (setQueryData sur traficKeyQuery) n'atteint jamais : elle reste sur l'état du
+    // dernier tick au lieu d'être mise à jour en direct.
+    //
+    // Le partage de clé a été tenté puis abandonné : les deux features déclarent des
+    // types différents pour la même charge utile (`statut`, `course` et d'autres sont
+    // optionnels côté Trafic, requis ici). Les réconcilier est un chantier à part.
     queryKey: standardKeys.traficLivreurs(),
     queryFn: () => standardAPI.resumeTraficLivreurs(),
     staleTime: STANDARD_REFRESH_MS,

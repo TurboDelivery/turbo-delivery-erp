@@ -44,11 +44,14 @@ export const supervisionKeys = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** KPI de tête d'écran. Rafraîchis à la même cadence que les présences. */
-export const useSupervisionStatsQuery = (userId: string) =>
+export const useSupervisionStatsQuery = (userId: string, autorise = true) =>
   useQuery({
     queryKey: supervisionKeys.stats(),
     queryFn: () => supervisionAPI.stats(userId),
-    enabled: !!userId,
+    // `autorise` : l'écran appelle ce hook AVANT son contrôle d'accès (les hooks ne
+    // peuvent pas être conditionnels). Sans cette garde, quelqu'un sans le droit
+    // « read Supervision » qui atterrit sur l'URL sondait quand même toutes les 30 s.
+    enabled: !!userId && autorise,
     refetchInterval: INTERVALLE_TEMPS_REEL,
     refetchOnWindowFocus: true,
   });
