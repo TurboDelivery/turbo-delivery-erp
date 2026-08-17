@@ -84,8 +84,32 @@ export class ApiClientHttp {
         }
       }
 
+      // Rôle ERP de l'appelant. Posé ICI et plus seulement dans getHeaders(service) :
+      // les appels sans `service` — la majorité de ceux qui visent main-backend — en
+      // étaient privés, alors que le RBAC backend est désactivé et que certains
+      // endpoints distinguent les rôles (mode « Au choix à chaque facture », §3.2).
+      // Sans cet en-tête, ces gardes refusaient tout le monde, y compris le DG.
+      const roleAppelant = config.headers.get('X-User-Roles');
+      if (!roleAppelant || String(roleAppelant).trim() === '') {
+        const role = await this.lireRoleSession();
+        if (role) {
+          config.headers.set('X-User-Roles', role);
+        }
+      }
+
       return config;
     });
+  }
+
+  /** Rôle ERP de l'utilisateur courant. Jamais bloquant : null si indisponible. */
+  private async lireRoleSession(): Promise<string | null> {
+    try {
+      const session = await this.getSession();
+      const role = session?.user?.role;
+      return role ? String(role) : null;
+    } catch {
+      return null;
+    }
   }
 
   /** Identifiant ERP de l'utilisateur courant. Jamais bloquant : null si indisponible. */

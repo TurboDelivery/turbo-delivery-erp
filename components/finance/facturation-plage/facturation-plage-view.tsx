@@ -55,6 +55,7 @@ import {
   useApercuPlageQuery,
   useConfigurationFacturationQuery,
   useGenererPlageMutation,
+  usePeutChoisirModeFacturation,
   useReprendreFactureMutation,
 } from '@/features/facturation-plage';
 import { formatMontant, formatNombre } from '@/utils/format.utils';
@@ -133,6 +134,7 @@ export function FacturationPlageView() {
   const { data: partenaires, isLoading: chargementPartenaires } = useConfigurationFacturationQuery();
   const generer = useGenererPlageMutation();
   const reprendre = useReprendreFactureMutation();
+  const peutChoisirLeMode = usePeutChoisirModeFacturation();
 
   // Période et partenaire lisibles dans l'URL, comme les autres pages finance : un
   // lien vers « Agha, 1er au 7 août » se partage, se met en favori et survit au retour
@@ -175,6 +177,13 @@ export function FacturationPlageView() {
     () => partenaires?.find((p) => p.restaurantId === restaurantId) ?? null,
     [partenaires, restaurantId],
   );
+
+  // §3.2 — « l'utilisateur habilité choisit à chaque génération entre le créneau
+  // hebdomadaire et une plage libre ». Sur un partenaire en « Au choix », le choix est
+  // donc réservé : les autres restent sur le créneau. Les cinq autres cycles ne sont pas
+  // concernés, le cahier ne leur impose aucune habilitation.
+  const modeVerrouille = partenaire?.cycleEffectif === 'AU_CHOIX' && !peutChoisirLeMode;
+  const modeActif: 'creneau' | 'plage' = modeVerrouille ? 'creneau' : mode;
 
   const conflits = apercu?.conflits ?? [];
   const plageComplete = Boolean(restaurantId && debut && fin);
@@ -239,18 +248,27 @@ export function FacturationPlageView() {
           Période à facturer
         </CardHeader>
         <CardBody className="space-y-4">
-          <Tabs
-            aria-label="Mode de facturation"
-            selectedKey={mode}
-            onSelectionChange={(k) => {
-              setMode(k === 'creneau' ? 'creneau' : 'plage');
-              setPlage(null);
-            }}
-            size="sm"
-          >
-            <Tab key="creneau" title="Choisir un créneau" />
-            <Tab key="plage" title="Par plage de dates" />
-          </Tabs>
+          <div className="flex flex-wrap items-center gap-3">
+            <Tabs
+              aria-label="Mode de facturation"
+              selectedKey={modeActif}
+              disabledKeys={modeVerrouille ? ['plage'] : []}
+              onSelectionChange={(k) => {
+                setMode(k === 'creneau' ? 'creneau' : 'plage');
+                setPlage(null);
+              }}
+              size="sm"
+            >
+              <Tab key="creneau" title="Choisir un créneau" />
+              <Tab key="plage" title="Par plage de dates" />
+            </Tabs>
+            {modeVerrouille ? (
+              <span className="text-xs text-default-500">
+                La plage libre de ce partenaire est réservée au Comptable, au DG, au DGA et à
+                l&apos;Admin.
+              </span>
+            ) : null}
+          </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Autocomplete
@@ -275,7 +293,7 @@ export function FacturationPlageView() {
             ))}
           </Autocomplete>
 
-          {mode === 'creneau' ? (
+          {modeActif === 'creneau' ? (
             <div className="lg:col-span-2">
               <DatePicker
                 label="Semaine à facturer"
@@ -545,8 +563,9 @@ export function FacturationPlageView() {
               description="Facultatif, pour rapprocher l'ERP et l'ancien fichier"
             />
             <p className="text-xs text-default-400">
-              Le montant enregistré est celui calculé par l&apos;ERP sur la période. S&apos;il diffère
-              de la facture papier, l&apos;écart doit être arbitré plutôt que recopié.
+              Le montant enregistré est celui calculé par l&apos;ERP sur la période : c&apos;est
+              lui qui fait foi. La référence sert uniquement à retrouver la facture papier
+              correspondante.
             </p>
           </ModalBody>
           <ModalFooter>

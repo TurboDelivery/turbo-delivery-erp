@@ -32,6 +32,7 @@ import {
   ObjetFacturation,
   useConfigurationFacturationQuery,
   useEnregistrerConfigurationMutation,
+  usePeutChoisirModeFacturation,
 } from '@/features/facturation-plage';
 
 /**
@@ -48,6 +49,9 @@ import {
 export function CycleFacturationView() {
   const { data, isLoading } = useConfigurationFacturationQuery();
   const enregistrer = useEnregistrerConfigurationMutation();
+  // §3.2 — « Au choix a chaque facture » est reserve au Comptable, DG, DGA et Admin.
+  // Le serveur refuse de toute facon ; on ne propose pas une option qui serait rejetee.
+  const peutPoserAuChoix = usePeutChoisirModeFacturation();
 
   const [recherche, setRecherche] = useState('');
   const [ligneEnCours, setLigneEnCours] = useState<string | null>(null);
@@ -182,7 +186,11 @@ export function CycleFacturationView() {
                           appliquer(p, { cycle: choix });
                         }}
                       >
-                        {CYCLES_FACTURATION.map((c) => (
+                        {CYCLES_FACTURATION.filter(
+                          // On laisse l'option visible si le partenaire y est deja, sinon
+                          // sa ligne afficherait une case vide.
+                          (c) => c !== 'AU_CHOIX' || peutPoserAuChoix || cycleAffiche === 'AU_CHOIX',
+                        ).map((c) => (
                           <SelectItem key={c} value={c}>
                             {LIBELLE_CYCLE[c]}
                           </SelectItem>

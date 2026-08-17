@@ -42,7 +42,9 @@ function buildResumeDus(releve: IEncoursReleve): PartenaireResumeDu[] {
         partenaire: p.groupe,
         cycle: p.cycle,
         totalDu: facturesDues.reduce((sum, f) => sum + (f.solde ?? 0), 0),
-        nbFactures: facturesDues.length,
+        // Une periode facturee en frais + commission compte pour UNE, comme dans le
+        // releve : les lignes de complement ne sont pas des periodes de plus.
+        nbFactures: facturesDues.filter((f) => !f.complement).length,
         periodes: facturesDues.map((f) =>
           `${f.periode}${f.libelle ? ' — ' + f.libelle : ''}`.trim(),
         ),

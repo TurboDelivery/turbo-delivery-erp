@@ -11,6 +11,12 @@ export interface IEncoursFacture {
   periodeDebut?: string | null;
   periodeFin?: string | null;
   code?: string | null;
+  /**
+   * Vrai quand cette ligne COMPLÈTE la précédente sur la même période : la commission
+   * d'un couple frais/commission (RG-08). L'écran n'y répète pas la période, et les
+   * compteurs ne la comptent pas comme une période de plus.
+   */
+  complement?: boolean;
   /** §5.1 — « Cycle » ou « Plage de dates ». */
   mode?: string | null;
   /** §5.1 — « Globale », « Frais de livraison » ou « Commission ». */

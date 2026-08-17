@@ -121,7 +121,18 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
               // une facture du 1er au 7 août, c'est-à-dire une période que la facture ne
               // couvre pas. Le repli sur la reconstruction reste pour les lignes
               // « À venir », qui n'ont pas de facture derrière.
-              node: (
+              node: f.complement ? (
+                // Une periode facturee en frais + commission reste UNE periode : la
+                // seconde ligne se presente comme un complement de celle du dessus,
+                // sans repeter les dates (arbitrage du 17/08/2026).
+                <div className="flex items-center gap-2 pl-6 text-[12px] text-secondary-600">
+                  <span className="text-default-300">+</span>
+                  <span>{f.objet}</span>
+                  {f.factureLieeCode ? (
+                    <span className="text-default-400">liée à {f.factureLieeCode}</span>
+                  ) : null}
+                </div>
+              ) : (
                 <div className="flex flex-col">
                   <span className="whitespace-nowrap">
                     {f.periodeDebut

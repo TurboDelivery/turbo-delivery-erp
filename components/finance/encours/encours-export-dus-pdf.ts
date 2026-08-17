@@ -151,7 +151,9 @@ function buildResumeDus(releve: IEncoursReleve): PartenaireResume[] {
         partenaire: p.groupe,
         cycle: p.cycle,
         totalDu: facturesDues.reduce((s, f) => s + (f.solde ?? 0), 0),
-        nbFactures: facturesDues.length,
+        // Une periode facturee en frais + commission compte pour UNE, comme dans le
+        // releve : les lignes de complement ne sont pas des periodes de plus.
+        nbFactures: facturesDues.filter((f) => !f.complement).length,
         periodes: dedupPeriodes(periodesRaw),
       };
     })
