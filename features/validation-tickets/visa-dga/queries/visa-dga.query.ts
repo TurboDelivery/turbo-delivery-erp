@@ -15,7 +15,9 @@ export const useVisaDgaQuery = (creneauId?: string) => {
     queryKey: visaDgaKeys.detail(creneauId),
     queryFn: () => getVisaDgaApi(creneauId),
     staleTime: 60_000,
-    refetchInterval: 120_000,
+    // Pas de `refetchInterval` : ce n'est pas un écran temps réel mais un écran de
+    // saisie et de visa, et toutes les mutations invalident déjà cette clé. Le poll
+    // relançait de surcroît, à chaque tick, la résolution du créneau actif.
     refetchOnWindowFocus: false,
     refetchOnMount: true,
   });

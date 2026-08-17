@@ -66,7 +66,9 @@ function formatDuree(sec: number | null): string {
 export function AppelHistoriqueTable() {
   const [page, setPage] = useState(0);
   // Rafraîchit périodiquement pour faire remonter les appels EN COURS (écoute).
-  const { data, isLoading } = useAppelsQuery(page, 15, 8000);
+  // 30 s et non 8 : le socket pousse déjà les six évènements APPEL_*, ce poll n'est
+  // qu'un filet, et il tournait à 450 requêtes par heure sur un simple journal.
+  const { data, isLoading } = useAppelsQuery(page, 15, 30_000);
   const { superviser, estSuperviseur, enAppel } = useAppel();
   const appels: IAppelLog[] = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;

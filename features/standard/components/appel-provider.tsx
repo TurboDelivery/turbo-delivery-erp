@@ -14,6 +14,8 @@ import {
   useAccepterAppelMutation,
   useAppelConfigQuery,
   useAppelsEntrantsQuery,
+  APPELS_ENTRANTS_MS_SOCKET_OK,
+  APPELS_ENTRANTS_MS_SOCKET_COUPE,
   useInitierAppelMutation,
   useRejeterAppelMutation,
   useSuperviserAppelMutation,
@@ -97,7 +99,30 @@ export function AppelProvider({ children }: { children: React.ReactNode }) {
   // déconnecté (« quand il m'a appelé je n'ai pas été notifié »). Le poll est
   // donc actif pour TOUT agent connecté, pas seulement les répondants ; coupé
   // seulement pendant un appel actif.
-  const { data: entrants } = useAppelsEntrantsQuery(!!agentId && !active, agentId);
+  //
+  // La CADENCE, elle, suit l'état du socket. Socket connecté, la sonnerie arrive
+  // par évènement et le poll n'est qu'un filet : 15 s suffisent largement dans la
+  // fenêtre de sonnerie d'une minute du serveur. Socket coupé, le filet redevient
+  // la seule signalisation et repasse à 3 s.
+  const [socketConnecte, setSocketConnecte] = useState<boolean>(() => socket.connected);
+  useEffect(() => {
+    const onConnect = () => setSocketConnecte(true);
+    const onDisconnect = () => setSocketConnecte(false);
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    // L'état a pu changer entre le rendu initial et le branchement des écouteurs.
+    setSocketConnecte(socket.connected);
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+    };
+  }, []);
+
+  const { data: entrants } = useAppelsEntrantsQuery(
+    !!agentId && !active,
+    agentId,
+    socketConnecte ? APPELS_ENTRANTS_MS_SOCKET_OK : APPELS_ENTRANTS_MS_SOCKET_COUPE,
+  );
 
   // Filet PERSONNEL : un appel pair qui me cible, vu par le poll alors que le
   // socket ne l'a pas signalé → on le fait sonner comme s'il venait du socket.

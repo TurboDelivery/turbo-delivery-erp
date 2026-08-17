@@ -43,7 +43,11 @@ export const useUnreadNotificationsQuery = (userId: string | undefined) => {
     queryFn: () => fetchUnreadNotifications(userId!),
     enabled: !!userId,
     staleTime: 15 * 1000,
-    refetchInterval: 60 * 1000, // refresh passif chaque minute (fallback socket)
+    // Filet derrière le socket, qui invalide déjà tout le namespace à chaque
+    // notification reçue (notification-socket.provider). Un filet n'a pas besoin
+    // d'être plus rapide que la reconnexion d'un socket : la cloche est montée dans
+    // le header, donc ce sondage tourne sur TOUTES les pages de TOUS les onglets.
+    refetchInterval: 5 * 60 * 1000,
   });
 };
 

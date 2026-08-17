@@ -19,8 +19,13 @@ export const standardKeys = {
   incident: (id: string) => [...standardKeys.all, 'incident', id] as const,
   ouverts: () => [...standardKeys.all, 'ouverts'] as const,
   motifs: () => [...standardKeys.all, 'motifs'] as const,
-  appels: (page?: number, userId?: string) =>
-    [...standardKeys.all, 'appels', page ?? 0, userId ?? 'tous'] as const,
+  // `size` entre dans la clé, pour la même raison que dans `incidents` juste au-dessus :
+  // trois écrans lisent ce journal avec trois tailles (15, 50 et 30). Sans `size`, ils
+  // partageaient une seule entrée de cache et la taille réellement envoyée était celle
+  // du dernier observateur monté — le panneau « appels manqués » pouvait donc recevoir
+  // 15 lignes au lieu de 50 et masquer des appels manqués.
+  appels: (page?: number, userId?: string, size?: number) =>
+    [...standardKeys.all, 'appels', page ?? 0, userId ?? 'tous', size ?? 20] as const,
   appelsEntrants: () => [...standardKeys.all, 'appels-entrants'] as const,
   appelsEnCours: () => [...standardKeys.all, 'appels-en-cours'] as const,
   appelConfig: () => [...standardKeys.all, 'appel-config'] as const,
@@ -135,10 +140,20 @@ export const useModifierMotifMutation = () => {
 
 /** Historique paginé des appels (journal STANDARD). `refetchInterval` optionnel
  * pour faire remonter les appels EN COURS (colonne « Écouter »). */
-export const useAppelsQuery = (page = 0, size = 20, refetchInterval?: number, userId?: string) =>
+export const useAppelsQuery = (
+  page = 0,
+  size = 20,
+  refetchInterval?: number,
+  userId?: string,
+  // `enabled` par défaut à true : les écrans qui affichent le journal en permanence
+  // ne changent pas. Il existe pour les panneaux qui montent ce hook sans être
+  // ouverts, où la requête partait quand même.
+  enabled = true,
+) =>
   useQuery({
-    queryKey: standardKeys.appels(page, userId),
+    queryKey: standardKeys.appels(page, userId, size),
     queryFn: () => standardAPI.listerAppels({ page, size, userId }),
+    enabled,
     staleTime: refetchInterval ?? 30 * 1000,
     keepPreviousData: true,
     refetchInterval: refetchInterval ?? false,
@@ -148,13 +163,32 @@ export const useAppelsQuery = (page = 0, size = 20, refetchInterval?: number, us
  * Repli de signalisation : poll des appels entrants (SONNE) vers STANDARD.
  * Garantit que la console « sonne » même si l'agent connecté n'est pas un
  * notifier socket. `enabled` permet de couper le poll pendant un appel actif.
+ *
+ * La cadence dépend de ce que porte le socket.
+ *
+ * Le serveur laisse un appel sonner {@code TIMEOUT_SONNERIE_SECONDES = 60} s avant de
+ * le passer en MANQUE (AppelService). Tant que le socket est connecté il pousse déjà
+ * les six évènements APPEL_*, et le poll n'est qu'un filet : 15 s laissent quatre
+ * chances de rattraper une sonnerie dans sa fenêtre d'une minute. Socket coupé, le
+ * filet redevient la seule signalisation et reprend une cadence serrée.
+ *
+ * Mesuré avant : 4 s en permanence, y compris onglet caché, soit 900 requêtes par
+ * heure et par onglet, sondage monté dans le layout donc actif sur TOUTES les pages.
+ * C'était de loin le plus coûteux de l'ERP.
  */
-export const useAppelsEntrantsQuery = (enabled = true, userId?: string) =>
+export const APPELS_ENTRANTS_MS_SOCKET_OK = 15 * 1000;
+export const APPELS_ENTRANTS_MS_SOCKET_COUPE = 3 * 1000;
+
+export const useAppelsEntrantsQuery = (
+  enabled = true,
+  userId?: string,
+  intervalMs: number = APPELS_ENTRANTS_MS_SOCKET_COUPE,
+) =>
   useQuery({
     queryKey: standardKeys.appelsEntrants(),
     queryFn: () => standardAPI.listerAppelsEntrants(userId),
     enabled,
-    refetchInterval: enabled ? 4000 : false,
+    refetchInterval: enabled ? intervalMs : false,
     // Continue à poller même quand l'onglet n'est PAS au premier plan : sinon la
     // console ne « voit » pas l'appel entrant tant que l'agent n'a pas le focus.
     refetchIntervalInBackground: true,

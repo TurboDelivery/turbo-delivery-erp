@@ -56,11 +56,17 @@ export function PersonnelCallPanel() {
   // Journal : MES appels (appelant ou appelé), rafraîchi à chaque ouverture
   // de l'onglet — 15 s de refetch pour voir un appel qui vient de se terminer.
   const journalActif = ouvert && onglet === 'journal' && !!moiId;
+  // `journalActif` garde AUSSI le déclenchement de la requête, pas seulement son
+  // intervalle. Ce panneau est monté dans le layout : sans cette garde, le journal
+  // partait sur CHAQUE page protégée, panneau fermé, et même quand les appels entre
+  // personnel sont désactivés en configuration (le `return null` est plus bas, donc
+  // après les hooks).
   const { data: journal, isLoading: journalCharge } = useAppelsQuery(
     0,
     30,
     journalActif ? 15_000 : undefined,
     journalActif ? moiId : undefined,
+    journalActif && appelsPersonnelActifs,
   );
 
   const contacts: Contact[] = useMemo(() => {

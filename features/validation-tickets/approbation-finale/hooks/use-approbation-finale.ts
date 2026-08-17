@@ -49,7 +49,9 @@ export default function useApprobationFinale() {
       return number + 1 < totalPages ? number + 1 : undefined;
     },
     staleTime: 60_000,
-    refetchInterval: 120_000,
+    // Pas de `refetchInterval` : écran de visa, non temps réel, et les mutations
+    // invalident déjà la clé. C'est de surcroît une requête à défilement infini, donc
+    // chaque tick relisait TOUTES les pages déjà chargées.
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     enabled: !!resolvedCreneauId,
