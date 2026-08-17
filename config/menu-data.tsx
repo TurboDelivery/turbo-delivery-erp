@@ -122,16 +122,6 @@ const menuData: IMenuData[] = [
       { icon: IconSettings2, title: 'Primes & commission', path: '/finance/primes', can: { action: 'read', subject: 'GrillePaiement' } },
     ],
   },
-  // RG-03 — « accessible depuis le menu par un bouton express ». Volontairement AU
-  // PREMIER NIVEAU et non dans le sous-menu Finance : l'arbitrage du cahier est qu'il
-  // n'existe qu'un seul endroit pour definir comment un partenaire est facture, et cet
-  // endroit doit s'atteindre en un clic.
-  {
-    icon: Receipt,
-    title: 'Cycle de facturation partenaire',
-    path: '/finance/cycle-facturation',
-    can: { action: 'read', subject: 'PageFinanceConfig' },
-  },
   {
     icon: FileText,
     title: 'Comptabilité',

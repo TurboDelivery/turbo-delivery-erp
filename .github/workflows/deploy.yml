@@ -162,8 +162,8 @@ jobs:
             docker run -d \
               --name turbo-erp-front \
               --restart unless-stopped \
-              --memory "300m" \
-              --cpus="1.0" \
+              --memory "1g" \
+              --cpus="3.0" \
               --env-file /var/www/turbo/prod/turbo-delivery-erp/.env \
               -p 4002:3000 \
               \$IMAGE
