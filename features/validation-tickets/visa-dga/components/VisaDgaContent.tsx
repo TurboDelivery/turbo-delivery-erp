@@ -12,6 +12,7 @@ import VisaDgaStatusAlert from './VisaDgaStatusAlert';
 import VisaDgaChaineValidation from './VisaDgaChaineValidation';
 import VisaDgaRejetModal from './VisaDgaRejetModal';
 import VisaDgaViserModal from './VisaDgaViserModal';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
@@ -39,7 +40,21 @@ export default function VisaDgaContent() {
     handleViser,
     handleRejeter,
     handleVoirGrille,
+    isError,
+    isFetching,
+    refetch,
   } = useVisaDga();
+
+  // Etape de visa de la chaine de paie : sans ce garde, un echec de lecture
+  // rendait un creneau ABSENT, indistinguable d'un lot vide, sur un ecran ou l'on
+  // vise des montants reels.
+  if (isError) {
+    return (
+      <div className="p-4 sm:p-6">
+        <EtatErreur quoi="le lot à viser" onReessayer={() => refetch()} enCours={isFetching} />
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

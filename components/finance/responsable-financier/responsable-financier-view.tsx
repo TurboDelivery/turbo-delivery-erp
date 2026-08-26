@@ -34,6 +34,7 @@ import DemarrerRecouvrementDrawer from './demarrer-recouvrement-modal';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { useResponsableFinancierTable } from '@/features/responsable-financier/hooks/use-responsable-financier-table';
 import { useResponsableFinancierStats } from '@/features/responsable-financier/hooks/use-responsable-financier-stats';
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   useValiderFactureRFMutation,
   useLancerRecouvrementMutation,
@@ -136,7 +137,7 @@ export default function ResponsableFinancierView() {
     [confirmerReceptionMutation, selectColumn],
   );
 
-  const { table, filters, setFilters, isLoading, totalPages, totalElements } =
+  const { table, filters, setFilters, isLoading, isFetching, isError, refetch, totalPages, totalElements } =
     useResponsableFinancierTable(columns);
 
   // Ids de la page courante + états de la case « page ».
@@ -351,6 +352,14 @@ export default function ResponsableFinancierView() {
         </div>
       )}
 
+      {/* L'echec de lecture s'affiche ICI, et les deux messages d'etat vide
+          (tableau desktop + cartes mobiles) sont neutralises en dessous : sans
+          cela, l'ecran afficherait l'erreur ET « aucune donnee », ce qui revient
+          a se contredire. */}
+      {isError && (
+        <EtatErreur quoi="les factures" onReessayer={() => refetch()} enCours={isFetching} />
+      )}
+
       {/* Table — desktop uniquement (≥ md) */}
       <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <Table
@@ -376,7 +385,7 @@ export default function ResponsableFinancierView() {
             ))}
           </TableHeader>
           <TableBody
-            emptyContent={isLoading ? ' ' : 'Aucune facture trouvée'}
+            emptyContent={isLoading || isError ? ' ' : 'Aucune facture trouvée'}
             items={isLoading ? [] : table.getRowModel().rows}
           >
             {isLoading ? (
@@ -411,7 +420,7 @@ export default function ResponsableFinancierView() {
             <div key={i} className="h-40 rounded-xl bg-gray-100 animate-pulse" />
           ))
         ) : table.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucune facture trouvée</p>
+          isError ? null : <p className="text-sm text-gray-400 text-center py-10">Aucune facture trouvée</p>
         ) : (
           table.getRowModel().rows.map((row) => {
             const f = row.original;

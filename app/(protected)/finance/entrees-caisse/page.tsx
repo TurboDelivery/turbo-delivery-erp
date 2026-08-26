@@ -7,10 +7,11 @@ import { EntreeCaisseTable } from '@/components/finance/entrees-caisse/entree-ca
 import { CreerEntreeCaisseModal } from '@/components/finance/entrees-caisse/creer-entree-caisse-modal';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { useEntreeCaisseTable } from '@/features/entrees-caisse/hooks/use-entree-caisse-table';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export default function EntreesCaissePage() {
   const router = useRouter();
-  const { table, isLoading, isFetching, pagination, filters, handleDateChange } =
+  const { table, isLoading, isFetching, isError, refetch, pagination, filters, handleDateChange } =
     useEntreeCaisseTable();
 
   return (
@@ -33,12 +34,20 @@ export default function EntreesCaissePage() {
         </div>
       </div>
 
-      <EntreeCaisseTable
-        table={table}
-        isLoading={isLoading}
-        isFetching={isFetching}
-        pagination={pagination}
-      />
+      {isError ? (
+        <EtatErreur
+          quoi="les entrées caisse"
+          onReessayer={() => refetch()}
+          enCours={isFetching}
+        />
+      ) : (
+        <EntreeCaisseTable
+          table={table}
+          isLoading={isLoading}
+          isFetching={isFetching}
+          pagination={pagination}
+        />
+      )}
     </div>
   );
 }

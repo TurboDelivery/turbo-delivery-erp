@@ -14,6 +14,7 @@ import PaiementTable from './paiement-table';
 import { MonthPicker } from './month-picker';
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 const CHARGE_TYPE_OPTIONS: { value: ChargeTypeFilter; label: string }[] = [
   { value: 'variable', label: 'Charges variables' },
@@ -33,6 +34,8 @@ export default function PaymentManagementV2() {
     renderMobileCard,
     isLoading,
     isFetching,
+    isError,
+    refetch,
     selectedIds,
     pageCount,
     chargeType,
@@ -111,7 +114,17 @@ export default function PaymentManagementV2() {
 
       {/* Table */}
       <Card className="border shadow-none overflow-hidden">
-        <PaiementTable table={table} isLoading={isLoading} isFetching={isFetching} pageCount={pageCount} emptyMessage="Aucune charge à décaisser" renderMobileCard={renderMobileCard} />
+        {/* Ecran de decaissement : sur echec, le tableau affichait « Aucune charge
+            a decaisser » et laissait croire que tout etait paye. */}
+        {isError ? (
+          <EtatErreur
+            quoi="les charges à décaisser"
+            onReessayer={() => refetch()}
+            enCours={isFetching}
+          />
+        ) : (
+          <PaiementTable table={table} isLoading={isLoading} isFetching={isFetching} pageCount={pageCount} emptyMessage="Aucune charge à décaisser" renderMobileCard={renderMobileCard} />
+        )}
       </Card>
 
       {/* Confirm Modal */}

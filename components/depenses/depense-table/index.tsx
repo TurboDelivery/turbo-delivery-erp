@@ -13,9 +13,10 @@ import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { DollarSign } from 'lucide-react';
 import { DepenseMobileCard } from '@/components/depenses/depense-table/depense-mobile-card';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export function DepenseTable() {
-  const { table, isLoading, isFetching, pagination, filters, setSelectedCategories, handleDateChange } = useDepenseTable();
+  const { table, isLoading, isFetching, isError, refetch, pagination, filters, setSelectedCategories, handleDateChange } = useDepenseTable();
 
   const currentSearchParams = {
     debut: filters.debut,
@@ -59,6 +60,13 @@ export function DepenseTable() {
             <CategoriesSelectFilter selectedCategories={filters.categoriesDepense || []} onCategoriesChange={setSelectedCategories} />
             <CreerDepenseModal />
           </div>
+
+          {/* L'echec de lecture s'affiche ICI, et le message d'etat vide des
+              cartes mobiles est neutralise en dessous : sans cela l'ecran
+              afficherait l'erreur ET « Aucune depense ». */}
+          {isError && (
+            <EtatErreur quoi="les dépenses" onReessayer={() => refetch()} enCours={isFetching} />
+          )}
 
           {/* Tableau — desktop uniquement (≥ md) */}
           <div className="hidden md:block overflow-x-auto">
@@ -108,7 +116,7 @@ export function DepenseTable() {
                 <div key={`m-skel-${i}`} className="h-40 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />
               ))
             ) : table.getRowModel().rows.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-10">Aucune dépense</p>
+              isError ? null : <p className="text-sm text-gray-400 text-center py-10">Aucune dépense</p>
             ) : (
               table.getRowModel().rows.map((row) => <DepenseMobileCard key={row.id} depense={row.original} />)
             )}

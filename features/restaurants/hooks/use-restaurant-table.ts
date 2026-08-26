@@ -73,7 +73,7 @@ export const useRestaurantTable = () => {
   }, [filters.page, filters.limit, debouncedFilters.search, filters.orderBy, filters.orderDirection,
       debouncedFilters.localisation, debouncedFilters.email, debouncedFilters.telephone, debouncedFilters.commune, filters.methodRecouvrement, filters.statut]);
 
-  const { data: restaurantsData, isLoading, error, isError, isFetching } = useRestaurantsListQuery(currentSearchParams);
+  const { data: restaurantsData, isLoading, error, isError, isFetching, refetch } = useRestaurantsListQuery(currentSearchParams);
   const restaurants = restaurantsData?.content || [];
 
   const pagination = {
@@ -161,6 +161,7 @@ export const useRestaurantTable = () => {
     isLoading,
     isError,
     isFetching,
+    refetch,
     isExporting,
     setFilters,
     restaurants,

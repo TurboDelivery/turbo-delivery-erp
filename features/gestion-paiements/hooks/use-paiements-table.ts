@@ -37,6 +37,10 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
   const response = chargeType === 'fixe' ? fixesQuery.data : variablesQuery.data;
   const isLoading = chargeType === 'fixe' ? fixesQuery.isLoading : variablesQuery.isLoading;
   const isFetching = chargeType === 'fixe' ? fixesQuery.isFetching : variablesQuery.isFetching;
+  // L'ecran bascule entre charges fixes et variables : on suit l'echec et la
+  // relance de la query REELLEMENT active, pas des deux.
+  const isError = chargeType === 'fixe' ? fixesQuery.isError : variablesQuery.isError;
+  const refetch = chargeType === 'fixe' ? fixesQuery.refetch : variablesQuery.refetch;
 
   const data = useMemo(() => {
     const content = response?.content ?? [];
@@ -149,6 +153,8 @@ export function usePaiementsTable(debut: string, fin: string, onRequestDecaisser
     renderMobileCard,
     isLoading,
     isFetching,
+    isError,
+    refetch,
     selectedIds,
     totalElements: response?.totalElements ?? 0,
     pageCount: response?.totalPages ?? 0,

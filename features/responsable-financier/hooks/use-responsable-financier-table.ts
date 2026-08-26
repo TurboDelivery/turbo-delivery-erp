@@ -25,7 +25,7 @@ export const useResponsableFinancierTable = (columns: ColumnDef<IFactureRF>[]) =
     size: filters.size,
   }), [filters]);
 
-  const { data, isLoading, isFetching, isError } = useFacturesRFQuery(params);
+  const { data, isLoading, isFetching, isError, refetch } = useFacturesRFQuery(params);
 
   const sorting: SortingState = [];
 
@@ -45,6 +45,7 @@ export const useResponsableFinancierTable = (columns: ColumnDef<IFactureRF>[]) =
     isLoading,
     isFetching,
     isError,
+    refetch,
     stats: data?.stats,
     totalElements: data?.factures?.totalElements ?? 0,
     totalPages: data?.factures?.totalPages ?? 0,

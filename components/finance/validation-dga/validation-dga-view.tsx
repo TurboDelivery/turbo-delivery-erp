@@ -21,6 +21,7 @@ import {
   type IFactureRF,
 } from '@/features/responsable-financier';
 import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 
@@ -221,7 +222,13 @@ export default function ValidationDgaView() {
   // EN_ATTENTE_VISA_DGA) n'apparaissait plus dans le backlog en mai alors
   // qu'elle bloquait toujours le workflow. `periode="cycle"` mappe sur
   // DateRange(null, null) côté backend = aucun filtre de date.
-  const { data: listData, isLoading: listLoading } = useFacturesRFQuery({
+  const {
+    data: listData,
+    isLoading: listLoading,
+    isError: listErreur,
+    isFetching: listEnCours,
+    refetch: rechargerListe,
+  } = useFacturesRFQuery({
     periode: 'cycle',
     statut: 'En attente visa DGA',
     size: 50,
@@ -321,7 +328,16 @@ export default function ValidationDgaView() {
 
           {/* List */}
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {listLoading ? (
+            {/* Sur echec, `factures` retombait a [] et `pendingCount` a 0 :
+                l'ecran annoncait qu'il n'y avait plus rien a viser alors que le
+                workflow etait bloque. */}
+            {listErreur ? (
+              <EtatErreur
+                quoi="les factures en attente de visa"
+                onReessayer={() => rechargerListe()}
+                enCours={listEnCours}
+              />
+            ) : listLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="h-16 rounded-xl bg-gray-100 animate-pulse" />
               ))

@@ -14,6 +14,7 @@ import {
 } from '@heroui/react';
 import { Landmark, PiggyBank, ArrowRightLeft, Building2 } from 'lucide-react';
 import { useFacturesRFQuery, type IFactureRF } from '@/features/responsable-financier';
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   useOrienterFondsMutation,
   useReorienterFondsMutation,
@@ -68,9 +69,18 @@ export default function OrientationFondsView() {
   // l'orientation VAUT visa. On liste donc les factures « En attente visa DGA » (le visa
   // sera posé implicitement par le backend) + le stock « Visé DGA » historique,
   // + les conservées en caisse (ré-orientables).
-  const { data: attenteData, isLoading: loadingAttente } = useFacturesRFQuery({ periode: 'cycle', statut: 'En attente visa DGA', size: 100 });
-  const { data: viseData, isLoading: loadingVise } = useFacturesRFQuery({ periode: 'cycle', statut: 'Visé DGA', size: 100 });
-  const { data: caisseData, isLoading: loadingCaisse } = useFacturesRFQuery({ periode: 'cycle', statut: 'Conservé en caisse', size: 100 });
+  const qAttente = useFacturesRFQuery({ periode: 'cycle', statut: 'En attente visa DGA', size: 100 });
+  const qVise = useFacturesRFQuery({ periode: 'cycle', statut: 'Visé DGA', size: 100 });
+  const qCaisse = useFacturesRFQuery({ periode: 'cycle', statut: 'Conservé en caisse', size: 100 });
+
+  const { data: attenteData, isLoading: loadingAttente } = qAttente;
+  const { data: viseData, isLoading: loadingVise } = qVise;
+  const { data: caisseData, isLoading: loadingCaisse } = qCaisse;
+
+  // Trois listes agregees derriere un seul indicateur de chargement : si l'un des
+  // appels echoue, la file « a orienter » se vidait SILENCIEUSEMENT et le
+  // comptable croyait avoir tout traite.
+  const erreurOrient = qAttente.isError || qVise.isError;
 
   const aOrienter = [
     ...(attenteData?.factures?.content ?? []),
@@ -146,7 +156,16 @@ export default function OrientationFondsView() {
             </span>
           )}
         </h2>
-        {chargementOrient ? (
+        {erreurOrient ? (
+          <EtatErreur
+            quoi="les factures à orienter"
+            onReessayer={() => {
+              qAttente.refetch();
+              qVise.refetch();
+            }}
+            enCours={qAttente.isFetching || qVise.isFetching}
+          />
+        ) : chargementOrient ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-28 rounded-xl bg-gray-100 animate-pulse" />)}
           </div>
@@ -180,7 +199,13 @@ export default function OrientationFondsView() {
             </span>
           )}
         </h2>
-        {loadingCaisse ? (
+        {qCaisse.isError ? (
+          <EtatErreur
+            quoi="les factures conservées en caisse"
+            onReessayer={() => qCaisse.refetch()}
+            enCours={qCaisse.isFetching}
+          />
+        ) : loadingCaisse ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-28 rounded-xl bg-gray-100 animate-pulse" />)}
           </div>

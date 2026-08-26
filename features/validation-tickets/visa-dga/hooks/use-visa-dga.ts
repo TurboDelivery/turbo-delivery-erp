@@ -25,7 +25,7 @@ export default function useVisaDga() {
   const { data: creneauList, isLoading: isLoadingCreneaux } = useCreneauxListQuery();
   const creneaux = creneauList?.content ?? [];
 
-  const { data: creneau, isLoading } = useVisaDgaQuery(selectedCreneauId);
+  const { data: creneau, isLoading, isError, isFetching, refetch } = useVisaDgaQuery(selectedCreneauId);
   const { mutate: viser, isPending: isVisant } = useViserEtTransmettreMutation();
   const { mutate: rejeter, isPending: isRejetant } = useRejeterEtRenvoyerMutation();
 
@@ -68,6 +68,9 @@ export default function useVisaDga() {
   return {
     creneau,
     isLoading,
+    isError,
+    isFetching,
+    refetch,
     creneaux,
     isLoadingCreneaux,
     selectedCreneauId,

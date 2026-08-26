@@ -23,6 +23,7 @@ import { useRestaurantStatusCountsQuery } from '@/features/restaurants/queries/r
 import { StatCard } from '@/features/men/components/stat-card';
 import { RestaurantMobileCard, RestaurantMobileCardList } from '@/components/restaurants/restaurant-mobile-card';
 import { StatusChip, ActionsMenu } from '@/components/restaurants/table/restaurant-table-columns';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 const RECOUVREMENT_LABELS: Record<string, string> = {
   MENSUEL: 'Mensuel',
@@ -43,7 +44,7 @@ const TYPE_OPTIONS = [
 type VueStatut = '' | 'valides' | 'partiels' | 'nouveaux' | 'inactifs';
 
 export default function Content() {
-  const { table, isLoading, isFetching, pagination, filters, setSearch, setFilters, handleExport, isExporting } = useRestaurantTable();
+  const { table, isLoading, isFetching, isError, refetch, pagination, filters, setSearch, setFilters, handleExport, isExporting } = useRestaurantTable();
   const { data: counts } = useRestaurantStatusCountsQuery();
   const colsCount = table.getAllColumns().length;
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -178,6 +179,14 @@ export default function Content() {
       </div>
 
       {/* ── Table (desktop ≥ md) ── */}
+      {/* L'echec de lecture s'affiche ICI, et les deux messages d'etat vide
+          (tableau desktop + cartes mobiles) sont neutralises en dessous : sans
+          cela, l'ecran afficherait l'erreur ET « aucune donnee », ce qui revient
+          a se contredire. */}
+      {isError && (
+        <EtatErreur quoi="les partenaires" onReessayer={() => refetch()} enCours={isFetching} />
+      )}
+
       <div className="hidden md:block relative rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
         {(isLoading || isFetching) && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60">
@@ -218,7 +227,7 @@ export default function Content() {
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent={isLoading ? ' ' : 'Aucun partenaire trouvé.'}>
+          <TableBody emptyContent={isLoading || isError ? ' ' : 'Aucun partenaire trouvé.'}>
             {isLoading
               ? Array.from({ length: 8 }).map((_, i) => (
                   <TableRow key={`sk-${i}`}>
@@ -249,7 +258,7 @@ export default function Content() {
             <div key={`sk-card-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />
           ))
         ) : table.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucun partenaire trouvé.</p>
+          isError ? null : <p className="text-sm text-gray-400 text-center py-10">Aucun partenaire trouvé.</p>
         ) : (
           table.getRowModel().rows.map((row) => {
             const r = row.original;

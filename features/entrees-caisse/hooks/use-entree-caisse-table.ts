@@ -25,7 +25,7 @@ export function useEntreeCaisseTable() {
     [filters],
   );
 
-  const { data, isLoading, isFetching } = useEntreeCaissePaginatedQuery(params);
+  const { data, isLoading, isFetching, isError, refetch } = useEntreeCaissePaginatedQuery(params);
 
   const table = useReactTable({
     data: data?.content || [],
@@ -56,6 +56,8 @@ export function useEntreeCaisseTable() {
     table,
     isLoading,
     isFetching,
+    isError,
+    refetch,
     filters,
     setFilters,
     pagination,

@@ -71,7 +71,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
     }));
   };
 
-  const { data: allDepensesData, isLoading: allDepensesLoading, error, isError, isFetching } = useDepensesListQuery(currentSearchParams);
+  const { data: allDepensesData, isLoading: allDepensesLoading, error, isError, isFetching, refetch } = useDepensesListQuery(currentSearchParams);
   const allDepenses = allDepensesData?.content || [];
 
   // Utiliser toujours la pagination API (pas de pagination locale)
@@ -158,6 +158,7 @@ export const useDepenseTable = (externalFilters?: DepenseFilters) => {
     isLoading,
     isError,
     isFetching,
+    refetch,
     setFilters: syncedSetFilters,
     depenses: allDepenses,
     depensesData: allDepensesData,
