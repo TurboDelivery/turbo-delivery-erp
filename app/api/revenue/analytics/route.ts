@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
+
+/**
+ * Garde de session. Cette route relaie des donnees financieres : sans ce controle,
+ * elle les servait a tout appelant, y compris hors de l'ERP.
+ */
+async function refuserSiNonConnecte() {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Non autorise' }, { status: 401 });
+  }
+  return null;
+}
 
 export async function GET(request: NextRequest) {
+  const refus = await refuserSiNonConnecte();
+  if (refus) return refus;
+
   try {
     const { searchParams } = new URL(request.url);
     const period = searchParams.get('period');
@@ -18,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Construire l'URL de l'API backend
-    let url = "http://backend-prod.turbodeliveryapp.com/api/finance/revenues/analytics/periode";
+    let url = "https://backend-prod.turbodeliveryapp.com/api/finance/revenues/analytics/periode";
     
     // Ajouter les paramètres selon le type de période
     const params = new URLSearchParams();

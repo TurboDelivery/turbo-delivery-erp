@@ -37,3 +37,7 @@ next-env.d.ts
 
 .idea
 .claude/worktrees
+
+# Configuration locale. Le motif `.env*` ci-dessus ne couvre PAS ce nom sans point,
+# ce qui a laisse un fichier de configuration entrer dans le depot le 22/07/2025.
+env.local

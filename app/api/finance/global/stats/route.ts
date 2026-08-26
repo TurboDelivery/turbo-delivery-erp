@@ -1,15 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/auth';
+
+/**
+ * Garde de session. Cette route relaie des donnees financieres : sans ce controle,
+ * elle les servait a tout appelant, y compris hors de l'ERP.
+ */
+async function refuserSiNonConnecte() {
+  const session = await auth();
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Non autorise' }, { status: 401 });
+  }
+  return null;
+}
 
 export async function GET(request: NextRequest) {
+  const refus = await refuserSiNonConnecte();
+  if (refus) return refus;
+
   try {
     // Récupérer les paramètres de l'URL
     const { searchParams } = new URL(request.url);
     
     // Construire l'URL de l'API externe
-    const baseUrl = 'http://backend-prod.turbodeliveryapp.com/api/finance/global/stats';
+    const baseUrl = 'https://backend-prod.turbodeliveryapp.com/api/finance/global/stats';
     const externalUrl = `${baseUrl}?${searchParams.toString()}`;
-    
-    console.log('🔍 Proxy Stats API - URL externe:', externalUrl);
     
     // Faire l'appel à l'API externe
     const response = await fetch(externalUrl, {
@@ -32,13 +46,7 @@ export async function GET(request: NextRequest) {
    
     
     // Retourner les données avec headers CORS
-    return NextResponse.json(data, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-      },
-    });
+    return NextResponse.json(data);
     
   } catch (error) {
     console.error('❌ Proxy Stats API - Erreur serveur:', error);
@@ -49,13 +57,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
-}

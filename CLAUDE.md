@@ -14,7 +14,10 @@ No test runner is configured.
 
 ## Environment Variables
 
-Copy `env.local` and set the following:
+Copy `env.local.example` to `env.local` and fill in the values. `env.local` is
+gitignored and must never be committed: the `.env*` pattern does not match a name
+without a leading dot, which is how a configuration file reached the repository on
+2025-07-22. Variables:
 
 | Variable | Purpose |
 |---|---|

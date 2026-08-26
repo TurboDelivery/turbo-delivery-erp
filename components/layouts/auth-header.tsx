@@ -17,7 +17,11 @@ const AuthHeader = () => {
                 </div>
 
                 <div className="flex items-center space-x-1.5 ltr:ml-auto rtl:mr-auto rtl:space-x-reverse dark:text-[#d0d2d6] ltr:sm:ml-0 sm:rtl:mr-0 lg:space-x-2">
-                    <ThemeSwitch />
+                    {/* Mode sombre masque le 26/08/2026. Le commutateur etait monte, mais 92 pour cent
+                    des surfaces n'ont aucune variante `dark:` : la personne qui cliquait obtenait du
+                    texte blanc sur fond blanc, menu lateral compris. Le socle visuel (lot 2) refait les
+                    couleurs en jetons ; le mode sombre en decoulera et ce bloc pourra revenir. */}
+                    {/* <ThemeSwitch /> */}
                     <LocaleSwitch />
                 </div>
             </div>
