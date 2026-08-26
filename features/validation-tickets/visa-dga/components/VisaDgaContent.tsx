@@ -71,7 +71,7 @@ export default function VisaDgaContent() {
   if (!creneau) {
     return (
       <div className="flex flex-col gap-5 p-4 sm:p-6">
-        <h1 className="text-xl sm:text-2xl font-bold text-red-500">Visa DGA</h1>
+        <h1 className="text-2xl font-bold text-primary">Visa DGA</h1>
         <div className="flex items-center justify-center rounded-xl border border-gray-200 bg-white py-24">
           <p className="text-sm text-gray-400">Aucun dossier en attente de visa DGA.</p>
         </div>
@@ -84,8 +84,8 @@ export default function VisaDgaContent() {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold text-red-500">
-            Visa DGA — <span className="text-red-500">{creneau.code}</span>
+          <h1 className="text-2xl font-bold text-primary">
+            Visa DGA — <span className="text-primary">{creneau.code}</span>
           </h1>
           <p className="text-sm text-gray-400 mt-0.5">
             {formatDate(creneau.debut)} → {formatDate(creneau.fin)}

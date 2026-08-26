@@ -389,7 +389,7 @@ export function FinanceHubView() {
     <div className="space-y-4 p-3 sm:p-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-bold text-primary sm:text-xl">Finances — Dépenses, Décaissement & Rentabilité</h1>
+          <h1 className="text-2xl font-bold text-primary">Finances — Dépenses, Décaissement & Rentabilité</h1>
           <p className="text-sm text-default-500">
             Module unifié : charges fixes & variables · validation en cascade · prorata temps réel · décaissement
           </p>
@@ -585,7 +585,7 @@ export function FinanceHubView() {
               </thead>
               <tbody>
                 {list.length === 0 && (
-                  <tr><td colSpan={8} className="px-3 py-10 text-center text-default-400">Aucune dépense ici.</td></tr>
+                  <tr><td colSpan={8} className="px-3 py-10 text-center text-default-400">Aucune dépense ne correspond à ces filtres.</td></tr>
                 )}
                 {paged.map((item) => (
                     <tr id={`dep-row-${item.id}`} key={`${item.type}-${item.id}`} className={`border-b border-default-100 hover:bg-default-50 ${highlightId === item.id ? 'bg-primary/10 ring-2 ring-inset ring-primary' : ''}`}>
@@ -619,7 +619,7 @@ export function FinanceHubView() {
           {/* Cartes tactiles — mobile (< md), remplacent le tableau à scroll horizontal */}
           <div className="divide-y divide-default-100 md:hidden">
             {list.length === 0 && (
-              <p className="px-3 py-10 text-center text-default-400">Aucune dépense ici.</p>
+              <p className="px-3 py-10 text-center text-default-400">Aucune dépense ne correspond à ces filtres.</p>
             )}
             {paged.map((item) => (
               <div

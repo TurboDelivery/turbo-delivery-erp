@@ -23,6 +23,8 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
   const [selectedRequest, setSelectedRequest] = useState<LeaveRequest | IConge | null>(null);
   
   // Utiliser le hook pour récupérer les demandes de congés
+  // Le filtre EN_ATTENTE reste desactive : le tableau liste donc tous les statuts, et son
+  // etat vide ne peut pas parler d attente sans mentir sur ce qui est affiche.
   const { data: congesData, isLoading: congesLoading, error: congesError } = useCongesQuery({
     // statut: CongeStatut.EN_ATTENTE // Filtrer les demandes en attente
   });
@@ -288,7 +290,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
           <TableRow>
             <TableCell colSpan={7} className="text-center py-8">
               <div className="text-gray-500">
-                {congesData ? 'Aucune demande en attente trouvée' : 'Chargement...'}
+                {congesData ? 'Aucune demande de congé' : 'Chargement...'}
               </div>
             </TableCell>
           </TableRow>
@@ -341,7 +343,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
         ))
       ) : (
         <p className="text-sm text-gray-400 text-center py-10">
-          {congesData ? 'Aucune demande en attente trouvée' : 'Chargement...'}
+          {congesData ? 'Aucune demande de congé' : 'Chargement...'}
         </p>
       )}
     </PersonnelMobileCardList>

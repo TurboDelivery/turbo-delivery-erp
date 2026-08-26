@@ -217,13 +217,18 @@ export function TicketMobileCard({ ticket: rowTicket, meta, isSelected, onToggle
           </>
         ) : meta.editingIds.has(ticket.id) ? (
           <>
-            <button
-              onClick={() => meta.onSaveEdit(ticket.id)}
-              disabled={!meta.permissions.canUpdate || meta.isSavingEdit}
-              className={`flex-1 h-9 bg-green-500 text-white rounded text-sm hover:bg-green-600 flex items-center justify-center gap-1 ${!meta.permissions.canUpdate ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {meta.isSavingEdit ? <Loader2 className="size-4 animate-spin" /> : <CheckSquare className="w-4 h-4" />} Enregistrer
-            </button>
+            {/* Meme enveloppe span que Modifier et Supprimer : un bouton desactive n'emet pas de survol. */}
+            <Tooltip content="Votre rôle ne permet pas d'enregistrer les modifications d'un ticket" isDisabled={meta.permissions.canUpdate} size="sm">
+              <span className="flex-1">
+                <button
+                  onClick={() => meta.onSaveEdit(ticket.id)}
+                  disabled={!meta.permissions.canUpdate || meta.isSavingEdit}
+                  className={`w-full h-9 bg-green-500 text-white rounded text-sm hover:bg-green-600 flex items-center justify-center gap-1 ${!meta.permissions.canUpdate ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {meta.isSavingEdit ? <Loader2 className="size-4 animate-spin" /> : <CheckSquare className="w-4 h-4" />} Enregistrer
+                </button>
+              </span>
+            </Tooltip>
             <button onClick={() => meta.onCancelEdit(ticket.id)} className="flex-1 h-9 bg-red-500 text-white rounded text-sm hover:bg-red-600 flex items-center justify-center gap-1">
               <X className="w-4 h-4" /> Annuler
             </button>

@@ -99,7 +99,7 @@ export default function RepartitionDepensePieChart({ className, debut: debutProp
           </ChartContainer>
         ) : (
           <div className="flex items-center justify-center h-[300px]">
-            <div className="text-muted-foreground">Aucune donnée disponible</div>
+            <div className="text-muted-foreground">Aucune dépense sur la période</div>
           </div>
         )}
       </CardContent>

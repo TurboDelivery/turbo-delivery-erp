@@ -31,8 +31,8 @@ export default function Content({ initialData }: Props) {
 
     if (!data) return (
         <EmptyDataTable
-            title="Aucune Livreur trouvé"
-            message="Aucune livreur correspondant à vos critères de recherche ou de filtre."
+            title="Aucun livreur"
+            message="Aucun livreur ne correspond à ces critères de recherche ou de filtre."
         />
     );
 

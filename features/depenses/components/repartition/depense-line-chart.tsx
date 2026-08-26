@@ -98,13 +98,13 @@ export default function DepenseLineChart({ className }: { className?: string }) 
           </ChartContainer>
         ) : (
           <div className="flex items-center justify-center h-[300px]">
-            <div className="text-muted-foreground">Aucune donnée disponible</div>
+            <div className="text-muted-foreground">Aucune dépense sur la période</div>
           </div>
         )}
         <CardFooter>
           <div className="text-muted-foreground leading-none text-center mt-4 w-full">
             {/* Description */}
-            L&#39;évolution des dépenses durant la periode choisie.
+            L&#39;évolution des dépenses durant la période choisie.
           </div>
         </CardFooter>
       </CardContent>

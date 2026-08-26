@@ -242,7 +242,7 @@ export default async function Page({ params }: CreneauIdPageProps) {
 
 
     if (!user) {
-        return <EmptyDataTable />;
+        return <EmptyDataTable title="Aucun planning" />;
     }
 
 

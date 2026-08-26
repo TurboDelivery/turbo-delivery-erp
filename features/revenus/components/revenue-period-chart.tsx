@@ -186,7 +186,7 @@ export default function RevenuePeriodChart() {
     return (
       <div className="space-y-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-600">Aucune donnée disponible</p>
+          <p className="text-yellow-600">Aucun revenu sur cette période</p>
         </div>
 
         {/* Section de debugging pour les plages personnalisées */}
@@ -217,7 +217,7 @@ export default function RevenuePeriodChart() {
     <div className="space-y-6">
       {/* En-tête avec sélecteur de période */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-        <h2 className="text-2xl font-bold text-gray-800">Revenus par période</h2>
+        <h2 className="text-2xl font-bold text-primary">Revenus par période</h2>
 
         {/* Sélecteur de plage de dates */}
         <DateFilterInput
@@ -235,7 +235,7 @@ export default function RevenuePeriodChart() {
           <div className="flex items-center gap-3">
             <Calendar className="w-5 h-5 text-yellow-600" />
             <div>
-              <h4 className="text-sm font-semibold text-yellow-800">Aucune donnée disponible</h4>
+              <h4 className="text-sm font-semibold text-yellow-800">Aucun revenu</h4>
               <p className="text-xs text-yellow-600">Il n&#39;y a pas de revenus enregistrés pour cette période.</p>
             </div>
           </div>

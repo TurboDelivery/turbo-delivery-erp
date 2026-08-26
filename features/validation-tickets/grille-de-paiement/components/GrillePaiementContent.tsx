@@ -79,7 +79,7 @@ export default function GrillePaiementContent() {
     return (
       <div className="flex flex-col gap-5 p-4 sm:p-6">
         <div>
-          <h1 className="text-2xl font-bold text-red-600">Grille de paiement</h1>
+          <h1 className="text-2xl font-bold text-primary">Grille de paiement</h1>
           <p className="text-sm text-gray-400 mt-1">
             Génération automatique depuis les tickets verrouillés.
           </p>
@@ -96,9 +96,9 @@ export default function GrillePaiementContent() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-red-500">
+          <h1 className="text-2xl font-bold text-primary">
             Grille de paiement —{' '}
-            <span className="text-red-500 font-bold">{grille.code}</span>
+            <span className="text-primary font-bold">{grille.code}</span>
           </h1>
           <p className="text-sm text-gray-400 mt-0.5">
             Génération automatique depuis les tickets verrouillés · Cliquez une ligne pour voir le détail.

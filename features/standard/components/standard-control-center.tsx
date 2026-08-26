@@ -225,7 +225,7 @@ export function StandardControlCenter() {
       {/* Entête */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold text-primary">
+          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold text-primary">
             Centre de contrôle — STANDARD
             {totalRecus > 0 && (
               <span className="inline-flex items-center rounded-full bg-[#E11D48]/10 px-2.5 py-1 text-xs font-bold text-[#B4123B]">
@@ -316,7 +316,7 @@ export function StandardControlCenter() {
               {recus.isLoading ? (
                 <CartesFantomes />
               ) : listeRecus.length === 0 ? (
-                <Vide message="Rien en attente — tous les signalements ont été pris en charge." />
+                <Vide message="Aucun incident en attente : tous les signalements ont été pris en charge." />
               ) : (
                 <>
                   <div className="grid gap-3 2xl:grid-cols-2">

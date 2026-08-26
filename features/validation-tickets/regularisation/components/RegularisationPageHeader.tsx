@@ -13,7 +13,9 @@ export default function RegularisationPageHeader({ pendingCount }: Props) {
         <p className="text-xs font-semibold uppercase tracking-widest text-red-100 mb-1">
           Vérification B — Circuit anti-fraude
         </p>
-        <h1 className="text-xl sm:text-2xl font-bold">Régularisation des tickets en retard</h1>
+        {/* Titre pose sur un aplat rouge de marque : le passer en text-primary
+            donnerait du rouge sur rouge, illisible. Seule la taille est alignee. */}
+        <h1 className="text-2xl font-bold">Régularisation des tickets en retard</h1>
         <p className="mt-1 text-sm text-red-100">Approbation spéciale pour les tickets saisis hors créneau.</p>
       </div>
 

@@ -114,7 +114,7 @@ export default function ListPerformanceApercu({data, infoUser}:Props){
         </div>
     )
 }else{
-    return<EmptyDataTable/>
+    return <EmptyDataTable title="Aucun créneau" />
 }
     
 

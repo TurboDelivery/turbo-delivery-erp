@@ -3,7 +3,6 @@
 import useContentCtx from './useContentCtx';
 import { PaginatedResponse } from '@/types';
 import { Restaurant } from '@/types/models';
-import { title } from '@/components/primitives';
 import { BonLivraison } from '@/types/bon-livraison.model';
 import { SelectField } from '@/components/commons/form/select-field';
 import { Calendar, Cherry, CircleFadingPlus, Home, SquareMenu, ToggleRight, User } from 'lucide-react';
@@ -21,7 +20,7 @@ export default function Content({ initialData, restaurants }: ContentProps) {
     return (
         <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">
             <div className="flex items-center justify-between">
-                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Les tickets</h1>
+                <h1 className="text-2xl font-bold text-primary">Les tickets</h1>
             </div>
             <div className="w-full bg-white border border-gray-200 shadow-sm rounded-md p-4 sm:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
@@ -99,8 +98,8 @@ export default function Content({ initialData, restaurants }: ContentProps) {
                         emptyContent={
                             isLoading ? ' ' :
                             <EmptyDataTable
-                                title="Aucun Bon de Livraison Trouvé"
-                                message="Aucune bon de Livraison ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
+                                title="Aucun bon de livraison trouvé"
+                                message="Aucun bon de livraison ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
                             />
                         }
                     >
@@ -128,8 +127,8 @@ export default function Content({ initialData, restaurants }: ContentProps) {
                     ))
                 ) : (data?.content?.length ?? 0) === 0 ? (
                     <EmptyDataTable
-                        title="Aucun Bon de Livraison Trouvé"
-                        message="Aucune bon de Livraison ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
+                        title="Aucun bon de livraison trouvé"
+                        message="Aucun bon de livraison ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
                     />
                 ) : (
                     (data?.content ?? []).map((item) => (

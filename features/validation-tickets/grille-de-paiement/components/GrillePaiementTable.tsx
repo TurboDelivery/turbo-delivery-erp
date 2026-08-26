@@ -143,16 +143,24 @@ function InclusionToggle({
   const included = effectiveInclusion(ligne);
   const isOverride = ligne.inclusDansPaie !== null && ligne.inclusDansPaie !== undefined;
   const canEdit = canEditInclusion && !readOnly && onToggleInclusion;
+  const etatInclusion = isOverride
+    ? 'Override Comptable (cf. journal)'
+    : included
+      ? 'Inclus par défaut (Indépendant)'
+      : 'Exclu par défaut (Journalier/Superviseur/À catégoriser)';
+  // L'interrupteur grise ne disait que son etat, jamais pourquoi il refuse le clic : on fait
+  // preceder l'etat par la cause du blocage, le droit d'abord.
+  const motifBlocage = !canEditInclusion
+    ? "Votre rôle ne permet pas de modifier l'inclusion en paie"
+    : readOnly
+      ? 'Grille en lecture seule'
+      : !onToggleInclusion
+        ? 'Modification indisponible sur cet écran'
+        : '';
   return (
     <label
       className={`relative inline-flex items-center ${canEdit ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'}`}
-      title={
-        isOverride
-          ? 'Override Comptable (cf. journal)'
-          : included
-            ? 'Inclus par défaut (Indépendant)'
-            : 'Exclu par défaut (Journalier/Superviseur/À catégoriser)'
-      }
+      title={motifBlocage ? `${motifBlocage}. ${etatInclusion}` : etatInclusion}
     >
       <input
         type="checkbox"
@@ -378,7 +386,7 @@ export default function GrillePaiementTable({
             </TableColumn>
           ))}
         </TableHeader>
-        <TableBody emptyContent="Aucune ligne">
+        <TableBody emptyContent="Aucune ligne de paiement">
           {table.getRowModel().rows.map((row) => (
             <TableRow
               key={row.id}
@@ -417,7 +425,7 @@ export default function GrillePaiementTable({
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <div className="md:hidden space-y-3 p-4">
         {lignes.length === 0 ? (
-          <p className="py-10 text-center text-sm text-gray-400">Aucune ligne</p>
+          <p className="py-10 text-center text-sm text-gray-400">Aucune ligne de paiement</p>
         ) : (
           lignes.map((ligne) => {
             const badge = typeLivreurBadge(ligne.typeLivreur);

@@ -11,7 +11,7 @@ export default async function Page({ params }: TurboysPageProps) {
     const { id } = params;
     const user = await getInfoLivreurById(id);
 
-    if (!user) return <div>Aucun utilisateur trouvé</div>;
+    if (!user) return <div>Aucun livreur trouvé</div>;
 
     return <Content user={user} />;
 }

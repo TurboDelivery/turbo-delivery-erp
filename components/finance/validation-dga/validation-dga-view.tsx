@@ -296,7 +296,7 @@ export default function ValidationDgaView() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Vue Directeur Général Adjoint</h1>
+          <h1 className="text-2xl font-bold text-primary">Vue Directeur Général Adjoint</h1>
           <p className="text-sm text-gray-500 mt-0.5">Validation des preuves de paiement — Étape 5</p>
         </div>
         <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 px-3 py-2 shadow-sm">

@@ -56,7 +56,7 @@ export function VerrouillageV2Content() {
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-red-600">Verrouillage V2 — Responsable V&A</h1>
+        <h1 className="text-2xl font-bold text-primary">Verrouillage V2 — Responsable V&A</h1>
         <p className="text-sm text-gray-500 mt-1">
           Étape 4 — Double passe complète.
         </p>

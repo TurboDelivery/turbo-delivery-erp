@@ -84,7 +84,7 @@ export const ROLE_CONFIG: Record<Role, { label: string; description: string; acc
 
 // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function fmtDate(d?: string | null) {
-  if (!d) return 'â€”';
+  if (!d) return '—';
   try {
     return format(new Date(d), 'dd/MM/yyyy', { locale: fr });
   } catch {
@@ -116,7 +116,7 @@ export function chargeVariableToDepense(cv: IChargeVariable): IDepense {
     statut:         CV_STATUT_TO_PAGE[cv.statut] ?? cv.statut,
     categorie:      cv.categorie
       ? { id: cv.categorie.id, nomCategorie: cv.categorie.nomCategorie, description: cv.categorie.description ?? '' }
-      : { id: '', nomCategorie: 'â€”', description: '' },
+      : { id: '', nomCategorie: '—', description: '' },
     createdAt: cv.createdAt,
     updatedAt: cv.updatedAt,
   };
@@ -135,7 +135,7 @@ export function historiqueChargeToDepense(hc: IHistoriqueCharge): IDepense {
     statut:         CV_STATUT_TO_PAGE[hc.statut] ?? hc.statut,
     categorie:      hc.categorie
       ? { id: hc.categorie.id, nomCategorie: hc.categorie.nomCategorie, description: hc.categorie.description ?? '' }
-      : { id: '', nomCategorie: 'â€”', description: '' },
+      : { id: '', nomCategorie: '—', description: '' },
     createdAt: hc.createdAt,
     updatedAt: hc.updatedAt,
   };
@@ -161,7 +161,7 @@ export function chargeFixeToDepense(cf: IChargeFixe): IDepense {
     statut:         CV_STATUT_TO_PAGE[effectiveStatut] ?? effectiveStatut,
     categorie:      cf.categorie
       ? { id: cf.categorie.id, nomCategorie: cf.categorie.nomCategorie, description: cf.categorie.description ?? '' }
-      : { id: '', nomCategorie: 'â€”', description: '' },
+      : { id: '', nomCategorie: '—', description: '' },
     createdAt: cf.createdAt,
     updatedAt: cf.updatedAt,
   };

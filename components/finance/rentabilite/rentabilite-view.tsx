@@ -35,7 +35,7 @@ export function RentabiliteView() {
     <div className="space-y-4 p-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-primary">Rentabilité — temps réel</h1>
+          <h1 className="text-2xl font-bold text-primary">Rentabilité — temps réel</h1>
           <p className="text-sm text-default-500">
             Prorata des charges fixes + dépenses variables vs CA cumulé
           </p>

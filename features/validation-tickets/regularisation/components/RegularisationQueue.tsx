@@ -33,7 +33,7 @@ export default function RegularisationQueue({ tickets, selectedId, onSelect }: P
         ))}
 
         {tickets.length === 0 && (
-          <p className="py-10 text-center text-sm text-gray-400">Aucun ticket en attente.</p>
+          <p className="py-10 text-center text-sm text-gray-400">Aucun ticket en attente</p>
         )}
       </div>
     </div>

@@ -17,7 +17,7 @@ export default function Content({ driver }: { driver: DeliveryMan | null }) {
                         <div onClick={() => router.back()} className="text-gray-600 dark:text-white hover:text-primary cursor-pointer">
                             <ArrowLeft className="h-6 w-6" />
                         </div>
-                        <h1 className="text-xl font-semibold text-gray-900 dark:text-white capitalize">
+                        <h1 className="text-2xl font-bold text-primary capitalize">
                             {driver?.nom} {driver?.prenoms}
                         </h1>
                     </div>

@@ -20,7 +20,7 @@ interface PaiementTableProps<T> {
   renderMobileCard?: (row: Row<T>) => ReactNode;
 }
 
-export default function PaiementTable<T>({ table, isLoading, isFetching, pageCount = 0, emptyMessage = 'Aucune donnée', renderMobileCard }: PaiementTableProps<T>) {
+export default function PaiementTable<T>({ table, isLoading, isFetching, pageCount = 0, emptyMessage = 'Aucun paiement', renderMobileCard }: PaiementTableProps<T>) {
   const colsCount = table.getFlatHeaders().length;
   const rows = table.getRowModel().rows;
 

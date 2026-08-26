@@ -73,7 +73,7 @@ export function FinanceConfigView() {
     <div className="space-y-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-primary">Configuration — Finances</h1>
+          <h1 className="text-2xl font-bold text-primary">Configuration — Finances</h1>
           <p className="text-sm text-default-500">
             Paramètres globaux du module (devise, seuil d&apos;autonomie DGA, génération, comptes)
           </p>

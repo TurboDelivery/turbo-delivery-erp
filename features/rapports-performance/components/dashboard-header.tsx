@@ -19,7 +19,7 @@ export function DashboardHeader({ selectedYear, years, onYearChange }: Dashboard
   return (
     <div className="mb-8">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
-        <h1 className="text-xl sm:text-2xl font-bold text-primary">
+        <h1 className="text-2xl font-bold text-primary">
           Bilan Annuel {selectedYear}
         </h1>
         <div className="flex items-center gap-3">

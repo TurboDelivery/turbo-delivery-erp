@@ -111,7 +111,7 @@ const data ={
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody items={progressions} emptyContent={<EmptyDataTable title="Aucun  Livreur" />}>
+      <TableBody items={progressions} emptyContent={<EmptyDataTable title="Aucun livreur" />}>
         {(item) => (
           <TableRow key={item.jour} onClick={() => setOpen(true)}>
             {(columnKey) => <TableCell  >{renderCell(item, columnKey)}</TableCell>}

@@ -29,7 +29,7 @@ export function EvolutionTable({ data }: EvolutionTableProps) {
           <TableColumn>ECART</TableColumn>
           <TableColumn>TENDANCE</TableColumn>
         </TableHeader>
-        <TableBody>
+        <TableBody emptyContent="Aucune évolution">
           {data.map((row) => (
             <TableRow key={row.mois}>
               <TableCell className="font-medium">{row.mois}</TableCell>
@@ -51,7 +51,7 @@ export function EvolutionTable({ data }: EvolutionTableProps) {
       {/* Mobile — cartes tactiles (mêmes données que le tableau) */}
       <div className="md:hidden space-y-3">
         {data.length === 0 ? (
-          <p className="text-sm text-default-400 text-center py-6">Aucune donnee</p>
+          <p className="text-sm text-default-400 text-center py-6">Aucune évolution</p>
         ) : (
           data.map((row) => (
             <div key={row.mois} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">

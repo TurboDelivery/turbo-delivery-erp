@@ -83,7 +83,7 @@ export default function AnalyseRentabiliteContent() {
         <div className="flex items-center gap-3">
           <Button variant="light" size="sm" startContent={<ArrowLeft className="w-5 h-5" />} className="p-0 min-w-0" />
           <div>
-            <h1 className="text-xl font-semibold text-red-500">Analyse de Rentabilité</h1>
+            <h1 className="text-2xl font-bold text-primary">Analyse de Rentabilité</h1>
             <p className="text-sm text-gray-500">Visualisez vos performances financières en temps réel</p>
           </div>
         </div>

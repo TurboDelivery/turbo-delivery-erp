@@ -47,7 +47,7 @@ export function EntreeCaisseMiniTable() {
             <TableColumn>Date</TableColumn>
           </TableHeader>
           <TableBody
-            emptyContent="Aucune entrée"
+            emptyContent="Aucune entrée caisse"
             isLoading={isLoading}
             loadingContent={
               <div className="space-y-2 p-2">
@@ -82,7 +82,7 @@ export function EntreeCaisseMiniTable() {
             <div key={`m-skel-${i}`} className="h-20 rounded-xl bg-gray-100 animate-pulse" />
           ))
         ) : derniers5.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">Aucune entrée</p>
+          <p className="text-sm text-gray-400 text-center py-6">Aucune entrée caisse</p>
         ) : (
           derniers5.map((entry) => (
             <div key={entry.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">

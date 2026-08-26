@@ -97,7 +97,7 @@ export default function FactureDetailView({ facture }: Props) {
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Facture</p>
-          <h1 className="text-2xl font-bold text-red-500">{facture.numero}</h1>
+          <h1 className="text-2xl font-bold text-primary">{facture.numero}</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {facture.partenaire} · Cycle {facture.cycle}
           </p>

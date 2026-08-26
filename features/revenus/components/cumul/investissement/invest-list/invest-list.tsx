@@ -64,7 +64,7 @@ export default function InvestissementList() {
                     </TableColumn>
                   ))}
                 </TableHeader>
-                <TableBody emptyContent={'Aucun résultat trouvé.'} isLoading={isLoading} loadingContent={<Loader2 className="animate-spin" />}>
+                <TableBody emptyContent={'Aucun investissement'} isLoading={isLoading} loadingContent={<Loader2 className="animate-spin" />}>
                   {table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                       {row.getVisibleCells().map((cell) => (
@@ -83,7 +83,7 @@ export default function InvestissementList() {
           {isLoading ? (
             Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />)
           ) : (investissements || []).length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-10">Aucun résultat trouvé.</p>
+            <p className="text-sm text-gray-400 text-center py-10">Aucun investissement</p>
           ) : (
             (investissements || []).map((inv) => (
               <div key={inv.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">

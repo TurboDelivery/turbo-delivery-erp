@@ -239,7 +239,7 @@ export function ChatPartenairesContent() {
             >
               Standard
             </Button>
-            <h1 className="flex items-center gap-2 text-xl font-bold text-primary">
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-primary">
               Messages partenaires
               {totalNonLus > 0 && (
                 <span className="inline-flex items-center rounded-full bg-[#E11D48]/10 px-2.5 py-1 text-xs font-bold text-[#B4123B]">

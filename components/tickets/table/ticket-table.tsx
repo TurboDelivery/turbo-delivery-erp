@@ -180,7 +180,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
             <Package className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Mes tickets</h1>
+            <h1 className="text-2xl font-bold text-primary">Mes tickets</h1>
             <p className="text-xs sm:text-sm text-gray-500">Système de suivi des tickets de livraison</p>
           </div>
         </div>
@@ -255,7 +255,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
                       ) : isLoading ? (
                         'Chargement des tickets...'
                       ) : (
-                        'Aucun ticket trouvé.'
+                        'Aucun ticket trouvé'
                       )
                     }
                   >
@@ -291,7 +291,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-72 rounded-xl bg-gray-100 animate-pulse" />)
               ) : table.getRowModel().rows.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-10">Aucun ticket trouvé.</p>
+                <p className="text-sm text-gray-400 text-center py-10">Aucun ticket trouvé</p>
               ) : (
                 table.getRowModel().rows.map((row) => (
                   <TicketMobileCard

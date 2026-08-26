@@ -82,7 +82,7 @@ export function SupervisionContent() {
       {/* Entête */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-primary">Supervision des sessions &amp; audit global</h1>
+          <h1 className="text-2xl font-bold text-primary">Supervision des sessions &amp; audit global</h1>
           <p className="mt-1 max-w-3xl text-sm text-default-500">
             Présence en temps réel, journal des connexions et traçabilité des actions dans tous les modules de
             l&apos;ERP. Écran en lecture seule : les journaux ne sont ni modifiables ni supprimables, quel que

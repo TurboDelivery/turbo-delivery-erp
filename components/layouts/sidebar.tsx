@@ -11,7 +11,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleSidebar } from '@/store/themeConfigSlice';
-import menuData, { IMenuData, filterMenuByAbility, correspond, trouverCheminActif } from '@/config/menu-data';
+import menuData, { IMenuData, filterMenuByAbility, trouverCheminActif, trouverGroupeParent } from '@/config/menu-data';
 import IconCaretDown from '@/components/icon/icon-caret-down';
 import IconCaretsDown from '@/components/icon/icon-carets-down';
 import { useAbility } from '@/hooks/use-ability';
@@ -52,9 +52,7 @@ const Sidebar = () => {
   // externe, signet). Ne se declenche que sur changement de route, donc n'annule
   // pas une ouverture faite a la main ensuite.
   useEffect(() => {
-    const parent = filteredMenu.find((i) =>
-      i.children?.some((c) => c.path && correspond(c.path, pathname ?? '')),
-    );
+    const parent = trouverGroupeParent(filteredMenu, pathname);
     if (parent) setCurrentMenu(parent.title);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);

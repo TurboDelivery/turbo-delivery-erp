@@ -53,7 +53,7 @@ export default function HistoriqueCreneauDetailLivreurs({ livreurs }: Props) {
           <TableColumn>Net</TableColumn>
           <TableColumn>Statut</TableColumn>
         </TableHeader>
-        <TableBody emptyContent="Aucun livreur.">
+        <TableBody emptyContent="Aucun livreur">
           {livreurs.map((l) => {
             const badge = STATUT_BADGE[l.statut];
             return (
@@ -90,7 +90,7 @@ export default function HistoriqueCreneauDetailLivreurs({ livreurs }: Props) {
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <div className="md:hidden space-y-3 p-4">
         {livreurs.length === 0 ? (
-          <p className="py-6 text-center text-sm text-gray-400">Aucun livreur.</p>
+          <p className="py-6 text-center text-sm text-gray-400">Aucun livreur</p>
         ) : (
           livreurs.map((l) => {
             const badge = STATUT_BADGE[l.statut];

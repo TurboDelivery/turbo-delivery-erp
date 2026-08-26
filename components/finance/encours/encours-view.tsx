@@ -47,7 +47,7 @@ export function EncoursView() {
       {/* En-tête */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-lg font-bold text-primary sm:text-xl">Encours — Restes à payer</h1>
+          <h1 className="text-2xl font-bold text-primary">Encours — Restes à payer</h1>
           <p className="text-sm text-default-500">
             Factures éditées non encore recouvrées — détail par facture (mois / quinzaine / semaine)
           </p>

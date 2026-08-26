@@ -13,7 +13,7 @@ export default function UserRestaurantListe({ turboysCreneau }: { turboysCreneau
         return (
             <div>
                 <h2 className="text-lg font-semibold mb-2">Restaurant ayant des créneaux</h2>
-                <EmptyDataTable />
+                <EmptyDataTable title="Aucun restaurant" />
             </div>
         )
     }

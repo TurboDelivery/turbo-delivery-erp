@@ -233,7 +233,7 @@ export default async function Page({ params }: CreneauIdPageProps){
       // const dataCreneau = await getCreneauById(id)
     
       if (!user||!infoUser) {
-        return <EmptyDataTable/>
+        return <EmptyDataTable title="Aucune performance" />
       } 
  
    

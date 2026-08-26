@@ -80,7 +80,7 @@ export default function Content({ demandeAssignations, allRestaurant }: { demand
         <div className="bg-white rounded-lg overflow-x-auto py-4 shadow">
           {rows.length === 0 ? (
             <div className="text-center mt-10 text-xl text-primary font-bold">
-              <EmptyDataTable title="Aucun Résultat" />
+              <EmptyDataTable title="Aucune demande" />
             </div>
           ) : (
             <>

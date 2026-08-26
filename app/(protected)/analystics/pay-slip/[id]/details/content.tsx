@@ -168,7 +168,7 @@ export function DetailContent({ data }: Props) {
                     <DataTable.Empty>
                         <EmptyState
                             title={""}
-                            subtitle={"Aucune donnée n'est disponible actuellement"}
+                            subtitle={"Aucune livraison sur ce relevé"}
                         />
                     </DataTable.Empty>
                 </DataTable.Root>

@@ -65,7 +65,7 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
     {
       id: 'categorie',
       header: 'Catégorie',
-      cell: ({ row }) => <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? 'â€”'}</span>,
+      cell: ({ row }) => <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? '—'}</span>,
     },
     {
       accessorKey: 'montant',

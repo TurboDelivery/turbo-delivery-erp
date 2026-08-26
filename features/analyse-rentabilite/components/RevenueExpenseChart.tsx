@@ -45,7 +45,7 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
           </div>
         ) : data.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-gray-500">Aucune donnée disponible</div>
+            <div className="text-gray-500">Aucun chiffre d&apos;affaires ni dépense sur la période</div>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">

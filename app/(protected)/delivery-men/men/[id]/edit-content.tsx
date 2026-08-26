@@ -207,7 +207,7 @@ export default function EditContent({ id }: { id: string }) {
             className="w-16 h-16 shrink-0"
           />
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-gray-800 truncate">
+            <h1 className="text-2xl font-bold text-primary truncate">
               {turboy.prenoms} {turboy.nom}
             </h1>
             <p className="text-sm text-gray-400">

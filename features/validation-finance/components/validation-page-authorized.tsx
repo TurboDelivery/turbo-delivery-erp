@@ -68,7 +68,7 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
               depenses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-b-xl border border-t-0 border-gray-200 bg-white py-16 text-gray-400">
                   <CheckCircle2 className="mb-2 h-10 w-10" />
-                  <p className="text-sm">Aucune dépense Ã  valider</p>
+                  <p className="text-sm">Aucune dépense à valider</p>
                 </div>
               ) : (
                 <ValidationCard

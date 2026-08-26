@@ -147,7 +147,7 @@ export function MonthCard({ month }: MonthCardProps) {
             {month.hasData ? (
               <MonthFinancials month={month} />
             ) : (
-              <p className="text-gray-400 text-sm italic">Aucune donnée disponible</p>
+              <p className="text-gray-400 text-sm italic">Aucun chiffre pour ce mois</p>
             )}
           </div>
           {month.hasData && <MonthProfitability month={month} />}

@@ -2,7 +2,6 @@
 import dayjs from 'dayjs';
 import { SORT_OPTIONS } from '@/data';
 import { PaginatedResponse } from '@/types';
-import { title } from '@/components/primitives';
 import { useState, useEffect, useRef } from 'react';
 import { Clock, Package, Store } from 'lucide-react';
 import { createUrlFile } from '@/utils/createUrlFile';
@@ -150,7 +149,7 @@ export default function Content({ initialData, delivers, restaurantId }: Props) 
         <div className="w-full h-full pb-10">
             <audio ref={audioRef} src="/assets/sounds/notification.wav" preload="auto" />
             <div className="flex items-center justify-between mb-4">
-                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Toutes les courses</h1>
+                <h1 className="text-2xl font-bold text-primary">Toutes les courses</h1>
             </div>
 
             <div>
@@ -223,7 +222,7 @@ export default function Content({ initialData, delivers, restaurantId }: Props) 
                     </>
                 ) : (
                     <EmptyDataTable
-                        title="Aucune Course Trouvée"
+                        title="Aucune course trouvée"
                         message="Aucune course ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
                     />
                 )}

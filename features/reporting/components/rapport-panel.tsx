@@ -182,7 +182,7 @@ export function RapportPanel() {
           </Table>
         </>
       ) : (
-        <p className="py-10 text-center text-sm text-default-400">Aucune donnée.</p>
+        <p className="py-10 text-center text-sm text-default-400">Aucun rapport pour ce livreur.</p>
       )}
     </div>
   );

@@ -12,7 +12,7 @@ export default function Content({ initialData }: Props) {
     const { data } = useContentCtx({ initialData })
 
     if (!data || data.length == 0) {
-        return <EmptyDataTable />
+        return <EmptyDataTable title="Aucun livreur" />
     }    
     return (<UserListPerformanceBird data={data} />)
 }

@@ -130,7 +130,7 @@ export default function RegularisationTicketsTable() {
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent="Aucun ticket pour ce filtre.">
+          <TableBody emptyContent="Aucun ticket ne correspond à ces filtres">
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
@@ -161,7 +161,7 @@ export default function RegularisationTicketsTable() {
             <div key={`m-skel-${i}`} className="h-36 rounded-xl bg-gray-100 animate-pulse" />
           ))
         ) : table.getRowModel().rows.length === 0 ? (
-          <p className="py-10 text-center text-sm text-gray-400">Aucun ticket pour ce filtre.</p>
+          <p className="py-10 text-center text-sm text-gray-400">Aucun ticket ne correspond à ces filtres</p>
         ) : (
           table.getRowModel().rows.map((row) => {
             const ticket = row.original;

@@ -18,7 +18,7 @@ export default function Content({ initialData }: Props) {
     const [data, setData] = useState<PaginatedResponse<RestaurantProgressionTurbo> | null>(initialData);
 
     if (!data || data.content.length === 0) {
-        return <EmptyDataTable />;
+        return <EmptyDataTable title="Aucun restaurant" />;
     }
 
     const handlePageChange = async (newPage: number) => {

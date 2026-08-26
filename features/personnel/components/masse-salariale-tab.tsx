@@ -269,7 +269,7 @@ export function MasseSalarialeTab() {
             ? `Écart vs ${comparaison.moisPrecedentLibelle} : ${formaterMontantSigne(comparaison.ecartNet)} · effectif ${
                 comparaison.ecartEffectif >= 0 ? '+' : '−'
               }${Math.abs(comparaison.ecartEffectif)}`
-            : 'Pas de mois de comparaison'}
+            : 'Aucun mois de comparaison'}
         </span>
       </div>
 

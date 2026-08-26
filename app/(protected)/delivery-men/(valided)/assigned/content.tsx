@@ -120,7 +120,7 @@ export default function Content({ initialData, restaurants }: Props) {
             <div className="bg-white rounded-lg overflow-x-auto p-4">
                 {rows.length === 0 ? (
                     <div className="text-center py-6 text-primary font-bold mt-10 text-xl">
-                    <EmptyDataTable title="Aucun Résultat" />
+                    <EmptyDataTable title="Aucun livreur" />
                     </div>
                 ) : (
                     <>

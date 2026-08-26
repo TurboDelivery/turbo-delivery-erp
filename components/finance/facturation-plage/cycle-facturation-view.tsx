@@ -102,7 +102,7 @@ export function CycleFacturationView() {
     <div className="space-y-4 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-primary">
+          <h1 className="text-2xl font-bold text-primary">
             Configuration cycle de facturation partenaire
           </h1>
           <p className="text-sm text-default-500">

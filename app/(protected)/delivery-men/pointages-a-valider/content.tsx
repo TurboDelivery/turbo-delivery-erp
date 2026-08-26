@@ -123,7 +123,7 @@ export function PointagesAValiderContent() {
       <div className="mb-5 rounded-xl border bg-white p-5 dark:bg-black">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-lg font-semibold text-primary">Pointages hors zone</h1>
+            <h1 className="text-2xl font-bold text-primary">Pointages hors zone</h1>
             <p className="mt-1 text-sm text-gray-500">
               File d&apos;arbitrage et historique des décisions. Un pointage validé compte comme une
               présence normale (la montée fait entrer le livreur dans la file d&apos;attente) ; un

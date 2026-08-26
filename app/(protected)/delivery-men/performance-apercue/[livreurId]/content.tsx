@@ -4,7 +4,6 @@ import ButtonRetour from "@/components/commons/bouton-retour";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import SectionHeaderRetour from "@/components/commons/section-header-retour";
 import TableCreneau from './table-creneau'
-import { title } from '@/components/primitives';
 import { PerformanceCreneauId } from "@/types/performance-creneauId";
 import { Card } from "@heroui/react";
 import ListPerformanceApercu from "@/components/dashboard/delivery-men/performance-apercu/list-performance";
@@ -27,7 +26,7 @@ export default function Content({data,infoUser}:Props){
           <div>
               <div className="flex items-center pb-5">
                 <ButtonRetour/>
-                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Aperçu Performance</h1>
+                <h1 className="text-2xl font-bold text-primary">Aperçu Performance</h1>
                </div>
                <div className="pb-7">
                  <div className="font-semibold flex items-center justify-between max-w-sm bg-slate-100 px-2 py-2 border-2 rounded-xl">

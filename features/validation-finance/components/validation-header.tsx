@@ -13,7 +13,7 @@ export function ValidationHeader({ role, pendingCount }: ValidationHeaderProps) 
       <div className="px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-red-600">Finance & Workflow</h1>
+            <h1 className="text-2xl font-bold text-primary">Finance & Workflow</h1>
             <p className="mt-0.5 text-sm text-gray-500">Gestion des flux financiers</p>
           </div>
           <div className="flex items-center gap-4">

@@ -185,6 +185,23 @@ export const correspond = (cheminMenu: string, pathname: string) =>
   pathname === cheminMenu || pathname.startsWith(cheminMenu + '/');
 
 /**
+ * Groupe (entree a sous-menu) qui contient la route courante.
+ *
+ * <p>Recursif A DESSEIN. Aucune entree n'utilise `isHeader` aujourd'hui, donc une
+ * recherche au premier niveau suffirait ; mais le rendu SAIT deja imbriquer un
+ * groupe sous un en-tete de section, et cette recherche cesserait alors de trouver
+ * le groupe SANS que rien ne le signale : ni le compilateur, ni le build.</p>
+ */
+export const trouverGroupeParent = (menu: IMenuData[], pathname: string | null): IMenuData | undefined => {
+  for (const item of menu) {
+    if (item.children?.some((c) => c.path && correspond(c.path, pathname ?? ''))) return item;
+    const dansEnfants = item.children ? trouverGroupeParent(item.children, pathname) : undefined;
+    if (dansEnfants) return dansEnfants;
+  }
+  return undefined;
+};
+
+/**
  * Entree de menu a surligner. Le plus long chemin qui correspond gagne, sinon les
  * paires parent/enfant s'allument a deux : `/trafic` contre `/trafic/standard`,
  * `/restaurants` contre `/restaurants/groupes`.

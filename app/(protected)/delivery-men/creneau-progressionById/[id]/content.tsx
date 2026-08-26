@@ -35,7 +35,7 @@ export default function Content({ user, dataCreneau }: { user: LivreurDetail, da
                 <div className="flex items-center">
                     <div className="flex items-center">
                         <RetourButton />
-                        <h1 className="text-xl font-bold text-red-500">
+                        <h1 className="text-2xl font-bold text-primary">
                             {user.nom} {user.prenoms}
                         </h1>
                     </div>

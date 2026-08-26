@@ -152,7 +152,7 @@ export default function CaissierView() {
       {/* Header */}
       <div>
         <p className="text-sm text-gray-500">Comptabilité</p>
-        <h1 className="text-2xl font-bold text-indigo-600">Espace Caissier</h1>
+        <h1 className="text-2xl font-bold text-primary">Espace Caissier</h1>
       </div>
 
       {/* Bandeau de statistiques. La carte locale supprimee ici etait une copie

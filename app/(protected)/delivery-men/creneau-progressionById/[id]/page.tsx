@@ -40,7 +40,7 @@ export default async function UserPage({ params }: TurboysPageProps) {
     }
 
     if (!user) {
-        return <div>Aucun utilisateur trouvé</div>;
+        return <div>Aucun livreur trouvé</div>;
     }
 
     return <Content user={user} dataCreneau={dataCreneau ?? []} />;

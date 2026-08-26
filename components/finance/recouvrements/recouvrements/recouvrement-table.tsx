@@ -42,7 +42,7 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent={'Aucun résultat trouvé'}>
+          <TableBody emptyContent={'Aucun recouvrement'}>
             {isLoading
               ? Array.from({ length: 10 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
@@ -69,7 +69,7 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-28 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
         ) : table.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucun résultat trouvé</p>
+          <p className="text-sm text-gray-400 text-center py-10">Aucun recouvrement</p>
         ) : (
           table.getRowModel().rows.map((row) => <RecouvrementMobileCard key={row.id} recouvrement={row.original} />)
         )}

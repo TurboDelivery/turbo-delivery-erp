@@ -96,7 +96,7 @@ export default function VerificationDepotsView() {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <p className="text-sm text-gray-500">Comptabilité</p>
-          <h1 className="text-2xl font-bold text-indigo-600">Vérification dépôt en banque</h1>
+          <h1 className="text-2xl font-bold text-primary">Vérification dépôt en banque</h1>
           <p className="text-sm text-gray-400 mt-0.5">
             Rapprochement croisé N° de visa ↔ N° de bordereau, et suivi des fonds conservés en caisse.
           </p>

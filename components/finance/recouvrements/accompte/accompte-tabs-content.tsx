@@ -167,7 +167,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
                   </TableColumn>
                 ))}
               </TableHeader>
-              <TableBody emptyContent={'Aucun résultat trouvé'}>
+              <TableBody emptyContent={'Aucun acompte'}>
                 {isLoading
                   ? Array.from({ length: 10 }).map((_, i) => (
                       <TableRow key={`skeleton-${i}`}>
@@ -225,7 +225,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
             {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-24 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
             ) : accomptes.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-10">Aucun résultat trouvé</p>
+              <p className="text-sm text-gray-400 text-center py-10">Aucun acompte</p>
             ) : (
               accomptes.map((accompte) => <AccompteMobileCard key={accompte.id} accompte={accompte} />)
             )}

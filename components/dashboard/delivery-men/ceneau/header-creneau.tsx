@@ -12,7 +12,7 @@ export default function HeaderCreneau() {
     return (
         <div className="flex items-center justify-between w-full py-2 px-3">
             {/* Titre à gauche */}
-            <h1 className={title({ size: 'h4', class: 'text-primary' })}>
+            <h1 className="text-2xl font-bold text-primary">
                 DETAIL CRENEAUX
             </h1>
 

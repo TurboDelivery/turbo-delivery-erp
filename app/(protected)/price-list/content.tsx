@@ -87,7 +87,7 @@ export default function Content() {
                 </TableColumn>
               )}
             </TableHeader>
-            <TableBody items={tableItems} emptyContent={!isLoading ? <EmptyDataTable title="Aucun Frais de Livraison" /> : ' '}>
+            <TableBody items={tableItems} emptyContent={!isLoading ? <EmptyDataTable title="Aucun frais de livraison" /> : ' '}>
               {(item) =>
                 isLoading ? (
                   <TableRow key={item.id}>
@@ -116,7 +116,7 @@ export default function Content() {
               <div key={`sk-card-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />
             ))
           ) : deliveryFees.length === 0 ? (
-            <EmptyDataTable title="Aucun Frais de Livraison" />
+            <EmptyDataTable title="Aucun frais de livraison" />
           ) : (
             deliveryFees.map((fee) => (
               <div

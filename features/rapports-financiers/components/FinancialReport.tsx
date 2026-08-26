@@ -177,7 +177,7 @@ export default function FinancialReport() {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">Rapports Financiers</h1>
+              <h1 className="text-2xl font-bold text-primary">Rapports Financiers</h1>
               <p className="text-sm text-gray-500">Consultez et exportez vos rapports mensuels</p>
             </div>
           </div>

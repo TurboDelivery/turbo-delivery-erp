@@ -2,7 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Input, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Input, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tooltip } from '@heroui/react';
 import Select from 'react-select';
 import { toast } from 'sonner';
 import { ArchiveRestore, Loader2, Search, X } from 'lucide-react';
@@ -96,6 +96,14 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
 
   const colsCount = table.getAllColumns().length;
 
+  // Sans motif affiche, un bouton grise par le role passe pour un bug cote operateur.
+  // On nomme la cause bloquante, le droit d'abord ; la restauration en cours a son spinner.
+  const motifRestaurationBloquee = !canRestore
+    ? 'Votre rôle ne permet pas de restaurer un ticket archivé'
+    : selectedIds.length === 0
+      ? 'Sélectionnez au moins un ticket à restaurer'
+      : '';
+
   return (
     <div className="p-4">
       <div className="mb-6">
@@ -145,18 +153,23 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
               <X className="w-3 h-3" /> Désélectionner
             </button>
           )}
-          <button
-            onClick={handleBulkRestore}
-            disabled={!canRestore || selectedIds.length === 0 || restaurerMutation.isPending}
-            className={`px-3 py-1.5 rounded-full text-xs flex items-center gap-1 ${
-              !canRestore || selectedIds.length === 0
-                ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                : 'bg-emerald-500 text-white hover:bg-emerald-600'
-            }`}
-          >
-            {restaurerMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArchiveRestore className="w-3 h-3" />}
-            Restaurer ({selectedIds.length})
-          </button>
+          {/* Un bouton desactive n'emet aucun survol : le span porte l'evenement a la place. */}
+          <Tooltip content={motifRestaurationBloquee} isDisabled={!motifRestaurationBloquee} size="sm">
+            <span className="inline-flex">
+              <button
+                onClick={handleBulkRestore}
+                disabled={!canRestore || selectedIds.length === 0 || restaurerMutation.isPending}
+                className={`px-3 py-1.5 rounded-full text-xs flex items-center gap-1 ${
+                  !canRestore || selectedIds.length === 0
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-emerald-500 text-white hover:bg-emerald-600'
+                }`}
+              >
+                {restaurerMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArchiveRestore className="w-3 h-3" />}
+                Restaurer ({selectedIds.length})
+              </button>
+            </span>
+          </Tooltip>
         </div>
       </div>
 
@@ -170,7 +183,7 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
                 </TableColumn>
               ))}
             </TableHeader>
-            <TableBody emptyContent={archivesQuery.isLoading ? 'Chargement des archives...' : 'Aucun ticket archivé.'}>
+            <TableBody emptyContent={archivesQuery.isLoading ? 'Chargement des archives...' : 'Aucun ticket archivé'}>
               {archivesQuery.isLoading
                 ? Array.from({ length: 10 }).map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
@@ -203,7 +216,7 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
         {archivesQuery.isLoading ? (
           Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-40 rounded-xl bg-gray-100 animate-pulse" />)
         ) : table.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucun ticket archivé.</p>
+          <p className="text-sm text-gray-400 text-center py-10">Aucun ticket archivé</p>
         ) : (
           table.getRowModel().rows.map((row) => {
             const a = row.original;

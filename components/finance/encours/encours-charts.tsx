@@ -39,7 +39,7 @@ function ChartCard({
           <div className="h-[180px] w-full">{children}</div>
         ) : (
           <div className="flex h-[180px] items-center justify-center text-sm text-default-400">
-            Aucune donnée à afficher
+            Aucun reste à payer pour cette sélection.
           </div>
         )}
       </CardBody>

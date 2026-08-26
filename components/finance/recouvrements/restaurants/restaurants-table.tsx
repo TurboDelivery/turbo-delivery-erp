@@ -100,7 +100,7 @@ export function RestaurantsTable({ restoOpts, isOptionsLoading = false }: restau
           {isRestaurantLoading ? (
             Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
           ) : restaurantTable.getRowModel().rows.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-10">Aucun résultat trouvé</p>
+            <p className="text-sm text-gray-400 text-center py-10">Aucun restaurant</p>
           ) : (
             restaurantTable.getRowModel().rows.map((row) => <RestaurantRecouvrementMobileCard key={row.id} restaurant={row.original} />)
           )}

@@ -73,7 +73,7 @@ export default function ApprobationFinaleContent() {
       ) : (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-red-500">
+            <h1 className="text-2xl font-bold text-primary">
               Approbation finale{creneauActif ? ` — Créneau ${creneauActif.label}` : ''}
             </h1>
             {creneauActif && (

@@ -48,7 +48,7 @@ export default function HistoriqueCreneauxContent() {
     <div className="flex flex-col gap-5 p-4 sm:p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold text-red-500">Historique des créneaux</h1>
+        <h1 className="text-2xl font-bold text-primary">Historique des créneaux</h1>
         <Button
           variant="bordered"
           color="primary"
@@ -116,7 +116,7 @@ export default function HistoriqueCreneauxContent() {
           </TableHeader>
           <TableBody
             emptyContent={
-              isLoading ? ' ' : <span className="text-sm text-gray-400">Aucun créneau trouvé.</span>
+              isLoading ? ' ' : <span className="text-sm text-gray-400">Aucun créneau trouvé</span>
             }
           >
             {isLoading
@@ -149,7 +149,7 @@ export default function HistoriqueCreneauxContent() {
             <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 animate-pulse" />
           ))
         ) : filtered.length === 0 ? (
-          <p className="py-10 text-center text-sm text-gray-400">Aucun créneau trouvé.</p>
+          <p className="py-10 text-center text-sm text-gray-400">Aucun créneau trouvé</p>
         ) : (
           filtered.map((creneau) => {
             const config = getLotStatutConfig(creneau.lotStatut);

@@ -77,7 +77,7 @@ export default function PaymentManagementV2() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-orange-500">Gestion des Paiements</h1>
+          <h1 className="text-2xl font-bold text-primary">Gestion des Paiements</h1>
           <p className="text-sm text-gray-500 mt-1">Décaissez les charges approuvées</p>
         </div>
         <Can I="decaisser" a="Depense">

@@ -139,7 +139,7 @@ export default function OrientationFondsView() {
     <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div>
         <p className="text-sm text-gray-500">Comptabilité — Direction</p>
-        <h1 className="text-2xl font-bold text-indigo-600">Orientation des fonds</h1>
+        <h1 className="text-2xl font-bold text-primary">Orientation des fonds</h1>
         <p className="text-sm text-gray-400 mt-0.5">
           La Direction décide de la destination des fonds : dépôt en banque ou conservation en caisse (fonds de roulement).
           Décider vaut visa — depuis « En attente visa DGA », le visa DGA est posé automatiquement.

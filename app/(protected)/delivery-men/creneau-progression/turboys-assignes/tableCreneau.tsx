@@ -54,7 +54,7 @@ export default function TableCreneau({ initialData }: Props) {
     );
 
     if (!initialData || initialData.length === 0) {
-        return <EmptyDataTable title="Aucun Livreur" />;
+        return <EmptyDataTable title="Aucun livreur" />;
     }
 
     return (
@@ -65,7 +65,7 @@ export default function TableCreneau({ initialData }: Props) {
                     <TableHeader columns={columns}>
                         {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
                     </TableHeader>
-                    <TableBody items={initialData} emptyContent={<EmptyDataTable title="Aucun Livreur" />}>
+                    <TableBody items={initialData} emptyContent={<EmptyDataTable title="Aucun livreur" />}>
                         {(item) => (
                             <TableRow key={item.id}>
                                 {(columnKey) => <TableCell>{renderCell(item, String(columnKey))}</TableCell>}

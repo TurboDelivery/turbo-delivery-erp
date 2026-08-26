@@ -142,7 +142,7 @@ export default function TraficContent() {
       {/* Entête */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-bold text-primary">Trafic — supervision en temps réel</h1>
+          <h1 className="text-2xl font-bold text-primary">Trafic — supervision en temps réel</h1>
           <p className="mt-1 max-w-3xl text-sm text-default-500">
             Le statut vient du service du jour : le pointage de montée fait entrer le livreur dans la
             file d&apos;attente, et c&apos;est cette file qui reçoit les courses. La position GPS

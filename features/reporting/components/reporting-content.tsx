@@ -21,7 +21,7 @@ export function ReportingContent() {
   return (
     <div className="space-y-4 p-4">
       <div>
-        <h1 className="text-xl font-bold text-primary">Reporting &amp; historisation</h1>
+        <h1 className="text-2xl font-bold text-primary">Reporting &amp; historisation</h1>
         <p className="text-sm text-default-500">
           Journal transverse horodaté et attribué (CDC RG-11) et rapport de présence par livreur (RG-21).
         </p>

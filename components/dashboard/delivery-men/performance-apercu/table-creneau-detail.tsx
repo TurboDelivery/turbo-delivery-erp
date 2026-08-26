@@ -204,7 +204,7 @@ const dataCreneau={
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody items={initialData||[]} emptyContent={<EmptyDataTable title="Aucun  Livreur" />}>
+      <TableBody items={initialData||[]} emptyContent={<EmptyDataTable title="Aucun livreur" />}>
         {(item) => (
           <TableRow key={item.code} onClick={() => setOpen(true)}>
             {(columnKey) => <TableCell >{renderCell(item, columnKey)}</TableCell>}
@@ -217,7 +217,7 @@ const dataCreneau={
           {/* Mobile — cartes tactiles (mêmes données / handler que le tableau) */}
           <div className="md:hidden space-y-3">
             {(initialData ?? []).length === 0 ? (
-              <EmptyDataTable title="Aucun  Livreur" />
+              <EmptyDataTable title="Aucun livreur" />
             ) : (
               (initialData ?? []).map((item: GainDetail) => (
                 <div

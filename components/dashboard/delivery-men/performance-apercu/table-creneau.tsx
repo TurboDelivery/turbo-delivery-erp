@@ -198,7 +198,7 @@ const performanceApercuGlobalGain: PerformanceApercuGlobalGain|null = {
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody items={initialData.progressions} emptyContent={<EmptyDataTable title="Aucun  Livreur" />}>
+      <TableBody items={initialData.progressions} emptyContent={<EmptyDataTable title="Aucun livreur" />}>
         {(item) => (
           <TableRow key={item.jour} onClick={() => openJour(item.jour)}>
             {(columnKey) => <TableCell >{renderCell(item, columnKey)}</TableCell>}
@@ -211,7 +211,7 @@ const performanceApercuGlobalGain: PerformanceApercuGlobalGain|null = {
           {/* Mobile — cartes tactiles (mêmes données / handler que le tableau) */}
           <div className="md:hidden space-y-3">
             {(initialData.progressions ?? []).length === 0 ? (
-              <EmptyDataTable title="Aucun  Livreur" />
+              <EmptyDataTable title="Aucun livreur" />
             ) : (
               (initialData.progressions ?? []).map((item: Progression) => (
                 <div

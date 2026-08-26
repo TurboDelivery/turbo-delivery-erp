@@ -6,7 +6,7 @@ export const useDepenseStats = () => {
   const currentSearchParams = {
     debut: filters.debut,
     fin: filters.fin,
-    categoriesDepense: filters.categoriesDepense, // AJOUTÉ: Inclure les catégories pour forcer la mise Ã  jour
+    categoriesDepense: filters.categoriesDepense, // Les categories font partie de la cle de cache : sans elles le filtre ne rafraichit rien
   };
 
   const { data, isLoading, error, isError, refetch } = useDepenseStatsQuery(currentSearchParams);

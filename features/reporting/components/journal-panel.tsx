@@ -170,7 +170,7 @@ export function JournalPanel() {
           <TableColumn className="text-primary">AUTEUR</TableColumn>
         </TableHeader>
         <TableBody
-          emptyContent={isLoading || isFetching ? ' ' : 'Aucune activité'}
+          emptyContent={isLoading || isFetching ? ' ' : 'Aucune activité pour ces critères.'}
           isLoading={isLoading}
           loadingContent={<Spinner color="primary" label="Chargement du journal…" />}
         >

@@ -1,7 +1,6 @@
 'use client';
 
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, RangeValue, CalendarDate, DateRangePicker, Button, Spinner } from '@heroui/react';
-import { title } from '@/components/primitives';
 import { ArrowLeft, Calendar, Cherry, CircleDollarSign, CircleFadingPlus, DollarSign, Home, Printer, SquareMenu, ToggleRight, User } from 'lucide-react';
 import useContentCtx from './useContentCtx';
 import Link from 'next/link';
@@ -36,7 +35,7 @@ export default function Content({ initialData, restaurants }: ContentProps) {
         </Link>
       </div>
       <div className="flex items-center justify-between">
-        <h1 className={title({ size: 'h3', class: 'text-primary' })}>Gestions des tickets : Commandes En Attentes</h1>
+        <h1 className="text-2xl font-bold text-primary">Gestions des tickets : Commandes En Attentes</h1>
       </div>
       <div className="hidden md:block w-full overflow-x-auto">
       <Table aria-label="Example table with custom cells" className="min-w-[700px] w-full ">
@@ -92,7 +91,7 @@ export default function Content({ initialData, restaurants }: ContentProps) {
             <div key={i} className="h-36 rounded-xl bg-gray-100 animate-pulse" />
           ))
         ) : (data?.length ?? 0) === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">No rows to display.</p>
+          <p className="text-sm text-gray-400 text-center py-10">Aucun ticket en attente</p>
         ) : (
           (data ?? []).map((item) => (
             <BonLivraisonMobileCard key={item.commandeId} item={item} columns={columns} renderCell={renderCell} />

@@ -63,7 +63,7 @@ export function PrimeConfigView() {
     <div className="space-y-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-primary">Commission &amp; prime — Turboys</h1>
+          <h1 className="text-2xl font-bold text-primary">Commission &amp; prime — Turboys</h1>
           <p className="text-sm text-default-500">
             CDC RG-18/19 : commission de base + prime hebdomadaire calculée <strong>séparément</strong> (et non un taux majoré).
           </p>

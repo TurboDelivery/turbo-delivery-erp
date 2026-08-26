@@ -70,7 +70,7 @@ export default function AllModelView({ value, birdCreneau, birdNotCreneau, setVa
                         </button>
                     </div>
                 </div>
-                <EmptyDataTable />
+                <EmptyDataTable title="Aucun livreur" />
             </div>
         );
     }

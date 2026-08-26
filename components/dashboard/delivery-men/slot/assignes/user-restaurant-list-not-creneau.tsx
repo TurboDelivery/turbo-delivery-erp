@@ -10,7 +10,7 @@ export default function UserRestaurantListeNotCreneau({turboysCreneau} : {turboy
         return(  
             <div>
                 <h2 className="text-lg font-semibold mb-2">Restaurant n'ayant pas des créneaux</h2>
-                <EmptyDataTable/>
+                <EmptyDataTable title="Aucun restaurant" />
             </div>
         )
     }

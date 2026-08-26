@@ -1,7 +1,6 @@
 'use client';
 
 import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, Spinner } from '@heroui/react';
-import { title } from '@/components/primitives';
 import useContentCtx from './useContentCtx';
 import { PaginatedResponse } from '@/types';
 import { DeliveryMan } from '@/types/models';
@@ -19,7 +18,7 @@ export default function Content({ initialData }: ContentProps) {
     return (
         <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">
             <div className="flex items-center justify-between">
-                <h1 className={title({ size: 'h3', class: 'text-primary' })}>Livreurs partiellement validés</h1>
+                <h1 className="text-2xl font-bold text-primary">Livreurs partiellement validés</h1>
             </div>
             {/* Table — desktop uniquement (≥ md) */}
             <div className="hidden md:block">
@@ -49,7 +48,7 @@ export default function Content({ initialData }: ContentProps) {
                         <div key={i} className="h-32 rounded-xl bg-gray-100 animate-pulse" />
                     ))
                 ) : rows.length === 0 ? (
-                    <EmptyDataTable title='Aucun Livreur' />
+                    <EmptyDataTable title='Aucun livreur' />
                 ) : (
                     rows.map((item) => (
                         <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">

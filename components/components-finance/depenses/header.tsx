@@ -1,7 +1,7 @@
 export default function DepenseHeader() {
   return (
     <div>
-      <h2 className="text-xl md:text-2xl font-bold mb-2 capitalize">Gestion des depenses</h2>
+      <h2 className="mb-2 text-2xl font-bold text-primary">Gestion des dépenses</h2>
     </div>
   );
 }

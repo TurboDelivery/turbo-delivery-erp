@@ -6,7 +6,7 @@ export default function PrivilegesPage() {
   return (
     <div className="space-y-4 p-4">
       <div>
-        <h1 className="text-lg font-semibold text-primary">Privilèges par rôle</h1>
+        <h1 className="text-2xl font-bold text-primary">Privilèges par rôle</h1>
         <p className="max-w-3xl text-sm text-default-500">
           Vue lecture seule : quel rôle peut accéder à quel menu / page. Les permissions
           sont définies dans le code (<code className="rounded bg-default-100 px-1">lib/casl/ability.ts</code>,

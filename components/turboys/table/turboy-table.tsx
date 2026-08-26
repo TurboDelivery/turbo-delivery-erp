@@ -47,7 +47,7 @@ export function TurboyTable() {
             <Users className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Turboys</h1>
+            <h1 className="text-2xl font-bold text-primary">Turboys</h1>
             <p className="text-xs sm:text-sm text-gray-500">Gestion des livreurs et prestataires</p>
           </div>
         </div>

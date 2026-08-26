@@ -50,7 +50,7 @@ export default function Content({ initialData }: Props) {
                     </TableColumn>
                   )}
                 </TableHeader>
-                <TableBody items={undefinedRestaurant ? undefinedRestaurant : []} emptyContent={<EmptyDataTable title="Aucun Frais de Livraison" />}>
+                <TableBody items={undefinedRestaurant ? undefinedRestaurant : []} emptyContent={<EmptyDataTable title="Aucun frais de livraison" />}>
                   {(item) => <TableRow key={item.id}>{(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}</TableRow>}
                 </TableBody>
               </Table>
@@ -59,7 +59,7 @@ export default function Content({ initialData }: Props) {
             {/* Cartes (mobile < md) — mêmes données et même action (renderCell) que le tableau */}
             <RestaurantMobileCardList>
               {(undefinedRestaurant ?? []).length === 0 ? (
-                <EmptyDataTable title="Aucun Frais de Livraison" />
+                <EmptyDataTable title="Aucun frais de livraison" />
               ) : (
                 (undefinedRestaurant ?? []).map((restaurant) => (
                   <RestaurantMobileCard

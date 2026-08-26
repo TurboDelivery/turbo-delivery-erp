@@ -148,7 +148,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
                     <RetourButton />
-                    <h1 className="text-xl font-bold text-red-500 ml-2">
+                    <h1 className="text-2xl font-bold text-primary ml-2">
                         {user.nom} {user.prenoms}
                     </h1>
                 </div>

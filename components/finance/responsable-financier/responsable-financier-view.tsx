@@ -196,7 +196,7 @@ export default function ResponsableFinancierView() {
       {/* Header */}
       <div>
         <p className="text-sm text-gray-500">Gestion des Paiements</p>
-        <h1 className="text-2xl font-bold text-red-500">Espace Responsable Financier</h1>
+        <h1 className="text-2xl font-bold text-primary">Espace Responsable Financier</h1>
       </div>
 
       {/* Stat Cards */}

@@ -236,7 +236,7 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
                     <span className="text-right text-[#16a34a]">Commission</span>
                   </div>
 
-                  {ticketDetails.length === 0 && <p className="px-4 py-6 text-center text-sm text-[#9a9a9a]">Aucun ticket trouvé.</p>}
+                  {ticketDetails.length === 0 && <p className="px-4 py-6 text-center text-sm text-[#9a9a9a]">Aucun ticket trouvé</p>}
                   {ticketDetails.map((t, index) => (
                     <div
                       key={t.ref}

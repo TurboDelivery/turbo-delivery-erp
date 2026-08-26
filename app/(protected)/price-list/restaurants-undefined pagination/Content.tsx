@@ -63,7 +63,7 @@ export default function Content({ initialData }: Props) {
               {/* Cartes (mobile < md) — mêmes données et même action (renderCell) que le tableau */}
               <RestaurantMobileCardList>
                 {(data?.content ?? []).length === 0 ? (
-                  <EmptyDataTable title="Aucun Frais de Livraison" />
+                  <EmptyDataTable title="Aucun frais de livraison" />
                 ) : (
                   (data?.content ?? []).map((restaurant) => (
                     <RestaurantMobileCard

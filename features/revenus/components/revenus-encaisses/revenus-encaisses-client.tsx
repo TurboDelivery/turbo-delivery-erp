@@ -149,7 +149,7 @@ export default function RevenusEncaissesClient() {
             <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Historique des Revenus Encaissés</h1>
+                        <h1 className="text-2xl font-bold text-primary">Historique des Revenus Encaissés</h1>
                         <p className="text-gray-600 mt-2">
                             Consultez l'historique complet des recouvrements et investissements
                         </p>

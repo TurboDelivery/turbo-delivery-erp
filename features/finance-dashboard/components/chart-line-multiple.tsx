@@ -78,7 +78,7 @@ export function ChartLineMultiple() {
             </div>
           ) : chartData.length === 0 ? (
             <div className="flex items-center justify-center h-full">
-              <p className="text-muted-foreground">Aucune donnée disponible pour {selectedYear}</p>
+              <p className="text-muted-foreground">Aucun mouvement financier en {selectedYear}</p>
             </div>
           ) : (
             <ChartContainer config={chartConfig} className="h-full w-full">
