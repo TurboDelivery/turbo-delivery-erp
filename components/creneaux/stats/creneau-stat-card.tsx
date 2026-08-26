@@ -1,6 +1,8 @@
 'use client';
 
-import { Card, CardBody, Progress } from '@heroui/react';
+import { Progress } from '@heroui/react';
+
+import CarteStat, { type TonStat } from '@/components/commons/CarteStat';
 
 interface CreneauStatCardProps {
   label: string;
@@ -9,23 +11,25 @@ interface CreneauStatCardProps {
   color?: 'success' | 'primary' | 'warning' | 'danger';
 }
 
+const TON: Record<NonNullable<CreneauStatCardProps['color']>, TonStat> = {
+  success: 'succes',
+  primary: 'primaire',
+  warning: 'attention',
+  danger: 'danger',
+};
+
+/**
+ * Carte de taux d'un creneau, avec sa barre de progression.
+ *
+ * <p>Enveloppe `CarteStat` en conservant sa signature. C'est le SEUL usage de
+ * l'echappatoire `children` du composant partage : la barre de progression n'existe que
+ * sur cette carte. Si un deuxieme appelant se met a utiliser `children`, c'est le signal
+ * qu'il faut une vraie prop.</p>
+ */
 export function CreneauStatCard({ label, sublabel, value, color = 'primary' }: CreneauStatCardProps) {
   return (
-    <Card shadow="none" className="border border-default-200">
-      <CardBody className="flex flex-col gap-3 p-4">
-        <span className="text-sm text-default-500">{label}</span>
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold">{value}%</span>
-          {sublabel && <span className="text-xs text-default-400">{sublabel}</span>}
-        </div>
-        <Progress
-          size="md"
-          value={value}
-          color={color}
-          aria-label={label}
-          radius="none"
-        />
-      </CardBody>
-    </Card>
+    <CarteStat libelle={label} valeur={`${value}%`} note={sublabel} ton={TON[color]}>
+      <Progress size="md" value={value} color={color} aria-label={label} radius="none" className="mt-3" />
+    </CarteStat>
   );
 }

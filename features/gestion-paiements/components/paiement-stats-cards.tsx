@@ -1,6 +1,8 @@
 'use client';
 
-import { Card, CardBody } from '@heroui/react';
+import CarteStat, { GrilleStats, type TonStat } from '@/components/commons/CarteStat';
+import { formatMontant } from '@/utils/format.utils';
+
 import { IPaiementStats } from '../types/paiement.type';
 
 interface PaiementStatsCardsProps {
@@ -8,50 +10,38 @@ interface PaiementStatsCardsProps {
   isLoading?: boolean;
 }
 
+/**
+ * Bandeau des paiements : total, reste a decaisser, deja decaisse.
+ *
+ * <p>Portait sa propre carte, son propre squelette de chargement et sa propre grille.</p>
+ *
+ * <p>Il composait aussi ses montants a la main
+ * (`toLocaleString('fr-FR') + ' FCFA'`), l'une des ecritures qui contournent
+ * `formatMontant` : un montant nul s'y affichait « 0 FCFA » mais sans l'espace insecable,
+ * et rien ne garantissait la coherence avec le reste de l'ERP.</p>
+ *
+ * <p>Les couleurs etaient des classes brutes (`text-orange-500`, `text-yellow-500`).
+ * Elles deviennent des tons, et ces tons disent quelque chose : ce qui reste a decaisser
+ * appelle une action, ce qui est decaisse est acquis.</p>
+ */
 export default function PaiementStatsCards({ stats, isLoading }: PaiementStatsCardsProps) {
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i} className="border shadow-none animate-pulse">
-            <CardBody className="p-5">
-              <div className="h-3 bg-gray-200 rounded w-24 mb-3" />
-              <div className="h-7 bg-gray-200 rounded w-32" />
-            </CardBody>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  const cards = [
-    {
-      label: 'TOTAL GLOBAL',
-      value: `${stats.totalGlobal.toLocaleString('fr-FR')} FCFA`,
-      valueColor: 'text-orange-500',
-    },
-    {
-      label: 'À DÉCAISSER',
-      value: `${stats.aDecaisser.toLocaleString('fr-FR')} FCFA`,
-      valueColor: 'text-yellow-500',
-    },
-    {
-      label: 'DÉCAISSÉ',
-      value: `${stats.decaisse.toLocaleString('fr-FR')} FCFA`,
-      valueColor: 'text-green-500',
-    },
+  const cartes: { libelle: string; valeur: number; ton: TonStat }[] = [
+    { libelle: 'Total global', valeur: stats?.totalGlobal ?? 0, ton: 'neutre' },
+    { libelle: 'À décaisser', valeur: stats?.aDecaisser ?? 0, ton: 'attention' },
+    { libelle: 'Décaissé', valeur: stats?.decaisse ?? 0, ton: 'succes' },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {cards.map((card) => (
-        <Card key={card.label} className="border shadow-none">
-          <CardBody className="p-5">
-            <p className="text-[11px] font-semibold uppercase text-gray-500 mb-2">{card.label}</p>
-            <p className={`text-2xl font-bold ${card.valueColor}`}>{card.value}</p>
-          </CardBody>
-        </Card>
+    <GrilleStats colonnes={3}>
+      {cartes.map((c) => (
+        <CarteStat
+          key={c.libelle}
+          libelle={c.libelle}
+          valeur={formatMontant(c.valeur)}
+          ton={c.ton}
+          isLoading={isLoading}
+        />
       ))}
-    </div>
+    </GrilleStats>
   );
 }

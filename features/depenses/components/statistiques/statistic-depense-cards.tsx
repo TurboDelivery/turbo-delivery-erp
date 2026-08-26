@@ -1,4 +1,5 @@
 import { Boxes, CalendarClock } from 'lucide-react';
+import { GrilleStats } from '@/components/commons/CarteStat';
 import { useDepenseStatsQuery } from '@/features/depenses/queries/depense-stats.query';
 import { useDepensesListQuery } from '@/features/depenses/queries/depense-list.query';
 import StatisticDepenseCard from '@/components/depenses/stats/statistic-depense-card';
@@ -54,7 +55,8 @@ export default function StatisticDepenseCards({ filters }: StatisticDepenseCards
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Grille partagee : les 15 bandeaux de l'ERP en utilisaient 13 differentes. */}
+      <GrilleStats colonnes={3}>
         <StatisticDepenseCard isLoading={isLoading} title="Catégories" value={displayStats?.nombre_categories} color="text-blue-600" bgColor="bg-blue-100" icon={<Boxes className="h-5 w-5" />} />
         <StatisticDepenseCard
           isLoading={isLoading}
@@ -72,7 +74,7 @@ export default function StatisticDepenseCards({ filters }: StatisticDepenseCards
           bgColor="bg-green-100"
           icon={<CalendarClock className="h-5 w-5" />}
         />
-      </div>
+      </GrilleStats>
     </div>
   );
 }
