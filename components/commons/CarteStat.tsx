@@ -44,8 +44,14 @@ export interface CarteStatProps {
     valeur: React.ReactNode;
     /** Troisième ligne : ce que le chiffre veut dire. Une ligne, sans point final. */
     note?: string;
-    /** Icône lucide, dans une pastille à droite du libellé. */
-    icone?: LucideIcon;
+    /**
+     * Icône dans une pastille à droite du libellé.
+     *
+     * <p>Accepte un composant lucide (`icone={Coins}`), la forme à préférer, ou un
+     * élément déjà rendu (`icone={<Coins />}`) pour les appelants qui reçoivent leur
+     * icône en prop et ne peuvent pas la passer autrement.</p>
+     */
+    icone?: LucideIcon | React.ReactElement;
     /** Couleur du chiffre. `neutre` par défaut : un chiffre n'est pas coloré sans raison. */
     ton?: TonStat;
     /** Carte mise en avant : la surface prend la teinte du ton. Une par bandeau au plus. */
@@ -116,11 +122,18 @@ export default function CarteStat({
                         {Icone && (
                             <span
                                 className={cn(
-                                    'flex h-8 w-8 items-center justify-center rounded-medium',
+                                    'flex h-8 w-8 items-center justify-center rounded-medium [&_svg]:h-4 [&_svg]:w-4',
                                     PASTILLE[ton],
                                 )}
                             >
-                                <Icone className="h-4 w-4" aria-hidden="true" />
+                                {/* `typeof === 'function'` et non `isValidElement` : c'est le
+                                    test que TypeScript sait utiliser pour distinguer un
+                                    composant d'un element deja rendu. */}
+                                {typeof Icone === 'function' ? (
+                                    <Icone className="h-4 w-4" aria-hidden="true" />
+                                ) : (
+                                    Icone
+                                )}
                             </span>
                         )}
                     </div>

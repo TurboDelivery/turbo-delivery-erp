@@ -1,7 +1,7 @@
 import React from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { cn } from '@/lib/utils';
+
+import CarteStat from '@/components/commons/CarteStat';
+import { formatMontant } from '@/utils/format.utils';
 
 type Props = {
   label: string;
@@ -10,22 +10,26 @@ type Props = {
   color?: 'red' | 'green' | 'orange' | 'default';
 };
 
-const amountColorClass: Record<NonNullable<Props['color']>, string> = {
-  red: 'text-red-600',
-  green: 'text-green-600',
-  orange: 'text-orange-500',
-  default: 'text-foreground',
-};
+const TON = {
+  red: 'danger',
+  green: 'succes',
+  orange: 'attention',
+  default: 'neutre',
+} as const;
 
+/**
+ * Carte de statistique des deductions.
+ *
+ * <p>Enveloppe desormais `CarteStat`, la carte unique de l'ERP, en conservant sa
+ * signature : les 10 points d'appel n'ont pas a changer. Elle avait sa propre mise en
+ * page, sa propre taille de chiffre et sa propre facon d'exprimer une couleur.</p>
+ *
+ * <p>Elle utilisait `formatCFA`, qui rend « 0 » NU sur une valeur nulle, donc une
+ * deduction a zero perdait sa devise. Elle passe par `formatMontant`.</p>
+ */
 function DeductionStatCard({ label, value, description, color = 'default' }: Props) {
   return (
-    <Card>
-      <CardHeader className="text-[#737373] pb-3">{label}</CardHeader>
-      <CardContent className="flex flex-col">
-        <span className={cn('text-xl mb-1', amountColorClass[color])}>{formatCFA(value)}</span>
-        <span className="text-[#737373]">{description}</span>
-      </CardContent>
-    </Card>
+    <CarteStat libelle={label} valeur={formatMontant(value)} note={description} ton={TON[color]} />
   );
 }
 

@@ -1,17 +1,39 @@
-export function StatCard({ icon, iconBg, label, value, isText }: {
+import React from 'react';
+
+import CarteStat, { type TonStat } from '@/components/commons/CarteStat';
+
+/**
+ * Carte de statistique de la validation finance.
+ *
+ * <p>Enveloppe `CarteStat` en conservant sa signature, pour ne pas toucher ses points
+ * d'appel. Elle portait un `hover:shadow-md` qui la faisait paraitre cliquable alors
+ * qu'aucun gestionnaire n'etait branche : c'est retire.</p>
+ *
+ * <p>`iconBg` recevait des classes Tailwind brutes (`bg-blue-50`, `bg-[#111827]`), ce qui
+ * empechait toute garantie en mode sombre. Elles sont traduites en tons.</p>
+ */
+const TON_PAR_FOND: Record<string, TonStat> = {
+  'bg-blue-50': 'primaire',
+  'bg-green-50': 'succes',
+  'bg-orange-50': 'attention',
+  'bg-yellow-50': 'attention',
+  'bg-[#111827]': 'neutre',
+};
+
+export function StatCard({ icon, iconBg, label, value }: {
   icon: React.ReactNode;
   iconBg: string;
   label: string;
   value: number | string;
+  /** Ne sert plus : la taille du chiffre s'adapte desormais d'elle-meme. */
   isText?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 hover:shadow-md transition-shadow">
-      <div className="mb-2 flex items-center gap-3">
-        <div className={`rounded-lg p-2 ${iconBg}`}>{icon}</div>
-        <span className="text-sm text-gray-600">{label}</span>
-      </div>
-      <p className={`font-bold text-gray-900 ${isText ? 'text-xl' : 'text-2xl'}`}>{value}</p>
-    </div>
+    <CarteStat
+      libelle={label}
+      valeur={value}
+      icone={React.isValidElement(icon) ? icon : undefined}
+      ton={TON_PAR_FOND[iconBg] ?? 'neutre'}
+    />
   );
 }
