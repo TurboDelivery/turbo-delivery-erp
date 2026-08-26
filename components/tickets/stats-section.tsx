@@ -1,27 +1,74 @@
 'use client';
 import React from 'react';
-import { useTicketsStats } from '@/features/tickets/hooks/use-tickets-stats';
-import { formatCFA, formatNumberFR } from '@/src/actions/bonLivraison.mapper';
-import { TicketStatsCard } from '@/components/tickets/ticket-stats-card';
-import TicketStatsSkeleton from '@/components/tickets/ticket-stats-skeleton';   
+import { Coins, Percent, Ticket, Bike, Store } from 'lucide-react';
 
+import { useTicketsStats } from '@/features/tickets/hooks/use-tickets-stats';
+import { formatMontant, formatNombre } from '@/utils/format.utils';
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import EtatErreur from '@/components/commons/EtatErreur';
+
+/**
+ * Bandeau de statistiques de l'ecran Tickets.
+ *
+ * <p>Premier bandeau migre vers `CarteStat`, la carte unique. Il portait sa propre
+ * implementation (`TicketStatsCard`), l'une des 17 que comptait l'ERP.</p>
+ *
+ * <p>Trois defauts corriges au passage :</p>
+ * <ul>
+ *   <li>l'echec de chargement s'affichait sur une ligne de texte rouge, sans moyen de
+ *       reessayer ; il passe par `EtatErreur`, comme partout ailleurs desormais ;</li>
+ *   <li>`formatCFA` rendait « 0 » NU sur une valeur nulle, donc un chiffre d'affaires a
+ *       zero perdait sa devise pendant que ses voisins l'affichaient ;</li>
+ *   <li>la premiere carte etait un degrade orange ecrit en dur, seule de son espece dans
+ *       tout l'ERP. Elle prend la couleur primaire de la marque, par jeton.</li>
+ * </ul>
+ */
 function StatsSection() {
-  const { ticketsStats, isError, isLoading } = useTicketsStats();
+  const { ticketsStats, isError, isLoading, refetch } = useTicketsStats();
+
+  if (isError) {
+    return (
+      <div className="mb-6 lg:mb-4">
+        <EtatErreur quoi="les statistiques des tickets" onReessayer={refetch} />
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6 lg:mb-4">
-      {!isLoading && !isError && (
-        <>
-          <TicketStatsCard title="Frais de livraison Totaux" value={formatCFA(ticketsStats.totalRevenus)} variant="primary" />
-          <TicketStatsCard title="Total des commissions" value={formatCFA(ticketsStats.totalCommissions)} />
-          <TicketStatsCard title="Total Tickets" value={formatNumberFR(ticketsStats.totalTickets)} />
-          <TicketStatsCard title="Livreurs" value={formatNumberFR(ticketsStats.totalLivreurs)} />
-          <TicketStatsCard title="Partenaires" value={formatNumberFR(ticketsStats.totalPartenaires)} />
-        </>
-      )}
-      {isLoading && Array.from({ length: 5 }).map((_, index) => <TicketStatsSkeleton key={index} />)}
-      {isError && <div className="col-span-4 text-center text-red-500">Erreur lors du chargement des statistiques.</div>}
-    </div>
+    <GrilleStats colonnes={5} className="mb-6 lg:mb-4">
+      <CarteStat
+        libelle="Frais de livraison totaux"
+        valeur={formatMontant(ticketsStats?.totalRevenus ?? 0)}
+        icone={Coins}
+        ton="primaire"
+        accent
+        isLoading={isLoading}
+      />
+      <CarteStat
+        libelle="Total des commissions"
+        valeur={formatMontant(ticketsStats?.totalCommissions ?? 0)}
+        icone={Percent}
+        isLoading={isLoading}
+      />
+      <CarteStat
+        libelle="Total tickets"
+        valeur={formatNombre(ticketsStats?.totalTickets ?? 0)}
+        icone={Ticket}
+        isLoading={isLoading}
+      />
+      <CarteStat
+        libelle="Livreurs"
+        valeur={formatNombre(ticketsStats?.totalLivreurs ?? 0)}
+        icone={Bike}
+        isLoading={isLoading}
+      />
+      <CarteStat
+        libelle="Partenaires"
+        valeur={formatNombre(ticketsStats?.totalPartenaires ?? 0)}
+        icone={Store}
+        isLoading={isLoading}
+      />
+    </GrilleStats>
   );
 }
 

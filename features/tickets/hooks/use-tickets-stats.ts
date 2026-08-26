@@ -15,7 +15,7 @@ export function useTicketsStats() {
     fin: filters.fin,
   };
 
-  const { data, isLoading, isError, error } = useTicketsStatsQuery(currentSearchParams);
+  const { data, isLoading, isError, error, refetch } = useTicketsStatsQuery(currentSearchParams);
 
   return {
     ticketsStats: {
@@ -27,6 +27,7 @@ export function useTicketsStats() {
     },
     isLoading,
     isError,
+    refetch,
     error,
   };
 }
