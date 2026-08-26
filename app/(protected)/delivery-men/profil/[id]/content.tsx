@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Edit, Upload } from "lucide-react";
+import { Edit, KeyRound, Upload } from "lucide-react";
+import { toast } from "sonner";
+import { turboyAPI } from "@/features/turboys/apis/turboy.api";
 import { LivreurDetail } from "@/types/livreur";
 import { Button, Card, Input } from "@heroui/react";
 import { createUrlFile } from "@/utils/createUrlFile";
@@ -25,6 +27,25 @@ export default function Content({ user }: { user: LivreurDetail }) {
         cniUrlR: null as File | null, // 📌 ajout avatar
         cniUrlV: null as File | null, // 📌 ajout avatar
     });
+
+    // Appui du standard quand la reinitialisation depuis l'application n'aboutit
+    // pas : OTP WhatsApp muet, numero qui ne recoit plus. On EFFACE le code, on
+    // n'en pose pas un nouveau — un code choisi ici serait connu de quelqu'un
+    // d'autre que son titulaire.
+    const [reinitialisationEnCours, setReinitialisationEnCours] = useState(false);
+
+    async function reinitialiserCode() {
+        if (reinitialisationEnCours) return;
+        setReinitialisationEnCours(true);
+        try {
+            const reponse = await turboyAPI.reinitialiserCodeLivreur(user.id);
+            toast.success(reponse.message ?? "Code efface.");
+        } catch {
+            toast.error("La reinitialisation n'a pas abouti.");
+        } finally {
+            setReinitialisationEnCours(false);
+        }
+    }
 
     const [avatarPreview, setAvatarPreview] = useState<string>(
         user?.avatarUrl ? createUrlFile(user.avatarUrl, "backend") : "/assets/images/avatar.png"
@@ -103,6 +124,16 @@ export default function Content({ user }: { user: LivreurDetail }) {
                         {user.nom} {user.prenoms}
                     </h1>
                 </div>
+
+                <Button
+                    variant="bordered"
+                    size="sm"
+                    isLoading={reinitialisationEnCours}
+                    onPress={reinitialiserCode}
+                    startContent={<KeyRound className="w-4 h-4" />}
+                >
+                    Reinitialiser le code
+                </Button>
             </div>
 
             {/* Avatar avec possibilité de changer */}

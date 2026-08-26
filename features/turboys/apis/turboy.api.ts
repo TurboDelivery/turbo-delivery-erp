@@ -6,6 +6,10 @@ export interface ITurboyAPI {
   obtenirTurboy(id: string): Promise<ITurboy>;
   updateTurboyType(payload: IUpdateTurboyTypePayload): Promise<ITurboy>;
   deleteTurboy(id: string): Promise<void>;
+  /** Efface le code du livreur : il en repose un depuis l'application. */
+  reinitialiserCodeLivreur(
+    id: string,
+  ): Promise<{ reinitialise: boolean; telephone: string | null; message: string }>;
   rejectTurboy(userId: string): Promise<void>;
   passerEnBird(livreurId: string): Promise<void>;
   bulkDesactiverLivreurs(ids: string[]): Promise<void>;
@@ -41,6 +45,22 @@ export const turboyAPI: ITurboyAPI = {
     return await apiClientHttp.request<void>({
       endpoint: `/api/erp/livreur/${id}`,
       method: 'DELETE',
+    });
+  },
+
+  /**
+   * Efface le code du livreur pour qu'il en repose un depuis l'application.
+   *
+   * L'ERP ne CHOISIT pas le nouveau code : un code connu de l'ops circulerait par
+   * telephone et le livreur ignorerait qui le connait. C'est l'appui quand l'OTP
+   * de l'application n'arrive pas.
+   */
+  async reinitialiserCodeLivreur(
+    id: string,
+  ): Promise<{ reinitialise: boolean; telephone: string | null; message: string }> {
+    return await apiClientHttp.request({
+      endpoint: `/api/erp/livreur/${id}/reinitialiser-code`,
+      method: 'POST',
     });
   },
 
