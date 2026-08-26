@@ -7,18 +7,28 @@ export function formatMontantCompact(n: number): string {
   return n.toLocaleString('fr-FR');
 }
 
+/** Suffixe monétaire unique de l'ERP. */
+export const SUFFIXE_MONETAIRE = 'FCFA';
+
 /**
- * Formate un montant en FCFA avec séparateurs de milliers
+ * Formate un montant en FCFA avec séparateurs de milliers.
+ *
+ * <p>Cette fonction rendait DEUX suffixes différents selon la valeur : « 0 FCFA » écrit en
+ * dur pour zéro, et « 1 500 F CFA » pour tout le reste, parce que `Intl` rend la devise
+ * XOF sous la forme « F CFA » en français. Les deux se côtoyaient donc dans un même
+ * tableau, ce qui se lit comme un défaut d'application.</p>
+ *
+ * <p>Le suffixe retenu est « FCFA », de loin le plus répandu dans le dépôt : 199
+ * occurrences contre 16. L'espace qui le précède est INSÉCABLE, pour que le montant et sa
+ * devise ne soient jamais séparés par un retour à la ligne dans une colonne étroite.</p>
  */
 export function formatMontant(montant: number): string {
-    if (montant === 0) return "0 FCFA";
-    
-    return new Intl.NumberFormat('fr-FR', {
-        style: 'currency',
-        currency: 'XOF',
+    const nombre = new Intl.NumberFormat('fr-FR', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(montant);
+
+    return `${nombre}\u00A0${SUFFIXE_MONETAIRE}`;
 }
 
 /**

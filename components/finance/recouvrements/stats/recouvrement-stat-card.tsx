@@ -1,6 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatMontant } from '@/utils/format.utils';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
@@ -65,7 +66,8 @@ export function StatCard({
 // Helper function pour formater en devise
 export const formatCurrency = (value: string | number, currency: string = 'XOF'): string => {
   const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  return numValue.toLocaleString('fr-FR', { style: 'currency', currency });
+  // `style: 'currency'` avec XOF rend « F CFA » ; l'ERP écrit « FCFA ».
+  return formatMontant(numValue);
 };
 
 // Helper function pour formater en nombre

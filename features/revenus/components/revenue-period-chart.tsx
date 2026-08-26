@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { formatMontant } from '@/utils/format.utils';
 import { Card } from '@/components/ui/card';
 import { ArrowRight, BarChart3, Calendar, DollarSign } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -71,9 +72,9 @@ export default function RevenuePeriodChart() {
     initialData: null,
   });
 
-  const formatCurrency = (value: number) => {
-    return `${value.toLocaleString('fr-FR')} ${revenueData?.currency || 'XOF'}`;
-  };
+  // Affichait le CODE devise brut de l'API (« 1 500 XOF »), là où le reste de l'ERP
+  // écrit « 1 500 FCFA ». Un même montant changeait donc de devise d'un écran à l'autre.
+  const formatCurrency = (value: number) => formatMontant(value);
 
   // Utiliser directement les statistiques de l'API
   const stats = revenueData?.statistics;

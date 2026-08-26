@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { formatMontant } from '@/utils/format.utils';
 import Link from 'next/link';
 import {
   Chip,
@@ -17,7 +18,7 @@ import { MapPin, Search } from 'lucide-react';
 
 import { useGrilleTarifaireQuery } from '@/features/restaurants/queries/restaurant-list.query';
 
-const fmtPrix = (v: number) => `${new Intl.NumberFormat('fr-FR').format(v)} F CFA`;
+const fmtPrix = (v: number) => formatMontant(v);
 const fmtKm = (v: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 }).format(v);
 
 /**
