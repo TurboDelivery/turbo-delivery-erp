@@ -3,7 +3,8 @@
 import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Ticket } from '@/types/bon-livraison.model';
-import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
+import { formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
+import { formatMontant } from '@/utils/format.utils';
 import Select from 'react-select';
 import PriceListSelect from '@/components/tickets/price-list-select';
 import { CheckSquare, Loader2, Pen, ShieldCheck, Trash2, X } from 'lucide-react';
@@ -159,7 +160,7 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
           />
         );
       }
-      return <span className="text-xs">{formatCFA(ticket.montantLivraison)}</span>;
+      return <span className="block text-right text-xs tabular-nums">{formatMontant(Number(ticket.montantLivraison) || 0)}</span>;
     },
   },
   {
@@ -178,7 +179,7 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
           />
         );
       }
-      return <span className="text-xs">{formatCFA(ticket.montantCommande)}</span>;
+      return <span className="block text-right text-xs tabular-nums">{formatMontant(Number(ticket.montantCommande) || 0)}</span>;
     },
   },
   {
@@ -190,7 +191,7 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
       if (isEditing(ticket, meta)) {
         return <input type="number" value={ticket.commission} readOnly placeholder="0 CFA" className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded bg-gray-50" />;
       }
-      return <span className="text-xs">{formatCFA(ticket?.commission ?? 0)}</span>;
+      return <span className="block text-right text-xs tabular-nums">{formatMontant(Number(ticket?.commission ?? 0) || 0)}</span>;
     },
   },
   {

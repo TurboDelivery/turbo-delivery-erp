@@ -188,20 +188,31 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
 
       <StatsSection />
 
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="flex border border-gray-200 overflow-x-auto">
-          <button
-            onClick={() => setFilter('tab', 'tous')}
-            className={`px-4 sm:px-6 py-3 sm:py-4 font-medium text-sm sm:text-base whitespace-nowrap ${activeTab === 'tous' ? 'border-b-2 border-red-500 text-red-500' : 'text-gray-600'}`}
-          >
-            Tous les Tickets
-          </button>
-          <button
-            onClick={() => setFilter('tab', 'archives')}
-            className={`px-4 sm:px-6 py-3 sm:py-4 font-medium text-sm sm:text-base whitespace-nowrap ${activeTab === 'archives' ? 'border-b-2 border-red-500 text-red-500' : 'text-gray-600'}`}
-          >
-            Archives
-          </button>
+      <div className="rounded-large border border-default-200 bg-content1">
+        {/* UNE seule bordure : la barre portait la sienne A L'INTERIEUR de celle de la
+            carte, soit deux traits gris a un pixel d'ecart. Le compte des tickets remonte
+            ici, ce qui rend une ligne entiere au tableau : sur la fenetre reelle des
+            postes (563 px de haut), une ligne, c'est un ticket de plus a l'ecran.
+            Couleurs par JETONS (`primary`, `default-500`) et non plus `red-500` et
+            `gray-600` ecrits en dur, sans quoi le mode sombre restera impossible. */}
+        <div className="flex items-end justify-between gap-4 border-b border-default-200 px-4 pt-3">
+          <div className="flex gap-1 overflow-x-auto">
+            <button
+              onClick={() => setFilter('tab', 'tous')}
+              className={`whitespace-nowrap rounded-t-md border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors ${activeTab === 'tous' ? 'border-primary bg-primary/5 text-primary' : 'border-transparent text-default-500 hover:text-default-700'}`}
+            >
+              Tous les tickets
+            </button>
+            <button
+              onClick={() => setFilter('tab', 'archives')}
+              className={`whitespace-nowrap rounded-t-md border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors ${activeTab === 'archives' ? 'border-primary bg-primary/5 text-primary' : 'border-transparent text-default-500 hover:text-default-700'}`}
+            >
+              Archives
+            </button>
+          </div>
+          <span className="whitespace-nowrap pb-3 text-[11px] font-semibold uppercase tracking-wide tabular-nums text-default-500">
+            {infiniteState.totalItems} ticket{infiniteState.totalItems > 1 ? 's' : ''}
+          </span>
         </div>
 
         {activeTab === 'tous' && (
@@ -216,8 +227,10 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
               restaurantOptions={restaurantOptions}
               onFilterChange={setFilter}
             />
-            <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-              <p className="text-xs sm:text-sm text-gray-600">Total: {infiniteState.totalItems} ticket(s)</p>
+            {/* Le compte est remonte dans la barre d'onglets et l'export rejoint la barre
+                de filtres : deux lignes rendues au tableau, et le geste se trouve la ou on
+                le cherche plutot que sur une ligne isolee. */}
+            <div className="mb-3 flex justify-end">
               <TicketTableExportButton filters={filters} totalItems={infiniteState.totalItems} isDisabled={isLoading} />
             </div>
             <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
