@@ -2,9 +2,10 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Edit, KeyRound, Upload } from "lucide-react";
+import { Edit, KeyRound, Smartphone, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { turboyAPI } from "@/features/turboys/apis/turboy.api";
+import { compteLivreurAPI } from "@/features/turboys/apis/compte-livreur.api";
 import { LivreurDetail } from "@/types/livreur";
 import { Button, Card, Input } from "@heroui/react";
 import { createUrlFile } from "@/utils/createUrlFile";
@@ -44,6 +45,33 @@ export default function Content({ user }: { user: LivreurDetail }) {
             toast.error("La reinitialisation n'a pas abouti.");
         } finally {
             setReinitialisationEnCours(false);
+        }
+    }
+
+    // Cle d'activation : le recours quand le livreur change de telephone.
+    //
+    // Le barrage appareil (RG-08/09) refuse la connexion depuis un autre appareil
+    // que celui lie, et l'application dit au livreur de demander une cle au
+    // support. Toute la plomberie existait — endpoint, action, hook — mais AUCUN
+    // ecran ne l'appelait : le support ne pouvait pas executer le geste que
+    // l'application lui demandait.
+    //
+    // Le code n'est restitue QU'UNE FOIS par le serveur. On l'affiche donc a
+    // l'ecran jusqu'a ce que l'agent le ferme, plutot que dans un toast qui
+    // disparait au bout de trois secondes avec le code dedans.
+    const [emissionEnCours, setEmissionEnCours] = useState(false);
+    const [cleEmise, setCleEmise] = useState<{ code: string; expireLe: string } | null>(null);
+
+    async function emettreCleActivation() {
+        if (emissionEnCours) return;
+        setEmissionEnCours(true);
+        try {
+            const cle = await compteLivreurAPI.emettreCle(user.id, "Changement de telephone");
+            setCleEmise({ code: cle.code, expireLe: cle.expireLe });
+        } catch {
+            toast.error("L'emission de la cle n'a pas abouti.");
+        } finally {
+            setEmissionEnCours(false);
         }
     }
 
@@ -125,16 +153,53 @@ export default function Content({ user }: { user: LivreurDetail }) {
                     </h1>
                 </div>
 
-                <Button
-                    variant="bordered"
-                    size="sm"
-                    isLoading={reinitialisationEnCours}
-                    onPress={reinitialiserCode}
-                    startContent={<KeyRound className="w-4 h-4" />}
-                >
-                    Reinitialiser le code
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="bordered"
+                        size="sm"
+                        isLoading={reinitialisationEnCours}
+                        onPress={reinitialiserCode}
+                        startContent={<KeyRound className="w-4 h-4" />}
+                    >
+                        Reinitialiser le code
+                    </Button>
+                    <Button
+                        variant="bordered"
+                        size="sm"
+                        isLoading={emissionEnCours}
+                        onPress={emettreCleActivation}
+                        startContent={<Smartphone className="w-4 h-4" />}
+                    >
+                        Cle d&apos;activation
+                    </Button>
+                </div>
             </div>
+
+            {/* Le code ne sera plus jamais reaffiche : il reste a l'ecran tant que
+                l'agent ne l'a pas ferme, le temps de le dicter au livreur. */}
+            {cleEmise && (
+                <Card className="mb-4 border-2 border-primary bg-primary/5 p-4">
+                    <p className="text-sm text-gray-600">
+                        Cle d&apos;activation a dicter au livreur. Elle ne sera plus affichee.
+                    </p>
+                    <p className="my-2 text-3xl font-bold tracking-[0.3em] text-primary">
+                        {cleEmise.code}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                        Valable jusqu&apos;au{" "}
+                        {new Date(cleEmise.expireLe).toLocaleString("fr-FR")}. Le livreur la
+                        saisit dans l&apos;application, sur l&apos;ecran de connexion.
+                    </p>
+                    <Button
+                        className="mt-3 w-fit"
+                        size="sm"
+                        variant="light"
+                        onPress={() => setCleEmise(null)}
+                    >
+                        J&apos;ai note le code
+                    </Button>
+                </Card>
+            )}
 
             {/* Avatar avec possibilité de changer */}
             <div className="my-4 flex justify-between items-center">
