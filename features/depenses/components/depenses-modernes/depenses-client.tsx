@@ -101,7 +101,7 @@ export default function DepensesModernesClient() {
     const sortedCategories = Object.values(depensesByCategorie).sort((a: any, b: any) => b.total - a.total);
 
     return (
-        <div className="container mx-auto p-6 space-y-6">
+        <div className="p-6 space-y-6">
             {/* En-tête */}
             <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">

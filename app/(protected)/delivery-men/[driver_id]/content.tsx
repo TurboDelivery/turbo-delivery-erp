@@ -10,9 +10,9 @@ import { DeliveryMan } from '@/types/models';
 export default function Content({ driver }: { driver: DeliveryMan | null }) {
     const router = useRouter();
     return (
-        <div className="min-h-screen">
+        <div>
             <header className="border-b">
-                <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+                <div className="px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <div onClick={() => router.back()} className="text-gray-600 dark:text-white hover:text-primary cursor-pointer">
                             <ArrowLeft className="h-6 w-6" />
@@ -28,7 +28,7 @@ export default function Content({ driver }: { driver: DeliveryMan | null }) {
                 </div>
             </header>
 
-            <main className="container mx-auto lg:px-4 py-8">
+            <main className="lg:px-4 py-8">
                 <div className="space-y-6">
                     <div className="flex justify-center mb-8">
                         <div className="relative w-32 h-32 rounded-full overflow-hidden">

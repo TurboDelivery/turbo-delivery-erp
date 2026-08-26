@@ -2,7 +2,9 @@
 
 import { CheckCircle2, CircleAlert, FileText, HelpCircle, Phone, ReceiptText, ShieldAlert, X } from 'lucide-react';
 import { Drawer, DrawerBody, DrawerContent } from '@heroui/react';
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import { IGrillePaiementLigne, TypeLivreur } from '../types/grille-paiement.type';
+import { formatMontant } from '@/utils/format.utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -32,18 +34,6 @@ function typeLivreurDisplay(type: TypeLivreur | null | undefined): {
 function formatNumber(n: number | undefined | null) {
   if (n == null) return '—';
   return n.toLocaleString('fr-FR');
-}
-
-function StatCard({ title, value, suffix, color }: { title: string; value: string; suffix: string; color: string }) {
-  return (
-    <div className="rounded-2xl border border-[#d9d9d9] bg-[#f8f8f8] px-4 py-3">
-      <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#a0a0a0]">{title}</p>
-      <div className="mt-2 flex items-end gap-1">
-        <span className={`text-[28px] font-bold leading-none ${color}`}>{value}</span>
-        {suffix && <span className="mb-[3px] text-[10px] font-medium uppercase text-[#9b9b9b]">{suffix}</span>}
-      </div>
-    </div>
-  );
 }
 
 function EligibilityItem({ icon, iconBg, title, subtitle, rightIcon }: { icon: React.ReactNode; iconBg: string; title: string; subtitle: string; rightIcon: React.ReactNode }) {
@@ -114,13 +104,27 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
 
         <DrawerBody className="p-0 overflow-y-auto flex-1">
           <div className="px-5 pb-6 flex flex-col gap-5">
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-3">
-              <StatCard title="BRUT" value={formatNumber(brut)} suffix="FCFA" color="text-[#1f1f1f]" />
-              <StatCard title="TAUX" value={`${taux}`} suffix="%" color="text-[#f59e0b]" />
-              <StatCard title="DÉDUCTIONS" value={deductions !== 0 ? `−${formatNumber(Math.abs(deductions))}` : '—'} suffix={deductions !== 0 ? 'FCFA' : ''} color="text-[#dc2626]" />
-              <StatCard title="NET À PAYER" value={formatNumber(netAPayer)} suffix="FCFA" color="text-[#22c55e]" />
-            </div>
+            {/* Deux colonnes meme sur un tiroir etroit : quatre cartes empilees
+                repousseraient le detail des tickets sous la ligne de flottaison. */}
+            <GrilleStats colonnes={2} className="grid-cols-2">
+              <CarteStat libelle="Brut" valeur={formatMontant(brut)} />
+              <CarteStat
+                libelle="Taux"
+                valeur={
+                  <>
+                    {taux}
+                    <span className="ml-1 text-xs">%</span>
+                  </>
+                }
+                ton="attention"
+              />
+              <CarteStat
+                libelle="Déductions"
+                valeur={deductions !== 0 ? `−${formatMontant(Math.abs(deductions))}` : '—'}
+                ton="danger"
+              />
+              <CarteStat libelle="Net à payer" valeur={formatMontant(netAPayer)} ton="succes" />
+            </GrilleStats>
 
             {/* V54 + V57 (2026-05) — Inclusion paie. Affiche le type de
                 collaborateur, le statut d'inclusion (avec drapeau "override

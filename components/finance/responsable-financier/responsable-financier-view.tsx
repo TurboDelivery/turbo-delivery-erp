@@ -35,6 +35,7 @@ import DateFilterInput from '@/components/finance/date-filter-input';
 import { useResponsableFinancierTable } from '@/features/responsable-financier/hooks/use-responsable-financier-table';
 import { useResponsableFinancierStats } from '@/features/responsable-financier/hooks/use-responsable-financier-stats';
 import EtatErreur from '@/components/commons/EtatErreur';
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import {
   useValiderFactureRFMutation,
   useLancerRecouvrementMutation,
@@ -62,21 +63,6 @@ const statutFilters = [
   { label: 'Rejeté DGA', value: 'Rejeté DGA' },
   { label: 'Clôturé', value: 'Clôturé' },
 ] as const;
-
-function StatCard({ icon: Icon, color, label, value, sub }: { icon: React.ElementType; color: string; label: string; value: string; sub: string }) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5 flex items-start gap-4 shadow-sm">
-      <div className={`w-11 h-11 rounded-lg flex items-center justify-center flex-shrink-0 ${color}`}>
-        <Icon className="w-5 h-5 text-white" />
-      </div>
-      <div>
-        <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-        <p className="text-xl font-bold text-gray-900">{value}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{sub}</p>
-      </div>
-    </div>
-  );
-}
 
 export default function ResponsableFinancierView() {
   const [factureAValider, setFactureAValider] = useState<IFactureRF | null>(null);
@@ -214,7 +200,7 @@ export default function ResponsableFinancierView() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <GrilleStats colonnes={4}>
         {/*
           NB métier (2026-05) : ce "Total factures émises" est la somme des
           montants des factures émises pour la période/cycle/partenaire
@@ -227,35 +213,35 @@ export default function ResponsableFinancierView() {
           explication courte ("Somme des factures émises ce mois ; ≠ CA
           dashboard qui inclut entrées caisse").
         */}
-        <StatCard
-          icon={TrendingUp}
-          color="bg-green-500"
-          label="Total factures émises"
-          value={new Intl.NumberFormat('fr-FR').format(statsCards[1]?.value ?? 0) + ' FCFA'}
-          sub="Somme des montants facturés"
+        <CarteStat
+          icone={TrendingUp}
+          ton="succes"
+          libelle="Total factures émises"
+          valeur={formatMontant(statsCards[1]?.value ?? 0)}
+          note="Somme des montants facturés"
         />
-        <StatCard
-          icon={FileText}
-          color="bg-blue-500"
-          label="Nombre de Factures"
-          value={String(statsCards[0]?.value ?? 0)}
-          sub="Période sélectionnée"
+        <CarteStat
+          icone={FileText}
+          ton="primaire"
+          libelle="Nombre de factures"
+          valeur={String(statsCards[0]?.value ?? 0)}
+          note="Période sélectionnée"
         />
-        <StatCard
-          icon={Users}
-          color="bg-purple-500"
-          label="Nombre de Partenaires"
-          value={String(statsCards[2]?.value ?? 0)}
-          sub="Partenaires uniques"
+        <CarteStat
+          icone={Users}
+          ton="primaire"
+          libelle="Nombre de partenaires"
+          valeur={String(statsCards[2]?.value ?? 0)}
+          note="Partenaires uniques"
         />
-        <StatCard
-          icon={Percent}
-          color="bg-orange-500"
-          label="Taux de Recouvrement"
-          value={(statsCards[3]?.value ?? 0) + '%'}
-          sub="Période sélectionnée"
+        <CarteStat
+          icone={Percent}
+          ton="attention"
+          libelle="Taux de recouvrement"
+          valeur={`${statsCards[3]?.value ?? 0} %`}
+          note="Période sélectionnée"
         />
-      </div>
+      </GrilleStats>
 
       {/* Filtres */}
       <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm space-y-3">

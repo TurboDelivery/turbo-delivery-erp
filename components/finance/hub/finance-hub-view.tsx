@@ -43,6 +43,7 @@ import AddDepenseVariableModal from '@/features/charges/components/add-depense-v
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
 import RepartitionDepense from '@/features/depenses/components/repartition';
 import { Can } from '@/components/auth/Can';
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import { FinanceHistoriqueTab } from './finance-historique-tab';
 
 const NOW = new Date();
@@ -449,12 +450,20 @@ export function FinanceHubView() {
       </Card>
 
       {/* Rubriques (réplique du tableau de bord principal) */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="Revenus encaissés" value={fmtFcfa(k.revenuEncaisse)} icon={Banknote} />
-        <Kpi label="Investissements" value={fmtFcfa(k.investissement)} icon={TrendingUp} />
-        <Kpi label="Encours" value={fmtFcfa(encours)} sub="CA non encore encaissé" icon={Clock} />
-        <Kpi label="Bon à payer" value={fmtFcfa(bapTotal)} sub={`${bap.length} dépense${bap.length > 1 ? 's' : ''} prête${bap.length > 1 ? 's' : ''}`} icon={Wallet} />
-      </div>
+      <GrilleStats colonnes={4}>
+        <CarteStat libelle="Revenus encaissés" valeur={fmtFcfa(k.revenuEncaisse)} icone={Banknote} />
+        <CarteStat libelle="Investissements" valeur={fmtFcfa(k.investissement)} icone={TrendingUp} />
+        <CarteStat libelle="Encours" valeur={fmtFcfa(encours)} note="CA non encore encaissé" icone={Clock} />
+        {/* Seule carte coloree du bandeau : le bon a payer appelle une action de
+            decaissement, les trois autres ne sont que des constats. */}
+        <CarteStat
+          libelle="Bon à payer"
+          valeur={fmtFcfa(bapTotal)}
+          note={`${bap.length} dépense${bap.length > 1 ? 's' : ''} prête${bap.length > 1 ? 's' : ''}`}
+          icone={Wallet}
+          ton="attention"
+        />
+      </GrilleStats>
 
       {/* Dépenses cumulées (détail) + marge */}
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
@@ -723,20 +732,6 @@ function CaPart({ label, value, hint }: { label: string; value: string; hint?: s
       <div className="text-sm font-bold tabular-nums text-foreground">{value}</div>
       {hint && <div className="mt-0.5 text-[10px] text-default-400">{hint}</div>}
     </div>
-  );
-}
-
-function Kpi({ label, value, sub, icon: Icon }: { label: string; value: string; sub?: string; icon?: typeof Wallet }) {
-  return (
-    <Card shadow="none" className="border border-default-200">
-      <CardBody className="gap-1 p-4">
-        <span className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wide text-default-500">
-          {label}{Icon && <Icon className="h-4 w-4 text-default-300" />}
-        </span>
-        <span className="text-xl font-bold tabular-nums text-foreground">{value}</span>
-        {sub && <span className="text-xs text-default-400">{sub}</span>}
-      </CardBody>
-    </Card>
   );
 }
 

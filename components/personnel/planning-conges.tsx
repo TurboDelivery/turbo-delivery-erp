@@ -123,7 +123,7 @@ export default function PlanningConges() {
 
   if (employeesLoading || congesLoading) {
     return (
-      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="p-6 bg-gray-50">
         <div className="text-center py-8">
           <div className="text-gray-500">Chargement du planning...</div>
         </div>
@@ -132,7 +132,7 @@ export default function PlanningConges() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50">
       <div className="bg-white rounded-xl shadow p-6">
         {/* Titre et contrôles */}
         <div className="flex justify-between items-center mb-4">

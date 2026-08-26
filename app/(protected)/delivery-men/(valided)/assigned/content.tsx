@@ -115,7 +115,7 @@ export default function Content({ initialData, restaurants }: Props) {
     };
 
     return (
-        <div className="container mx-auto p-6 pt-0 flex-wrap">
+        <div className="p-6 pt-0 flex-wrap">
             <SearchField searchKey={livreurAssigneCtrl.searchKey} onChange={livreurAssigneCtrl.setSearchKey} />
             <div className="bg-white rounded-lg overflow-x-auto p-4">
                 {rows.length === 0 ? (

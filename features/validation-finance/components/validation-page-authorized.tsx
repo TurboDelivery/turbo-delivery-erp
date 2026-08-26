@@ -49,10 +49,10 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <ValidationHeader role={userRole} pendingCount={pendingCount} />
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+      <main className="px-4 py-6 sm:px-6 lg:px-8">
         <ChargeTypeSwitcher chargeType={chargeType} onChange={handleChargeTypeChange} />
 
         {isLoading ? (

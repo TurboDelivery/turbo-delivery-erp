@@ -144,7 +144,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
     };    
 
     return (
-        <Card className="py-6 px-4 lg:px-20 bg-gray-50 min-h-screen">
+        <Card className="py-6 px-4 lg:px-20 bg-gray-50">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
                     <RetourButton />

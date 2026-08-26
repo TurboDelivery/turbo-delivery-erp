@@ -39,7 +39,7 @@ export function TurboyTable() {
   };
 
   return (
-    <div className="min-h-screen p-2 sm:p-4">
+    <div className="p-2 sm:p-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">

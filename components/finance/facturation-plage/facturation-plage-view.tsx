@@ -47,6 +47,7 @@ import {
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import {
   IConflitFacture,
   LIBELLE_COMPOSANTE,
@@ -70,32 +71,6 @@ const enDate = (iso: string) => {
   const [a, m, j] = iso.split('-');
   return `${j}/${m}/${a}`;
 };
-
-function Statistique({
-  libelle,
-  valeur,
-  aide,
-  accent,
-}: {
-  libelle: string;
-  valeur: string;
-  aide?: string;
-  accent?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-large border p-4 ${
-        accent ? 'border-primary-200 bg-primary-50/60' : 'border-default-200 bg-content1'
-      }`}
-    >
-      <p className="text-xs uppercase tracking-wide text-default-500">{libelle}</p>
-      <p className={`mt-1 text-xl font-bold ${accent ? 'text-primary' : 'text-default-800'}`}>
-        {valeur}
-      </p>
-      {aide ? <p className="mt-1 text-xs text-default-400">{aide}</p> : null}
-    </div>
-  );
-}
 
 function TableauConflits({ conflits }: { conflits: IConflitFacture[] }) {
   return (
@@ -435,16 +410,21 @@ export function FacturationPlageView() {
               {chargementApercu ? <Spinner size="sm" color="primary" /> : null}
             </CardHeader>
             <CardBody className="space-y-4">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <Statistique
+              <GrilleStats colonnes={4}>
+                <CarteStat
                   libelle="Courses terminées"
                   valeur={formatNombre(apercu.nombreCourses)}
-                  aide="Hors courses rejetées ou en désactivation"
+                  note="Hors courses rejetées ou en désactivation"
                 />
-                <Statistique libelle="Frais de livraison" valeur={formatMontant(apercu.fraisLivraison)} />
-                <Statistique libelle="Commission" valeur={formatMontant(apercu.commission)} />
-                <Statistique libelle="Total à facturer" valeur={formatMontant(apercu.total)} accent />
-              </div>
+                <CarteStat libelle="Frais de livraison" valeur={formatMontant(apercu.fraisLivraison)} />
+                <CarteStat libelle="Commission" valeur={formatMontant(apercu.commission)} />
+                <CarteStat
+                  libelle="Total à facturer"
+                  valeur={formatMontant(apercu.total)}
+                  ton="primaire"
+                  accent
+                />
+              </GrilleStats>
 
               {apercu.zones.length > 0 ? (
                 <>

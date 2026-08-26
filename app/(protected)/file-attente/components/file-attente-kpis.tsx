@@ -1,40 +1,11 @@
 'use client';
 
-import { Skeleton } from '@heroui/react';
 import { AlertTriangle, PackageSearch, Store, Users } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 
 import type { FileAttenteKpis as Kpis } from '../hooks/use-file-attente-vue';
 import { pluriel } from '../utils/file-attente.utils';
-
-interface CarteProps {
-  libelle: string;
-  valeur: string;
-  note: string;
-  icone: LucideIcon;
-  /** Classes de la pastille d'icône (fond teinté + icône). */
-  pastille: string;
-  /** Couleur du chiffre. */
-  chiffre: string;
-  isLoading?: boolean;
-}
-
-function Carte({ libelle, valeur, note, icone: Icone, pastille, chiffre, isLoading }: CarteProps) {
-  return (
-    <div className="rounded-2xl border border-default-200/50 bg-white p-4 dark:bg-content1">
-      <span className={`flex h-11 w-11 items-center justify-center rounded-[14px] ${pastille}`}>
-        <Icone className="h-5 w-5" />
-      </span>
-      {isLoading ? (
-        <Skeleton className="mt-3 h-8 w-16 rounded-md" />
-      ) : (
-        <p className={`mt-3 text-3xl font-bold leading-none tabular-nums ${chiffre}`}>{valeur}</p>
-      )}
-      <p className="mt-2 text-[13px] font-semibold text-default-700">{libelle}</p>
-      <p className="mt-0.5 text-[11px] leading-tight text-default-400">{note}</p>
-    </div>
-  );
-}
 
 /**
  * Les quatre chiffres de tête d'écran.
@@ -48,28 +19,27 @@ export function FileAttenteKpis({ kpis, isLoading }: { kpis: Kpis; isLoading: bo
   const alerte = kpis.postesDeserts > 0;
 
   return (
-    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-      <Carte
+    <GrilleStats colonnes={4}>
+      <CarteStat
         libelle="Postes pourvus"
         valeur={String(kpis.postesPourvus)}
         note={`${pluriel(kpis.postesPourvus, 'partenaire')} avec au moins un livreur en file`}
         icone={Store}
-        pastille="bg-[#1AA05A]/10 text-[#1AA05A]"
-        chiffre={kpis.postesPourvus > 0 ? 'text-[#1AA05A]' : 'text-default-400'}
+        // A zero il n'y a rien a saluer : le vert ne recompense qu'un poste reellement pourvu.
+        ton={kpis.postesPourvus > 0 ? 'succes' : 'neutre'}
         isLoading={isLoading}
       />
-      <Carte
+      <CarteStat
         libelle="Livreurs en file"
         valeur={String(kpis.livreursEnFile)}
         note="ont pointé leur montée et attendent une course"
         icone={Users}
-        // Volontairement neutre : sur cet écran le rouge est réservé à
-        // l'alerte « poste sans livreur ». Un total ne s'alarme pas.
-        pastille="bg-default-100 text-default-500"
-        chiffre="text-default-700"
+        // Volontairement neutre : sur cet ecran le rouge est reserve a l'alerte
+        // « poste sans livreur ». Un total ne s'alarme pas.
+        ton="neutre"
         isLoading={isLoading}
       />
-      <Carte
+      <CarteStat
         libelle="Postes sans livreur"
         valeur={String(kpis.postesDeserts)}
         note={
@@ -78,19 +48,18 @@ export function FileAttenteKpis({ kpis, isLoading }: { kpis: Kpis; isLoading: bo
             : 'tous les postes connus sont couverts'
         }
         icone={AlertTriangle}
-        pastille={alerte ? 'bg-[#E11D48]/10 text-[#E11D48]' : 'bg-default-100 text-default-400'}
-        chiffre={alerte ? 'text-[#E11D48]' : 'text-default-400'}
+        ton={alerte ? 'danger' : 'neutre'}
         isLoading={isLoading}
       />
-      <Carte
+      <CarteStat
         libelle="Commandes en attente"
         valeur={kpis.commandesEnAttente == null ? '—' : String(kpis.commandesEnAttente)}
         note="courses du jour pas encore prises en charge"
         icone={PackageSearch}
-        pastille="bg-[#D97706]/10 text-[#D97706]"
-        chiffre={kpis.commandesEnAttente ? 'text-[#D97706]' : 'text-default-400'}
+        // Zero commande en attente est un bon etat, pas une alerte : pas d'ambre dans ce cas.
+        ton={kpis.commandesEnAttente ? 'attention' : 'neutre'}
         isLoading={isLoading}
       />
-    </div>
+    </GrilleStats>
   );
 }

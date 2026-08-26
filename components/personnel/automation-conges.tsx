@@ -129,7 +129,7 @@ export default function AutomatisationConges() {
   });
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6 bg-gray-100">
       {/* Header */}
       <div className="bg-gray-200 rounded-xl p-4 mb-6">
         <h1 className="text-lg font-semibold mb-1">Automatisation des congés</h1>

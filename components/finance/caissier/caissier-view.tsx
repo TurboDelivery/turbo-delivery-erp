@@ -25,6 +25,7 @@ import {
   useCaissierDepotBanqueMutation,
 } from '@/features/caissier';
 import type { IFactureCaissier, IDepotBanqueCaissierBody } from '@/features/caissier';
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 
 function formatMontant(v: number) {
   return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
@@ -41,32 +42,6 @@ const statutChips = [
   'Clôturé',
 ] as const;
 type StatutChip = (typeof statutChips)[number];
-
-function StatCard({
-  icon: Icon,
-  color,
-  label,
-  value,
-}: {
-  icon: React.ElementType;
-  color: string;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 p-5 flex items-center justify-between shadow-sm">
-      <div>
-        <p className="text-xs text-gray-500 mb-1">{label}</p>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-      </div>
-      <div
-        className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}
-      >
-        <Icon className="w-6 h-6 text-white" />
-      </div>
-    </div>
-  );
-}
 
 export default function CaissierView() {
   const [statut, setStatut] = useState<string>('Versé au caissier');
@@ -148,25 +123,25 @@ export default function CaissierView() {
   const statsCards = [
     {
       icon: Clock,
-      color: 'bg-amber-500',
+      ton: 'attention' as const,
       label: pageTronquee ? 'En attente (sur les 200 premières)' : 'En attente',
       value: String(enAttente),
     },
     {
       icon: Landmark,
-      color: 'bg-indigo-600',
+      ton: 'primaire' as const,
       label: pageTronquee ? 'Montant en attente (sur les 200 premières)' : 'Montant en attente',
       value: formatMontant(montantEnAttente),
     },
     {
       icon: FileCheck,
-      color: 'bg-sky-500',
+      ton: 'primaire' as const,
       label: pageTronquee ? 'Confirmées (sur les 200 premières)' : 'Confirmées',
       value: String(confirmees),
     },
     {
       icon: CheckCircle2,
-      color: 'bg-emerald-500',
+      ton: 'succes' as const,
       label: 'Total factures',
       value: String(totalReel),
     },
@@ -180,12 +155,20 @@ export default function CaissierView() {
         <h1 className="text-2xl font-bold text-indigo-600">Espace Caissier</h1>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Bandeau de statistiques. La carte locale supprimee ici etait une copie
+          CARACTERE POUR CARACTERE de celle d'agent-recouvreur-view : deux fichiers
+          a corriger le jour ou l'un des deux bougeait. */}
+      <GrilleStats colonnes={4}>
         {statsCards.map((card) => (
-          <StatCard key={card.label} icon={card.icon} color={card.color} label={card.label} value={card.value} />
+          <CarteStat
+            key={card.label}
+            libelle={card.label}
+            valeur={card.value}
+            icone={card.icon}
+            ton={card.ton}
+          />
         ))}
-      </div>
+      </GrilleStats>
 
       {/* Filtres */}
       <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">

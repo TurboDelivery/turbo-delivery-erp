@@ -77,7 +77,7 @@ export default function AnalyseRentabiliteContent() {
   }, [globalStats, depenseSummary, chargesFixesData]);
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 bg-gray-50">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">

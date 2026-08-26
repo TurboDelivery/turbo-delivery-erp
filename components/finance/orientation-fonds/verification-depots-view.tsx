@@ -26,10 +26,9 @@ import {
   useEnregistrerAttestationMutation,
   type EtatRapprochement,
 } from '@/features/orientation-fonds';
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import { formatMontant } from '@/utils/format.utils';
 
-function fmt(v: number) {
-  return new Intl.NumberFormat('fr-FR').format(v ?? 0) + ' F CFA';
-}
 function fmtDate(iso: string | null) {
   if (!iso) return '—';
   try { return new Date(iso).toLocaleDateString('fr-FR'); } catch { return iso; }
@@ -41,17 +40,6 @@ const ETAT_BANQUE: Record<EtatRapprochement, { label: string; color: 'success' |
   PREUVE_MANQUANTE: { label: 'Preuve manquante', color: 'warning' },
   ECART_MONTANT: { label: 'Écart de montant', color: 'danger' },
 };
-
-function StatCard({ label, value, sub, tone = 'default' }: { label: string; value: string; sub?: string; tone?: 'default' | 'ok' | 'warn' }) {
-  const toneCls = tone === 'ok' ? 'text-emerald-600' : tone === 'warn' ? 'text-red-600' : 'text-gray-900';
-  return (
-    <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-      <p className="text-xs text-gray-500 mb-1">{label}</p>
-      <p className={`text-xl font-bold ${toneCls}`}>{value}</p>
-      {sub && <p className="text-[11px] text-gray-400 mt-0.5">{sub}</p>}
-    </div>
-  );
-}
 
 export default function VerificationDepotsView() {
   const { data, isLoading } = useVerificationDepotsQuery();
@@ -124,17 +112,32 @@ export default function VerificationDepotsView() {
       </div>
 
       {/* Synthèse de bouclage */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard label="Total visé" value={fmt(synthese?.totalVise ?? 0)} />
-        <StatCard label="Total déposé (banque)" value={fmt(synthese?.totalDepose ?? 0)} />
-        <StatCard label="Total conservé (caisse)" value={fmt(synthese?.totalConserve ?? 0)} />
-        <StatCard
-          label="Bouclage"
-          value={synthese?.bouclageOk ? 'OK' : 'Anomalie'}
-          sub={synthese ? `Écart : ${fmt(synthese.ecartBouclage)}` : undefined}
-          tone={synthese?.bouclageOk ? 'ok' : 'warn'}
+      <GrilleStats colonnes={4}>
+        <CarteStat
+          libelle="Total visé"
+          valeur={formatMontant(synthese?.totalVise ?? 0)}
+          isLoading={isLoading}
         />
-      </div>
+        <CarteStat
+          libelle="Total déposé (banque)"
+          valeur={formatMontant(synthese?.totalDepose ?? 0)}
+          isLoading={isLoading}
+        />
+        <CarteStat
+          libelle="Total conservé (caisse)"
+          valeur={formatMontant(synthese?.totalConserve ?? 0)}
+          isLoading={isLoading}
+        />
+        {/* Le bouclage est le seul chiffre colore de ce bandeau : il dit si la
+            somme banque + caisse retombe sur le total vise. */}
+        <CarteStat
+          libelle="Bouclage"
+          valeur={synthese?.bouclageOk ? 'OK' : 'Anomalie'}
+          note={synthese ? `Écart : ${formatMontant(synthese.ecartBouclage)}` : undefined}
+          ton={synthese?.bouclageOk ? 'succes' : 'danger'}
+          isLoading={isLoading}
+        />
+      </GrilleStats>
       {synthese && !synthese.bouclageOk && (
         <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -165,7 +168,7 @@ export default function VerificationDepotsView() {
                   <TableCell>{l.numeroVisa ?? '—'}</TableCell>
                   <TableCell>{l.numeroBordereau ?? <span className="text-red-500">—</span>}</TableCell>
                   <TableCell>{l.partenaire}</TableCell>
-                  <TableCell className="whitespace-nowrap">{fmt(l.montantVise)} / {fmt(l.montantDepose)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}</TableCell>
                   <TableCell>{fmtDate(l.dateDepot)}</TableCell>
                   <TableCell>
                     <Chip size="sm" color={ETAT_BANQUE[l.etatRapprochement].color} variant="flat">
@@ -190,7 +193,7 @@ export default function VerificationDepotsView() {
                 </div>
                 <Chip size="sm" color={ETAT_BANQUE[l.etatRapprochement].color} variant="flat">{ETAT_BANQUE[l.etatRapprochement].label}</Chip>
               </div>
-              <div className="flex justify-between text-xs"><span className="text-gray-400">Visé / Déposé</span><span className="text-gray-700">{fmt(l.montantVise)} / {fmt(l.montantDepose)}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-gray-400">Visé / Déposé</span><span className="text-gray-700">{formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}</span></div>
               <div className="flex justify-between text-xs"><span className="text-gray-400">Date dépôt</span><span className="text-gray-700">{fmtDate(l.dateDepot)}</span></div>
             </div>
           ))}
@@ -218,7 +221,7 @@ export default function VerificationDepotsView() {
                 <TableRow key={l.factureId}>
                   <TableCell>{l.numeroVisa ?? '—'}</TableCell>
                   <TableCell>{l.partenaire}</TableCell>
-                  <TableCell className="whitespace-nowrap">{fmt(l.montantConserve)}</TableCell>
+                  <TableCell className="whitespace-nowrap">{formatMontant(l.montantConserve)}</TableCell>
                   <TableCell><span className="text-xs text-gray-500 line-clamp-2 max-w-[260px]">{l.motif ?? '—'}</span></TableCell>
                   <TableCell>{l.ancienneteJours} j</TableCell>
                   <TableCell>
@@ -244,7 +247,7 @@ export default function VerificationDepotsView() {
                 </div>
                 <Chip size="sm" color={l.alerteDormant ? 'danger' : 'warning'} variant="flat">{l.alerteDormant ? 'Dormant' : 'En caisse'}</Chip>
               </div>
-              <div className="flex justify-between text-xs"><span className="text-gray-400">Montant</span><span className="text-gray-700 font-semibold">{fmt(l.montantConserve)}</span></div>
+              <div className="flex justify-between text-xs"><span className="text-gray-400">Montant</span><span className="text-gray-700 font-semibold">{formatMontant(l.montantConserve)}</span></div>
               {l.motif && <p className="text-[11px] text-gray-500 line-clamp-2">{l.motif}</p>}
             </div>
           ))}
@@ -271,9 +274,9 @@ export default function VerificationDepotsView() {
                 {attestations.map((a) => (
                   <TableRow key={a.id}>
                     <TableCell>{fmtDate(a.dateAttestation)}</TableCell>
-                    <TableCell>{fmt(a.soldeTheorique)}</TableCell>
-                    <TableCell>{fmt(a.montantComptePhysique)}</TableCell>
-                    <TableCell className={a.ecart !== 0 ? 'text-red-600 font-semibold' : 'text-emerald-600'}>{fmt(a.ecart)}</TableCell>
+                    <TableCell>{formatMontant(a.soldeTheorique)}</TableCell>
+                    <TableCell>{formatMontant(a.montantComptePhysique)}</TableCell>
+                    <TableCell className={a.ecart !== 0 ? 'text-red-600 font-semibold' : 'text-emerald-600'}>{formatMontant(a.ecart)}</TableCell>
                     <TableCell>{a.caissier}</TableCell>
                   </TableRow>
                 ))}
@@ -291,7 +294,7 @@ export default function VerificationDepotsView() {
               <ModalHeader className="flex-col items-start gap-0">
                 <span className="text-lg font-bold text-gray-900">Attestation de caisse</span>
                 <span className="text-sm font-normal text-gray-400">
-                  Solde théorique : {fmt(synthese?.totalConserve ?? 0)} (somme des fonds conservés)
+                  Solde théorique : {formatMontant(synthese?.totalConserve ?? 0)} (somme des fonds conservés)
                 </span>
               </ModalHeader>
               <ModalBody>

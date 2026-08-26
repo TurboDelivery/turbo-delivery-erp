@@ -28,7 +28,7 @@ export default function Content({ initialData }: Props) {
     if (!data) return <div>Chargement...</div>;
 
     return (
-        <div className="p-4 bg-gray-100 min-h-screen rounded-md">
+        <div className="p-4 bg-gray-100 rounded-md">
             <UserRestaurantListe turboysCreneau={turboysCreneau} />
             <UserRestaurantListeNotCreneau turboysCreneau={turboysNotCreneau} />
 

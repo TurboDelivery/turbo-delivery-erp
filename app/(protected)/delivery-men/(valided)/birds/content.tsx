@@ -75,7 +75,7 @@ export default function Content({ initialData, restaurants }: Props) {
   };
 
   return (
-    <div className="container mx-auto p-6 pt-0 flex-wrap">
+    <div className="p-6 pt-0 flex-wrap">
       <SearchField searchKey={livreurNonAssingeCtrl.searchKey} onChange={livreurNonAssingeCtrl.setSearchKey} />
       <div className="bg-white rounded-lg overflow-x-auto lg:overflow-hidden xl:overflow-hidden md:overflow-x-auto ms:overflow-x-auto">
         <div className="bg-white rounded-lg overflow-x-auto py-4 shadow">

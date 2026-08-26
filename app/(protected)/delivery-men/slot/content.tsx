@@ -37,7 +37,7 @@ export default function Content({ initialData }: Props) {
     );
 
     return (
-        <div className="p-4 bg-gray-100 min-h-screen rounded-md">
+        <div className="p-4 bg-gray-100 rounded-md">
             <AllModelView
                 value={value}
                 setValue={setValue}

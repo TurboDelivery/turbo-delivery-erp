@@ -15,17 +15,12 @@ import {
   TableRow,
 } from '@heroui/react';
 
+import { CalendarDays, Clock, Gauge, Percent, UserCheck, UserX } from 'lucide-react';
+
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
 import { IRapportJour, IRapportSignal, useRapportPresenceQuery } from '@/features/reporting';
-
-function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
-  return (
-    <div className="rounded-medium border border-default-200 px-3 py-2">
-      <p className="text-xs uppercase tracking-wide text-default-400">{label}</p>
-      <p className={`text-lg font-semibold ${color ?? 'text-default-800'}`}>{value}</p>
-    </div>
-  );
-}
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import { formatNombre } from '@/utils/format.utils';
 
 function SignalCell({ signal }: { signal: IRapportSignal | null }) {
   if (!signal || !signal.heure) return <span className="text-default-300">—</span>;
@@ -109,15 +104,44 @@ export function RapportPanel() {
         </div>
       ) : rapport ? (
         <>
-          {/* Synthèse */}
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-            <Stat label="Jours actifs" value={rapport.synthese.joursActifs} />
-            <Stat label="Présents" value={rapport.synthese.presents} color="text-success" />
-            <Stat label="Retards" value={rapport.synthese.retards} color="text-warning" />
-            <Stat label="Absents" value={rapport.synthese.absents} color="text-danger" />
-            <Stat label="Assiduité" value={`${rapport.synthese.tauxAssiduite}%`} color="text-primary" />
-            <Stat label="Cote" value={rapport.cote != null ? `${rapport.cote}/100` : '—'} />
-          </div>
+          {/* Synthese : les couleurs passent par des tons et non par des classes de
+              palette, pour que le retour du mode sombre ne demande aucune retouche. */}
+          <GrilleStats colonnes={3}>
+            <CarteStat
+              libelle="Jours actifs"
+              valeur={formatNombre(rapport.synthese.joursActifs)}
+              icone={CalendarDays}
+            />
+            <CarteStat
+              libelle="Présents"
+              valeur={formatNombre(rapport.synthese.presents)}
+              icone={UserCheck}
+              ton="succes"
+            />
+            <CarteStat
+              libelle="Retards"
+              valeur={formatNombre(rapport.synthese.retards)}
+              icone={Clock}
+              ton="attention"
+            />
+            <CarteStat
+              libelle="Absents"
+              valeur={formatNombre(rapport.synthese.absents)}
+              icone={UserX}
+              ton="danger"
+            />
+            <CarteStat
+              libelle="Assiduité"
+              valeur={`${rapport.synthese.tauxAssiduite}%`}
+              icone={Percent}
+              ton="primaire"
+            />
+            <CarteStat
+              libelle="Cote"
+              valeur={rapport.cote != null ? `${rapport.cote}/100` : '—'}
+              icone={Gauge}
+            />
+          </GrilleStats>
 
           {/* Détail par jour */}
           <Table aria-label="Détail par jour" isStriped>

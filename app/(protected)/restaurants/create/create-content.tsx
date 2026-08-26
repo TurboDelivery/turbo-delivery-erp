@@ -197,7 +197,7 @@ export default function CreateContent() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-24">
+    <div className="pb-24">
       <div className="flex items-center gap-3 mb-6">
         <Link href="/restaurants" className="text-gray-500 hover:text-primary transition-colors">
           <ArrowLeft className="w-5 h-5" />

@@ -161,7 +161,7 @@ export default function FinancialReport() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="bg-gray-50 p-6">
       {/* Header */}
       <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
