@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { turboyKeys } from '@/features/turboys/queries/turboy-list.query';
 import {
   changerStatutPieceAction,

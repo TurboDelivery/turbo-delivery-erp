@@ -7,7 +7,7 @@ import { DeliveryMan } from '@/types/models';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { Avatar, Chip } from '@heroui/react';
 import { Key, useCallback, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 export const columns = [
     { name: 'Matricule', uid: 'matricule' },

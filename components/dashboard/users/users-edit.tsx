@@ -1,6 +1,6 @@
 'use client';
 
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { Role, User } from '@/types/models';
 import IconX from '@/components/icon/icon-x';
 import { zodResolver } from '@hookform/resolvers/zod';

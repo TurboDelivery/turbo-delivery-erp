@@ -24,7 +24,7 @@ import {
   useDisclosure,
 } from '@heroui/react';
 import { History, Pencil } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import {
   useCommissionHistoryQuery,
   useModifierCommissionMutation,

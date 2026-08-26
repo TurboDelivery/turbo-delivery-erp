@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import React, { Fragment, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const TypePlatAdd = () => {
     const [open, setOpen] = useState<boolean>(false);

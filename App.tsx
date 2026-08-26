@@ -9,7 +9,6 @@ import { I18nProvider } from '@react-aria/i18n';
 import { HeroUIProvider } from "@heroui/react";
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { useRouter } from 'next/navigation';
-import { ToastContainer, Bounce } from 'react-toastify';
 
 function App({ children }: PropsWithChildren) {
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
@@ -55,19 +54,6 @@ function App({ children }: PropsWithChildren) {
                         ) : (
                             <div>
                                 {children}
-                                <ToastContainer
-                                    position="top-right"
-                                    autoClose={5000}
-                                    hideProgressBar={false}
-                                    newestOnTop={false}
-                                    closeOnClick
-                                    rtl={themeConfig.rtlClass === 'rtl'}
-                                    pauseOnFocusLoss
-                                    draggable
-                                    pauseOnHover
-                                    theme={themeConfig.theme}
-                                    transition={Bounce}
-                                />
                             </div>
                         )}
                     </div>

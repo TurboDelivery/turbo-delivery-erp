@@ -16,7 +16,7 @@ import {
 } from '@heroui/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { AlertTriangle, GitMerge } from 'lucide-react';
 
 import { createUrlFile } from '@/utils/createUrlFile';

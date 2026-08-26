@@ -7,7 +7,7 @@ import { LivreurStatutVM, Restaurant, TypeEnum } from '@/types/models';
 import { useDisclosure } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 export function useTurboAssigneController(initialData: PaginatedResponse<LivreurStatutVM> | null, restaurants: Restaurant[] | null) {
   const router = useRouter();

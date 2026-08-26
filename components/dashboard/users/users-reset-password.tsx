@@ -6,7 +6,7 @@ import { User } from '@/types/models';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
 import { Button, Snippet } from '@heroui/react';
 import React, { Fragment, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 /**

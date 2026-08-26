@@ -3,7 +3,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { Package } from 'lucide-react';
 
 import { Restaurant } from '@/types/models';

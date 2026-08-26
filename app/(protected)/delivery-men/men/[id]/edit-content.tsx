@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { Avatar, Button, Chip, Spinner, Tab, Tabs } from '@heroui/react';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import {

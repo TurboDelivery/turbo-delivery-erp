@@ -7,7 +7,7 @@ import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/re
 import { Button } from "@heroui/react";
 import React, { Fragment } from 'react';
 import { useFormStatus } from 'react-dom';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 const UsersDeleteRestaure = ({ user, open, setOpen }: { user: User; open: boolean; setOpen: (open: boolean) => void }) => {

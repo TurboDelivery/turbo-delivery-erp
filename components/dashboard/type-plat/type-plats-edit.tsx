@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import React, { Fragment } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const TypePlatEdit = ({ typePlat, open, setOpen }: { typePlat: Collection; open: boolean; setOpen: (open: boolean) => void }) => {
     const { pending } = useFormStatus();

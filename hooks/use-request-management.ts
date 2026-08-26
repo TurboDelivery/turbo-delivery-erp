@@ -6,7 +6,7 @@ import { LeaveRequest, IEmployee } from '@/features/personnel/types/types';
 import { useAjouterCongeMutation, useSupprimerCongeMutation, useModifierCongeMutation, useApprouverCongeMutation, useRejeterCongeMutation } from '@/features/conge/mutations/conge.mutation';
 import { CongeType, DurationType } from '@/features/conge/types/conge.type';
 import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 export const useRequestManagement = (employees: IEmployee[]) => {
   const queryClient = useQueryClient();

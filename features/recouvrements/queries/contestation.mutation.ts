@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { createContestationDTO, updateContestationDTO } from '@/features/recouvrements/schemas/contestation.schema';
 import { creerContestationRequest, modifierContestationRequest, resolveContestationRequest } from '@/features/recouvrements/requests/contestations.request';
 import { factureKeys } from '@/features/recouvrements/queries/facture.query';

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { Button, Input, Select, SelectItem, Switch } from '@heroui/react';
 import { ArrowLeft, Camera, Upload, Plus, Eye, EyeOff, FileText } from 'lucide-react';
 import {

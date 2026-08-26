@@ -5,7 +5,7 @@ import { useFormState } from 'react-dom';
 import { SubmitButton } from '@/components/ui/form-ui/submit-button';
 
 import { loginUser } from '@/src/actions/users.actions';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { _loginSchema } from '@/src/schemas/users.schema';
 import { useRouter } from 'next/navigation';
 import { IconLock, IconUser } from '@tabler/icons-react';

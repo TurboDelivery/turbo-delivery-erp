@@ -1,7 +1,7 @@
 import { changerRestaurantLivreur, changerStatusLivreur } from '@/src/actions/delivery-men.actions';
 import { LivreurStatutVM, TypeEnum } from '@/types/models';
 import { useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 export function useUpdateDeliveryManController(

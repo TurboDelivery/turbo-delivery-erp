@@ -13,7 +13,7 @@ import {
   ModalHeader,
 } from '@heroui/react';
 import { useQuery } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { IJourProgramme, IProgramme } from '@/features/turboys/types/programme.types';
 import { useCreerProgrammeMutation, useModifierProgrammeMutation } from '@/features/turboys/queries/programme.query';
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';

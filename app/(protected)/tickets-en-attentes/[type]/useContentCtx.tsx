@@ -7,7 +7,7 @@ import { Restaurant } from '@/types/models';
 import { CalendarDate, RangeValue, Switch, useDisclosure } from '@heroui/react';
 import { useParams } from 'next/navigation';
 import { Key, useCallback, useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 export const columns = [
     { name: 'Référence', uid: 'reference' },

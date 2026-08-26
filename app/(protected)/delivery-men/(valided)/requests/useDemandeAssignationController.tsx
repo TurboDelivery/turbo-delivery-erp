@@ -6,7 +6,7 @@ import { rejeterDemandeAssignations, validerDemandeAssignations } from '@/src/ac
 import { DemandeAssignationVM } from '@/types/models';
 import { useDisclosure } from '@heroui/react';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 export function useDemandeAssignationController(demandeAssignations: DemandeAssignationVM[]) {

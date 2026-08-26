@@ -1,19 +1,13 @@
 /* Animate css */
-@import './animate.css';
 /* tippy css */
-@import './tippy.css';
 
 /* swiper css */
-@import './swiper.css';
 
 /* Elements - Progressbar */
-@import './progressbar.css';
 
 /* Data tables css */
-/* @import './datatables.css'; */
 
 /* scrumboard */
-@import './scrumboard.css';
 
 /* calendar css */
 @import './fullcalendar.css';
@@ -39,8 +33,6 @@
 /* form element*/
 @import './form-elements.css';
 
-/* react-toastify */
-@import 'react-toastify/dist/ReactToastify.css';
 
 /* Select2*/
 @import './select2.css';

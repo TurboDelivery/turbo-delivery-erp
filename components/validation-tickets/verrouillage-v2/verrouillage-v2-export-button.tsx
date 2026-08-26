@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { FileText } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { listerTicketsParStatutRequest } from '@/features/tickets/request/tickets.request';
 import { StatutControle } from '@/types/statut-controle.enum';
@@ -88,35 +88,22 @@ export function VerrouillageV2ExportButton({ totalItems }: VerrouillageV2ExportB
 
     try {
       const tickets = await fetchAllV1ValideTickets((loaded, total) => {
-        toast.update(toastId, {
-          render: `Chargement des tickets (${loaded} / ${total})`,
-          isLoading: true,
-        });
+        toast.loading(`Chargement des tickets (${loaded} / ${total})`, { id: toastId });
       });
 
       if (tickets.length === 0) {
-        toast.update(toastId, {
-          render: 'Aucun ticket à exporter',
-          type: 'warning',
-          isLoading: false,
-          autoClose: 3000,
-        });
+        toast.warning('Aucun ticket à exporter', { id: toastId });
         return;
       }
 
-      toast.update(toastId, { render: 'Génération du PDF...', isLoading: true });
+      toast.loading('Génération du PDF...', { id: toastId });
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
 
       const htmlContent = generatePdfTemplateV2(tickets);
       const printWindow = window.open('', '_blank');
 
       if (!printWindow) {
-        toast.update(toastId, {
-          render: "Impossible d'ouvrir la fenêtre d'impression. Veuillez autoriser les pop-ups.",
-          type: 'error',
-          isLoading: false,
-          autoClose: 5000,
-        });
+        toast.error("Impossible d'ouvrir la fenêtre d'impression. Veuillez autoriser les pop-ups.", { id: toastId });
         return;
       }
 
@@ -124,18 +111,10 @@ export function VerrouillageV2ExportButton({ totalItems }: VerrouillageV2ExportB
       printWindow.document.close();
       setTimeout(() => printWindow.print(), 250);
 
-      toast.update(toastId, {
-        render: `${tickets.length} ticket(s) prêt(s) pour export PDF`,
-        type: 'success',
-        isLoading: false,
-        autoClose: 3000,
-      });
+      toast.success(`${tickets.length} ticket(s) prêt(s) pour export PDF`, { id: toastId });
     } catch (error) {
-      toast.update(toastId, {
-        render: error instanceof Error ? error.message : "Erreur lors de l'export",
-        type: 'error',
-        isLoading: false,
-        autoClose: 5000,
+      toast.error(error instanceof Error ? error.message : "Erreur lors de l'export", {
+        id: toastId,
       });
     } finally {
       setIsExporting(false);

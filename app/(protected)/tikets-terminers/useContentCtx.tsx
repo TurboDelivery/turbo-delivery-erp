@@ -8,7 +8,7 @@ import { CalendarDate, Chip, RangeValue } from '@heroui/react';
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import { Key, useCallback, useEffect, useState, useMemo } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 dayjs.extend(isBetween);
 

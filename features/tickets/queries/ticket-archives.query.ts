@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 import { ticketsKeyQuery } from './index.query';
 import { listerArchivesRequest } from '@/features/tickets/request/tickets.request';

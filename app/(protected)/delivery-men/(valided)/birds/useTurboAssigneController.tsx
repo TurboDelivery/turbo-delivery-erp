@@ -6,7 +6,7 @@ import { PaginatedResponse } from '@/types';
 import { LivreurStatutVM } from '@/types/models';
 import { useDisclosure } from '@heroui/react';
 import { useEffect, useState, useMemo } from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 export function useTurboysBirdController(initialData: PaginatedResponse<LivreurStatutVM> | null) {

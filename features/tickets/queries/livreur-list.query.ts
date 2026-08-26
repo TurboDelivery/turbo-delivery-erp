@@ -3,7 +3,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ticketsKeyQuery } from './index.query';
 import getQueryClient from '@/lib/get-query-client';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { getAllDeliveryMenRequest } from '@/features/tickets/request/livreurs.request';
 
 const queryClient = getQueryClient();

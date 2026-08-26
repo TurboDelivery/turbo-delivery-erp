@@ -1,24 +1,16 @@
 'use client';
-import { IRootState } from '@/store';
-import { usePathname } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import React from 'react';
 
+/**
+ * Coquille de la zone de contenu.
+ *
+ * <p>Le nom vient du gabarit d'origine, qui jouait ici une transition animate.css a chaque
+ * changement de page. Cette animation a ete retiree le 26/08/2026 : elle etait pilotee par
+ * `themeConfig.animation`, dont la valeur par defaut est la chaine VIDE et qu'aucune
+ * interface ne change. La feuille animate.css pesait 3 687 lignes pour cet unique usage
+ * sans effet visible.</p>
+ */
 const ContentAnimation = ({ children }: { children: React.ReactNode }) => {
-    const pathname = usePathname();
-    const themeConfig = useSelector((state: IRootState) => state.themeConfig);
-    const [animation, setAnimation] = useState(themeConfig.animation);
-
-    useEffect(() => {
-        setAnimation(themeConfig.animation);
-    }, [themeConfig.animation]);
-
-    useEffect(() => {
-        setAnimation(themeConfig.animation);
-        setTimeout(() => {
-            setAnimation('');
-        }, 1100);
-    }, [pathname]);
     return (
         <>
             {/* BEGIN CONTENT AREA */}
@@ -29,15 +21,11 @@ const ContentAnimation = ({ children }: { children: React.ReactNode }) => {
                 jusqu au bord. D un ecran a l autre le bord gauche du contenu
                 sautait, ce qui se lit comme un defaut d application.
 
-                Le conteneur est A L INTERIEUR du bloc anime et non sur lui : les
-                classes d animation portent sur toute la zone, les rogner ferait
-                demarrer la transition sur une bande centree au lieu de la page.
-
                 AUCUN PLAFOND : le contenu occupe toute la zone, et les seuls bords
                 sont le `p-6`, identique sur tous les ecrans. C'etait deja le cas de
                 149 ecrans sur 155 ; ce sont les six autres qui s'en ecartaient. La
                 largeur reste decidee ICI, sur cette seule ligne. */}
-            <div className={`${animation} animate__animated p-6`}>
+            <div className="p-6">
                 <div className="w-full">{children}</div>
             </div>
             {/* END CONTENT AREA */}

@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import ConfirmModal from '@/components/ui/confirm-modal';
 import { useDeleteRestaurantMutation, useToggleRestaurantMutation } from '@/features/restaurants/queries/restaurant-list.query';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 // ── Avatar coloré basé sur la première lettre ───────────────────────────────
 const AVATAR_COLORS = [

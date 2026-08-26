@@ -3,7 +3,7 @@
 import React, { useCallback } from 'react';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { ChevronDown, Download } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { InfiniteData, QueryClient, useQueryClient } from '@tanstack/react-query';
 
 import { BonLivraisonTerminee, Ticket } from '@/types/bon-livraison.model';
@@ -163,26 +163,15 @@ export function TicketTableExportButton({ filters, totalItems, isDisabled }: Tic
 
       try {
         const tickets = await fetchAllTickets(filters, queryClient, (loaded, total) => {
-          toast.update(toastId, {
-            render: `Chargement des tickets (${loaded}/${total})`,
-            isLoading: true,
-          });
+          toast.loading(`Chargement des tickets (${loaded}/${total})`, { id: toastId });
         });
 
         if (tickets.length === 0) {
-          toast.update(toastId, {
-            render: 'Aucune donnée à exporter',
-            type: 'warning',
-            isLoading: false,
-            autoClose: 3000,
-          });
+          toast.warning('Aucune donnée à exporter', { id: toastId });
           return;
         }
 
-        toast.update(toastId, {
-          render: `Génération du fichier ${format === 'EXCEL' ? 'Excel' : 'PDF'}...`,
-          isLoading: true,
-        });
+        toast.loading(`Génération du fichier ${format === 'EXCEL' ? 'Excel' : 'PDF'}...`, { id: toastId });
         await new Promise<void>((resolve) => setTimeout(resolve, 0));
 
         if (format === 'EXCEL') {
@@ -197,42 +186,24 @@ export function TicketTableExportButton({ filters, totalItems, isDisabled }: Tic
           a.click();
           window.URL.revokeObjectURL(url);
 
-          toast.update(toastId, {
-            render: `${tickets.length} ligne(s) exportée(s) en Excel`,
-            type: 'success',
-            isLoading: false,
-            autoClose: 3000,
-          });
+          toast.success(`${tickets.length} ligne(s) exportée(s) en Excel`, { id: toastId });
           return;
         }
 
         const htmlContent = generatePdfTemplate(tickets);
         const printWindow = window.open('', '_blank');
         if (!printWindow) {
-          toast.update(toastId, {
-            render: "Impossible d'ouvrir la fenêtre d'impression. Veuillez autoriser les pop-ups.",
-            type: 'error',
-            isLoading: false,
-            autoClose: 5000,
-          });
+          toast.error("Impossible d'ouvrir la fenêtre d'impression. Veuillez autoriser les pop-ups.", { id: toastId });
           return;
         }
         printWindow.document.write(htmlContent);
         printWindow.document.close();
         setTimeout(() => printWindow.print(), 250);
 
-        toast.update(toastId, {
-          render: `${tickets.length} ligne(s) prêtes pour export PDF`,
-          type: 'success',
-          isLoading: false,
-          autoClose: 3000,
-        });
+        toast.success(`${tickets.length} ligne(s) prêtes pour export PDF`, { id: toastId });
       } catch (error) {
-        toast.update(toastId, {
-          render: error instanceof Error ? error.message : "Erreur lors de l'export",
-          type: 'error',
-          isLoading: false,
-          autoClose: 5000,
+        toast.error(error instanceof Error ? error.message : "Erreur lors de l'export", {
+          id: toastId,
         });
       }
     },

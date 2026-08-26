@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { createDeliveryFee, updatePriceList } from '@/src/price-list/price-list.action';
 import { PriceListFormData } from '../schemas/price-list.schema';
 import { useInvalidatePriceListQuery } from './price-list.query';

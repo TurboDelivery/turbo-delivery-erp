@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { PaginatedResponse } from '@/types';
 import { getRestaurantUndefined2 } from '@/src/price-list/price-list.action';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 interface Props {
     initialData: PaginatedResponse<RestaurantDefini> | null;

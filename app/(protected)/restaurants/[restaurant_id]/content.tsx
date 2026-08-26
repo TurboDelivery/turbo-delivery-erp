@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { Button, Input, Select, SelectItem, Tab, Tabs, Textarea } from '@heroui/react';
 import { Input as AddressInput } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';

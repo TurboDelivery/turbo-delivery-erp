@@ -2,7 +2,7 @@
 
 import { Lock } from 'lucide-react';
 import { Input } from "@heroui/react";
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { useFormState } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { body, title } from '@/components/primitives';

@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ticketsKeyQuery } from './index.query';
 import getQueryClient from '@/lib/get-query-client';
 import { ITicketParams } from '@/features/tickets/types/tickets.type';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { getBonLivraisonStatsRequest } from '@/features/tickets/request/tickets.request';
 
 const queryClient = getQueryClient();

@@ -7,7 +7,7 @@ import { useRestaurantsListQuery } from '@/features/restaurants/queries/restaura
 import { useRestaurantFilters } from '@/features/restaurants/hooks/use-restaurant-filters';
 import { exportRestaurantsPDF } from '@/features/restaurants/actions/restaurant.actions';
 import { saveAsPDFFile } from '@/utils/reporting-file';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const DEBOUNCE_MS = 350;
 

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Select, SelectItem } from '@heroui/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { parseAsInteger, useQueryStates } from 'nuqs';
 import { IProgramme } from '@/features/turboys/types/programme.types';
 import { creerProgrammeAction, listerProgrammesSemaineAction } from '@/features/turboys/actions/programme.actions';

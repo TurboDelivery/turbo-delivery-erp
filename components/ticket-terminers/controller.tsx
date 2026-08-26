@@ -5,7 +5,7 @@ import { saveAsExcelFile, saveAsPDFFile } from "@/utils/reporting-file";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Restaurant } from '@/types/models';
-import { toast } from "react-toastify";
+import { toast } from 'sonner';
 import { useEffect, useState } from "react";
 
 

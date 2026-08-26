@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteTurboyAction, rejectTurboyAction, updateTurboyTypeAction, passerEnBirdAction, bulkDesactiverLivreursAction, bulkActiverLivreursAction } from '@/features/turboys/actions/turboy.actions';
 import { ITurboy, IUpdateTurboyTypePayload } from '@/features/turboys/types/turboys.types';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 import { turboyKeys } from './turboy-list.query';
 
 export const useUpdateTurboyTypeMutation = (handleSuccess?: (turboy: ITurboy) => void, handleError?: () => void) => {

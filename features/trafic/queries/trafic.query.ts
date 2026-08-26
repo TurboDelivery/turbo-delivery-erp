@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 import { traficKeyQuery } from './index.query';
 import getQueryClient from '@/lib/get-query-client';
