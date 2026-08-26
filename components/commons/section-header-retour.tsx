@@ -11,7 +11,7 @@ export default function SectionHeaderRetour({text,searchUrl}:{text:string,search
             </div>
             {
                 searchUrl && searchUrl !=='invisible'
-                ? <div className='relative flex items-center gap-24 mmax-w-36 py-6'>
+                ? <div className='relative flex items-center gap-24 max-w-36 py-6'>
                     <SearchUrl />
                 </div>: ''
             }         

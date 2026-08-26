@@ -81,7 +81,7 @@ export default function AbsenceModal({ isOpen, onClose, absence, deduction, onSu
         await onSubmit({ mode: isEditMode ? 'update' : 'create', id: currentId, dto, motif: values.motif });
       }
 
-      toast.success(isEditMode ? 'Absence modifiee avec succes' : 'Absence enregistree avec succes');
+      toast.success(isEditMode ? 'Absence modifiée avec succès' : 'Absence enregistrée avec succès');
       reset(DEFAULT_VALUES);
       onClose();
     } catch (error) {
@@ -99,13 +99,13 @@ export default function AbsenceModal({ isOpen, onClose, absence, deduction, onSu
             <ModalBody>
               <form id="absence-form" className="space-y-4" onSubmit={handleSubmit(submitAbsence)}>
                 <div>
-                  <Label className="mb-1 block">Employe</Label>
+                  <Label className="mb-1 block">Employé</Label>
                   <EmployeeSelect value={form.watch('employeeId')} onChange={(value) => setValue('employeeId', value || '', { shouldValidate: true, shouldDirty: true })} className="text-xs w-full" />
                   {errors.employeeId && <small className="text-red-500 text-sm">{errors.employeeId.message}</small>}
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="dateDebut">Date debut</Label>
+                    <Label htmlFor="dateDebut">Date début</Label>
                     <Input id="dateDebut" type="date" {...register('dateDebut')} variant="bordered" isInvalid={!!errors.dateDebut} errorMessage={errors.dateDebut?.message} />
                   </div>
                   <div className="space-y-2">
@@ -124,7 +124,7 @@ export default function AbsenceModal({ isOpen, onClose, absence, deduction, onSu
                 Annuler
               </Button>
               <Button color="primary" type="submit" form="absence-form" isLoading={isSubmitting}>
-                {isEditMode ? 'Modifier' : 'Creer'}
+                {isEditMode ? 'Modifier' : 'Créer'}
               </Button>
             </ModalFooter>
           </>

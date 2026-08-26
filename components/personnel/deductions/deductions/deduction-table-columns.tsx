@@ -41,7 +41,7 @@ export const renderDeductionActions = (
         isIconOnly
         isDisabled={isPret}
         onPress={() => handlers.onEditDeduction?.(deduction)}
-        title={isPret ? 'Modification du pret desactivee' : 'Modifier'}
+        title={isPret ? 'Modification du prêt désactivée' : 'Modifier'}
       >
         <Pencil className="size-4" />
       </Button>
@@ -52,7 +52,7 @@ export const renderDeductionActions = (
         isIconOnly
         isDisabled={isCancelled}
         onPress={() => handlers.onCancelDeduction?.(deduction)}
-        title={isCancelled ? 'Deduction deja annulee' : 'Annuler'}
+        title={isCancelled ? 'Déduction déjà annulée' : 'Annuler'}
       >
         <XCircle className="size-4" />
       </Button>
@@ -73,7 +73,7 @@ export const renderDeductionActions = (
 export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction, onDeleteDeduction }: CreateDeductionTableColumnsOptions = {}): ColumnDef<IDeduction>[] => [
   {
     accessorKey: 'employee',
-    header: 'Employe',
+    header: 'Employé',
     cell: ({ row }) => {
       const employee = row.original.employee;
       return (
@@ -100,7 +100,7 @@ export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction
   },
   {
     accessorKey: 'deductionDate',
-    header: 'Date deduction',
+    header: 'Date déduction',
     cell: ({ row }) => <span>{formatDateFr(row.original.deductionDate)}</span>,
   },
   {

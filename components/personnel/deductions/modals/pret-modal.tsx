@@ -76,7 +76,7 @@ function PretModal({ isOpen, onClose, deduction, onSubmit }: PretModalProps) {
         await onSubmit({ mode: isEditMode ? 'update' : 'create', id: deduction?.id, dto });
       }
 
-      toast.success(isEditMode ? 'Pret modifie avec succes' : 'Pret enregistre avec succes');
+      toast.success(isEditMode ? 'Prêt modifié avec succès' : 'Prêt enregistré avec succès');
       reset(DEFAULT_VALUES);
       onClose();
     } catch (error) {
@@ -90,11 +90,11 @@ function PretModal({ isOpen, onClose, deduction, onSubmit }: PretModalProps) {
       <ModalContent>
         {(closeModal) => (
           <>
-            <ModalHeader>{isEditMode ? 'Modifier un pret' : 'Nouveau pret'}</ModalHeader>
+            <ModalHeader>{isEditMode ? 'Modifier un prêt' : 'Nouveau prêt'}</ModalHeader>
             <ModalBody>
               <form id="pret-form" className="space-y-4" onSubmit={handleSubmit(submitForm)}>
                 <div>
-                  <Label className="mb-1 block">Employe</Label>
+                  <Label className="mb-1 block">Employé</Label>
                   <Controller
                     name="employeeId"
                     control={control}
@@ -129,10 +129,10 @@ function PretModal({ isOpen, onClose, deduction, onSubmit }: PretModalProps) {
                     control={control}
                     render={({ field }) => (
                       <div className="space-y-2">
-                        <Label htmlFor="duration">Duree (mois)</Label>
+                        <Label htmlFor="duration">Durée (mois)</Label>
                         <Select value={String(field.value ?? 3)} onValueChange={(value) => field.onChange(Number(value))}>
                           <SelectTrigger id="duration">
-                            <SelectValue placeholder="Selectionner une duree" />
+                            <SelectValue placeholder="Sélectionner une durée" />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="3">3 mois</SelectItem>
@@ -152,7 +152,7 @@ function PretModal({ isOpen, onClose, deduction, onSubmit }: PretModalProps) {
                   control={control}
                   render={({ field }) => (
                     <div className="space-y-2">
-                      <Label htmlFor="startDate">Date de debut</Label>
+                      <Label htmlFor="startDate">Date de début</Label>
                       <Input
                         id="startDate"
                         type="date"
@@ -192,7 +192,7 @@ function PretModal({ isOpen, onClose, deduction, onSubmit }: PretModalProps) {
                 Annuler
               </Button>
               <Button color="primary" type="submit" form="pret-form" isLoading={isSubmitting}>
-                {isEditMode ? 'Modifier' : 'Creer'}
+                {isEditMode ? 'Modifier' : 'Créer'}
               </Button>
             </ModalFooter>
           </>

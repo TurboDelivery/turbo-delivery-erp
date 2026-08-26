@@ -19,7 +19,7 @@ export function EmployeeSelect({
   options,
   isLoading = false,
   isDisabled = false,
-  placeholder = 'Selectionner un employe',
+  placeholder = 'Sélectionner un employé',
   className = 'text-xs w-full max-w-md',
   limit = 500,
 }: EmployeeSelectProps) {

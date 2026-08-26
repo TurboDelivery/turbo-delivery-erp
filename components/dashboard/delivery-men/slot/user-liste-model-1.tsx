@@ -31,7 +31,7 @@ export default function UserListeModel1({ turboy }: props) {
             <div className="hidden md:block overflow-x-auto overflow-y-hidden hide-scrollbar">
                 <div key={turboy.id} className="bg-white w-full min-w-[1000px] flex items-center border-2 rounded-md">
                     <div className="flex-shrink-0 py-2 px-4 flex-1 flex lg:justify-between gap-2 items-center rounded-md">
-                        <div className="max-w-[300px] flex items-center ww-1/2 gap-2">
+                        <div className="max-w-[300px] flex items-center w-1/2 gap-2">
                             <Avatar isBordered radius="full" size="md" src={turboy?.avatar ? createUrlFile(turboy?.avatar ?? '', 'backend') : 'assets/images/avatar.png'} />
                             <p className="font-semibold">{turboy.nomComplet}</p>
                         </div>

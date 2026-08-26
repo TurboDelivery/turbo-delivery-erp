@@ -2,7 +2,7 @@ import { DeductionStatusEnum, DeductionTypeEnum } from '@/features/personnel/typ
 
 const TYPE_LABELS: Record<DeductionTypeEnum, string> = {
   [DeductionTypeEnum.AVANCE]: 'Avance',
-  [DeductionTypeEnum.PRET]: 'Pret',
+  [DeductionTypeEnum.PRET]: 'Prêt',
   [DeductionTypeEnum.ABSENCE]: 'Absence',
   [DeductionTypeEnum.RETARD]: 'Retard',
 };
@@ -16,8 +16,8 @@ const TYPE_CLASSNAMES: Record<DeductionTypeEnum, string> = {
 
 const STATUS_LABELS: Record<DeductionStatusEnum, string> = {
   [DeductionStatusEnum.PENDING]: 'En attente',
-  [DeductionStatusEnum.PAID]: 'Paye',
-  [DeductionStatusEnum.CANCELLED]: 'Annule',
+  [DeductionStatusEnum.PAID]: 'Payé',
+  [DeductionStatusEnum.CANCELLED]: 'Annulé',
 };
 
 const STATUS_CLASSNAMES: Record<DeductionStatusEnum, string> = {

@@ -81,7 +81,7 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
             ))}
           </TableHeader>
 
-          <TableBody emptyContent="Aucune deduction trouvee">
+          <TableBody emptyContent="Aucune déduction trouvée">
             {isDeductionLoading
               ? Array.from({ length: 10 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
@@ -108,7 +108,7 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
         {isDeductionLoading ? (
           Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 animate-pulse" />)
         ) : deductionTable.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucune deduction trouvee</p>
+          <p className="text-sm text-gray-400 text-center py-10">Aucune déduction trouvée</p>
         ) : (
           deductionTable.getRowModel().rows.map((row) => {
             const deduction = row.original;
@@ -129,7 +129,7 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
                     ),
                   },
                   { label: 'Montant', value: <span className="font-medium">{formatCfa(deduction.amount)}</span> },
-                  { label: 'Date deduction', value: formatDateFr(deduction.deductionDate) },
+                  { label: 'Date déduction', value: formatDateFr(deduction.deductionDate) },
                   { label: 'Mois de paie', value: formatDateFr(deduction.payrollMonth, 'MMM yyyy') },
                   { label: 'Description', value: deduction.description?.trim() || '-' },
                 ]}

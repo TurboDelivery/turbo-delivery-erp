@@ -39,7 +39,7 @@ export function DeductionFilters({ filters, handleEmployeeFilterChange, handleYe
   return (
     <div className="space-y-4 rounded-lg border bg-background p-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Filtres deductions</h3>
+        <h3 className="font-semibold">Filtres déductions</h3>
         {onReset && (
           <Button variant="ghost" size="sm" onClick={onReset}>
             <X className="mr-2 h-4 w-4" />
@@ -50,15 +50,15 @@ export function DeductionFilters({ filters, handleEmployeeFilterChange, handleYe
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <div className="space-y-2">
-          <Label htmlFor="deduction-employee-filter">Employe</Label>
+          <Label htmlFor="deduction-employee-filter">Employé</Label>
           <EmployeeSelect value={filters.employeeId} onChange={(value) => handleEmployeeFilterChange(value || null)} className="text-xs w-full" />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="deduction-year-filter">Annee</Label>
+          <Label htmlFor="deduction-year-filter">Année</Label>
           <Select
             id="deduction-year-filter"
-            placeholder="Selectionner une annee"
+            placeholder="Sélectionner une année"
             selectedKeys={[String(filters.year)]}
             onSelectionChange={(keys) => {
               const selected = Array.from(keys)[0] as string;
@@ -77,7 +77,7 @@ export function DeductionFilters({ filters, handleEmployeeFilterChange, handleYe
           <Label htmlFor="deduction-month-filter">Mois</Label>
           <Select
             id="deduction-month-filter"
-            placeholder="Selectionner un mois"
+            placeholder="Sélectionner un mois"
             selectedKeys={[String(filters.month)]}
             onSelectionChange={(keys) => {
               const selected = Array.from(keys)[0] as string;

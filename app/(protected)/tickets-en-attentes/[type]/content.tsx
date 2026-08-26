@@ -23,7 +23,7 @@ export default function Content({ initialData, restaurants }: ContentProps) {
     type, handleCangeRestaurant, onClose, onOpen, restaurant, isOpen } = useContentCtx({ initialData, restaurants });
 
   return (
-    <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4 min-w[200px] overflow-auto ">
+    <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4 min-w-[200px] overflow-auto ">
       <span className="ml-2">Rechercher par période</span>
       <div className="flex justify-between items-center">
         <DateRangePicker className="max-w-xs relative" onChange={(value) => handleDateChange(value as RangeValue<CalendarDate>)} />

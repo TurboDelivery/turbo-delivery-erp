@@ -122,7 +122,7 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
       {/* Tableau hebdomadaire — desktop uniquement (≥ md) */}
       <Table
         isStriped
-        aria-label="Tableau de presence hebdomadaire"
+        aria-label="Tableau de présence hebdomadaire"
         className="hidden md:block"
       >
         <TableHeader>
@@ -132,7 +132,7 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
             </TableColumn>
           ))}
         </TableHeader>
-        <TableBody emptyContent="Aucun turboy trouve">
+        <TableBody emptyContent="Aucun turboy trouvé">
           {isLoading
             ? Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={`skeleton-${i}`}>
@@ -162,7 +162,7 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
             <div key={i} className="h-40 rounded-xl bg-gray-100 animate-pulse" />
           ))
         ) : data.length === 0 ? (
-          <p className="text-sm text-default-400 text-center py-10">Aucun turboy trouve</p>
+          <p className="text-sm text-default-400 text-center py-10">Aucun turboy trouvé</p>
         ) : (
           data.map((turboy) => (
             <div key={turboy.emploiId ?? turboy.nomComplet} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-3">
@@ -189,7 +189,7 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
                       key={idx}
                       className={`flex flex-col items-center gap-1 rounded-md py-1 ${isAbsent ? 'cursor-pointer bg-red-50' : ''}`}
                       onClick={isAbsent ? () => onAbsenceClick(turboy, jourData!) : undefined}
-                      title={isAbsent ? "Cliquer pour gerer l'absence" : undefined}
+                      title={isAbsent ? "Cliquer pour gérer l'absence" : undefined}
                     >
                       <span className="text-[10px] text-default-500">{jour.slice(0, 3)}</span>
                       {dayNum && <span className="text-[10px] text-default-400">{dayNum}</span>}

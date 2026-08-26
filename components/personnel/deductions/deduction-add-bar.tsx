@@ -17,7 +17,7 @@ function DeductionAddBar({ onAddAbsence, onAddAdvance, onAddLoan }: DeductionAdd
     <div className="flex items-center gap-4">
       <AddButton label="Absence" onClick={handleAddAbsence} />
       <AddButton label="Avance sur salaire" onClick={handleAddAdvance} />
-      <AddButton label="Enregistrer un pret" onClick={handleAddLoan} />
+      <AddButton label="Enregistrer un prêt" onClick={handleAddLoan} />
     </div>
   );
 }

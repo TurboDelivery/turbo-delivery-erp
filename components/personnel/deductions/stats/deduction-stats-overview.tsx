@@ -18,8 +18,8 @@ function DeductionStatsOverview() {
   const monthLabel = format(new Date(filters.year, filters.month - 1, 1), 'MMMM yyyy', { locale: fr });
   const stats = [
     { label: 'Masse salariale brute', value: apiStats?.masseBrute ?? 0, color: 'default' as const },
-    { label: 'Total deductions', value: apiStats?.totalDeductions ?? 0, color: 'red' as const },
-    { label: 'Deductions en attente', value: apiStats?.pendingDeductions ?? 0, color: 'orange' as const },
+    { label: 'Total déductions', value: apiStats?.totalDeductions ?? 0, color: 'red' as const },
+    { label: 'Déductions en attente', value: apiStats?.pendingDeductions ?? 0, color: 'orange' as const },
   ];
 
   return (

@@ -62,7 +62,7 @@ export const getSalaryStatusClassName = (status: string) => {
 export const createPayrollTableColumns = (onPayClick?: (payroll: IPayroll) => void): ColumnDef<IPayroll>[] => [
   {
     accessorKey: 'name',
-    header: 'Employe',
+    header: 'Employé',
     cell: ({ row }) => (
       <div className="flex flex-col">
         <span className="font-medium">{row.original.name || '-'}</span>
@@ -77,7 +77,7 @@ export const createPayrollTableColumns = (onPayClick?: (payroll: IPayroll) => vo
   },
   {
     accessorKey: 'department',
-    header: 'Departement',
+    header: 'Département',
     cell: ({ row }) => <span>{row.original.department || '-'}</span>,
   },
   {
@@ -87,12 +87,12 @@ export const createPayrollTableColumns = (onPayClick?: (payroll: IPayroll) => vo
   },
   {
     accessorKey: 'totalDeductionsPending',
-    header: 'Deductions en attente',
+    header: 'Déductions en attente',
     cell: ({ row }) => <span className="text-amber-700">{formatCfa(row.original.totalDeductionsPending)}</span>,
   },
   {
     accessorKey: 'totalDeductionsPaid',
-    header: 'Deductions payees',
+    header: 'Déductions payées',
     cell: ({ row }) => <span className="text-green-700">{formatCfa(row.original.totalDeductionsPaid)}</span>,
   },
   {
@@ -118,12 +118,12 @@ export const createPayrollTableColumns = (onPayClick?: (payroll: IPayroll) => vo
   },
   {
     accessorKey: 'entryDate',
-    header: 'Date entree',
+    header: 'Date entrée',
     cell: ({ row }) => <span>{formatDateFr(row.original.entryDate)}</span>,
   },
   {
     accessorKey: 'updatedAt',
-    header: 'Derniere maj',
+    header: 'Dernière maj',
     cell: ({ row }) => <span>{formatDateFr(row.original.updatedAt, 'dd MMM yyyy HH:mm')}</span>,
   },
   {

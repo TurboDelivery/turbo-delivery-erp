@@ -72,7 +72,7 @@ function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSala
         await onSubmit({ mode: isEditMode ? 'update' : 'create', id: deduction?.id, dto });
       }
 
-      toast.success(isEditMode ? 'Avance modifiee avec succes' : 'Avance enregistree avec succes');
+      toast.success(isEditMode ? 'Avance modifiée avec succès' : 'Avance enregistrée avec succès');
       onClose();
       reset(DEFAULT_VALUES);
     } catch (error) {
@@ -90,7 +90,7 @@ function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSala
             <ModalBody>
               <form id="avance-salaire-form" className="space-y-4" onSubmit={handleSubmit(submitForm)}>
                 <div>
-                  <Label className="mb-1 block">Employe</Label>
+                  <Label className="mb-1 block">Employé</Label>
                   <Controller
                     name="employeeId"
                     control={control}
@@ -162,7 +162,7 @@ function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSala
 
                 <div className="rounded-md border border-yellow-400 bg-yellow-100 p-3">
                   <p className="font-semibold text-red-600">Important</p>
-                  <p className="mt-1 text-sm text-red-600">L&#39;avance sur salaire sera deduite integralement du salaire du mois prochain.</p>
+                  <p className="mt-1 text-sm text-red-600">L&#39;avance sur salaire sera déduite intégralement du salaire du mois prochain.</p>
                 </div>
               </form>
             </ModalBody>

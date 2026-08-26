@@ -66,10 +66,10 @@ function PayrollTable() {
     <div className="space-y-4">
       <div className="flex w-full flex-col gap-4 sm:flex-row">
         <div className="w-full max-w-xs space-y-2">
-          <Label htmlFor="payroll-year">Annee</Label>
+          <Label htmlFor="payroll-year">Année</Label>
           <Select value={String(filters.year)} onValueChange={(value) => handleYearFilterChange(Number(value))}>
             <SelectTrigger id="payroll-year">
-              <SelectValue placeholder="Selectionner une annee" />
+              <SelectValue placeholder="Sélectionner une année" />
             </SelectTrigger>
             <SelectContent>
               {yearOptions.map((year) => (
@@ -85,7 +85,7 @@ function PayrollTable() {
           <Label htmlFor="payroll-month">Mois</Label>
           <Select value={String(filters.month)} onValueChange={(value) => handleMonthFilterChange(Number(value))}>
             <SelectTrigger id="payroll-month">
-              <SelectValue placeholder="Selectionner un mois" />
+              <SelectValue placeholder="Sélectionner un mois" />
             </SelectTrigger>
             <SelectContent>
               {MONTHS.map((month) => (
@@ -109,7 +109,7 @@ function PayrollTable() {
             ))}
           </TableHeader>
 
-          <TableBody emptyContent="Aucun paiement trouve">
+          <TableBody emptyContent="Aucun paiement trouvé">
             {isPayrollLoading
               ? Array.from({ length: 10 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
@@ -157,7 +157,7 @@ function PayrollTable() {
         {isPayrollLoading ? (
           Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-48 rounded-xl bg-gray-100 animate-pulse" />)
         ) : payrollTable.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucun paiement trouve</p>
+          <p className="text-sm text-gray-400 text-center py-10">Aucun paiement trouvé</p>
         ) : (
           payrollTable.getRowModel().rows.map((row) => {
             const payroll = row.original;
@@ -171,10 +171,10 @@ function PayrollTable() {
                 statutClassName={getSalaryStatusClassName(payroll.salary_status)}
                 fields={[
                   { label: 'Poste', value: payroll.position || '-' },
-                  { label: 'Departement', value: payroll.department || '-' },
+                  { label: 'Département', value: payroll.department || '-' },
                   { label: 'Salaire brut', value: formatCfa(payroll.salaryBrut) },
-                  { label: 'Deductions en attente', value: <span className="text-amber-700">{formatCfa(payroll.totalDeductionsPending)}</span> },
-                  { label: 'Deductions payees', value: <span className="text-green-700">{formatCfa(payroll.totalDeductionsPaid)}</span> },
+                  { label: 'Déductions en attente', value: <span className="text-amber-700">{formatCfa(payroll.totalDeductionsPending)}</span> },
+                  { label: 'Déductions payées', value: <span className="text-green-700">{formatCfa(payroll.totalDeductionsPaid)}</span> },
                   { label: 'Net a payer', value: <span className="font-semibold">{formatCfa(payroll.netToPay)}</span> },
                   {
                     label: 'Statut',
@@ -184,8 +184,8 @@ function PayrollTable() {
                       </span>
                     ),
                   },
-                  { label: 'Date entree', value: formatDateFr(payroll.entryDate) },
-                  { label: 'Derniere maj', value: formatDateFr(payroll.updatedAt, 'dd MMM yyyy HH:mm') },
+                  { label: 'Date entrée', value: formatDateFr(payroll.entryDate) },
+                  { label: 'Dernière maj', value: formatDateFr(payroll.updatedAt, 'dd MMM yyyy HH:mm') },
                 ]}
                 actions={
                   <button

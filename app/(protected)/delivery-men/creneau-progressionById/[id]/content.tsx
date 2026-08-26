@@ -30,7 +30,7 @@ export default function Content({ user, dataCreneau }: { user: LivreurDetail, da
 
     const { exerianceLivreur } = useContentCtx({ dataCreneau })
     return (
-        <Card className="py-6 px-4 lg:px-20 bbg-gray-50 min-h-screen">
+        <Card className="py-6 px-4 lg:px-20 bg-gray-50 min-h-screen">
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                     <div className="flex items-center">

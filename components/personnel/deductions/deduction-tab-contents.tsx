@@ -43,14 +43,14 @@ function DeductionTabContents() {
       <ConfirmModal
         isOpen={deleteModal.isOpen}
         onClose={deleteModal.close}
-        title="Supprimer la deduction"
+        title="Supprimer la déduction"
         isLoading={isSupprimerPending}
         actions={[
           { label: 'Annuler', variant: 'light', onPress: deleteModal.close },
           { label: 'Supprimer', color: 'danger', onPress: handleConfirmDelete },
         ]}
       >
-        Confirmez-vous la suppression definitive de cette deduction ? Cette action est irreversible.
+        Confirmez-vous la suppression définitive de cette déduction ? Cette action est irréversible.
       </ConfirmModal>
     </div>
   );
