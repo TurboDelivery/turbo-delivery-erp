@@ -1,9 +1,10 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatMontant } from '@/utils/format.utils';
 import Link from 'next/link';
-import { ReactNode } from 'react';
+import { ReactNode, isValidElement } from 'react';
+
+import CarteStat, { type TonStat } from '@/components/commons/CarteStat';
+import { formatMontant } from '@/utils/format.utils';
 
 export interface StatCardProps {
   title: string;
@@ -15,15 +16,28 @@ export interface StatCardProps {
   className?: string;
 }
 
-const colorVariants = {
-  blue: 'border-l-4 border-l-blue-500 bg-blue-50/50 text-blue-600',
-  green: 'border-l-4 border-l-green-500 bg-green-50/50 text-green-600',
-  amber: 'border-l-4 border-l-amber-500 bg-amber-50/50 text-amber-600',
-  red: 'border-l-4 border-l-red-500 bg-red-50/50 text-red-600',
-  purple: 'border-l-4 border-l-purple-500 bg-purple-50/50 text-purple-600',
-  indigo: 'border-l-4 border-l-indigo-500 bg-indigo-50/50 text-indigo-600',
+/** Six variantes ramenees sur les cinq tons ; violet et indigo n'ont pas de sens propre ici. */
+const TON: Record<NonNullable<StatCardProps['colorVariant']>, TonStat> = {
+  blue: 'primaire',
+  green: 'succes',
+  amber: 'attention',
+  red: 'danger',
+  purple: 'neutre',
+  indigo: 'neutre',
 };
 
+/**
+ * Carte de statistique du recouvrement.
+ *
+ * <p>Enveloppe `CarteStat` en conservant sa signature. Elle portait une bande coloree a
+ * gauche et six variantes de couleur ecrites en classes de palette, dont deux (violet,
+ * indigo) qui ne disaient rien de particulier.</p>
+ *
+ * <p>Defaut corrige : quand un `href` etait fourni, le `<Link>` etait a l'INTERIEUR de la
+ * carte. Seul le contenu etait donc cliquable, pas la carte, et la zone reellement
+ * activable ne correspondait pas a ce que l'oeil percoit. Le lien enveloppe desormais la
+ * carte entiere.</p>
+ */
 export function StatCard({
   title,
   value,
@@ -33,51 +47,31 @@ export function StatCard({
   formatValue,
   className = '',
 }: StatCardProps) {
-  const formattedValue = formatValue ? formatValue(value) : value;
-  const colorClasses = colorVariants[colorVariant];
-
-  const cardContent = (
-    <>
-      <CardHeader className="pb-2 pt-5 px-5">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-gray-700">{title}</CardTitle>
-          <div className={colorClasses.split(' ').slice(-1)[0]}>{icon}</div>
-        </div>
-      </CardHeader>
-      <CardContent className="pb-3 px-5">
-        <p className="text-lg sm:text-2xl font-bold text-gray-900 truncate">{formattedValue}</p>
-      </CardContent>
-    </>
+  const carte = (
+    <CarteStat
+      libelle={title}
+      valeur={formatValue ? formatValue(value) : value}
+      icone={isValidElement(icon) ? icon : undefined}
+      ton={TON[colorVariant]}
+      className={className}
+    />
   );
 
-  const cardClassName = `rounded-lg p-0 overflow-hidden ${colorClasses} ${className}`;
-
-  if (href) {
-    return (
-      <Card className={cardClassName}>
-        <Link href={href}>{cardContent}</Link>
-      </Card>
-    );
-  }
-
-  return <Card className={cardClassName}>{cardContent}</Card>;
+  return href ? (
+    <Link href={href} className="block rounded-large focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+      {carte}
+    </Link>
+  ) : (
+    carte
+  );
 }
 
-// Helper function pour formater en devise
-export const formatCurrency = (value: string | number, currency: string = 'XOF'): string => {
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  // `style: 'currency'` avec XOF rend « F CFA » ; l'ERP écrit « FCFA ».
-  return formatMontant(numValue);
-};
+/** Formatage monetaire unique de l'ERP. Conserve : des appelants l'importent encore. */
+export const formatCurrency = (value: string | number): string =>
+  formatMontant(typeof value === 'string' ? parseFloat(value) : value);
 
-// Helper function pour formater en nombre
-export const formatNumber = (value: string | number): string => {
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  return numValue.toLocaleString('fr-FR');
-};
+export const formatNumber = (value: string | number): string =>
+  (typeof value === 'string' ? parseFloat(value) : value).toLocaleString('fr-FR');
 
-// Helper function pour formater en pourcentage
-export const formatPercentage = (value: string | number): string => {
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  return `${numValue.toFixed(1)}%`;
-};
+export const formatPercentage = (value: string | number): string =>
+  `${(typeof value === 'string' ? parseFloat(value) : value).toFixed(1)}%`;
