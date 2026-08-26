@@ -24,7 +24,27 @@ export interface IFactureCaissier {
   depotBanque: string | null;
 }
 
+/**
+ * Agregats calcules par le SERVEUR sur l'ensemble filtre, AVANT pagination.
+ *
+ * <p>Backend : `ResponsableFinancierFactureService.listFactures` appelle
+ * `buildStats(filteredViews)` (ligne 234) puis pagine seulement apres (lignes
+ * 237-243). Ces totaux ne sont donc PAS ceux de la page rendue : ce sont les
+ * vrais.</p>
+ *
+ * <p>Ils etaient deja envoyes sur le fil, et ce type les jetait. L'ecran
+ * comptait donc les lignes de la page (`content.length`) et affichait le
+ * plafond de pagination comme s'il s'agissait du total.</p>
+ */
+export interface IFactureCaissierStats {
+  totalFactures: number;
+  totalMontant: number;
+  nombrePartenaires: number;
+  tauxRecouvrement: number;
+}
+
 export interface IFactureCaissierListResponse {
+  stats?: IFactureCaissierStats;
   factures: PaginatedResponse<IFactureCaissier>;
 }
 

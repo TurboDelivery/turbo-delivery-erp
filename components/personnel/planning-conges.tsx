@@ -219,7 +219,10 @@ export default function PlanningConges() {
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <div className="grid grid-cols-4 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-gray-800">{congesData?.content?.length || 0}</div>
+              {/* Affichait `congesData.content.length`, soit un nombre de CONGES
+                  sous le libelle « Total employes » : deux erreurs a la fois, la
+                  mauvaise grandeur et le plafond de la page. */}
+              <div className="text-2xl font-bold text-gray-800">{employees.length}</div>
               <div className="text-xs text-gray-500">Total employés</div>
             </div>
             <div>

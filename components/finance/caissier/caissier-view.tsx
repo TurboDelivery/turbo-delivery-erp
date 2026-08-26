@@ -124,8 +124,19 @@ export default function CaissierView() {
     );
   };
 
-  // Stats from unfiltered query
+  // Agregats. `stats` est calcule par le SERVEUR sur l'ensemble filtre AVANT
+  // pagination (cf. IFactureCaissierStats) : c'est le VRAI total, il etait deja
+  // sur le fil et le type le jetait.
+  //
+  // Les trois cartes par statut ci-dessous restent calculees sur la page de 200
+  // lignes, donc FAUSSES des que le cycle depasse 200 factures — ce qui est le
+  // cas aujourd'hui. Les corriger exigerait une requete par statut (5), or
+  // chaque requete de cette famille declenche cote backend un appel HTTP au
+  // service utilisateurs (`loadViseurNames`). Le bon correctif est un agregat
+  // groupe par statut cote serveur : arbitrage a rendre, pas a deviner.
   const allFactures = statsData?.factures?.content ?? [];
+  const totalReel = statsData?.stats?.totalFactures ?? allFactures.length;
+  const pageTronquee = (statsData?.factures?.totalElements ?? 0) > allFactures.length;
   const enAttente = allFactures.filter((f) => f.statut === 'Versé au caissier' || f.statut === 'Rejeté DGA').length;
   const confirmees = allFactures.filter((f) =>
     ['En attente visa DGA', 'Visé DGA', 'Clôturé'].includes(f.statut),
@@ -135,19 +146,29 @@ export default function CaissierView() {
     .reduce((acc, f) => acc + (f.montantRecouvre ?? f.montant), 0);
 
   const statsCards = [
-    { icon: Clock, color: 'bg-amber-500', label: 'En attente', value: String(enAttente) },
+    {
+      icon: Clock,
+      color: 'bg-amber-500',
+      label: pageTronquee ? 'En attente (sur les 200 premières)' : 'En attente',
+      value: String(enAttente),
+    },
     {
       icon: Landmark,
       color: 'bg-indigo-600',
-      label: 'Montant en attente',
+      label: pageTronquee ? 'Montant en attente (sur les 200 premières)' : 'Montant en attente',
       value: formatMontant(montantEnAttente),
     },
-    { icon: FileCheck, color: 'bg-sky-500', label: 'Confirmées', value: String(confirmees) },
+    {
+      icon: FileCheck,
+      color: 'bg-sky-500',
+      label: pageTronquee ? 'Confirmées (sur les 200 premières)' : 'Confirmées',
+      value: String(confirmees),
+    },
     {
       icon: CheckCircle2,
       color: 'bg-emerald-500',
       label: 'Total factures',
-      value: String(allFactures.length),
+      value: String(totalReel),
     },
   ];
 

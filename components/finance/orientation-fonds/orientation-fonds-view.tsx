@@ -79,6 +79,18 @@ export default function OrientationFondsView() {
   const chargementOrient = loadingAttente || loadingVise;
   const conservees = caisseData?.factures?.content ?? [];
 
+  // Les compteurs de section affichaient `aOrienter.length` et `conservees.length`,
+  // c'est-a-dire la taille des PAGES demandees ci-dessus (100 par statut). Un DG
+  // lisait donc « 200 en attente d'orientation » quel que soit le stock reel.
+  // `totalElements` est le total serveur, calcule sur l'ensemble filtre.
+  // On affiche le vrai total ET, quand la liste est tronquee, combien sont
+  // rendues : un titre a 340 au-dessus de 200 cartes serait aussi trompeur.
+  const totalAOrienter =
+    (attenteData?.factures?.totalElements ?? 0) + (viseData?.factures?.totalElements ?? 0);
+  const totalConservees = caisseData?.factures?.totalElements ?? 0;
+  const orientTronque = totalAOrienter > aOrienter.length;
+  const conserveesTronque = totalConservees > conservees.length;
+
   const orienter = useOrienterFondsMutation();
   const reorienter = useReorienterFondsMutation();
 
@@ -127,7 +139,12 @@ export default function OrientationFondsView() {
       {/* Section 1 — En attente d'orientation */}
       <section>
         <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3">
-          En attente d&apos;orientation ({aOrienter.length})
+          En attente d&apos;orientation ({totalAOrienter})
+          {orientTronque && (
+            <span className="ml-2 font-normal normal-case tracking-normal text-gray-400">
+              {aOrienter.length} affichées
+            </span>
+          )}
         </h2>
         {chargementOrient ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -156,7 +173,12 @@ export default function OrientationFondsView() {
       {/* Section 2 — Conservés en caisse (ré-orientables) */}
       <section>
         <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3">
-          Conservés en caisse ({conservees.length})
+          Conservés en caisse ({totalConservees})
+          {conserveesTronque && (
+            <span className="ml-2 font-normal normal-case tracking-normal text-gray-400">
+              {conservees.length} affichées
+            </span>
+          )}
         </h2>
         {loadingCaisse ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">

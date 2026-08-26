@@ -48,9 +48,21 @@ export function useRecouvrementList({ initialData = [] }: IUseRecouvrementProps 
   const [filters, setFilters] = useQueryStates(recouvrementFiltersParsers);
 
   // Construction des paramètres de recherche pour l'API
+  // Deux defauts corriges ici, qui se combinaient :
+  //
+  // 1. `page: 1`. Le backend est indexe a ZERO : `FinanceResource.listRecouvrements`
+  //    fait `PageRequest.of(page, size)` avec `defaultValue = "0"` (Spring compte
+  //    a partir de 0). On demandait donc la DEUXIEME page.
+  // 2. `limit: 1000`. Le backend ne lit pas `limit`, il lit `size` — et `size`
+  //    valait donc son defaut, 10. Le commentaire d'origine annoncait « toutes les
+  //    donnees pour le filtrage cote client » ; en realite le filtrage portait sur
+  //    les lignes 11 a 20.
+  //
+  // Invisible en production tant que la table `recouvrements` est vide (l'encaisse
+  // du tableau de bord vient de `factures.finance_workflow_status`), mais faux.
   const apiParams: IRecouvrementParams = {
-    page: 1,
-    limit: 1000, // Obtenir toutes les données pour le filtrage côté client
+    page: 0,
+    size: 1000,
     search: filters.search || undefined,
     dateRecouvrement: filters.dateRecouvrement || undefined,
     montant: filters.montant > 0 ? filters.montant : undefined,
@@ -116,6 +128,9 @@ export function useRecouvrementList({ initialData = [] }: IUseRecouvrementProps 
   return {
     recouvrement,
     allRecouvrements,
+    // Total SERVEUR. Le compteur « N transactions » affichait la longueur du
+    // tableau rendu, donc la taille de la page, jamais le stock reel.
+    total: (queryData as any)?.totalElements ?? 0,
     isLoading,
     isError,
     error,

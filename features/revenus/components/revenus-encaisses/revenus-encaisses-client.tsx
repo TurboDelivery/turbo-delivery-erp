@@ -20,7 +20,7 @@ export default function RevenusEncaissesClient() {
     const [searchTerm, setSearchTerm] = useState("");
     const [dateFilter, setDateFilter] = useState("tous");
 
-    const { recouvrement: recouvrementsData, isLoading: isLoadingRecouvrements } = useRecouvrementList({
+    const { recouvrement: recouvrementsData, total: totalTransactions, isLoading: isLoadingRecouvrements } = useRecouvrementList({
         initialData: []
     });
 
@@ -189,7 +189,8 @@ export default function RevenusEncaissesClient() {
                                     <div className="flex items-center gap-1 mt-2">
                                         <TrendingUp className="w-4 h-4 text-blue-600" />
                                         <span className="text-xs text-blue-600">
-                                            {recouvrementsData?.length || 0} transactions
+                                            {/* Total SERVEUR, pas la longueur du tableau rendu. */}
+                                            {totalTransactions} transactions
                                         </span>
                                     </div>
                                 </div>
