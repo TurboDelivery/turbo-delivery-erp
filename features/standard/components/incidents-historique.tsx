@@ -17,6 +17,7 @@ import { IIncident, StatutIncident, useIncidentsQuery } from '@/features/standar
 
 import { IncidentStatutChip } from './incident-statut-chip';
 import { dateIncident } from '../utils/incident-ui.utils';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 type FiltreHistorique = 'TRAITE' | 'CLOTURE' | 'TOUS';
 
@@ -39,7 +40,7 @@ export function IncidentsHistorique({ onOuvrir }: { onOuvrir: (incident: IIncide
   const [page, setPage] = useState(0);
 
   const statut: StatutIncident | undefined = filtre === 'TOUS' ? undefined : filtre;
-  const { data, isLoading } = useIncidentsQuery(statut, page, TAILLE_PAGE, { enabled: ouvert });
+  const { data, isLoading, isFetching, isError, refetch } = useIncidentsQuery(statut, page, TAILLE_PAGE, { enabled: ouvert });
 
   const incidents = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
@@ -95,6 +96,9 @@ export function IncidentsHistorique({ onOuvrir }: { onOuvrir: (incident: IIncide
             })}
           </div>
 
+          {isError ? (
+            <EtatErreur quoi="les incidents" onReessayer={() => refetch()} enCours={isFetching} />
+          ) : (
           <Table
             aria-label="Historique des incidents"
             removeWrapper
@@ -154,6 +158,7 @@ export function IncidentsHistorique({ onOuvrir }: { onOuvrir: (incident: IIncide
               ))}
             </TableBody>
           </Table>
+          )}
         </div>
       )}
     </section>

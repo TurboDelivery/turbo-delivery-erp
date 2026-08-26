@@ -29,6 +29,7 @@ import {
 
 import { AgentCell } from './shared/agent-cell';
 import { DeclarationChip, StatutEffectifChip, TypeContratChip } from './shared/personnel-chips';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 const TAILLE_PAGE = 25;
 /** Clé « aucun filtre » : React Aria n'accepte pas une clé vide dans une collection. */
@@ -54,7 +55,7 @@ function lireCle(keys: unknown): string {
  * les deux populations et que le pied de tableau le rappelle explicitement.
  */
 export function EffectifTab() {
-  const { data, isLoading, isFetching } = useEffectifQuery();
+  const { data, isLoading, isFetching, isError, refetch } = useEffectifQuery();
 
   const [recherche, setRecherche] = useState('');
   const [type, setType] = useState<string>('');
@@ -183,6 +184,9 @@ export function EffectifTab() {
         </Button>
       </div>
 
+      {isError ? (
+        <EtatErreur quoi="l&apos;effectif" onReessayer={() => refetch()} enCours={isFetching} />
+      ) : (
       <Table aria-label="Effectif du personnel" removeWrapper isStriped>
         <TableHeader>
           <TableColumn className="text-primary">AGENT</TableColumn>
@@ -247,6 +251,7 @@ export function EffectifTab() {
           ))}
         </TableBody>
       </Table>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-default-100 pt-3 text-xs text-default-400">
         <span>

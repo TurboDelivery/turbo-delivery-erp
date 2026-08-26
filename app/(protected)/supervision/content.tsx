@@ -14,6 +14,7 @@ import { SessionsEnLignePanel } from '@/features/supervision/components/sessions
 import { SupervisionKpis } from '@/features/supervision/components/supervision-kpis';
 import { supervisionKeys, useSupervisionStatsQuery } from '@/features/supervision/queries/supervision.queries';
 import { ExporteurOnglet, OngletSupervision } from '@/features/supervision/types';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 /**
  * Supervision des sessions & audit global des activités (SPEC-ERP-TURBO-AUDIT-v2.0).
@@ -55,7 +56,12 @@ export function SupervisionContent() {
   // Le droit est passé au hook : le contrôle d'accès de cet écran est plus bas
   // (les hooks ne peuvent pas être conditionnels), et sans cette garde la page
   // sondait toutes les 30 s même pour quelqu'un qui n'a pas le droit de la lire.
-  const { data: stats, isLoading: statsEnCours } = useSupervisionStatsQuery(
+  const {
+    data: stats,
+    isLoading: statsEnCours,
+    isError: statsErreur,
+    refetch: rechargerStats,
+  } = useSupervisionStatsQuery(
     userId,
     ability.can('read', 'Supervision'),
   );
@@ -104,7 +110,14 @@ export function SupervisionContent() {
         </div>
       </div>
 
-      <SupervisionKpis stats={stats} isLoading={statsEnCours} />
+      {/* Rafraichi toutes les 30 s. Sur echec `stats` restait undefined et les
+          compteurs affichaient zero : « aucune activite » plutot que « la lecture
+          a echoue ». */}
+      {statsErreur ? (
+        <EtatErreur quoi="les indicateurs de supervision" onReessayer={() => rechargerStats()} />
+      ) : (
+        <SupervisionKpis stats={stats} isLoading={statsEnCours} />
+      )}
 
       <Tabs
         aria-label="Supervision et audit"

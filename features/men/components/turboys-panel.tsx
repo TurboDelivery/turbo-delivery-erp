@@ -31,6 +31,7 @@ import { type Restaurant } from '@/types/models';
 import { getMenColumns } from './men-columns';
 import { CourierCard } from './courier-card';
 import { useBulkDesactiverLivreursMutation, useBulkActiverLivreursMutation } from '@/features/turboys/queries';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 // V54 (2026-05-29) — Source unique des options de filtre — 4 entrées :
 // "Tous les types" + INDEPENDANT + JOURNALIER + SUPERVISEUR_LIVREUR.
@@ -63,7 +64,7 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
     search: debouncedSearch.trim() || undefined,
   }), [filters.page, filters.limit, filters.typeLivreur, debouncedSearch]);
 
-  const { data: turboysData, isLoading, isFetching } = useTurboysByTypeQuery(queryParams);
+  const { data: turboysData, isLoading, isFetching, isError, refetch } = useTurboysByTypeQuery(queryParams);
   const turboys = turboysData?.livreurs?.content ?? [];
 
   const totalPages = turboysData?.livreurs?.totalPages ?? 1;
@@ -152,7 +153,11 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
           </div>
         )}
 
-        {viewMode === 'list' ? (
+        {/* Sans ce garde, un echec affichait « Aucun coursier a afficher. » :
+            l'exploitation lisait une flotte vide au lieu d'une lecture ratee. */}
+        {isError ? (
+          <EtatErreur quoi="les coursiers" onReessayer={() => refetch()} enCours={isFetching} />
+        ) : viewMode === 'list' ? (
           <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
             <Table
               aria-label="Tableau des coursiers"

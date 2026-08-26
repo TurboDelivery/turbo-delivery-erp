@@ -9,6 +9,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import TraficLivreurPanel from '@/features/trafic/components/trafic-livreur-panel';
 import { TraficKpis } from '@/features/trafic/components/trafic-kpis';
 import { TraficPointagesBanner } from '@/features/trafic/components/trafic-pointages-banner';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { useTrafic } from '@/features/trafic/hooks/use-trafic';
 import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 import { traficKeyQuery } from '@/features/trafic/queries/index.query';
@@ -89,6 +90,7 @@ export default function TraficContent() {
     selectedLivreurId,
     focusOnLivreur,
     focusPosition,
+    isError,
     isLoading,
     isFetching,
     dataUpdatedAt,
@@ -175,13 +177,28 @@ export default function TraficContent() {
       {/* Ce qui bloque des livreurs hors de la file, en tête d'écran */}
       <TraficPointagesBanner />
 
+      {/* Écran rafraîchi toutes les 30 s. Sans ce bloc, un échec de lecture faisait
+          retomber les quatre compteurs à zéro et vidait la carte : le régulateur
+          lisait « aucun livreur en service » alors que la flotte roulait. On dit
+          que la LECTURE a échoué, et on masque les compteurs plutôt que d'afficher
+          des zéros qui ressemblent à une mesure. */}
+      {isError && (
+        <EtatErreur
+          quoi="le trafic livreurs"
+          onReessayer={rafraichir}
+          enCours={isFetching}
+        />
+      )}
+
       {/* Les quatre compteurs — et ce qu'ils veulent dire */}
+      {!isError && (
       <TraficKpis
         compteurs={trafic.compteurs}
         statutActif={filtres.statut}
         onStatutChange={(statut) => majFiltre('statut', statut)}
         isLoading={isLoading}
       />
+      )}
 
       {/* Filtres : le statut est exclusif, « hors zone » est transverse */}
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-default-200/50 bg-white p-3 dark:bg-content1">

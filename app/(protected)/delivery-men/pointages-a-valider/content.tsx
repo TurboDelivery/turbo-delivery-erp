@@ -32,6 +32,7 @@ import {
   pointagesValidationAPI,
 } from '@/features/pointages-validation/pointages-validation.api';
 import { createUrlFile } from '@/utils/createUrlFile';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 const COULEUR_VALIDATION: Record<ValidationPointage, 'warning' | 'success' | 'danger'> = {
   EN_ATTENTE: 'warning',
@@ -57,7 +58,7 @@ export function PointagesAValiderContent() {
   const [dateDebut, setDateDebut] = useState('');
   const [dateFin, setDateFin] = useState('');
 
-  const { data: pointages, isLoading } = useQuery({
+  const { data: pointages, isLoading, isError, isFetching, refetch } = useQuery({
     queryKey: ['pointages-hors-zone', dateDebut],
     // La fenêtre serveur suit la borne basse choisie (défaut 30 j) ; le reste
     // du filtrage est client — volumes faibles, réactivité immédiate.
@@ -189,6 +190,17 @@ export function PointagesAValiderContent() {
       </div>
 
       <div className="rounded-xl border bg-white p-4 dark:bg-black">
+        {/* L'echec de lecture remplace le tableau. Avant, il affichait « Aucun
+            pointage sur ces criteres. », soit exactement le message d'un backlog
+            vide : l'equipe concluait qu'il n'y avait rien a trancher pendant que
+            des livreurs attendaient leur arbitrage. */}
+        {isError ? (
+          <EtatErreur
+            quoi="les pointages à valider"
+            onReessayer={() => refetch()}
+            enCours={isFetching}
+          />
+        ) : (
         <Table isStriped aria-label="Registre des pointages hors zone">
           <TableHeader>
             <TableColumn>LIVREUR</TableColumn>
@@ -307,6 +319,7 @@ export function PointagesAValiderContent() {
             ))}
           </TableBody>
         </Table>
+        )}
       </div>
 
       {/* Rejet : commentaire obligatoire — il part dans l'historique de cote du livreur. */}

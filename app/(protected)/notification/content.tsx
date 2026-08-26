@@ -18,6 +18,7 @@ import { Bell, Search, CheckCheck, ExternalLink } from 'lucide-react';
 import { CardHeader } from '@/components/commons/card-header';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { PageWrapper } from '@/components/commons/page-wrapper';
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   useNotificationsListQuery,
   useMarkAsReadMutation,
@@ -67,7 +68,7 @@ export function NotificationContent() {
   const session = useSession();
   const userId = session.data?.user?.id;
 
-  const { data = [], isLoading } = useNotificationsListQuery(userId);
+  const { data = [], isLoading, isFetching, isError, refetch } = useNotificationsListQuery(userId);
   const markOneMut = useMarkAsReadMutation(userId);
   const markAllMut = useMarkAllAsReadMutation(userId);
 
@@ -171,8 +172,12 @@ export function NotificationContent() {
         </div>
       </div>
 
-      {/* Liste */}
-      {isLoading ? (
+      {/* Liste. `data = []` par defaut : un echec produisait une liste vide, donc
+          « Aucune notification » — le message exact d'une boite reellement vide.
+          L'erreur ouvre desormais la chaine. */}
+      {isError ? (
+        <EtatErreur quoi="les notifications" onReessayer={() => refetch()} enCours={isFetching} />
+      ) : isLoading ? (
         <div className="flex justify-center py-10">
           <Spinner color="primary" />
         </div>
