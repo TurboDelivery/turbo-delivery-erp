@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-table';
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { buildV2ValideColumns, V2ValideRowActions } from './v2-valide-columns';
@@ -12,6 +13,8 @@ interface V2ValideTableProps {
   tickets: TicketControleV2[];
   totalElements: number;
   isLoading: boolean;
+  isError?: boolean;
+  onReessayer?: () => void;
   fetchNextPage: () => void;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
@@ -25,6 +28,8 @@ export function V2ValideTable({
   tickets,
   totalElements,
   isLoading,
+  isError = false,
+  onReessayer,
   fetchNextPage,
   hasNextPage,
   isFetchingNextPage,
@@ -92,7 +97,10 @@ export function V2ValideTable({
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent={isLoading ? ' ' : 'Aucun ticket V2 validé'}>
+          <TableBody emptyContent={
+              /* Un echec de chargement ne doit pas se lire comme une liste vide. */
+              isError ? <EtatErreur quoi="les tickets validés V2" onReessayer={onReessayer} /> : isLoading ? ' ' : 'Aucun ticket V2 validé'
+            }>
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={i}>

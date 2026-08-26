@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { Pagination } from '@heroui/react';
 import { Lock, LockKeyhole, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,8 @@ export default function GrillePaiementContent() {
     grille,
     lignes,
     isLoading,
+    isError,
+    refetch,
     creneaux,
     isLoadingCreneaux,
     selectedCreneauId,
@@ -68,6 +71,9 @@ export default function GrillePaiementContent() {
   const [cloturerOpen, setCloturerOpen] = useState(false);
 
   if (isLoading) return <GrillePaiementSkeleton />;
+  // L'echec etait signale par une notification, qui disparait, pendant que l'ecran
+  // affichait « Aucune ligne » : rien ne distinguait une grille vide d'une panne.
+  if (isError) return <EtatErreur quoi="la grille de paiement" onReessayer={() => refetch()} />;
 
   if (!grille) {
     return (

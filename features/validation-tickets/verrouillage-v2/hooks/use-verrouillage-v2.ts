@@ -30,8 +30,8 @@ export default function useVerrouillageV2() {
     numero: filters.numero || undefined,
   }), [filters.debut, filters.fin, filters.restaurantId, filters.livreurId, filters.search, filters.numero]);
 
-  const { data: readyData, isLoading: isLoadingReady, fetchNextPage: fetchNextReady, hasNextPage: hasNextReady, isFetchingNextPage: isFetchingNextReady } = useTicketsAuthentifiesQuery(params);
-  const { data: lockedData, isLoading: isLoadingLocked, fetchNextPage: fetchNextLocked, hasNextPage: hasNextLocked, isFetchingNextPage: isFetchingNextLocked } = useTicketsV1ValideQuery(params);
+  const { data: readyData, isLoading: isLoadingReady, isError: isErrorReady, refetch: refetchReady, fetchNextPage: fetchNextReady, hasNextPage: hasNextReady, isFetchingNextPage: isFetchingNextReady } = useTicketsAuthentifiesQuery(params);
+  const { data: lockedData, isLoading: isLoadingLocked, isError: isErrorLocked, refetch: refetchLocked, fetchNextPage: fetchNextLocked, hasNextPage: hasNextLocked, isFetchingNextPage: isFetchingNextLocked } = useTicketsV1ValideQuery(params);
   const { livreurOptions } = useTicketFilterOptions();
 
   // Dédoublonnage indispensable sur une liste paginée dont les éléments SORTENT au fur et à
@@ -105,6 +105,10 @@ export default function useVerrouillageV2() {
     livreurOptions,
     isLoadingReady,
     isLoadingLocked,
+    isErrorReady,
+    isErrorLocked,
+    refetchReady,
+    refetchLocked,
     isLocking,
     isLockingAll,
     isRejecting,

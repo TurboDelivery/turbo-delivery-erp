@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { Lock, Loader2 } from 'lucide-react';
 import { TicketControleV2 } from '../types/tickets-v2.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 interface Props {
+  isError?: boolean;
+  onReessayer?: () => void;
   tickets: TicketControleV2[];
   total: number;
   hasNextPage: boolean;
@@ -13,7 +16,7 @@ interface Props {
   fetchNextPage: () => void;
 }
 
-export default function TicketLockedList({ tickets, total, hasNextPage, isFetchingNextPage, fetchNextPage }: Props) {
+export default function TicketLockedList({ tickets, total, hasNextPage, isFetchingNextPage, fetchNextPage, isError = false, onReessayer }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -37,7 +40,12 @@ export default function TicketLockedList({ tickets, total, hasNextPage, isFetchi
         <span className="text-sm text-gray-400 font-medium">{total}</span>
       </div>
 
-      {tickets.length === 0 ? (
+      {isError ? (
+        /* Un echec de chargement ne doit pas se lire comme une periode sans ticket. */
+        <div className="flex flex-1 items-center justify-center">
+          <EtatErreur quoi="les tickets validés V1" onReessayer={onReessayer} />
+        </div>
+      ) : tickets.length === 0 ? (
         <div className="flex flex-1 items-center justify-center py-16">
           <p className="text-sm text-gray-400">Aucun ticket validé V1 pour cette période.</p>
         </div>

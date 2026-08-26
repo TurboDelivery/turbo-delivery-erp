@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { Loader2 } from 'lucide-react';
 import TicketReadyCard from './TicketReadyCard';
 import { TicketControleV2 } from '../types/tickets-v2.type';
 
 interface Props {
+  isError?: boolean;
+  onReessayer?: () => void;
   tickets: TicketControleV2[];
   total: number;
   onLock: (ticketId: string) => void;
@@ -15,7 +18,7 @@ interface Props {
   fetchNextPage: () => void;
 }
 
-export default function TicketReadyList({ tickets, total, onLock, onReject, hasNextPage, isFetchingNextPage, fetchNextPage }: Props) {
+export default function TicketReadyList({ tickets, total, onLock, onReject, hasNextPage, isFetchingNextPage, fetchNextPage, isError = false, onReessayer }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +45,12 @@ export default function TicketReadyList({ tickets, total, onLock, onReject, hasN
       </div>
 
       <div ref={scrollRef} className="flex flex-col gap-2 overflow-y-auto flex-1 min-h-0 pr-1">
+        {/* Cette liste n'avait NI etat vide NI etat d'echec : elle affichait un panneau
+            muet dans les deux cas, et rien ne distinguait « rien a verifier » d'une panne. */}
+        {isError && <EtatErreur quoi="les tickets à vérifier" onReessayer={onReessayer} />}
+        {!isError && tickets.length === 0 && (
+          <p className="py-16 text-center text-sm text-gray-400">Aucun ticket à vérifier pour cette période.</p>
+        )}
         {tickets.map((ticket) => (
           <TicketReadyCard key={ticket.commandeId} ticket={ticket} onLock={onLock} onReject={onReject} />
         ))}

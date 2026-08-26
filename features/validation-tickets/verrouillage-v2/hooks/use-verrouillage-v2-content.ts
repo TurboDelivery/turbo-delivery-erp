@@ -37,10 +37,12 @@ export function useVerrouillageV2Content() {
     numero: v2ValideFilters.numero || undefined,
   }), [v2ValideFilters.debut, v2ValideFilters.fin, v2ValideFilters.restaurantId, v2ValideFilters.livreurId, v2ValideFilters.search, v2ValideFilters.numero]);
 
-  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useTicketsV1ValideQuery(params);
+  const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useTicketsV1ValideQuery(params);
   const {
     data: v2ValideData,
     isLoading: isLoadingV2Valide,
+    isError: isErrorV2Valide,
+    refetch: refetchV2Valide,
     fetchNextPage: fetchNextV2Valide,
     hasNextPage: hasNextV2Valide,
     isFetchingNextPage: isFetchingNextV2Valide,
@@ -94,6 +96,8 @@ export function useVerrouillageV2Content() {
     ticketsV2Valide,
     totalV2Valide,
     isLoadingV2Valide,
+    isErrorV2Valide,
+    refetchV2Valide,
     fetchNextV2Valide,
     hasNextV2Valide: !!hasNextV2Valide,
     isFetchingNextV2Valide,
@@ -103,6 +107,8 @@ export function useVerrouillageV2Content() {
     setV2ValideFilters,
     livreurOptions,
     isLoading,
+    isError,
+    refetch,
     fetchNextPage,
     hasNextPage: !!hasNextPage,
     isFetchingNextPage,

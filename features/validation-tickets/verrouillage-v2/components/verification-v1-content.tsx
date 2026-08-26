@@ -30,6 +30,10 @@ export default function VerificationV1Content() {
     fetchNextLocked,
     hasNextLocked,
     isFetchingNextLocked,
+    isErrorReady,
+    isErrorLocked,
+    refetchReady,
+    refetchLocked,
   } = useVerrouillageV2();
 
   return (
@@ -50,6 +54,8 @@ export default function VerificationV1Content() {
 
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
         <TicketReadyList
+        isError={isErrorReady}
+        onReessayer={refetchReady}
           tickets={readyTickets}
           total={totalReady}
           onLock={handleLock}
@@ -59,6 +65,8 @@ export default function VerificationV1Content() {
           fetchNextPage={fetchNextReady}
         />
         <TicketLockedList
+        isError={isErrorLocked}
+        onReessayer={refetchLocked}
           tickets={lockedTickets}
           total={totalLocked}
           hasNextPage={!!hasNextLocked}

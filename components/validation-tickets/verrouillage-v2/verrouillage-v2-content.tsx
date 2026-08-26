@@ -17,6 +17,8 @@ export function VerrouillageV2Content() {
     ticketsV2Valide,
     totalV2Valide,
     isLoadingV2Valide,
+    isErrorV2Valide,
+    refetchV2Valide,
     fetchNextV2Valide,
     hasNextV2Valide,
     isFetchingNextV2Valide,
@@ -26,6 +28,8 @@ export function VerrouillageV2Content() {
     setV2ValideFilters,
     livreurOptions,
     isLoading,
+    isError,
+    refetch,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -69,6 +73,8 @@ export function VerrouillageV2Content() {
         tickets={tickets}
         totalElements={totalElements}
         isLoading={isLoading}
+        isError={isError}
+        onReessayer={refetch}
         validatingId={validatingId}
         onValidate={handleValidate}
         onReject={setRejectDialogId}
@@ -92,6 +98,8 @@ export function VerrouillageV2Content() {
         tickets={ticketsV2Valide}
         totalElements={totalV2Valide}
         isLoading={isLoadingV2Valide}
+        isError={isErrorV2Valide}
+        onReessayer={refetchV2Valide}
         fetchNextPage={fetchNextV2Valide}
         hasNextPage={hasNextV2Valide}
         isFetchingNextPage={isFetchingNextV2Valide}

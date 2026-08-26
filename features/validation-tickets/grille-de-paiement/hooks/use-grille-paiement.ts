@@ -32,7 +32,7 @@ export default function useGrillePaiement() {
   const { data: creneauList, isLoading: isLoadingCreneaux } = useCreneauxListQuery();
   const creneaux = creneauList?.content ?? [];
 
-  const { data: grille, isLoading } = useGrillePaiementQuery({ creneauId: selectedCreneauId, page });
+  const { data: grille, isLoading, isError, refetch } = useGrillePaiementQuery({ creneauId: selectedCreneauId, page });
   const { mutate: soumettre, isPending: isSoumettant } = useSoumettreGrilleMutation();
   const { mutate: persistWave } = useUpdateNumeroWaveMutation();
   const { mutate: validerLigne, isPending: isValidating } = useValiderLigneMutation();
@@ -182,6 +182,8 @@ export default function useGrillePaiement() {
     grille,
     lignes,
     isLoading,
+    isError,
+    refetch,
     creneaux,
     isLoadingCreneaux,
     selectedCreneauId,
