@@ -6,6 +6,7 @@ import { X, DollarSign, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { IAgentFacture as IFactureAgent } from '@/features/agent-recouvreur';
 import AjouterPaiementModal, { type IPaiement } from './ajouter-paiement-modal';
+import { formatMontant } from '@/utils/format.utils';
 
 interface Props {
   open: boolean;
@@ -13,10 +14,6 @@ interface Props {
   facture: IFactureAgent | null;
   agentNom?: string;
   onPaiementAjoute: (facture: IFactureAgent, paiements: IPaiement[]) => void;
-}
-
-function formatMontant(v: number) {
-  return new Intl.NumberFormat('fr-FR').format(v) + ' FCFA';
 }
 
 export default function EncaissementModal({

@@ -1,6 +1,9 @@
-﻿import { Card } from "@/components/ui/card";
+﻿import CarteStat, { GrilleStats } from "@/components/commons/CarteStat";
+import type { TonStat } from "@/components/commons/CarteStat";
 import { ICommission } from "@/features/revenus/types/commission.types";
+import { formatMontant } from "@/utils/format.utils";
 import { CalendarClock, CalendarCheck2, CalendarPlus, CalendarCog } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface StatisticsProps {
     commissionFixe?: ICommission[];
@@ -77,70 +80,48 @@ export default function Statistics({ commissionFixe = [] }: StatisticsProps) {
         return total;
     }, 0);
 
-    const stats = [
+    // Un ton plutot qu'une couleur ecrite en dur : le mode sombre reviendra et
+    // ne doit demander aucune retouche ici.
+    const stats: { title: string; value: number; icon: LucideIcon; ton: TonStat }[] = [
         {
             title: "revenus journaliers",
             value: totalCommissionJour,
-            icon: <CalendarClock className="w-6 h-6" />,
-            color: "text-blue-500",
-            bgColor: "bg-blue-50",
+            icon: CalendarClock,
+            ton: "primaire",
         },
         {
             title: "revenus hebdomadaires",
             value: totalCommissionSemaine,
-            icon: <CalendarCheck2 className="w-6 h-6" />,
-            color: "text-red-500",
-            bgColor: "bg-red-50",
+            icon: CalendarCheck2,
+            ton: "danger",
         },
         {
             title: "revenus mensuels",
             value: totalCommissionMois,
-            icon: <CalendarPlus className="w-6 h-6" />,
-            color: "text-yellow-500",
-            bgColor: "bg-yellow-50",
+            icon: CalendarPlus,
+            ton: "attention",
         },
         {
             title: "revenus annuels",
             value: totalCommissionAnnee,
-            icon: <CalendarCog className="w-6 h-6" />,
-            color: "text-purple-500",
-            bgColor: "bg-purple-50",
+            icon: CalendarCog,
+            ton: "primaire",
         },
     ];
 
     return (
         <div className="w-full px-4 py-6">
-            {/* Grid responsive avec 5 colonnes sur desktop */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <GrilleStats colonnes={4}>
                 {stats.map((stat, index) => (
-                    <Card
+                    <CarteStat
                         key={index}
-                        className={`p-6 flex flex-col items-center justify-center rounded-2xl shadow-md hover:shadow-lg transition `}
-                    >
-                        <div className="flex justify-between items-start w-full gap-2">
-                            {/* Colonne gauche : titre + valeur + saison */}
-                            <div className="flex flex-col items-start gap-8">
-                                <h3 className="text-md capitalize">{stat.title}</h3>
-                                <div className="flex flex-col items-start">
-                                    <p className={`text-xl font-bold ${stat.color} font-exo`}>
-                                        {stat.value + " FCFA"}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Colonne droite : icône */}
-                            <div>
-                                <p
-                                    className={`text-xs text-gray-400 font-exo flex items-center ${stat.bgColor} ${stat.color} p-2 rounded-full`}
-                                >
-                                    {stat.icon}
-                                </p>
-                            </div>
-                        </div>
-
-                    </Card>
+                        libelle={stat.title}
+                        valeur={formatMontant(stat.value)}
+                        icone={stat.icon}
+                        ton={stat.ton}
+                    />
                 ))}
-            </div>
+            </GrilleStats>
         </div>
     );
 }

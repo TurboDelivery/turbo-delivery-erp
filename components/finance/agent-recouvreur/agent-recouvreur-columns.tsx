@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Banknote, ClipboardList, Landmark, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import type { IAgentFacture as IFactureAgent } from '@/features/agent-recouvreur';
+import { formatMontant } from '@/utils/format.utils';
 
 // Statuts fixes — les statuts "Acompte N" sont traités dynamiquement via startsWith
 const statutConfig: Record<string, { label: string; className: string }> = {
@@ -24,9 +25,15 @@ export function getStatutConfig(statut: string) {
   return { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
 }
 
-export function formatMontant(v: number) {
-  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
-}
+/**
+ * Re-export du formateur UNIQUE.
+ *
+ * <p>Ce module portait sa propre implementation, et ce dossier en comptait CINQ au
+ * total qui ne s'accordaient meme pas entre elles : trois rendaient « F CFA », deux
+ * « FCFA », sur les memes ecrans. On re-exporte plutot que de supprimer, pour ne pas
+ * avoir a toucher les deux fichiers qui importent d'ici.</p>
+ */
+export { formatMontant };
 
 /**
  * Rendu des actions agent recouvreur selon le statut + le montant recouvré.

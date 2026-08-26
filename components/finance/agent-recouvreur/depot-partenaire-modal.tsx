@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { IAgentFacture as IFactureAgent } from '@/features/agent-recouvreur';
+import { formatMontant } from '@/utils/format.utils';
 
 interface Props {
   open: boolean;
@@ -12,10 +13,6 @@ interface Props {
   facture: IFactureAgent | null;
   agentNom?: string;
   onConfirm: (facture: IFactureAgent, data: { date: string; montant: number; agent: string }) => void;
-}
-
-function formatMontant(v: number) {
-  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
 }
 
 // Date locale au format YYYY-MM-DD (le toISOString() partirait en UTC et

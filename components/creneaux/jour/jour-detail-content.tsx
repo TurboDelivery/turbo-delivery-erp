@@ -1,9 +1,11 @@
 'use client';
 
-import { Avatar, Button, Progress, Skeleton } from '@heroui/react';
+import { Avatar, Button, Skeleton } from '@heroui/react';
 import { ArrowLeft, CheckCircle2, Download, Lightbulb, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import { CreneauStatCard } from '@/components/creneaux/stats/creneau-stat-card';
 import { useCreneauDetailJourQuery } from '@/features/creneaux/queries/creneau.query';
 import { ICreneauTurboySimple } from '@/features/creneaux/types/creneau.types';
 import { createUrlFile } from '@/utils/createUrlFile';
@@ -17,33 +19,6 @@ function formatDateLabel(iso: string): string {
     month: 'long',
     year: 'numeric',
   }).replace(/^./, (c) => c.toUpperCase());
-}
-
-function StatCard({
-  label,
-  value,
-  color,
-  progress,
-}: {
-  label: string;
-  value: number | string;
-  color?: string;
-  progress?: number;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-      <p className="text-xs text-muted-foreground mb-1">{label}</p>
-      <p className={`text-2xl font-bold ${color ?? 'text-foreground'}`}>{value}</p>
-      {progress !== undefined && (
-        <Progress
-          size="sm"
-          value={progress}
-          className="mt-2 max-w-[160px]"
-          aria-label={label}
-        />
-      )}
-    </div>
-  );
 }
 
 function TurboyBadge({ turboy, variant }: { turboy: ICreneauTurboySimple; variant: 'present' | 'absent' }) {
@@ -138,25 +113,19 @@ export function JourDetailContent({ date }: JourDetailContentProps) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <GrilleStats colonnes={4}>
+        <CarteStat libelle="Inscrits" valeur={data?.inscrits ?? 0} isLoading={isLoading} />
+        <CarteStat libelle="Présents" valeur={data?.presents ?? 0} ton="succes" isLoading={isLoading} />
+        <CarteStat libelle="Absents" valeur={data?.absents ?? 0} ton="danger" isLoading={isLoading} />
+        {/* CreneauStatCard ne porte pas isLoading : la rendre pendant le chargement
+            afficherait un taux de 0% et une barre vide, lus comme un vrai resultat.
+            D'ou le squelette conserve pour ce seul emplacement. */}
         {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
-          ))
+          <Skeleton className="h-28 rounded-large" />
         ) : (
-          <>
-            <StatCard label="Inscrits" value={data?.inscrits ?? 0} />
-            <StatCard label="Présents" value={data?.presents ?? 0} color="text-success" />
-            <StatCard label="Absents" value={data?.absents ?? 0} color="text-danger" />
-            <StatCard
-              label="Taux de présence"
-              value={`${data?.tauxPresence ?? 0}%`}
-              color="text-primary"
-              progress={data?.tauxPresence ?? 0}
-            />
-          </>
+          <CreneauStatCard label="Taux de présence" value={data?.tauxPresence ?? 0} color="primary" />
         )}
-      </div>
+      </GrilleStats>
 
       {/* Turboys */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

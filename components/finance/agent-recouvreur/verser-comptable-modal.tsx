@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { X, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { IAgentFacture as IFactureAgent } from '@/features/agent-recouvreur';
+import { formatMontant } from '@/utils/format.utils';
 
 interface Props {
   open: boolean;
@@ -16,10 +17,6 @@ interface Props {
     facture: IFactureAgent,
     data: { montant: number; date: string; preuve?: string }
   ) => void;
-}
-
-function formatMontant(v: number) {
-  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
 }
 
 export default function VerserComptableModal({ open, onClose, facture, onConfirm }: Props) {

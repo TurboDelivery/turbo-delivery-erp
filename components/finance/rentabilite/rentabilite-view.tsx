@@ -11,35 +11,11 @@ import {
   Spinner,
 } from '@heroui/react';
 import { CalendarDays, Info, TrendingDown, TrendingUp } from 'lucide-react';
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import { useRentabiliteQuery } from '@/features/rentabilite';
+import { formatMontant } from '@/utils/format.utils';
 
 const today = () => new Date().toISOString().slice(0, 10);
-const fcfa = (n?: number) =>
-  `${Math.round(n || 0).toLocaleString('fr-FR').replace(/[  ]/g, ' ')} FCFA`;
-
-function Kpi({
-  label,
-  value,
-  sub,
-  hint,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  hint?: boolean;
-}) {
-  return (
-    <Card shadow="none" className="h-full border border-default-200">
-      <CardBody className="gap-1 p-4">
-        <span className="flex items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-default-500">
-          {label} {hint && <Info className="h-3 w-3" />}
-        </span>
-        <span className="text-xl font-bold tabular-nums text-foreground">{value}</span>
-        {sub && <span className="text-xs text-default-400">{sub}</span>}
-      </CardBody>
-    </Card>
-  );
-}
 
 function Row({ k, v, bold }: { k: string; v: string; bold?: boolean }) {
   return (
@@ -109,10 +85,10 @@ export function RentabiliteView() {
                   }`}
                 >
                   {data.profit < 0 ? '- ' : ''}
-                  {fcfa(Math.abs(data.profit))}
+                  {formatMontant(Math.abs(data.profit))}
                 </p>
                 <p className="text-xs text-default-500">
-                  CA cumulé {fcfa(data.caCumule)} − Dépenses {fcfa(data.totalCumule)}
+                  CA cumulé {formatMontant(data.caCumule)} − Dépenses {formatMontant(data.totalCumule)}
                 </p>
               </div>
               <span
@@ -125,34 +101,43 @@ export function RentabiliteView() {
             </CardBody>
           </Card>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Kpi label="CA cumulé" value={fcfa(data.caCumule)} />
+          <GrilleStats colonnes={3}>
+            <CarteStat libelle="CA cumulé" valeur={formatMontant(data.caCumule)} />
 
+            {/* Le bouton reste le declencheur du popover : CarteStat n'expose pas
+                la ref ni les gestionnaires de press attendus par PopoverTrigger. */}
             <Popover placement="bottom" showArrow>
               <PopoverTrigger>
-                <button type="button" className="block text-left">
-                  <Kpi label="Total dépenses (cumulé)" value={fcfa(data.totalCumule)} hint />
+                <button type="button" className="block h-full text-left">
+                  {/* L'icone Info annonce que le detail est dans le popover. CarteStat
+                      la pose dans la pastille a droite, jamais en ligne apres le libelle. */}
+                  <CarteStat
+                    libelle="Total dépenses (cumulé)"
+                    valeur={formatMontant(data.totalCumule)}
+                    icone={Info}
+                    className="h-full"
+                  />
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-72 p-3">
                 <p className="mb-2 text-sm font-semibold">Décomposition des dépenses</p>
-                <Row k="Charges fixes (prorata)" v={fcfa(data.fixeProrata)} />
+                <Row k="Charges fixes (prorata)" v={formatMontant(data.fixeProrata)} />
                 <p className="pl-1 text-xs text-default-400">
-                  {fcfa(data.coutJournalier)}/j × {data.joursEcoules} j
+                  {formatMontant(data.coutJournalier)}/j × {data.joursEcoules} j
                 </p>
-                <Row k="Dépenses variables (réel)" v={fcfa(data.variableReel)} />
+                <Row k="Dépenses variables (réel)" v={formatMontant(data.variableReel)} />
                 <div className="mt-1 border-t border-default-200 pt-1">
-                  <Row k="Total" v={fcfa(data.totalCumule)} bold />
+                  <Row k="Total" v={formatMontant(data.totalCumule)} bold />
                 </div>
               </PopoverContent>
             </Popover>
 
-            <Kpi
-              label="Coût journalier"
-              value={fcfa(data.coutJournalier)}
-              sub={`${fcfa(data.chargesFixesMensuelles)} / ${data.nbJours} j`}
+            <CarteStat
+              libelle="Coût journalier"
+              valeur={formatMontant(data.coutJournalier)}
+              note={`${formatMontant(data.chargesFixesMensuelles)} / ${data.nbJours} j`}
             />
-          </div>
+          </GrilleStats>
         </div>
       )}
     </div>

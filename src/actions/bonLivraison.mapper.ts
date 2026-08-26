@@ -1,4 +1,5 @@
 import { BonLivraisonTerminee, Ticket } from '@/types/bon-livraison.model';
+import { formatMontant } from '@/utils/format.utils';
 
 export function bonLivraisonToTicket(bon: BonLivraisonTerminee): Ticket {
   return {
@@ -32,22 +33,28 @@ export function formatNumberFR(value: number | string) {
   }).format(number);
 }
 
+/**
+ * Montant en francs CFA. DELEGUE au formateur unique de l'ERP.
+ *
+ * <p>47 fichiers appellent cette fonction. Elle portait sa propre implementation, avec
+ * deux defauts que ses appelants heritaient tous :</p>
+ * <ul>
+ *   <li>elle rendait « 0 » NU sur une valeur absente ou nulle, sans devise, pendant que
+ *       ses voisines dans la meme colonne affichaient « 1 500 FCFA » ;</li>
+ *   <li>elle separait le nombre du suffixe par une espace ORDINAIRE, donc « 1 500 » et
+ *       « FCFA » pouvaient se retrouver sur deux lignes differentes.</li>
+ * </ul>
+ *
+ * <p>Elle delegue desormais a `formatMontant`, qui pose une espace INSECABLE et le
+ * suffixe unique du projet. Corriger la racine aligne les 47 appelants d'un seul geste,
+ * plutot que de reprendre chacun de leurs points d'appel.</p>
+ *
+ * <p>Les centimes disparaissent : `formatMontant` arrondit a l'unite. C'est voulu, le
+ * franc CFA n'a pas de subdivision en circulation.</p>
+ */
 export function formatCFA(value?: number | string) {
-  if (!value) {
-    return '0';
-  }
-  const number = typeof value === 'string' ? parseFloat(value) || 0 : value;
-
-  // Formatage manuel simple pour éviter les problèmes de Intl.NumberFormat
-  const integerPart = Math.floor(number);
-  const decimalPart = Math.round((number - integerPart) * 100);
-
-  // Formater avec le symbole FCFA manuellement
-  if (decimalPart === 0) {
-    return `${integerPart.toLocaleString('fr-FR')} FCFA`;
-  } else {
-    return `${integerPart.toLocaleString('fr-FR')},${decimalPart.toString().padStart(2, '0')} FCFA`;
-  }
+  const nombre = typeof value === 'string' ? parseFloat(value) || 0 : value ?? 0;
+  return formatMontant(Number.isFinite(nombre) ? nombre : 0);
 }
 
 export function formatDateFR(dateString: string): string {

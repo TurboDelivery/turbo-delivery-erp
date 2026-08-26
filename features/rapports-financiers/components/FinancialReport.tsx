@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { Download } from 'lucide-react';
-import { Button, Card, CardBody, Progress, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Button, Card, CardBody, Progress, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Spinner } from '@heroui/react';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { useMemo, useState } from 'react';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
@@ -147,7 +147,7 @@ export default function FinancialReport() {
     });
   };
 
-  const { data: chargesVariablesData } = useChargesVariablesQuery({
+  const { data: chargesVariablesData, isLoading: chargesVariablesLoading } = useChargesVariablesQuery({
     size: 100,
   });
 
@@ -277,7 +277,11 @@ export default function FinancialReport() {
                   <TableColumn>DÉSIGNATION</TableColumn>
                   <TableColumn className="text-right">MONTANT</TableColumn>
                 </TableHeader>
-                <TableBody emptyContent="Aucune dépense variable sur la période">
+                <TableBody
+                  isLoading={chargesVariablesLoading}
+                  loadingContent={<Spinner color="primary" label="Chargement des dépenses…" />}
+                  emptyContent={chargesVariablesLoading ? ' ' : 'Aucune dépense variable sur la période'}
+                >
                   {variableExpenses.map((expense, index) => (
                     <TableRow key={index}>
                       <TableCell className="text-sm text-gray-600">{expense.date}</TableCell>

@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { X, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { IAgentFacture as IFactureAgent } from '@/features/agent-recouvreur';
+import { formatMontant } from '@/utils/format.utils';
 
 export interface IPaiement {
   id: string;
@@ -21,10 +22,6 @@ interface Props {
   facture: IFactureAgent | null;
   montantDejaRecouvre: number;
   onConfirm: (paiement: Omit<IPaiement, 'id'>) => void;
-}
-
-function formatMontant(v: number) {
-  return new Intl.NumberFormat('fr-FR').format(v) + ' FCFA';
 }
 
 export default function AjouterPaiementModal({ open, onClose, facture, montantDejaRecouvre, onConfirm }: Props) {

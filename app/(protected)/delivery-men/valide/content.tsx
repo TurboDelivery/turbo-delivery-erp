@@ -1,6 +1,6 @@
 'use client';
 
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination } from '@heroui/react';
+import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, Spinner } from '@heroui/react';
 import { title } from '@/components/primitives';
 import useContentCtx from './useContentCtx';
 import { PaginatedResponse } from '@/types';
@@ -31,7 +31,12 @@ export default function Content({ initialData }: ContentProps) {
                             </TableColumn>
                         )}
                     </TableHeader>
-                    <TableBody items={rows} emptyContent={<EmptyDataTable title='Aucun Livreur' />}>
+                    <TableBody
+                        items={rows}
+                        isLoading={isLoading}
+                        loadingContent={<Spinner color="primary" label="Chargement des livreurs…" />}
+                        emptyContent={isLoading ? ' ' : <EmptyDataTable title="Aucun livreur" />}
+                    >
                         {(item) => <TableRow key={item.id}>{(columnKey) => <TableCell>{renderCell(item, columnKey) as React.ReactNode}</TableCell>}</TableRow>}
                     </TableBody>
                 </Table>

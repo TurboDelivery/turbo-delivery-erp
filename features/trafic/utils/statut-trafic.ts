@@ -1,3 +1,4 @@
+import type { TonStat } from '@/components/commons/CarteStat';
 import type { StatutTrafic } from '@/features/trafic/types/trafic.type';
 
 /**
@@ -16,6 +17,15 @@ export interface StatutTraficMeta {
   libelleCourt: string;
   /** La définition — affichée sous le compteur, pas dans une infobulle. */
   explication: string;
+  /**
+   * Ton des compteurs de tete, en jetons HeroUI.
+   *
+   * Il double `couleur`/`fond` a dessein, il ne les remplace pas : la legende
+   * de la carte et les pastilles de la liste peignent en style inline, ce qui
+   * exige un hexadecimal. Seul le ton survit au retour du mode sombre sans
+   * retouche, donc tout ce qui peut passer par lui doit passer par lui.
+   */
+  ton: TonStat;
   /** Couleur de référence (pastilles, points, pins). */
   couleur: string;
   /** Fond de la pastille d'état (couleur/12 du langage de design). */
@@ -29,6 +39,7 @@ export const STATUT_TRAFIC_META: Record<StatutTrafic, StatutTraficMeta> = {
     libelle: 'Disponibles',
     libelleCourt: 'Disponible',
     explication: 'Ont pointé, sont en file, peuvent recevoir une course',
+    ton: 'succes',
     couleur: VERT_DISPONIBLE,
     fond: 'rgba(26, 160, 90, 0.12)',
   },
@@ -36,6 +47,7 @@ export const STATUT_TRAFIC_META: Record<StatutTrafic, StatutTraficMeta> = {
     libelle: 'En course',
     libelleCourt: 'En course',
     explication: 'Une livraison est en cours de réalisation',
+    ton: 'attention',
     couleur: '#D97706',
     fond: 'rgba(217, 119, 6, 0.12)',
   },
@@ -43,6 +55,7 @@ export const STATUT_TRAFIC_META: Record<StatutTrafic, StatutTraficMeta> = {
     libelle: 'En pause',
     libelleCourt: 'En pause',
     explication: 'Ont pris leur service puis se sont retirés de la file',
+    ton: 'neutre',
     couleur: '#6B7280',
     fond: 'rgba(107, 114, 128, 0.12)',
   },
@@ -50,6 +63,10 @@ export const STATUT_TRAFIC_META: Record<StatutTrafic, StatutTraficMeta> = {
     libelle: 'Hors service',
     libelleCourt: 'Hors service',
     explication: "Pas de créneau aujourd'hui, ou montée jamais pointée",
+    // Le seul ton qui ne traduit PAS la couleur d'origine (#9CA3AF, gris) : il a
+    // ete impose pour distinguer les deux statuts gris du bandeau, EN_PAUSE et
+    // HORS_SERVICE, qui se confondaient une fois passes au meme jeton neutre.
+    ton: 'danger',
     couleur: '#9CA3AF',
     fond: 'rgba(156, 163, 175, 0.14)',
   },

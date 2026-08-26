@@ -1,6 +1,6 @@
 'use client';
 
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, RangeValue, CalendarDate, DateRangePicker, Button } from '@heroui/react';
+import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, RangeValue, CalendarDate, DateRangePicker, Button, Spinner } from '@heroui/react';
 import { title } from '@/components/primitives';
 import { ArrowLeft, Calendar, Cherry, CircleDollarSign, CircleFadingPlus, DollarSign, Home, Printer, SquareMenu, ToggleRight, User } from 'lucide-react';
 import useContentCtx from './useContentCtx';
@@ -74,7 +74,12 @@ export default function Content({ initialData, restaurants }: ContentProps) {
             </TableColumn>
           )}
         </TableHeader>
-        <TableBody items={data ?? []} emptyContent={'No rows to display.'}>
+        <TableBody
+          items={data ?? []}
+          isLoading={isLoading}
+          loadingContent={<Spinner color="primary" label="Chargement des tickets…" />}
+          emptyContent={isLoading ? ' ' : 'Aucun ticket en attente'}
+        >
           {(item) => <TableRow key={item.commandeId}>{(columnKey) => <TableCell>{renderCell(item, columnKey) as React.ReactNode}</TableCell>}</TableRow>}
         </TableBody>
       </Table>

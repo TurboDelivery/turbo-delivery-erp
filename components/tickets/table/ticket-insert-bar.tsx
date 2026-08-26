@@ -3,6 +3,7 @@
 import React from 'react';
 import Select from 'react-select';
 import { Plus } from 'lucide-react';
+import { Tooltip } from '@heroui/react';
 
 interface Option { value: string; label: string }
 
@@ -79,13 +80,21 @@ export function TicketInsertBar({ livreurOptions, restaurantOptions, insertState
         </div>
         <div className="w-full">
           <label className="block text-xs mb-1 invisible">Action</label>
-          <button
-            disabled={!canCreate}
-            onClick={onInsert}
-            className="h-9 w-full bg-green-500 text-white rounded flex items-center justify-center gap-1 text-xs hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          <Tooltip
+            content="Votre rôle ne permet pas de créer un ticket"
+            isDisabled={canCreate}
+            size="sm"
           >
-            <Plus className="w-3 h-3" /> Insérer
-          </button>
+            <span className="block w-full">
+              <button
+                disabled={!canCreate}
+                onClick={onInsert}
+                className="h-9 w-full bg-green-500 text-white rounded flex items-center justify-center gap-1 text-xs hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Plus className="w-3 h-3" /> Insérer
+              </button>
+            </span>
+          </Tooltip>
         </div>
       </div>
     </div>

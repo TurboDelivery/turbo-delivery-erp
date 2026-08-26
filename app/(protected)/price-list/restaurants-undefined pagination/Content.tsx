@@ -2,7 +2,7 @@
 
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { RestaurantDefini } from '@/types/price-list';
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Tabs, Tab, Pagination } from '@heroui/react';
+import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Tabs, Tab, Pagination, Spinner } from '@heroui/react';
 import useContent from './useContent';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
@@ -49,7 +49,12 @@ export default function Content({ initialData }: Props) {
                       </TableColumn>
                     )}
                   </TableHeader>
-                  <TableBody items={data?.content ?? []} emptyContent={<EmptyDataTable title="Aucun Frais de Livraison" />}>
+                  <TableBody
+                    items={data?.content ?? []}
+                    isLoading={isLoading}
+                    loadingContent={<Spinner color="primary" label="Chargement…" />}
+                    emptyContent={isLoading ? ' ' : <EmptyDataTable title="Aucun frais de livraison" />}
+                  >
                     {(item) => <TableRow key={item.id}>{(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}</TableRow>}
                   </TableBody>
                 </Table>

@@ -7,7 +7,7 @@ import { title } from '@/components/primitives';
 import { BonLivraison } from '@/types/bon-livraison.model';
 import { SelectField } from '@/components/commons/form/select-field';
 import { Calendar, Cherry, CircleFadingPlus, Home, SquareMenu, ToggleRight, User } from 'lucide-react';
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, RangeValue, CalendarDate, DateRangePicker } from '@heroui/react';
+import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, RangeValue, CalendarDate, DateRangePicker, Spinner } from '@heroui/react';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { BonLivraisonMobileCard, BonLivraisonMobileList } from '@/components/tickets/shared/bon-livraison-mobile-card';
 
@@ -94,7 +94,10 @@ export default function Content({ initialData, restaurants }: ContentProps) {
 
                     <TableBody
                         items={data?.content ?? []}
+                        isLoading={isLoading}
+                        loadingContent={<Spinner color="primary" label="Chargement des tickets…" />}
                         emptyContent={
+                            isLoading ? ' ' :
                             <EmptyDataTable
                                 title="Aucun Bon de Livraison Trouvé"
                                 message="Aucune bon de Livraison ne correspond à vos critères de recherche. Essayez de modifier vos filtres."
