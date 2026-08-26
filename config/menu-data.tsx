@@ -3,7 +3,7 @@ import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, Ic
 import { AlertTriangle, BarChart, Bell, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
-import type { AppActions, AppSubjects } from '@/lib/casl/ability';
+import type { AppAbility, AppActions, AppSubjects } from '@/lib/casl/ability';
 
 export interface IMenuData {
   isHeader?: boolean;
@@ -15,7 +15,7 @@ export interface IMenuData {
 }
 
 const menuData: IMenuData[] = [
-  { icon: IconLayoutDashboard, title: 'dashboard', path: '/', can: { action: 'access', subject: 'Analytics' } },
+  { icon: IconLayoutDashboard, title: 'dashboard', path: '/analystics', can: { action: 'access', subject: 'Analytics' } },
   {
     icon: IconMap,
     title: 'Trafic',
@@ -147,3 +147,49 @@ const menuData: IMenuData[] = [
 ];
 
 export default menuData;
+
+/**
+ * Menu reduit a ce que le role a le droit de voir.
+ *
+ * <p>Vivait dans `components/layouts/sidebar.tsx` et n'existait QUE la : le menu
+ * horizontal de `components/layouts/header.tsx` rendait `menuData` brut, donc non
+ * filtre. Invisible tant que `themeConfig.menu` vaut « vertical » (le defaut),
+ * mais `App.tsx` lit ce reglage dans `localStorage` : la valeur « horizontal » est
+ * atteignable, et le menu y listait alors des entrees interdites au role.</p>
+ */
+export const filterMenuByAbility = (menu: IMenuData[], ability: AppAbility): IMenuData[] => {
+  return menu.reduce<IMenuData[]>((acc, item) => {
+    const children = item.children ? filterMenuByAbility(item.children, ability) : undefined;
+    const allowedBySelf = item.can ? ability.can(item.can.action, item.can.subject) : false;
+    const allowedByChild = !!children && children.length > 0;
+
+    if (!item.can && !item.children) return acc;
+    if (!allowedBySelf && !allowedByChild) return acc;
+
+    acc.push(children !== undefined ? { ...item, children } : item);
+    return acc;
+  }, []);
+};
+
+/** Toutes les cibles declarees dans le menu, a plat. */
+export const collecterChemins = (menu: IMenuData[]): string[] =>
+  menu.flatMap((i) => [...(i.path ? [i.path] : []), ...(i.children ? collecterChemins(i.children) : [])]);
+
+/**
+ * Correspondance par SEGMENT, jamais par prefixe brut.
+ *
+ * <p>Sans le `/` final, `/delivery-men/performance` matcherait
+ * `/delivery-men/performance-apercue/xxx`, qui est un autre ecran.</p>
+ */
+export const correspond = (cheminMenu: string, pathname: string) =>
+  pathname === cheminMenu || pathname.startsWith(cheminMenu + '/');
+
+/**
+ * Entree de menu a surligner. Le plus long chemin qui correspond gagne, sinon les
+ * paires parent/enfant s'allument a deux : `/trafic` contre `/trafic/standard`,
+ * `/restaurants` contre `/restaurants/groupes`.
+ */
+export const trouverCheminActif = (menu: IMenuData[], pathname: string | null): string =>
+  collecterChemins(menu)
+    .filter((cm) => correspond(cm, pathname ?? ''))
+    .sort((a, b) => b.length - a.length)[0] ?? '';

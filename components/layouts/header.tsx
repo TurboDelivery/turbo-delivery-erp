@@ -1,17 +1,18 @@
 'use client';
 
-import { Link } from 'lucide-react';
+import Link from 'next/link';
 import { IRootState } from '@/store';
 import { User } from '@/types/models';
 import { Button } from '@heroui/react';
 import { getTranslation } from '@/i18n';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { IconMenu } from '@tabler/icons-react';
 import AnimateHeight from 'react-animate-height';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleSidebar } from '@/store/themeConfigSlice';
-import menuData, { IMenuData } from '@/config/menu-data';
+import menuData, { IMenuData, filterMenuByAbility, trouverCheminActif } from '@/config/menu-data';
+import { useAbility } from '@/hooks/use-ability';
 import IconCaretDown from '@/components/icon/icon-caret-down';
 import Notifications from '../dashboard/notifications/notifications';
 import { DashboardUserDropdown } from '../dashboard/dashboard-user-dropdown';
@@ -33,33 +34,19 @@ const Header = ({ profile }: { profile: User }) => {
     });
   };
 
-  useEffect(() => {
-    const selector = document.querySelector('ul.horizontal-menu a[href="' + window.location.pathname + '"]');
-    if (selector) {
-      const all: any = document.querySelectorAll('ul.horizontal-menu .nav-link.active');
-      for (let i = 0; i < all.length; i++) {
-        all[0]?.classList.remove('active');
-      }
+  const ability = useAbility();
 
-      let allLinks = document.querySelectorAll('ul.horizontal-menu a.active');
-      for (let i = 0; i < allLinks.length; i++) {
-        const element = allLinks[i];
-        element?.classList.remove('active');
-      }
-      selector?.classList.add('active');
+  /**
+   * Le menu horizontal rendait `menuData` BRUT : aucun filtrage CASL, contrairement
+   * a la barre laterale. Invisible tant que `themeConfig.menu` vaut « vertical »
+   * (le defaut), mais `App.tsx` lit ce reglage dans `localStorage`, donc la valeur
+   * « horizontal » reste atteignable et listait alors des entrees interdites.
+   */
+  const filteredMenu = useMemo(() => filterMenuByAbility(menuData, ability), [ability]);
 
-      const ul: any = selector.closest('ul.sub-menu');
-      if (ul) {
-        let ele: any = ul.closest('li.menu').querySelectorAll('.nav-link');
-        if (ele) {
-          ele = ele[0];
-          setTimeout(() => {
-            ele?.classList.add('active');
-          });
-        }
-      }
-    }
-  }, [pathname]);
+  // Meme calcul que la barre laterale, au lieu du `document.querySelector` par
+  // egalite exacte qui ne s'allumait sur aucune route dynamique.
+  const cheminActif = useMemo(() => trouverCheminActif(filteredMenu, pathname), [filteredMenu, pathname]);
 
   const themeConfig = useSelector((state: IRootState) => state.themeConfig);
 
@@ -104,7 +91,7 @@ const Header = ({ profile }: { profile: User }) => {
 
           {/* horizontal menu */}
           <ul className="horizontal-menu hidden border-t border-[#ebedf2] bg-white px-6 py-1.5 font-semibold text-black rtl:space-x-reverse dark:border-[#191e3a] dark:bg-black dark:text-white-dark lg:space-x-1.5 xl:space-x-8">
-            <RenderMenu menu={menuData} openMenus={openMenus} toggleMenu={toggleMenu} t={t} />
+            <RenderMenu menu={filteredMenu} openMenus={openMenus} cheminActif={cheminActif} toggleMenu={toggleMenu} t={t} />
           </ul>
         </div>
       </header>
@@ -119,7 +106,7 @@ export default Header;
         MENU RÉCURSIF
 ============================ */
 
-function RenderMenu({ menu, openMenus, toggleMenu, level = 0, t }: { menu: IMenuData[]; openMenus: Set<string>; toggleMenu: (key: string) => void; level?: number; t: (value: string) => string }) {
+function RenderMenu({ menu, openMenus, cheminActif, toggleMenu, level = 0, t }: { menu: IMenuData[]; openMenus: Set<string>; cheminActif: string; toggleMenu: (key: string) => void; level?: number; t: (value: string) => string }) {
   return (
     <>
       {menu.map((item, index) => {
@@ -146,12 +133,17 @@ function RenderMenu({ menu, openMenus, toggleMenu, level = 0, t }: { menu: IMenu
 
                 <AnimateHeight duration={250} height={isOpen ? 'auto' : 0}>
                   <ul className="mt-1 ml-4 border-l border-gray-300 dark:border-gray-700 pl-3 space-y-1">
-                    <RenderMenu menu={item.children!} openMenus={openMenus} toggleMenu={toggleMenu} level={level + 1} t={t} />
+                    <RenderMenu menu={item.children!} openMenus={openMenus} cheminActif={cheminActif} toggleMenu={toggleMenu} level={level + 1} t={t} />
                   </ul>
                 </AnimateHeight>
               </>
             ) : (
-              <Link href={item.path ?? ''} className="flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800">
+              <Link
+                href={item.path ?? ''}
+                className={`flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                  item.path === cheminActif ? 'active' : ''
+                }`}
+              >
                 {item.icon && <item.icon className="w-5 h-5" />}
                 <span>{t(item.title)}</span>
               </Link>

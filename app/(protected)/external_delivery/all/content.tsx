@@ -1,15 +1,13 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
 import { Button, Chip, Input, Pagination, Skeleton } from '@heroui/react';
-import { Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 import { PaginatedResponse } from '@/types';
 import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { getPaginationCourseExterneAutreStatus } from '@/src/actions/courses.actions';
 import { useAbility } from '@/hooks/use-ability';
-import { Can } from '@/components/auth/Can';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import CourseCard from '../component/course-card';
 import { COURSE_STATUT_LABELS } from '../component/course-statut';
@@ -72,11 +70,15 @@ export default function Content({ initialData, delivers }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <Chip variant="flat">{data?.totalElements ?? 0} course{(data?.totalElements ?? 0) > 1 ? 's' : ''}</Chip>
-          <Can I="create" a="Commande">
-            <Button as={Link} href="/delivery/create" color="primary" size="sm" startContent={<Plus className="w-4 h-4" />}>
-              Nouvelle course
-            </Button>
-          </Can>
+          {/* Bouton « Nouvelle course » RETIRE : il pointait vers /delivery/create,
+              route qui n'existe pas (il y a `delivery-men`, pas `delivery`) — le clic
+              donnait un 404 plein ecran. Verifie : aucune page de creation de course
+              dans l'ERP, aucune modale dans external_delivery/, et
+              src/actions/courses.actions.ts n'expose aucune action de creation. Les
+              courses entrent par le canal d'integration partenaire ; la saisie
+              manuelle appartient au portail partenaire. Re-pointer le lien aurait
+              menti sur l'intitule : le bouton doit disparaitre tant que la page
+              n'existe pas. */}
         </div>
       </div>
 

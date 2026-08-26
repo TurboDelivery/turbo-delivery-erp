@@ -5,14 +5,11 @@ import { PaginatedResponse } from '@/types';
 import { ChevronDown, ChevronUp, Clock, CreditCard, MapPin, Package, Store, User } from 'lucide-react';
 import { Avatar, Button, Card, CardBody, CardHeader, Chip, Divider, Pagination, Skeleton } from '@heroui/react';
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { courses_statuses_filters, SORT_OPTIONS } from '@/data';
 import DeliveryTools from '../component/deliveryTools';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { createUrlFile } from '@/utils/createUrlFile';
-import IconPlus from '@/components/icon/icon-plus';
 import { getPaginationCourseExterneAutreStatus } from '@/src/actions/courses.actions';
-import { Can } from '@/components/auth/Can';
 
 type SortOption = (typeof SORT_OPTIONS)[keyof typeof SORT_OPTIONS];
 
@@ -126,11 +123,10 @@ export default function Content({ initialData, delivers }: Props) {
     <div className="w-full h-full pb-10 flex flex-1 flex-col gap-4">
       <div className="flex items-center justify-between">
         <h1 className={title({ size: 'h3', class: 'text-primary' })}>Mes Courses</h1>
-        <Can I="create" a="Commande">
-          <Button as={Link} href="/delivery/create" color="primary" size="sm" startContent={<IconPlus className="h-5 w-5" />}>
-            Demande de coursier
-          </Button>
-        </Can>
+        {/* Bouton « Demande de coursier » RETIRE : meme lien mort /delivery/create.
+            Le module Demande de Coursier n'a pas de page dans ce depot. Ne pas le
+            re-pointer vers /external_delivery (liste, pas creation) ni vers
+            /new-deliveries (courses journalieres) : ce serait un bouton qui ment. */}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-4">

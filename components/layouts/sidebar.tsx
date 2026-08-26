@@ -7,29 +7,14 @@ import { getTranslation } from '@/i18n';
 import { usePathname } from 'next/navigation';
 import AnimateHeight from 'react-animate-height';
 import IconMinus from '@/components/icon/icon-minus';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleSidebar } from '@/store/themeConfigSlice';
-import menuData, { IMenuData } from '@/config/menu-data';
+import menuData, { IMenuData, filterMenuByAbility, correspond, trouverCheminActif } from '@/config/menu-data';
 import IconCaretDown from '@/components/icon/icon-caret-down';
 import IconCaretsDown from '@/components/icon/icon-carets-down';
 import { useAbility } from '@/hooks/use-ability';
-import type { AppAbility } from '@/lib/casl/ability';
-
-const filterMenuByAbility = (menu: IMenuData[], ability: AppAbility): IMenuData[] => {
-  return menu.reduce<IMenuData[]>((acc, item) => {
-    const children = item.children ? filterMenuByAbility(item.children, ability) : undefined;
-    const allowedBySelf = item.can ? ability.can(item.can.action, item.can.subject) : false;
-    const allowedByChild = !!children && children.length > 0;
-
-    if (!item.can && !item.children) return acc;
-    if (!allowedBySelf && !allowedByChild) return acc;
-
-    acc.push(children !== undefined ? { ...item, children } : item);
-    return acc;
-  }, []);
-};
 
 const Sidebar = () => {
   const dispatch = useDispatch();
@@ -44,38 +29,42 @@ const Sidebar = () => {
     setCurrentMenu((oldValue) => (oldValue === value ? '' : value));
   };
 
-  const filteredMenu = filterMenuByAbility(menuData, ability);
+  const filteredMenu = useMemo(() => filterMenuByAbility(menuData, ability), [ability]);
+
+  /**
+   * Entree de menu active.
+   *
+   * <p>Avant : deux effets cherchaient dans le DOM un lien dont l'attribut `href`
+   * etait EXACTEMENT egal a `window.location.pathname`, puis lui ajoutaient une
+   * classe a la main. Rien ne s'allumait donc sur une route dynamique
+   * (`/restaurants/abc`, `/delivery-men/men/abc`, `/notification/abc`), le groupe
+   * parent ne s'ouvrait pas sur rechargement direct, et le tableau de bord n'etait
+   * jamais surligne puisque son chemin declare etait `/` alors que le middleware
+   * redirige vers `/analystics`.</p>
+   *
+   * <p>Le plus long chemin qui correspond gagne, sinon les paires parent/enfant
+   * s'allument a deux : `/trafic` contre `/trafic/standard`, `/restaurants` contre
+   * `/restaurants/groupes`, `/delivery-men/men` contre `/delivery-men/men/create`.</p>
+   */
+  const cheminActif = useMemo(() => trouverCheminActif(filteredMenu, pathname), [filteredMenu, pathname]);
+
+  // Ouvre le groupe qui contient la route courante (rechargement direct, lien
+  // externe, signet). Ne se declenche que sur changement de route, donc n'annule
+  // pas une ouverture faite a la main ensuite.
+  useEffect(() => {
+    const parent = filteredMenu.find((i) =>
+      i.children?.some((c) => c.path && correspond(c.path, pathname ?? '')),
+    );
+    if (parent) setCurrentMenu(parent.title);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   useEffect(() => {
-    const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
-    if (selector) {
-      selector.classList.add('active');
-      const ul: any = selector.closest('ul.sub-menu');
-      if (ul) {
-        let ele: any = ul.closest('li.menu').querySelectorAll('.nav-link') || [];
-        if (ele.length) {
-          ele = ele[0];
-          setTimeout(() => {
-            ele.click();
-          });
-        }
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    setActiveRoute();
     if (window.innerWidth < 1024 && themeConfig.sidebar) {
       dispatch(toggleSidebar());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
-
-  const setActiveRoute = () => {
-    const allLinks = document.querySelectorAll('.sidebar ul a.active');
-    allLinks.forEach((el) => el.classList.remove('active'));
-    const selector = document.querySelector('.sidebar ul a[href="' + window.location.pathname + '"]');
-    selector?.classList.add('active');
-  };
 
   return (
     <>
@@ -117,7 +106,7 @@ const Sidebar = () => {
               options={{ suppressScrollX: true, wheelPropagation: false }}
             >
               <ul className="relative space-y-0.5 p-4 py-0 pb-24 font-semibold">
-                <RenderMenu menu={filteredMenu} currentMenu={currentMenu} toggleMenu={toggleMenu} t={t} />
+                <RenderMenu menu={filteredMenu} currentMenu={currentMenu} cheminActif={cheminActif} toggleMenu={toggleMenu} t={t} />
               </ul>
             </PerfectScrollbar>
           </div>
@@ -129,7 +118,7 @@ const Sidebar = () => {
 
 export default Sidebar;
 
-function RenderMenu({ menu, currentMenu, toggleMenu, t }: { menu: IMenuData[]; currentMenu: string; toggleMenu: (value: string) => void; t: (value: string) => string }) {
+function RenderMenu({ menu, currentMenu, cheminActif, toggleMenu, t }: { menu: IMenuData[]; currentMenu: string; cheminActif: string; toggleMenu: (value: string) => void; t: (value: string) => string }) {
   const renderMenuItem = (item: IMenuData, key: number) => {
     return (
       <li key={key} className="menu nav-item">
@@ -148,7 +137,9 @@ function RenderMenu({ menu, currentMenu, toggleMenu, t }: { menu: IMenuData[]; c
           <ul className="sub-menu text-gray-500">
             {item?.children?.map((child: any, index: number) => (
               <li key={index}>
-                <Link href={`${child.path ?? ''}`}>{t(child.title)}</Link>
+                <Link href={`${child.path ?? ''}`} className={child.path === cheminActif ? 'active' : ''}>
+                  {t(child.title)}
+                </Link>
               </li>
             ))}
           </ul>
@@ -160,7 +151,7 @@ function RenderMenu({ menu, currentMenu, toggleMenu, t }: { menu: IMenuData[]; c
   const renderItem = (item: IMenuData, key: number) => {
     return (
       <li key={key} className="nav-item">
-        <Link href={`${item.path ?? ''}`} className="group">
+        <Link href={`${item.path ?? ''}`} className={`group ${item.path === cheminActif ? 'active' : ''}`}>
           <div className="flex items-center">
             {item.icon && <item.icon className="shrink-0 group-hover:!text-primary" />}
             <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-muted-foreground dark:group-hover:text-white-dark">{t(item.title)}</span>
