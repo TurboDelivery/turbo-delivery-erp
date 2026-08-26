@@ -126,14 +126,20 @@ export default function CarteStat({
                                     PASTILLE[ton],
                                 )}
                             >
-                                {/* `typeof === 'function'` et non `isValidElement` : c'est le
-                                    test que TypeScript sait utiliser pour distinguer un
-                                    composant d'un element deja rendu. */}
-                                {typeof Icone === 'function' ? (
-                                    <Icone className="h-4 w-4" aria-hidden="true" />
-                                ) : (
-                                    Icone
-                                )}
+                                {/* NE PAS tester `typeof === 'function'` ici : les icones
+                                    lucide sont des `forwardRef`, donc des OBJETS
+                                    `{$$typeof, render, displayName}` et non des fonctions.
+                                    Ce test les envoyait dans la branche « element deja
+                                    rendu », React recevait l'objet comme enfant et levait
+                                    l'erreur #31, qui fait tomber la page ENTIERE. Constate
+                                    en production le 26/08/2026 sur l'ecran Tickets.
+                                    `isValidElement` est le seul test correct. */}
+                                {React.isValidElement(Icone)
+                                    ? Icone
+                                    : React.createElement(Icone as LucideIcon, {
+                                          className: 'h-4 w-4',
+                                          'aria-hidden': true,
+                                      })}
                             </span>
                         )}
                     </div>
