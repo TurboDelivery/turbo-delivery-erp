@@ -20,7 +20,7 @@ export default function useTickets(restaurants: Restaurant[] = []) {
     fin: filters.fin,
   }), [filters]);
 
-  const { data, isLoading, status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, isError, error } =
+  const { data, isLoading, status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, isError, error, refetch } =
     useTicketsInfiniteQuery(currentSearchParams);
 
   const { mutate: deleteBonLivraisonMutation, isPending: isDeletingBonLivraison } = useDeleteBonLivraison();
@@ -47,7 +47,7 @@ export default function useTickets(restaurants: Restaurant[] = []) {
     isLoading,
     isError,
     error,
-    infiniteState: { status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, totalItems },
+    infiniteState: { status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, totalItems, refetch },
     mutations: { deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
     editing,
   };

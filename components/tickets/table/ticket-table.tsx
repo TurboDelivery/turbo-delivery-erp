@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import EtatErreur from '@/components/commons/EtatErreur';
+import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 import { toast } from 'sonner';
 import { Package } from 'lucide-react';
 
@@ -41,10 +43,17 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
     setFilter,
     ticketsData,
     isLoading,
+    isError,
     infiniteState,
     mutations: { deleteBonLivraisonMutation, isDeletingBonLivraison, isUpdatingBonLivraison },
     editing,
   } = useTickets(restaurants);
+
+  // La hauteur du tableau est MESUREE depuis sa position reelle dans la fenetre.
+  // Regle du projet : ni plafond en pixels, ni calc(100vh-Xrem), qui se decalent des
+  // qu'un filtre ou un titre change de hauteur.
+  const zoneTableRef = useRef<HTMLDivElement>(null);
+  const hauteurTable = useHauteurDisponible(zoneTableRef);
 
   const ability = useAbility();
 
@@ -212,7 +221,10 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
               <TicketTableExportButton filters={filters} totalItems={infiniteState.totalItems} isDisabled={isLoading} />
             </div>
             <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
-              <div className="max-h-[420px] overflow-y-auto">
+              {/* Hauteur MESUREE, jamais un plafond en dur. Le `max-h-[420px]` precedent
+                  laissait environ 340 px de tableau sur la fenetre reelle des postes
+                  (1000x563), et perdait une rangee des qu'un titre passait sur deux lignes. */}
+              <div ref={zoneTableRef} className="overflow-y-auto" style={hauteurTable ? { height: hauteurTable } : undefined}>
                 <Table isStriped>
                   <TableHeader>
                     {table.getFlatHeaders().map((header) => (
@@ -221,7 +233,19 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
                       </TableColumn>
                     ))}
                   </TableHeader>
-                  <TableBody emptyContent={isLoading ? 'Chargement des tickets...' : 'Aucun ticket trouvé.'}>
+                  <TableBody
+                    emptyContent={
+                      /* Un echec de chargement ne doit PAS se lire comme un resultat vide :
+                         l'operateur en concluait qu'il n'y avait aucun ticket a traiter. */
+                      isError ? (
+                        <EtatErreur quoi="les tickets" onReessayer={() => infiniteState.refetch()} />
+                      ) : isLoading ? (
+                        'Chargement des tickets...'
+                      ) : (
+                        'Aucun ticket trouvé.'
+                      )
+                    }
+                  >
                     {isLoading
                       ? Array.from({ length: 10 }).map((_, i) => (
                           <TableRow key={`skeleton-${i}`}>
