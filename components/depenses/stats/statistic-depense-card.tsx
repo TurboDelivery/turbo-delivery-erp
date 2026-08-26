@@ -1,51 +1,53 @@
 import React from 'react';
-import { Card } from '@/components/ui/card';
+
+import CarteStat, { type TonStat } from '@/components/commons/CarteStat';
 
 type CardProps = {
   title?: string;
   value?: string | number;
+  /** Ancienne couleur du chiffre : classe Tailwind ou hexadecimal. Traduite en ton. */
   color: string;
+  /** Ancien fond de la pastille : classe Tailwind. Traduit en ton. */
   bgColor: string;
   icon: React.ReactNode;
   isLoading?: boolean;
 };
 
-function StatisticDepenseCard({ title, value, color, bgColor, icon, isLoading = false }: CardProps) {
-  if (isLoading) {
-    return <StatisticDepenseCardSkeleton />;
-  }
-  return (
-    <Card className={`p-6 flex flex-col items-center justify-center`}>
-      <div className="flex justify-between items-start w-full gap-2">
-        <div className="flex flex-col items-start gap-2">
-          <h3 className="text-sm font-medium text-gray-600 first-letter:uppercase">{title}</h3>
-          <div className="flex flex-col items-start mt-2">
-            <p className={`text-xl font-bold ${color}`}>{value}</p>
-          </div>
-        </div>
-        <div>
-          <div className={`p-2 rounded-full ${bgColor}`}>{icon}</div>
-        </div>
-      </div>
-    </Card>
-  );
-}
+/**
+ * Carte de statistique des depenses.
+ *
+ * <p>Enveloppe `CarteStat`, la carte unique de l'ERP, en conservant sa signature pour ne
+ * pas toucher ses points d'appel.</p>
+ *
+ * <p>Ce fichier et
+ * `features/revenus/components/cumul/investissement/stats/investissement-stat-card.tsx`
+ * etaient un COPIER-COLLER l'un de l'autre, template literal sans interpolation compris.
+ * Ils ne differaient que par `gap-2` contre `gap-8`, `first-letter:uppercase` contre
+ * `capitalize`, et une police. Les deux passent desormais par le meme composant.</p>
+ *
+ * <p>Les couleurs arrivaient en classes Tailwind et en hexadecimal (`#10B981`,
+ * `bg-blue-50`), ce qui interdisait toute garantie en mode sombre. Elles sont traduites
+ * en tons ; une valeur inconnue retombe sur `neutre` plutot que de disparaitre.</p>
+ */
+const TON: Record<string, TonStat> = {
+  'bg-blue-50': 'primaire',
+  'bg-blue-100': 'primaire',
+  'bg-green-50': 'succes',
+  'bg-green-100': 'succes',
+  'bg-red-50': 'danger',
+  'bg-yellow-50': 'attention',
+  'bg-yellow-100': 'attention',
+};
 
-function StatisticDepenseCardSkeleton() {
+function StatisticDepenseCard({ title, value, color, bgColor, icon, isLoading = false }: CardProps) {
   return (
-    <Card className={`p-6 flex flex-col items-center justify-center animate-pulse`}>
-      <div className="flex justify-between items-start w-full gap-2">
-        <div className="flex flex-col items-start gap-2">
-          <div className="h-4 w-20 bg-gray-300 rounded"></div>
-          <div className="flex flex-col items-start mt-2">
-            <div className="h-6 w-16 bg-gray-300 rounded"></div>
-          </div>
-        </div>
-        <div>
-          <div className={`p-2 rounded-full bg-gray-300 h-10 w-10`}></div>
-        </div>
-      </div>
-    </Card>
+    <CarteStat
+      libelle={title ?? ''}
+      valeur={value ?? ''}
+      icone={React.isValidElement(icon) ? icon : undefined}
+      ton={TON[bgColor] ?? 'neutre'}
+      isLoading={isLoading}
+    />
   );
 }
 

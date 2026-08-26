@@ -1,6 +1,7 @@
 import React from 'react';
-import { Card } from '@/components/ui/card';
-import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+
+import CarteStat, { type TonStat } from '@/components/commons/CarteStat';
+import { formatMontant } from '@/utils/format.utils';
 
 type Props = {
   stat: {
@@ -13,39 +14,40 @@ type Props = {
   isLoading?: boolean;
 };
 
-function InvestissementStatCard({ stat, isLoading = false }: Props) {
-  if (isLoading) {
-    return (
-      <Card className="p-6 flex flex-col items-center justify-center">
-        <div className="flex justify-between items-start w-full gap-2">
-          <div className="flex flex-col items-start gap-8 w-full">
-            <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse" />
-            <div className="flex flex-col items-start">
-              <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-40 animate-pulse" />
-            </div>
-          </div>
-          <div>
-            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
-          </div>
-        </div>
-      </Card>
-    );
-  }
+/**
+ * Carte de statistique des investissements.
+ *
+ * <p>Enveloppe `CarteStat`, la carte unique de l'ERP, en conservant sa signature a objet
+ * `stat` pour ne pas toucher ses points d'appel.</p>
+ *
+ * <p>Son balisage etait un COPIER-COLLER de `components/depenses/stats/statistic-depense-card.tsx`,
+ * template literal sans interpolation compris. Les deux ne differaient que par `gap-8`
+ * contre `gap-2`, `capitalize` contre `first-letter:uppercase`, et une police. Elles
+ * partagent desormais le meme composant. Leurs SIGNATURES, elles, divergeaient : celle-ci
+ * recoit un objet, l'autre des props a plat.</p>
+ *
+ * <p>Elle utilisait `formatCFA`, qui rend « 0 » NU sur une valeur nulle : un
+ * investissement a zero perdait sa devise. Elle passe par `formatMontant`.</p>
+ */
+const TON: Record<string, TonStat> = {
+  'bg-blue-50': 'primaire',
+  'bg-blue-100': 'primaire',
+  'bg-green-50': 'succes',
+  'bg-green-100': 'succes',
+  'bg-red-50': 'danger',
+  'bg-yellow-50': 'attention',
+  'bg-yellow-100': 'attention',
+};
 
+function InvestissementStatCard({ stat, isLoading = false }: Props) {
   return (
-    <Card className={`p-6 flex flex-col items-center justify-center`}>
-      <div className="flex justify-between items-start w-full gap-2">
-        <div className="flex flex-col items-start gap-8">
-          <h3 className="text-md capitalize">{stat.title}</h3>
-          <div className="flex flex-col items-start">
-            <p className={`text-xl font-bold ${stat.color} font-exo`}>{formatCFA(stat.value)}</p>
-          </div>
-        </div>
-        <div>
-          <p className={`text-xs text-gray-400 font-exo flex items-center ${stat.bgColor} ${stat.color} p-2 rounded-full`}>{stat.icon}</p>
-        </div>
-      </div>
-    </Card>
+    <CarteStat
+      libelle={stat.title}
+      valeur={typeof stat.value === 'number' ? formatMontant(stat.value) : stat.value}
+      icone={React.isValidElement(stat.icon) ? stat.icon : undefined}
+      ton={TON[stat.bgColor] ?? 'neutre'}
+      isLoading={isLoading}
+    />
   );
 }
 
