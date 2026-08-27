@@ -42,7 +42,7 @@ export default function GroupesPartenairesContent() {
   const [groupeOuvert, setGroupeOuvert] = useQueryState('groupe');
   const [constituer, setConstituer] = useState(false);
 
-  const { data: groupes, isLoading, isError, isFetching, refetch } = useGroupesListeQuery(userId);
+  const { data: groupes, isPending: isLoading, isError, isFetching, refetch } = useGroupesListeQuery(userId);
 
   const peutLire = ability.can('read', 'GroupePartenaire');
   const peutAdministrer = ability.can('manage', 'GroupePartenaire');

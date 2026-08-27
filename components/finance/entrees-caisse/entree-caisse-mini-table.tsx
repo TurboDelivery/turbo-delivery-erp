@@ -10,6 +10,7 @@ import {
   TableRow,
 } from '@/components/heroui';
 import { Button } from '@/components/ui/button';
+import { Can } from '@/components/auth/Can';
 import { ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -32,15 +33,23 @@ export function EntreeCaisseMiniTable() {
         <h3 className="text-sm font-semibold text-gray-700">
           5 dernières entrées caisse
         </h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-xs text-primary"
-          onClick={() => router.push('/finance/entrees-caisse')}
-        >
-          Voir tout
-          <ArrowRight className="w-3 h-3 ml-1" />
-        </Button>
+        {/* Ce tableau vit dans « Dashboard Performance », ouvert a OPS_MANAGER et
+            RESPONSABLE_VA — mais `/finance/entrees-caisse` demande `read Finance`,
+            que ni l'un ni l'autre ne possede. Depuis que le defaut d'acces est FERME,
+            le bouton les menait a un 403 depuis un ecran qu'on leur accorde. On masque
+            le lien plutot que d'elargir un droit financier : on ne montre pas une porte
+            qu'on ne peut pas ouvrir. */}
+        <Can I="read" a="Finance">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-primary"
+            onClick={() => router.push('/finance/entrees-caisse')}
+          >
+            Voir tout
+            <ArrowRight className="w-3 h-3 ml-1" />
+          </Button>
+        </Can>
       </div>
       {/* Tableau — desktop uniquement (≥ md) */}
       <div className="hidden md:block">

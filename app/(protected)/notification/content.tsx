@@ -68,7 +68,7 @@ export function NotificationContent() {
   const session = useSession();
   const userId = session.data?.user?.id;
 
-  const { data = [], isLoading, isFetching, isError, refetch } = useNotificationsListQuery(userId);
+  const { data = [], isPending: isLoading, isFetching, isError, refetch } = useNotificationsListQuery(userId);
   const markOneMut = useMarkAsReadMutation(userId);
   const markAllMut = useMarkAllAsReadMutation(userId);
 

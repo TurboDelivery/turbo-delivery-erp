@@ -58,7 +58,7 @@ export function SupervisionContent() {
   // sondait toutes les 30 s même pour quelqu'un qui n'a pas le droit de la lire.
   const {
     data: stats,
-    isLoading: statsEnCours,
+    isPending: statsEnCours,
     isError: statsErreur,
     refetch: rechargerStats,
   } = useSupervisionStatsQuery(

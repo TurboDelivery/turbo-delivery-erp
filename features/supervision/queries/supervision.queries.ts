@@ -51,6 +51,14 @@ export const useSupervisionStatsQuery = (userId: string, autorise = true) =>
     // `autorise` : l'écran appelle ce hook AVANT son contrôle d'accès (les hooks ne
     // peuvent pas être conditionnels). Sans cette garde, quelqu'un sans le droit
     // « read Supervision » qui atterrit sur l'URL sondait quand même toutes les 30 s.
+    //
+    // ⚠ TanStack v5 — un `enabled` faux change le sens de `isLoading`. En v4,
+    // `isLoading === (status === 'loading')`, donc VRAI sur une requête désactivée.
+    // En v5, `isLoading === isPending && isFetching` : une requête désactivée n'est pas
+    // en cours de récupération, donc `isLoading` est FAUX alors qu'aucune donnée n'est
+    // encore arrivée. Un écran qui affiche son état vide sur `!isLoading` annonce donc
+    // « aucune donnée » pendant que la session se résout et que `userId` est vide.
+    // Les consommateurs de ces requêtes lisent `isPending`, jamais `isLoading`.
     enabled: !!userId && autorise,
     refetchInterval: INTERVALLE_TEMPS_REEL,
     refetchOnWindowFocus: true,

@@ -73,7 +73,7 @@ interface Props {
  */
 export function SessionsEnLignePanel({ userId, peutForcerDeconnexion, enregistrerExport }: Props) {
   const maintenant = useHorloge();
-  const { data, isLoading, isFetching, isError, refetch } = useSessionsEnLigneQuery(userId, {
+  const { data, isPending: isLoading, isFetching, isError, refetch } = useSessionsEnLigneQuery(userId, {
     agence: '',
     statut: '',
     recherche: '',

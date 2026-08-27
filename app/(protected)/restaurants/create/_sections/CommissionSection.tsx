@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Can } from '@/components/auth/Can';
 
 import { Controller } from 'react-hook-form';
 import { Input, Select, SelectItem } from '@/components/heroui';
@@ -62,12 +63,16 @@ export function CommissionSection({ control, typeCommission }: CommissionSection
             Le cycle et l&apos;objet de la facturation se definissent dans l&apos;ecran unique
             « Configuration cycle de facturation partenaire ».
           </p>
-          <Link
-            href="/finance/cycle-facturation"
-            className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
-          >
-            Ouvrir la configuration des cycles
-          </Link>
+          {/* Meme raison que sur la fiche d'edition : sept des dix roles qui peuvent
+              creer un partenaire n'ont pas `read Finance` et tombaient sur un 403. */}
+          <Can I="read" a="Finance">
+            <Link
+              href="/finance/cycle-facturation"
+              className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
+            >
+              Ouvrir la configuration des cycles
+            </Link>
+          </Can>
         </div>
       </div>
     </section>

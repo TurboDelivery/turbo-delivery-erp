@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Can } from '@/components/auth/Can';
 
 import React from 'react';
 import { Control, Controller } from 'react-hook-form';
@@ -61,12 +62,19 @@ export function CommissionSection({ control, typeCommission }: CommissionSection
             Le cycle et l&apos;objet de la facturation se definissent dans l&apos;ecran unique
             « Configuration cycle de facturation partenaire ».
           </p>
-          <Link
-            href="/finance/cycle-facturation"
-            className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
-          >
-            Ouvrir la configuration des cycles
-          </Link>
+          {/* La fiche partenaire est ouverte a 10 roles (`read Restaurant`), mais
+              `/finance/cycle-facturation` demande `read Finance` : sept d'entre eux
+              voyaient ce lien et tombaient sur un 403 depuis que le defaut d'acces est
+              FERME. On masque le lien pour eux — le texte au-dessus explique deja ou se
+              definit le cycle, il reste donc informatif sans mener nulle part. */}
+          <Can I="read" a="Finance">
+            <Link
+              href="/finance/cycle-facturation"
+              className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
+            >
+              Ouvrir la configuration des cycles
+            </Link>
+          </Can>
         </div>
       </div>
 
