@@ -31,8 +31,12 @@ export async function fetchAllNotifications(utilisateurId: string): Promise<Noti
     });
     return data ?? [];
   } catch (error) {
+    // Une lecture qui ECHOUE n'est pas une boite VIDE. En renvoyant `[]`, cette
+    // action rendait les deux cas indiscernables : `isError` ne passait jamais a
+    // vrai, et l'ecran affichait « Aucune notification » sur une panne. On relance,
+    // la query le voit, et `EtatErreur` s'affiche avec son bouton « Reessayer ».
     console.error('[notifications] fetchAll error:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -45,8 +49,12 @@ export async function fetchUnreadNotifications(utilisateurId: string): Promise<N
     });
     return data ?? [];
   } catch (error) {
+    // Une lecture qui ECHOUE n'est pas une boite VIDE. En renvoyant `[]`, cette
+    // action rendait les deux cas indiscernables : `isError` ne passait jamais a
+    // vrai, et l'ecran affichait « Aucune notification » sur une panne. On relance,
+    // la query le voit, et `EtatErreur` s'affiche avec son bouton « Reessayer ».
     console.error('[notifications] fetchUnread error:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -58,8 +66,12 @@ export async function fetchNotificationDetail(notificationId: string): Promise<N
       service: 'backend',
     });
   } catch (error) {
+    // Une lecture qui ECHOUE n'est pas une boite VIDE. En renvoyant `null`, cette
+    // action rendait les deux cas indiscernables : `isError` ne passait jamais a
+    // vrai, et l'ecran affichait « Aucune notification » sur une panne. On relance,
+    // la query le voit, et `EtatErreur` s'affiche avec son bouton « Reessayer ».
     console.error('[notifications] fetchDetail error:', error);
-    return null;
+    throw error;
   }
 }
 
