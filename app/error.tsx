@@ -25,7 +25,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
                 </motion.div>
 
                 <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="text-muted-foreground max-w-sm mx-auto">
-                    Désolé, une erreur inattendue s&apos;est produite sur nos serveurs. Notre équipe technique a été notifiée et travaille à résoudre le problème.
+                    Une erreur inattendue s&apos;est produite. Réessayez : votre session reste ouverte. Si cela persiste, signalez-le.
                 </motion.p>
 
                 <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} className="flex flex-col sm:flex-row gap-4 justify-center">
