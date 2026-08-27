@@ -88,6 +88,27 @@ export async function cloturerCreneauApi(
 }
 
 /**
+ * V137 — Annulation de la clôture d'un créneau (VERROUILLE_V2 / VERROUILLE_AUTO
+ * → TOLERANCE), réservée à l'administrateur. Rend la semaine modifiable pour que
+ * l'équipe la complète, puis la re-clôture manuellement.
+ *
+ * Le backend refuse (409) si un lot de paie du créneau a dépassé la comptabilité,
+ * et (400) si le motif fait moins de 30 caractères.
+ */
+export async function annulerClotureCreneauApi(
+  creneauId: string,
+  userId: string,
+  motif: string,
+): Promise<{ id: string; statut: string }> {
+  return apiClientHttp.request<{ id: string; statut: string }>({
+    endpoint: `/api/creneaux/${creneauId}/annuler-cloture`,
+    method: 'POST',
+    data: { motif },
+    config: { headers: { 'X-User-Id': userId } },
+  });
+}
+
+/**
  * Certification comptable GROUPÉE : valide TOUTES les lignes du lot en une action.
  * Les lignes du lot n'existent en base qu'une fois validées (une par une) ; sans
  * ce lot-validation, soumettre un créneau de 74 livreurs demandait 74 clics et la

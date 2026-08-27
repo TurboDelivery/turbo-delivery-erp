@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { Pagination } from '@heroui/react';
-import { Lock, LockKeyhole, Send } from 'lucide-react';
+import { Lock, LockKeyhole, LockKeyholeOpen, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ConfirmModal from '@/components/ui/confirm-modal';
 import useGrillePaiement from '../hooks/use-grille-paiement';
@@ -66,9 +66,15 @@ export default function GrillePaiementContent() {
     handleRequestToggleInclusion,
     handleConfirmerInclusion,
     closeInclusionRequest,
+    canAnnulerCloture,
+    isAnnulantCloture,
+    handleAnnulerCloture,
+    annulerClotureOpen,
+    setAnnulerClotureOpen,
   } = useGrillePaiement();
 
   const [cloturerOpen, setCloturerOpen] = useState(false);
+  const [motifReouverture, setMotifReouverture] = useState('');
 
   if (isLoading) return <GrillePaiementSkeleton />;
   // L'echec etait signale par une notification, qui disparait, pendant que l'ecran
@@ -129,6 +135,20 @@ export default function GrillePaiementContent() {
             >
               <LockKeyhole className="h-4 w-4" />
               {isCloturant ? 'Clôture…' : 'Clôturer le créneau'}
+            </Button>
+          )}
+
+          {/* V137 — Annulation de la clôture, réservée à l'administrateur. Rend la
+              semaine modifiable pour la compléter, avant de la re-clôturer. */}
+          {canAnnulerCloture && (
+            <Button
+              onClick={() => setAnnulerClotureOpen(true)}
+              disabled={isAnnulantCloture}
+              variant="outline"
+              className="flex items-center gap-2 border-amber-600 text-amber-700 hover:bg-amber-50 disabled:opacity-40"
+            >
+              <LockKeyholeOpen className="h-4 w-4" />
+              {isAnnulantCloture ? 'Réouverture…' : 'Annuler la clôture'}
             </Button>
           )}
 
@@ -289,6 +309,52 @@ export default function GrillePaiementContent() {
           clôture ne sera plus comptabilisé directement : il passera par la{' '}
           <span className="font-semibold">Régularisation</span> (circuit tickets en retard).
         </p>
+      </ConfirmModal>
+
+      {/* V137 — Annulation de la clôture. Le motif est obligatoire (30 caractères
+          minimum, contrôlé aussi côté serveur) : cette action défait une décision
+          de fin de semaine sur de la paie, elle doit rester justifiable. */}
+      <ConfirmModal
+        isOpen={annulerClotureOpen}
+        onClose={() => setAnnulerClotureOpen(false)}
+        title="Annuler la clôture du créneau"
+        isLoading={isAnnulantCloture}
+        actions={[
+          { label: 'Annuler', variant: 'bordered', onPress: () => setAnnulerClotureOpen(false) },
+          {
+            label: 'Rouvrir le créneau',
+            color: 'warning',
+            onPress: () => handleAnnulerCloture(motifReouverture),
+          },
+        ]}
+      >
+        <div className="flex flex-col gap-3">
+          <p className="text-sm text-gray-700">
+            Le créneau redevient modifiable et les tickets de la semaine y seront à nouveau
+            comptabilisés. Pensez à le <span className="font-semibold">clôturer à nouveau</span>{' '}
+            une fois la semaine complète.
+          </p>
+          <p className="text-sm text-gray-700">
+            La réouverture est refusée si un lot de paie a déjà été soumis au DGA.
+          </p>
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium text-gray-700">Motif de la réouverture</span>
+            <textarea
+              value={motifReouverture}
+              onChange={(e) => setMotifReouverture(e.target.value)}
+              rows={3}
+              placeholder="Exemple : tickets du samedi non saisis, semaine rouverte pour les ajouter avant clôture."
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
+            />
+            <span
+              className={
+                motifReouverture.trim().length >= 30 ? 'text-xs text-gray-400' : 'text-xs text-amber-700'
+              }
+            >
+              {motifReouverture.trim().length} / 30 caractères minimum
+            </span>
+          </label>
+        </div>
       </ConfirmModal>
     </div>
   );

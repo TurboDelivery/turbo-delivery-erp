@@ -14,6 +14,7 @@ import {
   useValiderLigneMutation,
   useValiderToutesLignesMutation,
   useCloturerCreneauMutation,
+  useAnnulerClotureMutation,
 } from '../queries/grille-paiement.query';
 import { IGrillePaiementLigne } from '../types/grille-paiement.type';
 import { grillePaiementFiltersConfig, grillePaiementFiltersOptions } from '../filters/grille-paiement.filters';
@@ -38,10 +39,12 @@ export default function useGrillePaiement() {
   const { mutate: validerLigne, isPending: isValidating } = useValiderLigneMutation();
   const { mutate: validerToutesLignes, isPending: isValidantTout } = useValiderToutesLignesMutation();
   const { mutate: cloturerCreneau, isPending: isCloturant } = useCloturerCreneauMutation();
+  const { mutate: annulerCloture, isPending: isAnnulantCloture } = useAnnulerClotureMutation();
   const { mutate: modifierInclusion, isPending: isModifyingInclusion } = useModifierInclusionMutation();
 
   const [selectedLigne, setSelectedLigne] = useState<IGrillePaiementLigne | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [annulerClotureOpen, setAnnulerClotureOpen] = useState(false);
   const [commentaire, setCommentaire] = useState('');
   const [waveOverrides, setWaveOverrides] = useState<Map<string, string>>(new Map());
   const [ligneAValider, setLigneAValider] = useState<IGrillePaiementLigne | null>(null);
@@ -70,6 +73,32 @@ export default function useGrillePaiement() {
     const creneauId = selectedCreneauId ?? grille?.id;
     if (!creneauId || !canCloturer || isCloturant) return;
     cloturerCreneau({ creneauId, userId });
+  };
+
+  // V137 — Annulation de la clôture, réservée à l'administrateur.
+  //
+  // Le gate ne passe PAS par CASL : `normalizeRole` alias ADMIN sur DG
+  // (ability.ts), donc aucune règle CASL ne sait distinguer un administrateur
+  // d'un DG. On compare donc le libellé brut de la session, normalisé exactement
+  // comme le fait `GardeSupervision` côté backend, pour que les deux gardes
+  // répondent la même chose et qu'on n'affiche pas un bouton qui finira en 403.
+  const roleSession = session?.user?.role as unknown as string | { libelle?: string } | null | undefined;
+  const roleLibelle = typeof roleSession === 'string' ? roleSession : roleSession?.libelle ?? '';
+  // Le compte administrateur de l'ERP porte le rôle DG dans l'annuaire, pas « ADMIN » :
+  // se limiter à ADMIN reviendrait à cacher le bouton à l'administrateur lui-même.
+  // Même liste que GardeSupervision.ROLES_ADMINISTRATEUR côté backend, pour ne jamais
+  // afficher un bouton qui finirait en 403.
+  const ROLES_ADMINISTRATION = ['ADMIN', 'ADMINISTRATEUR', 'DG', 'DIRECTEURGENERAL', 'PDG'];
+  const roleNormalise = roleLibelle.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const isAdmin = ROLES_ADMINISTRATION.includes(roleNormalise);
+
+  // SOLDE est exclu volontairement : la paie a été versée, il n'y a plus rien à rouvrir.
+  const creneauEstCloture = creneauStatut === 'VERROUILLE_V2' || creneauStatut === 'VERROUILLE_AUTO';
+  const canAnnulerCloture = isAdmin && creneauEstCloture;
+  const handleAnnulerCloture = (motif: string) => {
+    const creneauId = selectedCreneauId ?? grille?.id;
+    if (!creneauId || !canAnnulerCloture || isAnnulantCloture) return;
+    annulerCloture({ creneauId, userId, motif }, { onSuccess: () => setAnnulerClotureOpen(false) });
   };
 
   const handleCreneauChange = useCallback((id: string | undefined) => {
@@ -199,6 +228,11 @@ export default function useGrillePaiement() {
     canCloturer,
     isCloturant,
     handleCloturerCreneau,
+    canAnnulerCloture,
+    isAnnulantCloture,
+    handleAnnulerCloture,
+    annulerClotureOpen,
+    setAnnulerClotureOpen,
     updateWave,
     waveManquants,
     lignesAValider,

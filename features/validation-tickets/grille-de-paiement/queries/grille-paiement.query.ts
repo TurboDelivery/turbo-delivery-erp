@@ -10,6 +10,7 @@ import {
   soumettreDgaApi,
   validerToutesLignesApi,
   cloturerCreneauApi,
+  annulerClotureCreneauApi,
   soumettrGrillePaiementApi,
   updateNumeroWaveApi,
   validerLigneApi,
@@ -124,6 +125,33 @@ export const useCloturerCreneauMutation = () => {
     onError: (error: any) => {
       const serverMsg = error?.response?.data?.message ?? error?.response?.data ?? null;
       toast.error('Clôture impossible', {
+        description: serverMsg ? String(serverMsg) : error?.message ?? 'Erreur inconnue',
+      });
+    },
+  });
+};
+
+/**
+ * V137 — Annulation de la clôture (VERROUILLE_* → TOLERANCE), admin uniquement.
+ * Invalide exactement les mêmes clés que la clôture : la grille, la liste des
+ * créneaux (qui porte le statut lu par le bouton) et l'historique.
+ */
+export const useAnnulerClotureMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ creneauId, userId, motif }: { creneauId: string; userId: string; motif: string }) =>
+      annulerClotureCreneauApi(creneauId, userId, motif),
+    onSuccess: () => {
+      toast.success('Clôture annulée', {
+        description: 'Le créneau est rouvert. Pensez à le clôturer à nouveau une fois la semaine complète.',
+      });
+      queryClient.invalidateQueries({ queryKey: grillePaiementKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['creneaux-list'] });
+      queryClient.invalidateQueries({ queryKey: ['historique-creneaux'] });
+    },
+    onError: (error: any) => {
+      const serverMsg = error?.response?.data?.message ?? error?.response?.data ?? null;
+      toast.error('Annulation impossible', {
         description: serverMsg ? String(serverMsg) : error?.message ?? 'Erreur inconnue',
       });
     },
