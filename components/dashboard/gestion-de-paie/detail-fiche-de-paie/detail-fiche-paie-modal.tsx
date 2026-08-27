@@ -15,6 +15,7 @@ import { InitierPaiementModal } from "../initier-paiement/initier-paiement-modal
 import { CreneauDePaieModal } from "../creneau-de-paie/creneau-de-paie-modal";
 import { GainHebdomadaireVm, GainParJour, PaieParLivreur } from "@/types/gestion-de-paie.model";
 import EtatErreur from "@/components/commons/EtatErreur";
+import { formatMontant } from '@/utils/format.utils';
 
 interface DetailFichePaieProps {
     isOpen: boolean;
@@ -85,7 +86,7 @@ export function DetailFichePaieModal({ isOpen, onClose, details, periode, nonEli
                                             <div className="flex items-center justify-between mb-4" >
                                                 <div className="flex flex-col gap-1">
                                                     <div className="text-gray-500">Total a payer</div>
-                                                    <div className="text-md  font-bold text-gray-500">{ctrl.detailFichePaie?.gainInitial ?? 0} FCFA</div>
+                                                    <div className="text-md  font-bold text-gray-500">{formatMontant(ctrl.detailFichePaie?.gainInitial ?? 0)}</div>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
                                                     <div>Date de récupéreration</div>

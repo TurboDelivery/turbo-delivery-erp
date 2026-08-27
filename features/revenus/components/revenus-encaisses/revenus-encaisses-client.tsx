@@ -15,6 +15,7 @@ import { IInvestissement } from "@/features/revenus/types/revenus.types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import EtatErreur from "@/components/commons/EtatErreur";
+import { formatMontant } from '@/utils/format.utils';
 
 export default function RevenusEncaissesClient() {
     const [activeTab, setActiveTab] = useState("recouvrements");
@@ -214,7 +215,7 @@ export default function RevenusEncaissesClient() {
                                 <div>
                                     <p className="text-blue-600 text-sm font-medium">Total Recouvrements</p>
                                     <p className="text-2xl font-bold text-blue-900">
-                                        {totalRecouvrements.toLocaleString()} FCFA
+                                        {formatMontant(totalRecouvrements)}
                                     </p>
                                     <div className="flex items-center gap-1 mt-2">
                                         <TrendingUp className="w-4 h-4 text-blue-600" />
@@ -237,7 +238,7 @@ export default function RevenusEncaissesClient() {
                                 <div>
                                     <p className="text-green-600 text-sm font-medium">Total Investissements</p>
                                     <p className="text-2xl font-bold text-green-900">
-                                        {totalInvestissements.toLocaleString()} FCFA
+                                        {formatMontant(totalInvestissements)}
                                     </p>
                                     <div className="flex items-center gap-1 mt-2">
                                         <ArrowUpRight className="w-4 h-4 text-green-600" />
@@ -259,7 +260,7 @@ export default function RevenusEncaissesClient() {
                                 <div>
                                     <p className="text-purple-600 text-sm font-medium">Total Général</p>
                                     <p className="text-2xl font-bold text-purple-900">
-                                        {totalGeneral.toLocaleString()} FCFA
+                                        {formatMontant(totalGeneral)}
                                     </p>
                                     <div className="flex items-center gap-1 mt-2">
                                         <DollarSign className="w-4 h-4 text-purple-600" />
@@ -375,7 +376,7 @@ export default function RevenusEncaissesClient() {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-bold text-lg text-blue-600">
-                                                        {recouvrement.montant?.toLocaleString()} FCFA
+                                                        {formatMontant(recouvrement.montant ?? 0)}
                                                     </p>
                                                     
                                                 </div>
@@ -448,7 +449,7 @@ export default function RevenusEncaissesClient() {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-bold text-lg text-green-600">
-                                                        {investissement.montant?.toLocaleString()} FCFA
+                                                        {formatMontant(investissement.montant ?? 0)}
                                                     </p>
                                                     <p className="text-xs text-gray-500">
                                                         Investissement personnel

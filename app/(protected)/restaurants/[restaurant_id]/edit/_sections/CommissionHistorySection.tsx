@@ -26,6 +26,7 @@ import {
 import { History, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { formatMontant } from '@/utils/format.utils';
 import {
   useCommissionHistoryQuery,
   useModifierCommissionMutation,
@@ -50,7 +51,7 @@ function formatType(t: TypeCommissionVersion): string {
 function formatValeur(v: ICommissionVersion): string {
   if (v.type === 'AUCUNE') return '—';
   if (v.type === 'POURCENTAGE') return `${v.valeur} %`;
-  return `${Number(v.valeur).toLocaleString('fr-FR')} FCFA`;
+  return `${formatMontant(Number(v.valeur))}`;
 }
 
 function formatDate(iso: string | null): string {
@@ -174,7 +175,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                   <TableRow key={v.id}>
                     <TableCell>{formatType(v.type)}</TableCell>
                     <TableCell className="font-semibold">{formatValeur(v)}</TableCell>
-                    <TableCell>{v.seuil != null ? `${Number(v.seuil).toLocaleString('fr-FR')} FCFA` : '—'}</TableCell>
+                    <TableCell>{v.seuil != null ? `${formatMontant(Number(v.seuil))}` : '—'}</TableCell>
                     <TableCell>
                       {formatDate(v.dateDebutEffet)} → {formatDate(v.dateFinEffet)}
                     </TableCell>
@@ -218,7 +219,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                 {v.seuil != null && (
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-xs text-gray-400">Seuil</span>
-                    <span className="text-sm text-gray-700">{Number(v.seuil).toLocaleString('fr-FR')} FCFA</span>
+                    <span className="text-sm text-gray-700">{formatMontant(Number(v.seuil))}</span>
                   </div>
                 )}
                 {v.auteurNom && (

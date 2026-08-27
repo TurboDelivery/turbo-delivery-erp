@@ -20,6 +20,7 @@ import Link from "next/link";
 import { CreneauItem } from "@/types/performance-creneauId";
 import { getPerformanceFichePaie } from "@/src/performance/performance.action";
 import { useParams } from "next/navigation";
+import { formatMontant } from '@/utils/format.utils';
   
 const performanceApercuGlobalGain: PerformanceApercuGlobalGain|null = {
   solde: 3210.35,
@@ -159,7 +160,7 @@ const performanceApercuGlobalGain: PerformanceApercuGlobalGain|null = {
         case "commission":
           return (
             <div>
-            {data.commission} FCFA
+            {formatMontant(data.commission)}
             </div>
           );
         default:

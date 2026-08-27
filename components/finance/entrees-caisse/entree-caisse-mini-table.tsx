@@ -16,6 +16,7 @@ import { fr } from 'date-fns/locale';
 import { useEntreeCaisseListQuery } from '@/features/entrees-caisse/queries/entree-caisse-list.query';
 import { EntreeCaisseStatutCell } from '@/components/finance/entrees-caisse/statut-cell';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { formatMontant } from '@/utils/format.utils';
 
 export function EntreeCaisseMiniTable() {
   const router = useRouter();
@@ -66,7 +67,7 @@ export function EntreeCaisseMiniTable() {
               <TableRow key={entry.id}>
                 <TableCell className="text-sm">{entry.libelle}</TableCell>
                 <TableCell className="text-sm font-semibold">
-                  {entry.montant.toLocaleString('fr-FR')} FCFA
+                  {formatMontant(entry.montant)}
                 </TableCell>
                 <TableCell>
                   <EntreeCaisseStatutCell entree={entry} />
@@ -95,7 +96,7 @@ export function EntreeCaisseMiniTable() {
             <div key={entry.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{entry.libelle}</p>
-                <span className="text-sm font-semibold text-gray-900 shrink-0">{entry.montant.toLocaleString('fr-FR')} FCFA</span>
+                <span className="text-sm font-semibold text-gray-900 shrink-0">{formatMontant(entry.montant)}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xs text-gray-400">Date</span>

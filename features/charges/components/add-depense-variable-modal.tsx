@@ -29,6 +29,7 @@ import {
 } from '@/features/charges/schemas/charge-variable.schema';
 import { getTodayDateInput } from '@/lib/date-utils';
 import { createUrlFile } from '@/utils/createUrlFile';
+import { formatMontant } from '@/utils/format.utils';
 
 interface AddDepenseVariableModalProps {
   isOpen: boolean;
@@ -341,7 +342,7 @@ export default function AddDepenseVariableModal({
                   {categories.find((c) => c.id === formValues.categorieId)?.nomCategorie}
                 </Badge>
                 <p className="text-purple-600 font-bold mt-2">
-                  {formValues.montant.toLocaleString()} FCFA
+                  {formatMontant(formValues.montant)}
                 </p>
               </div>
             )}

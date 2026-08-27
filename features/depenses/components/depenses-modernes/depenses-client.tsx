@@ -14,6 +14,7 @@ import { useCategorieDepense } from "@/features/depenses/hooks/use-categorie-dep
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import EtatErreur from "@/components/commons/EtatErreur";
+import { formatMontant } from '@/utils/format.utils';
 
 export default function DepensesModernesClient() {
     const [activeTab, setActiveTab] = useState("toutes");
@@ -159,7 +160,7 @@ export default function DepensesModernesClient() {
                                 <div>
                                     <p className="text-red-600 text-sm font-medium">Total Dépenses</p>
                                     <p className="text-2xl font-bold text-red-900">
-                                        {totalDepenses.toLocaleString()} FCFA
+                                        {formatMontant(totalDepenses)}
                                     </p>
                                     <div className="flex items-center gap-1 mt-2">
                                         <TrendingDown className="w-4 h-4 text-red-600" />
@@ -203,7 +204,7 @@ export default function DepensesModernesClient() {
                                 <div>
                                     <p className="text-purple-600 text-sm font-medium">Moyenne/Dépense</p>
                                     <p className="text-2xl font-bold text-purple-900">
-                                        {nombreDepenses > 0 ? Math.round(totalDepenses / nombreDepenses).toLocaleString() : 0} FCFA
+                                        {formatMontant(nombreDepenses > 0 ? Math.round(totalDepenses / nombreDepenses) : 0)}
                                     </p>
                                     <div className="flex items-center gap-1 mt-2">
                                         <DollarSign className="w-4 h-4 text-purple-600" />
@@ -334,7 +335,7 @@ export default function DepensesModernesClient() {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-bold text-lg text-red-600">
-                                                        {depense.montant?.toLocaleString()} FCFA
+                                                        {formatMontant(depense.montant ?? 0)}
                                                     </p>
                                                     <p className="text-xs text-gray-500">
                                                         Dépense {depense.categorie?.nomCategorie?.toLowerCase() || 'générale'}
@@ -401,10 +402,10 @@ export default function DepensesModernesClient() {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-bold text-lg text-orange-600">
-                                                        {categorie.total.toLocaleString()} FCFA
+                                                        {formatMontant(categorie.total)}
                                                     </p>
                                                     <p className="text-xs text-gray-500">
-                                                        Moyenne: {Math.round(categorie.total / categorie.nombre).toLocaleString()} FCFA
+                                                        Moyenne: {formatMontant(Math.round(categorie.total / categorie.nombre))}
                                                     </p>
                                                 </div>
                                             </div>

@@ -20,6 +20,7 @@ import {
 import { History } from 'lucide-react';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { useZoneHistoriqueQuery } from '../queries/zones-demande-coursier.query';
+import { formatMontant } from '@/utils/format.utils';
 
 const formatDate = (value: string) => {
   const date = new Date(value);
@@ -84,7 +85,7 @@ export default function ZoneHistoriqueButton({ fraisId, zoneLabel }: ZoneHistori
                           ? `Du ${formatDate(item.debut)} au ${formatDate(item.fin)}`
                           : `Du ${formatDate(item.debut)} — en cours`}
                       </TableCell>
-                      <TableCell>{item.prixFcfa.toLocaleString('fr-FR')} FCFA</TableCell>
+                      <TableCell>{formatMontant(item.prixFcfa)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

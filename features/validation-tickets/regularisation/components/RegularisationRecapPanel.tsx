@@ -9,6 +9,7 @@ import { useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query'
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { normalizeRole } from '@/lib/casl/ability';
+import { formatMontant } from '@/utils/format.utils';
 
 import {
   useApprouverLotRegulMutation,
@@ -19,7 +20,7 @@ import {
 } from '../queries/regularisation-paiement.query';
 
 const fmt = (n?: number | null) =>
-  n === null || n === undefined ? '—' : `${Math.round(n).toLocaleString('fr-FR')} FCFA`;
+  n === null || n === undefined ? '—' : `${formatMontant(Math.round(n))}`;
 
 const LOT_LABEL: Record<string, string> = {
   EN_ATTENTE: 'Lot créé',

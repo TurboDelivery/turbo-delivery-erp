@@ -10,6 +10,7 @@ import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-disp
 import { TurboyActionsCell, getTurboyStatusColor, getTurboyStatusLabel } from './turboy-table-columns';
 import { LivreurMobileCard, LivreurMobileCardList } from '@/components/dashboard/delivery-men/shared/livreur-mobile-card';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { formatMontant } from '@/utils/format.utils';
 
 const TURBOY_TYPES: { value: TurboyType; label: string }[] = [
   { value: 'INDEPENDANT', label: 'Indépendant' },
@@ -185,7 +186,7 @@ export function TurboyTable() {
                   fields={[
                     { label: 'Genre', value: t.gender || '-' },
                     { label: 'Type', value: display.label },
-                    { label: 'Salaire', value: t.salaire ? `${t.salaire.toLocaleString('fr-FR')} FCFA` : '-' },
+                    { label: 'Salaire', value: t.salaire ? `${formatMontant(t.salaire)}` : '-' },
                     { label: 'Commission', value: t.commission !== null && t.commission !== undefined ? `${t.commission} %` : '-' },
                     { label: 'Immatriculation', value: t.immatriculation || '-' },
                     { label: 'Matricule', value: t.matricule || '-' },

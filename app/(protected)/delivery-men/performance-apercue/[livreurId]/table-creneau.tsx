@@ -15,6 +15,7 @@ import progresseBare2 from "@/components/dashboard/delivery-men/progression/prog
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import progresseBarePerformance from "@/components/dashboard/delivery-men/performance-creneau/progression-bare-performance";
 import DropDownPerformanceCrenea from "@/components/dashboard/delivery-men/performance-creneau/drop-down-performance-creneau";
+import { formatMontant } from '@/utils/format.utils';
   
 
 const dataCreneau={
@@ -89,7 +90,7 @@ const dataCreneau={
         case "commission":
           return (
             <div>
-            {data.commission} FCFA
+            {formatMontant(data.commission)}
             </div>
           );
         default:
