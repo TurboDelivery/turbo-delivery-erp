@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import EtatErreur from '@/components/commons/EtatErreur';
-import { Pagination } from '@heroui/react';
+import { Pagination } from '@/components/heroui';
 import { Lock, LockKeyhole, LockKeyholeOpen, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ConfirmModal from '@/components/ui/confirm-modal';

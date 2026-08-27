@@ -1,5 +1,5 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { Pencil, Trash2, XCircle } from 'lucide-react';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
 import { formatCfa, formatDateFr } from '@/lib/date-utils';

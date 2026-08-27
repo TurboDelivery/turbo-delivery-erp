@@ -11,7 +11,7 @@ import {
   ModalHeader,
   Select,
   SelectItem,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { useSession } from 'next-auth/react';
 import { ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
@@ -210,7 +210,7 @@ export function DeclarationContratAction({
             <Button size="sm" variant="light" onPress={() => setOuvert(false)}>
               Annuler
             </Button>
-            <Button size="sm" color="primary" isLoading={mutation.isLoading} onPress={enregistrer}>
+            <Button size="sm" color="primary" isLoading={mutation.isPending} onPress={enregistrer}>
               Enregistrer
             </Button>
           </ModalFooter>

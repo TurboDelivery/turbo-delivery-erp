@@ -17,8 +17,9 @@ const getNextPage = (last: PaginatedResponse<TicketControleV2>) =>
 
 export const ticketsAuthentifiesQueryOption = (params: IVerrouillageParams = {}) => ({
   queryKey: ticketsV2KeyQuery(StatutControle.AUTHENTIFIE, params),
-  queryFn: async ({ pageParam = 0 }) =>
+  queryFn: async ({ pageParam }: { pageParam: number }) =>
     listerTicketsParStatutRequest({ statuts: [StatutControle.AUTHENTIFIE], ...params, page: pageParam }) as Promise<PaginatedResponse<TicketControleV2>>,
+  initialPageParam: 0,
   getNextPageParam: getNextPage,
   staleTime: 30 * 1000,
   refetchOnWindowFocus: false,
@@ -44,8 +45,9 @@ export const prefetchTicketsAuthentifiesQuery = (params: IVerrouillageParams = {
 
 export const ticketsV1ValideQueryOption = (params: IVerrouillageParams = {}) => ({
   queryKey: ticketsV2KeyQuery(StatutControle.V1_VALIDE, params),
-  queryFn: async ({ pageParam = 0 }) =>
+  queryFn: async ({ pageParam }: { pageParam: number }) =>
     listerTicketsParStatutRequest({ statuts: [StatutControle.V1_VALIDE], ...params, page: pageParam }) as Promise<PaginatedResponse<TicketControleV2>>,
+  initialPageParam: 0,
   getNextPageParam: getNextPage,
   staleTime: 30 * 1000,
   refetchOnWindowFocus: false,
@@ -71,8 +73,9 @@ export const prefetchTicketsV1ValideQuery = (params: IVerrouillageParams = {}) =
 
 export const ticketsV2ValideQueryOption = (params: IVerrouillageParams = {}) => ({
   queryKey: ticketsV2KeyQuery(StatutControle.V2_VALIDE, params),
-  queryFn: async ({ pageParam = 0 }) =>
+  queryFn: async ({ pageParam }: { pageParam: number }) =>
     listerTicketsParStatutRequest({ statuts: [StatutControle.V2_VALIDE], ...params, page: pageParam }) as Promise<PaginatedResponse<TicketControleV2>>,
+  initialPageParam: 0,
   getNextPageParam: getNextPage,
   staleTime: 30 * 1000,
   refetchOnWindowFocus: false,

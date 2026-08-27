@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Input } from '@heroui/react';
+import { Input } from '@/components/heroui';
 import { Search } from 'lucide-react';
 
 interface EmployeeSearchInputProps {

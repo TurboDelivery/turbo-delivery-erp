@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, Calendar, Percent, Hash, MapPin, Home } from "lucide-react";
 import { ICommission } from "@/features/revenus/types/commission.types";
 import Image from "next/image";
+import { formatMontant } from '@/utils/format.utils';
 interface CommissionVariableDetailModalProps {
     commissionVariable: ICommission;
 }
@@ -105,7 +106,7 @@ export function CommissionVariableDetailModal({ commissionVariable }: Commission
                         </Label>
                         <Input
                             id="montant_commande"
-                            defaultValue={`${commissionVariable.totalAmount} FCFA`}
+                            defaultValue={formatMontant(commissionVariable.totalAmount)}
                             className="col-span-3"
                             readOnly
                         />
@@ -119,7 +120,7 @@ export function CommissionVariableDetailModal({ commissionVariable }: Commission
                         </Label>
                         <Input
                             id="commission"
-                            defaultValue={`${commissionVariable.commission} FCFA`}
+                            defaultValue={formatMontant(commissionVariable.commission)}
                             className="col-span-3 text-red-500"
                             readOnly
                         />

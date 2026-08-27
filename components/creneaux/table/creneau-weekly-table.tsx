@@ -3,11 +3,12 @@
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Progress, Avatar } from '@heroui/react';
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Progress, Avatar } from '@/components/heroui';
 import { ICreneauTurboy, CreneauStatutJour, ICreneauJour } from '@/features/creneaux/types/creneau.types';
 import { getStatutDotColor } from '@/features/creneaux/utils/statut.utils';
 import { getAssiduitProgressColor } from '@/features/creneaux/utils/assiduite.utils';
 import { createUrlFile } from '@/utils/createUrlFile';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const JOURS_INDEX = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
@@ -16,6 +17,12 @@ interface CreneauWeeklyTableProps {
   data: ICreneauTurboy[];
   jourDates?: Record<string, string>;
   isLoading?: boolean;
+  /** La semaine n a pas pu etre lue. Distinct d une semaine sans turboy inscrit. */
+  isError?: boolean;
+  /** Relance la lecture de la semaine. Absent, le bouton n apparait pas. */
+  onReessayer?: () => void;
+  /** Vrai pendant la nouvelle tentative. */
+  isFetching?: boolean;
   onAbsenceClick?: (turboy: ICreneauTurboy, jour: ICreneauJour) => void;
   pagination?: {
     page: number;
@@ -28,7 +35,7 @@ function StatutDot({ statut }: { statut: CreneauStatutJour }) {
   return <span className={`inline-block size-3 rounded-full ${getStatutDotColor(statut)}`} />;
 }
 
-export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination, onAbsenceClick }: CreneauWeeklyTableProps) {
+export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, isError, onReessayer, isFetching, pagination, onAbsenceClick }: CreneauWeeklyTableProps) {
   const router = useRouter();
   const columns = useMemo<ColumnDef<ICreneauTurboy>[]>(() => [
     {
@@ -116,6 +123,13 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, pagination
   });
 
   const colsCount = table.getAllColumns().length;
+
+  // L echec remplace les deux rendus (tableau desktop et cartes mobiles) : les
+  // laisser vivre afficherait « Aucun turboy trouve », soit une semaine vide,
+  // alors que la semaine n a pas pu etre lue.
+  if (isError) {
+    return <EtatErreur quoi="le planning des créneaux" onReessayer={onReessayer} enCours={isFetching} />;
+  }
 
   return (
     <>

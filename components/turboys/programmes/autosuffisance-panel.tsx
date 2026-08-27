@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Spinner } from '@heroui/react';
+import { Spinner } from '@/components/heroui';
 import { useAutosuffisanceSemaineQuery } from '@/features/turboys/queries/programme.query';
 
 const LABEL_COURT: Record<string, string> = {

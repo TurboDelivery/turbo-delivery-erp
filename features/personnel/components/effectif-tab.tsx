@@ -15,7 +15,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { AlertTriangle, ArrowRight, Download, Search } from 'lucide-react';
 
 import { useEffectifQuery } from '@/features/personnel/queries/personnel-historisation.query';

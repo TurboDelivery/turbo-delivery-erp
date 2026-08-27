@@ -2,12 +2,13 @@
 
 import React from 'react';
 import { flexRender } from '@tanstack/react-table';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import useFactureTable from '@/features/recouvrements/hooks/use-facture-table';
 import { FactureFilters } from './facture-filters';
 import { subMonths } from 'date-fns';
 import { CreerRecouvrementModal } from '@/features/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';
 import { FactureRecouvrementMobileCard } from '@/components/finance/recouvrements/recouvrement-mobile-cards';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 interface FactureTableProps {
   restaurantId?: string;
@@ -22,11 +23,14 @@ export function FactureTable({
   restaurants,
   restaurantsLoading 
 }: FactureTableProps) {
-  const { factureTable, isFactureLoading, isFactureFetching, pagination, filters, setFilters, handleTypeFilterChange, handleStatutFilterChange, handlePeriodeFilterChange, handleRestaurantFilterChange } = useFactureTable({
+  const { factureTable, isFactureLoading, isFactureFetching, isFactureError, refetchFactures, pagination, filters, setFilters, handleTypeFilterChange, handleStatutFilterChange, handlePeriodeFilterChange, handleRestaurantFilterChange } = useFactureTable({
     restaurantId,
   });
 
   const colsCount = factureTable.getAllColumns().length;
+
+  // meme bloc pour les deux rendus (tableau desktop, cartes mobiles) : un seul est visible a la fois
+  const zoneErreur = <EtatErreur quoi="les factures" onReessayer={() => refetchFactures()} enCours={isFactureFetching} />;
 
   const handleResetFilters = () => {
     setFilters({
@@ -75,7 +79,8 @@ export function FactureTable({
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody emptyContent="Aucune facture trouvée">
+          {/* sur echec, l'erreur prend la place de "Aucune facture trouvee" qui se lirait comme un vrai vide */}
+          <TableBody emptyContent={isFactureLoading ? ' ' : isFactureError ? zoneErreur : 'Aucune facture trouvée'}>
             {isFactureLoading
               ? Array.from({ length: 10 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
@@ -111,6 +116,8 @@ export function FactureTable({
       <div className={`md:hidden space-y-3 ${isFactureFetching ? 'opacity-70' : ''}`}>
         {isFactureLoading ? (
           Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+        ) : isFactureError ? (
+          zoneErreur
         ) : factureTable.getRowModel().rows.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-10">Aucune facture trouvée</p>
         ) : (

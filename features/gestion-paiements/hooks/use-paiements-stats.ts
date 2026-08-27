@@ -9,7 +9,7 @@ const DEFAULT_STATS: IPaiementStats = {
 };
 
 export function usePaiementsStats(debut?: string, fin?: string) {
-  const { data, isLoading } = useDecaissementStatsQuery({ debut, fin });
+  const { data, isLoading, isFetching, isError, refetch } = useDecaissementStatsQuery({ debut, fin });
 
   const stats = useMemo<IPaiementStats>(() => {
     if (!data) return DEFAULT_STATS;
@@ -20,5 +20,7 @@ export function usePaiementsStats(debut?: string, fin?: string) {
     };
   }, [data]);
 
-  return { stats, isLoading };
+  // Sur echec la query ne rend rien et le bandeau retombe sur DEFAULT_STATS, donc
+  // « 0 FCFA a decaisser » : on remonte l'echec pour que l'ecran le dise.
+  return { stats, isLoading, isFetching, isError, refetch };
 }

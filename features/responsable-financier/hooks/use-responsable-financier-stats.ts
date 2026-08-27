@@ -11,7 +11,7 @@ export interface FactureRFStatCard {
 }
 
 export const useResponsableFinancierStats = (params?: IFactureRFParams) => {
-  const { data, isLoading, isError } = useFacturesRFQuery(params);
+  const { data, isLoading, isError, isFetching, refetch } = useFacturesRFQuery(params);
 
   const statsCards = useMemo((): FactureRFStatCard[] => {
     if (!data?.stats) {
@@ -31,5 +31,7 @@ export const useResponsableFinancierStats = (params?: IFactureRFParams) => {
     ];
   }, [data]);
 
-  return { statsCards, isLoading, isError };
+  // Sans stats, les quatre cartes valent 0, taux de recouvrement compris : sur echec
+  // l'ecran annonce « 0 % recouvre ». La relance manquait pour pouvoir le corriger.
+  return { statsCards, isLoading, isError, isFetching, refetch };
 };

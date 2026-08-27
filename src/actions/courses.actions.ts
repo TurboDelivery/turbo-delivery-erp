@@ -79,7 +79,10 @@ export async function getPaginationCourseExterneEnAttente(page: number = 0, size
 
         return data;
     } catch (error) {
-        return null;
+        // Une lecture qui ECHOUE n'est pas une file de dispatch VIDE. En rendant
+        // `null`, cette action faisait lire « Aucune course en attente » au dispatch,
+        // qui en concluait n'avoir personne a affecter.
+        throw error;
     }
 }
 
@@ -97,7 +100,10 @@ export async function getPaginationCourseExterneJournaliere(page: number = 0, si
 
         return data;
     } catch (error) {
-        return null;
+        // Une lecture qui ECHOUE n'est pas une journee SANS course. Le point du jour
+        // affichait « Aucune course aujourd'hui » et un bandeau vert « Tout est a
+        // jour » alors que les restaurants n'avaient simplement pas pu etre lus.
+        throw error;
     }
 }
 
@@ -115,7 +121,10 @@ export async function getPaginationCourseExterneAutreStatus(page: number = 0, si
 
         return data;
     } catch (error) {
-        return null;
+        // Une lecture qui ECHOUE n'est pas un historique VIDE. L'ecran annoncait
+        // « aucune course ne correspond a vos criteres » sur une panne, et la page
+        // /all restait bloquee sur un chargement perpetuel.
+        throw error;
     }
 }
 export async function getCourseExterne(idCourse: string): Promise<CourseExterneDetail | null> {
@@ -128,7 +137,10 @@ export async function getCourseExterne(idCourse: string): Promise<CourseExterneD
 
         return data;
     } catch (error) {
-        return null;
+        // Ce catch avalait TOUT en bloc : la page de detail rendait « introuvable »
+        // pour une course qui existe mais que la panne empechait de lire. Le backend
+        // repond 409 (pas 404) quand la course manque, on ne peut pas trier ici.
+        throw error;
     }
 }
 
@@ -146,7 +158,10 @@ export async function getPaginationCourseExterne(idRestaurant: string, page: num
         });
         return data;
     } catch (error) {
-        return null;
+        // Une lecture qui ECHOUE n'est pas un restaurant SANS course. La fiche
+        // partenaire affichait une liste vide et coupait meme l'alarme sonore, qui
+        // ne sonne que si des courses sont chargees.
+        throw error;
     }
 }
 

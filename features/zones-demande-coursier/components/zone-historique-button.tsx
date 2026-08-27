@@ -16,9 +16,11 @@ import {
   TableHeader,
   TableRow,
   Tooltip,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { History } from 'lucide-react';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { useZoneHistoriqueQuery } from '../queries/zones-demande-coursier.query';
+import { formatMontant } from '@/utils/format.utils';
 
 const formatDate = (value: string) => {
   const date = new Date(value);
@@ -33,7 +35,9 @@ interface ZoneHistoriqueButtonProps {
 
 export default function ZoneHistoriqueButton({ fraisId, zoneLabel }: ZoneHistoriqueButtonProps) {
   const [open, setOpen] = useState(false);
-  const { data, isLoading } = useZoneHistoriqueQuery(fraisId ?? null, open);
+  // `data === null` EST le signal d echec ici : l action avale l exception et
+  // renvoie null. `isError` ne se declenche donc que si l appel casse plus tot.
+  const { data, isLoading, isError, isFetching, refetch } = useZoneHistoriqueQuery(fraisId ?? null, open);
   const historique = data ?? [];
 
   if (!fraisId) return null;
@@ -61,8 +65,12 @@ export default function ZoneHistoriqueButton({ fraisId, zoneLabel }: ZoneHistori
               <div className="flex justify-center py-8">
                 <Spinner size="sm" />
               </div>
-            ) : data === null ? (
-              <p className="text-sm text-danger py-4">Impossible de charger l&apos;historique. Veuillez réessayer.</p>
+            ) : isError || data === null ? (
+              <EtatErreur
+                quoi="l’historique des tarifs"
+                onReessayer={() => void refetch()}
+                enCours={isFetching}
+              />
             ) : (
               <Table aria-label="Historique des tarifs de la zone" removeWrapper>
                 <TableHeader>
@@ -77,7 +85,7 @@ export default function ZoneHistoriqueButton({ fraisId, zoneLabel }: ZoneHistori
                           ? `Du ${formatDate(item.debut)} au ${formatDate(item.fin)}`
                           : `Du ${formatDate(item.debut)} — en cours`}
                       </TableCell>
-                      <TableCell>{item.prixFcfa.toLocaleString('fr-FR')} FCFA</TableCell>
+                      <TableCell>{formatMontant(item.prixFcfa)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

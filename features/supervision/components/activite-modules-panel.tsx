@@ -15,10 +15,11 @@ import {
   TableHeader,
   TableRow,
   Tooltip,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Search } from 'lucide-react';
 import { toast } from 'sonner';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import { useAuditActionsQuery, useModulesAuditQuery } from '../queries/supervision.queries';
 import { useRechercheDifferee } from '../hooks/use-recherche-differee';
 import {
@@ -73,7 +74,7 @@ export function ActiviteModulesPanel({ userId, enregistrerExport }: Props) {
   );
 
   const { data: modules } = useModulesAuditQuery(userId);
-  const { data, isLoading, isFetching } = useAuditActionsQuery(userId, filtre, TAILLE_PAGE);
+  const { data, isLoading, isFetching, isError, refetch } = useAuditActionsQuery(userId, filtre, TAILLE_PAGE);
 
   const lignes = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
@@ -159,6 +160,15 @@ export function ActiviteModulesPanel({ userId, enregistrerExport }: Props) {
         />
       </div>
 
+      {/* L echec REMPLACE le tableau : « Aucune action pour ces criteres » se lit
+          comme un journal vide, alors qu il n a simplement pas pu etre lu. */}
+      {isError ? (
+        <EtatErreur
+          quoi="le journal des actions"
+          onReessayer={() => void refetch()}
+          enCours={isFetching}
+        />
+      ) : (
       <Table
         aria-label="Journal des actions métier"
         isStriped
@@ -226,10 +236,11 @@ export function ActiviteModulesPanel({ userId, enregistrerExport }: Props) {
           ))}
         </TableBody>
       </Table>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-default-400">
         <span>
-          {total} action{total > 1 ? 's' : ''} pour ces critères
+          {isError ? '—' : `${total} action${total > 1 ? 's' : ''} pour ces critères`}
         </span>
         <span>
           Audit central — toute écriture, dans tout module, est journalisée · lecture seule · rétention 24 mois

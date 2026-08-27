@@ -11,13 +11,14 @@ import {
   SelectItem,
   Spinner,
   Switch,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Coins, Percent, Save, Trophy } from 'lucide-react';
 import {
   IPrimeConfig,
   usePrimeConfigQuery,
   useUpdatePrimeConfigMutation,
 } from '@/features/primes-config';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 function Section({
   title,
@@ -40,13 +41,23 @@ function Section({
 }
 
 export function PrimeConfigView() {
-  const { data, isLoading } = usePrimeConfigQuery();
+  const { data, isLoading, isError, isFetching, refetch } = usePrimeConfigQuery();
   const update = useUpdatePrimeConfigMutation();
   const [form, setForm] = useState<IPrimeConfig | null>(null);
 
   useEffect(() => {
     if (data) setForm(data);
   }, [data]);
+
+  // Cette garde passe avant celle du chargement : sur echec `form` reste null et
+  // l'ecran restait fige sur le spinner, comme si la donnee arrivait encore.
+  if (isError) {
+    return (
+      <div className="p-4">
+        <EtatErreur quoi="la configuration prime" onReessayer={() => refetch()} enCours={isFetching} />
+      </div>
+    );
+  }
 
   if (isLoading || !form) {
     return (
@@ -71,7 +82,7 @@ export function PrimeConfigView() {
         <Button
           color="primary"
           startContent={<Save className="h-4 w-4" />}
-          isLoading={update.isLoading}
+          isLoading={update.isPending}
           onPress={() => update.mutate(form)}
         >
           Enregistrer

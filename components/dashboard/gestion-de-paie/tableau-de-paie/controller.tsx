@@ -1,4 +1,4 @@
-import { Chip, useDisclosure } from "@heroui/react";
+import { Chip, useDisclosure } from "@/components/heroui";
 import { useEffect, useState } from "react";
 import { CircleCheckBig, Minus } from "lucide-react";
 import { InfoParJour, PaieErpVM, PaieParLivreur } from "@/types/gestion-de-paie.model";

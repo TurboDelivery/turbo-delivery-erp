@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
-import { Select, SelectItem, Spinner } from '@heroui/react';
+import { Select, SelectItem, Spinner } from '@/components/heroui';
 import {
   encoursFilters,
   useEncoursQuery,

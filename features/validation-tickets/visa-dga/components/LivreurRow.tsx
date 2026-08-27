@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react';
 import { IVisaDgaLivreur } from '../types/visa-dga.type';
+import { formatMontant } from '@/utils/format.utils';
 
 export default function LivreurRow({ nom, tickets, numeroWave, netAPayer, bonus }: IVisaDgaLivreur) {
   return (
@@ -18,7 +19,7 @@ export default function LivreurRow({ nom, tickets, numeroWave, netAPayer, bonus 
           </span>
         )}
         <span className="text-sm font-bold text-green-600">
-          {netAPayer.toLocaleString('fr-FR')} FCFA
+          {formatMontant(netAPayer)}
         </span>
       </div>
     </div>

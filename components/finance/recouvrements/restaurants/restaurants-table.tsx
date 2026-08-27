@@ -1,12 +1,13 @@
 'use client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { flexRender } from '@tanstack/react-table';
 import React from 'react';
 import { restaurantRecouvrementTableColumns } from '@/components/finance/recouvrements/restaurants/restaurant-recouvrement-table-columns';
 import useRestaurantRecouvrementTable from '@/features/recouvrements/hooks/use-restaurant-recouvrement-table';
 import Select from 'react-select';
 import { RestaurantRecouvrementMobileCard } from '@/components/finance/recouvrements/recouvrement-mobile-cards';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export type restaurantsTableProps = {
   restoOpts: {
@@ -17,7 +18,22 @@ export type restaurantsTableProps = {
 };
 
 export function RestaurantsTable({ restoOpts, isOptionsLoading = false }: restaurantsTableProps) {
-  const { restaurantTable, isRestaurantLoading, isRestaurantFetching, pagination, filters, handleRestaurantFilterChange } = useRestaurantRecouvrementTable();
+  const {
+    restaurantTable,
+    isRestaurantLoading,
+    isRestaurantFetching,
+    isRestaurantError,
+    refetchRestaurants,
+    pagination,
+    filters,
+    handleRestaurantFilterChange,
+  } = useRestaurantRecouvrementTable();
+
+  // meme bloc pour les deux rendus (tableau desktop, cartes mobiles) : un seul est visible a la fois
+  const zoneErreur = (
+    <EtatErreur quoi="les restaurants" onReessayer={() => refetchRestaurants()} enCours={isRestaurantFetching} />
+  );
+
   return (
     <Card className="flex flex-col gap-4">
       <CardHeader>
@@ -73,7 +89,8 @@ export function RestaurantsTable({ restoOpts, isOptionsLoading = false }: restau
                 </TableColumn>
               ))}
             </TableHeader>
-            <TableBody>
+            {/* sur echec, l'erreur prend la place du corps vide qui se lirait comme "aucun restaurant" */}
+            <TableBody emptyContent={isRestaurantError ? zoneErreur : undefined}>
               {isRestaurantLoading
                 ? Array.from({ length: 10 }).map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
@@ -99,6 +116,8 @@ export function RestaurantsTable({ restoOpts, isOptionsLoading = false }: restau
         <div className={`md:hidden space-y-3 ${isRestaurantFetching ? 'opacity-70' : ''}`}>
           {isRestaurantLoading ? (
             Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+          ) : isRestaurantError ? (
+            zoneErreur
           ) : restaurantTable.getRowModel().rows.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-10">Aucun restaurant</p>
           ) : (

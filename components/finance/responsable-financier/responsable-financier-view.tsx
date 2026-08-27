@@ -13,7 +13,7 @@ import {
   Select,
   SelectItem,
   Checkbox,
-} from '@heroui/react';
+} from '@/components/heroui';
 import type { ColumnDef } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
 import Link from 'next/link';

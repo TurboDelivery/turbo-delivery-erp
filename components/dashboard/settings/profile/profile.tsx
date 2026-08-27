@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import IconCalendar from '@/components/icon/icon-calendar';
 import IconPencilPaper from '@/components/icon/icon-pencil-paper';
 import { User } from '@/types/models';
-import { Avatar, Input } from "@heroui/react";
+import { Avatar, Input } from "@/components/heroui";
 import { SubmitButton } from '@/components/ui/form-ui/submit-button';
 import { IconMail, IconShield, IconUser } from '@tabler/icons-react';
 

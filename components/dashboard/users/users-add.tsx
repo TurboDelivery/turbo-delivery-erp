@@ -1,5 +1,6 @@
 'use client';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import IconUserPlus from '@/components/icon/icon-user-plus';
 import IconX from '@/components/icon/icon-x';
 import { getAllRoles } from '@/src/actions/roles.actions';
@@ -8,9 +9,9 @@ import { _createUserSchema, createUserSchema } from '@/src/schemas/users.schema'
 import { Role } from '@/types/models';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Input, Select, SelectItem, Snippet } from "@heroui/react";
+import { Button, Input, Select, SelectItem, Snippet } from "@/components/heroui";
 import { useRouter } from 'next/navigation';
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -42,21 +43,37 @@ const UsersAdd = () => {
     );
 
     const [roles, setRoles] = useState<Role[]>([]);
+    // getAllRoles relance desormais. Sans rattrapage ici, l echec restait invisible : le
+    // selecteur de role s affichait VIDE, ce qui se lit comme « aucun role n existe »
+    // alors que le role est obligatoire et que le formulaire est donc inutilisable.
+    const [erreurRoles, setErreurRoles] = useState<boolean>(false);
+    const [chargementRoles, setChargementRoles] = useState<boolean>(false);
 
     const rolesSelections = roles.map((r) => ({
         label: r.libelle,
         value: r.id,
     }));
 
-    useEffect(() => {
-        async function fetchRole() {
+    const fetchRole = useCallback(async () => {
+        // Remis a faux a chaque tentative, sinon un succes apres reessai garderait l erreur
+        setErreurRoles(false);
+        setChargementRoles(true);
+        try {
             const result = await getAllRoles();
             if (result) {
                 setRoles(result);
             }
+        } catch (error) {
+            console.error('Erreur lors du chargement des roles:', error);
+            setErreurRoles(true);
+        } finally {
+            setChargementRoles(false);
         }
-        fetchRole();
     }, []);
+
+    useEffect(() => {
+        fetchRole();
+    }, [fetchRole]);
 
     const {
         formState: { errors },
@@ -127,6 +144,8 @@ const UsersAdd = () => {
                                                 </li>
                                             </ul>
                                         </div>
+                                    ) : erreurRoles ? (
+                                        <EtatErreur quoi="les rôles" onReessayer={() => fetchRole()} enCours={chargementRoles} />
                                     ) : (
                                         <form action={formAction}>
                                             <div className="grid gap-4 p-5">

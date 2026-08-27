@@ -3,7 +3,7 @@
 import React from 'react';
 import { ColumnDef, flexRender, getCoreRowModel, SortingState, useReactTable } from '@tanstack/react-table';
 import { Card, CardContent } from '@/components/ui/card';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 
 export interface PaginationState {
   pageCount: number;

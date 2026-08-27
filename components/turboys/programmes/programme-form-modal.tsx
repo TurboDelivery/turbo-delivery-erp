@@ -11,9 +11,10 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { IJourProgramme, IProgramme } from '@/features/turboys/types/programme.types';
 import { useCreerProgrammeMutation, useModifierProgrammeMutation } from '@/features/turboys/queries/programme.query';
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
@@ -67,7 +68,7 @@ export function ProgrammeFormModal({
 
   const creer = useCreerProgrammeMutation(() => onOpenChange(false));
   const modifier = useModifierProgrammeMutation(() => onOpenChange(false));
-  const isLoading = creer.isLoading || modifier.isLoading;
+  const isLoading = creer.isPending || modifier.isPending;
 
   const onSubmit = () => {
     if (isEdit) {
@@ -99,8 +100,19 @@ export function ProgrammeFormModal({
         <ModalBody>
           {!isEdit && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {/* Autocomplete (recherche par nom / matricule / téléphone) — la
-                  liste des livreurs peut être longue, le Select simple ne filtrait pas. */}
+              {/* Une liste de livreurs illisible donne un menu deroulant vide, qui se
+                  lit comme « aucun livreur » : on le dit, et on propose de relancer. */}
+              {livreursQuery.isError ? (
+                <div className="sm:col-span-3">
+                  <EtatErreur
+                    quoi="la liste des livreurs"
+                    onReessayer={() => void livreursQuery.refetch()}
+                    enCours={livreursQuery.isFetching}
+                  />
+                </div>
+              ) : (
+              /* Autocomplete (recherche par nom / matricule / téléphone) — la
+                 liste des livreurs peut être longue, le Select simple ne filtrait pas. */
               <Autocomplete
                 label="Livreur"
                 className="sm:col-span-3"
@@ -128,6 +140,7 @@ export function ProgrammeFormModal({
                   </AutocompleteItem>
                 )}
               </Autocomplete>
+              )}
               <Input
                 type="number"
                 label="Année"
@@ -155,6 +168,17 @@ export function ProgrammeFormModal({
 
           <div className="mt-1">
             <p className="mb-2 text-sm font-medium text-default-600">Jours travaillés</p>
+            {/* getAllRestaurants relance desormais. L editeur ne montre le selecteur
+                « Postes / partenaires desservis » que si la liste est non vide : sans
+                ce message, une lecture en echec se lit comme « aucun poste a affecter »
+                et le programme part sans poste. On garde l edition des horaires. */}
+            {restaurantsQuery.isError && (
+              <EtatErreur
+                quoi="la liste des partenaires"
+                onReessayer={() => void restaurantsQuery.refetch()}
+                enCours={restaurantsQuery.isFetching}
+              />
+            )}
             <WeeklyJoursEditor value={jours} onChange={setJours} disabled={isLoading} restaurants={restaurants} />
           </div>
         </ModalBody>

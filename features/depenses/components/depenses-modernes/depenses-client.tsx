@@ -13,6 +13,8 @@ import { useDepenseStats } from "@/features/depenses/hooks/use-depense-stats";
 import { useCategorieDepense } from "@/features/depenses/hooks/use-categorie-depense";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import EtatErreur from "@/components/commons/EtatErreur";
+import { formatMontant } from '@/utils/format.utils';
 
 export default function DepensesModernesClient() {
     const [activeTab, setActiveTab] = useState("toutes");
@@ -20,9 +22,31 @@ export default function DepensesModernesClient() {
     const [dateFilter, setDateFilter] = useState("tous");
     const [categorieFilter, setCategorieFilter] = useState("toutes");
 
-    const { depenses, isLoading: isLoadingDepenses } = useDepenseTable();
+    const {
+        depenses,
+        isLoading: isLoadingDepenses,
+        isFetching: isFetchingDepenses,
+        isError: isErrorDepenses,
+        refetch: refetchDepenses,
+    } = useDepenseTable();
     const { data: statsData, isLoading: isLoadingStats } = useDepenseStats();
-    const { categories, isLoading: isLoadingCategories } = useCategorieDepense();
+    const {
+        categories,
+        isLoading: isLoadingCategories,
+        isFetching: isFetchingCategories,
+        isError: isErrorCategories,
+        refetch: refetchCategories,
+    } = useCategorieDepense();
+
+    // Les deux listes alimentent les compteurs ET les onglets : sur echec, tout
+    // retombe a 0 et sur « Aucune depense trouvee », qui se lit comme un mois sans
+    // depense. On dit l'echec au lieu de le laisser passer pour un resultat.
+    const isErreurDonnees = isErrorDepenses || isErrorCategories;
+    const isReessaiEnCours = isFetchingDepenses || isFetchingCategories;
+    const reessayerDonnees = () => {
+        if (isErrorDepenses) refetchDepenses();
+        if (isErrorCategories) refetchCategories();
+    };
 
     // Calculer les totaux
     const totalDepenses = depenses?.reduce((sum: number, dep: any) => sum + (dep.montant || 0), 0) || 0;
@@ -118,6 +142,17 @@ export default function DepensesModernesClient() {
                 </div>
 
                 {/* Cartes de statistiques */}
+                {isErreurDonnees ? (
+                    <Card>
+                        <CardContent className="p-0">
+                            <EtatErreur
+                                quoi="les dépenses"
+                                onReessayer={reessayerDonnees}
+                                enCours={isReessaiEnCours}
+                            />
+                        </CardContent>
+                    </Card>
+                ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
                         <CardContent className="p-6">
@@ -125,7 +160,7 @@ export default function DepensesModernesClient() {
                                 <div>
                                     <p className="text-red-600 text-sm font-medium">Total Dépenses</p>
                                     <p className="text-2xl font-bold text-red-900">
-                                        {totalDepenses.toLocaleString()} FCFA
+                                        {formatMontant(totalDepenses)}
                                     </p>
                                     <div className="flex items-center gap-1 mt-2">
                                         <TrendingDown className="w-4 h-4 text-red-600" />
@@ -169,7 +204,7 @@ export default function DepensesModernesClient() {
                                 <div>
                                     <p className="text-purple-600 text-sm font-medium">Moyenne/Dépense</p>
                                     <p className="text-2xl font-bold text-purple-900">
-                                        {nombreDepenses > 0 ? Math.round(totalDepenses / nombreDepenses).toLocaleString() : 0} FCFA
+                                        {formatMontant(nombreDepenses > 0 ? Math.round(totalDepenses / nombreDepenses) : 0)}
                                     </p>
                                     <div className="flex items-center gap-1 mt-2">
                                         <DollarSign className="w-4 h-4 text-purple-600" />
@@ -185,6 +220,7 @@ export default function DepensesModernesClient() {
                         </CardContent>
                     </Card>
                 </div>
+                )}
 
                 {/* Filtres */}
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -257,7 +293,17 @@ export default function DepensesModernesClient() {
 
                     <TabsContent value="toutes" className="space-y-4">
                         <div className="grid gap-4">
-                            {filteredDepenses.length === 0 ? (
+                            {isErreurDonnees ? (
+                                <Card>
+                                    <CardContent className="p-0">
+                                        <EtatErreur
+                                            quoi="les dépenses"
+                                            onReessayer={reessayerDonnees}
+                                            enCours={isReessaiEnCours}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            ) : filteredDepenses.length === 0 ? (
                                 <Card>
                                     <CardContent className="p-8 text-center">
                                         <p className="text-gray-500">Aucune dépense trouvée</p>
@@ -289,7 +335,7 @@ export default function DepensesModernesClient() {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-bold text-lg text-red-600">
-                                                        {depense.montant?.toLocaleString()} FCFA
+                                                        {formatMontant(depense.montant ?? 0)}
                                                     </p>
                                                     <p className="text-xs text-gray-500">
                                                         Dépense {depense.categorie?.nomCategorie?.toLowerCase() || 'générale'}
@@ -305,7 +351,17 @@ export default function DepensesModernesClient() {
 
                     <TabsContent value="categories" className="space-y-4">
                         <div className="grid gap-4">
-                            {sortedCategories.length === 0 ? (
+                            {isErreurDonnees ? (
+                                <Card>
+                                    <CardContent className="p-0">
+                                        <EtatErreur
+                                            quoi="les dépenses par catégorie"
+                                            onReessayer={reessayerDonnees}
+                                            enCours={isReessaiEnCours}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            ) : sortedCategories.length === 0 ? (
                                 <Card>
                                     <CardContent className="p-8 text-center">
                                         <p className="text-gray-500">Aucune catégorie trouvée</p>
@@ -346,10 +402,10 @@ export default function DepensesModernesClient() {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-bold text-lg text-orange-600">
-                                                        {categorie.total.toLocaleString()} FCFA
+                                                        {formatMontant(categorie.total)}
                                                     </p>
                                                     <p className="text-xs text-gray-500">
-                                                        Moyenne: {Math.round(categorie.total / categorie.nombre).toLocaleString()} FCFA
+                                                        Moyenne: {formatMontant(Math.round(categorie.total / categorie.nombre))}
                                                     </p>
                                                 </div>
                                             </div>

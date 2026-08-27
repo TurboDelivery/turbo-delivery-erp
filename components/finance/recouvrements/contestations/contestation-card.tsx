@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button, Chip, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/react';
+import { Button, Chip, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@/components/heroui';
 import { IContestation } from '@/features/recouvrements/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';

@@ -26,7 +26,7 @@ import { IFacture } from '@/features/recouvrements/types';
 
 export function RecouvrementActionsCell({ recouvrement }: { recouvrement: IRecouvrement }) {
   const [openEdit, setOpenEdit] = useState(false);
-  const { mutate: supprimerMutation, isLoading: isDeleting } = useSupprimerRecouvrementMutation();
+  const { mutate: supprimerMutation, isPending: isDeleting } = useSupprimerRecouvrementMutation();
 
   const handleDownload = () => {
     if (recouvrement.preuve) {

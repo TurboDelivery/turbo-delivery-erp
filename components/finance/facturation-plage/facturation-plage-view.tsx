@@ -29,7 +29,7 @@ import {
   TableRow,
   Tabs,
   Tooltip,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { getLocalTimeZone, parseDate, startOfWeek, today } from '@internationalized/date';
 import type { DateValue } from '@internationalized/date';
 import {
@@ -48,6 +48,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   IConflitFacture,
   LIBELLE_COMPOSANTE,
@@ -106,7 +107,13 @@ function TableauConflits({ conflits }: { conflits: IConflitFacture[] }) {
 }
 
 export function FacturationPlageView() {
-  const { data: partenaires, isLoading: chargementPartenaires } = useConfigurationFacturationQuery();
+  const {
+    data: partenaires,
+    isLoading: chargementPartenaires,
+    isError: erreurPartenaires,
+    isFetching: relancePartenaires,
+    refetch: relancerPartenaires,
+  } = useConfigurationFacturationQuery();
   const generer = useGenererPlageMutation();
   const reprendre = useReprendreFactureMutation();
   const peutChoisirLeMode = usePeutChoisirModeFacturation();
@@ -162,7 +169,7 @@ export function FacturationPlageView() {
 
   const conflits = apercu?.conflits ?? [];
   const plageComplete = Boolean(restaurantId && debut && fin);
-  const enCours = generer.isLoading || reprendre.isLoading;
+  const enCours = generer.isPending || reprendre.isPending;
 
   /**
    * Le mode creneau reste ce qu'il a toujours ete : une semaine calendaire, du lundi au
@@ -335,7 +342,15 @@ export function FacturationPlageView() {
         </div>
       ) : null}
 
-      {!plageComplete ? (
+      {erreurPartenaires && !partenaires ? (
+        // Liste des partenaires en echec : l'autocomplete restait vide et l'invitation a
+        // « choisir un partenaire » se lisait comme s'il n'y en avait aucun a facturer.
+        <EtatErreur
+          quoi="les partenaires à facturer"
+          onReessayer={() => relancerPartenaires()}
+          enCours={relancePartenaires}
+        />
+      ) : !plageComplete ? (
         <Card shadow="none" className="border border-dashed border-default-300">
           <CardBody className="flex flex-col items-center gap-2 py-12 text-center">
             <CalendarRange className="h-8 w-8 text-default-300" />
@@ -516,7 +531,7 @@ export function FacturationPlageView() {
               color="primary"
               startContent={<CheckCircle2 className="h-4 w-4" />}
               isDisabled={!apercu.generable}
-              isLoading={generer.isLoading}
+              isLoading={generer.isPending}
               onPress={lancerGeneration}
             >
               {apercu.composantes.length > 1
@@ -562,7 +577,7 @@ export function FacturationPlageView() {
             <Button variant="light" onPress={() => setRepriseOuverte(false)}>
               Annuler
             </Button>
-            <Button color="primary" isLoading={reprendre.isLoading} onPress={lancerReprise}>
+            <Button color="primary" isLoading={reprendre.isPending} onPress={lancerReprise}>
               Enregistrer la reprise
             </Button>
           </ModalFooter>

@@ -3,7 +3,7 @@
 import { TrendingUp, Users, Briefcase, ArrowUpRight, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, Progress } from '@heroui/react';
+import { Card, Progress } from '@/components/heroui';
 import { CardContent } from '@/components/ui/card';
 import { MonthData } from '../hooks/use-bilan-annuel';
 

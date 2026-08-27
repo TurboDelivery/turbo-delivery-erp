@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Chip, Pagination, Skeleton } from '@heroui/react';
+import { Chip, Pagination, Skeleton } from '@/components/heroui';
 
 import { PaginatedResponse } from '@/types';
 import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { getPaginationCourseExterneEnAttente } from '@/src/actions/courses.actions';
 import { useAbility } from '@/hooks/use-ability';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
+import EtatErreur from '@/components/commons/EtatErreur';
 import CourseCard from './component/course-card';
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
@@ -20,7 +21,14 @@ export default function Content({ initialData, delivers }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [data, setData] = useState<PaginatedResponse<CourseExterne> | null>(initialData);
-  const [isLoading, setIsLoading] = useState(!initialData);
+  // `getPaginationCourseExterneEnAttente` avale l'erreur et rend `null` : une page
+  // absente est donc TOUJOURS une lecture qui a echoue, jamais une page vide.
+  // Sans ce drapeau, le dispatch lisait "Aucune course en attente" et concluait
+  // qu'il n'avait personne a affecter.
+  const [erreurLecture, setErreurLecture] = useState(!initialData);
+  // Le squelette n'a plus a couvrir le cas `initialData` absent : c'est l'etat
+  // d'erreur qui le prend, avec un bouton pour relancer la lecture.
+  const [isLoading, setIsLoading] = useState(false);
   const ability = useAbility();
   const canUpdate = ability.can('update', 'Commande');
 
@@ -64,8 +72,9 @@ export default function Content({ initialData, delivers }: Props) {
       try {
         const newData = await getPaginationCourseExterneEnAttente(currentPage - 1, pageSize);
         setData(newData);
+        setErreurLecture(!newData);
       } catch {
-        /* silencieux */
+        setErreurLecture(true);
       }
     }, 15000);
     return () => clearInterval(refreshInterval);
@@ -77,6 +86,9 @@ export default function Content({ initialData, delivers }: Props) {
     try {
       const newData = await getPaginationCourseExterneEnAttente(page - 1, pageSize);
       setData(newData);
+      setErreurLecture(!newData);
+    } catch {
+      setErreurLecture(true);
     } finally {
       setIsLoading(false);
     }
@@ -94,13 +106,25 @@ export default function Content({ initialData, delivers }: Props) {
             Courses envoyées par les partenaires via l&apos;intégration — à dispatcher aux livreurs.
           </p>
         </div>
-        <Chip color={courses.length > 0 ? 'warning' : 'default'} variant="flat">
-          {data?.totalElements ?? 0} en attente
-        </Chip>
+        {/* Le compteur se tait en cas d'echec : "0 en attente" est la meme
+            phrase que celle affichee quand il n'y a vraiment rien a dispatcher. */}
+        {!(erreurLecture && courses.length === 0) && (
+          <Chip color={courses.length > 0 ? 'warning' : 'default'} variant="flat">
+            {data?.totalElements ?? 0} en attente
+          </Chip>
+        )}
       </div>
 
       {/* Cartes */}
-      {isLoading ? (
+      {erreurLecture && courses.length === 0 ? (
+        // A la place du message de vide : "Aucune course en attente" est ce
+        // qu'on affiche quand il n'y a REELLEMENT rien a dispatcher.
+        <EtatErreur
+          quoi="les courses en attente"
+          onReessayer={() => fetchData(currentPage)}
+          enCours={isLoading}
+        />
+      ) : isLoading ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {[...Array(4)].map((_, index) => (
             <Skeleton key={index} className="rounded-xl h-44" />

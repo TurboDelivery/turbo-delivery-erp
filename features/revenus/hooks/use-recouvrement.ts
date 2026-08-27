@@ -69,7 +69,7 @@ export function useRecouvrementList({ initialData = [] }: IUseRecouvrementProps 
   };
 
   // Utiliser React Query pour récupérer TOUTES les données
-  const { data: queryData, isLoading, isError, error, isFetching } = useQuery(recouvrementListQueryOption(apiParams));
+  const { data: queryData, isLoading, isError, error, isFetching, refetch } = useQuery(recouvrementListQueryOption(apiParams));
 
   // Toutes les données (non filtrées) - garantir que c'est un tableau
   const allRecouvrements: IRecouvrement[] = Array.isArray(queryData) ? queryData : queryData?.content || initialData;
@@ -135,6 +135,9 @@ export function useRecouvrementList({ initialData = [] }: IUseRecouvrementProps 
     isError,
     error,
     isFetching,
+    // `isError` etait deja remonte mais sans moyen de relancer : l'ecran ne pouvait
+    // rien proposer d'autre que de recharger la page.
+    refetch,
     filters,
     handleFilterChange,
     resetFilters,

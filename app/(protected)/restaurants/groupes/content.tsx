@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Plus, RefreshCw } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useQueryState } from 'nuqs';
 
 import { useAbility } from '@/hooks/use-ability';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { ConstituerGroupeModal } from '@/features/groupes-partenaires/components/constituer-groupe-modal';
 import { GroupeDetailPanel } from '@/features/groupes-partenaires/components/groupe-detail-panel';
 import { GroupesListePanel } from '@/features/groupes-partenaires/components/groupes-liste-panel';
@@ -41,7 +42,7 @@ export default function GroupesPartenairesContent() {
   const [groupeOuvert, setGroupeOuvert] = useQueryState('groupe');
   const [constituer, setConstituer] = useState(false);
 
-  const { data: groupes, isLoading } = useGroupesListeQuery(userId);
+  const { data: groupes, isLoading, isError, isFetching, refetch } = useGroupesListeQuery(userId);
 
   const peutLire = ability.can('read', 'GroupePartenaire');
   const peutAdministrer = ability.can('manage', 'GroupePartenaire');
@@ -94,6 +95,14 @@ export default function GroupesPartenairesContent() {
           userId={userId}
           peutAdministrer={peutAdministrer}
           onRetour={() => void setGroupeOuvert(null)}
+        />
+      ) : isError ? (
+        // A la place de la liste, jamais au-dessus : le panneau afficherait
+        // sinon "aucun groupe", ce qui se lit comme un perimetre vide.
+        <EtatErreur
+          quoi="les groupes de partenaires"
+          onReessayer={() => refetch()}
+          enCours={isFetching}
         />
       ) : (
         <GroupesListePanel

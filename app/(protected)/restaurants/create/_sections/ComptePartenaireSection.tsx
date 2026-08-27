@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input } from '@heroui/react';
+import { Input } from '@/components/heroui';
 import { Eye, EyeOff } from 'lucide-react';
 
 function SectionTitle({ children }: { children: React.ReactNode }) {

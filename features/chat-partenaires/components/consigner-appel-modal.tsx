@@ -12,7 +12,7 @@ import {
   Radio,
   RadioGroup,
   Textarea,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { PhoneCall, PhoneMissed } from 'lucide-react';
 
 import { useConsignerAppelMutation } from '../queries/chat-partenaires.query';
@@ -138,7 +138,7 @@ export function ConsignerAppelModal({ restaurantId, restaurantNom, isOpen, onOpe
               </Button>
               <Button
                 color="primary"
-                isLoading={consigner.isLoading}
+                isLoading={consigner.isPending}
                 isDisabled={!restaurantId}
                 onPress={enregistrer}
               >

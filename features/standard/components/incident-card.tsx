@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Avatar, Button } from '@heroui/react';
+import { Avatar, Button } from '@/components/heroui';
 import { AlertTriangle, ArrowRight, Camera, FileText, MapPin, Phone } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
@@ -223,7 +223,7 @@ export function IncidentCard({ incident, livreur, estNouveau, canUpdate, onOuvri
                     : 'bg-[#17181C] font-semibold text-white'
                 }
                 endContent={confirmationAttendue ? undefined : <ArrowRight className="h-4 w-4" />}
-                isLoading={changerStatut.isLoading}
+                isLoading={changerStatut.isPending}
                 isDisabled={!userId}
                 onPress={avancer}
               >

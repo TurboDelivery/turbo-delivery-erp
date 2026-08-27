@@ -12,7 +12,7 @@ import {
   ModalFooter,
   ModalHeader,
   Textarea,
-} from '@heroui/react';
+} from '@/components/heroui';
 import {
   useFacturesRFQuery,
   useFactureRFQuery,
@@ -22,12 +22,10 @@ import {
 } from '@/features/responsable-financier';
 import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { formatMontant } from '@/utils/format.utils';
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 
-function formatMontant(v: number) {
-  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
-}
 
 function formatDate(dateStr: string) {
   if (!dateStr) return '—';

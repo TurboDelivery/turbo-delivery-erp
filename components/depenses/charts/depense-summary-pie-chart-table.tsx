@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { TrendingUp } from 'lucide-react';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 interface DepenseSummaryPieChartTableProps {
   className?: string;
@@ -28,7 +29,7 @@ export function DepenseSummaryPieChartTable({
     categoriesDepense: categoriesDepense || undefined,
   };
 
-  const { data, isLoading, error } = useDepenseSummaryQuery(currentSearchParams);
+  const { data, isLoading, error, isError, isFetching, refetch } = useDepenseSummaryQuery(currentSearchParams);
 
   const COLORS = {
     recurrentes: '#10b981', // green-500
@@ -112,8 +113,15 @@ export function DepenseSummaryPieChartTable({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 flex items-center justify-center">
-            <p className="text-gray-500">Erreur lors du chargement des données</p>
+          {/* Le message gris precedent n'offrait aucune reprise : l'operateur restait
+              devant un graphique absent sans savoir quoi en faire. */}
+          <div className="flex h-80 items-center justify-center">
+            <EtatErreur
+              quoi="la répartition des dépenses"
+              onReessayer={() => refetch()}
+              enCours={isFetching}
+              detail={isError && error instanceof Error ? error.message : undefined}
+            />
           </div>
         </CardContent>
       </Card>

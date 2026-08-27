@@ -272,6 +272,21 @@ export async function signOut(): Promise<void> {
     redirect('/auth');
 }
 
+/**
+ * Profil de l'utilisateur connecte.
+ *
+ * <p>`null` signifie UNE seule chose : la session n'est pas (ou plus) valide.
+ * `app/(protected)/layout.tsx` s'en sert pour rediriger vers `/auth`.</p>
+ *
+ * <p>Elle avalait AUPARAVANT toute erreur pour renvoyer `null`, y compris un
+ * incident reseau ou un 500 : un simple hoquet du backend deconnectait donc TOUT
+ * LE MONDE, chacun se retrouvant sur l'ecran de connexion sans comprendre
+ * pourquoi. Une panne de lecture n'est pas une session expiree.</p>
+ *
+ * <p>Desormais seuls 401 et 403 rendent `null`. Le reste REMONTE, et l'ecran
+ * d'erreur (`app/error.tsx`) s'affiche avec son bouton « Réessayer », qui laisse
+ * la session intacte.</p>
+ */
 export async function getProfile(): Promise<User | null> {
     try {
         const data = await apiClientHttp.request<User>({
@@ -282,7 +297,9 @@ export async function getProfile(): Promise<User | null> {
 
         return data;
     } catch (error) {
-        return null;
+        const statut = (error as { response?: { status?: number } })?.response?.status;
+        if (statut === 401 || statut === 403) return null;
+        throw error;
     }
 }
 
@@ -296,7 +313,10 @@ export async function getUsers(): Promise<PaginatedResponse<User> | null> {
 
         return data;
     } catch (error) {
-        return null;
+        // Une panne de lecture rendait `null`, et l'ecran des utilisateurs affichait
+        // « Utilisateurs : 0 » avec un tableau vide : indiscernable d'un annuaire
+        // reellement vide. La frontiere de segment montre l'erreur et « Reessayer ».
+        throw error;
     }
 }
 

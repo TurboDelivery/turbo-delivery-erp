@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Switch, Tooltip } from '@heroui/react';
+import { Switch, Tooltip } from '@/components/heroui';
 import { toggleUserEmailPrimary } from '@/src/actions/users.actions';
 import { User } from '@/types/models';
 

@@ -15,7 +15,7 @@ export default function useRegularisation() {
 
   const setFilters = (v: typeof filters) => void setFiltersRaw(v);
 
-  const { data, isLoading, isError } = useRegularisationListQuery();
+  const { data, isLoading, isError, isFetching, refetch } = useRegularisationListQuery();
   const { livreurOptions, restaurantOptions } = useTicketFilterOptions();
 
   const tickets: BonLivraisonTerminee[] = useMemo(() => data?.content ?? [], [data]);
@@ -56,6 +56,10 @@ export default function useRegularisation() {
     selectedTicket,
     isLoading,
     isError,
+    // isError etait deja expose mais personne ne le lisait : il manquait de quoi
+    // relancer, donc l'ecran restait sur « Aucun ticket en attente ».
+    isFetching,
+    refetch,
     isApproving,
     isRejecting,
     setSelectedId,

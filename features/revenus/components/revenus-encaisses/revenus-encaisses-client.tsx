@@ -14,17 +14,32 @@ import { IRecouvrement } from "@/features/revenus/types/recouvrement/recouvremen
 import { IInvestissement } from "@/features/revenus/types/revenus.types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import EtatErreur from "@/components/commons/EtatErreur";
+import { formatMontant } from '@/utils/format.utils';
 
 export default function RevenusEncaissesClient() {
     const [activeTab, setActiveTab] = useState("recouvrements");
     const [searchTerm, setSearchTerm] = useState("");
     const [dateFilter, setDateFilter] = useState("tous");
 
-    const { recouvrement: recouvrementsData, total: totalTransactions, isLoading: isLoadingRecouvrements } = useRecouvrementList({
+    const {
+        recouvrement: recouvrementsData,
+        total: totalTransactions,
+        isLoading: isLoadingRecouvrements,
+        isFetching: isFetchingRecouvrements,
+        isError: isErrorRecouvrements,
+        refetch: refetchRecouvrements,
+    } = useRecouvrementList({
         initialData: []
     });
 
-    const { investissements, isLoading: isLoadingInvestissements } = useInvestissementList();
+    const {
+        investissements,
+        isLoading: isLoadingInvestissements,
+        isFetching: isFetchingInvestissements,
+        isError: isErrorInvestissements,
+        refetch: refetchInvestissements,
+    } = useInvestissementList();
 
     // Calculer les totaux
     const totalRecouvrements = recouvrementsData?.reduce((sum: number, rec: any) => sum + (rec.montant || 0), 0) || 0;
@@ -177,6 +192,22 @@ export default function RevenusEncaissesClient() {
                 </div>
 
                 {/* Cartes de statistiques */}
+                {/* Les totaux sont sommes cote client : si une des deux listes n'a pas pu
+                    etre lue, « 0 FCFA » s'affiche comme un vrai zero. */}
+                {isErrorRecouvrements || isErrorInvestissements ? (
+                    <Card>
+                        <CardContent className="p-0">
+                            <EtatErreur
+                                quoi="les revenus encaissés"
+                                onReessayer={() => {
+                                    if (isErrorRecouvrements) refetchRecouvrements();
+                                    if (isErrorInvestissements) refetchInvestissements();
+                                }}
+                                enCours={isFetchingRecouvrements || isFetchingInvestissements}
+                            />
+                        </CardContent>
+                    </Card>
+                ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
                         <CardContent className="p-6">
@@ -184,7 +215,7 @@ export default function RevenusEncaissesClient() {
                                 <div>
                                     <p className="text-blue-600 text-sm font-medium">Total Recouvrements</p>
                                     <p className="text-2xl font-bold text-blue-900">
-                                        {totalRecouvrements.toLocaleString()} FCFA
+                                        {formatMontant(totalRecouvrements)}
                                     </p>
                                     <div className="flex items-center gap-1 mt-2">
                                         <TrendingUp className="w-4 h-4 text-blue-600" />
@@ -207,7 +238,7 @@ export default function RevenusEncaissesClient() {
                                 <div>
                                     <p className="text-green-600 text-sm font-medium">Total Investissements</p>
                                     <p className="text-2xl font-bold text-green-900">
-                                        {totalInvestissements.toLocaleString()} FCFA
+                                        {formatMontant(totalInvestissements)}
                                     </p>
                                     <div className="flex items-center gap-1 mt-2">
                                         <ArrowUpRight className="w-4 h-4 text-green-600" />
@@ -229,7 +260,7 @@ export default function RevenusEncaissesClient() {
                                 <div>
                                     <p className="text-purple-600 text-sm font-medium">Total Général</p>
                                     <p className="text-2xl font-bold text-purple-900">
-                                        {totalGeneral.toLocaleString()} FCFA
+                                        {formatMontant(totalGeneral)}
                                     </p>
                                     <div className="flex items-center gap-1 mt-2">
                                         <DollarSign className="w-4 h-4 text-purple-600" />
@@ -245,6 +276,7 @@ export default function RevenusEncaissesClient() {
                         </CardContent>
                     </Card>
                 </div>
+                )}
 
                 {/* Filtres */}
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -304,7 +336,17 @@ export default function RevenusEncaissesClient() {
 
                     <TabsContent value="recouvrements" className="space-y-4">
                         <div className="grid gap-4">
-                            {filteredRecouvrements.length === 0 ? (
+                            {isErrorRecouvrements ? (
+                                <Card>
+                                    <CardContent className="p-0">
+                                        <EtatErreur
+                                            quoi="les recouvrements"
+                                            onReessayer={() => refetchRecouvrements()}
+                                            enCours={isFetchingRecouvrements}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            ) : filteredRecouvrements.length === 0 ? (
                                 <Card>
                                     <CardContent className="p-8 text-center">
                                         <p className="text-gray-500">Aucun recouvrement trouvé</p>
@@ -334,7 +376,7 @@ export default function RevenusEncaissesClient() {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-bold text-lg text-blue-600">
-                                                        {recouvrement.montant?.toLocaleString()} FCFA
+                                                        {formatMontant(recouvrement.montant ?? 0)}
                                                     </p>
                                                     
                                                 </div>
@@ -348,7 +390,17 @@ export default function RevenusEncaissesClient() {
 
                     <TabsContent value="investissements" className="space-y-4">
                         <div className="grid gap-4">
-                            {filteredInvestissements.length === 0 ? (
+                            {isErrorInvestissements ? (
+                                <Card>
+                                    <CardContent className="p-0">
+                                        <EtatErreur
+                                            quoi="les investissements"
+                                            onReessayer={() => refetchInvestissements()}
+                                            enCours={isFetchingInvestissements}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            ) : filteredInvestissements.length === 0 ? (
                                 <Card>
                                     <CardContent className="p-8 text-center">
                                         <p className="text-gray-500">Aucun investissement trouvé</p>
@@ -397,7 +449,7 @@ export default function RevenusEncaissesClient() {
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="font-bold text-lg text-green-600">
-                                                        {investissement.montant?.toLocaleString()} FCFA
+                                                        {formatMontant(investissement.montant ?? 0)}
                                                     </p>
                                                     <p className="text-xs text-gray-500">
                                                         Investissement personnel

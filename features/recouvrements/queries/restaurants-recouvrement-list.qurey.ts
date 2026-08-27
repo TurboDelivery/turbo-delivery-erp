@@ -23,7 +23,7 @@ export const restaurantsRecouvrementListQueryOption = (params: IRestaurantRecouv
 
       return result.data;
     },
-    cacheTime: 5 * 60 * 1000, //5 minutes
+    gcTime: 5 * 60 * 1000, //5 minutes
     staleTime: 30 * 1000, //30 secondes
     refetchOnWindowFocus: false, //Ne pas refetch lors du focus de la fenetre
     refetchOnMount: true, //Refetch lors du mount

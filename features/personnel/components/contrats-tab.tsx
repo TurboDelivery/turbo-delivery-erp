@@ -14,8 +14,10 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Download } from 'lucide-react';
+
+import EtatErreur from '@/components/commons/EtatErreur';
 
 import {
   EtatDeclaration,
@@ -72,8 +74,20 @@ interface LigneContrat {
  * contrat daté apparaît quand même — c'est précisément le dossier qu'il faut compléter.
  */
 export function ContratsTab() {
-  const { data: effectif, isLoading: chargementEffectif } = useEffectifQuery();
-  const { data: contrats, isLoading: chargementContrats } = useContratsEcheanceQuery();
+  const {
+    data: effectif,
+    isLoading: chargementEffectif,
+    isFetching: rechargeEffectif,
+    isError: echecEffectif,
+    refetch: relancerEffectif,
+  } = useEffectifQuery();
+  const {
+    data: contrats,
+    isLoading: chargementContrats,
+    isFetching: rechargeContrats,
+    isError: echecContrats,
+    refetch: relancerContrats,
+  } = useContratsEcheanceQuery();
   const peutDeclarer = usePeutDeclarer();
   const [filtre, setFiltre] = useState('TOUS');
 
@@ -140,6 +154,13 @@ export function ContratsTab() {
   };
 
   const chargement = chargementEffectif || chargementContrats;
+  // Les deux sources alimentent la meme liste : si l'une tombe et qu'il ne reste rien a
+  // afficher, « Aucun contrat pour ce filtre » ferait croire a un effectif sans contrat.
+  const enEchec = (echecEffectif || echecContrats) && filtrees.length === 0;
+  const relancer = () => {
+    relancerEffectif();
+    relancerContrats();
+  };
 
   return (
     <div className="space-y-3 rounded-xl border border-default-200 bg-white p-4">
@@ -183,7 +204,15 @@ export function ContratsTab() {
           <TableColumn className="text-right text-primary">{peutDeclarer ? 'SUIVI' : ' '}</TableColumn>
         </TableHeader>
         <TableBody
-          emptyContent={chargement ? ' ' : 'Aucun contrat pour ce filtre.'}
+          emptyContent={
+            enEchec ? (
+              <EtatErreur quoi="les contrats" onReessayer={relancer} enCours={rechargeEffectif || rechargeContrats} />
+            ) : chargement ? (
+              ' '
+            ) : (
+              'Aucun contrat pour ce filtre.'
+            )
+          }
           isLoading={chargement}
           loadingContent={<Spinner color="primary" label="Chargement des contrats…" />}
         >

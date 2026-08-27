@@ -1,6 +1,6 @@
 'use client';
 
-import { Tabs, Tab } from '@heroui/react';
+import { Tabs, Tab } from '@/components/heroui';
 
 export function CreneauHeader() {
   return (

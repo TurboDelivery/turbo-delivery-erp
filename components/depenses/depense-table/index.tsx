@@ -4,7 +4,7 @@ import { useDepenseTable } from '@/features/depenses/hooks/use-depense-table';
 import { depenseColumns } from '@/components/depenses/depense-table/depense-columns';
 import { CreerDepenseModal } from '@/features/depenses/components/depense-list/creer-depense';
 import React from 'react';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { flexRender } from '@tanstack/react-table';
 import { Card, CardContent } from '@/components/ui/card';
 import DateFilterInput from '@/components/finance/date-filter-input';

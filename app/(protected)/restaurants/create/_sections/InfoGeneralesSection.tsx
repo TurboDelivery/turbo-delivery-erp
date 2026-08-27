@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
-import { Button, Input, Select, SelectItem, Textarea } from '@heroui/react';
+import { Button, Input, Select, SelectItem, Textarea } from '@/components/heroui';
 import { Input as AddressInput } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';

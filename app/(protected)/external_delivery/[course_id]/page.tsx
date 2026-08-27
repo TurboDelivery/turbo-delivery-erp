@@ -13,6 +13,8 @@ export default async function CourseExterneDetailPage({ params }: { params: { co
   if (!course) {
     return <NotFound />;
   }
-  const delivers = (await getLivreursDisponible()) ?? [];
+  // `getLivreursDisponible` relance desormais au lieu de rendre null : ce repli
+  // ne s'executait plus, l'echec part vers la frontiere d'erreur du segment.
+  const delivers = await getLivreursDisponible();
   return <Content course={course} delivers={delivers} />;
 }

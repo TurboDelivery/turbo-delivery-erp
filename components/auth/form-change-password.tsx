@@ -1,14 +1,14 @@
 'use client';
 
 import { Lock } from 'lucide-react';
-import { Input } from "@heroui/react";
+import { Input } from "@/components/heroui";
 import { toast } from 'sonner';
 import { useFormState } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { body, title } from '@/components/primitives';
 import { changePassword } from '@/src/actions/users.actions';
 import { SubmitButton } from '@/components/ui/form-ui/submit-button';
-import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@heroui/react";
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from "@/components/heroui";
 
 
 export function FormChangePassword({ userName }: {

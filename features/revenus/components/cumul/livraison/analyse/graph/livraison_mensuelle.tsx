@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/chart"
 import { useMemo } from "react"
 import { ILivraison } from "@/features/revenus/types/livraison.types"
+import { formatMontant } from '@/utils/format.utils';
 
 export const description = "Livraison mensuelle"
 
@@ -136,7 +137,7 @@ export function LivraisonMensuelleChart({ livraison = [] }: LivraisonMensuellePr
                 
                 {/* Affichage des données réelles pour le débogage */}
                 <div className="mt-4 text-xs text-gray-400">
-                    <p>Total livraison: {livraison.reduce((sum, d) => sum + d.fraisLivraison, 0).toLocaleString()} FCFA</p>
+                    <p>Total livraison: {formatMontant(livraison.reduce((sum, d) => sum + d.fraisLivraison, 0))}</p>
                     <p>Nombre de transactions: {livraison.length}</p>
                 </div>
             </div>

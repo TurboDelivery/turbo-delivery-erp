@@ -12,10 +12,11 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import type { IEntreeCaisse } from '@/features/entrees-caisse/types/entree-caisse.types';
 import { ModifierEntreeCaisseModal } from '@/components/finance/entrees-caisse/modifier-entree-caisse-modal';
 import { SupprimerEntreeCaisseModal } from '@/components/finance/entrees-caisse/supprimer-entree-caisse-modal';
+import { formatMontant } from '@/utils/format.utils';
 
 interface EntreeCaisseTableProps {
   table: Table<IEntreeCaisse>;
@@ -103,7 +104,7 @@ export function EntreeCaisseTable({
             <div key={row.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{e.libelle}</p>
-                <span className="text-sm font-semibold text-gray-900 shrink-0">{e.montant.toLocaleString('fr-FR')} FCFA</span>
+                <span className="text-sm font-semibold text-gray-900 shrink-0">{formatMontant(e.montant)}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-xs text-gray-400">Date</span>

@@ -6,7 +6,7 @@ import { PaginatedResponse } from "@/types";
 import { Button } from "@/components/ui/button";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import { getAllCreneauPerformanceTurbo } from "@/src/creneau-livreur/creneau-livreur.action";
-import { Avatar } from "@heroui/react";
+import { Avatar } from "@/components/heroui";
 import { createUrlFile } from "@/utils/createUrlFile";
 
 interface Props {

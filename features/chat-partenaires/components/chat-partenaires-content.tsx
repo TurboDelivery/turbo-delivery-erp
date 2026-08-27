@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { Avatar, Button, Input, Skeleton, Spinner } from '@heroui/react';
+import { Avatar, Button, Input, Skeleton, Spinner } from '@/components/heroui';
 import {
   ArrowLeft,
   Check,
@@ -202,7 +202,7 @@ export function ChatPartenairesContent() {
 
   const envoyerMessage = () => {
     const contenu = brouillon.trim();
-    if (!selectedId || !contenu || envoyer.isLoading) return;
+    if (!selectedId || !contenu || envoyer.isPending) return;
     const auteurId = session?.user?.id;
     envoyer.mutate(
       { restaurantId: selectedId, dto: { contenu, ...(auteurId ? { auteurId } : {}) } },
@@ -383,7 +383,7 @@ export function ChatPartenairesContent() {
                     isIconOnly
                     color="primary"
                     aria-label="Envoyer le message"
-                    isLoading={envoyer.isLoading}
+                    isLoading={envoyer.isPending}
                     isDisabled={!brouillon.trim()}
                     onPress={envoyerMessage}
                   >

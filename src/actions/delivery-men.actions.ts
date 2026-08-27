@@ -45,7 +45,10 @@ export async function getLivreursDisponible(): Promise<LivreurDisponible[]> {
         });
         return data;
     } catch (error) {
-        return [];
+        // Sans relance, une panne de lecture affichait « aucun livreur disponible »
+        // dans les selecteurs d'affectation des courses externes : l'operateur
+        // concluait qu'aucun coursier n'etait libre alors qu'ils l'etaient tous.
+        throw error;
     }
 }
 
@@ -62,7 +65,9 @@ export async function getDeliveryMen(page: number = 0, size: number = 10): Promi
         });
         return data;
     } catch (error) {
-        return null;
+        // Sans relance, la table des livreurs restait sur « Aucun livreur » et
+        // l'operateur concluait qu'il n'y avait personne a traiter.
+        throw error;
     }
 }
 
@@ -79,7 +84,9 @@ export async function getDeliveryMenValidated(page: number = 0, size: number = 1
         });
         return data;
     } catch (error) {
-        return null;
+        // Sans relance, l'ecran des livreurs valides s'affichait vide, comme si
+        // aucun compte n'avait jamais ete valide.
+        throw error;
     }
 }
 
@@ -96,7 +103,9 @@ export async function getDeliveryMenNoValidated(page: number = 0, size: number =
         });
         return data;
     } catch (error) {
-        return null;
+        // Sans relance, la file des comptes a valider paraissait vide : personne
+        // n'allait chercher les inscriptions livreur en attente.
+        throw error;
     }
 }
 
@@ -155,7 +164,9 @@ export async function getAllDemandeAssignations(): Promise<DemandeAssignationVM[
         });
         return data;
     } catch (error) {
-        return [] as DemandeAssignationVM[]
+        // Sans relance, l'ecran affichait « aucune demande d'assignation » alors
+        // que des demandes attendaient d'etre validees ou rejetees.
+        throw error;
     }
 }
 
@@ -215,7 +226,9 @@ export async function getToutLivreurStatus(page: number = 0, size: number = 10):
         });
         return data;
     } catch (error) {
-        return null;
+        // Sans relance, la liste des statuts livreurs s'affichait vide, comme si
+        // aucun livreur n'etait enregistre.
+        throw error;
     }
 }
 
@@ -232,7 +245,9 @@ export async function getToutLivreurStatusAssigners(page: number = 0, size: numb
         });
         return data;
     } catch (error) {
-        return null;
+        // Sans relance, l'onglet des livreurs assignes paraissait vide : aucun
+        // livreur rattache a un restaurant, ce qui est faux.
+        throw error;
     }
 }
 
@@ -308,7 +323,9 @@ export async function getToutLivreurStatusNonAssigners(page: number, size: numbe
         });
         return data;
     } catch (error) {
-        return null;
+        // Sans relance, l'onglet des livreurs non assignes (birds) paraissait
+        // vide : plus aucun livreur disponible a rattacher.
+        throw error;
     }
 }
 
@@ -321,7 +338,10 @@ export async function getDeliveryDetail(id: string): Promise<DeliveryMan | null>
         });
         return data;
     } catch (error) {
-        return null;
+        // Le catch avalait tout en bloc, 404 comme panne de lecture : la fiche du
+        // livreur s'affichait avec tous ses champs vides, comme un dossier sans
+        // donnees plutot que comme une erreur.
+        throw error;
     }
 }
 
@@ -334,7 +354,9 @@ export async function getAllDeliveryMan(): Promise<DeliveryMan[]> {
         });
         return data;
     } catch (error) {
-        return [] as DeliveryMan[];
+        // Sans relance, l'appelant recevait une liste vide indistinguable d'un
+        // parc reellement sans aucun livreur.
+        throw error;
     }
 }
 
@@ -376,6 +398,8 @@ export async function getTurboyCount(
         });
         return data?.totalElements ?? 0;
     } catch (error) {
-        return 0;
+        // Sans relance, le compteur de turboys affichait 0 : une panne de lecture
+        // se lisait comme « plus aucun turboy de ce type ».
+        throw error;
     }
 }

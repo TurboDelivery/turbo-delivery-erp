@@ -72,7 +72,9 @@ export const useEmployeeTableNew = (externalFilters?: EmployeeFilters) => {
     };
   }, [currentFilters?.page, currentFilters?.limit, currentFilters.debut, currentFilters.fin, currentFilters.orderBy, currentFilters.orderDirection, currentFilters.departments, currentFilters.statuts, currentFilters.postes, currentFilters.search]);
 
-  const { data: employeesData, isLoading: employeesLoading, error, isError, isFetching } = useEmployeeListQuery(currentSearchParams);
+  // `refetch` remonte jusqu'a l'ecran : sans lui, l'etat d'erreur ne peut proposer
+  // aucune relance et l'operateur n'a que le rechargement de page.
+  const { data: employeesData, isLoading: employeesLoading, error, isError, isFetching, refetch } = useEmployeeListQuery(currentSearchParams);
   const allEmployees = employeesData?.content || [];
 
   // Filtrage client-side (l'API ne supporte pas ces filtres côté serveur)
@@ -203,6 +205,7 @@ export const useEmployeeTableNew = (externalFilters?: EmployeeFilters) => {
     isLoading,
     isError,
     isFetching,
+    refetch,
     setFilters: syncedSetFilters,
     employees: employees, // Utiliser directement les données de l'API
     employeesData,

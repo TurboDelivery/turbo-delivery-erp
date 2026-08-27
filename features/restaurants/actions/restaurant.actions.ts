@@ -190,6 +190,9 @@ export async function exportRestaurantsPDF(params: Omit<IRestaurantParams, 'page
     return response.data;
   } catch (error) {
     console.error('Error exporting restaurants PDF:', error);
+    // Pas de relance ici: null est une valeur sentinelle que le seul appelant
+    // TESTE (handleExport dans use-restaurant-table.ts) pour afficher un toast
+    // d erreur, et qui ravale de toute facon les exceptions dans le meme toast.
     return null;
   }
 }

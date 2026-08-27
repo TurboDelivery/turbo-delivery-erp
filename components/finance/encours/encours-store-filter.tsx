@@ -8,7 +8,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { ChevronDown, Store } from 'lucide-react';
 import { useEncoursStoresQuery } from '@/features/encours';
 

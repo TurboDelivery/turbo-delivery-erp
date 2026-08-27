@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
-import { Button } from '@heroui/react';
-import { Input } from '@heroui/react';
-import { Select, SelectItem } from '@heroui/react';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/components/heroui';
+import { Button } from '@/components/heroui';
+import { Input } from '@/components/heroui';
+import { Select, SelectItem } from '@/components/heroui';
 import { EmployeeCreateDTO, EmployeeCreateSchema } from '@/features/personnel/schemas/employee.schema';
 import { DEPARTMENTS, POSTES } from '@/features/personnel/constants/employee.constants';
 import { processAndValidateFormData } from 'ak-zod-form-kit';

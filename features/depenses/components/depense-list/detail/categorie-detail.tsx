@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, Calendar, User, DollarSign, Hash, Bookmark } from "lucide-react";
 import { ICategorieDepense } from "@/features/depenses/types/categorie-depense.type";
 import Image from "next/image";
+import { formatMontant } from '@/utils/format.utils';
 interface CategorieDetailModalProps {
     categorie: ICategorieDepense;
 }
@@ -103,7 +104,7 @@ export function CategorieDetailModal({ categorie }: CategorieDetailModalProps) {
                         </Label>
                         <Input
                             id="montant"
-                            defaultValue={`${categorie.totalDepense} FCFA`}
+                            defaultValue={formatMontant(categorie.totalDepense)}
                             className="col-span-3"
                             readOnly
                         />

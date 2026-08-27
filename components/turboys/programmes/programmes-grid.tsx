@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button, Chip, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Button, Chip, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { Trash2 } from 'lucide-react';
 
 import { IJourProgramme, IProgramme } from '@/features/turboys/types/programme.types';

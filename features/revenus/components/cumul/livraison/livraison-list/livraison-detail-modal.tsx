@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, Calendar, User, DollarSign, Percent, Hash } from "lucide-react";
 import { ILivraison } from "@/features/revenus/types/livraison.types";
 import Image from "next/image";
+import { formatMontant } from '@/utils/format.utils';
 interface LivraisonDetailModalProps {
     livraison: ILivraison;
 }
@@ -95,7 +96,7 @@ export function LivraisonDetailModal({ livraison }: LivraisonDetailModalProps) {
                         </Label>
                         <Input
                             id="coutCommande"
-                            defaultValue={`${livraison.totalAmount} FCFA`}
+                            defaultValue={formatMontant(livraison.totalAmount)}
                             className="col-span-3"
                             readOnly
                         />
@@ -109,7 +110,7 @@ export function LivraisonDetailModal({ livraison }: LivraisonDetailModalProps) {
                         </Label>
                         <Input
                             id="commission"
-                            defaultValue={`${livraison.commission} FCFA`}
+                            defaultValue={formatMontant(livraison.commission)}
                             className="col-span-3 text-red-500"
                             readOnly
                         />

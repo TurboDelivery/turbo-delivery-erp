@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@/components/heroui';
 import { Unlink } from 'lucide-react';
 
 import { useDetacherEtablissementMutation } from '../queries/groupes-partenaires.query';
@@ -56,8 +56,8 @@ export function DetacherEtablissementModal({ isOpen, onClose, groupe, etablissem
           <Button
             color="danger"
             startContent={<Unlink className="h-4 w-4" />}
-            isDisabled={recapitulatif.blocages.length > 0 || detacher.isLoading}
-            isLoading={detacher.isLoading}
+            isDisabled={recapitulatif.blocages.length > 0 || detacher.isPending}
+            isLoading={detacher.isPending}
             onPress={() => detacher.mutate(etablissement.restaurantId, { onSuccess: onClose })}
           >
             Détacher l&apos;établissement

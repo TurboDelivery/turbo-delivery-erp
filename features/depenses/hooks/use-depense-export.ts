@@ -20,7 +20,9 @@ export function useDepenseExport() {
     isPending: isLoadingDepenseExport,
     isError: isErrorDepenseExport,
     data: depenseExportData,
-  } = useMutation(async (params: UseDepenseExportParams) => {
+  } = useMutation({
+    // v5 : la fonction ne se passe plus en positionnel, elle a son nom.
+    mutationFn: async (params: UseDepenseExportParams) => {
     try {
       // Utiliser la même API que le dashboard pour la cohérence
       const statsData: IDepenseStats = await depenseAPI.obtenirStatsDepenses({
@@ -146,6 +148,7 @@ export function useDepenseExport() {
       console.error("Erreur lors de l'exportation des dépenses:", error);
       throw error;
     }
+  },
   });
 
   const exportDepensesToExcel = (params: UseDepenseExportParams) => {

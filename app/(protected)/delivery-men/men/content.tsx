@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import Link from 'next/link';
 import { Download, Plus } from 'lucide-react';
 import { type DemandeAssignationVM, type Restaurant } from '@/types/models';

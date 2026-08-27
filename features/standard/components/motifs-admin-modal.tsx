@@ -13,8 +13,9 @@ import {
   ModalHeader,
   Spinner,
   Switch,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Plus, Save } from 'lucide-react';
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   IIncidentMotif,
   useCreerMotifMutation,
@@ -67,7 +68,7 @@ function MotifRow({ motif }: { motif: IIncidentMotif }) {
         isIconOnly
         aria-label="Enregistrer"
         isDisabled={!dirty || !libelle.trim()}
-        isLoading={modifier.isLoading}
+        isLoading={modifier.isPending}
         onPress={() =>
           modifier.mutate({
             code: motif.code,
@@ -82,7 +83,7 @@ function MotifRow({ motif }: { motif: IIncidentMotif }) {
 }
 
 export function MotifsAdminModal({ isOpen, onOpenChange }: Props) {
-  const { data: motifs, isLoading } = useMotifsQuery();
+  const { data: motifs, isLoading, isError, isFetching, refetch } = useMotifsQuery();
   const creer = useCreerMotifMutation();
 
   const [code, setCode] = useState('');
@@ -122,6 +123,14 @@ export function MotifsAdminModal({ isOpen, onOpenChange }: Props) {
                 <div className="flex justify-center py-10">
                   <Spinner color="primary" label="Chargement des motifs…" />
                 </div>
+              ) : isError ? (
+                // Sans ce cas, une lecture en echec affichait « Aucun motif pour le
+                // moment » : on recreerait des motifs qui existent deja.
+                <EtatErreur
+                  quoi="les motifs d'incident"
+                  onReessayer={() => refetch()}
+                  enCours={isFetching}
+                />
               ) : (
                 <div className="space-y-2">
                   {(motifs ?? []).map((m) => (
@@ -172,7 +181,7 @@ export function MotifsAdminModal({ isOpen, onOpenChange }: Props) {
                     size="sm"
                     startContent={<Plus className="h-4 w-4" />}
                     isDisabled={!peutCreer}
-                    isLoading={creer.isLoading}
+                    isLoading={creer.isPending}
                     onPress={ajouter}
                   >
                     Ajouter

@@ -10,7 +10,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Camera, ChevronDown, FileText, History } from 'lucide-react';
 
 import { IIncident, StatutIncident, useIncidentsQuery } from '@/features/standard';

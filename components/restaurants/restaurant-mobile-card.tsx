@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Avatar } from '@heroui/react';
+import { Avatar } from '@/components/heroui';
 import { BadgeCheck, Diamond } from 'lucide-react';
 import { getAvatarColor } from './table/restaurant-table-columns';
 

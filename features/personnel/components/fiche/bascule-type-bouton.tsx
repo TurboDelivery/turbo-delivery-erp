@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Popover, PopoverContent, PopoverTrigger } from '@heroui/react';
+import { Button, Popover, PopoverContent, PopoverTrigger } from '@/components/heroui';
 import { useSession } from 'next-auth/react';
 import { Repeat } from 'lucide-react';
 import { toast } from 'sonner';
@@ -61,7 +61,7 @@ export function BasculeTypeBouton({ employeId, livreurId, typeActuel }: Props) {
           <Button size="sm" variant="light" onPress={() => setOuvert(false)}>
             Annuler
           </Button>
-          <Button size="sm" color="primary" isLoading={bascule.isLoading} onPress={confirmer}>
+          <Button size="sm" color="primary" isLoading={bascule.isPending} onPress={confirmer}>
             Confirmer
           </Button>
         </div>

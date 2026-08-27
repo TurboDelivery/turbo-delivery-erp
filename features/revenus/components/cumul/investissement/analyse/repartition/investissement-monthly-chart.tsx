@@ -6,7 +6,8 @@ import { type ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, Char
 import { useInvestissementMonthlyFilters, useInvestissementStatsMonthly } from '@/features/investissement/hooks';
 import { format, getMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Select, SelectItem } from '@heroui/react';
+import { Select, SelectItem } from '@/components/heroui';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 const chartConfig = {
   montantInvestissement: {
@@ -58,7 +59,7 @@ const generateCompleteMonthlyData = (data: any[], selectedYear: string) => {
 };
 
 export function InvestissementMonthlyChart() {
-  const { data, isLoading } = useInvestissementStatsMonthly();
+  const { data, isLoading, isFetching, isError, refetch } = useInvestissementStatsMonthly();
   const { year, updateYear } = useInvestissementMonthlyFilters();
 
   const years = generateYears();
@@ -107,6 +108,11 @@ export function InvestissementMonthlyChart() {
         </div>
       </CardHeader>
       <CardContent>
+        {/* `generateCompleteMonthlyData` fabrique douze mois a zero quand il n'a pas
+            de donnee : le graphe restait dessine, plat, et personne ne voyait l'echec. */}
+        {isError ? (
+          <EtatErreur quoi="la répartition mensuelle" onReessayer={() => refetch()} enCours={isFetching} />
+        ) : (
         <ChartContainer config={chartConfig}>
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
@@ -117,6 +123,7 @@ export function InvestissementMonthlyChart() {
             <Bar dataKey="montantRembourse" stackId="a" fill="#10B981" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ChartContainer>
+        )}
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex gap-2 leading-none font-medium text-muted-foreground">Données pour l&#39;année {year}</div>

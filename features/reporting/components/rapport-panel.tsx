@@ -13,13 +13,14 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 
 import { CalendarDays, Clock, Gauge, Percent, UserCheck, UserX } from 'lucide-react';
 
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
 import { IRapportJour, IRapportSignal, useRapportPresenceQuery } from '@/features/reporting';
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { formatNombre } from '@/utils/format.utils';
 
 function SignalCell({ signal }: { signal: IRapportSignal | null }) {
@@ -73,7 +74,12 @@ export function RapportPanel() {
   const [debut, setDebut] = useState('');
   const [fin, setFin] = useState('');
 
-  const { data: rapport, isFetching } = useRapportPresenceQuery(livreurId, debut || undefined, fin || undefined);
+  const {
+    data: rapport,
+    isFetching,
+    isError: rapportEnErreur,
+    refetch: rechargerRapport,
+  } = useRapportPresenceQuery(livreurId, debut || undefined, fin || undefined);
 
   return (
     <div className="space-y-4">
@@ -98,6 +104,16 @@ export function RapportPanel() {
 
       {!livreurId ? (
         <p className="py-10 text-center text-sm text-default-400">Sélectionnez un livreur pour afficher son rapport.</p>
+      ) : rapportEnErreur ? (
+        // Sans ce branchement, un echec de lecture retombait sur "Aucun rapport pour ce
+        // livreur", donc sur une absence de pointage la ou la donnee n'a pas pu etre lue.
+        <EtatErreur
+          quoi="le rapport de présence"
+          onReessayer={() => {
+            void rechargerRapport();
+          }}
+          enCours={isFetching}
+        />
       ) : isFetching && !rapport ? (
         <div className="flex justify-center py-10">
           <Spinner color="primary" label="Chargement du rapport…" />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Skeleton, Tab, Tabs } from '@heroui/react';
+import { Button, Skeleton, Tab, Tabs } from '@/components/heroui';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -20,6 +20,7 @@ import {
   useTraficLivreursQuery,
 } from '@/features/standard';
 import { MessagesPartenairesBouton } from '@/features/chat-partenaires';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 import { AppelConfigModal } from './appel-config-modal';
 import { AppelHistoriqueTable } from './appel-historique-table';
@@ -219,6 +220,10 @@ export function StandardControlCenter() {
   const totalRecus = recus.data?.totalElements ?? listeRecus.length;
   const totalEnCours = enCours.data?.totalElements ?? listeEnCours.length;
   const chargementInitial = recus.isLoading || enCours.isLoading;
+  // Une file en echec retombe sur une liste vide : le bandeau afficherait alors
+  // « 0 non pris en charge », qui se lit comme « rien a traiter ». On remplace
+  // les chiffres plutot que de les laisser mentir.
+  const erreurFiles = recus.isError || enCours.isError;
 
   return (
     <div className="w-full space-y-5">
@@ -277,16 +282,24 @@ export function StandardControlCenter() {
         </div>
       </div>
 
-      <StandardKpis
-        nonPrisEnCharge={totalRecus}
-        enTraitement={totalEnCours}
-        duJour={incidentsDuJour.length}
-        duJourPlafonne={incidentsDuJour.length >= TAILLE_FILE}
-        livreursEnCourse={trafic.data?.enActivite.total ?? 0}
-        livreursDisponibles={trafic.data?.disponibles.total ?? 0}
-        nouveaux={nouveauxVisibles}
-        isLoading={chargementInitial}
-      />
+      {erreurFiles ? (
+        <EtatErreur
+          quoi="les indicateurs du standard"
+          onReessayer={rafraichir}
+          enCours={rechargeManuelle}
+        />
+      ) : (
+        <StandardKpis
+          nonPrisEnCharge={totalRecus}
+          enTraitement={totalEnCours}
+          duJour={incidentsDuJour.length}
+          duJourPlafonne={incidentsDuJour.length >= TAILLE_FILE}
+          livreursEnCourse={trafic.data?.enActivite.total ?? 0}
+          livreursDisponibles={trafic.data?.disponibles.total ?? 0}
+          nouveaux={nouveauxVisibles}
+          isLoading={chargementInitial}
+        />
+      )}
 
       <Tabs aria-label="Sections du centre STANDARD" color="primary" variant="underlined" size="lg">
         <Tab
@@ -315,6 +328,14 @@ export function StandardControlCenter() {
             >
               {recus.isLoading ? (
                 <CartesFantomes />
+              ) : recus.isError ? (
+                // Sans ce cas, une file injoignable tombait sur le message vide
+                // juste dessous, qui annonce que tout a ete pris en charge.
+                <EtatErreur
+                  quoi="les incidents à prendre en charge"
+                  onReessayer={() => recus.refetch()}
+                  enCours={recus.isFetching}
+                />
               ) : listeRecus.length === 0 ? (
                 <Vide message="Aucun incident en attente : tous les signalements ont été pris en charge." />
               ) : (
@@ -350,6 +371,12 @@ export function StandardControlCenter() {
             >
               {enCours.isLoading ? (
                 <CartesFantomes nombre={1} />
+              ) : enCours.isError ? (
+                <EtatErreur
+                  quoi="les incidents en cours de traitement"
+                  onReessayer={() => enCours.refetch()}
+                  enCours={enCours.isFetching}
+                />
               ) : listeEnCours.length === 0 ? (
                 <Vide message="Aucun incident en cours de traitement." ton="neutre" />
               ) : (

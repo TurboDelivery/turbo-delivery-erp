@@ -4,7 +4,7 @@ import { apiClientHttp } from '@/lib/api-client-http';
 import { PaginatedResponse } from '@/types';
 import { BonLivraison, BonLivraisonTerminee, ParametreBonLivraisonFacture, Ticket } from '@/types/bon-livraison.model';
 import { formatDate } from '@/utils/date-formate';
-import { RangeValue } from '@heroui/react';
+import { RangeValue } from '@/components/heroui';
 import axios from 'axios';
 import { ApiResult } from '@/types/general';
 import { handleApiError } from '@/utils/handle-api-error';
@@ -45,7 +45,10 @@ export async function getBonLivraisonAll(page: number, size: number, { dates: { 
       service: 'backend',
     });
   } catch (error: any) {
-    return null;
+    // Une panne de lecture rendait `null`, indiscernable d'une page sans resultat :
+    // le tableau des bons de livraison annoncait "aucun bon" sur la periode alors
+    // que rien n'avait pu etre lu.
+    throw error;
   }
 }
 
@@ -63,7 +66,10 @@ export async function getAllBonLivraisonTerminers(page: number, size: number, { 
       },
     });
   } catch (error) {
-    return [] as any;
+    // La liste vide masquait la panne : l'ecran des bons termines affichait "aucun
+    // resultat" pour la periode, et l'operateur en concluait qu'il n'y avait rien a
+    // facturer alors que la lecture avait echoue.
+    throw error;
   }
 }
 
@@ -75,7 +81,9 @@ export async function getBonLivraisonTerminees({ dates: { start, end } }: { date
       params: { debut: start ? formatDate(start, 'YYYY-MM-DD') : '', fin: end ? formatDate(end, 'YYYY-MM-DD') : '' },
     });
   } catch (error) {
-    return [] as any;
+    // Sans relance, un service muet se lisait comme un vide reel : zero bon termine
+    // sur la plage de dates, donc zero ligne a reporter en facturation.
+    throw error;
   }
 }
 
@@ -98,7 +106,9 @@ export async function getAllBonLivraisonEnAttentes(
       },
     });
   } catch (error) {
-    return [] as any;
+    // Un echec de lecture se presentait comme une file d'attente vide : plus aucun bon
+    // en attente a l'ecran, donc rien a controler pour l'operateur.
+    throw error;
   }
 }
 
@@ -109,6 +119,9 @@ export async function reportingBonLivraisonTerminers(parametre: ParametreBonLivr
     });
     return response.data;
   } catch (error: any) {
+    // Pas de relance : ce catch rend une valeur METIER que l'appelant teste
+    // (`result?.status === 'error'` dans components/ticket-terminers/controller.tsx),
+    // relancer supprimerait le message du serveur affiche a l'export.
     if (error?.response?.data && error.response?.data?.message) {
       return {
         status: 'error',
@@ -315,6 +328,9 @@ export async function deleteBonLivraison(ticketId: string, motif?: string): Prom
     await deleteBonLivraisonRequest(ticketId, userId, motif);
     return true;
   } catch (error) {
+    // Pas de relance : c'est une ECRITURE. Son `false` remonte dans une mutation
+    // TanStack qui le prend pour un succes (invalidation + toast "supprime"), defaut
+    // reel mais d'une autre nature, a corriger chez l'appelant.
     console.error('Erreur suppression:', error);
     return false;
   }

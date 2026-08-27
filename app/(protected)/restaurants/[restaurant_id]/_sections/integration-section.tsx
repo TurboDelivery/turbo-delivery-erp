@@ -24,12 +24,13 @@ import {
   Textarea,
   Tooltip,
   useDisclosure,
-} from '@heroui/react';
+} from '@/components/heroui';
 import {
   ArrowDownLeft,
   ArrowUpRight,
   CheckCircle2,
   Eye,
+  EyeOff,
   KeyRound,
   Pencil,
   Plus,
@@ -41,6 +42,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   useCleApiQuery,
   useEnregistrerWebhookMutation,
@@ -257,7 +259,7 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
   const detail = useDisclosure();
   const [selected, setSelected] = useState<IIntegrationLog | null>(null);
 
-  const { data, isLoading, isFetching } = useIntegrationLogsQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useIntegrationLogsQuery({
     restaurantId,
     direction: direction === 'TOUS' ? undefined : direction,
     succes: statut === 'TOUS' ? undefined : statut === 'OK',
@@ -321,6 +323,16 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
         </Tabs>
       </div>
 
+      {/* On retire le tableau plutot que de le laisser dire "aucun appel
+          reseau enregistre" : c'est la conclusion inverse de celle a tirer
+          quand c'est la lecture du journal qui a echoue. */}
+      {isError ? (
+        <EtatErreur
+          quoi="les appels réseau de ce partenaire"
+          onReessayer={() => refetch()}
+          enCours={isFetching}
+        />
+      ) : (
       <Table
         aria-label="Journal des appels réseau"
         removeWrapper
@@ -390,6 +402,7 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
           ))}
         </TableBody>
       </Table>
+      )}
 
       <LogDetailsModal log={selected} isOpen={detail.isOpen} onOpenChange={detail.onOpenChange} />
     </div>
@@ -398,13 +411,34 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
 
 // ─── Section principale ────────────────────────────────────────────────────────
 export default function IntegrationSection({ restaurantId }: { restaurantId: string }) {
-  const { data: cleApi, isLoading: cleLoading } = useCleApiQuery(restaurantId);
-  const { data: webhooks, isLoading: webhooksLoading } = useWebhooksQuery(restaurantId);
+  const {
+    data: cleApi,
+    isLoading: cleLoading,
+    isError: cleErreur,
+    isFetching: cleRelecture,
+    refetch: relireCle,
+  } = useCleApiQuery(restaurantId);
+  const {
+    data: webhooks,
+    isLoading: webhooksLoading,
+    isError: webhooksErreur,
+    isFetching: webhooksRelecture,
+    refetch: relireWebhooks,
+  } = useWebhooksQuery(restaurantId);
   const form = useDisclosure();
   const suppr = useSupprimerWebhookMutation(restaurantId);
   const [editing, setEditing] = useState<IWebhook | null>(null);
 
   const apiKey = cleApi?.apiKey ?? '';
+
+  // La cle etait affichee EN CLAIR des l'ouverture de la fiche : lisible par-dessus
+  // l'epaule, sur un ecran partage, et dans toute capture de la page. Elle est
+  // masquee par defaut, la reveler devient un geste explicite. Le bouton « copier »
+  // du Snippet continue de fonctionner sans rien reveler, puisqu'il lit `codeString`.
+  const [cleVisible, setCleVisible] = useState(false);
+  const cleMasquee = apiKey
+    ? `${apiKey.slice(0, 4)}${'•'.repeat(Math.max(apiKey.length - 8, 8))}${apiKey.slice(-4)}`
+    : '';
 
   function openAdd() {
     setEditing(null);
@@ -434,10 +468,31 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
         </p>
         {cleLoading ? (
           <Spinner size="sm" />
+        ) : cleErreur ? (
+          // "Aucune cle API" ferait croire que le partenaire n'est pas
+          // integre, et pousserait a lui en generer une nouvelle.
+          <EtatErreur
+            quoi="la clé API de ce partenaire"
+            onReessayer={() => relireCle()}
+            enCours={cleRelecture}
+          />
         ) : apiKey ? (
-          <Snippet symbol="" variant="bordered" className="w-full" codeString={apiKey}>
-            <span className="font-mono text-xs break-all">{apiKey}</span>
-          </Snippet>
+          <div className="flex items-center gap-2">
+            <Snippet symbol="" variant="bordered" className="min-w-0 flex-1" codeString={apiKey}>
+              <span className="font-mono text-xs break-all">{cleVisible ? apiKey : cleMasquee}</span>
+            </Snippet>
+            <Tooltip content={cleVisible ? 'Masquer la clé' : 'Afficher la clé'} size="sm">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                aria-label={cleVisible ? 'Masquer la clé API' : 'Afficher la clé API'}
+                onPress={() => setCleVisible((v) => !v)}
+              >
+                {cleVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </Tooltip>
+          </div>
         ) : (
           <p className="text-xs text-gray-400">Aucune clé API pour ce partenaire.</p>
         )}
@@ -473,6 +528,14 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
 
         {webhooksLoading ? (
           <Spinner size="sm" />
+        ) : webhooksErreur ? (
+          // "Aucun webhook configure" se lit ici comme "le partenaire ne
+          // recoit rien" : sur un echec de lecture, c'est un faux diagnostic.
+          <EtatErreur
+            quoi="les webhooks de ce partenaire"
+            onReessayer={() => relireWebhooks()}
+            enCours={webhooksRelecture}
+          />
         ) : webhookList.length === 0 ? (
           <div className="text-xs text-gray-400 border border-dashed border-gray-200 rounded-lg p-4 text-center">
             Aucun webhook configuré.

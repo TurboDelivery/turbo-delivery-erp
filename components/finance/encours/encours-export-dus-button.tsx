@@ -7,7 +7,7 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { ChevronDown, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import type { IEncoursReleve } from '@/features/encours';

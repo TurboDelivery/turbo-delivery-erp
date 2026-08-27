@@ -4,8 +4,8 @@ import CreneauxDetail from "@/components/dashboard/slot/progression-details/cren
 import User from "@/components/dashboard/slot/progression-details/user";
 import { CreneauID } from "@/types/creneau-byId";
 import { LivreurDetail } from "@/types/livreur";
-import { Button, Card, Input } from "@heroui/react";
-import { Select, SelectItem } from "@heroui/select";
+import { Button, Card, Input } from "@/components/heroui";
+import { Select, SelectItem } from "@/components/heroui";
 import { ArrowLeft, Edit } from "lucide-react";
 import Image from "next/image";
 import useContentCtx from "./useContentCtx";

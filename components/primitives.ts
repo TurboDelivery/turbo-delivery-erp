@@ -1,4 +1,6 @@
-import { tv } from "@heroui/theme";
+// `tv` transite par la couche unique comme le reste : `@heroui/react` le
+// reexporte (verifie a l'execution). Dernier import direct d'un sous-paquet.
+import { tv } from '@/components/heroui';
 
 export const title = tv({
   base: "tracking-tight inline font-semibold",

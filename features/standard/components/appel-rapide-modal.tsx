@@ -10,9 +10,10 @@ import {
   ModalContent,
   ModalHeader,
   Spinner,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Phone, Search } from 'lucide-react';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
 import { DeliveryMan } from '@/types/models';
 
@@ -34,7 +35,7 @@ function nomLivreur(l: DeliveryMan): string {
  */
 export function AppelRapideModal({ isOpen, onOpenChange }: AppelRapideModalProps) {
   const { appelerLivreur, enAppel } = useAppel();
-  const { data, isLoading } = useLivreursListQuery();
+  const { data, isLoading, isError, isFetching, refetch } = useLivreursListQuery();
   const [recherche, setRecherche] = useState('');
 
   const livreurs = useMemo(() => {
@@ -84,6 +85,14 @@ export function AppelRapideModal({ isOpen, onOpenChange }: AppelRapideModalProps
                 <div className="flex justify-center py-10">
                   <Spinner color="primary" label="Chargement des livreurs…" />
                 </div>
+              ) : isError ? (
+                // « Aucun livreur trouvé » sur une panne laisserait croire que la
+                // recherche a abouti : le standard renoncerait a appeler.
+                <EtatErreur
+                  quoi="les livreurs"
+                  onReessayer={() => refetch()}
+                  enCours={isFetching}
+                />
               ) : livreurs.length === 0 ? (
                 <p className="py-10 text-center text-default-400">Aucun livreur trouvé.</p>
               ) : (

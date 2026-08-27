@@ -1,14 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Badge } from '@heroui/react';
-import { Button } from '@heroui/react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
+import { Badge } from '@/components/heroui';
+import { Button } from '@/components/heroui';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@/components/heroui';
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@/components/heroui';
 import { LeaveRequest } from '../../features/personnel/types/types';
 import { IConge, CongeStatut } from '../../features/conge/types/conge.type';
 import { useCongesQuery } from '../../features/conge/queries/conge.query';
 import { PersonnelMobileCard, PersonnelMobileCardList } from '@/components/personnel/shared/personnel-mobile-card';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 interface RequestTableProps {
   requests: LeaveRequest[];
@@ -25,7 +26,13 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
   // Utiliser le hook pour récupérer les demandes de congés
   // Le filtre EN_ATTENTE reste desactive : le tableau liste donc tous les statuts, et son
   // etat vide ne peut pas parler d attente sans mentir sur ce qui est affiche.
-  const { data: congesData, isLoading: congesLoading, error: congesError } = useCongesQuery({
+  const {
+    data: congesData,
+    isLoading: congesLoading,
+    error: congesError,
+    isFetching: congesFetching,
+    refetch: refetchConges,
+  } = useCongesQuery({
     // statut: CongeStatut.EN_ATTENTE // Filtrer les demandes en attente
   });
   
@@ -206,15 +213,16 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
     );
   }
 
-  // Afficher les erreurs
+  // Afficher les erreurs. Le message technique reste, mais en second plan : ce que
+  // l'operateur attend d'abord, c'est de pouvoir relancer.
   if (congesError) {
     return (
-      <div className="text-center py-8">
-        <div className="text-red-500">Erreur lors du chargement des demandes</div>
-        <div className="text-sm text-gray-500 mt-2">
-          {congesError instanceof Error ? congesError.message : 'Erreur inconnue'}
-        </div>
-      </div>
+      <EtatErreur
+        quoi="les demandes de congé"
+        onReessayer={() => refetchConges()}
+        enCours={congesFetching}
+        detail={congesError instanceof Error ? congesError.message : undefined}
+      />
     );
   }
 

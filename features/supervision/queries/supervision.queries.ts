@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient , keepPreviousData} from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { supervisionAPI } from '../apis/supervision.api';
@@ -68,7 +68,7 @@ export const useSessionsEnLigneQuery = (userId: string, filtre: ISessionsFiltre)
     enabled: !!userId,
     refetchInterval: INTERVALLE_TEMPS_REEL,
     refetchOnWindowFocus: true,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
 export const useAuditActionsQuery = (userId: string, filtre: IActionsFiltre, size = 25) =>
@@ -76,7 +76,7 @@ export const useAuditActionsQuery = (userId: string, filtre: IActionsFiltre, siz
     queryKey: supervisionKeys.actions(filtre),
     queryFn: () => supervisionAPI.actions(userId, filtre, size),
     enabled: !!userId,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 15 * 1000,
   });
 
@@ -85,7 +85,7 @@ export const useConnexionsQuery = (userId: string, filtre: IConnexionsFiltre, si
     queryKey: supervisionKeys.connexions(filtre),
     queryFn: () => supervisionAPI.connexions(userId, filtre, size),
     enabled: !!userId,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 15 * 1000,
   });
 
@@ -94,7 +94,7 @@ export const useAdoptionQuery = (userId: string, jamaisConnectes: boolean) =>
     queryKey: supervisionKeys.adoption(jamaisConnectes),
     queryFn: () => supervisionAPI.adoption(userId, jamaisConnectes),
     enabled: !!userId,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     staleTime: 60 * 1000,
   });
 
@@ -105,7 +105,7 @@ export const useModulesAuditQuery = (userId: string) =>
     queryFn: () => supervisionAPI.modules(userId),
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
 // ─────────────────────────────────────────────────────────────────────────────

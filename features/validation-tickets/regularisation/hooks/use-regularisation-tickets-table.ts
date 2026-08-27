@@ -40,7 +40,7 @@ export default function useRegularisationTicketsTable() {
   const debut = selectedCreneau?.dateDebut?.split('T')[0];
   const fin = selectedCreneau?.dateFin?.split('T')[0];
 
-  const { data, isLoading, isFetching } = useRegularisationTicketsQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useRegularisationTicketsQuery({
     statut,
     debut,
     fin,
@@ -62,8 +62,8 @@ export default function useRegularisationTicketsTable() {
     setPage(0);
   }, []);
 
-  const { mutate: approuver, isLoading: isApproving } = useApprouverRegularisationMutation();
-  const { mutate: rejeter, isLoading: isRejecting } = useRejeterRegularisationMutation();
+  const { mutate: approuver, isPending: isApproving } = useApprouverRegularisationMutation();
+  const { mutate: rejeter, isPending: isRejecting } = useRejeterRegularisationMutation();
   const { authenticatedIds, handleAuthentifier } = useTicketAuthentication();
 
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -127,6 +127,10 @@ export default function useRegularisationTicketsTable() {
     table,
     isLoading,
     isFetching,
+    // Sans isError, le tableau retombait sur « Aucun ticket ne correspond a ces
+    // filtres », qui se lit comme un filtre trop etroit et non comme une panne.
+    isError,
+    refetch,
     columnsCount: columns.length,
     // filtres
     statut,

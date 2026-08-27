@@ -4,7 +4,8 @@ import { EyeIcon } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { getAllOrders, getOrdersStats } from "@/src/actions/commandes.actions";
 import { SelectField } from "@/components/commons/form/select-field";
-import { CalendarDate, DateRangePicker, RangeValue } from "@heroui/react";
+import EtatErreur from "@/components/commons/EtatErreur";
+import { CalendarDate, DateRangePicker, RangeValue } from "@/components/heroui";
 import { Order, OrderStats, PageResponse, Restaurant } from "@/types/models";
 
 type OrdersProps = {
@@ -20,6 +21,10 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
     const [detailOrder, setDetailOrder] = useState<Order | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [loadingPage, setLoadingPage] = useState(false);
+    // Les trois chargements de cet ecran laissaient filer l'exception de l'action
+    // en rejet non gere : rien ne bougeait a l'ecran, ce qui se lit comme "il n'y
+    // a aucune commande" alors que la lecture avait echoue.
+    const [erreur, setErreur] = useState(false);
 
     // Filtres
     const [dates, setDates] = useState<RangeValue<CalendarDate> | null>(null);
@@ -30,6 +35,9 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
     useEffect(() => {
         setCommandes(commandesInitiales);
         setCurrentPage(commandesInitiales?.number ?? 0);
+        // Une charge serveur reussie efface l'echec precedent, sinon l'ecran
+        // resterait sur l'erreur alors que la donnee est de nouveau la.
+        setErreur(false);
     }, [commandesInitiales]);
 
 
@@ -62,6 +70,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
         if (page < 0 || (commandes && page >= commandes.totalPages)) return;
 
         setLoadingPage(true);
+        setErreur(false);
         try {
             const startStr = dates?.start
                 ? new Date(dates.start.year, dates.start.month - 1, dates.start.day)
@@ -80,6 +89,11 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                 setCommandes(res);
                 setCurrentPage(res.number);
             }
+        } catch (error) {
+            // Le try/finally sans catch laissait l'exception filer en rejet non gere :
+            // le bouton se reactivait et la page affichee ne changeait pas.
+            console.error('Erreur lors du chargement de la page de commandes', error);
+            setErreur(true);
         } finally {
             setLoadingPage(false);
         }
@@ -97,11 +111,19 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
             ? new Date(value.end.year, value.end.month - 1, value.end.day).toISOString().split("T")[0]
             : null;
 
-        const res = await getAllOrders(0, 10, selectedRestaurantId, startStr, endStr);
-        const statsRes = await getOrdersStats(selectedRestaurantId, startStr, endStr);
-        setCommandes(res);
-        setCurrentPage(res?.number ?? 0);
-        setOrderStats(statsRes);
+        setErreur(false);
+        try {
+            const res = await getAllOrders(0, 10, selectedRestaurantId, startStr, endStr);
+            const statsRes = await getOrdersStats(selectedRestaurantId, startStr, endStr);
+            setCommandes(res);
+            setCurrentPage(res?.number ?? 0);
+            setOrderStats(statsRes);
+        } catch (error) {
+            // Sans catch, la periode changeait dans le champ mais la liste et les
+            // cartes restaient sur la periode precedente, sans rien signaler.
+            console.error('Erreur lors du filtrage des commandes par periode', error);
+            setErreur(true);
+        }
     };
 
     // 🔹 Gère le changement de restaurant
@@ -114,12 +136,48 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
             ? new Date(dates.end.year, dates.end.month - 1, dates.end.day).toISOString().split("T")[0]
             : null;
             
-        const res = await getAllOrders(0, 10, restaurantId, startStr, endStr);
-        const statsRes = await getOrdersStats(restaurantId, startStr, endStr);
+        setErreur(false);
+        try {
+            const res = await getAllOrders(0, 10, restaurantId, startStr, endStr);
+            const statsRes = await getOrdersStats(restaurantId, startStr, endStr);
 
-        setOrderStats(statsRes);
-        setCommandes(res);
-        setCurrentPage(res?.number ?? 0);
+            setOrderStats(statsRes);
+            setCommandes(res);
+            setCurrentPage(res?.number ?? 0);
+        } catch (error) {
+            // Sans catch, le restaurant selectionne changeait mais l'ecran continuait
+            // d'afficher les commandes du precedent, ou celles de tous.
+            console.error('Erreur lors du filtrage des commandes par restaurant', error);
+            setErreur(true);
+        }
+    };
+
+    // Une nouvelle tentative rejoue commandes ET statistiques avec les filtres
+    // courants : ne recharger que les commandes laisserait les cartes sur la
+    // periode ou le restaurant precedents.
+    const reessayer = async () => {
+        setLoadingPage(true);
+        setErreur(false);
+        try {
+            const startStr = dates?.start
+                ? new Date(dates.start.year, dates.start.month - 1, dates.start.day).toISOString().split("T")[0]
+                : null;
+            const endStr = dates?.end
+                ? new Date(dates.end.year, dates.end.month - 1, dates.end.day).toISOString().split("T")[0]
+                : null;
+
+            const res = await getAllOrders(currentPage, 10, selectedRestaurantId, startStr, endStr);
+            const statsRes = await getOrdersStats(selectedRestaurantId, startStr, endStr);
+
+            setCommandes(res);
+            setCurrentPage(res?.number ?? 0);
+            setOrderStats(statsRes);
+        } catch (error) {
+            console.error('Echec de la nouvelle tentative de chargement des commandes', error);
+            setErreur(true);
+        } finally {
+            setLoadingPage(false);
+        }
     };
 
     const statItems: { key: keyof OrderStats; label: string }[] = [
@@ -157,8 +215,12 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                 </div>
             </div>
 
+            {/* Sur un echec, ni cartes ni liste : une carte a 0 et une liste vide se
+                lisent exactement comme "aucune commande", ce qui est faux ici. */}
+            {erreur && <EtatErreur quoi="les commandes" onReessayer={reessayer} enCours={loadingPage} />}
+
             {/* STATISTICS */}
-            {orderStats && (
+            {!erreur && orderStats && (
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                     {
                     statItems.map(({ key, label }) => {
@@ -181,6 +243,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
             )}
 
             {/* LIST */}
+            {!erreur && (
             <div className="space-y-4">
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                     {commandes?.content?.map((cmd) => (
@@ -264,6 +327,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                     </button>
                 </div>
             </div>
+            )}
 
             {/* DETAILS MODAL */}
             {showModal && detailOrder && (

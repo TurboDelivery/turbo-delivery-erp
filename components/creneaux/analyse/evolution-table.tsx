@@ -1,6 +1,6 @@
 'use client';
 
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip } from '@heroui/react';
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip } from '@/components/heroui';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface EvolutionRow {

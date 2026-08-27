@@ -7,7 +7,7 @@ import DepenseHeader from '@/components/components-finance/depenses/header';
 import { useDepenseDashboardFilters } from '@/features/depenses/hooks/use-depense-dashboard-filters';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { useDepenseExport } from '@/features/depenses/hooks/use-depense-export';
 
 export default function DepensePageContent() {

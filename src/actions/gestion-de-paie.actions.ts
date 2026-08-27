@@ -29,7 +29,9 @@ export async function getFicheDePaies(start: Date | null, end: Date | null): Pro
 
         return data;
     } catch (error: any) {
-        return null;
+        // Une lecture en echec renvoyait null : l'ecran de paie affichait la periode
+        // sans aucune fiche, comme si aucun livreur n'avait travaille.
+        throw error;
     }
 }
 
@@ -42,7 +44,9 @@ export async function getFichePaieById(fichePaieId: string): Promise<FichePaieDe
         });
         return data;
     } catch (error: any) {
-        return null;
+        // Une lecture en echec renvoyait null : le detail de la fiche s'ouvrait vide,
+        // laissant croire que la fiche n'avait aucun gain a payer.
+        throw error;
     }
 };
 
@@ -55,7 +59,9 @@ export async function getFichePaieByEmploiAndLivreur(emploiId: string, livreurId
         });
         return data;
     } catch (error: any) {
-        return null;
+        // Tout etait avale en bloc, un 404 comme une panne : impossible de distinguer
+        // "aucune fiche pour ce creneau" d'une lecture en echec. Le detail s'ouvrait vide.
+        throw error;
     }
 };
 
@@ -68,7 +74,9 @@ export async function getGainParJour(fichePaieId: string): Promise<GainParJour |
         });
         return data;
     } catch (error: any) {
-        return null;
+        // Une lecture en echec renvoyait null : le gain par jour s'affichait vide,
+        // comme si le livreur n'avait rien gagne sur la periode.
+        throw error;
     }
 };
 
@@ -85,6 +93,8 @@ export async function getStatistiqueFichePaie(mois: string, annees: string): Pro
         });
         return data;
     } catch (error: any) {
-        return null;
+        // Une lecture en echec renvoyait null : les statistiques du mois tombaient a
+        // zero au lieu de signaler que le chiffre n'a pas pu etre lu.
+        throw error;
     }
 }

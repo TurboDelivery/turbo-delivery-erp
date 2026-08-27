@@ -1,6 +1,6 @@
 'use client';
 
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/react';
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@/components/heroui';
 import { IEncoursDeduction, formatFcfa } from '@/features/encours';
 
 /** Bloc « Récapitulatif des déductions & avances » (spec §6). */

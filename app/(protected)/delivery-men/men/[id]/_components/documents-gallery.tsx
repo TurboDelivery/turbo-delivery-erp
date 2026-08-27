@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, Chip, Modal, ModalBody, ModalContent, Tooltip } from '@heroui/react';
+import { Button, Chip, Modal, ModalBody, ModalContent, Tooltip } from '@/components/heroui';
 import {
   ChevronLeft,
   ChevronRight,

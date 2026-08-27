@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Button, Select, SelectItem, Tooltip } from '@heroui/react';
+import { Button, Select, SelectItem, Tooltip } from '@/components/heroui';
 import { Navigation, RefreshCw, RotateCcw, Users } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 

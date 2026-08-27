@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Avatar, Button, Chip, Spinner, Tab, Tabs } from '@heroui/react';
+import { Avatar, Button, Chip, Spinner, Tab, Tabs } from '@/components/heroui';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import {
   updateTurboyInfoSchema,

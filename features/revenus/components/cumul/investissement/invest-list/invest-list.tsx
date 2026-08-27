@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { AddInvestModal } from '../creer-invest/add-invest-modal';
 import { useInvestissementList } from '@/features/revenus/hooks/use-investissement-list';
-import { Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { investissementColumns, getDeadlineColor } from './invest-columns';
 import { formatCFA, formatDateFR } from '@/src/actions/bonLivraison.mapper';
@@ -16,9 +16,10 @@ import SupprimerInvestModal from '../supprimer/supprimer-invest-modal';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export default function InvestissementList() {
-  const { investissements, isLoading, filters, handleFilterChange, handleDateChange, pagination } = useInvestissementList();
+  const { investissements, isLoading, isFetching, isError, refetch, filters, handleFilterChange, handleDateChange, pagination } = useInvestissementList();
   const [sorting, setSorting] = useState<SortingState>([]);
 
 
@@ -43,6 +44,12 @@ export default function InvestissementList() {
         </div>
       </CardHeader>
       <CardContent className="p-0">
+        {/* Double rendu : le tableau desktop et les cartes mobiles affichaient tous
+            deux « Aucun investissement ». Les deux sont remplaces ensemble. */}
+        {isError ? (
+          <EtatErreur quoi="les investissements" onReessayer={() => refetch()} enCours={isFetching} />
+        ) : (
+        <>
         <div className="hidden md:block">
           <div className="space-y-4">
             {/* Tableau HeroUI */}
@@ -129,6 +136,8 @@ export default function InvestissementList() {
             </div>
           )}
         </div>
+        </>
+        )}
       </CardContent>
     </Card>
   );

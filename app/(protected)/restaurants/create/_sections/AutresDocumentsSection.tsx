@@ -1,6 +1,6 @@
 'use client';
 
-import { Select, SelectItem } from '@heroui/react';
+import { Select, SelectItem } from '@/components/heroui';
 import { Settings } from 'lucide-react';
 
 const AUTRES_DOCUMENTS_OPTIONS = [

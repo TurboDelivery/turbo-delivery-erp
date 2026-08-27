@@ -8,7 +8,7 @@ import {
     DropdownItem,
     Button,
     cn,
-  } from "@heroui/react";
+  } from "@/components/heroui";
 import { IconMap, IconUser } from "@tabler/icons-react";
 import { AlignJustify } from "lucide-react";
   

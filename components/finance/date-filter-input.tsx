@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { DateRangePicker, RangeValue } from '@heroui/react';
+import { DateRangePicker, RangeValue } from '@/components/heroui';
 import { parseDate } from '@internationalized/date';
 import type { DateValue } from '@internationalized/date';
 import { DateRange } from 'react-day-picker';

@@ -1,6 +1,6 @@
 "use client";
 
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip, Pagination } from "@heroui/react";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip, Pagination } from "@/components/heroui";
 import { MoveUpRight, MoveDownRight } from "lucide-react";
 import { useTableauDePaiController } from "./controller";
 import { DetailFichePaieModal } from "../detail-fiche-de-paie/detail-fiche-paie-modal";

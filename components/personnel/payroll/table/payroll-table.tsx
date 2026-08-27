@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { flexRender } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -18,6 +18,7 @@ import {
 import { usePayrollTable } from '@/features/personnel/hooks/use-payroll-table';
 import { IPayroll } from '@/features/personnel/types/payroll.types';
 import { PersonnelMobileCard, PersonnelMobileCardList } from '@/components/personnel/shared/personnel-mobile-card';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { getSalaryStatusClassName, getStatusClassName, formatDateFr } from '@/components/personnel/payroll/table/payroll-table-columns';
 
 const MONTHS = [
@@ -36,9 +37,13 @@ const MONTHS = [
 ];
 
 function PayrollTable() {
-  const { payrollTable, isPayrollLoading, isPayrollFetching, filters, handleMonthFilterChange, handleYearFilterChange, handlePayPayroll, isPayingPayroll } = usePayrollTable();
+  const { payrollTable, isPayrollLoading, isPayrollFetching, isPayrollError, refetchPayrolls, filters, handleMonthFilterChange, handleYearFilterChange, handlePayPayroll, isPayingPayroll } =
+    usePayrollTable();
   const [selectedPayroll, setSelectedPayroll] = useState<IPayroll | null>(null);
   const colsCount = payrollTable.getAllColumns().length;
+  // L'echec ne prend la place des lignes que s'il n'y a rien a montrer : un rafraichissement
+  // rate laisse la paie deja chargee en place.
+  const enEchec = isPayrollError && payrollTable.getRowModel().rows.length === 0;
   const currentYear = new Date().getFullYear();
   const startYear = 2024;
   const yearOptions = Array.from({ length: Math.max(currentYear - startYear + 1, 1) }, (_, index) => startYear + index);
@@ -109,7 +114,12 @@ function PayrollTable() {
             ))}
           </TableHeader>
 
-          <TableBody emptyContent="Aucun paiement trouvé">
+          {/* L'echec remplace « Aucun paiement trouve », qui se lirait comme un mois sans paie. */}
+          <TableBody
+            emptyContent={
+              enEchec ? <EtatErreur quoi="les paiements" onReessayer={() => refetchPayrolls()} enCours={isPayrollFetching} /> : 'Aucun paiement trouvé'
+            }
+          >
             {isPayrollLoading
               ? Array.from({ length: 10 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
@@ -120,7 +130,9 @@ function PayrollTable() {
                     ))}
                   </TableRow>
                 ))
-              : payrollTable.getRowModel().rows.map((row) => (
+              : enEchec
+                ? []
+                : payrollTable.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className={isPayrollFetching ? 'opacity-70' : ''}>
                     {row.getVisibleCells().map((cell) => {
                       if (cell.column.id === 'actions') {
@@ -156,6 +168,8 @@ function PayrollTable() {
       <PersonnelMobileCardList>
         {isPayrollLoading ? (
           Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-48 rounded-xl bg-gray-100 animate-pulse" />)
+        ) : enEchec ? (
+          <EtatErreur quoi="les paiements" onReessayer={() => refetchPayrolls()} enCours={isPayrollFetching} />
         ) : payrollTable.getRowModel().rows.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-10">Aucun paiement trouvé</p>
         ) : (

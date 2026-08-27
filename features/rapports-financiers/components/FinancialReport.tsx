@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { Download } from 'lucide-react';
-import { Button, Card, CardBody, Progress, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Spinner } from '@heroui/react';
+import { Button, Card, CardBody, Progress, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Spinner } from '@/components/heroui';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { useMemo, useState } from 'react';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
@@ -11,6 +11,7 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { useChargesVariablesQuery } from '@/features/charges/queries/charges-variables.query';
 import { exportFinancialReportCsv } from '@/features/rapports-financiers/utils/financial-report-export.utils';
 import { exportFinancialReportPdf } from '@/features/rapports-financiers/utils/financial-report-pdf.utils';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 interface RapportFinancierResponse {
   chiffreAffaire: number;
@@ -52,13 +53,23 @@ export default function FinancialReport() {
   };
 
   // Récupérer les données de l'API avec le hook useRapportFinancier
-  const { data: rapportData } = useRapportFinancier({
+  const {
+    data: rapportData,
+    isFetching: isFetchingRapport,
+    isError: isErrorRapport,
+    refetch: refetchRapport,
+  } = useRapportFinancier({
     debut: filters.debut,
     fin: filters.fin,
-  }) as { data: RapportFinancierResponse | undefined; isLoading: boolean };
+  }) as { data: RapportFinancierResponse | undefined; isLoading: boolean; isFetching: boolean; isError: boolean; refetch: () => void };
 
   // Récupérer les charges fixes
-  const { data: chargesFixesData } = useChargesFixesQuery({
+  const {
+    data: chargesFixesData,
+    isFetching: isFetchingChargesFixes,
+    isError: isErrorChargesFixes,
+    refetch: refetchChargesFixes,
+  } = useChargesFixesQuery({
     size: 100,
   });
 
@@ -147,7 +158,13 @@ export default function FinancialReport() {
     });
   };
 
-  const { data: chargesVariablesData, isLoading: chargesVariablesLoading } = useChargesVariablesQuery({
+  const {
+    data: chargesVariablesData,
+    isLoading: chargesVariablesLoading,
+    isFetching: isFetchingChargesVariables,
+    isError: isErrorChargesVariables,
+    refetch: refetchChargesVariables,
+  } = useChargesVariablesQuery({
     size: 100,
   });
 
@@ -208,6 +225,11 @@ export default function FinancialReport() {
           <Card>
             <CardBody className="p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Vue d&#39;Ensemble</h2>
+              {/* Sans rapport, `metrics` retombe sur une liste entierement a « 0 FCFA »
+                  y compris le benefice : un rapport illisible se lisait comme un mois blanc. */}
+              {isErrorRapport ? (
+                <EtatErreur quoi="le rapport financier" onReessayer={() => refetchRapport()} enCours={isFetchingRapport} />
+              ) : (
               <div className="space-y-3">
                 {metrics.map((metric, index) => (
                   <div
@@ -221,6 +243,7 @@ export default function FinancialReport() {
                   </div>
                 ))}
               </div>
+              )}
             </CardBody>
           </Card>
 
@@ -228,6 +251,9 @@ export default function FinancialReport() {
           <Card>
             <CardBody className="p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Indicateurs Clés</h2>
+              {isErrorRapport ? (
+                <EtatErreur quoi="les indicateurs clés" onReessayer={() => refetchRapport()} enCours={isFetchingRapport} />
+              ) : (
               <div className="space-y-3">
                 {kpis.map((kpi, index) => (
                   <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -239,6 +265,7 @@ export default function FinancialReport() {
                   </div>
                 ))}
               </div>
+              )}
             </CardBody>
           </Card>
         </div>
@@ -247,6 +274,11 @@ export default function FinancialReport() {
         <Card>
           <CardBody className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Répartition des Charges Fixes</h2>
+            {isErrorChargesFixes ? (
+              /* Sur echec la liste des charges est vide : la repartition disparait
+                 sans un mot, comme s'il n'y avait aucune charge fixe. */
+              <EtatErreur quoi="les charges fixes" onReessayer={() => refetchChargesFixes()} enCours={isFetchingChargesFixes} />
+            ) : (
             <div className="space-y-4">
               {fixedCosts.map((cost, index) => (
                 <div key={index} className="space-y-2">
@@ -261,6 +293,7 @@ export default function FinancialReport() {
                 </div>
               ))}
             </div>
+            )}
           </CardBody>
         </Card>
 
@@ -269,6 +302,13 @@ export default function FinancialReport() {
           <CardBody className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Dépenses Variables de la Période</h2>
 
+            {/* Ecran a double rendu : le tableau desktop ET les cartes mobiles disaient
+                « Aucune depense variable sur la periode ». Les deux sont remplaces
+                ensemble, sinon l'un des deux affichages continuerait de mentir. */}
+            {isErrorChargesVariables ? (
+              <EtatErreur quoi="les dépenses variables" onReessayer={() => refetchChargesVariables()} enCours={isFetchingChargesVariables} />
+            ) : (
+            <>
             {/* Tableau — desktop uniquement (≥ md) */}
             <div className="hidden md:block">
               <Table aria-label="Dépenses variables">
@@ -312,6 +352,8 @@ export default function FinancialReport() {
                 ))
               )}
             </div>
+            </>
+            )}
           </CardBody>
         </Card>
       </div>

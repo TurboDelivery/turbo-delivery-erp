@@ -3,6 +3,7 @@ import { AlertTriangle } from 'lucide-react';
 import { useEligibleEmployeeQuery, useCongesQuery } from '@/features/conge/queries/conge.query';
 import { IEmployee } from '@/features/personnel/types/types';
 import { CongeStatut, IConge } from '@/features/conge/types/conge.type';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 // Fonction pour calculer l'ancienneté
 const calculateSeniority = (entryDate: string): { years: number; months: number; label: string } => {
@@ -75,8 +76,13 @@ const formatDate = (dateString: string): string => {
 export default function AutomatisationConges() {
   console.log('🚀 AutomatisationConges component mounted');
 
-  const { data: employeesData } = useEligibleEmployeeQuery({ limit: 1000 });
-  const { data: congesData } = useCongesQuery({ limit: 1000 });
+  const employesQuery = useEligibleEmployeeQuery({ limit: 1000 });
+  const congesQuery = useCongesQuery({ limit: 1000 });
+  const { data: employeesData } = employesQuery;
+  const { data: congesData } = congesQuery;
+  // Les deux lectures comptent : sans les employes la grille est vide, sans les
+  // conges chaque carte annonce « 0 jour pris », ce qui est faux et invisible.
+  const lectureEnEchec = employesQuery.isError || congesQuery.isError;
 
   const employees = Array.isArray(employeesData) ? employeesData : [];
   console.log('Employés éligibles reçus pour les congés:', employees);
@@ -144,60 +150,72 @@ export default function AutomatisationConges() {
         </ul>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {employeesWithLeaveData.map((emp, index) => (
-          <Card key={index} className="rounded-2xl shadow-sm">
-            <CardContent className="p-4">
-              <h2 className="font-semibold mb-2 flex items-center gap-2">
-                {emp.name}
-                {emp.isOnLeave && <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">🏖️ En congé</span>}
-              </h2>
+      {/* Grid — l'echec remplace la grille : sans cela l'ecran se contentait de
+          n'afficher aucune carte, ce qui se lit comme « aucun employe ». */}
+      {lectureEnEchec ? (
+        <EtatErreur
+          quoi="les droits aux congés"
+          onReessayer={() => {
+            employesQuery.refetch();
+            congesQuery.refetch();
+          }}
+          enCours={employesQuery.isFetching || congesQuery.isFetching}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {employeesWithLeaveData.map((emp, index) => (
+            <Card key={index} className="rounded-2xl shadow-sm">
+              <CardContent className="p-4">
+                <h2 className="font-semibold mb-2 flex items-center gap-2">
+                  {emp.name}
+                  {emp.isOnLeave && <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">🏖️ En congé</span>}
+                </h2>
 
-              <div className="text-sm text-gray-600 space-y-1 mb-3">
-                <p>📅 Embauche: {emp.embauche}</p>
-                <p>Ancienneté: {emp.anciennete}</p>
-              </div>
+                <div className="text-sm text-gray-600 space-y-1 mb-3">
+                  <p>📅 Embauche: {emp.embauche}</p>
+                  <p>Ancienneté: {emp.anciennete}</p>
+                </div>
 
-              <div className="bg-gray-100 rounded-lg p-3 text-sm space-y-1">
-                <div className="flex justify-between">
-                  <span>Droits congés</span>
-                  <span className="font-medium">{emp.droits} jours</span>
+                <div className="bg-gray-100 rounded-lg p-3 text-sm space-y-1">
+                  <div className="flex justify-between">
+                    <span>Droits congés</span>
+                    <span className="font-medium">{emp.droits} jours</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Pris</span>
+                    <span>{emp.pris} jours</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Restant</span>
+                    <span className={`font-semibold ${emp.restant <= 5 ? 'text-green-600' : emp.warning ? 'text-red-500' : 'text-orange-500'}`}>{emp.restant} jours</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span>Pris</span>
-                  <span>{emp.pris} jours</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Restant</span>
-                  <span className={`font-semibold ${emp.restant <= 5 ? 'text-green-600' : emp.warning ? 'text-red-500' : 'text-orange-500'}`}>{emp.restant} jours</span>
-                </div>
-              </div>
 
-              {emp.warning && (
-                <div className="mt-3 flex items-center gap-2 bg-red-100 text-red-600 text-xs px-3 py-2 rounded-lg">
-                  <AlertTriangle size={14} />
-                  Doit prendre des congés rapidement
-                </div>
-              )}
+                {emp.warning && (
+                  <div className="mt-3 flex items-center gap-2 bg-red-100 text-red-600 text-xs px-3 py-2 rounded-lg">
+                    <AlertTriangle size={14} />
+                    Doit prendre des congés rapidement
+                  </div>
+                )}
 
-              {emp.restant >= 20 && (
-                <div className="mt-3 flex items-center gap-2 bg-blue-100 text-blue-600 text-xs px-3 py-2 rounded-lg">
-                  <AlertTriangle size={14} />
-                  Doit prendre ses congés cette année
-                </div>
-              )}
+                {emp.restant >= 20 && (
+                  <div className="mt-3 flex items-center gap-2 bg-blue-100 text-blue-600 text-xs px-3 py-2 rounded-lg">
+                    <AlertTriangle size={14} />
+                    Doit prendre ses congés cette année
+                  </div>
+                )}
 
-              {emp.notEligible && (
-                <div className="mt-3 flex items-center gap-2 bg-blue-100 text-blue-600 text-xs px-3 py-2 rounded-lg">
-                  <AlertTriangle size={14} />
-                  En période d&#39;éligibilité ({emp.anciennete})
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                {emp.notEligible && (
+                  <div className="mt-3 flex items-center gap-2 bg-blue-100 text-blue-600 text-xs px-3 py-2 rounded-lg">
+                    <AlertTriangle size={14} />
+                    En période d&#39;éligibilité ({emp.anciennete})
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import Select from 'react-select';
-import { Input } from '@heroui/react';
+import { Input } from '@/components/heroui';
 import { Search } from 'lucide-react';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';

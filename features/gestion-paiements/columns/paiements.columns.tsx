@@ -1,11 +1,12 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Button, Chip } from '@heroui/react';
+import { Button, Chip } from '@/components/heroui';
 import { FileText, Trash2, Wallet } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Can } from '@/components/auth/Can';
 import { IChargeFixe, StatutChargeFixe } from '@/features/charges/types/charge-fixe.type';
+import { formatMontant } from '@/utils/format.utils';
 
 const STATUT_CONFIG: Record<string, { label: string; color: 'warning' | 'primary' | 'success' | 'danger' | 'default' }> = {
   PENDING: { label: 'En attente', color: 'warning' },
@@ -70,7 +71,7 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
     {
       accessorKey: 'montant',
       header: 'Montant',
-      cell: ({ row }) => <span className="text-sm font-medium text-gray-900">{row.getValue<number>('montant').toLocaleString('fr-FR')} FCFA</span>,
+      cell: ({ row }) => <span className="text-sm font-medium text-gray-900">{formatMontant(row.getValue<number>('montant'))}</span>,
     },
     {
       accessorKey: 'statut',

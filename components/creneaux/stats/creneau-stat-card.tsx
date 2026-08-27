@@ -1,6 +1,6 @@
 'use client';
 
-import { Progress } from '@heroui/react';
+import { Progress } from '@/components/heroui';
 
 import CarteStat, { type TonStat } from '@/components/commons/CarteStat';
 

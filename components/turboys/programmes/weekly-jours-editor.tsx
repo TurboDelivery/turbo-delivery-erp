@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@heroui/react';
+import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@/components/heroui';
 import { Copy } from 'lucide-react';
 import { IJourProgramme } from '@/features/turboys/types/programme.types';
 

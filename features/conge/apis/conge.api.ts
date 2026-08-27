@@ -1,5 +1,11 @@
 import { IConge, ICongeAddUpdateResponse, ICongeDeleteResponse, ICongesParams } from "../types/conge.type";
-import { PaginatedResponse } from "@/types/api.type";
+// Le backend renvoie un `Page<CongeVm>` de Spring, donc `{ content, totalElements,
+// number, size }` : c'est le `PaginatedResponse` de `@/types/general`. Le projet en
+// declare DEUX, et celui de `@/types/api.type` decrit une autre forme
+// (`{ data, total, limit }`). L'import pointait sur le mauvais : les composants
+// lisaient `.content` — la realite du backend — tandis que la declaration annoncait
+// `.data`. TypeScript ne le voyait pas tant que l'inference restait lache.
+import { PaginatedResponse } from "@/types/general";
 import { SearchParams } from "ak-api-http";
 import { CongeAddDTO, CongeUpdateDTO, CongeStatusUpdateDTO } from "../schemas/conge.schema";
 import { IEmployee } from '@/features/personnel/types/types';

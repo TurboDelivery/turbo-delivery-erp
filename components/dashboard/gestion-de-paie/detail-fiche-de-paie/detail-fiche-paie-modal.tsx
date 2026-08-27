@@ -8,12 +8,14 @@ import {
     Button,
     Card,
     Chip,
-} from "@heroui/react";
+} from "@/components/heroui";
 import { MoveDownLeft, MoveDownRight, MoveUpRight, Printer } from "lucide-react";
 import { useInitierPaiementController } from "./controller";
 import { InitierPaiementModal } from "../initier-paiement/initier-paiement-modal";
 import { CreneauDePaieModal } from "../creneau-de-paie/creneau-de-paie-modal";
 import { GainHebdomadaireVm, GainParJour, PaieParLivreur } from "@/types/gestion-de-paie.model";
+import EtatErreur from "@/components/commons/EtatErreur";
+import { formatMontant } from '@/utils/format.utils';
 
 interface DetailFichePaieProps {
     isOpen: boolean;
@@ -33,7 +35,16 @@ export function DetailFichePaieModal({ isOpen, onClose, details, periode, nonEli
                         <ModalHeader className="flex flex-col gap-1 text-center text-primary font-bold">Détail de la fiche de paie</ModalHeader>
                         <ModalBody>
                             {
-                                ctrl.detailFichePaie ?
+                                // l'echec passe AVANT la donnee : un detail deja charge pour un
+                                // autre livreur resterait sinon affiche sous le nouveau nom
+                                ctrl.erreur ?
+                                    <EtatErreur
+                                        quoi="le détail de la fiche de paie"
+                                        onReessayer={ctrl.reessayer}
+                                        enCours={ctrl.chargement}
+                                    />
+                                    :
+                                    ctrl.detailFichePaie ?
                                     <div className="pl-4 pr-4">
                                         <div className="flex justify-between mb-5">
                                             <div className="flex flex-col gap-1">
@@ -75,7 +86,7 @@ export function DetailFichePaieModal({ isOpen, onClose, details, periode, nonEli
                                             <div className="flex items-center justify-between mb-4" >
                                                 <div className="flex flex-col gap-1">
                                                     <div className="text-gray-500">Total a payer</div>
-                                                    <div className="text-md  font-bold text-gray-500">{ctrl.detailFichePaie?.gainInitial ?? 0} FCFA</div>
+                                                    <div className="text-md  font-bold text-gray-500">{formatMontant(ctrl.detailFichePaie?.gainInitial ?? 0)}</div>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
                                                     <div>Date de récupéreration</div>

@@ -12,7 +12,7 @@ import {
   Select,
   SelectItem,
   Textarea,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 
@@ -224,7 +224,7 @@ export function RegularisationModal({ employeId, ouvert, onFermer }: Props) {
           <Button size="sm" variant="light" onPress={fermer}>
             Annuler
           </Button>
-          <Button size="sm" color="primary" isLoading={mutation.isLoading} onPress={enregistrer}>
+          <Button size="sm" color="primary" isLoading={mutation.isPending} onPress={enregistrer}>
             Enregistrer la régularisation
           </Button>
         </ModalFooter>

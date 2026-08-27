@@ -1,7 +1,7 @@
 'use client';
 
 import { DatePickers } from '@/components/ui/date-piker';
-import { Tab, Tabs } from "@heroui/react";
+import { Tab, Tabs } from "@/components/heroui";
 import { colorMap } from '@/data';
 import { ListeDesLivraisons } from '@/components/dashboard/releve-de-paie/liste-des-livraisons/liste-des-livraisons';
 

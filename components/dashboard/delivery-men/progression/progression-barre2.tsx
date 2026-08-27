@@ -1,6 +1,6 @@
 // import { Livreur } from "@/types/creneau-bird"
 import { BirdPerformance } from "@/types/slot";
-import { Progress } from "@heroui/react"
+import { Progress } from "@/components/heroui"
 
 // :{turboys:Livreur}
   const progresseBare2 =(turboys:CreneauProgressionBird)=>{

@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, CardFooter, Divider, Link, Image, Avatar } from '@heroui/react';
+import { Card, CardHeader, CardBody, CardFooter, Divider, Link, Image, Avatar } from '@/components/heroui';
 // import DropDownAction from './dropDownAction';
 // import progresseBare from '../delivery-men/progression/progression-barre';
 import { IconPointFilled } from '@tabler/icons-react';

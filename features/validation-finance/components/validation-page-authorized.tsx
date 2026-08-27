@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
-import { Spinner } from '@heroui/react';
+import { Spinner } from '@/components/heroui';
 import { useValidationData, useHistoryData } from '../hooks/use-validation-data';
 import { getPendingCount, useValidationStats } from '../hooks/use-validation-stats';
 import { useValidationActions } from '../hooks/use-validation-actions';
@@ -20,6 +20,7 @@ import { TabSwitcher } from './tab-switcher';
 import { ValidationCard } from './validation-card';
 import { ValidationStats } from './validation-stats';
 import { HistoryList } from './history-list';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
   const [chargeType, setChargeType] = useState<ChargeType>('variable');
@@ -27,9 +28,21 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [chargeVariableToEdit, setChargeVariableToEdit] = useState<IChargeVariable | null>(null);
 
-  const { depenses, rawVariables, isLoading } = useValidationData(chargeType, userRole);
-  const { depenses: historyDepenses, isLoading: isLoadingHistory } = useHistoryData(userRole, activeTab === 'historique');
-  const { stats, isLoading: isLoadingStats } = useValidationStats(userRole, chargeType);
+  const { depenses, rawVariables, isLoading, isFetching, isError, refetch } = useValidationData(chargeType, userRole);
+  const {
+    depenses: historyDepenses,
+    isLoading: isLoadingHistory,
+    isFetching: isFetchingHistory,
+    isError: isErrorHistory,
+    refetch: refetchHistory,
+  } = useHistoryData(userRole, activeTab === 'historique');
+  const {
+    stats,
+    isLoading: isLoadingStats,
+    isFetching: isFetchingStats,
+    isError: isErrorStats,
+    refetch: refetchStats,
+  } = useValidationStats(userRole, chargeType);
   const { handleAccept, handleReject, isPending } = useValidationActions(userRole, chargeType);
 
   const safeIdx = Math.min(currentIdx, Math.max(0, depenses.length - 1));
@@ -61,11 +74,31 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
           </div>
         ) : (
           <>
-            {!isLoadingStats && <ValidationStats role={userRole} stats={stats} />}
+            {isErrorStats ? (
+              <div className="rounded-xl border border-gray-200 bg-white">
+                <EtatErreur
+                  quoi="les compteurs de validation"
+                  onReessayer={() => refetchStats()}
+                  enCours={isFetchingStats}
+                />
+              </div>
+            ) : (
+              !isLoadingStats && <ValidationStats role={userRole} stats={stats} />
+            )}
             <TabSwitcher tab={activeTab} onChange={setActiveTab} pendingCount={pendingCount} />
 
             {activeTab === 'validation' ? (
-              depenses.length === 0 ? (
+              /* Sur echec, la file de validation tombait sur « Aucune depense a valider » :
+                 le valideur en concluait qu'il n'avait rien a traiter. */
+              isError ? (
+                <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white">
+                  <EtatErreur
+                    quoi="les dépenses à valider"
+                    onReessayer={() => refetch()}
+                    enCours={isFetching}
+                  />
+                </div>
+              ) : depenses.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-b-xl border border-t-0 border-gray-200 bg-white py-16 text-gray-400">
                   <CheckCircle2 className="mb-2 h-10 w-10" />
                   <p className="text-sm">Aucune dépense à valider</p>
@@ -90,6 +123,14 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
               isLoadingHistory ? (
                 <div className="flex justify-center rounded-b-xl border border-t-0 border-gray-200 bg-white py-16">
                   <Spinner />
+                </div>
+              ) : isErrorHistory ? (
+                <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white">
+                  <EtatErreur
+                    quoi="l'historique des validations"
+                    onReessayer={() => refetchHistory()}
+                    enCours={isFetchingHistory}
+                  />
                 </div>
               ) : (
                 <HistoryList depenses={historyDepenses} />

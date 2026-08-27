@@ -11,7 +11,7 @@ import {
   ModalHeader,
   Radio,
   RadioGroup,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Crown } from 'lucide-react';
 
 import { useChangerProprietaireMutation } from '../queries/groupes-partenaires.query';
@@ -151,7 +151,7 @@ export function ChangerPrincipalModal({ isOpen, onClose, groupe, userId }: Props
                 Voir ce qui va changer
               </Button>
             ) : (
-              <Button color="primary" isDisabled={!choisi} isLoading={changer.isLoading} onPress={valider}>
+              <Button color="primary" isDisabled={!choisi} isLoading={changer.isPending} onPress={valider}>
                 Désigner ce compte principal
               </Button>
             )}

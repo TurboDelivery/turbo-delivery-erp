@@ -5,7 +5,7 @@ import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { AlertTriangle, BadgeCheck, CheckCircle2, Diamond, Eye, MoreHorizontal, Pencil, PowerOff, RefreshCw, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Chip } from '@heroui/react';
+import { Chip } from '@/components/heroui';
 import {
   DropdownMenu,
   DropdownMenuContent,

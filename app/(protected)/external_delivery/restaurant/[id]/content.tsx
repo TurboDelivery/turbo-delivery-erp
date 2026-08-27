@@ -7,9 +7,10 @@ import { Clock, Package, Store } from 'lucide-react';
 import { createUrlFile } from '@/utils/createUrlFile';
 import DeliveryTools from '../../component/deliveryTools';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { getPaginationCourseExterne, getPaginationCourseExterneEnAttente } from '@/src/actions/courses.actions';
-import { Avatar, Card, CardBody, CardFooter, CardHeader, Chip, Pagination, Skeleton } from "@heroui/react";
+import { Avatar, Card, CardBody, CardFooter, CardHeader, Chip, Pagination, Skeleton } from "@/components/heroui";
 
 type SortOption = (typeof SORT_OPTIONS)[keyof typeof SORT_OPTIONS];
 
@@ -67,7 +68,11 @@ export default function Content({ initialData, delivers, restaurantId }: Props) 
     const [pageSize] = useState(10);
     const [data, setData] = useState<PaginatedResponse<CourseExterne> | null>(initialData);
     const [dataFilter, setDataFilter] = useState<CourseExterne[]>(data?.content ?? []);
-    const [isLoading, setIsLoading] = useState(!initialData);
+    // `getPaginationCourseExterne` avale l'erreur et rend `null` : une page
+    // absente vaut lecture en echec, jamais liste vide. Le squelette n'a donc
+    // plus a couvrir ce cas, c'est l'etat d'erreur qui le prend.
+    const [erreurLecture, setErreurLecture] = useState(!initialData);
+    const [isLoading, setIsLoading] = useState(false);
 
     // 🔊 Audio setup
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -123,8 +128,10 @@ export default function Content({ initialData, delivers, restaurantId }: Props) 
             setData(response);
             setDataFilter(response?.content ?? []);
             setStatusFilter('all');
+            setErreurLecture(!response);
         } catch (error) {
             console.error('Error fetching data:', error);
+            setErreurLecture(true);
         } finally {
             setIsLoading(false);
         }
@@ -140,8 +147,10 @@ export default function Content({ initialData, delivers, restaurantId }: Props) 
                 const filtered = newData?.content.filter((d) => d.statut?.toUpperCase() === statusFilter) ?? [];
                 setDataFilter(filtered);
             }
+            setErreurLecture(!newData);
         } catch (error) {
             console.error('Error refreshing data:', error);
+            setErreurLecture(true);
         }
     };
 
@@ -153,7 +162,15 @@ export default function Content({ initialData, delivers, restaurantId }: Props) 
             </div>
 
             <div>
-                {isLoading ? (
+                {erreurLecture && !data?.content.length ? (
+                    // A la place du message de vide : "aucune course trouvee"
+                    // est la reponse a un filtre, pas a un appel qui a echoue.
+                    <EtatErreur
+                        quoi="les courses de ce partenaire"
+                        onReessayer={() => fetchData(currentPage)}
+                        enCours={isLoading}
+                    />
+                ) : isLoading ? (
                     <div className="flex flex-col gap-6">
                         {[...Array(2)].map((_, index) => (
                             <Skeleton key={index} className="rounded-lg h-52" />

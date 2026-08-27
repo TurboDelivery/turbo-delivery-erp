@@ -25,7 +25,7 @@ export function useValidationStats(role: Role, chargeType: ChargeType, debut?: s
   const defaultFin = format(now, 'yyyy-MM-dd');
   const defaultDebut = format(subDays(now, 30), 'yyyy-MM-dd');
 
-  const { data, isLoading } = useValidationStatsQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useValidationStatsQuery({
     role: ROLE_TO_BACKEND[role],
     debut: debut ?? defaultDebut,
     fin: fin ?? defaultFin,
@@ -35,5 +35,7 @@ export function useValidationStats(role: Role, chargeType: ChargeType, debut?: s
     ? chargeType === 'fixe' ? data.fixes : data.variables
     : EMPTY_STATS;
 
-  return { stats, isLoading };
+  // Sans data on retombe sur EMPTY_STATS, qui affiche « 0 en attente » : indiscernable
+  // d'une file de validation vraiment vide. On remonte l'echec a l'ecran.
+  return { stats, isLoading, isFetching, isError, refetch };
 }

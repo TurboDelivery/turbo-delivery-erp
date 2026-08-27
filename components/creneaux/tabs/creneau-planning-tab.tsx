@@ -40,7 +40,9 @@ export function CreneauPlanningTab() {
 
   const previsionnel = useCreneauDashboardQuery(!isRealite ? queryParams : undefined);
   const realite = useCreneauDashboardRealiteQuery(isRealite ? queryParams : undefined);
-  const { data } = isRealite ? realite : previsionnel;
+  // On suit la query REELLEMENT affichee : le bascule previsionnel / realite
+  // change la source, donc aussi l echec a signaler et la relance a proposer.
+  const { data, isError, isFetching, refetch } = isRealite ? realite : previsionnel;
   const stat = data?.stats;
 
   const selectedSemaine = filters.semaine;
@@ -158,6 +160,9 @@ export function CreneauPlanningTab() {
         <CreneauWeeklyTable
           data={turboys}
           jourDates={weekDates}
+          isError={isError}
+          onReessayer={() => void refetch()}
+          isFetching={isFetching}
           pagination={pagination}
           onAbsenceClick={isRealite ? handleAbsenceClick : undefined}
         />

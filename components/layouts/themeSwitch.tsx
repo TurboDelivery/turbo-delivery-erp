@@ -6,7 +6,7 @@ import IconSun from '@/components/icon/icon-sun';
 import IconMoon from '@/components/icon/icon-moon';
 import IconLaptop from '@/components/icon/icon-laptop';
 import { useTheme } from 'next-themes';
-import { Button, ButtonProps } from '@heroui/react';
+import { Button, ButtonProps } from '@/components/heroui';
 
 const ThemeSwitch = ({ className, size }: { className?: string; size?: ButtonProps['size'] }) => {
   const dispatch = useDispatch();

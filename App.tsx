@@ -6,7 +6,7 @@ import { toggleRTL, toggleTheme, toggleMenu, toggleLayout, toggleAnimation, togg
 import Loading from '@/components/layouts/loading';
 import { getTranslation } from '@/i18n';
 import { I18nProvider } from '@react-aria/i18n';
-import { HeroUIProvider } from "@heroui/react";
+import { HeroUIProvider } from "@/components/heroui";
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { useRouter } from 'next/navigation';
 

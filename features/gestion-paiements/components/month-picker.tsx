@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { endOfMonth, format, parse, startOfMonth } from 'date-fns';
 
