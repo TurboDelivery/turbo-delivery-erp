@@ -3,12 +3,13 @@
 import { toast } from 'sonner';
 import { Role, User } from '@/types/models';
 import IconX from '@/components/icon/icon-x';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { useFormState, useFormStatus } from 'react-dom';
 import { updateUser } from '@/src/actions/users.actions';
 import { getAllRoles } from '@/src/actions/roles.actions';
-import React, { Fragment, useEffect, useState } from 'react';
+import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { Button, Input, Select, SelectItem } from "@/components/heroui";
 import { _createUserSchema, createUserSchema } from '@/src/schemas/users.schema';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
@@ -39,21 +40,37 @@ const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen
     );
 
     const [roles, setRoles] = useState<Role[]>([]);
+    // getAllRoles relance desormais. Sans rattrapage ici, l echec restait invisible : le
+    // selecteur affichait une liste VIDE, et le role deja porte par l utilisateur
+    // disparaissait de l ecran, comme s il n en avait pas.
+    const [erreurRoles, setErreurRoles] = useState<boolean>(false);
+    const [chargementRoles, setChargementRoles] = useState<boolean>(false);
 
     const rolesSelections = roles.map((r) => ({
         label: r.libelle,
         value: r.id,
     }));
 
-    useEffect(() => {
-        async function fetchRole() {
+    const fetchRole = useCallback(async () => {
+        // Remis a faux a chaque tentative, sinon un succes apres reessai garderait l erreur
+        setErreurRoles(false);
+        setChargementRoles(true);
+        try {
             const result = await getAllRoles();
             if (result) {
                 setRoles(result);
             }
+        } catch (error) {
+            console.error('Erreur lors du chargement des roles:', error);
+            setErreurRoles(true);
+        } finally {
+            setChargementRoles(false);
         }
-        fetchRole();
     }, []);
+
+    useEffect(() => {
+        fetchRole();
+    }, [fetchRole]);
 
     const {
         formState: { errors },
@@ -98,6 +115,9 @@ const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen
                                     <IconX />
                                 </button>
                                 <div className="bg-[#fbfbfb] py-3 text-lg font-medium ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5 dark:bg-[#121c2c] text-primary">Ajouter un utilisateur</div>
+                                {erreurRoles ? (
+                                    <EtatErreur quoi="les rôles" onReessayer={() => fetchRole()} enCours={chargementRoles} />
+                                ) : (
                                 <form action={formAction}>
                                     <input type="hidden" name="role" value={watchedRole ?? ''} />
                                     <div className="grid gap-4 p-5">
@@ -229,6 +249,7 @@ const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen
                                         </div>
                                     </div>
                                 </form>
+                                )}
                             </DialogPanel>
                         </TransitionChild>
                     </div>

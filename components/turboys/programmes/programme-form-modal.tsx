@@ -168,6 +168,17 @@ export function ProgrammeFormModal({
 
           <div className="mt-1">
             <p className="mb-2 text-sm font-medium text-default-600">Jours travaillés</p>
+            {/* getAllRestaurants relance desormais. L editeur ne montre le selecteur
+                « Postes / partenaires desservis » que si la liste est non vide : sans
+                ce message, une lecture en echec se lit comme « aucun poste a affecter »
+                et le programme part sans poste. On garde l edition des horaires. */}
+            {restaurantsQuery.isError && (
+              <EtatErreur
+                quoi="la liste des partenaires"
+                onReessayer={() => void restaurantsQuery.refetch()}
+                enCours={restaurantsQuery.isFetching}
+              />
+            )}
             <WeeklyJoursEditor value={jours} onChange={setJours} disabled={isLoading} restaurants={restaurants} />
           </div>
         </ModalBody>

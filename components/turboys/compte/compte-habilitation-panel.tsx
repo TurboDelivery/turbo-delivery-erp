@@ -255,24 +255,34 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
                 <SelectItem key="SITE_PARTNER">Site partenaire — assigné</SelectItem>
                 <SelectItem key="BIRD">BIRD — non rattaché (libre)</SelectItem>
               </Select>
-              {rattachement === 'SITE_PARTNER' && (
-                <Autocomplete
-                  label="Site partenaire"
-                  variant="bordered"
-                  isLoading={restaurantsQuery.isLoading}
-                  defaultItems={restaurants}
-                  selectedKey={sitePartnerId || null}
-                  onSelectionChange={(key) => setSitePartnerId((key as string) ?? '')}
-                  placeholder="Rechercher un restaurant…"
-                  listboxProps={{ itemClasses: { base: 'py-2 data-[hover=true]:bg-default-100' } }}
-                >
-                  {(r) => (
-                    <AutocompleteItem key={r.id} textValue={r.nom}>
-                      <span className="text-sm">{r.nom}</span>
-                    </AutocompleteItem>
-                  )}
-                </Autocomplete>
-              )}
+              {rattachement === 'SITE_PARTNER' &&
+                (restaurantsQuery.isError ? (
+                  /* getAllRestaurants relance desormais. Une liste illisible donnait un
+                     champ de recherche muet : le site restait vide, la validation restait
+                     bloquee par siteManquant, et rien ne disait que la lecture avait echoue. */
+                  <EtatErreur
+                    quoi="la liste des sites partenaires"
+                    onReessayer={() => void restaurantsQuery.refetch()}
+                    enCours={restaurantsQuery.isFetching}
+                  />
+                ) : (
+                  <Autocomplete
+                    label="Site partenaire"
+                    variant="bordered"
+                    isLoading={restaurantsQuery.isLoading}
+                    defaultItems={restaurants}
+                    selectedKey={sitePartnerId || null}
+                    onSelectionChange={(key) => setSitePartnerId((key as string) ?? '')}
+                    placeholder="Rechercher un restaurant…"
+                    listboxProps={{ itemClasses: { base: 'py-2 data-[hover=true]:bg-default-100' } }}
+                  >
+                    {(r) => (
+                      <AutocompleteItem key={r.id} textValue={r.nom}>
+                        <span className="text-sm">{r.nom}</span>
+                      </AutocompleteItem>
+                    )}
+                  </Autocomplete>
+                ))}
               <p className="col-span-full text-xs text-gray-400">
                 Le rattachement est indépendant du type de livreur : tout contrat
                 (y compris journalier / superviseur) peut être BIRD ou assigné.

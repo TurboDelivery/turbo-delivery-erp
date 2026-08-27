@@ -9,6 +9,7 @@ import { useAbility } from '@/hooks/use-ability';
 import { useLivreurs } from '@/features/tickets/hooks/use-livreurs';
 import { useCreateBonLivraison } from '@/features/tickets/queries/tickets.mutation';
 import { CreneauActifBanner } from '@/features/creneaux/components/creneau-actif-banner';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 interface TicketPageClientProps {
   restaurants: Restaurant[];
@@ -16,7 +17,7 @@ interface TicketPageClientProps {
 
 export function TicketPageClient({ restaurants }: TicketPageClientProps) {
   const ability = useAbility();
-  const { livreurs } = useLivreurs();
+  const { livreurs, isErrorLivreurs, isFetchingLivreurs, refetchLivreurs } = useLivreurs();
   const { mutate: createBonLivraisonMutation, isPending: isCreatingBonLivraison } = useCreateBonLivraison();
 
   const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
@@ -33,6 +34,19 @@ export function TicketPageClient({ restaurants }: TicketPageClientProps) {
     handleNewTicketChange,
     handleNewTicketPatch,
   } = useNewTickets({ restaurants, livreurOptions, restaurantOptions, createBonLivraisonMutation });
+
+  // Chaque cellule livreur du tableau, la carte mobile et la barre d'insertion resolvent
+  // leur libelle dans livreurOptions. Sur un echec de lecture cette liste reste vide : les
+  // tickets s'affichaient sans livreur et le selecteur annoncait "aucun livreur", soit une
+  // affectation manquante credible alors que les livreurs existent bel et bien.
+  if (isErrorLivreurs) {
+    return (
+      <>
+        <CreneauActifBanner />
+        <EtatErreur quoi="les livreurs" onReessayer={() => refetchLivreurs()} enCours={isFetchingLivreurs} />
+      </>
+    );
+  }
 
   return (
     <>

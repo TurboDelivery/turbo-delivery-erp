@@ -7,6 +7,7 @@ export function useLivreurs () {
     isLoading: isLoadingLivreurs,
     isError: isErrorLivreurs,
     refetch: refetchLivreurs,
+    isFetching: isFetchingLivreurs,
   } = useLivreursListQuery();
 
   return {
@@ -14,6 +15,8 @@ export function useLivreurs () {
     isLoadingLivreurs,
     isErrorLivreurs,
     refetchLivreurs,
+    // Expose pour bloquer le bouton Reessayer pendant la nouvelle tentative.
+    isFetchingLivreurs,
   };
 }
 

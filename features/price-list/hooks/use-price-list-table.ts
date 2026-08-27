@@ -18,7 +18,15 @@ export default function usePriceListTable() {
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams.toString());
 
-  const { data: allRestaurants = [] } = useQuery({
+  // getAllRestaurants relance desormais au lieu de rendre un tableau vide. Sans remonter
+  // son echec, le selecteur de restaurant restait muet, aucun selectedKey n'etait pose,
+  // et l'ecran affichait "Aucun frais de livraison" alors que les grilles existent.
+  const {
+    data: allRestaurants = [],
+    isError: isRestaurantsError,
+    isFetching: isRestaurantsFetching,
+    refetch: refetchRestaurants,
+  } = useQuery({
     queryKey: ['restaurants', 'all'],
     queryFn: () => getAllRestaurants(),
     staleTime: 5 * 60 * 1000,
@@ -83,6 +91,13 @@ export default function usePriceListTable() {
     setEditModal({ open: false, selectedFee: null });
   }, []);
 
+  // Un seul bouton Reessayer pour les deux lectures. Relancer les frais sans restaurant
+  // selectionne appellerait l'endpoint avec un identifiant nul, on s'en abstient.
+  const reessayer = () => {
+    void refetchRestaurants();
+    if (selectedKey) void refetch();
+  };
+
   return {
     selectedKey,
     tabs,
@@ -93,11 +108,13 @@ export default function usePriceListTable() {
     openEditModal,
     closeEditModal,
     isLoading,
-    isFetching,
+    isFetching: isFetching || isRestaurantsFetching,
     // Sans isError/refetch remontes ici, l'ecran ne peut pas distinguer
     // "ce restaurant n'a aucun frais" d'un appel qui a echoue.
-    isError,
-    refetch,
+    // Les deux lectures sont fusionnees sous un seul drapeau: l'ecran est faux des que
+    // l'une des deux tombe, et l'appelant n'a qu'une zone de donnees a remplacer.
+    isError: isError || isRestaurantsError,
+    refetch: reessayer,
     pagination: {
       currentPage: currentPage + 1,
       totalPages: meta.totalPages,

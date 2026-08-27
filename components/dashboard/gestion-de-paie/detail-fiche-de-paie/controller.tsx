@@ -6,9 +6,17 @@ import { useEffect, useState } from "react";
 export function useInitierPaiementController(details?: PaieParLivreur, isOpen?: boolean) {
     const [detailFichePaie, setDetailFichePaie] = useState<FichePaieDetailVM | null>();
     const [gainsHedomadaires, setGainsHedomadaires] = useState<GainHebdomadaireVm | undefined>()
+    // Les deux lectures relancent desormais au lieu de rendre null : sans cet etat,
+    // l'echec retombait sur le meme rendu que "aucun detail" et la fiche paraissait
+    // vide, alors que le gain a payer existe et n'a pas pu etre lu.
+    const [erreur, setErreur] = useState(false);
+    const [chargement, setChargement] = useState(false);
     const initierPaiementClosure = useDisclosure();
 
     const fetchDetailFichePaie = async () => {
+        // remis a faux a chaque tentative pour ne pas afficher une panne resolue
+        setErreur(false);
+        setChargement(true);
         try {
             if (details && details.id) {
                 const result = await getFichePaieById(details.id);
@@ -18,6 +26,10 @@ export function useInitierPaiementController(details?: PaieParLivreur, isOpen?: 
                 setDetailFichePaie(result)
             }
         } catch (error) {
+            console.error(error);
+            setErreur(true);
+        } finally {
+            setChargement(false);
         }
     }
 
@@ -37,6 +49,9 @@ export function useInitierPaiementController(details?: PaieParLivreur, isOpen?: 
         creneauDePaieClosure,
         detailFichePaie,
         onpenCrennauxDialog,
-        gainsHedomadaires
+        gainsHedomadaires,
+        erreur,
+        chargement,
+        reessayer: fetchDetailFichePaie
     }
 }

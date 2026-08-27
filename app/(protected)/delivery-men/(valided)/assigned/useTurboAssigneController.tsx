@@ -6,7 +6,7 @@ import { PaginatedResponse } from '@/types';
 import { LivreurStatutVM, Restaurant, TypeEnum } from '@/types/models';
 import { useDisclosure } from '@/components/heroui';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 
 export function useTurboAssigneController(initialData: PaginatedResponse<LivreurStatutVM> | null, restaurants: Restaurant[] | null) {
@@ -26,29 +26,41 @@ export function useTurboAssigneController(initialData: PaginatedResponse<Livreur
   const [isError, setIsError] = useState(!initialData);
   const [updateLivreurId, setUpdateLivreurId] = useState('');
   const [isFiltering, setIsFiltering] = useState(false);
+  // Echec propre au jeu complet qui alimente la recherche. Distinct de isError, qui
+  // couvre la lecture paginee : un echec de recherche ne doit pas effacer un echec
+  // de page, ni l'inverse.
+  const [erreurFiltre, setErreurFiltre] = useState(false);
 
   // Charger toutes les données pour le filtrage côté client
-  useEffect(() => {
-    const loadAllData = async () => {
-      if (!searchKey.trim()) {
-        setIsFiltering(false);
-        return;
-      }
-      
-      setIsFiltering(true);
-      try {
-        // Charger toutes les données pour le filtrage (vous pouvez ajuster cette logique)
-        const allData = await getToutLivreurStatusAssigners(0, 1000); // Récupérer un grand nombre
-        if (allData?.content) {
-          setAllDataForFilter(allData.content);
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement des données pour le filtrage:', error);
-      }
-    };
+  const chargerToutPourFiltre = useCallback(async () => {
+    if (!searchKey.trim()) {
+      setIsFiltering(false);
+      setErreurFiltre(false);
+      return;
+    }
 
-    loadAllData();
+    setIsFiltering(true);
+    // Chaque tentative repart d'un etat sain, sinon l'echec precedent resterait
+    // colle a une recherche qui aboutit.
+    setErreurFiltre(false);
+    try {
+      // Charger toutes les données pour le filtrage (vous pouvez ajuster cette logique)
+      const allData = await getToutLivreurStatusAssigners(0, 1000); // Récupérer un grand nombre
+      if (allData?.content) {
+        setAllDataForFilter(allData.content);
+      }
+    } catch (error) {
+      // L'action serveur releve desormais l'exception. Sans cet etat, la recherche
+      // rendait une liste vide, qui se lit « aucun livreur ne correspond » alors que
+      // la lecture avait echoue.
+      setErreurFiltre(true);
+      console.error('Erreur lors du chargement des données pour le filtrage:', error);
+    }
   }, [searchKey]);
+
+  useEffect(() => {
+    chargerToutPourFiltre();
+  }, [chargerToutPourFiltre]);
 
   // Filtrage des données quand on a une recherche
   const filteredData = useMemo(() => {
@@ -232,9 +244,10 @@ export function useTurboAssigneController(initialData: PaginatedResponse<Livreur
     setCurrentPage: handlePageChange,
     pageSize,
     isLoading,
-    isError,
-    // Relance la page couramment affichee, pas la premiere.
-    reessayer: () => fetchData(currentPage),
+    isError: isError || erreurFiltre,
+    // Relance ce qui alimente reellement l'ecran : le jeu de recherche quand un
+    // filtre est actif, sinon la page couramment affichee.
+    reessayer: () => (searchKey.trim() ? chargerToutPourFiltre() : fetchData(currentPage)),
     restaurants,
     updateLivreurId,
     setUpdateLivreurId,

@@ -13,7 +13,13 @@ export const useComptesEnAttenteQuery = () =>
     queryKey: ['comptes-en-attente'],
     queryFn: async () => {
       const page = await getDeliveryMenNoValidated(0, 1);
-      return page?.totalElements ?? 0;
+
+      // L'action relance desormais en cas de panne : le repli a zero ne couvre plus
+      // un echec de lecture, seulement une reponse sans corps, qu'on signale au lieu
+      // d'annoncer "0 compte en attente" sur la carte du dashboard.
+      if (!page) throw new Error('Comptes en attente : reponse vide du service livreur');
+
+      return page.totalElements;
     },
     staleTime: 60 * 1000,
     refetchOnWindowFocus: true,
