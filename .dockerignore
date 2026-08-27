@@ -6,6 +6,15 @@ README.md
 .git
 .env
 .env.*
+# Le motif `.env*` n'attrape PAS un nom SANS point initial. `env.local` (c'est la
+# convention de ce projet) passait donc au travers, et `COPY . .` du Dockerfile
+# l'embarquait dans l'etage de build. Sans consequence aujourd'hui — la CI part
+# d'un checkout git, qui ne contient pas les fichiers non suivis, et l'image finale
+# ne recopie que .next/standalone, public et .next/static — mais le piege tient a
+# un caractere pres, et c'est exactement ainsi qu'un fichier de configuration a
+# atteint le depot le 2025-07-22.
+env.local
+env.*.local
 .github
 .claude
 

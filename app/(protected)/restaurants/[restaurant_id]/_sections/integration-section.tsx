@@ -30,6 +30,7 @@ import {
   ArrowUpRight,
   CheckCircle2,
   Eye,
+  EyeOff,
   KeyRound,
   Pencil,
   Plus,
@@ -406,6 +407,15 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
 
   const apiKey = cleApi?.apiKey ?? '';
 
+  // La cle etait affichee EN CLAIR des l'ouverture de la fiche : lisible par-dessus
+  // l'epaule, sur un ecran partage, et dans toute capture de la page. Elle est
+  // masquee par defaut, la reveler devient un geste explicite. Le bouton « copier »
+  // du Snippet continue de fonctionner sans rien reveler, puisqu'il lit `codeString`.
+  const [cleVisible, setCleVisible] = useState(false);
+  const cleMasquee = apiKey
+    ? `${apiKey.slice(0, 4)}${'•'.repeat(Math.max(apiKey.length - 8, 8))}${apiKey.slice(-4)}`
+    : '';
+
   function openAdd() {
     setEditing(null);
     form.onOpen();
@@ -435,9 +445,22 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
         {cleLoading ? (
           <Spinner size="sm" />
         ) : apiKey ? (
-          <Snippet symbol="" variant="bordered" className="w-full" codeString={apiKey}>
-            <span className="font-mono text-xs break-all">{apiKey}</span>
-          </Snippet>
+          <div className="flex items-center gap-2">
+            <Snippet symbol="" variant="bordered" className="min-w-0 flex-1" codeString={apiKey}>
+              <span className="font-mono text-xs break-all">{cleVisible ? apiKey : cleMasquee}</span>
+            </Snippet>
+            <Tooltip content={cleVisible ? 'Masquer la clé' : 'Afficher la clé'} size="sm">
+              <Button
+                isIconOnly
+                size="sm"
+                variant="flat"
+                aria-label={cleVisible ? 'Masquer la clé API' : 'Afficher la clé API'}
+                onPress={() => setCleVisible((v) => !v)}
+              >
+                {cleVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </Tooltip>
+          </div>
         ) : (
           <p className="text-xs text-gray-400">Aucune clé API pour ce partenaire.</p>
         )}
