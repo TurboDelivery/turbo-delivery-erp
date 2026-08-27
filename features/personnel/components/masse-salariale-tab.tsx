@@ -290,7 +290,7 @@ export function MasseSalarialeTab() {
             <Button variant="light" size="sm" onPress={() => setConfirmation(false)}>
               Annuler
             </Button>
-            <Button color="primary" size="sm" isLoading={cloture.isLoading} onPress={confirmerCloture}>
+            <Button color="primary" size="sm" isLoading={cloture.isPending} onPress={confirmerCloture}>
               Clôturer définitivement
             </Button>
           </ModalFooter>

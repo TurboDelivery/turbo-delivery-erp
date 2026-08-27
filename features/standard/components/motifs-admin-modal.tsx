@@ -67,7 +67,7 @@ function MotifRow({ motif }: { motif: IIncidentMotif }) {
         isIconOnly
         aria-label="Enregistrer"
         isDisabled={!dirty || !libelle.trim()}
-        isLoading={modifier.isLoading}
+        isLoading={modifier.isPending}
         onPress={() =>
           modifier.mutate({
             code: motif.code,
@@ -172,7 +172,7 @@ export function MotifsAdminModal({ isOpen, onOpenChange }: Props) {
                     size="sm"
                     startContent={<Plus className="h-4 w-4" />}
                     isDisabled={!peutCreer}
-                    isLoading={creer.isLoading}
+                    isLoading={creer.isPending}
                     onPress={ajouter}
                   >
                     Ajouter

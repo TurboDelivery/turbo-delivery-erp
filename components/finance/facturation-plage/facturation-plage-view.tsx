@@ -162,7 +162,7 @@ export function FacturationPlageView() {
 
   const conflits = apercu?.conflits ?? [];
   const plageComplete = Boolean(restaurantId && debut && fin);
-  const enCours = generer.isLoading || reprendre.isLoading;
+  const enCours = generer.isPending || reprendre.isPending;
 
   /**
    * Le mode creneau reste ce qu'il a toujours ete : une semaine calendaire, du lundi au
@@ -516,7 +516,7 @@ export function FacturationPlageView() {
               color="primary"
               startContent={<CheckCircle2 className="h-4 w-4" />}
               isDisabled={!apercu.generable}
-              isLoading={generer.isLoading}
+              isLoading={generer.isPending}
               onPress={lancerGeneration}
             >
               {apercu.composantes.length > 1
@@ -562,7 +562,7 @@ export function FacturationPlageView() {
             <Button variant="light" onPress={() => setRepriseOuverte(false)}>
               Annuler
             </Button>
-            <Button color="primary" isLoading={reprendre.isLoading} onPress={lancerReprise}>
+            <Button color="primary" isLoading={reprendre.isPending} onPress={lancerReprise}>
               Enregistrer la reprise
             </Button>
           </ModalFooter>

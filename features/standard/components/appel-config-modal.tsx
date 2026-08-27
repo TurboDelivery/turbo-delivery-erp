@@ -193,12 +193,12 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
             </ModalBody>
 
             <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={modifier.isLoading}>
+              <Button variant="light" onPress={onClose} isDisabled={modifier.isPending}>
                 Annuler
               </Button>
               <Button
                 color="primary"
-                isLoading={modifier.isLoading}
+                isLoading={modifier.isPending}
                 isDisabled={repondants.length === 0}
                 onPress={enregistrer}
               >

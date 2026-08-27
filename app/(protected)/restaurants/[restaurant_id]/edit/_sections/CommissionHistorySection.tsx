@@ -301,7 +301,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                 <Button variant="flat" onPress={onClose} type="button">
                   Annuler
                 </Button>
-                <Button color="primary" onPress={onSubmit} isLoading={mutation.isLoading} type="button">
+                <Button color="primary" onPress={onSubmit} isLoading={mutation.isPending} type="button">
                   Enregistrer
                 </Button>
               </ModalFooter>

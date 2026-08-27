@@ -161,7 +161,7 @@ export function CycleFacturationView() {
             </TableHeader>
             <TableBody emptyContent="Aucun partenaire ne correspond à cette recherche.">
               {partenaires.map((p) => {
-                const enCours = ligneEnCours === p.restaurantId && enregistrer.isLoading;
+                const enCours = ligneEnCours === p.restaurantId && enregistrer.isPending;
                 const cycleAffiche = (p.cycleChoisi ?? p.cycleHistorique ?? '') as CycleFacturation;
                 return (
                   <TableRow key={p.restaurantId}>

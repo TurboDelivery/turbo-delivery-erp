@@ -20,7 +20,7 @@ export default function ZoneActifSwitch({ fraisId, actif }: ZoneActifSwitchProps
       color="success"
       aria-label={isActif ? 'Désactiver la zone' : 'Activer la zone'}
       isSelected={isActif}
-      isDisabled={mutation.isLoading}
+      isDisabled={mutation.isPending}
       onValueChange={(value) => mutation.mutate({ fraisId, actif: value })}
     />
   );

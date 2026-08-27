@@ -249,13 +249,13 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
             </ModalBody>
 
             <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={changerStatut.isLoading}>
+              <Button variant="light" onPress={onClose} isDisabled={changerStatut.isPending}>
                 Fermer
               </Button>
               {canUpdate && action && (
                 <Button
                   color="primary"
-                  isLoading={changerStatut.isLoading}
+                  isLoading={changerStatut.isPending}
                   isDisabled={!userId}
                   onPress={() => appliquerTransition(action.next)}
                 >

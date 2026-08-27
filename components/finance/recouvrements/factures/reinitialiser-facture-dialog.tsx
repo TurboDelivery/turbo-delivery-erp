@@ -21,7 +21,7 @@ interface ReinitialiserFactureDialogProps {
 }
 
 export const ReinitialiserFactureDialog = ({ facture, open, onOpenChange }: ReinitialiserFactureDialogProps) => {
-  const { mutate: reinitialiserFacture, isLoading } = useReinitialiserFactureMutation();
+  const { mutate: reinitialiserFacture, isPending: isLoading } = useReinitialiserFactureMutation();
 
   const handleReset = () => {
     reinitialiserFacture(facture.id, {

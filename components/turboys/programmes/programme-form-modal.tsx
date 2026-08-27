@@ -67,7 +67,7 @@ export function ProgrammeFormModal({
 
   const creer = useCreerProgrammeMutation(() => onOpenChange(false));
   const modifier = useModifierProgrammeMutation(() => onOpenChange(false));
-  const isLoading = creer.isLoading || modifier.isLoading;
+  const isLoading = creer.isPending || modifier.isPending;
 
   const onSubmit = () => {
     if (isEdit) {

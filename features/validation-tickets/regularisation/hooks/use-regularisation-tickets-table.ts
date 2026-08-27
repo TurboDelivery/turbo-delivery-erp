@@ -62,8 +62,8 @@ export default function useRegularisationTicketsTable() {
     setPage(0);
   }, []);
 
-  const { mutate: approuver, isLoading: isApproving } = useApprouverRegularisationMutation();
-  const { mutate: rejeter, isLoading: isRejecting } = useRejeterRegularisationMutation();
+  const { mutate: approuver, isPending: isApproving } = useApprouverRegularisationMutation();
+  const { mutate: rejeter, isPending: isRejecting } = useRejeterRegularisationMutation();
   const { authenticatedIds, handleAuthentifier } = useTicketAuthentication();
 
   const [approvingId, setApprovingId] = useState<string | null>(null);

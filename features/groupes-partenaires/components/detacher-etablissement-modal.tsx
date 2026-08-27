@@ -56,8 +56,8 @@ export function DetacherEtablissementModal({ isOpen, onClose, groupe, etablissem
           <Button
             color="danger"
             startContent={<Unlink className="h-4 w-4" />}
-            isDisabled={recapitulatif.blocages.length > 0 || detacher.isLoading}
-            isLoading={detacher.isLoading}
+            isDisabled={recapitulatif.blocages.length > 0 || detacher.isPending}
+            isLoading={detacher.isPending}
             onPress={() => detacher.mutate(etablissement.restaurantId, { onSuccess: onClose })}
           >
             Détacher l&apos;établissement

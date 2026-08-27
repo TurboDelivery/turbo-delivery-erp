@@ -139,14 +139,14 @@ export function AffecterCourseModal({ livreur, isOpen, onOpenChange }: Props) {
               )}
             </ModalBody>
             <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={assigner.isLoading}>
+              <Button variant="light" onPress={onClose} isDisabled={assigner.isPending}>
                 Annuler
               </Button>
               <Button
                 color="primary"
                 startContent={<PackageCheck className="h-4 w-4" />}
                 isDisabled={!selectedId || !enFile}
-                isLoading={assigner.isLoading}
+                isLoading={assigner.isPending}
                 onPress={confirmer}
               >
                 Affecter

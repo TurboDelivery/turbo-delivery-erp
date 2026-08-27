@@ -138,7 +138,7 @@ export function ConsignerAppelModal({ restaurantId, restaurantNom, isOpen, onOpe
               </Button>
               <Button
                 color="primary"
-                isLoading={consigner.isLoading}
+                isLoading={consigner.isPending}
                 isDisabled={!restaurantId}
                 onPress={enregistrer}
               >

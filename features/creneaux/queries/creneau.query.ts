@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient , keepPreviousData} from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { creneauAPI, getCreneauActifApi, getCreneauxListApi, setCreneauActifApi } from '../apis/creneau.api';
 import { ICreneauParams, ICreneauAnalyseComparaison, ICreneauDashboardParams, ICreneauActifVm } from '../types/creneau.types';
@@ -89,7 +89,7 @@ export const useCreneauxSemaineQuery = (params?: ICreneauParams) => {
     queryFn: () => creneauAPI.obtenirCreneauxSemaine(params),
     staleTime: 30_000,
     refetchOnMount: true,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
@@ -158,7 +158,7 @@ export const useCreneauDashboardQuery = (params?: ICreneauDashboardParams) => {
     queryFn: () => creneauAPI.obtenirDashboard(params),
     staleTime: 30_000,
     refetchOnMount: true,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {
@@ -176,7 +176,7 @@ export const useCreneauDashboardRealiteQuery = (params?: ICreneauDashboardParams
     queryFn: () => creneauAPI.obtenirDashboardRealite(params),
     staleTime: 30_000,
     refetchOnMount: true,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   useEffect(() => {

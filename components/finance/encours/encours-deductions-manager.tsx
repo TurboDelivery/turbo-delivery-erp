@@ -102,7 +102,7 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
                   <Button
                     size="sm"
                     color="primary"
-                    isLoading={creer.isLoading || modifier.isLoading}
+                    isLoading={creer.isPending || modifier.isPending}
                     onPress={submit}
                   >
                     {editingId ? 'Enregistrer' : 'Ajouter'}
@@ -202,7 +202,7 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
                 <Button
                   color="danger"
                   isDisabled={codeSecret.length !== 4}
-                  isLoading={supprimer.isLoading}
+                  isLoading={supprimer.isPending}
                   onPress={confirmerSuppression}
                 >
                   Supprimer

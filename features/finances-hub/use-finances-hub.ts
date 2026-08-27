@@ -78,7 +78,7 @@ export function useFinancesHub(
     renta: rentaQ.data,
     isLoading: fixesQ.isLoading || variablesQ.isLoading,
     isError: fixesQ.isError || variablesQ.isError,
-    busy: actFixe.isLoading || actVar.isLoading,
+    busy: actFixe.isPending || actVar.isPending,
     runAction,
   };
 }

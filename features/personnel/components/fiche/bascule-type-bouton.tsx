@@ -61,7 +61,7 @@ export function BasculeTypeBouton({ employeId, livreurId, typeActuel }: Props) {
           <Button size="sm" variant="light" onPress={() => setOuvert(false)}>
             Annuler
           </Button>
-          <Button size="sm" color="primary" isLoading={bascule.isLoading} onPress={confirmer}>
+          <Button size="sm" color="primary" isLoading={bascule.isPending} onPress={confirmer}>
             Confirmer
           </Button>
         </div>

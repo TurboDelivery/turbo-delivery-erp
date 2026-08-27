@@ -41,8 +41,9 @@ export default function useApprobationFinale() {
     fetchNextPage,
   } = useInfiniteQuery({
     queryKey: ['grille-paiement-approbation', resolvedCreneauId] as const,
-    queryFn: ({ pageParam = 0 }) =>
+    queryFn: ({ pageParam }) =>
       getGrillePaiementApi({ creneauId: resolvedCreneauId!, page: pageParam as number }),
+  initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       if (!lastPage) return undefined;
       const { number, totalPages } = lastPage.lignes;

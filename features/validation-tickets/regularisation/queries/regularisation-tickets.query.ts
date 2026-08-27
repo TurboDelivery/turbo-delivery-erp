@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery , keepPreviousData} from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { StatutControle } from '@/types/statut-controle.enum';
 import { regularisationKeyQuery } from './index.query';
@@ -38,7 +38,7 @@ export const useRegularisationTicketsQuery = (params: RegularisationTicketsQuery
     },
     staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   React.useEffect(() => {

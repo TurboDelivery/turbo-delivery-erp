@@ -40,7 +40,7 @@ const formatJour = (d?: string) => {
 };
 
 export const SupprimerFactureDialog = ({ facture, open, onOpenChange }: SupprimerFactureDialogProps) => {
-  const { mutate: supprimerFacture, isLoading } = useSupprimerFactureMutation();
+  const { mutate: supprimerFacture, isPending: isLoading } = useSupprimerFactureMutation();
 
   // RG-06 / §5.3 — on demande au serveur ce que la suppression va emporter AVANT de
   // proposer de confirmer. Sans ça, supprimer une facture de frais laissait sa jumelle

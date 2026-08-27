@@ -90,8 +90,8 @@ export function ProgrammeApercuModal({ programme, annee, semaine, isOpen, onOpen
               <Button
                 color="primary"
                 isDisabled={!programme}
-                isLoading={envoyer.isLoading}
-                startContent={!envoyer.isLoading && <Send className="h-4 w-4" />}
+                isLoading={envoyer.isPending}
+                startContent={!envoyer.isPending && <Send className="h-4 w-4" />}
                 onPress={() => programme && envoyer.mutate(programme.id)}
               >
                 Envoyer au livreur

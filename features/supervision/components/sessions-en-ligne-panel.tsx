@@ -233,7 +233,7 @@ export function SessionsEnLignePanel({ userId, peutForcerDeconnexion, enregistre
                     variant="light"
                     color="danger"
                     onPress={() => setADeconnecter(session)}
-                    isDisabled={forcer.isLoading}
+                    isDisabled={forcer.isPending}
                   >
                     Forcer la déconnexion
                   </Button>
@@ -276,7 +276,7 @@ export function SessionsEnLignePanel({ userId, peutForcerDeconnexion, enregistre
             <Button variant="light" size="sm" onPress={() => setADeconnecter(null)}>
               Annuler
             </Button>
-            <Button color="danger" size="sm" isLoading={forcer.isLoading} onPress={confirmerDeconnexion}>
+            <Button color="danger" size="sm" isLoading={forcer.isPending} onPress={confirmerDeconnexion}>
               Forcer la déconnexion
             </Button>
           </ModalFooter>

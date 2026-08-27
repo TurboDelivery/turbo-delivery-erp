@@ -151,7 +151,7 @@ export function ChangerPrincipalModal({ isOpen, onClose, groupe, userId }: Props
                 Voir ce qui va changer
               </Button>
             ) : (
-              <Button color="primary" isDisabled={!choisi} isLoading={changer.isLoading} onPress={valider}>
+              <Button color="primary" isDisabled={!choisi} isLoading={changer.isPending} onPress={valider}>
                 Désigner ce compte principal
               </Button>
             )}

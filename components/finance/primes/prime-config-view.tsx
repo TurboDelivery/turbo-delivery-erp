@@ -71,7 +71,7 @@ export function PrimeConfigView() {
         <Button
           color="primary"
           startContent={<Save className="h-4 w-4" />}
-          isLoading={update.isLoading}
+          isLoading={update.isPending}
           onPress={() => update.mutate(form)}
         >
           Enregistrer

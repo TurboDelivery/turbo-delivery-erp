@@ -210,7 +210,7 @@ export function DeclarationContratAction({
             <Button size="sm" variant="light" onPress={() => setOuvert(false)}>
               Annuler
             </Button>
-            <Button size="sm" color="primary" isLoading={mutation.isLoading} onPress={enregistrer}>
+            <Button size="sm" color="primary" isLoading={mutation.isPending} onPress={enregistrer}>
               Enregistrer
             </Button>
           </ModalFooter>

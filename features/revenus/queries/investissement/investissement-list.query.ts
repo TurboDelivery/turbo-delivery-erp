@@ -1,5 +1,5 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery , keepPreviousData} from '@tanstack/react-query';
 import getQueryClient from '@/lib/get-query-client';
 import { investissementKeyQuery } from './index.query';
 import { toast } from 'sonner';
@@ -23,7 +23,7 @@ export const investissementListQueryOption = (investissementParamsDTO: IInvestis
         refetchOnWindowFocus: false, // Ne pas refetch lors du focus de la fenêtre
         refetchOnMount: true, // Refetch lors du mount
         // Ajoutez ces options pour mieux gérer les re-renders
-        keepPreviousData: true,
+        placeholderData: keepPreviousData,
         retry: 1,
     };
 };
