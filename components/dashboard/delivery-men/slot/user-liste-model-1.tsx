@@ -6,7 +6,7 @@ import { LivreurBird } from '@/types/creneau-bird';
 import { IconPointFilled } from '@tabler/icons-react';
 import DropDownAction from './dropDownAction';
 import progresseBare from '../progression/progression-barre';
-import { Avatar } from '@heroui/react';
+import { Avatar } from '@/components/heroui';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { formatDate } from '@/utils/date-formate';
 

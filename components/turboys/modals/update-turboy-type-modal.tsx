@@ -13,7 +13,7 @@ import {
   Select,
   SelectItem,
   Input,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { ITurboy, TurboyType } from '@/features/turboys/types/turboys.types';
 import { useUpdateTurboyTypeMutation } from '@/features/turboys/queries/turboy.mutations';
 import { UpdateTurboyTypeSchema, UpdateTurboyTypeDTO } from '@/features/turboys/schemas/turboy.schema';

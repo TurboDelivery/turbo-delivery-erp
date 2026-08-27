@@ -10,7 +10,7 @@ import {
   ModalFooter,
   ModalHeader,
   useDisclosure,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Lock, Pencil, Plus, Trash2 } from 'lucide-react';
 import {
   useDeductionsQuery,

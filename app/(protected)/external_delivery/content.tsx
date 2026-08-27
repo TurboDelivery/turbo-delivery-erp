@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Chip, Pagination, Skeleton } from '@heroui/react';
+import { Chip, Pagination, Skeleton } from '@/components/heroui';
 
 import { PaginatedResponse } from '@/types';
 import { CourseExterne, LivreurDisponible } from '@/types/models';

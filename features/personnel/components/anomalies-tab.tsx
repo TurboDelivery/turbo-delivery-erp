@@ -13,7 +13,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { ArrowRight, Download } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';

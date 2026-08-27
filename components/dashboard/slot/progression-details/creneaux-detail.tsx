@@ -1,5 +1,5 @@
 import { CreneauID } from '@/types/creneau-byId';
-import { Skeleton } from '@heroui/react';
+import { Skeleton } from '@/components/heroui';
 import { useState } from 'react';
 
 export default function CreneauxDetail({ dataCreneau }: { dataCreneau: CreneauID[] | null }) {

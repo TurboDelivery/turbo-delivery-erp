@@ -12,7 +12,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Ear, Phone, PhoneIncoming, PhoneOutgoing } from 'lucide-react';
 import {
   ContexteAppel,

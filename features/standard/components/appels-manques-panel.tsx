@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Button, Spinner } from '@heroui/react';
+import { Button, Spinner } from '@/components/heroui';
 import { PhoneCall, PhoneMissed } from 'lucide-react';
 
 import { IAppelLog, useAppelsQuery } from '@/features/standard';

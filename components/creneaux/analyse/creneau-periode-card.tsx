@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody, Divider } from '@heroui/react';
+import { Card, CardBody, Divider } from '@/components/heroui';
 import { TrendingUp } from 'lucide-react';
 
 interface CreneauPeriodeCardProps {

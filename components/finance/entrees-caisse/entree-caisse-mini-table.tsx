@@ -8,7 +8,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';

@@ -10,7 +10,7 @@ import {
   Select,
   SelectItem,
   Spinner,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { useQuery } from '@tanstack/react-query';
 import { useTurboyQuery } from '@/features/turboys/queries/turboy-list.query';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';

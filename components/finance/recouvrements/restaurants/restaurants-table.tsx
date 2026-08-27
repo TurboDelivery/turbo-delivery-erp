@@ -1,6 +1,6 @@
 'use client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { flexRender } from '@tanstack/react-table';
 import React from 'react';
 import { restaurantRecouvrementTableColumns } from '@/components/finance/recouvrements/restaurants/restaurant-recouvrement-table-columns';

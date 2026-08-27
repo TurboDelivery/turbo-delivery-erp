@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Button, Chip } from '@heroui/react';
+import { Button, Chip } from '@/components/heroui';
 import { ArrowRight, CheckCircle2, Store } from 'lucide-react';
 import { Restaurant } from '@/types/models';
 

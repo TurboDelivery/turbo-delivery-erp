@@ -1,5 +1,5 @@
 'use client';
-import { Tooltip } from '@heroui/react';
+import { Tooltip } from '@/components/heroui';
 import { IconEdit } from '@tabler/icons-react';
 import { useCallback } from 'react';
 import { DeliveryFee } from '@/types/price-list';

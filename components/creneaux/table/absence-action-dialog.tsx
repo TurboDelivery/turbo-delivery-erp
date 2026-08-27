@@ -9,7 +9,7 @@ import {
   ModalFooter,
   Button,
   Textarea,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { AlertTriangle, Clock } from 'lucide-react';
 import { useJustifierAbsenceMutation, useAccuserRetardMutation } from '@/features/creneaux/mutations/index.query';
 import { Can } from '@/components/auth/Can';

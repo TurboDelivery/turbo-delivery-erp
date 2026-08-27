@@ -8,7 +8,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 
 import { IRemunerationHistorique } from '@/features/personnel/types/personnel-historisation.types';
 import {

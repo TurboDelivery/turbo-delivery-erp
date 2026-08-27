@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Input } from '@heroui/react';
+import { Input } from '@/components/heroui';
 import { Search, Users } from 'lucide-react';
 
 import TraficLivreurList from '@/features/trafic/components/trafic-livreur-list';

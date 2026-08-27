@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { useRecouvrementTable } from '@/features/recouvrements/hooks/use-recouvrement-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/table';
-import { Pagination } from '@heroui/react';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Pagination } from '@/components/heroui';
 import { flexRender } from '@tanstack/react-table';
 import { RestaurantSelect } from '../common/restaurant-select';
 import { CreerRecouvrementModal } from '@/features/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';

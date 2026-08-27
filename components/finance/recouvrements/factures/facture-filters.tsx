@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Select, SelectItem } from '@heroui/react';
+import { Select, SelectItem } from '@/components/heroui';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';

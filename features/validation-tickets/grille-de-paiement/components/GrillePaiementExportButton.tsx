@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { getGrillePaiementApi } from '../apis/grille-paiement.api';

@@ -1,7 +1,7 @@
 'use client';
 
 import { notFound } from 'next/navigation';
-import { Skeleton } from '@heroui/react';
+import { Skeleton } from '@/components/heroui';
 import FactureDetailView from '@/components/finance/responsable-financier/facture-detail-view';
 import { useFactureRFQuery } from '@/features/responsable-financier';
 

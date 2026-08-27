@@ -13,7 +13,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 
 import { CalendarDays, Clock, Gauge, Percent, UserCheck, UserX } from 'lucide-react';
 

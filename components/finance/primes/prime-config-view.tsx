@@ -11,7 +11,7 @@ import {
   SelectItem,
   Spinner,
   Switch,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Coins, Percent, Save, Trophy } from 'lucide-react';
 import {
   IPrimeConfig,

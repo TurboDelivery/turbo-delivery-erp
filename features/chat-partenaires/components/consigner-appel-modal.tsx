@@ -12,7 +12,7 @@ import {
   Radio,
   RadioGroup,
   Textarea,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { PhoneCall, PhoneMissed } from 'lucide-react';
 
 import { useConsignerAppelMutation } from '../queries/chat-partenaires.query';

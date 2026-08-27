@@ -8,7 +8,7 @@ import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Button as HButton, Checkbox } from '@heroui/react';
+import { Button as HButton, Checkbox } from '@/components/heroui';
 import { GitMerge, MoreHorizontal } from 'lucide-react';
 import { CategorieDetailModal } from '@/features/depenses/components/depense-list/detail/categorie-detail';
 import { ModifierCategorieModal } from '@/features/depenses/components/modifier/modifier-categorie-modal';

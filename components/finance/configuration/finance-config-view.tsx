@@ -11,7 +11,7 @@ import {
   SelectItem,
   Spinner,
   Switch,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Banknote, Plus, Save, Settings2, ShieldCheck, Trash2, TrendingUp } from 'lucide-react';
 import {
   IModuleConfig,

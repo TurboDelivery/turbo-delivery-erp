@@ -8,7 +8,7 @@ import { EditEmployeeModal } from '@/components/personnel/edit-employee-modal';
 import { RequestManagement } from '@/components/personnel/request-management';
 import { IEmployee } from '@/features/personnel/types/types';
 import { useAjouterEmployeMutation, useModifierEmployeMutation, useSupprimerEmployeMutation, useSyncJournaliersMutation } from '@/features/personnel/mutations/employee.mutation';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { RefreshCw } from 'lucide-react';
 import EmployeeTableNew from '@/components/personnel/employee-table/index';
 import DeductionTabContents from '@/components/personnel/deductions/deduction-tab-contents';

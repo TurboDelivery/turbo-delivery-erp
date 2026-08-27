@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button, Chip, Spinner } from '@heroui/react';
+import { Button, Chip, Spinner } from '@/components/heroui';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, ExternalLink, Undo2 } from 'lucide-react';
 

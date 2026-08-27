@@ -1,7 +1,7 @@
 'use client';
 
 import { AlertCircle, TrendingDown } from 'lucide-react';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { ICreneauAlerte } from '@/features/creneaux/types/creneau.types';
 
 interface CreneauAlerteProps {

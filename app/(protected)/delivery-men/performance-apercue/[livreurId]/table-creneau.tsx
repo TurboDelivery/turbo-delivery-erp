@@ -10,7 +10,7 @@ import {
     TableRow,
     TableCell,
     getKeyValue,
-  } from "@heroui/react";
+  } from "@/components/heroui";
 import progresseBare2 from "@/components/dashboard/delivery-men/progression/progression-barre2";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import progresseBarePerformance from "@/components/dashboard/delivery-men/performance-creneau/progression-bare-performance";

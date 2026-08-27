@@ -11,7 +11,7 @@ import {
   ModalHeader,
   Select,
   SelectItem,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { useSession } from 'next-auth/react';
 import { ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';

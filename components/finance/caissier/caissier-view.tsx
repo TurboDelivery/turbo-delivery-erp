@@ -10,7 +10,7 @@ import {
   TableRow,
   TableCell,
   Pagination,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { flexRender } from '@tanstack/react-table';
 import { Landmark, Clock, CheckCircle2, FileCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';

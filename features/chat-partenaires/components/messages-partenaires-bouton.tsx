@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { MessagesSquare } from 'lucide-react';
 
 import { useNonLusQuery } from '../queries/chat-partenaires.query';

@@ -11,7 +11,7 @@ import {
   ModalFooter,
   ModalHeader,
   Spinner,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { AlertTriangle, PackageCheck } from 'lucide-react';
 
 import { LivreurTraficVue } from '@/features/trafic/utils/normaliser-trafic';

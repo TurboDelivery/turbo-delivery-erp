@@ -6,7 +6,7 @@ import { type ChartConfig, ChartContainer, ChartLegend, ChartLegendContent, Char
 import { useInvestissementMonthlyFilters, useInvestissementStatsMonthly } from '@/features/investissement/hooks';
 import { format, getMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Select, SelectItem } from '@heroui/react';
+import { Select, SelectItem } from '@/components/heroui';
 
 const chartConfig = {
   montantInvestissement: {

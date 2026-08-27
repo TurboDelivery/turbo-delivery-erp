@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Button, Card, CardBody } from '@heroui/react';
+import { Button, Card, CardBody } from '@/components/heroui';
 import { ArrowLeft } from 'lucide-react';
 import RevenueExpenseChart from './RevenueExpenseChart';
 import DateFilterInput from '@/components/finance/date-filter-input';

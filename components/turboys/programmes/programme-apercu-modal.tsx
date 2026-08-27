@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@/components/heroui';
 import { Download, Send } from 'lucide-react';
 
 import { IProgramme } from '@/features/turboys/types/programme.types';

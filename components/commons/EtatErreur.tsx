@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { RefreshCcw, WifiOff } from 'lucide-react';
 import React from 'react';
 

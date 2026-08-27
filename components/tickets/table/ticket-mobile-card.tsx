@@ -3,7 +3,7 @@
 import React from 'react';
 import Select from 'react-select';
 import { CheckSquare, Loader2, Pen, ShieldCheck, Trash2, X } from 'lucide-react';
-import { Tooltip } from '@heroui/react';
+import { Tooltip } from '@/components/heroui';
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';

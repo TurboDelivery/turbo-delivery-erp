@@ -3,7 +3,7 @@
 import React from 'react';
 import { PaginatedResponse } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { Check, PencilIcon, XIcon } from 'lucide-react';
 import { LivreurStatutVM, Restaurant } from '@/types/models';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';

@@ -11,7 +11,7 @@ import {
   ModalContent,
   ModalFooter,
   ModalHeader,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { IJourProgramme, IProgramme } from '@/features/turboys/types/programme.types';

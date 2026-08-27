@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { Check } from 'lucide-react';
 
 import menuData, { IMenuData } from '@/config/menu-data';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Chip, Pagination, Select, SelectItem, Spinner } from '@heroui/react';
+import { Chip, Pagination, Select, SelectItem, Spinner } from '@/components/heroui';
 import { CheckCircle2, PenLine, ShieldCheck, Wallet } from 'lucide-react';
 import { fmtFcfa, unifiedStatut, FinanceStatut } from '@/features/finances-hub';
 import {

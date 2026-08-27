@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
-import { Chip, Pagination, Skeleton } from '@heroui/react';
+import { Chip, Pagination, Skeleton } from '@/components/heroui';
 
 import { PaginatedResponse } from '@/types';
 import { Restaurant } from '@/types/models';

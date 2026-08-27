@@ -4,7 +4,7 @@ import { EyeIcon } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { getAllOrders, getOrdersStats } from "@/src/actions/commandes.actions";
 import { SelectField } from "@/components/commons/form/select-field";
-import { CalendarDate, DateRangePicker, RangeValue } from "@heroui/react";
+import { CalendarDate, DateRangePicker, RangeValue } from "@/components/heroui";
 import { Order, OrderStats, PageResponse, Restaurant } from "@/types/models";
 
 type OrdersProps = {

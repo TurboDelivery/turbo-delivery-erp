@@ -1,4 +1,4 @@
-import { Button, Link } from '@heroui/react';
+import { Button, Link } from '@/components/heroui';
 import { ChevronRight } from 'lucide-react';
 import { TurboyType } from '@/features/turboys/types/turboys.types';
 

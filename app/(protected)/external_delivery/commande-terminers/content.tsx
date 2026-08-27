@@ -2,7 +2,7 @@
 import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { PaginatedResponse } from '@/types';
 import { ChevronDown, ChevronUp, Clock, CreditCard, MapPin, Package, Store, User } from 'lucide-react';
-import { Avatar, Button, Card, CardBody, CardHeader, Chip, Divider, Pagination, Skeleton } from '@heroui/react';
+import { Avatar, Button, Card, CardBody, CardHeader, Chip, Divider, Pagination, Skeleton } from '@/components/heroui';
 import { useEffect, useState } from 'react';
 import { courses_statuses_filters, SORT_OPTIONS } from '@/data';
 import DeliveryTools from '../component/deliveryTools';

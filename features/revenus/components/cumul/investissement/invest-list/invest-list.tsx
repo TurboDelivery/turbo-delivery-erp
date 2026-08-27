@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { AddInvestModal } from '../creer-invest/add-invest-modal';
 import { useInvestissementList } from '@/features/revenus/hooks/use-investissement-list';
-import { Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Input, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { investissementColumns, getDeadlineColor } from './invest-columns';
 import { formatCFA, formatDateFR } from '@/src/actions/bonLivraison.mapper';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Plus, RefreshCw } from 'lucide-react';
 import { useSession } from 'next-auth/react';

@@ -12,7 +12,7 @@ import {
   Radio,
   RadioGroup,
   Spinner,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';

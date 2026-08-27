@@ -9,7 +9,7 @@ import DeliveryTools from '../../component/deliveryTools';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { getPaginationCourseExterne, getPaginationCourseExterneEnAttente } from '@/src/actions/courses.actions';
-import { Avatar, Card, CardBody, CardFooter, CardHeader, Chip, Pagination, Skeleton } from "@heroui/react";
+import { Avatar, Card, CardBody, CardFooter, CardHeader, Chip, Pagination, Skeleton } from "@/components/heroui";
 
 type SortOption = (typeof SORT_OPTIONS)[keyof typeof SORT_OPTIONS];
 

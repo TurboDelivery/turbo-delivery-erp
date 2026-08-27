@@ -13,7 +13,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { MapPin, Search } from 'lucide-react';
 
 import { useGrilleTarifaireQuery } from '@/features/restaurants/queries/restaurant-list.query';

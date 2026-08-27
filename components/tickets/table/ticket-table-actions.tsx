@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Loader2, Trash } from 'lucide-react';
-import { Button, Tooltip } from '@heroui/react';
+import { Button, Tooltip } from '@/components/heroui';
 
 import { Ticket } from '@/types/bon-livraison.model';
 

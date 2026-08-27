@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@heroui/react';
+import { Chip } from '@/components/heroui';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { CapaciteFiabiliteCards } from '@/components/creneaux/analyse/capacite-fiabilite-cards';
 import { CreneauPeriodeCard } from '@/components/creneaux/analyse/creneau-periode-card';

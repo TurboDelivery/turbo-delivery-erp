@@ -13,7 +13,7 @@ import {
   ModalHeader,
   Spinner,
   Switch,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Plus, Save } from 'lucide-react';
 import {
   IIncidentMotif,

@@ -1,7 +1,7 @@
 'use client';
 
 import { Download } from 'lucide-react';
-import { Card, CardBody, Button } from '@heroui/react';
+import { Card, CardBody, Button } from '@/components/heroui';
 import { DateRange } from 'react-day-picker';
 import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
 import DateFilterInput from '@/components/finance/date-filter-input';

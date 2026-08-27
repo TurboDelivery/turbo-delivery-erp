@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, Button, Skeleton } from '@heroui/react';
+import { Avatar, Button, Skeleton } from '@/components/heroui';
 import { ArrowLeft, CheckCircle2, Download, Lightbulb, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';

@@ -1,6 +1,6 @@
 'use client';
 
-import { Skeleton } from '@heroui/react';
+import { Skeleton } from '@/components/heroui';
 
 import TraficLivreurItem from '@/features/trafic/components/trafic-livreur-item';
 import { LivreurTraficVue } from '@/features/trafic/utils/normaliser-trafic';

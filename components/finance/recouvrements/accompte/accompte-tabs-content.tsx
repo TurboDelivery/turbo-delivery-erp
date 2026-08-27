@@ -6,7 +6,7 @@ import { Calendar, DollarSign, TrendingUp, Users } from 'lucide-react';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { RestaurantSelect } from '../common/restaurant-select';
 import { useAccompteQuery } from '@/features/recouvrements/queries/accompte.query';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { accompteColumns } from '@/features/recouvrements/columns/accompte-columns';
 import { DateRange } from 'react-day-picker';

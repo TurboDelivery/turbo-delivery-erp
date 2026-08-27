@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Badge } from '@heroui/react';
-import { Button } from '@heroui/react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@heroui/react';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/table';
+import { Badge } from '@/components/heroui';
+import { Button } from '@/components/heroui';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@/components/heroui';
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@/components/heroui';
 import { LeaveRequest } from '../../features/personnel/types/types';
 import { IConge, CongeStatut } from '../../features/conge/types/conge.type';
 import { useCongesQuery } from '../../features/conge/queries/conge.query';

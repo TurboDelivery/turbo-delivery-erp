@@ -13,7 +13,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { AlertTriangle, Search } from 'lucide-react';
 
 import { toast } from 'sonner';

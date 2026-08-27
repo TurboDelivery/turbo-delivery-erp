@@ -2,7 +2,7 @@
 
 import { Control, FieldErrors } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
-import { Input, Select, SelectItem, Switch } from '@heroui/react';
+import { Input, Select, SelectItem, Switch } from '@/components/heroui';
 import { FileText } from 'lucide-react';
 import { type UpdateTurboyInfoDTO } from '@/features/turboys/schemas/update-turboy-info.schema';
 import { TYPE_DOCUMENT_OPTIONS } from '@/features/turboys/schemas/create-turboy.schema';

@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
   Tooltip,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { History } from 'lucide-react';
 import { useZoneHistoriqueQuery } from '../queries/zones-demande-coursier.query';
 

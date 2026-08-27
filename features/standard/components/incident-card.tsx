@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Avatar, Button } from '@heroui/react';
+import { Avatar, Button } from '@/components/heroui';
 import { AlertTriangle, ArrowRight, Camera, FileText, MapPin, Phone } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 

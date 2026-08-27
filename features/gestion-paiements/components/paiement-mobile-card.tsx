@@ -1,7 +1,7 @@
 'use client';
 
 import type { Row } from '@tanstack/react-table';
-import { Button, Chip } from '@heroui/react';
+import { Button, Chip } from '@/components/heroui';
 import { FileText, Trash2, Wallet } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Can } from '@/components/auth/Can';

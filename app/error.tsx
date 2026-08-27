@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCcw, Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
     const router = useRouter();

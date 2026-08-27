@@ -4,7 +4,7 @@ import { apiClientHttp } from '@/lib/api-client-http';
 import { PaginatedResponse } from '@/types';
 import { BonLivraison, BonLivraisonTerminee, ParametreBonLivraisonFacture, Ticket } from '@/types/bon-livraison.model';
 import { formatDate } from '@/utils/date-formate';
-import { RangeValue } from '@heroui/react';
+import { RangeValue } from '@/components/heroui';
 import axios from 'axios';
 import { ApiResult } from '@/types/general';
 import { handleApiError } from '@/utils/handle-api-error';

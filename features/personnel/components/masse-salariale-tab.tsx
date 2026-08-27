@@ -18,7 +18,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { useSession } from 'next-auth/react';
 import { Download, Lock } from 'lucide-react';
 import { toast } from 'sonner';

@@ -22,7 +22,7 @@ import {
   Textarea,
   Checkbox,
   useDisclosure,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { History, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import {

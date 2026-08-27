@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Button, Chip, Input, Select, SelectItem, Snippet, Spinner } from '@heroui/react';
+import { Button, Chip, Input, Select, SelectItem, Snippet, Spinner } from '@/components/heroui';
 import { ChevronDown, ChevronUp, Eye, EyeOff, KeyRound, Link2, Users } from 'lucide-react';
 
 import {

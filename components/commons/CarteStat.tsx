@@ -1,6 +1,6 @@
 'use client';
 
-import { Skeleton } from '@heroui/react';
+import { Skeleton } from '@/components/heroui';
 import type { LucideIcon } from 'lucide-react';
 import React from 'react';
 

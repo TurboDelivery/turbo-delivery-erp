@@ -4,7 +4,7 @@ import useConfirm from '@/components/commons/use-confirm-dialog';
 import { changerRestaurantLivreur, changerStatusLivreur, getToutLivreurStatusAssigners, mettreLivreurEnAttente } from '@/src/actions/delivery-men.actions';
 import { PaginatedResponse } from '@/types';
 import { LivreurStatutVM, Restaurant, TypeEnum } from '@/types/models';
-import { useDisclosure } from '@heroui/react';
+import { useDisclosure } from '@/components/heroui';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';

@@ -1,6 +1,6 @@
 'use client';
 
-import { Switch } from '@heroui/react';
+import { Switch } from '@/components/heroui';
 import { useUpdateZoneActifMutation } from '../queries/zones-demande-coursier.query';
 
 interface ZoneActifSwitchProps {

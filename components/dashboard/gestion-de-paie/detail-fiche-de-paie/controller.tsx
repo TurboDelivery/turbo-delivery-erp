@@ -1,6 +1,6 @@
 import { getFichePaieByEmploiAndLivreur, getFichePaieById } from "@/src/actions/gestion-de-paie.actions";
 import { FichePaieDetailVM, GainHebdomadaireVm, GainParJour, GainVm, PaieParLivreur } from "@/types/gestion-de-paie.model";
-import { useDisclosure } from "@heroui/react";
+import { useDisclosure } from "@/components/heroui";
 import { useEffect, useState } from "react";
 
 export function useInitierPaiementController(details?: PaieParLivreur, isOpen?: boolean) {

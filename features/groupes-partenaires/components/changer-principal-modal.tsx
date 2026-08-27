@@ -11,7 +11,7 @@ import {
   ModalHeader,
   Radio,
   RadioGroup,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Crown } from 'lucide-react';
 
 import { useChangerProprietaireMutation } from '../queries/groupes-partenaires.query';

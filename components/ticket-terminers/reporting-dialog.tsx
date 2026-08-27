@@ -1,4 +1,4 @@
-import { Button, DatePicker, Modal, ModalBody, ModalContent, Select, SelectItem, Spinner } from "@heroui/react";
+import { Button, DatePicker, Modal, ModalBody, ModalContent, Select, SelectItem, Spinner } from "@/components/heroui";
 import { Controller } from "react-hook-form";
 import { useReportingController } from "./controller";
 import { SelectField } from '@/components/commons/form/select-field';

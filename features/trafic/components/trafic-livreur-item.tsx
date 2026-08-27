@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, Button, Tooltip } from '@heroui/react';
+import { Avatar, Button, Tooltip } from '@/components/heroui';
 import { History, MapPinOff, Navigation, PackagePlus, Phone } from 'lucide-react';
 
 import { LivreurTraficVue } from '@/features/trafic/utils/normaliser-trafic';

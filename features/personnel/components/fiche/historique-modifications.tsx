@@ -9,7 +9,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 
 import { IAuditActionFiche } from '@/features/personnel/types/personnel-historisation.types';
 import { formaterDateHeure } from '@/features/personnel/utils/personnel-historisation.utils';

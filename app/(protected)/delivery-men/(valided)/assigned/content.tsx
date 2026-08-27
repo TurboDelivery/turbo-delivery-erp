@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { PaginatedResponse } from '@/types';
-import { Pagination } from '@heroui/react';
+import { Pagination } from '@/components/heroui';
 import { Button } from '@/components/ui/button';
 import { LivreurStatutVM, Restaurant } from '@/types/models';
 import { Check, PencilIcon, Save, XIcon } from 'lucide-react';
@@ -13,7 +13,7 @@ import { SearchField } from '@/components/commons/form/search-field';
 import { useTurboAssigneController } from './useTurboAssigneController';
 import { UpdateDeliveryDialog } from '../../update-delivery/update-delivery';
 import { createUrlFile } from '@/utils/createUrlFile';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@/components/heroui";
 
 interface Props {
     initialData: PaginatedResponse<LivreurStatutVM> | null;

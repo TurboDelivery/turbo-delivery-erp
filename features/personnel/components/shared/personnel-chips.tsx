@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@heroui/react';
+import { Chip } from '@/components/heroui';
 
 import { EtatDeclaration } from '@/features/personnel/types/personnel-historisation.types';
 import {

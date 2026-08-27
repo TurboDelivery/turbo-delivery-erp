@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Button, Chip, Input, Pagination, Skeleton } from '@heroui/react';
+import { Button, Chip, Input, Pagination, Skeleton } from '@/components/heroui';
 import { Search } from 'lucide-react';
 
 import { PaginatedResponse } from '@/types';

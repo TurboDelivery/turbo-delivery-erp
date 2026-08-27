@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ITurboy } from '@/features/turboys/types/turboys.types';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
-import { Avatar, Button, Chip } from '@heroui/react';
+import { Avatar, Button, Chip } from '@/components/heroui';
 import { Edit2, Mail, Phone } from 'lucide-react';
 import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
 

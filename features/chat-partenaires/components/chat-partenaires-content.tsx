@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-import { Avatar, Button, Input, Skeleton, Spinner } from '@heroui/react';
+import { Avatar, Button, Input, Skeleton, Spinner } from '@/components/heroui';
 import {
   ArrowLeft,
   Check,

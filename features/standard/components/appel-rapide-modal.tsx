@@ -10,7 +10,7 @@ import {
   ModalContent,
   ModalHeader,
   Spinner,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Phone, Search } from 'lucide-react';
 
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';

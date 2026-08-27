@@ -5,7 +5,7 @@ import { getDeliveryMen } from '@/src/actions/delivery-men.actions';
 import { PaginatedResponse } from '@/types';
 import { DeliveryMan } from '@/types/models';
 import { createUrlFile } from '@/utils/createUrlFile';
-import { Avatar, Chip } from '@heroui/react';
+import { Avatar, Chip } from '@/components/heroui';
 import { Key, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 

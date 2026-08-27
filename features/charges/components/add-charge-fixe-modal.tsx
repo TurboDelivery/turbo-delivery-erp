@@ -11,7 +11,7 @@ import {
   Input,
   Select,
   SelectItem,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Plus, Save } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';

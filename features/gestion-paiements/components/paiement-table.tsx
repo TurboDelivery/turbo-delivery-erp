@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { flexRender, Table as ReactTable, Row } from '@tanstack/react-table';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 
 interface PaiementTableProps<T> {
   table: ReactTable<T>;

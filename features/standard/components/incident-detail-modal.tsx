@@ -10,7 +10,7 @@ import {
   ModalFooter,
   ModalHeader,
   Textarea,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { AlertTriangle, Camera, Clock, ExternalLink, MapPin, MessageSquare, Phone, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { createUrlFile } from '@/utils/createUrlFile';

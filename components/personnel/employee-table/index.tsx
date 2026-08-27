@@ -7,7 +7,7 @@ import { useEmployeeTableNew } from '@/features/personnel/hooks/use-employee-tab
 import { useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { DEPARTMENTS } from '@/features/personnel/constants/employee.constants';
-import { Button, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Button, Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { flexRender } from '@tanstack/react-table';

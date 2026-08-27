@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@heroui/react';
+import { Chip } from '@/components/heroui';
 
 /**
  * Vocabulaire unique des statuts d'une course externe (canal intégration).

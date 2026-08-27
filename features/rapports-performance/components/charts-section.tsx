@@ -1,7 +1,7 @@
 'use client';
 
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from 'recharts';
-import { Card, CardBody } from '@heroui/react';
+import { Card, CardBody } from '@/components/heroui';
 import { IGeographicLocation, IWeeklyActivity } from '@/features/rapports-performance/types/performance.type';
 
 interface ChartsSectionProps {

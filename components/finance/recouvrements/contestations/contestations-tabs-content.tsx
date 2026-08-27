@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Select, SelectItem, Spinner, Pagination } from '@heroui/react';
+import { Select, SelectItem, Spinner, Pagination } from '@/components/heroui';
 import useContestationsDashboard from '@/features/recouvrements/hooks/use-contestations-dashboard';
 import { useContestationsQuery } from '@/features/recouvrements/queries/contestation.query';
 import { RestaurantSelect } from '../common/restaurant-select';

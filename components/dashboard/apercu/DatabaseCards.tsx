@@ -1,6 +1,6 @@
 "use client";
 import { title } from '@/components/primitives';
-import { Card, CardBody, CardHeader, Divider, Link, Skeleton } from '@heroui/react';
+import { Card, CardBody, CardHeader, Divider, Link, Skeleton } from '@/components/heroui';
 import { ChevronRight } from 'lucide-react';
 import { TurboysButton } from '@/components/dashboard/apercu/TurboysButton';
 import { usePersonnelStatsQuery } from '@/features/dashboard/queries/personnel-stats.query';

@@ -2,7 +2,7 @@
 
 import { RestaurantDefini } from '@/types/price-list';
 import { createUrlFile } from '@/utils/createUrlFile';
-import { Avatar } from '@heroui/react';
+import { Avatar } from '@/components/heroui';
 import Link from 'next/link';
 import { useCallback } from 'react';
 interface Props {

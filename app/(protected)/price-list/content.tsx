@@ -2,7 +2,7 @@
 
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { DeliveryFee } from '@/types/price-list';
-import { Pagination, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs } from '@heroui/react';
+import { Pagination, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs } from '@/components/heroui';
 import { Search } from 'lucide-react';
 import Link from 'next/link';
 import Select from 'react-select';

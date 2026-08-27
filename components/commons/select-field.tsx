@@ -1,6 +1,6 @@
 
 
-import { Select, SelectItem } from "@heroui/select";
+import { Select, SelectItem } from "@/components/heroui";
 import { useEffect, useState } from "react";
 
 interface Props {

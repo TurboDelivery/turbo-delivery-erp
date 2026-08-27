@@ -9,7 +9,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { ListFilter, Ticket as TicketIcon, X } from 'lucide-react';
 import {
   Select,

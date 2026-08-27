@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Card } from '@heroui/react';
+import { Button, Card } from '@/components/heroui';
 import { Wallet } from 'lucide-react';
 import { useQueryStates } from 'nuqs';
 import ConfirmModal from '@/components/ui/confirm-modal';

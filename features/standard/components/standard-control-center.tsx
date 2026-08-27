@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Skeleton, Tab, Tabs } from '@heroui/react';
+import { Button, Skeleton, Tab, Tabs } from '@/components/heroui';
 import {
   AlertTriangle,
   CheckCircle2,

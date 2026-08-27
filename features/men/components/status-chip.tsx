@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Chip } from '@heroui/react';
+import { Chip } from '@/components/heroui';
 
 export function StatusChip({ status }: { status: number | null }) {
   if (status == null) return <Chip color="default" size="sm" variant="flat">Inconnu</Chip>;

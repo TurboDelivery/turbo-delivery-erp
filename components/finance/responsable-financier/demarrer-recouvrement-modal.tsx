@@ -8,7 +8,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@heroui/react';
+import { Skeleton } from '@/components/heroui';
 import type { IFactureRF } from './responsable-financier-columns';
 import { useAgentsRecouvrementQuery, type IAgentRecouvrement } from '@/features/responsable-financier';
 

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { flexRender } from '@tanstack/react-table';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { useDeductionTable } from '@/features/personnel/hooks/use-deduction-table';
 import { DeductionFilters } from '@/components/personnel/deductions/deductions/deduction-filters';
 import { renderDeductionActions } from '@/components/personnel/deductions/deductions/deduction-table-columns';

@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
   Tooltip,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { CalendarRange, Info, RotateCcw, Search, Settings2 } from 'lucide-react';
 import Link from 'next/link';
 

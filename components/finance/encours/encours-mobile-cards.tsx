@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody, CardHeader, Chip } from '@heroui/react';
+import { Card, CardBody, CardHeader, Chip } from '@/components/heroui';
 import { IEncoursReleve, cycleLabel, formatFcfa } from '@/features/encours';
 import { formatPeriodeFactureeEncours } from '@/lib/finance/periode-facturee';
 

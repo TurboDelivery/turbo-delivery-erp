@@ -24,7 +24,7 @@ import {
   Textarea,
   Tooltip,
   useDisclosure,
-} from '@heroui/react';
+} from '@/components/heroui';
 import {
   ArrowDownLeft,
   ArrowUpRight,

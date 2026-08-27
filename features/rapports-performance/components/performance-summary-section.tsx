@@ -1,7 +1,7 @@
 'use client';
 
 import { AlertCircle } from 'lucide-react';
-import { Card, CardBody } from '@heroui/react';
+import { Card, CardBody } from '@/components/heroui';
 import { IMainKPIs, ISecondaryKPIs } from '@/features/rapports-performance/types/performance.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { formatNumber } from '@/utils/formatNumber';

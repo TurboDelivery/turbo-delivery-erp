@@ -8,7 +8,7 @@ import {
     Button,
     Card,
     Chip,
-} from "@heroui/react";
+} from "@/components/heroui";
 import { MoveDownLeft, MoveDownRight, MoveUpRight, Printer } from "lucide-react";
 import { useInitierPaiementController } from "./controller";
 import { InitierPaiementModal } from "../initier-paiement/initier-paiement-modal";

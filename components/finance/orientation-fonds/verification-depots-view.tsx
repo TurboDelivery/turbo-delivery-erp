@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
   Textarea,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Download, ScrollText, AlertTriangle, CheckCircle2, Landmark, PiggyBank } from 'lucide-react';
 import {
   useVerificationDepotsQuery,

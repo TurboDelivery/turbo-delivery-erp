@@ -1,7 +1,7 @@
 'use client';
 import { title } from '@/components/primitives';
 import { ArrowDownToLine, Plus } from 'lucide-react';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { useState } from 'react';
 import { Restaurant } from '@/types/models';
 import TextInputToUrl from './searchDelivery';

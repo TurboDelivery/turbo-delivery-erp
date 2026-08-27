@@ -12,7 +12,7 @@ import {
   Select,
   SelectItem,
   Textarea,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 

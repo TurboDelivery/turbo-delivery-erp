@@ -9,7 +9,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { updateUser } from '@/src/actions/users.actions';
 import { getAllRoles } from '@/src/actions/roles.actions';
 import React, { Fragment, useEffect, useState } from 'react';
-import { Button, Input, Select, SelectItem } from "@heroui/react";
+import { Button, Input, Select, SelectItem } from "@/components/heroui";
 import { _createUserSchema, createUserSchema } from '@/src/schemas/users.schema';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody, Chip, Progress } from '@heroui/react';
+import { Card, CardBody, Chip, Progress } from '@/components/heroui';
 import { Calendar, Clock } from 'lucide-react';
 
 interface CapaciteData {

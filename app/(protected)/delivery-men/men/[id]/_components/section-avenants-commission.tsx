@@ -2,7 +2,7 @@
 
 import { useRef } from 'react';
 import { Controller, type Control, type FieldErrors } from 'react-hook-form';
-import { Input } from '@heroui/react';
+import { Input } from '@/components/heroui';
 import { FileText, Plus, X } from 'lucide-react';
 import { SectionTitle } from './section-title';
 import { DocPreview } from './doc-preview';

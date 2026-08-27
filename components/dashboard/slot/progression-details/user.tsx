@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-import { Card } from '@heroui/react';
+import { Card } from '@/components/heroui';
 import { LivreurDetail } from '@/types/livreur';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { CreneauID } from '@/types/creneau-byId';

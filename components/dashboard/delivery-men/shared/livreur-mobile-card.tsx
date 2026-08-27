@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Avatar, Chip } from '@heroui/react';
+import { Avatar, Chip } from '@/components/heroui';
 
 export interface LivreurMobileField {
   label: string;

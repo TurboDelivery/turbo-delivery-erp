@@ -1,6 +1,6 @@
 'use client';
 
-import { Input } from '@heroui/react';
+import { Input } from '@/components/heroui';
 
 export type Horaire = {
   jour: string;

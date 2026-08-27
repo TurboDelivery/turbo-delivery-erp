@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, ButtonProps } from "@heroui/react";
+import { Button, ButtonProps } from "@/components/heroui";
 import { ReactNode } from 'react';
 import { useFormStatus } from 'react-dom';
 

@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { Download } from 'lucide-react';
-import { Button, Card, CardBody, Progress, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Spinner } from '@heroui/react';
+import { Button, Card, CardBody, Progress, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Spinner } from '@/components/heroui';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { useMemo, useState } from 'react';
 import { endOfMonth, format, startOfMonth } from 'date-fns';

@@ -12,7 +12,7 @@ import {
   ModalHeader,
   Spinner,
   Switch,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { MonitorUp, PhoneIncoming, Users } from 'lucide-react';
 
 import { APP_ROLES, type AppRole } from '@/lib/casl/ability';

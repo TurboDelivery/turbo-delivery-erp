@@ -12,7 +12,7 @@ import {
   ModalFooter,
   ModalHeader,
   Textarea,
-} from '@heroui/react';
+} from '@/components/heroui';
 import {
   useFacturesRFQuery,
   useFactureRFQuery,

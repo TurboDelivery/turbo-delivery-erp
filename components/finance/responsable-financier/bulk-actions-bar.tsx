@@ -15,7 +15,7 @@ import {
   Select,
   SelectItem,
   Textarea,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { AlertTriangle, ArrowLeftRight, CheckCircle2, ChevronDown, HandCoins, Landmark, PiggyBank, Wallet, X, XCircle } from 'lucide-react';
 
 import {

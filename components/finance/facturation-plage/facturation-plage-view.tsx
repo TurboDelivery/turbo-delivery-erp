@@ -29,7 +29,7 @@ import {
   TableRow,
   Tabs,
   Tooltip,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { getLocalTimeZone, parseDate, startOfWeek, today } from '@internationalized/date';
 import type { DateValue } from '@internationalized/date';
 import {

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { flexRender } from '@tanstack/react-table';
-import { Card, CardBody, Chip, Pagination, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
+import { Card, CardBody, Chip, Pagination, Select, SelectItem, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { Mail, Phone, Users } from 'lucide-react';
 import { TurboyType } from '@/features/turboys/types/turboys.types';
 import { useTurboyTable } from '@/features/turboys/hooks/use-turboy-table';

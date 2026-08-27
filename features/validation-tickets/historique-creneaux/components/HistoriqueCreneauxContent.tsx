@@ -10,7 +10,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { flexRender } from '@tanstack/react-table';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';

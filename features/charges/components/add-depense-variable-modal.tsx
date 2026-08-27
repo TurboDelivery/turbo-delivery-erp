@@ -11,7 +11,7 @@ import {
   ModalHeader,
   Textarea,
   Badge,
-} from '@heroui/react';
+} from '@/components/heroui';
 import ReactSelect from 'react-select';
 import { Check, Plus, Save, Paperclip, X } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Card, Popover, PopoverTrigger, PopoverContent, DatePicker } from "@heroui/react";
+import { Button, Card, Popover, PopoverTrigger, PopoverContent, DatePicker } from "@/components/heroui";
 import 'react-datepicker/dist/react-datepicker.css';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Button } from '@heroui/react';
+import { Button } from '@/components/heroui';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import {
   updateRestaurantSchema,

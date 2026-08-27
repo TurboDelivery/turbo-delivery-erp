@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
-import { Select, SelectItem } from '@heroui/select';
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@/components/heroui';
+import { Select, SelectItem } from '@/components/heroui';
 import { IEmployee, LeaveRequest } from '@/features/personnel/types/types';
 
 interface RequestFormProps {

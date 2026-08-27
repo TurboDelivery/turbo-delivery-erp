@@ -3,7 +3,7 @@
 import IconX from '@/components/icon/icon-x';
 import { DeliveryMan } from '@/types/models';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
-import { Button } from "@heroui/react";
+import { Button } from "@/components/heroui";
 import React, { Fragment } from 'react';
 import { useFormStatus } from 'react-dom';
 import { toast } from 'sonner';

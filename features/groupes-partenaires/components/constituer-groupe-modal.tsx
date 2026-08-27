@@ -14,7 +14,7 @@ import {
   Radio,
   RadioGroup,
   Spinner,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Building2, Search, UserCog } from 'lucide-react';
 
 import {

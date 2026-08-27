@@ -1,6 +1,6 @@
 'use client';
 
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, Spinner } from '@heroui/react';
+import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination, Spinner } from '@/components/heroui';
 import useContentCtx from './useContentCtx';
 import { PaginatedResponse } from '@/types';
 import { DeliveryMan } from '@/types/models';

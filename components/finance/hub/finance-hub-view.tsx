@@ -17,7 +17,7 @@ import {
   SelectItem,
   Spinner,
   useDisclosure,
-} from '@heroui/react';
+} from '@/components/heroui';
 import { Banknote, CheckCircle2, Clock, Download, FileText, Pencil, Plus, ShieldCheck, Trash2, TrendingUp, Wallet } from 'lucide-react';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
 import { toast } from 'sonner';

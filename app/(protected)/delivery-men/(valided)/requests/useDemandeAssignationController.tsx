@@ -4,7 +4,7 @@ import useConfirm from '@/components/commons/use-confirm-dialog';
 import { Badge } from '@/components/ui/badge';
 import { rejeterDemandeAssignations, validerDemandeAssignations } from '@/src/actions/delivery-men.actions';
 import { DemandeAssignationVM } from '@/types/models';
-import { useDisclosure } from '@heroui/react';
+import { useDisclosure } from '@/components/heroui';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
