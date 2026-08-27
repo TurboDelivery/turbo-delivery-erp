@@ -20,11 +20,12 @@ import {
   formatFcfa,
   IDeductionPartenaire,
 } from '@/features/encours';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 /** Gestion (CRUD) des déductions / avances par partenaire pour une année (§6). */
 export function EncoursDeductionsManager({ annee }: { annee: number }) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
-  const { data: deductions } = useDeductionsQuery(annee);
+  const { data: deductions, isError, isFetching, refetch } = useDeductionsQuery(annee);
   const creer = useCreerDeductionMutation();
   const modifier = useModifierDeductionMutation();
   const supprimer = useSupprimerDeductionMutation();
@@ -141,8 +142,13 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
                       </div>
                     </div>
                   ))}
-                  {(!deductions || deductions.length === 0) && (
-                    <p className="py-2 text-sm text-gray-500">Aucune déduction pour {annee}.</p>
+                  {/* sur echec, "Aucune deduction" se lirait comme une absence reelle de deduction */}
+                  {isError ? (
+                    <EtatErreur quoi="les déductions" onReessayer={() => refetch()} enCours={isFetching} />
+                  ) : (
+                    (!deductions || deductions.length === 0) && (
+                      <p className="py-2 text-sm text-gray-500">Aucune déduction pour {annee}.</p>
+                    )
                   )}
                 </div>
               </ModalBody>

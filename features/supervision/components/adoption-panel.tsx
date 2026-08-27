@@ -18,6 +18,7 @@ import { AlertTriangle, Search } from 'lucide-react';
 
 import { toast } from 'sonner';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import { supervisionAPI } from '../apis/supervision.api';
 import { useAdoptionQuery } from '../queries/supervision.queries';
 import { ExporteurOnglet } from '../types';
@@ -40,7 +41,7 @@ export function AdoptionPanel({ userId, enregistrerExport }: Props) {
   const [filtre, setFiltre] = useState('TOUS');
   const [recherche, setRecherche] = useState('');
 
-  const { data, isLoading, isFetching } = useAdoptionQuery(userId, filtre === 'JAMAIS');
+  const { data, isLoading, isFetching, isError, refetch } = useAdoptionQuery(userId, filtre === 'JAMAIS');
 
   const comptes = useMemo(() => {
     const liste = data?.comptes ?? [];
@@ -114,6 +115,15 @@ export function AdoptionPanel({ userId, enregistrerExport }: Props) {
         </p>
       </div>
 
+      {/* L echec REMPLACE le tableau : « Aucun compte ne correspond aux filtres »
+          se lit comme une adoption complete, alors que la liste n a pas pu etre lue. */}
+      {isError ? (
+        <EtatErreur
+          quoi="les premières connexions"
+          onReessayer={() => void refetch()}
+          enCours={isFetching}
+        />
+      ) : (
       <Table aria-label="Premières connexions" isStriped removeWrapper>
         <TableHeader>
           <TableColumn className="text-primary">UTILISATEUR</TableColumn>
@@ -162,11 +172,18 @@ export function AdoptionPanel({ userId, enregistrerExport }: Props) {
           ))}
         </TableBody>
       </Table>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-default-400">
         <span>
-          {comptes.length} compte{comptes.length > 1 ? 's' : ''} affiché{comptes.length > 1 ? 's' : ''}
-          {data ? ` · ${data.jamaisConnectes} jamais connecté${data.jamaisConnectes > 1 ? 's' : ''}` : ''}
+          {isError ? (
+            '—'
+          ) : (
+            <>
+              {comptes.length} compte{comptes.length > 1 ? 's' : ''} affiché{comptes.length > 1 ? 's' : ''}
+              {data ? ` · ${data.jamaisConnectes} jamais connecté${data.jamaisConnectes > 1 ? 's' : ''}` : ''}
+            </>
+          )}
         </span>
         <span>Un compte jamais connecté = formation à prévoir ou process hors système</span>
       </div>

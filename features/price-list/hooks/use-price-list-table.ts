@@ -37,7 +37,13 @@ export default function usePriceListTable() {
 
   const currentRestaurant = allRestaurants.find((r) => r.id === selectedKey) ?? null;
 
-  const { data: feesData, isLoading, isFetching } = useDeliveryFeesByRestaurantQuery(selectedKey, currentPage);
+  const {
+    data: feesData,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useDeliveryFeesByRestaurantQuery(selectedKey, currentPage);
 
   const deliveryFeesList: DeliveryFee[] = feesData?.content ?? [];
   const meta = { totalItems: feesData?.totalElements ?? 0, totalPages: feesData?.totalPages ?? 0 };
@@ -88,6 +94,10 @@ export default function usePriceListTable() {
     closeEditModal,
     isLoading,
     isFetching,
+    // Sans isError/refetch remontes ici, l'ecran ne peut pas distinguer
+    // "ce restaurant n'a aucun frais" d'un appel qui a echoue.
+    isError,
+    refetch,
     pagination: {
       currentPage: currentPage + 1,
       totalPages: meta.totalPages,

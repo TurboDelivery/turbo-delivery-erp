@@ -15,11 +15,15 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEntreeCaisseListQuery } from '@/features/entrees-caisse/queries/entree-caisse-list.query';
 import { EntreeCaisseStatutCell } from '@/components/finance/entrees-caisse/statut-cell';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export function EntreeCaisseMiniTable() {
   const router = useRouter();
-  const { data: entries, isLoading } = useEntreeCaisseListQuery();
+  const { data: entries, isLoading, isError, isFetching, refetch } = useEntreeCaisseListQuery();
   const derniers5 = (entries || []).slice(0, 5);
+
+  // meme bloc pour les deux rendus (tableau desktop, cartes mobiles) : un seul est visible a la fois
+  const zoneErreur = <EtatErreur quoi="les entrées caisse" onReessayer={() => refetch()} enCours={isFetching} />;
 
   return (
     <div className="space-y-3">
@@ -46,8 +50,9 @@ export function EntreeCaisseMiniTable() {
             <TableColumn>Statut</TableColumn>
             <TableColumn>Date</TableColumn>
           </TableHeader>
+          {/* sur echec, l'erreur prend la place du message vide qui se lirait comme "il n'y a rien" */}
           <TableBody
-            emptyContent="Aucune entrée caisse"
+            emptyContent={isError ? zoneErreur : 'Aucune entrée caisse'}
             isLoading={isLoading}
             loadingContent={
               <div className="space-y-2 p-2">
@@ -81,6 +86,8 @@ export function EntreeCaisseMiniTable() {
           Array.from({ length: 3 }).map((_, i) => (
             <div key={`m-skel-${i}`} className="h-20 rounded-xl bg-gray-100 animate-pulse" />
           ))
+        ) : isError ? (
+          zoneErreur
         ) : derniers5.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-6">Aucune entrée caisse</p>
         ) : (

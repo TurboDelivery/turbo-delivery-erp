@@ -16,9 +16,10 @@ import SupprimerInvestModal from '../supprimer/supprimer-invest-modal';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export default function InvestissementList() {
-  const { investissements, isLoading, filters, handleFilterChange, handleDateChange, pagination } = useInvestissementList();
+  const { investissements, isLoading, isFetching, isError, refetch, filters, handleFilterChange, handleDateChange, pagination } = useInvestissementList();
   const [sorting, setSorting] = useState<SortingState>([]);
 
 
@@ -43,6 +44,12 @@ export default function InvestissementList() {
         </div>
       </CardHeader>
       <CardContent className="p-0">
+        {/* Double rendu : le tableau desktop et les cartes mobiles affichaient tous
+            deux « Aucun investissement ». Les deux sont remplaces ensemble. */}
+        {isError ? (
+          <EtatErreur quoi="les investissements" onReessayer={() => refetch()} enCours={isFetching} />
+        ) : (
+        <>
         <div className="hidden md:block">
           <div className="space-y-4">
             {/* Tableau HeroUI */}
@@ -129,6 +136,8 @@ export default function InvestissementList() {
             </div>
           )}
         </div>
+        </>
+        )}
       </CardContent>
     </Card>
   );

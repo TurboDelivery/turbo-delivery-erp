@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Button, Spinner } from '@/components/heroui';
 import { PhoneCall, PhoneMissed } from 'lucide-react';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import { IAppelLog, useAppelsQuery } from '@/features/standard';
 
 import { useAppel } from './appel-provider';
@@ -15,7 +16,7 @@ import { depuisQuand, initialesDe } from '../utils/appel-ui.utils';
  * en un clic, sans aller chercher la ligne dans le journal complet.
  */
 export function AppelsManquesPanel() {
-  const { data, isLoading } = useAppelsQuery(0, 50, 15000);
+  const { data, isLoading, isError, isFetching, refetch } = useAppelsQuery(0, 50, 15000);
   const { appelerLivreur, enAppel } = useAppel();
 
   const manques = useMemo(
@@ -43,6 +44,14 @@ export function AppelsManquesPanel() {
         <div className="flex justify-center py-8">
           <Spinner size="sm" color="primary" />
         </div>
+      ) : isError ? (
+        // Le journal est filtre en local : s'il ne se charge pas, la liste des
+        // manques est vide et l'ecran annonce que tout a ete decroche.
+        <EtatErreur
+          quoi="les appels manqués"
+          onReessayer={() => refetch()}
+          enCours={isFetching}
+        />
       ) : manques.length === 0 ? (
         <p className="px-4 py-8 text-center text-sm text-default-400">
           Aucun appel manqué — tout a été décroché.

@@ -42,6 +42,7 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   useCleApiQuery,
   useEnregistrerWebhookMutation,
@@ -258,7 +259,7 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
   const detail = useDisclosure();
   const [selected, setSelected] = useState<IIntegrationLog | null>(null);
 
-  const { data, isLoading, isFetching } = useIntegrationLogsQuery({
+  const { data, isLoading, isFetching, isError, refetch } = useIntegrationLogsQuery({
     restaurantId,
     direction: direction === 'TOUS' ? undefined : direction,
     succes: statut === 'TOUS' ? undefined : statut === 'OK',
@@ -322,6 +323,16 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
         </Tabs>
       </div>
 
+      {/* On retire le tableau plutot que de le laisser dire "aucun appel
+          reseau enregistre" : c'est la conclusion inverse de celle a tirer
+          quand c'est la lecture du journal qui a echoue. */}
+      {isError ? (
+        <EtatErreur
+          quoi="les appels réseau de ce partenaire"
+          onReessayer={() => refetch()}
+          enCours={isFetching}
+        />
+      ) : (
       <Table
         aria-label="Journal des appels réseau"
         removeWrapper
@@ -391,6 +402,7 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
           ))}
         </TableBody>
       </Table>
+      )}
 
       <LogDetailsModal log={selected} isOpen={detail.isOpen} onOpenChange={detail.onOpenChange} />
     </div>
@@ -399,8 +411,20 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
 
 // ─── Section principale ────────────────────────────────────────────────────────
 export default function IntegrationSection({ restaurantId }: { restaurantId: string }) {
-  const { data: cleApi, isLoading: cleLoading } = useCleApiQuery(restaurantId);
-  const { data: webhooks, isLoading: webhooksLoading } = useWebhooksQuery(restaurantId);
+  const {
+    data: cleApi,
+    isLoading: cleLoading,
+    isError: cleErreur,
+    isFetching: cleRelecture,
+    refetch: relireCle,
+  } = useCleApiQuery(restaurantId);
+  const {
+    data: webhooks,
+    isLoading: webhooksLoading,
+    isError: webhooksErreur,
+    isFetching: webhooksRelecture,
+    refetch: relireWebhooks,
+  } = useWebhooksQuery(restaurantId);
   const form = useDisclosure();
   const suppr = useSupprimerWebhookMutation(restaurantId);
   const [editing, setEditing] = useState<IWebhook | null>(null);
@@ -444,6 +468,14 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
         </p>
         {cleLoading ? (
           <Spinner size="sm" />
+        ) : cleErreur ? (
+          // "Aucune cle API" ferait croire que le partenaire n'est pas
+          // integre, et pousserait a lui en generer une nouvelle.
+          <EtatErreur
+            quoi="la clé API de ce partenaire"
+            onReessayer={() => relireCle()}
+            enCours={cleRelecture}
+          />
         ) : apiKey ? (
           <div className="flex items-center gap-2">
             <Snippet symbol="" variant="bordered" className="min-w-0 flex-1" codeString={apiKey}>
@@ -496,6 +528,14 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
 
         {webhooksLoading ? (
           <Spinner size="sm" />
+        ) : webhooksErreur ? (
+          // "Aucun webhook configure" se lit ici comme "le partenaire ne
+          // recoit rien" : sur un echec de lecture, c'est un faux diagnostic.
+          <EtatErreur
+            quoi="les webhooks de ce partenaire"
+            onReessayer={() => relireWebhooks()}
+            enCours={webhooksRelecture}
+          />
         ) : webhookList.length === 0 ? (
           <div className="text-xs text-gray-400 border border-dashed border-gray-200 rounded-lg p-4 text-center">
             Aucun webhook configuré.

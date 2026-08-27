@@ -14,6 +14,7 @@ import {
 import { flexRender } from '@tanstack/react-table';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import useHistoriqueCreneaux from '../hooks/use-historique-creneaux';
 import HistoriqueCreneauxStats from './HistoriqueCreneauxStats';
@@ -35,8 +36,17 @@ const STATUT_FILTERS: { value: StatutFilter; label: string }[] = [
 ];
 
 export default function HistoriqueCreneauxContent() {
-  const { filtered, stats, statutFilter, setStatutFilter, exportXlsx, isLoading } =
-    useHistoriqueCreneaux();
+  const {
+    filtered,
+    stats,
+    statutFilter,
+    setStatutFilter,
+    exportXlsx,
+    isLoading,
+    isError,
+    isFetching,
+    refetch,
+  } = useHistoriqueCreneaux();
 
   const table = useReactTable({
     data: filtered,
@@ -116,7 +126,14 @@ export default function HistoriqueCreneauxContent() {
           </TableHeader>
           <TableBody
             emptyContent={
-              isLoading ? ' ' : <span className="text-sm text-gray-400">Aucun créneau trouvé</span>
+              /* Un echec de chargement ne doit pas se lire comme « Aucun creneau trouve ». */
+              isError ? (
+                <EtatErreur quoi="les créneaux" onReessayer={() => refetch()} enCours={isFetching} />
+              ) : isLoading ? (
+                ' '
+              ) : (
+                <span className="text-sm text-gray-400">Aucun créneau trouvé</span>
+              )
             }
           >
             {isLoading
@@ -148,6 +165,8 @@ export default function HistoriqueCreneauxContent() {
           Array.from({ length: 4 }).map((_, i) => (
             <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 animate-pulse" />
           ))
+        ) : isError ? (
+          <EtatErreur quoi="les créneaux" onReessayer={() => refetch()} enCours={isFetching} />
         ) : filtered.length === 0 ? (
           <p className="py-10 text-center text-sm text-gray-400">Aucun créneau trouvé</p>
         ) : (

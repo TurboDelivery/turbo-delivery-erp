@@ -20,6 +20,9 @@ export function useTurboysBirdController(initialData: PaginatedResponse<LivreurS
   const [pageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  // initialData a null vaut echec de lecture : l'action serveur renvoie null sur
+  // exception, alors qu'une page reellement vide renvoie un contenu vide.
+  const [isError, setIsError] = useState(!initialData);
   const [updateLivreurId, setUpdateLivreurId] = useState('');
   const [isFiltering, setIsFiltering] = useState(false);
 
@@ -137,8 +140,15 @@ export function useTurboysBirdController(initialData: PaginatedResponse<LivreurS
       const newData = await getToutLivreurStatusNonAssigners(page - 1, pageSize);
       if (newData) {
         setData(newData);
+        setIsError(false);
+      } else {
+        // Sans ce cas, la page precedente restait a l'ecran comme si la lecture
+        // avait abouti : l'action ne leve pas, elle renvoie null.
+        setIsError(true);
+        toast.error('Erreur lors de la récupération des données');
       }
     } catch (error: any) {
+      setIsError(true);
       toast.error(error.message || 'Erreur lors de la récupération des données');
     } finally {
       setIsLoading(false);
@@ -199,6 +209,9 @@ export function useTurboysBirdController(initialData: PaginatedResponse<LivreurS
     setCurrentPage: handlePageChange,
     pageSize,
     isLoading,
+    isError,
+    // Relance la page couramment affichee, pas la premiere.
+    reessayer: () => fetchData(currentPage),
     updateLivreurId,
     setUpdateLivreurId,
     supprimerLivreur,

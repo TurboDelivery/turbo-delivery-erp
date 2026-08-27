@@ -14,6 +14,7 @@ import {
 } from '@/components/heroui';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { IJourProgramme, IProgramme } from '@/features/turboys/types/programme.types';
 import { useCreerProgrammeMutation, useModifierProgrammeMutation } from '@/features/turboys/queries/programme.query';
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
@@ -99,8 +100,19 @@ export function ProgrammeFormModal({
         <ModalBody>
           {!isEdit && (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {/* Autocomplete (recherche par nom / matricule / téléphone) — la
-                  liste des livreurs peut être longue, le Select simple ne filtrait pas. */}
+              {/* Une liste de livreurs illisible donne un menu deroulant vide, qui se
+                  lit comme « aucun livreur » : on le dit, et on propose de relancer. */}
+              {livreursQuery.isError ? (
+                <div className="sm:col-span-3">
+                  <EtatErreur
+                    quoi="la liste des livreurs"
+                    onReessayer={() => void livreursQuery.refetch()}
+                    enCours={livreursQuery.isFetching}
+                  />
+                </div>
+              ) : (
+              /* Autocomplete (recherche par nom / matricule / téléphone) — la
+                 liste des livreurs peut être longue, le Select simple ne filtrait pas. */
               <Autocomplete
                 label="Livreur"
                 className="sm:col-span-3"
@@ -128,6 +140,7 @@ export function ProgrammeFormModal({
                   </AutocompleteItem>
                 )}
               </Autocomplete>
+              )}
               <Input
                 type="number"
                 label="Année"

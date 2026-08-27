@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/heroui';
 import { Ear, Phone, PhoneIncoming, PhoneOutgoing } from 'lucide-react';
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   ContexteAppel,
   IAppelLog,
@@ -68,7 +69,7 @@ export function AppelHistoriqueTable() {
   // Rafraîchit périodiquement pour faire remonter les appels EN COURS (écoute).
   // 30 s et non 8 : le socket pousse déjà les six évènements APPEL_*, ce poll n'est
   // qu'un filet, et il tournait à 450 requêtes par heure sur un simple journal.
-  const { data, isLoading } = useAppelsQuery(page, 15, 30_000);
+  const { data, isLoading, isError, isFetching, refetch } = useAppelsQuery(page, 15, 30_000);
   const { superviser, estSuperviseur, enAppel } = useAppel();
   const appels: IAppelLog[] = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
@@ -81,6 +82,11 @@ export function AppelHistoriqueTable() {
         </span>
         Historique des appels
       </h2>
+      {isError ? (
+        // Sans ce cas, une panne du journal affichait « Aucun appel enregistré »,
+        // soit exactement ce que montre un standard sans activite.
+        <EtatErreur quoi="les appels" onReessayer={() => refetch()} enCours={isFetching} />
+      ) : (
       <Table
         aria-label="Historique des appels"
         isStriped
@@ -167,6 +173,7 @@ export function AppelHistoriqueTable() {
           })}
         </TableBody>
       </Table>
+      )}
     </section>
   );
 }

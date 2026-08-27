@@ -14,17 +14,31 @@ import { IRecouvrement } from "@/features/revenus/types/recouvrement/recouvremen
 import { IInvestissement } from "@/features/revenus/types/revenus.types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import EtatErreur from "@/components/commons/EtatErreur";
 
 export default function RevenusEncaissesClient() {
     const [activeTab, setActiveTab] = useState("recouvrements");
     const [searchTerm, setSearchTerm] = useState("");
     const [dateFilter, setDateFilter] = useState("tous");
 
-    const { recouvrement: recouvrementsData, total: totalTransactions, isLoading: isLoadingRecouvrements } = useRecouvrementList({
+    const {
+        recouvrement: recouvrementsData,
+        total: totalTransactions,
+        isLoading: isLoadingRecouvrements,
+        isFetching: isFetchingRecouvrements,
+        isError: isErrorRecouvrements,
+        refetch: refetchRecouvrements,
+    } = useRecouvrementList({
         initialData: []
     });
 
-    const { investissements, isLoading: isLoadingInvestissements } = useInvestissementList();
+    const {
+        investissements,
+        isLoading: isLoadingInvestissements,
+        isFetching: isFetchingInvestissements,
+        isError: isErrorInvestissements,
+        refetch: refetchInvestissements,
+    } = useInvestissementList();
 
     // Calculer les totaux
     const totalRecouvrements = recouvrementsData?.reduce((sum: number, rec: any) => sum + (rec.montant || 0), 0) || 0;
@@ -177,6 +191,22 @@ export default function RevenusEncaissesClient() {
                 </div>
 
                 {/* Cartes de statistiques */}
+                {/* Les totaux sont sommes cote client : si une des deux listes n'a pas pu
+                    etre lue, « 0 FCFA » s'affiche comme un vrai zero. */}
+                {isErrorRecouvrements || isErrorInvestissements ? (
+                    <Card>
+                        <CardContent className="p-0">
+                            <EtatErreur
+                                quoi="les revenus encaissés"
+                                onReessayer={() => {
+                                    if (isErrorRecouvrements) refetchRecouvrements();
+                                    if (isErrorInvestissements) refetchInvestissements();
+                                }}
+                                enCours={isFetchingRecouvrements || isFetchingInvestissements}
+                            />
+                        </CardContent>
+                    </Card>
+                ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
                         <CardContent className="p-6">
@@ -245,6 +275,7 @@ export default function RevenusEncaissesClient() {
                         </CardContent>
                     </Card>
                 </div>
+                )}
 
                 {/* Filtres */}
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -304,7 +335,17 @@ export default function RevenusEncaissesClient() {
 
                     <TabsContent value="recouvrements" className="space-y-4">
                         <div className="grid gap-4">
-                            {filteredRecouvrements.length === 0 ? (
+                            {isErrorRecouvrements ? (
+                                <Card>
+                                    <CardContent className="p-0">
+                                        <EtatErreur
+                                            quoi="les recouvrements"
+                                            onReessayer={() => refetchRecouvrements()}
+                                            enCours={isFetchingRecouvrements}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            ) : filteredRecouvrements.length === 0 ? (
                                 <Card>
                                     <CardContent className="p-8 text-center">
                                         <p className="text-gray-500">Aucun recouvrement trouvé</p>
@@ -348,7 +389,17 @@ export default function RevenusEncaissesClient() {
 
                     <TabsContent value="investissements" className="space-y-4">
                         <div className="grid gap-4">
-                            {filteredInvestissements.length === 0 ? (
+                            {isErrorInvestissements ? (
+                                <Card>
+                                    <CardContent className="p-0">
+                                        <EtatErreur
+                                            quoi="les investissements"
+                                            onReessayer={() => refetchInvestissements()}
+                                            enCours={isFetchingInvestissements}
+                                        />
+                                    </CardContent>
+                                </Card>
+                            ) : filteredInvestissements.length === 0 ? (
                                 <Card>
                                     <CardContent className="p-8 text-center">
                                         <p className="text-gray-500">Aucun investissement trouvé</p>

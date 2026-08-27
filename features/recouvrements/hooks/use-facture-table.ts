@@ -31,7 +31,8 @@ function useFactureTable({ restaurantId: propRestaurantId }: UseFactureTableProp
   }, [restaurantId, filters]);
 
   // Utiliser la query avec restaurantId (qui peut être vide)
-  const { data: facturesData, isLoading, isFetching, isError } = useFacturesParRestaurantQuery(restaurantId, currentSearchParams);
+  // refetch est expose pour que le tableau puisse proposer un bouton "Reessayer" sur echec
+  const { data: facturesData, isLoading, isFetching, isError, refetch } = useFacturesParRestaurantQuery(restaurantId, currentSearchParams);
 
   // Gérer le tri
   const sorting: SortingState = useMemo(() => {
@@ -101,6 +102,7 @@ function useFactureTable({ restaurantId: propRestaurantId }: UseFactureTableProp
     isFactureLoading: isLoading,
     isFactureFetching: isFetching,
     isFactureError: isError,
+    refetchFactures: refetch,
     pagination,
     sorting,
     setSorting,

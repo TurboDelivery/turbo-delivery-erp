@@ -9,6 +9,7 @@ import { RestaurantSelect } from '../common/restaurant-select';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { IContestation } from '@/features/recouvrements/types';
 import { ContestationCard } from './contestation-card';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 interface ContestationsTabsContentProps {
   restoOpts: Array<{ value: string; label: string }>;
@@ -25,7 +26,7 @@ export function ContestationsTabsContent({ restoOpts, isOptionsLoading }: Contes
     setCurrentPage(1);
   }, [filters.restaurantId, filters.debut, filters.fin, filters.status]);
 
-  const { data: contestationsData, isLoading, refetch } = useContestationsQuery(
+  const { data: contestationsData, isLoading, isError, isFetching, refetch } = useContestationsQuery(
     {
       factureId: filters.restaurantId || '',
       debut: filters.debut?.toISOString().split('T')[0],
@@ -95,7 +96,12 @@ export function ContestationsTabsContent({ restoOpts, isOptionsLoading }: Contes
           </div>
         )}
 
-        {!isLoading && filteredContestations.length > 0 && (
+        {/* sur echec, l'erreur prend la place de "Aucune contestation trouvee" qui se lirait comme un vrai vide */}
+        {filters.restaurantId && !isLoading && isError && (
+          <EtatErreur quoi="les contestations" onReessayer={() => refetch()} enCours={isFetching} />
+        )}
+
+        {!isLoading && !isError && filteredContestations.length > 0 && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               {filteredContestations.map((contestation: IContestation) => (
@@ -122,7 +128,7 @@ export function ContestationsTabsContent({ restoOpts, isOptionsLoading }: Contes
           </>
         )}
 
-        {filters.restaurantId && !isLoading && filteredContestations.length === 0 && (
+        {filters.restaurantId && !isLoading && !isError && filteredContestations.length === 0 && (
           <div className="text-center py-12 text-gray-500">
             <p>Aucune contestation trouvée</p>
           </div>

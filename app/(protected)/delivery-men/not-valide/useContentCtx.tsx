@@ -29,7 +29,12 @@ interface Props {
 }
 
 export default function useContentCtx({ initialData }: Props) {
-    const [isLoading, setIsLoading] = useState(!initialData);
+    const [isLoading, setIsLoading] = useState(false);
+    // Sans cet etat, un echec de lecture laissait la table sur « Aucun livreur »,
+    // que l'operateur lit comme « il n'y a personne a traiter ».
+    // initialData a null vaut echec : l'action serveur renvoie null sur exception,
+    // alors qu'une page reellement vide renvoie un contenu vide.
+    const [isError, setIsError] = useState(!initialData);
 
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
@@ -41,8 +46,16 @@ export default function useContentCtx({ initialData }: Props) {
         setIsLoading(true);
         try {
             const newData = await getDeliveryMen(page - 1, pageSize);
+            // Meme piege cote client : l'action ne leve pas, elle renvoie null.
+            if (!newData) {
+                setIsError(true);
+                toast.error('Erreur lors de la récupération des données');
+                return;
+            }
             setData(newData);
+            setIsError(false);
         } catch (error) {
+            setIsError(true);
             toast.error('Erreur lors de la récupération des données');
         } finally {
             setIsLoading(false);
@@ -102,5 +115,9 @@ export default function useContentCtx({ initialData }: Props) {
         fetchData,
         currentPage,
         isLoading,
+        isError,
+        // Relance la page couramment affichee, pas la premiere : l'operateur doit
+        // retrouver l'ecran ou il en etait.
+        reessayer: () => fetchData(currentPage),
     };
 }

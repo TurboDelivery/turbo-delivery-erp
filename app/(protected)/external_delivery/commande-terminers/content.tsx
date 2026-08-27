@@ -9,6 +9,7 @@ import DeliveryTools from '../component/deliveryTools';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { getPaginationCourseExterneAutreStatus } from '@/src/actions/courses.actions';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 type SortOption = (typeof SORT_OPTIONS)[keyof typeof SORT_OPTIONS];
 
@@ -72,6 +73,9 @@ export default function Content({ initialData, delivers }: Props) {
   const [data] = useState<PaginatedResponse<CourseExterne> | null>(initialData);
   const [dataFilter, setDataFilter] = useState<CourseExterne[]>(data?.content ?? []);
   const [isLoading, setIsLoading] = useState(true);
+  // initialData a null vaut echec de lecture : l'action serveur renvoie null sur
+  // exception, alors qu'une liste reellement vide renvoie un contenu vide.
+  const [isError, setIsError] = useState(!initialData);
 
   useEffect(() => {
     mapData(initialData);
@@ -98,10 +102,18 @@ export default function Content({ initialData, delivers }: Props) {
     setIsLoading(true);
     try {
       const newData = await getPaginationCourseExterneAutreStatus(page - 1, pageSize);
+      // L'action ne leve pas, elle renvoie null : sans ce test l'echec se lisait
+      // « aucune course ne correspond a vos criteres ».
+      if (!newData) {
+        setIsError(true);
+        return;
+      }
+      setIsError(false);
       // setData(newData?newData:data);
       setStatusFilter('all');
       mapData(newData);
     } catch (error) {
+      setIsError(true);
       console.error('Error fetching data:', error);
     } finally {
       setIsLoading(false);
@@ -179,7 +191,15 @@ export default function Content({ initialData, delivers }: Props) {
                 </div> */}
       </div>
 
-      {isLoading ? (
+      {/* L'echec prend la place des cartes : pose au-dessus, il cohabiterait avec
+          le message « aucune course ne correspond » et l'ecran se contredirait. */}
+      {isError ? (
+        <EtatErreur
+          quoi="les courses terminées"
+          onReessayer={() => fetchData(currentPage)}
+          enCours={isLoading}
+        />
+      ) : isLoading ? (
         <div className="flex flex-col gap-6">
           {[...Array(2)].map((_, index) => (
             <Skeleton key={index} className="rounded-lg h-52" />

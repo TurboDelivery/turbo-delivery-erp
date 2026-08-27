@@ -10,6 +10,7 @@ import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summ
 import { useChargesFixesQuery } from '@/features/charges/queries/charges-fixes.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { endOfMonth, startOfMonth } from 'date-fns';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export default function AnalyseRentabiliteContent() {
   const [filters, setFilters] = useState(() => {
@@ -28,12 +29,24 @@ export default function AnalyseRentabiliteContent() {
   };
 
   // Récupérer les données des API
-  const { data: globalStats, isLoading: isLoadingGlobal } = useGlobalStats({
+  const {
+    data: globalStats,
+    isLoading: isLoadingGlobal,
+    isFetching: isFetchingGlobal,
+    isError: isErrorGlobal,
+    refetch: refetchGlobal,
+  } = useGlobalStats({
     debut: filters.debut,
     fin: filters.fin,
   });
 
-  const { data: depenseSummary, isLoading: isLoadingDepenses } = useDepenseSummaryQuery({
+  const {
+    data: depenseSummary,
+    isLoading: isLoadingDepenses,
+    isFetching: isFetchingDepenses,
+    isError: isErrorDepenses,
+    refetch: refetchDepenses,
+  } = useDepenseSummaryQuery({
     debut: filters.debut,
     fin: filters.fin,
   });
@@ -76,6 +89,12 @@ export default function AnalyseRentabiliteContent() {
     };
   }, [globalStats, depenseSummary, chargesFixesData]);
 
+  const isErreurRentabilite = isErrorGlobal || isErrorDepenses;
+  const reessayerRentabilite = () => {
+    if (isErrorGlobal) refetchGlobal();
+    if (isErrorDepenses) refetchDepenses();
+  };
+
   return (
     <div className="p-6 bg-gray-50">
       {/* Header */}
@@ -92,6 +111,19 @@ export default function AnalyseRentabiliteContent() {
       </div>
 
       {/* Stats */}
+      {/* Sur echec, CA et depenses valent 0 : la marge vaut 0, le taux 0,0 % et le
+          pied de page annonce « Rentable ». Un echec ne doit pas rendre un verdict. */}
+      {isErreurRentabilite ? (
+        <Card className="mb-6">
+          <CardBody className="p-0">
+            <EtatErreur
+              quoi="les indicateurs de rentabilité"
+              onReessayer={reessayerRentabilite}
+              enCours={isFetchingGlobal || isFetchingDepenses}
+            />
+          </CardBody>
+        </Card>
+      ) : (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card className="bg-gray-100">
           <CardBody className="p-4">
@@ -121,6 +153,7 @@ export default function AnalyseRentabiliteContent() {
           </CardBody>
         </Card>
       </div>
+      )}
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 gap-6">
@@ -173,7 +206,9 @@ export default function AnalyseRentabiliteContent() {
           Période Analysée : {filters.debut ? new Date(filters.debut).toLocaleDateString('fr-FR') : '...'}
           au {filters.fin ? new Date(filters.fin).toLocaleDateString('fr-FR') : '...'}
         </span>
-        <span className={`font-medium ${stats.isDeficit ? 'text-red-600' : 'text-green-600'}`}>{stats.isDeficit ? '✗ Déficit' : '✓ Rentable'}</span>
+        {!isErreurRentabilite && (
+          <span className={`font-medium ${stats.isDeficit ? 'text-red-600' : 'text-green-600'}`}>{stats.isDeficit ? '✗ Déficit' : '✓ Rentable'}</span>
+        )}
       </div>
     </div>
   );

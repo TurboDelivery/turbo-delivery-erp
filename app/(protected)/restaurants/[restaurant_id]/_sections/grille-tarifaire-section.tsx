@@ -16,6 +16,7 @@ import {
 } from '@/components/heroui';
 import { MapPin, Search } from 'lucide-react';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import { useGrilleTarifaireQuery } from '@/features/restaurants/queries/restaurant-list.query';
 
 const fmtPrix = (v: number) => formatMontant(v);
@@ -27,7 +28,7 @@ const fmtKm = (v: number) => new Intl.NumberFormat('fr-FR', { maximumFractionDig
  * résoudre les frais d'une course externe (et donc la rémunération du livreur).
  */
 export default function GrilleTarifaireSection({ restaurantId }: { restaurantId: string }) {
-  const { data, isLoading } = useGrilleTarifaireQuery(restaurantId);
+  const { data, isLoading, isError, isFetching, refetch } = useGrilleTarifaireQuery(restaurantId);
   const [search, setSearch] = useState('');
 
   const zones = useMemo(() => {
@@ -67,6 +68,16 @@ export default function GrilleTarifaireSection({ restaurantId }: { restaurantId:
         onClear={() => setSearch('')}
       />
 
+      {/* En echec on retire le tableau : son message de vide annoncerait
+          "aucune zone tarifaire configuree", ce qui est une information
+          metier fausse quand la grille n'a simplement pas pu etre lue. */}
+      {isError ? (
+        <EtatErreur
+          quoi="les zones tarifaires de ce partenaire"
+          onReessayer={() => refetch()}
+          enCours={isFetching}
+        />
+      ) : (
       <Table
         aria-label="Grille tarifaire du restaurant"
         removeWrapper
@@ -110,6 +121,7 @@ export default function GrilleTarifaireSection({ restaurantId }: { restaurantId:
           ))}
         </TableBody>
       </Table>
+      )}
     </section>
   );
 }

@@ -25,6 +25,7 @@ import {
 } from '@/components/heroui';
 import { History, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   useCommissionHistoryQuery,
   useModifierCommissionMutation,
@@ -72,7 +73,7 @@ function sourceChip(source: string) {
 }
 
 export function CommissionHistorySection({ restaurantId }: { restaurantId: string }) {
-  const { data: versions, isLoading } = useCommissionHistoryQuery(restaurantId);
+  const { data: versions, isLoading, isError, isFetching, refetch } = useCommissionHistoryQuery(restaurantId);
   const mutation = useModifierCommissionMutation(restaurantId);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
@@ -143,6 +144,14 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
         <div className="flex justify-center py-8">
           <Spinner size="sm" label="Chargement de l'historique…" />
         </div>
+      ) : isError ? (
+        // Les versions datees sont opposables : annoncer "aucune version"
+        // sur un echec de lecture ferait poser une commission a l'aveugle.
+        <EtatErreur
+          quoi="les versions de commission"
+          onReessayer={() => refetch()}
+          enCours={isFetching}
+        />
       ) : list.length === 0 ? (
         <p className="text-sm text-gray-400 py-4">Aucune version de commission enregistrée.</p>
       ) : (

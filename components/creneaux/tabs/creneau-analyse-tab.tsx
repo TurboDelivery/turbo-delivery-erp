@@ -6,9 +6,10 @@ import { CapaciteFiabiliteCards } from '@/components/creneaux/analyse/capacite-f
 import { CreneauPeriodeCard } from '@/components/creneaux/analyse/creneau-periode-card';
 import { EvolutionTable } from '@/components/creneaux/analyse/evolution-table';
 import { useCreneauAnalyseComparaisonQuery } from '@/features/creneaux/queries/creneau.query';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export function CreneauAnalyseTab() {
-  const { data } = useCreneauAnalyseComparaisonQuery();
+  const { data, isError, isFetching, refetch } = useCreneauAnalyseComparaisonQuery();
 
   const miniStats = data?.miniStats;
   const capacite = data?.capacite ?? { pourcentage: 0, inscrits: 0, total: 0, tauxConfirmation: 0 };
@@ -20,6 +21,19 @@ export function CreneauAnalyseTab() {
 
   const ecartPositif = (ecart?.valeur ?? 0) >= 0;
   const diffMatinSoir = matin.taux - soir.taux;
+
+  // Sans cette sortie, une lecture ratee retombait sur les valeurs par defaut :
+  // l'onglet affirmait « 0 % de presence, 0 absence », des chiffres qu'il n'avait
+  // pas lus. On remplace l'analyse entiere plutot que d'afficher des zeros.
+  if (isError) {
+    return (
+      <EtatErreur
+        quoi="l'analyse des créneaux"
+        onReessayer={() => refetch()}
+        enCours={isFetching}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

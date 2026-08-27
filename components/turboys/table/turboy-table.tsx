@@ -9,6 +9,7 @@ import { useTurboyTable } from '@/features/turboys/hooks/use-turboy-table';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { TurboyActionsCell, getTurboyStatusColor, getTurboyStatusLabel } from './turboy-table-columns';
 import { LivreurMobileCard, LivreurMobileCardList } from '@/components/dashboard/delivery-men/shared/livreur-mobile-card';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 const TURBOY_TYPES: { value: TurboyType; label: string }[] = [
   { value: 'INDEPENDANT', label: 'Indépendant' },
@@ -28,7 +29,7 @@ const getRowTypeClass = (typeLivreur?: TurboyType) => {
 };
 
 export function TurboyTable() {
-  const { table, isLoading, turboysData, filters, setFilters } = useTurboyTable();
+  const { table, isLoading, isError, isFetching, refetch, turboysData, filters, setFilters } = useTurboyTable();
 
   const handleTypeFilterChange = (keys: any) => {
     const selected = Array.from(keys)[0] as TurboyType;
@@ -52,12 +53,21 @@ export function TurboyTable() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {/* Un « Total: 0 » apres un echec de lecture se lit comme un comptage :
+              on montre un tiret tant que la liste n a pas pu etre lue. */}
           <Chip variant="flat" color="primary" size="lg">
-            Total: {turboysData?.livreurs?.totalElements || 0}
+            Total: {isError ? '—' : turboysData?.livreurs?.totalElements || 0}
           </Chip>
         </div>
       </div>
 
+      {/* L echec remplace les DEUX rendus (tableau desktop et cartes mobiles) :
+          les laisser vivre afficherait « Aucun turboy trouve », c est-a-dire un
+          resultat vide, alors que la liste n a pas pu etre lue. */}
+      {isError ? (
+        <EtatErreur quoi="les turboys" onReessayer={() => void refetch()} enCours={isFetching} />
+      ) : (
+      <>
       {/* Table Card — desktop uniquement (≥ md) */}
       <Card className="hidden md:block">
         <CardBody>
@@ -197,6 +207,8 @@ export function TurboyTable() {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }

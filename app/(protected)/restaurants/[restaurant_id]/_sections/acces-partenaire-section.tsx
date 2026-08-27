@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Chip, Input, Select, SelectItem, Snippet, Spinner } from '@/components/heroui';
 import { ChevronDown, ChevronUp, Eye, EyeOff, KeyRound, Link2, Users } from 'lucide-react';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   useAccesPartenaireQuery,
   useCreerAccesPartenaireMutation,
@@ -42,7 +43,7 @@ function SubTitle({ icon, children, action }: { icon: React.ReactNode; children:
 
 // ─── Section principale ────────────────────────────────────────────────────────
 export default function AccesPartenaireSection({ restaurantId }: { restaurantId: string }) {
-  const { data: comptes, isLoading } = useAccesPartenaireQuery(restaurantId);
+  const { data: comptes, isLoading, isError, isFetching, refetch } = useAccesPartenaireQuery(restaurantId);
   const creer = useCreerAccesPartenaireMutation(restaurantId);
 
   const [formOpen, setFormOpen] = useState(false);
@@ -105,6 +106,14 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
 
         {isLoading ? (
           <Spinner size="sm" />
+        ) : isError ? (
+          // A la place de la liste : "Aucun acces cree" pousserait a en creer
+          // un deuxieme alors que le compte existe et n'a pas pu etre lu.
+          <EtatErreur
+            quoi="les accès de ce partenaire"
+            onReessayer={() => refetch()}
+            enCours={isFetching}
+          />
         ) : liste.length === 0 ? (
           <div className="text-xs text-gray-400 border border-dashed border-gray-200 rounded-lg p-4 text-center">
             Aucun accès créé pour ce partenaire.

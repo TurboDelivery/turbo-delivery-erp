@@ -23,6 +23,7 @@ import { useSession } from 'next-auth/react';
 import { Download, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import { useAbility } from '@/hooks/use-ability';
 import { normalizeRole } from '@/lib/casl/ability';
 import { obtenirMasseSalariale } from '@/features/personnel/apis/personnel-historisation.api';
@@ -66,7 +67,13 @@ export function MasseSalarialeTab() {
   const role = normalizeRole(session?.user?.role as string | undefined);
   const peutCloturer = ability.can('manage', 'all') || (!!role && ROLES_CLOTURE.includes(role));
 
-  const { data: mois, isLoading: chargementMois } = useMoisMasseSalarialeQuery();
+  const {
+    data: mois,
+    isLoading: chargementMois,
+    isFetching: rechargeMois,
+    isError: echecMois,
+    refetch: relancerMois,
+  } = useMoisMasseSalarialeQuery();
   const [moisSelectionne, setMoisSelectionne] = useState<string | null>(null);
   const [confirmation, setConfirmation] = useState(false);
   // Verrou d'export : un double-clic écrirait deux traces d'audit pour un seul geste.
@@ -79,9 +86,18 @@ export function MasseSalarialeTab() {
     }
   }, [mois, moisSelectionne]);
 
-  const { data: masse, isLoading, isFetching } = useMasseSalarialeQuery(moisSelectionne);
+  const { data: masse, isLoading, isFetching, isError: echecMasse, refetch: relancerMasse } = useMasseSalarialeQuery(moisSelectionne);
   const { data: comparaison } = useComparaisonMasseSalarialeQuery(moisSelectionne);
   const cloture = useCloturerMasseSalarialeMutation();
+
+  // La liste des mois compte autant que la masse elle-meme : si elle tombe, aucun mois n'est
+  // selectionne, la requete de masse reste desactivee et le tableau affiche « aucune ligne de
+  // paie » pour un mois qu'il n'a jamais demande.
+  const enEchec = (echecMois || echecMasse) && (masse?.lignes ?? []).length === 0;
+  const relancer = () => {
+    relancerMois();
+    if (moisSelectionne) relancerMasse();
+  };
 
   const moisCourant = useMemo(
     () => mois?.find((m) => m.mois === moisSelectionne) ?? null,
@@ -210,7 +226,15 @@ export function MasseSalarialeTab() {
           <TableColumn className="text-primary">PAIEMENT</TableColumn>
         </TableHeader>
         <TableBody
-          emptyContent={isLoading || isFetching ? ' ' : 'Aucune ligne de paie sur ce mois.'}
+          emptyContent={
+            enEchec ? (
+              <EtatErreur quoi="la masse salariale" onReessayer={relancer} enCours={isFetching || rechargeMois} />
+            ) : isLoading || isFetching ? (
+              ' '
+            ) : (
+              'Aucune ligne de paie sur ce mois.'
+            )
+          }
           isLoading={isLoading}
           loadingContent={<Spinner color="primary" label="Chargement de la masse salariale…" />}
         >

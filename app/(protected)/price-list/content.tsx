@@ -1,6 +1,7 @@
 'use client';
 
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { DeliveryFee } from '@/types/price-list';
 import { Pagination, Tab, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tabs } from '@/components/heroui';
 import { Search } from 'lucide-react';
@@ -30,6 +31,8 @@ export default function Content() {
     closeEditModal,
     isLoading,
     isFetching,
+    isError,
+    refetch,
     pagination,
   } = usePriceListTable();
 
@@ -65,6 +68,17 @@ export default function Content() {
           />
         </div>
 
+        {/* En echec, on remplace les DEUX rendus (tableau et cartes) : laisser
+            l'un des deux afficher "Aucun frais de livraison" ferait lire une
+            grille vide la ou la grille existe et n'a pas pu etre lue. */}
+        {isError ? (
+          <EtatErreur
+            quoi="les frais de livraison"
+            onReessayer={() => refetch()}
+            enCours={isFetching}
+          />
+        ) : (
+          <>
         {/* Tableau (desktop ≥ md) */}
         <div className="hidden md:block">
           <Table
@@ -157,6 +171,8 @@ export default function Content() {
             </div>
           )}
         </div>
+          </>
+        )}
       </div>
 
       <PriceListFormModal

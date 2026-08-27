@@ -18,6 +18,7 @@ import {
 import { Search } from 'lucide-react';
 import { toast } from 'sonner';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import { useConnexionsQuery } from '../queries/supervision.queries';
 import { useRechercheDifferee } from '../hooks/use-recherche-differee';
 import {
@@ -82,7 +83,7 @@ export function ConnexionsPanel({ userId, enregistrerExport }: Props) {
     [typeEvenement, recherche, periode, page],
   );
 
-  const { data, isLoading, isFetching } = useConnexionsQuery(userId, filtre, TAILLE_PAGE);
+  const { data, isLoading, isFetching, isError, refetch } = useConnexionsQuery(userId, filtre, TAILLE_PAGE);
   const lignes = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
   const total = data?.totalElements ?? 0;
@@ -148,6 +149,16 @@ export function ConnexionsPanel({ userId, enregistrerExport }: Props) {
         />
       </div>
 
+      {/* L echec REMPLACE le tableau : « Aucun evenement pour ces criteres » se lit
+          comme un journal vide, et un auditeur en conclurait qu il ne s est rien
+          passe alors que le journal n a pas pu etre lu. */}
+      {isError ? (
+        <EtatErreur
+          quoi="le journal des connexions"
+          onReessayer={() => void refetch()}
+          enCours={isFetching}
+        />
+      ) : (
       <Table
         aria-label="Journal des connexions"
         isStriped
@@ -217,10 +228,11 @@ export function ConnexionsPanel({ userId, enregistrerExport }: Props) {
           ))}
         </TableBody>
       </Table>
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-default-400">
         <span>
-          {total} événement{total > 1 ? 's' : ''} pour ces critères
+          {isError ? '—' : `${total} événement${total > 1 ? 's' : ''} pour ces critères`}
         </span>
         <span>Journal en lecture seule — conservation 24 mois</span>
       </div>

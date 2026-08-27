@@ -8,6 +8,7 @@ import { DeductionFilters } from '@/components/personnel/deductions/deductions/d
 import { renderDeductionActions } from '@/components/personnel/deductions/deductions/deduction-table-columns';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
 import { PersonnelMobileCard, PersonnelMobileCardList } from '@/components/personnel/shared/personnel-mobile-card';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { formatCfa, formatDateFr } from '@/lib/date-utils';
 import {
   getDeductionStatusClassName,
@@ -28,6 +29,8 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
     deductionTable,
     isDeductionLoading,
     isDeductionFetching,
+    isDeductionError,
+    refetchDeductions,
     pagination,
     filters,
     setFilters,
@@ -37,6 +40,9 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
   } = useDeductionTable({ onEditDeduction, onCancelDeduction, onDeleteDeduction });
 
   const colsCount = deductionTable.getAllColumns().length;
+  // L'echec ne prend la place des lignes que s'il n'y a rien a montrer : un rafraichissement
+  // rate laisse les deductions deja chargees en place.
+  const enEchec = isDeductionError && deductionTable.getRowModel().rows.length === 0;
 
   const handleResetFilters = () => {
     const now = new Date();
@@ -81,7 +87,12 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
             ))}
           </TableHeader>
 
-          <TableBody emptyContent="Aucune déduction trouvée">
+          {/* L'echec remplace « Aucune deduction trouvee » : sinon le mois parait vierge de retenues. */}
+          <TableBody
+            emptyContent={
+              enEchec ? <EtatErreur quoi="les déductions" onReessayer={() => refetchDeductions()} enCours={isDeductionFetching} /> : 'Aucune déduction trouvée'
+            }
+          >
             {isDeductionLoading
               ? Array.from({ length: 10 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
@@ -92,7 +103,9 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
                     ))}
                   </TableRow>
                 ))
-              : deductionTable.getRowModel().rows.map((row) => (
+              : enEchec
+                ? []
+                : deductionTable.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className={isDeductionFetching ? 'opacity-70' : ''}>
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
@@ -107,6 +120,8 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
       <PersonnelMobileCardList>
         {isDeductionLoading ? (
           Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 animate-pulse" />)
+        ) : enEchec ? (
+          <EtatErreur quoi="les déductions" onReessayer={() => refetchDeductions()} enCours={isDeductionFetching} />
         ) : deductionTable.getRowModel().rows.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-10">Aucune déduction trouvée</p>
         ) : (

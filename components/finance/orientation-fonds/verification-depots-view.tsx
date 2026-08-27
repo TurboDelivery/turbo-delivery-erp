@@ -28,6 +28,7 @@ import {
 } from '@/features/orientation-fonds';
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import { formatMontant } from '@/utils/format.utils';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 function fmtDate(iso: string | null) {
   if (!iso) return '—';
@@ -42,7 +43,7 @@ const ETAT_BANQUE: Record<EtatRapprochement, { label: string; color: 'success' |
 };
 
 export default function VerificationDepotsView() {
-  const { data, isLoading } = useVerificationDepotsQuery();
+  const { data, isLoading, isError, isFetching, refetch } = useVerificationDepotsQuery();
   const { data: attestations } = useAttestationsCaisseQuery();
   const attester = useEnregistrerAttestationMutation();
 
@@ -53,6 +54,9 @@ export default function VerificationDepotsView() {
   const banque = data?.orientesBanque ?? [];
   const caisse = data?.conservesCaisse ?? [];
   const synthese = data?.synthese;
+
+  // sans cette garde, un echec afficherait des totaux a 0 et un bouclage "Anomalie" faussement rouge
+  const zoneErreur = <EtatErreur quoi="la vérification des dépôts" onReessayer={() => refetch()} enCours={isFetching} />;
 
   const handleAttester = () => {
     const montant = Number(montantCompte);
@@ -111,148 +115,154 @@ export default function VerificationDepotsView() {
         </div>
       </div>
 
-      {/* Synthèse de bouclage */}
-      <GrilleStats colonnes={4}>
-        <CarteStat
-          libelle="Total visé"
-          valeur={formatMontant(synthese?.totalVise ?? 0)}
-          isLoading={isLoading}
-        />
-        <CarteStat
-          libelle="Total déposé (banque)"
-          valeur={formatMontant(synthese?.totalDepose ?? 0)}
-          isLoading={isLoading}
-        />
-        <CarteStat
-          libelle="Total conservé (caisse)"
-          valeur={formatMontant(synthese?.totalConserve ?? 0)}
-          isLoading={isLoading}
-        />
-        {/* Le bouclage est le seul chiffre colore de ce bandeau : il dit si la
-            somme banque + caisse retombe sur le total vise. */}
-        <CarteStat
-          libelle="Bouclage"
-          valeur={synthese?.bouclageOk ? 'OK' : 'Anomalie'}
-          note={synthese ? `Écart : ${formatMontant(synthese.ecartBouclage)}` : undefined}
-          ton={synthese?.bouclageOk ? 'succes' : 'danger'}
-          isLoading={isLoading}
-        />
-      </GrilleStats>
-      {synthese && !synthese.bouclageOk && (
-        <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          <AlertTriangle className="w-4 h-4 shrink-0" />
-          Total visé ≠ Total déposé + Total conservé — anomalie à investiguer (opération visée ni déposée ni conservée, ou double comptage).
-        </div>
+      {isError ? (
+        zoneErreur
+      ) : (
+        <>
+        {/* Synthèse de bouclage */}
+        <GrilleStats colonnes={4}>
+          <CarteStat
+            libelle="Total visé"
+            valeur={formatMontant(synthese?.totalVise ?? 0)}
+            isLoading={isLoading}
+          />
+          <CarteStat
+            libelle="Total déposé (banque)"
+            valeur={formatMontant(synthese?.totalDepose ?? 0)}
+            isLoading={isLoading}
+          />
+          <CarteStat
+            libelle="Total conservé (caisse)"
+            valeur={formatMontant(synthese?.totalConserve ?? 0)}
+            isLoading={isLoading}
+          />
+          {/* Le bouclage est le seul chiffre colore de ce bandeau : il dit si la
+              somme banque + caisse retombe sur le total vise. */}
+          <CarteStat
+            libelle="Bouclage"
+            valeur={synthese?.bouclageOk ? 'OK' : 'Anomalie'}
+            note={synthese ? `Écart : ${formatMontant(synthese.ecartBouclage)}` : undefined}
+            ton={synthese?.bouclageOk ? 'succes' : 'danger'}
+            isLoading={isLoading}
+          />
+        </GrilleStats>
+        {synthese && !synthese.bouclageOk && (
+          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <AlertTriangle className="w-4 h-4 shrink-0" />
+            Total visé ≠ Total déposé + Total conservé — anomalie à investiguer (opération visée ni déposée ni conservée, ou double comptage).
+          </div>
+        )}
+
+        {/* Section A — orientés banque */}
+        <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
+            <Landmark className="w-4 h-4 text-indigo-500" />
+            <p className="font-semibold text-gray-900">Recouvrements orientés banque</p>
+            <span className="text-xs text-gray-400">· rapprochement visa ↔ bordereau</span>
+          </div>
+          <div className="overflow-x-auto hidden md:block">
+            <Table aria-label="Rapprochement banque" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-gray-50 text-gray-600 text-xs uppercase' }}>
+              <TableHeader>
+                <TableColumn>N° VISA</TableColumn>
+                <TableColumn>N° BORDEREAU</TableColumn>
+                <TableColumn>PARTENAIRE</TableColumn>
+                <TableColumn>VISÉ / DÉPOSÉ</TableColumn>
+                <TableColumn>DATE</TableColumn>
+                <TableColumn>ÉTAT</TableColumn>
+              </TableHeader>
+              <TableBody emptyContent={isLoading ? 'Chargement…' : 'Aucun recouvrement orienté banque'}>
+                {banque.map((l) => (
+                  <TableRow key={l.factureId}>
+                    <TableCell>{l.numeroVisa ?? '—'}</TableCell>
+                    <TableCell>{l.numeroBordereau ?? <span className="text-red-500">—</span>}</TableCell>
+                    <TableCell>{l.partenaire}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}</TableCell>
+                    <TableCell>{fmtDate(l.dateDepot)}</TableCell>
+                    <TableCell>
+                      <Chip size="sm" color={ETAT_BANQUE[l.etatRapprochement].color} variant="flat">
+                        {ETAT_BANQUE[l.etatRapprochement].label}
+                      </Chip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Mobile — cartes (lecture seule) */}
+          <div className="md:hidden divide-y divide-gray-100">
+            {banque.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-8">Aucun recouvrement orienté banque</p>
+            ) : banque.map((l) => (
+              <div key={l.factureId} className="p-4 space-y-1.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{l.partenaire}</p>
+                    <p className="text-[11px] text-gray-400">Visa {l.numeroVisa ?? '—'} · Bord. {l.numeroBordereau ?? '—'}</p>
+                  </div>
+                  <Chip size="sm" color={ETAT_BANQUE[l.etatRapprochement].color} variant="flat">{ETAT_BANQUE[l.etatRapprochement].label}</Chip>
+                </div>
+                <div className="flex justify-between text-xs"><span className="text-gray-400">Visé / Déposé</span><span className="text-gray-700">{formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}</span></div>
+                <div className="flex justify-between text-xs"><span className="text-gray-400">Date dépôt</span><span className="text-gray-700">{fmtDate(l.dateDepot)}</span></div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Section B — conservés en caisse */}
+        <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
+            <PiggyBank className="w-4 h-4 text-amber-500" />
+            <p className="font-semibold text-gray-900">Recouvrements conservés en caisse</p>
+          </div>
+          <div className="overflow-x-auto hidden md:block">
+            <Table aria-label="Suivi caisse" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-gray-50 text-gray-600 text-xs uppercase' }}>
+              <TableHeader>
+                <TableColumn>N° VISA</TableColumn>
+                <TableColumn>PARTENAIRE</TableColumn>
+                <TableColumn>MONTANT</TableColumn>
+                <TableColumn>MOTIF</TableColumn>
+                <TableColumn>ANCIENNETÉ</TableColumn>
+                <TableColumn>ÉTAT</TableColumn>
+              </TableHeader>
+              <TableBody emptyContent={isLoading ? 'Chargement…' : 'Aucun fonds conservé en caisse'}>
+                {caisse.map((l) => (
+                  <TableRow key={l.factureId}>
+                    <TableCell>{l.numeroVisa ?? '—'}</TableCell>
+                    <TableCell>{l.partenaire}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatMontant(l.montantConserve)}</TableCell>
+                    <TableCell><span className="text-xs text-gray-500 line-clamp-2 max-w-[260px]">{l.motif ?? '—'}</span></TableCell>
+                    <TableCell>{l.ancienneteJours} j</TableCell>
+                    <TableCell>
+                      <Chip size="sm" color={l.alerteDormant ? 'danger' : 'warning'} variant="flat">
+                        {l.alerteDormant ? 'Dormant' : 'En caisse'}
+                      </Chip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Mobile — cartes (lecture seule) */}
+          <div className="md:hidden divide-y divide-gray-100">
+            {caisse.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-8">Aucun fonds conservé en caisse</p>
+            ) : caisse.map((l) => (
+              <div key={l.factureId} className="p-4 space-y-1.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 truncate">{l.partenaire}</p>
+                    <p className="text-[11px] text-gray-400">Visa {l.numeroVisa ?? '—'} · {l.ancienneteJours} j</p>
+                  </div>
+                  <Chip size="sm" color={l.alerteDormant ? 'danger' : 'warning'} variant="flat">{l.alerteDormant ? 'Dormant' : 'En caisse'}</Chip>
+                </div>
+                <div className="flex justify-between text-xs"><span className="text-gray-400">Montant</span><span className="text-gray-700 font-semibold">{formatMontant(l.montantConserve)}</span></div>
+                {l.motif && <p className="text-[11px] text-gray-500 line-clamp-2">{l.motif}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+        </>
       )}
-
-      {/* Section A — orientés banque */}
-      <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
-          <Landmark className="w-4 h-4 text-indigo-500" />
-          <p className="font-semibold text-gray-900">Recouvrements orientés banque</p>
-          <span className="text-xs text-gray-400">· rapprochement visa ↔ bordereau</span>
-        </div>
-        <div className="overflow-x-auto hidden md:block">
-          <Table aria-label="Rapprochement banque" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-gray-50 text-gray-600 text-xs uppercase' }}>
-            <TableHeader>
-              <TableColumn>N° VISA</TableColumn>
-              <TableColumn>N° BORDEREAU</TableColumn>
-              <TableColumn>PARTENAIRE</TableColumn>
-              <TableColumn>VISÉ / DÉPOSÉ</TableColumn>
-              <TableColumn>DATE</TableColumn>
-              <TableColumn>ÉTAT</TableColumn>
-            </TableHeader>
-            <TableBody emptyContent={isLoading ? 'Chargement…' : 'Aucun recouvrement orienté banque'}>
-              {banque.map((l) => (
-                <TableRow key={l.factureId}>
-                  <TableCell>{l.numeroVisa ?? '—'}</TableCell>
-                  <TableCell>{l.numeroBordereau ?? <span className="text-red-500">—</span>}</TableCell>
-                  <TableCell>{l.partenaire}</TableCell>
-                  <TableCell className="whitespace-nowrap">{formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}</TableCell>
-                  <TableCell>{fmtDate(l.dateDepot)}</TableCell>
-                  <TableCell>
-                    <Chip size="sm" color={ETAT_BANQUE[l.etatRapprochement].color} variant="flat">
-                      {ETAT_BANQUE[l.etatRapprochement].label}
-                    </Chip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        {/* Mobile — cartes (lecture seule) */}
-        <div className="md:hidden divide-y divide-gray-100">
-          {banque.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">Aucun recouvrement orienté banque</p>
-          ) : banque.map((l) => (
-            <div key={l.factureId} className="p-4 space-y-1.5">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{l.partenaire}</p>
-                  <p className="text-[11px] text-gray-400">Visa {l.numeroVisa ?? '—'} · Bord. {l.numeroBordereau ?? '—'}</p>
-                </div>
-                <Chip size="sm" color={ETAT_BANQUE[l.etatRapprochement].color} variant="flat">{ETAT_BANQUE[l.etatRapprochement].label}</Chip>
-              </div>
-              <div className="flex justify-between text-xs"><span className="text-gray-400">Visé / Déposé</span><span className="text-gray-700">{formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}</span></div>
-              <div className="flex justify-between text-xs"><span className="text-gray-400">Date dépôt</span><span className="text-gray-700">{fmtDate(l.dateDepot)}</span></div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Section B — conservés en caisse */}
-      <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
-          <PiggyBank className="w-4 h-4 text-amber-500" />
-          <p className="font-semibold text-gray-900">Recouvrements conservés en caisse</p>
-        </div>
-        <div className="overflow-x-auto hidden md:block">
-          <Table aria-label="Suivi caisse" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-gray-50 text-gray-600 text-xs uppercase' }}>
-            <TableHeader>
-              <TableColumn>N° VISA</TableColumn>
-              <TableColumn>PARTENAIRE</TableColumn>
-              <TableColumn>MONTANT</TableColumn>
-              <TableColumn>MOTIF</TableColumn>
-              <TableColumn>ANCIENNETÉ</TableColumn>
-              <TableColumn>ÉTAT</TableColumn>
-            </TableHeader>
-            <TableBody emptyContent={isLoading ? 'Chargement…' : 'Aucun fonds conservé en caisse'}>
-              {caisse.map((l) => (
-                <TableRow key={l.factureId}>
-                  <TableCell>{l.numeroVisa ?? '—'}</TableCell>
-                  <TableCell>{l.partenaire}</TableCell>
-                  <TableCell className="whitespace-nowrap">{formatMontant(l.montantConserve)}</TableCell>
-                  <TableCell><span className="text-xs text-gray-500 line-clamp-2 max-w-[260px]">{l.motif ?? '—'}</span></TableCell>
-                  <TableCell>{l.ancienneteJours} j</TableCell>
-                  <TableCell>
-                    <Chip size="sm" color={l.alerteDormant ? 'danger' : 'warning'} variant="flat">
-                      {l.alerteDormant ? 'Dormant' : 'En caisse'}
-                    </Chip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        {/* Mobile — cartes (lecture seule) */}
-        <div className="md:hidden divide-y divide-gray-100">
-          {caisse.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-8">Aucun fonds conservé en caisse</p>
-          ) : caisse.map((l) => (
-            <div key={l.factureId} className="p-4 space-y-1.5">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{l.partenaire}</p>
-                  <p className="text-[11px] text-gray-400">Visa {l.numeroVisa ?? '—'} · {l.ancienneteJours} j</p>
-                </div>
-                <Chip size="sm" color={l.alerteDormant ? 'danger' : 'warning'} variant="flat">{l.alerteDormant ? 'Dormant' : 'En caisse'}</Chip>
-              </div>
-              <div className="flex justify-between text-xs"><span className="text-gray-400">Montant</span><span className="text-gray-700 font-semibold">{formatMontant(l.montantConserve)}</span></div>
-              {l.motif && <p className="text-[11px] text-gray-500 line-clamp-2">{l.motif}</p>}
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* Registre des attestations de caisse */}
       {attestations && attestations.length > 0 && (

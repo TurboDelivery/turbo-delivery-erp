@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 
 import { useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { normalizeRole } from '@/lib/casl/ability';
 
 import {
@@ -56,7 +57,8 @@ export function RegularisationRecapPanel() {
     setCreneauId((clos ?? creneaux[0])?.id);
   }, [creneaux, creneauId]);
 
-  const { data: recap, isLoading, isFetching } = useRecapRegularisationQuery(creneauId);
+  const { data: recap, isLoading, isFetching, isError, refetch } =
+    useRecapRegularisationQuery(creneauId);
   const generer = useGenererLotRegulMutation();
   const soumettre = useSoumettreLotRegulMutation();
   const viser = useViserLotRegulMutation();
@@ -98,6 +100,14 @@ export function RegularisationRecapPanel() {
 
       {!creneauId || isLoading ? (
         <p className="px-5 py-10 text-center text-sm text-gray-400">Chargement…</p>
+      ) : isError ? (
+        /* Un echec de chargement ne doit pas se lire comme « rien a payer » : le
+           comptable en concluait qu'aucune regularisation n'attendait de virement. */
+        <EtatErreur
+          quoi="les régularisations à payer"
+          onReessayer={() => refetch()}
+          enCours={isFetching}
+        />
       ) : (recap?.lignes.length ?? 0) === 0 ? (
         <p className="px-5 py-10 text-center text-sm text-gray-400">
           Aucun ticket régularisé en attente de paiement sur ce créneau.

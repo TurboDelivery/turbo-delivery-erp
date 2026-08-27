@@ -2,6 +2,7 @@
 
 import { employeeColumns, EmployeeActions, getEmployeeStatutConfig } from '@/components/personnel/employee-table/employee-columns';
 import { PersonnelMobileCard, PersonnelMobileCardList } from '@/components/personnel/shared/personnel-mobile-card';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEmployeeTableNew } from '@/features/personnel/hooks/use-employee-table-new';
 import { useEmployeeSalaryStatsQuery } from '@/features/personnel/queries';
@@ -30,7 +31,7 @@ interface EmployeeTableProps {
 export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemove, onAddEmployee }: EmployeeTableProps) {
   const { mutate: exporterEmployes, isPending: isExporting } = useExporterEmployesMutation();
 
-  const { table, isLoading, isFetching, pagination, filters, setSelectedDepartments, setSelectedStatuts, setSelectedPostes, handleSearchChange } = useEmployeeTableNew({
+  const { table, isLoading, isError, isFetching, refetch, pagination, filters, setSelectedDepartments, setSelectedStatuts, setSelectedPostes, handleSearchChange } = useEmployeeTableNew({
     onEdit: onEditPosition,
     onDeactivate: onDeactivate,
     onRemove: onRemove,
@@ -56,6 +57,10 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
   const handleExport = (format: ExportFormat) => {
     exporterEmployes({ ...exportParams, format });
   };
+
+  // L'echec ne prend la place des lignes que s'il n'y a rien a montrer : un rafraichissement
+  // rate laisse la liste deja chargee en place plutot que de la faire disparaitre.
+  const enEchec = isError && table.getRowModel().rows.length === 0;
   const { data: salaryStatsData } = useEmployeeSalaryStatsQuery(statsParams);
 
   return (
@@ -154,7 +159,8 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
                   </TableColumn>
                 ))}
               </TableHeader>
-              <TableBody>
+              {/* L'echec prend la place des lignes : un tableau vide se lirait « aucun employe ». */}
+              <TableBody emptyContent={enEchec ? <EtatErreur quoi="les employés" onReessayer={() => refetch()} enCours={isFetching} /> : undefined}>
                 {isLoading
                   ? Array.from({ length: 10 }).map((_, i) => (
                       <TableRow key={`skeleton-${i}`}>
@@ -165,7 +171,9 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
                         ))}
                       </TableRow>
                     ))
-                  : table.getRowModel().rows.map((row) => (
+                  : enEchec
+                    ? []
+                    : table.getRowModel().rows.map((row) => (
                       <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFetching ? 'opacity-70' : ''}>
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
@@ -202,6 +210,8 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
         <PersonnelMobileCardList>
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-40 rounded-xl bg-gray-100 animate-pulse" />)
+          ) : enEchec ? (
+            <EtatErreur quoi="les employés" onReessayer={() => refetch()} enCours={isFetching} />
           ) : table.getRowModel().rows.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-10">Aucun employé trouvé</p>
           ) : (

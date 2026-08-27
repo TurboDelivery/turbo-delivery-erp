@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { formatPeriodeFacturee } from '@/lib/finance/periode-facturee';
+import { formatMontant } from '@/utils/format.utils';
 
 // Statuts locaux alignés sur CDC v5
 export type StatutFacture =
@@ -71,9 +72,15 @@ export function getStatutConfig(statut: string) {
   return { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
 }
 
-export function formatMontant(v: number) {
-  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
-}
+/**
+ * Re-export du formateur UNIQUE.
+ *
+ * <p>Ce dossier portait NEUF implementations locales de `formatMontant`, dont HUIT
+ * rendaient « F CFA » et UNE « FCFA » : un comptable validait une facture et lisait
+ * un suffixe dans la fenetre, un autre dans le tableau derriere. On re-exporte
+ * plutot que de supprimer, pour ne pas toucher le fichier qui importe d'ici.</p>
+ */
+export { formatMontant };
 
 export function createResponsableFinancierColumns(
   onValider: (facture: IFactureRF) => void,

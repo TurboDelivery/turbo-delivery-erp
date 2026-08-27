@@ -20,7 +20,9 @@ export const useTurboyTable = () => {
     };
   }, [filters.page, filters.limit, filters.search, filters.orderBy, filters.orderDirection, filters.typeLivreur]);
 
-  const { data: turboysData, isLoading, error, isError, isFetching } = useTurboysByTypeQuery(currentSearchParams);
+  // `refetch` est remonte tel quel : sans lui, l ecran ne peut proposer que de
+  // recharger la page entiere apres un echec de lecture.
+  const { data: turboysData, isLoading, error, isError, isFetching, refetch } = useTurboysByTypeQuery(currentSearchParams);
   const turboys = turboysData?.livreurs?.content || [];
 
   const table = useReactTable({
@@ -43,6 +45,7 @@ export const useTurboyTable = () => {
     isLoading,
     isError,
     isFetching,
+    refetch,
     setFilters,
     turboys,
     turboysData,

@@ -15,9 +15,10 @@ import { ModifierCategorieModal } from '@/features/depenses/components/modifier/
 import SupprimerCategorieModal from '@/features/depenses/components/supprimer/supprimer-categorie-modal';
 import { useCategorieDepense } from '@/features/depenses/hooks/use-categorie-depense';
 import { FusionCategoriesDialog } from '@/components/finance/configuration/fusion-categories-dialog';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export function CategorieDepenseList() {
-  const { categories: categorie_depenses } = useCategorieDepense();
+  const { categories: categorie_depenses, isFetching, isError, refetch } = useCategorieDepense();
 
   // Sélection multiple → fusion de catégories en doublon (≥ 2).
   const [sel, setSel] = useState<Set<string>>(new Set());
@@ -77,6 +78,12 @@ export function CategorieDepenseList() {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
+          {/* Double rendu : le tableau desktop se vidait sans un mot et les cartes
+              mobiles disaient « Aucune categorie ». Les deux sont remplaces ensemble. */}
+          {isError ? (
+            <EtatErreur quoi="les catégories de dépenses" onReessayer={() => refetch()} enCours={isFetching} />
+          ) : (
+          <>
           {/* Tableau — desktop uniquement (≥ md) */}
           <Table className="hidden md:table">
             <TableHeader className="">
@@ -177,6 +184,8 @@ export function CategorieDepenseList() {
               ))
             )}
           </div>
+          </>
+          )}
         </CardContent>
       </Card>
 

@@ -18,6 +18,8 @@ type UsePayrollTableReturn = {
   isPayrollLoading: boolean;
   isPayrollFetching: boolean;
   isPayrollError: boolean;
+  /** Relance la requete : sans elle, l'etat d'erreur ne pourrait rien proposer. */
+  refetchPayrolls: () => void;
   filters: PayrollFilters;
   handleMonthFilterChange: (month: number) => void;
   handleYearFilterChange: (year: number) => void;
@@ -76,7 +78,7 @@ export function usePayrollTable(): UsePayrollTableReturn {
     [filters.year, filters.month],
   );
 
-  const { data: payrollsData, isLoading, isFetching, isError } = usePayrollsQuery(currentSearchParams);
+  const { data: payrollsData, isLoading, isFetching, isError, refetch } = usePayrollsQuery(currentSearchParams);
 
   const handlePayPayroll = useCallback(
     (payroll: IPayroll) => {
@@ -124,6 +126,7 @@ export function usePayrollTable(): UsePayrollTableReturn {
     isPayrollLoading: isLoading,
     isPayrollFetching: isFetching,
     isPayrollError: isError,
+    refetchPayrolls: refetch,
     filters,
     handleMonthFilterChange,
     handleYearFilterChange,

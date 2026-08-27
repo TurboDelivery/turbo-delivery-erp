@@ -15,6 +15,7 @@ import {
 } from '@/components/heroui';
 import { MonitorUp, PhoneIncoming, Users } from 'lucide-react';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import { APP_ROLES, type AppRole } from '@/lib/casl/ability';
 
 import { useAppelConfigQuery, useModifierAppelConfigMutation } from '../queries/standard.query';
@@ -56,7 +57,7 @@ const ROLES_ORDONNES: AppRole[] = [
  * prend l'appel (les autres s'arrêtent) ; un refus est local à l'agent.
  */
 export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
-  const { data: config, isLoading } = useAppelConfigQuery(isOpen);
+  const { data: config, isLoading, isError, isFetching, refetch } = useAppelConfigQuery(isOpen);
   const modifier = useModifierAppelConfigMutation();
   const [repondants, setRepondants] = useState<string[]>([]);
   const [superviseurs, setSuperviseurs] = useState<string[]>([]);
@@ -107,6 +108,14 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
                 <div className="flex justify-center py-8">
                   <Spinner color="primary" label="Chargement…" />
                 </div>
+              ) : isError ? (
+                // La config non lue laisse les cases decochees : le formulaire
+                // annoncerait « aucun repondant » et on enregistrerait par-dessus.
+                <EtatErreur
+                  quoi="les paramètres des appels"
+                  onReessayer={() => refetch()}
+                  enCours={isFetching}
+                />
               ) : (
                 <div className="space-y-5">
                   <div>

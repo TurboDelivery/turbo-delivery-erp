@@ -5,6 +5,7 @@ import { useDepensesListQuery } from '@/features/depenses/queries/depense-list.q
 import StatisticDepenseCard from '@/components/depenses/stats/statistic-depense-card';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { IDepenseStatsParams, IDepensesParams } from '@/features/depenses/types/depense.type';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 interface StatisticDepenseCardsProps {
   filters: {
@@ -22,7 +23,13 @@ export default function StatisticDepenseCards({ filters }: StatisticDepenseCards
   };
 
   // Utiliser les stats de l'API (non filtrées par catégories pour le moment)
-  const { data: statsData, isLoading: statsLoading } = useDepenseStatsQuery(currentSearchParams);
+  const {
+    data: statsData,
+    isLoading: statsLoading,
+    isFetching: statsFetching,
+    isError: statsError,
+    refetch: refetchStats,
+  } = useDepenseStatsQuery(currentSearchParams);
 
   // Récupérer toutes les dépenses pour filtrer localement
   const depensesParams: IDepensesParams = {
@@ -31,7 +38,13 @@ export default function StatisticDepenseCards({ filters }: StatisticDepenseCards
     debut: filters.debut,
     fin: filters.fin,
   };
-  const { data: depensesData, isLoading: depensesLoading } = useDepensesListQuery(depensesParams);
+  const {
+    data: depensesData,
+    isLoading: depensesLoading,
+    isFetching: depensesFetching,
+    isError: depensesError,
+    refetch: refetchDepenses,
+  } = useDepensesListQuery(depensesParams);
 
   // Filtrer localement par catégories si nécessaire
   const filteredDepenses = depensesData?.content?.filter(depense => {
@@ -52,6 +65,26 @@ export default function StatisticDepenseCards({ filters }: StatisticDepenseCards
   const displayStats = (filters.categoriesDepense && filters.categoriesDepense.length > 0) ? localStats : statsData;
 
   const isLoading = statsLoading || depensesLoading;
+
+  // Sans donnee, les trois cartes affichent 0 categorie, 0 depense et 0 FCFA :
+  // une periode sans depense et une API muette se ressemblent trait pour trait.
+  const isError = statsError || depensesError;
+  const isFetching = statsFetching || depensesFetching;
+
+  if (isError) {
+    return (
+      <div className="w-full rounded-xl border border-gray-200 bg-white">
+        <EtatErreur
+          quoi="les statistiques de dépenses"
+          onReessayer={() => {
+            if (statsError) refetchStats();
+            if (depensesError) refetchDepenses();
+          }}
+          enCours={isFetching}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">

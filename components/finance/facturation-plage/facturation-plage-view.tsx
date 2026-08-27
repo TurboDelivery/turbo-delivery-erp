@@ -48,6 +48,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import EtatErreur from '@/components/commons/EtatErreur';
 import {
   IConflitFacture,
   LIBELLE_COMPOSANTE,
@@ -106,7 +107,13 @@ function TableauConflits({ conflits }: { conflits: IConflitFacture[] }) {
 }
 
 export function FacturationPlageView() {
-  const { data: partenaires, isLoading: chargementPartenaires } = useConfigurationFacturationQuery();
+  const {
+    data: partenaires,
+    isLoading: chargementPartenaires,
+    isError: erreurPartenaires,
+    isFetching: relancePartenaires,
+    refetch: relancerPartenaires,
+  } = useConfigurationFacturationQuery();
   const generer = useGenererPlageMutation();
   const reprendre = useReprendreFactureMutation();
   const peutChoisirLeMode = usePeutChoisirModeFacturation();
@@ -335,7 +342,15 @@ export function FacturationPlageView() {
         </div>
       ) : null}
 
-      {!plageComplete ? (
+      {erreurPartenaires && !partenaires ? (
+        // Liste des partenaires en echec : l'autocomplete restait vide et l'invitation a
+        // « choisir un partenaire » se lisait comme s'il n'y en avait aucun a facturer.
+        <EtatErreur
+          quoi="les partenaires à facturer"
+          onReessayer={() => relancerPartenaires()}
+          enCours={relancePartenaires}
+        />
+      ) : !plageComplete ? (
         <Card shadow="none" className="border border-dashed border-default-300">
           <CardBody className="flex flex-col items-center gap-2 py-12 text-center">
             <CalendarRange className="h-8 w-8 text-default-300" />

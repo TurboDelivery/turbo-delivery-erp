@@ -48,7 +48,7 @@ export function useInvestissementList() {
   }, [filters]);
 
   // Récupération des données via la query
-  const { data, isLoading, isError, error, isFetching } = useInvestissementListQuery(currentSearchParams);
+  const { data, isLoading, isError, error, isFetching, refetch } = useInvestissementListQuery(currentSearchParams);
 
   const pagination = {
     pageCount: data?.totalPages || 0,
@@ -110,6 +110,10 @@ export function useInvestissementList() {
     isLoading: isLoading || isFetching,
     isError,
     error,
+    // `isFetching` etait absorbe dans `isLoading` et il n'y avait pas de relance :
+    // impossible pour un ecran d'afficher un echec et de proposer un reessai.
+    isFetching,
+    refetch,
     filters,
     handleFilterChange,
     handleDateChange,

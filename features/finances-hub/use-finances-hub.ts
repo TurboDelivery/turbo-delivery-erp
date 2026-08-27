@@ -78,6 +78,9 @@ export function useFinancesHub(
     renta: rentaQ.data,
     isLoading: fixesQ.isLoading || variablesQ.isLoading,
     isError: fixesQ.isError || variablesQ.isError,
+    isFetching: fixesQ.isFetching || variablesQ.isFetching,
+    // les deux listes forment un seul tableau : on les relance ensemble depuis le bouton "Reessayer"
+    refetch: () => Promise.all([fixesQ.refetch(), variablesQ.refetch()]),
     busy: actFixe.isPending || actVar.isPending,
     runAction,
   };

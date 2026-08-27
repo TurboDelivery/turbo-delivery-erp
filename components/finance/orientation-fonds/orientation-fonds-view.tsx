@@ -15,14 +15,12 @@ import {
 import { Landmark, PiggyBank, ArrowRightLeft, Building2 } from 'lucide-react';
 import { useFacturesRFQuery, type IFactureRF } from '@/features/responsable-financier';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { formatMontant } from '@/utils/format.utils';
 import {
   useOrienterFondsMutation,
   useReorienterFondsMutation,
 } from '@/features/orientation-fonds';
 
-function formatMontant(v: number) {
-  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
-}
 
 function formatDateFr(iso?: string | null) {
   if (!iso) return '—';

@@ -11,11 +11,14 @@ export const usePerformanceStats = () => {
     ...(filters.restaurantId ? { restaurantId: filters.restaurantId } : {}),
   };
 
-  const { data, isLoading, error, isError, refetch } = usePerformanceQuery(params);
+  const { data, isLoading, isFetching, error, isError, refetch } = usePerformanceQuery(params);
 
   return {
     data,
     isLoading,
+    // Expose pour bloquer le bouton « Reessayer » pendant la nouvelle tentative :
+    // apres un echec la query reste en statut error, isLoading ne repasse plus a vrai.
+    isFetching,
     error,
     isError,
     refetch,

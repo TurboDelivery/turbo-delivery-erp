@@ -7,6 +7,7 @@ import { Chip, Pagination, Skeleton } from '@/components/heroui';
 import { PaginatedResponse } from '@/types';
 import { Restaurant } from '@/types/models';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { getPaginationCourseExterneJournaliere } from '@/src/actions/courses.actions';
 import CourseJournaliere from '../external_delivery/component/course-journaliere';
 
@@ -23,6 +24,9 @@ export default function Content({ data: initialData }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
   const [data, setData] = useState<PaginatedResponse<Restaurant> | null>(initialData);
   const [isLoading, setIsLoading] = useState(false);
+  // `getPaginationCourseExterneJournaliere` avale l'erreur et rend `null` :
+  // une page absente est une lecture qui a echoue, jamais une journee vide.
+  const [erreurLecture, setErreurLecture] = useState(!initialData);
 
   const restaurants = data?.content ?? [];
   const totalEnCours = useMemo(
@@ -36,6 +40,9 @@ export default function Content({ data: initialData }: Props) {
     try {
       const newData = await getPaginationCourseExterneJournaliere(page - 1, pageSize);
       setData(newData);
+      setErreurLecture(!newData);
+    } catch {
+      setErreurLecture(true);
     } finally {
       setIsLoading(false);
     }
@@ -51,8 +58,9 @@ export default function Content({ data: initialData }: Props) {
       try {
         const newData = await getPaginationCourseExterneJournaliere(currentPage - 1, pageSize);
         setData(newData);
+        setErreurLecture(!newData);
       } catch {
-        /* silencieux */
+        setErreurLecture(true);
       }
     }, 60000);
     return () => clearInterval(id);
@@ -68,13 +76,25 @@ export default function Content({ data: initialData }: Props) {
             {dayjs().format('dddd DD/MM/YYYY')} — point par restaurant partenaire
           </p>
         </div>
-        <Chip color={totalEnCours > 0 ? 'warning' : 'success'} variant="flat">
-          {totalEnCours > 0 ? `${totalEnCours} course${totalEnCours > 1 ? 's' : ''} à suivre` : 'Tout est à jour'}
-        </Chip>
+        {/* Le compteur se tait en cas d'echec : sans donnee, il afficherait un
+            "Tout est a jour" vert qui contredit l'etat d'erreur juste dessous. */}
+        {!(erreurLecture && restaurants.length === 0) && (
+          <Chip color={totalEnCours > 0 ? 'warning' : 'success'} variant="flat">
+            {totalEnCours > 0 ? `${totalEnCours} course${totalEnCours > 1 ? 's' : ''} à suivre` : 'Tout est à jour'}
+          </Chip>
+        )}
       </div>
 
       {/* Grille des restaurants */}
-      {isLoading ? (
+      {erreurLecture && restaurants.length === 0 ? (
+        // A la place du message de vide : "Aucune course aujourd'hui" est ce
+        // qu'on affiche quand la journee est reellement vide.
+        <EtatErreur
+          quoi="les courses journalières"
+          onReessayer={() => fetchData(currentPage)}
+          enCours={isLoading}
+        />
+      ) : isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[...Array(8)].map((_, i) => (
             <Skeleton key={i} className="rounded-xl h-36" />

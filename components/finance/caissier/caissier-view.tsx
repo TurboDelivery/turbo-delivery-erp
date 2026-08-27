@@ -26,10 +26,8 @@ import {
 } from '@/features/caissier';
 import type { IFactureCaissier, IDepotBanqueCaissierBody } from '@/features/caissier';
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import { formatMontant } from '@/utils/format.utils';
 
-function formatMontant(v: number) {
-  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
-}
 
 const statutChips = [
   'Tous',

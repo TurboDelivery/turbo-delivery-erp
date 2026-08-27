@@ -18,6 +18,8 @@ import { ArrowRight, Download } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 
+import EtatErreur from '@/components/commons/EtatErreur';
+
 import { obtenirAnomalies } from '@/features/personnel/apis/personnel-historisation.api';
 import { useAnomaliesQuery } from '@/features/personnel/queries/personnel-historisation.query';
 import {
@@ -44,7 +46,7 @@ export function AnomaliesTab() {
   const [type, setType] = useState<string>('');
   // Verrou d'export : un double-clic écrirait deux traces d'audit pour un seul geste.
   const [exportEnCours, setExportEnCours] = useState(false);
-  const { data, isLoading, isFetching } = useAnomaliesQuery(type || null);
+  const { data, isLoading, isFetching, isError, refetch } = useAnomaliesQuery(type || null);
 
   const options = useMemo(() => {
     const catalogue = data?.typesDisponibles ?? [];
@@ -58,6 +60,9 @@ export function AnomaliesTab() {
   }, [data?.typesDisponibles]);
 
   const anomalies = data?.anomalies ?? [];
+  // « Aucune anomalie — profils conformes » sur une API tombee est un contresens : elle
+  // certifie une conformite qui n'a jamais ete calculee. L'echec prend donc sa place.
+  const enEchec = isError && anomalies.length === 0;
 
   /**
    * Export CSV.
@@ -134,7 +139,15 @@ export function AnomaliesTab() {
           <TableColumn className="text-right text-primary"> </TableColumn>
         </TableHeader>
         <TableBody
-          emptyContent={isLoading || isFetching ? ' ' : 'Aucune anomalie — profils conformes.'}
+          emptyContent={
+            enEchec ? (
+              <EtatErreur quoi="les anomalies" onReessayer={() => refetch()} enCours={isFetching} />
+            ) : isLoading || isFetching ? (
+              ' '
+            ) : (
+              'Aucune anomalie — profils conformes.'
+            )
+          }
           isLoading={isLoading}
           loadingContent={<Spinner color="primary" label="Analyse des dossiers…" />}
         >

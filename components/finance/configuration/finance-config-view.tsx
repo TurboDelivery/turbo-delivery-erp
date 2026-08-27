@@ -19,6 +19,7 @@ import {
   useUpdateModuleConfigMutation,
 } from '@/features/finances-config';
 import { CategorieDepenseList } from '@/features/depenses/components/depense-list/categorie-depense';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 const DEVISES = ['FCFA', 'EUR', 'USD'];
 
@@ -43,13 +44,23 @@ function Section({
 }
 
 export function FinanceConfigView() {
-  const { data, isLoading } = useModuleConfigQuery();
+  const { data, isLoading, isError, isFetching, refetch } = useModuleConfigQuery();
   const update = useUpdateModuleConfigMutation();
   const [form, setForm] = useState<IModuleConfig | null>(null);
 
   useEffect(() => {
     if (data) setForm(data);
   }, [data]);
+
+  // Cette garde passe avant celle du chargement : sur echec `form` reste null et
+  // l'ecran restait fige sur le spinner, comme si la donnee arrivait encore.
+  if (isError) {
+    return (
+      <div className="p-4">
+        <EtatErreur quoi="la configuration" onReessayer={() => refetch()} enCours={isFetching} />
+      </div>
+    );
+  }
 
   if (isLoading || !form) {
     return (

@@ -21,6 +21,7 @@ import {
 } from '@/components/heroui';
 import { CalendarRange, Info, RotateCcw, Search, Settings2 } from 'lucide-react';
 import Link from 'next/link';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 import {
   CYCLES_FACTURATION,
@@ -47,7 +48,7 @@ import {
  * touché ici, il suit son cycle historique et se comporte exactement comme avant.</p>
  */
 export function CycleFacturationView() {
-  const { data, isLoading } = useConfigurationFacturationQuery();
+  const { data, isLoading, isError, isFetching, refetch } = useConfigurationFacturationQuery();
   const enregistrer = useEnregistrerConfigurationMutation();
   // §3.2 — « Au choix a chaque facture » est reserve au Comptable, DG, DGA et Admin.
   // Le serveur refuse de toute facon ; on ne propose pas une option qui serait rejetee.
@@ -94,6 +95,20 @@ export function CycleFacturationView() {
     return (
       <div className="flex justify-center py-24">
         <Spinner color="primary" label="Chargement des partenaires…" />
+      </div>
+    );
+  }
+
+  // Sans cette sortie, un echec affichait un tableau vide : lu comme « aucun partenaire
+  // a configurer », alors que la liste existe et n'a pas pu etre relue.
+  if (isError) {
+    return (
+      <div className="p-4">
+        <EtatErreur
+          quoi="les partenaires"
+          onReessayer={() => refetch()}
+          enCours={isFetching}
+        />
       </div>
     );
   }

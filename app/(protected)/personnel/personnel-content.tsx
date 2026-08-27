@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/commons/tabs';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import { AddEmployeeModal } from '@/components/personnel/add-employee-modal';
 import { EditEmployeeModal } from '@/components/personnel/edit-employee-modal';
 import { RequestManagement } from '@/components/personnel/request-management';
@@ -30,7 +31,12 @@ export default function PersonnelContent() {
   const supprimerEmployeMutation = useSupprimerEmployeMutation();
   const syncJournaliersMutation = useSyncJournaliersMutation();
 
-  const { data: leaveData } = useLeaveRequestListQuery({});
+  const {
+    data: leaveData,
+    isError: congesErreur,
+    isFetching: congesRelecture,
+    refetch: relireConges,
+  } = useLeaveRequestListQuery({});
   const requests = leaveData?.content ?? [];
   const requestStats = {
     pending: requests.filter((r) => r.statut === 'En attente').length,
@@ -102,7 +108,17 @@ export default function PersonnelContent() {
           <EmployeeTableNew onEditPosition={handleEditPosition} onDeactivate={handleDeactivate} onRemove={handleRemove} onAddEmployee={() => setIsAddModalOpen(true)} />
         </TabsContent>
         <TabsContent value="conge" className="mt-6">
-          <RequestManagement requests={requests} requestStats={requestStats} employees={[]} />
+          {/* En echec, la liste ET les compteurs tomberaient a zero : l'onglet
+              annoncerait "0 demande en attente" alors qu'il y en a peut-etre. */}
+          {congesErreur ? (
+            <EtatErreur
+              quoi="les demandes de congé"
+              onReessayer={() => relireConges()}
+              enCours={congesRelecture}
+            />
+          ) : (
+            <RequestManagement requests={requests} requestStats={requestStats} employees={[]} />
+          )}
         </TabsContent>
         <TabsContent value="deduction" className="mt-6">
           <DeductionTabContents />

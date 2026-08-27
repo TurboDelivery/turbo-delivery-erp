@@ -8,13 +8,14 @@ import HistoriqueCreneauDetailLivreurs from './HistoriqueCreneauDetailLivreurs';
 import HistoriqueCreneauDetailTimeline from './HistoriqueCreneauDetailTimeline';
 import { getLotStatutConfig } from '../utils/lot-statut.utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 interface Props {
   id: string;
 }
 
 export default function HistoriqueCreneauDetailContent({ id }: Props) {
-  const { detail, isLoading } = useHistoriqueCreneauDetail(id);
+  const { detail, isLoading, isError, isFetching, refetch } = useHistoriqueCreneauDetail(id);
 
   if (isLoading) {
     return (
@@ -26,6 +27,16 @@ export default function HistoriqueCreneauDetailContent({ id }: Props) {
           ))}
         </div>
         <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    );
+  }
+
+  // L'echec passait par la meme porte que l'absence de donnee (`return null`), donc
+  // l'operateur voyait un ecran vide et concluait que le creneau n'existait pas.
+  if (isError) {
+    return (
+      <div className="p-4 sm:p-6">
+        <EtatErreur quoi="le détail du créneau" onReessayer={() => refetch()} enCours={isFetching} />
       </div>
     );
   }

@@ -7,6 +7,7 @@ import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, Tabl
 import { Check, PencilIcon, XIcon } from 'lucide-react';
 import { LivreurStatutVM, Restaurant } from '@/types/models';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { ConfirmDialog } from '@/components/commons/confirm-dialog';
 import { SearchField } from '@/components/commons/form/search-field';
 import { useTurboysBirdController } from './useTurboAssigneController';
@@ -79,7 +80,15 @@ export default function Content({ initialData, restaurants }: Props) {
       <SearchField searchKey={livreurNonAssingeCtrl.searchKey} onChange={livreurNonAssingeCtrl.setSearchKey} />
       <div className="bg-white rounded-lg overflow-x-auto lg:overflow-hidden xl:overflow-hidden md:overflow-x-auto ms:overflow-x-auto">
         <div className="bg-white rounded-lg overflow-x-auto py-4 shadow">
-          {rows.length === 0 ? (
+          {/* L'echec prend la place des donnees : affiche a cote, il cohabiterait
+              avec « Aucun livreur » et l'ecran se contredirait. */}
+          {livreurNonAssingeCtrl.isError ? (
+            <EtatErreur
+              quoi="les livreurs non assignés"
+              onReessayer={livreurNonAssingeCtrl.reessayer}
+              enCours={livreurNonAssingeCtrl.isLoading}
+            />
+          ) : rows.length === 0 ? (
             <div className="text-center mt-10 text-xl text-primary font-bold">
               <EmptyDataTable title="Aucun livreur" />
             </div>
