@@ -1,4 +1,27 @@
-'use client';
+/**
+ * PAS de `'use client'` ici, et c'est essentiel.
+ *
+ * <p>Ce module n'exporte que des DONNEES et des fonctions PURES. La directive y a
+ * pourtant vecu, et elle a provoque la panne du 27/08/2026 : `utils/route-permission.ts`
+ * importe `menuData` et `correspond`, et la garde d'acces de `app/(protected)/layout.tsx`
+ * — un composant SERVEUR — fait `for (const item of menuData)`. Sur un module marque
+ * client, le serveur ne recoit pas le tableau mais une REFERENCE client ; iterer dessus
+ * lit `Symbol.iterator` et leve :</p>
+ * <pre>
+ *   Cannot read Symbol exports. Only named exports are supported
+ *   on a client module imported on the server.
+ * </pre>
+ * <p>Toutes les pages authentifiees hors `/analystics` et `/settings/profile` rendaient
+ * donc un 500 opaque. Invisible partout en amont : `tsc` ne modelise pas la frontiere
+ * et voit les vrais types, et `next build` compile sans le moindre avertissement.</p>
+ *
+ * <p>Les ICONES importees ci-dessous sont, elles, des composants clients. C'est sans
+ * consequence : on se contente de STOCKER la reference dans `icon`, jamais de l'appeler
+ * ni de la lire cote serveur. Seule la barre laterale, qui est cliente, les rend.</p>
+ *
+ * <p>⚠ Ne rien ajouter ici qui s'execute a l'import (hook, acces a `window`, etat) :
+ * ce module est desormais dans le graphe SERVEUR.</p>
+ */
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconShieldLock, IconUser, IconUsers } from '@tabler/icons-react';
 import { AlertTriangle, BarChart, Bell, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
