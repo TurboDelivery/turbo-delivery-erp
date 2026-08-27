@@ -55,7 +55,9 @@ export async function getAllCreneauTurbo(page: number = 0, size: number = 10): P
 
         return data;
     } catch (error) {
-        return null;
+        // Un echec de lecture renvoyait null et l ecran des Turboys assignes
+        // restait fige sur Chargement, comme si la liste n arrivait jamais.
+        throw error;
     }
 }
 
@@ -75,7 +77,9 @@ export async function getAllCreneauBird(page: number = 0, size: number = 10, key
 
         return data;
     } catch (error) {
-        return null;
+        // Un echec de lecture renvoyait null et l ecran affichait Aucun livreur
+        // alors que des Bird existaient bien cote serveur.
+        throw error;
     }
 }
 
@@ -93,7 +97,9 @@ export async function getAllCreneauPerformanceTurbo(page: number = 0, size: numb
 
         return data;
     } catch (error) {
-        return null;
+        // Un echec de lecture renvoyait null et l ecran affichait Aucun restaurant,
+        // donc aucune progression a traiter, alors que la donnee existait.
+        throw error;
     }
 }
 
@@ -112,7 +118,9 @@ export async function getAllCreneauPerformanceBird(page: number = 0, size: numbe
 
         return data;
     } catch (error) {
-        return null;
+        // Un echec de lecture renvoyait null: sans appelant aujourd hui, ce null
+        // serait indiscernable d une progression Bird vide pour le prochain appelant.
+        throw error;
     }
 }
 
@@ -129,7 +137,10 @@ export async function getCreneauById(userId: string):Promise<CreneauID[] | null>
                 
         return data;
     } catch (error: any) {
-        return null;
+        // Un echec de lecture renvoyait null et la fiche affichait un emploi du temps
+        // vide au lieu des creneaux du livreur. Le catch n examine aucun statut, un
+        // 404 legitime n est donc pas distingue d une panne de lecture.
+        throw error;
     }
 }
 

@@ -313,7 +313,10 @@ export async function getUsers(): Promise<PaginatedResponse<User> | null> {
 
         return data;
     } catch (error) {
-        return null;
+        // Une panne de lecture rendait `null`, et l'ecran des utilisateurs affichait
+        // « Utilisateurs : 0 » avec un tableau vide : indiscernable d'un annuaire
+        // reellement vide. La frontiere de segment montre l'erreur et « Reessayer ».
+        throw error;
     }
 }
 
