@@ -19,12 +19,30 @@ import { NotificationSocketProvider } from '@/providers/notification-socket.prov
 import { AppelProvider } from '@/features/standard/components/appel-provider';
 import { SessionSupervisionProvider } from '@/components/providers/session-supervision-provider';
 import AccesRefuse from '@/components/acces-refuse';
+import ServiceIndisponible from '@/components/service-indisponible';
 import { canAccessRoute } from '@/utils/route-permission';
 import { defineAbilityFor, normalizeRole } from '@/lib/casl/ability';
 import { EN_TETE_CHEMIN } from '@/utils/en-tetes';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const profile = await getProfile();
+  /**
+   * `getProfile` relance desormais toute erreur qui n'est ni 401 ni 403, pour qu'une
+   * panne de lecture cesse d'etre maquillee en « deconnecte ». C'est le bon choix
+   * DANS UNE PAGE. Ici, on est a la RACINE de toutes les pages authentifiees : une
+   * erreur qui remonte fait tomber l'ERP ENTIER sur un ecran a digest, alors qu'un
+   * simple hoquet reseau sur `/user/profile` suffit a la declencher.
+   *
+   * On garde donc l'intention (ne rien avaler, ne pas faire passer une panne pour une
+   * deconnexion) mais on la rend lisible : l'ecran nomme le service en cause et
+   * propose de reessayer, au lieu d'un code d'erreur opaque sur toute l'application.
+   */
+  let profile: Awaited<ReturnType<typeof getProfile>>;
+  try {
+    profile = await getProfile();
+  } catch (erreur) {
+    console.error('[layout-protege] Profil illisible — ERP inaccessible.', erreur);
+    return <ServiceIndisponible service="le service ERP" />;
+  }
   if (!profile) redirect('/auth');
 
   /**

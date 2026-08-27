@@ -36,7 +36,7 @@
  */
 export {
     Autocomplete, AutocompleteItem, Avatar, Badge,
-    Button, CalendarDate, Card, CardBody,
+    Button, Card, CardBody,
     CardFooter, CardHeader, Checkbox, CheckboxGroup,
     Chip, CircularProgress, DatePicker, DateRangePicker,
     Divider, Drawer, DrawerBody, DrawerContent,
@@ -56,3 +56,17 @@ export {
 export type {
     ButtonProps, RangeValue,
 } from '@heroui/react';
+
+/**
+ * `CalendarDate` ne vient PAS de `@heroui/react` — il appartient a
+ * `@internationalized/date`. Il figurait dans le bloc des VALEURS ci-dessus, ou il
+ * ne resolvait rien : webpack le signalait en « warning », donc le build restait
+ * VERT, `tsc` aussi, et la CI aussi. A l'execution, l'export manquant cassait le
+ * chargement de ce module — et comme `app/error.tsx` en depend, c'est la frontiere
+ * d'erreur GLOBALE qui tombait : n'importe quelle erreur de page devenait un ecran
+ * serveur opaque a digest.
+ *
+ * Il n'est utilise que comme TYPE (`RangeValue<CalendarDate>`), donc `export type`
+ * suffit et ne produit plus aucun export a l'execution.
+ */
+export type { CalendarDate } from '@internationalized/date';
