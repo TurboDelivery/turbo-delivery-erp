@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { endOfMonth, isWithinInterval, parseISO, startOfMonth } from 'date-fns';

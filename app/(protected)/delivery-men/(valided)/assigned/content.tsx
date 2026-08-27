@@ -2,19 +2,18 @@
 
 import React from 'react';
 import { PaginatedResponse } from '@/types';
-import { Pagination } from '@/components/heroui';
+import { Pagination } from '@heroui/react';
 import { Button } from '@/components/ui/button';
 import { LivreurStatutVM, Restaurant } from '@/types/models';
 import { Check, PencilIcon, Save, XIcon } from 'lucide-react';
 import { SelectField } from '@/components/commons/select-field';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
-import EtatErreur from '@/components/commons/EtatErreur';
 import { ConfirmDialog } from '@/components/commons/confirm-dialog';
 import { SearchField } from '@/components/commons/form/search-field';
 import { useTurboAssigneController } from './useTurboAssigneController';
 import { UpdateDeliveryDialog } from '../../update-delivery/update-delivery';
 import { createUrlFile } from '@/utils/createUrlFile';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@/components/heroui";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
 
 interface Props {
     initialData: PaginatedResponse<LivreurStatutVM> | null;
@@ -119,15 +118,7 @@ export default function Content({ initialData, restaurants }: Props) {
         <div className="p-6 pt-0 flex-wrap">
             <SearchField searchKey={livreurAssigneCtrl.searchKey} onChange={livreurAssigneCtrl.setSearchKey} />
             <div className="bg-white rounded-lg overflow-x-auto p-4">
-                {/* L'echec prend la place des donnees : affiche a cote, il cohabiterait
-                    avec « Aucun livreur » et l'ecran se contredirait. */}
-                {livreurAssigneCtrl.isError ? (
-                    <EtatErreur
-                        quoi="les livreurs assignés"
-                        onReessayer={livreurAssigneCtrl.reessayer}
-                        enCours={livreurAssigneCtrl.isLoading}
-                    />
-                ) : rows.length === 0 ? (
+                {rows.length === 0 ? (
                     <div className="text-center py-6 text-primary font-bold mt-10 text-xl">
                     <EmptyDataTable title="Aucun livreur" />
                     </div>

@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom';
 import { X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { IFactureRF } from './responsable-financier-columns';
-import { formatMontant } from '@/utils/format.utils';
 
 type CyclePaiement = 'Journalier' | 'Hebdomadaire' | 'Mensuel';
 
@@ -16,6 +15,9 @@ interface Props {
   onConfirm: (facture: IFactureRF, cycle: CyclePaiement) => void;
 }
 
+function formatMontant(v: number) {
+  return new Intl.NumberFormat('fr-FR').format(v) + ' FCFA';
+}
 
 /**
  * Mapping backend `facture.type` → libellé UI cycle. Le backend stocke des

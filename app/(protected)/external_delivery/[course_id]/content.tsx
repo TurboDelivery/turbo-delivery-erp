@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import dayjs from 'dayjs';
-import { Avatar, Button, Chip, Tooltip } from '@/components/heroui';
+import { Avatar, Button, Chip, Tooltip } from '@heroui/react';
 import {
   ArrowLeft,
   BikeIcon,

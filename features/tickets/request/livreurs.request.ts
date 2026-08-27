@@ -17,10 +17,7 @@ export async function getAllDeliveryMenRequest(): Promise<DeliveryMan[]> {
       service: 'backend',
     });
   } catch (error) {
-    // Sans relance, une panne de lecture se lisait comme une liste vide : les
-    // selecteurs de livreurs (programmes, rapports, filtres de validation, appel
-    // rapide) affichaient "aucun livreur" alors que les livreurs existaient.
-    throw error;
+    return [];
   }
 }
 
@@ -36,9 +33,6 @@ export async function getDeliveryMenRecapPayRequest(params: IRecapPaiementLivreu
       },
     });
   }catch (error) {
-    // Sans relance, un echec de lecture du recap passait pour un recap vide :
-    // l'ecran de paie affichait zero ligne de paiement livreur, donc rien a payer,
-    // sur une periode ou les paiements existaient.
-    throw error;
+    return [];
   }
 }

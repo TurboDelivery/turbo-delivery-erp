@@ -2,13 +2,12 @@
 
 import React from 'react';
 import { useRecouvrementTable } from '@/features/recouvrements/hooks/use-recouvrement-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
-import { Pagination } from '@/components/heroui';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/table';
+import { Pagination } from '@heroui/react';
 import { flexRender } from '@tanstack/react-table';
 import { RestaurantSelect } from '../common/restaurant-select';
 import { CreerRecouvrementModal } from '@/features/revenus/components/recouvrement/recouvrement-pret/creer-recouvrement-modal';
 import { RecouvrementMobileCard } from '@/components/finance/recouvrements/recouvrement-mobile-cards';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 interface RecouvrementTableProps {
   restoOpts: Array<{ value: string; label: string }>;
@@ -16,10 +15,7 @@ interface RecouvrementTableProps {
 }
 
 export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementTableProps) {
-  const { table, isLoading, isError, isFetching, refetch, filters, setFilters, pagination, colsCount } = useRecouvrementTable();
-
-  // meme bloc pour les deux rendus (tableau desktop, cartes mobiles) : un seul est visible a la fois
-  const zoneErreur = <EtatErreur quoi="les recouvrements" onReessayer={() => refetch()} enCours={isFetching} />;
+  const { table, isLoading, isFetching, filters, setFilters, pagination, colsCount } = useRecouvrementTable();
 
   return (
     <div className="space-y-4">
@@ -46,8 +42,7 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
               </TableColumn>
             ))}
           </TableHeader>
-          {/* sur echec, l'erreur prend la place du message "Aucun recouvrement" qui se lirait comme un resultat vide */}
-          <TableBody emptyContent={isLoading ? ' ' : isError ? zoneErreur : 'Aucun recouvrement'}>
+          <TableBody emptyContent={'Aucun recouvrement'}>
             {isLoading
               ? Array.from({ length: 10 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
@@ -73,8 +68,6 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
       <div className={`md:hidden space-y-3 ${isFetching ? 'opacity-70' : ''}`}>
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-28 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
-        ) : isError ? (
-          zoneErreur
         ) : table.getRowModel().rows.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-10">Aucun recouvrement</p>
         ) : (

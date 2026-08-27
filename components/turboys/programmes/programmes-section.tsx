@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Select, SelectItem } from '@/components/heroui';
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Select, SelectItem } from '@heroui/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { parseAsInteger, useQueryStates } from 'nuqs';
@@ -21,7 +21,6 @@ import {
 import { exporterProgrammesExcel, exporterProgrammesPdf } from '@/features/turboys/utils/programmes-export.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { ErrorBoundary } from '@/components/common/error-boundary';
-import EtatErreur from '@/components/commons/EtatErreur';
 import { ProgrammesGrid } from './programmes-grid';
 import { ProgrammeApercuModal } from './programme-apercu-modal';
 import { ProgrammeFormModal } from './programme-form-modal';
@@ -355,24 +354,13 @@ export default function ProgrammesSection() {
           <h3 className="mb-2 text-sm font-semibold text-default-700">
             Indépendants — créneaux déclarés via l&apos;app (lecture seule)
           </h3>
-          {/* listerIndependantsAction relance desormais au lieu de rendre un tableau
-              vide : sans cette branche, une lecture en echec affichait « Aucun
-              independant declare cette semaine », lu comme une semaine sans creneau. */}
-          {independantsQuery.isError ? (
-            <EtatErreur
-              quoi="les créneaux déclarés par les indépendants"
-              onReessayer={() => void independantsQuery.refetch()}
-              enCours={independantsQuery.isFetching}
-            />
-          ) : (
-            <ProgrammesGrid
-              readOnly
-              programmes={Array.isArray(independantsQuery.data) ? independantsQuery.data : []}
-              emptyContent={
-                independantsQuery.isLoading ? 'Chargement…' : 'Aucun indépendant déclaré cette semaine'
-              }
-            />
-          )}
+          <ProgrammesGrid
+            readOnly
+            programmes={Array.isArray(independantsQuery.data) ? independantsQuery.data : []}
+            emptyContent={
+              independantsQuery.isLoading ? 'Chargement…' : 'Aucun indépendant déclaré cette semaine'
+            }
+          />
         </div>
       </ErrorBoundary>
 

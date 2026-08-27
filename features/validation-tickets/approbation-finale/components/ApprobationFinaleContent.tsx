@@ -4,7 +4,6 @@ import { Info, Lock } from 'lucide-react';
 import { useAbility } from '@casl/react';
 import { AbilityContext } from '@/lib/casl/ability-context';
 import { Skeleton } from '@/components/ui/skeleton';
-import EtatErreur from '@/components/commons/EtatErreur';
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
 import useApprobationFinale from '../hooks/use-approbation-finale';
 import { formatPeriode } from '../utils/approbation-finale.utils';
@@ -30,9 +29,6 @@ export default function ApprobationFinaleContent() {
     grilleMeta,
     waveTable,
     isLoading,
-    isError,
-    isFetching,
-    refetch,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -111,15 +107,6 @@ export default function ApprobationFinaleContent() {
             <Skeleton className="h-80 flex-1 rounded-xl" />
             <Skeleton className="h-48 lg:h-80 lg:w-[300px] rounded-xl" />
           </div>
-        </div>
-      ) : isError ? (
-        /* Un echec de chargement ne doit pas se lire comme « aucun dossier a approuver ». */
-        <div className="rounded-xl border border-gray-200 bg-white">
-          <EtatErreur
-            quoi="le dossier à approuver"
-            onReessayer={() => refetch()}
-            enCours={isFetching}
-          />
         </div>
       ) : !grilleMeta ? (
         <div className="flex items-center justify-center rounded-xl border border-gray-200 bg-white py-24">

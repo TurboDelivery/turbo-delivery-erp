@@ -16,12 +16,7 @@ export default function useApprobationFinale() {
   const { data: session } = useSession();
   const userId = session?.user?.id ?? '';
 
-  const {
-    data: creneauActif,
-    isLoading: isLoadingCreneau,
-    isError: isErrorCreneau,
-    refetch: refetchCreneau,
-  } = useCreneauActifQuery();
+  const { data: creneauActif, isLoading: isLoadingCreneau } = useCreneauActifQuery();
 
   // Deep-link email « Lot visé DGA — approbation finale requise » :
   // /validation-tickets/approbation-finale?creneau=<id> ouvre la bonne semaine
@@ -41,17 +36,13 @@ export default function useApprobationFinale() {
   const {
     data: grillePages,
     isLoading: isLoadingGrille,
-    isError: isErrorGrille,
-    isFetching: isFetchingGrille,
-    refetch: refetchGrille,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
     queryKey: ['grille-paiement-approbation', resolvedCreneauId] as const,
-    queryFn: ({ pageParam }) =>
+    queryFn: ({ pageParam = 0 }) =>
       getGrillePaiementApi({ creneauId: resolvedCreneauId!, page: pageParam as number }),
-  initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       if (!lastPage) return undefined;
       const { number, totalPages } = lastPage.lignes;
@@ -119,16 +110,6 @@ export default function useApprobationFinale() {
     grilleMeta,
     waveTable,
     isLoading: isLoadingCreneau || isLoadingGrille,
-    // Sans isError, une API en panne rendait « Aucun dossier en attente d'approbation
-    // finale » : le PDG en concluait qu'il n'avait rien a approuver.
-    isError: isErrorCreneau || isErrorGrille,
-    isFetching: isFetchingGrille,
-    refetch: () => {
-      // Le creneau conditionne la grille : si c'est lui qui a echoue, la grille est
-      // desactivee et seule sa relance peut relancer l'ecran.
-      void refetchCreneau();
-      void refetchGrille();
-    },
     isFetchingNextPage,
     hasNextPage: !!hasNextPage,
     fetchNextPage,

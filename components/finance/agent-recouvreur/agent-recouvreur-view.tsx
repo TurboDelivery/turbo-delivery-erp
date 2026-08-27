@@ -15,7 +15,7 @@ import {
   Pagination,
   Select,
   SelectItem,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { flexRender, type RowSelectionState } from '@tanstack/react-table';
 import type { DateRange } from 'react-day-picker';
 import { createAgentRecouvreurColumns, renderAgentActions, getStatutConfig, formatMontant } from './agent-recouvreur-columns';

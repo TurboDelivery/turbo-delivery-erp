@@ -14,7 +14,6 @@ import ValiderFactureModal from './valider-facture-modal';
 import DemarrerRecouvrementDrawer from './demarrer-recouvrement-modal';
 import DepotBanqueModal from './depot-banque-modal';
 import type { IFactureRF } from './responsable-financier-columns';
-import { formatMontant } from '@/utils/format.utils';
 
 type StatutFacture = IFactureRFDetail['statut'];
 
@@ -40,6 +39,9 @@ function getStatutConfig(statut: string) {
   return { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
 }
 
+function formatMontant(v: number) {
+  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
+}
 
 interface Props {
   facture: IFactureRFDetail;

@@ -1,5 +1,5 @@
 
-import { Button, Card, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from "@/components/heroui";
+import { Button, Card, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from "@heroui/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 

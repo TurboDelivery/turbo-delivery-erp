@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useDisclosure } from '@/components/heroui';
+import { useDisclosure } from '@heroui/react';
 import { LeaveRequest, IEmployee } from '@/features/personnel/types/types';
 import { useAjouterCongeMutation, useSupprimerCongeMutation, useModifierCongeMutation, useApprouverCongeMutation, useRejeterCongeMutation } from '@/features/conge/mutations/conge.mutation';
 import { CongeType, DurationType } from '@/features/conge/types/conge.type';

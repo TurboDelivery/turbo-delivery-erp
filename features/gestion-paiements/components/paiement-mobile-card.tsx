@@ -1,13 +1,12 @@
 'use client';
 
 import type { Row } from '@tanstack/react-table';
-import { Button, Chip } from '@/components/heroui';
+import { Button, Chip } from '@heroui/react';
 import { FileText, Trash2, Wallet } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Can } from '@/components/auth/Can';
 import { IChargeFixe } from '@/features/charges/types/charge-fixe.type';
 import { getPaiementStatutConfig, isDecaisse } from '../columns/paiements.columns';
-import { formatMontant } from '@/utils/format.utils';
 
 /**
  * Carte mobile d'une charge à décaisser (cf. PaiementTable, wrapper
@@ -62,7 +61,7 @@ export default function PaiementMobileCard({
       </div>
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-gray-400">Montant</span>
-        <span className="text-sm font-medium text-gray-900">{formatMontant(charge.montant)}</span>
+        <span className="text-sm font-medium text-gray-900">{charge.montant.toLocaleString('fr-FR')} FCFA</span>
       </div>
 
       {(!decaisse || (decaisse && charge.codeSysteme === 'MASSE_SALARIALE_NETTE') || onDelete || onDeleteFixe) && (

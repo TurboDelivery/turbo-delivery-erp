@@ -1,7 +1,6 @@
 ﻿import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel"
 import { ICommission } from "@/features/revenus/types/commission.types";
-import { formatMontant } from '@/utils/format.utils';
 import Autoplay from "embla-carousel-autoplay"
 import { useMemo } from "react"
 import { format, parseISO } from "date-fns"
@@ -83,7 +82,7 @@ export default function LastCommission({ commission }: LastCommissionProps) {
                                                             </div>
                                                             <div className="text-right">
                                                                 <span className="text-xs text-gray-500 block">Commission</span>
-                                                                <span className="text-sm font-bold text-green-600">{formatMontant(commission.commission)}</span>
+                                                                <span className="text-sm font-bold text-green-600">{commission.commission.toLocaleString()} FCFA</span>
                                                             </div>
                                                         </div>
                                                         <div className="flex justify-between items-start">
@@ -93,7 +92,7 @@ export default function LastCommission({ commission }: LastCommissionProps) {
                                                             </div>
                                                             <div className="text-right">
                                                                 <span className="text-xs text-gray-500 block">Frais livraison</span>
-                                                                <span className="text-sm font-bold text-green-600">{formatMontant(commission.fraisLivraison)}</span>
+                                                                <span className="text-sm font-bold text-green-600">{commission.fraisLivraison.toLocaleString()} FCFA</span>
                                                             </div>
                                                         </div>
 
@@ -124,7 +123,7 @@ export default function LastCommission({ commission }: LastCommissionProps) {
                                 Total ce mois: {commissionMoisCourant?.length} commission(s)
                             </div>
                             <div className="text-sm font-semibold text-blue-600">
-                                Montant total: {formatMontant(commissionMoisCourant?.reduce((sum, commission) => sum + commission.commission, 0))}
+                                Montant total: {commissionMoisCourant?.reduce((sum, commission) => sum + commission.commission, 0).toLocaleString()} FCFA
                             </div>
                         </div>
                     </div>

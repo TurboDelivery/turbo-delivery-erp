@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient , keepPreviousData} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { standardAPI } from '../apis/standard.api';
 import { IAccepterAppel, IAppelConfig, IChangerStatutIncident, ICreerMotifIncident, IInitierAppel, IModifierMotifIncident, StatutIncident } from '../types/standard.types';
@@ -47,7 +47,7 @@ export const useIncidentsQuery = (
     queryFn: () => standardAPI.listerIncidents({ statut, page, size }),
     staleTime: 30 * 1000,
     refetchOnWindowFocus: true,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
     enabled: options?.enabled ?? true,
     refetchInterval: options?.refetchInterval ?? false,
     // Le poste STANDARD est souvent affiché sur un écran qui n'a pas le focus
@@ -164,7 +164,7 @@ export const useAppelsQuery = (
     queryFn: () => standardAPI.listerAppels({ page, size, userId }),
     enabled,
     staleTime: refetchInterval ?? 30 * 1000,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
     refetchInterval: refetchInterval ?? false,
   });
 

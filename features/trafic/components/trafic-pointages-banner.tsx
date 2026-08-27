@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui/react';
 import { ArrowRight, ShieldAlert } from 'lucide-react';
 
 import { usePointagesEnAttenteQuery } from '@/features/trafic/queries/pointages-attente.query';

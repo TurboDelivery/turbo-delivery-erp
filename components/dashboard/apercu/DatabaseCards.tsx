@@ -1,20 +1,14 @@
 "use client";
 import { title } from '@/components/primitives';
-import { Card, CardBody, CardHeader, Divider, Link, Skeleton } from '@/components/heroui';
+import { Card, CardBody, CardHeader, Divider, Link, Skeleton } from '@heroui/react';
 import { ChevronRight } from 'lucide-react';
 import { TurboysButton } from '@/components/dashboard/apercu/TurboysButton';
 import { usePersonnelStatsQuery } from '@/features/dashboard/queries/personnel-stats.query';
 import { useComptesEnAttenteQuery } from '@/features/dashboard/queries/comptes-attente.query';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 export default function DatabaseCards() {
   const { data, isLoading, isError } = usePersonnelStatsQuery({});
-  const {
-    data: comptesEnAttente,
-    isError: comptesEnAttenteEnErreur,
-    isFetching: comptesEnAttenteEnCours,
-    refetch: rechargerComptesEnAttente,
-  } = useComptesEnAttenteQuery();
+  const { data: comptesEnAttente } = useComptesEnAttenteQuery();
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
@@ -60,11 +54,7 @@ export default function DatabaseCards() {
     { label: 'Personnel TURBO', value: data?.personnel ?? 0, href: '/personnel' },
     { label: 'Utilisateurs Actifs', value: data?.utilisateurs ?? 0, href: 'users' },
     // M1 (RG-07) — comptes livreur en attente de validation, raccourci vers la file.
-    // En panne de lecture la carte sort de la liste : elle est remplacee plus bas par
-    // l'etat d'echec, car un compteur a zero se lit comme "aucun compte a valider".
-    ...(comptesEnAttenteEnErreur
-      ? []
-      : [{ label: 'Comptes en attente', value: comptesEnAttente ?? 0, href: '/delivery-men/not-valide' }]),
+    { label: 'Comptes en attente', value: comptesEnAttente ?? 0, href: '/delivery-men/not-valide' },
   ];
 
   return (
@@ -108,19 +98,6 @@ export default function DatabaseCards() {
           </CardBody>
         </Card>
       ))}
-      {comptesEnAttenteEnErreur && (
-        <Card className="border-danger/40">
-          <CardBody className="p-0">
-            <EtatErreur
-              quoi="les comptes en attente"
-              onReessayer={() => {
-                void rechargerComptesEnAttente();
-              }}
-              enCours={comptesEnAttenteEnCours}
-            />
-          </CardBody>
-        </Card>
-      )}
     </div>
   );
 }

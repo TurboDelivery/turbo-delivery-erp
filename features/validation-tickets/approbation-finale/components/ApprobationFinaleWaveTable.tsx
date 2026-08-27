@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { flexRender, Table } from '@tanstack/react-table';
-import { Table as HeroTable, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Table as HeroTable, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { Loader2 } from 'lucide-react';
 import { IGrillePaiementLigne } from '@/features/validation-tickets/grille-de-paiement/types/grille-paiement.type';
 

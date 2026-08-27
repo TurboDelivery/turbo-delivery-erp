@@ -15,9 +15,7 @@ export async function getAllOrders(page: number = 0, size: number = 10, restaura
 
         return data;
     } catch (error) {
-        // Une panne de lecture renvoyait null : l'ecran affichait alors
-        // "aucune commande" alors que les commandes existaient bien.
-        throw error;
+        return null;
     }
 }
 
@@ -38,15 +36,6 @@ export async function getOrdersStats(
 
         return data;
     } catch (error) {
-        // Le catch avalait TOUT : une panne du service client faisait simplement
-        // disparaitre les cartes de statistiques, sans rien signaler. Seul le 404
-        // reste tolere, l'endpoint /commandes/stats n'existant pas encore cote
-        // backend (verifie dans CustomerCommandeResource) : le relancer sans
-        // condition enverrait la page entiere sur error.tsx a chaque chargement.
-        const statut = (error as { response?: { status?: number } })?.response?.status;
-        if (statut !== 404) {
-            throw error;
-        }
         console.error('Erreur lors de la récupération des stats des commandes', error);
         return null;
     }

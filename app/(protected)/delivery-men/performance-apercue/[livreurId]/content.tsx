@@ -5,7 +5,7 @@ import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import SectionHeaderRetour from "@/components/commons/section-header-retour";
 import TableCreneau from './table-creneau'
 import { PerformanceCreneauId } from "@/types/performance-creneauId";
-import { Card } from "@/components/heroui";
+import { Card } from "@heroui/react";
 import ListPerformanceApercu from "@/components/dashboard/delivery-men/performance-apercu/list-performance";
 import { LivreurDetail } from "@/types/livreur";
 import { IconChevronDown } from "@tabler/icons-react";

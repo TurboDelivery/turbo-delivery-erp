@@ -4,7 +4,7 @@ import Link from 'next/link';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Home, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui/react';
 import { useRouter } from 'next/navigation';
 
 export const metadata: Metadata = {

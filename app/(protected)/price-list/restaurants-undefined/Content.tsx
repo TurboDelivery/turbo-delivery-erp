@@ -2,7 +2,7 @@
 
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { RestaurantDefini } from '@/types/price-list';
-import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Tabs, Tab } from '@/components/heroui';
+import { Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Tabs, Tab } from '@heroui/react';
 import useContent from './useContent';
 import { Search } from 'lucide-react';
 import Link from 'next/link';

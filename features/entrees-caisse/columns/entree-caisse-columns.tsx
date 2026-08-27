@@ -7,7 +7,6 @@ import { IEntreeCaisse } from '../types/entree-caisse.types';
 import { ModifierEntreeCaisseModal } from '@/components/finance/entrees-caisse/modifier-entree-caisse-modal';
 import { SupprimerEntreeCaisseModal } from '@/components/finance/entrees-caisse/supprimer-entree-caisse-modal';
 import { EntreeCaisseStatutCell } from '@/components/finance/entrees-caisse/statut-cell';
-import { formatMontant } from '@/utils/format.utils';
 
 export const entreeCaisseColumns: ColumnDef<IEntreeCaisse>[] = [
   {
@@ -18,7 +17,7 @@ export const entreeCaisseColumns: ColumnDef<IEntreeCaisse>[] = [
     accessorKey: 'montant',
     header: 'Montant',
     cell: ({ row }) =>
-      `${formatMontant(row.original.montant)}`,
+      `${row.original.montant.toLocaleString('fr-FR')} FCFA`,
   },
   {
     accessorKey: 'dateEntree',

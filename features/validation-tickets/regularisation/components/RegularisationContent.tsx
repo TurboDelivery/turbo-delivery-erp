@@ -17,9 +17,6 @@ export default function RegularisationContent() {
     livreurOptions,
     selectedId,
     selectedTicket,
-    isError,
-    isFetching,
-    refetch,
     isApproving,
     isRejecting,
     setSelectedId,
@@ -38,9 +35,6 @@ export default function RegularisationContent() {
           tickets={filteredTickets}
           selectedId={selectedId}
           onSelect={setSelectedId}
-          isError={isError}
-          isFetching={isFetching}
-          onReessayer={() => refetch()}
         />
 
         {selectedTicket ? (

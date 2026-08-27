@@ -18,13 +18,6 @@ module.exports = {
         './components/**/*.{js,ts,jsx,tsx}',
         './features/**/*.{js,ts,jsx,tsx}',
         './src/**/*.{js,ts,jsx,tsx}',
-        // ⚠ NE PAS RETIRER `@heroui/theme` DES DEPENDANCES DIRECTES.
-        // Ce motif scanne le paquet PAR CHEMIN pour generer les classes des
-        // composants HeroUI. Avec pnpm, une dependance seulement TRANSITIVE vit
-        // dans `.pnpm/` et n'apparait pas ici : le motif ne correspond alors a
-        // rien, et la moitie du CSS disparait (mesure : 312 + 339 ko -> 180 + 153).
-        // Ni `tsc` ni `next build` ne le signalent — le build reste vert et l'ERP
-        // part sans ses styles. Seule la MESURE du CSS produit le voit.
         "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
     ],
     darkMode: 'class',

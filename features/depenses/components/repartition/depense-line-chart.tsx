@@ -10,7 +10,6 @@ import { useDashboardStatsQuery } from '@/features/finance-dashboard/queries/das
 import { recupererDonnees } from '@/features/depenses/depense-stats.utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 const chartConfig = {
   montant: {
@@ -22,7 +21,7 @@ const chartConfig = {
 
 export default function DepenseLineChart({ className }: { className?: string }) {
   const [year, setYear] = React.useState<string>(new Date().getFullYear().toString());
-  const { data: dashboardStats, isLoading, isFetching, isError, refetch } = useDashboardStatsQuery({ annee: parseInt(year) });
+  const { data: dashboardStats, isLoading } = useDashboardStatsQuery({ annee: parseInt(year) });
 
   const depenseData = useMemo(() => {
     if (!dashboardStats) return [];
@@ -69,12 +68,6 @@ export default function DepenseLineChart({ className }: { className?: string }) 
         {isLoading ? (
           <div className="flex items-center justify-center h-[300px]">
             <div className="text-muted-foreground">Chargement...</div>
-          </div>
-        ) : isError ? (
-          /* Sans donnee, la courbe tombait sur « Aucune depense sur la periode » :
-             une annee illisible se lisait comme une annee sans depense. */
-          <div className="flex items-center justify-center h-[300px]">
-            <EtatErreur quoi="l'évolution des dépenses" onReessayer={() => refetch()} enCours={isFetching} />
           </div>
         ) : chartData.length > 0 ? (
           <ChartContainer config={chartConfig} className="h-[220px] w-full">

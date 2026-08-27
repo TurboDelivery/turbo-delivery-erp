@@ -1,5 +1,4 @@
-﻿import { formatMontant } from '@/utils/format.utils';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+﻿import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel"
 import Autoplay from "embla-carousel-autoplay"
 import { ILivraison } from "@/features/revenus/types/livraison.types"
@@ -82,7 +81,7 @@ export default function LastLivraison({ lastlivraisons }: LastLivraisonProps) {
                                                             </div>
                                                             <div className="text-right">
                                                                 <span className="text-xs text-gray-500 block">Cout</span>
-                                                                <span className="text-sm font-bold text-green-600">{formatMontant(livraison.totalAmount)}</span>
+                                                                <span className="text-sm font-bold text-green-600">{livraison.totalAmount.toLocaleString()} FCFA</span>
                                                             </div>
                                                         </div>
                                                         <div className="flex justify-between items-start">
@@ -92,7 +91,7 @@ export default function LastLivraison({ lastlivraisons }: LastLivraisonProps) {
                                                             </div>
                                                             <div className="text-right">
                                                                 <span className="text-xs text-gray-500 block">commission</span>
-                                                                <span className="text-sm font-bold text-green-600">{formatMontant(livraison.fraisLivraison)}</span>
+                                                                <span className="text-sm font-bold text-green-600">{livraison.fraisLivraison.toLocaleString()} FCFA</span>
                                                             </div>
                                                         </div>
 
@@ -123,7 +122,7 @@ export default function LastLivraison({ lastlivraisons }: LastLivraisonProps) {
                                 Total ce mois: {livraisonsMoisCourant?.length} investissement(s)
                             </div>
                             <div className="text-sm font-semibold text-blue-600">
-                                Montant total: {formatMontant(livraisonsMoisCourant?.reduce((sum, invest) => sum + invest.commission, 0))}
+                                Montant total: {livraisonsMoisCourant?.reduce((sum, invest) => sum + invest.commission, 0).toLocaleString()} FCFA
                             </div>
                         </div>
                     </div>

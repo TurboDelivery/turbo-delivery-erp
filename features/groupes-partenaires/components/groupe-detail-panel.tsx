@@ -14,7 +14,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { ArrowLeft, Building2, Crown, Users } from 'lucide-react';
 
 import { formatDateFr } from '@/lib/date-utils';

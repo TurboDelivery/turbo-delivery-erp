@@ -14,7 +14,7 @@ import {
   ModalHeader,
   Select,
   SelectItem,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { BikeIcon, Info } from 'lucide-react';
 
 import { CourseExterne, CourseExterneDetail, LivreurDisponible } from '@/types/models';

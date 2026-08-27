@@ -14,9 +14,8 @@ interface UseCAExportParams {
 export type { UseCAExportParams };
 
 export function useCAExport() {
-  const { mutate: exportCAData, isPending: isLoadingCAExport, isError: isErrorCAExport, data: caExportData } = useMutation({
-    // v5 : la fonction ne se passe plus en positionnel, elle a son nom.
-    mutationFn: async (params: UseCAExportParams) => {
+  const { mutate: exportCAData, isPending: isLoadingCAExport, isError: isErrorCAExport, data: caExportData } = useMutation(
+    async (params: UseCAExportParams) => {
       // Déterminer la période en fonction du mois sélectionné
       let periode: 'JOUR' | 'SEMAINE' | 'MOIS' | 'TRIMESTRE' | 'SEMESTRE' | 'ANNEE' = 'ANNEE';
       
@@ -141,8 +140,8 @@ export function useCAExport() {
         console.error('Erreur lors de l\'exportation CA:', error);
         throw error;
       }
-    },
-  });
+    }
+  );
 
   const exportCAToExcel = (params: UseCAExportParams) => {
     exportCAData(params);

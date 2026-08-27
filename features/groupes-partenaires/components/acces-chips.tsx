@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@/components/heroui';
+import { Chip } from '@heroui/react';
 
 import {
   EffetSurCompte,

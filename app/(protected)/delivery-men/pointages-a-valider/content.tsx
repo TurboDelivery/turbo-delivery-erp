@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
   Tooltip,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
@@ -273,7 +273,7 @@ export function PointagesAValiderContent() {
                         size="sm"
                         color="success"
                         variant="flat"
-                        isLoading={valider.isPending}
+                        isLoading={valider.isLoading}
                         onPress={() => valider.mutate(p)}
                       >
                         Valider
@@ -355,7 +355,7 @@ export function PointagesAValiderContent() {
                 <Button
                   color="danger"
                   isDisabled={!commentaire.trim()}
-                  isLoading={rejeter.isPending}
+                  isLoading={rejeter.isLoading}
                   onPress={() => rejet && rejeter.mutate({ p: rejet, motif: commentaire.trim() })}
                 >
                   Rejeter le pointage

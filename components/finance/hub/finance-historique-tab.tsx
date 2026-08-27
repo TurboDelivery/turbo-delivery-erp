@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Chip, Pagination, Select, SelectItem, Spinner } from '@/components/heroui';
+import { Chip, Pagination, Select, SelectItem, Spinner } from '@heroui/react';
 import { CheckCircle2, PenLine, ShieldCheck, Wallet } from 'lucide-react';
 import { fmtFcfa, unifiedStatut, FinanceStatut } from '@/features/finances-hub';
 import {
@@ -9,7 +9,6 @@ import {
   useHistoriqueChargesQuery,
 } from '@/features/charges/queries/historique-charge.query';
 import { IHistoriqueCharge } from '@/features/charges/types/historique-charge.type';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 const PAGE_SIZE = 12;
 
@@ -56,7 +55,7 @@ export function FinanceHistoriqueTab({
   // Liste des acteurs pour le filtre admin.
   const { data: acteurs } = useActeursHistoriqueQuery(isAdmin);
 
-  const { data, isLoading, isError, isFetching, refetch } = useHistoriqueChargesQuery({
+  const { data, isLoading, isFetching } = useHistoriqueChargesQuery({
     page: page - 1,
     size: PAGE_SIZE,
     debut,
@@ -107,9 +106,6 @@ export function FinanceHistoriqueTab({
 
       {isLoading ? (
         <div className="flex justify-center py-16"><Spinner color="primary" label="Chargement…" /></div>
-      ) : isError ? (
-        // sans cette branche, l'echec affichait "Aucune action sur cette periode", indiscernable d'un vrai vide
-        <EtatErreur quoi="l'historique des actions" onReessayer={() => refetch()} enCours={isFetching} />
       ) : (
         <div className="rounded-xl border border-default-200 bg-content1">
           <div className="overflow-x-auto">

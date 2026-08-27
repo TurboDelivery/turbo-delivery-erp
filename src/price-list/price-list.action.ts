@@ -52,9 +52,7 @@ export async function getRestaurantDefined(): Promise<RestaurantDefini[]> {
         });
         return data;
     } catch (error: any) {
-        // Une panne de lecture rendait une liste vide: la grille des restaurants deja
-        // definis s affichait "aucun resultat" alors que les grilles existaient en base.
-        throw error;
+        return [];
     }
 }
 
@@ -68,10 +66,7 @@ export async function getRestaurantUndefined(page:number): Promise<RestaurantDef
         
         return data;
     } catch (error: any) {
-        // Lecture avalee: la page serveur restaurants-undefined recevait un tableau vide
-        // et affichait "Aucun frais de livraison", laissant croire que tous les
-        // restaurants avaient deja une grille tarifaire.
-        throw error;
+        return [];
     }
 }
 export async function getRestaurantUndefined2(page:number): Promise<PaginatedResponse<RestaurantDefini> | null> {
@@ -84,10 +79,7 @@ export async function getRestaurantUndefined2(page:number): Promise<PaginatedRes
         
         return data;
     } catch (error: any) {
-        // Le null rendu ici etait indiscernable d une page vide: la version paginee
-        // affichait un tableau sans ligne et une pagination a zero page alors que la
-        // lecture avait echoue.
-        throw error;
+        return null;
     }
 }
 
@@ -104,10 +96,7 @@ export async function getPriceListByRestaurant(restaurantID: string, page: numbe
         });
         return data;
     } catch (error: any) {
-        // Le null faisait passer une panne de lecture pour un restaurant sans grille:
-        // la liste des frais et le selecteur de zone paraissaient vides, et un ticket
-        // pouvait etre saisi sans zone alors que les tarifs existaient.
-        throw error;
+        return null;
     }
 }
 

@@ -1,5 +1,5 @@
 import { dayOfWeek } from "@/app/(protected)/external_delivery/gestion_de_paie/controller";
-import { Button, Dropdown, Table, DropdownItem, DropdownMenu, DropdownTrigger, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@/components/heroui";
+import { Button, Dropdown, Table, DropdownItem, DropdownMenu, DropdownTrigger, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
 import { Printer, ChevronRight, ChevronLeft, Banknote } from "lucide-react";
 import { useCreneauDePaieController } from "./controller";
 import { GainHebdomadaireVm, GainVm } from "@/types/gestion-de-paie.model";

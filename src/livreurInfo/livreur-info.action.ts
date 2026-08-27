@@ -32,10 +32,7 @@ export async function getInfoLivreurById(userId: string): Promise<LivreurDetail 
                 
         return data;
     } catch (error: any) {
-        // Sans relance, une panne de lecture s'affichait comme "Aucun livreur
-        // trouve" alors que la fiche existe: l'ecran annoncait une absence au
-        // lieu de signaler l'echec.
-        throw error;
+        return null;
     }
 }
 
@@ -54,9 +51,6 @@ export async function updateLivreur(userId: string, payload: any): Promise<Livre
         });
         return data;
     } catch (error: any) {
-        // Ecriture: pas de relance ici. L'appelant profil/[id]/content.tsx ignore
-        // la valeur rendue, donc un echec d'enregistrement passe deja pour un
-        // succes: le defaut est chez l'appelant, pas dans ce retour.
         console.error("Erreur updateLivreur:", error);
         return null;
     }

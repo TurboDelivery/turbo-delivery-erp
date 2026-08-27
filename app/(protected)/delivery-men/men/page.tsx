@@ -13,12 +13,10 @@ export default async function MenPage() {
     allRestaurants(),
   ]);
 
-  // Replis morts retires : les deux actions relevent desormais sur echec de lecture
-  // et renvoient un tableau non nullable, l'exception court-circuite le ??.
   return (
     <Content
-      demandes={demandes}
-      restaurants={restaurants}
+      demandes={demandes ?? []}
+      restaurants={restaurants ?? []}
     />
   );
 }

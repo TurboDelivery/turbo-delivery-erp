@@ -10,7 +10,7 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import UsersAdd from './users-add';
 import UsersTools from './users-tools';
 import UsersEmailPrimaryToggle from './users-email-primary-toggle';
-import { Chip } from '@/components/heroui';
+import { Chip } from '@heroui/react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import PaginationBlock from '@/components/pagination-block';
 import { Can } from '@/components/auth/Can';

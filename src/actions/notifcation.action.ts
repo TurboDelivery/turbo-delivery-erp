@@ -22,9 +22,7 @@ export async function fetchAllNotifcation(utilisateurId: string): Promise<Notifi
 
         return data;
     } catch (error) {
-        // Un echec de lecture n'est pas une liste vide : sur une panne backend
-        // l'ecran affichait « Aucune notification » comme si la boite etait vide.
-        throw error;
+        return [];
     }
 }
 
@@ -38,9 +36,7 @@ export async function fetchNotifcationNonLu(utilisateurId: string): Promise<Noti
 
         return data;
     } catch (error) {
-        // Un echec de lecture n'est pas « zero non-lu » : la panne faisait tomber
-        // le compteur a zero et l'operateur croyait avoir tout traite.
-        throw error;
+        return [];
     }
 }
 
@@ -54,10 +50,7 @@ export async function fetchDetailNotifcation(notificationId: string): Promise<No
 
         return data;
     } catch (error) {
-        // Un echec de lecture n'est pas une notification vide : la page de detail
-        // affichait un objet et un message vides, dates a l'instant present par
-        // moment(undefined), donc une notification credible mais inventee.
-        throw error;
+        return {};
     }
 }
 

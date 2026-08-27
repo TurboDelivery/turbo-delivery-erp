@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Input } from '@/components/heroui';
+import { Input } from '@heroui/react';
 import { Eye, EyeOff } from 'lucide-react';
 
 interface CompteSectionProps {

@@ -16,7 +16,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { ChevronDown, ChevronUp, Download, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import { useRestaurantTable } from '@/features/restaurants/hooks/use-restaurant-table';
 import { useRestaurantStatusCountsQuery } from '@/features/restaurants/queries/restaurant-list.query';

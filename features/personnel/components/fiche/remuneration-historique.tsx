@@ -8,9 +8,8 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 
-import EtatErreur from '@/components/commons/EtatErreur';
 import { IRemunerationHistorique } from '@/features/personnel/types/personnel-historisation.types';
 import {
   formaterMontant,
@@ -22,12 +21,6 @@ import { EtatMoisChip } from '../shared/personnel-chips';
 interface Props {
   historique: IRemunerationHistorique | undefined;
   chargement: boolean;
-  /** L'appel a echoue. Distinct d'un agent sans rémunération enregistrée. */
-  echec?: boolean;
-  /** Relance l'appel. Absente, l'echec s'affiche sans bouton. */
-  onReessayer?: () => void;
-  /** Vrai pendant la nouvelle tentative. */
-  relanceEnCours?: boolean;
 }
 
 /**
@@ -38,10 +31,8 @@ interface Props {
  * (ligne principale + régularisations payées ce mois-là), donc sur ce que l'agent a
  * réellement touché.
  */
-export function RemunerationHistorique({ historique, chargement, echec = false, onReessayer, relanceEnCours = false }: Props) {
+export function RemunerationHistorique({ historique, chargement }: Props) {
   const mois = historique?.mois ?? [];
-  // « Aucune rémunération enregistrée » sur un appel tombe se lit comme un agent jamais paye.
-  const enEchec = echec && mois.length === 0;
 
   return (
     <div className="space-y-2">
@@ -56,15 +47,7 @@ export function RemunerationHistorique({ historique, chargement, echec = false, 
           <TableColumn className="text-right text-primary">ÉCART</TableColumn>
         </TableHeader>
         <TableBody
-          emptyContent={
-            enEchec ? (
-              <EtatErreur quoi="les rémunérations de cet agent" onReessayer={onReessayer} enCours={relanceEnCours} />
-            ) : chargement ? (
-              ' '
-            ) : (
-              'Aucune rémunération enregistrée pour cet agent.'
-            )
-          }
+          emptyContent={chargement ? ' ' : 'Aucune rémunération enregistrée pour cet agent.'}
           isLoading={chargement}
           loadingContent={<Spinner color="primary" label="Chargement des rémunérations…" />}
         >

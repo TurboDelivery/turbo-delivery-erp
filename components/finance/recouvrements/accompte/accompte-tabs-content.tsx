@@ -6,12 +6,11 @@ import { Calendar, DollarSign, TrendingUp, Users } from 'lucide-react';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { RestaurantSelect } from '../common/restaurant-select';
 import { useAccompteQuery } from '@/features/recouvrements/queries/accompte.query';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { accompteColumns } from '@/features/recouvrements/columns/accompte-columns';
 import { DateRange } from 'react-day-picker';
 import { AccompteMobileCard } from '@/components/finance/recouvrements/recouvrement-mobile-cards';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 interface AccompteTabsContentProps {
   restoOpts?: Array<{ label: string; value: string }>;
@@ -34,9 +33,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
   const {
     data: accomptesData,
     isLoading,
-    isError,
     isFetching,
-    refetch,
   } = useAccompteQuery({
     page: 0,
     limit: 20,
@@ -63,9 +60,6 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
   });
 
   const accomptes = accomptesData?.content || [];
-
-  // meme bloc pour les deux rendus (tableau desktop, cartes mobiles) : un seul est visible a la fois
-  const zoneErreur = <EtatErreur quoi="les acomptes" onReessayer={() => refetch()} enCours={isFetching} />;
 
   // Calcul des statistiques à partir des données réelles
   const stats = {
@@ -98,58 +92,55 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
       </div>
 
       {/* Cartes de statistiques */}
-      {/* sur echec les totaux vaudraient 0 F CFA, ce qui se lit comme un resultat reel */}
-      {!isError && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Accompte</p>
-                  <p className="text-2xl font-bold text-green-600">{formatCFA(stats.totalAccompte)}</p>
-                </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Accompte</p>
+                <p className="text-2xl font-bold text-green-600">{formatCFA(stats.totalAccompte)}</p>
               </div>
-            </CardContent>
-          </Card>
+              <DollarSign className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Nombre d&#39;Accomptes</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats.nombreAccomptes}</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-600" />
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Nombre d&#39;Accomptes</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.nombreAccomptes}</p>
               </div>
-            </CardContent>
-          </Card>
+              <Users className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Accomptes Validés</p>
-                  <p className="text-2xl font-bold text-purple-600">{formatCFA(stats.accompteValides)}</p>
-                </div>
-                <Calendar className="h-8 w-8 text-purple-600" />
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Accomptes Validés</p>
+                <p className="text-2xl font-bold text-purple-600">{formatCFA(stats.accompteValides)}</p>
               </div>
-            </CardContent>
-          </Card>
+              <Calendar className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">En attente</p>
-                  <p className="text-2xl font-bold text-orange-600">{stats.accompteEnAttente}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-orange-600" />
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">En attente</p>
+                <p className="text-2xl font-bold text-orange-600">{stats.accompteEnAttente}</p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+              <TrendingUp className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Tableau des acomptes */}
       <Card>
@@ -176,8 +167,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
                   </TableColumn>
                 ))}
               </TableHeader>
-              {/* sur echec, l'erreur prend la place du message "Aucun acompte" qui se lirait comme un resultat vide */}
-              <TableBody emptyContent={isLoading ? ' ' : isError ? zoneErreur : 'Aucun acompte'}>
+              <TableBody emptyContent={'Aucun acompte'}>
                 {isLoading
                   ? Array.from({ length: 10 }).map((_, i) => (
                       <TableRow key={`skeleton-${i}`}>
@@ -234,8 +224,6 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
           <div className={`md:hidden space-y-3 ${isFetching ? 'opacity-70' : ''}`}>
             {isLoading ? (
               Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-24 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
-            ) : isError ? (
-              zoneErreur
             ) : accomptes.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-10">Aucun acompte</p>
             ) : (

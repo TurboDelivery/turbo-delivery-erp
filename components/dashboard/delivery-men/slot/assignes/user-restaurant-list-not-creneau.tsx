@@ -1,6 +1,6 @@
 import { Restaurant } from "@/types/creneau-turbo";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
-import { Avatar } from "@/components/heroui";
+import { Avatar } from "@heroui/react";
 import { createUrlFile } from "@/utils/createUrlFile";
 
 

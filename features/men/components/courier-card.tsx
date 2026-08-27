@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Chip } from '@/components/heroui';
+import { Chip } from '@heroui/react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';

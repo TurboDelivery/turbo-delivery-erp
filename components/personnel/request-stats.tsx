@@ -1,7 +1,6 @@
 'use client';
 
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
-import EtatErreur from '@/components/commons/EtatErreur';
 import { useStatistiquesCongesQuery } from '@/features/conge/queries/conge.query';
 
 /**
@@ -14,21 +13,9 @@ import { useStatistiquesCongesQuery } from '@/features/conge/queries/conge.query
  *
  * <p>Le chargement s'affichait en « ... » a la place du chiffre, ce qui se lit comme une
  * valeur et non comme une attente : `isLoading` rend un squelette.</p>
- *
- * <p>Meme raisonnement pour l'echec : `statsData?.x || 0` affichait six zeros, soit six
- * valeurs mesurees, la ou rien n'avait pu etre lu. Les cartes cedent donc la place.</p>
  */
 export function RequestStats() {
-  const { data: statsData, isLoading: statsLoading, isError, isFetching, refetch } = useStatistiquesCongesQuery();
-
-  if (isError && !statsData) {
-    return (
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold text-default-700 mb-4">Statistiques globales des congés</h3>
-        <EtatErreur quoi="les statistiques des congés" onReessayer={() => refetch()} enCours={isFetching} />
-      </div>
-    );
-  }
+  const { data: statsData, isLoading: statsLoading } = useStatistiquesCongesQuery();
 
   return (
     <div className="mt-6">

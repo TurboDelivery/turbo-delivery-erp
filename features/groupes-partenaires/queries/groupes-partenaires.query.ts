@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient , keepPreviousData} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { groupesPartenairesAPI } from '../apis/groupes-partenaires.api';
@@ -61,7 +61,7 @@ export const useEtablissementsCandidatsQuery = (userId: string, recherche: strin
     queryKey: groupesPartenairesKeys.etablissements(recherche),
     queryFn: () => groupesPartenairesAPI.etablissements(userId, recherche),
     enabled: !!userId && actif,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
     staleTime: 60 * 1000,
   });
 

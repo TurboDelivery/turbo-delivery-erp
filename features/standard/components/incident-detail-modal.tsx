@@ -10,7 +10,7 @@ import {
   ModalFooter,
   ModalHeader,
   Textarea,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { AlertTriangle, Camera, Clock, ExternalLink, MapPin, MessageSquare, Phone, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { createUrlFile } from '@/utils/createUrlFile';
@@ -249,13 +249,13 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
             </ModalBody>
 
             <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={changerStatut.isPending}>
+              <Button variant="light" onPress={onClose} isDisabled={changerStatut.isLoading}>
                 Fermer
               </Button>
               {canUpdate && action && (
                 <Button
                   color="primary"
-                  isLoading={changerStatut.isPending}
+                  isLoading={changerStatut.isLoading}
                   isDisabled={!userId}
                   onPress={() => appliquerTransition(action.next)}
                 >

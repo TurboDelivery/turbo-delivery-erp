@@ -19,7 +19,7 @@ function useRestaurantRecouvrementTable() {
     };
   }, [filters]);
 
-  const { data: restaurantsRecouvrements, isLoading, isFetching, isError, refetch } = useRestaurantsRecouvrementQuery(currentSearchParams);
+  const { data: restaurantsRecouvrements, isLoading, isFetching } = useRestaurantsRecouvrementQuery(currentSearchParams);
 
   const table = useReactTable({
     data: restaurantsRecouvrements?.content || [],
@@ -52,10 +52,6 @@ function useRestaurantRecouvrementTable() {
     restaurants: restaurantsRecouvrements,
     isRestaurantLoading: isLoading,
     isRestaurantFetching: isFetching,
-    // Sur echec la table retombe sur un tableau vide, indiscernable de « aucun
-    // restaurant a recouvrer » : l'ecran doit pouvoir dire l'echec et relancer.
-    isRestaurantError: isError,
-    refetchRestaurants: refetch,
     pagination,
     filters,
     setFilters,

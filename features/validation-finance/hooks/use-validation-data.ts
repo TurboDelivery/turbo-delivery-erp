@@ -27,13 +27,8 @@ export function useValidationData(chargeType: ChargeType, role: Role) {
   const rawVariables = chargeType === 'variable' ? variablesQuery.data?.content : undefined;
 
   const isLoading = chargeType === 'variable' ? variablesQuery.isLoading : fixesQuery.isLoading;
-  // L'ecran bascule entre charges variables et fixes : on suit l'echec et la relance
-  // de la query REELLEMENT active, sinon on afficherait l'erreur de l'onglet inactif.
-  const isFetching = chargeType === 'variable' ? variablesQuery.isFetching : fixesQuery.isFetching;
-  const isError = chargeType === 'variable' ? variablesQuery.isError : fixesQuery.isError;
-  const refetch = chargeType === 'variable' ? variablesQuery.refetch : fixesQuery.refetch;
 
-  return { depenses, rawVariables, isLoading, isFetching, isError, refetch };
+  return { depenses, rawVariables, isLoading };
 }
 
 export function useHistoryData(role: Role, enabled: boolean) {
@@ -47,12 +42,6 @@ export function useHistoryData(role: Role, enabled: boolean) {
     return (historiqueQuery.data?.content ?? []).map(historiqueChargeToDepense);
   }, [historiqueQuery.data?.content]);
 
-  return {
-    depenses,
-    isLoading: historiqueQuery.isLoading,
-    isFetching: historiqueQuery.isFetching,
-    isError: historiqueQuery.isError,
-    refetch: historiqueQuery.refetch,
-  };
+  return { depenses, isLoading: historiqueQuery.isLoading };
 }
 

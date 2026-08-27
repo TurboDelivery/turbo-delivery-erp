@@ -31,21 +31,12 @@ export function useGestionPaieController(initialData: PaieErpVM | null) {
     const [joursTravailgroupes, setJourTravailGroupes] = useState<JourTravailGroupe>({});
     const [intervalSelectionnee, setIntervalleSelectionnee] = useState<number[]>([]);
     const [filtrer, setFiltrer] = useState(false)
-    // getFicheDePaies relance desormais au lieu de rendre null : sans cet etat, un
-    // echec de filtre laissait les fiches de la periode precedente a l'ecran, en
-    // silence, comme si la nouvelle periode etait a jour.
-    const [erreur, setErreur] = useState(false)
 
     const fetchFichePaie = async () => {
-        // remis a faux a chaque tentative pour ne pas afficher une panne resolue
-        setErreur(false)
         try {
             const result = await getFicheDePaies(startDate, endDate);
             setDatas(result)
-        } catch (error) {
-            console.error(error);
-            setErreur(true)
-        }
+        } catch (error) { }
     }
 
     useEffect(() => {
@@ -238,7 +229,5 @@ export function useGestionPaieController(initialData: PaieErpVM | null) {
         MoisEnCours,
         datas,
         joursDeTravailsValides,
-        erreur,
-        reessayer: fetchFichePaie,
     }
 }

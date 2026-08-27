@@ -12,7 +12,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { Building2, Crown, Search } from 'lucide-react';
 
 import { formatDateFr } from '@/lib/date-utils';

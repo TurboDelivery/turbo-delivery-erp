@@ -15,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import { Eye, Calendar, Percent, Hash, MapPin, Home } from "lucide-react";
 import { ICommission } from "@/features/revenus/types/commission.types";
 import Image from "next/image";
-import { formatMontant } from '@/utils/format.utils';
 interface CommissionFixeDetailModalProps {
     commissionFixee: ICommission;
 }
@@ -108,7 +107,7 @@ export function CommissionFixeDetailModal({ commissionFixee }: CommissionFixeDet
                         </Label>
                         <Input
                             id="commission"
-                            defaultValue={formatMontant(commissionFixee.commission)}
+                            defaultValue={`${commissionFixee.commission} FCFA`}
                             className="col-span-3 text-red-500"
                             readOnly
                         />

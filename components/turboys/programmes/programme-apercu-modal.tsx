@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@/components/heroui';
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react';
 import { Download, Send } from 'lucide-react';
 
 import { IProgramme } from '@/features/turboys/types/programme.types';
@@ -90,8 +90,8 @@ export function ProgrammeApercuModal({ programme, annee, semaine, isOpen, onOpen
               <Button
                 color="primary"
                 isDisabled={!programme}
-                isLoading={envoyer.isPending}
-                startContent={!envoyer.isPending && <Send className="h-4 w-4" />}
+                isLoading={envoyer.isLoading}
+                startContent={!envoyer.isLoading && <Send className="h-4 w-4" />}
                 onPress={() => programme && envoyer.mutate(programme.id)}
               >
                 Envoyer au livreur

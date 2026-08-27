@@ -12,16 +12,8 @@ export default function useHistoriqueCreneaux() {
   const [search, setSearch] = useState('');
   const [statutFilter, setStatutFilter] = useState<StatutFilter>('tous');
 
-  const {
-    data,
-    isLoading,
-    isError,
-    isFetching,
-    refetch,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useHistoriqueCreneauxListQuery({
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useHistoriqueCreneauxListQuery({
       size: 20,
       lotStatut: statutFilter !== 'tous' ? statutFilter : undefined,
     });
@@ -92,10 +84,6 @@ export default function useHistoriqueCreneaux() {
     setStatutFilter,
     exportXlsx,
     isLoading,
-    // Sans isError, un echec de chargement se lisait comme « Aucun creneau trouve ».
-    isError,
-    isFetching,
-    refetch,
     fetchNextPage,
     hasNextPage: !!hasNextPage,
     isFetchingNextPage,

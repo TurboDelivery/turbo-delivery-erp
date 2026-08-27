@@ -2,7 +2,7 @@
 
 import { Control, FieldErrors } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
-import { Input } from '@/components/heroui';
+import { Input } from '@heroui/react';
 import { type UpdateTurboyInfoDTO } from '@/features/turboys/schemas/update-turboy-info.schema';
 import { SectionTitle } from './section-title';
 

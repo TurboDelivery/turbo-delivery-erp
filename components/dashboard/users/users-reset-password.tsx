@@ -4,7 +4,7 @@ import IconX from '@/components/icon/icon-x';
 import { reinitialiserMotDePasseUtilisateur } from '@/src/actions/users.actions';
 import { User } from '@/types/models';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
-import { Button, Snippet } from '@/components/heroui';
+import { Button, Snippet } from '@heroui/react';
 import React, { Fragment, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';

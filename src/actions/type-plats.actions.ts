@@ -27,9 +27,7 @@ export async function getTypePlats(): Promise<Collection[]> {
 
         return data;
     } catch (error) {
-        // Le tableau vide affichait "Type de plats : 0" et "Aucun type de plat trouve"
-        // alors que la lecture ERP avait echoue : panne et catalogue vide etaient indiscernables.
-        throw error;
+        return [];
     }
 }
 
@@ -122,8 +120,6 @@ export async function getTypePlat(id: string): Promise<Collection | null> {
 
         return data;
     } catch (error) {
-        // Le catch avalait tout en bloc sans tester le 404 : une panne de lecture du detail
-        // devenait un "type de plat introuvable". On remonte l'echec au lieu de le deguiser.
-        throw error;
+        return null;
     }
 }

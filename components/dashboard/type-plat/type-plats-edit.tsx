@@ -6,7 +6,7 @@ import { _createTypePlatSchema, createTypePlatSchema } from '@/src/schemas/type-
 import { Collection } from '@/types/models';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Input } from "@/components/heroui";
+import { Button, Input } from "@heroui/react";
 import { useRouter } from 'next/navigation';
 import React, { Fragment } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';

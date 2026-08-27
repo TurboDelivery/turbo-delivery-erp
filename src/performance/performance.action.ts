@@ -53,9 +53,7 @@ export async function getAllPerformaneTurbo(page: number = 0, size: number = 10)
 
         return data;
     } catch (error) {
-        // Sans relance, une panne de lecture devenait une page vide et l'ecran
-        // "Performance des turboys" annoncait qu'aucun turboy n'etait assigne.
-        throw error;
+        return null;
     }
 }
 
@@ -70,9 +68,7 @@ export async function getAllPerformanceBird(page: number = 0, size: number = 10)
 
         return data;
     } catch (error) {
-        // Sans relance, une panne de lecture devenait une liste vide et l'ecran
-        // "Performances birds" annoncait qu'aucun livreur n'avait de performance.
-        throw error;
+        return null;
     }
 }
 
@@ -96,10 +92,8 @@ export async function getPerformanceCreneauById(creneauId: string): Promise<Perf
             // Si c'est une erreur inconnue (non Axios), loggez l'erreur brute
             console.error('Unknown error occurred:', error);
         }
-        // Le catch avalait tous les statuts sans jamais tester un 404 : la page
-        // performance-apercue affichait "Aucune performance" alors que la lecture
-        // du creneau avait echoue.
-        throw error;
+        // Retourner null en cas d'erreur
+        return null;
     }
 }
 
@@ -123,9 +117,8 @@ export async function getPerformancePlanning(creneauId: string,emploiId:string):
             // Si c'est une erreur inconnue (non Axios), loggez l'erreur brute
             console.error('Unknown error occurred:', error);
         }
-        // Meme diagnostic : la page planning-hebdomadaire affichait "Aucun planning"
-        // alors que la lecture du planning avait echoue.
-        throw error;
+        // Retourner null en cas d'erreur
+        return null;
     }
 }
 
@@ -149,10 +142,8 @@ export async function getPerformanceFichePaie(creneauId: string,emploiId:string)
             // Si c'est une erreur inconnue (non Axios), loggez l'erreur brute
             console.error('Unknown error occurred:', error);
         }
-        // La fiche de paie restait vide en cas de panne, sans distinction avec une
-        // periode reellement sans gain. L'appelant client table-creneau.tsx avale
-        // encore l'erreur dans son useEffect : a reprendre.
-        throw error;
+        // Retourner null en cas d'erreur
+        return null;
     }
 }
 

@@ -10,8 +10,7 @@ export interface FactureStatsCardData {
 }
 
 export const useFactureStats = (debut?: Date, fin?: Date) => {
-  // isFetching et refetch remontent pour que le bandeau puisse proposer "Reessayer" sur echec
-  const { data, isLoading, isError, isFetching, error, refetch } = useFactureSummaryQuery(debut, fin);
+  const { data, isLoading, isError, error } = useFactureSummaryQuery(debut, fin);
 
   const statsCards = useMemo((): FactureStatsCardData[] => {
     if (!data) {
@@ -53,9 +52,7 @@ export const useFactureStats = (debut?: Date, fin?: Date) => {
     statsCards,
     isLoading,
     isError,
-    isFetching,
     error,
-    refetch,
     summary: data,
   };
 };

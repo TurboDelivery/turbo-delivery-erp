@@ -9,7 +9,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { Check, X } from 'lucide-react';
 import { SearchField } from '@/components/commons/form/search-field';
 import { createUrlFile } from '@/utils/createUrlFile';

@@ -10,12 +10,11 @@ import {
     TableRow,
     TableCell,
     getKeyValue,
-  } from "@/components/heroui";
+  } from "@heroui/react";
 import progresseBare2 from "@/components/dashboard/delivery-men/progression/progression-barre2";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import progresseBarePerformance from "@/components/dashboard/delivery-men/performance-creneau/progression-bare-performance";
 import DropDownPerformanceCrenea from "@/components/dashboard/delivery-men/performance-creneau/drop-down-performance-creneau";
-import { formatMontant } from '@/utils/format.utils';
   
 
 const dataCreneau={
@@ -90,7 +89,7 @@ const dataCreneau={
         case "commission":
           return (
             <div>
-            {formatMontant(data.commission)}
+            {data.commission} FCFA
             </div>
           );
         default:

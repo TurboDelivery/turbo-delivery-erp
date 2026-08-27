@@ -22,8 +22,7 @@ export function useRecouvrementTable() {
     };
   }, [filters]);
 
-  // refetch est expose pour que l'ecran puisse proposer un bouton "Reessayer" sur echec
-  const { data, isLoading, isError, isFetching, refetch } = useRecouvrementListQuery(currentSearchParams);
+  const { data, isLoading, isError, isFetching } = useRecouvrementListQuery(currentSearchParams);
 
   const tableData = data?.content || [];
 
@@ -54,7 +53,6 @@ export function useRecouvrementTable() {
     isLoading,
     isError,
     isFetching,
-    refetch,
     filters,
     setFilters,
     pagination,

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Input } from '@/components/heroui';
+import { Button, Input } from '@heroui/react';
 import { IconLock, IconShieldCheck } from '@tabler/icons-react';
 import { toast } from 'sonner';
 

@@ -6,7 +6,7 @@ import {
     DropdownMenu,
     DropdownSection,
     DropdownItem,
-} from "@/components/heroui";
+} from "@heroui/react";
 import { IconMap, IconUser } from "@tabler/icons-react";
 
 

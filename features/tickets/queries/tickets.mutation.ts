@@ -64,11 +64,7 @@ export const useDeleteBonLivraison = () => {
   const invalidateTicketsQuery = useInvalidateTicketsQuery();
 
   return useMutation({
-    // `mutationFn` ne prend qu'UNE variable. `deleteBonLivraison(ticketId, motif?)`
-    // en declare deux ; on la referme sur l'identifiant seul, ce qui est exactement
-    // ce que fait l'unique point d'appel (ticket-table.tsx:161) : `motif` n'a jamais
-    // ete transmis. Aucun comportement ne change.
-    mutationFn: (ticketId: string) => deleteBonLivraison(ticketId),
+    mutationFn: deleteBonLivraison,
     onSuccess: async () => {
       await invalidateTicketsQuery();
     },

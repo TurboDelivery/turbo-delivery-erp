@@ -9,7 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
   Spinner,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { CalendarDays, Info, TrendingDown, TrendingUp } from 'lucide-react';
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import { useRentabiliteQuery } from '@/features/rentabilite';

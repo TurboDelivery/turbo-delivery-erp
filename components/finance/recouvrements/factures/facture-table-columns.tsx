@@ -12,7 +12,7 @@ import { RecalculerFactureDialog } from '@/components/finance/recouvrements/fact
 import { ReinitialiserFactureDialog } from '@/components/finance/recouvrements/factures/reinitialiser-facture-dialog';
 import { SupprimerFactureDialog } from '@/components/finance/recouvrements/factures/supprimer-facture-dialog';
 import React, { useState } from 'react';
-import { Tooltip } from '@/components/heroui';
+import { Tooltip } from '@heroui/react';
 import { getStatutBadgeVariant, getStatutColor, getStatutLabel } from '@/features/recouvrements/utils/facture.utils';
 import { cn } from '@/lib/utils';
 

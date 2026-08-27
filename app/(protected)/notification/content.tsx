@@ -13,7 +13,7 @@ import {
   Pagination,
   Spinner,
   Chip,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { Bell, Search, CheckCheck, ExternalLink } from 'lucide-react';
 import { CardHeader } from '@/components/commons/card-header';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';

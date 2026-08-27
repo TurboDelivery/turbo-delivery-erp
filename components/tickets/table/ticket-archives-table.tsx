@@ -2,7 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Input, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tooltip } from '@/components/heroui';
+import { Input, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tooltip } from '@heroui/react';
 import Select from 'react-select';
 import { toast } from 'sonner';
 import { ArchiveRestore, Loader2, Search, X } from 'lucide-react';

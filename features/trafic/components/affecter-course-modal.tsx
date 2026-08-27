@@ -11,10 +11,9 @@ import {
   ModalFooter,
   ModalHeader,
   Spinner,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { AlertTriangle, PackageCheck } from 'lucide-react';
 
-import EtatErreur from '@/components/commons/EtatErreur';
 import { LivreurTraficVue } from '@/features/trafic/utils/normaliser-trafic';
 import {
   useAssignerCourseMutation,
@@ -36,7 +35,7 @@ interface Props {
  * de la fenêtre et la validation.
  */
 export function AffecterCourseModal({ livreur, isOpen, onOpenChange }: Props) {
-  const { data, isLoading, isError, isFetching, refetch } = useCoursesEnAttenteQuery(isOpen);
+  const { data, isLoading } = useCoursesEnAttenteQuery(isOpen);
   const assigner = useAssignerCourseMutation();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -86,14 +85,6 @@ export function AffecterCourseModal({ livreur, isOpen, onOpenChange }: Props) {
                 <div className="flex justify-center py-10">
                   <Spinner color="primary" label="Chargement des courses en attente…" />
                 </div>
-              ) : isError ? (
-                /* « Aucune course en attente » ferait renoncer le regulateur alors
-                   que des courses attendent peut-etre d etre affectees. */
-                <EtatErreur
-                  quoi="les courses en attente"
-                  onReessayer={() => void refetch()}
-                  enCours={isFetching}
-                />
               ) : courses.length === 0 ? (
                 <p className="py-8 text-center text-sm text-default-400">Aucune course en attente.</p>
               ) : (
@@ -148,14 +139,14 @@ export function AffecterCourseModal({ livreur, isOpen, onOpenChange }: Props) {
               )}
             </ModalBody>
             <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={assigner.isPending}>
+              <Button variant="light" onPress={onClose} isDisabled={assigner.isLoading}>
                 Annuler
               </Button>
               <Button
                 color="primary"
                 startContent={<PackageCheck className="h-4 w-4" />}
                 isDisabled={!selectedId || !enFile}
-                isLoading={assigner.isPending}
+                isLoading={assigner.isLoading}
                 onPress={confirmer}
               >
                 Affecter

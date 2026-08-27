@@ -3,7 +3,7 @@ import progresseBare from "../../progression/progression-barre";
 import { IconPointFilled } from "@tabler/icons-react";
 import DropDownAction from "../dropDownAction";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
-import { Avatar } from "@/components/heroui";
+import { Avatar } from "@heroui/react";
 import { createUrlFile } from "@/utils/createUrlFile";
 import { formatDate } from "@/utils/date-formate";
 

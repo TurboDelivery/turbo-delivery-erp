@@ -1,6 +1,6 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { Avatar, Button } from '@/components/heroui';
+import { Avatar, Button } from '@heroui/react';
 import fnPerformance from './fn-performance';
 import DropDownActionPerformance from './drop-down-action-performance';
 import fnProgressionPerformance from './fn-progressive-performance';

@@ -76,14 +76,8 @@ export async function getDetailRestaurant(idRestaurant: string): Promise<IRestau
       service: 'backend',
     });
   } catch (error) {
-    // Le catch avalait TOUT : une panne de lecture (500, reseau, jeton expire) rendait
-    // la meme valeur qu'un restaurant inexistant, et la fiche affichait "Page introuvable"
-    // alors que le restaurant existe. Seul le 404 reste une absence legitime.
-    const statutHttp = (error as { response?: { status?: number } })?.response?.status;
-    if (statutHttp === 404) {
-      return null;
-    }
-    throw error;
+    console.error(error);
+    return null;
   }
 }
 
@@ -96,9 +90,7 @@ export async function getRestaurants(page: number): Promise<PaginatedResponse<Re
     });
     return data;
   } catch (error) {
-    // Une page de restaurants illisible devenait un `null` que l'appelant rend comme
-    // une liste vide : l'operateur lisait "aucun restaurant" sur une base pleine.
-    throw error;
+    return null;
   }
 }
 
@@ -111,10 +103,7 @@ export async function getAllRestaurants(): Promise<Restaurant[]> {
     });
     return data;
   } catch (error) {
-    // Liste de reference des restaurants. Le tableau vide se confondait avec un vrai
-    // catalogue vide : selecteurs de restaurant muets sur les ecrans Tickets, Commandes
-    // et Frais de livraison, sans qu'aucun message n'indique la panne de lecture.
-    throw error;
+    return [];
   }
 }
 
@@ -167,9 +156,7 @@ export async function getRestaurantsValidated(page: number): Promise<PaginatedRe
     });
     return wrapPaginated(all ?? [], page);
   } catch (error) {
-    // Panne de lecture rendue comme une absence de restaurants valides : l'ecran de
-    // validation affichait une liste vide au lieu de signaler qu'il n'a rien pu lire.
-    throw error;
+    return null;
   }
 }
 
@@ -236,10 +223,7 @@ export async function allRestaurants(): Promise<Restaurant[]> {
     });
     return data;
   } catch (error) {
-    // Meme piege que getAllRestaurants : les pages Coursiers, Assignes, Demandes et
-    // Birds recevaient une liste vide et affichaient les livreurs sans leur restaurant,
-    // comme si aucun partenaire n'etait rattache.
-    throw error;
+    return [] as Restaurant[];
   }
 }
 

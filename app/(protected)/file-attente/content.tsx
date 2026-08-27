@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Button, Input } from '@/components/heroui';
+import { Button, Input } from '@heroui/react';
 import { AlertTriangle, Map, RefreshCw, Search, Store } from 'lucide-react';
 
 import { useAbility } from '@/hooks/use-ability';

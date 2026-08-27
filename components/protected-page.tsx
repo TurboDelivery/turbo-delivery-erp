@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { User } from '@/types/models';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui/react';
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';

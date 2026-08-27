@@ -1,7 +1,7 @@
 'use client';
 
 import { CheckCircle2, CircleAlert, FileText, HelpCircle, Phone, ReceiptText, ShieldAlert, X } from 'lucide-react';
-import { Drawer, DrawerBody, DrawerContent } from '@/components/heroui';
+import { Drawer, DrawerBody, DrawerContent } from '@heroui/react';
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import { IGrillePaiementLigne, TypeLivreur } from '../types/grille-paiement.type';
 import { formatMontant } from '@/utils/format.utils';

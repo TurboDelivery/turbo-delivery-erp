@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/chart"
 import { useMemo } from "react"
 import { ICommission } from "@/features/revenus/types/commission.types"
-import { formatMontant } from '@/utils/format.utils';
 
 export const description = "Commission mensuelle"
 
@@ -137,7 +136,7 @@ export function CommissionMensuelleChart({ commission = [] }: CommissionMensuell
                 
                 {/* Affichage des données réelles pour le débogage */}
                 <div className="mt-4 text-xs text-gray-400">
-                    <p>Total commission: {formatMontant(commission.reduce((sum, d) => sum + d.commission, 0))}</p>
+                    <p>Total commission: {commission.reduce((sum, d) => sum + d.commission, 0).toLocaleString()} FCFA</p>
                     <p>Nombre de transactions: {commission.length}</p>
                 </div>
             </div>

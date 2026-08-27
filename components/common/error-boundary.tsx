@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui/react';
 import { AlertTriangle } from 'lucide-react';
 
 interface Props {

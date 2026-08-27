@@ -3,7 +3,7 @@
 import Link from 'next/link';
 
 import { Controller } from 'react-hook-form';
-import { Input, Select, SelectItem } from '@/components/heroui';
+import { Input, Select, SelectItem } from '@heroui/react';
 import type { Control } from 'react-hook-form';
 import {
   TYPE_COMMISSION_OPTIONS,

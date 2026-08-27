@@ -9,7 +9,7 @@ import {
   TableBody,
   TableRow,
   TableCell,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { AlertCircle, CheckCircle2, AlertTriangle, HelpCircle, Pencil, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';

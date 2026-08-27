@@ -17,7 +17,7 @@ import {
   SelectItem,
   Spinner,
   useDisclosure,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { Banknote, CheckCircle2, Clock, Download, FileText, Pencil, Plus, ShieldCheck, Trash2, TrendingUp, Wallet } from 'lucide-react';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
 import { toast } from 'sonner';
@@ -45,7 +45,6 @@ import RepartitionDepense from '@/features/depenses/components/repartition';
 import { Can } from '@/components/auth/Can';
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import { FinanceHistoriqueTab } from './finance-historique-tab';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 const NOW = new Date();
 const CUR_MONTH_KEY = `${NOW.getFullYear()}-${String(NOW.getMonth() + 1).padStart(2, '0')}`;
@@ -141,7 +140,7 @@ export function FinanceHubView() {
 
   // Période = le mois sélectionné (debut/fin), appliquée CÔTÉ SERVEUR au tableau + au graphique.
   const { debut: periodeDebut, fin: periodeFin } = monthKeyToRange(monthKey);
-  const { items, rawFixes, rawVariables, actor, seuil, nbJours, renta, isLoading, isError, isFetching, refetch, busy, runAction } = useFinancesHub(
+  const { items, rawFixes, rawVariables, actor, seuil, nbJours, renta, isLoading, busy, runAction } = useFinancesHub(
     dateArret,
     periodeDebut,
     periodeFin,
@@ -536,9 +535,6 @@ export function FinanceHubView() {
         <FinanceHistoriqueTab debut={periodeDebut} fin={periodeFin} isAdmin={isAdmin} moi={actor} />
       ) : isLoading ? (
         <div className="flex justify-center py-16"><Spinner color="primary" label="Chargement…" /></div>
-      ) : isError ? (
-        // sans cette branche le tableau tombait a zero ligne et se lisait comme "rien a traiter"
-        <EtatErreur quoi="les charges et dépenses" onReessayer={() => refetch()} enCours={isFetching} />
       ) : (
         <Card shadow="none" className="border border-default-200">
           {/* Barre d'actions GROUPÉES sur la sélection (tous les onglets) */}

@@ -11,10 +11,9 @@ import { MiddleStatsSection } from './middle-stats-section';
 import { FinancialDetailsSection } from './financial-details-section';
 import { PerformanceSummarySection } from './performance-summary-section';
 import { exportPerformancePdf } from '../utils/performance-export.utils';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 export default function PerformanceReport() {
-  const { data, isError, isFetching, refetch } = usePerformanceStats();
+  const { data } = usePerformanceStats();
   const { filters, handleDateChange, handleRestaurantChange } = usePerformanceFilters();
   const { data: restaurants = [] } = useDefinedRestaurantsQuery();
   const restoOpts = toRestaurantOptions(restaurants);
@@ -53,28 +52,17 @@ export default function PerformanceReport() {
         onExportPdf={handleExportPdf}
       />
 
-      {/* L'echec remplace le rapport entier. Sans cela, chaque KPI retombait sur 0 :
-          l'ecran affirmait « zero livraison, zero chiffre d'affaires » sur une periode
-          qu'il n'avait pas pu lire. L'entete reste, pour changer de periode. */}
-      {isError ? (
-        <EtatErreur
-          quoi="le rapport de performance"
-          onReessayer={() => refetch()}
-          enCours={isFetching}
+      <div className="space-y-6">
+        <TopStatsSection mainKPIs={mainKPIs} />
+        <ChartsSection geographicData={geographicData} weeklyActivityData={weeklyActivityData} />
+        <MiddleStatsSection secondaryKPIs={secondaryKPIs} />
+        <FinancialDetailsSection financialDetails={financialDetails} />
+        <PerformanceSummarySection
+          mainKPIs={mainKPIs}
+          secondaryKPIs={secondaryKPIs}
+          selectedRestaurant={selectedRestaurant}
         />
-      ) : (
-        <div className="space-y-6">
-          <TopStatsSection mainKPIs={mainKPIs} />
-          <ChartsSection geographicData={geographicData} weeklyActivityData={weeklyActivityData} />
-          <MiddleStatsSection secondaryKPIs={secondaryKPIs} />
-          <FinancialDetailsSection financialDetails={financialDetails} />
-          <PerformanceSummarySection
-            mainKPIs={mainKPIs}
-            secondaryKPIs={secondaryKPIs}
-            selectedRestaurant={selectedRestaurant}
-          />
-        </div>
-      )}
+      </div>
     </div>
   );
 }

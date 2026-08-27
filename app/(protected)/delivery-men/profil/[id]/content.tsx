@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { turboyAPI } from "@/features/turboys/apis/turboy.api";
 import { compteLivreurAPI } from "@/features/turboys/apis/compte-livreur.api";
 import { LivreurDetail } from "@/types/livreur";
-import { Button, Card, Input } from "@/components/heroui";
+import { Button, Card, Input } from "@heroui/react";
 import { createUrlFile } from "@/utils/createUrlFile";
 import RetourButton from "@/components/dashboard/retourButton";
 import { updateLivreur } from "@/src/livreurInfo/livreur-info.action";

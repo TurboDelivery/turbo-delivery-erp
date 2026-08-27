@@ -9,7 +9,7 @@ import { ConfirmDialog } from '@/components/commons/confirm-dialog';
 import { SearchField } from '@/components/commons/form/search-field';
 import { useDemandeAssignationController } from './useDemandeAssignationController';
 import { createUrlFile } from '@/utils/createUrlFile';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 
 export default function Content({ demandeAssignations, allRestaurant }: { demandeAssignations: DemandeAssignationVM[]; allRestaurant: Restaurant[] }) {
   const demandeCtrl = useDemandeAssignationController(demandeAssignations);

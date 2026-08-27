@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery, useQueryClient , keepPreviousData} from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   fetchFilleAttente,
@@ -74,7 +74,7 @@ export function useFileAttenteVue() {
     queryFn: () => fetchFilleAttente(),
     refetchInterval: RAFRAICHISSEMENT_MS,
     refetchOnWindowFocus: true,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
   });
 
   const referentielQuery = useQuery({
@@ -82,14 +82,14 @@ export function useFileAttenteVue() {
     queryFn: () => fetchReferentielFileAttente(),
     refetchInterval: RAFRAICHISSEMENT_REFERENTIEL_MS,
     staleTime: RAFRAICHISSEMENT_REFERENTIEL_MS,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
   });
 
   const statistiqueQuery = useQuery({
     queryKey: fileAttenteKeys.statistique(),
     queryFn: () => fetchStatistiqueFilleAttente(),
     refetchInterval: RAFRAICHISSEMENT_MS,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
   });
 
   // Les durées d'attente doivent vieillir à l'écran même entre deux relectures.

@@ -2,7 +2,7 @@
 import React from "react";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import progresseBare2 from "@/components/dashboard/delivery-men/progression/progression-barre2";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Avatar } from "@/components/heroui";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Avatar } from "@heroui/react";
 import { createUrlFile } from "@/utils/createUrlFile";
 import { formatDate } from "@/utils/date-formate";
 

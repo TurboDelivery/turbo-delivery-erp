@@ -3,10 +3,10 @@
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { Button } from '@/components/heroui';
-import { Input } from '@/components/heroui';
-import { Select, SelectItem } from '@/components/heroui';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/components/heroui';
+import { Button } from '@heroui/react';
+import { Input } from '@heroui/react';
+import { Select, SelectItem } from '@heroui/select';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/react';
 import { IEmployee } from '@/features/personnel/types/types';
 import { useModifierEmployeMutation } from '@/features/personnel/mutations/employee.mutation';
 import { EmployeeSchema, type EmployeeDTO } from '@/features/personnel/schemas/employee.schema';

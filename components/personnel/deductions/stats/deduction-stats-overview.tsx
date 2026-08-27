@@ -7,14 +7,13 @@ import { useQueryStates } from 'nuqs';
 import DeductionStatCard from '@/components/personnel/deductions/stats/deduction-stat-card';
 import { deductionFiltersClient } from '@/features/personnel/filters/deduction.filter';
 import { usePayrollStatsDetailsQuery } from '@/features/personnel/queries/payroll.query';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 const toYearMonthParam = (year: number, month: number) => `${year}-${String(month).padStart(2, '0')}`;
 
 function DeductionStatsOverview() {
   const [filters] = useQueryStates(deductionFiltersClient.filter, deductionFiltersClient.option);
   const monthParam = toYearMonthParam(filters.year, filters.month);
-  const { data: apiStats, isError, isFetching, refetch } = usePayrollStatsDetailsQuery(monthParam);
+  const { data: apiStats } = usePayrollStatsDetailsQuery(monthParam);
 
   const monthLabel = format(new Date(filters.year, filters.month - 1, 1), 'MMMM yyyy', { locale: fr });
   const stats = [
@@ -22,19 +21,6 @@ function DeductionStatsOverview() {
     { label: 'Total déductions', value: apiStats?.totalDeductions ?? 0, color: 'red' as const },
     { label: 'Déductions en attente', value: apiStats?.pendingDeductions ?? 0, color: 'orange' as const },
   ];
-
-  // Sans cette sortie, une lecture ratee retombait sur les valeurs par defaut :
-  // le bandeau annoncait « masse salariale brute : 0 » pour le mois, un chiffre
-  // faux et non signale. On remplace le bandeau plutot que d'afficher des zeros.
-  if (isError) {
-    return (
-      <EtatErreur
-        quoi={`les montants de paie de ${monthLabel}`}
-        onReessayer={() => refetch()}
-        enCours={isFetching}
-      />
-    );
-  }
 
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">

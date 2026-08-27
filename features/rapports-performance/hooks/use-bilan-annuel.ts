@@ -68,7 +68,7 @@ const toMonthData = (
 };
 
 export const useBilanAnnuel = (annee: string) => {
-  const { data, isLoading, isFetching, isError, error, refetch } = useBilanAnnuelQuery({ annee });
+  const { data, isLoading, isError, error, refetch } = useBilanAnnuelQuery({ annee });
 
   const yearData = data?.[annee];
 
@@ -98,9 +98,6 @@ export const useBilanAnnuel = (annee: string) => {
   return {
     monthsData,
     isLoading,
-    // Expose pour bloquer le bouton « Reessayer » pendant la nouvelle tentative :
-    // apres un echec la query reste en statut error, isLoading ne repasse plus a vrai.
-    isFetching,
     isError,
     error,
     refetch,

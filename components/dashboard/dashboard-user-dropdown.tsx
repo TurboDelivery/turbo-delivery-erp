@@ -3,7 +3,7 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { signOut } from '@/src/actions/users.actions';
-import { Avatar } from '@/components/heroui';
+import { Avatar } from '@heroui/react';
 import { User } from '@/types/models';
 import { useRouter } from 'next/navigation';
 

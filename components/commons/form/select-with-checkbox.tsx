@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, Checkbox, Button, Popover, PopoverTrigger, PopoverContent } from "@/components/heroui";
+import { Card, Checkbox, Button, Popover, PopoverTrigger, PopoverContent } from "@heroui/react";
 
 interface SelectWithCheckboxProps {
     className?: string;

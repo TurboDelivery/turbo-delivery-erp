@@ -4,7 +4,6 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Landmark } from 'lucide-react';
 import type { IFactureCaissier } from '@/features/caissier';
-import { formatMontant } from '@/utils/format.utils';
 
 const statutConfig: Record<string, { label: string; className: string }> = {
   'Versé au caissier':    { label: 'Versé au caissier',    className: 'bg-amber-100 text-amber-700 border-amber-200' },
@@ -21,6 +20,9 @@ export function getCaissierStatutConfig(statut: string): { label: string; classN
   return statutConfig[statut] ?? { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
 }
 
+function formatMontant(v: number) {
+  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
+}
 
 export function createCaissierColumns(
   onConfirmer: (facture: IFactureCaissier) => void,

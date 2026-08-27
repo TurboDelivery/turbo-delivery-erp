@@ -4,10 +4,9 @@ import React, { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ITurboy } from '@/features/turboys/types/turboys.types';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
-import { Avatar, Button, Chip } from '@/components/heroui';
+import { Avatar, Button, Chip } from '@heroui/react';
 import { Edit2, Mail, Phone } from 'lucide-react';
 import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
-import { formatMontant } from '@/utils/format.utils';
 
 // V54 (2026-05-29) — Les anciennes fonctions locales getTypeColor / getTypeLabel
 // ne connaissaient pas SUPERVISEUR_LIVREUR (default → 'default' / brut). On
@@ -94,7 +93,7 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
     header: 'Salaire',
     cell: ({ row }) => {
       const salaire = row.original.salaire;
-      return <span className="text-sm font-mono">{salaire ? `${formatMontant(salaire)}` : '-'}</span>;
+      return <span className="text-sm font-mono">{salaire ? `${salaire.toLocaleString('fr-FR')} FCFA` : '-'}</span>;
     },
   },
   {

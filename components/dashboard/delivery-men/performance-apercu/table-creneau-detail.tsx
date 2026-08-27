@@ -10,11 +10,10 @@ import {
     TableRow,
     TableCell,
     getKeyValue,
-  } from "@/components/heroui";
+  } from "@heroui/react";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
 import progresseBarePerformance from "@/components/dashboard/delivery-men/performance-creneau/progression-bare-performance";
 import DropDownPerformanceCrenea from "@/components/dashboard/delivery-men/performance-creneau/drop-down-performance-creneau";
-import { formatMontant } from '@/utils/format.utils';
   
 
 const gainsDataa ={
@@ -178,13 +177,13 @@ const dataCreneau={
         case "coute":
           return (
             <div>
-            {formatMontant(data.frais)}
+            {data.frais} FCFA
             </div>
           );
         case "commussion":
         return (
             <div>
-            {formatMontant(data.commission)}
+            {data.commission} FCFA
             </div>
         );
         default:

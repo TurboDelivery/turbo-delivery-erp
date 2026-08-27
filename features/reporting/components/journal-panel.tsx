@@ -15,7 +15,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { Download, Search } from 'lucide-react';
 import { toast } from 'sonner';
 

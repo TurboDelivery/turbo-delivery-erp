@@ -9,7 +9,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { ListFilter, Ticket as TicketIcon, X } from 'lucide-react';
 import {
   Select,
@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
-import EtatErreur from '@/components/commons/EtatErreur';
 import { StatutControle } from '@/types/statut-controle.enum';
 import { formatMontant } from '@/utils/format.utils';
 import type { RegularisationTicketsColumnMeta } from './regularisation-tickets-columns';
@@ -36,8 +35,6 @@ export default function RegularisationTicketsTable() {
     table,
     isLoading,
     isFetching,
-    isError,
-    refetch,
     columnsCount,
     statut,
     setStatut,
@@ -133,22 +130,7 @@ export default function RegularisationTicketsTable() {
               </TableColumn>
             ))}
           </TableHeader>
-          <TableBody
-            emptyContent={
-              /* Un echec de chargement ne doit pas se lire comme un filtre trop etroit. */
-              isError ? (
-                <EtatErreur
-                  quoi="les tickets"
-                  onReessayer={() => refetch()}
-                  enCours={isFetching}
-                />
-              ) : isLoading ? (
-                ' '
-              ) : (
-                'Aucun ticket ne correspond à ces filtres'
-              )
-            }
-          >
+          <TableBody emptyContent="Aucun ticket ne correspond à ces filtres">
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
                   <TableRow key={`skeleton-${i}`}>
@@ -178,8 +160,6 @@ export default function RegularisationTicketsTable() {
           Array.from({ length: 4 }).map((_, i) => (
             <div key={`m-skel-${i}`} className="h-36 rounded-xl bg-gray-100 animate-pulse" />
           ))
-        ) : isError ? (
-          <EtatErreur quoi="les tickets" onReessayer={() => refetch()} enCours={isFetching} />
         ) : table.getRowModel().rows.length === 0 ? (
           <p className="py-10 text-center text-sm text-gray-400">Aucun ticket ne correspond à ces filtres</p>
         ) : (

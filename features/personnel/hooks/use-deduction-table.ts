@@ -27,8 +27,7 @@ export function useDeductionTable({ onEditDeduction, onCancelDeduction, onDelete
     size: 10,
   }), [filters]);
 
-  // `refetch` est remonte pour que l'ecran puisse offrir une relance sur echec.
-  const { data: deductionsData, isLoading, isFetching, isError, refetch } = useDeductionListQuery(currentSearchParams);
+  const { data: deductionsData, isLoading, isFetching, isError } = useDeductionListQuery(currentSearchParams);
 
   const table = useReactTable({
     data: deductionsData?.content || [],
@@ -82,7 +81,6 @@ export function useDeductionTable({ onEditDeduction, onCancelDeduction, onDelete
     isDeductionLoading: isLoading,
     isDeductionFetching: isFetching,
     isDeductionError: isError,
-    refetchDeductions: refetch,
     pagination,
     filters,
     setFilters,

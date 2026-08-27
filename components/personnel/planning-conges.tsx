@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import EtatErreur from '@/components/commons/EtatErreur';
 import { useEligibleEmployeeQuery, useCongesQuery } from '@/features/conge/queries/conge.query';
 import { IEmployee } from '@/features/personnel/types/types';
 import { IConge } from '@/features/conge/types/conge.type';
@@ -26,20 +25,8 @@ export default function PlanningConges() {
   const days = Array.from({ length: getDaysInMonth(currentMonth) }, (_, i) => i + 1);
 
   // Récupérer les données réelles
-  const {
-    data: employeesData,
-    isLoading: employeesLoading,
-    isFetching: employeesFetching,
-    isError: employeesError,
-    refetch: refetchEmployees,
-  } = useEligibleEmployeeQuery({ limit: 1000 });
-  const {
-    data: congesData,
-    isLoading: congesLoading,
-    isFetching: congesFetching,
-    isError: congesError,
-    refetch: refetchConges,
-  } = useCongesQuery({ limit: 1000 });
+  const { data: employeesData, isLoading: employeesLoading } = useEligibleEmployeeQuery({ limit: 1000 });
+  const { data: congesData, isLoading: congesLoading } = useCongesQuery({ limit: 1000 });
 
   const employees = Array.isArray(employeesData) ? employeesData : [];
   const conges = congesData?.content || [];
@@ -139,25 +126,6 @@ export default function PlanningConges() {
       <div className="p-6 bg-gray-50">
         <div className="text-center py-8">
           <div className="text-gray-500">Chargement du planning...</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Sans cette branche, une API tombee rendait un planning vide et cinq compteurs a zero,
-  // soit exactement l'image d'un mois sans aucun conge.
-  if ((congesError || employeesError) && conges.length === 0) {
-    return (
-      <div className="p-6 bg-gray-50">
-        <div className="bg-white rounded-xl shadow p-6">
-          <EtatErreur
-            quoi="le planning des congés"
-            onReessayer={() => {
-              refetchConges();
-              refetchEmployees();
-            }}
-            enCours={congesFetching || employeesFetching}
-          />
         </div>
       </div>
     );

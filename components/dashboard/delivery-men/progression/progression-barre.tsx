@@ -1,5 +1,5 @@
 import { Livreur } from "@/types/creneau-turbo";
-import { Progress } from "@/components/heroui"
+import { Progress } from "@heroui/react"
 
 // :{turboys:Livreur}
 const progresseBare = (turboys: Livreur) => {

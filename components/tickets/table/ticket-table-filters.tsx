@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Select from 'react-select';
-import { Input } from '@/components/heroui';
+import { Input } from '@heroui/react';
 import { Search } from 'lucide-react';
 import { ITicketParams } from '@/features/tickets/types/tickets.type';
 

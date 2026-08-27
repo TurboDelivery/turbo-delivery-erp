@@ -46,9 +46,8 @@ export const useNonLusQuery = (enabled = true) =>
 export const useMessagesQuery = (restaurantId: string | null) =>
   useInfiniteQuery({
     queryKey: chatPartenairesKeys.messages(restaurantId ?? ''),
-    queryFn: ({ pageParam }) => listerMessagesAction(restaurantId as string, pageParam),
+    queryFn: ({ pageParam = 0 }) => listerMessagesAction(restaurantId as string, pageParam),
     enabled: !!restaurantId,
-  initialPageParam: 0,
     getNextPageParam: (derniere, toutes) => (derniere.length > 0 ? toutes.length : undefined),
     staleTime: CHAT_PARTENAIRES_REFRESH_MS,
     refetchInterval: CHAT_PARTENAIRES_REFRESH_MS,

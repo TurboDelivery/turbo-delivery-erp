@@ -14,7 +14,7 @@ import {
   Radio,
   RadioGroup,
   Spinner,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { Building2, Search, UserCog } from 'lucide-react';
 
 import {
@@ -122,7 +122,7 @@ export function ConstituerGroupeModal({ isOpen, onClose, userId, onCree }: Props
   const nomValide = nom.trim().length >= 2;
   const peutPasserAuPrincipal = nomValide && selection.length >= 1;
   const peutValider =
-    peutPasserAuPrincipal && !!principal && recapitulatif.blocages.length === 0 && !creer.isPending;
+    peutPasserAuPrincipal && !!principal && recapitulatif.blocages.length === 0 && !creer.isLoading;
 
   const basculer = (restaurantId: string, coche: boolean) =>
     setSelection((precedente) =>
@@ -304,7 +304,7 @@ export function ConstituerGroupeModal({ isOpen, onClose, userId, onCree }: Props
               </Button>
             )}
             {etape === 'recapitulatif' && (
-              <Button color="primary" isDisabled={!peutValider} isLoading={creer.isPending} onPress={valider}>
+              <Button color="primary" isDisabled={!peutValider} isLoading={creer.isLoading} onPress={valider}>
                 Constituer le groupe
               </Button>
             )}

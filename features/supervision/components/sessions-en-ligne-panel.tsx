@@ -19,11 +19,10 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { Search } from 'lucide-react';
 import { toast } from 'sonner';
 
-import EtatErreur from '@/components/commons/EtatErreur';
 import { supervisionAPI } from '../apis/supervision.api';
 import { useForcerDeconnexionMutation, useSessionsEnLigneQuery } from '../queries/supervision.queries';
 import {
@@ -73,7 +72,7 @@ interface Props {
  */
 export function SessionsEnLignePanel({ userId, peutForcerDeconnexion, enregistrerExport }: Props) {
   const maintenant = useHorloge();
-  const { data, isLoading, isFetching, isError, refetch } = useSessionsEnLigneQuery(userId, {
+  const { data, isLoading, isFetching } = useSessionsEnLigneQuery(userId, {
     agence: '',
     statut: '',
     recherche: '',
@@ -178,16 +177,6 @@ export function SessionsEnLignePanel({ userId, peutForcerDeconnexion, enregistre
         />
       </div>
 
-      {/* L echec REMPLACE le tableau : « Aucun utilisateur ne correspond aux filtres »
-          se lit comme un ERP desert, alors que la liste des presences n a pas pu
-          etre lue et que tout le monde est peut-etre connecte. */}
-      {isError ? (
-        <EtatErreur
-          quoi="les utilisateurs en ligne"
-          onReessayer={() => void refetch()}
-          enCours={isFetching}
-        />
-      ) : (
       <Table aria-label="Utilisateurs en ligne" isStriped removeWrapper>
         <TableHeader>
           <TableColumn className="text-primary">UTILISATEUR</TableColumn>
@@ -244,7 +233,7 @@ export function SessionsEnLignePanel({ userId, peutForcerDeconnexion, enregistre
                     variant="light"
                     color="danger"
                     onPress={() => setADeconnecter(session)}
-                    isDisabled={forcer.isPending}
+                    isDisabled={forcer.isLoading}
                   >
                     Forcer la déconnexion
                   </Button>
@@ -256,15 +245,11 @@ export function SessionsEnLignePanel({ userId, peutForcerDeconnexion, enregistre
           ))}
         </TableBody>
       </Table>
-      )}
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-default-400">
         <span>
-          {isError
-            ? '—'
-            : `${lignes.length} session${lignes.length > 1 ? 's' : ''} affichée${
-                lignes.length > 1 ? 's' : ''
-              } sur ${sessions.length}`}
+          {lignes.length} session{lignes.length > 1 ? 's' : ''} affichée{lignes.length > 1 ? 's' : ''} sur{' '}
+          {sessions.length}
         </span>
         <span>Rafraîchissement automatique toutes les 30 s</span>
       </div>
@@ -291,7 +276,7 @@ export function SessionsEnLignePanel({ userId, peutForcerDeconnexion, enregistre
             <Button variant="light" size="sm" onPress={() => setADeconnecter(null)}>
               Annuler
             </Button>
-            <Button color="danger" size="sm" isLoading={forcer.isPending} onPress={confirmerDeconnexion}>
+            <Button color="danger" size="sm" isLoading={forcer.isLoading} onPress={confirmerDeconnexion}>
               Forcer la déconnexion
             </Button>
           </ModalFooter>

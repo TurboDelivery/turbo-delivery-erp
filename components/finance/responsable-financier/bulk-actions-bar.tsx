@@ -15,7 +15,7 @@ import {
   Select,
   SelectItem,
   Textarea,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { AlertTriangle, ArrowLeftRight, CheckCircle2, ChevronDown, HandCoins, Landmark, PiggyBank, Wallet, X, XCircle } from 'lucide-react';
 
 import {
@@ -25,7 +25,6 @@ import {
   type IActionsGroupeesFiltres,
   type IActionsGroupeesRequest,
 } from '@/features/responsable-financier';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 type UiActionKey = ActionGroupee | 'ORIENTER';
 
@@ -78,12 +77,7 @@ export default function BulkActionsBar({
   const [orientation, setOrientation] = useState<'' | 'BANQUE' | 'CAISSE'>('');
 
   const mutation = useActionsGroupeesMutation();
-  const {
-    data: agents,
-    isError: agentsEnErreur,
-    isFetching: agentsEnCours,
-    refetch: relancerAgents,
-  } = useAgentsRecouvrementQuery();
+  const { data: agents } = useAgentsRecouvrementQuery();
 
   const cible = selectAllMatching ? totalElements : selectedIds.length;
 
@@ -184,16 +178,7 @@ export default function BulkActionsBar({
                   )}
                 </p>
 
-                {/* liste d'agents en echec : le select restait vide, comme si aucun agent n'existait */}
-                {action?.besoin === 'agent' && agentsEnErreur && (
-                  <EtatErreur
-                    quoi="les agents de recouvrement"
-                    onReessayer={() => relancerAgents()}
-                    enCours={agentsEnCours}
-                  />
-                )}
-
-                {action?.besoin === 'agent' && !agentsEnErreur && (
+                {action?.besoin === 'agent' && (
                   <Select
                     label="Agent de recouvrement"
                     placeholder="Choisir un agent"

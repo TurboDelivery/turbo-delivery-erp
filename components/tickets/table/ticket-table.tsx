@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 import { toast } from 'sonner';

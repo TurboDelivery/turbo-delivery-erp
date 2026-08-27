@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useQuery , keepPreviousData} from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { deductionAPI } from '@/features/personnel/apis/deduction.api';
 import { IDeductionParams } from '@/features/personnel/types/deduction.types';
 
@@ -19,7 +19,7 @@ export const useDeductionListQuery = (params?: IDeductionParams) => {
     queryFn: () => deductionAPI.obtenirDeductions(params),
     staleTime: 30_000,
     refetchOnMount: true,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
   });
 
   useEffect(() => {

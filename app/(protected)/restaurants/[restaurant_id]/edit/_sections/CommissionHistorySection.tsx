@@ -22,11 +22,9 @@ import {
   Textarea,
   Checkbox,
   useDisclosure,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { History, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
-import EtatErreur from '@/components/commons/EtatErreur';
-import { formatMontant } from '@/utils/format.utils';
 import {
   useCommissionHistoryQuery,
   useModifierCommissionMutation,
@@ -51,7 +49,7 @@ function formatType(t: TypeCommissionVersion): string {
 function formatValeur(v: ICommissionVersion): string {
   if (v.type === 'AUCUNE') return '—';
   if (v.type === 'POURCENTAGE') return `${v.valeur} %`;
-  return `${formatMontant(Number(v.valeur))}`;
+  return `${Number(v.valeur).toLocaleString('fr-FR')} FCFA`;
 }
 
 function formatDate(iso: string | null): string {
@@ -74,7 +72,7 @@ function sourceChip(source: string) {
 }
 
 export function CommissionHistorySection({ restaurantId }: { restaurantId: string }) {
-  const { data: versions, isLoading, isError, isFetching, refetch } = useCommissionHistoryQuery(restaurantId);
+  const { data: versions, isLoading } = useCommissionHistoryQuery(restaurantId);
   const mutation = useModifierCommissionMutation(restaurantId);
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 
@@ -145,14 +143,6 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
         <div className="flex justify-center py-8">
           <Spinner size="sm" label="Chargement de l'historique…" />
         </div>
-      ) : isError ? (
-        // Les versions datees sont opposables : annoncer "aucune version"
-        // sur un echec de lecture ferait poser une commission a l'aveugle.
-        <EtatErreur
-          quoi="les versions de commission"
-          onReessayer={() => refetch()}
-          enCours={isFetching}
-        />
       ) : list.length === 0 ? (
         <p className="text-sm text-gray-400 py-4">Aucune version de commission enregistrée.</p>
       ) : (
@@ -175,7 +165,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                   <TableRow key={v.id}>
                     <TableCell>{formatType(v.type)}</TableCell>
                     <TableCell className="font-semibold">{formatValeur(v)}</TableCell>
-                    <TableCell>{v.seuil != null ? `${formatMontant(Number(v.seuil))}` : '—'}</TableCell>
+                    <TableCell>{v.seuil != null ? `${Number(v.seuil).toLocaleString('fr-FR')} FCFA` : '—'}</TableCell>
                     <TableCell>
                       {formatDate(v.dateDebutEffet)} → {formatDate(v.dateFinEffet)}
                     </TableCell>
@@ -219,7 +209,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                 {v.seuil != null && (
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-xs text-gray-400">Seuil</span>
-                    <span className="text-sm text-gray-700">{formatMontant(Number(v.seuil))}</span>
+                    <span className="text-sm text-gray-700">{Number(v.seuil).toLocaleString('fr-FR')} FCFA</span>
                   </div>
                 )}
                 {v.auteurNom && (
@@ -311,7 +301,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                 <Button variant="flat" onPress={onClose} type="button">
                   Annuler
                 </Button>
-                <Button color="primary" onPress={onSubmit} isLoading={mutation.isPending} type="button">
+                <Button color="primary" onPress={onSubmit} isLoading={mutation.isLoading} type="button">
                   Enregistrer
                 </Button>
               </ModalFooter>

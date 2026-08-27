@@ -1,6 +1,6 @@
 'use client';
 
-import { Switch } from '@/components/heroui';
+import { Switch } from '@heroui/react';
 import { useUpdateZoneActifMutation } from '../queries/zones-demande-coursier.query';
 
 interface ZoneActifSwitchProps {
@@ -20,7 +20,7 @@ export default function ZoneActifSwitch({ fraisId, actif }: ZoneActifSwitchProps
       color="success"
       aria-label={isActif ? 'Désactiver la zone' : 'Activer la zone'}
       isSelected={isActif}
-      isDisabled={mutation.isPending}
+      isDisabled={mutation.isLoading}
       onValueChange={(value) => mutation.mutate({ fraisId, actif: value })}
     />
   );

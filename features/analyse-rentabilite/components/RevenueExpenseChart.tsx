@@ -12,7 +12,6 @@ import {
 } from 'recharts';
 import { useDailyStatsQuery } from '@/features/analyse-rentabilite/queries/daily-stats.query';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 interface RevenueExpenseChartProps {
   debut?: Date;
@@ -20,7 +19,7 @@ interface RevenueExpenseChartProps {
 }
 
 export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartProps) {
-  const { data: dailyStats, isLoading, isFetching, isError, refetch } = useDailyStatsQuery({ debut, fin });
+  const { data: dailyStats, isLoading } = useDailyStatsQuery({ debut, fin });
 
   const data = React.useMemo(() => {
     if (!dailyStats) return [];
@@ -43,12 +42,6 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-gray-500">Chargement des données...</div>
-          </div>
-        ) : isError ? (
-          /* Sur echec la courbe affichait « Aucun chiffre d'affaires ni depense sur
-             la periode » : une journee d'activite normale passait pour une journee morte. */
-          <div className="flex items-center justify-center h-full">
-            <EtatErreur quoi="l'évolution CA et dépenses" onReessayer={() => refetch()} enCours={isFetching} />
           </div>
         ) : data.length === 0 ? (
           <div className="flex items-center justify-center h-full">

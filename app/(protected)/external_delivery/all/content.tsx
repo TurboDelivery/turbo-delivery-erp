@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Button, Chip, Input, Pagination, Skeleton } from '@/components/heroui';
+import { Button, Chip, Input, Pagination, Skeleton } from '@heroui/react';
 import { Search } from 'lucide-react';
 
 import { PaginatedResponse } from '@/types';
@@ -9,7 +9,6 @@ import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { getPaginationCourseExterneAutreStatus } from '@/src/actions/courses.actions';
 import { useAbility } from '@/hooks/use-ability';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
-import EtatErreur from '@/components/commons/EtatErreur';
 import CourseCard from '../component/course-card';
 import { COURSE_STATUT_LABELS } from '../component/course-statut';
 
@@ -29,10 +28,7 @@ export default function Content({ initialData, delivers }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
   const [data, setData] = useState<PaginatedResponse<CourseExterne> | null>(initialData);
-  const [isLoading, setIsLoading] = useState(false);
-  // initialData a null vaut echec de lecture : l'action serveur renvoie null sur
-  // exception, alors qu'une liste reellement vide renvoie un contenu vide.
-  const [isError, setIsError] = useState(!initialData);
+  const [isLoading, setIsLoading] = useState(!initialData);
   const ability = useAbility();
   const canUpdate = ability.can('update', 'Commande');
 
@@ -56,16 +52,7 @@ export default function Content({ initialData, delivers }: Props) {
     setIsLoading(true);
     try {
       const newData = await getPaginationCourseExterneAutreStatus(page - 1, pageSize);
-      // newData a null = lecture en echec. Retomber sur initialData afficherait la
-      // premiere page a la place de celle demandee, sans le dire.
-      if (!newData) {
-        setIsError(true);
-        return;
-      }
-      setData(newData);
-      setIsError(false);
-    } catch {
-      setIsError(true);
+      setData(newData ?? initialData);
     } finally {
       setIsLoading(false);
     }
@@ -124,15 +111,8 @@ export default function Content({ initialData, delivers }: Props) {
         </div>
       </div>
 
-      {/* Cartes — l'echec prend la place des cartes, jamais une ligne au-dessus :
-          sinon l'ecran afficherait en meme temps « aucune course trouvée ». */}
-      {isError ? (
-        <EtatErreur
-          quoi="les courses"
-          onReessayer={() => fetchData(currentPage)}
-          enCours={isLoading}
-        />
-      ) : isLoading ? (
+      {/* Cartes */}
+      {isLoading ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="rounded-xl h-44" />

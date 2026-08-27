@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery , keepPreviousData} from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { reportingAPI } from '../apis/reporting.api';
 import { IJournalFiltre } from '../types/reporting.types';
@@ -18,7 +18,7 @@ export const useJournalQuery = (filtre: IJournalFiltre) =>
     queryKey: reportingKeys.journal(filtre),
     queryFn: () => reportingAPI.rechercherJournal(filtre),
     staleTime: 30 * 1000,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
   });
 
 export const useModulesQuery = () =>

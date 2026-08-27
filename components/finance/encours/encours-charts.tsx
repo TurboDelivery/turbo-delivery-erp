@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody, CardHeader } from '@/components/heroui';
+import { Card, CardBody, CardHeader } from '@heroui/react';
 import {
   Bar,
   BarChart,

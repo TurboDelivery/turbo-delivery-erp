@@ -36,9 +36,7 @@ export async function getZoneHistorique(fraisId: string): Promise<ZoneTarifHisto
     });
 
     return data ?? [];
-  } catch (error) {
-    // Une lecture qui ECHOUE n'est pas une absence de zone : sans cela `isError`
-    // ne passe jamais a vrai et l'ecran affiche un etat vide sur une panne.
-    throw error;
+  } catch (error: any) {
+    return null;
   }
 }

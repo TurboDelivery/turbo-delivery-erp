@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from '@/components/heroui';
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from '@heroui/react';
 import { toast } from 'sonner';
 import { EmployeeSelect } from '@/components/personnel/common/employee-select';
 import { Label } from '@/components/ui/label';

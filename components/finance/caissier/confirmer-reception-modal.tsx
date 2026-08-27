@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { IFactureCaissier } from '@/features/caissier';
-import { formatMontant } from '@/utils/format.utils';
 
 interface Props {
   open: boolean;
@@ -14,6 +13,9 @@ interface Props {
   onConfirm: (facture: IFactureCaissier, data: { reference: string }) => void;
 }
 
+function formatMontant(v: number) {
+  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
+}
 
 export default function ConfirmerReceptionModal({ open, onClose, facture, onConfirm }: Props) {
   const today = new Date().toISOString().split('T')[0];

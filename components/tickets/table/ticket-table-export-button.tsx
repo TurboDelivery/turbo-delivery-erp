@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@/components/heroui';
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { ChevronDown, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { InfiniteData, QueryClient, useQueryClient } from '@tanstack/react-query';

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';

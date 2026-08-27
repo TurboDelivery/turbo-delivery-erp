@@ -3,7 +3,7 @@
 import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArchiveRestore, Loader2 } from 'lucide-react';
-import { Tooltip } from '@/components/heroui';
+import { Tooltip } from '@heroui/react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 

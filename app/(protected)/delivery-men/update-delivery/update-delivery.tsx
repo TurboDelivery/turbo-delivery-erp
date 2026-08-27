@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@/components/heroui';
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button } from '@heroui/react';
 import { SelectField } from '@/components/commons/form/select-field';
 import { LivreurStatutVM, Restaurant } from '@/types/models';
 import { useUpdateDeliveryManController } from './controler';

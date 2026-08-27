@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { IRootState } from '@/store';
 import { User } from '@/types/models';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui/react';
 import { getTranslation } from '@/i18n';
 import { useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';

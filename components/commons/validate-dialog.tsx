@@ -12,7 +12,7 @@ import {
     useDisclosure,
     Select,
     SelectItem,
-} from "@/components/heroui";
+} from "@heroui/react";
 import { Restaurant } from "@/types/models";
 
 

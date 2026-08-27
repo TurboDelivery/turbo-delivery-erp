@@ -1,7 +1,7 @@
 
 'use client'
 
-import React, {useCallback, useEffect, useState } from "react";
+import React, {useEffect, useState } from "react";
 import {
     Table,
     TableHeader,
@@ -11,16 +11,14 @@ import {
     TableCell,
     getKeyValue,
     Button,
-  } from "@/components/heroui";
+  } from "@heroui/react";
 import EmptyDataTable from "@/components/commons/EmptyDataTable";
-import EtatErreur from "@/components/commons/EtatErreur";
 import progresseBarePerformance from "@/components/dashboard/delivery-men/performance-creneau/progression-bare-performance";
 import DropDownPerformanceCrenea from "@/components/dashboard/delivery-men/performance-creneau/drop-down-performance-creneau";
 import Link from "next/link";
 import { CreneauItem } from "@/types/performance-creneauId";
 import { getPerformanceFichePaie } from "@/src/performance/performance.action";
 import { useParams } from "next/navigation";
-import { formatMontant } from '@/utils/format.utils';
   
 const performanceApercuGlobalGain: PerformanceApercuGlobalGain|null = {
   solde: 3210.35,
@@ -160,7 +158,7 @@ const performanceApercuGlobalGain: PerformanceApercuGlobalGain|null = {
         case "commission":
           return (
             <div>
-            {formatMontant(data.commission)}
+            {data.commission} FCFA
             </div>
           );
         default:
@@ -169,33 +167,19 @@ const performanceApercuGlobalGain: PerformanceApercuGlobalGain|null = {
     }, []);
 
 
-    // Echec de lecture de la fiche de paie du creneau. Sans cet etat, le detail du
-    // jour s'ouvrait vide et se lisait comme « aucun gain » alors que la lecture
-    // avait echoue.
-    const [erreurGains, setErreurGains] = useState<boolean>(false);
-    const [chargementGains, setChargementGains] = useState<boolean>(false);
-
-    const chargerGains = useCallback(async () => {
-      if (!livreurId || !emploiId) return; // sécurité
-      // Chaque tentative repart d'un etat sain.
-      setErreurGains(false);
-      setChargementGains(true);
-      try {
-        const result = await getPerformanceFichePaie(livreurId, emploiId);
-        setDataGains(result||null)
-      } catch (err) {
-        // L'action serveur releve desormais l'exception : on la montre au lieu de
-        // la noyer dans la console.
-        setErreurGains(true);
-        console.error('Erreur lors du fetch :', err);
-      } finally {
-        setChargementGains(false);
-      }
-    },[livreurId, emploiId]);
-
     useEffect(()=>{
-      chargerGains();
-    },[chargerGains])
+      const fetchData = async () => {
+        if (!livreurId || !emploiId) return; // sécurité
+        try {
+          const result = await getPerformanceFichePaie(livreurId, emploiId);
+          setDataGains(result||null)                 
+        } catch (err) {
+          console.error('Erreur lors du fetch :', err);
+        }
+      };
+    
+      fetchData();
+    },[livreurId, emploiId])
 
     const openJour = (j: string) => {
       setOpen(true);
@@ -249,17 +233,7 @@ const performanceApercuGlobalGain: PerformanceApercuGlobalGain|null = {
             )}
           </div>
 
-    {/* L'echec prend la place du detail des gains : ouvrir un panneau vide se
-        lirait comme une journee sans gain. */}
-    {erreurGains ? (
-      <EtatErreur
-        quoi="le détail des gains du créneau"
-        onReessayer={chargerGains}
-        enCours={chargementGains}
-      />
-    ) : (
-      <DropDownPerformanceCrenea open={open} setOpen={setOpen} gainsData={dataGains||null} jour={jour}/>
-    )}
+    <DropDownPerformanceCrenea open={open} setOpen={setOpen} gainsData={dataGains||null} jour={jour}/>
 
       </div>
 

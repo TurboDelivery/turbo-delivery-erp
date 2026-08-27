@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui/react';
 
 interface RequestHeaderProps {
   onNewRequest: () => void;

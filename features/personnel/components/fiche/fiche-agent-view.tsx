@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button, Chip, Spinner } from '@/components/heroui';
+import { Button, Chip, Spinner } from '@heroui/react';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, ExternalLink, Undo2 } from 'lucide-react';
 
@@ -54,13 +54,7 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
   const [regularisation, setRegularisation] = useState(false);
 
   const { data: dossier, isLoading, isError } = useDossierAgentQuery(employeId);
-  const {
-    data: remunerations,
-    isLoading: chargementRemu,
-    isFetching: rechargeRemu,
-    isError: echecRemu,
-    refetch: relancerRemu,
-  } = useRemunerationHistoriqueQuery(employeId);
+  const { data: remunerations, isLoading: chargementRemu } = useRemunerationHistoriqueQuery(employeId);
   const {
     data: auditActions,
     isLoading: chargementAudit,
@@ -328,13 +322,7 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                   </Button>
                 </div>
               </div>
-              <RemunerationHistorique
-                historique={remunerations}
-                chargement={chargementRemu}
-                echec={echecRemu}
-                onReessayer={() => relancerRemu()}
-                relanceEnCours={rechargeRemu}
-              />
+              <RemunerationHistorique historique={remunerations} chargement={chargementRemu} />
               <RegularisationModal
                 employeId={employeId}
                 ouvert={regularisation}

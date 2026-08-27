@@ -5,7 +5,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 import type { ICreneauDetailLivreur, StatutLivreurDetail } from '../types/historique-creneaux.type';
 
 function fmt(n: number) {

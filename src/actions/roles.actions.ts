@@ -19,9 +19,6 @@ export async function getAllRoles(): Promise<Role[]> {
 
         return data;
     } catch (error) {
-        // Une panne de lecture des roles affichait un selecteur de role VIDE dans les
-        // formulaires d ajout et de modification d utilisateur, comme si aucun role
-        // n existait, au lieu de signaler l echec.
-        throw error;
+        return [];
     }
 }

@@ -1,5 +1,5 @@
 import {Transition, Dialog, DialogPanel, TransitionChild } from "@headlessui/react";
-import { Button, Card, CardHeader, CardBody, CardFooter} from "@/components/heroui";
+import { Button, Card, CardHeader, CardBody, CardFooter} from "@heroui/react";
 import { IconChevronLeft, IconChevronRight, IconX } from "@tabler/icons-react";
 import React, { Fragment, useEffect, useState } from 'react';
 import TableCreneauDetail from "../performance-apercu/table-creneau-detail";

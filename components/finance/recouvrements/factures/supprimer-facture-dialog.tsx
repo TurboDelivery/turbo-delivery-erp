@@ -18,7 +18,6 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
 import { Link2 } from 'lucide-react';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 import {
   LIBELLE_COMPOSANTE,
@@ -41,17 +40,12 @@ const formatJour = (d?: string) => {
 };
 
 export const SupprimerFactureDialog = ({ facture, open, onOpenChange }: SupprimerFactureDialogProps) => {
-  const { mutate: supprimerFacture, isPending: isLoading } = useSupprimerFactureMutation();
+  const { mutate: supprimerFacture, isLoading } = useSupprimerFactureMutation();
 
   // RG-06 / §5.3 — on demande au serveur ce que la suppression va emporter AVANT de
   // proposer de confirmer. Sans ça, supprimer une facture de frais laissait sa jumelle
   // de commission seule dans les encours, sans que rien ne l'annonce.
-  const {
-    data: apercu,
-    isError: apercuEnErreur,
-    isFetching: apercuEnCours,
-    refetch: relancerApercu,
-  } = useApercuSuppressionQuery(facture.id, open);
+  const { data: apercu } = useApercuSuppressionQuery(facture.id, open);
   const [supprimerLiee, setSupprimerLiee] = useState(false);
   const [motif, setMotif] = useState('');
 
@@ -125,16 +119,6 @@ export const SupprimerFactureDialog = ({ facture, open, onOpenChange }: Supprime
                   ⚠️ Cette facture a déjà {formatCFA(montantRegle)} encaissé. Vérifiez bien que c&apos;est le doublon à
                   supprimer avant de continuer.
                 </p>
-              )}
-
-              {/* Apercu en echec : sans ce bloc, l'absence de jumelle etait AFFIRMEE alors qu'elle
-                  n'avait pas pu etre verifiee, et la facture liee restait seule dans les encours. */}
-              {apercuEnErreur && (
-                <EtatErreur
-                  quoi="les factures liées"
-                  onReessayer={() => relancerApercu()}
-                  enCours={apercuEnCours}
-                />
               )}
 
               {aUneJumelle && (

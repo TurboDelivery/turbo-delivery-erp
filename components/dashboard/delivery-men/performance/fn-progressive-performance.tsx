@@ -1,6 +1,6 @@
 // import { Livreur } from "@/types/creneau-bird"
 import { BirdPerformance } from "@/types/slot";
-import { CircularProgress, Progress } from "@/components/heroui"
+import { CircularProgress, Progress } from "@heroui/react"
 
 // :{turboys:Livreur}
   const fnProgressionPerformance =(item:LivreurPerformanceBirdEndTorubo)=>{

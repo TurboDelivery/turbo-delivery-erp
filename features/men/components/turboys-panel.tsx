@@ -20,7 +20,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { CheckCheck, GitMerge, Grid2x2, List, Search, SlidersHorizontal, ToggleLeft, ToggleRight } from 'lucide-react';
 import { FusionLivreursDialog } from '@/components/turboys/fusion/fusion-livreurs-dialog';
 import { useTurboysByTypeQuery } from '@/features/turboys/queries/turboy-list.query';

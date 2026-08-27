@@ -2,7 +2,7 @@
 
 import { DeliveryFee, RestaurantDefini } from '@/types/price-list';
 import { createUrlFile } from '@/utils/createUrlFile';
-import { Avatar } from '@/components/heroui';
+import { Avatar } from '@heroui/react';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { PaginatedResponse } from '@/types';

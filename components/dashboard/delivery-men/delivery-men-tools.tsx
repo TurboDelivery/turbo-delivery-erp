@@ -1,7 +1,7 @@
 'use client';
 
 import { DeliveryMan } from '@/types/models';
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@/components/heroui';
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react';
 import { useState } from 'react';
 import { IconDotsVertical } from '@tabler/icons-react';
 import DeliveryMenValidate from './delivery-men-validate';

@@ -12,7 +12,6 @@ import FinanceHighlightCard from './finance-highlight-card';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
 import { useFinanceResumeQuery } from '@/features/finance-dashboard/queries/finance-resume.query';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 export default function DashboardFinanceStatistics() {
   // État pour le filtre par plage de dates
@@ -29,26 +28,10 @@ export default function DashboardFinanceStatistics() {
   const queryParams = useMemo(() => ({ debut, fin }), [debut, fin]);
 
   // Utiliser React Query pour les données globales
-  const {
-    data: globalStats,
-    isLoading,
-    isFetching: isFetchingGlobal,
-    isError: isErrorGlobal,
-    refetch: refetchGlobal,
-  } = useGlobalStats(queryParams);
+  const { data: globalStats, isLoading } = useGlobalStats(queryParams);
 
-  const {
-    data: depenseSummary,
-    isFetching: isFetchingSummary,
-    isError: isErrorSummary,
-    refetch: refetchSummary,
-  } = useDepenseSummaryQuery(queryParams);
-  const {
-    data: resume,
-    isFetching: isFetchingResume,
-    isError: isErrorResume,
-    refetch: refetchResume,
-  } = useFinanceResumeQuery(queryParams);
+  const { data: depenseSummary } = useDepenseSummaryQuery(queryParams);
+  const { data: resume } = useFinanceResumeQuery(queryParams);
 
   // Utiliser les données de l'API globale pour les statistiques
   const chiffreAffaires = globalStats?.chiffreAffaire ?? 0;
@@ -109,17 +92,6 @@ export default function DashboardFinanceStatistics() {
     [debut, fin],
   );
 
-  // Trois requetes alimentent les indicateurs. Sur echec, chacune retombe sur `?? 0`
-  // et l'ecran affiche « 0 FCFA » : un chiffre faux se lit comme un chiffre vrai.
-  // Les indicateurs de periode croisent les trois (la marge = CA - depenses).
-  const isErrorIndicateurs = isErrorGlobal || isErrorSummary || isErrorResume;
-  const isFetchingIndicateurs = isFetchingGlobal || isFetchingSummary || isFetchingResume;
-  const reessayerIndicateurs = useCallback(() => {
-    refetchGlobal();
-    refetchSummary();
-    refetchResume();
-  }, [refetchGlobal, refetchSummary, refetchResume]);
-
   return (
     <div className="w-full px-4 py-6">
       {/* En-tête avec filtre */}
@@ -130,15 +102,6 @@ export default function DashboardFinanceStatistics() {
 
       <div className="grid grid-cols-1 gap-6">
         {/* Carte CA du Mois sur toute la largeur */}
-        {isErrorGlobal ? (
-          <div className="rounded-xl border border-gray-200 bg-white">
-            <EtatErreur
-              quoi="le chiffre d'affaires"
-              onReessayer={() => refetchGlobal()}
-              enCours={isFetchingGlobal}
-            />
-          </div>
-        ) : (
         <CACard
           title={caTitle}
           totalAmount={chiffreAffaires}
@@ -152,23 +115,12 @@ export default function DashboardFinanceStatistics() {
           onDownload={handleDownloadDetails}
           detailHref="/finance/revenue"
         />
-        )}
 
         {/* ── Section : indicateurs de la période ── */}
         <div className="flex items-center gap-2 pt-1">
           <CalendarRange className="size-4 text-primary" />
           <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Indicateurs de la période</h3>
         </div>
-        {isErrorIndicateurs ? (
-          <div className="rounded-xl border border-gray-200 bg-white">
-            <EtatErreur
-              quoi="les indicateurs de la période"
-              onReessayer={reessayerIndicateurs}
-              enCours={isFetchingIndicateurs}
-            />
-          </div>
-        ) : (
-          <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <FinanceHighlightCard
             title="Revenus encaissés"
@@ -215,8 +167,6 @@ export default function DashboardFinanceStatistics() {
             {margeStateLabel} (période) : {formattedMarge}
           </p>
         </div>
-          </>
-        )}
 
         {/* ── Section : cumul tout l'historique (bloc visuellement distinct) ── */}
         <div className="rounded-xl border border-indigo-100 bg-indigo-50/30 p-4 space-y-3 mt-1">
@@ -224,13 +174,6 @@ export default function DashboardFinanceStatistics() {
             <Layers className="size-4 text-indigo-500" />
             <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Cumul · tout l&apos;historique</h3>
           </div>
-          {isErrorResume ? (
-            <EtatErreur
-              quoi="les cumuls financiers"
-              onReessayer={() => refetchResume()}
-              enCours={isFetchingResume}
-            />
-          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <FinanceHighlightCard
               title="CA cumulé"
@@ -265,7 +208,6 @@ export default function DashboardFinanceStatistics() {
               ariaLabel="Voir toutes les factures en cours (cumul)"
             />
           </div>
-          )}
         </div>
       </div>
     </div>

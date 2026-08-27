@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import dayjs from 'dayjs';
-import { Avatar, Button } from '@/components/heroui';
+import { Avatar, Button } from '@heroui/react';
 import { Clock, Eye, MapPin, Package, Phone, UserRoundPlus } from 'lucide-react';
 
 import { CourseExterne, LivreurDisponible } from '@/types/models';

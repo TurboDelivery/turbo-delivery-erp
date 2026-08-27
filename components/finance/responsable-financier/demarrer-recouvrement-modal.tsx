@@ -8,11 +8,9 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/heroui';
+import { Skeleton } from '@heroui/react';
 import type { IFactureRF } from './responsable-financier-columns';
 import { useAgentsRecouvrementQuery, type IAgentRecouvrement } from '@/features/responsable-financier';
-import EtatErreur from '@/components/commons/EtatErreur';
-import { formatMontant } from '@/utils/format.utils';
 
 export type IAgent = IAgentRecouvrement;
 
@@ -23,9 +21,12 @@ interface Props {
   onConfirm: (facture: IFactureRF, agent: IAgent) => void;
 }
 
+function formatMontant(v: number) {
+  return new Intl.NumberFormat('fr-FR').format(v) + ' F CFA';
+}
 
 export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onConfirm }: Props) {
-  const { data: agents = [], isLoading, isError, isFetching, refetch } = useAgentsRecouvrementQuery();
+  const { data: agents = [], isLoading } = useAgentsRecouvrementQuery();
   const [selectedAgent, setSelectedAgent] = useState<IAgent | null>(null);
 
   // Reset à chaque ouverture / changement de facture : le COMPTABLE doit
@@ -91,13 +92,10 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
               Sélectionner un agent recouvrement <span className="text-red-500">*</span>
             </label>
             <div className="space-y-2">
-              {/* sur echec la liste restait vide : le comptable croyait qu'aucun agent n'existait */}
               {isLoading
                 ? Array.from({ length: 3 }).map((_, i) => (
                     <Skeleton key={i} className="h-14 rounded-xl w-full" />
                   ))
-                : isError
-                ? <EtatErreur quoi="les agents de recouvrement" onReessayer={() => refetch()} enCours={isFetching} />
                 : agents.map((agent) => (
                 <button
                   key={agent.id}

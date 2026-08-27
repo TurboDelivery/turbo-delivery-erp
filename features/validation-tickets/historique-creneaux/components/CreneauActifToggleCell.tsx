@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { Chip, Switch } from '@/components/heroui';
+import { Chip, Switch } from '@heroui/react';
 import { EyeOff } from 'lucide-react';
 import { useSetCreneauActifMutation } from '@/features/creneaux/queries/creneau.query';
 import type { ICreneauActifVm } from '@/features/creneaux/types/creneau.types';

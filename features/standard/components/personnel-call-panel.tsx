@@ -15,7 +15,6 @@ import {
   X,
 } from 'lucide-react';
 
-import EtatErreur from '@/components/commons/EtatErreur';
 import { getUsers } from '@/src/actions/users.actions';
 
 import { useAppel } from './appel-provider';
@@ -47,7 +46,7 @@ export function PersonnelCallPanel() {
   const [recherche, setRecherche] = useState('');
   const [numero, setNumero] = useState('');
 
-  const { data, isLoading, isError, isFetching, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['personnel-contacts'],
     queryFn: () => getUsers(),
     enabled: ouvert && appelsPersonnelActifs,
@@ -62,13 +61,7 @@ export function PersonnelCallPanel() {
   // partait sur CHAQUE page protégée, panneau fermé, et même quand les appels entre
   // personnel sont désactivés en configuration (le `return null` est plus bas, donc
   // après les hooks).
-  const {
-    data: journal,
-    isLoading: journalCharge,
-    isError: journalErreur,
-    isFetching: journalRecharge,
-    refetch: rechargerJournal,
-  } = useAppelsQuery(
+  const { data: journal, isLoading: journalCharge } = useAppelsQuery(
     0,
     30,
     journalActif ? 15_000 : undefined,
@@ -163,9 +156,6 @@ export function PersonnelCallPanel() {
                 moiId={moiId}
                 journal={(journal?.content ?? []) as IAppelLog[]}
                 charge={journalCharge}
-                enErreur={journalErreur}
-                rechargement={journalRecharge}
-                onReessayer={() => rechargerJournal()}
                 onRappeler={(id, nom) => {
                   if (enAppel) return;
                   appelerPersonnel(id, nom);
@@ -188,16 +178,6 @@ export function PersonnelCallPanel() {
                 <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
                   {isLoading ? (
                     <p className="py-8 text-center text-sm text-white/40">Chargement…</p>
-                  ) : isError ? (
-                    // `dark` re-scope les variables HeroUI : le panneau est sombre en
-                    // dur, sans cela le titre de EtatErreur serait noir sur noir.
-                    <div className="dark">
-                      <EtatErreur
-                        quoi="les contacts"
-                        onReessayer={() => refetch()}
-                        enCours={isFetching}
-                      />
-                    </div>
                   ) : filtres.length === 0 ? (
                     <p className="py-8 text-center text-sm text-white/40">Aucun contact.</p>
                   ) : (
@@ -278,30 +258,15 @@ function JournalAppels({
   moiId,
   journal,
   charge,
-  enErreur,
-  rechargement,
-  onReessayer,
   onRappeler,
 }: {
   moiId?: string;
   journal: IAppelLog[];
   charge: boolean;
-  enErreur: boolean;
-  rechargement: boolean;
-  onReessayer: () => void;
   onRappeler: (id: string, nom: string) => void;
 }) {
   if (charge) {
     return <p className="py-8 text-center text-sm text-white/40">Chargement…</p>;
-  }
-  if (enErreur) {
-    // Sans ce cas, un journal injoignable affichait « Aucun appel pour le
-    // moment », qui se lit comme un historique reellement vide.
-    return (
-      <div className="dark">
-        <EtatErreur quoi="vos appels" onReessayer={onReessayer} enCours={rechargement} />
-      </div>
-    );
   }
   if (journal.length === 0) {
     return (

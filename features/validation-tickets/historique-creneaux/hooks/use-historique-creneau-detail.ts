@@ -28,13 +28,7 @@ const MOCK_TIMELINE: ICreneauTimelineEvent[] = [
 ];
 
 export default function useHistoriqueCreneauDetail(id: string) {
-  const {
-    data: grille,
-    isLoading,
-    isError,
-    isFetching,
-    refetch,
-  } = useGrillePaiementQuery({ creneauId: id, page: 0, size: 100 });
+  const { data: grille, isLoading } = useGrillePaiementQuery({ creneauId: id, page: 0, size: 100 });
 
   const detail: ICreneauDetail | null = useMemo(() => {
     if (!grille) return null;
@@ -71,7 +65,5 @@ export default function useHistoriqueCreneauDetail(id: string) {
     };
   }, [grille]);
 
-  // Sans isError, l'ecran retombait sur `detail === null` et rendait une page muette,
-  // impossible a distinguer d'un creneau reellement introuvable.
-  return { detail, isLoading, isError, isFetching, refetch };
+  return { detail, isLoading };
 }

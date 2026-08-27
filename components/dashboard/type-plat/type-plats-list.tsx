@@ -4,7 +4,7 @@ import IconSearch from '@/components/icon/icon-search';
 import React, { useState } from 'react';
 import { Collection } from '@/types/models';
 
-import { Avatar, Chip } from "@/components/heroui";
+import { Avatar, Chip } from "@heroui/react";
 import TypePlatsTools from './type-plats-tools';
 import { createUrlFile } from '@/utils/createUrlFile';
 import TypePlatAdd from './type-plats-add';

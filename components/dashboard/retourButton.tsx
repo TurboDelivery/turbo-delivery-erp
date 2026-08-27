@@ -1,4 +1,4 @@
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui/react';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

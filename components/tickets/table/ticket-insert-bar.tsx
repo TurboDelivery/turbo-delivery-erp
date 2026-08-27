@@ -3,7 +3,7 @@
 import React from 'react';
 import Select from 'react-select';
 import { Plus } from 'lucide-react';
-import { Tooltip } from '@/components/heroui';
+import { Tooltip } from '@heroui/react';
 
 interface Option { value: string; label: string }
 

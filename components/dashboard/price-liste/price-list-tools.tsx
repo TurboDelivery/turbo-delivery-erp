@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger } from '@/components/heroui';
+import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger } from '@heroui/react';
 import { useState } from 'react';
 import { IconTrash } from '@tabler/icons-react';
 import PriceListeDelete from './price-liste-delete';

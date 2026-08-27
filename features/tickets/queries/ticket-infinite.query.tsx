@@ -15,12 +15,11 @@ const queryClient = getQueryClient();
 export const ticketsInfiniteQueryOption = (ticketsParamsDTO: ITicketParams) => {
   return {
     queryKey: ticketsKeyQuery('list', ticketsParamsDTO),
-    queryFn: async ({ pageParam }: { pageParam: number }) => {
+    queryFn: async ({ pageParam = 0 }) => {
       return await getBonLivraisonRequest({ ...ticketsParamsDTO, page: pageParam });
     },
     staleTime: 60 * 1000, //
     refetchOnMount: true,
-  initialPageParam: 0,
     getNextPageParam: (lastPage: PaginatedResponse<BonLivraisonTerminee>) => {
       const hasNextPage = lastPage.totalPages > lastPage.pageable.pageNumber;
       return hasNextPage ? lastPage.pageable.pageNumber + 1 : undefined;

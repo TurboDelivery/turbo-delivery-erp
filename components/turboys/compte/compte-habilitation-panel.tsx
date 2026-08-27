@@ -10,9 +10,8 @@ import {
   Select,
   SelectItem,
   Spinner,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { useQuery } from '@tanstack/react-query';
-import EtatErreur from '@/components/commons/EtatErreur';
 import { useTurboyQuery } from '@/features/turboys/queries/turboy-list.query';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import {
@@ -111,7 +110,7 @@ const sectionClass = 'bg-white rounded-xl border border-gray-100 shadow-sm p-6';
 const titleClass = 'text-base font-semibold text-primary mb-4';
 
 export default function CompteHabilitationPanel({ driverId }: { driverId: string }) {
-  const { data: turboy, isLoading, isError, isFetching, refetch } = useTurboyQuery(driverId);
+  const { data: turboy, isLoading } = useTurboyQuery(driverId);
   const cles = useClesQuery(driverId);
   const evenements = useEvenementsQuery(driverId);
   const cote = useCoteQuery(driverId);
@@ -133,21 +132,10 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
   const valider = useValiderCompteMutation(driverId, (vm) => setCodeEmis(vm.code));
   const emettre = useEmettreCleMutation(driverId, (cle) => setCodeEmis(cle.code));
 
-  if (isLoading) {
+  if (isLoading || !turboy) {
     return (
       <section className={`${sectionClass} flex items-center justify-center py-10`}>
         <Spinner label="Chargement du compte…" />
-      </section>
-    );
-  }
-
-  // Sans la fiche, aucune section de l ecran n a de sens. La garde precedente
-  // renvoyait le meme spinner qu au chargement : apres un echec, l ecran tournait
-  // indefiniment sans jamais dire que la lecture avait echoue.
-  if (isError || !turboy) {
-    return (
-      <section className={sectionClass}>
-        <EtatErreur quoi="la fiche du livreur" onReessayer={() => void refetch()} enCours={isFetching} />
       </section>
     );
   }
@@ -187,16 +175,7 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
             <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-100">
               <div className={`h-full rounded-full ${coteBar}`} style={{ width: `${score ?? 0}%` }} />
             </div>
-            {/* La cote elle-meme vient de la fiche : seul l historique manque ici.
-                « Aucune variation enregistree » ferait croire a une cote jamais
-                touchee, alors que l historique n a pas pu etre lu. */}
-            {cote.isError ? (
-              <EtatErreur
-                quoi="l’historique de la cote"
-                onReessayer={() => void cote.refetch()}
-                enCours={cote.isFetching}
-              />
-            ) : cote.data && cote.data.historique.length > 0 ? (
+            {cote.data && cote.data.historique.length > 0 ? (
               <ul className="mt-4 space-y-1.5 text-sm text-gray-600">
                 {cote.data.historique.slice(0, 8).map((h) => (
                   <li key={h.id} className="flex flex-wrap items-center gap-2">
@@ -255,34 +234,24 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
                 <SelectItem key="SITE_PARTNER">Site partenaire — assigné</SelectItem>
                 <SelectItem key="BIRD">BIRD — non rattaché (libre)</SelectItem>
               </Select>
-              {rattachement === 'SITE_PARTNER' &&
-                (restaurantsQuery.isError ? (
-                  /* getAllRestaurants relance desormais. Une liste illisible donnait un
-                     champ de recherche muet : le site restait vide, la validation restait
-                     bloquee par siteManquant, et rien ne disait que la lecture avait echoue. */
-                  <EtatErreur
-                    quoi="la liste des sites partenaires"
-                    onReessayer={() => void restaurantsQuery.refetch()}
-                    enCours={restaurantsQuery.isFetching}
-                  />
-                ) : (
-                  <Autocomplete
-                    label="Site partenaire"
-                    variant="bordered"
-                    isLoading={restaurantsQuery.isLoading}
-                    defaultItems={restaurants}
-                    selectedKey={sitePartnerId || null}
-                    onSelectionChange={(key) => setSitePartnerId((key as string) ?? '')}
-                    placeholder="Rechercher un restaurant…"
-                    listboxProps={{ itemClasses: { base: 'py-2 data-[hover=true]:bg-default-100' } }}
-                  >
-                    {(r) => (
-                      <AutocompleteItem key={r.id} textValue={r.nom}>
-                        <span className="text-sm">{r.nom}</span>
-                      </AutocompleteItem>
-                    )}
-                  </Autocomplete>
-                ))}
+              {rattachement === 'SITE_PARTNER' && (
+                <Autocomplete
+                  label="Site partenaire"
+                  variant="bordered"
+                  isLoading={restaurantsQuery.isLoading}
+                  defaultItems={restaurants}
+                  selectedKey={sitePartnerId || null}
+                  onSelectionChange={(key) => setSitePartnerId((key as string) ?? '')}
+                  placeholder="Rechercher un restaurant…"
+                  listboxProps={{ itemClasses: { base: 'py-2 data-[hover=true]:bg-default-100' } }}
+                >
+                  {(r) => (
+                    <AutocompleteItem key={r.id} textValue={r.nom}>
+                      <span className="text-sm">{r.nom}</span>
+                    </AutocompleteItem>
+                  )}
+                </Autocomplete>
+              )}
               <p className="col-span-full text-xs text-gray-400">
                 Le rattachement est indépendant du type de livreur : tout contrat
                 (y compris journalier / superviseur) peut être BIRD ou assigné.
@@ -348,14 +317,6 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
         </p>
         {cles.isLoading ? (
           <Spinner size="sm" />
-        ) : cles.isError ? (
-          /* « Aucune cle emise » pousse a en reemettre une, ce qui delie l appareil
-             du livreur. On ne le laisse pas conclure sur une lecture qui a echoue. */
-          <EtatErreur
-            quoi="les clés d’activation"
-            onReessayer={() => void cles.refetch()}
-            enCours={cles.isFetching}
-          />
         ) : cles.data && cles.data.length > 0 ? (
           <div className="space-y-1.5">
             {cles.data.map((c) => (
@@ -390,12 +351,6 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
         <h2 className={titleClass}>Historique du compte</h2>
         {evenements.isLoading ? (
           <Spinner size="sm" />
-        ) : evenements.isError ? (
-          <EtatErreur
-            quoi="l’historique du compte"
-            onReessayer={() => void evenements.refetch()}
-            enCours={evenements.isFetching}
-          />
         ) : evenements.data && evenements.data.length > 0 ? (
           <ul className="space-y-1.5 text-sm text-gray-600">
             {evenements.data.map((e) => (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient , keepPreviousData} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { personnelHistorisationAPI, TypeLivreurBascule } from '../apis/personnel-historisation.api';
 import {
@@ -10,7 +10,7 @@ import {
 
 /**
  * Hooks du volet « historisation du personnel ». TanStack Query v4 : `keepPreviousData`,
- * `cacheTime`, `mutation.isPending`.
+ * `cacheTime`, `mutation.isLoading`.
  */
 
 export const personnelHistorisationKeys = {
@@ -53,7 +53,7 @@ export const useMasseSalarialeQuery = (mois: string | null) =>
     queryKey: personnelHistorisationKeys.masse(mois ?? ''),
     queryFn: () => personnelHistorisationAPI.obtenirMasseSalariale(mois as string),
     enabled: !!mois,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -63,7 +63,7 @@ export const useComparaisonMasseSalarialeQuery = (mois: string | null) =>
     queryKey: personnelHistorisationKeys.comparaison(mois ?? ''),
     queryFn: () => personnelHistorisationAPI.obtenirComparaisonMasseSalariale(mois as string),
     enabled: !!mois,
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   });
@@ -72,7 +72,7 @@ export const useAnomaliesQuery = (type: string | null) =>
   useQuery({
     queryKey: personnelHistorisationKeys.anomalies(type),
     queryFn: () => personnelHistorisationAPI.obtenirAnomalies(type),
-    placeholderData: keepPreviousData,
+    keepPreviousData: true,
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   });

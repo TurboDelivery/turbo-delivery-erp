@@ -1,6 +1,6 @@
 'use client';
 
-import { Tab, Tabs } from '@/components/heroui';
+import { Tab, Tabs } from '@heroui/react';
 import { AlertTriangle } from 'lucide-react';
 
 import { useAbility } from '@/hooks/use-ability';

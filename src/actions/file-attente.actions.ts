@@ -30,11 +30,7 @@ export async function fetchFilleAttente(): Promise<FilleAttenteHistoriqueVM[]> {
 
         return Array.isArray(data) ? data : [];
     } catch (error) {
-        // Une lecture qui ECHOUE n'est pas une file VIDE. En avalant l'erreur, cette
-        // action rendait les deux cas indiscernables : `isError` ne passait jamais a
-        // vrai et l'ecran annoncait « aucun livreur en file » sur une panne, ce qui
-        // envoie le regulateur chercher un probleme qui n'existe pas.
-        throw error;
+        return [];
     }
 }
 
@@ -48,11 +44,7 @@ export async function fetchStatistiqueFilleAttente(): Promise<FileAttenteStatist
 
         return data;
     } catch (error) {
-        // Une lecture qui ECHOUE n'est pas une file VIDE. En avalant l'erreur, cette
-        // action rendait les deux cas indiscernables : `isError` ne passait jamais a
-        // vrai et l'ecran annoncait « aucun livreur en file » sur une panne, ce qui
-        // envoie le regulateur chercher un probleme qui n'existe pas.
-        throw error;
+        return null;
     }
 }
 

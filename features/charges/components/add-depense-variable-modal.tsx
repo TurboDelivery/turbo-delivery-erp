@@ -11,7 +11,7 @@ import {
   ModalHeader,
   Textarea,
   Badge,
-} from '@/components/heroui';
+} from '@heroui/react';
 import ReactSelect from 'react-select';
 import { Check, Plus, Save, Paperclip, X } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,7 +29,6 @@ import {
 } from '@/features/charges/schemas/charge-variable.schema';
 import { getTodayDateInput } from '@/lib/date-utils';
 import { createUrlFile } from '@/utils/createUrlFile';
-import { formatMontant } from '@/utils/format.utils';
 
 interface AddDepenseVariableModalProps {
   isOpen: boolean;
@@ -342,7 +341,7 @@ export default function AddDepenseVariableModal({
                   {categories.find((c) => c.id === formValues.categorieId)?.nomCategorie}
                 </Badge>
                 <p className="text-purple-600 font-bold mt-2">
-                  {formatMontant(formValues.montant)}
+                  {formValues.montant.toLocaleString()} FCFA
                 </p>
               </div>
             )}

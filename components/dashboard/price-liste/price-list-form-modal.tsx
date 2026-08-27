@@ -14,7 +14,6 @@ import { priceListSchema, PriceListFormData } from '@/features/price-list/schema
 import { useCreateDeliveryFeeMutation, useUpdatePriceListMutation } from '@/features/price-list/queries/price-list.mutation';
 import { useQuery } from '@tanstack/react-query';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
-import EtatErreur from '@/components/commons/EtatErreur';
 import { cn } from '@/lib/utils';
 
 type LatLng = { lat: number; lng: number };
@@ -36,16 +35,7 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
 
   const isEdit = mode === 'edit';
 
-  // getAllRestaurants relance desormais. Le tableau vide rendait le formulaire menteur:
-  // en creation le selecteur de restaurant n'avait aucune option donc rien n'etait
-  // enregistrable, et en modification typeCommission restait nul, ce qui faisait
-  // disparaitre les champs Commission et Seuil comme s'ils n'existaient pas.
-  const {
-    data: allRestaurants = [],
-    isError: isRestaurantsError,
-    isFetching: isRestaurantsFetching,
-    refetch: refetchRestaurants,
-  } = useQuery({
+  const { data: allRestaurants = [] } = useQuery({
     queryKey: ['restaurants', 'all'],
     queryFn: () => getAllRestaurants(),
     staleTime: 5 * 60 * 1000,
@@ -153,16 +143,6 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
           </DialogTitle>
         </DialogHeader>
 
-        {/* On remplace le formulaire entier plutot que le seul selecteur: sans la liste
-            des restaurants, les champs restants sont muets ou absents et une saisie
-            terminee ne pourrait pas etre enregistree. */}
-        {isRestaurantsError ? (
-          <EtatErreur
-            quoi="la liste des restaurants"
-            onReessayer={() => refetchRestaurants()}
-            enCours={isRestaurantsFetching}
-          />
-        ) : (
         <form id="price-list-form" onSubmit={handleSubmit(onSubmit, onError)} className="flex flex-col gap-4 pt-2">
 
           {/* Row 1 : nom + restaurant (create) | nom seul (edit) */}
@@ -377,7 +357,6 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
           </div>
 
         </form>
-        )}
       </DialogContent>
     </Dialog>
   );

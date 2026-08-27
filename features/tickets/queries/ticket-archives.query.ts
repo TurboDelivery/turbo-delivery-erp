@@ -9,12 +9,11 @@ import { PaginatedResponse } from '@/types/general';
 
 export const ticketArchivesInfiniteQueryOption = (params: IArchivesParams) => ({
   queryKey: ticketsKeyQuery('archives', params),
-  queryFn: async ({ pageParam }: { pageParam: number }) => {
+  queryFn: async ({ pageParam = 0 }: { pageParam?: number }) => {
     return await listerArchivesRequest({ ...params, page: pageParam });
   },
   staleTime: 60 * 1000,
   refetchOnMount: true,
-  initialPageParam: 0,
   getNextPageParam: (lastPage: PaginatedResponse<IArchiveBonLivraisonVm>) => {
     const hasNext = lastPage.totalPages > lastPage.pageable.pageNumber + 1;
     return hasNext ? lastPage.pageable.pageNumber + 1 : undefined;

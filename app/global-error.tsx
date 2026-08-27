@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCcw } from 'lucide-react';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui/react';
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
     useEffect(() => {

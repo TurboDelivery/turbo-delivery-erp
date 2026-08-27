@@ -2,7 +2,7 @@
 
 import { Control, FieldErrors } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
-import { Input, Select, SelectItem } from '@/components/heroui';
+import { Input, Select, SelectItem } from '@heroui/react';
 import { type UpdateTurboyInfoDTO } from '@/features/turboys/schemas/update-turboy-info.schema';
 import { TYPE_VEHICULE_OPTIONS } from '@/features/turboys/schemas/create-turboy.schema';
 import { SectionTitle } from './section-title';

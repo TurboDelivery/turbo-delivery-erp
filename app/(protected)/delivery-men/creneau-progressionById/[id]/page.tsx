@@ -24,12 +24,20 @@ interface TurboysPageProps {
 export default async function UserPage({ params }: TurboysPageProps) {
     const { id } = params;  // <-- enlevé l'await qui est incorrect
 
-    // Les deux lectures relevent desormais leur exception. La rattraper ici sans
-    // rien en faire affichait « Aucun livreur trouve » sur une panne : une absence
-    // annoncee a la place d un echec. On laisse remonter jusqu a la frontiere
-    // d erreur du segment, qui cadre le message et propose de reessayer.
-    const user = await getInfoLivreurById(id);
-    const dataCreneau: CreneauID[] | null = await getCreneauById(id);
+    let user = null;
+    let dataCreneau: CreneauID[] | null = null;
+
+    try {
+        user = await getInfoLivreurById(id);
+    } catch (error) {
+       
+    }
+
+    try {
+        dataCreneau = await getCreneauById(id);
+    } catch (error) {
+        
+    }
 
     if (!user) {
         return <div>Aucun livreur trouvé</div>;

@@ -7,7 +7,7 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-} from '@/components/heroui';
+} from '@heroui/react';
 import { ArrowRight, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 import { IEtablissementPerimetre, IRecapitulatif } from '../types/groupes-partenaires.types';

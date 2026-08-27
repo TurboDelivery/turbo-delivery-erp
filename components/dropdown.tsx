@@ -5,12 +5,8 @@ import { usePopper } from 'react-popper';
 const Dropdown = (props: any, forwardedRef: any) => {
     const [visibility, setVisibility] = useState<any>(false);
 
-    // `useRef<T>()` sans argument n'est plus accepte par les types de React 19 :
-    // la surcharge exige une valeur initiale. `null` est ce que le code suppose
-    // deja partout ailleurs, et le passer ne change RIEN en React 18. C'est le
-    // correctif du lot 5 qui peut partir des aujourd'hui.
-    const referenceRef = useRef<any>(null);
-    const popperRef = useRef<any>(null);
+    const referenceRef = useRef<any>();
+    const popperRef = useRef<any>();
 
     const { styles, attributes } = usePopper(referenceRef.current, popperRef.current, {
         placement: props.placement || 'bottom-end',

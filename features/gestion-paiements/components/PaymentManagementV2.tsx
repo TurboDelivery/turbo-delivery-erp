@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Card } from '@/components/heroui';
+import { Button, Card } from '@heroui/react';
 import { Wallet } from 'lucide-react';
 import { useQueryStates } from 'nuqs';
 import ConfirmModal from '@/components/ui/confirm-modal';
@@ -45,13 +45,7 @@ export default function PaymentManagementV2() {
     supprimerDepenseDuMoisMutation,
   } = usePaiementsTable(filters.debut, filters.fin, setConfirmIds, setDeleteTargetId, setDeleteFixeTargetId, depenseFilters.categoriesDepense || []);
 
-  const {
-    stats,
-    isLoading: isStatsLoading,
-    isFetching: isStatsFetching,
-    isError: isStatsError,
-    refetch: refetchStats,
-  } = usePaiementsStats(filters.debut, filters.fin);
+  const { stats, isLoading: isStatsLoading } = usePaiementsStats(filters.debut, filters.fin);
 
   const closeConfirm = () => setConfirmIds([]);
   const closeDelete = () => setDeleteTargetId(null);
@@ -97,19 +91,7 @@ export default function PaymentManagementV2() {
       <MonthPicker debut={filters.debut} fin={filters.fin} onChange={setFilters} />
 
       {/* Stats Cards */}
-      {/* Sur echec, les trois cartes retombaient a 0 FCFA : un montant faux se lit
-          comme un montant vrai. On remplace le bandeau au lieu de le laisser mentir. */}
-      {isStatsError ? (
-        <Card className="border shadow-none overflow-hidden">
-          <EtatErreur
-            quoi="les montants à décaisser"
-            onReessayer={() => refetchStats()}
-            enCours={isStatsFetching}
-          />
-        </Card>
-      ) : (
-        <PaiementStatsCards stats={stats} isLoading={isStatsLoading} />
-      )}
+      <PaiementStatsCards stats={stats} isLoading={isStatsLoading} />
       
       {/* Charge Type Switcher + Filtre catégories */}
       <div className="flex flex-wrap justify-between items-center gap-3">

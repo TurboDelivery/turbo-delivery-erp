@@ -32,7 +32,7 @@ const formatDate = (value?: string) => {
 };
 
 export const RecalculerFactureDialog = ({ facture, open, onOpenChange }: RecalculerFactureDialogProps) => {
-  const { mutate: recalculerFacture, isPending: isLoading } = useRecalculerFactureMutation();
+  const { mutate: recalculerFacture, isLoading } = useRecalculerFactureMutation();
 
   const handleRecalculate = () => {
     recalculerFacture(facture.id, {
