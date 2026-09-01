@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'Modifier le profil du coursier',
 };
 
-export default function EditLivreurPage({ params }: { params: { id: string } }) {
+export default async function EditLivreurPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   return <EditContent id={params.id} />;
 }

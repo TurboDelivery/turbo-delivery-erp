@@ -4,10 +4,11 @@ import { getInfoLivreurById } from "@/src/livreurInfo/livreur-info.action";
 
 
 interface TurboysPageProps {
-    params: { id: string }; // Définit explicitement le type
+    params: Promise<{ id: string }>; // Définit explicitement le type
 }
 
-export default async function Page({ params }: TurboysPageProps) {
+export default async function Page(props: TurboysPageProps) {
+    const params = await props.params;
     const { id } = params;
     const user = await getInfoLivreurById(id);
 

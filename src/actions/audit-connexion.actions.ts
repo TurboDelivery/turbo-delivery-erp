@@ -80,7 +80,7 @@ export async function tracerConnexion(params: TracerConnexionParams): Promise<vo
         const baseUrl = process.env.NEXT_PUBLIC_API_BACKEND_URL;
         if (!baseUrl) return;
 
-        const entetes = headers();
+        const entetes = await headers();
 
         await fetch(`${baseUrl}${ENDPOINT_CONNEXION}`, {
             method: 'POST',

@@ -56,7 +56,7 @@ function hauteurSousLeBloc(element: HTMLElement): number {
  * @returns la hauteur en pixels, ou `undefined` tant qu'elle n'est pas mesurée et sur les
  *          écrans étroits (où la mise en page empilée garde ses hauteurs naturelles).
  */
-export function useHauteurDisponible(reference: RefObject<HTMLElement>): number | undefined {
+export function useHauteurDisponible(reference: RefObject<HTMLElement | null>): number | undefined {
   const [hauteur, setHauteur] = useState<number>();
 
   useEffect(() => {

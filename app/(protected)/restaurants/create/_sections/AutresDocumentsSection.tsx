@@ -11,7 +11,7 @@ const AUTRES_DOCUMENTS_OPTIONS = [
 ];
 
 interface AutresDocumentsSectionProps {
-  autreDocRef: React.RefObject<HTMLInputElement>;
+  autreDocRef: React.RefObject<HTMLInputElement | null>;
   autreDocType: string;
   autreDocFile: File | null;
   onTypeChange: (value: string) => void;

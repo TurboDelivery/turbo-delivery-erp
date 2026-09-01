@@ -230,10 +230,11 @@ import EmptyDataTable from '@/components/commons/EmptyDataTable';
 
 
 interface CreneauIdPageProps {
-    params: { livreurId: string, emploiId: string }; // Définit explicitement le type
+    params: Promise<{ livreurId: string, emploiId: string }>; // Définit explicitement le type
 }
 
-export default async function Page({ params }: CreneauIdPageProps) {
+export default async function Page(props: CreneauIdPageProps) {
+    const params = await props.params;
 
     const { livreurId, emploiId } = params; // Récupère l'ID depuis l'URL
     // const user = userData.find(item => item.id === id);

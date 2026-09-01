@@ -16,7 +16,7 @@ interface AutresDocumentsSectionProps {
   setAutreDocType: (v: string) => void;
   autreDocFile: File | null;
   setAutreDocFile: (f: File | null) => void;
-  autreDocRef: React.RefObject<HTMLInputElement>;
+  autreDocRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export function AutresDocumentsSection({

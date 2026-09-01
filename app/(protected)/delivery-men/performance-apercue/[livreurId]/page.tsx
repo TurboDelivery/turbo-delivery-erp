@@ -219,25 +219,26 @@ const dataCreneau={
   }
   
 interface CreneauIdPageProps {
-    params: { livreurId: string }
+    params: Promise<{ livreurId: string }>
   }
 
-export default async function Page({ params }: CreneauIdPageProps){
+export default async function Page(props: CreneauIdPageProps) {
+  const params = await props.params;
 
-      const { livreurId } = params
-      // const user = userData.find(item => item.id === id);
-      const infoUser = await getInfoLivreurById(livreurId)
-      
-      const user= await getPerformanceCreneauById(livreurId)
-          
-      // const dataCreneau = await getCreneauById(id)
-    
-      if (!user||!infoUser) {
-        return <EmptyDataTable title="Aucune performance" />
-      } 
- 
-   
-    return (
-             <Content data={user} infoUser={infoUser} />
-    )
+  const { livreurId } = params
+  // const user = userData.find(item => item.id === id);
+  const infoUser = await getInfoLivreurById(livreurId)
+
+  const user= await getPerformanceCreneauById(livreurId)
+
+  // const dataCreneau = await getCreneauById(id)
+
+  if (!user||!infoUser) {
+    return <EmptyDataTable title="Aucune performance" />
+  }
+
+
+  return (
+           <Content data={user} infoUser={infoUser} />
+  )
 }

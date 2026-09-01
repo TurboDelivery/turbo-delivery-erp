@@ -1,6 +1,6 @@
 'use client';
 
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 
 import { SubmitButton } from '@/components/ui/form-ui/submit-button';
 
@@ -13,7 +13,7 @@ import { FormChangePassword } from './form-change-password';
 
 export function FormLogin() {
     const router = useRouter();
-    const [state, formAction] = useFormState(
+    const [state, formAction] = useActionState(
         async (_: any, formData: FormData) => {
             const result = await loginUser(formData);
 

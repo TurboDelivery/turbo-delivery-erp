@@ -412,7 +412,7 @@ const expandColumn = {
 };
 
 interface ResetSelectionProps {
-  ref: React.RefObject<HTMLButtonElement>;
+  ref: React.RefObject<HTMLButtonElement | null>;
 }
 function ResetSelection({ ref }: ResetSelectionProps) {
   const { table } = useDataTableV2();

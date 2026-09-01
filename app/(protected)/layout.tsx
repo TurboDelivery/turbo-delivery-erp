@@ -59,7 +59,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
    * page ne part. `ProtectedPage` reste en place comme filet cote client, pour les
    * navigations douces qui ne repassent pas par le serveur.</p>
    */
-  const chemin = headers().get(EN_TETE_CHEMIN) ?? '';
+  const chemin = (await headers()).get(EN_TETE_CHEMIN) ?? '';
   const ability = defineAbilityFor(normalizeRole(profile.role?.libelle ?? null));
 
   // Sans le chemin, la garde ne peut rien decider et laisse passer — le filet

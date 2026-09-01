@@ -3,7 +3,7 @@
 import { Lock } from 'lucide-react';
 import { Input } from "@/components/heroui";
 import { toast } from 'sonner';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
 import { useRouter } from 'next/navigation';
 import { body, title } from '@/components/primitives';
 import { changePassword } from '@/src/actions/users.actions';
@@ -15,7 +15,7 @@ export function FormChangePassword({ userName }: {
     userName: string
 }) {
     const router = useRouter();
-    const [state, formAction] = useFormState(
+    const [state, formAction] = useActionState(
         async (_: any, formData: FormData) => {
 
             formData.set('username', userName);

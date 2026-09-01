@@ -7,8 +7,8 @@ interface CoverBannerProps {
   coverPreview: string | null;
   logoPreview: string | null;
   existingLogoUrl: string | null;
-  coverRef: React.RefObject<HTMLInputElement>;
-  logoRef: React.RefObject<HTMLInputElement>;
+  coverRef: React.RefObject<HTMLInputElement | null>;
+  logoRef: React.RefObject<HTMLInputElement | null>;
   onCoverChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }

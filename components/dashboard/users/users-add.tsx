@@ -12,7 +12,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input, Select, SelectItem, Snippet } from "@/components/heroui";
 import { useRouter } from 'next/navigation';
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -21,7 +22,7 @@ const UsersAdd = () => {
     const { pending } = useFormStatus();
     const router = useRouter();
 
-    const [state, formAction] = useFormState(
+    const [state, formAction] = useActionState(
         async (_: any, formData: FormData) => {
             const result = await createUser(formData);
 

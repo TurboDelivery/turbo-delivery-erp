@@ -3,8 +3,8 @@
 import { ImagePlus } from 'lucide-react';
 
 interface CoverLogoSectionProps {
-  logoRef: React.RefObject<HTMLInputElement>;
-  coverRef: React.RefObject<HTMLInputElement>;
+  logoRef: React.RefObject<HTMLInputElement | null>;
+  coverRef: React.RefObject<HTMLInputElement | null>;
   logoPreview: string | null;
   coverPreview: string | null;
   onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

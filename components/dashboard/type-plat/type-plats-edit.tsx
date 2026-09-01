@@ -9,7 +9,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input } from "@/components/heroui";
 import { useRouter } from 'next/navigation';
 import React, { Fragment } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -17,7 +18,7 @@ const TypePlatEdit = ({ typePlat, open, setOpen }: { typePlat: Collection; open:
     const { pending } = useFormStatus();
     const router = useRouter();
 
-    const [state, formAction] = useFormState(
+    const [state, formAction] = useActionState(
         async (prevState: any, formData: FormData) => {
             const result = await updateTypePlat(formData, typePlat.id);
 

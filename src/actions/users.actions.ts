@@ -3,7 +3,7 @@
 import { signIn } from '@/auth';
 import { auth } from '@/auth';
 import { User } from '@/types/models';
-import { cookies } from 'next/headers';
+import { cookies, type UnsafeUnwrappedCookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { signOut as signOutAuth } from '@/auth';
@@ -50,7 +50,7 @@ const COOKIE_SESSION_SUPERVISION = 'turbo_erp_session';
 /** Session de travail de l'onglet, quand le battement de cœur en a déjà ouvert une. */
 function lireSessionSupervision(): string | null {
     try {
-        return cookies().get(COOKIE_SESSION_SUPERVISION)?.value ?? null;
+        return (cookies() as unknown as UnsafeUnwrappedCookies).get(COOKIE_SESSION_SUPERVISION)?.value ?? null;
     } catch {
         return null;
     }
@@ -262,7 +262,7 @@ export async function signOut(): Promise<void> {
     }
 
     try {
-        cookies().delete(COOKIE_SESSION_SUPERVISION);
+        (await cookies()).delete(COOKIE_SESSION_SUPERVISION);
     } catch {
         /* le hook nettoie de son côté au démontage */
     }

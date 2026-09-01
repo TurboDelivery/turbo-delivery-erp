@@ -1,4 +1,5 @@
-'use client';
+'use client';;
+import { use } from "react";
 
 import { notFound } from 'next/navigation';
 import { Skeleton } from '@/components/heroui';
@@ -6,10 +7,11 @@ import FactureDetailView from '@/components/finance/responsable-financier/factur
 import { useFactureRFQuery } from '@/features/responsable-financier';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function FactureDetailPage({ params }: Props) {
+export default function FactureDetailPage(props: Props) {
+  const params = use(props.params);
   const { data: facture, isLoading, isError } = useFactureRFQuery(params.id);
 
   if (isLoading) {

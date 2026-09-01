@@ -3,7 +3,7 @@
 import { Plus } from 'lucide-react';
 
 interface PhotosSectionProps {
-  pictureRef: React.RefObject<HTMLInputElement>;
+  pictureRef: React.RefObject<HTMLInputElement | null>;
   picturePreviews: string[];
   onPicturesChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: (index: number) => void;

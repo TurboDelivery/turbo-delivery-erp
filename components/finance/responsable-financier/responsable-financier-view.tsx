@@ -383,7 +383,7 @@ export default function ResponsableFinancierView() {
                     </TableCell>
                   ))}
                 </TableRow>
-              )) as unknown as React.ReactElement
+              )) as unknown as React.ReactElement<any>
             ) : (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
@@ -393,7 +393,7 @@ export default function ResponsableFinancierView() {
                     </TableCell>
                   ))}
                 </TableRow>
-              )) as unknown as React.ReactElement
+              )) as unknown as React.ReactElement<any>
             )}
           </TableBody>
         </Table>

@@ -7,7 +7,8 @@ export const metadata: Metadata = {
   title: 'Restaurants',
 };
 
-export default async function Restaurants({ params }: { params: { restaurant_id: string } }) {
+export default async function Restaurants(props: { params: Promise<{ restaurant_id: string }> }) {
+  const params = await props.params;
   const currentRestaurant = await getDetailRestaurant(params.restaurant_id);
 
   if (!currentRestaurant) {

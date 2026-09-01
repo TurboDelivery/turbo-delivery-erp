@@ -18,10 +18,11 @@ import Content from "./content";
 import { getInfoLivreurById } from "@/src/livreurInfo/livreur-info.action";
 import { getCreneauById } from "@/src/creneau-livreur/creneau-livreur.action";
 interface TurboysPageProps {
-    params: { id: string }; // Définit explicitement le type
+    params: Promise<{ id: string }>; // Définit explicitement le type
 }
 
-export default async function UserPage({ params }: TurboysPageProps) {
+export default async function UserPage(props: TurboysPageProps) {
+    const params = await props.params;
     const { id } = params;  // <-- enlevé l'await qui est incorrect
 
     // Les deux lectures relevent desormais leur exception. La rattraper ici sans

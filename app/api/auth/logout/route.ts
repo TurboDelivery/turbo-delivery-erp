@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { signOut } from '@/auth';
 
 export async function POST() {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
 
     // Supprime les cookies de session
     cookieStore.delete('authjs.csrf-token');

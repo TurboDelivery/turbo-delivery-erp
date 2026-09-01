@@ -8,7 +8,8 @@ export const metadata: Metadata = {
   title: 'Détail de la course',
 };
 
-export default async function CourseExterneDetailPage({ params }: { params: { course_id: string } }) {
+export default async function CourseExterneDetailPage(props: { params: Promise<{ course_id: string }> }) {
+  const params = await props.params;
   const course = await getCourseExterne(params.course_id);
   if (!course) {
     return <NotFound />;

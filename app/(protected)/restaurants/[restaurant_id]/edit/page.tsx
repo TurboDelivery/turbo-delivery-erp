@@ -5,7 +5,8 @@ import EditContent from './edit-content';
 
 export const metadata: Metadata = { title: 'Modifier le restaurant' };
 
-export default async function EditRestaurantPage({ params }: { params: { restaurant_id: string } }) {
+export default async function EditRestaurantPage(props: { params: Promise<{ restaurant_id: string }> }) {
+  const params = await props.params;
   const restaurant = await getDetailRestaurant(params.restaurant_id);
 
   if (!restaurant) {

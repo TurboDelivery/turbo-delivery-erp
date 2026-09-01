@@ -7,9 +7,10 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  params: { date: string };
+  params: Promise<{ date: string }>;
 }
 
-export default function Page({ params }: PageProps) {
+export default async function Page(props: PageProps) {
+  const params = await props.params;
   return <JourDetailContent date={params.date} />;
 }

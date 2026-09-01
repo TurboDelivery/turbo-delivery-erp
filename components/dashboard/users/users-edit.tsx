@@ -6,7 +6,8 @@ import IconX from '@/components/icon/icon-x';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
 import { updateUser } from '@/src/actions/users.actions';
 import { getAllRoles } from '@/src/actions/roles.actions';
 import React, { Fragment, useCallback, useEffect, useState } from 'react';
@@ -17,7 +18,7 @@ import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/re
 const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen: (open: boolean) => void }) => {
     const { pending } = useFormStatus();
 
-    const [state, formAction] = useFormState(
+    const [state, formAction] = useActionState(
         async (_: any, formData: FormData) => {
             const result = await updateUser(user.id, formData);
 

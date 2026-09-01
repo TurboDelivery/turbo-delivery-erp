@@ -25,7 +25,8 @@ function tokenValide(token: string): boolean {
   return /^[A-Z0-9]{8,24}$/i.test(token);
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { token: string } }) {
+export async function GET(_req: NextRequest, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   if (!tokenValide(params.token)) {
     return NextResponse.json({ message: 'Lien invalide' }, { status: 404 });
   }
@@ -34,7 +35,8 @@ export async function GET(_req: NextRequest, { params }: { params: { token: stri
   return new NextResponse(texte, { status: reponse.status, headers: { 'Content-Type': 'application/json' } });
 }
 
-export async function POST(request: NextRequest, { params }: { params: { token: string } }) {
+export async function POST(request: NextRequest, props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   if (!tokenValide(params.token)) {
     return NextResponse.json({ message: 'Lien invalide' }, { status: 404 });
   }

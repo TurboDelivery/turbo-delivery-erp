@@ -4,14 +4,15 @@ import { getPaginationCourseExterne } from '@/src/actions/courses.actions';
 import { getLivreursDisponible } from '@/src/actions/delivery-men.actions';
 
 interface PageProps {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }
 
 // ✅ Expression régulière pour valider un UUID (v4)
 const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-export default async function Page({ params }: PageProps) {
+export default async function Page(props: PageProps) {
+    const params = await props.params;
     const restaurantId = params?.id;
 
     // 🛑 Vérifie si l'ID est présent et valide
