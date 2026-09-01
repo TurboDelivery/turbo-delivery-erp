@@ -48,7 +48,16 @@ export function useVerrouillageV2Content() {
     isFetchingNextPage: isFetchingNextV2Valide,
   } = useTicketsV2ValideQuery(v2ValideParams);
   const { data: creneauActif } = useCreneauActifQuery();
-  const { data: ticketStats, isLoading: isStatsLoading } = useCreneauTicketStatsQuery();
+  // Les deux AUTRES requetes de ce hook exposent leur `isError` ; celle-ci ne le faisait
+  // pas. Sur panne, `ticketStats` restait `undefined` et les quatre cartes du bandeau
+  // affichaient « — » : indiscernable d'un cycle sans ticket, alors que « Total commandes »
+  // et « Total commissions » sont des MONTANTS, a l'etape 4 de la chaine de paiement.
+  const {
+    data: ticketStats,
+    isLoading: isStatsLoading,
+    isError: isStatsError,
+    refetch: refetchStats,
+  } = useCreneauTicketStatsQuery();
   const { livreurOptions } = useTicketFilterOptions();
 
   const { mutate: validerV2, isPending: isValidating } = useValiderV2Mutation();
@@ -114,6 +123,8 @@ export function useVerrouillageV2Content() {
     isFetchingNextPage,
     ticketStats,
     isStatsLoading,
+    isStatsError,
+    refetchStats,
     validatingId,
     isValidating,
     isValidatingAll,

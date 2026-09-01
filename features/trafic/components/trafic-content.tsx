@@ -282,10 +282,10 @@ export default function TraficContent() {
           de livreurs allongent la rangée. Le `calc()` ne sert plus que de repli avant mesure. */}
       <div
         ref={zoneCarteRef}
-        className="grid min-h-0 gap-3 lg:h-[calc(100vh-14rem)] lg:min-h-[320px] lg:grid-cols-[minmax(0,1fr)_360px] lg:grid-rows-[minmax(0,1fr)]"
+        className="grid min-h-0 gap-3 md:h-[calc(100vh-14rem)] md:min-h-[320px] md:grid-cols-[minmax(0,1fr)_360px] md:grid-rows-[minmax(0,1fr)]"
         style={hauteurZoneCarte ? { height: hauteurZoneCarte } : undefined}
       >
-        <div className="relative h-[380px] min-h-0 overflow-hidden rounded-2xl border border-default-200/50 lg:h-full">
+        <div className="relative h-[380px] min-h-0 overflow-hidden rounded-2xl border border-default-200/50 md:h-full">
           <MapTrafic positions={positions} focusPosition={focusPosition} quartiers={quartiersActifs} />
 
           {/* Légende des pins — mêmes couleurs que les compteurs */}

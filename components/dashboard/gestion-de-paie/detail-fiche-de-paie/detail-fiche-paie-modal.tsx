@@ -9,9 +9,8 @@ import {
     Card,
     Chip,
 } from "@/components/heroui";
-import { MoveDownLeft, MoveDownRight, MoveUpRight, Printer } from "lucide-react";
+import { MoveDownLeft, MoveDownRight, MoveUpRight } from "lucide-react";
 import { useInitierPaiementController } from "./controller";
-import { InitierPaiementModal } from "../initier-paiement/initier-paiement-modal";
 import { CreneauDePaieModal } from "../creneau-de-paie/creneau-de-paie-modal";
 import { GainHebdomadaireVm, GainParJour, PaieParLivreur } from "@/types/gestion-de-paie.model";
 import EtatErreur from "@/components/commons/EtatErreur";
@@ -111,16 +110,34 @@ export function DetailFichePaieModal({ isOpen, onClose, details, periode, nonEli
                                     : <span className="text-center text-primry font-bold">Aucun details pour cette fiche de paie</span>
                             }
                         </ModalBody>
+                        {/*
+                          * Pied VIDE de ses deux actions, et c'est voulu.
+                          *
+                          * « Imprimer » portait `onPress={onClose}` : il fermait la fenetre sans rien
+                          * imprimer. « Initier le paiement » ouvrait une maquette dont le bouton
+                          * « Envoyer » etait, lui aussi, `onPress={onClose}` — aucun appel d'API, aucune
+                          * mutation. Cette maquette affichait un montant CONSTANT (« 290000 FCFA »)
+                          * sous le VRAI nom du livreur et son VRAI numero Wave, et deux cases qui
+                          * basculaient entre deux autres constantes en simulant un recalcul.
+                          *
+                          * Un comptable cochait, importait une signature (dont le `onChange` rendait la
+                          * chaine vide), cliquait « Envoyer », et repartait en croyant avoir initie une
+                          * paie. Rien n'etait parti, et rien ne le lui disait.
+                          *
+                          * Le VRAI module de paiement existe et vit ailleurs :
+                          * `/finance/gestion-paiements` (features/gestion-paiements), expose dans le
+                          * menu sous `read Paiement`, avec une vraie mutation `initierPaiement(ids, mois)`.
+                          * Cet ecran-ci n'est pas dans le menu ; il n'est atteignable qu'en tapant son
+                          * URL, la regle de prefixe `/external_delivery` (`read Commande`) le laissant
+                          * passer. Il reste utile en LECTURE — le detail de la fiche est reel — donc on
+                          * retire les leurres sans supprimer l'ecran.
+                          */}
                         <ModalFooter>
                             <Button color="danger" variant="light" className="text-sm" size="sm" onPress={onClose}>
-                                <Printer size={18} className="mr-2" />  Imprimer
-                            </Button>
-                            <Button color="primary" className="text-sm" onPress={ctrl.initierPaiementClosure.onOpen} size="sm">
-                                Initier le paiement
+                                Fermer
                             </Button>
                         </ModalFooter>
                     </>
-                    <InitierPaiementModal onClose={ctrl.initierPaiementClosure.onClose} isOpen={ctrl.initierPaiementClosure.isOpen} details={details} />
                     <CreneauDePaieModal onClose={ctrl.creneauDePaieClosure.onClose} isOpen={ctrl.creneauDePaieClosure.isOpen} gainsHedomadaires={ctrl.gainsHedomadaires} periode={periode} />
                 </ModalContent>
             </Modal>

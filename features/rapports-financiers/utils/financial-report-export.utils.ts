@@ -22,6 +22,18 @@ interface VariableExpenseRow {
 }
 
 export interface FinancialReportExportParams {
+  /**
+   * Vrai quand la lecture a ete plafonnee et que la vue est PARTIELLE.
+   *
+   * <p>Optionnels pour ne pas casser les appelants existants : absents, le fichier se
+   * comporte comme avant. Presents, ils font ecrire une ligne d'avertissement dans le
+   * fichier lui-meme — c'est le seul endroit ou le lecteur peut encore l'apprendre, le
+   * CSV n'ayant pas l'ecran sous les yeux.</p>
+   */
+  fixesTronquees?: boolean;
+  totalFixes?: number;
+  variablesTronquees?: boolean;
+  totalVariables?: number;
   metrics: MetricRow[];
   kpis: KPIRow[];
   fixedCosts: FixedCostRow[];
@@ -43,7 +55,8 @@ function escapeCell(value: string): string {
 }
 
 export function exportFinancialReportCsv(params: FinancialReportExportParams): void {
-  const { metrics, kpis, fixedCosts, variableExpenses, debut, fin } = params;
+  const { metrics, kpis, fixedCosts, variableExpenses, debut, fin,
+    fixesTronquees, totalFixes, variablesTronquees, totalVariables } = params;
   const rows: string[] = [];
 
   // En-tête du rapport
@@ -71,6 +84,13 @@ export function exportFinancialReportCsv(params: FinancialReportExportParams): v
 
   // Section 3 — Répartition des Charges Fixes
   rows.push('REPARTITION DES CHARGES FIXES');
+  // Les pourcentages sont calcules sur les lignes CHARGEES, pas sur l'ensemble de la
+  // periode : au-dela du plafond de lecture, ils totalisent 100 % d'un sous-ensemble.
+  // A l'ecran une mention le signale ; sans cette ligne, le fichier exporte sortait du
+  // batiment en presentant une repartition partielle comme complete.
+  if (fixesTronquees) {
+    rows.push(`ATTENTION : repartition PARTIELLE — ${fixedCosts.length} charges sur ${totalFixes}. Les pourcentages portent sur les lignes listees.`);
+  }
   rows.push('Libelle,Pourcentage,Montant');
   for (const c of fixedCosts) {
     rows.push(`${escapeCell(c.label)},${c.percentage}%,${escapeCell(c.amount)}`);
@@ -79,6 +99,9 @@ export function exportFinancialReportCsv(params: FinancialReportExportParams): v
 
   // Section 4 — Dépenses Variables
   rows.push('DEPENSES VARIABLES DE LA PERIODE');
+  if (variablesTronquees) {
+    rows.push(`ATTENTION : liste PARTIELLE — ${variableExpenses.length} depenses sur ${totalVariables}.`);
+  }
   rows.push('Date,Designation,Montant');
   for (const e of variableExpenses) {
     rows.push(`${escapeCell(e.date)},${escapeCell(e.designation)},${escapeCell(e.amount)}`);

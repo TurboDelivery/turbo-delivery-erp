@@ -16,6 +16,7 @@ import { useTicketArchivesInfiniteQuery } from '@/features/tickets/queries/ticke
 import { useRestaurerArchives } from '@/features/tickets/queries/tickets.mutation';
 import { IArchiveBonLivraisonVm } from '@/features/tickets/types/tickets.type';
 import { ticketArchivesColumns, TicketArchivesColumnMeta } from './ticket-archives-columns';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 interface TicketArchivesTableProps {
   restaurantOptions: { value: string; label: string }[];
@@ -143,7 +144,11 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
       </div>
 
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <p className="text-xs sm:text-sm text-gray-600">Total: {totalItems} ticket(s) archivé(s)</p>
+        {/* `totalElements` est indisponible sur echec et `?? 0` rendait « Total: 0 ticket(s)
+            archive(s) », une affirmation de fait la ou la lecture avait simplement echoue. */}
+        {!archivesQuery.isError && (
+          <p className="text-xs sm:text-sm text-gray-600">Total: {totalItems} ticket(s) archivé(s)</p>
+        )}
         <div className="flex gap-2">
           {selectedIds.length > 0 && (
             <button
@@ -173,6 +178,18 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
         </div>
       </div>
 
+      {/* Echec de LECTURE, distinct d'archives vides. Sans cette branche, le tableau
+          affichait « Aucun ticket archive » et les cartes mobiles la meme phrase : cela se
+          lit comme un resultat, pas comme une panne, et les trois colonnes monetaires
+          (cout de livraison, cout de commande, commission) disparaissaient en silence. */}
+      {archivesQuery.isError ? (
+        <EtatErreur
+          quoi="les tickets archivés"
+          onReessayer={() => archivesQuery.refetch()}
+          enCours={archivesQuery.isFetching}
+        />
+      ) : (
+        <>
       <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
         <div className="max-h-[420px] overflow-y-auto">
           <Table isStriped>
@@ -287,6 +304,8 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
           {archivesQuery.isFetchingNextPage && <p className="text-xs text-gray-500 w-full text-center py-2">Chargement des données...</p>}
         </div>
       </div>
+        </>
+      )}
 
       <ConfirmModal
         isOpen={confirmIds !== null}

@@ -1,6 +1,8 @@
 import 'react-perfect-scrollbar/dist/css/styles.css';
+// Point d'entree CSS UNIQUE. `globals.css` est desormais inlinee depuis
+// `styles/tailwind.css` : deux imports paralleles faisaient emettre la base
+// Tailwind DEUX FOIS, pour 311 ko de CSS strictement redondant a chaque page.
 import '../styles/tailwind.css';
-import './globals.css';
 import { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import NextAuthSessionProvider from '@/providers/next-auth-session.provider';

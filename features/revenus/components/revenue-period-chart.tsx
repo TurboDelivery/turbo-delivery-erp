@@ -9,6 +9,7 @@ import { useRevenuePeriod } from '../hooks/use-revenue-period';
 import { startOfMonth } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import DateFilterInput from '@/components/finance/date-filter-input';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 type Period = 'WEEK' | 'MONTH';
 
@@ -80,7 +81,11 @@ export default function RevenuePeriodChart() {
   const stats = revenueData?.statistics;
 
   // Récupérer les données YEAR pour la comparaison mensuelle
-  const { revenueData: yearData } = useRevenuePeriod({
+  // `isError` etait jete : quand la requete YEAR tombait, `yearData` restait null, le
+  // useMemo ci-dessous sortait a null, et le bloc « Comparaison mensuelle » DISPARAISSAIT
+  // de la page — sans squelette, sans message, le reste de l'ecran restant normal. Rien
+  // ne distinguait une panne d'une periode sans historique.
+  const { revenueData: yearData, isError: isYearError, refetch: refetchYear } = useRevenuePeriod({
     period: 'YEAR',
     date: undefined,
     startDate: undefined,
@@ -304,7 +309,20 @@ export default function RevenuePeriodChart() {
       </Card>
 
       {/* Carte de comparaison mensuelle */}
-      {monthlyComparison && (
+      {isYearError && (
+        <Card className="p-6 border-gray-200 shadow-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart3 className="w-5 h-5 text-red-600" />
+            <h3 className="text-lg font-semibold text-gray-800">Comparaison mensuelle</h3>
+          </div>
+          <EtatErreur
+            quoi="la comparaison mensuelle"
+            onReessayer={() => refetchYear()}
+          />
+        </Card>
+      )}
+
+      {!isYearError && monthlyComparison && (
         <Card className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200 shadow-lg">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-5 h-5 text-red-600" />

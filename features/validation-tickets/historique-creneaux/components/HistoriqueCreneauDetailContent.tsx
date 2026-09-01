@@ -115,7 +115,11 @@ export default function HistoriqueCreneauDetailContent({ id }: Props) {
 
       {/* Main 2-col layout */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_360px]">
-        <HistoriqueCreneauDetailLivreurs livreurs={detail.livreurs} />
+        <HistoriqueCreneauDetailLivreurs
+          livreurs={detail.livreurs}
+          totalLivreurs={detail.kpi.livreurs}
+          totalTickets={detail.kpi.tickets}
+        />
         <HistoriqueCreneauDetailTimeline events={detail.timeline} />
       </div>
     </div>

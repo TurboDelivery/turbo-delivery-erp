@@ -28,7 +28,7 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [chargeVariableToEdit, setChargeVariableToEdit] = useState<IChargeVariable | null>(null);
 
-  const { depenses, rawVariables, isLoading, isFetching, isError, refetch } = useValidationData(chargeType, userRole);
+  const { depenses, rawVariables, isLoading, isFetching, isError, refetch, totalFile } = useValidationData(chargeType, userRole);
   const {
     depenses: historyDepenses,
     isLoading: isLoadingHistory,
@@ -108,6 +108,7 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
                   depense={depenses[safeIdx]}
                   current={safeIdx}
                   total={depenses.length}
+                  totalFile={totalFile}
                   onPrev={() => setCurrentIdx((i) => Math.max(0, i - 1))}
                   onNext={() => setCurrentIdx((i) => Math.min(depenses.length - 1, i + 1))}
                   onAccept={handleAccept}

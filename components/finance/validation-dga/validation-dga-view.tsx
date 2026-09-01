@@ -76,6 +76,8 @@ function FactureItem({ facture, selected, onClick }: FactureItemProps) {
 // ─── Right Panel — Proof Viewer ───────────────────────────────────────────────
 
 interface ProofPanelProps {
+  isError?: boolean;
+  onReessayer?: () => void;
   facture: IFactureRF | null;
   isLoading: boolean;
   onViser: () => void;
@@ -83,7 +85,7 @@ interface ProofPanelProps {
   isPending: boolean;
 }
 
-function ProofPanel({ facture, isLoading, onViser, onRejeter, isPending }: ProofPanelProps) {
+function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejeter, isPending }: ProofPanelProps) {
   const preuve = facture?.preuve;
   const isPdf = preuve?.startsWith('data:application/pdf') || preuve?.toLowerCase().endsWith('.pdf');
   const isImage =
@@ -139,6 +141,10 @@ function ProofPanel({ facture, isLoading, onViser, onRejeter, isPending }: Proof
           <div className="h-full flex items-center justify-center">
             <div className="w-8 h-8 rounded-full border-2 border-indigo-300 border-t-indigo-600 animate-spin" />
           </div>
+        ) : isError ? (
+          /* Echec de LECTURE. Ne jamais le confondre avec « pas encore ajoutee » : le
+             premier se corrige en reessayant, le second justifierait un rejet. */
+          <EtatErreur quoi="la preuve de paiement" onReessayer={onReessayer} />
         ) : !preuve ? (
           <div className="h-full flex flex-col items-center justify-center text-gray-400">
             <FileText className="w-12 h-12 mb-3 opacity-30" />
@@ -236,7 +242,16 @@ export default function ValidationDgaView() {
   const pendingCount = listData?.factures?.totalElements ?? factures.length;
 
   // Fetch detail of selected facture (to get proof URL)
-  const { data: selectedDetail, isLoading: detailLoading } = useFactureRFQuery(selectedId ?? '');
+  // `isError` etait jete : sur panne, `preuve` restait vide et le panneau annoncait
+  // « Aucune preuve disponible / La preuve n'a pas encore ete ajoutee ». C'est une
+  // AFFIRMATION DE FAIT, et elle est fausse : la preuve existe, c'est la lecture du
+  // detail qui est tombee. Le DGA pouvait rejeter une facture parfaitement justifiee.
+  const {
+    data: selectedDetail,
+    isLoading: detailLoading,
+    isError: detailError,
+    refetch: refetchDetail,
+  } = useFactureRFQuery(selectedId ?? '');
 
   const selectedFacture: IFactureRF | null = selectedDetail ?? (factures.find((f) => f.id === selectedId) ?? null);
 
@@ -288,7 +303,7 @@ export default function ValidationDgaView() {
   return (
     <div
       ref={zoneTravailRef}
-      className="flex flex-col gap-4 p-4 md:p-6 lg:h-[calc(100vh-11rem)]"
+      className="flex flex-col gap-4 p-4 md:p-6 md:h-[calc(100vh-11rem)]"
       style={hauteurZoneTravail ? { height: hauteurZoneTravail } : undefined}
     >
       {/* Page header */}
@@ -308,9 +323,9 @@ export default function ValidationDgaView() {
       </div>
 
       {/* Two-panel layout — empilé sur mobile, côte à côte ≥ lg */}
-      <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+      <div className="flex flex-col md:flex-row gap-4 flex-1 min-h-0">
         {/* Left panel — Invoice list (pleine largeur sur mobile, hauteur limitée) */}
-        <div className="w-full lg:w-80 lg:flex-shrink-0 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-h-[45vh] lg:max-h-none">
+        <div className="w-full md:w-80 md:flex-shrink-0 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-h-[45vh] md:max-h-none">
           {/* Panel header */}
           <div className="px-4 py-3.5 border-b border-gray-100">
             <div className="flex items-center justify-between">
@@ -361,6 +376,8 @@ export default function ValidationDgaView() {
         <ProofPanel
           facture={selectedFacture}
           isLoading={detailLoading}
+          isError={detailError}
+          onReessayer={() => refetchDetail()}
           onViser={handleViser}
           onRejeter={handleRejeter}
           isPending={viserMutation.isPending || rejeterMutation.isPending}

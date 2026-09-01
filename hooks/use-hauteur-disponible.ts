@@ -8,8 +8,17 @@ import { RefObject, useEffect, useState } from 'react';
  * Sur une fenêtre de 560 px de haut, l'espace réellement disponible tourne autour de 370 px.
  */
 const HAUTEUR_MINIMALE = 320;
-/** Point de rupture `lg` de Tailwind : en dessous, les mises en page s'empilent. */
-const RUPTURE_COTE_A_COTE = 1024;
+/**
+ * Point de rupture `md` de Tailwind : en dessous, les mises en page s'empilent.
+ *
+ * <p>Ce seuil valait 1024 (`lg`) — or la fenetre reelle des postes fait 1000 px de large,
+ * JUSTE en dessous. Le hook rendait donc `undefined` sur les machines memes pour lesquelles
+ * il a ete ecrit, et ses adoptants retombaient tous sur la mise en page empilee. Les ecrans
+ * « poste de travail » basculent desormais en cote a cote des `md`, et ce seuil suit : les
+ * deux DOIVENT rester d'accord, sinon on mesure une hauteur pour une mise en page empilee,
+ * ce qui ecrase le second panneau au lieu de l'aider.</p>
+ */
+const RUPTURE_COTE_A_COTE = 768;
 
 /**
  * Hauteur de tout ce qui reste APRÈS le bloc dans la page : marges basses des conteneurs

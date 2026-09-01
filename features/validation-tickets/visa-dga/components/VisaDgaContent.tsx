@@ -2,7 +2,6 @@
 
 import { Skeleton } from '@/components/ui/skeleton';
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
-import { Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
 import useVisaDga from '../hooks/use-visa-dga';
 import StatMini from './StatMini';
 import LivreurRow from './LivreurRow';
@@ -112,10 +111,10 @@ export default function VisaDgaContent() {
             </p>
 
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4 border-b border-gray-100 pb-5 mb-5">
-              <StatMini label="Livreurs"   value={creneau.stats.totalLivreurs}                          icon={Users}      />
-              <StatMini label="Tickets"    value={creneau.stats.totalTickets}                           icon={Ticket}     />
-              <StatMini label="Total Brut" value={creneau.stats.totalBrut.toLocaleString('fr-FR')} sub="FCFA" icon={Wallet}     />
-              <StatMini label="Total à payer (Indép.)" value={(creneau.stats.totalAPayer ?? creneau.stats.totalNet).toLocaleString('fr-FR')} sub="FCFA" icon={TrendingUp} highlight />
+              <StatMini label="Livreurs"   value={creneau.stats.totalLivreurs}      />
+              <StatMini label="Tickets"    value={creneau.stats.totalTickets}     />
+              <StatMini label="Total Brut" value={creneau.stats.totalBrut.toLocaleString('fr-FR')} sub="FCFA"     />
+              <StatMini label="Total à payer (Indép.)" value={(creneau.stats.totalAPayer ?? creneau.stats.totalNet).toLocaleString('fr-FR')} sub="FCFA" highlight />
             </div>
 
             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
