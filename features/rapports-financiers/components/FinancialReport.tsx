@@ -70,6 +70,13 @@ export default function FinancialReport() {
     isError: isErrorChargesFixes,
     refetch: refetchChargesFixes,
   } = useChargesFixesQuery({
+    // `debut`/`fin` etaient ABSENTS alors que la page porte un selecteur de periode et
+    // que le rapport principal, lui, les passe (voir plus haut). La « Repartition des
+    // Charges Fixes » interrogeait donc TOUTES les charges, toutes periodes confondues,
+    // sous un titre qui laissait croire l'inverse — et la carte « Vue d'Ensemble » juste
+    // au-dessus affichait, elle, le total filtre sur la periode choisie.
+    debut: filters.debut ? format(filters.debut, 'yyyy-MM-dd') : undefined,
+    fin: filters.fin ? format(filters.fin, 'yyyy-MM-dd') : undefined,
     size: 100,
   });
 
@@ -123,6 +130,18 @@ export default function FinancialReport() {
   }, [rapportData]);
 
   // Transformer les dépenses fixes en données pour le graphique
+  /**
+   * Vrai quand la reponse porte plus de lignes que les 100 demandees.
+   *
+   * <p>Le denominateur ci-dessous est une somme sur les lignes RECUES. Au-dela du
+   * plafond, les barres totalisent donc 100 % d'un sous-ensemble : une charge pesant
+   * 3 % du reel s'affiche a 12 %. Et ces pourcentages partent tels quels dans le CSV et
+   * le PDF, ou plus rien ne rappelle qu'ils ont ete calcules sur une partie. On ne peut
+   * pas corriger le calcul sans tout charger — on dit donc que la vue est partielle.</p>
+   */
+  const fixesTronquees =
+    (chargesFixesData?.totalElements ?? 0) > (chargesFixesData?.content?.length ?? 0);
+
   const fixedCosts: FixedCost[] = useMemo(() => {
     const content = chargesFixesData?.content;
     if (!content || content.length === 0) return [];
@@ -144,6 +163,11 @@ export default function FinancialReport() {
       variableExpenses,
       debut: filters.debut,
       fin: filters.fin,
+      // Le fichier sort du batiment : il doit dire lui-meme que la vue est partielle.
+      fixesTronquees,
+      totalFixes: chargesFixesData?.totalElements,
+      variablesTronquees,
+      totalVariables: chargesVariablesData?.totalElements,
     });
   };
 
@@ -155,6 +179,10 @@ export default function FinancialReport() {
       variableExpenses,
       debut: filters.debut,
       fin: filters.fin,
+      fixesTronquees,
+      totalFixes: chargesFixesData?.totalElements,
+      variablesTronquees,
+      totalVariables: chargesVariablesData?.totalElements,
     });
   };
 
@@ -165,8 +193,15 @@ export default function FinancialReport() {
     isError: isErrorChargesVariables,
     refetch: refetchChargesVariables,
   } = useChargesVariablesQuery({
+    // Meme correctif que pour les charges fixes : la liste « Depenses Variables de la
+    // Periode » ignorait la periode.
+    debut: filters.debut ? format(filters.debut, 'yyyy-MM-dd') : undefined,
+    fin: filters.fin ? format(filters.fin, 'yyyy-MM-dd') : undefined,
     size: 100,
   });
+
+  const variablesTronquees =
+    (chargesVariablesData?.totalElements ?? 0) > (chargesVariablesData?.content?.length ?? 0);
 
   const variableExpenses: VariableExpense[] = (chargesVariablesData?.content ?? []).map((charge) => {
     const rawDate = charge.dateDecaissement ?? charge.createdAt;
@@ -273,7 +308,14 @@ export default function FinancialReport() {
         {/* Répartition des Charges Fixes */}
         <Card>
           <CardBody className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Répartition des Charges Fixes</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Répartition des Charges Fixes
+              {fixesTronquees && (
+                <span className="ml-2 text-sm font-normal text-gray-400">
+                  {chargesFixesData?.content?.length} charges sur {chargesFixesData?.totalElements} — répartition partielle
+                </span>
+              )}
+            </h2>
             {isErrorChargesFixes ? (
               /* Sur echec la liste des charges est vide : la repartition disparait
                  sans un mot, comme s'il n'y avait aucune charge fixe. */
@@ -300,7 +342,14 @@ export default function FinancialReport() {
         {/* Dépenses Variables de la Période */}
         <Card>
           <CardBody className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Dépenses Variables de la Période</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Dépenses Variables de la Période
+              {variablesTronquees && (
+                <span className="ml-2 text-sm font-normal text-gray-400">
+                  {chargesVariablesData?.content?.length} sur {chargesVariablesData?.totalElements} affichées
+                </span>
+              )}
+            </h2>
 
             {/* Ecran a double rendu : le tableau desktop ET les cartes mobiles disaient
                 « Aucune depense variable sur la periode ». Les deux sont remplaces

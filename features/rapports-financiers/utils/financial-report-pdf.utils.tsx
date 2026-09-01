@@ -2,6 +2,11 @@ import React from 'react';
 import { Document, Page, View, Text, StyleSheet, pdf } from '@react-pdf/renderer';
 
 export interface FinancialReportPdfParams {
+  /** Vue PARTIELLE : la lecture a ete plafonnee. Optionnels, cf. l'export CSV. */
+  fixesTronquees?: boolean;
+  totalFixes?: number;
+  variablesTronquees?: boolean;
+  totalVariables?: number;
   metrics: { label: string; value: string }[];
   kpis: { label: string; value: string; unit?: string }[];
   fixedCosts: { label: string; percentage: number; amount: string }[];
@@ -69,7 +74,8 @@ const s = StyleSheet.create({
 
 const HIGHLIGHTS = ['warning', 'success'];
 
-function FinancialReportPdfDocument({ metrics, kpis, fixedCosts, variableExpenses, debut, fin }: FinancialReportPdfParams) {
+function FinancialReportPdfDocument({ metrics, kpis, fixedCosts, variableExpenses, debut, fin,
+  fixesTronquees, totalFixes, variablesTronquees, totalVariables }: FinancialReportPdfParams) {
   const now = fmtNow();
   return (
     <Document>
@@ -127,6 +133,13 @@ function FinancialReportPdfDocument({ metrics, kpis, fixedCosts, variableExpense
 
         {/* Section 3 — Répartition des Charges Fixes */}
         <Text style={s.sectionTitle}>Repartition des Charges Fixes</Text>
+        {/* Les pourcentages portent sur les lignes CHARGEES. Sans cette mention, le PDF
+            presentait une repartition partielle comme complete, hors de tout contexte. */}
+        {fixesTronquees && (
+          <Text style={s.sectionTitle}>
+            Repartition PARTIELLE — {fixedCosts.length} charges sur {totalFixes}
+          </Text>
+        )}
         <View style={s.tableHeader}>
           <Text style={[s.chargeLabel, s.thText]}>Libelle</Text>
        

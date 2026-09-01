@@ -15,6 +15,8 @@ interface ValidationCardProps {
   depense: IDepense;
   current: number;
   total: number;
+  /** Total SERVEUR de la file, quand il depasse les lignes chargees. */
+  totalFile?: number;
   onPrev: () => void;
   onNext: () => void;
   onAccept: (id: string) => void;
@@ -26,7 +28,7 @@ interface ValidationCardProps {
   isPending: boolean;
 }
 
-export function ValidationCard({ depense, current, total, onPrev, onNext, onAccept, onReject, onEdit, acceptLabel, canAct, isDGA, isPending }: ValidationCardProps) {
+export function ValidationCard({ depense, current, total, totalFile, onPrev, onNext, onAccept, onReject, onEdit, acceptLabel, canAct, isDGA, isPending }: ValidationCardProps) {
   const [showJustificatif, setShowJustificatif] = useState(false);
 
   return (
@@ -37,6 +39,9 @@ export function ValidationCard({ depense, current, total, onPrev, onNext, onAcce
           <h2 className="font-semibold text-gray-900">{acceptLabel === 'Viser' ? 'Validation DGA' : acceptLabel === 'Approuver' ? 'Approbation DG' : 'Décaissement Comptable'}</h2>
           <p className="text-sm text-gray-400">
             Dépense {current + 1} sur {total}
+            {typeof totalFile === 'number' && totalFile > total && (
+              <span className="ml-1 text-gray-300">({totalFile} en attente au total)</span>
+            )}
           </p>
         </div>
         <div className="flex gap-1">
