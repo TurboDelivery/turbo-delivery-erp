@@ -9,6 +9,7 @@ import { useVerrouillageV2Content } from '@/features/validation-tickets/verrouil
 import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
 import { useAbility } from '@casl/react';
 import { AbilityContext } from '@/lib/casl/ability-context';
+import EtatErreur from '@/components/commons/EtatErreur';
 
 export function VerrouillageV2Content() {
   const {
@@ -35,6 +36,8 @@ export function VerrouillageV2Content() {
     isFetchingNextPage,
     ticketStats,
     isStatsLoading,
+    isStatsError,
+    refetchStats,
     validatingId,
     isValidatingAll,
     isRejecting,
@@ -62,10 +65,16 @@ export function VerrouillageV2Content() {
         </p>
       </div>
 
-      <VerrouillageV2Stats
-        stats={ticketStats}
-        isLoading={isStatsLoading}
-      />
+      {/* Les quatre cartes portent des MONTANTS. Sur panne elles affichaient « — »,
+          indiscernable d'un cycle sans ticket, a l'etape 4 de la chaine de paiement. */}
+      {isStatsError ? (
+        <EtatErreur quoi="les totaux du cycle" onReessayer={() => refetchStats()} />
+      ) : (
+        <VerrouillageV2Stats
+          stats={ticketStats}
+          isLoading={isStatsLoading}
+        />
+      )}
 
       <TicketFilterBar value={filters} onChange={setFilters} livreurOptions={livreurOptions} />
 

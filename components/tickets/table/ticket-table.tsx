@@ -237,7 +237,20 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
               {/* Hauteur MESUREE, jamais un plafond en dur. Le `max-h-[420px]` precedent
                   laissait environ 340 px de tableau sur la fenetre reelle des postes
                   (1000x563), et perdait une rangee des qu'un titre passait sur deux lignes. */}
-              <div ref={zoneTableRef} className="overflow-y-auto" style={hauteurTable ? { height: hauteurTable } : undefined}>
+              {/* Repli AVANT mesure, et surtout : sur les postes reels.
+                  `useHauteurDisponible` se desactive sous 1024 px de large (son point de
+                  rupture `lg`) et rend alors `undefined` — or la fenetre des postes fait
+                  1000x563, soit JUSTE en dessous. Sur ces machines le style en ligne
+                  n'arrivait donc jamais, ce conteneur n'avait aucune hauteur, et
+                  `overflow-y-auto` n'avait rien a borner : le tableau s'allongeait sans
+                  fin et c'est la PAGE qui defilait, l'en-tete de colonnes disparaissant
+                  vers le haut. Le repli borne la zone des `md` (la ou ce tableau
+                  apparait), et la mesure le remplace des qu'elle arrive. */}
+              <div
+                ref={zoneTableRef}
+                className="overflow-y-auto md:h-[calc(100vh-15rem)] md:min-h-[320px]"
+                style={hauteurTable ? { height: hauteurTable } : undefined}
+              >
                 <Table isStriped>
                   <TableHeader>
                     {table.getFlatHeaders().map((header) => (

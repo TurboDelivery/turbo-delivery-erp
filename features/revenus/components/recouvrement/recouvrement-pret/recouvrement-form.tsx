@@ -41,17 +41,25 @@ export function RecouvrementForm({ form, selectedDate, onDateChange, onFileChang
     factures: restaurantFactures,
     factureOptions,
     isLoading: isFacturesLoading,
+    // `isError` etait expose par le hook et jamais lu ici. Les deux consequences
+    // ci-dessous en decoulaient.
+    isError: isFacturesError,
   } = useRestaurantFactures({
     restaurantId: watchedRestaurantId || undefined,
   });
 
   useEffect(() => {
     if (!watchedFactureId) return;
+    // Garde-fou sur l'ECHEC. Sur panne, `factureOptions` est vide, donc `exists` valait
+    // faux, donc ce nettoyage EFFACAIT la facture deja choisie — en modification, l'agent
+    // voyait le champ se vider tout seul et perdait le lien vers la facture qu'il etait en
+    // train de recouvrer. Une liste illisible n'est pas une liste vide.
+    if (isFacturesError) return;
     const exists = factureOptions.some((option) => option.value === watchedFactureId);
     if (!exists) {
       setValue('factureId', '', { shouldValidate: true });
     }
-  }, [factureOptions, watchedFactureId, setValue]);
+  }, [factureOptions, watchedFactureId, setValue, isFacturesError]);
 
   return (
     <div className="space-y-4">
@@ -93,7 +101,16 @@ export function RecouvrementForm({ form, selectedDate, onDateChange, onFileChang
             isLoading={isFacturesLoading}
             isDisabled={!watchedRestaurantId || isFacturesLoading}
             placeholder={watchedRestaurantId ? 'Sélectionnez une facture' : "Sélectionnez un restaurant d'abord"}
-            noOptionsMessage={() => (watchedRestaurantId ? 'Aucune facture disponible pour ce restaurant' : 'Sélectionnez un restaurant')}
+            // « Aucune facture disponible » est une AFFIRMATION : l'agent en conclut que
+            // le restaurant n'a plus rien a recouvrer et n'enregistre pas l'encaissement.
+            // Sur echec de lecture, on dit que c'est un echec.
+            noOptionsMessage={() =>
+              isFacturesError
+                ? "La liste des factures n'a pas pu être lue — réessayez"
+                : watchedRestaurantId
+                  ? 'Aucune facture disponible pour ce restaurant'
+                  : 'Sélectionnez un restaurant'
+            }
             classNamePrefix="react-select"
             styles={{
               control: (base) => ({

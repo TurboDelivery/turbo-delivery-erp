@@ -20,17 +20,34 @@ const STATUT_BADGE: Record<StatutLivreurDetail, { label: string; className: stri
 
 interface Props {
   livreurs: ICreneauDetailLivreur[];
+  /**
+   * Totaux SERVEUR (`grille.stats`), pas des sommes recalculees sur `livreurs`.
+   *
+   * <p>La requete est plafonnee a 100 lignes et cet ecran ne pagine pas. Recompter sur
+   * le tableau recu donnait donc « 100 livreurs » dans cet en-tete, a quelques pixels
+   * d'une carte KPI qui affichait, elle, le vrai total serveur — deux chiffres
+   * contradictoires sur le meme ecran, le second fige a 100 des que le creneau
+   * depassait 100 livreurs. Le creneau etant HEBDOMADAIRE et le parc comptant environ
+   * 190 livreurs, le depassement est le cas normal, pas l'exception.</p>
+   */
+  totalLivreurs: number;
+  totalTickets: number;
 }
 
-export default function HistoriqueCreneauDetailLivreurs({ livreurs }: Props) {
-  const totalTickets = livreurs.reduce((s, l) => s + l.tickets, 0);
+export default function HistoriqueCreneauDetailLivreurs({ livreurs, totalLivreurs, totalTickets }: Props) {
+  // Les lignes 101 et suivantes ne sont pas rendues et rien ne le signalait. On le dit,
+  // sur la formulation deja employee par orientation-fonds-view.tsx.
+  const tronque = livreurs.length < totalLivreurs;
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
       <div className="px-5 py-4 border-b border-gray-100">
         <h2 className="text-sm font-semibold text-gray-900">Détail livreurs</h2>
         <p className="text-xs text-gray-400 mt-0.5">
-          {livreurs.length} livreurs · {totalTickets} tickets
+          {totalLivreurs} livreurs · {totalTickets} tickets
+          {tronque && (
+            <span className="ml-2 text-gray-400">{livreurs.length} affichés</span>
+          )}
         </p>
       </div>
 

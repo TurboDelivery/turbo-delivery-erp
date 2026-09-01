@@ -98,12 +98,18 @@ export function useRevenuePeriod({ period, date, startDate, endDate, initialData
     retry: 2
   });
 
+  // Les deux etats de la SECONDE requete etaient calcules puis jetes : le bloc de retour
+  // ne renvoyait que ceux de la premiere. L'appelant croyait donc lire l'etat du
+  // graphique mensuel alors qu'il lisait celui du total de la periode — une requete
+  // pouvait echouer pendant que l'autre reussissait, et l'ecran restait normal.
   return {
     revenueData,
     monthlyChartData,
     isLoading,
     isError,
     error,
-    refetch
+    refetch,
+    isMonthlyChartLoading,
+    isMonthlyChartError
   };
 }

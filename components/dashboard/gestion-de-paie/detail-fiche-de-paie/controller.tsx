@@ -11,7 +11,6 @@ export function useInitierPaiementController(details?: PaieParLivreur, isOpen?: 
     // vide, alors que le gain a payer existe et n'a pas pu etre lu.
     const [erreur, setErreur] = useState(false);
     const [chargement, setChargement] = useState(false);
-    const initierPaiementClosure = useDisclosure();
 
     const fetchDetailFichePaie = async () => {
         // remis a faux a chaque tentative pour ne pas afficher une panne resolue
@@ -45,7 +44,6 @@ export function useInitierPaiementController(details?: PaieParLivreur, isOpen?: 
     }
 
     return {
-        initierPaiementClosure,
         creneauDePaieClosure,
         detailFichePaie,
         onpenCrennauxDialog,
