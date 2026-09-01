@@ -54,7 +54,7 @@ export function EvolutionTable({ data }: EvolutionTableProps) {
           <p className="text-sm text-default-400 text-center py-6">Aucune évolution</p>
         ) : (
           data.map((row) => (
-            <div key={row.mois} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+            <div key={row.mois} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-semibold">{row.mois}</span>
                 {row.tendance === 'down'

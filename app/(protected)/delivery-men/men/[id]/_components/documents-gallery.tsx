@@ -85,7 +85,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+    <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-xs">
       <div className="mb-4 flex items-center justify-between">
         <SectionTitle>Documents du livreur</SectionTitle>
         <Chip size="sm" variant="flat" color="primary">
@@ -104,11 +104,11 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                   setZoom(false);
                   setOpenIndex(i);
                 }}
-                className="relative block aspect-[4/3] w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition-all hover:border-primary hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/40"
+                className="relative block aspect-4/3 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition-all hover:border-primary hover:shadow-md focus:outline-hidden focus:ring-2 focus:ring-primary/40"
                 aria-label={`Voir ${d.label}`}
               >
                 {pdf ? (
-                  <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-red-50 to-orange-50 text-red-500">
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-linear-to-br from-red-50 to-orange-50 text-red-500">
                     <FileText className="h-9 w-9" />
                     <span className="text-[11px] font-semibold uppercase tracking-wide">PDF</span>
                   </div>
@@ -116,7 +116,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                   <DocThumbnail url={d.url} label={d.label} />
                 )}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
-                  <span className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-800 shadow">
+                  <span className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-800 shadow-sm">
                     <Eye className="h-3.5 w-3.5" /> Agrandir
                   </span>
                 </div>
@@ -253,7 +253,7 @@ function DocThumbnail({ url, label }: { url: string; label: string }) {
   const [erreur, setErreur] = useState(false);
   if (erreur) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-blue-50 to-indigo-50 text-indigo-400">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-linear-to-br from-blue-50 to-indigo-50 text-indigo-400">
         <ImageIcon className="h-9 w-9" />
         <span className="px-2 text-center text-[10px] font-medium">Aperçu indisponible</span>
       </div>

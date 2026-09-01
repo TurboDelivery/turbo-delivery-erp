@@ -425,7 +425,7 @@ function ResetSelection({ ref }: ResetSelectionProps) {
     }
   }, [ref]);
 
-  return <button ref={ref} className="absolute w-0 h-0 opacity-0 -translate-x-[1000%]"></button>;
+  return <button ref={ref} className="absolute w-0 h-0 opacity-0 translate-x-[-1000%]"></button>;
 }
 ResetSelection.displayName = 'DataTableV2.ResetSelection';
 

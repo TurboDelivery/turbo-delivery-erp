@@ -127,7 +127,7 @@ export function JournalPanel() {
           label="Recherche"
           size="sm"
           placeholder="Libellé ou auteur…"
-          className="min-w-[12rem] flex-1"
+          className="min-w-48 flex-1"
           startContent={<Search className="h-4 w-4 text-default-400" />}
           value={filtre.keysearch}
           onValueChange={(v) => patch({ keysearch: v })}

@@ -32,7 +32,7 @@ export default function GrillePaiementSubmitFooter({
   const blocages = blocagesSoumission(waveManquants, lignesAValider);
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-sm ring-1 ring-gray-200 rounded-xl bg-white px-5 py-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-xs ring-1 ring-gray-200 rounded-xl bg-white px-5 py-4">
       <div className="text-sm">
         {blocages.length > 0 ? (
           <span className="flex items-center gap-2 text-amber-600">

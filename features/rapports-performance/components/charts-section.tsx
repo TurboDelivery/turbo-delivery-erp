@@ -73,7 +73,7 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
     const zone = payload[0].payload;
 
     return (
-      <div className="rounded-md border border-gray-200 bg-white p-2 shadow-sm">
+      <div className="rounded-md border border-gray-200 bg-white p-2 shadow-xs">
         <p className="text-xs font-medium text-gray-900">{zone.name}</p>
         <p className="text-xs text-gray-600">{zone.deliveries} livraisons</p>
       </div>

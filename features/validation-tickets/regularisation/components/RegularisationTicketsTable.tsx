@@ -191,7 +191,7 @@ export default function RegularisationTicketsTable() {
             return (
               <div
                 key={row.id}
-                className={`bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2 ${isFetching ? 'opacity-60' : ''}`}
+                className={`bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2 ${isFetching ? 'opacity-60' : ''}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">

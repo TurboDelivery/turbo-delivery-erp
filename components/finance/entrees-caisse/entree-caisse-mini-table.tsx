@@ -102,9 +102,9 @@ export function EntreeCaisseMiniTable() {
           <p className="text-sm text-gray-400 text-center py-6">Aucune entrée caisse</p>
         ) : (
           derniers5.map((entry) => (
-            <div key={entry.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+            <div key={entry.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{entry.libelle}</p>
+                <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{entry.libelle}</p>
                 <span className="text-sm font-semibold text-gray-900 shrink-0">{formatMontant(entry.montant)}</span>
               </div>
               <div className="flex items-center justify-between gap-3">

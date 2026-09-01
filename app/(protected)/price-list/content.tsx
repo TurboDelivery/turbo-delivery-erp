@@ -51,7 +51,7 @@ export default function Content() {
       </Tabs>
 
       <div className="flex flex-col mt-4">
-        <div className="flex items-center gap-4 border shadow rounded-xl py-3 px-4">
+        <div className="flex items-center gap-4 border shadow-sm rounded-xl py-3 px-4">
           <Select
             options={restaurantOptions}
             value={restaurantOptions.find((o) => o.value === selectedKey) ?? null}
@@ -135,7 +135,7 @@ export default function Content() {
             deliveryFees.map((fee) => (
               <div
                 key={fee.id}
-                className={`bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2 ${(fee.actif ?? true) ? '' : 'opacity-50'}`}
+                className={`bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2 ${(fee.actif ?? true) ? '' : 'opacity-50'}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">

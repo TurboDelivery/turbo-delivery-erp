@@ -38,7 +38,7 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-xs text-gray-400 shrink-0">{label}</span>
-      <span className="text-sm text-gray-700 text-right break-words">{value}</span>
+      <span className="text-sm text-gray-700 text-right wrap-break-word">{value}</span>
     </div>
   );
 }
@@ -49,7 +49,7 @@ export function FactureRecouvrementMobileCard({ facture }: { facture: IFacture }
   const hasContestation = facture.contestationActive > 0;
 
   return (
-    <div className={cn('bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2', hasContestation && 'bg-red-50 border-l-4 border-l-red-500')}>
+    <div className={cn('bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2', hasContestation && 'bg-red-50 border-l-4 border-l-red-500')}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-gray-900 truncate">{facture.restaurantName}</p>
@@ -84,9 +84,9 @@ export function FactureRecouvrementMobileCard({ facture }: { facture: IFacture }
 export function RecouvrementMobileCard({ recouvrement }: { recouvrement: IRecouvrement }) {
   const codes = recouvrement.factures?.length ? recouvrement.factures.map((f) => f.code).join(', ') : '-';
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{recouvrement.nomRestaurant || '-'}</p>
+        <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{recouvrement.nomRestaurant || '-'}</p>
         <span className="text-sm font-bold text-gray-900 shrink-0">{formatCFA(recouvrement.montant)}</span>
       </div>
       <Row label="Date" value={formatDate(recouvrement.dateRecouvrement)} />
@@ -100,9 +100,9 @@ export function RecouvrementMobileCard({ recouvrement }: { recouvrement: IRecouv
 
 export function AccompteMobileCard({ accompte }: { accompte: IAccompte }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{accompte.nomRestaurant || '-'}</p>
+        <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{accompte.nomRestaurant || '-'}</p>
         <span className="text-sm font-bold text-gray-900 shrink-0">
           {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(accompte.montant)}
         </span>
@@ -114,9 +114,9 @@ export function AccompteMobileCard({ accompte }: { accompte: IAccompte }) {
 
 export function RestaurantRecouvrementMobileCard({ restaurant }: { restaurant: IRestaurantRecouvrement }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{restaurant.nomRestaurant}</p>
+        <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{restaurant.nomRestaurant}</p>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button size="icon" variant="outline" className="shrink-0">

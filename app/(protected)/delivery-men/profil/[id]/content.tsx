@@ -282,7 +282,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
                         <select
                             value={formData.type}
                             onChange={e => handleChange("type", e.target.value)}
-                            className="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                            className="px-4 py-2 border rounded-md focus:outline-hidden focus:ring-2 focus:ring-red-400"
                         >
                             <option value="TURBO">TURBO</option>
                             <option value="FREE">FREE</option>

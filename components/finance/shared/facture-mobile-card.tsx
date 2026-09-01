@@ -36,7 +36,7 @@ export function FactureMobileCard({
 }) {
   return (
     <div
-      className={`bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-3 ${onClick ? 'cursor-pointer active:bg-gray-50' : ''}`}
+      className={`bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-3 ${onClick ? 'cursor-pointer active:bg-gray-50' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">

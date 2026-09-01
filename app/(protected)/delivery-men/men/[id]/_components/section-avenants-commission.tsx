@@ -36,7 +36,7 @@ export function SectionAvenantsCommission({
   }
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
       <SectionTitle>Commission &amp; Avenants</SectionTitle>
 
       {/* Commission */}
@@ -101,7 +101,7 @@ export function SectionAvenantsCommission({
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
                   >
                     <X className="w-3 h-3" />
                   </button>

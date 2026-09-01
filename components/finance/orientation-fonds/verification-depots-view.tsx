@@ -154,7 +154,7 @@ export default function VerificationDepotsView() {
         )}
 
         {/* Section A — orientés banque */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <section className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
             <Landmark className="w-4 h-4 text-indigo-500" />
             <p className="font-semibold text-gray-900">Recouvrements orientés banque</p>
@@ -209,7 +209,7 @@ export default function VerificationDepotsView() {
         </section>
 
         {/* Section B — conservés en caisse */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <section className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
             <PiggyBank className="w-4 h-4 text-amber-500" />
             <p className="font-semibold text-gray-900">Recouvrements conservés en caisse</p>
@@ -266,7 +266,7 @@ export default function VerificationDepotsView() {
 
       {/* Registre des attestations de caisse */}
       {attestations && attestations.length > 0 && (
-        <section className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <section className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             <p className="font-semibold text-gray-900">Attestations de comptage physique</p>

@@ -87,7 +87,7 @@ function BulleMessage({ message }: { message: IMessagePartenaire }) {
             Course {message.courseId.slice(0, 8)}
           </p>
         )}
-        <p className="whitespace-pre-wrap break-words text-sm">{message.contenu}</p>
+        <p className="whitespace-pre-wrap wrap-break-word text-sm">{message.contenu}</p>
         <p
           className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${
             estStandard ? 'text-white/70' : 'text-default-400'

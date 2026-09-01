@@ -524,7 +524,7 @@ export function FinanceHubView() {
           {TABS.map((t) => {
             const c = countFor(t.k);
             return (
-              <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-content1 text-foreground shadow-sm ring-1 ring-default-200' : 'text-default-500 hover:text-foreground'}`}>
+              <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-content1 text-foreground shadow-xs ring-1 ring-default-200' : 'text-default-500 hover:text-foreground'}`}>
                 {t.label}{c != null && <span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-primary/10 text-primary' : 'bg-default-100 text-default-500'}`}>{c}</span>}
               </button>
             );

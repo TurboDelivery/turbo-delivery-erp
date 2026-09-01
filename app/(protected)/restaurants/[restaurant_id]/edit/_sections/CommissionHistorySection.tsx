@@ -198,7 +198,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
           {/* Mobile : cartes */}
           <div className="md:hidden space-y-3">
             {list.map((v) => (
-              <div key={v.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+              <div key={v.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-xs text-gray-400">{formatType(v.type)}</p>

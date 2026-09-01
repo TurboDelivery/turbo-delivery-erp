@@ -58,7 +58,7 @@ function PaginationBlock({
       )}
 
       <nav
-        className="flex items-center gap-1 rounded-xl border border-border bg-background/60 p-1 shadow-sm backdrop-blur-sm"
+        className="flex items-center gap-1 rounded-xl border border-border bg-background/60 p-1 shadow-xs backdrop-blur-xs"
         aria-label="Pagination"
       >
         {/* Première page */}

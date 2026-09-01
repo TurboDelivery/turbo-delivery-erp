@@ -344,7 +344,7 @@ export default function GrillePaiementContent() {
               onChange={(e) => setMotifReouverture(e.target.value)}
               rows={3}
               placeholder="Exemple : tickets du samedi non saisis, semaine rouverte pour les ajouter avant clôture."
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-amber-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-hidden focus:border-amber-500"
             />
             <span
               className={

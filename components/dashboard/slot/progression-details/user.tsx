@@ -29,7 +29,7 @@ function User({ user, dataCreneau, exerianceLivreur }: props) {
 
                 <Image src={createUrlFile(user?.avatarUrl ?? '', "backend")} alt="Photo de profil" layout="fill" objectFit="cover" />
             </Card>
-            <div className="flex justify-between  flex-grow">
+            <div className="flex justify-between  grow">
                 <div className="w-1/3 flex flex-col gap-2  border-r px-6 border-black">
                     <div className=" flex justify-between">
                         <span>Nom</span>

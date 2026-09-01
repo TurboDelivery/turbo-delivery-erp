@@ -286,7 +286,7 @@ function Cadre({ children, reference }: { children: React.ReactNode; reference?:
             {reference && <p className="text-xs text-gray-400">Course {reference}</p>}
           </div>
         </div>
-        <div className="flex flex-col gap-4 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">{children}</div>
+        <div className="flex flex-col gap-4 rounded-3xl border border-gray-100 bg-white p-5 shadow-xs">{children}</div>
       </div>
     </div>
   );

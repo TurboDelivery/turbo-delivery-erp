@@ -21,12 +21,12 @@ export default function UserRestaurantListe({ turboysCreneau }: { turboysCreneau
     return (
         <div className="relative mb-6 text-slate-500">
             <div className="relative mb-6">
-                <h2 className="text-lg font-semibold bg-white text-center w-full rounded-md shadow py-2 mb-2">RESTAURANT(S) AYANT DES TURBOYS AVEC CRENEAU HORAIRE</h2>
+                <h2 className="text-lg font-semibold bg-white text-center w-full rounded-md shadow-sm py-2 mb-2">RESTAURANT(S) AYANT DES TURBOYS AVEC CRENEAU HORAIRE</h2>
                 <div className="relative flex items-center flex-col gap-1 rounded-md overflow-auto">
                     {
                         turboysCreneau.map((restaurant, index) => {
                             return (
-                                <div key={index} className="w-full bg-white shadow flex flex-col md:flex-row gap-4 border-2 rounded-md">
+                                <div key={index} className="w-full bg-white shadow-sm flex flex-col md:flex-row gap-4 border-2 rounded-md">
                                     <div className="relative w-full md:w-[180px] flex flex-col items-center text-center space-y-2 p-3">
                                         {/* Logo */}
                                         <Avatar
@@ -43,7 +43,7 @@ export default function UserRestaurantListe({ turboysCreneau }: { turboysCreneau
                                         <p className="text-lg font-semibold">{restaurant.nombreLivreur}</p>
                                     </div>
 
-                                    <div className="flex-grow border-t-2 md:border-t-0 md:border-l-2 ">
+                                    <div className="grow border-t-2 md:border-t-0 md:border-l-2 ">
                                         <div className="flex flex-col py-2 divide-y md:divide-y-0">
                                             {restaurant.livreurs.map((child) => {
                                                 return (

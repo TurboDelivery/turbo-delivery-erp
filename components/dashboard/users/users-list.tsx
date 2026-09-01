@@ -116,7 +116,7 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
             <p className="py-10 text-center text-sm text-gray-400">Aucun utilisateur trouvé</p>
           ) : (
             paginatedItems.map((user: User) => (
-              <div key={user.id} className="space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+              <div key={user.id} className="space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-2">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">{user.nom[0]}</div>
@@ -154,8 +154,8 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
         <div className="mt-5 grid w-full grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {paginatedItems.map((user: User) => {
             return (
-              <div className="relative overflow-hidden rounded-md bg-white text-center shadow dark:bg-[#1c232f]" key={user.id}>
-                <div className="relative overflow-hidden rounded-md bg-white text-center shadow dark:bg-[#1c232f]">
+              <div className="relative overflow-hidden rounded-md bg-white text-center shadow-sm dark:bg-[#1c232f]" key={user.id}>
+                <div className="relative overflow-hidden rounded-md bg-white text-center shadow-sm dark:bg-[#1c232f]">
                   <div className="rounded-t-md bg-white/40 bg-[url('/assets/images/notification-bg.png')] bg-cover bg-center p-6 pb-0">
                     <div className="mx-auto h-20 w-20 rounded-full bg-primary text-3xl font-bold text-white flex items-center justify-center">{user.nom[0]}</div>
                   </div>

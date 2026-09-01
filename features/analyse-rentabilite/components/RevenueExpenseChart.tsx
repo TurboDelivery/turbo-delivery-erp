@@ -34,7 +34,7 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
       }));
   }, [dailyStats]);
   return (
-    <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+    <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-xs">
       <h2 className="text-lg font-semibold text-gray-800 mb-6">
         Évolution CA vs Dépenses
       </h2>

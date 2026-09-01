@@ -175,7 +175,7 @@ export default function HistoriqueCreneauxContent() {
             return (
               <div
                 key={creneau.id}
-                className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2"
+                className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">

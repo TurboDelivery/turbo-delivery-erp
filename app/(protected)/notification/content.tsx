@@ -121,7 +121,7 @@ export function NotificationContent() {
       </div>
 
       {/* Filtres */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm mb-4">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs mb-4">
         <div className="flex flex-wrap items-end gap-3">
           <Input
             className="flex-1 min-w-[200px]"

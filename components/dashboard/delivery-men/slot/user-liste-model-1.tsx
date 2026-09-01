@@ -18,7 +18,7 @@ export default function UserListeModel1({ turboy }: props) {
         <span className="relative flex items-center">
             {turboy.disponibilite ? <IconPointFilled color="#16B84E" size={30} /> : <IconPointFilled color="#FF0000" size={30} />}
             {turboy.disponibilite ? (
-                <span className="absolute -top-[3px] inline-flex h-full w-full animate-ping duration-3000 rounded-full bg-success/50 opacity-75 ltr:-left-[3px] rtl:-right-[3px]"></span>
+                <span className="absolute top-[-3px] inline-flex h-full w-full animate-ping duration-3000 rounded-full bg-success/50 opacity-75 ltr:left-[-3px] rtl:right-[-3px]"></span>
             ) : (
                 ''
             )}
@@ -30,7 +30,7 @@ export default function UserListeModel1({ turboy }: props) {
             {/* Ligne dense — desktop uniquement (≥ md) */}
             <div className="hidden md:block overflow-x-auto overflow-y-hidden hide-scrollbar">
                 <div key={turboy.id} className="bg-white w-full min-w-[1000px] flex items-center border-2 rounded-md">
-                    <div className="flex-shrink-0 py-2 px-4 flex-1 flex lg:justify-between gap-2 items-center rounded-md">
+                    <div className="shrink-0 py-2 px-4 flex-1 flex lg:justify-between gap-2 items-center rounded-md">
                         <div className="max-w-[300px] flex items-center w-1/2 gap-2">
                             <Avatar isBordered radius="full" size="md" src={turboy?.avatar ? createUrlFile(turboy?.avatar ?? '', 'backend') : 'assets/images/avatar.png'} />
                             <p className="font-semibold">{turboy.nomComplet}</p>
@@ -38,7 +38,7 @@ export default function UserListeModel1({ turboy }: props) {
                         <p className="w-1/2 text-sm text-gray-500">Inscrit le : {turboy.dateInscrit ? formatDate(turboy.dateInscrit, 'DD/MM/YYYY') : '-'}</p>
                     </div>
 
-                    <div className="flex-shrink-0 pr-8 flex-1 flex lg:justify-between items-center">
+                    <div className="shrink-0 pr-8 flex-1 flex lg:justify-between items-center">
                         <p className="text-sm text-gray-500 mr-3">Défini le : {turboy.dateDefiniEmploiTemps ? formatDate(turboy.dateDefiniEmploiTemps, 'DD/MM/YYYY') : '-'}</p>
                         <div className="relative flex gap-2">
                             {progresseBare(turboy)}
@@ -53,7 +53,7 @@ export default function UserListeModel1({ turboy }: props) {
             </div>
 
             {/* Carte tactile — mobile (< md), mêmes données / handlers que la ligne */}
-            <div className="md:hidden bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+            <div className="md:hidden bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
                 <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                         <Avatar isBordered radius="full" size="sm" src={turboy?.avatar ? createUrlFile(turboy?.avatar ?? '', 'backend') : 'assets/images/avatar.png'} />

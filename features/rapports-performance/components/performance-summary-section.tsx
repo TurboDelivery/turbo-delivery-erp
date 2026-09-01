@@ -21,7 +21,7 @@ export function PerformanceSummarySection({
     <Card>
       <CardBody className="p-6 bg-orange-50">
         <div className="flex items-start gap-3">
-          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center shrink-0">
             <AlertCircle className="w-4 h-4 text-white" />
           </div>
           <div>

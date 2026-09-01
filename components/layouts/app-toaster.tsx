@@ -20,7 +20,7 @@ function DismissAllButton() {
       type="button"
       onClick={() => toast.dismiss()}
       aria-label={`Fermer les ${toasts.length} notifications`}
-      className="fixed bottom-2 left-4 z-[9999] flex items-center gap-1.5 rounded-full border bg-background/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-md backdrop-blur transition hover:bg-muted active:scale-95"
+      className="fixed bottom-2 left-4 z-9999 flex items-center gap-1.5 rounded-full border bg-background/95 px-3 py-1.5 text-xs font-medium text-foreground shadow-md backdrop-blur-sm transition hover:bg-muted active:scale-95"
     >
       <X className="size-3.5" />
       Tout fermer ({toasts.length})

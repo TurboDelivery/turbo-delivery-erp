@@ -251,7 +251,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
         <Tab key="profil" title={<TabTitle icon={<Building2 className="w-4 h-4" />}>Profil</TabTitle>}>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
             {/* ── Informations générales ── */}
-            <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
               <SectionTitle>Informations générales</SectionTitle>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Controller
@@ -360,7 +360,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
             </section>
 
             {/* ── Configuration financière ── */}
-            <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
               <SectionTitle>Configuration financière</SectionTitle>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Controller
@@ -416,7 +416,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
             </section>
 
             {/* ── Compte du partenaire ── */}
-            <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
               <SectionTitle>Compte du partenaire</SectionTitle>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
@@ -457,7 +457,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
         {/* ── Horaires & documents ── */}
         <Tab key="horaires" title={<TabTitle icon={<CalendarClock className="w-4 h-4" />}>Horaires &amp; documents</TabTitle>}>
           <div className="flex flex-col gap-8">
-            <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
               <SectionTitle>Horaires d&apos;ouverture</SectionTitle>
               {(() => {
                 const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
@@ -494,7 +494,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
               })()}
             </section>
 
-            <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
               <SectionTitle>Documents</SectionTitle>
               {hasDocuments ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

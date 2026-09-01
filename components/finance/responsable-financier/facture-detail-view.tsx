@@ -133,11 +133,11 @@ export default function FactureDetailView({ facture }: Props) {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
           <p className="text-xs text-gray-500 mb-1">Montant total</p>
           <p className="text-2xl font-bold text-red-500">{formatMontant(facture.montant)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
           <p className="text-xs text-gray-500 mb-1">Recouvré</p>
           <p className="text-2xl font-bold text-gray-900">{formatMontant(recouvre)}</p>
           <div className="mt-3 space-y-1">
@@ -150,7 +150,7 @@ export default function FactureDetailView({ facture }: Props) {
             <p className="text-xs text-gray-400">{pct}% du montant</p>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
           <p className="text-xs text-gray-500 mb-1">Reste à recouvrer</p>
           <p className={`text-2xl font-bold ${restant > 0 ? 'text-red-500' : 'text-gray-900'}`}>{formatMontant(restant)}</p>
         </div>
@@ -159,7 +159,7 @@ export default function FactureDetailView({ facture }: Props) {
       {/* Body: timeline + infos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Timeline */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-semibold text-gray-800">Historique des statuts</h2>
             <button className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors">
@@ -172,7 +172,7 @@ export default function FactureDetailView({ facture }: Props) {
               <li key={i} className="relative pl-6">
                 {/* Dot */}
                 <span
-                  className={`absolute -left-[13px] w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-sm ${
+                  className={`absolute left-[-13px] w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-xs ${
                     item.isPending ? 'bg-gray-200' : item.isCurrent ? 'bg-green-500' : 'bg-green-400'
                   }`}
                 >
@@ -202,7 +202,7 @@ export default function FactureDetailView({ facture }: Props) {
         </div>
 
         {/* Infos */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm space-y-4">
+        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs space-y-4">
           <h2 className="font-semibold text-gray-800">Informations</h2>
           <dl className="space-y-3 text-sm">
             {[
@@ -215,7 +215,7 @@ export default function FactureDetailView({ facture }: Props) {
               ['Agent recouvreur', facture.agent],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between gap-4">
-                <dt className="text-gray-400 flex-shrink-0">{label}</dt>
+                <dt className="text-gray-400 shrink-0">{label}</dt>
                 <dd className="text-gray-900 font-medium text-right">{value}</dd>
               </div>
             ))}
@@ -229,7 +229,7 @@ export default function FactureDetailView({ facture }: Props) {
             A aucun moment on voit les trois types de preuve pour chaque facture.
             Peux-tu rendre ça visible ici" → Section dédiée + indicateurs clairs
             des preuves disponibles vs en attente de migration backend. */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm space-y-4 md:col-span-2 lg:col-span-1">
+        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs space-y-4 md:col-span-2 lg:col-span-1">
           <h2 className="font-semibold text-gray-800">Preuves &amp; Documents</h2>
           <div className="space-y-3 text-sm">
             {/* Preuve 1 : Dépôt partenaire — actuellement date + agent seuls

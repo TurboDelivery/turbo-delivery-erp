@@ -33,7 +33,7 @@ const Content = ({ className }: {
                     </span>
                 }
             >
-                <ul className="lg:w-[600px] xl:w-[600px] divide-y !py-0 text-dark dark:divide-white/10 dark:text-white-dark sm:w-[350px] !shadow-xl">
+                <ul className="lg:w-[600px] xl:w-[600px] divide-y py-0! text-dark dark:divide-white/10 dark:text-white-dark sm:w-[350px] shadow-xl!">
                     <li onClick={(e) => e.stopPropagation()}>
                         <div className="flex-wrap lg:flex xl:flex items-center justify-between px-4 py-2 font-semibold">
                             <h4 className="text-lg text-red-500 font-bold">Notification</h4>
@@ -61,7 +61,7 @@ const Content = ({ className }: {
                                                         {
                                                             notification.lien &&
                                                             <div className='flex justify-between items-center'>
-                                                                <Button className='h-8 mt-2 mb-2 py-2 rounded-full bg-gradient-to-r from-red-600 to-red-500'>
+                                                                <Button className='h-8 mt-2 mb-2 py-2 rounded-full bg-linear-to-r from-red-600 to-red-500'>
                                                                     <Link href={notification.lien ? notification.lien : "#"}>
                                                                         {notification.type?.toString()
                                                                             .toLocaleLowerCase()

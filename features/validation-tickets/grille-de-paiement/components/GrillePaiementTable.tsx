@@ -97,7 +97,7 @@ function WaveCell({ ligne, onUpdateWave }: { ligne: IGrillePaiementLigne; onUpda
           if (e.key === 'Escape') { setDraft(ligne.numeroWave ?? ''); setEditing(false); }
         }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-sm text-gray-800 outline-none focus:ring-1 focus:ring-blue-400"
+        className="w-full rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-sm text-gray-800 outline-hidden focus:ring-1 focus:ring-blue-400"
         placeholder="N° Wave…"
         
       />
@@ -435,7 +435,7 @@ export default function GrillePaiementTable({
                 key={ligne.turboy.id}
                 onClick={() => onRowClick(ligne)}
                 className={cn(
-                  'bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2 cursor-pointer active:bg-gray-50',
+                  'bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2 cursor-pointer active:bg-gray-50',
                   ligne.flagAttente && 'border-amber-200 bg-amber-50 active:bg-amber-100',
                 )}
               >

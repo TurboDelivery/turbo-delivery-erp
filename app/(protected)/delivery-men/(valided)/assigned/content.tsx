@@ -157,7 +157,7 @@ export default function Content({ initialData, restaurants }: Props) {
                     {/* Mobile — cartes tactiles (mêmes données / handlers que le tableau via renderCell) */}
                     <div className="md:hidden space-y-3">
                         {rows.map((row: any) => (
-                            <div key={row?.livreurId} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                            <div key={row?.livreurId} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
                                 <div className="min-w-0">{renderCell(row, 'nom')}</div>
                                 <div className="flex items-center justify-between gap-3">
                                     <span className="text-xs text-gray-400 shrink-0">Date d&apos;inscription</span>
@@ -184,7 +184,7 @@ export default function Content({ initialData, restaurants }: Props) {
             <ConfirmDialog {...livreurAssigneCtrl.confirm} />
 
             <div className="flex h-fit z-10 justify-center mt-8 fixed bottom-4">
-                <div className="bg-gray-200 absolute inset-0 w-full h-full blur-sm opacity-50"></div>
+                <div className="bg-gray-200 absolute inset-0 w-full h-full blur-xs opacity-50"></div>
                 <Pagination 
                     total={livreurAssigneCtrl.data?.totalPages ?? 1} 
                     page={livreurAssigneCtrl.currentPage}

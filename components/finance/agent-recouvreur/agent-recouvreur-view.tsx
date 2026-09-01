@@ -190,7 +190,7 @@ export default function AgentRecouvreurView() {
       </GrilleStats>
 
       {/* Filtres */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm space-y-3">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs space-y-3">
         <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
           <span>▼</span> Filtres
         </div>
@@ -267,7 +267,7 @@ export default function AgentRecouvreurView() {
       )}
 
       {/* Table — desktop uniquement (≥ md) */}
-      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
         <div className="flex items-center justify-between gap-4 px-5 py-4 border-b border-gray-100">
           <div>
             <p className="text-sm font-semibold text-gray-800">Suivi des factures</p>
@@ -330,7 +330,7 @@ export default function AgentRecouvreurView() {
 
       {/* Barre d'action lot — mobile */}
       {facturesSelection.length > 0 && (
-        <div className="md:hidden sticky top-2 z-20 flex items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 shadow-sm">
+        <div className="md:hidden sticky top-2 z-20 flex items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 shadow-xs">
           <span className="text-xs text-gray-600">
             {facturesSelection.length} · <span className="font-semibold">{formatMontant(totalSelection)}</span>
           </span>
@@ -374,7 +374,7 @@ export default function AgentRecouvreurView() {
                 <input
                   type="checkbox"
                   aria-label="Sélectionner la facture"
-                  className="mt-4 h-4 w-4 flex-shrink-0 rounded border-gray-300 accent-green-600 cursor-pointer"
+                  className="mt-4 h-4 w-4 shrink-0 rounded border-gray-300 accent-green-600 cursor-pointer"
                   checked={row.getIsSelected()}
                   onChange={row.getToggleSelectedHandler()}
                 />

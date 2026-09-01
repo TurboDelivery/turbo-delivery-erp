@@ -79,7 +79,7 @@ export default function Content({ initialData, restaurants }: Props) {
     <div className="p-6 pt-0 flex-wrap">
       <SearchField searchKey={livreurNonAssingeCtrl.searchKey} onChange={livreurNonAssingeCtrl.setSearchKey} />
       <div className="bg-white rounded-lg overflow-x-auto lg:overflow-hidden xl:overflow-hidden md:overflow-x-auto ms:overflow-x-auto">
-        <div className="bg-white rounded-lg overflow-x-auto py-4 shadow">
+        <div className="bg-white rounded-lg overflow-x-auto py-4 shadow-sm">
           {/* L'echec prend la place des donnees : affiche a cote, il cohabiterait
               avec « Aucun livreur » et l'ecran se contredirait. */}
           {livreurNonAssingeCtrl.isError ? (
@@ -117,7 +117,7 @@ export default function Content({ initialData, restaurants }: Props) {
               {/* Mobile — cartes tactiles (mêmes données / handlers via renderNonAssignedCell) */}
               <div className="md:hidden space-y-3 px-4">
                 {rows.map((row: any) => (
-                  <div key={row.livreurId} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                  <div key={row.livreurId} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
                     <div className="min-w-0">{renderNonAssignedCell(row, 'nom')}</div>
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-xs text-gray-400 shrink-0">Date d&apos;inscription</span>

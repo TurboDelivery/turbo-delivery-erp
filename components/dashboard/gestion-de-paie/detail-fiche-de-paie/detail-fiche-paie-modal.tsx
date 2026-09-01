@@ -52,7 +52,7 @@ export function DetailFichePaieModal({ isOpen, onClose, details, periode, nonEli
                                             </div>
                                             {
                                                 nonEligible ?
-                                                    <Chip className="bg-purple-100 text-purple-800  ml-2 mr-2"><span className="font-[900]">A encaissé</span></Chip>
+                                                    <Chip className="bg-purple-100 text-purple-800  ml-2 mr-2"><span className="font-black">A encaissé</span></Chip>
                                                     :
                                                     <Chip className="bg-yellow-50 text-orange-500 font-bold">Paie en attente</Chip>
                                             }

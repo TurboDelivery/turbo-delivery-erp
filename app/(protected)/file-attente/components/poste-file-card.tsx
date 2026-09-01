@@ -27,8 +27,8 @@ export function PosteFileCard({ poste, maintenant }: { poste: PosteFileVue; main
 
   const pastille = poste.desert ? 'bg-[#E11D48]/10 text-[#E11D48]' : 'bg-[#1AA05A]/10 text-[#1AA05A]';
   const etat = poste.desert
-    ? 'bg-[#E11D48]/[0.12] text-[#E11D48]'
-    : 'bg-[#1AA05A]/[0.12] text-[#1AA05A]';
+    ? 'bg-[#E11D48]/12 text-[#E11D48]'
+    : 'bg-[#1AA05A]/12 text-[#1AA05A]';
 
   return (
     <article className="flex flex-col rounded-2xl border border-default-200/50 bg-white p-4 dark:bg-content1">
@@ -54,8 +54,8 @@ export function PosteFileCard({ poste, maintenant }: { poste: PosteFileVue; main
       </header>
 
       {poste.desert ? (
-        <div className="mt-3 flex items-start gap-2 rounded-xl border border-dashed border-[#E11D48]/35 bg-[#E11D48]/[0.05] p-3">
-          <AlertTriangle className="mt-[1px] h-4 w-4 shrink-0 text-[#E11D48]" />
+        <div className="mt-3 flex items-start gap-2 rounded-xl border border-dashed border-[#E11D48]/35 bg-[#E11D48]/5 p-3">
+          <AlertTriangle className="mt-px h-4 w-4 shrink-0 text-[#E11D48]" />
           <p className="text-xs leading-relaxed text-default-600">
             Personne n&apos;attend sur ce poste : aucun livreur n&apos;a pointé sa montée, ou tous
             se sont mis en pause ou ont pointé leur fin de service.{' '}

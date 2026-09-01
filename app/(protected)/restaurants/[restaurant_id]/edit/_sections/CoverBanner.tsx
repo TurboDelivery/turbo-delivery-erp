@@ -36,7 +36,7 @@ export function CoverBanner({
         )}
         <button
           type="button"
-          className="absolute top-3 right-3 flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm hover:border-primary hover:text-primary transition-colors"
+          className="absolute top-3 right-3 flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-700 shadow-xs hover:border-primary hover:text-primary transition-colors"
           onClick={(e) => { e.stopPropagation(); coverRef.current?.click(); }}
         >
           <ImagePlus className="w-3.5 h-3.5" />
@@ -48,7 +48,7 @@ export function CoverBanner({
       {/* Logo */}
       <div className="absolute left-4 -bottom-10">
         <div
-          className="w-16 h-16 rounded-xl border-2 border-white bg-gray-200 overflow-hidden cursor-pointer shadow"
+          className="w-16 h-16 rounded-xl border-2 border-white bg-gray-200 overflow-hidden cursor-pointer shadow-sm"
           onClick={() => logoRef.current?.click()}
         >
           {logoPreview ? (

@@ -210,7 +210,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
       </div>
 
       {/* ── Timeline ── */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-4 mb-6">
+      <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-4 mb-6">
         <Timeline statut={course.statut} />
       </div>
 
@@ -225,7 +225,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
             const recup = mapsUrl(cmd.lieuRecuperation);
             const livr = mapsUrl(cmd.lieuLivraison);
             return (
-              <div key={cmd.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <div key={cmd.id} className="bg-white rounded-xl border border-gray-100 shadow-xs p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                   <span className="font-mono text-sm font-semibold text-gray-800">{cmd.numero}</span>
                   <CommandeStatutChip statut={cmd.statut} />
@@ -293,7 +293,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
         {/* ── Colonne latérale ── */}
         <div className="flex flex-col gap-4">
           {/* Partenaire */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-5">
             <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <Store className="w-4 h-4 text-primary" />
               Partenaire
@@ -324,7 +324,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
           </div>
 
           {/* Livreur */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-5">
             <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <BikeIcon className="w-4 h-4 text-primary" />
               Livreur
@@ -355,7 +355,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
           </div>
 
           {/* Récapitulatif */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-5">
             <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <Wallet className="w-4 h-4 text-primary" />
               Récapitulatif

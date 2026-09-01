@@ -388,9 +388,9 @@ export default function FinancialReport() {
                 <p className="text-sm text-gray-400 text-center py-10">Aucune dépense variable sur la période</p>
               ) : (
                 variableExpenses.map((expense, index) => (
-                  <div key={index} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                  <div key={index} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{expense.designation}</p>
+                      <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{expense.designation}</p>
                       <span className="text-sm font-semibold text-gray-900 shrink-0">{expense.amount}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">

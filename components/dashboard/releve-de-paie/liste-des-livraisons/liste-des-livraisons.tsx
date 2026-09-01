@@ -36,7 +36,7 @@ function LivraisonsMobileCards() {
                     <Link
                         key={index}
                         href={`/analystics/pay-slip/${item.id}/details`}
-                        className="block space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-sm active:bg-red-50"
+                        className="block space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-xs active:bg-red-50"
                     >
                         <div className="flex items-start justify-between gap-2">
                             <span className="flex items-center gap-2 text-sm font-semibold text-gray-900">

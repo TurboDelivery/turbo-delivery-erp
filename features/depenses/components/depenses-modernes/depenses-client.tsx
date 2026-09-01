@@ -154,7 +154,7 @@ export default function DepensesModernesClient() {
                     </Card>
                 ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
+                    <Card className="bg-linear-to-r from-red-50 to-red-100 border-red-200">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -176,7 +176,7 @@ export default function DepensesModernesClient() {
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+                    <Card className="bg-linear-to-r from-orange-50 to-orange-100 border-orange-200">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -198,7 +198,7 @@ export default function DepensesModernesClient() {
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+                    <Card className="bg-linear-to-r from-purple-50 to-purple-100 border-purple-200">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>

@@ -74,7 +74,7 @@ export function TableauDePaie({ datas, periode, searchKey }: TableauDePaieProps)
                         <div
                             key={index}
                             onClick={() => ctrl.openDetailModal(item)}
-                            className="cursor-pointer space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-sm active:bg-primary/5"
+                            className="cursor-pointer space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-xs active:bg-primary/5"
                         >
                             <div className="flex items-start justify-between gap-2">
                                 <div className="flex min-w-0 items-center gap-2">
@@ -134,7 +134,7 @@ export function TableauDePaie({ datas, periode, searchKey }: TableauDePaieProps)
             </div>
 
             <div className="flex h-fit z-10 justify-center mt-8 fixed bottom-4">
-                <div className="bg-gray-200 absolute inset-0 w-full h-full blur-sm opacity-50"></div>
+                <div className="bg-gray-200 absolute inset-0 w-full h-full blur-xs opacity-50"></div>
                 <Pagination total={1} page={1} onChange={() => ""} showControls color="primary" variant="bordered" isDisabled={false} />
             </div>
             <DetailFichePaieModal onClose={ctrl.onClose} isOpen={ctrl.isOpen} details={ctrl.details} periode={periode} nonEligible={ctrl.nonEligible} />

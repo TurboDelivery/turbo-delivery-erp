@@ -134,7 +134,7 @@ export default function FileAttenteContent() {
 
       {universeIncomplet && !isLoading && (
         <div className="mt-3 flex items-start gap-2 rounded-2xl border border-warning-200 bg-warning-50/70 p-3 text-xs text-default-600 dark:border-warning-500/30 dark:bg-warning-500/10">
-          <AlertTriangle size={15} className="mt-[1px] shrink-0 text-warning-600" />
+          <AlertTriangle size={15} className="mt-px shrink-0 text-warning-600" />
           <p>
             La liste des postes n&apos;a pas pu être lue : seuls les partenaires ayant au moins un
             livreur en file sont affichés. Le compte des postes sans livreur est donc incomplet.
@@ -144,7 +144,7 @@ export default function FileAttenteContent() {
 
       {isError && !isLoading && (
         <div className="mt-3 flex items-start gap-2 rounded-2xl border border-danger-200 bg-danger-50/70 p-3 text-xs text-default-600 dark:border-danger-500/30 dark:bg-danger-500/10">
-          <AlertTriangle size={15} className="mt-[1px] shrink-0 text-danger-600" />
+          <AlertTriangle size={15} className="mt-px shrink-0 text-danger-600" />
           <p>
             La file d&apos;attente n&apos;a pas pu être relue. L&apos;écran montre la dernière
             situation connue — ne l&apos;utilisez pas pour arbitrer une affectation avant de

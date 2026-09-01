@@ -452,7 +452,7 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
   const webhookList = useMemo(() => webhooks ?? [], [webhooks]);
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
       <h2 className="text-base font-semibold text-primary mb-1">Intégration</h2>
       <p className="text-sm text-gray-500 mb-6">
         Connectez la solution de ce partenaire à Turbo : clé d&apos;accès, endpoint de création de course,

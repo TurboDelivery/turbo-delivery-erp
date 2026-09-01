@@ -22,7 +22,7 @@ export function SectionVehicule({
   onVehicleChange,
 }: SectionVehiculeProps) {
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
       <SectionTitle>Informations du véhicule</SectionTitle>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
         <Controller

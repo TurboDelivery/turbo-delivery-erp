@@ -40,7 +40,7 @@ export default function GrilleTarifaireSection({ restaurantId }: { restaurantId:
   }, [data, search]);
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
         <h2 className="text-base font-semibold text-primary">Grille tarifaire</h2>
         <Chip size="sm" variant="flat">

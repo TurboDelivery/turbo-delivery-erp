@@ -14,10 +14,10 @@ export const metadata: Metadata = {
 export default function NotFound() {
     const router = useRouter();
     return (
-        <div className="h-screen w-full flex items-center justify-center bg-gradient-to-b from-background to-muted">
+        <div className="h-screen w-full flex items-center justify-center bg-linear-to-b from-background to-muted">
             <div className="text-center space-y-8 px-4">
                 <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-4">
-                    <h1 className="text-9xl font-bold tracking-tighter bg-gradient-to-r from-primary to-yellow-600 text-transparent bg-clip-text">404</h1>
+                    <h1 className="text-9xl font-bold tracking-tighter bg-linear-to-r from-primary to-yellow-600 text-transparent bg-clip-text">404</h1>
                     <h2 className="text-4xl font-semibold text-foreground">Page non trouvée</h2>
                 </motion.div>
 

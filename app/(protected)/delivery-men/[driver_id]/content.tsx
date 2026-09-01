@@ -59,7 +59,7 @@ export default function Content({ driver }: { driver: DeliveryMan | null }) {
                             <div>
                                 <p className="text-sm font-medium mb-2">Photo de la pièce</p>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="relative aspect-[4/3] rounded-lg overflow-hidden">
+                                    <div className="relative aspect-4/3 rounded-lg overflow-hidden">
                                         <Image src={createUrlFile(driver?.cniUrlR ?? '', 'backend')} alt={`Photo de la pièce Recto`} fill className="object-cover" />
                                         <Image src={createUrlFile(driver?.cniUrlV ?? '', 'backend')} alt={`Photo de la pièce Verso`} fill className="object-cover" />
                                     </div>

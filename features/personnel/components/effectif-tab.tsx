@@ -165,7 +165,7 @@ export function EffectifTab() {
         <Input
           label="Recherche"
           size="sm"
-          className="min-w-[14rem] flex-1"
+          className="min-w-56 flex-1"
           placeholder="Nom, matricule, poste…"
           startContent={<Search className="h-4 w-4 text-default-400" />}
           value={recherche}

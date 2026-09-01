@@ -24,7 +24,7 @@ export function ParcoursTimeline({ evenements }: { evenements: IEmployeEvenement
         return (
           <li key={e.id} className="relative pb-4 last:pb-0">
             <span
-              className={`absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full ring-2 ring-white ${COULEUR_PASTILLE_EVENEMENT[nature]}`}
+              className={`absolute left-[-21px] top-1 h-2.5 w-2.5 rounded-full ring-2 ring-white ${COULEUR_PASTILLE_EVENEMENT[nature]}`}
             />
             <div className="font-mono text-[10.5px] uppercase text-default-400">
               {formaterDate(e.dateEffective ?? e.dateSaisie)}

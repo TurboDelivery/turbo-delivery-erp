@@ -244,7 +244,7 @@ export default function ResponsableFinancierView() {
       </GrilleStats>
 
       {/* Filtres */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm space-y-3">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs space-y-3">
         <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
           <span>🔽</span> Filtres
         </div>
@@ -347,7 +347,7 @@ export default function ResponsableFinancierView() {
       )}
 
       {/* Table — desktop uniquement (≥ md) */}
-      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
         <Table
           isStriped
           aria-label="Factures responsable financier"

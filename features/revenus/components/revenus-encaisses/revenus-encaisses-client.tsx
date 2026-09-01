@@ -209,7 +209,7 @@ export default function RevenusEncaissesClient() {
                     </Card>
                 ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+                    <Card className="bg-linear-to-r from-blue-50 to-blue-100 border-blue-200">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -232,7 +232,7 @@ export default function RevenusEncaissesClient() {
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+                    <Card className="bg-linear-to-r from-green-50 to-green-100 border-green-200">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -254,7 +254,7 @@ export default function RevenusEncaissesClient() {
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+                    <Card className="bg-linear-to-r from-purple-50 to-purple-100 border-purple-200">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>

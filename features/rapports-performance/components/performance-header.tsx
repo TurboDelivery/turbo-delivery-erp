@@ -26,7 +26,7 @@ export function PerformanceHeader({
   onExportPdf,
 }: PerformanceHeaderProps) {
   return (
-    <div className="mb-6 bg-white rounded-lg shadow">
+    <div className="mb-6 bg-white rounded-lg shadow-sm">
       <div className="p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>

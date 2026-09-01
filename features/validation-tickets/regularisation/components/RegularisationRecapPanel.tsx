@@ -123,7 +123,7 @@ export function RegularisationRecapPanel() {
                 value={filtre}
                 onChange={(e) => setFiltre(e.target.value)}
                 placeholder="Filtrer par livreur…"
-                className="w-48 bg-transparent text-sm focus:outline-none"
+                className="w-48 bg-transparent text-sm focus:outline-hidden"
               />
             </div>
             <div className="flex items-center gap-2 text-sm">

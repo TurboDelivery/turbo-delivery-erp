@@ -101,7 +101,7 @@ export default function CarteStat({
         'rounded-large border p-4 text-left transition-colors',
         accent ? SURFACE_ACCENT[ton] : 'border-default-200 bg-content1',
         cliquable &&
-            'cursor-pointer hover:border-default-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+            'cursor-pointer hover:border-default-400 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40',
         estActif && 'border-default-900 ring-1 ring-default-900',
         className,
     );

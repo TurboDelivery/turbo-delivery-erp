@@ -25,7 +25,7 @@ export default function Content() {
                 <DatePickers />
             </div>
             <div className="relative flex items-center gap-4 ">
-                <Tabs items={tabs} className="w-[90%] rounded-md shadow mr-10">
+                <Tabs items={tabs} className="w-[90%] rounded-md shadow-sm mr-10">
                     {(item) => {
                         const initial = item.nomComplet.charAt(0).toUpperCase();
                         const bgColor = colorMap[initial] || 'bg-gray-400';
@@ -47,7 +47,7 @@ export default function Content() {
                         );
                     }}
                 </Tabs>
-                <span className=" absolute right-0 bg-slate-700 text-white z-[1000] p-2 rounded-full pl-4 pr-4">Les tops 10</span>
+                <span className=" absolute right-0 bg-slate-700 text-white z-1000 p-2 rounded-full pl-4 pr-4">Les tops 10</span>
             </div>
             <ListeDesLivraisons />
         </div>

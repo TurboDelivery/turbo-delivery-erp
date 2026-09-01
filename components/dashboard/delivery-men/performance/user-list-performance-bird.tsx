@@ -134,7 +134,7 @@ export default function UserListPerformanceBird({ data }: props) {
                             <div className="hidden md:flex overflow-hidden">
                                 <div className="relative w-full overflow-x-auto overflow-y-hidden px-3 py-3 hide-scrollbar flex flex-nowrap gap-2 border-2 rounded-md space-x-4 flex-1">
                                 {/* avatar + nom */}
-                                <div className="flex-shrink-0 flex items-center w-1/6">
+                                <div className="shrink-0 flex items-center w-1/6">
                                     <Avatar
                                         isBordered
                                         radius="full"
@@ -150,30 +150,30 @@ export default function UserListPerformanceBird({ data }: props) {
                                 </div>
 
                                 {/* date / statut */}
-                                <div className="flex-shrink-0 bg-red-500 flex items-center rounded-md text-white py-2 px-2">
+                                <div className="shrink-0 bg-red-500 flex items-center rounded-md text-white py-2 px-2">
                                     {creneauLabel}
                                 </div>
 
                                 {/* boutons jours */}
-                                <div className="flex-shrink-0 w-[350px] flex items-center gap-2">
+                                <div className="shrink-0 w-[350px] flex items-center gap-2">
                                     <span>En cours</span>
                                     {dayButtons}
                                 </div>
 
                                 {/* progression */}
-                                <div className="flex-shrink-0 w-1/6 flex gap-2 items-center">
+                                <div className="shrink-0 w-1/6 flex gap-2 items-center">
                                     {fnProgressionPerformance(item)}
                                     <span>Performance {fnPerformance(item)}</span>
                                 </div>
 
                                 {/* commission */}
-                                <div className="flex-shrink-0 w-1/12">
+                                <div className="shrink-0 w-1/12">
                                     <h3>Commission</h3>
                                     <h4 className="text-lg">{item.commission}</h4>
                                 </div>
 
                                 {/* prime */}
-                                <div className="flex-shrink-0 w-1/12">
+                                <div className="shrink-0 w-1/12">
                                     <h3>Prime</h3>
                                     <h4 className="text-lg">{item.prime}</h4>
                                 </div>
@@ -186,7 +186,7 @@ export default function UserListPerformanceBird({ data }: props) {
                             </div>
 
                             {/* Carte tactile — mobile (< md), mêmes données / handlers que la ligne */}
-                            <div className="md:hidden bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-3">
+                            <div className="md:hidden bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex items-center gap-2 min-w-0">
                                         <Avatar

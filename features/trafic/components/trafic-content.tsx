@@ -59,7 +59,7 @@ function ChipFiltre({
       onClick={onPress}
       className={[
         'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40',
         actif
           ? 'bg-[#17181C] text-white dark:bg-white dark:text-[#17181C]'
           : 'bg-default-100 text-default-600 hover:bg-default-200',
@@ -289,7 +289,7 @@ export default function TraficContent() {
           <MapTrafic positions={positions} focusPosition={focusPosition} quartiers={quartiersActifs} />
 
           {/* Légende des pins — mêmes couleurs que les compteurs */}
-          <div className="pointer-events-none absolute bottom-3 left-3 z-[500] rounded-[14px] border border-default-200/50 bg-white/95 px-3 py-2 shadow-sm backdrop-blur dark:bg-content1/95">
+          <div className="pointer-events-none absolute bottom-3 left-3 z-500 rounded-[14px] border border-default-200/50 bg-white/95 px-3 py-2 shadow-xs backdrop-blur-sm dark:bg-content1/95">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {STATUTS_ORDONNES.map((statut) => (
                 <span key={statut} className="flex items-center gap-1.5 text-[10px] text-default-600">

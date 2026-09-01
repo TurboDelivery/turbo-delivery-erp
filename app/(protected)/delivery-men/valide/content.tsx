@@ -58,7 +58,7 @@ export default function Content({ initialData }: ContentProps) {
                             <EmptyDataTable title='Aucun livreur' />
                         ) : (
                             rows.map((item) => (
-                                <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                                <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="min-w-0">{renderCell(item, 'nom') as React.ReactNode}</div>
                                         <div className="shrink-0">{renderCell(item, 'status') as React.ReactNode}</div>
@@ -79,7 +79,7 @@ export default function Content({ initialData }: ContentProps) {
                 </>
             )}
             <div className="flex h-fit z-10 justify-center mt-8 fixed bottom-4">
-                <div className="bg-gray-200 absolute inset-0 w-full h-full blur-sm opacity-50"></div>
+                <div className="bg-gray-200 absolute inset-0 w-full h-full blur-xs opacity-50"></div>
                 <Pagination total={data?.totalPages ?? 1} page={currentPage} onChange={fetchData} showControls color="primary" variant="bordered" isDisabled={isLoading} />
             </div>
         </div>

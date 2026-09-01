@@ -43,7 +43,7 @@ export function useTableauDePaiController(initialData: PaieErpVM | null, searchK
         switch (isNotValidWeekend) {
             case false:
                 return <div className="flex"><CircleCheckBig size={20} />
-                    {isNotValid && <span className="text-primary z-[40] -ml-2 -mt-2 text-3xl">*</span>}
+                    {isNotValid && <span className="text-primary z-40 -ml-2 -mt-2 text-3xl">*</span>}
                 </div>;
             case true:
                 return <Minus size={20} />;

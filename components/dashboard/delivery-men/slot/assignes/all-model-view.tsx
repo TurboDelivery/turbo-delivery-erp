@@ -41,7 +41,7 @@ export default function AllModelView({ value, birdCreneau, birdNotCreneau, setVa
                         placeholder="Rechercher un livreur par son nom ou son prenom..."
                         value={search}
                         onChange={handleInputChange}
-                        className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                        className="flex-1 px-4 py-2 border rounded-md focus:outline-hidden focus:ring-2 focus:ring-red-400"
                         />
                         <button 
                         type="submit" 
@@ -92,7 +92,7 @@ export default function AllModelView({ value, birdCreneau, birdNotCreneau, setVa
                     placeholder="Rechercher un livreur par son nom ou son prenom..."
                     value={search}
                     onChange={handleInputChange}
-                    className="flex-1 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                    className="flex-1 px-4 py-2 border rounded-md focus:outline-hidden focus:ring-2 focus:ring-red-400"
                     />
                     <button 
                     type="submit" 
@@ -123,7 +123,7 @@ export default function AllModelView({ value, birdCreneau, birdNotCreneau, setVa
             </div>
 
             {/* TURBOYS AVEC CRENEAU */}
-            <h2 className="text-lg font-semibold bg-white text-center w-full rounded-md shadow py-2 mb-2">
+            <h2 className="text-lg font-semibold bg-white text-center w-full rounded-md shadow-sm py-2 mb-2">
                 TURBOYS AVEC CRENEAU HORAIRE
             </h2>
             <div className={`mb-4 ${value === 'list' ? styleList : styleGrid}`}>
@@ -140,7 +140,7 @@ export default function AllModelView({ value, birdCreneau, birdNotCreneau, setVa
             {/* TURBOYS SANS CRENEAU */}
             {birdNotCreneau.length > 0 && (
                 <>
-                    <h2 className="text-lg font-semibold bg-white text-center w-full rounded-md shadow py-2 mt-10 mb-2">
+                    <h2 className="text-lg font-semibold bg-white text-center w-full rounded-md shadow-sm py-2 mt-10 mb-2">
                         TURBOYS SANS CRENEAU HORAIRE
                     </h2>
                     <div className={`${value === 'list' ? styleList : styleGrid}`}>

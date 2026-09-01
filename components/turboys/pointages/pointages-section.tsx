@@ -103,14 +103,14 @@ export default function PointagesSection({ driverId }: { driverId: string }) {
             type="date"
             value={debut}
             onChange={(e) => setDebut(e.target.value)}
-            className="rounded-lg border border-gray-200 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="rounded-lg border border-gray-200 px-2 py-1 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
           />
           <label className="text-gray-500">au</label>
           <input
             type="date"
             value={fin}
             onChange={(e) => setFin(e.target.value)}
-            className="rounded-lg border border-gray-200 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            className="rounded-lg border border-gray-200 px-2 py-1 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
           />
           <Button size="sm" variant="outline" onClick={exporterCsv} disabled={rows.length === 0} className="gap-1.5">
             <Download className="size-3.5" /> CSV

@@ -67,10 +67,10 @@ export default function EncaisserLotModal({ open, onClose, factures, running, pr
   const total = factures.reduce((s, f) => s + resteAEncaisser(f), 0);
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50" onClick={running ? undefined : onClose}>
+    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50" onClick={running ? undefined : onClose}>
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100 shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
               <Banknote className="w-4 h-4 text-green-600" />
@@ -129,7 +129,7 @@ export default function EncaisserLotModal({ open, onClose, factures, running, pr
               onChange={(e) => setRemarque(e.target.value)}
               placeholder="Ex. : encaissement groupé AL DAR du jour…"
               rows={2}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-hidden focus:ring-2 focus:ring-green-300 resize-none"
             />
           </div>
 
@@ -142,7 +142,7 @@ export default function EncaisserLotModal({ open, onClose, factures, running, pr
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 px-6 pb-5 pt-1 flex-shrink-0">
+        <div className="flex gap-3 px-6 pb-5 pt-1 shrink-0">
           <Button variant="outline" onClick={onClose} disabled={running} className="flex-1 text-sm">Annuler</Button>
           <Button
             onClick={() => onConfirm({ preuve: preuveDataUrl ?? undefined, remarque: remarque.trim() || undefined })}

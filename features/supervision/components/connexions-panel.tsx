@@ -140,7 +140,7 @@ export function ConnexionsPanel({ userId, enregistrerExport }: Props) {
           label="Recherche"
           size="sm"
           placeholder="Utilisateur, identifiant, IP…"
-          className="min-w-[14rem] flex-1"
+          className="min-w-56 flex-1"
           startContent={<Search className="h-4 w-4 text-default-400" />}
           value={saisie}
           onValueChange={setSaisie}
@@ -211,7 +211,7 @@ export function ConnexionsPanel({ userId, enregistrerExport }: Props) {
                 </div>
               </TableCell>
               <TableCell className="font-mono text-[11px] text-default-500">{connexion.ip ?? '—'}</TableCell>
-              <TableCell className="max-w-[14rem] truncate text-default-500" title={connexion.appareil ?? ''}>
+              <TableCell className="max-w-56 truncate text-default-500" title={connexion.appareil ?? ''}>
                 {connexion.appareil ?? '—'}
               </TableCell>
               <TableCell className="font-mono text-[11px] text-default-400">

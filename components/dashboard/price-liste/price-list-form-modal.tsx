@@ -199,7 +199,7 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
                       value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
                       className={cn(
-                        'w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm',
+                        'w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-xs',
                         fieldState.invalid && 'border-destructive',
                       )}
                     >

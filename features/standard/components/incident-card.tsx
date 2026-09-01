@@ -85,7 +85,7 @@ export function IncidentCard({ incident, livreur, estNouveau, canUpdate, onOuvri
 
   return (
     <article
-      className={`rounded-2xl border bg-white p-4 transition-shadow hover:shadow-sm dark:bg-content1 ${ton.carte} ${
+      className={`rounded-2xl border bg-white p-4 transition-shadow hover:shadow-xs dark:bg-content1 ${ton.carte} ${
         estNouveau ? 'ring-2 ring-[#E11D48]/25' : ''
       }`}
     >

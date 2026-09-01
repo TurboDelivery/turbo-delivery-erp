@@ -41,7 +41,7 @@ export default function CourseCard({
   const accent = COURSE_STATUT_ACCENTS[course.statut?.toUpperCase() ?? ''] ?? 'border-l-gray-200';
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-100 border-l-4 ${accent} shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col gap-3`}>
+    <div className={`bg-white rounded-xl border border-gray-100 border-l-4 ${accent} shadow-xs hover:shadow-md transition-shadow p-5 flex flex-col gap-3`}>
       {/* Header : partenaire + montant */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">

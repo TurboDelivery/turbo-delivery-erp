@@ -189,7 +189,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
 
     return (
         <div className="p-2 w-full ">
-            <div className="w-full bg-white border border-gray-200 shadow-sm rounded-md px-4 py-2 mb-2 sm:p-6">
+            <div className="w-full bg-white border border-gray-200 shadow-xs rounded-md px-4 py-2 mb-2 sm:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                     {/* Filtre période */}
                     <div className="flex flex-col gap-1">
@@ -229,7 +229,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                         return (
                             <div
                                 key={label}
-                                className={`p-3 rounded-lg border-l-4 shadow-sm flex flex-col items-center justify-center ${statusColor(key.toUpperCase())}`}
+                                className={`p-3 rounded-lg border-l-4 shadow-xs flex flex-col items-center justify-center ${statusColor(key.toUpperCase())}`}
                             >
                                 <div className="text-2xl font-bold">{stat?.nbre ?? 0}</div>
                                 <div className="text-xs text-gray-700 mt-1 truncate">{label}</div>
@@ -247,7 +247,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
             <div className="space-y-4">
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                     {commandes?.content?.map((cmd) => (
-                        <article key={cmd.id} className={`bg-white rounded-lg shadow-sm border ${statusColor(cmd.orderState)} overflow-hidden w-full`}>
+                        <article key={cmd.id} className={`bg-white rounded-lg shadow-xs border ${statusColor(cmd.orderState)} overflow-hidden w-full`}>
                             <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-wrap">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-3">
@@ -262,14 +262,14 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
 
                                     <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:gap-6 gap-2 text-xs text-gray-600 flex-wrap">
                                         <div className="flex items-center gap-2 truncate">
-                                            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                                            <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none">
                                                 <path d="M12 2C8 2 4 5 4 9c0 6 8 13 8 13s8-7 8-13c0-4-4-7-8-7z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
                                             <span className="truncate">{cmd.adresseM?.libelle ?? "Adresse inconnue"}</span>
                                         </div>
 
                                         <div className="flex items-center gap-2 truncate">
-                                            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                                            <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none">
                                                 <path d="M3 12h18" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                                                 <path d="M6 6h.01M6 18h.01M12 6h.01M12 18h.01M18 6h.01M18 18h.01" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                                             </svg>
@@ -277,7 +277,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                                         </div>
 
                                         <div className="flex items-center gap-2 truncate">
-                                            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" viewBox="0 0 24 24" fill="none">
+                                            <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none">
                                                 <path d="M3 3h18v18H3z" stroke="currentColor" strokeWidth="1.2" />
                                             </svg>
                                             <span className="truncate">{currency(cmd.totalAmount)} Fcfa</span>

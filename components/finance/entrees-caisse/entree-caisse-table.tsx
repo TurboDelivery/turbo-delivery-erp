@@ -101,9 +101,9 @@ export function EntreeCaisseTable({
         rows.map((row) => {
           const e = row.original;
           return (
-            <div key={row.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+            <div key={row.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{e.libelle}</p>
+                <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{e.libelle}</p>
                 <span className="text-sm font-semibold text-gray-900 shrink-0">{formatMontant(e.montant)}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
@@ -113,7 +113,7 @@ export function EntreeCaisseTable({
               {e.commentaire && (
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-xs text-gray-400 shrink-0">Commentaire</span>
-                  <span className="text-sm text-gray-700 text-right break-words">{e.commentaire}</span>
+                  <span className="text-sm text-gray-700 text-right wrap-break-word">{e.commentaire}</span>
                 </div>
               )}
               <div className="pt-1 flex gap-2 justify-end">

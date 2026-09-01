@@ -30,7 +30,7 @@ export function DepenseTable() {
     <div className="space-y-6">
       <Card className="flex flex-col gap-4">
         <CardContent>
-          <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+          <div className="p-4 bg-linear-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 rounded-full">

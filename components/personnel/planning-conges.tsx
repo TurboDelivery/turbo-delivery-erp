@@ -149,7 +149,7 @@ export default function PlanningConges() {
   if ((congesError || employeesError) && conges.length === 0) {
     return (
       <div className="p-6 bg-gray-50">
-        <div className="bg-white rounded-xl shadow p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6">
           <EtatErreur
             quoi="le planning des congés"
             onReessayer={() => {
@@ -165,7 +165,7 @@ export default function PlanningConges() {
 
   return (
     <div className="p-6 bg-gray-50">
-      <div className="bg-white rounded-xl shadow p-6">
+      <div className="bg-white rounded-xl shadow-sm p-6">
         {/* Titre et contrôles */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Planning des Congés</h2>
@@ -189,13 +189,13 @@ export default function PlanningConges() {
 
         {/* Header jours */}
         <div className="flex text-xs text-gray-400 mb-2 overflow-x-auto scrollbar-hide">
-          <div className="w-[200px] font-medium text-gray-500 flex-shrink-0">Employé</div>
+          <div className="w-[200px] font-medium text-gray-500 shrink-0">Employé</div>
           <div className="flex flex-1">
             {days.map((day) => {
               const isToday = new Date().getDate() === day && new Date().getMonth() === currentMonth.getMonth() && new Date().getFullYear() === currentMonth.getFullYear();
 
               return (
-                <div key={day} className={`w-8 text-center flex-shrink-0 ${isToday ? 'bg-red-100 text-red-500 rounded font-bold' : ''}`}>
+                <div key={day} className={`w-8 text-center shrink-0 ${isToday ? 'bg-red-100 text-red-500 rounded font-bold' : ''}`}>
                   {day}
                 </div>
               );
@@ -212,12 +212,12 @@ export default function PlanningConges() {
             {/* Lignes des employés */}
             {deptEmployees.map((employee: IEmployee) => (
               <div key={employee.id} className="flex items-center mb-2 overflow-x-auto scrollbar-hide">
-                <div className="w-[200px] text-sm text-gray-600 truncate flex-shrink-0" title={employee.name}>
+                <div className="w-[200px] text-sm text-gray-600 truncate shrink-0" title={employee.name}>
                   {employee.name}
                 </div>
                 <div className="flex flex-1">
                   {days.map((day) => (
-                    <div key={day} className="w-8 h-6 flex items-center flex-shrink-0">
+                    <div key={day} className="w-8 h-6 flex items-center shrink-0">
                       {isOnLeave(employee, day) && <div className={`w-full h-3 rounded ${getLeaveColor(getLeaveType(employee, day) || '')}`} title={`${getLeaveType(employee, day)} - Jour ${day}`} />}
                     </div>
                   ))}

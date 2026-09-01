@@ -152,10 +152,10 @@ export function AppelWidget({
   // ── Mode réduit : pastille compacte, l'opérateur continue à travailler ──
   if (reduit) {
     return (
-      <div className="fixed bottom-4 right-4 z-[150] sm:bottom-6 sm:right-6">
+      <div className="fixed bottom-4 right-4 z-150 sm:bottom-6 sm:right-6">
         {flux}
-        <div className="flex items-center gap-3 rounded-full bg-slate-900/95 py-2 pl-2 pr-3 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-bold">
+        <div className="flex items-center gap-3 rounded-full bg-slate-900/95 py-2 pl-2 pr-3 text-white shadow-2xl ring-1 ring-white/10 backdrop-blur-sm">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-linear-to-br from-emerald-400 to-teal-600 text-sm font-bold">
             {initialesDe(interlocuteur)}
           </span>
           <div className="min-w-0 leading-tight">
@@ -194,12 +194,12 @@ export function AppelWidget({
   // Un écran partagé en face élargit le panneau pour rester lisible.
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-[150] sm:inset-x-auto sm:bottom-6 sm:right-6 ${
+      className={`fixed inset-x-0 bottom-0 z-150 sm:inset-x-auto sm:bottom-6 sm:right-6 ${
         ecran ? 'sm:w-[620px]' : 'sm:w-80'
       }`}
     >
       {flux}
-      <div className="relative overflow-hidden bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 text-white shadow-2xl ring-1 ring-white/10 rounded-t-3xl sm:rounded-3xl">
+      <div className="relative overflow-hidden bg-linear-to-b from-slate-800 via-slate-900 to-slate-950 text-white shadow-2xl ring-1 ring-white/10 rounded-t-3xl sm:rounded-3xl">
         <div className="pointer-events-none absolute -top-20 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-emerald-500/15 blur-3xl" />
 
         {/* Barre : réduire */}
@@ -219,7 +219,7 @@ export function AppelWidget({
             {!connecte && status !== 'error' && (
               <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400/20 [animation-duration:2s]" />
             )}
-            <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-xl font-bold shadow-lg ring-4 ring-white/10">
+            <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-linear-to-br from-emerald-400 to-teal-600 text-xl font-bold shadow-lg ring-4 ring-white/10">
               {initialesDe(interlocuteur)}
             </span>
           </div>

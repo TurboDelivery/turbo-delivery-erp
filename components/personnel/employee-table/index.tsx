@@ -68,7 +68,7 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
       {/* Carte de statistiques pour les employés */}
       <Card>
         <CardContent className="p-0  ">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-linear-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-full">
                 <Users className="h-5 w-5 text-blue-600" />

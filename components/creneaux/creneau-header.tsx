@@ -18,7 +18,7 @@ export function CreneauTabs({ children }: { children: [React.ReactNode, React.Re
       defaultSelectedKey="planning"
       classNames={{
         tabList: 'bg-default-100 rounded-lg p-1',
-        cursor: 'bg-white shadow-sm',
+        cursor: 'bg-white shadow-xs',
         tab: 'px-4 py-2',
         panel: 'pt-4',
       }}

@@ -35,10 +35,10 @@ const MOTIF_MIN = 30;
 
 function FactureCard({ facture, children }: { facture: IFactureRF; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
             <Building2 className="w-4 h-4 text-indigo-500" />
           </div>
           <div className="min-w-0">

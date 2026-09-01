@@ -14,11 +14,11 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
     }, [error]);
 
     return (
-        <div className="h-screen w-full flex items-center justify-center bg-gradient-to-b from-background to-muted">
+        <div className="h-screen w-full flex items-center justify-center bg-linear-to-b from-background to-muted">
             <div className="text-center space-y-8 px-4">
                 <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-4">
                     <div className="relative">
-                        <h1 className="text-9xl font-bold tracking-tighter bg-gradient-to-r from-destructive to-primary text-transparent bg-clip-text">500</h1>
+                        <h1 className="text-9xl font-bold tracking-tighter bg-linear-to-r from-destructive to-primary text-transparent bg-clip-text">500</h1>
                        
                     </div>
                     <h2 className="text-4xl font-semibold text-foreground">Erreur Serveur</h2>

@@ -158,7 +158,7 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
         {isError ? (
           <EtatErreur quoi="les coursiers" onReessayer={() => refetch()} enCours={isFetching} />
         ) : viewMode === 'list' ? (
-          <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+          <div className="rounded-xl border border-gray-100 bg-white shadow-xs overflow-hidden">
             <Table
               aria-label="Tableau des coursiers"
               removeWrapper

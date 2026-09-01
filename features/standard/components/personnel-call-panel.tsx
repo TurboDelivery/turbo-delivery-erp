@@ -117,7 +117,7 @@ export function PersonnelCallPanel() {
           type="button"
           onClick={() => setOuvert(true)}
           aria-label="Appeler un membre du personnel"
-          className="fixed bottom-6 left-6 z-[90] flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xl ring-1 ring-white/10 transition hover:bg-emerald-500 active:scale-95"
+          className="fixed bottom-6 left-6 z-90 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xl ring-1 ring-white/10 transition hover:bg-emerald-500 active:scale-95"
         >
           <Phone className="h-6 w-6" />
         </button>
@@ -125,8 +125,8 @@ export function PersonnelCallPanel() {
 
       {/* Panneau */}
       {ouvert && (
-        <div className="fixed inset-x-0 bottom-0 z-[95] sm:inset-x-auto sm:bottom-6 sm:left-6 sm:w-80">
-          <div className="flex max-h-[75vh] flex-col overflow-hidden bg-gradient-to-b from-slate-800 to-slate-900 text-white shadow-2xl ring-1 ring-white/10 rounded-t-3xl sm:rounded-3xl">
+        <div className="fixed inset-x-0 bottom-0 z-95 sm:inset-x-auto sm:bottom-6 sm:left-6 sm:w-80">
+          <div className="flex max-h-[75vh] flex-col overflow-hidden bg-linear-to-b from-slate-800 to-slate-900 text-white shadow-2xl ring-1 ring-white/10 rounded-t-3xl sm:rounded-3xl">
             {/* En-tête */}
             <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
               <span className="flex items-center gap-2 text-sm font-semibold">
@@ -181,7 +181,7 @@ export function PersonnelCallPanel() {
                       value={recherche}
                       onChange={(e) => setRecherche(e.target.value)}
                       placeholder="Rechercher un collègue…"
-                      className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-none"
+                      className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-hidden"
                     />
                   </div>
                 </div>
@@ -209,7 +209,7 @@ export function PersonnelCallPanel() {
                         disabled={enAppel}
                         className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition hover:bg-white/10 disabled:opacity-40"
                       >
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-sm font-bold">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-emerald-400 to-teal-600 text-sm font-bold">
                           {initialesDe(c.nom)}
                         </span>
                         <span className="min-w-0 flex-1">
@@ -226,7 +226,7 @@ export function PersonnelCallPanel() {
               </>
             ) : (
               <div className="p-4">
-                <div className="mb-3 flex min-h-[2.5rem] items-center justify-center rounded-xl bg-white/5 px-3 text-2xl font-light tracking-widest tabular-nums">
+                <div className="mb-3 flex min-h-10 items-center justify-center rounded-xl bg-white/5 px-3 text-2xl font-light tracking-widest tabular-nums">
                   {numero || <span className="text-white/30">Numéro</span>}
                 </div>
                 <div className="grid grid-cols-3 gap-2">

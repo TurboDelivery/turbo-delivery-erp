@@ -47,13 +47,13 @@ function FactureItem({ facture, selected, onClick }: FactureItemProps) {
       onClick={onClick}
       className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all ${
         selected
-          ? 'border-blue-400 bg-blue-50 shadow-sm'
+          ? 'border-blue-400 bg-blue-50 shadow-xs'
           : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${selected ? 'bg-blue-100' : 'bg-gray-100'}`}>
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${selected ? 'bg-blue-100' : 'bg-gray-100'}`}>
             <Building2 className={`w-4 h-4 ${selected ? 'text-blue-600' : 'text-gray-500'}`} />
           </div>
           <div className="min-w-0">
@@ -61,7 +61,7 @@ function FactureItem({ facture, selected, onClick }: FactureItemProps) {
             <p className="text-xs text-gray-500">{facture.numero}</p>
           </div>
         </div>
-        <div className="text-right flex-shrink-0">
+        <div className="text-right shrink-0">
           <p className="text-sm font-bold text-red-600">{formatMontant(facture.montant)}</p>
           <p className="text-xs text-gray-400 flex items-center justify-end gap-1 mt-0.5">
             <Calendar className="w-3 h-3" />
@@ -110,7 +110,7 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="flex-1 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
         <div className="flex items-center gap-2.5">
@@ -312,7 +312,7 @@ export default function ValidationDgaView() {
           <h1 className="text-2xl font-bold text-primary">Vue Directeur Général Adjoint</h1>
           <p className="text-sm text-gray-500 mt-0.5">Validation des preuves de paiement — Étape 5</p>
         </div>
-        <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 px-3 py-2 shadow-sm">
+        <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 px-3 py-2 shadow-xs">
           <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center">
             <span className="text-xs font-bold text-indigo-700">
               {userName.charAt(0).toUpperCase()}
@@ -325,7 +325,7 @@ export default function ValidationDgaView() {
       {/* Two-panel layout — empilé sur mobile, côte à côte ≥ lg */}
       <div className="flex flex-col md:flex-row gap-4 flex-1 min-h-0">
         {/* Left panel — Invoice list (pleine largeur sur mobile, hauteur limitée) */}
-        <div className="w-full md:w-80 md:flex-shrink-0 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-h-[45vh] md:max-h-none">
+        <div className="w-full md:w-80 md:shrink-0 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden max-h-[45vh] md:max-h-none">
           {/* Panel header */}
           <div className="px-4 py-3.5 border-b border-gray-100">
             <div className="flex items-center justify-between">

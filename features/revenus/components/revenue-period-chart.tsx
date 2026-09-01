@@ -248,7 +248,7 @@ export default function RevenuePeriodChart() {
       )}
 
       {/* Graphique des revenus */}
-      <Card className="p-6 bg-gradient-to-r from-red-50 to-red-100 border-red-200 shadow-lg">
+      <Card className="p-6 bg-linear-to-r from-red-50 to-red-100 border-red-200 shadow-lg">
         <div className="flex justify-between items-start">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -323,7 +323,7 @@ export default function RevenuePeriodChart() {
       )}
 
       {!isYearError && monthlyComparison && (
-        <Card className="p-6 bg-gradient-to-r from-gray-50 to-gray-100 border-gray-200 shadow-lg">
+        <Card className="p-6 bg-linear-to-r from-gray-50 to-gray-100 border-gray-200 shadow-lg">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-5 h-5 text-red-600" />
             <h3 className="text-lg font-semibold text-gray-800">Comparaison mensuelle</h3>

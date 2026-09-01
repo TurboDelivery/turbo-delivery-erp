@@ -71,7 +71,7 @@ export default function TicketFilterBar({ value, onChange, livreurOptions }: Pro
           placeholder="Rechercher par code check…"
           value={value.numero}
           onValueChange={(v) => onChange({ ...value, numero: v })}
-          startContent={<Search className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />}
+          startContent={<Search className="h-3.5 w-3.5 text-gray-400 shrink-0" />}
           isClearable
           onClear={() => onChange({ ...value, numero: '' })}
         />

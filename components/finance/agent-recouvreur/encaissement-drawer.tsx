@@ -62,12 +62,12 @@ export default function EncaissementModal({
       {createPortal(
         <div className={`fixed inset-0 z-50 flex items-center justify-center${ajouterOpen ? ' hidden' : ''}`}>
           {/* Overlay */}
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" onClick={onClose} />
 
           {/* Panel */}
           <div className="relative z-10 w-full max-w-2xl max-h-[90vh] mx-4 bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                   <DollarSign className="w-4 h-4 text-blue-600" />
@@ -101,7 +101,7 @@ export default function EncaissementModal({
                     <p className="font-medium text-gray-800">{facture.partenaire}</p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5">
                       {agentNom.charAt(0) || '?'}
                     </div>
                     <div>

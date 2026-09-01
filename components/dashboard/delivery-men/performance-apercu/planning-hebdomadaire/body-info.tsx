@@ -96,7 +96,7 @@ export default function BodyInfo({ data }: { data: PerformanceHebdomadaire }) {
               </div>
               <span>{item.debut.substring(0, 5)}</span>
 
-              <div className="flex-grow flex justify-between w-full overflow-x-auto">
+              <div className="grow flex justify-between w-full overflow-x-auto">
                 <CardBodyPlanningHebdomadaire initialData={item.heures} />
               </div>
               <span>{item.debut.substring(0, 5)}</span>

@@ -27,7 +27,7 @@ function UserListeModel2({ turboy }: any) {
                     {progresseBare(turboy)}
                     <span className='relative mt-5  '>
                         {turboy.disponibilite ? <IconPointFilled style={{ border: 'none' }} color="#16B84E" size={30} /> : <IconPointFilled style={{ border: 'none' }} color="#FF0000" size={30} />}
-                        {turboy.disponibilite ? <span className="absolute -top-[3px] inline-flex h-full w-full animate-ping  rounded-full bg-success/50 opacity-75 ltr:-left-[3px] rtl:-right-[3px]"></span> : ''}
+                        {turboy.disponibilite ? <span className="absolute top-[-3px] inline-flex h-full w-full animate-ping  rounded-full bg-success/50 opacity-75 ltr:left-[-3px] rtl:right-[-3px]"></span> : ''}
                     </span>
                 </div>
             </CardFooter>

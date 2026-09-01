@@ -42,7 +42,7 @@ export const title = tv({
         "foreground",
         "primary",
       ],
-      class: "bg-clip-text text-transparent bg-gradient-to-b",
+      class: "bg-clip-text text-transparent bg-linear-to-b",
     },
   ],
 });
@@ -79,7 +79,7 @@ export const subtitle = tv({
         "foreground",
         "primary",
       ],
-      class: "bg-clip-text text-transparent bg-gradient-to-b",
+      class: "bg-clip-text text-transparent bg-linear-to-b",
     },
   ],
 });
@@ -119,7 +119,7 @@ export const body = tv({
         "foreground",
         "primary",
       ],
-      class: "bg-clip-text text-transparent bg-gradient-to-b",
+      class: "bg-clip-text text-transparent bg-linear-to-b",
     },
   ],
 });

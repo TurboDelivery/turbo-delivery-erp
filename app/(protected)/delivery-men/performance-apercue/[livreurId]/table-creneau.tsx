@@ -128,7 +128,7 @@ const dataCreneau={
               (initialData ?? []).map((item: Progression) => (
                 <div
                   key={item.jour}
-                  className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2 cursor-pointer active:bg-gray-50"
+                  className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2 cursor-pointer active:bg-gray-50"
                   onClick={() => setOpen(true)}
                 >
                   <p className="text-sm font-semibold text-gray-900">{item.jour || 'non definie'}</p>

@@ -124,7 +124,7 @@ export function CreneauPlanningTab() {
             value={filters.search ?? ''}
             onChange={handleSearchChange}
             placeholder="Rechercher un turboy..."
-            className="h-10 w-full rounded-xl border border-border bg-background/60 pl-9 pr-9 text-sm shadow-sm backdrop-blur-sm transition-colors placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+            className="h-10 w-full rounded-xl border border-border bg-background/60 pl-9 pr-9 text-sm shadow-xs backdrop-blur-xs transition-colors placeholder:text-muted-foreground/60 focus:outline-hidden focus:ring-2 focus:ring-primary/40 focus:border-primary"
           />
           {filters.search && (
             <button

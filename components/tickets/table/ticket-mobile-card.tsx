@@ -64,7 +64,7 @@ export function TicketMobileCard({ ticket: rowTicket, meta, isSelected, onToggle
   const canDelete = meta.permissions.isAdmin || canMutate;
 
   return (
-    <div className={`bg-white border rounded-xl p-4 shadow-sm space-y-2 ${isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}>
+    <div className={`bg-white border rounded-xl p-4 shadow-xs space-y-2 ${isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-xs text-gray-400">Code Check</p>

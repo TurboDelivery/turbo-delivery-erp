@@ -179,7 +179,7 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, isError, o
           <p className="text-sm text-default-400 text-center py-10">Aucun turboy trouvé</p>
         ) : (
           data.map((turboy) => (
-            <div key={turboy.emploiId ?? turboy.nomComplet} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-3">
+            <div key={turboy.emploiId ?? turboy.nomComplet} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-3">
               <div className="flex items-center gap-2">
                 <Avatar
                   size="sm"

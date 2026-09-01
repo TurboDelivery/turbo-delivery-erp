@@ -53,7 +53,7 @@ const Header = ({ profile }: { profile: User }) => {
   return (
     <>
       <header className={`z-40 ${themeConfig.semidark && themeConfig.menu === 'horizontal' ? 'dark' : ''}`}>
-        <div className="shadow-sm">
+        <div className="shadow-xs">
           <div className="relative flex w-full items-center bg-white px-5 py-2.5 dark:bg-black">
             <div className="horizontal-logo flex items-center justify-between ltr:mr-2 rtl:ml-2">
               {/* <Icone className="py-2 shrink-0 mr-2" /> */}
@@ -73,7 +73,7 @@ const Header = ({ profile }: { profile: User }) => {
             </div>
 
             <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{/* <ToolsList /> */}</div>
-            <div className="flex items-center space-x-1.5 ltr:ml-auto rtl:mr-auto rtl:space-x-reverse dark:text-[#d0d2d6] sm:flex-1 ltr:sm:ml-0 sm:rtl:mr-0 lg:space-x-2">
+            <div className="flex items-center space-x-1.5 ltr:ml-auto rtl:mr-auto rtl:space-x-reverse dark:text-[#d0d2d6] sm:flex-1 sm:ltr:ml-0 sm:rtl:mr-0 lg:space-x-2">
               <div className="sm:ltr:mr-auto sm:rtl:ml-auto">{/* <SearchComponent /> */}</div>
               {/* Mode sombre masque le 26/08/2026. Le commutateur etait monte, mais 92 pour cent
               des surfaces n'ont aucune variante `dark:` : la personne qui cliquait obtenait du

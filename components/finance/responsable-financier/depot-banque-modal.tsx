@@ -86,12 +86,12 @@ export default function DepotBanqueModal({ open, onClose, facture, onConfirm }: 
             <div>
               <label className="block text-xs text-gray-500 font-medium mb-1.5">Date de dépôt <span className="text-red-500">*</span></label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-green-400" />
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-hidden focus:border-green-400" />
             </div>
             <div>
               <label className="block text-xs text-gray-500 font-medium mb-1.5">N° de bordereau <span className="text-red-500">*</span></label>
               <input type="text" value={numeroBordereau} onChange={(e) => setNumeroBordereau(e.target.value)} placeholder="ex. BRD-2026-001"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-green-400" />
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-hidden focus:border-green-400" />
             </div>
           </div>
 
@@ -99,7 +99,7 @@ export default function DepotBanqueModal({ open, onClose, facture, onConfirm }: 
             <div>
               <label className="block text-xs text-gray-500 font-medium mb-1.5">Banque / agence <span className="text-red-500">*</span></label>
               <select value={banque} onChange={(e) => setBanque(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-green-400 bg-white">
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-hidden focus:border-green-400 bg-white">
                 <option value="">Sélectionner…</option>
                 {BANQUES.map((b) => <option key={b} value={b}>{b}</option>)}
               </select>
@@ -107,7 +107,7 @@ export default function DepotBanqueModal({ open, onClose, facture, onConfirm }: 
             <div>
               <label className="block text-xs text-gray-500 font-medium mb-1.5">Montant déposé <span className="text-red-500">*</span></label>
               <input type="number" value={montant} onChange={(e) => setMontant(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-green-400" />
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-hidden focus:border-green-400" />
               <p className="text-[11px] text-gray-400 mt-1">Doit égaler le montant visé.</p>
             </div>
           </div>

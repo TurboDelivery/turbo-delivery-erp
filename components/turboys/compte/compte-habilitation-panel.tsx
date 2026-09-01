@@ -107,7 +107,7 @@ function PieceRow({ driverId, cible, libelle, statut, motif }: PieceRowProps) {
   );
 }
 
-const sectionClass = 'bg-white rounded-xl border border-gray-100 shadow-sm p-6';
+const sectionClass = 'bg-white rounded-xl border border-gray-100 shadow-xs p-6';
 const titleClass = 'text-base font-semibold text-primary mb-4';
 
 export default function CompteHabilitationPanel({ driverId }: { driverId: string }) {

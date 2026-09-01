@@ -42,7 +42,7 @@ const TypePlatsList = ({ typePlats }: { typePlats: Collection[] }) => {
                                 <th>Libellé</th>
                                 <th>Description</th>
                                 <th>Statut</th>
-                                <th className="!text-center">Actions</th>
+                                <th className="text-center!">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -74,7 +74,7 @@ const TypePlatsList = ({ typePlats }: { typePlats: Collection[] }) => {
                     <p className="py-10 text-center text-sm text-gray-400">Aucun type de plat trouvé</p>
                 ) : (
                     filteredItems.map((typePlat: Collection) => (
-                        <div key={typePlat.id} className="space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                        <div key={typePlat.id} className="space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
                             <div className="flex items-start justify-between gap-2">
                                 <div className="flex min-w-0 items-center gap-2">
                                     <Avatar src={createUrlFile(typePlat.pictureUrl ?? '', 'erp')} />

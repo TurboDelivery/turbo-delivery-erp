@@ -12,7 +12,7 @@ import { IconMap, IconUser } from "@tabler/icons-react";
 
 
 export default function DropDownAction({ id }: { id: string }) {
-    const iconClasses = "text-xl text-default-500 pointer-events-none flex-shrink-0";
+    const iconClasses = "text-xl text-default-500 pointer-events-none shrink-0";
 
     return (
         <Dropdown>

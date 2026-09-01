@@ -24,7 +24,7 @@ export default function StatMini({ label, value, sub, highlight }: StatMiniProps
       <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</span>
       <span
         className={[
-          'text-base sm:text-xl font-bold break-words',
+          'text-base sm:text-xl font-bold wrap-break-word',
           highlight ? 'text-green-600' : 'text-gray-900',
         ].join(' ')}
       >

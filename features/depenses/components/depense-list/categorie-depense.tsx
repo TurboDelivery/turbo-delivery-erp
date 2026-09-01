@@ -142,7 +142,7 @@ export function CategorieDepenseList() {
               <p className="text-sm text-gray-400 text-center py-10">Aucune catégorie</p>
             ) : (
               categorie_depenses.map((categorie_depense) => (
-                <div key={categorie_depense.id} className="bg-white dark:bg-transparent border border-gray-100 dark:border-gray-700 rounded-xl p-4 shadow-sm space-y-2">
+                <div key={categorie_depense.id} className="bg-white dark:bg-transparent border border-gray-100 dark:border-gray-700 rounded-xl p-4 shadow-xs space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <Checkbox

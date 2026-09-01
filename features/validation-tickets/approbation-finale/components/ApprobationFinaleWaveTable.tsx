@@ -80,7 +80,7 @@ export default function ApprobationFinaleWaveTable({ waveTable, isFetchingNextPa
             return (
               <div
                 key={row.id}
-                className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2"
+                className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-gray-800">{ligne.turboy.nom}</p>

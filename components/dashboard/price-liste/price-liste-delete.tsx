@@ -51,7 +51,7 @@ const PriceListeDelete = ({ id, open, setOpen }: { id: string; open: boolean; se
                                 <button
                                     type="button"
                                     onClick={() => setOpen(false)}
-                                    className="absolute top-4 text-gray-400 outline-none hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
+                                    className="absolute top-4 text-gray-400 outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
                                 >
                                     <IconX />
                                 </button>

@@ -239,7 +239,7 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
             const a = row.original;
             const deletedBy = a.deletedByUser ? `${a.deletedByUser.prenoms} ${a.deletedByUser.nom}` : '—';
             return (
-              <div key={row.id} className={`bg-white border rounded-xl p-4 shadow-sm space-y-2 ${row.getIsSelected() ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}>
+              <div key={row.id} className={`bg-white border rounded-xl p-4 shadow-xs space-y-2 ${row.getIsSelected() ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs text-gray-400">Code Check</p>

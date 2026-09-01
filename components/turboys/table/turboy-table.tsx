@@ -45,7 +45,7 @@ export function TurboyTable() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shrink-0">
             <Users className="w-6 h-6 text-white" />
           </div>
           <div>

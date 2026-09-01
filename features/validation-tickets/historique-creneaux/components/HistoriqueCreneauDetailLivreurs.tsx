@@ -112,7 +112,7 @@ export default function HistoriqueCreneauDetailLivreurs({ livreurs, totalLivreur
           livreurs.map((l) => {
             const badge = STATUT_BADGE[l.statut];
             return (
-              <div key={l.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+              <div key={l.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-gray-900">{l.nom}</p>

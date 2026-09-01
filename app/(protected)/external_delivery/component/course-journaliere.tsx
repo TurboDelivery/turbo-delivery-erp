@@ -29,7 +29,7 @@ const CourseJournaliere: React.FC<CourseJournaliereProps> = ({ restaurant: r }) 
 
   return (
     <div
-      className={`bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow p-4 flex flex-col gap-3 ${
+      className={`bg-white rounded-xl border shadow-xs hover:shadow-md transition-shadow p-4 flex flex-col gap-3 ${
         aSuivre ? 'border-amber-200' : 'border-gray-100'
       }`}
     >

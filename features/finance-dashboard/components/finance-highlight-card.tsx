@@ -88,7 +88,7 @@ export default function FinanceHighlightCard({
   const className = cn(
     'flex max-md:flex-col md:items-center justify-between rounded-xl w-full py-5 px-4 gap-4',
     style.container,
-    href && 'transition-all hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer'
+    href && 'transition-all hover:shadow-md focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer'
   );
 
   if (href) {

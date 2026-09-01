@@ -56,7 +56,7 @@ export function FormLogin() {
                         <label htmlFor="username">Nom Utilisateur</label>
                         <div className="relative">
                             <input id="username" name="username" type="text" required placeholder="Username" className="form-input ps-10" />
-                            <span className="absolute start-4 top-1/2 -translate-y-1/2">
+                            <span className="absolute inset-s-4 top-1/2 -translate-y-1/2">
                                 <IconUser />
                             </span>
                         </div>
@@ -73,7 +73,7 @@ export function FormLogin() {
                                 placeholder="Enter Password"
                                 className="form-input ps-10 placeholder:text-gray-500"
                             />
-                            <span className="absolute start-4 top-1/2 -translate-y-1/2">
+                            <span className="absolute inset-s-4 top-1/2 -translate-y-1/2">
                                 <IconLock />
                             </span>
                         </div>

@@ -93,7 +93,7 @@ export function ActionsMenu({ id, name, status }: { id: string; name: string; st
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="inline-flex items-center justify-center p-1.5 rounded-md hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex items-center justify-center p-1.5 rounded-md hover:bg-gray-100 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
             aria-label="Actions"
           >
             <MoreHorizontal className="w-4 h-4 text-gray-400" />

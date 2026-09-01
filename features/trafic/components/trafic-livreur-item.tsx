@@ -76,7 +76,7 @@ export default function TraficLivreurItem({
       }}
       className={[
         'flex w-full cursor-pointer items-start gap-3 rounded-[14px] border bg-white p-3 text-left transition-colors dark:bg-content1',
-        'hover:border-default-300 hover:bg-default-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        'hover:border-default-300 hover:bg-default-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40',
         isSelected ? 'border-default-900 ring-1 ring-default-900' : 'border-default-200/70',
       ].join(' ')}
     >
@@ -101,7 +101,7 @@ export default function TraficLivreurItem({
           {livreur.rangFile != null && (
             <Tooltip content="Rang dans la file d'attente du jour" size="sm">
               <span
-                className="shrink-0 rounded-full px-1.5 py-[1px] text-[10px] font-bold"
+                className="shrink-0 rounded-full px-1.5 py-px text-[10px] font-bold"
                 style={{ backgroundColor: meta.fond, color: meta.couleur }}
               >
                 N°{livreur.rangFile}

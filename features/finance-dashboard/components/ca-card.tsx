@@ -28,7 +28,7 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
 
   if (isLoading) {
     return (
-      <Card className="p-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+      <Card className="p-6 bg-linear-to-r from-green-50 to-green-100 border-green-200">
         <div className="flex max-lg:flex-col items-stretch gap-6">
           <div className="flex flex-col justify-center gap-3 lg:w-[34%] lg:shrink-0">
             <div className="h-5 bg-green-200 rounded w-32 animate-pulse" />
@@ -48,7 +48,7 @@ export default function CACard({ title, totalAmount, fraisLivraison, commissions
   }
 
   return (
-    <Card className="p-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+    <Card className="p-6 bg-linear-to-r from-green-50 to-green-100 border-green-200">
       <div className="flex max-lg:flex-col items-stretch gap-6">
         {/* Partie 1 : CA (hero) — colonne fixe à gauche */}
         <div className="flex flex-col justify-center gap-3 lg:w-[34%] lg:shrink-0">

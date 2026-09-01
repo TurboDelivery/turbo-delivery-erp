@@ -187,7 +187,7 @@ export default function Content() {
         <EtatErreur quoi="les partenaires" onReessayer={() => refetch()} enCours={isFetching} />
       )}
 
-      <div className="hidden md:block relative rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+      <div className="hidden md:block relative rounded-xl border border-gray-100 bg-white shadow-xs overflow-hidden">
         {(isLoading || isFetching) && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60">
             <Spinner color="primary" />

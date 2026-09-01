@@ -109,7 +109,7 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
                       : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0 text-xs font-bold text-gray-600">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0 text-xs font-bold text-gray-600">
                     {agent.nom.charAt(0)}
                   </div>
                   <div>
@@ -117,7 +117,7 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
                     <p className="text-xs text-gray-400">{agent.role}</p>
                   </div>
                   {selectedAgent?.id === agent.id && (
-                    <div className="ml-auto w-4 h-4 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                    <div className="ml-auto w-4 h-4 rounded-full bg-red-500 flex items-center justify-center shrink-0">
                       <svg
                         className="w-2.5 h-2.5 text-white"
                         fill="none"

@@ -72,7 +72,7 @@ export default function JustificationInclusionModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-60 flex items-center justify-center bg-black/50"
       onClick={onClose}
     >
       <div
@@ -159,7 +159,7 @@ export default function JustificationInclusionModal({
               onChange={(e) => setJustification(e.target.value)}
               placeholder={`Pourquoi ${action} cette ligne ? Tracé dans le journal de sécurité.`}
               rows={4}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-hidden focus:ring-2 focus:ring-blue-300 resize-none"
             />
             <div className="mt-1 flex items-center justify-between text-[11px]">
               <span className={remaining === 0 ? 'text-emerald-600' : 'text-gray-400'}>

@@ -51,7 +51,7 @@ export function FileLivreurLigne({
     <li
       className={`flex items-center gap-3 rounded-xl px-2.5 py-2 ${
         premier
-          ? 'bg-[#1AA05A]/[0.08] ring-1 ring-inset ring-[#1AA05A]/25'
+          ? 'bg-[#1AA05A]/8 ring-1 ring-inset ring-[#1AA05A]/25'
           : 'hover:bg-default-50 dark:hover:bg-default-100/40'
       }`}
     >
@@ -70,7 +70,7 @@ export function FileLivreurLigne({
         <p className="truncate text-sm font-semibold text-default-800">{ligne.nomComplet}</p>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
           {premier && (
-            <span className="rounded-full bg-[#1AA05A]/[0.12] px-2 py-[1px] text-[10px] font-bold uppercase tracking-wide text-[#1AA05A]">
+            <span className="rounded-full bg-[#1AA05A]/12 px-2 py-px text-[10px] font-bold uppercase tracking-wide text-[#1AA05A]">
               Prochaine course
             </span>
           )}
@@ -78,7 +78,7 @@ export function FileLivreurLigne({
               « À catégoriser » parce que l'annuaire n'a pas répondu ferait
               passer une panne de lecture pour un défaut de dossier RH. */}
           {type && (
-            <span className="rounded-full bg-default-100 px-2 py-[1px] text-[10px] font-semibold text-default-600">
+            <span className="rounded-full bg-default-100 px-2 py-px text-[10px] font-semibold text-default-600">
               {type.label}
             </span>
           )}

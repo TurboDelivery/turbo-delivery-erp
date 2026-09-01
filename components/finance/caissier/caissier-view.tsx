@@ -175,7 +175,7 @@ export default function CaissierView() {
       </GrilleStats>
 
       {/* Filtres */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs">
         <div className="flex flex-wrap gap-1.5">
           {statutChips.map((s) => {
             const active = s === 'Tous' ? !statut : statut === s;
@@ -197,7 +197,7 @@ export default function CaissierView() {
       </div>
 
       {/* Table — desktop uniquement (≥ md) */}
-      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
         <Table
           isStriped
           aria-label="Factures caissier"

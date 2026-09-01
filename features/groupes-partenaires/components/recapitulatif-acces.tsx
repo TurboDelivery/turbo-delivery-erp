@@ -190,7 +190,7 @@ export function RecapitulatifAcces({ recapitulatif, intention, note }: Props) {
                 <TableCell className="align-top">
                   <div className="space-y-1">
                     <EffetChip effet={ligne.effet} />
-                    <p className="max-w-[22rem] text-[12px] leading-snug text-default-500">{ligne.explication}</p>
+                    <p className="max-w-88 text-[12px] leading-snug text-default-500">{ligne.explication}</p>
                   </div>
                 </TableCell>
               </TableRow>

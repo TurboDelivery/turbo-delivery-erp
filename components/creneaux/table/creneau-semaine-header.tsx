@@ -57,7 +57,7 @@ export function CreneauSemaineHeader({ selectedSemaine, fin, onSemaineChange }: 
         <PopoverTrigger asChild>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-lg border border-default-200 bg-white px-4 py-2 text-lg font-semibold shadow-sm transition-colors hover:bg-default-100"
+            className="flex items-center gap-2 rounded-lg border border-default-200 bg-white px-4 py-2 text-lg font-semibold shadow-xs transition-colors hover:bg-default-100"
           >
             <CalendarDays className="size-5 text-default-500" />
             {formatSemaineLabel(selectedSemaine, fin)}

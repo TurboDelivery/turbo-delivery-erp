@@ -147,7 +147,7 @@ export default function Content({ initialData, delivers }: Props) {
             .map((category) => (
               <Button
                 key={category.id}
-                className="flex-shrink-0 mx-2"
+                className="shrink-0 mx-2"
                 variant={statusFilter === category.id ? 'solid' : 'flat'}
                 color={statusFilter === category.id ? 'primary' : 'default'}
                 onPress={() => handleFilter(category.id)}
@@ -321,7 +321,7 @@ export default function Content({ initialData, delivers }: Props) {
             ))}
           </div>
           <div className="flex h-fit z-10 justify-center mt-8 fixed bottom-4">
-            <div className="bg-gray-200 absolute inset-0 w-full h-full blur-sm opacity-50"></div>
+            <div className="bg-gray-200 absolute inset-0 w-full h-full blur-xs opacity-50"></div>
             <Pagination total={data?.totalPages ?? 1} page={currentPage} onChange={fetchData} showControls color="primary" variant="bordered" isDisabled={isLoading} />
           </div>
         </>

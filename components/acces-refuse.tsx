@@ -22,7 +22,7 @@ export default function AccesRefuse() {
   const router = useRouter();
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gradient-to-b from-background to-muted">
+    <div className="flex h-screen w-full items-center justify-center bg-linear-to-b from-background to-muted">
       <div className="space-y-8 px-4 text-center">
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
@@ -30,7 +30,7 @@ export default function AccesRefuse() {
           transition={{ duration: 0.5 }}
           className="space-y-4"
         >
-          <h1 className="bg-gradient-to-r from-primary to-yellow-600 bg-clip-text text-9xl font-bold tracking-tighter text-transparent">
+          <h1 className="bg-linear-to-r from-primary to-yellow-600 bg-clip-text text-9xl font-bold tracking-tighter text-transparent">
             403
           </h1>
           {/* Etait « Not Authorized », en anglais, sur un ERP entierement francais. */}

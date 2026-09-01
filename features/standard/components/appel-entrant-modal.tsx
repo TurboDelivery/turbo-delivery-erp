@@ -48,10 +48,10 @@ export function AppelEntrantModal({
       role="dialog"
       aria-modal="true"
       aria-label={`${titre} — ${appelantNom}`}
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm sm:p-4"
+      className="fixed inset-0 z-200 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs sm:p-4"
     >
       <div
-        className="relative flex h-full w-full flex-col overflow-hidden bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 text-white shadow-2xl
+        className="relative flex h-full w-full flex-col overflow-hidden bg-linear-to-b from-slate-800 via-slate-900 to-slate-950 text-white shadow-2xl
                    sm:h-auto sm:max-w-sm sm:rounded-3xl sm:ring-1 sm:ring-white/10"
       >
         {/* Halo d'ambiance */}
@@ -66,7 +66,7 @@ export function AppelEntrantModal({
           <div className="relative flex h-32 w-32 items-center justify-center sm:h-28 sm:w-28">
             <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400/20 [animation-duration:2s]" />
             <span className="absolute inset-3 animate-ping rounded-full bg-emerald-400/20 [animation-duration:2s] [animation-delay:.4s]" />
-            <span className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-3xl font-bold text-white shadow-lg ring-4 ring-white/10 sm:h-20 sm:w-20 sm:text-2xl">
+            <span className="relative flex h-24 w-24 items-center justify-center rounded-full bg-linear-to-br from-emerald-400 to-teal-600 text-3xl font-bold text-white shadow-lg ring-4 ring-white/10 sm:h-20 sm:w-20 sm:text-2xl">
               {initialesDe(appelantNom)}
             </span>
           </div>

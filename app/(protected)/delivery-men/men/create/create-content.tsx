@@ -160,7 +160,7 @@ export default function CreateContent() {
 
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
         {/* ── Photo de profil ── */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
           <SectionTitle>Photo de profil</SectionTitle>
           <div className="flex items-center gap-5">
             <div className="relative">
@@ -177,7 +177,7 @@ export default function CreateContent() {
               <button
                 type="button"
                 onClick={() => avatarRef.current?.click()}
-                className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white shadow"
+                className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white shadow-sm"
               >
                 <Camera className="w-3 h-3" />
               </button>
@@ -234,7 +234,7 @@ export default function CreateContent() {
         </section>
 
         {/* ── Informations personnelles ── */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
           <SectionTitle>Informations personnelles</SectionTitle>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Controller
@@ -319,7 +319,7 @@ export default function CreateContent() {
         </section>
 
         {/* ── Document d'identité ── */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
           <SectionTitle>Document d'identité</SectionTitle>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
             <Controller
@@ -363,7 +363,7 @@ export default function CreateContent() {
         </section>
 
         {/* ── Informations du véhicule ── */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
           <SectionTitle>Informations du véhicule</SectionTitle>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
             <Controller
@@ -411,7 +411,7 @@ export default function CreateContent() {
         </section>
 
         {/* ── Compte du livreur ── */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
           <SectionTitle>Compte du livreur</SectionTitle>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Controller

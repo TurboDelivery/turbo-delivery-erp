@@ -58,7 +58,7 @@ export function StatCard({
   );
 
   return href ? (
-    <Link href={href} className="block rounded-large focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40">
+    <Link href={href} className="block rounded-large focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40">
       {carte}
     </Link>
   ) : (

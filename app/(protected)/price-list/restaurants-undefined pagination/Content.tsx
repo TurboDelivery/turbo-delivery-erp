@@ -81,7 +81,7 @@ export default function Content({ initialData }: Props) {
         }}
       </Tabs>
       <div className="relative flex justify-center mt-8">
-        <div className="absolute bottom-0 w-full h-12 bg-gray-200 blur-sm opacity-50 rounded-xl" />
+        <div className="absolute bottom-0 w-full h-12 bg-gray-200 blur-xs opacity-50 rounded-xl" />
         <Pagination
           total={data?.totalPages ?? 1}
           page={currentPage}

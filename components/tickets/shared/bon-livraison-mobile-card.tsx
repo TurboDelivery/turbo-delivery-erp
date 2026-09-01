@@ -39,7 +39,7 @@ export function BonLivraisonMobileCard<T>({
   const others = columns.filter((c) => c.uid !== referenceKey && c.uid !== statutKey);
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           {reference && <p className="text-xs text-gray-400">{reference.name}</p>}

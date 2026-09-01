@@ -47,7 +47,7 @@ function MotifRow({ motif }: { motif: IIncidentMotif }) {
         size="sm"
         value={libelle}
         onValueChange={setLibelle}
-        className="min-w-[10rem] flex-1"
+        className="min-w-40 flex-1"
       />
       <Input
         aria-label="Ordre"
@@ -163,7 +163,7 @@ export function MotifsAdminModal({ isOpen, onOpenChange }: Props) {
                     placeholder="Panne"
                     value={libelle}
                     onValueChange={setLibelle}
-                    className="min-w-[10rem] flex-1"
+                    className="min-w-40 flex-1"
                   />
                   <Input
                     label="Ordre"

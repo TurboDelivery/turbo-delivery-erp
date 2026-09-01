@@ -229,12 +229,12 @@ export default function LivraisonList() {
                                     value={globalFilter ?? ''}
                                     onChange={(e) => setGlobalFilter(e.target.value)}
                                     placeholder="Rechercher..."
-                                    className="px-4 py-2 border border-gray-300 rounded-lg w-full max-w-sm focus:outline-none focus:ring-2 ring-1 ring-gray-300 focus:ring-blue-500"
+                                    className="px-4 py-2 border border-gray-300 rounded-lg w-full max-w-sm focus:outline-hidden focus:ring-2 ring-1 ring-gray-300 focus:ring-blue-500"
                                 />
                             </div>
 
                             {/* Tableau */}
-                            <div className="overflow-x-auto border border-gray-200 rounded-lg shadow bg-white">
+                            <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm bg-white">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-red-500 hover:bg-red-600">
                                         {table.getHeaderGroups().map((headerGroup) => (
@@ -292,7 +292,7 @@ export default function LivraisonList() {
                         {filteredLivraisons.map((livraison: any, index: number) => (
                             <div
                                 key={index}
-                                className="border rounded-lg p-4 shadow-sm bg-card text-card-foreground"
+                                className="border rounded-lg p-4 shadow-xs bg-card text-card-foreground"
                             >
                                 <div className="flex justify-between items-start mb-3">
                                     <div>

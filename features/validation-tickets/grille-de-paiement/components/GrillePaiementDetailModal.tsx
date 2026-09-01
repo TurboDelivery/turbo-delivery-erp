@@ -86,7 +86,7 @@ export default function GrillePaiementDetailModal({ ligne, creneauCode, open, on
         <div className="shrink-0 bg-[#f6f6f6] px-5 pt-5 pb-4 z-10">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-full bg-[#16a34a] text-white flex items-center justify-center font-semibold text-sm shadow-sm shrink-0">{initial}</div>
+              <div className="h-11 w-11 rounded-full bg-[#16a34a] text-white flex items-center justify-center font-semibold text-sm shadow-xs shrink-0">{initial}</div>
               <div>
                 <h2 className="text-[15px] font-semibold text-[#1f1f1f] leading-none">{turboy.nom}</h2>
                 <p className="mt-1 text-[11px] text-[#8a8a8a] tracking-wide">{turboy.code}</p>

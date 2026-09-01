@@ -27,7 +27,7 @@ export function SearchBar({ items }: SearchBarProps) {
                     onChange={handleChange}
                     onFocus={() => setIsOpen(query.length > 0)}
                     onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-                    className="w-full pl-10 pr-4 py-2 border rounded-full bg-gray-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    className="w-full pl-10 pr-4 py-2 border rounded-full bg-gray-100 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-gray-300"
                 />
             </div>
 

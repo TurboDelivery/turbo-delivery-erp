@@ -192,7 +192,7 @@ export function ConstituerGroupeModal({ isOpen, onClose, userId, onCree }: Props
                   <Spinner color="primary" label="Chargement des établissements…" />
                 </div>
               ) : (
-                <div className="max-h-[22rem] space-y-1.5 overflow-y-auto pr-1">
+                <div className="max-h-88 space-y-1.5 overflow-y-auto pr-1">
                   {etablissements.length === 0 && (
                     <p className="py-8 text-center text-sm text-default-400">
                       Aucun établissement ne correspond à cette recherche.

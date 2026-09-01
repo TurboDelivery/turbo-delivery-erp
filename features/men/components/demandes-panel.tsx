@@ -41,7 +41,7 @@ export function DemandesPanel({ demandes, restaurants }: DemandesPanelProps) {
             <img
               src={item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : '/assets/images/avatar.png'}
               alt={item.nomComplet}
-              className="w-8 h-8 rounded-full object-cover shadow-sm"
+              className="w-8 h-8 rounded-full object-cover shadow-xs"
             />
             <span className="font-medium capitalize">{item.nomComplet}</span>
           </div>
@@ -103,7 +103,7 @@ export function DemandesPanel({ demandes, restaurants }: DemandesPanelProps) {
         </h2>
         <SearchField searchKey={ctrl.selectValue} onChange={ctrl.setSelectValue} />
       </div>
-      <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-xl border border-gray-100 bg-white shadow-xs overflow-hidden">
         <Table
           aria-label="Tableau des demandes"
           removeWrapper

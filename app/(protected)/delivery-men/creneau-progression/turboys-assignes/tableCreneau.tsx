@@ -78,7 +78,7 @@ export default function TableCreneau({ initialData }: Props) {
             {/* Mobile — cartes tactiles (mêmes données / handlers via renderCell) */}
             <div className="md:hidden space-y-3">
                 {initialData.map((item) => (
-                    <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+                    <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
                         <div className="min-w-0">{renderCell(item, 'nom')}</div>
                         <div>{renderCell(item, 'progression')}</div>
                         <div className="flex items-center justify-between gap-3">

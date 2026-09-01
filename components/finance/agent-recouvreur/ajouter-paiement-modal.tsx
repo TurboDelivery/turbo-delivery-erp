@@ -91,7 +91,7 @@ export default function AjouterPaiementModal({ open, onClose, facture, montantDe
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
@@ -153,7 +153,7 @@ export default function AjouterPaiementModal({ open, onClose, facture, montantDe
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-hidden focus:ring-2 focus:ring-blue-300"
               />
             </div>
             <div>
@@ -165,7 +165,7 @@ export default function AjouterPaiementModal({ open, onClose, facture, montantDe
                   min={0}
                   onChange={(e) => handleMontantChange(Number(e.target.value))}
                   placeholder="0"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 pr-14"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-hidden focus:ring-2 focus:ring-blue-300 pr-14"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">FCFA</span>
               </div>
@@ -195,7 +195,7 @@ export default function AjouterPaiementModal({ open, onClose, facture, montantDe
               onChange={(e) => setRemarque(e.target.value)}
               placeholder="Écrivez des remarques sur ce paiement..."
               rows={2}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-hidden focus:ring-2 focus:ring-blue-300 resize-none"
             />
           </div>
         </div>

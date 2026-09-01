@@ -70,13 +70,13 @@ export function TicketTableFilters({
               type="date"
               value={debut.toISOString().split('T')[0]}
               onChange={(e) => onFilterChange('debut', e.target.value)}
-              className="flex-1 h-9 p-2 border border-gray-200 rounded text-xs outline-none"
+              className="flex-1 h-9 p-2 border border-gray-200 rounded text-xs outline-hidden"
             />
             <input
               type="date"
               value={fin.toISOString().split('T')[0]}
               onChange={(e) => onFilterChange('fin', e.target.value)}
-              className="flex-1 h-9 p-2 border border-gray-200 rounded text-xs outline-none"
+              className="flex-1 h-9 p-2 border border-gray-200 rounded text-xs outline-hidden"
             />
           </div>
         </div>

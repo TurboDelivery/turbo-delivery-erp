@@ -42,7 +42,7 @@ export default function ConfirmerReceptionModal({ open, onClose, facture, onConf
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" onClick={onClose} />
       <div
         className="relative z-10 w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -83,7 +83,7 @@ export default function ConfirmerReceptionModal({ open, onClose, facture, onConf
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               placeholder="Ex : FP-2026-0042"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
               autoFocus
             />
           </div>

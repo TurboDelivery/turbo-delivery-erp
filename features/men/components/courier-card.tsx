@@ -15,7 +15,7 @@ export function CourierCard({ turboy }: { turboy: ITurboy }) {
   // les 3 types (INDEPENDANT, JOURNALIER, SUPERVISEUR_LIVREUR).
   const typeDisplay = getTurboyTypeDisplay(turboy.typeLivreur);
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 flex flex-col gap-3 shadow-xs hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
         <AvatarCell turboy={turboy} size="lg" />
         <div className="flex flex-col">

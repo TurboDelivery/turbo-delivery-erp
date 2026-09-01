@@ -22,7 +22,7 @@ export function SectionPhotoProfil({
   const avatarRef = useRef<HTMLInputElement>(null);
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
       <SectionTitle>Photo de profil</SectionTitle>
       <div className="flex items-center gap-5">
         <div className="relative">
@@ -41,7 +41,7 @@ export function SectionPhotoProfil({
           <button
             type="button"
             onClick={() => avatarRef.current?.click()}
-            className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white shadow"
+            className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white shadow-sm"
           >
             <Camera className="w-3 h-3" />
           </button>

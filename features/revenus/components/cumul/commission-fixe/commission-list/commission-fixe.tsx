@@ -100,7 +100,7 @@ export default function CommissionFixe({commissionFixe}: ICommissionFixe) {
                         {commissionFixe?.map((commissionFixe) => (
                             <div
                                 key={commissionFixe.id}
-                                className="border rounded-lg p-4 shadow-sm bg-card text-card-foreground"
+                                className="border rounded-lg p-4 shadow-xs bg-card text-card-foreground"
                             >
                                 <div className="flex justify-between items-start mb-3">
                                     <div>

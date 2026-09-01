@@ -39,7 +39,7 @@ export default function PaiementMobileCard({
   const config = getPaiementStatutConfig(charge.statut);
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-start gap-2 min-w-0">
           <Checkbox
@@ -49,7 +49,7 @@ export default function PaiementMobileCard({
             aria-label="Sélectionner la charge"
             className="mt-0.5"
           />
-          <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{charge.designation}</p>
+          <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{charge.designation}</p>
         </div>
         <Chip color={config.color} variant="flat" size="sm" className="shrink-0">
           {config.label}
@@ -58,7 +58,7 @@ export default function PaiementMobileCard({
 
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-gray-400">Catégorie</span>
-        <span className="text-sm text-gray-700 text-right break-words">{charge.categorie?.nomCategorie ?? '—'}</span>
+        <span className="text-sm text-gray-700 text-right wrap-break-word">{charge.categorie?.nomCategorie ?? '—'}</span>
       </div>
       <div className="flex items-center justify-between gap-3">
         <span className="text-xs text-gray-400">Montant</span>

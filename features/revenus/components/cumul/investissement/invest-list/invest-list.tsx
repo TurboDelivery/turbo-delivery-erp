@@ -93,9 +93,9 @@ export default function InvestissementList() {
             <p className="text-sm text-gray-400 text-center py-10">Aucun investissement</p>
           ) : (
             (investissements || []).map((inv) => (
-              <div key={inv.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm space-y-2">
+              <div key={inv.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-semibold text-gray-900 min-w-0 break-words">{inv.nomInvestisseur}</p>
+                  <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{inv.nomInvestisseur}</p>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="shrink-0">
