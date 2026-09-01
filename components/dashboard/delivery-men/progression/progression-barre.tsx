@@ -61,15 +61,20 @@ const progresseBare = (turboys: Livreur) => {
 
     if (turboys.creneauVM?.jourDebut && turboys.creneauVM?.jourFin) {
 
+        // Meme correctif que sur progression-barre2 : l'etiquette annonce « x/7jours »
+        // et le remplissage valait 100, 65 ou 20 sans rapport avec x. 5 jours sur 7,
+        // soit 71 %, donnait la meme barre que 4 sur 7, soit 57 %.
+        const valeur = Math.min(100, Math.max(0, (turboys.jour.jourTravaille / 7) * 100));
+
         if (turboys.jour.jourTravaille === 7) {
-            return <Progress label={fnData()} color="success" className="max-w-md text-sm flex-none" value={100} />
+            return <Progress label={fnData()} color="success" className="max-w-md text-sm flex-none" value={valeur} />
         }
         if (turboys.jour.jourTravaille < 7 && turboys.jour.jourTravaille > 3) {
-            return <Progress label={fnData()} color="warning" className="max-w-md text-sm flex-none" value={65} />
+            return <Progress label={fnData()} color="warning" className="max-w-md text-sm flex-none" value={valeur} />
         }
         if (turboys.jour.jourTravaille <= 3) {
 
-            return <Progress label={fnData()} color="danger" className="max-w-md text-sm flex-none" value={20} />
+            return <Progress label={fnData()} color="danger" className="max-w-md text-sm flex-none" value={valeur} />
         }
     } else {
         return <Progress label="Date créneau vide" className="max-w-md text-sm" value={0} />
