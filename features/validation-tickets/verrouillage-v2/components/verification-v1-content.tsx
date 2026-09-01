@@ -52,7 +52,7 @@ export default function VerificationV1Content() {
 
       <TicketFilterBar value={filters} onChange={setFilters} livreurOptions={livreurOptions} />
 
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
+      <div className="flex flex-col gap-5 md:flex-row md:items-start">
         <TicketReadyList
         isError={isErrorReady}
         onReessayer={refetchReady}

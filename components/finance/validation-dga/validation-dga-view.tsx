@@ -303,7 +303,7 @@ export default function ValidationDgaView() {
   return (
     <div
       ref={zoneTravailRef}
-      className="flex flex-col gap-4 p-4 md:p-6 lg:h-[calc(100vh-11rem)]"
+      className="flex flex-col gap-4 p-4 md:p-6 md:h-[calc(100vh-11rem)]"
       style={hauteurZoneTravail ? { height: hauteurZoneTravail } : undefined}
     >
       {/* Page header */}
@@ -323,9 +323,9 @@ export default function ValidationDgaView() {
       </div>
 
       {/* Two-panel layout — empilé sur mobile, côte à côte ≥ lg */}
-      <div className="flex flex-col lg:flex-row gap-4 flex-1 min-h-0">
+      <div className="flex flex-col md:flex-row gap-4 flex-1 min-h-0">
         {/* Left panel — Invoice list (pleine largeur sur mobile, hauteur limitée) */}
-        <div className="w-full lg:w-80 lg:flex-shrink-0 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-h-[45vh] lg:max-h-none">
+        <div className="w-full md:w-80 md:flex-shrink-0 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-h-[45vh] md:max-h-none">
           {/* Panel header */}
           <div className="px-4 py-3.5 border-b border-gray-100">
             <div className="flex items-center justify-between">
