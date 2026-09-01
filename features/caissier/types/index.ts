@@ -48,6 +48,23 @@ export interface IFactureCaissierListResponse {
   factures: PaginatedResponse<IFactureCaissier>;
 }
 
+/**
+ * Une ligne de l'agregat serveur : un statut, son compte et ses montants,
+ * calcules sur l'ENSEMBLE du perimetre filtre, pas sur la page affichee.
+ */
+export interface IFactureStatutAgregat {
+  statut: string;
+  nombre: number;
+  montant: number;
+  montantRecouvre: number;
+}
+
+export interface IFactureStatsParStatut {
+  parStatut: IFactureStatutAgregat[];
+  nombreTotal: number;
+  montantTotal: number;
+}
+
 export interface ICaissierParams {
   // Backend ResponsableFinancierFactureResource.listFactures : sans `periode`
   // le serveur applique "mois" (mois courant) et masque les factures plus

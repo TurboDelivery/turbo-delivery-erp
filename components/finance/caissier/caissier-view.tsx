@@ -20,7 +20,7 @@ import ConfirmerReceptionModal from './confirmer-reception-modal';
 import DepotBanqueCaissierModal from './depot-banque-caissier-modal';
 import {
   useCaissierTable,
-  useCaissierFacturesQuery,
+  useCaissierStatsParStatutQuery,
   useCaissierConfirmationMutation,
   useCaissierDepotBanqueMutation,
 } from '@/features/caissier';
@@ -49,7 +49,11 @@ export default function CaissierView() {
   // Sans ça, la caisse ne voyait que les factures créées le mois courant et
   // perdait celles versées un mois précédent encore à confirmer/clôturer.
   const params = { periode: 'cycle' as const, statut: statut || undefined, page };
-  const { data: statsData } = useCaissierFacturesQuery({ periode: 'cycle', size: 200 });
+  // L'agregat par statut remplace un chargement de 200 factures qui n'existait QUE
+  // pour alimenter les cartes. Chaque requete de cette famille declenche cote serveur
+  // un appel HTTP au service utilisateurs (`loadViseurNames`) : on cesse de payer ce
+  // prix pour un decompte, et on cesse au passage de le payer pour un chiffre faux.
+  const { data: agregats } = useCaissierStatsParStatutQuery({ periode: 'cycle' });
 
   const [factureAConfirmer, setFactureAConfirmer] = useState<IFactureCaissier | null>(null);
   const [factureDepotBanque, setFactureDepotBanque] = useState<IFactureCaissier | null>(null);
@@ -97,44 +101,46 @@ export default function CaissierView() {
     );
   };
 
-  // Agregats. `stats` est calcule par le SERVEUR sur l'ensemble filtre AVANT
-  // pagination (cf. IFactureCaissierStats) : c'est le VRAI total, il etait deja
-  // sur le fil et le type le jetait.
+  // Agregats — calcules par le SERVEUR sur TOUT le perimetre filtre.
   //
-  // Les trois cartes par statut ci-dessous restent calculees sur la page de 200
-  // lignes, donc FAUSSES des que le cycle depasse 200 factures — ce qui est le
-  // cas aujourd'hui. Les corriger exigerait une requete par statut (5), or
-  // chaque requete de cette famille declenche cote backend un appel HTTP au
-  // service utilisateurs (`loadViseurNames`). Le bon correctif est un agregat
-  // groupe par statut cote serveur : arbitrage a rendre, pas a deviner.
-  const allFactures = statsData?.factures?.content ?? [];
-  const totalReel = statsData?.stats?.totalFactures ?? allFactures.length;
-  const pageTronquee = (statsData?.factures?.totalElements ?? 0) > allFactures.length;
-  const enAttente = allFactures.filter((f) => f.statut === 'Versé au caissier' || f.statut === 'Rejeté DGA').length;
-  const confirmees = allFactures.filter((f) =>
-    ['En attente visa DGA', 'Visé DGA', 'Clôturé'].includes(f.statut),
-  ).length;
-  const montantEnAttente = allFactures
-    .filter((f) => f.statut === 'Versé au caissier' || f.statut === 'Rejeté DGA')
-    .reduce((acc, f) => acc + (f.montantRecouvre ?? f.montant), 0);
+  // Ces trois cartes se calculaient auparavant sur la page de 200 factures deja
+  // chargee. Le cycle en compte 856 : elles annoncaient donc au mieux un quart de
+  // la realite sur un ecran financier, avec un libelle « (sur les 200 premieres) »
+  // qui signalait honnetement l'approximation sans la corriger. Compter juste depuis
+  // le client aurait demande une requete par statut, et chaque requete de cette
+  // famille declenche cote serveur un appel HTTP au service utilisateurs
+  // (`loadViseurNames`) — d'ou l'agregat groupe, obtenu en un seul passage.
+  const STATUTS_EN_ATTENTE = ['Versé au caissier', 'Rejeté DGA'];
+  const STATUTS_CONFIRMES = ['En attente visa DGA', 'Visé DGA', 'Clôturé'];
+
+  const parStatut = agregats?.parStatut ?? [];
+  const sommer = (statuts: string[], champ: 'nombre' | 'montantRecouvre') =>
+    parStatut.filter((l) => statuts.includes(l.statut)).reduce((acc, l) => acc + (l[champ] ?? 0), 0);
+
+  const enAttente = sommer(STATUTS_EN_ATTENTE, 'nombre');
+  const confirmees = sommer(STATUTS_CONFIRMES, 'nombre');
+  // `montantRecouvre` et non `montant` : la carte annonce ce que le caissier DETIENT,
+  // c'est-a-dire l'encaisse reellement remise, pas le montant facture au partenaire.
+  const montantEnAttente = sommer(STATUTS_EN_ATTENTE, 'montantRecouvre');
+  const totalReel = agregats?.nombreTotal ?? 0;
 
   const statsCards = [
     {
       icon: Clock,
       ton: 'attention' as const,
-      label: pageTronquee ? 'En attente (sur les 200 premières)' : 'En attente',
+      label: 'En attente',
       value: String(enAttente),
     },
     {
       icon: Landmark,
       ton: 'primaire' as const,
-      label: pageTronquee ? 'Montant en attente (sur les 200 premières)' : 'Montant en attente',
+      label: 'Montant en attente',
       value: formatMontant(montantEnAttente),
     },
     {
       icon: FileCheck,
       ton: 'primaire' as const,
-      label: pageTronquee ? 'Confirmées (sur les 200 premières)' : 'Confirmées',
+      label: 'Confirmées',
       value: String(confirmees),
     },
     {

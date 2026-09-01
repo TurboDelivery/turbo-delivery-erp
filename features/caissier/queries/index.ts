@@ -7,12 +7,30 @@ import type { ICaissierConfirmationBody, ICaissierParams, IDepotBanqueCaissierBo
 export const caissierKeys = {
   all: ['caissier'] as const,
   list: (params?: ICaissierParams) => [...caissierKeys.all, 'list', params] as const,
+  statsParStatut: (params?: ICaissierParams) => [...caissierKeys.all, 'stats-par-statut', params] as const,
 };
 
 export function useCaissierFacturesQuery(params?: ICaissierParams) {
   return useQuery({
     queryKey: caissierKeys.list(params),
     queryFn: () => caissierAPI.obtenirFactures(params),
+    staleTime: 3 * 60 * 1000,
+  });
+}
+
+/**
+ * Agrégat serveur pour les cartes de l'écran.
+ *
+ * <p>Rangé sous `caissierKeys.all` A DESSEIN : les deux mutations de ce module
+ * invalident déjà cette racine, donc les cartes se rafraîchissent avec la liste dès
+ * qu'une facture change de statut. Une clé à part les aurait laissées périmées après
+ * chaque confirmation, ce qui est exactement le genre d'écart qu'on cherche à
+ * supprimer ici.</p>
+ */
+export function useCaissierStatsParStatutQuery(params?: ICaissierParams) {
+  return useQuery({
+    queryKey: caissierKeys.statsParStatut(params),
+    queryFn: () => caissierAPI.obtenirStatsParStatut(params),
     staleTime: 3 * 60 * 1000,
   });
 }
