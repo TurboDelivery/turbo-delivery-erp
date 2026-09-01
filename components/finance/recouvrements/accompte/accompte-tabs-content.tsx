@@ -12,6 +12,7 @@ import { accompteColumns } from '@/features/recouvrements/columns/accompte-colum
 import { DateRange } from 'react-day-picker';
 import { AccompteMobileCard } from '@/components/finance/recouvrements/recouvrement-mobile-cards';
 import EtatErreur from '@/components/commons/EtatErreur';
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 
 interface AccompteTabsContentProps {
   restoOpts?: Array<{ label: string; value: string }>;
@@ -97,58 +98,46 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
         />
       </div>
 
-      {/* Cartes de statistiques */}
-      {/* sur echec les totaux vaudraient 0 F CFA, ce qui se lit comme un resultat reel */}
+      {/* Bandeau de statistiques — CarteStat, la carte unique de l'ERP.
+          Il etait ecrit a la main dans le style shadcn (Card + CardContent, chiffre en
+          text-2xl font-bold, icone h-8 w-8), seul rescape de ce dessin dans l'ERP.
+
+          Les couleurs changent, et elles VEULENT desormais dire quelque chose. Elles
+          etaient decoratives et arbitraires — vert, bleu, violet, orange — sans rapport
+          avec ce que le chiffre raconte. Elles suivent maintenant les jetons du theme :
+          le total porte l'accent, un simple comptage est neutre, ce qui est valide est
+          au succes, ce qui attend est a l'attention. Le violet disparait : il n'a pas de
+          jeton, et il ne signifiait rien.
+
+          sur echec les totaux vaudraient 0 FCFA, ce qui se lit comme un resultat reel */}
       {!isError && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total Accompte</p>
-                  <p className="text-2xl font-bold text-green-600">{formatCFA(stats.totalAccompte)}</p>
-                </div>
-                <DollarSign className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Nombre d&#39;Accomptes</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats.nombreAccomptes}</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Accomptes Validés</p>
-                  <p className="text-2xl font-bold text-purple-600">{formatCFA(stats.accompteValides)}</p>
-                </div>
-                <Calendar className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">En attente</p>
-                  <p className="text-2xl font-bold text-orange-600">{stats.accompteEnAttente}</p>
-                </div>
-                <TrendingUp className="h-8 w-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <GrilleStats colonnes={4}>
+          <CarteStat
+            libelle="Total Accompte"
+            valeur={formatCFA(stats.totalAccompte)}
+            icone={DollarSign}
+            ton="primaire"
+            accent
+          />
+          <CarteStat
+            libelle="Nombre d'Accomptes"
+            valeur={stats.nombreAccomptes}
+            icone={Users}
+            ton="neutre"
+          />
+          <CarteStat
+            libelle="Accomptes Validés"
+            valeur={formatCFA(stats.accompteValides)}
+            icone={Calendar}
+            ton="succes"
+          />
+          <CarteStat
+            libelle="En attente"
+            valeur={stats.accompteEnAttente}
+            icone={TrendingUp}
+            ton="attention"
+          />
+        </GrilleStats>
       )}
 
       {/* Tableau des acomptes */}
