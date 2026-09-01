@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
+  // `swcMinify` retire : c'est DEJA le defaut en Next 14, donc la ligne ne changeait
+  // rien, et l'option DISPARAIT en Next 15 ou elle produirait un avertissement de
+  // configuration inconnue. La retirer maintenant est sans effet sur la pile actuelle
+  // et enleve un obstacle a la montee (lot 5).
   eslint: {
     // On NE rend PAS le lint bloquant : le compteur est a 109 problemes, pas a zero,
     // et un build qui casse sur du lint pre-existant empeche de livrer un correctif.

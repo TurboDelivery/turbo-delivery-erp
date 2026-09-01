@@ -1,60 +1,90 @@
 'use client';
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { usePopper } from 'react-popper';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
-const Dropdown = (props: any, forwardedRef: any) => {
-    const [visibility, setVisibility] = useState<any>(false);
+/**
+ * Menu deroulant d'en-tete. API INCHANGEE : `button`, `btnClassName`, `placement`,
+ * `offset`, `children`, et la methode imperative `close()`.
+ *
+ * <h3>Pourquoi `react-popper` a disparu</h3>
+ * <p>C'etait le DERNIER paquet du depot dont la plage de pairs exclut React 19, et
+ * donc le seul verrou technique restant avant la montee (lot 5). Il n'avait qu'un
+ * consommateur, la cloche de notifications, pour un placement `bottom-end` a 8 px :
+ * aucune detection de collision, aucun repositionnement au defilement. Une position
+ * absolue en CSS fait exactement cela, sans dependance.</p>
+ *
+ * <h3>Deux defauts corriges au passage</h3>
+ * <ol>
+ *   <li><b>Le positionnement ne s'appliquait pas au premier rendu.</b> `usePopper`
+ *       recevait `referenceRef.current` PENDANT le rendu, donc `null` au premier
+ *       passage — et lire `.current` ne redeclenche aucun rendu quand la ref se
+ *       remplit. Le panneau ne se placait qu'a la faveur d'un rendu ulterieur,
+ *       declenche par autre chose.</li>
+ *   <li><b>Le clic exterieur pouvait lever.</b> `handleDocumentClick` faisait
+ *       `referenceRef.current.contains(...)` sans garde, et l'ecouteur etait pose une
+ *       seule fois avec la fermeture du PREMIER rendu. Les refs sont desormais
+ *       gardees, et l'ecouteur n'existe que pendant l'ouverture.</li>
+ * </ol>
+ */
+type Props = {
+    button: React.ReactNode;
+    children: React.ReactNode;
+    btnClassName?: string;
+    /** `bottom-end` (defaut) ou `bottom-start`. Les autres valeurs retombent sur `bottom-end`. */
+    placement?: string;
+    /** `[axeCroise, distance]`, comme l'ancienne API. Seule la distance est utilisee. */
+    offset?: number[];
+};
 
-    // `useRef<T>()` sans argument n'est plus accepte par les types de React 19 :
-    // la surcharge exige une valeur initiale. `null` est ce que le code suppose
-    // deja partout ailleurs, et le passer ne change RIEN en React 18. C'est le
-    // correctif du lot 5 qui peut partir des aujourd'hui.
-    const referenceRef = useRef<any>(null);
-    const popperRef = useRef<any>(null);
-
-    const { styles, attributes } = usePopper(referenceRef.current, popperRef.current, {
-        placement: props.placement || 'bottom-end',
-        modifiers: [
-            {
-                name: 'offset',
-                options: {
-                    offset: props.offset || [0],
-                },
-            },
-        ],
-    });
-
-    const handleDocumentClick = (event: any) => {
-        if (referenceRef.current.contains(event.target) || popperRef.current.contains(event.target)) {
-            return;
-        }
-
-        setVisibility(false);
-    };
-
-    useEffect(() => {
-        document.addEventListener('mousedown', handleDocumentClick);
-        return () => {
-            document.removeEventListener('mousedown', handleDocumentClick);
-        };
-    }, []);
+const Dropdown = ({ button, children, btnClassName, placement, offset }: Props, forwardedRef: any) => {
+    const [ouvert, setOuvert] = useState(false);
+    const conteneurRef = useRef<HTMLDivElement | null>(null);
 
     useImperativeHandle(forwardedRef, () => ({
         close() {
-            setVisibility(false);
+            setOuvert(false);
         },
     }));
 
+    // L'ecouteur ne vit QUE pendant l'ouverture : inutile de filtrer les clics de tout
+    // le document le reste du temps, et la fermeture capture ainsi l'etat courant.
+    const fermerSiClicExterieur = useCallback((evenement: MouseEvent) => {
+        const conteneur = conteneurRef.current;
+        if (conteneur && !conteneur.contains(evenement.target as Node)) {
+            setOuvert(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!ouvert) return;
+        document.addEventListener('mousedown', fermerSiClicExterieur);
+        return () => document.removeEventListener('mousedown', fermerSiClicExterieur);
+    }, [ouvert, fermerSiClicExterieur]);
+
+    const distance = offset?.[1] ?? 0;
+    const versDebut = placement === 'bottom-start';
+
     return (
-        <>
-            <button ref={referenceRef} type="button" className={props.btnClassName} onClick={() => setVisibility(!visibility)}>
-                {props.button}
+        <div ref={conteneurRef} className="relative">
+            <button
+                type="button"
+                className={btnClassName}
+                aria-expanded={ouvert}
+                aria-haspopup="menu"
+                onClick={() => setOuvert((v) => !v)}
+            >
+                {button}
             </button>
 
-            <div ref={popperRef} style={styles.popper} {...attributes.popper} className="z-50" onClick={() => setVisibility(!visibility)}>
-                {visibility && props.children}
-            </div>
-        </>
+            {ouvert && (
+                <div
+                    className={`absolute top-full z-50 ${versDebut ? 'left-0' : 'right-0'}`}
+                    style={{ marginTop: distance }}
+                    onClick={() => setOuvert(false)}
+                >
+                    {children}
+                </div>
+            )}
+        </div>
     );
 };
 
