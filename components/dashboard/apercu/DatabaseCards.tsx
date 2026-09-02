@@ -1,6 +1,7 @@
 "use client";
 import { title } from '@/components/primitives';
-import { Card, CardBody, CardHeader, Divider, Link, Skeleton } from '@/components/heroui';
+import { Card, Separator, Skeleton } from '@heroui-v3/react';
+import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { TurboysButton } from '@/components/dashboard/apercu/TurboysButton';
 import { usePersonnelStatsQuery } from '@/features/dashboard/queries/personnel-stats.query';
@@ -21,16 +22,16 @@ export default function DatabaseCards() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
         {Array.from({ length: 5 }).map((_, index) => (
           <Card key={`skeleton-${index}`}>
-            <CardHeader>
+            <Card.Header>
               <Skeleton className="h-5 w-32 rounded-lg" />
-            </CardHeader>
-            <CardBody>
+            </Card.Header>
+            <Card.Content>
               <div className="flex flex-col gap-3">
                 <Skeleton className="h-8 w-20 rounded-lg" />
                 <Skeleton className="h-4 w-full rounded-lg" />
                 <Skeleton className="h-4 w-4/5 rounded-lg" />
               </div>
-            </CardBody>
+            </Card.Content>
           </Card>
         ))}
       </div>
@@ -41,12 +42,12 @@ export default function DatabaseCards() {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
         <Card className="sm:col-span-2 lg:col-span-3 xl:col-span-5 border-danger/40">
-          <CardHeader>
-            <h3 className={title({ size: 'h6', class: 'text-danger' })}>Erreur de chargement</h3>
-          </CardHeader>
-          <CardBody>
-            <p className="text-sm text-foreground-600">Impossible de recuperer les statistiques du personnel pour le moment.</p>
-          </CardBody>
+          <Card.Header>
+            <Card.Title className="text-danger">Erreur de chargement</Card.Title>
+          </Card.Header>
+          <Card.Content>
+            <Card.Description>Impossible de récupérer les statistiques du personnel pour le moment.</Card.Description>
+          </Card.Content>
         </Card>
       </div>
     );
@@ -95,17 +96,19 @@ export default function DatabaseCards() {
     <BandeauAttention signalements={signalements} />
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
       {statsItems.map((item) => (
-        <Card as={Link} key={item.label} href={item.href ?? '#'} className="transition-shadow hover:shadow-md">
-          <CardHeader>
-            <h3 className={title({ size: 'h6', class: 'text-primary' })}>{item.label}</h3>
-          </CardHeader>
-          <CardBody className="flex flex-col justify-between gap-3">
-            <div className="flex justify-between gap-1 items-center overflow-x-hidden">
-              <p className={title({ size: 'h4' })}>{item.value}</p>
+        <Card key={item.label} className="transition-shadow hover:shadow-md">
+          <Card.Header>
+            {/* Le libelle n'est plus en rouge : l'accent est reserve a l'action, pas au
+                decor. Un titre de carte n'appelle rien. */}
+            <Card.Title className="text-sm font-medium text-muted">{item.label}</Card.Title>
+          </Card.Header>
+          <Card.Content className="flex flex-col justify-between gap-3">
+            <div className="flex items-center justify-between gap-1 overflow-x-hidden">
+              <p className="text-3xl font-semibold tabular-nums">{item.value}</p>
               {item.label === 'Turboys' && (
                 <div className="flex flex-col gap-2">
                   <TurboysButton name={'Indépendants'} param={'INDEPENDANT'} value={data?.turboysIndependant} />
-                  <Divider />
+                  <Separator />
                   <TurboysButton name={'Journaliers'} param={'JOURNALIER'} value={data?.turboysJournalier} />
                   {/* V54 (2026-05) — Affiche la 3e population SUPERVISEUR_LIVREUR
                        quand l'API la renvoie. Si l'utilisateur est sur un front
@@ -113,7 +116,7 @@ export default function DatabaseCards() {
                        on n'affiche rien — comportement gracieux. */}
                   {data?.turboysSuperviseurLivreur !== undefined && (
                     <>
-                      <Divider />
+                      <Separator />
                       <TurboysButton
                         name={'Superviseurs-livreurs'}
                         param={'SUPERVISEUR_LIVREUR'}
@@ -124,18 +127,25 @@ export default function DatabaseCards() {
                 </div>
               )}
             </div>
-            {item.label !== 'Turboys' && (
-              <div className="flex items-center gap-1 text-xs text-default-400">
-                <span>Voir le détail</span>
+          </Card.Content>
+          {item.label !== 'Turboys' && (
+            <Card.Footer>
+              {/* Lien EXPLICITE, la ou la carte entiere etait cliquable sans le dire.
+                  Une carte qui navigue sans l'annoncer se decouvre par accident. */}
+              <Link
+                className="inline-flex items-center gap-1 text-xs text-muted transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                href={item.href ?? '#'}
+              >
+                Voir le détail
                 <ChevronRight className="size-3.5" />
-              </div>
-            )}
-          </CardBody>
+              </Link>
+            </Card.Footer>
+          )}
         </Card>
       ))}
       {comptesEnAttenteEnErreur && (
         <Card className="border-danger/40">
-          <CardBody className="p-0">
+          <Card.Content className="p-0">
             <EtatErreur
               quoi="les comptes en attente"
               onReessayer={() => {
@@ -143,7 +153,7 @@ export default function DatabaseCards() {
               }}
               enCours={comptesEnAttenteEnCours}
             />
-          </CardBody>
+          </Card.Content>
         </Card>
       )}
     </div>
