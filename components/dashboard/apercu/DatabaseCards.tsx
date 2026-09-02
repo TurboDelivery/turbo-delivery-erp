@@ -6,6 +6,7 @@ import { TurboysButton } from '@/components/dashboard/apercu/TurboysButton';
 import { usePersonnelStatsQuery } from '@/features/dashboard/queries/personnel-stats.query';
 import { useComptesEnAttenteQuery } from '@/features/dashboard/queries/comptes-attente.query';
 import EtatErreur from '@/components/commons/EtatErreur';
+import BandeauAttention, { type Signalement } from '@/components/dashboard/apercu/bandeau-attention';
 
 export default function DatabaseCards() {
   const { data, isLoading, isError } = usePersonnelStatsQuery({});
@@ -67,7 +68,31 @@ export default function DatabaseCards() {
       : [{ label: 'Comptes en attente', value: comptesEnAttente ?? 0, href: '/delivery-men/not-valide' }]),
   ];
 
+  /**
+   * Ce qui appelle une ACTION, remonte en tete de l'ecran.
+   *
+   * <p>Le tableau de bord alignait une vingtaine de tuiles de poids visuel identique :
+   * « Comptes en attente », qui demande une validation, s'y lisait exactement comme
+   * « Partenaire Actif », qui n'appelle rien. Rien ne disait par ou commencer.</p>
+   *
+   * <p>Alimente UNIQUEMENT par des donnees deja chargees ici : aucun appel reseau
+   * supplementaire, donc aucun cout d'affichage. Un signalement a zero n'apparait pas —
+   * un bandeau qui affiche « 0 compte en attente » apprend a l'œil a l'ignorer.</p>
+   */
+  const signalements: Signalement[] = comptesEnAttenteEnErreur
+    ? []
+    : [
+        {
+          libelle: 'compte(s) livreur en attente de validation',
+          nombre: comptesEnAttente ?? 0,
+          ton: 'attention',
+          href: '/delivery-men/not-valide',
+        },
+      ];
+
   return (
+    <>
+    <BandeauAttention signalements={signalements} />
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
       {statsItems.map((item) => (
         <Card as={Link} key={item.label} href={item.href ?? '#'} className="transition-shadow hover:shadow-md">
@@ -122,5 +147,6 @@ export default function DatabaseCards() {
         </Card>
       )}
     </div>
+    </>
   );
 }
