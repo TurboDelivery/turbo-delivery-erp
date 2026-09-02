@@ -2061,3 +2061,26 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
   --accent: oklch(0.685 0.2185 29.6);
   --accent-foreground: var(--snow);
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+ * LISIBILITE DES CARTES EN THEME CLAIR.
+ *
+ * v3 pose une carte blanche (`--surface: oklch(100%)`) sur une page quasi blanche
+ * (`--background: oklch(97.02%)`), separees par une bordure a `oklch(90%)` et une ombre
+ * a 4 % d'opacite. Soit 3 % d'ecart de luminance entre la carte et son fond : les
+ * contours disparaissent, et l'œil ne sait plus ou commence un bloc.
+ *
+ * Ce n'est ni la bordure NI l'ombre isolement — c'est leur cumul. On agit donc sur les
+ * deux, modestement : bordure descendue a 88 %, ombre portee a 6/8 % avec une diffusion
+ * un peu plus large. Assez pour que le contour se lise, pas assez pour alourdir.
+ *
+ * Le thème SOMBRE n'est pas touché : la carte y est plus CLAIRE que le fond, donc elle
+ * se détache déjà, et lui ajouter une ombre ne ferait que salir les bords.
+ * ════════════════════════════════════════════════════════════════════════════ */
+:root, [data-theme='light'] {
+  --border: oklch(88% 0.005 286.32);
+  --separator: oklch(90.5% 0.005 286.32);
+  --surface-shadow:
+    0 1px 2px 0 rgb(24 24 27 / 0.06),
+    0 4px 12px -4px rgb(24 24 27 / 0.08);
+}
