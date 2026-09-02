@@ -40,8 +40,21 @@
 @config '../tailwind.config.js';
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /*
+   * `hsl(...)` OBLIGATOIRE ici, et c'est ce qui a casse le rendu a la montee.
+   *
+   * <p>Ce bloc etait INERTE sous Tailwind 3, qui ignore `@theme`. Sous Tailwind 4 il
+   * devient actif et PRIORITAIRE : il court-circuite `tailwind.config.js`. Or les
+   * variables applicatives (`--primary`, `--background`...) portent des COMPOSANTES HSL
+   * brutes (`6 100% 50%`), pas des couleurs completes. Sans enveloppe, Tailwind generait
+   * `background-color: var(--primary)` — valeur invalide, donc transparent.
+   *
+   * Symptome observe : fond passe du rouge vif au bordeaux sombre, bouton principal
+   * devenu gris. Build vert, `tsc` a 0, aucun avertissement.
+   */
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
   --font-sans: var(--font-nunito);
   --font-mono: var(--font-nunito);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -52,27 +65,27 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
+  --color-chart-5: hsl(var(--chart-5));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-1: hsl(var(--chart-1));
+  --color-ring: hsl(var(--ring));
+  --color-input: hsl(var(--input));
+  --color-border: hsl(var(--border));
+  --color-destructive: hsl(var(--destructive));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted: hsl(var(--muted));
   --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
+  --color-secondary: hsl(var(--secondary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card: hsl(var(--card));
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -1980,4 +1993,25 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
   --heroui-box-shadow-medium:0px 0px 15px 0px rgba(0,0,0,.06),0px 2px 30px 0px rgba(0,0,0,.22),inset 0px 0px 1px 0px hsla(0,0%,100%,.15);
   --heroui-box-shadow-large:0px 0px 30px 0px rgba(0,0,0,.07),0px 30px 60px 0px rgba(0,0,0,.26),inset 0px 0px 1px 0px hsla(0,0%,100%,.15);
   --heroui-hover-opacity:.9;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+ * COMPATIBILITE TAILWIND 4 — couleur de bordure par defaut.
+ *
+ * Tailwind 4 change le defaut de `border-color` : il passait de `gray-200` a
+ * `currentColor`. Le depot compte 1470 usages de `border` dont seulement 692 portent
+ * une couleur explicite : environ 778 bordures prendraient donc la couleur du TEXTE.
+ * Rien ne le signale — ni `tsc`, ni le build.
+ *
+ * On restitue l'ancien defaut. A retirer seulement le jour ou les 778 sites porteront
+ * une couleur explicite, ce qui n'est pas un chantier a melanger avec la montee.
+ * ════════════════════════════════════════════════════════════════════════════ */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
 }
