@@ -1,14 +1,28 @@
-"use client";
-import { title } from '@/components/primitives';
+'use client';
+
 import { Card, Separator, Skeleton } from '@heroui-v3/react';
-import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import { TurboysButton } from '@/components/dashboard/apercu/TurboysButton';
-import { usePersonnelStatsQuery } from '@/features/dashboard/queries/personnel-stats.query';
-import { useComptesEnAttenteQuery } from '@/features/dashboard/queries/comptes-attente.query';
+import Link from 'next/link';
+
 import EtatErreur from '@/components/commons/EtatErreur';
 import BandeauAttention, { type Signalement } from '@/components/dashboard/apercu/bandeau-attention';
+import { TurboysButton } from '@/components/dashboard/apercu/TurboysButton';
+import { useComptesEnAttenteQuery } from '@/features/dashboard/queries/comptes-attente.query';
+import { usePersonnelStatsQuery } from '@/features/dashboard/queries/personnel-stats.query';
 
+/**
+ * Bande de compteurs du haut de tableau de bord.
+ *
+ * <p>C'étaient CINQ CARTES dans une grille. Comme la carte « Turboys » porte trois lignes
+ * de ventilation, la grille alignait toutes les autres sur SA hauteur : « Partenaire
+ * Actif » occupait 250 px pour afficher un nombre à deux chiffres. Un tiers de l'écran
+ * pour cinq compteurs, dont les quatre cinquièmes étaient du vide.</p>
+ *
+ * <p>Cinq compteurs de même nature ne sont pas cinq objets : c'est UNE bande. Une seule
+ * carte, des colonnes séparées par des traits, chacune à la hauteur de son contenu. La
+ * ventilation des Turboys passe sous son chiffre, en petit, au lieu de dicter la hauteur
+ * de la rangée entière.</p>
+ */
 export default function DatabaseCards() {
   const { data, isLoading, isError } = usePersonnelStatsQuery({});
   const {
@@ -17,71 +31,17 @@ export default function DatabaseCards() {
     isFetching: comptesEnAttenteEnCours,
     refetch: rechargerComptesEnAttente,
   } = useComptesEnAttenteQuery();
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Card key={`skeleton-${index}`}>
-            <Card.Header>
-              <Skeleton className="h-5 w-32 rounded-lg" />
-            </Card.Header>
-            <Card.Content>
-              <div className="flex flex-col gap-3">
-                <Skeleton className="h-8 w-20 rounded-lg" />
-                <Skeleton className="h-4 w-full rounded-lg" />
-                <Skeleton className="h-4 w-4/5 rounded-lg" />
-              </div>
-            </Card.Content>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  if (isError && !data) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
-        <Card className="sm:col-span-2 lg:col-span-3 xl:col-span-5 border-danger/40">
-          <Card.Header>
-            <Card.Title className="text-danger">Erreur de chargement</Card.Title>
-          </Card.Header>
-          <Card.Content>
-            <Card.Description>Impossible de récupérer les statistiques du personnel pour le moment.</Card.Description>
-          </Card.Content>
-        </Card>
-      </div>
-    );
-  }
-
-  const statsItems = [
-    { label: 'Partenaire Actif', value: data?.partenaireActif ?? 0, href: '/restaurants' },
-    // 2026-05-29 — Carte "Turboys" pointe maintenant explicitement vers la
-    // nouvelle vue /delivery-men/men. Sans href elle redirigeait vers "#"
-    // (donc nulle part) et l'utilisateur restait coincé sur le dashboard.
-    { label: 'Turboys', value: data?.turboys ?? 0, href: '/delivery-men/men' },
-    { label: 'Personnel TURBO', value: data?.personnel ?? 0, href: '/personnel' },
-    { label: 'Utilisateurs Actifs', value: data?.utilisateurs ?? 0, href: 'users' },
-    // M1 (RG-07) — comptes livreur en attente de validation, raccourci vers la file.
-    // En panne de lecture la carte sort de la liste : elle est remplacee plus bas par
-    // l'etat d'echec, car un compteur a zero se lit comme "aucun compte a valider".
-    ...(comptesEnAttenteEnErreur
-      ? []
-      : [{ label: 'Comptes en attente', value: comptesEnAttente ?? 0, href: '/delivery-men/not-valide' }]),
-  ];
 
   /**
-   * Ce qui appelle une ACTION, remonte en tete de l'ecran.
+   * Ce qui appelle une ACTION, remonté en tête.
    *
-   * <p>Le tableau de bord alignait une vingtaine de tuiles de poids visuel identique :
-   * « Comptes en attente », qui demande une validation, s'y lisait exactement comme
-   * « Partenaire Actif », qui n'appelle rien. Rien ne disait par ou commencer.</p>
-   *
-   * <p>Alimente UNIQUEMENT par des donnees deja chargees ici : aucun appel reseau
-   * supplementaire, donc aucun cout d'affichage. Un signalement a zero n'apparait pas —
-   * un bandeau qui affiche « 0 compte en attente » apprend a l'œil a l'ignorer.</p>
+   * <p>Un ÉCHEC de lecture est lui-même un signalement : la version précédente vidait la
+   * liste quand la requête échouait, et le bandeau annonçait alors « Rien ne demande
+   * d'action immédiate » pendant qu'une carte en erreur s'affichait juste en dessous. Le
+   * bandeau se contredisait avec l'écran.</p>
    */
   const signalements: Signalement[] = comptesEnAttenteEnErreur
-    ? []
+    ? [{ libelle: 'comptes en attente : lecture impossible', ton: 'critique' }]
     : [
         {
           libelle: 'compte(s) livreur en attente de validation',
@@ -91,72 +51,74 @@ export default function DatabaseCards() {
         },
       ];
 
+  const compteurs = [
+    { label: 'Partenaires actifs', value: data?.partenaireActif, href: '/restaurants' },
+    { label: 'Turboys', value: data?.turboys, href: '/delivery-men/men' },
+    { label: 'Personnel Turbo', value: data?.personnel, href: '/personnel' },
+    { label: 'Utilisateurs actifs', value: data?.utilisateurs, href: '/users' },
+    ...(comptesEnAttenteEnErreur
+      ? []
+      : [{ label: 'Comptes en attente', value: comptesEnAttente, href: '/delivery-men/not-valide' }]),
+  ];
+
   return (
     <>
-    <BandeauAttention signalements={signalements} />
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 w-full">
-      {statsItems.map((item) => (
-        <Card key={item.label} className="transition-shadow hover:shadow-md">
-          <Card.Header>
-            {/* Le libelle n'est plus en rouge : l'accent est reserve a l'action, pas au
-                decor. Un titre de carte n'appelle rien. */}
-            <Card.Title className="text-sm font-medium text-muted">{item.label}</Card.Title>
-          </Card.Header>
-          <Card.Content className="flex flex-col justify-between gap-3">
-            <div className="flex items-center justify-between gap-1 overflow-x-hidden">
-              <p className="text-3xl font-semibold tabular-nums">{item.value}</p>
-              {item.label === 'Turboys' && (
-                <div className="flex flex-col gap-2">
-                  <TurboysButton name={'Indépendants'} param={'INDEPENDANT'} value={data?.turboysIndependant} />
-                  <Separator />
-                  <TurboysButton name={'Journaliers'} param={'JOURNALIER'} value={data?.turboysJournalier} />
-                  {/* V54 (2026-05) — Affiche la 3e population SUPERVISEUR_LIVREUR
-                       quand l'API la renvoie. Si l'utilisateur est sur un front
-                       qui a tapé un backend pré-V54, le champ est undefined et
-                       on n'affiche rien — comportement gracieux. */}
-                  {data?.turboysSuperviseurLivreur !== undefined && (
-                    <>
-                      <Separator />
-                      <TurboysButton
-                        name={'Superviseurs-livreurs'}
-                        param={'SUPERVISEUR_LIVREUR'}
-                        value={data.turboysSuperviseurLivreur}
-                      />
-                    </>
-                  )}
-                </div>
-              )}
+      <BandeauAttention signalements={signalements} />
+
+      <Card>
+        <Card.Content className="flex flex-col divide-y divide-separator p-0 sm:flex-row sm:divide-x sm:divide-y-0">
+          {isError && !data ? (
+            <div className="flex-1">
+              <EtatErreur quoi="les statistiques du personnel" />
             </div>
-          </Card.Content>
-          {item.label !== 'Turboys' && (
-            <Card.Footer>
-              {/* Lien EXPLICITE, la ou la carte entiere etait cliquable sans le dire.
-                  Une carte qui navigue sans l'annoncer se decouvre par accident. */}
+          ) : (
+            compteurs.map((c) => (
               <Link
-                className="inline-flex items-center gap-1 text-xs text-muted transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                href={item.href ?? '#'}
+                key={c.label}
+                className="group flex flex-1 flex-col gap-1 px-5 py-4 transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+                href={c.href}
               >
-                Voir le détail
-                <ChevronRight className="size-3.5" />
+                <span className="flex items-center gap-1 text-xs font-medium text-muted">
+                  {c.label}
+                  <ChevronRight aria-hidden="true" className="size-3 opacity-0 transition-opacity group-hover:opacity-70" />
+                </span>
+
+                {isLoading ? (
+                  <Skeleton className="h-8 w-16 rounded-lg" />
+                ) : (
+                  <span className="text-2xl font-semibold tabular-nums leading-none">{c.value ?? 0}</span>
+                )}
+
+                {/* La ventilation vit SOUS son chiffre, en petit. Elle dictait la hauteur
+                    de toute la rangee quand elle occupait trois lignes de la carte. */}
+                {c.label === 'Turboys' && !isLoading && (
+                  <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted">
+                    <TurboysButton name="Indép." param="INDEPENDANT" value={data?.turboysIndependant} />
+                    <TurboysButton name="Journ." param="JOURNALIER" value={data?.turboysJournalier} />
+                    {data?.turboysSuperviseurLivreur !== undefined && (
+                      <TurboysButton name="Superv." param="SUPERVISEUR_LIVREUR" value={data.turboysSuperviseurLivreur} />
+                    )}
+                  </span>
+                )}
               </Link>
-            </Card.Footer>
+            ))
           )}
-        </Card>
-      ))}
+        </Card.Content>
+      </Card>
+
+      {/* La lecture des comptes en attente a echoue : la relance est proposee sous la
+          bande, sans deformer la grille des compteurs comme le faisait la carte d'erreur. */}
       {comptesEnAttenteEnErreur && (
-        <Card className="border-danger/40">
-          <Card.Content className="p-0">
-            <EtatErreur
-              quoi="les comptes en attente"
-              onReessayer={() => {
-                void rechargerComptesEnAttente();
-              }}
-              enCours={comptesEnAttenteEnCours}
-            />
-          </Card.Content>
-        </Card>
+        <div className="mt-3">
+          <EtatErreur
+            enCours={comptesEnAttenteEnCours}
+            onReessayer={() => {
+              void rechargerComptesEnAttente();
+            }}
+            quoi="les comptes en attente"
+          />
+        </div>
       )}
-    </div>
     </>
   );
 }

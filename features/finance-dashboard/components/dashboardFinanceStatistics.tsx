@@ -252,7 +252,9 @@ export default function DashboardFinanceStatistics() {
         </Card>
 
         {/* ── Colonne 2 : depuis l'origine ──────────────────────────── */}
-        <Card variant="secondary">
+        {/* `self-start` : la colonne epouse son contenu. Sans cela la grille l'etirait
+            sur la hauteur de la colonne de gauche, produisant 400 px de vide gris. */}
+        <Card className="self-start" variant="secondary">
           <Card.Header>
             <Card.Title className="text-sm font-medium text-muted">Depuis l&apos;origine</Card.Title>
             <Card.Description className="text-xs">Cumul de toute l&apos;activité</Card.Description>

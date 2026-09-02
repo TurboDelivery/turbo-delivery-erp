@@ -8,7 +8,6 @@ import { useFinanceResumeQuery } from '../queries/finance-resume.query';
 import { YearFilter } from './year-filter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import StatSummaryCard from './stat-summary-card';
 import { createChartDot } from '../utils/chart.utils';
 
 const chartConfig = {
@@ -63,10 +62,32 @@ export function ChartLineMultiple() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Cartes de résumé */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-6">
+        {/*
+          * Bande de totaux, RELIEE au graphique.
+          *
+          * <p>C'etaient cinq tuiles pastel — vert, rouge, bleu, ambre, violet — a fond
+          * teinte, posees au-dessus d'un graphique dont les courbes portent EXACTEMENT ces
+          * couleurs. La correspondance existait mais restait a deviner : deux langages
+          * pour la meme information, et cinq aplats colores de plus sur une page qui en
+          * comptait deja trop.</p>
+          *
+          * <p>Chaque total porte desormais la PASTILLE de sa courbe : le lien devient
+          * explicite, le fond disparait, et les montants s'alignent en chasse tabulaire
+          * pour se comparer.</p>
+          */}
+        <div className="mb-6 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 md:grid-cols-5">
           {summaryCards.map((card) => (
-            <StatSummaryCard key={card.label} {...card} />
+            <div key={card.label} className="flex flex-col gap-1">
+              <span className="flex items-center gap-1.5 text-xs text-muted">
+                <span
+                  aria-hidden="true"
+                  className="size-2 shrink-0 rounded-full"
+                  style={{ backgroundColor: card.color }}
+                />
+                {card.label}
+              </span>
+              <span className="text-lg font-semibold leading-none tabular-nums">{card.value}</span>
+            </div>
           ))}
         </div>
 
