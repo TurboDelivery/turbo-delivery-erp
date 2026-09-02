@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
-import { ArrowDown, Banknote, CalendarRange, Clock, DollarSign, Layers, TrendingUp, Wallet } from 'lucide-react';
 import { useCAExport } from '@/features/finance-dashboard/hooks/use-ca-export';
 import { useGlobalStats } from '@/features/finance-dashboard/queries/global-stats.query';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { DateRange } from 'react-day-picker';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
-import CACard from './ca-card';
-import FinanceHighlightCard from './finance-highlight-card';
+import { Button, Card, Skeleton } from '@heroui-v3/react';
+import Link from 'next/link';
+import LigneMontant from './ligne-montant';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { useDepenseSummaryQuery } from '@/features/depenses/queries/depense-summary.query';
 import { useFinanceResumeQuery } from '@/features/finance-dashboard/queries/finance-resume.query';
@@ -122,151 +122,176 @@ export default function DashboardFinanceStatistics() {
 
   return (
     <div className="w-full px-4 py-6">
-      {/* En-tête avec filtre */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 bg-white">
-        <h2 className="text-2xl font-bold text-primary">Tableau de bord financier</h2>
+      {/* En-tete : le titre porte la periode, plus besoin de la repeter dans chaque carte. */}
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">Finances</h2>
+          <p className="text-sm text-muted">
+            {debut && fin ? `Du ${format(debut, 'dd/MM/yyyy')} au ${format(fin, 'dd/MM/yyyy')}` : 'Mois en cours'}
+          </p>
+        </div>
         <DateFilterInput filters={dateFilters} handleDateChange={setDateRange} />
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        {/* Carte CA du Mois sur toute la largeur */}
-        {isErrorGlobal ? (
-          <div className="rounded-xl border border-gray-200 bg-white">
-            <EtatErreur
-              quoi="le chiffre d'affaires"
-              onReessayer={() => refetchGlobal()}
-              enCours={isFetchingGlobal}
-            />
-          </div>
-        ) : (
-        <CACard
-          title={caTitle}
-          totalAmount={chiffreAffaires}
-          fraisLivraison={fraisLivraison}
-          commissions={commissions}
-          // investissement={investissement}
-          commissionFixe={globalStats?.commissionFixe ?? 0}
-          commissionPourcentage={globalStats?.commissionPourcentage ?? 0}
-          isLoading={isLoading}
-          isLoadingExport={isLoadingCAExport}
-          onDownload={handleDownloadDetails}
-          detailHref="/finance/revenue"
-        />
-        )}
+      {/*
+        * DEUX COLONNES ASYMETRIQUES, et c'est le coeur de la refonte.
+        *
+        * <p>L'ecran presentait ces quatorze montants en ONZE TUILES colorees — sept teintes
+        * de fond sans rapport avec ce que le chiffre raconte — plus un panneau vert, deux
+        * bandeaux rouge et orange, et quatre tuiles indigo. Quatre langages visuels sur une
+        * page, tous de meme poids : rien ne disait quel chiffre comptait, et les montants,
+        * non alignes, ne se comparaient pas.</p>
+        *
+        * <p>C'est un ETAT FINANCIER. Il se lit donc comme tel : la periode a gauche, en
+        * large, avec son chiffre d'affaires en tete et ses composantes DECALEES dessous ;
+        * le cumul a droite, en retrait, parce qu'on le consulte moins souvent. Une seule
+        * carte, des montants alignes en chasse tabulaire, et la couleur reduite a une seule
+        * fonction : dire le sens du flux.</p>
+        */}
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
 
-        {/* ── Section : indicateurs de la période ── */}
-        <div className="flex items-center gap-2 pt-1">
-          <CalendarRange className="size-4 text-primary" />
-          <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Indicateurs de la période</h3>
-        </div>
-        {isErrorIndicateurs ? (
-          <div className="rounded-xl border border-gray-200 bg-white">
-            <EtatErreur
-              quoi="les indicateurs de la période"
-              onReessayer={reessayerIndicateurs}
-              enCours={isFetchingIndicateurs}
-            />
-          </div>
-        ) : (
-          <>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <FinanceHighlightCard
-            title="Revenus encaissés"
-            value={formatCFA(resume?.totalRevenus ?? 0)}
-            icon={Banknote}
-            tone="blue"
-            href={`/finance/recouvrement${periodeQS}`}
-            ariaLabel="Voir les recouvrements de la période"
-          />
-          <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/dashboard" ariaLabel="Voir les dépenses de la période">
-            <div className="flex flex-col gap-0.5">
-              <div className="bg-red-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium 2xl:text-lg">
-                <span>Charges fixes</span>
-                <span>{formattedRecurrentes}</span>
+        {/* ── Colonne 1 : la periode ────────────────────────────────── */}
+        <Card>
+          <Card.Header>
+            <Card.Title className="text-sm font-medium text-muted">{caTitle}</Card.Title>
+          </Card.Header>
+
+          <Card.Content className="flex flex-col">
+            {isErrorGlobal ? (
+              <EtatErreur quoi="le chiffre d'affaires" onReessayer={() => refetchGlobal()} enCours={isFetchingGlobal} />
+            ) : (
+              <>
+                <p className="text-4xl font-semibold tabular-nums tracking-tight">
+                  {isLoading ? <Skeleton className="h-10 w-52 rounded-lg" /> : formatCFA(chiffreAffaires)}
+                </p>
+
+                {/* Un mois qui vient de commencer affiche « 0 FCFA » partout. Sans cette
+                    mention, cela se lit comme un effondrement. */}
+                {!isLoading && chiffreAffaires === 0 && (
+                  <p className="mt-2 text-xs text-muted">
+                    Aucune course facturée sur cette période. Ce zéro n&apos;est pas une baisse.
+                  </p>
+                )}
+
+                <div className="mt-4 flex flex-col">
+                  <LigneMontant libelle="Frais de livraison" valeur={formatCFA(fraisLivraison)} sens="entree" detail />
+                  <LigneMontant libelle="Commissions" valeur={formatCFA(commissions)} sens="entree" detail />
+                  <LigneMontant
+                    libelle="Commission fixe"
+                    valeur={formatCFA(globalStats?.commissionFixe ?? 0)}
+                    detail
+                    note="incluse dans les commissions"
+                  />
+                  <LigneMontant
+                    libelle="Commission au pourcentage"
+                    valeur={formatCFA(globalStats?.commissionPourcentage ?? 0)}
+                    detail
+                  />
+                </div>
+              </>
+            )}
+
+            {isErrorIndicateurs ? (
+              <div className="mt-4">
+                <EtatErreur
+                  quoi="les indicateurs de la période"
+                  onReessayer={reessayerIndicateurs}
+                  enCours={isFetchingIndicateurs}
+                />
               </div>
-              <div className="bg-orange-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium 2xl:text-lg">
-                <span>Charges variables</span>
-                <span>{formattedNonRecurrentes}</span>
-              </div>
-            </div>
-          </FinanceHighlightCard>
-          <FinanceHighlightCard title="Marge" value={formattedMarge} icon={DollarSign} tone="orange" href="/finance/analyse-rentabilite" ariaLabel="Voir l'analyse de rentabilité" />
-          <FinanceHighlightCard
-            title="Encours"
-            value={formatCFA(resume?.totalFacturesEnCours ?? 0)}
-            icon={Clock}
-            tone="purple"
-            href={`/finance/recouvrement${facturesPeriodeQS}`}
-            ariaLabel="Voir les factures en cours de la période"
-          />
-          <FinanceHighlightCard
-            title="Investissements"
-            value={formatCFA(resume?.totalInvestissements ?? 0)}
-            icon={TrendingUp}
-            tone="yellow"
-            href={`/finance/revenue/investissement${periodeQS}`}
-            ariaLabel="Voir les investissements de la période"
-          />
-        </div>
+            ) : (
+              <>
+                <LigneMontant
+                  libelle="Dépenses"
+                  valeur={formattedDepenses}
+                  sens="sortie"
+                  href="/finance/dashboard"
+                  separateur
+                />
+                <LigneMontant libelle="Charges fixes" valeur={formattedRecurrentes} detail />
+                <LigneMontant libelle="Charges variables" valeur={formattedNonRecurrentes} detail />
 
-        <div className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 border ${margeStateClassName}`}>
-          {isDeficit ? <ArrowDown className="size-4" /> : <TrendingUp className="size-4" />}
-          <p className="text-sm 2xl:text-base font-medium">
-            {margeStateLabel} (période) : {formattedMarge}
-          </p>
-        </div>
-          </>
-        )}
+                <LigneMontant
+                  libelle={isDeficit ? 'Déficit de la période' : 'Marge de la période'}
+                  valeur={formattedMarge}
+                  sens={isDeficit ? 'sortie' : 'entree'}
+                  href="/finance/analyse-rentabilite"
+                  separateur
+                />
 
-        {/* ── Section : cumul tout l'historique (bloc visuellement distinct) ── */}
-        <div className="rounded-xl border border-indigo-100 bg-indigo-50/30 p-4 space-y-3 mt-1">
-          <div className="flex items-center gap-2">
-            <Layers className="size-4 text-indigo-500" />
-            <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Cumul · tout l&apos;historique</h3>
-          </div>
-          {isErrorResume ? (
-            <EtatErreur
-              quoi="les cumuls financiers"
-              onReessayer={() => refetchResume()}
-              enCours={isFetchingResume}
-            />
-          ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <FinanceHighlightCard
-              title="CA cumulé"
-              value={formatCFA(resume?.chiffreAffaireCumule ?? 0)}
-              icon={Wallet}
-              tone="green"
-              href="/finance/revenue"
-              ariaLabel="Voir le cumul des revenus"
-            />
-            <FinanceHighlightCard
-              title="Dépenses cumulées"
-              value={formatCFA(resume?.totalDepensesCumule ?? 0)}
-              icon={ArrowDown}
-              tone="red"
-              href={depensesCumuleHref}
-              ariaLabel="Voir toutes les dépenses (cumul)"
-            />
-            <FinanceHighlightCard
-              title="Marge cumulée"
-              value={formatCFA(resume?.margeCumule ?? 0)}
-              icon={DollarSign}
-              tone="orange"
-              href="/finance/analyse-rentabilite"
-              ariaLabel="Voir l'analyse de rentabilité"
-            />
-            <FinanceHighlightCard
-              title="Encours cumulé"
-              value={formatCFA(resume?.totalFacturesEnCoursCumule ?? 0)}
-              icon={Clock}
-              tone="indigo"
-              href={encoursCumuleHref}
-              ariaLabel="Voir toutes les factures en cours (cumul)"
-            />
-          </div>
-          )}
-        </div>
+                <LigneMontant
+                  libelle="Revenus encaissés"
+                  valeur={formatCFA(resume?.totalRevenus ?? 0)}
+                  sens="entree"
+                  href={`/finance/recouvrement${periodeQS}`}
+                  separateur
+                />
+                <LigneMontant
+                  libelle="Encours à recouvrer"
+                  valeur={formatCFA(resume?.totalFacturesEnCours ?? 0)}
+                  sens="alerte"
+                  href={`/finance/recouvrement${facturesPeriodeQS}`}
+                />
+                <LigneMontant
+                  libelle="Investissements"
+                  valeur={formatCFA(resume?.totalInvestissements ?? 0)}
+                  href={`/finance/revenue/investissement${periodeQS}`}
+                />
+              </>
+            )}
+          </Card.Content>
+
+          <Card.Footer className="flex flex-wrap items-center gap-3">
+            <Button isPending={isLoadingCAExport} size="sm" variant="secondary" onPress={handleDownloadDetails}>
+              Télécharger les détails
+            </Button>
+            <Link className="text-xs text-muted transition-colors hover:text-accent" href="/finance/revenue">
+              Voir le détail du chiffre d&apos;affaires
+            </Link>
+          </Card.Footer>
+        </Card>
+
+        {/* ── Colonne 2 : depuis l'origine ──────────────────────────── */}
+        <Card variant="secondary">
+          <Card.Header>
+            <Card.Title className="text-sm font-medium text-muted">Depuis l&apos;origine</Card.Title>
+            <Card.Description className="text-xs">Cumul de toute l&apos;activité</Card.Description>
+          </Card.Header>
+
+          <Card.Content className="flex flex-col">
+            {isErrorResume ? (
+              <EtatErreur quoi="les cumuls financiers" onReessayer={() => refetchResume()} enCours={isFetchingResume} />
+            ) : (
+              <>
+                <LigneMontant
+                  libelle="Chiffre d'affaires"
+                  valeur={formatCFA(resume?.chiffreAffaireCumule ?? 0)}
+                  sens="entree"
+                  href="/finance/revenue"
+                />
+                <LigneMontant
+                  libelle="Dépenses"
+                  valeur={formatCFA(resume?.totalDepensesCumule ?? 0)}
+                  sens="sortie"
+                  href={depensesCumuleHref}
+                />
+                <LigneMontant
+                  libelle="Marge"
+                  valeur={formatCFA(resume?.margeCumule ?? 0)}
+                  sens={(resume?.margeCumule ?? 0) < 0 ? 'sortie' : 'entree'}
+                  href="/finance/analyse-rentabilite"
+                  separateur
+                />
+                <LigneMontant
+                  libelle="Encours à recouvrer"
+                  valeur={formatCFA(resume?.totalFacturesEnCoursCumule ?? 0)}
+                  sens="alerte"
+                  href={encoursCumuleHref}
+                />
+              </>
+            )}
+          </Card.Content>
+        </Card>
       </div>
     </div>
   );

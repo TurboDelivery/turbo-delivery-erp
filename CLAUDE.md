@@ -31,6 +31,50 @@ without a leading dot, which is how a configuration file reached the repository 
 | `NEXT_PUBLIC_SOCKET_HOST` | Socket.IO server |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps |
 
+
+## REFONTE — RÈGLE OBLIGATOIRE
+
+**L'objectif du chantier est une NOUVELLE VERSION du projet, pas une migration.**
+Moderne, rapide, sûre, fiable, stable, ergonomique. Belle UI, bonne UX. Simple et facile
+d'utilisation.
+
+### Ce qui compte comme refonte, et ce qui n'en est pas
+
+Remplacer `<Card>` v2 par `<Card.Header>` v3 **n'est pas une refonte.** C'est un
+remplacement de composants. Si, après le changement, l'écran a la même architecture
+d'information, la même hiérarchie et la même disposition, alors rien n'a été refondu.
+
+Une refonte répond à trois questions AVANT d'écrire du code :
+1. **que regarde l'opérateur en premier sur cet écran, et pourquoi ?**
+2. **qu'est-ce qui appelle une action, et qu'est-ce qui informe seulement ?**
+3. **quelle est la forme naturelle de cette donnée ?** Un état financier se lit en
+   colonnes alignées, pas en tuiles. Une file d'attente se lit en liste, pas en grille.
+
+### Règles fermes
+
+- **Aucune donnée visible ne disparaît.** Chaque valeur, chaque lien de détail, chaque
+  état de chargement et d'erreur présent avant doit être présent après. Seule la
+  PRÉSENTATION change — et elle doit être pensée, pas transposée.
+- **HeroUI v3 est le matériau, pas le but.** On utilise ses composants et son thème ; on
+  ne réécrit pas ses styles à la main. Une classe de couleur écrite en dur là où un
+  `variant` existe est une erreur.
+- **La couleur dit quelque chose ou n'existe pas.** L'accent est réservé à ce qui appelle
+  une action. Sept teintes décoratives sur un écran, c'est sept fois rien.
+- **Les chiffres se comparent** : chasse tabulaire, alignement à droite, ordres de
+  grandeur donnés quand un chiffre seul ne veut rien dire.
+- **Vérifier À L'ÉCRAN.** `tsc` à 0 et un build vert ne prouvent rien sur une interface.
+  Les régressions visuelles de ce projet ont TOUTES été trouvées par un humain qui
+  regardait, jamais par un outil.
+
+### Erreurs déjà commises, à ne pas refaire
+
+- avoir passé une journée sur la plomberie (migrations, mesures, non-régression) en
+  l'appelant refonte ;
+- avoir « corrigé » une page en changeant un hexadécimal et une opacité, sur du balisage
+  HTML brut, alors que la bibliothèque de composants était installée et documentée ;
+- avoir remplacé les composants d'un écran sans toucher à sa conception, et l'avoir
+  présenté comme une nouvelle interface.
+
 ## Architecture
 
 ### Stack
