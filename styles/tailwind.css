@@ -2029,3 +2029,35 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
     border-color: var(--color-gray-200, currentColor);
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+ * THEME TURBO POUR HEROUI v3.
+ *
+ * v3 pose son propre accent, et il est BLEU (`oklch(0.6204 0.195 253.83)`). Sans cette
+ * surcharge, TOUS les boutons principaux de l'ERP viraient au bleu : constate a l'ecran
+ * sur le formulaire de connexion des sa reconversion en composants v3.
+ *
+ * On ne redefinit QUE l'accent et son texte. Le reste du theme v3 — surfaces, champs,
+ * bordures, rayons, ombres — est laisse tel quel : c'est precisement ce qu'on vient
+ * chercher en v3, et le surcharger reviendrait a reconstruire l'ancien habillage sous un
+ * nouveau nom.
+ *
+ * `--focus` suit `--accent` par construction, l'anneau de focus devient donc rouge aussi.
+ * `--danger` reste le rouge de v3 : deux rouges proches se distinguent mal, mais celui de
+ * la marque est plus vif que celui du danger, et le danger n'apparait jamais a cote d'un
+ * bouton principal dans nos ecrans.
+ *
+ * Doit venir APRES `@import '@heroui-v3/styles'`.
+ * ════════════════════════════════════════════════════════════════════════════ */
+:root, [data-theme='light'] {
+  /* Rouge Turbo, equivalent de rgb(255, 26, 0) — la couleur de marque deja portee par
+     `--primary` cote applicatif. Les deux systemes disent enfin la meme chose. */
+  --accent: oklch(0.632 0.2537 29.6);
+  --accent-foreground: var(--snow);
+}
+
+.dark, [data-theme='dark'] {
+  /* Legerement eclairci : le rouge plein sur fond sombre vibre et fatigue. */
+  --accent: oklch(0.685 0.2185 29.6);
+  --accent-foreground: var(--snow);
+}
