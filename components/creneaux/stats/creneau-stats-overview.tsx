@@ -13,8 +13,8 @@ export function CreneauStatsOverview({ stats }: CreneauStatsOverviewProps) {
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <CreneauStatCard label="Taux de Presence Global" sublabel="+2% vs semaine derniere" value={stats.tauxPresenceGlobal} color="success" />
       <CreneauStatCard label="Prevision" sublabel="Creneaux remplis" value={stats.retention} color="success" />
-      <CreneauStatCard label="Fiabilite Terrain" sublabel="Presences reelles" value={stats.fideliteTurboys} color="primary" />
-       <CreneauStatCard label="Capacite Globale" sublabel="Creneaux disponibles" value={stats.capaciteGlobale} color="primary" />
+      <CreneauStatCard label="Fiabilite Terrain" sublabel="Presences reelles" value={stats.fideliteTurboys} color="accent" />
+       <CreneauStatCard label="Capacite Globale" sublabel="Creneaux disponibles" value={stats.capaciteGlobale} color="accent" />
     </div>
   );
 }

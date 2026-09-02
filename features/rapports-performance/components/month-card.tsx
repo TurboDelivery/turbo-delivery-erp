@@ -3,7 +3,7 @@
 import { TrendingUp, Users, Briefcase, ArrowUpRight, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, Progress } from '@/components/heroui';
+import { Card, ProgressBar } from '@/components/heroui';
 import { CardContent } from '@/components/ui/card';
 import { MonthData } from '../hooks/use-bilan-annuel';
 
@@ -80,7 +80,7 @@ function MonthFinancials({ month }: MonthCardProps) {
           <span className="text-gray-600">Progression annuelle</span>
           <span className="text-gray-500">{month.progress}/12</span>
         </div>
-        <Progress value={(month.progress / 12) * 100} className="h-2" />
+        <ProgressBar value={(month.progress / 12) * 100} className="h-2"><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
       </div>
     </>
   );

@@ -1,5 +1,4 @@
 import { BirdPerformance } from "@/types/slot";
-import { Progress } from "@/components/heroui"
 
 const fnPerformance = (item:LivreurPerformanceBirdEndTorubo) => {
 

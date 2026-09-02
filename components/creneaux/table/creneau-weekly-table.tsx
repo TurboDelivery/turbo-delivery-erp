@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Progress, Avatar } from '@/components/heroui';
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Avatar, ProgressBar, Label } from '@/components/heroui';
 import { ICreneauTurboy, CreneauStatutJour, ICreneauJour } from '@/features/creneaux/types/creneau.types';
 import { getStatutDotColor } from '@/features/creneaux/utils/statut.utils';
 import { getAssiduitProgressColor } from '@/features/creneaux/utils/assiduite.utils';
@@ -101,13 +101,7 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, isError, o
       header: 'Assiduite',
       cell: ({ row }) => (
         <div className="flex items-center gap-2 min-w-[120px]">
-          <Progress
-            size="sm"
-            value={row.original.assiduite}
-            color={getAssiduitProgressColor(row.original.assiduite)}
-            className="max-w-24"
-            aria-label="Assiduite"
-          />
+          <ProgressBar size="sm" value={row.original.assiduite} color={getAssiduitProgressColor(row.original.assiduite)} className="max-w-24" aria-><Label>Assiduite</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
           <span className="text-sm font-medium">{row.original.assiduite}%</span>
         </div>
       ),
@@ -216,13 +210,7 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, isError, o
               {/* Assiduite */}
               <div className="flex items-center gap-2">
                 <span className="text-xs text-default-400 shrink-0">Assiduite</span>
-                <Progress
-                  size="sm"
-                  value={turboy.assiduite}
-                  color={getAssiduitProgressColor(turboy.assiduite)}
-                  className="flex-1"
-                  aria-label="Assiduite"
-                />
+                <ProgressBar size="sm" value={turboy.assiduite} color={getAssiduitProgressColor(turboy.assiduite)} className="flex-1" aria-><Label>Assiduite</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
                 <span className="text-sm font-medium shrink-0">{turboy.assiduite}%</span>
               </div>
             </div>

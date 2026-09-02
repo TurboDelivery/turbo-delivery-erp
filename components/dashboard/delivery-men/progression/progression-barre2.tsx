@@ -1,6 +1,6 @@
+import { ProgressBar, Label } from '@/components/heroui';
 // import { Livreur } from "@/types/creneau-bird"
 import { BirdPerformance } from "@/types/slot";
-import { Progress } from "@/components/heroui"
 
 // :{turboys:Livreur}
   const progresseBare2 =(turboys:CreneauProgressionBird)=>{
@@ -12,16 +12,16 @@ import { Progress } from "@/components/heroui"
             const valeur = Math.min(100, Math.max(0, turboys.progression));
 
             if(turboys.progression>=100){
-              return <Progress label={turboys.progression +'%'}   color="success" className="max-w-md"  value={valeur} />
+              return <ProgressBar color="success" className="max-w-md" value={valeur}><Label>{turboys.progression +'%'}</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
             }
             if(turboys.progression<100 && turboys.progression>=65){
-                return <Progress label={turboys.progression +'%'}   color="warning" className="max-w-md"  value={valeur} />
+                return <ProgressBar color="warning" className="max-w-md" value={valeur}><Label>{turboys.progression +'%'}</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
                 }
 
             // Dernier cas, sans condition : la version precedente testait `< 65` puis
             // retombait sur la CHAINE 'null' si rien ne matchait — ce qui arrivait des
             // que `progression` depassait 100.
-            return <Progress label={turboys.progression +'%'}   color="danger" className="max-w-md"  value={valeur} />
+            return <ProgressBar color="danger" className="max-w-md" value={valeur}><Label>{turboys.progression +'%'}</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
 
         }
 

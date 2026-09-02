@@ -123,7 +123,7 @@ export function JourDetailContent({ date }: JourDetailContentProps) {
         {isLoading ? (
           <Skeleton className="h-28 rounded-large" />
         ) : (
-          <CreneauStatCard label="Taux de présence" value={data?.tauxPresence ?? 0} color="primary" />
+          <CreneauStatCard label="Taux de présence" value={data?.tauxPresence ?? 0} color="accent" />
         )}
       </GrilleStats>
 

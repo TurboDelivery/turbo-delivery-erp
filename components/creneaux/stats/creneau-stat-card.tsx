@@ -1,6 +1,6 @@
 'use client';
 
-import { Progress } from '@/components/heroui';
+import { ProgressBar, Label } from '@/components/heroui';
 
 import CarteStat, { type TonStat } from '@/components/commons/CarteStat';
 
@@ -8,12 +8,12 @@ interface CreneauStatCardProps {
   label: string;
   sublabel?: string;
   value: number;
-  color?: 'success' | 'primary' | 'warning' | 'danger';
+  color?: 'success' | 'accent' | 'warning' | 'danger';
 }
 
 const TON: Record<NonNullable<CreneauStatCardProps['color']>, TonStat> = {
   success: 'succes',
-  primary: 'primaire',
+  accent: 'primaire',
   warning: 'attention',
   danger: 'danger',
 };
@@ -26,10 +26,10 @@ const TON: Record<NonNullable<CreneauStatCardProps['color']>, TonStat> = {
  * sur cette carte. Si un deuxieme appelant se met a utiliser `children`, c'est le signal
  * qu'il faut une vraie prop.</p>
  */
-export function CreneauStatCard({ label, sublabel, value, color = 'primary' }: CreneauStatCardProps) {
+export function CreneauStatCard({ label, sublabel, value, color = 'accent' }: CreneauStatCardProps) {
   return (
     <CarteStat libelle={label} valeur={`${value}%`} note={sublabel} ton={TON[color]}>
-      <Progress size="md" value={value} color={color} aria-label={label} radius="none" className="mt-3" />
+      <ProgressBar size="md" value={value} color={color} aria- className="mt-3"><Label>{label}</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
     </CarteStat>
   );
 }

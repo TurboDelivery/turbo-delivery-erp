@@ -37,6 +37,20 @@
 @import './select2.css' layer(base);
 @import 'tailwindcss';
 
+/*
+ * Styles HeroUI v3, charges EN COEXISTENCE avec la v2.
+ *
+ * <p>L'ordre est impose par la documentation : `tailwindcss` d'abord, `@heroui/styles`
+ * ensuite. Pendant la traversee, les deux systemes cohabitent — la v2 par son plugin
+ * (que nous avons remplace par des declarations explicites) et la v3 par ce paquet CSS.
+ * Le poids du bundle augmente temporairement, c'est le prix de garder l'ERP fonctionnel
+ * pendant la migration plutot que de le casser d'un bloc.</p>
+ *
+ * <p>A la fin, il ne restera que cette ligne : les jetons geles, les echelles declarees
+ * dans `tailwind.config.js` et la couche `components/heroui/` disparaissent avec la v2.</p>
+ */
+@import '@heroui-v3/styles';
+
 @config '../tailwind.config.js';
 
 @theme inline {

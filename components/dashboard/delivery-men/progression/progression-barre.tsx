@@ -1,5 +1,5 @@
+import { ProgressBar, Label } from '@/components/heroui';
 import { Livreur } from "@/types/creneau-turbo";
-import { Progress } from "@/components/heroui"
 
 // :{turboys:Livreur}
 const progresseBare = (turboys: Livreur) => {
@@ -67,17 +67,17 @@ const progresseBare = (turboys: Livreur) => {
         const valeur = Math.min(100, Math.max(0, (turboys.jour.jourTravaille / 7) * 100));
 
         if (turboys.jour.jourTravaille === 7) {
-            return <Progress label={fnData()} color="success" className="max-w-md text-sm flex-none" value={valeur} />
+            return <ProgressBar color="success" className="max-w-md text-sm flex-none" value={valeur}><Label>{fnData()}</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
         }
         if (turboys.jour.jourTravaille < 7 && turboys.jour.jourTravaille > 3) {
-            return <Progress label={fnData()} color="warning" className="max-w-md text-sm flex-none" value={valeur} />
+            return <ProgressBar color="warning" className="max-w-md text-sm flex-none" value={valeur}><Label>{fnData()}</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
         }
         if (turboys.jour.jourTravaille <= 3) {
 
-            return <Progress label={fnData()} color="danger" className="max-w-md text-sm flex-none" value={valeur} />
+            return <ProgressBar color="danger" className="max-w-md text-sm flex-none" value={valeur}><Label>{fnData()}</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
         }
     } else {
-        return <Progress label="Date créneau vide" className="max-w-md text-sm" value={0} />
+        return <ProgressBar className="max-w-md text-sm" value={0}><Label>Date créneau vide</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
     }
 }
 

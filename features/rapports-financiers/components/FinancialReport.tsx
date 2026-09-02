@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { Download } from 'lucide-react';
-import { Button, Card, CardBody, Progress, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Spinner } from '@/components/heroui';
+import { Button, Card, CardBody, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Spinner, ProgressBar } from '@/components/heroui';
 import DateFilterInput from '@/components/finance/date-filter-input';
 import { useMemo, useState } from 'react';
 import { endOfMonth, format, startOfMonth } from 'date-fns';
@@ -331,7 +331,7 @@ export default function FinancialReport() {
                       <span className="text-sm font-medium text-gray-900 w-24 text-right">{cost.amount}</span>
                     </div>
                   </div>
-                  <Progress value={cost.percentage} color="primary" className="h-2" />
+                  <ProgressBar value={cost.percentage} color="accent" className="h-2"><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
                 </div>
               ))}
             </div>

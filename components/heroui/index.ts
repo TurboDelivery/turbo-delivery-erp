@@ -39,12 +39,12 @@ export {
     Button, Card, CardBody,
     CardFooter, CardHeader, Checkbox, CheckboxGroup,
     Chip, CircularProgress, DatePicker, DateRangePicker,
-    Divider, Drawer, DrawerBody, DrawerContent,
+    Drawer, DrawerBody, DrawerContent,
     Dropdown, DropdownItem, DropdownMenu, DropdownSection,
     DropdownTrigger, HeroUIProvider, Image, Input,
     Link, Modal, ModalBody, ModalContent,
     ModalFooter, ModalHeader, Pagination, Popover,
-    PopoverContent, PopoverTrigger, Progress, Radio,
+    PopoverContent, PopoverTrigger, Radio,
     RadioGroup, Select, SelectItem, Skeleton,
     Snippet, Spinner, Switch, Tab,
     Table, TableBody, TableCell, TableColumn,
@@ -70,3 +70,30 @@ export type {
  * suffit et ne produit plus aucun export a l'execution.
  */
 export type { CalendarDate } from '@internationalized/date';
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * MIGRATION HEROUI v3 — composants deja bascules.
+ *
+ * <p>Coexistence : `@heroui-v3/react` est la v3, installee sous alias pnpm a cote de la
+ * v2. On bascule UN composant a la fois, en changeant une seule ligne ici. Les fichiers
+ * appelants ne bougent pas : ils importent toujours depuis `@/components/heroui`.</p>
+ *
+ * <p>Ce n'est PAS un enveloppage de style — la v3 embarque les siens. C'est un pont de
+ * NOM, le temps que les deux versions cohabitent. A la fin, ce fichier disparait et les
+ * imports pointent directement sur `@heroui/react`.</p>
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/**
+ * `Divider` a ete renomme `Separator` en v3 ; `orientation` et `className` sont
+ * inchanges. L'alias evite de toucher les 7 fichiers appelants.
+ */
+export { Separator as Divider } from '@heroui-v3/react';
+
+/**
+ * `Progress` est devenu `ProgressBar`, et surtout COMPOSE : `<Progress label value/>`
+ * s'ecrit desormais en arbre (`ProgressBar.Track` + `ProgressBar.Fill`, `Label` a part).
+ * Aucun alias ne pouvait rattraper cela — les 8 fichiers appelants ont ete reecrits.
+ * `color="primary"` devient `color="accent"` ; `radius`, `isStriped`, `isDisabled` et
+ * `disableAnimation` n'existent plus.
+ */
+export { ProgressBar, Label } from '@heroui-v3/react';

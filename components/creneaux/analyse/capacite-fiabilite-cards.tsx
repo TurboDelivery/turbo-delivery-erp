@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody, Chip, Progress } from '@/components/heroui';
+import { Card, CardBody, Chip, ProgressBar } from '@/components/heroui';
 import { Calendar, Clock } from 'lucide-react';
 
 interface CapaciteData {
@@ -34,7 +34,7 @@ export function CapaciteFiabiliteCards({ capacite, fiabilite }: CapaciteFiabilit
           </div>
           <Chip size="sm" classNames={{ base: 'bg-amber-100', content: 'text-amber-700 font-medium text-xs' }}>PREVISIONNEL</Chip>
           <p className="text-4xl font-bold text-primary">{capacite.pourcentage}%</p>
-          <Progress value={capacite.pourcentage} color="primary" radius="none" size="md" />
+          <ProgressBar value={capacite.pourcentage} color="accent" size="md"><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
           <div className="space-y-1 pt-1">
             <div className="flex justify-between text-sm">
               <span className="text-default-500">Turboys inscrits</span>
@@ -57,7 +57,7 @@ export function CapaciteFiabiliteCards({ capacite, fiabilite }: CapaciteFiabilit
           </div>
           <Chip size="sm" classNames={{ base: 'bg-green-100', content: 'text-green-700 font-medium text-xs' }}>REEL</Chip>
           <p className="text-4xl font-bold text-success">{fiabilite.pourcentage}%</p>
-          <Progress value={fiabilite.pourcentage} color="success" radius="none" size="md" />
+          <ProgressBar value={fiabilite.pourcentage} color="success" size="md"><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
           <div className="space-y-1 pt-1">
             <div className="flex justify-between text-sm">
               <span className="text-default-500">Presence GPS confirmee</span>
