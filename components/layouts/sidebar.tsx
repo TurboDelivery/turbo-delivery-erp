@@ -161,7 +161,7 @@ function RenderMenu({ menu, currentMenu, cheminActif, toggleMenu, t }: { menu: I
   const renderItemMenuHeader = (item: IMenuData, key: number) => {
     return (
       <Fragment key={key}>
-        <h2 className="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark dark:bg-opacity-[0.08]">
+        <h2 className="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark/[0.08]">
           <IconMinus className="hidden h-5 w-4 flex-none" />
           <span>{t(item.title)}</span>
         </h2>
