@@ -1,15 +1,21 @@
+import { Card } from '@heroui-v3/react';
+
 interface StatSummaryCardProps {
-  label: string;
-  value: string;
-  color: string;
-  boldColor: string;
+    label: string;
+    value: string;
+    color: string;
+    boldColor: string;
 }
 
 export default function StatSummaryCard({ label, value, color, boldColor }: StatSummaryCardProps) {
-  return (
-    <div className="text-center p-4 rounded-lg" style={{ backgroundColor: `${color}20` }}>
-      <p className="text-sm font-medium" style={{ color }}>{label}</p>
-      <p className="text-sm sm:text-base md:text-xl font-bold truncate" style={{ color: boldColor }}>{value}</p>
-    </div>
-  );
+    return (
+        <Card className="gap-0 rounded-lg p-4 text-center" style={{ backgroundColor: `${color}20` }} variant="transparent">
+            <p className="text-sm font-medium" style={{ color }}>
+                {label}
+            </p>
+            <p className="truncate text-sm font-bold sm:text-base md:text-xl" style={{ color: boldColor }}>
+                {value}
+            </p>
+        </Card>
+    );
 }

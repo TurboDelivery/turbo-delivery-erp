@@ -82,16 +82,18 @@ const Sidebar = () => {
     <nav className={semidark ? 'dark' : ''}>
       <div
         className={cn(
-          'sidebar fixed bottom-0 top-0 z-50 h-full min-h-screen w-[248px] border-e border-separator bg-surface transition-transform duration-300',
+          'sidebar fixed bottom-0 top-0 z-50 h-full min-h-screen w-[280px] border-e border-separator bg-surface transition-transform duration-300',
           themeConfig.sidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         )}
       >
         <div className="flex h-full flex-col">
-          {/* En-tête : le logo, et rien d'autre. Le bouton de repli passe dans l'en-tête
-              de page, où vivent les actions. */}
-          <div className="flex h-14 shrink-0 items-center border-b border-separator px-4">
-            <Link className="flex items-center" href="/">
-              <Logo className="w-16" />
+          {/* En-tête : l'emblème et le nom, à la hauteur de l'en-tête de page (64 px) pour que
+              les deux filets se rejoignent. Le bouton de repli reste dans l'en-tête de page,
+              où vivent les actions. */}
+          <div className="flex h-16 shrink-0 items-center border-b border-separator px-4">
+            <Link className="flex items-center gap-2.5" href="/">
+              <Logo className="w-11" />
+              <span className="text-[15px] font-semibold leading-tight text-foreground">Turbo Delivery</span>
             </Link>
           </div>
 
@@ -101,7 +103,7 @@ const Sidebar = () => {
             className="relative flex-1 overflow-y-auto overscroll-contain"
             options={{ suppressScrollX: true, wheelPropagation: false }}
           >
-            <ul className="space-y-px p-3 pb-20">
+            <ul className="space-y-0.5 p-3 pb-20">
               <RenderMenu
                 cheminActif={cheminActif}
                 currentMenu={currentMenu}
@@ -122,8 +124,8 @@ export default Sidebar;
 /** Ligne de navigation. `actif` porte le rail, `enfant` le retrait des sous-entrées. */
 const ligne = (actif: boolean, enfant = false) =>
   cn(
-    'group relative flex items-center gap-2.5 rounded-md py-[7px] text-[13px] transition-colors',
-    enfant ? 'ps-9 pe-2.5' : 'px-2.5',
+    'group relative flex items-start gap-2.5 rounded-md py-2 text-sm leading-snug transition-colors',
+    enfant ? 'ps-8 pe-2.5' : 'px-2.5',
     actif
       ? 'bg-accent-soft font-semibold text-accent'
       : 'font-normal text-foreground/80 hover:bg-surface-secondary hover:text-foreground',
@@ -167,25 +169,25 @@ function RenderMenu({
           type="button"
         >
           {enfantActif && !ouvert && <Rail />}
-          <span className="flex min-w-0 items-center gap-2.5">
-            {item.icon && <item.icon className="size-[17px] shrink-0 opacity-70" />}
-            <span className="truncate">{t(item.title)}</span>
+          <span className="flex min-w-0 items-start gap-2.5">
+            {item.icon && <item.icon className="mt-px size-[18px] shrink-0 opacity-70" />}
+            <span className="min-w-0">{t(item.title)}</span>
           </span>
           <ChevronDown
             aria-hidden="true"
-            className={cn('size-3.5 shrink-0 opacity-50 transition-transform', !ouvert && '-rotate-90')}
+            className={cn('mt-0.5 size-4 shrink-0 opacity-50 transition-transform', !ouvert && '-rotate-90')}
           />
         </button>
 
         <AnimateHeight duration={200} height={ouvert ? 'auto' : 0}>
-          <ul className="mt-px space-y-px">
+          <ul className="mt-0.5 space-y-0.5">
             {item?.children?.map((child: IMenuData, index: number) => {
               const actif = child.path === cheminActif;
               return (
                 <li key={index}>
                   <Link className={ligne(actif, true)} href={child.path ?? ''}>
                     {actif && <Rail />}
-                    <span className="truncate">{t(child.title)}</span>
+                    <span className="min-w-0">{t(child.title)}</span>
                   </Link>
                 </li>
               );
@@ -203,8 +205,8 @@ function RenderMenu({
       <li key={key}>
         <Link className={ligne(actif)} href={item.path ?? ''}>
           {actif && <Rail />}
-          {item.icon && <item.icon className="size-[17px] shrink-0 opacity-70" />}
-          <span className="truncate">{t(item.title)}</span>
+          {item.icon && <item.icon className="mt-px size-[18px] shrink-0 opacity-70" />}
+          <span className="min-w-0">{t(item.title)}</span>
         </Link>
       </li>
     );
@@ -213,7 +215,7 @@ function RenderMenu({
   /** En-tête de section : une étiquette, plus un bandeau pleine largeur. */
   const renderItemMenuHeader = (item: IMenuData, key: number) => (
     <Fragment key={key}>
-      <li className="px-2.5 pb-1 pt-5 text-[10px] font-semibold uppercase tracking-[0.09em] text-muted">
+      <li className="px-2.5 pb-1.5 pt-6 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
         {t(item.title)}
       </li>
       {item?.children?.map((child: IMenuData, index: number) =>

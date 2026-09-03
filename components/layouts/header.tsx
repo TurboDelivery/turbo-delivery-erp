@@ -70,7 +70,7 @@ const Header = ({ profile }: { profile: User }) => {
             * indice de position. Et le repli fonctionne sur poste, pas seulement en
             * mobile.</p>
             */}
-          <div className="relative flex h-14 w-full items-center gap-3 border-b border-separator bg-surface px-4">
+          <div className="relative flex h-16 w-full items-center gap-3 border-b border-separator bg-surface px-4">
             <Button
               isIconOnly
               aria-label="Afficher ou masquer la navigation"

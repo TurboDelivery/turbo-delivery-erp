@@ -173,10 +173,10 @@
     @apply ltr:ml-0 rtl:mr-0;
   }
   & .sidebar {
-    @apply ltr:left-[-248px] rtl:right-[-248px];
+    @apply ltr:left-[-280px] rtl:right-[-280px];
   }
   &.toggle-sidebar .sidebar {
-    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-248px] lg:rtl:right-[-248px];
+    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-280px] lg:rtl:right-[-280px];
   }
 
   & .nav-item a div:first-child svg {
@@ -303,27 +303,27 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
     @apply h-5 w-5 text-black/50 dark:text-white/50;
   }
   .horizontal & {
-    @apply ltr:left-[-248px] rtl:right-[-248px];
+    @apply ltr:left-[-280px] rtl:right-[-280px];
   }
   .horizontal.toggle-sidebar & {
-    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-248px] lg:rtl:right-[-248px];
+    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-280px] lg:rtl:right-[-280px];
   }
   .vertical & {
-    @apply ltr:left-[-248px] rtl:right-[-248px] lg:ltr:left-0 lg:rtl:right-0;
+    @apply ltr:left-[-280px] rtl:right-[-280px] lg:ltr:left-0 lg:rtl:right-0;
   }
   .vertical.toggle-sidebar & {
-    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-248px] lg:rtl:right-[-248px];
+    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-280px] lg:rtl:right-[-280px];
   }
 
   /* Collapsible vertical layouts */
   .collapsible-vertical & {
-    @apply hover:w-[248px] ltr:left-[-248px] rtl:right-[-248px] lg:w-[70px] lg:ltr:left-0 lg:rtl:right-0;
+    @apply hover:w-[280px] ltr:left-[-280px] rtl:right-[-280px] lg:w-[70px] lg:ltr:left-0 lg:rtl:right-0;
   }
   .collapsible-vertical.toggle-sidebar & {
     @apply ltr:left-0 rtl:right-0;
   }
   .collapsible-vertical.toggle-sidebar & {
-    @apply lg:w-[248px];
+    @apply lg:w-[280px];
   }
   .collapsible-vertical.toggle-sidebar & .nav-item > a {
     @apply w-auto;
@@ -567,7 +567,7 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
 
 @utility main-container {
   & .main-content {
-    @apply transition-all duration-300 lg:ltr:ml-[248px] lg:rtl:mr-[248px];
+    @apply transition-all duration-300 lg:ltr:ml-[280px] lg:rtl:mr-[280px];
   }
   .horizontal & .main-content {
     @apply ltr:ml-0 rtl:mr-0;
@@ -579,7 +579,7 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
 
 @utility main-content {
   .main-container & {
-    @apply transition-all duration-300 lg:ltr:ml-[248px] lg:rtl:mr-[248px];
+    @apply transition-all duration-300 lg:ltr:ml-[280px] lg:rtl:mr-[280px];
   }
   .horizontal .main-container & {
     @apply ltr:ml-0 rtl:mr-0;
@@ -588,7 +588,7 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
     @apply ltr:ml-0 rtl:mr-0;
   }
   .collapsible-vertical.toggle-sidebar & {
-    @apply lg:w-[calc(100%-248px)] lg:ltr:ml-[248px] lg:rtl:mr-[248px];
+    @apply lg:w-[calc(100%-280px)] lg:ltr:ml-[280px] lg:rtl:mr-[280px];
   }
   .collapsible-vertical & {
     @apply lg:w-[calc(100%-70px)] lg:ltr:ml-[70px] lg:rtl:mr-[70px];
@@ -608,7 +608,7 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
 
 @utility toggle-sidebar {
   &.horizontal .sidebar {
-    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-248px] lg:rtl:right-[-248px];
+    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-280px] lg:rtl:right-[-280px];
   }
 
   /* Vertical layouts */
@@ -622,19 +622,19 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
     @apply ltr:ml-0 rtl:mr-0;
   }
   &.vertical .sidebar {
-    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-248px] lg:rtl:right-[-248px];
+    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-280px] lg:rtl:right-[-280px];
   }
   &.collapsible-vertical .sidebar {
     @apply ltr:left-0 rtl:right-0;
   }
   &.collapsible-vertical .sidebar {
-    @apply lg:w-[248px];
+    @apply lg:w-[280px];
   }
   &.collapsible-vertical .sidebar .nav-item > a {
     @apply w-auto;
   }
   &.collapsible-vertical .main-content {
-    @apply lg:w-[calc(100%-248px)] lg:ltr:ml-[248px] lg:rtl:mr-[248px];
+    @apply lg:w-[calc(100%-280px)] lg:ltr:ml-[280px] lg:rtl:mr-[280px];
   }
   & .collapsible-vertical .sidebar .sub-menu {
     @apply block;
@@ -700,10 +700,10 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
     @apply ltr:ml-0 rtl:mr-0;
   }
   & .sidebar {
-    @apply ltr:left-[-248px] rtl:right-[-248px] lg:ltr:left-0 lg:rtl:right-0;
+    @apply ltr:left-[-280px] rtl:right-[-280px] lg:ltr:left-0 lg:rtl:right-0;
   }
   &.toggle-sidebar .sidebar {
-    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-248px] lg:rtl:right-[-248px];
+    @apply ltr:left-0 rtl:right-0 lg:ltr:left-[-280px] lg:rtl:right-[-280px];
   }
 
   &.boxed-layout .sidebar {
@@ -740,19 +740,19 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
 @utility collapsible-vertical {
   /* Collapsible vertical layouts */
   & .sidebar {
-    @apply hover:w-[248px] ltr:left-[-248px] rtl:right-[-248px] lg:w-[70px] lg:ltr:left-0 lg:rtl:right-0;
+    @apply hover:w-[280px] ltr:left-[-280px] rtl:right-[-280px] lg:w-[70px] lg:ltr:left-0 lg:rtl:right-0;
   }
   &.toggle-sidebar .sidebar {
     @apply ltr:left-0 rtl:right-0;
   }
   &.toggle-sidebar .sidebar {
-    @apply lg:w-[248px];
+    @apply lg:w-[280px];
   }
   &.toggle-sidebar .sidebar .nav-item > a {
     @apply w-auto;
   }
   &.toggle-sidebar .main-content {
-    @apply lg:w-[calc(100%-248px)] lg:ltr:ml-[248px] lg:rtl:mr-[248px];
+    @apply lg:w-[calc(100%-280px)] lg:ltr:ml-[280px] lg:rtl:mr-[280px];
   }
 
   & .sidebar .sub-menu {
