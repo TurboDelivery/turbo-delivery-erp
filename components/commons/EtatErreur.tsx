@@ -28,10 +28,43 @@ interface EtatErreurProps {
  *
  * <p>Le texte ne promet rien qu'on ne tienne : personne n'est prévenu automatiquement.</p>
  */
-export default function EtatErreur({ quoi, onReessayer, enCours = false, detail }: EtatErreurProps) {
+/**
+ * `compact` : une seule LIGNE, pour un echec qui occupe la place d'un bloc de contenu.
+ *
+ * <p>La forme centree d'origine tient 200 px de haut : une icone de 40 px, un titre, deux
+ * lignes d'explication, un bouton. C'est juste pour une zone qui remplace un tableau
+ * entier. Sur le tableau de bord, TROIS echecs simultanes empilaient trois de ces blocs —
+ * 600 px de vide vertical, trois icones geantes, et la meme phrase repetee trois fois.</p>
+ *
+ * <p>En compact, l'echec tient sur une ligne avec sa relance a droite. L'information est
+ * la meme ; elle cesse d'occuper l'ecran.</p>
+ */
+export default function EtatErreur({
+    quoi,
+    onReessayer,
+    enCours = false,
+    detail,
+    compact = false,
+}: EtatErreurProps & { compact?: boolean }) {
+    if (compact) {
+        return (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-danger/25 bg-danger-soft px-3 py-2.5">
+                <WifiOff aria-hidden="true" className="size-4 shrink-0 text-danger" />
+                <span className="min-w-0 flex-1 text-sm text-danger">
+                    {quoi ? `Impossible de charger ${quoi}` : 'Impossible de charger cette donnée'}
+                </span>
+                {onReessayer && (
+                    <Button color="danger" isLoading={enCours} onClick={onReessayer} size="sm" variant="flat">
+                        Réessayer
+                    </Button>
+                )}
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
-            <WifiOff className="h-10 w-10 text-danger" aria-hidden="true" />
+            <WifiOff aria-hidden="true" className="h-10 w-10 text-danger" />
             <div className="space-y-1">
                 <h3 className="text-base font-semibold text-foreground">
                     {quoi ? `Impossible de charger ${quoi}` : 'Impossible de charger cette donnée'}
@@ -44,11 +77,11 @@ export default function EtatErreur({ quoi, onReessayer, enCours = false, detail 
             {onReessayer && (
                 <Button
                     color="danger"
-                    variant="flat"
-                    size="sm"
                     isLoading={enCours}
                     onClick={onReessayer}
+                    size="sm"
                     startContent={!enCours && <RefreshCcw className="h-4 w-4" />}
+                    variant="flat"
                 >
                     Réessayer
                 </Button>

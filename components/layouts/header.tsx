@@ -106,7 +106,19 @@ const Header = ({ profile }: { profile: User }) => {
                 * ⚠ A verifier ecran par ecran avant d'annoncer le mode sombre comme
                 * disponible : les pages non encore refondues gardent leurs couleurs en dur.
                 */}
-              <ThemeSwitch />
+              {/*
+                * COMMUTATEUR DE THEME RETIRE — de nouveau, et avec la preuve cette fois.
+                *
+                * <p>Je l'avais remonte en ecrivant « a verifier ecran par ecran », puis ne
+                * l'ai pas verifie. Capture a l'appui : en sombre, la barre laterale et les
+                * cartes finance restent BLANCHES sur fond noir. Passer la coquille aux
+                * jetons ne suffisait pas — le contenu des ecrans porte encore ses couleurs
+                * en dur.</p>
+                *
+                * <p>Il reviendra quand les ecrans auront ete refondus, pas avant. Un
+                * commutateur qui casse l'affichage est pire que pas de mode sombre.</p>
+                */}
+              {/* <ThemeSwitch /> */}
 
               {/* <LocaleSwitch /> */}
               {/* <MessageList /> */}

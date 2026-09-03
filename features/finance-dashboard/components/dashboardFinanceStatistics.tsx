@@ -158,7 +158,7 @@ export default function DashboardFinanceStatistics() {
 
           <Card.Content className="flex flex-col">
             {isErrorGlobal ? (
-              <EtatErreur quoi="le chiffre d'affaires" onReessayer={() => refetchGlobal()} enCours={isFetchingGlobal} />
+              <EtatErreur compact enCours={isFetchingGlobal} onReessayer={() => refetchGlobal()} quoi="le chiffre d'affaires" />
             ) : (
               <>
                 <p className="text-4xl font-semibold tabular-nums tracking-tight">
@@ -194,9 +194,10 @@ export default function DashboardFinanceStatistics() {
             {isErrorIndicateurs ? (
               <div className="mt-4">
                 <EtatErreur
-                  quoi="les indicateurs de la période"
-                  onReessayer={reessayerIndicateurs}
+                  compact
                   enCours={isFetchingIndicateurs}
+                  onReessayer={reessayerIndicateurs}
+                  quoi="les indicateurs de la période"
                 />
               </div>
             ) : (
@@ -262,7 +263,7 @@ export default function DashboardFinanceStatistics() {
 
           <Card.Content className="flex flex-col">
             {isErrorResume ? (
-              <EtatErreur quoi="les cumuls financiers" onReessayer={() => refetchResume()} enCours={isFetchingResume} />
+              <EtatErreur compact enCours={isFetchingResume} onReessayer={() => refetchResume()} quoi="les cumuls financiers" />
             ) : (
               <>
                 <LigneMontant

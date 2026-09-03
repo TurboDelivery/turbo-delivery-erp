@@ -40,16 +40,14 @@ export default function DatabaseCards() {
    * d'action immédiate » pendant qu'une carte en erreur s'affichait juste en dessous. Le
    * bandeau se contredisait avec l'écran.</p>
    */
-  const signalements: Signalement[] = comptesEnAttenteEnErreur
-    ? [{ libelle: 'comptes en attente : lecture impossible', ton: 'critique' }]
-    : [
-        {
-          libelle: 'compte(s) livreur en attente de validation',
-          nombre: comptesEnAttente ?? 0,
-          ton: 'attention',
-          href: '/delivery-men/not-valide',
-        },
-      ];
+  const signalements: Signalement[] = [
+    {
+      libelle: 'compte(s) livreur en attente de validation',
+      nombre: comptesEnAttente ?? 0,
+      ton: 'attention',
+      href: '/delivery-men/not-valide',
+    },
+  ];
 
   const compteurs = [
     { label: 'Partenaires actifs', value: data?.partenaireActif, href: '/restaurants' },
@@ -63,7 +61,10 @@ export default function DatabaseCards() {
 
   return (
     <>
-      <BandeauAttention signalements={signalements} />
+      {/* `etatInconnu` : la lecture a echoue, donc on ne SAIT pas s'il y a des comptes a
+          valider. Le bandeau se tait au lieu d'annoncer « rien a signaler », et l'echec est
+          dit UNE SEULE FOIS, en ligne compacte sous la bande — avec sa relance. */}
+      <BandeauAttention etatInconnu={comptesEnAttenteEnErreur} signalements={signalements} />
 
       <Card>
         <Card.Content className="flex flex-col divide-y divide-separator p-0 sm:flex-row sm:divide-x sm:divide-y-0">
@@ -75,7 +76,7 @@ export default function DatabaseCards() {
             compteurs.map((c) => (
               <Link
                 key={c.label}
-                className="group flex flex-1 flex-col gap-1 px-5 py-4 transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+                className="group flex flex-1 basis-0 flex-col gap-1 px-5 py-4 transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
                 href={c.href}
               >
                 <span className="flex items-center gap-1 text-xs font-medium text-muted">
@@ -92,7 +93,7 @@ export default function DatabaseCards() {
                 {/* La ventilation vit SOUS son chiffre, en petit. Elle dictait la hauteur
                     de toute la rangee quand elle occupait trois lignes de la carte. */}
                 {c.label === 'Turboys' && !isLoading && (
-                  <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted">
+                  <span className="mt-1 flex flex-col gap-0.5 text-[11px] text-muted">
                     <TurboysButton name="Indép." param="INDEPENDANT" value={data?.turboysIndependant} />
                     <TurboysButton name="Journ." param="JOURNALIER" value={data?.turboysJournalier} />
                     {data?.turboysSuperviseurLivreur !== undefined && (
@@ -106,11 +107,12 @@ export default function DatabaseCards() {
         </Card.Content>
       </Card>
 
-      {/* La lecture des comptes en attente a echoue : la relance est proposee sous la
-          bande, sans deformer la grille des compteurs comme le faisait la carte d'erreur. */}
+      {/* Une seule annonce. La version precedente affichait l'echec DEUX FOIS : en
+          pastille dans le bandeau, puis en bloc pleine largeur juste dessous. */}
       {comptesEnAttenteEnErreur && (
         <div className="mt-3">
           <EtatErreur
+            compact
             enCours={comptesEnAttenteEnCours}
             onReessayer={() => {
               void rechargerComptesEnAttente();

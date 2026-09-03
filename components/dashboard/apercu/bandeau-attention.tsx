@@ -45,10 +45,26 @@ const ORDRE: Record<TonSignalement, number> = { critique: 0, attention: 1, calme
  * une ligne discrète plutôt que de disparaître : une absence se confond avec un
  * chargement.</p>
  */
-export default function BandeauAttention({ signalements }: { signalements: Signalement[] }) {
+export default function BandeauAttention({
+    signalements,
+    etatInconnu = false,
+}: {
+    signalements: Signalement[];
+    /**
+     * Vrai quand une lecture a echoue : on ne SAIT pas s'il y a quelque chose a traiter.
+     *
+     * <p>Sans cela le bandeau annoncait « Rien ne demande d'action immediate » alors qu'une
+     * requete venait d'echouer — il affirmait une absence qu'il ne pouvait pas constater.
+     * Il se tait desormais, et l'echec est annonce une seule fois, la ou se trouve sa
+     * relance.</p>
+     */
+    etatInconnu?: boolean;
+}) {
     const actifs = signalements
         .filter((s) => s.nombre === undefined || s.nombre > 0)
         .sort((a, b) => ORDRE[a.ton] - ORDRE[b.ton]);
+
+    if (etatInconnu) return null;
 
     if (actifs.length === 0) {
         return (
