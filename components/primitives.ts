@@ -13,7 +13,7 @@ export const title = tv({
       green: "from-[#6FEE8D] to-[#17c964]",
       pink: "from-[#FF72E1] to-[#F54C7A]",
       foreground: "dark:from-[#FFFFFF] dark:to-[#4B4B4B]",
-      primary: "from-[hsl(var(--primary))] to-[hsl(var(--accent))]",
+      primary: "from-[hsl(var(--primary))] to-[var(--accent)]",
     },
     size: {
       h1: "text-4xl md:text-5xl lg:text-6xl 2xl:text-7xl leading-auto",
@@ -58,7 +58,7 @@ export const subtitle = tv({
       green: "from-[#6FEE8D] to-[#17c964]",
       pink: "from-[#FF72E1] to-[#F54C7A]",
       foreground: "dark:from-[#FFFFFF] dark:to-[#4B4B4B]",
-      primary: "from-[hsl(var(--primary))] to-[hsl(var(--accent))]",
+      primary: "from-[hsl(var(--primary))] to-[var(--accent)]",
     },
     fullWidth: {
       true: "w-full",
@@ -95,7 +95,7 @@ export const body = tv({
       green: "from-[#6FEE8D] to-[#17c964]",
       pink: "from-[#FF72E1] to-[#F54C7A]",
       foreground: "dark:from-[#FFFFFF] dark:to-[#4B4B4B]",
-      primary: "from-[hsl(var(--primary))] to-[hsl(var(--accent))]",
+      primary: "from-[hsl(var(--primary))] to-[var(--accent)]",
     },
     size: {
       body: "text-base 2xl:text-lg leading-6",

@@ -53,7 +53,7 @@ export const RecalculerFactureDialog = ({ facture, open, onOpenChange }: Recalcu
                 Le montant de la facture du restaurant <strong>{facture.restaurantName}</strong> sera recalculé à partir des
                 courses actuelles, <strong>sur la même période</strong> :
               </p>
-              <div className="rounded-md border bg-muted/40 p-3 text-sm">
+              <div className="rounded-md border bg-muted-surface/40 p-3 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Période</span>
                   <span className="font-medium">

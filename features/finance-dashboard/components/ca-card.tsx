@@ -22,11 +22,13 @@ interface CACardProps {
     detailHref?: string;
 }
 
-/**
- * Le fond degrade et la bordure verte sont portes par des utilitaires : la couche
- * `utilities` passe apres `components` dans la feuille HeroUI v3, donc ils l'emportent
- * sur le fond de surface de la carte. `variant="transparent"` retire en plus l'ombre
- * par defaut, qui doublait celle du degrade.
+/*
+ * Pas de `variant="transparent"` ici : cette variante pose `--tw-border-style: none`,
+ * et l'utilitaire `border` lit precisement cette variable pour son `border-style`.
+ * La bordure demandee dans la classe etait donc calculee a `none 0px` — mesure a
+ * l'ecran. La variante par defaut garde la bordure ET l'ombre qu'avait la carte
+ * shadcn d'origine ; le fond de surface qu'elle ajoute est recouvert par le fond
+ * explicite pose juste a cote.
  */
 const CARTE = 'p-6 border border-green-200 bg-linear-to-r from-green-50 to-green-100';
 
@@ -49,7 +51,7 @@ export default function CACard({
 
     if (isLoading) {
         return (
-            <Card className={CARTE} variant="transparent">
+            <Card className={CARTE}>
                 <div className="flex items-stretch gap-6 max-lg:flex-col">
                     <div className="flex flex-col justify-center gap-3 lg:w-[34%] lg:shrink-0">
                         <div className="h-5 w-32 animate-pulse rounded bg-green-200" />
@@ -69,7 +71,7 @@ export default function CACard({
     }
 
     return (
-        <Card className={CARTE} variant="transparent">
+        <Card className={CARTE}>
             <div className="flex items-stretch gap-6 max-lg:flex-col">
                 {/* Partie 1 : CA (hero) — colonne fixe à gauche */}
                 <div className="flex flex-col justify-center gap-3 lg:w-[34%] lg:shrink-0">

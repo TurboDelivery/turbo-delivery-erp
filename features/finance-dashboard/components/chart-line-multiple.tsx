@@ -46,7 +46,7 @@ export function ChartLineMultiple() {
 
   if (isError) {
     return (
-      <Card className="shadow-lg">
+      <Card className="rounded-xl shadow-lg">
         <Card.Content className="flex items-center justify-center h-[400px]">
           <p className="text-red-500">Erreur lors du chargement des statistiques</p>
         </Card.Content>
@@ -55,7 +55,7 @@ export function ChartLineMultiple() {
   }
 
   return (
-    <Card className="shadow-lg">
+    <Card className="rounded-xl shadow-lg">
       <Card.Header>
         <div className="flex flex-wrap justify-between items-center gap-2">
           <h3 className="font-bold text-base sm:text-lg">Évolution financière mensuelle</h3>

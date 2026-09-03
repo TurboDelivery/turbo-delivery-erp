@@ -50,7 +50,7 @@ export const ReinitialiserFactureDialog = ({ facture, open, onOpenChange }: Rein
                   <li>les dépôts, le visa DGA, l’orientation des fonds, le bordereau et les preuves.</li>
                 </ul>
               </div>
-              <div className="flex items-center justify-between rounded-md border bg-muted/40 p-3 text-sm">
+              <div className="flex items-center justify-between rounded-md border bg-muted-surface/40 p-3 text-sm">
                 <span className="text-muted-foreground">Montant à recouvrer de nouveau</span>
                 <span className="font-semibold">{formatCFA(facture.montant || 0)}</span>
               </div>

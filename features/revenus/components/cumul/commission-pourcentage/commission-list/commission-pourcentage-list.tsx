@@ -180,7 +180,7 @@ export default function CommissionPourcentageList({ commissionvariable }: Commis
                                         <p className="text-sm text-muted-foreground">-</p>
                                         <h3 className="font-semibold text-sm md:text-lg">{commission.nomRestaurant}</h3>
                                     </div>
-                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-muted text-muted-foreground">
+                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-muted-surface text-muted-foreground">
                                         {commission.localisation}
                                     </span>
                                 </div>
@@ -197,7 +197,7 @@ export default function CommissionPourcentageList({ commissionvariable }: Commis
                                 <div className="flex justify-end items-center gap-4 text-sm mt-2">
 
                                     <div className="text-center">
-                                        <button className="flex items-center px-3 py-1.5 text-xs border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground">
+                                        <button className="flex items-center px-3 py-1.5 text-xs border border-input rounded-md bg-background hover:bg-accent-surface hover:text-accent-surface-foreground">
                                             <Eye className="h-4 w-4 mr-1" />
                                             <span className="hidden md:inline">Détails</span>
                                         </button>

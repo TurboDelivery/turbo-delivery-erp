@@ -196,7 +196,7 @@ export function JourDetailContent({ date }: JourDetailContentProps) {
 
       {/* Analyse rapide */}
       {!isLoading && data?.analyseRapide && (
-        <div className="rounded-xl border border-border bg-muted/30 p-4">
+        <div className="rounded-xl border border-border bg-muted-surface/30 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Lightbulb className="size-4 text-primary" />
             <h3 className="font-semibold text-sm">Analyse rapide</h3>

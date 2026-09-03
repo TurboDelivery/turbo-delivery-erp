@@ -94,7 +94,7 @@ export const SupprimerFactureDialog = ({ facture, open, onOpenChange }: Supprime
               </p>
 
               {/* Identité de la facture — pour bien supprimer la BONNE parmi des doublons proches. */}
-              <div className="space-y-1 rounded-md border bg-muted/40 p-3 text-sm">
+              <div className="space-y-1 rounded-md border bg-muted-surface/40 p-3 text-sm">
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-muted-foreground">Type / période</span>
                   <span className="text-right font-medium capitalize">

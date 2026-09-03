@@ -107,7 +107,7 @@ export default function CommissionFixe({commissionFixe}: ICommissionFixe) {
                                         <p className="text-sm text-muted-foreground">{commissionFixe.createdAt}</p>
                                         <h3 className="font-semibold text-sm md:text-lg">{commissionFixe.nomRestaurant}</h3>
                                     </div>
-                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-muted text-muted-foreground">
+                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-muted-surface text-muted-foreground">
                                         {commissionFixe.commission} XOF
                                     </span>
                                 </div>
@@ -117,7 +117,7 @@ export default function CommissionFixe({commissionFixe}: ICommissionFixe) {
                                         <span className="font-bold ml-2 text-primary">{commissionFixe.localisation}</span>
                                     </div>
                                     <div className="text-center">
-                                        <button className="flex items-center px-3 py-1.5 text-xs border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground">
+                                        <button className="flex items-center px-3 py-1.5 text-xs border border-input rounded-md bg-background hover:bg-accent-surface hover:text-accent-surface-foreground">
                                             <CommissionFixeDetailModal commissionFixee={commissionFixe} />
                                         </button>
                                     </div>

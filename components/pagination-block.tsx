@@ -90,7 +90,7 @@ function PaginationBlock({
                   'relative flex h-9 min-w-9 items-center justify-center rounded-lg px-1 text-sm font-medium transition-colors',
                   displayPage === page
                     ? 'text-primary-foreground'
-                    : 'text-foreground hover:bg-muted',
+                    : 'text-foreground hover:bg-muted-surface',
                 )}
                 aria-current={displayPage === page ? 'page' : undefined}
               >
@@ -147,7 +147,7 @@ function NavBtn({
         'flex h-9 w-9 items-center justify-center rounded-lg text-sm transition-colors',
         disabled
           ? 'cursor-not-allowed text-muted-foreground/30'
-          : 'cursor-pointer text-muted-foreground hover:bg-muted hover:text-foreground',
+          : 'cursor-pointer text-muted-foreground hover:bg-muted-surface hover:text-foreground',
       )}
       {...props}
     >

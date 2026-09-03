@@ -210,7 +210,7 @@ export default function DashboardFinanceStatistics() {
           />
         </div>
 
-        <Card className={`flex-row items-center justify-center gap-2 rounded-xl border px-4 py-3 ${margeStateClassName}`} variant="transparent">
+        <Card className={`flex-row items-center justify-center gap-2 rounded-xl border px-4 py-3 ${margeStateClassName}`}>
           {isDeficit ? <ArrowDown className="size-4" /> : <TrendingUp className="size-4" />}
           <p className="text-sm 2xl:text-base font-medium">
             {margeStateLabel} (période) : {formattedMarge}
@@ -220,7 +220,7 @@ export default function DashboardFinanceStatistics() {
         )}
 
         {/* ── Section : cumul tout l'historique (bloc visuellement distinct) ── */}
-        <Card className="mt-1 gap-3 rounded-xl border border-indigo-100 bg-indigo-50/30 p-4" variant="transparent">
+        <Card className="mt-1 gap-3 rounded-xl border border-indigo-100 bg-indigo-50/30 p-4">
           <div className="flex items-center gap-2">
             <Layers className="size-4 text-indigo-500" />
             <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Cumul · tout l&apos;historique</h3>

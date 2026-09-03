@@ -160,10 +160,16 @@ function RenderMenu({
     // Un groupe replié dont un enfant est actif doit le dire : sinon, replier le groupe
     // efface toute trace de l'endroit où l'on se trouve.
     const enfantActif = item.children?.some((c) => c.path === cheminActif) ?? false;
+    // Rattache le bouton a la liste qu'il deplie, pour les lecteurs d'ecran. L'index
+    // ne suffit pas : les groupes sont numerotes DANS leur section, donc deux sections
+    // produiraient le meme identifiant. Le titre, lui, est unique dans le menu.
+    const idSousMenu = `sous-menu-${item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
     return (
       <li key={key}>
         <button
+          aria-controls={idSousMenu}
+          aria-expanded={ouvert}
           className={cn(ligne(enfantActif && !ouvert), 'w-full justify-between')}
           onClick={() => toggleMenu(item.title)}
           type="button"
@@ -180,12 +186,16 @@ function RenderMenu({
         </button>
 
         <AnimateHeight duration={200} height={ouvert ? 'auto' : 0}>
-          <ul className="mt-0.5 space-y-0.5">
+          <ul className="mt-0.5 space-y-0.5" id={idSousMenu}>
             {item?.children?.map((child: IMenuData, index: number) => {
               const actif = child.path === cheminActif;
               return (
                 <li key={index}>
-                  <Link className={ligne(actif, true)} href={child.path ?? ''}>
+                  <Link
+                    aria-current={actif ? 'page' : undefined}
+                    className={ligne(actif, true)}
+                    href={child.path ?? ''}
+                  >
                     {actif && <Rail />}
                     <span className="min-w-0">{t(child.title)}</span>
                   </Link>
@@ -203,7 +213,7 @@ function RenderMenu({
     const actif = item.path === cheminActif;
     return (
       <li key={key}>
-        <Link className={ligne(actif)} href={item.path ?? ''}>
+        <Link aria-current={actif ? 'page' : undefined} className={ligne(actif)} href={item.path ?? ''}>
           {actif && <Rail />}
           {item.icon && <item.icon className="mt-px size-[18px] shrink-0 opacity-70" />}
           <span className="min-w-0">{t(item.title)}</span>

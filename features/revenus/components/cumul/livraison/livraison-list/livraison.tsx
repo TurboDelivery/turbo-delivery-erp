@@ -299,7 +299,7 @@ export default function LivraisonList() {
                                         <p className="text-sm text-muted-foreground">{livraison.refCommande}</p>
                                         <h3 className="font-semibold text-sm md:text-lg">{formatDate(livraison.createdAt)}</h3>
                                     </div>
-                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-muted text-muted-foreground">
+                                    <span className="px-2 py-1 rounded text-xs font-semibold bg-muted-surface text-muted-foreground">
                                         {livraison.nomLivreur}
                                     </span>
                                 </div>
