@@ -54,7 +54,9 @@ export default function DatabaseCards() {
     { label: 'Turboys', value: data?.turboys, href: '/delivery-men/men' },
     { label: 'Personnel Turbo', value: data?.personnel, href: '/personnel' },
     { label: 'Utilisateurs actifs', value: data?.utilisateurs, href: '/users' },
-    ...(comptesEnAttenteEnErreur
+    // « Comptes en attente » ne figure dans la bande que s'il y en a : a zero, c'est un
+    // compteur qui n'appelle rien, et le bandeau du haut le dit deja quand il y en a.
+    ...(comptesEnAttenteEnErreur || !comptesEnAttente
       ? []
       : [{ label: 'Comptes en attente', value: comptesEnAttente, href: '/delivery-men/not-valide' }]),
   ];
@@ -76,7 +78,7 @@ export default function DatabaseCards() {
             compteurs.map((c) => (
               <Link
                 key={c.label}
-                className="group flex flex-1 basis-0 flex-col gap-1 px-5 py-4 transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
+                className="group flex flex-1 basis-0 flex-col gap-0.5 px-5 py-3 transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent"
                 href={c.href}
               >
                 <span className="flex items-center gap-1 text-xs font-medium text-muted">
@@ -90,14 +92,20 @@ export default function DatabaseCards() {
                   <span className="text-2xl font-semibold tabular-nums leading-none">{c.value ?? 0}</span>
                 )}
 
-                {/* La ventilation vit SOUS son chiffre, en petit. Elle dictait la hauteur
-                    de toute la rangee quand elle occupait trois lignes de la carte. */}
+                {/* Ventilation sur UNE SEULE ligne.
+                    En trois lignes empilees, elle dictait la hauteur de la rangee entiere :
+                    « Partenaires actifs » occupait 200 px pour afficher un nombre a deux
+                    chiffres, et les quatre cinquiemes de la bande etaient du vide. */}
                 {c.label === 'Turboys' && !isLoading && (
-                  <span className="mt-1 flex flex-col gap-0.5 text-[11px] text-muted">
-                    <TurboysButton name="Indép." param="INDEPENDANT" value={data?.turboysIndependant} />
-                    <TurboysButton name="Journ." param="JOURNALIER" value={data?.turboysJournalier} />
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-[11px] text-muted">
+                    <TurboysButton name="ind." param="INDEPENDANT" value={data?.turboysIndependant} />
+                    <span aria-hidden="true">·</span>
+                    <TurboysButton name="jrn." param="JOURNALIER" value={data?.turboysJournalier} />
                     {data?.turboysSuperviseurLivreur !== undefined && (
-                      <TurboysButton name="Superv." param="SUPERVISEUR_LIVREUR" value={data.turboysSuperviseurLivreur} />
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <TurboysButton name="sup." param="SUPERVISEUR_LIVREUR" value={data.turboysSuperviseurLivreur} />
+                      </>
                     )}
                   </span>
                 )}

@@ -151,7 +151,7 @@ export default function DashboardFinanceStatistics() {
       {/* DATA-DENSE : la reference de conception recommande cette densite pour un tableau
           de bord financier. Trois colonnes au lieu de deux, gouttiere resserree de 20 a
           12 px, lignes a 5 px de padding vertical au lieu de 8. Tout tient sans defiler. */}
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
 
         {/* ── Colonne 1 : la periode ────────────────────────────────── */}
         <Card>

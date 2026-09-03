@@ -78,6 +78,10 @@ export default function LigneMontant({
     href,
     separateur = false,
 }: LigneMontantProps) {
+    // Un montant nul n'a pas de sens de flux : ni signe, ni couleur.
+    const estZero = /^[+\u2212-]?\s*0(?:[.,]0+)?(?:\s|$)/.test(valeur.trim());
+    const tonEffectif: SensMontant = estZero ? 'neutre' : sens;
+
     const contenu = (
         <>
             <span className="flex min-w-0 flex-col">
@@ -91,10 +95,12 @@ export default function LigneMontant({
                     className={cn(
                         'tabular-nums',
                         detail ? 'text-[13px] font-medium' : 'text-sm font-semibold',
-                        TON[sens],
+                        TON[tonEffectif],
                     )}
                 >
-                    {SIGNE[sens] && (
+                    {/* PAS de signe sur un zero : « −0 FCFA » n'a aucun sens et se remarque
+                        immediatement. Le signe dit un SENS de flux ; zero n'en a pas. */}
+                    {SIGNE[sens] && !estZero && (
                         <>
                             {/* Largeur fixe : les montants restent alignes malgre le prefixe. */}
                             <span aria-hidden="true" className="inline-block w-[0.8em] text-center font-bold opacity-85">
