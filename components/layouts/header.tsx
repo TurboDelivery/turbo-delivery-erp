@@ -11,7 +11,7 @@ import { IconMenu } from '@tabler/icons-react';
 import AnimateHeight from 'react-animate-height';
 import { useDispatch, useSelector } from 'react-redux';
 import { toggleSidebar } from '@/store/themeConfigSlice';
-import menuData, { IMenuData, filterMenuByAbility, trouverCheminActif } from '@/config/menu-data';
+import menuData, { IMenuData, filterMenuByAbility, trouverCheminActif, trouverTitreActif } from '@/config/menu-data';
 import { useAbility } from '@/hooks/use-ability';
 import IconCaretDown from '@/components/icon/icon-caret-down';
 import Notifications from '../dashboard/notifications/notifications';
@@ -44,6 +44,9 @@ const Header = ({ profile }: { profile: User }) => {
    */
   const filteredMenu = useMemo(() => filterMenuByAbility(menuData, ability), [ability]);
 
+  // Repere de position, derive du menu deja filtre par les droits.
+  const { titre, section } = useMemo(() => trouverTitreActif(filteredMenu, pathname), [filteredMenu, pathname]);
+
   // Meme calcul que la barre laterale, au lieu du `document.querySelector` par
   // egalite exacte qui ne s'allumait sur aucune route dynamique.
   const cheminActif = useMemo(() => trouverCheminActif(filteredMenu, pathname), [filteredMenu, pathname]);
@@ -53,33 +56,57 @@ const Header = ({ profile }: { profile: User }) => {
   return (
     <>
       <header className={`z-40 ${themeConfig.semidark && themeConfig.menu === 'horizontal' ? 'dark' : ''}`}>
-        <div className="shadow-xs">
-          <div className="relative flex w-full items-center bg-white px-5 py-2.5 dark:bg-black">
-            <div className="horizontal-logo flex items-center justify-between ltr:mr-2 rtl:ml-2">
-              {/* <Icone className="py-2 shrink-0 mr-2" /> */}
-              <div className="hidden lg:block">{/* <OrganisationDropdown reference={reference} profileOrganisations={profileOrganisations} /> */}</div>
+        <div>
+          {/*
+            * En-tete de page.
+            *
+            * <p>Elle etait VIDE : un bouton hamburger visible en mobile seulement, les
+            * notifications et le compte, tout le reste commente. Une barre pleine largeur
+            * pour trois elements alignes a droite.</p>
+            *
+            * <p>Elle porte desormais le REPERE : section et titre de la page courante,
+            * derives du menu. L'operateur qui arrive par un lien direct sait ou il est,
+            * meme quand la barre laterale est repliee — ce qui etait jusqu'ici son seul
+            * indice de position. Et le repli fonctionne sur poste, pas seulement en
+            * mobile.</p>
+            */}
+          <div className="relative flex h-14 w-full items-center gap-3 border-b border-separator bg-surface px-4">
+            <Button
+              isIconOnly
+              aria-label="Afficher ou masquer la navigation"
+              className="shrink-0"
+              variant="light"
+              onPress={() => dispatch(toggleSidebar())}
+            >
+              <IconMenu className="h-5 w-5" />
+            </Button>
 
-              <Button
-                isIconOnly
-                variant="light"
-                onPress={() => {
-                  console.log('toggle sidebar');
-                  dispatch(toggleSidebar());
-                }}
-                className="collapse-icon lg:hidden  ltr:ml-2 rtl:mr-2"
-              >
-                <IconMenu className="h-5 w-5" />
-              </Button>
+            <div className="flex min-w-0 flex-col leading-tight">
+              {section && (
+                <span className="truncate text-[11px] font-medium uppercase tracking-[0.08em] text-muted">
+                  {t(section)}
+                </span>
+              )}
+              {titre && <span className="truncate text-sm font-semibold">{t(titre)}</span>}
             </div>
 
-            <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{/* <ToolsList /> */}</div>
-            <div className="flex items-center space-x-1.5 ltr:ml-auto rtl:mr-auto rtl:space-x-reverse dark:text-[#d0d2d6] sm:flex-1 sm:ltr:ml-0 sm:rtl:mr-0 lg:space-x-2">
-              <div className="sm:ltr:mr-auto sm:rtl:ml-auto">{/* <SearchComponent /> */}</div>
-              {/* Mode sombre masque le 26/08/2026. Le commutateur etait monte, mais 92 pour cent
-              des surfaces n'ont aucune variante `dark:` : la personne qui cliquait obtenait du
-              texte blanc sur fond blanc, menu lateral compris. Le socle visuel (lot 2) refait les
-              couleurs en jetons ; le mode sombre en decoulera et ce bloc pourra revenir. */}
-              {/* <ThemeSwitch /> */}
+            <div className="flex items-center gap-1 ltr:ml-auto rtl:mr-auto">
+              {/*
+                * Commutateur de theme REMIS, mais seulement pour la coquille.
+                *
+                * <p>Il avait ete masque le 26/08/2026 : 92 % des surfaces n'avaient aucune
+                * variante sombre, et la personne qui cliquait obtenait du texte blanc sur
+                * fond blanc, menu lateral compris.</p>
+                *
+                * <p>La coquille — barre laterale, en-tete, conteneur, pied — est desormais
+                * ecrite en JETONS v3 (`bg-surface`, `text-foreground`, `border-separator`),
+                * qui basculent d'eux-memes. Le contenu des ecrans suit progressivement, au
+                * fil de la refonte.</p>
+                *
+                * ⚠ A verifier ecran par ecran avant d'annoncer le mode sombre comme
+                * disponible : les pages non encore refondues gardent leurs couleurs en dur.
+                */}
+              <ThemeSwitch />
 
               {/* <LocaleSwitch /> */}
               {/* <MessageList /> */}
@@ -89,8 +116,8 @@ const Header = ({ profile }: { profile: User }) => {
             </div>
           </div>
 
-          {/* horizontal menu */}
-          <ul className="horizontal-menu hidden border-t border-[#ebedf2] bg-white px-6 py-1.5 font-semibold text-black rtl:space-x-reverse dark:border-[#191e3a] dark:bg-black dark:text-white-dark lg:space-x-1.5 xl:space-x-8">
+          {/* Menu horizontal : conserve pour le theme `horizontal`, masque autrement. */}
+          <ul className="horizontal-menu hidden border-t border-separator bg-surface px-6 py-1.5 text-sm rtl:space-x-reverse lg:space-x-1.5 xl:space-x-8">
             <RenderMenu menu={filteredMenu} openMenus={openMenus} cheminActif={cheminActif} toggleMenu={toggleMenu} t={t} />
           </ul>
         </div>

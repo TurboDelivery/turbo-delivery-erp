@@ -1,21 +1,46 @@
 'use client';
 
+import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
-import { Logo } from '../icons';
-import { IRootState } from '@/store';
-import { getTranslation } from '@/i18n';
 import { usePathname } from 'next/navigation';
-import AnimateHeight from 'react-animate-height';
-import IconMinus from '@/components/icon/icon-minus';
 import { Fragment, useEffect, useMemo, useState } from 'react';
+import AnimateHeight from 'react-animate-height';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleSidebar } from '@/store/themeConfigSlice';
-import menuData, { IMenuData, filterMenuByAbility, trouverCheminActif, trouverGroupeParent } from '@/config/menu-data';
-import IconCaretDown from '@/components/icon/icon-caret-down';
-import IconCaretsDown from '@/components/icon/icon-carets-down';
-import { useAbility } from '@/hooks/use-ability';
 
+import menuData, { IMenuData, filterMenuByAbility, trouverCheminActif, trouverGroupeParent } from '@/config/menu-data';
+import { useAbility } from '@/hooks/use-ability';
+import { getTranslation } from '@/i18n';
+import { cn } from '@/lib/utils';
+import { IRootState } from '@/store';
+import { toggleSidebar } from '@/store/themeConfigSlice';
+
+import { Logo } from '../icons';
+
+/**
+ * Navigation principale.
+ *
+ * <p>Elle venait telle quelle du gabarit d'administration d'origine : entrée active en
+ * pavé rouge plein (`bg-red-100 text-red-700 font-bold`), tout le menu en gras, en-têtes
+ * de section en bandeau gris pleine largeur, densité de 44 px par ligne. Sur un ERP à
+ * seize entrées, cela produit un mur de texte gras où rien ne se hiérarchise, et où la
+ * couleur de marque sert de surlignage plutôt que de signal.</p>
+ *
+ * <h3>Ce qui change, et pourquoi</h3>
+ * <ul>
+ *   <li><b>L'actif se marque par un RAIL, pas par un pavé.</b> Un liseré de 3 px et un
+ *       fond très léger suffisent à dire « vous êtes ici ». Le pavé rouge criait la même
+ *       chose et prenait l'accent qui doit rester disponible pour ce qui appelle une
+ *       action.</li>
+ *   <li><b>Le gras redevient un signal.</b> Tout le menu était en `font-semibold` : quand
+ *       tout est gras, rien ne l'est. Seule l'entrée active l'est désormais.</li>
+ *   <li><b>Les sections deviennent des étiquettes</b>, en petites capitales espacées, au
+ *       lieu de bandeaux gris pleine largeur qui découpaient la colonne en tranches.</li>
+ *   <li><b>La densité passe de 44 à 34 px.</b> Seize entrées tenaient mal dans une fenêtre
+ *       de 563 px de haut — celle des postes — et le bas du menu demandait un défilement
+ *       permanent.</li>
+ * </ul>
+ */
 const Sidebar = () => {
   const dispatch = useDispatch();
   const { t } = getTranslation();
@@ -32,25 +57,14 @@ const Sidebar = () => {
   const filteredMenu = useMemo(() => filterMenuByAbility(menuData, ability), [ability]);
 
   /**
-   * Entree de menu active.
-   *
-   * <p>Avant : deux effets cherchaient dans le DOM un lien dont l'attribut `href`
-   * etait EXACTEMENT egal a `window.location.pathname`, puis lui ajoutaient une
-   * classe a la main. Rien ne s'allumait donc sur une route dynamique
-   * (`/restaurants/abc`, `/delivery-men/men/abc`, `/notification/abc`), le groupe
-   * parent ne s'ouvrait pas sur rechargement direct, et le tableau de bord n'etait
-   * jamais surligne puisque son chemin declare etait `/` alors que le middleware
-   * redirige vers `/analystics`.</p>
-   *
-   * <p>Le plus long chemin qui correspond gagne, sinon les paires parent/enfant
-   * s'allument a deux : `/trafic` contre `/trafic/standard`, `/restaurants` contre
-   * `/restaurants/groupes`, `/delivery-men/men` contre `/delivery-men/men/create`.</p>
+   * Entrée de menu active. Le plus long chemin qui correspond gagne, sinon les paires
+   * parent/enfant s'allument à deux : `/trafic` contre `/trafic/standard`.
    */
   const cheminActif = useMemo(() => trouverCheminActif(filteredMenu, pathname), [filteredMenu, pathname]);
 
-  // Ouvre le groupe qui contient la route courante (rechargement direct, lien
-  // externe, signet). Ne se declenche que sur changement de route, donc n'annule
-  // pas une ouverture faite a la main ensuite.
+  // Ouvre le groupe qui contient la route courante (rechargement direct, lien externe,
+  // signet). Ne se déclenche que sur changement de route, donc n'annule pas une ouverture
+  // faite à la main ensuite.
   useEffect(() => {
     const parent = trouverGroupeParent(filteredMenu, pathname);
     if (parent) setCurrentMenu(parent.title);
@@ -65,120 +79,152 @@ const Sidebar = () => {
   }, [pathname]);
 
   return (
-    <>
-      {/* Bouton flottant pour rouvrir la sidebar quand elle est fermée */}
-      {/*{(*/}
-      {/*  <button*/}
-      {/*    type="button"*/}
-      {/*    className="fixed top-4 left-4 z-50 flex items-center justify-center w-10 h-10 bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-full shadow-md transition duration-300 hover:bg-gray-100 dark:hover:bg-gray-800"*/}
-      {/*    onClick={() => dispatch(toggleSidebar())}*/}
-      {/*  >*/}
-      {/*    <IconCaretsDown className="m-auto -rotate-90 h-5 w-5 text-gray-600 dark:text-gray-300" />*/}
-      {/*  </button>*/}
-      {/*)}*/}
-
-      <nav className={semidark ? 'dark' : ''}>
-        <div
-          className={`sidebar fixed bottom-0 top-0 z-50 h-full min-h-screen w-[260px] shadow transition-all duration-300 ${
-            themeConfig.sidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-          } lg:ltr:ml-0 lg:rtl:mr-0`}
-        >
-          <div className="h-full bg-white dark:bg-black">
-            <div className="flex items-center justify-between px-4 py-3">
-              <Link href="/" className="main-logo">
-                <Logo className="w-20 py-2" />
-              </Link>
-              <button
-                type="button"
-                className="collapse-icon flex h-8 w-8 items-center rounded-full transition duration-300 hover:bg-gray-500/10 rtl:rotate-180 dark:text-white-light dark:hover:bg-dark-light/10"
-                onClick={() => dispatch(toggleSidebar())}
-              >
-                <IconCaretsDown className="m-auto rotate-90" />
-              </button>
-            </div>
-            {/* 100dvh (hauteur de viewport dynamique) : sur mobile, la barre du navigateur
-                réduit 100vh et masquait les derniers items du menu. pb-24 garantit que le
-                dernier item est atteignable au-dessus du bord/safe-area. */}
-            <PerfectScrollbar
-              className="relative h-[calc(100dvh-80px)] overflow-y-auto overscroll-contain"
-              options={{ suppressScrollX: true, wheelPropagation: false }}
-            >
-              <ul className="relative space-y-0.5 p-4 py-0 pb-24 font-semibold">
-                <RenderMenu menu={filteredMenu} currentMenu={currentMenu} cheminActif={cheminActif} toggleMenu={toggleMenu} t={t} />
-              </ul>
-            </PerfectScrollbar>
+    <nav className={semidark ? 'dark' : ''}>
+      <div
+        className={cn(
+          'sidebar fixed bottom-0 top-0 z-50 h-full min-h-screen w-[248px] border-e border-separator bg-surface transition-transform duration-300',
+          themeConfig.sidebar ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+        )}
+      >
+        <div className="flex h-full flex-col">
+          {/* En-tête : le logo, et rien d'autre. Le bouton de repli passe dans l'en-tête
+              de page, où vivent les actions. */}
+          <div className="flex h-14 shrink-0 items-center border-b border-separator px-4">
+            <Link className="flex items-center" href="/">
+              <Logo className="w-16" />
+            </Link>
           </div>
+
+          {/* 100dvh : sur mobile la barre du navigateur réduit 100vh et masquait les
+              dernières entrées. */}
+          <PerfectScrollbar
+            className="relative flex-1 overflow-y-auto overscroll-contain"
+            options={{ suppressScrollX: true, wheelPropagation: false }}
+          >
+            <ul className="space-y-px p-3 pb-20">
+              <RenderMenu
+                cheminActif={cheminActif}
+                currentMenu={currentMenu}
+                menu={filteredMenu}
+                t={t}
+                toggleMenu={toggleMenu}
+              />
+            </ul>
+          </PerfectScrollbar>
         </div>
-      </nav>
-    </>
+      </div>
+    </nav>
   );
 };
 
 export default Sidebar;
 
-function RenderMenu({ menu, currentMenu, cheminActif, toggleMenu, t }: { menu: IMenuData[]; currentMenu: string; cheminActif: string; toggleMenu: (value: string) => void; t: (value: string) => string }) {
-  const renderMenuItem = (item: IMenuData, key: number) => {
-    return (
-      <li key={key} className="menu nav-item">
-        <button type="button" className={`${currentMenu === item.title ? 'active rounded bg-red-100 text-red-700 font-bold' : ''} nav-link group w-full`} onClick={() => toggleMenu(item.title)}>
-          <div className="flex items-center">
-            {item.icon && <item.icon className="shrink-0 group-hover:text-primary!" />}
-            <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-gray-600 dark:group-hover:text-white-dark">{t(item.title)}</span>
-          </div>
+/** Ligne de navigation. `actif` porte le rail, `enfant` le retrait des sous-entrées. */
+const ligne = (actif: boolean, enfant = false) =>
+  cn(
+    'group relative flex items-center gap-2.5 rounded-md py-[7px] text-[13px] transition-colors',
+    enfant ? 'ps-9 pe-2.5' : 'px-2.5',
+    actif
+      ? 'bg-accent-soft font-semibold text-accent'
+      : 'font-normal text-foreground/80 hover:bg-surface-secondary hover:text-foreground',
+  );
 
-          <div className={currentMenu !== item.title ? '-rotate-90 rtl:rotate-90' : ''}>
-            <IconCaretDown />
-          </div>
+/** Le rail : 3 px collés au bord gauche, visibles seulement sur l'entrée active. */
+function Rail() {
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute inset-y-1 -start-3 w-[3px] rounded-e-full bg-accent"
+    />
+  );
+}
+
+function RenderMenu({
+  menu,
+  currentMenu,
+  cheminActif,
+  toggleMenu,
+  t,
+}: {
+  menu: IMenuData[];
+  currentMenu: string;
+  cheminActif: string;
+  toggleMenu: (value: string) => void;
+  t: (value: string) => string;
+}) {
+  /** Groupe dépliable. */
+  const renderMenuItem = (item: IMenuData, key: number) => {
+    const ouvert = currentMenu === item.title;
+    // Un groupe replié dont un enfant est actif doit le dire : sinon, replier le groupe
+    // efface toute trace de l'endroit où l'on se trouve.
+    const enfantActif = item.children?.some((c) => c.path === cheminActif) ?? false;
+
+    return (
+      <li key={key}>
+        <button
+          className={cn(ligne(enfantActif && !ouvert), 'w-full justify-between')}
+          onClick={() => toggleMenu(item.title)}
+          type="button"
+        >
+          {enfantActif && !ouvert && <Rail />}
+          <span className="flex min-w-0 items-center gap-2.5">
+            {item.icon && <item.icon className="size-[17px] shrink-0 opacity-70" />}
+            <span className="truncate">{t(item.title)}</span>
+          </span>
+          <ChevronDown
+            aria-hidden="true"
+            className={cn('size-3.5 shrink-0 opacity-50 transition-transform', !ouvert && '-rotate-90')}
+          />
         </button>
 
-        <AnimateHeight duration={300} height={currentMenu === item.title ? 'auto' : 0}>
-          <ul className="sub-menu text-gray-500">
-            {item?.children?.map((child: any, index: number) => (
-              <li key={index}>
-                <Link href={`${child.path ?? ''}`} className={child.path === cheminActif ? 'active' : ''}>
-                  {t(child.title)}
-                </Link>
-              </li>
-            ))}
+        <AnimateHeight duration={200} height={ouvert ? 'auto' : 0}>
+          <ul className="mt-px space-y-px">
+            {item?.children?.map((child: IMenuData, index: number) => {
+              const actif = child.path === cheminActif;
+              return (
+                <li key={index}>
+                  <Link className={ligne(actif, true)} href={child.path ?? ''}>
+                    {actif && <Rail />}
+                    <span className="truncate">{t(child.title)}</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </AnimateHeight>
       </li>
     );
   };
 
+  /** Entrée simple. */
   const renderItem = (item: IMenuData, key: number) => {
+    const actif = item.path === cheminActif;
     return (
-      <li key={key} className="nav-item">
-        <Link href={`${item.path ?? ''}`} className={`group ${item.path === cheminActif ? 'active' : ''}`}>
-          <div className="flex items-center">
-            {item.icon && <item.icon className="shrink-0 group-hover:text-primary!" />}
-            <span className="text-black ltr:pl-3 rtl:pr-3 dark:text-muted-foreground dark:group-hover:text-white-dark">{t(item.title)}</span>
-          </div>
+      <li key={key}>
+        <Link className={ligne(actif)} href={item.path ?? ''}>
+          {actif && <Rail />}
+          {item.icon && <item.icon className="size-[17px] shrink-0 opacity-70" />}
+          <span className="truncate">{t(item.title)}</span>
         </Link>
       </li>
     );
   };
-  const renderItemMenuHeader = (item: IMenuData, key: number) => {
-    return (
-      <Fragment key={key}>
-        <h2 className="-mx-4 mb-1 flex items-center bg-white-light/30 px-7 py-3 font-extrabold uppercase dark:bg-dark/[0.08]">
-          <IconMinus className="hidden h-5 w-4 flex-none" />
-          <span>{t(item.title)}</span>
-        </h2>
-        <li className="nav-item">
-          <ul>{item?.children?.map((child: any, index: number) => (child.children ? renderMenuItem(child, index) : renderItem(child, index)))}</ul>
-        </li>
-      </Fragment>
-    );
-  };
+
+  /** En-tête de section : une étiquette, plus un bandeau pleine largeur. */
+  const renderItemMenuHeader = (item: IMenuData, key: number) => (
+    <Fragment key={key}>
+      <li className="px-2.5 pb-1 pt-5 text-[10px] font-semibold uppercase tracking-[0.09em] text-muted">
+        {t(item.title)}
+      </li>
+      {item?.children?.map((child: IMenuData, index: number) =>
+        child.children ? renderMenuItem(child, index) : renderItem(child, index),
+      )}
+    </Fragment>
+  );
+
   return menu.map((item, index) => {
-    if (!item.isHeader && item.children) {
-      return renderMenuItem(item, index);
-    }
-    if (!item.isHeader) {
-      return renderItem(item, index);
-    } else {
-      return renderItemMenuHeader(item, index);
-    }
+    if (!item.isHeader && item.children) return renderMenuItem(item, index);
+    if (!item.isHeader) return renderItem(item, index);
+    return renderItemMenuHeader(item, index);
   });
 }

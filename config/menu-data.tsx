@@ -233,3 +233,38 @@ export const trouverCheminActif = (menu: IMenuData[], pathname: string | null): 
   collecterChemins(menu)
     .filter((cm) => correspond(cm, pathname ?? ''))
     .sort((a, b) => b.length - a.length)[0] ?? '';
+
+/**
+ * Titre de l'entree de menu correspondant a la route courante, et celui de son groupe.
+ *
+ * <p>L'en-tete de page etait vide : un bouton hamburger visible en mobile seulement, les
+ * notifications, le compte. Une barre pleine largeur pour trois elements alignes a droite.
+ * L'operateur qui arrivait sur un ecran par un lien direct n'avait AUCUN repere : le seul
+ * indice de sa position etait le surlignage dans la barre laterale, invisible des qu'elle
+ * est repliee.</p>
+ *
+ * <p>On rend le titre de l'entree ET celui de sa section parente, pour composer un fil
+ * « Section · Page ». Rien n'est trouve — sur une route hors menu, par exemple — on rend
+ * `undefined` et l'appelant n'affiche rien plutot qu'un libelle invente.</p>
+ */
+export const trouverTitreActif = (
+  menu: IMenuData[],
+  pathname: string | null,
+): { titre?: string; section?: string } => {
+  const chemin = trouverCheminActif(menu, pathname);
+  if (!chemin) return {};
+
+  const chercher = (items: IMenuData[], section?: string): { titre?: string; section?: string } => {
+    for (const item of items) {
+      if (item.path === chemin) return { titre: item.title, section };
+      if (item.children) {
+        // Un groupe porte sa propre section ; un en-tete de menu la remplace.
+        const dessous = chercher(item.children, item.isHeader ? item.title : (section ?? item.title));
+        if (dessous.titre) return dessous;
+      }
+    }
+    return {};
+  };
+
+  return chercher(menu);
+};
