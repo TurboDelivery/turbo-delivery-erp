@@ -121,9 +121,9 @@ export default function DashboardFinanceStatistics() {
   }, [refetchGlobal, refetchSummary, refetchResume]);
 
   return (
-    <div className="w-full px-4 py-6">
+    <div className="w-full px-4 py-4">
       {/* En-tete : le titre porte la periode, plus besoin de la repeter dans chaque carte. */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Finances</h2>
           <p className="text-sm text-muted">
@@ -148,7 +148,10 @@ export default function DashboardFinanceStatistics() {
         * carte, des montants alignes en chasse tabulaire, et la couleur reduite a une seule
         * fonction : dire le sens du flux.</p>
         */}
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      {/* DATA-DENSE : la reference de conception recommande cette densite pour un tableau
+          de bord financier. Trois colonnes au lieu de deux, gouttiere resserree de 20 a
+          12 px, lignes a 5 px de padding vertical au lieu de 8. Tout tient sans defiler. */}
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
 
         {/* ── Colonne 1 : la periode ────────────────────────────────── */}
         <Card>

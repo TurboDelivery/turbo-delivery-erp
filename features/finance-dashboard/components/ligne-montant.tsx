@@ -20,6 +20,29 @@ const TON: Record<SensMontant, string> = {
     alerte: 'text-warning',
 };
 
+/**
+ * Marqueur de sens, EN PLUS de la couleur.
+ *
+ * <p>Regle d'accessibilite de severite haute : ne jamais transmettre une information par
+ * la couleur seule. Le vert et le rouge ne distinguent RIEN pour les 8 % d'hommes
+ * daltoniens — ni sur une impression en noir et blanc, ce qui arrive a ces ecrans. Le
+ * signe porte le sens, la couleur ne fait que le renforcer.</p>
+ */
+const SIGNE: Record<SensMontant, string> = {
+    neutre: '',
+    entree: '+',
+    sortie: '\u2212',
+    alerte: '',
+};
+
+/** Annonce du sens pour les lecteurs d'ecran, que le signe visuel n'atteint pas. */
+const DIT: Record<SensMontant, string> = {
+    neutre: '',
+    entree: 'entrée : ',
+    sortie: 'sortie : ',
+    alerte: 'en attente : ',
+};
+
 export interface LigneMontantProps {
     libelle: string;
     valeur: string;
@@ -71,6 +94,15 @@ export default function LigneMontant({
                         TON[sens],
                     )}
                 >
+                    {SIGNE[sens] && (
+                        <>
+                            {/* Largeur fixe : les montants restent alignes malgre le prefixe. */}
+                            <span aria-hidden="true" className="inline-block w-[0.8em] text-center font-bold opacity-85">
+                                {SIGNE[sens]}
+                            </span>
+                            <span className="sr-only">{DIT[sens]}</span>
+                        </>
+                    )}
                     {valeur}
                 </span>
                 {href && <ChevronRight aria-hidden="true" className="size-3.5 text-muted" />}
@@ -79,7 +111,7 @@ export default function LigneMontant({
     );
 
     const classes = cn(
-        'flex items-baseline justify-between gap-4 py-2',
+        'flex items-baseline justify-between gap-4 py-[5px]',
         detail && 'ps-4',
         href &&
             'rounded-md transition-colors hover:bg-surface-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
