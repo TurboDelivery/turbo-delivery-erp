@@ -1,53 +1,36 @@
 'use client';
 
+import { Spinner } from '@heroui-v3/react';
 import React from 'react';
 
-import { motion } from 'framer-motion';
-
+/**
+ * Écran d'attente pendant le chargement de l'application.
+ *
+ * <p>Il portait DEUX indicateurs pour un seul chargement : un arc qui tourne, et une barre
+ * de progression sous le texte. Deux animations qui disent la même chose, et la barre
+ * suggérait en plus une progression MESURÉE alors qu'elle ne mesurait rien — elle
+ * traversait en boucle, indépendamment de l'avancement réel. Un indicateur qui simule une
+ * information qu'il n'a pas apprend à l'utilisateur à ne plus le croire.</p>
+ *
+ * <p>Il ne reste qu'un `Spinner` de la bibliothèque, qui porte déjà son animation, son
+ * rôle ARIA et son respect de `prefers-reduced-motion`. Les cinq animations d'entrée
+ * `framer-motion` disparaissent avec : sur un écran qui s'affiche justement parce que
+ * quelque chose est lent, faire attendre 600 ms de plus pour voir apparaître le texte
+ * ajoute de la latence à de la latence.</p>
+ */
 export default function Loading() {
     return (
-        <div className="h-screen w-full flex items-center justify-center bg-linear-to-b from-background to-muted">
-            <div className="text-center space-y-8 px-4">
-                <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }} className="space-y-4">
-                    <div className="relative">
-                        <motion.div
-                            initial={{ rotate: 0 }}
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                            className="w-24 h-24 rounded-full border-4 border-t-primary border-r-primary border-b-transparent border-l-transparent mx-auto"
-                        />
-                    </div>
-                    <motion.h2 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="text-2xl font-semibold text-foreground mt-8">
-                        Chargement...
-                    </motion.h2>
-                </motion.div>
-
-                <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} className="text-muted-foreground max-w-sm mx-auto">
-                    Veuillez patienter pendant que nous préparons votre contenu
-                </motion.p>
-
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{
-                        delay: 0.6,
-                        repeat: Infinity,
-                        repeatType: 'reverse',
-                        duration: 1,
-                    }}
-                    className="w-full max-w-xs mx-auto h-1 bg-muted rounded-full overflow-hidden"
-                >
-                    <motion.div
-                        initial={{ x: '-100%' }}
-                        animate={{ x: '100%' }}
-                        transition={{
-                            repeat: Infinity,
-                            duration: 1.5,
-                            ease: 'linear',
-                        }}
-                        className="h-full w-1/2 bg-linear-to-r from-primary to-primary/50 rounded-full"
-                    />
-                </motion.div>
+        <div
+            aria-busy="true"
+            aria-live="polite"
+            className="flex h-screen w-full items-center justify-center bg-background px-4"
+        >
+            <div className="flex flex-col items-center gap-4 text-center">
+                <Spinner size="lg" />
+                <div className="space-y-1">
+                    <p className="text-base font-semibold text-foreground">Chargement</p>
+                    <p className="max-w-xs text-sm text-muted">Préparation de votre contenu</p>
+                </div>
             </div>
         </div>
     );
