@@ -15,6 +15,7 @@ import { GraphiqueMensuel } from '@/features/finance-dashboard/components/etat/g
 import { DisponibiliteJour, RepartitionParc } from '@/features/finance-dashboard/components/etat/repartition-parc';
 import { SelecteurPeriode, type Raccourci } from '@/features/finance-dashboard/components/etat/selecteur-periode';
 import { TableauMensuel } from '@/features/finance-dashboard/components/etat/tableau-mensuel';
+import { PlanSaisie } from '@/features/tickets/components/plan-saisie';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { Montant } from '@/components/commons/montant';
 import { BandeauAction } from '@/features/finance-dashboard/components/etat/bandeau-action';
@@ -40,6 +41,13 @@ export default function ApercuContenu() {
     const [role, setRole] = useState<AppRole>('COMPTABLE');
     const [etat, setEtat] = useState<'normal' | 'chargement' | 'echec'>('normal');
     const [raccourci, setRaccourci] = useState<Raccourci>('mois');
+    // Etat local pour regarder le plan de saisie des tickets hors authentification.
+    const [lignes, setLignes] = useState(12);
+    const [livreurId, setLivreurId] = useState('l1');
+    const [restaurantId, setRestaurantId] = useState('r1');
+    const [dateSaisie, setDateSaisie] = useState('2026-09-03');
+    const [preparees, setPreparees] = useState(12);
+    const [completees, setCompletees] = useState(7);
     const [plage, setPlage] = useState<{ start: DateValue; end: DateValue } | null>(null);
     const jeu = jeuParCle(cle);
 
@@ -195,6 +203,35 @@ export default function ApercuContenu() {
 
                 {/* ══ L'ÉCRAN PROPOSÉ COMMENCE ICI ══ */}
                 <main className="mx-auto flex max-w-[1400px] flex-col gap-4 p-4">
+                    <PlanSaisie
+                        completees={completees}
+                        etat={{
+                            nombreLignes: lignes,
+                            livreurId,
+                            restaurantId,
+                            date: dateSaisie,
+                            setNombreLignes: setLignes,
+                            setLivreurId,
+                            setRestaurantId,
+                            setDate: setDateSaisie,
+                        }}
+                        heuresAvantVerrouillage={jeu.creneau.heuresAvantVerrouillage}
+                        livreurs={[
+                            { value: 'l1', label: 'OTE Azo' },
+                            { value: 'l2', label: 'KOHI Albert Rene' },
+                        ]}
+                        onPreparer={() => {
+                            setPreparees(lignes);
+                            setCompletees(0);
+                        }}
+                        peutCreer
+                        preparees={preparees}
+                        restaurants={[
+                            { value: 'r1', label: 'CAFE FNEICH' },
+                            { value: 'r2', label: 'TAYBA ZONE 4' },
+                        ]}
+                    />
+
                     <div className="flex flex-wrap items-end justify-between gap-3">
                         <div>
                             <h1 className="text-xl font-bold">Pilotage Turbo Delivery</h1>
