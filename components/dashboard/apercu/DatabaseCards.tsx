@@ -131,18 +131,23 @@ export default function DatabaseCards() {
                     </Card>
                 </Link>
             ))}
+            {/* Forme COMPACTE : cette case vaut un compteur, pas un bloc de contenu. La
+                forme centree tient 200 px de haut — une icone de 40 px, un titre sur deux
+                lignes, une explication, un bouton — et faisait de la seule case en panne
+                l'element le plus voyant d'une rangee de cinq chiffres. L'information est
+                la meme, elle cesse de crier. Elle porte deja sa bordure et son fond, donc
+                pas de `Card` autour. */}
             {comptesEnAttenteEnErreur && (
-                <Card className="border border-danger/40 p-0">
-                    <Card.Content className="p-0">
-                        <EtatErreur
-                            enCours={comptesEnAttenteEnCours}
-                            onReessayer={() => {
-                                void rechargerComptesEnAttente();
-                            }}
-                            quoi="les comptes en attente"
-                        />
-                    </Card.Content>
-                </Card>
+                <div className="flex items-center">
+                    <EtatErreur
+                        compact
+                        enCours={comptesEnAttenteEnCours}
+                        onReessayer={() => {
+                            void rechargerComptesEnAttente();
+                        }}
+                        quoi="les comptes en attente"
+                    />
+                </div>
             )}
         </div>
     );
