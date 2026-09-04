@@ -13,6 +13,7 @@ import {
 import { fr } from 'date-fns/locale';
 import { ArrowDownRight, Clock, Download, Layers, TrendingUp, Wallet } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { getLocalTimeZone, fromDate, type DateValue } from '@internationalized/date';
 
 import EtatErreur from '@/components/commons/EtatErreur';
 import { Montant } from '@/components/commons/montant';
@@ -61,6 +62,12 @@ export default function Pilotage() {
     const voitLivreurs = ability.can('read', 'Livreur');
 
     const [raccourci, setRaccourci] = useState<Raccourci>('mois');
+    /**
+     * Plage choisie au calendrier. Elle etait ignoree : le composant recevait
+     * `plage={null}` et un `onPlage` qui ne stockait rien, si bien que la date
+     * disparaissait au clic et qu'aucun filtrage ne s'appliquait.
+     */
+    const [plage, setPlage] = useState<{ start: DateValue; end: DateValue } | null>(null);
     const [annee, setAnnee] = useState(() => new Date().getFullYear());
 
     // ── La periode, et la periode PRECEDENTE de meme nature. La comparaison ne coute
@@ -68,6 +75,22 @@ export default function Pilotage() {
     //    TanStack Query les met en cache sous deux cles distinctes.
     const { debut, fin, debutPrecedent, finPrecedent, libelle } = useMemo(() => {
         const maintenant = new Date();
+        const zone = getLocalTimeZone();
+
+        // Une plage saisie au calendrier prime sur les raccourcis, et sa periode de
+        // comparaison est la meme duree, juste avant.
+        if (raccourci === 'libre' && plage) {
+            const d = plage.start.toDate(zone);
+            const f = plage.end.toDate(zone);
+            const duree = f.getTime() - d.getTime();
+            return {
+                debut: d,
+                fin: f,
+                debutPrecedent: new Date(d.getTime() - duree),
+                finPrecedent: new Date(d.getTime() - 1),
+                libelle: `${format(d, 'd MMM', { locale: fr })} – ${format(f, 'd MMM yyyy', { locale: fr })}`,
+            };
+        }
         if (raccourci === 'annee') {
             const d = startOfYear(maintenant);
             return {
@@ -95,7 +118,14 @@ export default function Pilotage() {
             finPrecedent: endOfMonth(subMonths(maintenant, 1)),
             libelle: format(d, 'MMMM yyyy', { locale: fr }),
         };
-    }, [raccourci]);
+    }, [raccourci, plage]);
+
+    // Le calendrier reflete la periode ACTIVE, d'ou qu'elle vienne : sans cela il
+    // s'ouvrait vide apres un clic sur « Ce mois ».
+    const plageAffichee = useMemo(
+        () => plage ?? { start: fromDate(debut, getLocalTimeZone()), end: fromDate(fin, getLocalTimeZone()) },
+        [plage, debut, fin],
+    );
 
     const parametres = useMemo(() => ({ debut, fin }), [debut, fin]);
     const parametresPrecedents = useMemo(
@@ -223,9 +253,17 @@ export default function Pilotage() {
                 <div className="flex flex-wrap items-center gap-2">
                     <SelecteurPeriode
                         libelle={libelle}
-                        onPlage={() => setRaccourci('libre')}
-                        onRaccourci={setRaccourci}
-                        plage={null}
+                        onPlage={(p) => {
+                            setPlage(p);
+                            // Une plage complete bascule sur « libre » ; une plage
+                            // effacee rend la main aux raccourcis.
+                            setRaccourci(p ? 'libre' : 'mois');
+                        }}
+                        onRaccourci={(r) => {
+                            setRaccourci(r);
+                            if (r !== 'libre') setPlage(null);
+                        }}
+                        plage={plageAffichee}
                         raccourci={raccourci}
                     />
                     {voitFinance && (

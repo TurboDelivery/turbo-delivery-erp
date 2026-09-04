@@ -15,6 +15,7 @@ import menuData, { IMenuData, filterMenuByAbility, trouverCheminActif, trouverTi
 import { useAbility } from '@/hooks/use-ability';
 import IconCaretDown from '@/components/icon/icon-caret-down';
 import Notifications from '../dashboard/notifications/notifications';
+import { BasculeTheme } from './bascule-theme';
 import { DashboardUserDropdown } from '../dashboard/dashboard-user-dropdown';
 import ThemeSwitch from '@/components/layouts/themeSwitch';
 
@@ -118,7 +119,7 @@ const Header = ({ profile }: { profile: User }) => {
                 * <p>Il reviendra quand les ecrans auront ete refondus, pas avant. Un
                 * commutateur qui casse l'affichage est pire que pas de mode sombre.</p>
                 */}
-              {/* <ThemeSwitch /> */}
+              <BasculeTheme />
 
               {/* <LocaleSwitch /> */}
               {/* <MessageList /> */}

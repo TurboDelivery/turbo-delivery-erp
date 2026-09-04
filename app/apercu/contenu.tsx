@@ -6,6 +6,7 @@ import { ArrowDownRight, Clock, Download, Layers, TrendingUp, Wallet } from 'luc
 import { Ecart } from '@/components/commons/ecart';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { useState } from 'react';
+import { fromDate, getLocalTimeZone, type DateValue } from '@internationalized/date';
 
 import { JEUX_EXEMPLE, jeuParCle } from '@/features/finance-dashboard/apercu/jeux-exemple';
 import { BandePerimetre } from '@/features/finance-dashboard/components/etat/bande-perimetre';
@@ -39,6 +40,7 @@ export default function ApercuContenu() {
     const [role, setRole] = useState<AppRole>('COMPTABLE');
     const [etat, setEtat] = useState<'normal' | 'chargement' | 'echec'>('normal');
     const [raccourci, setRaccourci] = useState<Raccourci>('mois');
+    const [plage, setPlage] = useState<{ start: DateValue; end: DateValue } | null>(null);
     const jeu = jeuParCle(cle);
 
     // Dates fixes : `new Date()` au rendu ferait diverger serveur et client.
@@ -201,9 +203,20 @@ export default function ApercuContenu() {
                         <div className="flex flex-wrap items-center gap-2">
                             <SelecteurPeriode
                                 libelle="01/09 – 30/09"
-                                onPlage={() => setRaccourci('libre')}
-                                onRaccourci={setRaccourci}
-                                plage={null}
+                                onPlage={(p) => {
+                                    setPlage(p);
+                                    setRaccourci(p ? 'libre' : 'mois');
+                                }}
+                                onRaccourci={(r) => {
+                                    setRaccourci(r);
+                                    if (r !== 'libre') setPlage(null);
+                                }}
+                                plage={
+                                    plage ?? {
+                                        start: fromDate(debut, getLocalTimeZone()),
+                                        end: fromDate(fin, getLocalTimeZone()),
+                                    }
+                                }
                                 raccourci={raccourci}
                             />
                             {voitFinance && (

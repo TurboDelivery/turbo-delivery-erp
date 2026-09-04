@@ -1,7 +1,17 @@
 'use client';
 import { useSelector } from 'react-redux';
 import { IRootState } from '@/store';
-import Dropdown from '@/components/dropdown';
+/*
+ * `Popover` de HeroUI v3, a la place du `Dropdown` maison.
+ *
+ * <p>Le panneau s'affichait TRANSPARENT : son `<ul>` portait `divide-y`, `text-dark` et
+ * une ombre, mais aucune classe de fond, et le `Dropdown` maison n'en fournissait pas
+ * non plus. Le texte des notifications se superposait donc au tableau de bord, illisible.</p>
+ *
+ * <p>Le `Popover` v3 apporte la surface, l'elevation, le piege de focus et la fermeture
+ * a l'echappement — tout ce que l'implementation maison laissait a la charge du contenu.</p>
+ */
+import { Popover } from '@heroui-v3/react';
 import IconInfoCircle from '@/components/icon/icon-info-circle';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,22 +28,24 @@ const Content = ({ className }: {
     const ctrl = useNotificationController();
     return (
         <div className={`dropdown shrink-0 ${className}`}>
-            <Dropdown
-                offset={[0, 8]}
-                placement={`${isRtl ? 'bottom-start' : 'bottom-end'}`}
-                btnClassName="relative block p-2 rounded-full bg-white-light/40 dark:bg-dark/40  hover:text-primary hover:bg-white-light/90 dark:hover:bg-dark/60"
-                button={
-                    <span className="relative inline-flex items-center justify-center">
-                        <Bell className="h-5 w-5" />
-                        {ctrl.notificationNonLus.length > 0 && (
-                            <span className="absolute -top-2 ltr:-right-2 rtl:-left-2 inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white dark:ring-black">
-                                {ctrl.notificationNonLus.length > 99 ? '99+' : ctrl.notificationNonLus.length}
-                            </span>
-                        )}
-                    </span>
-                }
-            >
-                <ul className="lg:w-[600px] xl:w-[600px] divide-y py-0! text-dark dark:divide-white/10 dark:text-white-dark sm:w-[350px] shadow-xl!">
+            <Popover>
+                <Popover.Trigger
+                    aria-label={`Notifications${ctrl.notificationNonLus.length ? ` — ${ctrl.notificationNonLus.length} non lues` : ''}`}
+                    className="relative rounded-full p-2 hover:text-accent"
+                >
+                    <Bell aria-hidden="true" className="size-5" />
+                    {ctrl.notificationNonLus.length > 0 && (
+                        <span className="absolute -top-1 inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold leading-none text-white ring-2 ring-surface ltr:-right-1 rtl:-left-1">
+                            {ctrl.notificationNonLus.length > 99 ? '99+' : ctrl.notificationNonLus.length}
+                        </span>
+                    )}
+                </Popover.Trigger>
+
+                <Popover.Content
+                    className="w-[min(600px,calc(100vw-2rem))] p-0"
+                    placement={isRtl ? 'bottom start' : 'bottom end'}
+                >
+                <ul className="divide-y divide-separator py-0! text-foreground">
                     <li onClick={(e) => e.stopPropagation()}>
                         <div className="flex-wrap lg:flex xl:flex items-center justify-between px-4 py-2 font-semibold">
                             <h4 className="text-lg text-red-500 font-bold">Notification</h4>
@@ -104,7 +116,8 @@ const Content = ({ className }: {
                         </div>
                     )}
                 </ul>
-            </Dropdown>
+                </Popover.Content>
+            </Popover>
         </div>
     );
 };
