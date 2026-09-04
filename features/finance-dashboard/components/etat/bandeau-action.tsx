@@ -1,8 +1,5 @@
-import { buttonVariants } from '@heroui-v3/react';
-import { ArrowRight, ShieldAlert } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
-
-import { cn } from '@/lib/utils';
 
 /**
  * Ce qui attend un geste, avant ce qui informe.
@@ -38,8 +35,10 @@ export interface ElementAction {
      * n'est pas un gabarit, c'est une contrainte. L'appelant ecrit donc sa phrase.</p>
      */
     titre: string;
-    /** Ce qui se passe tant que personne n'agit. */
+    /** Ce qui se passe tant que personne n'agit — porte par l'info-bulle du lien. */
     consequence: string;
+    /** Version courte de la consequence, tenue sur la meme ligne. */
+    incise?: string;
     href: string;
     libelleAction: string;
     /** Le bandeau n'apparait que si quelque chose le justifie. */
@@ -55,28 +54,25 @@ export function BandeauAction({ elements }: BandeauActionProps) {
     // Un bandeau vide est pire qu'absent : il apprend a ne plus le regarder.
     if (aFaire.length === 0) return null;
 
+    // Forme de PASTILLE, pas de bandeau pleine largeur : quatre bandeaux empiles
+    // repoussaient les chiffres sous la ligne de flottaison. Une pastille dit la meme
+    // chose — le fait, sa consequence en une incise, le lien — sur une ligne.
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap gap-2">
             {aFaire.map((e) => (
                 <div
-                    className="flex flex-wrap items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3"
+                    className="flex min-w-0 items-center gap-2 rounded-lg border border-accent/30 bg-accent-soft px-3 py-1.5 text-xs"
                     key={e.cle}
                 >
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-accent/15">
-                        <ShieldAlert aria-hidden="true" className="size-5 text-accent" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold tabular-nums text-foreground">{e.titre}</p>
-                        <p className="text-xs leading-snug text-muted">{e.consequence}</p>
-                    </div>
-                    {/*
-                     * Un `Link` habille en bouton, et non un `Button` rendu en lien : le
-                     * `render` du Button v3 transmet des props de `<button>`, que `next/link`
-                     * refuse au typage. `buttonVariants` donne exactement le meme habillage.
-                     */}
-                    <Link className={cn(buttonVariants({ size: 'sm' }), 'shrink-0')} href={e.href}>
+                    <ShieldAlert aria-hidden="true" className="size-3.5 shrink-0 text-accent" />
+                    <span className="font-semibold tabular-nums text-foreground">{e.titre}</span>
+                    {e.incise && <span className="truncate text-muted">— {e.incise}</span>}
+                    <Link
+                        className="shrink-0 rounded-sm font-medium text-accent underline-offset-2 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+                        href={e.href}
+                        title={e.consequence}
+                    >
                         {e.libelleAction}
-                        <ArrowRight aria-hidden="true" className="size-4" />
                     </Link>
                 </div>
             ))}

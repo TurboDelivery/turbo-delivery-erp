@@ -109,14 +109,14 @@ export function construireEtat({
                 },
                 {
                     cle: 'commission-fixe',
-                    libelle: 'dont commission fixe',
+                    libelle: 'dont fixe',
                     niveau: 2,
                     periode: { valeur: statsGlobales?.commissionFixe ?? null },
                     cumul: { valeur: null },
                 },
                 {
                     cle: 'commission-pourcentage',
-                    libelle: 'dont commission au pourcentage',
+                    libelle: 'dont pourcentage',
                     niveau: 2,
                     periode: { valeur: statsGlobales?.commissionPourcentage ?? null },
                     cumul: { valeur: null },

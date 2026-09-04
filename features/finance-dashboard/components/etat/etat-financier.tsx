@@ -69,7 +69,9 @@ export interface SectionEtat {
 interface EtatFinancierProps {
     sections: SectionEtat[];
     libellePeriode: string;
-    libelleCumul: string;
+    libelleCumul?: string;
+    /** En panneau lateral, l'etat detaille LA PERIODE : le cumul n'y a pas sa place. */
+    masquerCumul?: boolean;
     /** Rappel de ce a quoi l'ecart compare, par ex. « vs periode precedente ». */
     libelleReference?: string;
     className?: string;
@@ -131,6 +133,7 @@ export function EtatFinancier({
     libellePeriode,
     libelleCumul,
     libelleReference,
+    masquerCumul = false,
     className,
 }: EtatFinancierProps) {
     return (
@@ -159,12 +162,14 @@ export function EtatFinancier({
                         <th className="py-2 text-right text-[11px] font-semibold uppercase tracking-[0.08em] text-muted" scope="col">
                             {libellePeriode}
                         </th>
-                        <th
-                            className="hidden py-2 text-right text-[11px] font-semibold uppercase tracking-[0.08em] text-muted sm:table-cell"
-                            scope="col"
-                        >
-                            {libelleCumul}
-                        </th>
+                        {!masquerCumul && (
+                            <th
+                                className="hidden py-2 text-right text-[11px] font-semibold uppercase tracking-[0.08em] text-muted sm:table-cell"
+                                scope="col"
+                            >
+                                {libelleCumul}
+                            </th>
+                        )}
                     </tr>
                 </tbody>
 
@@ -173,7 +178,7 @@ export function EtatFinancier({
                         <tr>
                             <th
                                 className="pb-0.5 pt-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted"
-                                colSpan={3}
+                                colSpan={masquerCumul ? 2 : 3}
                                 scope="colgroup"
                             >
                                 {section.titre}
@@ -211,22 +216,24 @@ export function EtatFinancier({
                                 <td className={cn('py-1 ps-4', ligne.total && 'border-t border-foreground/25')}>
                                     <Cellule appuyee={ligne.total} cellule={ligne.periode} />
                                 </td>
-                                <td className={cn('hidden py-1 ps-4 sm:table-cell', ligne.total && 'border-t border-foreground/25')}>
-                                    <Cellule appuyee={ligne.total} cellule={ligne.cumul} />
-                                </td>
+                                {!masquerCumul && (
+                                    <td className={cn('hidden py-1 ps-4 sm:table-cell', ligne.total && 'border-t border-foreground/25')}>
+                                        <Cellule appuyee={ligne.total} cellule={ligne.cumul} />
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>
                 ))}
             </table>
 
-            <p className="mt-3 text-xs text-muted">
+            {!masquerCumul && <p className="mt-3 text-xs text-muted">
                 <span aria-hidden="true">— </span>
                 <span>
                     Un tiret signale une valeur que le service ne fournit pas sur cette période, et non
                     un montant nul.
                 </span>
-            </p>
+            </p>}
         </div>
     );
 }

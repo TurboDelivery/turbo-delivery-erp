@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Card, Separator } from '@heroui-v3/react';
-import { Download } from 'lucide-react';
+import { ArrowDownRight, Banknote, Clock, TrendingUp, Wallet } from 'lucide-react';
 
 import { Ecart } from '@/components/commons/ecart';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
@@ -9,6 +9,9 @@ import { useState } from 'react';
 
 import { JEUX_EXEMPLE, jeuParCle } from '@/features/finance-dashboard/apercu/jeux-exemple';
 import { BandePerimetre } from '@/features/finance-dashboard/components/etat/bande-perimetre';
+import { CarteIndicateur } from '@/features/finance-dashboard/components/etat/carte-indicateur';
+import { GraphiqueMensuel } from '@/features/finance-dashboard/components/etat/graphique-mensuel';
+import { DisponibiliteJour, RepartitionParc } from '@/features/finance-dashboard/components/etat/repartition-parc';
 import { BandeauAction } from '@/features/finance-dashboard/components/etat/bandeau-action';
 import { construireEtat } from '@/features/finance-dashboard/components/etat/construire-etat';
 import { EtatFinancier } from '@/features/finance-dashboard/components/etat/etat-financier';
@@ -86,6 +89,7 @@ export default function ApercuContenu() {
             titre: `${t.horsService} livreurs sans position GPS`,
             consequence: `Sur ${t.totalLivreurs} livreurs, autant n'apparaissent nulle part sur la carte du trafic : on ne peut ni les affecter, ni voir où ils sont.`,
             href: '/trafic',
+            incise: 'la carte du trafic est vide',
             libelleAction: 'Voir le trafic',
             actif: voitLivreurs && t.horsService > 0,
         },
@@ -94,6 +98,7 @@ export default function ApercuContenu() {
             titre: 'Aucun livreur disponible',
             consequence: `Personne n'est en file sur ${t.totalLivreurs} livreurs : soit la journée n'a pas commencé, soit le pointage ne remonte plus. Les offres de course ne partiront pas.`,
             href: '/delivery-men/pointages-a-valider',
+            incise: 'les offres ne partiront pas',
             libelleAction: 'Vérifier les pointages',
             actif: voitLivreurs && t.disponibles === 0,
         },
@@ -105,6 +110,7 @@ export default function ApercuContenu() {
                     : '1 compte livreur attend une validation',
             consequence: "Tant que le compte n'est pas validé, le livreur ne peut pas se connecter à l'application.",
             href: '/delivery-men/not-valide',
+            incise: 'ils ne peuvent pas se connecter',
             libelleAction: 'Valider les comptes',
             actif: voitLivreurs && jeu.comptesEnAttente > 0,
         },
@@ -113,6 +119,7 @@ export default function ApercuContenu() {
             titre: `Verrouillage des tickets dans ${heures} h`,
             consequence: `Semaine ${jeu.creneau.semaine}, ${jeu.creneau.ticketsSaisis} tickets saisis. Après le verrouillage, plus aucune saisie n'est possible sur la semaine.`,
             href: '/validation-tickets',
+            incise: `semaine ${jeu.creneau.semaine}`,
             libelleAction: 'Saisir les tickets',
             actif: jeu.creneau.statut === 'OUVERT' && heures <= 48,
         },
@@ -165,69 +172,152 @@ export default function ApercuContenu() {
                 </header>
 
                 {/* ══ L'ÉCRAN PROPOSÉ COMMENCE ICI ══ */}
-                <main className="mx-auto flex max-w-[1100px] flex-col gap-4 p-4">
+                <main className="mx-auto flex max-w-[1400px] flex-col gap-4 p-4">
+                    <div className="flex flex-wrap items-end justify-between gap-3">
+                        <div>
+                            <h1 className="text-xl font-bold">Pilotage Turbo Delivery</h1>
+                            <p className="text-sm text-muted">Du 1<sup>er</sup> au 30 septembre 2026</p>
+                        </div>
+                        <div className="flex items-center gap-1 rounded-lg border border-separator p-1">
+                            {['Ce mois', '2026', "Depuis l'origine"].map((p, k) => (
+                                <button
+                                    className={cn(
+                                        'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                                        k === 0 ? 'bg-accent text-white' : 'text-muted hover:text-foreground',
+                                    )}
+                                    key={p}
+                                    type="button"
+                                >
+                                    {p}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
                     <BandeauAction elements={actions} />
 
-                    <BandePerimetre reperes={reperes} />
+                    {voitFinance && (
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                            <CarteIndicateur
+                                href="/finance/revenue"
+                                icone={Wallet}
+                                libelle="Chiffre d'affaires"
+                                libelleReference="vs août"
+                                reference={jeu.statsPeriodePrecedente.chiffreAffaire}
+                                sens="favorable"
+                                valeur={jeu.statsGlobales.chiffreAffaire}
+                            />
+                            <CarteIndicateur
+                                contexte={jeu.resume.totalDepenses === 0 ? 'aucune charge imputée' : undefined}
+                                href="/finance/dashboard"
+                                icone={ArrowDownRight}
+                                libelle="Dépenses"
+                                libelleReference="vs août"
+                                reference={jeu.statsPeriodePrecedente.depenses}
+                                sens="defavorable"
+                                valeur={jeu.resume.totalDepenses}
+                            />
+                            <CarteIndicateur
+                                contexte={resultat >= 0 ? 'excédent' : 'déficit'}
+                                href="/finance/analyse-rentabilite"
+                                icone={TrendingUp}
+                                libelle="Marge"
+                                libelleReference="vs août"
+                                principal
+                                reference={resultatPrecedent}
+                                sens="favorable"
+                                tonContexte={resultat >= 0 ? 'favorable' : 'attention'}
+                                valeur={resultat}
+                            />
+                            <CarteIndicateur
+                                contexte={
+                                    jeu.statsGlobales.chiffreAffaire
+                                        ? `${Math.round((jeu.resume.totalFacturesEnCours / jeu.statsGlobales.chiffreAffaire) * 100)} % du CA du mois`
+                                        : undefined
+                                }
+                                href="/finance/recouvrement?tab=factures"
+                                icone={Clock}
+                                libelle="Encours à recouvrer"
+                                tonContexte="attention"
+                                valeur={jeu.resume.totalFacturesEnCours}
+                            />
+                        </div>
+                    )}
 
-                    {voitFinance ? (
+                    {voitFinance && (
+                        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
+                            <Card className="lg:col-span-2">
+                                <Card.Header>
+                                    <Card.Title className="text-sm">Revenus et dépenses par mois · 2026</Card.Title>
+                                    <Card.Description>
+                                        La marge, en surimpression, est la différence des deux barres.
+                                    </Card.Description>
+                                </Card.Header>
+                                {/*
+                                 * Hauteur DEFINIE, pas `flex-1` : le `ResponsiveContainer` de
+                                 * Recharts mesure son parent, et un enfant flexible sans hauteur
+                                 * resolue lui en donne zero. Mesure a l'ecran : la carte faisait
+                                 * 487 px et le graphique 0.
+                                 */}
+                                <Card.Content>
+                                    <GraphiqueMensuel donnees={jeu.serieAnnuelle} hauteur={340} />
+                                </Card.Content>
+                            </Card>
+
+                            <Card>
+                                <Card.Header>
+                                    <Card.Title className="text-sm">Détail du mois</Card.Title>
+                                </Card.Header>
+                                <Card.Content>
+                                    <EtatFinancier
+                                        libellePeriode="Septembre"
+                                        masquerCumul
+                                        sections={sections}
+                                    />
+                                </Card.Content>
+                            </Card>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                         <Card>
-                            {/*
-                             * Le RESULTAT est enonce ici, pas au terme du tableau. Mesure a la
-                             * taille reelle du poste (720 x 563), la ligne « Resultat » tombait a
-                             * 796 px : ce que la conception designe comme le premier regard
-                             * demandait de defiler. Le document annonce donc sa conclusion, et le
-                             * tableau en dessous montre comment on y arrive.
-                             */}
                             <Card.Header>
-                                <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
-                                    <div className="min-w-0">
-                                        <Card.Title className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
-                                            Résultat · septembre 2026
-                                        </Card.Title>
-                                        <p
-                                            className={cn(
-                                                'mt-0.5 text-3xl font-bold tabular-nums',
-                                                resultat < 0 && 'text-red-800 dark:text-red-400',
-                                            )}
-                                        >
-                                            {formatCFA(resultat).replace(/^[-\u2212]/, '\u2212')}
-                                        </p>
-                                        <span className="mt-1 flex items-center gap-2">
-                                            <Ecart
-                                                libelleReference="vs août"
-                                                reference={resultatPrecedent}
-                                                sens="favorable"
-                                                valeur={resultat}
-                                            />
-                                        </span>
-                                    </div>
-                                    <Button size="sm" variant="outline">
-                                        <Download aria-hidden="true" className="size-4" />
-                                        Télécharger les détails
-                                    </Button>
-                                </div>
+                                <Card.Title className="text-sm">
+                                    Répartition du parc · {jeu.effectifs.turboys} turboys
+                                </Card.Title>
                             </Card.Header>
                             <Card.Content>
-                                <EtatFinancier
-                                    libelleCumul="Depuis 2024"
-                                    libellePeriode="Septembre 2026"
-                                    libelleReference="vs août"
-                                    sections={sections}
+                                <RepartitionParc
+                                    parts={[
+                                        { libelle: 'Indépendants', valeur: jeu.effectifs.turboysIndependant, couleur: '#2563eb' },
+                                        { libelle: 'Journaliers', valeur: jeu.effectifs.turboysJournalier, couleur: '#d97706' },
+                                        { libelle: 'Superviseurs-livreurs', valeur: jeu.effectifs.turboysSuperviseurLivreur ?? 0, couleur: '#15803d' },
+                                    ]}
                                 />
                             </Card.Content>
                         </Card>
-                    ) : (
-                        <Card variant="secondary">
-                            <Card.Content className="py-6 text-center">
-                                <p className="text-sm text-muted">
-                                    Le rôle <span className="font-semibold text-foreground">{role}</span> n&apos;a pas
-                                    le droit de lire les données financières. L&apos;écran actuel les lui montre
-                                    quand même.
-                                </p>
+
+                        <Card>
+                            <Card.Header>
+                                <Card.Title className="text-sm">Disponibilité du jour</Card.Title>
+                                <Card.Description>
+                                    {t.horsService} livreurs sur {t.totalLivreurs} n&apos;ont aucune position connue.
+                                </Card.Description>
+                            </Card.Header>
+                            <Card.Content>
+                                <DisponibiliteJour
+                                    barres={[
+                                        { libelle: 'En course', valeur: t.enActivite, couleur: '#2563eb' },
+                                        { libelle: 'Disponibles', valeur: t.disponibles, couleur: '#15803d' },
+                                        { libelle: 'Hors service', valeur: t.horsService, couleur: '#b91c1c' },
+                                    ]}
+                                    total={t.totalLivreurs}
+                                />
                             </Card.Content>
                         </Card>
-                    )}
+                    </div>
+
+                    <BandePerimetre reperes={reperes} />
                 </main>
             </div>
         </div>
