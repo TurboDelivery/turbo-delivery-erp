@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Button } from '@/components/heroui';
 import { ArrowRight, ShieldAlert } from 'lucide-react';
 
+import EtatErreur from '@/components/commons/EtatErreur';
 import { usePointagesEnAttenteQuery } from '@/features/trafic/queries/pointages-attente.query';
 
 const LIEN_ARBITRAGE = '/delivery-men/pointages-a-valider';
@@ -18,8 +19,30 @@ const LIEN_ARBITRAGE = '/delivery-men/pointages-a-valider';
  * quelque chose à arbitrer.
  */
 export function TraficPointagesBanner() {
-  const { data } = usePointagesEnAttenteQuery();
+  const { data, isError, isFetching, refetch } = usePointagesEnAttenteQuery();
   const enAttente = data?.length ?? 0;
+
+  /*
+   * Un echec de lecture ne doit PAS se lire comme « rien a arbitrer ».
+   *
+   * `data?.length ?? 0` rendait 0 quand la requete echouait, et le bandeau
+   * disparaissait : l'ecran affirmait implicitement qu'aucun pointage n'attendait,
+   * alors que des livreurs pouvaient etre bloques hors de la file sans recevoir la
+   * moindre course. C'est la faute que ce projet a deja payee ailleurs — un repli
+   * silencieux vers l'etat rassurant.
+   */
+  if (isError) {
+    return (
+      <div className="rounded-2xl border border-danger/25 bg-danger-soft">
+        <EtatErreur
+          compact
+          enCours={isFetching}
+          onReessayer={() => void refetch()}
+          quoi="les pointages en attente"
+        />
+      </div>
+    );
+  }
 
   if (enAttente === 0) return null;
 

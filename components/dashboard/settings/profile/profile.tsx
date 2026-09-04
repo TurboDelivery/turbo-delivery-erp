@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import IconCalendar from '@/components/icon/icon-calendar';
-import IconPencilPaper from '@/components/icon/icon-pencil-paper';
 import { User } from '@/types/models';
-import { Avatar, Input } from "@/components/heroui";
-import { SubmitButton } from '@/components/ui/form-ui/submit-button';
+import { Avatar } from "@/components/heroui";
 import { IconMail, IconShield, IconUser } from '@tabler/icons-react';
 
 import { CodeSecuriteCard } from './code-securite-card';
@@ -13,11 +11,18 @@ import { CodeSecuriteCard } from './code-securite-card';
 const UserProfile = ({ user }: { user: User }) => {
     // Le code de sécurité (actions finance sensibles) n'existe que pour DG / DGA.
     const peutDefinirCode = ['DG', 'DGA'].includes(user.role?.libelle ?? '');
-    const [isEditing, setIsEditing] = useState(false);
-
-    const handleSave = () => {
-        setIsEditing(false);
-    };
+    /*
+     * Le mode edition a ete RETIRE, parce qu'il ne pouvait rien enregistrer.
+     *
+     * Les quatre champs etaient controles par `value={user.nom}` etc. SANS `onChange` :
+     * React les rendait donc inertes, on ne pouvait pas y taper. Et `handleSave()` ne
+     * faisait que refermer le formulaire — aucune requete n'etait envoyee, et aucune
+     * action de mise a jour du profil n'existe dans le depot (verifie).
+     *
+     * Un formulaire qui promet d'enregistrer et n'enregistre rien est pire qu'une fiche
+     * en lecture seule : l'utilisateur croit avoir sauvegarde. La fiche dit donc ce
+     * qu'elle sait, et dit ou s'adresser pour la faire changer.
+     */
 
     return (
         <div className="pt-5">
@@ -25,9 +30,9 @@ const UserProfile = ({ user }: { user: User }) => {
                 <div className="panel lg:col-span-2 xl:col-span-3">
                     <div className="mb-5 flex items-center justify-between">
                         <h5 className="text-lg font-semibold dark:text-white-light">Profil</h5>
-                        <button onClick={() => setIsEditing(!isEditing)} className="btn btn-primary rounded-full p-2 ltr:ml-auto rtl:mr-auto">
-                            <IconPencilPaper />
-                        </button>
+                        <span className="text-xs text-muted">
+                            Pour modifier ces informations, adressez-vous à un administrateur.
+                        </span>
                     </div>
                     <div className="mb-5">
                         <div className="flex flex-col items-center justify-center sm:flex-row sm:justify-start">
@@ -41,34 +46,6 @@ const UserProfile = ({ user }: { user: User }) => {
                                 </p>
                             </div>
                         </div>
-                        {isEditing ? (
-                            <form
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleSave();
-                                }}
-                                className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2"
-                            >
-                                <Input
-                                    labelPlacement="outside"
-                                    variant="bordered"
-                                    name="nom"
-                                    isRequired
-                                    required
-                                    // errorMessage={state?.errors?.password ?? ''}
-                                    // isInvalid={!!state?.errors?.password}
-                                    label="Nom"
-                                    value={user.nom}
-                                />
-
-                                <Input labelPlacement="outside" variant="bordered" name="prenoms" isRequired required label="Prénoms" value={user.prenoms} />
-                                <Input labelPlacement="outside" variant="bordered" name="email" isRequired required label="Email" value={user.email} />
-                                <Input labelPlacement="outside" variant="bordered" name="username" isRequired required label="Nom d'utilisateur" value={user.username} />
-                                <div className="sm:col-span-2">
-                                    <SubmitButton>Enregistrer</SubmitButton>
-                                </div>
-                            </form>
-                        ) : (
                             <ul className="m-auto mt-5 flex max-w-[160px] flex-col space-y-4 font-semibold sm:max-w-none">
                                 <li className="flex items-center gap-2">
                                     <IconCalendar className="shrink-0" />
@@ -85,7 +62,6 @@ const UserProfile = ({ user }: { user: User }) => {
                                     </button>
                                 </li>
                             </ul>
-                        )}
                     </div>
                 </div>
                 {peutDefinirCode && (
