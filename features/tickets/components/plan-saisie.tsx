@@ -1,8 +1,22 @@
 'use client';
 
-import { Button, Card, Chip, Separator } from '@heroui-v3/react';
-import { CalendarDays, Check, Plus, Store, Truck } from 'lucide-react';
-import Select from 'react-select';
+import {
+    Button,
+    Card,
+    Chip,
+    DateField,
+    DatePicker,
+    Label,
+    ListBox,
+    ListBoxItem,
+    NumberField,
+    RangeCalendar,
+    Select,
+    Separator,
+} from '@heroui-v3/react';
+import { CalendarDate, type DateValue } from '@internationalized/date';
+import { Check, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import React from 'react';
 
 import { cn } from '@/lib/utils';
 
@@ -61,12 +75,11 @@ interface PlanSaisieProps {
     heuresAvantVerrouillage?: number;
 }
 
-/** `react-select` ne porte pas de fond : la surface vient de styles/tailwind.css. */
-const HAUTEUR_CHAMP = {
-    control: (base: object) => ({ ...base, minHeight: '38px', height: '38px' }),
-    valueContainer: (base: object) => ({ ...base, height: '38px', padding: '0 8px' }),
-    indicatorsContainer: (base: object) => ({ ...base, height: '38px' }),
-};
+/** « 2026-09-03 » vers une date calendaire, sans heure ni fuseau. */
+function enDateCalendaire(iso: string): CalendarDate | null {
+    const [a, m, j] = iso.split('-').map(Number);
+    return a && m && j ? new CalendarDate(a, m, j) : null;
+}
 
 export function PlanSaisie({
     livreurs,
@@ -109,69 +122,91 @@ export function PlanSaisie({
 
             <Card.Content className="gap-3">
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto_auto]">
-                    <label className="flex flex-col gap-1">
-                        <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                            <Store aria-hidden="true" className="size-3.5" /> Restaurant
-                        </span>
-                        <Select
-                            classNamePrefix="react-select"
-                            isClearable
-                            onChange={(o) => etat.setRestaurantId((o as OptionSaisie | null)?.value ?? '')}
-                            options={restaurants}
-                            placeholder="Choisir…"
-                            styles={HAUTEUR_CHAMP}
-                            value={restaurants.find((o) => o.value === etat.restaurantId) ?? null}
-                        />
-                    </label>
+                    <Select
+                        onSelectionChange={(cle) => etat.setRestaurantId(String(cle ?? ''))}
+                        selectedKey={etat.restaurantId || null}
+                    >
+                        <Label>Restaurant</Label>
+                        <Select.Trigger>
+                            <Select.Value>{({ isPlaceholder }: { isPlaceholder: boolean }) => (isPlaceholder ? "Choisir…" : undefined)}</Select.Value>
+                            <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                            <ListBox items={restaurants}>
+                                {(o: OptionSaisie) => <ListBoxItem id={o.value}>{o.label}</ListBoxItem>}
+                            </ListBox>
+                        </Select.Popover>
+                    </Select>
 
-                    <label className="flex flex-col gap-1">
-                        <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                            <Truck aria-hidden="true" className="size-3.5" /> Livreur
-                        </span>
-                        <Select
-                            classNamePrefix="react-select"
-                            isClearable
-                            onChange={(o) => etat.setLivreurId((o as OptionSaisie | null)?.value ?? '')}
-                            options={livreurs}
-                            placeholder="Choisir…"
-                            styles={HAUTEUR_CHAMP}
-                            value={livreurs.find((o) => o.value === etat.livreurId) ?? null}
-                        />
-                    </label>
+                    <Select
+                        onSelectionChange={(cle) => etat.setLivreurId(String(cle ?? ''))}
+                        selectedKey={etat.livreurId || null}
+                    >
+                        <Label>Livreur</Label>
+                        <Select.Trigger>
+                            <Select.Value>{({ isPlaceholder }: { isPlaceholder: boolean }) => (isPlaceholder ? "Choisir…" : undefined)}</Select.Value>
+                            <Select.Indicator />
+                        </Select.Trigger>
+                        <Select.Popover>
+                            <ListBox items={livreurs}>
+                                {(o: OptionSaisie) => <ListBoxItem id={o.value}>{o.label}</ListBoxItem>}
+                            </ListBox>
+                        </Select.Popover>
+                    </Select>
 
-                    <label className="flex flex-col gap-1">
-                        <span className="flex items-center gap-1.5 text-xs font-medium text-muted">
-                            <CalendarDays aria-hidden="true" className="size-3.5" /> Date
-                        </span>
-                        <input
-                            className="h-[38px] rounded-md border border-separator bg-surface px-2 text-sm"
-                            onChange={(e) => etat.setDate(e.target.value)}
-                            type="date"
-                            value={etat.date}
-                        />
-                    </label>
+                    <DatePicker
+                        onChange={(d: DateValue | null) => etat.setDate(d ? d.toString() : '')}
+                        value={etat.date ? enDateCalendaire(etat.date) : null}
+                    >
+                        <Label>Date</Label>
+                        <DateField.Group>
+                            <DateField.Input>
+                                {(segment: React.ComponentProps<typeof DateField.Segment>['segment']) => (
+                                    <DateField.Segment segment={segment} />
+                                )}
+                            </DateField.Input>
+                            <DatePicker.Trigger>
+                                <DatePicker.TriggerIndicator />
+                            </DatePicker.Trigger>
+                        </DateField.Group>
+                        <DatePicker.Popover>
+                            <RangeCalendar>
+                                <RangeCalendar.Header>
+                                    <RangeCalendar.NavButton slot="previous">
+                                        <ChevronLeft aria-hidden="true" className="size-4" />
+                                    </RangeCalendar.NavButton>
+                                    <RangeCalendar.Heading />
+                                    <RangeCalendar.NavButton slot="next">
+                                        <ChevronRight aria-hidden="true" className="size-4" />
+                                    </RangeCalendar.NavButton>
+                                </RangeCalendar.Header>
+                                <RangeCalendar.Grid>
+                                    <RangeCalendar.GridHeader>
+                                        {(jour: string) => <RangeCalendar.HeaderCell>{jour}</RangeCalendar.HeaderCell>}
+                                    </RangeCalendar.GridHeader>
+                                    <RangeCalendar.GridBody>
+                                        {(date: CalendarDate) => <RangeCalendar.Cell date={date} />}
+                                    </RangeCalendar.GridBody>
+                                </RangeCalendar.Grid>
+                            </RangeCalendar>
+                        </DatePicker.Popover>
+                    </DatePicker>
 
-                    <label className="flex flex-col gap-1">
-                        <span className="text-xs font-medium text-muted">Lignes</span>
-                        <input
-                            className="h-[38px] w-20 rounded-md border border-separator bg-surface px-2 text-center text-sm tabular-nums"
-                            min={1}
-                            onChange={(e) => etat.setNombreLignes(Number(e.target.value))}
-                            type="number"
-                            value={etat.nombreLignes}
-                        />
-                    </label>
+                    <NumberField
+                        minValue={1}
+                        onChange={(v) => etat.setNombreLignes(Number.isFinite(v) ? v : 1)}
+                        value={etat.nombreLignes}
+                    >
+                        <Label>Lignes</Label>
+                        <NumberField.Group>
+                            <NumberField.DecrementButton />
+                            <NumberField.Input className="w-14 text-center tabular-nums" />
+                            <NumberField.IncrementButton />
+                        </NumberField.Group>
+                    </NumberField>
 
-                    <div className="flex flex-col gap-1">
-                        <span aria-hidden="true" className="text-xs">
-                            &nbsp;
-                        </span>
-                        <Button
-                            className="h-[38px]"
-                            isDisabled={!peutCreer || !pret}
-                            onPress={onPreparer}
-                            size="sm"
-                        >
+                    <div className="flex flex-col justify-end">
+                        <Button isDisabled={!peutCreer || !pret} onPress={onPreparer}>
                             <Plus aria-hidden="true" className="size-4" />
                             Préparer {etat.nombreLignes > 1 ? `${etat.nombreLignes} lignes` : 'la ligne'}
                         </Button>
