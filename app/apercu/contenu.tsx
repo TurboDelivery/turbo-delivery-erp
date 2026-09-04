@@ -5,6 +5,8 @@ import { useState } from 'react';
 
 import { Ecart } from '@/components/commons/ecart';
 import { Effectif, Montant } from '@/components/commons/montant';
+import { construireEtat } from '@/features/finance-dashboard/components/etat/construire-etat';
+import { EtatFinancier } from '@/features/finance-dashboard/components/etat/etat-financier';
 import { JEUX_EXEMPLE, jeuParCle } from '@/features/finance-dashboard/apercu/jeux-exemple';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +15,17 @@ export default function ApercuContenu() {
     const [cle, setCle] = useState('ordinaire');
     const [sombre, setSombre] = useState(false);
     const jeu = jeuParCle(cle);
+    // Date fixe : `new Date()` au rendu ferait diverger serveur et client.
+    const debut = new Date('2026-09-01');
+    const fin = new Date('2026-09-30');
+    const sections = construireEtat({
+        statsGlobales: jeu.statsGlobales,
+        statsPeriodePrecedente: jeu.statsPeriodePrecedente,
+        resume: jeu.resume,
+        depenses: jeu.depenses,
+        debut,
+        fin,
+    });
 
     return (
         <div className={cn(sombre && 'dark')}>
@@ -48,6 +61,24 @@ export default function ApercuContenu() {
                 </header>
 
                 <main className="space-y-6 p-4">
+                    <Card>
+                        <Card.Header>
+                            <Card.Title>État financier</Card.Title>
+                            <Card.Description>
+                                Les mêmes grandeurs sur deux périodes : deux colonnes d&apos;un même
+                                document, au lieu de deux sections de tuiles.
+                            </Card.Description>
+                        </Card.Header>
+                        <Card.Content>
+                            <EtatFinancier
+                                libelleCumul="Depuis 2024"
+                                libellePeriode="Septembre 2026"
+                                libelleReference="vs août"
+                                sections={sections}
+                            />
+                        </Card.Content>
+                    </Card>
+
                     <Card>
                         <Card.Header>
                             <Card.Title>Montants alignés</Card.Title>
