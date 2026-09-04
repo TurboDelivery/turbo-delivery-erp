@@ -4,14 +4,14 @@ import {
     Button,
     Card,
     Chip,
+    ComboBox,
     DateField,
     DatePicker,
+    Input,
     Label,
     ListBox,
-    ListBoxItem,
     NumberField,
     RangeCalendar,
-    Select,
     Separator,
 } from '@heroui-v3/react';
 import { CalendarDate, type DateValue } from '@internationalized/date';
@@ -109,11 +109,7 @@ export function PlanSaisie({
 
                     {/* Le verrouillage gouverne toute l'activite : il se voit ici, pas ailleurs. */}
                     {heuresAvantVerrouillage !== undefined && heuresAvantVerrouillage <= 48 && (
-                        <Chip
-                            className="border-accent/30 bg-accent-soft text-foreground"
-                            size="sm"
-                            variant="soft"
-                        >
+                        <Chip size="sm" variant="soft">
                             Verrouillage dans {heuresAvantVerrouillage} h
                         </Chip>
                     )}
@@ -121,38 +117,48 @@ export function PlanSaisie({
             </Card.Header>
 
             <Card.Content className="gap-3">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto_auto]">
-                    <Select
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto_auto]">
+                    <ComboBox
                         onSelectionChange={(cle) => etat.setRestaurantId(String(cle ?? ''))}
                         selectedKey={etat.restaurantId || null}
                     >
                         <Label>Restaurant</Label>
-                        <Select.Trigger>
-                            <Select.Value>{({ isPlaceholder }: { isPlaceholder: boolean }) => (isPlaceholder ? "Choisir…" : undefined)}</Select.Value>
-                            <Select.Indicator />
-                        </Select.Trigger>
-                        <Select.Popover>
+                        <ComboBox.InputGroup>
+                            <Input placeholder="Rechercher…" />
+                            <ComboBox.Trigger />
+                        </ComboBox.InputGroup>
+                        <ComboBox.Popover>
                             <ListBox items={restaurants}>
-                                {(o: OptionSaisie) => <ListBoxItem id={o.value}>{o.label}</ListBoxItem>}
+                                {(o: OptionSaisie) => (
+                                    <ListBox.Item id={o.value} textValue={o.label}>
+                                        {o.label}
+                                        <ListBox.ItemIndicator />
+                                    </ListBox.Item>
+                                )}
                             </ListBox>
-                        </Select.Popover>
-                    </Select>
+                        </ComboBox.Popover>
+                    </ComboBox>
 
-                    <Select
+                    <ComboBox
                         onSelectionChange={(cle) => etat.setLivreurId(String(cle ?? ''))}
                         selectedKey={etat.livreurId || null}
                     >
                         <Label>Livreur</Label>
-                        <Select.Trigger>
-                            <Select.Value>{({ isPlaceholder }: { isPlaceholder: boolean }) => (isPlaceholder ? "Choisir…" : undefined)}</Select.Value>
-                            <Select.Indicator />
-                        </Select.Trigger>
-                        <Select.Popover>
+                        <ComboBox.InputGroup>
+                            <Input placeholder="Rechercher…" />
+                            <ComboBox.Trigger />
+                        </ComboBox.InputGroup>
+                        <ComboBox.Popover>
                             <ListBox items={livreurs}>
-                                {(o: OptionSaisie) => <ListBoxItem id={o.value}>{o.label}</ListBoxItem>}
+                                {(o: OptionSaisie) => (
+                                    <ListBox.Item id={o.value} textValue={o.label}>
+                                        {o.label}
+                                        <ListBox.ItemIndicator />
+                                    </ListBox.Item>
+                                )}
                             </ListBox>
-                        </Select.Popover>
-                    </Select>
+                        </ComboBox.Popover>
+                    </ComboBox>
 
                     <DatePicker
                         onChange={(d: DateValue | null) => etat.setDate(d ? d.toString() : '')}
@@ -200,7 +206,7 @@ export function PlanSaisie({
                         <Label>Lignes</Label>
                         <NumberField.Group>
                             <NumberField.DecrementButton />
-                            <NumberField.Input className="w-14 text-center tabular-nums" />
+                            <NumberField.Input />
                             <NumberField.IncrementButton />
                         </NumberField.Group>
                     </NumberField>

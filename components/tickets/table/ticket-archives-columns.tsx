@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
+import { Button, Tooltip } from '@heroui-v3/react';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArchiveRestore, Loader2 } from 'lucide-react';
-import { Tooltip } from '@/components/heroui';
+import { ArchiveRestore } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -32,12 +32,12 @@ interface AgentCellProps {
 }
 
 function AgentCell({ agent, date }: AgentCellProps) {
-  if (!agent) return <span className="text-gray-400">—</span>;
+  if (!agent) return <span className="text-muted">—</span>;
   const formatted = formatDateTime(date);
   return (
     <div className="flex flex-col leading-tight">
-      <span className="text-gray-800 font-medium">{`${agent.prenoms} ${agent.nom}`}</span>
-      {formatted && <span className="text-[11px] text-gray-500">{formatted}</span>}
+      <span className="font-medium text-foreground">{`${agent.prenoms} ${agent.nom}`}</span>
+      {formatted && <span className="text-[11px] text-muted">{formatted}</span>}
     </div>
   );
 }
@@ -77,8 +77,9 @@ export const ticketArchivesColumns: ColumnDef<IArchiveBonLivraisonVm>[] = [
     accessorKey: 'nomZone',
     header: 'Zone',
     cell: ({ row }) => (
-      <Tooltip className="text-xs" content={row.original.nomZone}>
-        <span className="text-xs text-wrap line-clamp-2 max-w-56">{row.original.nomZone ?? 'Inconnue'}</span>
+      <Tooltip>
+        <span className="line-clamp-2 max-w-56 text-xs">{row.original.nomZone ?? 'Inconnue'}</span>
+        <Tooltip.Content>{row.original.nomZone ?? 'Zone inconnue'}</Tooltip.Content>
       </Tooltip>
     ),
   },
@@ -119,10 +120,11 @@ export const ticketArchivesColumns: ColumnDef<IArchiveBonLivraisonVm>[] = [
     enableSorting: false,
     cell: ({ row }) => {
       const motif = row.original.motifAnnulation;
-      if (!motif) return <span className="text-gray-400">—</span>;
+      if (!motif) return <span className="text-muted">—</span>;
       return (
-        <Tooltip className="text-xs" content={motif}>
-          <span className="text-xs text-wrap line-clamp-2 max-w-56">{motif}</span>
+        <Tooltip>
+          <span className="line-clamp-2 max-w-56 text-xs">{motif}</span>
+          <Tooltip.Content>{motif}</Tooltip.Content>
         </Tooltip>
       );
     },
@@ -136,14 +138,18 @@ export const ticketArchivesColumns: ColumnDef<IArchiveBonLivraisonVm>[] = [
       if (!meta.canRestore) return null;
       const isRestoring = meta.isRestoringId === row.original.commandeId;
       return (
-        <Tooltip content="Restaurer ce ticket" size="sm">
-          <button
-            onClick={() => meta.onRestoreRow(row.original.commandeId)}
-            disabled={isRestoring}
-            className="px-2 py-1 bg-emerald-500 text-white rounded text-xs hover:bg-emerald-600 flex items-center justify-center disabled:opacity-50"
+        <Tooltip>
+          <Button
+            aria-label="Restaurer ce ticket"
+            isIconOnly
+            isPending={isRestoring}
+            onPress={() => meta.onRestoreRow(row.original.commandeId)}
+            size="sm"
+            variant="primary"
           >
-            {isRestoring ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArchiveRestore className="w-4 h-4" />}
-          </button>
+            <ArchiveRestore aria-hidden="true" className="size-4" />
+          </Button>
+          <Tooltip.Content>Restaurer ce ticket</Tooltip.Content>
         </Tooltip>
       );
     },

@@ -5,7 +5,8 @@ import { ArrowDownRight, Clock, Download, Layers, TrendingUp, Wallet } from 'luc
 
 import { Ecart } from '@/components/commons/ecart';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { CalendarDate, type DateValue } from '@internationalized/date';
 
 import { JEUX_EXEMPLE, jeuParCle } from '@/features/finance-dashboard/apercu/jeux-exemple';
@@ -16,7 +17,9 @@ import { DisponibiliteJour, RepartitionParc } from '@/features/finance-dashboard
 import { SelecteurPeriode, type Raccourci } from '@/features/finance-dashboard/components/etat/selecteur-periode';
 import { TableauMensuel } from '@/features/finance-dashboard/components/etat/tableau-mensuel';
 import { PlanSaisie } from '@/features/tickets/components/plan-saisie';
-import { LignesPreparees, type LignePreparee } from '@/features/tickets/components/lignes-preparees';
+import { LignesPreparees, ligneComplete } from '@/features/tickets/components/lignes-preparees';
+import { priceListKeys } from '@/features/price-list/queries/price-list.query';
+import type { Ticket } from '@/types/bon-livraison.model';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { Montant } from '@/components/commons/montant';
 import { BandeauAction } from '@/features/finance-dashboard/components/etat/bandeau-action';
@@ -48,16 +51,41 @@ export default function ApercuContenu() {
     const [restaurantId, setRestaurantId] = useState('r1');
     const [dateSaisie, setDateSaisie] = useState('2026-09-03');
     const [preparees, setPreparees] = useState(12);
-    const [lignesSaisie, setLignesSaisie] = useState<LignePreparee[]>(() =>
+    const [lignesSaisie, setLignesSaisie] = useState<Ticket[]>(() =>
         Array.from({ length: 12 }, (_, k) => ({
             id: `l${k}`,
             code: k < 7 ? String(1687000 + k) : '',
-            zoneId: k < 7 ? 'z1' : '',
-            montantLivraison: k < 7 ? 1500 : 0,
-            montantCommande: k < 7 ? 13000 : 0,
+            livreurId: 'l1',
+            livreur: 'OTE Azo',
+            restaurantId: 'r1',
+            restaurant: 'CAFE FNEICH',
+            zoneId: k < 7 ? 'z1' : undefined,
+            nomZone: k < 7 ? 'ZONE 4 | BIÉTRY' : '',
+            montantLivraison: k < 7 ? '1500' : '',
+            montantCommande: k < 7 ? '13000' : '',
+            coutLivraison: k < 7 ? '200' : '',
+            date: '2026-09-03',
+            heure: k < 7 ? '19:22' : '',
+            isNew: true,
+            isEditing: true,
         })),
     );
-    const completees = lignesSaisie.filter((l) => l.code && l.zoneId && l.montantLivraison > 0).length;
+    const completees = lignesSaisie.filter(ligneComplete).length;
+
+    // Le selecteur de zone lit la grille tarifaire par le cache de TanStack. On l'amorce
+    // ici pour regarder le composant REEL hors authentification, sans lui ajouter de porte
+    // derobee reservee a la mise au point.
+    const qc = useQueryClient();
+    useEffect(() => {
+        qc.setQueryData(priceListKeys.byRestaurant('r1', 0, 100), {
+            content: [
+                { id: 'z1', name: 'ZONE 4 | BIÉTRY', zone: 'z4', distanceDebut: 0, distanceFin: 5, prix: 1500, commission: 200 },
+                { id: 'z2', name: 'ZONE 3 (Limite feu de Bernabé) | ÉGLISE MÉTHODISTE', zone: 'z3', distanceDebut: 0, distanceFin: 8, prix: 2000, commission: 300 },
+                { id: 'z3', name: 'TREICHVILLE | RUE DES PÊCHEURS', zone: 'tv', distanceDebut: 0, distanceFin: 6, prix: 1800, commission: 250 },
+            ],
+        });
+    }, [qc]);
+
     const [plage, setPlage] = useState<{ start: DateValue; end: DateValue } | null>(null);
     const jeu = jeuParCle(cle);
 
@@ -236,9 +264,17 @@ export default function ApercuContenu() {
                                 Array.from({ length: lignes }, (_, k) => ({
                                     id: `n${k}`,
                                     code: '',
-                                    zoneId: '',
-                                    montantLivraison: 0,
-                                    montantCommande: 0,
+                                    livreurId,
+                                    livreur: '',
+                                    restaurantId,
+                                    restaurant: '',
+                                    montantLivraison: '',
+                                    montantCommande: '',
+                                    coutLivraison: '',
+                                    date: dateSaisie,
+                                    heure: '',
+                                    isNew: true,
+                                    isEditing: true,
                                 })),
                             );
                         }}
@@ -251,20 +287,25 @@ export default function ApercuContenu() {
                     />
 
                     <LignesPreparees
-                        contexte={{ restaurant: 'CAFE FNEICH', livreur: 'OTE Azo', date: '03/09/2026' }}
-                        lignes={lignesSaisie}
+                        livreurOptions={[
+                            { value: 'l1', label: 'OTE Azo' },
+                            { value: 'l2', label: 'KOHI Albert Rene' },
+                        ]}
                         onChange={(id, champ, valeur) =>
                             setLignesSaisie((prec) =>
                                 prec.map((l) => (l.id === id ? { ...l, [champ]: valeur } : l)),
                             )
                         }
-                        onEnregistrer={() => setLignesSaisie([])}
+                        onEnregistrer={(id) => setLignesSaisie((prec) => prec.filter((l) => l.id !== id))}
+                        onPatch={(id, patch) =>
+                            setLignesSaisie((prec) => prec.map((l) => (l.id === id ? { ...l, ...patch } : l)))
+                        }
                         onRetirer={(id) => setLignesSaisie((prec) => prec.filter((l) => l.id !== id))}
-                        zones={[
-                            { value: 'z1', label: 'ZONE 4 | BIÉTRY' },
-                            { value: 'z2', label: 'ZONE 3 | ÉGLISE MÉTHODISTE' },
-                            { value: 'z3', label: 'TREICHVILLE | RUE DES PÊCHEURS' },
+                        restaurantOptions={[
+                            { value: 'r1', label: 'CAFE FNEICH' },
+                            { value: 'r2', label: 'TAYBA ZONE 4' },
                         ]}
+                        tickets={lignesSaisie}
                     />
 
                     <div className="flex flex-wrap items-end justify-between gap-3">

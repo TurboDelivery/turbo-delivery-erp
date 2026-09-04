@@ -3,13 +3,20 @@
 import React, { useMemo } from 'react';
 import { Restaurant } from '@/types/models';
 import { TicketTable } from '@/components/tickets/table';
-import { TicketInsertBar } from '@/components/tickets/table/ticket-insert-bar';
+import { LignesPreparees, ligneComplete } from '@/features/tickets/components/lignes-preparees';
+import { PlanSaisie } from '@/features/tickets/components/plan-saisie';
 import { useNewTickets } from '@/features/tickets/hooks/use-new-tickets';
 import { useAbility } from '@/hooks/use-ability';
 import { useLivreurs } from '@/features/tickets/hooks/use-livreurs';
 import { useCreateBonLivraison } from '@/features/tickets/queries/tickets.mutation';
 import { CreneauActifBanner } from '@/features/creneaux/components/creneau-actif-banner';
 import EtatErreur from '@/components/commons/EtatErreur';
+
+/**
+ * Aucune ligne en cours dans l'archive : la saisie vit dans l'etabli, au-dessus.
+ * Constante hors composant pour ne pas fabriquer un ensemble neuf a chaque rendu.
+ */
+const AUCUN_NOUVEAU: Set<string> = new Set();
 
 interface TicketPageClientProps {
   restaurants: Restaurant[];
@@ -49,27 +56,65 @@ export function TicketPageClient({ restaurants }: TicketPageClientProps) {
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <CreneauActifBanner />
-      <TicketInsertBar
-        livreurOptions={livreurOptions}
-        restaurantOptions={restaurantOptions}
-        insertState={insertState}
-        onInsert={handleInsert}
-        canCreate={ability.can('create', 'Ticket')}
+
+      {/*
+        La SAISIE et la CONSULTATION sont deux activites opposees, et elles partageaient une
+        seule surface. Les lignes en cours de saisie etaient inserees au sommet du tableau
+        d'archive, visuellement identiques aux 1 037 lignes deja enregistrees : un tri ou un
+        filtre les dispersait, et rien ne disait ou l'on en etait. Elles ont desormais leur
+        propre etabli, au-dessus de l'archive qui reste intacte.
+      */}
+      <PlanSaisie
+        completees={newTickets.filter(ligneComplete).length}
+        etat={{
+          nombreLignes: insertState.insertCount,
+          livreurId: insertState.insertLivreurId,
+          restaurantId: insertState.insertRestaurantId,
+          date: insertState.insertDate,
+          setNombreLignes: insertState.setInsertCount,
+          setLivreurId: insertState.setInsertLivreurId,
+          setRestaurantId: insertState.setInsertRestaurantId,
+          setDate: insertState.setInsertDate,
+        }}
+        livreurs={livreurOptions}
+        onPreparer={handleInsert}
+        peutCreer={ability.can('create', 'Ticket')}
+        preparees={newTickets.length}
+        restaurants={restaurantOptions}
       />
+
+      <LignesPreparees
+        enregistrement={isCreatingBonLivraison}
+        livreurOptions={livreurOptions}
+        onChange={handleNewTicketChange}
+        onEnregistrer={handleSaveNewTicket}
+        onPatch={handleNewTicketPatch}
+        onRetirer={handleCancelNewTicket}
+        restaurantOptions={restaurantOptions}
+        tickets={newTickets}
+      />
+
+      {/*
+        Le tableau ne recoit plus les lignes en cours : `newTickets` y reste vide, et
+        `newTicketIds` aussi. Lui laisser la liste des identifiants gardait un etat mort dont
+        les colonnes se servent encore pour decider (`isNew`, exclusion de la selection). Il
+        redevient ce qu'il est, une archive consultable, et les tickets fraichement
+        enregistres y reviennent par la requete, comme n'importe quel autre.
+      */}
       <TicketTable
         restaurants={restaurants}
         livreurOptions={livreurOptions}
         restaurantOptions={restaurantOptions}
-        newTickets={newTickets}
-        newTicketIds={newTicketIds}
+        newTickets={[]}
+        newTicketIds={AUCUN_NOUVEAU}
         isCreatingBonLivraison={isCreatingBonLivraison}
         onSaveNewTicket={handleSaveNewTicket}
         onCancelNewTicket={handleCancelNewTicket}
         onNewTicketChange={handleNewTicketChange}
         onNewTicketPatch={handleNewTicketPatch}
       />
-    </>
+    </div>
   );
 }

@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Tabs } from '@heroui-v3/react';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 import { toast } from 'sonner';
@@ -41,6 +42,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
   const {
     filters,
     setFilter,
+    resetFilters,
     ticketsData,
     isLoading,
     isError,
@@ -175,42 +177,44 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
   return (
     <div className="p-2">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4 lg:mb-8">
+        {/* `bg-red-500` et `text-gray-500` etaient ecrits en dur : depuis que la bascule
+            de theme est dans l'en-tete, ce bloc s'affichait en clair sur une interface
+            sombre. Jetons semantiques, comme partout ailleurs. */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center shrink-0">
-            <Package className="w-6 h-6 text-white" />
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-accent">
+            <Package aria-hidden="true" className="size-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-primary">Mes tickets</h1>
-            <p className="text-xs sm:text-sm text-gray-500">Système de suivi des tickets de livraison</p>
+            <h1 className="text-2xl font-bold text-foreground">Mes tickets</h1>
+            <p className="text-xs text-muted sm:text-sm">Système de suivi des tickets de livraison</p>
           </div>
         </div>
       </div>
 
       <StatsSection />
 
-      <div className="rounded-large border border-default-200 bg-content1">
+      <div className="rounded-large border border-separator bg-surface">
         {/* UNE seule bordure : la barre portait la sienne A L'INTERIEUR de celle de la
             carte, soit deux traits gris a un pixel d'ecart. Le compte des tickets remonte
             ici, ce qui rend une ligne entiere au tableau : sur la fenetre reelle des
             postes (563 px de haut), une ligne, c'est un ticket de plus a l'ecran.
             Couleurs par JETONS (`primary`, `default-500`) et non plus `red-500` et
             `gray-600` ecrits en dur, sans quoi le mode sombre restera impossible. */}
-        <div className="flex items-end justify-between gap-4 border-b border-default-200 px-4 pt-3">
-          <div className="flex gap-1 overflow-x-auto">
-            <button
-              onClick={() => setFilter('tab', 'tous')}
-              className={`whitespace-nowrap rounded-t-md border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors ${activeTab === 'tous' ? 'border-primary bg-primary/5 text-primary' : 'border-transparent text-default-500 hover:text-default-700'}`}
-            >
-              Tous les tickets
-            </button>
-            <button
-              onClick={() => setFilter('tab', 'archives')}
-              className={`whitespace-nowrap rounded-t-md border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors ${activeTab === 'archives' ? 'border-primary bg-primary/5 text-primary' : 'border-transparent text-default-500 hover:text-default-700'}`}
-            >
-              Archives
-            </button>
-          </div>
-          <span className="whitespace-nowrap pb-3 text-[11px] font-semibold uppercase tracking-wide tabular-nums text-default-500">
+        {/*
+          Deux `<button>` bruts tenaient lieu d'onglets : aucun role ARIA, donc un lecteur
+          d'ecran annoncait deux boutons sans dire lequel etait actif ni combien il y en
+          avait, et les fleches du clavier ne circulaient pas entre eux. `Tabs` porte le
+          role, l'etat selectionne et la navigation au clavier sans qu'on ait a les ecrire.
+        */}
+        <div className="flex items-end justify-between gap-4 border-b border-separator px-4 pt-3">
+          <Tabs onSelectionChange={(cle) => setFilter('tab', String(cle))} selectedKey={activeTab}>
+            <Tabs.List>
+              <Tabs.Tab id="tous">Tous les tickets</Tabs.Tab>
+              <Tabs.Tab id="archives">Archives</Tabs.Tab>
+              <Tabs.Indicator />
+            </Tabs.List>
+          </Tabs>
+          <span className="whitespace-nowrap pb-3 text-[11px] font-semibold uppercase tracking-wide tabular-nums text-muted">
             {infiniteState.totalItems} ticket{infiniteState.totalItems > 1 ? 's' : ''}
           </span>
         </div>
@@ -226,6 +230,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
               livreurOptions={livreurOptions}
               restaurantOptions={restaurantOptions}
               onFilterChange={setFilter}
+              onReset={resetFilters}
             />
             {/* Le compte est remonte dans la barre d'onglets et l'export rejoint la barre
                 de filtres : deux lignes rendues au tableau, et le geste se trouve la ou on
@@ -277,13 +282,13 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
                           <TableRow key={`skeleton-${i}`}>
                             {Array.from({ length: colsCount }).map((_, j) => (
                               <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                                <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
                               </TableCell>
                             ))}
                           </TableRow>
                         ))
                       : table.getRowModel().rows.map((row) => (
-                          <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={`${row.getIsSelected() ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
+                          <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={row.getIsSelected() ? 'bg-accent-soft' : 'hover:bg-surface-secondary'}>
                             {row.getVisibleCells().map((cell) => (
                               <TableCell key={cell.id} className="px-2 py-1 text-xs whitespace-nowrap">
                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -294,7 +299,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
                   </TableBody>
                 </Table>
                 <div className="h-0.5" ref={observerTarget}>
-                  {infiniteState.isFetchingNextPage && <p className="text-xs text-gray-500 w-full text-center py-2">Chargement des données...</p>}
+                  {infiniteState.isFetchingNextPage && <p className="w-full py-2 text-center text-xs text-muted">Chargement des données...</p>}
                 </div>
               </div>
             </div>
@@ -302,9 +307,9 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
             {/* Mobile — cartes tactiles (remplace le tableau < md) */}
             <div className="md:hidden space-y-3">
               {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-72 rounded-xl bg-gray-100 animate-pulse" />)
+                Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-72 animate-pulse rounded-xl bg-surface-secondary" />)
               ) : table.getRowModel().rows.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-10">Aucun ticket trouvé</p>
+                <p className="py-10 text-center text-sm text-muted">Aucun ticket trouvé</p>
               ) : (
                 table.getRowModel().rows.map((row) => (
                   <TicketMobileCard
@@ -317,7 +322,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
                 ))
               )}
               <div className="h-0.5" ref={observerTargetMobile}>
-                {infiniteState.isFetchingNextPage && <p className="text-xs text-gray-500 w-full text-center py-2">Chargement des données...</p>}
+                {infiniteState.isFetchingNextPage && <p className="w-full py-2 text-center text-xs text-muted">Chargement des données...</p>}
               </div>
             </div>
           </div>

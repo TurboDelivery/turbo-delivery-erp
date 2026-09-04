@@ -39,11 +39,11 @@ export function BonLivraisonMobileCard<T>({
   const others = columns.filter((c) => c.uid !== referenceKey && c.uid !== statutKey);
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+    <div className="space-y-2 rounded-xl border border-separator bg-surface p-4 shadow-xs">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          {reference && <p className="text-xs text-gray-400">{reference.name}</p>}
-          <p className="text-sm font-semibold text-red-500 truncate">
+          {reference && <p className="text-xs text-muted">{reference.name}</p>}
+          <p className="truncate text-sm font-semibold text-accent">
             {reference ? (renderCell(item, reference.uid) as ReactNode) : null}
           </p>
         </div>
@@ -52,8 +52,8 @@ export function BonLivraisonMobileCard<T>({
 
       {others.map((col) => (
         <div key={col.uid} className="flex items-center justify-between gap-3">
-          <span className="text-xs text-gray-400 shrink-0">{col.name}</span>
-          <span className="text-sm text-gray-700 text-right truncate">{renderCell(item, col.uid) as ReactNode}</span>
+          <span className="shrink-0 text-xs text-muted">{col.name}</span>
+          <span className="truncate text-right text-sm text-foreground">{renderCell(item, col.uid) as ReactNode}</span>
         </div>
       ))}
 

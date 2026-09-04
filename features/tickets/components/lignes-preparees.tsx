@@ -2,21 +2,27 @@
 
 import {
     Button,
+    Calendar,
     Card,
+    ComboBox,
+    DateField,
+    DatePicker,
     Input,
     Label,
     ListBox,
-    ListBoxItem,
     NumberField,
-    Select,
     Separator,
     TextField,
+    TimeField,
 } from '@heroui-v3/react';
-import { Check, Trash2 } from 'lucide-react';
+import { CalendarDate, Time, type DateValue } from '@internationalized/date';
+import { Check, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import React from 'react';
 
 import { cn } from '@/lib/utils';
+import type { Ticket } from '@/types/bon-livraison.model';
 
-import type { OptionSaisie } from './plan-saisie';
+import { SelecteurZone } from './selecteur-zone';
 
 /**
  * Les lignes preparees, saisies DANS l'etabli.
@@ -29,149 +35,375 @@ import type { OptionSaisie } from './plan-saisie';
  *
  * <h3>Ce qui change</h3>
  * <ul>
- *   <li>Seuls les champs qu'on REMPLIT sont la : code, zone, montants. Le restaurant, le
- *       livreur et la date sont deja declares dans le plan, ils ne se ressaisissent pas.</li>
- *   <li>Une ligne complete se marque d'un vu ; les incompletes gardent le liseré d'accent.
+ *   <li>La saisie a sa propre surface. Les lignes ne se melangent plus aux archives, un
+ *       tri ne les disperse plus.</li>
+ *   <li>Une ligne complete se marque d'un vu ; les incompletes gardent le lisere d'accent.
  *       On voit ou reprendre sans relire.</li>
  *   <li>Un seul bouton enregistre le lot. L'ancien ecran demandait de valider ligne par
- *       ligne, ce qui multipliait les allers-retours pour une liasse de douze tickets.</li>
+ *       ligne, soit douze allers-retours pour une liasse de douze tickets.</li>
  * </ul>
+ *
+ * <p><b>Aucun champ n'a ete retire</b> : les neuf que l'ancienne ligne rendait saisissables
+ * sont la, y compris le livreur, le partenaire et la date que le plan preremplit. Une
+ * liasse contient parfois un ticket d'un autre livreur ou d'une autre date.</p>
  */
 
-export interface LignePreparee {
-    id: string;
-    code: string;
-    zoneId: string;
-    montantLivraison: number;
-    montantCommande: number;
-    /** Renseigne par le service selon la zone ; affiche, non saisi. */
-    commission?: number;
+interface Option {
+    value: string;
+    label: string;
 }
 
 interface LignesPrepareesProps {
-    lignes: LignePreparee[];
-    zones: OptionSaisie[];
-    onChange: (id: string, champ: keyof LignePreparee, valeur: string | number) => void;
+    tickets: Ticket[];
+    livreurOptions: Option[];
+    restaurantOptions: Option[];
+    onChange: (id: string, champ: keyof Ticket, valeur: string) => void;
+    onPatch: (id: string, patch: Partial<Ticket>) => void;
     onRetirer: (id: string) => void;
-    onEnregistrer: () => void;
+    onEnregistrer: (id: string) => void;
     enregistrement?: boolean;
-    /** Contexte du lot, rappele en tete pour ne pas avoir a remonter. */
-    contexte: { restaurant: string; livreur: string; date: string };
+}
+
+/** « 2026-09-04 » vers une date calendaire, sans heure ni fuseau. */
+function enDateCalendaire(iso: string): CalendarDate | null {
+    const [a, m, j] = (iso ?? '').split('-').map(Number);
+    return a && m && j ? new CalendarDate(a, m, j) : null;
+}
+
+/**
+ * « 19h22 », « 19:22 », « 19:22:04 » ou « 1922 » vers une heure typee.
+ *
+ * <p>Le modele stocke l'heure en chaine libre — `toLocaleTimeString('fr-FR')` a
+ * l'insertion, soit « 19:22:04 ». Ces ecritures doivent toutes etre relues, sinon une
+ * ligne fraichement inseree afficherait une heure vide.</p>
+ */
+function enHeure(v: string): Time | null {
+    const m = (v ?? '').match(/^(\d{1,2})\s*[h:]?\s*(\d{2})/);
+    if (!m) return null;
+    const [h, min] = [Number(m[1]), Number(m[2])];
+    return h < 24 && min < 60 ? new Time(h, min) : null;
 }
 
 /** Une ligne est complete quand tout ce qui se saisit est renseigne. */
-export const ligneComplete = (l: LignePreparee) =>
-    Boolean(l.code.trim() && l.zoneId && l.montantLivraison > 0);
+export const ligneComplete = (t: Ticket) =>
+    Boolean(
+        (t.code ?? '').trim() &&
+            t.livreurId &&
+            t.restaurantId &&
+            t.zoneId &&
+            Number(t.montantLivraison) > 0 &&
+            t.date,
+    );
 
 export function LignesPreparees({
-    lignes,
-    zones,
+    tickets,
+    livreurOptions,
+    restaurantOptions,
     onChange,
+    onPatch,
     onRetirer,
     onEnregistrer,
     enregistrement = false,
-    contexte,
 }: LignesPrepareesProps) {
-    if (lignes.length === 0) return null;
+    if (tickets.length === 0) return null;
 
-    const completes = lignes.filter(ligneComplete).length;
-    const toutesCompletes = completes === lignes.length;
+    const completes = tickets.filter(ligneComplete);
+    const toutesCompletes = completes.length === tickets.length;
 
     return (
         <Card className="gap-3">
             <Card.Header>
                 <Card.Title className="text-sm">
-                    {lignes.length} ligne{lignes.length > 1 ? 's' : ''} à saisir
+                    {tickets.length} ligne{tickets.length > 1 ? 's' : ''} à saisir
                 </Card.Title>
-                {/* Le contexte du lot, rappele : on ne remonte pas verifier pour qui on saisit. */}
                 <Card.Description>
-                    {contexte.restaurant} · {contexte.livreur} · {contexte.date}
+                    {completes.length} sur {tickets.length} complètes
                 </Card.Description>
             </Card.Header>
 
             <Card.Content className="gap-2">
-                {lignes.map((l, i) => {
-                    const complete = ligneComplete(l);
+                {tickets.map((t, i) => {
+                    const complete = ligneComplete(t);
                     return (
                         <div
                             className={cn(
-                                'grid grid-cols-1 items-end gap-2 rounded-lg border p-2 sm:grid-cols-[auto_1fr_1fr_auto_auto_auto]',
+                                'rounded-lg border p-2.5',
                                 complete
                                     ? 'border-separator bg-surface-secondary/40'
                                     : 'border-accent/25 bg-accent-soft/30',
                             )}
-                            key={l.id}
+                            key={t.id}
                         >
-                            <span
-                                className={cn(
-                                    'flex size-6 shrink-0 items-center justify-center self-center rounded-full text-xs font-semibold tabular-nums',
-                                    complete
-                                        ? 'bg-green-800 text-white dark:bg-green-400 dark:text-black'
-                                        : 'bg-accent-soft text-accent',
-                                )}
-                            >
-                                {complete ? <Check aria-hidden="true" className="size-3.5" /> : i + 1}
-                            </span>
+                            <div className="mb-2 flex items-center gap-2">
+                                <span
+                                    className={cn(
+                                        'flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold tabular-nums',
+                                        // Un disque vert plein pesait autant qu'une alerte pour
+                                        // dire « c'est fait ». Le vu suffit : trait vert sur
+                                        // fond tres pale, lisible sans crier.
+                                        // MESURE : `text-accent` sur `bg-accent-soft` rendait
+                                        // 3,08:1, sous le seuil de 4,5:1 — le numero de ticket
+                                        // etait a peine lisible. Le fond teinte suffit a dire
+                                        // « pas encore fait » ; le chiffre reprend la couleur du
+                                        // texte courant et redevient net.
+                                        complete
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-400/15 dark:text-green-400'
+                                            : 'bg-accent-soft text-foreground',
+                                    )}
+                                >
+                                    {complete ? <Check aria-hidden="true" className="size-3.5" /> : i + 1}
+                                </span>
+                                <span className="text-xs text-muted">Ticket {i + 1}</span>
+                                <Button
+                                    aria-label={`Retirer la ligne ${i + 1}`}
+                                    className="ms-auto"
+                                    isIconOnly
+                                    onPress={() => onRetirer(t.id)}
+                                    size="sm"
+                                    variant="ghost"
+                                >
+                                    <Trash2 aria-hidden="true" className="size-4" />
+                                </Button>
+                            </div>
 
-                            <TextField
-                                onChange={(v) => onChange(l.id, 'code', v)}
-                                value={l.code}
-                            >
-                                <Label className="text-[11px]">Code check</Label>
-                                <Input autoComplete="off" placeholder="000 0000" />
-                            </TextField>
-
-                            <Select
-                                onSelectionChange={(cle) => onChange(l.id, 'zoneId', String(cle ?? ''))}
-                                selectedKey={l.zoneId || null}
-                            >
-                                <Label className="text-[11px]">Zone</Label>
-                                <Select.Trigger>
-                                    <Select.Value>
-                                        {({ isPlaceholder }: { isPlaceholder: boolean }) =>
-                                            isPlaceholder ? 'Choisir…' : undefined
+                            {/*
+                             * DEUX BANDES, alignees sur douze colonnes.
+                             *
+                             * <p>Un remplissage automatique laissait le hasard decider : neuf
+                             * champs se rangeaient en sept plus deux, avec un trou beant en fin
+                             * de seconde rangee et des cases collees les unes aux autres. Ici la
+                             * coupure est CHOISIE et suit le geste de saisie :</p>
+                             * <ul>
+                             *   <li>rangee 1 — de QUI et d'OU il s'agit : code, livreur,
+                             *       partenaire, zone ; quatre colonnes de trois ;</li>
+                             *   <li>rangee 2 — COMBIEN et QUAND : les trois montants sur deux
+                             *       colonnes chacun, la date et l'heure sur trois. Douze aussi,
+                             *       donc les deux rangees s'alignent au pixel.</li>
+                             * </ul>
+                             * <p>Les douziemes sont poses sur les composants eux-memes : le
+                             * placement dans une grille ne peut vivre que sur l'enfant, et la
+                             * bibliotheque documente `className` pour cet usage. Aucune de ces
+                             * classes ne touche a l'apparence.</p>
+                             */}
+                            <div className="grid grid-cols-1 items-start gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-12">
+                                {/*
+                                 * Saisir le code HORODATE la ligne : l'heure se remplit de
+                                 * l'heure courante si elle est encore vide. Le code est le
+                                 * premier geste sur un ticket — c'est donc lui qui marque le
+                                 * moment de la saisie, et cela evite de porter douze fois la
+                                 * meme heure a la main. Une heure DEJA renseignee n'est jamais
+                                 * ecrasee : elle vient du ticket papier, pas de la pendule.
+                                 */}
+                                <TextField
+                                    className="lg:col-span-3"
+                                    onChange={(v) => {
+                                        if (v && !enHeure(t.heure)) {
+                                            const maintenant = new Date();
+                                            onPatch(t.id, {
+                                                code: v,
+                                                heure: `${String(maintenant.getHours()).padStart(2, '0')}:${String(maintenant.getMinutes()).padStart(2, '0')}`,
+                                            });
+                                            return;
                                         }
-                                    </Select.Value>
-                                    <Select.Indicator />
-                                </Select.Trigger>
-                                <Select.Popover>
-                                    <ListBox items={zones}>
-                                        {(z: OptionSaisie) => <ListBoxItem id={z.value}>{z.label}</ListBoxItem>}
-                                    </ListBox>
-                                </Select.Popover>
-                            </Select>
+                                        onChange(t.id, 'code', v);
+                                    }}
+                                    value={t.code ?? ''}
+                                >
+                                    <Label>Code check</Label>
+                                    <Input autoComplete="off" placeholder="0000000" />
+                                </TextField>
 
-                            <NumberField
-                                minValue={0}
-                                onChange={(v) => onChange(l.id, 'montantLivraison', Number.isFinite(v) ? v : 0)}
-                                value={l.montantLivraison}
-                            >
-                                <Label className="text-[11px]">Livraison</Label>
-                                <NumberField.Group>
-                                    <NumberField.Input className="w-28 text-right tabular-nums" />
-                                </NumberField.Group>
-                            </NumberField>
+                                {/*
+                                 * Une liste FILTRABLE, pas un menu deroulant. Le parc compte
+                                 * 222 livreurs : les faire defiler pour en trouver un est
+                                 * intenable, et le selecteur d'origine se cherchait au clavier.
+                                 * Retirer la recherche aurait retire une capacite existante.
+                                 */}
+                                <ComboBox
+                                    className="lg:col-span-3"
+                                    onSelectionChange={(c) => onChange(t.id, 'livreurId', String(c ?? ''))}
+                                    selectedKey={t.livreurId || null}
+                                >
+                                    <Label>Livreur</Label>
+                                    <ComboBox.InputGroup>
+                                        <Input placeholder="Rechercher…" />
+                                        <ComboBox.Trigger />
+                                    </ComboBox.InputGroup>
+                                    <ComboBox.Popover>
+                                        <ListBox items={livreurOptions}>
+                                            {(o: Option) => (
+                                                <ListBox.Item id={o.value} textValue={o.label}>
+                                                    {o.label}
+                                                    <ListBox.ItemIndicator />
+                                                </ListBox.Item>
+                                            )}
+                                        </ListBox>
+                                    </ComboBox.Popover>
+                                </ComboBox>
 
-                            <NumberField
-                                minValue={0}
-                                onChange={(v) => onChange(l.id, 'montantCommande', Number.isFinite(v) ? v : 0)}
-                                value={l.montantCommande}
-                            >
-                                <Label className="text-[11px]">Commande</Label>
-                                <NumberField.Group>
-                                    <NumberField.Input className="w-28 text-right tabular-nums" />
-                                </NumberField.Group>
-                            </NumberField>
+                                {/*
+                                 * Changer de partenaire recalcule la commission et invalide la
+                                 * zone : la grille tarifaire est propre au partenaire, garder
+                                 * l'ancienne zone conserverait un prix qui n'existe plus.
+                                 */}
+                                <ComboBox
+                                    className="lg:col-span-3"
+                                    onSelectionChange={(c) =>
+                                        onPatch(t.id, {
+                                            restaurantId: String(c ?? ''),
+                                            restaurant:
+                                                restaurantOptions.find((o) => o.value === String(c ?? ''))?.label ?? '',
+                                            zoneId: undefined,
+                                            nomZone: '',
+                                        })
+                                    }
+                                    selectedKey={t.restaurantId || null}
+                                >
+                                    <Label>Partenaire</Label>
+                                    <ComboBox.InputGroup>
+                                        <Input placeholder="Rechercher…" />
+                                        <ComboBox.Trigger />
+                                    </ComboBox.InputGroup>
+                                    <ComboBox.Popover>
+                                        <ListBox items={restaurantOptions}>
+                                            {(o: Option) => (
+                                                <ListBox.Item id={o.value} textValue={o.label}>
+                                                    {o.label}
+                                                    <ListBox.ItemIndicator />
+                                                </ListBox.Item>
+                                            )}
+                                        </ListBox>
+                                    </ComboBox.Popover>
+                                </ComboBox>
 
-                            <Button
-                                aria-label={`Retirer la ligne ${i + 1}`}
-                                isIconOnly
-                                onPress={() => onRetirer(l.id)}
-                                size="sm"
-                                variant="ghost"
-                            >
-                                <Trash2 aria-hidden="true" className="size-4" />
-                            </Button>
+                                <SelecteurZone
+                                    className="lg:col-span-3"
+                                    onPatch={onPatch}
+                                    restaurantId={t.restaurantId}
+                                    ticketId={t.id}
+                                    zoneId={t.zoneId}
+                                />
+
+                                {/* Sans partenaire il n'y a pas de tarif : le champ reste ferme. */}
+                                <NumberField
+                                    className="lg:col-span-2"
+                                    isDisabled={!t.restaurantId}
+                                    minValue={0}
+                                    onChange={(v) =>
+                                        onChange(t.id, 'montantLivraison', Number.isFinite(v) ? String(v) : '')
+                                    }
+                                    value={Number(t.montantLivraison) || 0}
+                                >
+                                    <Label>Livraison</Label>
+                                    <NumberField.Group>
+                                        <NumberField.DecrementButton />
+                                        <NumberField.Input />
+                                        <NumberField.IncrementButton />
+                                    </NumberField.Group>
+                                </NumberField>
+
+                                <NumberField
+                                    className="lg:col-span-2"
+                                    minValue={0}
+                                    onChange={(v) =>
+                                        onChange(t.id, 'montantCommande', Number.isFinite(v) ? String(v) : '')
+                                    }
+                                    value={Number(t.montantCommande) || 0}
+                                >
+                                    <Label>Commande</Label>
+                                    <NumberField.Group>
+                                        <NumberField.DecrementButton />
+                                        <NumberField.Input />
+                                        <NumberField.IncrementButton />
+                                    </NumberField.Group>
+                                </NumberField>
+
+                                {/*
+                                 * La commission se CALCULE — taux ou montant fixe du partenaire,
+                                 * applique au montant de commande — elle ne se saisit pas.
+                                 *
+                                 * Le champ d'origine la lisait sur `commission`, que rien ne
+                                 * renseigne pendant la saisie : `applyTicketPatch` et la grille
+                                 * tarifaire ecrivent tous deux `coutLivraison`. La case restait
+                                 * donc vide du debut a la fin de la saisie. Elle lit desormais
+                                 * la valeur reellement calculee.
+                                 */}
+                                <TextField className="lg:col-span-2" isReadOnly value={String(t.coutLivraison ?? '')}>
+                                    <Label>Commission</Label>
+                                    <Input placeholder="Calculée" />
+                                </TextField>
+
+                                <DatePicker
+                                    className="lg:col-span-3"
+                                    onChange={(d: DateValue | null) =>
+                                        onChange(t.id, 'date', d ? d.toString() : '')
+                                    }
+                                    value={enDateCalendaire(t.date)}
+                                >
+                                    <Label>Date</Label>
+                                    <DateField.Group>
+                                        <DateField.Input>
+                                            {(segment: React.ComponentProps<typeof DateField.Segment>['segment']) => (
+                                                <DateField.Segment segment={segment} />
+                                            )}
+                                        </DateField.Input>
+                                        <DatePicker.Trigger>
+                                            <DatePicker.TriggerIndicator />
+                                        </DatePicker.Trigger>
+                                    </DateField.Group>
+                                    <DatePicker.Popover>
+                                        <Calendar>
+                                            <Calendar.Header>
+                                                <Calendar.NavButton slot="previous">
+                                                    <ChevronLeft aria-hidden="true" className="size-4" />
+                                                </Calendar.NavButton>
+                                                <Calendar.Heading />
+                                                <Calendar.NavButton slot="next">
+                                                    <ChevronRight aria-hidden="true" className="size-4" />
+                                                </Calendar.NavButton>
+                                            </Calendar.Header>
+                                            <Calendar.Grid>
+                                                <Calendar.GridHeader>
+                                                    {(jour: string) => (
+                                                        <Calendar.HeaderCell>{jour}</Calendar.HeaderCell>
+                                                    )}
+                                                </Calendar.GridHeader>
+                                                <Calendar.GridBody>
+                                                    {(date: CalendarDate) => <Calendar.Cell date={date} />}
+                                                </Calendar.GridBody>
+                                            </Calendar.Grid>
+                                        </Calendar>
+                                    </DatePicker.Popover>
+                                </DatePicker>
+
+                                {/*
+                                 * Une heure se saisit par SEGMENTS — heures, puis minutes — et
+                                 * non dans un champ libre qu'il faut ensuite interpreter. Le
+                                 * segment refuse d'emblee une 25e heure ou une 61e minute.
+                                 */}
+                                <TimeField
+                                    className="lg:col-span-3"
+                                    onChange={(h: Time | null) =>
+                                        onChange(
+                                            t.id,
+                                            'heure',
+                                            h
+                                                ? `${String(h.hour).padStart(2, '0')}:${String(h.minute).padStart(2, '0')}`
+                                                : '',
+                                        )
+                                    }
+                                    value={enHeure(t.heure)}
+                                >
+                                    <Label>Heure</Label>
+                                    <TimeField.Group>
+                                        <TimeField.Input>
+                                            {(segment: React.ComponentProps<typeof TimeField.Segment>['segment']) => (
+                                                <TimeField.Segment segment={segment} />
+                                            )}
+                                        </TimeField.Input>
+                                    </TimeField.Group>
+                                </TimeField>
+                            </div>
                         </div>
                     );
                 })}
@@ -182,15 +414,20 @@ export function LignesPreparees({
                     <span className="text-sm text-muted">
                         {toutesCompletes
                             ? 'Toutes les lignes sont complètes.'
-                            : `${lignes.length - completes} ligne${lignes.length - completes > 1 ? 's' : ''} incomplète${lignes.length - completes > 1 ? 's' : ''}.`}
+                            : `${tickets.length - completes.length} ligne${tickets.length - completes.length > 1 ? 's' : ''} incomplète${tickets.length - completes.length > 1 ? 's' : ''}.`}
                     </span>
                     {/*
-                     * Un seul enregistrement pour le lot. L'ecran precedent demandait de
-                     * valider ligne par ligne, soit douze allers-retours pour une liasse
-                     * de douze tickets.
+                     * Un seul enregistrement pour le lot. L'ecran precedent demandait de valider
+                     * ligne par ligne, soit douze allers-retours pour une liasse de douze
+                     * tickets. Les lignes incompletes ne bloquent pas : celles qui sont pretes
+                     * partent, les autres restent a l'ecran.
                      */}
-                    <Button isDisabled={!toutesCompletes} isPending={enregistrement} onPress={onEnregistrer}>
-                        Enregistrer les {lignes.length} tickets
+                    <Button
+                        isDisabled={completes.length === 0}
+                        isPending={enregistrement}
+                        onPress={() => completes.forEach((t) => onEnregistrer(t.id))}
+                    >
+                        Enregistrer {completes.length} ticket{completes.length > 1 ? 's' : ''}
                     </Button>
                 </div>
             </Card.Content>

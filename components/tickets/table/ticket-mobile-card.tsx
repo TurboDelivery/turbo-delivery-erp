@@ -1,277 +1,425 @@
 'use client';
 
+import {
+    Button,
+    Calendar,
+    Card,
+    ComboBox,
+    DateField,
+    DatePicker,
+    Input,
+    Label,
+    ListBox,
+    NumberField,
+    TextField,
+    TimeField,
+    Tooltip,
+} from '@heroui-v3/react';
+import { CalendarDate, Time, type DateValue } from '@internationalized/date';
+import { Check, ChevronLeft, ChevronRight, Pen, ShieldCheck, Trash2, X } from 'lucide-react';
 import React from 'react';
-import Select from 'react-select';
-import { CheckSquare, Loader2, Pen, ShieldCheck, Trash2, X } from 'lucide-react';
-import { Tooltip } from '@/components/heroui';
 
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import PriceListSelect from '@/components/tickets/price-list-select';
+import { SelecteurZone } from '@/features/tickets/components/selecteur-zone';
+import { cn } from '@/lib/utils';
+import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { Ticket } from '@/types/bon-livraison.model';
 import { StatutControle } from '@/types/statut-controle.enum';
-import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
+
+import { StatutTicket } from './statut-ticket';
 import type { TicketColumnMeta } from './ticket-table-columns';
 
-const MODIFIABLE_STATUTS = new Set<string>([StatutControle.PENDING, StatutControle.TARDIF, StatutControle.REJETE_FRAUDE]);
+/**
+ * La carte d'un ticket au telephone, en remplacement du tableau dense sous `md`.
+ *
+ * <p>Elle est pilotee par le MEME `TicketColumnMeta` que les colonnes du tableau : memes
+ * gestionnaires, memes etats, meme logique de droits. Aucune divergence possible entre les
+ * deux surfaces — c'etait deja le cas et cela le reste.</p>
+ *
+ * <h3>Ce qui change</h3>
+ * <ul>
+ *   <li>Les champs de saisie etaient des `<input>` bruts et deux `react-select`. Ils
+ *       passent aux composants de la bibliotheque, donc au theme et au clavier mobile
+ *       adapte (segments de date et d'heure, pave numerique pour les montants).</li>
+ *   <li>Aucune couleur n'etait declinee en sombre — `bg-white`, `text-gray-400`,
+ *       `bg-green-500` — et depuis que la bascule est dans l'en-tete, la carte s'affichait
+ *       blanche sur une interface sombre.</li>
+ *   <li>Les six actions etaient des `<button>` colores a la main, sans libelle accessible.
+ *       Ce sont des boutons de la bibliotheque, l'attente passant par `isPending`.</li>
+ * </ul>
+ */
 
-const STATUT_CONFIG: Record<StatutControle, { label: string; className: string }> = {
-  [StatutControle.PENDING]:        { label: 'EN ATTENTE',      className: 'bg-yellow-100 text-yellow-700 border-yellow-300' },
-  [StatutControle.TARDIF]:         { label: 'TARDIF',          className: 'bg-orange-100 text-orange-700 border-orange-300' },
-  [StatutControle.AUTHENTIFIE]:    { label: 'AUTHENTIFIÉ',     className: 'bg-blue-100 text-blue-700 border-blue-300' },
-  [StatutControle.V1_VALIDE]:      { label: 'V1 Validé',       className: 'bg-teal-100 text-teal-700 border-teal-300' },
-  [StatutControle.V2_VALIDE]:      { label: 'V2 Validé',       className: 'bg-green-100 text-green-700 border-green-300' },
-  [StatutControle.REJETE_FRAUDE]:  { label: 'REJETÉ (Fraude)', className: 'bg-red-100 text-red-700 border-red-300' },
+const MODIFIABLE_STATUTS = new Set<string>([
+    StatutControle.PENDING,
+    StatutControle.TARDIF,
+    StatutControle.REJETE_FRAUDE,
+]);
+
+/** « 2026-09-04 » vers une date calendaire, sans heure ni fuseau. */
+const enCalendaire = (iso: string): CalendarDate | null => {
+    const [a, m, j] = (iso ?? '').split('-').map(Number);
+    return a && m && j ? new CalendarDate(a, m, j) : null;
 };
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-xs text-gray-400 shrink-0">{label}</span>
-      <span className="text-sm text-gray-700 text-right truncate">{children}</span>
-    </div>
-  );
+/** « 19h22 », « 19:22 », « 19:22:04 » ou « 1922 » vers une heure typee. */
+const enHeure = (v: string): Time | null => {
+    const m = (v ?? '').match(/^(\d{1,2})\s*[h:]?\s*(\d{2})/);
+    if (!m) return null;
+    const [h, min] = [Number(m[1]), Number(m[2])];
+    return h < 24 && min < 60 ? new Time(h, min) : null;
+};
+
+/** Une valeur en lecture : libelle a gauche, valeur a droite, alignees d'une ligne a l'autre. */
+function Champ({ libelle, children }: { libelle: string; children: React.ReactNode }) {
+    return (
+        <div className="flex items-center justify-between gap-3">
+            <span className="shrink-0 text-xs text-muted">{libelle}</span>
+            <span className="truncate text-right text-sm text-foreground">{children}</span>
+        </div>
+    );
 }
 
-/**
- * Carte mobile d'un ticket (tableau "Tous les Tickets").
- *
- * Pilotée par le MÊME `TicketColumnMeta` que les colonnes du tableau desktop :
- * mêmes handlers (édition, sauvegarde, suppression, authentification), même
- * gestion des états (nouveau / édition / lecture). Aucune divergence de logique
- * avec `ticket-table-columns.tsx`. Affichage tactile en remplacement du tableau
- * dense < md.
- */
-export function TicketMobileCard({ ticket: rowTicket, meta, isSelected, onToggleSelect }: {
-  ticket: Ticket;
-  meta: TicketColumnMeta;
-  isSelected: boolean;
-  onToggleSelect: (value: boolean) => void;
+/** Une liste FILTRABLE : indispensable au doigt, avec 222 livreurs. */
+function Liste({
+    libelle,
+    options,
+    valeur,
+    onChoix,
+}: {
+    libelle: string;
+    options: { value: string; label: string }[];
+    valeur: string;
+    onChoix: (v: string) => void;
 }) {
-  const ticket = meta.getDisplayTicket(rowTicket);
-  const isNew = meta.newTicketIds.has(ticket.id);
-  const isEditing = isNew || meta.editingIds.has(ticket.id);
+    return (
+        <ComboBox onSelectionChange={(c) => onChoix(String(c ?? ''))} selectedKey={valeur || null}>
+            <Label>{libelle}</Label>
+            <ComboBox.InputGroup>
+                <Input placeholder="Rechercher…" />
+                <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+                <ListBox items={options}>
+                    {(o: { value: string; label: string }) => (
+                        <ListBox.Item id={o.value} textValue={o.label}>
+                            {o.label}
+                            <ListBox.ItemIndicator />
+                        </ListBox.Item>
+                    )}
+                </ListBox>
+            </ComboBox.Popover>
+        </ComboBox>
+    );
+}
 
-  const optimisticAuthentifie = meta.authenticatedIds.has(ticket.id);
-  const effectiveStatut = optimisticAuthentifie ? 'AUTHENTIFIE' : (ticket.statutControle ?? 'PENDING');
-  const canAuthentifier = !isNew && meta.permissions.canAuthentifier && (effectiveStatut === 'PENDING' || effectiveStatut === 'TARDIF');
-  const statutCfg = STATUT_CONFIG[effectiveStatut as StatutControle] ?? { label: String(effectiveStatut), className: 'bg-gray-100 text-gray-700 border-gray-300' };
+export function TicketMobileCard({
+    ticket: rowTicket,
+    meta,
+    isSelected,
+    onToggleSelect,
+}: {
+    ticket: Ticket;
+    meta: TicketColumnMeta;
+    isSelected: boolean;
+    onToggleSelect: (value: boolean) => void;
+}) {
+    const ticket = meta.getDisplayTicket(rowTicket);
+    const estNouveau = meta.newTicketIds.has(ticket.id);
+    const enEdition = estNouveau || meta.editingIds.has(ticket.id);
 
-  const originalStatut = rowTicket.statutControle;
-  const canMutate = !originalStatut || MODIFIABLE_STATUTS.has(originalStatut);
-  // L'admin/direction peut modifier ET supprimer un ticket quel que soit son statut (V2 inclus).
-  const canEdit = meta.permissions.isAdmin || canMutate;
-  const canDelete = meta.permissions.isAdmin || canMutate;
+    const authentifieOptimiste = meta.authenticatedIds.has(ticket.id);
+    const statutEffectif = authentifieOptimiste ? 'AUTHENTIFIE' : (ticket.statutControle ?? 'PENDING');
+    const peutAuthentifier =
+        !estNouveau &&
+        meta.permissions.canAuthentifier &&
+        (statutEffectif === 'PENDING' || statutEffectif === 'TARDIF');
 
-  return (
-    <div className={`bg-white border rounded-xl p-4 shadow-xs space-y-2 ${isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="text-xs text-gray-400">Code Check</p>
-          {isEditing ? (
-            <input
-              type="text"
-              value={ticket.code ?? ''}
-              onChange={(e) => meta.onTicketChange(ticket.id, 'code', e.target.value)}
-              className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
-              placeholder="Code CHECK"
-            />
-          ) : (
-            <p className="text-sm font-semibold text-gray-900 truncate">{ticket.code}</p>
-          )}
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {!isEditing && <Badge className={statutCfg.className}>{statutCfg.label}</Badge>}
-          <Checkbox checked={isSelected} onCheckedChange={(v) => onToggleSelect(!!v)} aria-label="Sélectionner la ligne" disabled={isNew} />
-        </div>
-      </div>
+    const statutOrigine = rowTicket.statutControle;
+    const mutable = !statutOrigine || MODIFIABLE_STATUTS.has(statutOrigine);
+    // L'admin/direction peut modifier ET supprimer un ticket quel que soit son statut (V2 inclus).
+    const peutModifier = meta.permissions.isAdmin || mutable;
+    const peutSupprimer = meta.permissions.isAdmin || mutable;
 
-      {/* Livreur */}
-      {isEditing ? (
-        <div>
-          <span className="block text-xs text-gray-400 mb-1">Livreur</span>
-          <Select
-            options={meta.livreurOptions}
-            value={meta.livreurOptions.find((o) => o.value === ticket.livreurId) ?? null}
-            onChange={(option) => meta.onTicketChange(ticket.id, 'livreurId', option?.value ?? '')}
-            placeholder="Sélectionner un livreur"
-            isClearable
-            className="text-xs"
-            classNamePrefix="react-select"
-          />
-        </div>
-      ) : (
-        <Field label="Livreur">{ticket.livreur}</Field>
-      )}
+    return (
+        <Card className={cn('gap-2 p-4', isSelected && 'border-accent bg-accent-soft/40')}>
+            <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                    {enEdition ? (
+                        <TextField onChange={(v) => meta.onTicketChange(ticket.id, 'code', v)} value={ticket.code ?? ''}>
+                            <Label>Code check</Label>
+                            <Input autoComplete="off" placeholder="0000000" />
+                        </TextField>
+                    ) : (
+                        <>
+                            <p className="text-xs text-muted">Code check</p>
+                            <p className="truncate text-sm font-semibold text-foreground">{ticket.code}</p>
+                        </>
+                    )}
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                    {!enEdition && <StatutTicket statut={statutEffectif} />}
+                    <Checkbox
+                        aria-label="Sélectionner la ligne"
+                        checked={isSelected}
+                        disabled={estNouveau}
+                        onCheckedChange={(v) => onToggleSelect(!!v)}
+                    />
+                </div>
+            </div>
 
-      {/* Restaurant */}
-      {isEditing ? (
-        <div>
-          <span className="block text-xs text-gray-400 mb-1">Partner</span>
-          <Select
-            options={meta.restaurantOptions}
-            value={meta.restaurantOptions.find((o) => o.value === ticket.restaurantId) ?? null}
-            onChange={(option) => meta.onTicketChange(ticket.id, 'restaurantId', option?.value ?? '')}
-            placeholder="Sélectionner un restaurant"
-            isClearable
-            className="text-xs"
-            classNamePrefix="react-select"
-          />
-        </div>
-      ) : (
-        <Field label="Partner">{ticket.restaurant}</Field>
-      )}
+            {enEdition ? (
+                <Liste
+                    libelle="Livreur"
+                    onChoix={(v) => meta.onTicketChange(ticket.id, 'livreurId', v)}
+                    options={meta.livreurOptions}
+                    valeur={ticket.livreurId}
+                />
+            ) : (
+                <Champ libelle="Livreur">{ticket.livreur}</Champ>
+            )}
 
-      {/* Zone */}
-      {isEditing ? (
-        <div>
-          <span className="block text-xs text-gray-400 mb-1">Zone</span>
-          <PriceListSelect ticketId={ticket.id} restaurantID={ticket.restaurantId} handleChange={meta.onTicketPatch} />
-        </div>
-      ) : (
-        <Field label="Zone">{ticket.nomZone ?? 'Inconnue'}</Field>
-      )}
+            {enEdition ? (
+                <Liste
+                    libelle="Partenaire"
+                    onChoix={(v) => meta.onTicketChange(ticket.id, 'restaurantId', v)}
+                    options={meta.restaurantOptions}
+                    valeur={ticket.restaurantId}
+                />
+            ) : (
+                <Champ libelle="Partenaire">{ticket.restaurant}</Champ>
+            )}
 
-      {/* Montant de Livraison */}
-      {isEditing ? (
-        <div>
-          <span className="block text-xs text-gray-400 mb-1">Montant de Livraison</span>
-          <input
-            type="number"
-            min={0}
-            step="0.01"
-            value={ticket.montantLivraison}
-            onChange={(e) => meta.onTicketChange(ticket.id, 'montantLivraison', e.target.value)}
-            placeholder="0 CFA"
-            disabled={!ticket.restaurantId}
-            className={`w-full h-9 px-2 py-1 text-xs border rounded ${!ticket.restaurantId ? 'bg-gray-100 cursor-not-allowed' : 'border-gray-300'}`}
-          />
-        </div>
-      ) : (
-        <Field label="Montant de Livraison">{formatCFA(ticket.montantLivraison)}</Field>
-      )}
+            {enEdition ? (
+                <SelecteurZone
+                    onPatch={meta.onTicketPatch}
+                    restaurantId={ticket.restaurantId}
+                    ticketId={ticket.id}
+                    zoneId={ticket.zoneId}
+                />
+            ) : (
+                <Champ libelle="Zone">{ticket.nomZone ?? 'Inconnue'}</Champ>
+            )}
 
-      {/* Montant de Commande */}
-      {isEditing ? (
-        <div>
-          <span className="block text-xs text-gray-400 mb-1">Montant de Commande</span>
-          <input
-            value={ticket.montantCommande}
-            onChange={(e) => meta.onTicketChange(ticket.id, 'montantCommande', e.target.value)}
-            className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs"
-            placeholder="0 CFA"
-          />
-        </div>
-      ) : (
-        <Field label="Montant de Commande">{formatCFA(ticket.montantCommande)}</Field>
-      )}
-
-      {/* Commission */}
-      {isEditing ? (
-        <div>
-          <span className="block text-xs text-gray-400 mb-1">Commission</span>
-          <input type="number" value={ticket.commission} readOnly placeholder="0 CFA" className="w-full h-9 px-2 py-1 text-xs text-right border border-gray-300 rounded bg-gray-50" />
-        </div>
-      ) : (
-        <Field label="Commission">{formatCFA(ticket?.commission ?? 0)}</Field>
-      )}
-
-      {/* Date */}
-      {isEditing ? (
-        <div>
-          <span className="block text-xs text-gray-400 mb-1">Date</span>
-          <input type="date" value={ticket.date} onChange={(e) => meta.onTicketChange(ticket.id, 'date', e.target.value)} className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs" />
-        </div>
-      ) : (
-        <Field label="Date">{formatDateFR(ticket.date)}</Field>
-      )}
-
-      {/* Heure */}
-      {isEditing ? (
-        <div>
-          <span className="block text-xs text-gray-400 mb-1">Heure</span>
-          <input type="time" value={ticket.heure} onChange={(e) => meta.onTicketChange(ticket.id, 'heure', e.target.value)} className="w-full h-9 border border-gray-300 rounded px-2 py-1 text-xs" />
-        </div>
-      ) : (
-        <Field label="Heure">{formatHoursMinutes(ticket.heure)}</Field>
-      )}
-
-      {!isEditing && (
-        <Field label="Créé par">{rowTicket.createdByUser ? `${rowTicket.createdByUser.prenoms} ${rowTicket.createdByUser.nom}` : '—'}</Field>
-      )}
-
-      {/* Actions — même logique conditionnelle que la colonne "actions" */}
-      <div className="pt-1 flex items-center gap-2">
-        {isNew ? (
-          <>
-            <button
-              onClick={() => meta.onSaveNew(ticket.id)}
-              disabled={meta.isSavingNew}
-              className="flex-1 h-9 bg-green-500 text-white rounded text-sm hover:bg-green-600 flex items-center justify-center gap-1"
-            >
-              {meta.isSavingNew ? <Loader2 className="size-4 animate-spin" /> : <CheckSquare className="w-4 h-4" />} Enregistrer
-            </button>
-            <button onClick={() => meta.onCancelNew(ticket.id)} className="flex-1 h-9 bg-red-500 text-white rounded text-sm hover:bg-red-600 flex items-center justify-center gap-1">
-              <X className="w-4 h-4" /> Annuler
-            </button>
-          </>
-        ) : meta.editingIds.has(ticket.id) ? (
-          <>
-            {/* Meme enveloppe span que Modifier et Supprimer : un bouton desactive n'emet pas de survol. */}
-            <Tooltip content="Votre rôle ne permet pas d'enregistrer les modifications d'un ticket" isDisabled={meta.permissions.canUpdate} size="sm">
-              <span className="flex-1">
-                <button
-                  onClick={() => meta.onSaveEdit(ticket.id)}
-                  disabled={!meta.permissions.canUpdate || meta.isSavingEdit}
-                  className={`w-full h-9 bg-green-500 text-white rounded text-sm hover:bg-green-600 flex items-center justify-center gap-1 ${!meta.permissions.canUpdate ? 'opacity-50 cursor-not-allowed' : ''}`}
+            {enEdition ? (
+                <NumberField
+                    isDisabled={!ticket.restaurantId}
+                    minValue={0}
+                    onChange={(v) =>
+                        meta.onTicketChange(ticket.id, 'montantLivraison', Number.isFinite(v) ? String(v) : '')
+                    }
+                    value={Number(ticket.montantLivraison) || 0}
                 >
-                  {meta.isSavingEdit ? <Loader2 className="size-4 animate-spin" /> : <CheckSquare className="w-4 h-4" />} Enregistrer
-                </button>
-              </span>
-            </Tooltip>
-            <button onClick={() => meta.onCancelEdit(ticket.id)} className="flex-1 h-9 bg-red-500 text-white rounded text-sm hover:bg-red-600 flex items-center justify-center gap-1">
-              <X className="w-4 h-4" /> Annuler
-            </button>
-          </>
-        ) : (
-          <>
-            {canAuthentifier && (
-              <button
-                onClick={() => meta.onAuthentifier(ticket.id)}
-                className="flex-1 h-9 bg-green-500 text-white rounded text-sm hover:bg-green-600 flex items-center justify-center gap-1"
-              >
-                <ShieldCheck className="w-4 h-4" /> Authentifier
-              </button>
+                    <Label>Montant de livraison</Label>
+                    <NumberField.Group>
+                        <NumberField.DecrementButton />
+                        <NumberField.Input />
+                        <NumberField.IncrementButton />
+                    </NumberField.Group>
+                </NumberField>
+            ) : (
+                <Champ libelle="Montant de livraison">{formatCFA(ticket.montantLivraison)}</Champ>
             )}
-            {meta.permissions.canUpdate && (
-              <Tooltip content="Ce ticket n'est pas modifiable" isDisabled={canEdit} size="sm">
-                <span className="flex-1">
-                  <button
-                    onClick={() => (canEdit ? meta.onEditRow(ticket.id) : undefined)}
-                    disabled={!canEdit}
-                    className={`w-full h-9 bg-blue-500 text-white rounded text-sm flex items-center justify-center gap-1 ${canEdit ? 'hover:bg-blue-600' : 'opacity-40 cursor-not-allowed'}`}
-                  >
-                    <Pen className="w-4 h-4" /> Modifier
-                  </button>
-                </span>
-              </Tooltip>
+
+            {enEdition ? (
+                <NumberField
+                    minValue={0}
+                    onChange={(v) =>
+                        meta.onTicketChange(ticket.id, 'montantCommande', Number.isFinite(v) ? String(v) : '')
+                    }
+                    value={Number(ticket.montantCommande) || 0}
+                >
+                    <Label>Montant de commande</Label>
+                    <NumberField.Group>
+                        <NumberField.DecrementButton />
+                        <NumberField.Input />
+                        <NumberField.IncrementButton />
+                    </NumberField.Group>
+                </NumberField>
+            ) : (
+                <Champ libelle="Montant de commande">{formatCFA(ticket.montantCommande)}</Champ>
             )}
-            {meta.permissions.canUpdate && (
-              <Tooltip content="Ce ticket n'est pas supprimable" isDisabled={canDelete} size="sm">
-                <span className="flex-1">
-                  <button
-                    onClick={() => (canDelete ? meta.onDeleteRow(ticket.id) : undefined)}
-                    disabled={!canDelete}
-                    className={`w-full h-9 bg-red-500 text-white rounded text-sm flex items-center justify-center gap-1 ${canDelete ? 'hover:bg-red-600' : 'opacity-40 cursor-not-allowed'}`}
-                  >
-                    <Trash2 className="w-4 h-4" /> Supprimer
-                  </button>
-                </span>
-              </Tooltip>
+
+            {/*
+             * La commission se CALCULE. Le champ lisait `commission`, que rien ne renseigne
+             * pendant l'edition : la grille tarifaire et `applyTicketPatch` ecrivent tous
+             * deux `coutLivraison`. Il restait donc vide de bout en bout.
+             */}
+            {enEdition ? (
+                <TextField isReadOnly value={String(ticket.coutLivraison ?? ticket.commission ?? '')}>
+                    <Label>Commission</Label>
+                    <Input placeholder="Calculée" />
+                </TextField>
+            ) : (
+                <Champ libelle="Commission">{formatCFA(ticket?.commission ?? 0)}</Champ>
             )}
-          </>
-        )}
-      </div>
-    </div>
-  );
+
+            {enEdition ? (
+                <DatePicker
+                    onChange={(d: DateValue | null) => meta.onTicketChange(ticket.id, 'date', d ? d.toString() : '')}
+                    value={enCalendaire(ticket.date)}
+                >
+                    <Label>Date</Label>
+                    <DateField.Group>
+                        <DateField.Input>
+                            {(segment: React.ComponentProps<typeof DateField.Segment>['segment']) => (
+                                <DateField.Segment segment={segment} />
+                            )}
+                        </DateField.Input>
+                        <DatePicker.Trigger>
+                            <DatePicker.TriggerIndicator />
+                        </DatePicker.Trigger>
+                    </DateField.Group>
+                    <DatePicker.Popover>
+                        <Calendar>
+                            <Calendar.Header>
+                                <Calendar.NavButton slot="previous">
+                                    <ChevronLeft aria-hidden="true" className="size-4" />
+                                </Calendar.NavButton>
+                                <Calendar.Heading />
+                                <Calendar.NavButton slot="next">
+                                    <ChevronRight aria-hidden="true" className="size-4" />
+                                </Calendar.NavButton>
+                            </Calendar.Header>
+                            <Calendar.Grid>
+                                <Calendar.GridHeader>
+                                    {(jour: string) => <Calendar.HeaderCell>{jour}</Calendar.HeaderCell>}
+                                </Calendar.GridHeader>
+                                <Calendar.GridBody>
+                                    {(date: CalendarDate) => <Calendar.Cell date={date} />}
+                                </Calendar.GridBody>
+                            </Calendar.Grid>
+                        </Calendar>
+                    </DatePicker.Popover>
+                </DatePicker>
+            ) : (
+                <Champ libelle="Date">{formatDateFR(ticket.date)}</Champ>
+            )}
+
+            {enEdition ? (
+                <TimeField
+                    onChange={(h: Time | null) =>
+                        meta.onTicketChange(
+                            ticket.id,
+                            'heure',
+                            h ? `${String(h.hour).padStart(2, '0')}:${String(h.minute).padStart(2, '0')}` : '',
+                        )
+                    }
+                    value={enHeure(ticket.heure)}
+                >
+                    <Label>Heure</Label>
+                    <TimeField.Group>
+                        <TimeField.Input>
+                            {(segment: React.ComponentProps<typeof TimeField.Segment>['segment']) => (
+                                <TimeField.Segment segment={segment} />
+                            )}
+                        </TimeField.Input>
+                    </TimeField.Group>
+                </TimeField>
+            ) : (
+                <Champ libelle="Heure">{formatHoursMinutes(ticket.heure)}</Champ>
+            )}
+
+            {!enEdition && (
+                <Champ libelle="Créé par">
+                    {rowTicket.createdByUser
+                        ? `${rowTicket.createdByUser.prenoms} ${rowTicket.createdByUser.nom}`
+                        : '—'}
+                </Champ>
+            )}
+
+            {/*
+             * Les actions occupent toute la largeur : au doigt, une cible pleine largeur se
+             * touche sans viser. La regle des 44 px est tenue par la taille par defaut des
+             * boutons de la bibliotheque.
+             */}
+            <div className="flex items-center gap-2 pt-1">
+                {estNouveau ? (
+                    <>
+                        <Button
+                            className="flex-1"
+                            isPending={meta.isSavingNew}
+                            onPress={() => meta.onSaveNew(ticket.id)}
+                            variant="primary"
+                        >
+                            <Check aria-hidden="true" className="size-4" />
+                            Enregistrer
+                        </Button>
+                        <Button className="flex-1" onPress={() => meta.onCancelNew(ticket.id)} variant="ghost">
+                            <X aria-hidden="true" className="size-4" />
+                            Annuler
+                        </Button>
+                    </>
+                ) : meta.editingIds.has(ticket.id) ? (
+                    <>
+                        <Tooltip>
+                            <Button
+                                className="flex-1"
+                                isDisabled={!meta.permissions.canUpdate}
+                                isPending={meta.isSavingEdit}
+                                onPress={() => meta.onSaveEdit(ticket.id)}
+                                variant="primary"
+                            >
+                                <Check aria-hidden="true" className="size-4" />
+                                Enregistrer
+                            </Button>
+                            <Tooltip.Content>
+                                {meta.permissions.canUpdate
+                                    ? 'Enregistrer les modifications'
+                                    : "Votre rôle ne permet pas d'enregistrer les modifications d'un ticket"}
+                            </Tooltip.Content>
+                        </Tooltip>
+                        <Button className="flex-1" onPress={() => meta.onCancelEdit(ticket.id)} variant="ghost">
+                            <X aria-hidden="true" className="size-4" />
+                            Annuler
+                        </Button>
+                    </>
+                ) : (
+                    <>
+                        {peutAuthentifier && (
+                            <Button
+                                className="flex-1"
+                                onPress={() => meta.onAuthentifier(ticket.id)}
+                                variant="secondary"
+                            >
+                                <ShieldCheck aria-hidden="true" className="size-4" />
+                                Authentifier
+                            </Button>
+                        )}
+                        {meta.permissions.canUpdate && (
+                            <Tooltip>
+                                <Button
+                                    className="flex-1"
+                                    isDisabled={!peutModifier}
+                                    onPress={() => meta.onEditRow(ticket.id)}
+                                    variant="ghost"
+                                >
+                                    <Pen aria-hidden="true" className="size-4" />
+                                    Modifier
+                                </Button>
+                                <Tooltip.Content>
+                                    {peutModifier ? 'Modifier ce ticket' : "Ce ticket n'est pas modifiable"}
+                                </Tooltip.Content>
+                            </Tooltip>
+                        )}
+                        {meta.permissions.canUpdate && (
+                            <Tooltip>
+                                <Button
+                                    className="flex-1"
+                                    isDisabled={!peutSupprimer}
+                                    onPress={() => meta.onDeleteRow(ticket.id)}
+                                    variant="danger-soft"
+                                >
+                                    <Trash2 aria-hidden="true" className="size-4" />
+                                    Supprimer
+                                </Button>
+                                <Tooltip.Content>
+                                    {peutSupprimer ? 'Supprimer ce ticket' : "Ce ticket n'est pas supprimable"}
+                                </Tooltip.Content>
+                            </Tooltip>
+                        )}
+                    </>
+                )}
+            </div>
+        </Card>
+    );
 }

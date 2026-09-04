@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Loader2, Trash } from 'lucide-react';
-import { Button, Tooltip } from '@/components/heroui';
+import { Button, Tooltip } from '@heroui-v3/react';
+import { Trash } from 'lucide-react';
 
 import { Ticket } from '@/types/bon-livraison.model';
 
@@ -27,19 +27,25 @@ export function TicketTableActions({ selectedRows, permissions, isDeletingBonLiv
   return (
     <div className="px-1 py-4">
       <div className="flex flex-wrap items-center gap-2">
-        {/* Un bouton desactive n'emet aucun survol : le span porte l'evenement a la place. */}
-        <Tooltip content={motifBlocage} isDisabled={!motifBlocage} size="sm">
-          <span className="inline-flex">
-            <Button
-              onPress={onDeleteRows}
-              variant="bordered"
-              color="danger"
-              isDisabled={!permissions.canDelete || selectedRows.length === 0 || isDeletingBonLivraison}
-              startContent={isDeletingBonLivraison ? <Loader2 className="size-4 animate-spin" /> : <Trash className="size-4" />}
-            >
-              Supprimer
-            </Button>
-          </span>
+        {/*
+          En v3 l'info-bulle enveloppe son declencheur et son contenu, et elle s'affiche
+          meme sur un bouton desactive : l'enveloppe `span` qui portait l'evenement a la
+          place du bouton n'a plus lieu d'etre. `color="danger"` et `startContent` etaient
+          des props v2 : sur un composant v3 elles seraient ignorees en silence.
+        */}
+        <Tooltip>
+          <Button
+            isDisabled={!permissions.canDelete || selectedRows.length === 0}
+            isPending={isDeletingBonLivraison}
+            onPress={onDeleteRows}
+            variant="danger-soft"
+          >
+            <Trash aria-hidden="true" className="size-4" />
+            Supprimer
+          </Button>
+          <Tooltip.Content>
+            {motifBlocage || `Supprimer ${selectedRows.length} ticket(s)`}
+          </Tooltip.Content>
         </Tooltip>
       </div>
     </div>

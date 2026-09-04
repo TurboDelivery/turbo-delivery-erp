@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback } from 'react';
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@/components/heroui';
+import { Button, Dropdown } from '@heroui-v3/react';
 import { ChevronDown, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { InfiniteData, QueryClient, useQueryClient } from '@tanstack/react-query';
@@ -211,25 +211,29 @@ export function TicketTableExportButton({ filters, totalItems, isDisabled }: Tic
   );
 
   return (
+    /*
+     * `color` et `startContent`/`endContent` sont des props de la v2 : posees sur un
+     * composant v3 elles sont ignorees EN SILENCE — le bouton perdait ses deux icones
+     * sans qu'aucune erreur ne le signale. En v3 les icones sont des enfants, et la
+     * couleur passe par `variant`.
+     */
     <Dropdown>
-      <DropdownTrigger>
-        <Button
-          variant="bordered"
-          color="primary"
-          startContent={<Download size={16} />}
-          endContent={<ChevronDown size={16} />}
-          isDisabled={isDisabled}
-        >
+      <Dropdown.Trigger>
+        <Button isDisabled={isDisabled} variant="outline">
+          <Download aria-hidden="true" className="size-4" />
           Exporter
+          <ChevronDown aria-hidden="true" className="size-4" />
         </Button>
-      </DropdownTrigger>
-      <DropdownMenu
-        aria-label="Format d'export"
-        onAction={(key) => handleExport(key as ExportFormat)}
-      >
-        <DropdownItem key="PDF">PDF</DropdownItem>
-        <DropdownItem key="EXCEL">Excel</DropdownItem>
-      </DropdownMenu>
+      </Dropdown.Trigger>
+      <Dropdown.Popover>
+        <Dropdown.Menu
+          aria-label="Format d'export"
+          onAction={(key) => handleExport(key as ExportFormat)}
+        >
+          <Dropdown.Item id="PDF">PDF</Dropdown.Item>
+          <Dropdown.Item id="EXCEL">Excel</Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown.Popover>
     </Dropdown>
   );
 }

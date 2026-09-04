@@ -1,11 +1,19 @@
 'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
+import {
+  Button,
+  ComboBox,
+  Tooltip,
+  Input as InputV3,
+  Label,
+  ListBox,
+  SearchField,
+} from '@heroui-v3/react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Input, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tooltip } from '@/components/heroui';
-import Select from 'react-select';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { toast } from 'sonner';
-import { ArchiveRestore, Loader2, Search, X } from 'lucide-react';
+import { ArchiveRestore, X } from 'lucide-react';
 
 import ConfirmModal from '@/components/ui/confirm-modal';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -22,6 +30,9 @@ interface TicketArchivesTableProps {
   restaurantOptions: { value: string; label: string }[];
   livreurOptions: { value: string; label: string }[];
 }
+
+/** Aucun filtre pose : la liste montre tout. */
+const TOUS = '__tous__';
 
 export function TicketArchivesTable({ restaurantOptions, livreurOptions }: TicketArchivesTableProps) {
   const ability = useAbility();
@@ -108,38 +119,60 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
   return (
     <div className="p-4">
       <div className="mb-6">
-        <Input
-          className="mb-4"
-          startContent={<Search />}
-          value={numero}
-          onChange={(e) => setNumero(e.target.value)}
-          placeholder="Code check"
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-          <div>
-            <label className="block text-xs font-medium mb-1">Filtrer par Livreur</label>
-            <Select
-              options={livreurOptions}
-              value={livreurOptions.find((o) => o.value === livreurId) ?? null}
-              onChange={(opt) => setLivreurId(opt?.value ?? '')}
-              placeholder="Tous les livreurs"
-              isClearable
-              className="text-xs"
-              classNamePrefix="react-select"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium mb-1">Filtrer par Restaurant</label>
-            <Select
-              options={restaurantOptions}
-              value={restaurantOptions.find((o) => o.value === restaurantId) ?? null}
-              onChange={(opt) => setRestaurantId(opt?.value ?? '')}
-              placeholder="Tous les restaurants"
-              isClearable
-              className="text-xs"
-              classNamePrefix="react-select"
-            />
-          </div>
+        {/* Memes composants que l'onglet « Tous les tickets » : deux listes FILTRABLES et
+            un champ de recherche effacable. react-select apportait ses propres couleurs,
+            qui ignorent le theme sombre, et une bibliotheque de plus a charger. */}
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <SearchField fullWidth onChange={setNumero} value={numero}>
+            <Label>Code check</Label>
+            <SearchField.Group>
+              <SearchField.SearchIcon />
+              <SearchField.Input placeholder="Rechercher un code…" />
+              <SearchField.ClearButton />
+            </SearchField.Group>
+          </SearchField>
+
+          <ComboBox
+            onSelectionChange={(c) => setLivreurId(c === TOUS ? '' : String(c ?? ''))}
+            selectedKey={livreurId || TOUS}
+          >
+            <Label>Livreur</Label>
+            <ComboBox.InputGroup>
+              <InputV3 placeholder="Tous les livreurs" />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox items={[{ value: TOUS, label: 'Tous les livreurs' }, ...livreurOptions]}>
+                {(o: { value: string; label: string }) => (
+                  <ListBox.Item id={o.value} textValue={o.label}>
+                    {o.label}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                )}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
+
+          <ComboBox
+            onSelectionChange={(c) => setRestaurantId(c === TOUS ? '' : String(c ?? ''))}
+            selectedKey={restaurantId || TOUS}
+          >
+            <Label>Partenaire</Label>
+            <ComboBox.InputGroup>
+              <InputV3 placeholder="Tous les partenaires" />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox items={[{ value: TOUS, label: 'Tous les partenaires' }, ...restaurantOptions]}>
+                {(o: { value: string; label: string }) => (
+                  <ListBox.Item id={o.value} textValue={o.label}>
+                    {o.label}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                )}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
         </div>
       </div>
 
@@ -147,33 +180,33 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
         {/* `totalElements` est indisponible sur echec et `?? 0` rendait « Total: 0 ticket(s)
             archive(s) », une affirmation de fait la ou la lecture avait simplement echoue. */}
         {!archivesQuery.isError && (
-          <p className="text-xs sm:text-sm text-gray-600">Total: {totalItems} ticket(s) archivé(s)</p>
+          <p className="text-xs text-muted sm:text-sm">Total : {totalItems} ticket(s) archivé(s)</p>
         )}
         <div className="flex gap-2">
           {selectedIds.length > 0 && (
-            <button
-              onClick={() => setRowSelection({})}
-              className="px-2 py-1 border border-gray-300 rounded-full text-xs hover:bg-gray-50 flex items-center gap-1"
-            >
-              <X className="w-3 h-3" /> Désélectionner
-            </button>
+            <Button onPress={() => setRowSelection({})} size="sm" variant="ghost">
+              <X aria-hidden="true" className="size-4" />
+              Désélectionner
+            </Button>
           )}
           {/* Un bouton desactive n'emet aucun survol : le span porte l'evenement a la place. */}
-          <Tooltip content={motifRestaurationBloquee} isDisabled={!motifRestaurationBloquee} size="sm">
-            <span className="inline-flex">
-              <button
-                onClick={handleBulkRestore}
-                disabled={!canRestore || selectedIds.length === 0 || restaurerMutation.isPending}
-                className={`px-3 py-1.5 rounded-full text-xs flex items-center gap-1 ${
-                  !canRestore || selectedIds.length === 0
-                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                    : 'bg-emerald-500 text-white hover:bg-emerald-600'
-                }`}
-              >
-                {restaurerMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArchiveRestore className="w-3 h-3" />}
-                Restaurer ({selectedIds.length})
-              </button>
-            </span>
+          {/* Le motif de blocage est nomme : un bouton grise sans explication passe pour
+              une panne cote operateur. L'attente se dit par `isPending`, ce qui evite un
+              rond qui tourne pose a la main. */}
+          <Tooltip>
+            <Button
+              isDisabled={!canRestore || selectedIds.length === 0}
+              isPending={restaurerMutation.isPending}
+              onPress={handleBulkRestore}
+              size="sm"
+              variant="primary"
+            >
+              <ArchiveRestore aria-hidden="true" className="size-4" />
+              Restaurer ({selectedIds.length})
+            </Button>
+            <Tooltip.Content>
+              {motifRestaurationBloquee || `Restaurer ${selectedIds.length} ticket(s) archivé(s)`}
+            </Tooltip.Content>
           </Tooltip>
         </div>
       </div>
@@ -206,13 +239,13 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
                     <TableRow key={`skeleton-${i}`}>
                       {Array.from({ length: colsCount }).map((_, j) => (
                         <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                          <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
                         </TableCell>
                       ))}
                     </TableRow>
                   ))
                 : table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={row.getIsSelected() ? 'bg-blue-50' : 'hover:bg-gray-50'}>
+                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={row.getIsSelected() ? 'bg-accent-soft' : 'hover:bg-surface-secondary'}>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id} className="px-2 py-1 text-xs whitespace-nowrap">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -223,7 +256,7 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
             </TableBody>
           </Table>
           <div className="h-0.5" ref={observerTarget}>
-            {archivesQuery.isFetchingNextPage && <p className="text-xs text-gray-500 w-full text-center py-2">Chargement des données...</p>}
+            {archivesQuery.isFetchingNextPage && <p className="w-full py-2 text-center text-xs text-muted">Chargement des données...</p>}
           </div>
         </div>
       </div>
@@ -231,69 +264,70 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <div className="md:hidden space-y-3">
         {archivesQuery.isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-40 rounded-xl bg-gray-100 animate-pulse" />)
+          Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-40 animate-pulse rounded-xl bg-surface-secondary" />)
         ) : table.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucun ticket archivé</p>
+          <p className="py-10 text-center text-sm text-muted">Aucun ticket archivé</p>
         ) : (
           table.getRowModel().rows.map((row) => {
             const a = row.original;
             const deletedBy = a.deletedByUser ? `${a.deletedByUser.prenoms} ${a.deletedByUser.nom}` : '—';
             return (
-              <div key={row.id} className={`bg-white border rounded-xl p-4 shadow-xs space-y-2 ${row.getIsSelected() ? 'border-blue-300 bg-blue-50' : 'border-gray-100'}`}>
+              <div key={row.id} className={`space-y-2 rounded-xl border bg-surface p-4 shadow-xs ${row.getIsSelected() ? 'border-accent bg-accent-soft/40' : 'border-separator'}`}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-xs text-gray-400">Code Check</p>
-                    <p className="text-sm font-semibold text-gray-900 truncate">{a.reference}</p>
+                    <p className="text-xs text-muted">Code Check</p>
+                    <p className="truncate text-sm font-semibold text-foreground">{a.reference}</p>
                     <p className="text-xs text-blue-500 truncate">{a.restaurant}</p>
                   </div>
                   <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Sélectionner la ligne" />
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Livreur</span>
-                  <span className="text-sm text-gray-700 text-right truncate">{a.livreur}</span>
+                  <span className="shrink-0 text-xs text-muted">Livreur</span>
+                  <span className="truncate text-right text-sm text-foreground">{a.livreur}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Zone</span>
-                  <span className="text-sm text-gray-700 text-right truncate">{a.nomZone ?? 'Inconnue'}</span>
+                  <span className="shrink-0 text-xs text-muted">Zone</span>
+                  <span className="truncate text-right text-sm text-foreground">{a.nomZone ?? 'Inconnue'}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Montant de Livraison</span>
-                  <span className="text-sm text-gray-700 text-right">{formatCFA(a.coutLivraison)}</span>
+                  <span className="shrink-0 text-xs text-muted">Montant de Livraison</span>
+                  <span className="text-right text-sm text-foreground">{formatCFA(a.coutLivraison)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Montant de Commande</span>
-                  <span className="text-sm text-gray-700 text-right">{formatCFA(a.coutCommande)}</span>
+                  <span className="shrink-0 text-xs text-muted">Montant de Commande</span>
+                  <span className="text-right text-sm text-foreground">{formatCFA(a.coutCommande)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Commission</span>
-                  <span className="text-sm text-gray-700 text-right">{formatCFA(a.commission ?? 0)}</span>
+                  <span className="shrink-0 text-xs text-muted">Commission</span>
+                  <span className="text-right text-sm text-foreground">{formatCFA(a.commission ?? 0)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Date</span>
-                  <span className="text-sm text-gray-700 text-right">{formatDateFR(a.date)} · {formatHoursMinutes(a.heure)}</span>
+                  <span className="shrink-0 text-xs text-muted">Date</span>
+                  <span className="text-right text-sm text-foreground">{formatDateFR(a.date)} · {formatHoursMinutes(a.heure)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Supprimé par</span>
-                  <span className="text-sm text-gray-700 text-right truncate">{deletedBy}</span>
+                  <span className="shrink-0 text-xs text-muted">Supprimé par</span>
+                  <span className="truncate text-right text-sm text-foreground">{deletedBy}</span>
                 </div>
                 {a.motifAnnulation && (
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-gray-400 shrink-0">Motif</span>
-                    <span className="text-sm text-gray-700 text-right truncate">{a.motifAnnulation}</span>
+                    <span className="shrink-0 text-xs text-muted">Motif</span>
+                    <span className="truncate text-right text-sm text-foreground">{a.motifAnnulation}</span>
                   </div>
                 )}
 
                 {canRestore && (
                   <div className="pt-1">
-                    <button
-                      onClick={() => handleRestoreRow(a.commandeId)}
-                      disabled={restoringId === a.commandeId}
-                      className="w-full px-3 py-2 bg-emerald-500 text-white rounded-lg text-sm hover:bg-emerald-600 flex items-center justify-center gap-1 disabled:opacity-50"
+                    <Button
+                      className="w-full"
+                      isPending={restoringId === a.commandeId}
+                      onPress={() => handleRestoreRow(a.commandeId)}
+                      variant="primary"
                     >
-                      {restoringId === a.commandeId ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArchiveRestore className="w-4 h-4" />}
+                      <ArchiveRestore aria-hidden="true" className="size-4" />
                       Restaurer
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -301,7 +335,7 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
           })
         )}
         <div className="h-0.5" ref={observerTargetMobile}>
-          {archivesQuery.isFetchingNextPage && <p className="text-xs text-gray-500 w-full text-center py-2">Chargement des données...</p>}
+          {archivesQuery.isFetchingNextPage && <p className="w-full py-2 text-center text-xs text-muted">Chargement des données...</p>}
         </div>
       </div>
         </>

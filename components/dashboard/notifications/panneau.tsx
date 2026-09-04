@@ -132,11 +132,20 @@ export function PanneauNotifications({ notifications, nonLues, onToutMarquer }: 
                 aria-label={
                     nonLues > 0 ? `Notifications — ${nonLues} non lues` : 'Notifications'
                 }
-                className="relative rounded-full p-2 text-foreground hover:text-accent"
+                className="relative rounded-full p-2 text-foreground hover:bg-surface-secondary"
             >
                 <Bell aria-hidden="true" className="size-5" />
                 {nonLues > 0 && (
-                    <span className="absolute -top-0.5 inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold leading-none text-white ring-2 ring-surface ltr:-right-0.5 rtl:-left-0.5">
+                    <span className={cn(
+                            'absolute -top-0.5 inline-flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-accent px-1',
+                            'text-[10px] font-bold leading-none ring-2 ring-surface ltr:-right-0.5 rtl:-left-0.5',
+                            // Le declencheur portait `hover:text-accent` : au survol, le
+                            // chiffre prenait la couleur du FOND de sa propre pastille et
+                            // disparaissait, laissant une tache rouge. Le survol agit
+                            // desormais sur le fond du bouton, pas sur sa couleur de texte,
+                            // et le chiffre garde la sienne quoi qu'il arrive.
+                            'text-white!',
+                        )}>
                         {nonLues > 99 ? '99+' : nonLues}
                     </span>
                 )}
