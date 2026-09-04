@@ -181,13 +181,13 @@ export function PersonnelCallPanel() {
                       value={recherche}
                       onChange={(e) => setRecherche(e.target.value)}
                       placeholder="Rechercher un collègue…"
-                      className="w-full bg-transparent text-sm text-white placeholder:text-white/40 focus:outline-hidden"
+                      className="w-full bg-transparent text-sm text-white placeholder:text-white/60 focus:outline-hidden"
                     />
                   </div>
                 </div>
                 <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
                   {isLoading ? (
-                    <p className="py-8 text-center text-sm text-white/40">Chargement…</p>
+                    <p className="py-8 text-center text-sm text-white/60">Chargement…</p>
                   ) : isError ? (
                     // `dark` re-scope les variables HeroUI : le panneau est sombre en
                     // dur, sans cela le titre de EtatErreur serait noir sur noir.
@@ -199,7 +199,7 @@ export function PersonnelCallPanel() {
                       />
                     </div>
                   ) : filtres.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-white/40">Aucun contact.</p>
+                    <p className="py-8 text-center text-sm text-white/60">Aucun contact.</p>
                   ) : (
                     filtres.map((c) => (
                       <button
@@ -215,7 +215,7 @@ export function PersonnelCallPanel() {
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-medium">{c.nom}</span>
                           {c.sousTitre && (
-                            <span className="block truncate text-[11px] text-white/40">{c.sousTitre}</span>
+                            <span className="block truncate text-[11px] text-white/60">{c.sousTitre}</span>
                           )}
                         </span>
                         <Phone className="h-4 w-4 shrink-0 text-emerald-300" />
@@ -227,7 +227,7 @@ export function PersonnelCallPanel() {
             ) : (
               <div className="p-4">
                 <div className="mb-3 flex min-h-10 items-center justify-center rounded-xl bg-white/5 px-3 text-2xl font-light tracking-widest tabular-nums">
-                  {numero || <span className="text-white/30">Numéro</span>}
+                  {numero || <span className="text-white/60">Numéro</span>}
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {TOUCHES.map((t) => (
@@ -260,7 +260,7 @@ export function PersonnelCallPanel() {
                     <Delete className="h-5 w-5" />
                   </button>
                 </div>
-                <p className="mt-2 text-center text-[11px] text-white/40">
+                <p className="mt-2 text-center text-[11px] text-white/60">
                   Le clavier compose un appel téléphonique (repli). Les appels in-app se lancent depuis
                   l&apos;onglet Contacts.
                 </p>
@@ -292,7 +292,7 @@ function JournalAppels({
   onRappeler: (id: string, nom: string) => void;
 }) {
   if (charge) {
-    return <p className="py-8 text-center text-sm text-white/40">Chargement…</p>;
+    return <p className="py-8 text-center text-sm text-white/60">Chargement…</p>;
   }
   if (enErreur) {
     // Sans ce cas, un journal injoignable affichait « Aucun appel pour le
@@ -305,7 +305,7 @@ function JournalAppels({
   }
   if (journal.length === 0) {
     return (
-      <p className="flex flex-col items-center gap-2 py-8 text-center text-sm text-white/40">
+      <p className="flex flex-col items-center gap-2 py-8 text-center text-sm text-white/60">
         <History className="h-6 w-6" /> Aucun appel pour le moment.
       </p>
     );
@@ -354,7 +354,7 @@ function JournalAppels({
               <span className={`block truncate text-sm font-medium ${manque ? 'text-rose-200' : ''}`}>
                 {nom}
               </span>
-              <span className="block truncate text-[11px] text-white/40">
+              <span className="block truncate text-[11px] text-white/60">
                 <span className={manque ? 'text-rose-300' : sortant ? 'text-emerald-300/80' : 'text-sky-300/80'}>
                   {libelleDirection}
                 </span>
