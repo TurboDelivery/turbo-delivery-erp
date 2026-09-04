@@ -9,13 +9,22 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, Input } from "@/components/heroui";
 import { useRouter } from 'next/navigation';
 import React, { Fragment } from 'react';
-import { useFormStatus } from 'react-dom';
 import { useActionState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { SubmitButton } from '@/components/ui/form-ui/submit-button';
 
 const TypePlatEdit = ({ typePlat, open, setOpen }: { typePlat: Collection; open: boolean; setOpen: (open: boolean) => void }) => {
-    const { pending } = useFormStatus();
+    /*
+     * `useFormStatus()` etait appele ICI, dans le composant qui rend le `<form>`.
+     * Le hook ne lit l'etat que depuis un composant ENFANT du formulaire : appele au
+     * meme niveau, il renvoie toujours `pending: false`. Le bouton n'indiquait donc
+     * jamais l'envoi en cours et restait cliquable.
+     *
+     * `SubmitButton` (components/ui/form-ui/submit-button.tsx) fait exactement cela
+     * correctement — il appelle le hook depuis l'interieur du formulaire — et existait
+     * deja dans le depot.
+     */
     const router = useRouter();
 
     const [state, formAction] = useActionState(
@@ -153,9 +162,7 @@ const TypePlatEdit = ({ typePlat, open, setOpen }: { typePlat: Collection; open:
                                             <button type="button" className="btn btn-outline-danger" onClick={() => setOpen(false)}>
                                                 Annuler
                                             </button>
-                                            <Button aria-disabled={pending} className="btn btn-primary ltr:ml-4 rtl:mr-4" color="primary" disabled={pending} isLoading={pending} type="submit">
-                                                Modifier
-                                            </Button>
+                                            <SubmitButton className="btn btn-primary ltr:ml-4 rtl:mr-4">Modifier</SubmitButton>
                                         </div>
                                     </div>
                                 </form>

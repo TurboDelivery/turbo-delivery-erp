@@ -5,7 +5,7 @@ import { DeliveryMan, LivreurStatutVM } from '@/types/models';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
 import { Button } from '@/components/heroui';
 import React, { Fragment } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { validateDeliveryMan } from '@/src/actions/delivery-men.actions';
@@ -23,7 +23,19 @@ const DeliveryMenStatusValidate = ({
   validateBy: 'auth' | 'ops' | 'no-body';
   onSuccess?: () => void;
 }) => {
-  const { pending } = useFormStatus();
+    /*
+     * `useFormStatus()` renvoyait toujours `pending: false` ici.
+     *
+     * Ce hook ne lit l'etat que d'un `<form>` ANCESTRAL, et depuis un composant
+     * ENFANT de ce formulaire. Appele dans le composant qui rend le formulaire — ou,
+     * pire, dans une modale qui n'en contient aucun — il ne peut rien observer.
+     * Consequence : le bouton restait actif pendant l'attente, sans indicateur, et
+     * rien n'empechait un second clic. Sur « desactiver un utilisateur » ou
+     * « valider un livreur », cela declenche l'action deux fois.
+     *
+     * L'etat est desormais tenu localement, autour de l'appel.
+     */
+  const [pending, setPending] = useState(false);
   const router = useRouter();
   const handleSubmit = async () => {
     const result = await validateDeliveryMan(deliveryMan.livreurId ?? '', validateBy);
@@ -68,7 +80,11 @@ const DeliveryMenStatusValidate = ({
                     <button type="button" className="btn btn-outline-danger" onClick={() => setOpen(false)}>
                       Annuler
                     </button>
-                    <Button aria-disabled={pending} className="btn btn-primary ltr:ml-4 rtl:mr-4" color="primary" disabled={pending} isLoading={pending} onClick={handleSubmit}>
+                    <Button aria-disabled={pending} className="btn btn-primary ltr:ml-4 rtl:mr-4" color="primary" disabled={pending} isLoading={pending} onClick={() => {
+                                            if (pending) return;
+                                            setPending(true);
+                                            void handleSubmit().finally(() => setPending(false));
+                                        }}>
                       {validateBy == 'auth' ? 'Valider' : 'Activer'}
                     </Button>
                   </div>

@@ -6,7 +6,6 @@ import IconX from '@/components/icon/icon-x';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { useFormStatus } from 'react-dom';
 import { useActionState } from 'react';
 import { updateUser } from '@/src/actions/users.actions';
 import { getAllRoles } from '@/src/actions/roles.actions';
@@ -14,9 +13,19 @@ import React, { Fragment, useCallback, useEffect, useState } from 'react';
 import { Button, Input, Select, SelectItem } from "@/components/heroui";
 import { _createUserSchema, createUserSchema } from '@/src/schemas/users.schema';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
+import { SubmitButton } from '@/components/ui/form-ui/submit-button';
 
 const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen: (open: boolean) => void }) => {
-    const { pending } = useFormStatus();
+    /*
+     * `useFormStatus()` etait appele ICI, dans le composant qui rend le `<form>`.
+     * Le hook ne lit l'etat que depuis un composant ENFANT du formulaire : appele au
+     * meme niveau, il renvoie toujours `pending: false`. Le bouton n'indiquait donc
+     * jamais l'envoi en cours et restait cliquable.
+     *
+     * `SubmitButton` (components/ui/form-ui/submit-button.tsx) fait exactement cela
+     * correctement — il appelle le hook depuis l'interieur du formulaire — et existait
+     * deja dans le depot.
+     */
 
     const [state, formAction] = useActionState(
         async (_: any, formData: FormData) => {
@@ -244,9 +253,7 @@ const UsersEdit = ({ user, open, setOpen }: { user: User; open: boolean; setOpen
                                             <button type="button" className="btn btn-outline-danger" onClick={() => setOpen(false)}>
                                                 Annuler
                                             </button>
-                                            <Button aria-disabled={pending} className="btn btn-primary ltr:ml-4 rtl:mr-4" color="primary" disabled={pending} isLoading={pending} type="submit">
-                                                Ajouter
-                                            </Button>
+                                            <SubmitButton className="btn btn-primary ltr:ml-4 rtl:mr-4">Ajouter</SubmitButton>
                                         </div>
                                     </div>
                                 </form>
