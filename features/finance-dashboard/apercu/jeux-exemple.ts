@@ -40,6 +40,22 @@ export interface ResumeDepensesExemple {
     totalNonRecurrentes: number;
 }
 
+/** Sous-ensemble de `ITraficLivreurs` utile aux alertes d'exploitation. */
+export interface TraficExemple {
+    totalLivreurs: number;
+    disponibles: number;
+    enActivite: number;
+    horsService: number;
+}
+
+/** Etat du creneau de saisie des tickets, et delai avant verrouillage. */
+export interface CreneauExemple {
+    semaine: number;
+    statut: 'OUVERT' | 'VERROUILLE' | 'V1_VALIDE' | 'V2_VALIDE';
+    heuresAvantVerrouillage: number;
+    ticketsSaisis: number;
+}
+
 export interface JeuExemple {
     cle: string;
     /** Ce que ce jeu sert a verifier a l'ecran. */
@@ -51,6 +67,8 @@ export interface JeuExemple {
     statsPeriodePrecedente: StatsGlobalesExemple;
     resume: IFinanceResume;
     depenses: ResumeDepensesExemple;
+    trafic: TraficExemple;
+    creneau: CreneauExemple;
 }
 
 const EFFECTIFS: IDashboardStatsResponse = {
@@ -104,6 +122,8 @@ const MOIS_ORDINAIRE: JeuExemple = {
         chiffreAffaireCumule: 85_123_600,
     },
     depenses: { totalRecurrentes: 4_120_000, totalNonRecurrentes: 1_798_400 },
+    trafic: { totalLivreurs: 222, disponibles: 31, enActivite: 47, horsService: 144 },
+    creneau: { semaine: 36, statut: 'OUVERT', heuresAvantVerrouillage: 198, ticketsSaisis: 44 },
 };
 
 /** Le mois ou les depenses passent devant : le signe du resultat doit se lire seul. */
@@ -123,6 +143,9 @@ const MOIS_DEFICITAIRE: JeuExemple = {
         totalFacturesEnCours: 3_908_100,
     },
     depenses: { totalRecurrentes: 4_120_000, totalNonRecurrentes: 2_722_900 },
+    // Terrain a l'arret : aucun livreur disponible, la carte du trafic est aveugle.
+    trafic: { totalLivreurs: 222, disponibles: 0, enActivite: 3, horsService: 187 },
+    creneau: { semaine: 36, statut: 'OUVERT', heuresAvantVerrouillage: 6, ticketsSaisis: 12 },
 };
 
 /**
@@ -150,6 +173,8 @@ const PERIODE_VIDE: JeuExemple = {
         margeCumule: 23_918_700, chiffreAffaireCumule: 85_123_600,
     },
     depenses: { totalRecurrentes: 0, totalNonRecurrentes: 0 },
+    trafic: { totalLivreurs: 222, disponibles: 58, enActivite: 0, horsService: 164 },
+    creneau: { semaine: 36, statut: 'V2_VALIDE', heuresAvantVerrouillage: 0, ticketsSaisis: 0 },
 };
 
 /**
@@ -164,6 +189,8 @@ const VALEURS_EXTREMES: JeuExemple = {
     comptesEnAttente: 486,
     statsGlobales: { ...MOIS_ORDINAIRE.statsGlobales, chiffreAffaire: 428_940_150, fraisLivraison: 371_206_800, commission: 57_733_350 },
     resume: { ...MOIS_ORDINAIRE.resume, chiffreAffaire: 428_940_150, chiffreAffaireCumule: 3_204_887_600, totalFacturesEnCoursCumule: 892_450_300 },
+    trafic: { totalLivreurs: 1_284, disponibles: 402, enActivite: 318, horsService: 564 },
+    creneau: { semaine: 36, statut: 'OUVERT', heuresAvantVerrouillage: 198, ticketsSaisis: 2_841 },
 };
 
 export const JEUX_EXEMPLE: JeuExemple[] = [MOIS_ORDINAIRE, MOIS_DEFICITAIRE, PERIODE_VIDE, VALEURS_EXTREMES];

@@ -73,19 +73,50 @@ export default function ApercuContenu() {
         { cle: 'utilisateurs', libelle: 'Utilisateurs actifs', valeur: jeu.effectifs.utilisateurs, href: '/users' },
     ];
 
-    const actions = voitLivreurs
-        ? [
-              {
-                  cle: 'comptes',
-                  quoi: 'compte livreur',
-                  quoiPluriel: 'comptes livreurs',
-                  nombre: jeu.comptesEnAttente,
-                  consequence: "Tant que le compte n'est pas validé, le livreur ne peut pas se connecter à l'application.",
-                  href: '/delivery-men/not-valide',
-                  libelleAction: 'Valider les comptes',
-              },
-          ]
-        : [];
+    // Les alertes d'exploitation. Toutes adossees a des requetes qui existent deja :
+    // `useTraficLivreursQuery` pour l'etat du terrain, `useCreneauActifQuery` pour le
+    // verrouillage. C'est ce que les maquettes avaient trouve de juste et que la
+    // premiere version de cet ecran avait laisse tomber.
+    const t = jeu.trafic;
+    const heures = jeu.creneau.heuresAvantVerrouillage;
+
+    const actions = [
+        {
+            cle: 'gps',
+            titre: `${t.horsService} livreurs sans position GPS`,
+            consequence: `Sur ${t.totalLivreurs} livreurs, autant n'apparaissent nulle part sur la carte du trafic : on ne peut ni les affecter, ni voir où ils sont.`,
+            href: '/trafic',
+            libelleAction: 'Voir le trafic',
+            actif: voitLivreurs && t.horsService > 0,
+        },
+        {
+            cle: 'dispo',
+            titre: 'Aucun livreur disponible',
+            consequence: `Personne n'est en file sur ${t.totalLivreurs} livreurs : soit la journée n'a pas commencé, soit le pointage ne remonte plus. Les offres de course ne partiront pas.`,
+            href: '/delivery-men/pointages-a-valider',
+            libelleAction: 'Vérifier les pointages',
+            actif: voitLivreurs && t.disponibles === 0,
+        },
+        {
+            cle: 'comptes',
+            titre:
+                jeu.comptesEnAttente > 1
+                    ? `${jeu.comptesEnAttente} comptes livreurs attendent une validation`
+                    : '1 compte livreur attend une validation',
+            consequence: "Tant que le compte n'est pas validé, le livreur ne peut pas se connecter à l'application.",
+            href: '/delivery-men/not-valide',
+            libelleAction: 'Valider les comptes',
+            actif: voitLivreurs && jeu.comptesEnAttente > 0,
+        },
+        {
+            cle: 'creneau',
+            titre: `Verrouillage des tickets dans ${heures} h`,
+            consequence: `Semaine ${jeu.creneau.semaine}, ${jeu.creneau.ticketsSaisis} tickets saisis. Après le verrouillage, plus aucune saisie n'est possible sur la semaine.`,
+            href: '/validation-tickets',
+            libelleAction: 'Saisir les tickets',
+            actif: jeu.creneau.statut === 'OUVERT' && heures <= 48,
+        },
+    ];
 
     return (
         <div className={cn(sombre && 'dark')}>

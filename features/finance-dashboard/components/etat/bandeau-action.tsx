@@ -28,19 +28,22 @@ import { cn } from '@/lib/utils';
 
 export interface ElementAction {
     cle: string;
-    /** Ce qui attend, au singulier : « compte livreur ». */
-    quoi: string;
     /**
-     * Le pluriel, ecrit en entier. Ajouter un « s » a la fin de la chaine donnait
-     * « 3 compte livreurs » : la marque tombait sur le qualifiant, pas sur le nom.
-     * Le francais ne se derive pas par concatenation.
+     * La phrase entiere, ecrite par l'appelant.
+     *
+     * <p>Une premiere version imposait le gabarit « N <chose> en attente ». Les quatre
+     * alertes reelles n'entrent pas dedans : « 6 heures avant verrouillage en attente »
+     * ne veut rien dire, et l'absence de livreur disponible n'est pas un compteur qui
+     * attend — c'est un zero qui alarme. Un gabarit qui deforme trois cas sur quatre
+     * n'est pas un gabarit, c'est une contrainte. L'appelant ecrit donc sa phrase.</p>
      */
-    quoiPluriel: string;
-    nombre: number;
+    titre: string;
     /** Ce qui se passe tant que personne n'agit. */
     consequence: string;
     href: string;
     libelleAction: string;
+    /** Le bandeau n'apparait que si quelque chose le justifie. */
+    actif: boolean;
 }
 
 interface BandeauActionProps {
@@ -48,7 +51,7 @@ interface BandeauActionProps {
 }
 
 export function BandeauAction({ elements }: BandeauActionProps) {
-    const aFaire = elements.filter((e) => e.nombre > 0);
+    const aFaire = elements.filter((e) => e.actif);
     // Un bandeau vide est pire qu'absent : il apprend a ne plus le regarder.
     if (aFaire.length === 0) return null;
 
@@ -63,10 +66,7 @@ export function BandeauAction({ elements }: BandeauActionProps) {
                         <ShieldAlert aria-hidden="true" className="size-5 text-accent" />
                     </span>
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-foreground">
-                            <span className="tabular-nums">{e.nombre}</span>{' '}
-                            {e.nombre > 1 ? e.quoiPluriel : e.quoi} en attente
-                        </p>
+                        <p className="text-sm font-semibold tabular-nums text-foreground">{e.titre}</p>
                         <p className="text-xs leading-snug text-muted">{e.consequence}</p>
                     </div>
                     {/*
