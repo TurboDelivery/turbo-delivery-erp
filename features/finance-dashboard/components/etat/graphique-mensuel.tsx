@@ -82,7 +82,20 @@ export function GraphiqueMensuel({ donnees, hauteur }: GraphiqueMensuelProps) {
     }, [donnees]);
 
     return (
-        <div className={cn(JETONS, hauteur ? undefined : 'h-full min-h-[260px]')} style={hauteur ? { height: hauteur } : undefined}>
+        /*
+         * Le graphique est pose en POSITION ABSOLUE dans un parent flexible.
+         *
+         * `ResponsiveContainer` mesure son parent au montage. Dans une colonne flex, un
+         * enfant en `flex-1 h-full` n'a pas encore de hauteur resolue a cet instant : le
+         * conteneur retient zero et ne se remesure jamais. Mesure a l'ecran, deux fois :
+         * carte de 487 px puis de 572 px, graphique de 0 dans les deux cas.
+         *
+         * Un enfant absolu, lui, lit la taille DEJA calculee de son parent relatif sans
+         * participer a son calcul. Le parent tire sa hauteur de la rangee de grille, et
+         * le graphique la remplit.
+         */
+        <div className={cn(JETONS, 'relative', hauteur ? undefined : 'min-h-[260px] flex-1')} style={hauteur ? { height: hauteur } : undefined}>
+            <div className="absolute inset-0">
             <ResponsiveContainer height="100%" width="100%">
                 <ComposedChart data={serie} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
                     <CartesianGrid stroke="var(--separator)" strokeDasharray="3 3" vertical={false} />
@@ -139,6 +152,7 @@ export function GraphiqueMensuel({ donnees, hauteur }: GraphiqueMensuelProps) {
                     />
                 </ComposedChart>
             </ResponsiveContainer>
+            </div>
         </div>
     );
 }

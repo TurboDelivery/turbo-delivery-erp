@@ -1,4 +1,5 @@
 import { Separator } from '@heroui-v3/react';
+import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 import { cn } from '@/lib/utils';
@@ -37,7 +38,7 @@ interface BandePerimetreProps {
 function Nombre({ valeur }: { valeur: number | null }) {
     if (valeur === null) return <span className="text-base text-muted">—</span>;
     return (
-        <span className="text-base font-semibold tabular-nums">
+        <span className="text-lg font-semibold tabular-nums">
             {new Intl.NumberFormat('fr-FR').format(valeur)}
         </span>
     );
@@ -58,6 +59,12 @@ export function BandePerimetre({ reperes, className }: BandePerimetreProps) {
                     <span className="flex items-baseline gap-1.5 whitespace-nowrap">
                         <span className="text-[11px] uppercase tracking-[0.06em] text-muted">{r.libelle}</span>
                         <Nombre valeur={r.valeur} />
+                        {r.href && (
+                            <ChevronRight
+                                aria-hidden="true"
+                                className="size-3.5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5"
+                            />
+                        )}
                     </span>
                 );
 
@@ -68,7 +75,7 @@ export function BandePerimetre({ reperes, className }: BandePerimetreProps) {
                             {r.href ? (
                                 <Link
                                     className={cn(
-                                        'rounded-sm hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent',
+                                        'group rounded-sm hover:text-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent',
                                         // L'accent est reserve a ce qui attend un geste.
                                         r.appelleAction && r.valeur ? 'text-accent' : '',
                                     )}

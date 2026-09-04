@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, Card, Separator } from '@heroui-v3/react';
-import { ArrowDownRight, Banknote, Clock, TrendingUp, Wallet } from 'lucide-react';
+import { Button, Card, Separator, Skeleton } from '@heroui-v3/react';
+import { ArrowDownRight, Clock, Download, Layers, TrendingUp, Wallet } from 'lucide-react';
 
 import { Ecart } from '@/components/commons/ecart';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
@@ -12,6 +12,9 @@ import { BandePerimetre } from '@/features/finance-dashboard/components/etat/ban
 import { CarteIndicateur } from '@/features/finance-dashboard/components/etat/carte-indicateur';
 import { GraphiqueMensuel } from '@/features/finance-dashboard/components/etat/graphique-mensuel';
 import { DisponibiliteJour, RepartitionParc } from '@/features/finance-dashboard/components/etat/repartition-parc';
+import { SelecteurPeriode, type Raccourci } from '@/features/finance-dashboard/components/etat/selecteur-periode';
+import EtatErreur from '@/components/commons/EtatErreur';
+import { Montant } from '@/components/commons/montant';
 import { BandeauAction } from '@/features/finance-dashboard/components/etat/bandeau-action';
 import { construireEtat } from '@/features/finance-dashboard/components/etat/construire-etat';
 import { EtatFinancier } from '@/features/finance-dashboard/components/etat/etat-financier';
@@ -33,6 +36,8 @@ export default function ApercuContenu() {
     const [cle, setCle] = useState('ordinaire');
     const [sombre, setSombre] = useState(false);
     const [role, setRole] = useState<AppRole>('COMPTABLE');
+    const [etat, setEtat] = useState<'normal' | 'chargement' | 'echec'>('normal');
+    const [raccourci, setRaccourci] = useState<Raccourci>('mois');
     const jeu = jeuParCle(cle);
 
     // Dates fixes : `new Date()` au rendu ferait diverger serveur et client.
@@ -161,6 +166,20 @@ export default function ApercuContenu() {
                         </button>
                     ))}
                     <Separator className="mx-1 h-5" orientation="vertical" />
+                    {(['normal', 'chargement', 'echec'] as const).map((e) => (
+                        <button
+                            className={cn(
+                                'rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                e === etat ? 'bg-foreground text-background' : 'text-muted hover:bg-surface-secondary hover:text-foreground',
+                            )}
+                            key={e}
+                            onClick={() => setEtat(e)}
+                            type="button"
+                        >
+                            {e}
+                        </button>
+                    ))}
+                    <Separator className="mx-1 h-5" orientation="vertical" />
                     <button
                         className="rounded-md px-2.5 py-1.5 text-xs text-muted hover:bg-surface-secondary hover:text-foreground"
                         onClick={() => setSombre((v) => !v)}
@@ -178,27 +197,42 @@ export default function ApercuContenu() {
                             <h1 className="text-xl font-bold">Pilotage Turbo Delivery</h1>
                             <p className="text-sm text-muted">Du 1<sup>er</sup> au 30 septembre 2026</p>
                         </div>
-                        <div className="flex items-center gap-1 rounded-lg border border-separator p-1">
-                            {['Ce mois', '2026', "Depuis l'origine"].map((p, k) => (
-                                <button
-                                    className={cn(
-                                        'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-                                        k === 0 ? 'bg-accent text-white' : 'text-muted hover:text-foreground',
-                                    )}
-                                    key={p}
-                                    type="button"
-                                >
-                                    {p}
-                                </button>
-                            ))}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <SelecteurPeriode
+                                libelle="01/09 – 30/09"
+                                onPlage={() => setRaccourci('libre')}
+                                onRaccourci={setRaccourci}
+                                plage={null}
+                                raccourci={raccourci}
+                            />
+                            {voitFinance && (
+                                <Button size="sm" variant="outline">
+                                    <Download aria-hidden="true" className="size-4" />
+                                    Télécharger les détails
+                                </Button>
+                            )}
                         </div>
                     </div>
 
                     <BandeauAction elements={actions} />
 
-                    {voitFinance && (
+                    <BandePerimetre reperes={reperes} />
+
+                    {voitFinance && etat === 'echec' && (
+                        <Card className="border border-danger/40 p-0">
+                            <Card.Content className="p-0">
+                                <EtatErreur
+                                    onReessayer={() => setEtat('normal')}
+                                    quoi="les indicateurs financiers"
+                                />
+                            </Card.Content>
+                        </Card>
+                    )}
+
+                    {voitFinance && etat !== 'echec' && (
                         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                             <CarteIndicateur
+                                chargement={etat === 'chargement'}
                                 href="/finance/revenue"
                                 icone={Wallet}
                                 libelle="Chiffre d'affaires"
@@ -209,6 +243,7 @@ export default function ApercuContenu() {
                             />
                             <CarteIndicateur
                                 contexte={jeu.resume.totalDepenses === 0 ? 'aucune charge imputée' : undefined}
+                                chargement={etat === 'chargement'}
                                 href="/finance/dashboard"
                                 icone={ArrowDownRight}
                                 libelle="Dépenses"
@@ -219,6 +254,7 @@ export default function ApercuContenu() {
                             />
                             <CarteIndicateur
                                 contexte={resultat >= 0 ? 'excédent' : 'déficit'}
+                                chargement={etat === 'chargement'}
                                 href="/finance/analyse-rentabilite"
                                 icone={TrendingUp}
                                 libelle="Marge"
@@ -235,6 +271,7 @@ export default function ApercuContenu() {
                                         ? `${Math.round((jeu.resume.totalFacturesEnCours / jeu.statsGlobales.chiffreAffaire) * 100)} % du CA du mois`
                                         : undefined
                                 }
+                                chargement={etat === 'chargement'}
                                 href="/finance/recouvrement?tab=factures"
                                 icone={Clock}
                                 libelle="Encours à recouvrer"
@@ -244,8 +281,8 @@ export default function ApercuContenu() {
                         </div>
                     )}
 
-                    {voitFinance && (
-                        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-3">
+                    {voitFinance && etat !== 'echec' && (
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
                             <Card className="lg:col-span-2">
                                 <Card.Header>
                                     <Card.Title className="text-sm">Revenus et dépenses par mois · 2026</Card.Title>
@@ -254,16 +291,25 @@ export default function ApercuContenu() {
                                     </Card.Description>
                                 </Card.Header>
                                 {/*
-                                 * Hauteur DEFINIE, pas `flex-1` : le `ResponsiveContainer` de
-                                 * Recharts mesure son parent, et un enfant flexible sans hauteur
-                                 * resolue lui en donne zero. Mesure a l'ecran : la carte faisait
-                                 * 487 px et le graphique 0.
+                                 * `flex-1 min-h-0` fonctionne ICI parce que la hauteur de la carte
+                                 * vient de la rangee de grille, pas de son contenu : le
+                                 * `ResponsiveContainer` de Recharts a donc un parent mesurable.
+                                 * Sans `min-h-0`, un enfant flexible refuse de se comprimer sous
+                                 * sa taille naturelle et le graphique deborderait.
                                  */}
-                                <Card.Content>
-                                    <GraphiqueMensuel donnees={jeu.serieAnnuelle} hauteur={340} />
+                                <Card.Content className="min-h-0 flex-1">
+                                    {etat === 'chargement' ? (
+                                        <Skeleton className="h-full min-h-[260px] w-full rounded-lg" />
+                                    ) : (
+                                        <GraphiqueMensuel donnees={jeu.serieAnnuelle} />
+                                    )}
                                 </Card.Content>
                             </Card>
 
+                            {/*
+                             * Les deux cartes de cette rangee sont etirees a la meme hauteur par
+                             * la grille : c'est le panneau, le plus haut, qui la fixe.
+                             */}
                             <Card>
                                 <Card.Header>
                                     <Card.Title className="text-sm">Détail du mois</Card.Title>
@@ -279,7 +325,48 @@ export default function ApercuContenu() {
                         </div>
                     )}
 
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                        {voitFinance && (
+                            <Card>
+                                <Card.Header>
+                                    <Card.Title className="flex items-center gap-2 text-sm">
+                                        <Layers aria-hidden="true" className="size-4 text-muted" />
+                                        Cumul depuis 2024
+                                    </Card.Title>
+                                </Card.Header>
+                                <Card.Content>
+                                    {etat === 'chargement' ? (
+                                        <div className="space-y-2">
+                                            {[0, 1, 2, 3].map((k) => (
+                                                <Skeleton className="h-6 w-full rounded" key={k} />
+                                            ))}
+                                        </div>
+                                    ) : etat === 'echec' ? (
+                                        <EtatErreur compact onReessayer={() => setEtat('normal')} quoi="les cumuls" />
+                                    ) : (
+                                        <ul className="space-y-2">
+                                            {[
+                                                ["Chiffre d'affaires", jeu.resume.chiffreAffaireCumule, '/finance/revenue'],
+                                                ['Dépenses', jeu.resume.totalDepensesCumule, '/finance/dashboard'],
+                                                ['Marge', jeu.resume.margeCumule, '/finance/analyse-rentabilite'],
+                                                ['Encours', jeu.resume.totalFacturesEnCoursCumule, '/finance/recouvrement?tab=factures'],
+                                            ].map(([libelle, valeur, lien]) => (
+                                                <li key={libelle as string}>
+                                                    <a
+                                                        className="flex items-baseline justify-between gap-4 rounded-sm py-0.5 hover:text-accent"
+                                                        href={lien as string}
+                                                    >
+                                                        <span className="text-sm text-muted">{libelle as string}</span>
+                                                        <Montant taille="sm" valeur={valeur as number} />
+                                                    </a>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </Card.Content>
+                            </Card>
+                        )}
+
                         <Card>
                             <Card.Header>
                                 <Card.Title className="text-sm">
@@ -317,7 +404,6 @@ export default function ApercuContenu() {
                         </Card>
                     </div>
 
-                    <BandePerimetre reperes={reperes} />
                 </main>
             </div>
         </div>

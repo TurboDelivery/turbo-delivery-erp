@@ -1,4 +1,4 @@
-import { Card } from '@heroui-v3/react';
+import { Card, Skeleton } from '@heroui-v3/react';
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 
@@ -36,6 +36,9 @@ export interface CarteIndicateurProps {
     href?: string;
     /** Met la carte en avant : c'est le chiffre qui porte l'ecran. */
     principal?: boolean;
+    /** Squelette pendant la lecture. Un ecran sans etat de chargement affiche un
+     *  chiffre perime, ou pire un zero, comme s'il etait mesure. */
+    chargement?: boolean;
 }
 
 const TON_CONTEXTE: Record<NonNullable<CarteIndicateurProps['tonContexte']>, string> = {
@@ -55,7 +58,18 @@ export function CarteIndicateur({
     icone: Icone,
     href,
     principal = false,
+    chargement = false,
 }: CarteIndicateurProps) {
+    if (chargement) {
+        return (
+            <Card className="h-full gap-0 p-4">
+                <Skeleton className="h-3 w-24 rounded" />
+                <Skeleton className={cn('mt-2.5 rounded', principal ? 'h-8 w-44' : 'h-7 w-40')} />
+                <Skeleton className="mt-2 h-3 w-28 rounded" />
+            </Card>
+        );
+    }
+
     const negatif = valeur < 0;
     // `Intl` rend le signe avec un trait d'union, etroit et facile a manquer.
     const texte = formatCFA(valeur).replace(/^[-−]/, '−');
