@@ -38,7 +38,7 @@ export function getRegularisationStatutConfig(
     rawStatut === StatutControle.PENDING && authenticatedIds.has(ticket.commandeId)
       ? StatutControle.AUTHENTIFIE
       : rawStatut;
-  return STATUT_CONFIG[statut] ?? { label: statut, className: 'bg-gray-100 text-gray-700' };
+  return STATUT_CONFIG[statut] ?? { label: statut, className: 'bg-surface-secondary text-foreground' };
 }
 
 /**
@@ -129,24 +129,24 @@ export function createRegularisationTicketsColumns(): ColumnDef<BonLivraisonTerm
       accessorKey: 'reference',
       header: 'Référence',
       cell: ({ row }) => (
-        <span className="text-sm font-semibold text-gray-900">{row.original.reference}</span>
+        <span className="text-sm font-semibold text-foreground">{row.original.reference}</span>
       ),
     },
     {
       accessorKey: 'livreur',
       header: 'Livreur',
-      cell: ({ row }) => <span className="text-sm text-gray-700">{row.original.livreur}</span>,
+      cell: ({ row }) => <span className="text-sm text-foreground">{row.original.livreur}</span>,
     },
     {
       accessorKey: 'restaurant',
       header: 'Restaurant',
-      cell: ({ row }) => <span className="text-sm text-gray-700">{row.original.restaurant}</span>,
+      cell: ({ row }) => <span className="text-sm text-foreground">{row.original.restaurant}</span>,
     },
     {
       accessorKey: 'coutCommande',
       header: () => <div className="w-full text-right">Montant CMD</div>,
       cell: ({ row }) => (
-        <div className="text-right text-sm text-gray-700">{formatMontant(row.original.coutCommande)}</div>
+        <div className="text-right text-sm text-foreground">{formatMontant(row.original.coutCommande)}</div>
       ),
     },
     {
@@ -163,8 +163,8 @@ export function createRegularisationTicketsColumns(): ColumnDef<BonLivraisonTerm
       header: 'Date / Heure',
       cell: ({ row }) => (
         <div className="flex flex-col">
-          <span className="text-sm text-gray-700">{row.original.date}</span>
-          <span className="text-xs text-gray-400">{row.original.heure}</span>
+          <span className="text-sm text-foreground">{row.original.date}</span>
+          <span className="text-xs text-muted">{row.original.heure}</span>
         </div>
       ),
     },
@@ -190,7 +190,7 @@ export function createRegularisationTicketsColumns(): ColumnDef<BonLivraisonTerm
         const meta = table.options.meta as RegularisationTicketsColumnMeta;
         return (
           renderRegularisationActions(row.original, meta) ?? (
-            <div className="text-right text-xs text-gray-300">—</div>
+            <div className="text-right text-xs text-muted">—</div>
           )
         );
       },

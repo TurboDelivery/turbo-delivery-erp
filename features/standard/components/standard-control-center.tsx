@@ -64,7 +64,7 @@ function Section({ titre, sousTitre, point, total, children, nouveaux, onAcquitt
           <button
             type="button"
             onClick={onAcquitter}
-            className="inline-flex animate-pulse items-center rounded-full bg-[#E11D48] px-2.5 py-0.5 text-[11px] font-bold text-white"
+            className="inline-flex animate-pulse items-center rounded-full bg-danger px-2.5 py-0.5 text-[11px] font-bold text-white"
             title="Marquer comme vus"
           >
             +{nouveaux} nouveau{nouveaux > 1 ? 'x' : ''}
@@ -81,7 +81,7 @@ function CartesFantomes({ nombre = 2 }: { nombre?: number }) {
   return (
     <div className="grid gap-3 2xl:grid-cols-2">
       {Array.from({ length: nombre }).map((_, i) => (
-        <div key={i} className="rounded-2xl border border-default-200/50 bg-white p-4 dark:bg-content1">
+        <div key={i} className="rounded-2xl border border-default-200/50 bg-surface p-4 dark:bg-content1">
           <div className="flex items-center gap-3">
             <Skeleton className="h-11 w-11 rounded-[14px]" />
             <div className="flex-1 space-y-2">
@@ -98,10 +98,10 @@ function CartesFantomes({ nombre = 2 }: { nombre?: number }) {
 
 function Vide({ message, ton = 'ok' }: { message: string; ton?: 'ok' | 'neutre' }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-dashed border-default-200 bg-white px-4 py-6 dark:bg-content1">
+    <div className="flex items-center gap-3 rounded-2xl border border-dashed border-default-200 bg-surface px-4 py-6 dark:bg-content1">
       <span
         className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-          ton === 'ok' ? 'bg-[#1AA05A]/10 text-[#1AA05A]' : 'bg-default-200/60 text-default-400'
+          ton === 'ok' ? 'bg-success/10 text-success-soft-foreground' : 'bg-default-200/60 text-default-400'
         }`}
       >
         <CheckCircle2 className="h-5 w-5" />
@@ -233,7 +233,7 @@ export function StandardControlCenter() {
           <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold text-primary">
             Centre de contrôle — STANDARD
             {totalRecus > 0 && (
-              <span className="inline-flex items-center rounded-full bg-[#E11D48]/10 px-2.5 py-1 text-xs font-bold text-[#B4123B]">
+              <span className="inline-flex items-center rounded-full bg-danger/10 px-2.5 py-1 text-xs font-bold text-danger-soft-foreground">
                 {totalRecus} en attente
               </span>
             )}
@@ -245,7 +245,7 @@ export function StandardControlCenter() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button
-            className="bg-[#1AA05A] font-semibold text-white"
+            className="bg-success font-semibold text-white"
             startContent={<Phone className="h-4 w-4" />}
             onPress={() => setAppelOpen(true)}
           >
@@ -309,7 +309,7 @@ export function StandardControlCenter() {
               <AlertTriangle className="h-4 w-4" />
               Incidents
               {totalRecus > 0 && (
-                <span className="inline-flex items-center rounded-full bg-[#E11D48] px-1.5 py-0.5 text-[11px] font-bold text-white">
+                <span className="inline-flex items-center rounded-full bg-danger px-1.5 py-0.5 text-[11px] font-bold text-white">
                   {totalRecus}
                 </span>
               )}
@@ -321,7 +321,7 @@ export function StandardControlCenter() {
             <Section
               titre="À prendre en charge"
               sousTitre="aucun agent n'a encore ouvert ces signalements"
-              point="bg-[#E11D48]"
+              point="bg-danger"
               total={totalRecus}
               nouveaux={nouveauxVisibles}
               onAcquitter={acquitter}
@@ -366,7 +366,7 @@ export function StandardControlCenter() {
             <Section
               titre="En cours de traitement"
               sousTitre="un agent a la main dessus"
-              point="bg-[#D97706]"
+              point="bg-warning"
               total={totalEnCours}
             >
               {enCours.isLoading ? (

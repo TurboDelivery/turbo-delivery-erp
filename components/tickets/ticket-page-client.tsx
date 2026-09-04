@@ -18,6 +18,16 @@ import EtatErreur from '@/components/commons/EtatErreur';
  */
 const AUCUN_NOUVEAU: Set<string> = new Set();
 
+/**
+ * Le tableau exige encore un gestionnaire d'enregistrement de ligne neuve.
+ *
+ * <p>Il ne peut plus s'en servir : aucune ligne en cours ne lui parvient. La branche du
+ * composant qui l'appelle est donc morte, et lui passer une fonction vide dit exactement
+ * cela — plutot que de lui donner le vrai gestionnaire, qui laisserait croire que ce
+ * chemin existe encore.</p>
+ */
+const NE_SERT_PLUS = () => {};
+
 interface TicketPageClientProps {
   restaurants: Restaurant[];
 }
@@ -25,7 +35,11 @@ interface TicketPageClientProps {
 export function TicketPageClient({ restaurants }: TicketPageClientProps) {
   const ability = useAbility();
   const { livreurs, isErrorLivreurs, isFetchingLivreurs, refetchLivreurs } = useLivreurs();
-  const { mutate: createBonLivraisonMutation, isPending: isCreatingBonLivraison } = useCreateBonLivraison();
+  const {
+    mutate: createBonLivraisonMutation,
+    mutateAsync: createBonLivraisonAsync,
+    isPending: isCreatingBonLivraison,
+  } = useCreateBonLivraison();
 
   const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
   const livreurOptions = useMemo(() => validLivreurs.map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
@@ -36,11 +50,17 @@ export function TicketPageClient({ restaurants }: TicketPageClientProps) {
     newTicketIds,
     insertState,
     handleInsert,
-    handleSaveNewTicket,
+    handleSaveNewTickets,
     handleCancelNewTicket,
     handleNewTicketChange,
     handleNewTicketPatch,
-  } = useNewTickets({ restaurants, livreurOptions, restaurantOptions, createBonLivraisonMutation });
+  } = useNewTickets({
+    restaurants,
+    livreurOptions,
+    restaurantOptions,
+    createBonLivraisonMutation,
+    createBonLivraisonAsync,
+  });
 
   // Chaque cellule livreur du tableau, la carte mobile et la barre d'insertion resolvent
   // leur libelle dans livreurOptions. Sur un echec de lecture cette liste reste vide : les
@@ -89,7 +109,7 @@ export function TicketPageClient({ restaurants }: TicketPageClientProps) {
         enregistrement={isCreatingBonLivraison}
         livreurOptions={livreurOptions}
         onChange={handleNewTicketChange}
-        onEnregistrer={handleSaveNewTicket}
+        onEnregistrerLot={handleSaveNewTickets}
         onPatch={handleNewTicketPatch}
         onRetirer={handleCancelNewTicket}
         restaurantOptions={restaurantOptions}
@@ -110,7 +130,7 @@ export function TicketPageClient({ restaurants }: TicketPageClientProps) {
         newTickets={[]}
         newTicketIds={AUCUN_NOUVEAU}
         isCreatingBonLivraison={isCreatingBonLivraison}
-        onSaveNewTicket={handleSaveNewTicket}
+        onSaveNewTicket={NE_SERT_PLUS}
         onCancelNewTicket={handleCancelNewTicket}
         onNewTicketChange={handleNewTicketChange}
         onNewTicketPatch={handleNewTicketPatch}

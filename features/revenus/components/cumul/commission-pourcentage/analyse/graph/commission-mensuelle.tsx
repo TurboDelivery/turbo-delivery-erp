@@ -130,13 +130,13 @@ export function CommissionMensuelleChart({ commission = [] }: CommissionMensuell
                         />
                     </AreaChart>
                 </ChartContainer>
-                <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+                <div className="flex justify-between items-center mt-2 text-xs text-muted">
                     <span>Commission mensuelle (FCFA)</span>
                     <span>Mois</span>
                 </div>
                 
                 {/* Affichage des données réelles pour le débogage */}
-                <div className="mt-4 text-xs text-gray-400">
+                <div className="mt-4 text-xs text-muted">
                     <p>Total commission: {formatMontant(commission.reduce((sum, d) => sum + d.commission, 0))}</p>
                     <p>Nombre de transactions: {commission.length}</p>
                 </div>

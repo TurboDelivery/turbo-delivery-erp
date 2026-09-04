@@ -93,10 +93,10 @@ export function ActionsMenu({ id, name, status }: { id: string; name: string; st
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="inline-flex items-center justify-center p-1.5 rounded-md hover:bg-gray-100 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex items-center justify-center p-1.5 rounded-md hover:bg-surface-secondary transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary"
             aria-label="Actions"
           >
-            <MoreHorizontal className="w-4 h-4 text-gray-400" />
+            <MoreHorizontal className="w-4 h-4 text-muted" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-44">
@@ -154,11 +154,11 @@ export function ActionsMenu({ id, name, status }: { id: string; name: string; st
         <div className="flex flex-col gap-2 text-sm">
           {isActive ? (
             <>
-              <p className="text-gray-700">Le partenaire sera désactivé. Il n'apparaîtra plus comme actif et aucune nouvelle commande ne lui sera attribuée.</p>
-              <p className="text-gray-500 text-xs">Les données historiques (avant désactivation) restent intactes. Le partenaire peut être réactivé à tout moment.</p>
+              <p className="text-foreground">Le partenaire sera désactivé. Il n'apparaîtra plus comme actif et aucune nouvelle commande ne lui sera attribuée.</p>
+              <p className="text-muted text-xs">Les données historiques (avant désactivation) restent intactes. Le partenaire peut être réactivé à tout moment.</p>
             </>
           ) : (
-            <p className="text-gray-700">Le partenaire sera réactivé et pourra à nouveau recevoir des commandes.</p>
+            <p className="text-foreground">Le partenaire sera réactivé et pourra à nouveau recevoir des commandes.</p>
           )}
         </div>
       </ConfirmModal>
@@ -191,11 +191,11 @@ export function ActionsMenu({ id, name, status }: { id: string; name: string; st
         ]}
       >
         <div className="flex flex-col gap-3 text-sm">
-          <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex items-start gap-2 p-3 bg-surface-secondary rounded-lg border border-separator">
             <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
             <div>
-              <p className="font-medium text-gray-800">Supprimer en conservant l'historique</p>
-              <p className="text-gray-500 text-xs mt-0.5">Le partenaire est supprimé mais les données de livraison associées sont conservées.</p>
+              <p className="font-medium text-foreground">Supprimer en conservant l'historique</p>
+              <p className="text-muted text-xs mt-0.5">Le partenaire est supprimé mais les données de livraison associées sont conservées.</p>
             </div>
           </div>
           <div className="flex items-start gap-2 p-3 bg-red-50 rounded-lg border border-red-200">
@@ -227,7 +227,7 @@ export const restaurantColumns: ColumnDef<IRestaurant>[] = [
           <div className={`w-8 h-8 rounded-full ${color} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
             {letter}
           </div>
-          <span className="font-medium text-sm text-gray-800 capitalize">{r.nomEtablissement}</span>
+          <span className="font-medium text-sm text-foreground capitalize">{r.nomEtablissement}</span>
           {isVerified && !isGratuite && (
             <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />
           )}
@@ -243,14 +243,14 @@ export const restaurantColumns: ColumnDef<IRestaurant>[] = [
     id: 'email',
     accessorKey: 'email',
     header: 'EMAIL',
-    cell: ({ row }) => <span className="text-sm text-gray-500">{row.original.email || '-'}</span>,
+    cell: ({ row }) => <span className="text-sm text-muted">{row.original.email || '-'}</span>,
     enableSorting: true,
   },
   {
     id: 'telephone',
     accessorKey: 'telephone',
     header: 'TÉLÉPHONE',
-    cell: ({ row }) => <span className="text-sm text-gray-500">{row.original.telephone || '-'}</span>,
+    cell: ({ row }) => <span className="text-sm text-muted">{row.original.telephone || '-'}</span>,
     enableSorting: true,
   },
   {
@@ -258,7 +258,7 @@ export const restaurantColumns: ColumnDef<IRestaurant>[] = [
     accessorKey: 'localisation',
     header: 'LOCALISATION',
     cell: ({ row }) => (
-      <span className="text-sm text-gray-500">{row.original.localisation || row.original.commune || '-'}</span>
+      <span className="text-sm text-muted">{row.original.localisation || row.original.commune || '-'}</span>
     ),
     enableSorting: true,
   },
@@ -267,7 +267,7 @@ export const restaurantColumns: ColumnDef<IRestaurant>[] = [
     accessorKey: 'methodRecouvrement',
     header: 'CYCLE DE PAIEMENT',
     cell: ({ row }) => (
-      <span className="text-sm text-gray-500">
+      <span className="text-sm text-muted">
         {RECOUVREMENT_LABELS[row.original.methodRecouvrement] ?? row.original.methodRecouvrement ?? '-'}
       </span>
     ),

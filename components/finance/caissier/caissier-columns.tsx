@@ -18,7 +18,7 @@ const statutConfig: Record<string, { label: string; className: string }> = {
 
 /** Réutilisé par les cartes mobile (cf. caissier-view) pour le chip de statut. */
 export function getCaissierStatutConfig(statut: string): { label: string; className: string } {
-  return statutConfig[statut] ?? { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
+  return statutConfig[statut] ?? { label: statut, className: 'bg-surface-secondary text-muted border-separator' };
 }
 
 
@@ -38,7 +38,7 @@ export function createCaissierColumns(
       accessorKey: 'partenaire',
       header: 'PARTENAIRE',
       cell: ({ row }) => (
-        <span className="text-xs font-medium text-gray-800">{row.original.partenaire}</span>
+        <span className="text-xs font-medium text-foreground">{row.original.partenaire}</span>
       ),
     },
     {
@@ -55,10 +55,10 @@ export function createCaissierColumns(
       header: 'RECOUVRÉ',
       cell: ({ row }) => {
         const { montantRecouvre, pourcentageRecouvre } = row.original;
-        if (!montantRecouvre) return <span className="text-gray-400 text-xs">—</span>;
+        if (!montantRecouvre) return <span className="text-muted text-xs">—</span>;
         return (
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-gray-800">{formatMontant(montantRecouvre)}</span>
+            <span className="text-xs font-semibold text-foreground">{formatMontant(montantRecouvre)}</span>
             <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 text-xs px-2 py-0.5 w-fit font-medium">
               {pourcentageRecouvre}%
             </span>
@@ -79,7 +79,7 @@ export function createCaissierColumns(
     {
       accessorKey: 'agent',
       header: 'AGENT',
-      cell: ({ row }) => <span className="text-xs text-gray-600">{row.original.agent}</span>,
+      cell: ({ row }) => <span className="text-xs text-muted">{row.original.agent}</span>,
     },
     {
       accessorKey: 'statut',
@@ -87,7 +87,7 @@ export function createCaissierColumns(
       cell: ({ row }) => {
         const config = statutConfig[row.original.statut] ?? {
           label: row.original.statut,
-          className: 'bg-gray-100 text-gray-600 border-gray-200',
+          className: 'bg-surface-secondary text-muted border-separator',
         };
         return (
           <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${config.className}`}>

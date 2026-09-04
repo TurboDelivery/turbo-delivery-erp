@@ -97,7 +97,7 @@ export default function DropDownPerformanceCrenea({open,setOpen,gainsData,jour}:
                                   <button
                                       type="button"
                                       onClick={() => setOpen(false)}
-                                      className="absolute top-4 text-gray-400 outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
+                                      className="absolute top-4 text-muted outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
                                   >
                                       <IconX />
                                   </button>
@@ -106,7 +106,7 @@ export default function DropDownPerformanceCrenea({open,setOpen,gainsData,jour}:
                                         <p className="text-tiny uppercase font-bold"> {data?.date}</p>                                   
                                     </CardHeader>
                                     <CardBody className="overflow-visible pt-5 flex items-center">
-                                        <div className="bg-slate-300  flex items-center rounded-lg">
+                                        <div className="bg-slate-300 flex items-center rounded-lg">
                                         <Button onClick={handlePrev} size="sm"><IconChevronLeft stroke={2} /></Button>
                                        {data?.jour}
 

@@ -10,7 +10,7 @@ import { ICommission } from "@/features/revenus/types/commission.types"
 export default function CommissionAnalyseChart({ commissionFixe }: { commissionFixe: ICommission[] }) {
     return (
         <div className="w-full px-4 py-6 -mt-6">
-            <div className="w-full px-4 py-6 shadow-lg rounded-lg border border-gray-200">
+            <div className="w-full px-4 py-6 shadow-lg rounded-lg border border-separator">
                 <h2 className="text-xl font-bold mb-2 ">Rapport des commissions(fixe)</h2>
 
                 <Tabs defaultValue="commission-journaliere" className="w-full">

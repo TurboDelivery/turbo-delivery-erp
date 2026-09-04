@@ -93,7 +93,7 @@ export function DepenseTable() {
                       <TableRow key={`skeleton-${i}`}>
                         {depenseColumns.map((col) => (
                           <TableCell key={`skeleton-cell-${col.header}`} className="h-12">
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                            <div className="h-4 bg-surface-tertiary rounded w-full animate-pulse" />
                           </TableCell>
                         ))}
                       </TableRow>
@@ -113,10 +113,10 @@ export function DepenseTable() {
           <div className={`md:hidden space-y-3 pt-2 ${isFetching ? 'opacity-70' : ''}`}>
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
-                <div key={`m-skel-${i}`} className="h-40 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />
+                <div key={`m-skel-${i}`} className="h-40 rounded-xl bg-surface-secondary animate-pulse" />
               ))
             ) : table.getRowModel().rows.length === 0 ? (
-              isError ? null : <p className="text-sm text-gray-400 text-center py-10">Aucune dépense</p>
+              isError ? null : <p className="text-sm text-muted text-center py-10">Aucune dépense</p>
             ) : (
               table.getRowModel().rows.map((row) => <DepenseMobileCard key={row.id} depense={row.original} />)
             )}

@@ -118,7 +118,7 @@ export default function Content({ initialData, restaurants }: Props) {
     return (
         <div className="p-6 pt-0 flex-wrap">
             <SearchField searchKey={livreurAssigneCtrl.searchKey} onChange={livreurAssigneCtrl.setSearchKey} />
-            <div className="bg-white rounded-lg overflow-x-auto p-4">
+            <div className="bg-surface rounded-lg overflow-x-auto p-4">
                 {/* L'echec prend la place des donnees : affiche a cote, il cohabiterait
                     avec « Aucun livreur » et l'ecran se contredirait. */}
                 {livreurAssigneCtrl.isError ? (
@@ -157,14 +157,14 @@ export default function Content({ initialData, restaurants }: Props) {
                     {/* Mobile — cartes tactiles (mêmes données / handlers que le tableau via renderCell) */}
                     <div className="md:hidden space-y-3">
                         {rows.map((row: any) => (
-                            <div key={row?.livreurId} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+                            <div key={row?.livreurId} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
                                 <div className="min-w-0">{renderCell(row, 'nom')}</div>
                                 <div className="flex items-center justify-between gap-3">
-                                    <span className="text-xs text-gray-400 shrink-0">Date d&apos;inscription</span>
-                                    <span className="text-sm text-gray-700 text-right truncate">{renderCell(row, 'dateInscription')}</span>
+                                    <span className="text-xs text-muted shrink-0">Date d&apos;inscription</span>
+                                    <span className="text-sm text-foreground text-right truncate">{renderCell(row, 'dateInscription')}</span>
                                 </div>
                                 <div className="space-y-1">
-                                    <span className="text-xs text-gray-400">Affectation</span>
+                                    <span className="text-xs text-muted">Affectation</span>
                                     {renderCell(row, 'restaurant')}
                                 </div>
                                 <div className="pt-2 flex flex-wrap gap-2">{renderCell(row, 'actions')}</div>
@@ -184,7 +184,7 @@ export default function Content({ initialData, restaurants }: Props) {
             <ConfirmDialog {...livreurAssigneCtrl.confirm} />
 
             <div className="flex h-fit z-10 justify-center mt-8 fixed bottom-4">
-                <div className="bg-gray-200 absolute inset-0 w-full h-full blur-xs opacity-50"></div>
+                <div className="bg-surface-tertiary absolute inset-0 w-full h-full blur-xs opacity-50"></div>
                 <Pagination 
                     total={livreurAssigneCtrl.data?.totalPages ?? 1} 
                     page={livreurAssigneCtrl.currentPage}
@@ -197,7 +197,7 @@ export default function Content({ initialData, restaurants }: Props) {
             </div>
 
             <div className="flex justify-between items-center mt-4 px-4">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-muted">
                     Affichage de {((livreurAssigneCtrl.currentPage - 1) * 5) + 1} à {Math.min(livreurAssigneCtrl.currentPage * 5, livreurAssigneCtrl.data?.totalElements ?? 0)} sur {livreurAssigneCtrl.data?.totalElements ?? 0} résultats
                     {livreurAssigneCtrl.searchKey && ` (filtré de ${livreurAssigneCtrl.initialData?.totalElements ?? 0} total)`}
                 </span>

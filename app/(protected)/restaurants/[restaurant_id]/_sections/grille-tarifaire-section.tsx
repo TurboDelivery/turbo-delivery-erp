@@ -40,14 +40,14 @@ export default function GrilleTarifaireSection({ restaurantId }: { restaurantId:
   }, [data, search]);
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
         <h2 className="text-base font-semibold text-primary">Grille tarifaire</h2>
         <Chip size="sm" variant="flat">
           {data ? `${data.length} zone${data.length > 1 ? 's' : ''}` : '…'}
         </Chip>
       </div>
-      <p className="text-sm text-gray-500 mb-4">
+      <p className="text-sm text-muted mb-4">
         Zones de livraison de ce partenaire et prix facturé par zone. Ces tarifs déterminent les frais
         appliqués aux courses (et la rémunération du livreur). Gestion complète dans{' '}
         <Link href="/price-list" className="text-primary underline underline-offset-2">
@@ -61,7 +61,7 @@ export default function GrilleTarifaireSection({ restaurantId }: { restaurantId:
         size="sm"
         variant="bordered"
         placeholder="Rechercher une zone..."
-        startContent={<Search className="w-4 h-4 text-gray-400" />}
+        startContent={<Search className="w-4 h-4 text-muted" />}
         value={search}
         onValueChange={setSearch}
         isClearable
@@ -83,7 +83,7 @@ export default function GrilleTarifaireSection({ restaurantId }: { restaurantId:
         removeWrapper
         isStriped
         classNames={{
-          th: 'bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide',
+          th: 'bg-surface-secondary text-xs font-semibold text-muted uppercase tracking-wide',
           td: 'py-2.5',
         }}
       >
@@ -106,14 +106,14 @@ export default function GrilleTarifaireSection({ restaurantId }: { restaurantId:
               <TableCell>
                 <div className="flex items-center gap-2 min-w-[180px]">
                   <MapPin className="w-4 h-4 text-primary shrink-0" />
-                  <span className="text-sm text-gray-700">{z.zone}</span>
+                  <span className="text-sm text-foreground">{z.zone}</span>
                 </div>
               </TableCell>
               <TableCell>
-                <span className="text-sm font-semibold text-gray-800 whitespace-nowrap">{fmtPrix(z.prix)}</span>
+                <span className="text-sm font-semibold text-foreground whitespace-nowrap">{fmtPrix(z.prix)}</span>
               </TableCell>
               <TableCell>
-                <span className="text-sm text-gray-500 whitespace-nowrap">
+                <span className="text-sm text-muted whitespace-nowrap">
                   {fmtKm(z.distanceDebut)} – {fmtKm(z.distanceFin)} km
                 </span>
               </TableCell>

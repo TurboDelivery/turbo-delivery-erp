@@ -117,7 +117,7 @@ export function EffectifTab() {
   };
 
   return (
-    <div className="space-y-3 rounded-xl border border-default-200 bg-white p-4">
+    <div className="space-y-3 rounded-xl border border-default-200 bg-surface p-4">
       {/* Barre de filtres */}
       <div className="flex flex-wrap items-end gap-2">
         <Select
@@ -231,7 +231,7 @@ export function EffectifTab() {
                 <div className="flex items-center justify-end gap-2">
                   {l.nbAnomalies > 0 ? (
                     <span
-                      className="flex items-center gap-1 text-xs text-warning"
+                      className="flex items-center gap-1 text-xs text-warning-soft-foreground"
                       title={`${l.nbAnomalies} anomalie(s) sur ce dossier`}
                     >
                       <AlertTriangle className="h-3.5 w-3.5" />

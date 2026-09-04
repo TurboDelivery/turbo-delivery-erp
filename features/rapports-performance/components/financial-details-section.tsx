@@ -48,7 +48,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
       label: 'Facture total a regler au compte du mois en cours',
       value: financialDetails?.totalFacture,
       rowClassName: 'py-4',
-      labelClassName: 'text-gray-700 font-medium',
+      labelClassName: 'text-foreground font-medium',
       valueClassName: 'text-xl font-bold text-green-600',
     },
   ];
@@ -56,7 +56,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
   return (
     <Card>
       <CardBody className="p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">Détails Financiers</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-6">Détails Financiers</h2>
         <div className="space-y-4">
           {detailItems.map((item) => (
             <FinancialDetailRow

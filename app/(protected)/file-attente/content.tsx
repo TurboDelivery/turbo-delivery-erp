@@ -29,7 +29,7 @@ function ChipFiltre({
       aria-pressed={actif}
       className={`rounded-full px-3.5 py-2 text-xs font-semibold transition ${
         actif
-          ? 'bg-[#17181C] text-white'
+          ? 'bg-surface-secondary text-white'
           : 'bg-default-100 text-default-600 hover:bg-default-200'
       }`}
     >

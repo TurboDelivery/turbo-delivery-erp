@@ -45,7 +45,7 @@ export function VerrouillageV2Footer({ ticketCount, isValidating, onValidateAll 
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-foreground">
               Vous êtes sur le point de valider{' '}
               <span className="font-semibold">
                 {ticketCount} ticket{ticketCount > 1 ? 's' : ''}

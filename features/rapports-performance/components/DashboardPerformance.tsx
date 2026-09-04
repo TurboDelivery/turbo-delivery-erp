@@ -28,7 +28,7 @@ export default function DashboardPerformance() {
   });
 
   return (
-    <div className="bg-gray-50 p-4 sm:p-6">
+    <div className="bg-surface-secondary p-4 sm:p-6">
       <DashboardHeader
         selectedYear={selectedYear}
         years={years}

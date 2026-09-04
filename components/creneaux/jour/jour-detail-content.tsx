@@ -23,7 +23,7 @@ function formatDateLabel(iso: string): string {
 
 function TurboyBadge({ turboy, variant }: { turboy: ICreneauTurboySimple; variant: 'present' | 'absent' }) {
   const Icon = variant === 'present' ? CheckCircle2 : XCircle;
-  const iconColor = variant === 'present' ? 'text-success' : 'text-danger';
+  const iconColor = variant === 'present' ? 'text-success-soft-foreground' : 'text-danger-soft-foreground';
   const subtitle = variant === 'absent' ? 'Inscrit mais absent' : undefined;
 
   return (
@@ -64,8 +64,8 @@ export function JourDetailContent({ date }: JourDetailContentProps) {
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 p-12 text-center">
-        <XCircle className="size-10 text-danger" />
-        <p className="font-semibold text-danger">Impossible de charger les données</p>
+        <XCircle className="size-10 text-danger-soft-foreground" />
+        <p className="font-semibold text-danger-soft-foreground">Impossible de charger les données</p>
         <p className="text-sm text-muted-foreground">Une erreur est survenue lors de la récupération des présences du jour.</p>
         <Link
           href="/delivery-men/creneaux"
@@ -133,11 +133,11 @@ export function JourDetailContent({ date }: JourDetailContentProps) {
         <div className="rounded-xl border border-success-200 bg-success-50/30">
           <div className="flex items-center justify-between border-b border-success-200 px-4 py-3">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="size-4 text-success" />
+              <CheckCircle2 className="size-4 text-success-soft-foreground" />
               <h2 className="font-semibold text-sm">Turboys Présents</h2>
             </div>
             {!isLoading && (
-              <span className="text-xs font-medium text-success bg-success-100 rounded-full px-2 py-0.5">
+              <span className="text-xs font-medium text-success-soft-foreground bg-success-100 rounded-full px-2 py-0.5">
                 {data?.presents ?? 0}/{data?.inscrits ?? 0}
               </span>
             )}
@@ -165,11 +165,11 @@ export function JourDetailContent({ date }: JourDetailContentProps) {
         <div className="rounded-xl border border-danger-200 bg-danger-50/30">
           <div className="flex items-center justify-between border-b border-danger-200 px-4 py-3">
             <div className="flex items-center gap-2">
-              <XCircle className="size-4 text-danger" />
+              <XCircle className="size-4 text-danger-soft-foreground" />
               <h2 className="font-semibold text-sm">Turboys Absents (Inscrits)</h2>
             </div>
             {!isLoading && (
-              <span className="text-xs font-medium text-danger bg-danger-100 rounded-full px-2 py-0.5">
+              <span className="text-xs font-medium text-danger-soft-foreground bg-danger-100 rounded-full px-2 py-0.5">
                 {data?.absents ?? 0}/{data?.inscrits ?? 0}
               </span>
             )}

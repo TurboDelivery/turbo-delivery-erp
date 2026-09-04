@@ -172,7 +172,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
                       <TableRow key={`skeleton-${i}`}>
                         {Array.from({ length: table.getAllColumns().length }).map((_, j) => (
                           <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                            <div className="h-4 bg-surface-tertiary rounded w-full" />
                           </TableCell>
                         ))}
                       </TableRow>
@@ -222,11 +222,11 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
           {/* Mobile — cartes tactiles (remplace le tableau < md) */}
           <div className={`md:hidden space-y-3 ${isFetching ? 'opacity-70' : ''}`}>
             {isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-24 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+              Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-24 rounded-xl bg-surface-secondary animate-pulse" />)
             ) : isError ? (
               zoneErreur
             ) : accomptes.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-10">Aucun acompte</p>
+              <p className="text-sm text-muted text-center py-10">Aucun acompte</p>
             ) : (
               accomptes.map((accompte) => <AccompteMobileCard key={accompte.id} accompte={accompte} />)
             )}

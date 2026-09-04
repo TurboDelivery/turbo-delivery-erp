@@ -18,7 +18,7 @@ export function DiffValeurs({ action }: { action: IAuditAction }) {
 
   if (lignes.length === 0) {
     if (!action.succes && action.erreur) {
-      return <span className="text-xs text-danger">Échec : {action.erreur}</span>;
+      return <span className="text-xs text-danger-soft-foreground">Échec : {action.erreur}</span>;
     }
     return <span className="text-xs text-default-400">—</span>;
   }
@@ -31,11 +31,11 @@ export function DiffValeurs({ action }: { action: IAuditAction }) {
       {visibles.map((ligne) => (
         <div key={ligne.champ} className="flex flex-wrap items-baseline gap-1">
           <span className="text-default-500">{libelleChamp(ligne.champ)} :</span>
-          <span className="text-danger line-through decoration-1" title={ligne.avant}>
+          <span className="text-danger-soft-foreground line-through decoration-1" title={ligne.avant}>
             {ligne.avant}
           </span>
           <span className="text-default-400">→</span>
-          <span className="font-semibold text-success" title={ligne.apres}>
+          <span className="font-semibold text-success-soft-foreground" title={ligne.apres}>
             {ligne.apres}
           </span>
         </div>

@@ -30,7 +30,7 @@ export function EntreeCaisseMiniTable() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-700">
+        <h3 className="text-sm font-semibold text-foreground">
           5 dernières entrées caisse
         </h3>
         {/* Ce tableau vit dans « Dashboard Performance », ouvert a OPS_MANAGER et
@@ -67,7 +67,7 @@ export function EntreeCaisseMiniTable() {
             loadingContent={
               <div className="space-y-2 p-2">
                 {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-8 bg-gray-200 rounded animate-pulse" />
+                  <div key={i} className="h-8 bg-surface-tertiary rounded animate-pulse" />
                 ))}
               </div>
             }
@@ -81,7 +81,7 @@ export function EntreeCaisseMiniTable() {
                 <TableCell>
                   <EntreeCaisseStatutCell entree={entry} />
                 </TableCell>
-                <TableCell className="text-sm text-gray-500">
+                <TableCell className="text-sm text-muted">
                   {format(new Date(entry.dateEntree), 'dd/MM/yyyy', { locale: fr })}
                 </TableCell>
               </TableRow>
@@ -94,25 +94,25 @@ export function EntreeCaisseMiniTable() {
       <div className="md:hidden space-y-3">
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={`m-skel-${i}`} className="h-20 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={`m-skel-${i}`} className="h-20 rounded-xl bg-surface-secondary animate-pulse" />
           ))
         ) : isError ? (
           zoneErreur
         ) : derniers5.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-6">Aucune entrée caisse</p>
+          <p className="text-sm text-muted text-center py-6">Aucune entrée caisse</p>
         ) : (
           derniers5.map((entry) => (
-            <div key={entry.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+            <div key={entry.id} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{entry.libelle}</p>
-                <span className="text-sm font-semibold text-gray-900 shrink-0">{formatMontant(entry.montant)}</span>
+                <p className="text-sm font-semibold text-foreground min-w-0 wrap-break-word">{entry.libelle}</p>
+                <span className="text-sm font-semibold text-foreground shrink-0">{formatMontant(entry.montant)}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs text-gray-400">Date</span>
-                <span className="text-sm text-gray-500">{format(new Date(entry.dateEntree), 'dd/MM/yyyy', { locale: fr })}</span>
+                <span className="text-xs text-muted">Date</span>
+                <span className="text-sm text-muted">{format(new Date(entry.dateEntree), 'dd/MM/yyyy', { locale: fr })}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs text-gray-400">Statut</span>
+                <span className="text-xs text-muted">Statut</span>
                 <EntreeCaisseStatutCell entree={entry} />
               </div>
             </div>

@@ -77,7 +77,7 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
 
   if (isError || !dossier) {
     return (
-      <div className="rounded-xl border border-default-200 bg-white p-6 text-sm text-default-500">
+      <div className="rounded-xl border border-default-200 bg-surface p-6 text-sm text-default-500">
         Ce dossier est introuvable.{' '}
         <Link href="/personnel" className="font-semibold text-primary hover:underline">
           Retour à l&apos;effectif
@@ -109,7 +109,7 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
       </Link>
 
       {/* En-tête */}
-      <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-default-200 bg-white p-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-default-200 bg-surface p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-default-100 text-sm font-semibold text-default-600">
             {initiales(fiche.name)}
@@ -154,7 +154,7 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[340px_1fr]">
             {/* Colonne gauche */}
             <div className="space-y-4">
-              <section className="rounded-xl border border-default-200 bg-white p-4">
+              <section className="rounded-xl border border-default-200 bg-surface p-4">
                 <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-default-500">
                   Dossier d&apos;enrôlement
                 </h2>
@@ -181,7 +181,7 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                         ) : null}
                       </span>
                     ) : (
-                      <span className="text-danger">Manquante</span>
+                      <span className="text-danger-soft-foreground">Manquante</span>
                     )
                   }
                 />
@@ -297,7 +297,7 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                 </div>
               </section>
 
-              <section className="rounded-xl border border-default-200 bg-white p-4">
+              <section className="rounded-xl border border-default-200 bg-surface p-4">
                 <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-default-500">
                   Parcours de l&apos;agent
                 </h2>
@@ -306,7 +306,7 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
             </div>
 
             {/* Colonne droite */}
-            <section className="rounded-xl border border-default-200 bg-white p-4">
+            <section className="rounded-xl border border-default-200 bg-surface p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-[11px] font-semibold uppercase tracking-wide text-default-500">
                   Historique mensuel de rémunération
@@ -345,7 +345,7 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
         </TabsContent>
 
         <TabsContent value="audit" className="mt-4">
-          <div className="space-y-2 rounded-xl border border-default-200 bg-white p-4">
+          <div className="space-y-2 rounded-xl border border-default-200 bg-surface p-4">
             <p className="text-xs text-default-400">
               Toute écriture sur cette fiche est journalisée automatiquement, avec l&apos;auteur et la valeur avant /
               après. Le journal est immuable : il ne peut être ni modifié ni supprimé.

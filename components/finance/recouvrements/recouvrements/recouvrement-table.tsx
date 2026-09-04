@@ -53,7 +53,7 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
                   <TableRow key={`skeleton-${i}`}>
                     {Array.from({ length: colsCount }).map((_, j) => (
                       <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                        <div className="h-4 bg-surface-tertiary rounded w-full" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -72,11 +72,11 @@ export function RecouvrementTable({ restoOpts, isOptionsLoading }: RecouvrementT
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <div className={`md:hidden space-y-3 ${isFetching ? 'opacity-70' : ''}`}>
         {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-28 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+          Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-28 rounded-xl bg-surface-secondary animate-pulse" />)
         ) : isError ? (
           zoneErreur
         ) : table.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucun recouvrement</p>
+          <p className="text-sm text-muted text-center py-10">Aucun recouvrement</p>
         ) : (
           table.getRowModel().rows.map((row) => <RecouvrementMobileCard key={row.id} recouvrement={row.original} />)
         )}

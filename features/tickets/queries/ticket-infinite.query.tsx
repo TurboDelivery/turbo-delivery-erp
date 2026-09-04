@@ -22,8 +22,15 @@ export const ticketsInfiniteQueryOption = (ticketsParamsDTO: ITicketParams) => {
     refetchOnMount: true,
   initialPageParam: 0,
     getNextPageParam: (lastPage: PaginatedResponse<BonLivraisonTerminee>) => {
-      const hasNextPage = lastPage.totalPages > lastPage.pageable.pageNumber;
-      return hasNextPage ? lastPage.pageable.pageNumber + 1 : undefined;
+      /*
+       * On comparait un COMPTE de pages a un INDEX base sur zero. Sur la derniere page
+       * reelle, `pageNumber` vaut `totalPages - 1`, la condition restait vraie, et une
+       * page `totalPages` etait demandee au serveur a chaque fin de defilement : un
+       * aller-retour inutile, systematique, sur un ecran qu'on fait defiler toute la
+       * journee. La requete d'archives, elle, comparait juste.
+       */
+      const resteUnePage = lastPage.totalPages > lastPage.pageable.pageNumber + 1;
+      return resteUnePage ? lastPage.pageable.pageNumber + 1 : undefined;
     },
     getPreviousPageParam: (firstPage: PaginatedResponse<BonLivraisonTerminee>) => {
       const hasPreviousPage = firstPage.pageable.pageNumber > 0;

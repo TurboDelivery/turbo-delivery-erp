@@ -33,7 +33,7 @@ export function CompteSection({ username, password, onUsernameChange, onPassword
           onChange={(e) => onPasswordChange(e.target.value)}
           placeholder="••••••••"
           endContent={
-            <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-gray-400 hover:text-gray-600">
+            <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-muted hover:text-foreground">
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           }

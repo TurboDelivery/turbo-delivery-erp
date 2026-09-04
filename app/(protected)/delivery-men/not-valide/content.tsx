@@ -52,28 +52,28 @@ export default function Content({ initialData }: ContentProps) {
                     <div className="md:hidden space-y-3">
                         {isLoading ? (
                             Array.from({ length: 6 }).map((_, i) => (
-                                <div key={i} className="h-32 rounded-xl bg-gray-100 animate-pulse" />
+                                <div key={i} className="h-32 rounded-xl bg-surface-secondary animate-pulse" />
                             ))
                         ) : rows.length === 0 ? (
                             <EmptyDataTable title='Aucun livreur' />
                         ) : (
                             rows.map((item) => (
-                                <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+                                <div key={item.id} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="min-w-0">{renderCell(item, 'nom') as React.ReactNode}</div>
                                         <div className="shrink-0">{renderCell(item, 'status') as React.ReactNode}</div>
                                     </div>
                                     <div className="flex items-center justify-between gap-3">
-                                        <span className="text-xs text-gray-400 shrink-0">Matricule</span>
-                                        <span className="text-sm text-gray-700 text-right truncate">{renderCell(item, 'matricule') as React.ReactNode}</span>
+                                        <span className="text-xs text-muted shrink-0">Matricule</span>
+                                        <span className="text-sm text-foreground text-right truncate">{renderCell(item, 'matricule') as React.ReactNode}</span>
                                     </div>
                                     <div className="flex items-center justify-between gap-3">
-                                        <span className="text-xs text-gray-400 shrink-0">Téléphone</span>
-                                        <span className="text-sm text-gray-700 text-right truncate">{renderCell(item, 'telephone') as React.ReactNode}</span>
+                                        <span className="text-xs text-muted shrink-0">Téléphone</span>
+                                        <span className="text-sm text-foreground text-right truncate">{renderCell(item, 'telephone') as React.ReactNode}</span>
                                     </div>
                                     <div className="flex items-center justify-between gap-3">
-                                        <span className="text-xs text-gray-400 shrink-0">Pièces conformes</span>
-                                        <span className="text-sm text-gray-700 text-right">{renderCell(item, 'pieces') as React.ReactNode}</span>
+                                        <span className="text-xs text-muted shrink-0">Pièces conformes</span>
+                                        <span className="text-sm text-foreground text-right">{renderCell(item, 'pieces') as React.ReactNode}</span>
                                     </div>
                                     <div className="pt-2 flex flex-wrap gap-2">{renderCell(item, 'actions') as React.ReactNode}</div>
                                 </div>
@@ -83,7 +83,7 @@ export default function Content({ initialData }: ContentProps) {
                 </>
             )}
             <div className="flex h-fit z-10 justify-center mt-8 fixed bottom-4">
-                <div className="bg-gray-200 absolute inset-0 w-full h-full blur-xs opacity-50"></div>
+                <div className="bg-surface-tertiary absolute inset-0 w-full h-full blur-xs opacity-50"></div>
                 <Pagination total={data?.totalPages ?? 1} page={currentPage} onChange={fetchData} showControls color="primary" variant="bordered" isDisabled={isLoading} />
             </div>
         </div>

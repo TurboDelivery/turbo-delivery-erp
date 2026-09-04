@@ -44,11 +44,11 @@ export default function ConfirmerReceptionModal({ open, onClose, facture, onConf
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" onClick={onClose} />
       <div
-        className="relative z-10 w-full max-w-lg mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden"
+        className="relative z-10 w-full max-w-lg mx-4 bg-surface rounded-2xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-indigo-50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-separator bg-indigo-50">
           <div>
             <p className="text-sm font-semibold text-indigo-900">Enregistrer la fiche de paiement</p>
             <p className="text-xs text-indigo-600 mt-0.5">
@@ -67,15 +67,15 @@ export default function ConfirmerReceptionModal({ open, onClose, facture, onConf
         <div className="px-6 py-5 space-y-4">
           {/* Info montant */}
           <div className="rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 flex items-center justify-between">
-            <span className="text-xs text-gray-500">Montant recouvré</span>
-            <span className="text-sm font-bold text-gray-900">
+            <span className="text-xs text-muted">Montant recouvré</span>
+            <span className="text-sm font-bold text-foreground">
               {formatMontant(facture.montantRecouvre ?? facture.montant)}
             </span>
           </div>
 
           {/* Référence fiche de paiement */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-gray-700">
+            <label className="text-xs font-medium text-foreground">
               Référence fiche de paiement <span className="text-red-500">*</span>
             </label>
             <input
@@ -83,14 +83,14 @@ export default function ConfirmerReceptionModal({ open, onClose, facture, onConf
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               placeholder="Ex : FP-2026-0042"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+              className="w-full rounded-lg border border-separator px-3 py-2 text-sm text-foreground focus:outline-hidden focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
               autoFocus
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-separator">
           <Button variant="outline" onClick={onClose} className="text-sm">
             Annuler
           </Button>

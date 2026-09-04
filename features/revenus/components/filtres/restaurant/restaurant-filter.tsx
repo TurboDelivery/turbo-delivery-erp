@@ -14,8 +14,8 @@ const OptionWithIcon = (props: any) => {
                     <Store className="w-3 h-3 text-blue-600" />
                 </div>
                 <div className="flex-1">
-                    <div className="font-medium text-gray-900">{props.data.label}</div>
-                    <div className="text-xs text-gray-500">Restaurant</div>
+                    <div className="font-medium text-foreground">{props.data.label}</div>
+                    <div className="text-xs text-muted">Restaurant</div>
                 </div>
             </div>
         </components.Option>
@@ -72,7 +72,7 @@ export function RestaurantFilter({ onRestaurantChange, selectedRestaurants }: Re
 
     return (
         <div className="relative w-full md:w-[350px]">
-            <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-10 pointer-events-none" />
+            <Store className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted z-10 pointer-events-none" />
             <Select
                 isMulti
                 placeholder="Filtrer par restaurants..."

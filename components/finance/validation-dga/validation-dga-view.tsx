@@ -48,22 +48,22 @@ function FactureItem({ facture, selected, onClick }: FactureItemProps) {
       className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all ${
         selected
           ? 'border-blue-400 bg-blue-50 shadow-xs'
-          : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'
+          : 'border-separator bg-surface hover:border-gray-200 hover:bg-surface-secondary'
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${selected ? 'bg-blue-100' : 'bg-gray-100'}`}>
-            <Building2 className={`w-4 h-4 ${selected ? 'text-blue-600' : 'text-gray-500'}`} />
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${selected ? 'bg-blue-100' : 'bg-surface-secondary'}`}>
+            <Building2 className={`w-4 h-4 ${selected ? 'text-blue-600' : 'text-muted'}`} />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{facture.partenaire}</p>
-            <p className="text-xs text-gray-500">{facture.numero}</p>
+            <p className="text-sm font-semibold text-foreground truncate">{facture.partenaire}</p>
+            <p className="text-xs text-muted">{facture.numero}</p>
           </div>
         </div>
         <div className="text-right shrink-0">
           <p className="text-sm font-bold text-red-600">{formatMontant(facture.montant)}</p>
-          <p className="text-xs text-gray-400 flex items-center justify-end gap-1 mt-0.5">
+          <p className="text-xs text-muted flex items-center justify-end gap-1 mt-0.5">
             <Calendar className="w-3 h-3" />
             {formatDate(facture.emission)}
           </p>
@@ -101,32 +101,32 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
 
   if (!facture) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-gray-300 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+      <div className="flex-1 flex flex-col items-center justify-center text-muted bg-surface-secondary rounded-2xl border border-dashed border-separator">
         <FileText className="w-16 h-16 mb-3 opacity-40" />
-        <p className="text-sm font-medium text-gray-400">Sélectionnez une facture</p>
-        <p className="text-xs text-gray-300 mt-1">La preuve de paiement s&apos;affichera ici</p>
+        <p className="text-sm font-medium text-muted">Sélectionnez une facture</p>
+        <p className="text-xs text-muted mt-1">La preuve de paiement s&apos;affichera ici</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden">
+    <div className="flex-1 flex flex-col bg-surface rounded-2xl border border-separator shadow-xs overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+      <div className="flex items-center justify-between px-5 py-3.5 border-b border-separator">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
             <FileText className="w-4 h-4 text-indigo-600" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-900">PREUVE DE PAIEMENT</p>
-            <p className="text-xs text-gray-400">{facture.numero} — {facture.partenaire}</p>
+            <p className="text-sm font-semibold text-foreground">PREUVE DE PAIEMENT</p>
+            <p className="text-xs text-muted">{facture.numero} — {facture.partenaire}</p>
           </div>
         </div>
         {preuve && (
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleDownload}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="p-1.5 rounded-lg text-muted hover:text-foreground hover:bg-surface-secondary transition-colors"
               title="Télécharger"
             >
               <Download className="w-4 h-4" />
@@ -136,7 +136,7 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
       </div>
 
       {/* Proof viewer */}
-      <div className="flex-1 overflow-auto p-4 bg-gray-50">
+      <div className="flex-1 overflow-auto p-4 bg-surface-secondary">
         {isLoading ? (
           <div className="h-full flex items-center justify-center">
             <div className="w-8 h-8 rounded-full border-2 border-indigo-300 border-t-indigo-600 animate-spin" />
@@ -146,15 +146,15 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
              premier se corrige en reessayant, le second justifierait un rejet. */
           <EtatErreur quoi="la preuve de paiement" onReessayer={onReessayer} />
         ) : !preuve ? (
-          <div className="h-full flex flex-col items-center justify-center text-gray-400">
+          <div className="h-full flex flex-col items-center justify-center text-muted">
             <FileText className="w-12 h-12 mb-3 opacity-30" />
             <p className="text-sm font-medium">Aucune preuve disponible</p>
-            <p className="text-xs mt-1 text-gray-300">La preuve n&apos;a pas encore été ajoutée.</p>
+            <p className="text-xs mt-1 text-muted">La preuve n&apos;a pas encore été ajoutée.</p>
           </div>
         ) : isPdf ? (
           <iframe
             src={preuve}
-            className="w-full h-full rounded-lg border border-gray-200 bg-white"
+            className="w-full h-full rounded-lg border border-separator bg-surface"
             style={{ minHeight: '400px' }}
             title="Preuve PDF"
           />
@@ -162,13 +162,13 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
           <img
             src={preuve}
             alt="Preuve de paiement"
-            className="w-full rounded-lg border border-gray-200 object-contain bg-white"
+            className="w-full rounded-lg border border-separator object-contain bg-surface"
           />
         ) : (
-          <div className="h-full flex flex-col items-center justify-center text-gray-400">
+          <div className="h-full flex flex-col items-center justify-center text-muted">
             <FileText className="w-12 h-12 mb-3 opacity-30" />
             <p className="text-sm font-medium">Format non supporté</p>
-            <p className="text-xs mt-1 text-gray-300">
+            <p className="text-xs mt-1 text-muted">
               <button onClick={handleDownload} className="text-blue-500 underline">Télécharger le fichier</button>
             </p>
           </div>
@@ -176,8 +176,8 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
       </div>
 
       {/* Action bar */}
-      <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between gap-3 bg-white">
-        <div className="text-xs text-gray-400">
+      <div className="px-5 py-4 border-t border-separator flex items-center justify-between gap-3 bg-surface">
+        <div className="text-xs text-muted">
           Montant :{' '}
           <span className="font-semibold text-red-600">{formatMontant(facture.montant)}</span>
         </div>
@@ -185,7 +185,7 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
           <Button
             variant="bordered"
             size="sm"
-            className="text-gray-600 border-gray-300 hover:border-red-300 hover:text-red-600"
+            className="text-muted border-separator hover:border-red-300 hover:text-red-600"
             startContent={<X className="w-4 h-4" />}
             onPress={onRejeter}
             isDisabled={isPending}
@@ -310,28 +310,28 @@ export default function ValidationDgaView() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-primary">Vue Directeur Général Adjoint</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Validation des preuves de paiement — Étape 5</p>
+          <p className="text-sm text-muted mt-0.5">Validation des preuves de paiement — Étape 5</p>
         </div>
-        <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 px-3 py-2 shadow-xs">
+        <div className="flex items-center gap-2 bg-surface rounded-xl border border-separator px-3 py-2 shadow-xs">
           <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center">
             <span className="text-xs font-bold text-indigo-700">
               {userName.charAt(0).toUpperCase()}
             </span>
           </div>
-          <span className="text-sm font-medium text-gray-700">{userName}</span>
+          <span className="text-sm font-medium text-foreground">{userName}</span>
         </div>
       </div>
 
       {/* Two-panel layout — empilé sur mobile, côte à côte ≥ lg */}
       <div className="flex flex-col md:flex-row gap-4 flex-1 min-h-0">
         {/* Left panel — Invoice list (pleine largeur sur mobile, hauteur limitée) */}
-        <div className="w-full md:w-80 md:shrink-0 flex flex-col bg-white rounded-2xl border border-gray-100 shadow-xs overflow-hidden max-h-[45vh] md:max-h-none">
+        <div className="w-full md:w-80 md:shrink-0 flex flex-col bg-surface rounded-2xl border border-separator shadow-xs overflow-hidden max-h-[45vh] md:max-h-none">
           {/* Panel header */}
-          <div className="px-4 py-3.5 border-b border-gray-100">
+          <div className="px-4 py-3.5 border-b border-separator">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-gray-900">En attente de visa</p>
-                <p className="text-xs text-gray-400 mt-0.5">Étape 5 — Visa Direction</p>
+                <p className="text-sm font-semibold text-foreground">En attente de visa</p>
+                <p className="text-xs text-muted mt-0.5">Étape 5 — Visa Direction</p>
               </div>
               <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] rounded-full bg-red-500 text-white text-xs font-bold px-1.5">
                 {pendingCount}
@@ -352,12 +352,12 @@ export default function ValidationDgaView() {
               />
             ) : listLoading ? (
               Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-16 rounded-xl bg-gray-100 animate-pulse" />
+                <div key={i} className="h-16 rounded-xl bg-surface-secondary animate-pulse" />
               ))
             ) : factures.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-gray-300">
+              <div className="flex flex-col items-center justify-center py-16 text-muted">
                 <FileText className="w-10 h-10 mb-2 opacity-40" />
-                <p className="text-sm text-gray-400">Aucune facture en attente</p>
+                <p className="text-sm text-muted">Aucune facture en attente</p>
               </div>
             ) : (
               factures.map((facture) => (

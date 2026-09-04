@@ -1,10 +1,18 @@
 'use client';
 
+/*
+ * Le panneau reprend `Card` de la V3. Sa surface, son rayon et son ombre etaient jusqu'ici
+ * ecrits a la main (`bg-surface rounded-2xl border border-separator p-5`) : chaque reglage
+ * de theme devait etre reporte ici, alors que le composant le porte deja.
+ */
+import { Card, Chip, Spinner } from '@heroui-v3/react';
+import { Lock } from 'lucide-react';
 import { useEffect, useRef } from 'react';
+
 import EtatErreur from '@/components/commons/EtatErreur';
-import { Lock, Loader2 } from 'lucide-react';
-import { TicketControleV2 } from '../types/tickets-v2.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+
+import { TicketControleV2 } from '../types/tickets-v2.type';
 
 interface Props {
   isError?: boolean;
@@ -31,66 +39,74 @@ export default function TicketLockedList({ tickets, total, hasNextPage, isFetchi
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
   return (
-    <div className="flex-1 bg-white rounded-2xl border border-gray-200 p-5 flex flex-col gap-4 max-h-[70vh]">
-      <div className="flex items-center justify-between shrink-0">
+    <Card className="max-h-[70vh] flex-1">
+      <Card.Header className="flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-gray-900 inline-block" />
-          <h2 className="text-base font-semibold text-gray-800">Validés V1</h2>
+          <span aria-hidden="true" className="inline-block size-2.5 rounded-full bg-foreground" />
+          <Card.Title>Validés V1</Card.Title>
         </div>
-        <span className="text-sm text-gray-400 font-medium">{total}</span>
-      </div>
+        <Chip size="sm">{total}</Chip>
+      </Card.Header>
 
       {isError ? (
         /* Un echec de chargement ne doit pas se lire comme une periode sans ticket. */
-        <div className="flex flex-1 items-center justify-center">
+        <Card.Content className="items-center justify-center">
           <EtatErreur quoi="les tickets validés V1" onReessayer={onReessayer} />
-        </div>
+        </Card.Content>
       ) : tickets.length === 0 ? (
-        <div className="flex flex-1 items-center justify-center py-16">
-          <p className="text-sm text-gray-400">Aucun ticket validé V1 pour cette période.</p>
-        </div>
+        <Card.Content className="items-center justify-center py-16">
+          <p className="text-sm text-muted">Aucun ticket validé V1 pour cette période.</p>
+        </Card.Content>
       ) : (
-        <div ref={scrollRef} className="flex flex-col gap-3 overflow-y-auto flex-1 min-h-0 pr-1">
+        <Card.Content ref={scrollRef} className="min-h-0 gap-3 overflow-y-auto pe-1">
           {tickets.map((ticket) => (
             <div
               key={ticket.commandeId}
-              className="flex flex-col gap-1.5 rounded-xl bg-gray-50 border border-gray-100 px-4 py-3"
+              className="flex flex-col gap-1.5 rounded-xl border border-separator bg-surface-secondary px-4 py-3"
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-sm font-bold text-gray-900 truncate">{ticket.reference}</span>
-                  <span className="text-xs text-gray-400 uppercase tracking-wide truncate">{ticket.restaurant}</span>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-sm font-bold text-foreground">{ticket.reference}</span>
+                  <span className="truncate text-xs uppercase tracking-wide text-muted">{ticket.restaurant}</span>
                 </div>
-                <Lock className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
+                <Lock aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-muted" />
               </div>
 
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-                <span className="text-gray-400">CMD</span>
-                <span className="font-semibold text-gray-700">{formatCFA(ticket.coutCommande)}</span>
-                <span className="text-gray-200">·</span>
-                <span className="text-gray-400">LIV</span>
-                <span className="font-semibold text-gray-700">{formatCFA(ticket.coutLivraison)}</span>
-                <span className="text-gray-200">·</span>
-                <span className="text-gray-400">COM</span>
-                <span className="font-semibold text-green-600">
+                <span className="text-muted">CMD</span>
+                <span className="font-semibold tabular-nums text-foreground">{formatCFA(ticket.coutCommande)}</span>
+                <span className="text-muted">·</span>
+                <span className="text-muted">LIV</span>
+                <span className="font-semibold tabular-nums text-foreground">{formatCFA(ticket.coutLivraison)}</span>
+                <span className="text-muted">·</span>
+                <span className="text-muted">COM</span>
+                {/* La commission etait en `text-green-600`, sans variante sombre : ce vert
+                    fonce restait tel quel sur fond sombre et le seul montant qui compte pour
+                    la paie perdait son contraste. `text-success-soft-foreground` dit la meme chose et suit
+                    les deux themes. */}
+                <span className="font-semibold tabular-nums text-success-soft-foreground">
                   {ticket.commission != null ? formatCFA(ticket.commission) : '—'}
                 </span>
               </div>
               {ticket.createdByUser && (
-                <div className="flex items-center gap-1 text-xs text-gray-400">
+                <div className="flex items-center gap-1 text-xs text-muted">
                   <span>Créé par</span>
-                  <span className="font-medium text-gray-500">
+                  <span className="font-medium text-muted">
                     {ticket.createdByUser.prenoms} {ticket.createdByUser.nom}
                   </span>
                 </div>
               )}
             </div>
           ))}
-          <div ref={bottomRef} className="flex items-center justify-center py-1 shrink-0">
-            {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-300" />}
+          {/* Sentinelle de pagination. Le rond de chargement etait dessine a la main
+              (`Loader2` + `animate-spin`) ; `Spinner` est le composant de la bibliotheque.
+              `color="current"` lui donne le gris de la ligne : l'accent reste reserve a ce
+              qui appelle une action. */}
+          <div ref={bottomRef} className="flex shrink-0 items-center justify-center py-1 text-muted">
+            {isFetchingNextPage && <Spinner color="current" size="sm" />}
           </div>
-        </div>
+        </Card.Content>
       )}
-    </div>
+    </Card>
   );
 }

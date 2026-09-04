@@ -325,7 +325,7 @@ export function FacturationPlageView() {
 
       {partenaire && !['PLAGE_DATES', 'AU_CHOIX'].includes(partenaire.cycleEffectif ?? '') ? (
         <div className="flex items-start gap-2 rounded-large border border-warning-200 bg-warning-50/50 p-3 text-sm">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning-soft-foreground" />
           <div>
             <p className="font-medium text-default-700">
               {partenaire.nomEtablissement} est sur un cycle généré automatiquement
@@ -368,7 +368,7 @@ export function FacturationPlageView() {
         // choisissait ses dates et il ne se passait plus rien, sans rien à lire ni à faire.
         <Card shadow="none" className="border border-warning-200 bg-warning-50/40">
           <CardBody className="flex flex-col items-center gap-3 py-10 text-center">
-            <AlertTriangle className="h-7 w-7 text-warning" />
+            <AlertTriangle className="h-7 w-7 text-warning-soft-foreground" />
             <div>
               <p className="text-sm font-semibold text-default-700">
                 Impossible de calculer cette période
@@ -387,9 +387,9 @@ export function FacturationPlageView() {
           {conflits.length > 0 ? (
             <Card shadow="none" className="border border-danger-200 bg-danger-50/40">
               <CardHeader className="flex items-start gap-2 pb-1">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-danger-soft-foreground" />
                 <div>
-                  <p className="text-sm font-semibold text-danger">
+                  <p className="text-sm font-semibold text-danger-soft-foreground">
                     Cette plage est déjà facturée, en tout ou en partie
                   </p>
                   <p className="text-xs text-danger-600">
@@ -507,7 +507,7 @@ export function FacturationPlageView() {
 
               {apercu.total <= 0 && conflits.length === 0 ? (
                 <div className="flex items-center gap-2 rounded-large border border-default-200 bg-default-50 p-3 text-sm text-default-600">
-                  <AlertTriangle className="h-4 w-4 text-warning" />
+                  <AlertTriangle className="h-4 w-4 text-warning-soft-foreground" />
                   Aucune course facturable sur cette période. Il n&apos;y a rien à facturer.
                 </div>
               ) : null}

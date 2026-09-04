@@ -79,10 +79,10 @@ function Stepper({ item, seuil }: { item: IFinanceItem; seuil: number }) {
             ? 'border-primary ring-2 ring-primary/20'
             : skip
               ? 'border-dashed border-default-300 bg-default-100'
-              : 'border-default-300 bg-white'
+              : 'border-default-300 bg-surface'
       }`}
     >
-      {done && <span className="h-1 w-1 rounded-full bg-white" />}
+      {done && <span className="h-1 w-1 rounded-full bg-surface" />}
     </span>
   );
   const line = (done: boolean) => <span className={`h-0.5 flex-1 ${done ? 'bg-emerald-600' : 'bg-default-200'}`} />;
@@ -721,7 +721,7 @@ export function FinanceHubView() {
           { label: 'Supprimer', color: 'danger', onPress: confirmDelete },
         ]}
       >
-        <p className="text-sm text-gray-700">
+        <p className="text-sm text-foreground">
           Voulez-vous vraiment supprimer <span className="font-semibold">{itemToDelete?.designation}</span> ? Cette action est irréversible.
         </p>
       </ConfirmModal>
@@ -731,7 +731,7 @@ export function FinanceHubView() {
 
 function CaPart({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-lg border border-emerald-200 bg-white/70 px-3 py-2">
+    <div className="rounded-lg border border-emerald-200 bg-surface/70 px-3 py-2">
       <div className="text-[10px] font-medium uppercase tracking-wide text-default-500">{label}</div>
       <div className="text-sm font-bold tabular-nums text-foreground">{value}</div>
       {hint && <div className="mt-0.5 text-[10px] text-default-400">{hint}</div>}

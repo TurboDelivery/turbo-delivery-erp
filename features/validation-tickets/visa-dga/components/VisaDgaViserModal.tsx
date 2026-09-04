@@ -1,7 +1,24 @@
 'use client';
 
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+/*
+ * Confirmation du visa DGA avant transmission au PDG.
+ *
+ * <p>Deux corrections portees par le passage en V3 :</p>
+ *
+ * <p>1. Le resume et le pave d'explication etaient peints en `bg-green-50` / `bg-blue-50`
+ * sans variante sombre. Avec la bascule de theme de l'en-tete, l'operateur qui travaille
+ * en sombre lisait du texte fonce sur un fond clair au milieu d'une fenetre sombre : les
+ * chiffres qu'il doit verifier AVANT de viser devenaient les moins lisibles de l'ecran.
+ * Les jetons `surface-secondary` / `separator` suivent le theme.</p>
+ *
+ * <p>2. Le bouton de confirmation etait force en rouge (`bg-red-500`) alors que la barre
+ * d'action de la meme page peint « Viser » en vert et « Rejeter » en rouge. Dans la
+ * fenetre, viser et rejeter se presentaient donc a l'identique : c'est le geste
+ * irreversible qui portait la couleur du refus. Il reprend le bouton primaire.</p>
+ */
+
+import { Button, Modal, Spinner } from '@heroui-v3/react';
+import { ShieldCheck } from 'lucide-react';
 
 function formatNumber(n: number) {
   return n.toLocaleString('fr-FR');
@@ -29,62 +46,70 @@ export default function VisaDgaViserModal({
   totaux,
 }: Props) {
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md gap-0 p-0 overflow-hidden rounded-2xl">
-        {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">Viser et Transmettre au PDG</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Créneau : {codeCreneau}</p>
-        </div>
+    <Modal.Backdrop
+      isOpen={open}
+      onOpenChange={(ouvert) => {
+        if (!ouvert) onClose();
+      }}
+    >
+      <Modal.Container>
+        <Modal.Dialog>
+          <Modal.CloseTrigger />
 
-        <div className="px-6 py-5 flex flex-col gap-4">
-          {/* Résumé */}
-          <div>
-            <p className="text-sm font-semibold text-gray-700 mb-2">Résumé du Créneau</p>
-            <div className="rounded-xl bg-green-50 divide-y divide-green-100">
-              <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-                <span className="text-gray-500">Indépendants à payer</span>
-                <span className="font-medium text-gray-900">{totaux.livreurs}</span>
-              </div>
-              <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-                <span className="text-gray-500">Tickets totaux</span>
-                <span className="font-medium text-gray-900">{totaux.tickets}</span>
-              </div>
-              <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-                <span className="text-gray-500">Total à payer (Indépendants)</span>
-                <span className="font-semibold text-emerald-600">
-                  {formatNumber(totaux.net)} FCFA
-                </span>
-              </div>
+          <Modal.Header>
+            <Modal.Icon className="bg-accent-soft text-accent-soft-foreground">
+              <ShieldCheck className="size-5" />
+            </Modal.Icon>
+            <div className="flex flex-col gap-0.5">
+              <Modal.Heading>Viser et Transmettre au PDG</Modal.Heading>
+              <p className="text-sm text-muted">Créneau : {codeCreneau}</p>
             </div>
-          </div>
+          </Modal.Header>
 
-          {/* Info block */}
-          <div className="rounded-xl bg-blue-50 px-4 py-3 text-sm text-blue-700">
-            <span className="font-bold">Action :</span> Le Créneau sera marqué comme &quot;Visé
-            DGA&quot; et transmis automatiquement au PDG pour l&apos;approbation finale.
-          </div>
-        </div>
+          <Modal.Body>
+            <p className="mb-2 text-sm font-semibold text-foreground">Résumé du Créneau</p>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isLoading}
-            className="rounded-full px-6"
-          >
-            Annuler
-          </Button>
-          <Button
-            onClick={onConfirm}
-            disabled={isLoading}
-            className="rounded-full px-6 bg-red-500 text-white hover:bg-red-600"
-          >
-            {isLoading ? 'Envoi...' : 'Viser et Transmettre'}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+            {/* Trois chiffres a rapprocher avant de viser : chasse tabulaire et alignement
+                a droite pour qu'ils se comparent d'un coup d'oeil. */}
+            <dl className="divide-y divide-separator overflow-hidden rounded-xl bg-surface-secondary">
+              <div className="flex items-center justify-between gap-4 px-4 py-2.5">
+                <dt>Indépendants à payer</dt>
+                <dd className="font-medium tabular-nums text-foreground">{totaux.livreurs}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-4 py-2.5">
+                <dt>Tickets totaux</dt>
+                <dd className="font-medium tabular-nums text-foreground">{totaux.tickets}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-4 py-2.5">
+                <dt>Total à payer (Indépendants)</dt>
+                <dd className="font-semibold tabular-nums text-success-soft-foreground">
+                  {formatNumber(totaux.net)} FCFA
+                </dd>
+              </div>
+            </dl>
+
+            <p className="mt-4 rounded-xl border border-separator px-4 py-3">
+              <span className="font-semibold text-foreground">Action :</span> Le Créneau sera marqué
+              comme &quot;Visé DGA&quot; et transmis automatiquement au PDG pour l&apos;approbation
+              finale.
+            </p>
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button variant="outline" isDisabled={isLoading} onPress={onClose}>
+              Annuler
+            </Button>
+            <Button isPending={isLoading} onPress={onConfirm}>
+              {({ isPending }) => (
+                <>
+                  {isPending ? <Spinner color="current" size="sm" /> : null}
+                  {isPending ? 'Envoi...' : 'Viser et Transmettre'}
+                </>
+              )}
+            </Button>
+          </Modal.Footer>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   );
 }

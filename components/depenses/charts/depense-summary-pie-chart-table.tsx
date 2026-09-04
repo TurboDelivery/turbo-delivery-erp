@@ -52,8 +52,8 @@ export function DepenseSummaryPieChartTable({
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-900">{payload[0].name}</p>
+        <div className="bg-surface p-3 border border-separator rounded-lg shadow-lg">
+          <p className="font-medium text-foreground">{payload[0].name}</p>
           <p className="text-sm font-bold" style={{ color: payload[0].payload.color }}>
             {formatCFA(payload[0].value)}
           </p>

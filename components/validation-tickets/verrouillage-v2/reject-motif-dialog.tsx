@@ -36,7 +36,7 @@ export function RejectMotifDialog({ open, ticketId, isRejecting, onConfirm, onCl
         </DialogHeader>
         <div className="space-y-2">
           <Label htmlFor="motif">
-            Motif <span className="text-gray-400 text-xs">(min. 30 caractères)</span>
+            Motif <span className="text-muted text-xs">(min. 30 caractères)</span>
           </Label>
           <Textarea
             id="motif"
@@ -45,7 +45,7 @@ export function RejectMotifDialog({ open, ticketId, isRejecting, onConfirm, onCl
             placeholder="Décrivez le motif du rejet..."
             rows={4}
           />
-          <p className="text-xs text-gray-400">{motif.trim().length} / 30 caractères minimum</p>
+          <p className="text-xs text-muted">{motif.trim().length} / 30 caractères minimum</p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={handleClose} disabled={isRejecting}>

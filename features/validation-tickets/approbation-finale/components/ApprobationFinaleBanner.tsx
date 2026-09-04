@@ -10,7 +10,7 @@ interface Props {
 
 export default function ApprobationFinaleBanner({ visePar, viseAt, totalNet, totalLivreurs }: Props) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-gray-200 bg-white px-5 py-4">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-separator bg-surface px-5 py-4">
       <div className="flex items-start gap-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50">
           <ShieldCheck className="h-5 w-5 text-red-500" />
@@ -21,24 +21,24 @@ export default function ApprobationFinaleBanner({ visePar, viseAt, totalNet, tot
               Visé par {visePar} le {formatDateHeure(viseAt)}
             </p>
           )}
-          <p className="text-sm text-gray-800 mt-1">
+          <p className="text-sm text-foreground mt-1">
             Ce paiement a été vérifié et validé par{' '}
             <span className="font-semibold text-green-700">5 niveaux de contrôle</span>.
           </p>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-muted mt-0.5">
             Saisie · V1 · V2 (Verrouillage) · Comptabilité · DGA.
           </p>
         </div>
       </div>
 
       <div className="text-left sm:text-right shrink-0">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted">
           Montant total à virer (Indépendants)
         </p>
         <p className="text-2xl sm:text-3xl font-bold text-green-600 mt-0.5">
           {totalNet.toLocaleString('fr-FR')}
         </p>
-        <p className="text-xs text-gray-400 mt-0.5">
+        <p className="text-xs text-muted mt-0.5">
           FCFA · {totalLivreurs} Turboys via Wave
         </p>
       </div>

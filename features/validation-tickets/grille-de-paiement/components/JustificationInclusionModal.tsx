@@ -1,12 +1,43 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { AlertTriangle, ShieldCheck, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+/*
+ * Override d'inclusion d'une ligne de paie par la Comptabilite, avec justification
+ * obligatoire tracee au journal de securite.
+ *
+ * Quatre defauts corriges au passage en V3.
+ *
+ * 1. La fenetre etait un `createPortal` maison vers `#modal-portal`, monte derriere un
+ * drapeau `mounted` pour passer le rendu serveur. Elle ne se fermait pas a la touche
+ * Echap et ne piegeait pas le focus : l'operateur qui tabulait depuis la zone de
+ * justification repartait dans le tableau reste derriere, sans indication visible de
+ * l'endroit ou il se trouvait. `Modal` porte le portail, le piege a focus et la fermeture
+ * au clavier ; la fermeture au clic exterieur, elle, existait deja et est conservee.
+ *
+ * 2. Le rond d'icone en tete etait peint `bg-emerald-100` ou `bg-amber-100`, et les deux
+ * bandeaux d'avertissement en `bg-amber-50 text-amber-800`, aucun sans variante sombre.
+ * Avec la bascule de theme de l'en-tete, l'operateur qui travaille en sombre lisait de
+ * l'ambre fonce sur fond ambre clair : l'avertissement « le lot a deja ete soumis au
+ * DGA », la seule chose a lire avant de renvoyer un lot en arriere dans le workflow,
+ * devenait le moins visible de la fenetre. Les echelles `success`, `warning` et `danger`
+ * portent le meme sens et suivent les deux themes.
+ *
+ * 3. Le bouton de confirmation etait force en `bg-emerald-600` ou `bg-amber-600` selon le
+ * sens de la bascule, teinte recopiee a la main qui ne bougeait plus avec le theme. Les
+ * deux sens gardent leur signal par le `variant` : inclure est le geste courant, exclure
+ * prive un livreur de sa paie du creneau et prend la teinte d'alerte.
+ *
+ * 4. Le compteur de caracteres passait en `text-emerald-600` en dur une fois le seuil
+ * atteint. Meme probleme de theme, et c'est le seul retour qui annonce a l'operateur que
+ * sa justification passera le controle du backend au lieu de revenir en 400.
+ */
+
+import { useEffect, useState } from 'react';
+import { Button, Label, Modal, Spinner, TextArea } from '@heroui-v3/react';
+import { AlertTriangle, Check, ShieldCheck } from 'lucide-react';
 import { IGrillePaiementLigne, TypeLivreur } from '../types/grille-paiement.type';
 
 const JUSTIFICATION_MIN = 30;
+const JUSTIFICATION_FIELD_ID = 'grille-paiement-justification-inclusion';
 
 interface Props {
   open: boolean;
@@ -42,19 +73,12 @@ export default function JustificationInclusionModal({
   onConfirm,
 }: Props) {
   const [justification, setJustification] = useState('');
-  const portalRef = useRef<Element | null>(null);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    portalRef.current = document.getElementById('modal-portal') ?? document.body;
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (open) setJustification('');
   }, [open]);
 
-  if (!open || !ligne || !mounted) return null;
+  if (!ligne) return null;
 
   const remaining = Math.max(0, JUSTIFICATION_MIN - justification.trim().length);
   const isValid = justification.trim().length >= JUSTIFICATION_MIN;
@@ -64,141 +88,145 @@ export default function JustificationInclusionModal({
   const action = nextValue ? 'inclure' : 'exclure';
   const actionMaj = nextValue ? 'Inclure' : 'Exclure';
   const typeLabel = typeLivreurLabel(ligne.typeLivreur ?? null);
+  const typeAssigne = ligne.typeLivreur !== null && ligne.typeLivreur !== undefined;
 
   function handleConfirm() {
     if (!isValid) return;
     onConfirm(justification.trim());
   }
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-60 flex items-center justify-center bg-black/50"
-      onClick={onClose}
+  return (
+    <Modal.Backdrop
+      isOpen={open}
+      onOpenChange={(ouvert) => {
+        if (!ouvert) onClose();
+      }}
     >
-      <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl mx-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-7 h-7 rounded-full flex items-center justify-center ${
-                nextValue ? 'bg-emerald-100' : 'bg-amber-100'
-              }`}
+      <Modal.Container size="lg">
+        <Modal.Dialog>
+          {/* `CloseTrigger` s'annonce « Close » par defaut : le lecteur d'ecran d'une
+              interface entierement en francais annoncait un mot anglais. */}
+          <Modal.CloseTrigger aria-label="Fermer" />
+
+          <Modal.Header>
+            {/* Le sens de la bascule se lit ici avant tout le reste : l'operateur ouvre
+                cette fenetre depuis une case a cocher et doit voir dans quel sens elle
+                part avant de rediger sa justification. */}
+            <Modal.Icon
+              className={
+                nextValue
+                  ? 'bg-success-soft text-success-soft-foreground'
+                  : 'bg-danger-soft text-danger-soft-foreground'
+              }
             >
-              <ShieldCheck
-                className={`w-4 h-4 ${nextValue ? 'text-emerald-600' : 'text-amber-600'}`}
-              />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-gray-900">
-                {actionMaj} cette ligne du paiement
-              </p>
-              <p className="text-xs text-gray-400">
+              <ShieldCheck className="size-5" />
+            </Modal.Icon>
+            <div className="flex flex-col gap-0.5">
+              <Modal.Heading>{actionMaj} cette ligne du paiement</Modal.Heading>
+              <p className="text-sm text-muted">
                 {ligne.turboy.nom}
-                {ligne.turboy.code && <span className="ml-1 text-gray-300">({ligne.turboy.code})</span>}
+                {ligne.turboy.code && <span className="ml-1">({ligne.turboy.code})</span>}
                 {' — '}
                 <span className="font-medium">{typeLabel}</span>
               </p>
             </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label="Fermer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+          </Modal.Header>
 
-        {/* Body */}
-        <div className="px-6 py-5 space-y-4">
-          {/* Bandeau re-soumission si lot déjà engagé dans le workflow DGA */}
-          {reSoumissionRequise && (
-            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-              <div className="text-xs text-amber-800 leading-relaxed">
-                <p className="font-semibold mb-0.5">
-                  Le lot a déjà été soumis au DGA.
+          <Modal.Body>
+            <div className="flex flex-col gap-4">
+              {/* Bandeau re-soumission si lot déjà engagé dans le workflow DGA */}
+              {reSoumissionRequise && (
+                <div className="flex items-start gap-2.5 rounded-xl bg-warning-soft px-4 py-3 text-sm leading-relaxed text-warning-soft-foreground">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                  <div>
+                    <p className="font-semibold">Le lot a déjà été soumis au DGA.</p>
+                    <p>
+                      Modifier l&apos;inclusion remettra le lot en{' '}
+                      <span className="font-mono">CALCUL_EN_COURS</span> et nécessitera une nouvelle
+                      soumission.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Bandeau type implicite */}
+              {typeAssigne ? (
+                <p className="rounded-xl bg-surface-secondary px-4 py-3 text-sm text-muted">
+                  Type par défaut : <span className="font-semibold">{typeLabel}</span> —{' '}
+                  {ligne.typeLivreur === 'INDEPENDANT'
+                    ? 'normalement inclus dans la paie hebdomadaire.'
+                    : 'normalement exclu de la paie hebdomadaire.'}
                 </p>
-                <p>
-                  Modifier l&apos;inclusion remettra le lot en{' '}
-                  <span className="font-mono">CALCUL_EN_COURS</span> et nécessitera
-                  une nouvelle soumission.
+              ) : (
+                <p className="flex items-start gap-2.5 rounded-xl bg-warning-soft px-4 py-3 text-sm text-warning-soft-foreground">
+                  <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                  <span>
+                    Ce livreur est <span className="font-semibold">à catégoriser</span>. Demandez à
+                    la RH d&apos;assigner un type avant d&apos;inclure manuellement.
+                  </span>
                 </p>
+              )}
+
+              {/* Justification */}
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor={JUSTIFICATION_FIELD_ID}>
+                  Justification <span className="text-danger-soft-foreground">*</span>
+                  <span className="font-normal text-muted">
+                    {' '}
+                    (min {JUSTIFICATION_MIN} caractères)
+                  </span>
+                </Label>
+                {/* `resize-none` : la poignee de redimensionnement du navigateur laisse
+                    tirer la zone au-dela de la fenetre et decale le pied de page. */}
+                <TextArea
+                  fullWidth
+                  className="resize-none"
+                  id={JUSTIFICATION_FIELD_ID}
+                  placeholder={`Pourquoi ${action} cette ligne ? Tracé dans le journal de sécurité.`}
+                  rows={4}
+                  value={justification}
+                  onChange={(e) => setJustification(e.target.value)}
+                />
+                <div className="flex items-center justify-between text-xs">
+                  {remaining === 0 ? (
+                    <span className="flex items-center gap-1 text-success-soft-foreground">
+                      <Check className="size-3.5" />
+                      Justification valide
+                    </span>
+                  ) : (
+                    <span className="text-muted">{`${remaining} caractère${remaining > 1 ? 's' : ''} restant${remaining > 1 ? 's' : ''}`}</span>
+                  )}
+                  <span className="tabular-nums text-muted">
+                    {justification.trim().length}/{JUSTIFICATION_MIN}
+                  </span>
+                </div>
               </div>
             </div>
-          )}
+          </Modal.Body>
 
-          {/* Bandeau type implicite */}
-          {ligne.typeLivreur === null || ligne.typeLivreur === undefined ? (
-            <div className="rounded-lg bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-800">
-              Ce livreur est <span className="font-semibold">à catégoriser</span>. Demandez
-              à la RH d&apos;assigner un type avant d&apos;inclure manuellement.
-            </div>
-          ) : (
-            <div className="rounded-lg bg-gray-50 border border-gray-100 px-3 py-2 text-xs text-gray-600">
-              Type par défaut : <span className="font-semibold">{typeLabel}</span> —{' '}
-              {ligne.typeLivreur === 'INDEPENDANT'
-                ? 'normalement inclus dans la paie hebdomadaire.'
-                : 'normalement exclu de la paie hebdomadaire.'}
-            </div>
-          )}
-
-          {/* Justification */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-              Justification <span className="text-red-500">*</span>
-              <span className="ml-1.5 font-normal text-gray-400">
-                (min {JUSTIFICATION_MIN} caractères)
-              </span>
-            </label>
-            <textarea
-              value={justification}
-              onChange={(e) => setJustification(e.target.value)}
-              placeholder={`Pourquoi ${action} cette ligne ? Tracé dans le journal de sécurité.`}
-              rows={4}
-              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-hidden focus:ring-2 focus:ring-blue-300 resize-none"
-            />
-            <div className="mt-1 flex items-center justify-between text-[11px]">
-              <span className={remaining === 0 ? 'text-emerald-600' : 'text-gray-400'}>
-                {remaining === 0
-                  ? '✓ Justification valide'
-                  : `${remaining} caractère${remaining > 1 ? 's' : ''} restant${remaining > 1 ? 's' : ''}`}
-              </span>
-              <span className="text-gray-400">
-                {justification.trim().length}/{JUSTIFICATION_MIN}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex gap-3 px-6 pb-5">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isLoading}
-            className="flex-1 text-sm"
-          >
-            Annuler
-          </Button>
-          <Button
-            onClick={handleConfirm}
-            disabled={!isValid || isLoading}
-            className={`flex-1 text-white text-sm disabled:opacity-50 ${
-              nextValue
-                ? 'bg-emerald-600 hover:bg-emerald-700'
-                : 'bg-amber-600 hover:bg-amber-700'
-            }`}
-          >
-            {isLoading ? 'Envoi…' : `Confirmer — ${actionMaj}`}
-          </Button>
-        </div>
-      </div>
-    </div>,
-    portalRef.current!,
+          <Modal.Footer>
+            <Button variant="outline" isDisabled={isLoading} onPress={onClose}>
+              Annuler
+            </Button>
+            {/* `isPending` bloque deja la pression pendant l'envoi : le seuil de 30
+                caracteres reste le seul `isDisabled` a porter. */}
+            <Button
+              variant={nextValue ? 'primary' : 'danger'}
+              isDisabled={!isValid}
+              isPending={isLoading}
+              onPress={handleConfirm}
+            >
+              {({ isPending }) => (
+                <>
+                  {isPending ? <Spinner color="current" size="sm" /> : null}
+                  {isPending ? 'Envoi…' : `Confirmer — ${actionMaj}`}
+                </>
+              )}
+            </Button>
+          </Modal.Footer>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   );
 }
 

@@ -56,7 +56,7 @@ export function CapaciteFiabiliteCards({ capacite, fiabilite }: CapaciteFiabilit
             <Clock className="size-5 text-default-400" />
           </div>
           <Chip size="sm" classNames={{ base: 'bg-green-100', content: 'text-green-700 font-medium text-xs' }}>REEL</Chip>
-          <p className="text-4xl font-bold text-success">{fiabilite.pourcentage}%</p>
+          <p className="text-4xl font-bold text-success-soft-foreground">{fiabilite.pourcentage}%</p>
           <ProgressBar value={fiabilite.pourcentage} color="success" size="md"><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
           <div className="space-y-1 pt-1">
             <div className="flex justify-between text-sm">

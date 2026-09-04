@@ -146,7 +146,7 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, isError, o
                 <TableRow key={`skeleton-${i}`}>
                   {Array.from({ length: colsCount }).map((_, j) => (
                     <TableCell key={`skeleton-cell-${j}`}>
-                      <div className="h-4 w-full animate-pulse rounded bg-gray-200" />
+                      <div className="h-4 w-full animate-pulse rounded bg-surface-tertiary" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -167,13 +167,13 @@ export function CreneauWeeklyTable({ data, jourDates = {}, isLoading, isError, o
       <div className="md:hidden space-y-3">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-40 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={i} className="h-40 rounded-xl bg-surface-secondary animate-pulse" />
           ))
         ) : data.length === 0 ? (
           <p className="text-sm text-default-400 text-center py-10">Aucun turboy trouvé</p>
         ) : (
           data.map((turboy) => (
-            <div key={turboy.emploiId ?? turboy.nomComplet} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-3">
+            <div key={turboy.emploiId ?? turboy.nomComplet} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-3">
               <div className="flex items-center gap-2">
                 <Avatar
                   size="sm"

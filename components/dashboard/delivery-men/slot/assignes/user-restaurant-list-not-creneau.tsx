@@ -18,12 +18,12 @@ export default function UserRestaurantListeNotCreneau({turboysCreneau} : {turboy
     return (
         <div className="relative mb-6 text-slate-500">
             <div className="relative mb-6">
-                <h2 className="text-lg font-semibold bg-white text-center w-full rounded-md shadow-sm py-2 mb-2">RESTAURANT(S) N'AYANT PAS DE TURBOYS AVEC CRENEAU HORAIRE</h2>
-                <div className="relative flex items-center flex-col gap-1 rounded-lg  overflow-auto">
+                <h2 className="text-lg font-semibold bg-surface text-center w-full rounded-md shadow-sm py-2 mb-2">RESTAURANT(S) N'AYANT PAS DE TURBOYS AVEC CRENEAU HORAIRE</h2>
+                <div className="relative flex items-center flex-col gap-1 rounded-lg overflow-auto">
                     { 
                         turboysCreneau.map((restaurant, index) => {
                             return (
-                                <div key={index} className="w-full bg-white flex gap-4 border-2 rounded-md">
+                                <div key={index} className="w-full bg-surface flex gap-4 border-2 rounded-md">
                                     <div className="relative w-[230px]">
                                         <div className="flex items-center px-2 py-3">
                                             <Avatar

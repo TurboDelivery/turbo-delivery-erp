@@ -49,7 +49,7 @@ export default function InvestissementStatsBar() {
       {/* Chaque carte retombe sur `?? 0` : sur echec, « Montant restant 0 » se lit
           comme une dette soldee. */}
       {isError ? (
-        <div className="rounded-xl border border-gray-200 bg-white">
+        <div className="rounded-xl border border-separator bg-surface">
           <EtatErreur quoi="les montants investis" onReessayer={() => refetch()} enCours={isFetching} />
         </div>
       ) : (

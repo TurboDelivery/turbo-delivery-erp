@@ -66,61 +66,61 @@ export default function DepotBanqueCaissierModal({ open, onClose, facture, onCon
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-y-auto py-8" onClick={onClose}>
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+      <div className="relative bg-surface rounded-2xl shadow-2xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-separator">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center">
               <Landmark className="w-4 h-4 text-green-600" />
             </div>
-            <h2 className="text-base font-semibold text-gray-900">Dépôt en banque</h2>
+            <h2 className="text-base font-semibold text-foreground">Dépôt en banque</h2>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors" aria-label="Fermer">
+          <button onClick={onClose} className="text-muted hover:text-foreground transition-colors" aria-label="Fermer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Body */}
         <div className="px-6 py-5 space-y-4">
-          <p className="text-sm text-gray-600">
-            Facture <strong className="text-gray-900">{facture.numero}</strong> — {facture.partenaire}
+          <p className="text-sm text-muted">
+            Facture <strong className="text-foreground">{facture.numero}</strong> — {facture.partenaire}
           </p>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-500 font-medium mb-1.5">Date de dépôt <span className="text-red-500">*</span></label>
+              <label className="block text-xs text-muted font-medium mb-1.5">Date de dépôt <span className="text-red-500">*</span></label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-hidden focus:border-green-400" />
+                className="w-full rounded-lg border border-separator px-3 py-2 text-sm outline-hidden focus:border-green-400" />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 font-medium mb-1.5">N° de bordereau <span className="text-red-500">*</span></label>
+              <label className="block text-xs text-muted font-medium mb-1.5">N° de bordereau <span className="text-red-500">*</span></label>
               <input type="text" value={numeroBordereau} onChange={(e) => setNumeroBordereau(e.target.value)} placeholder="ex. BRD-2026-001"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-hidden focus:border-green-400" />
+                className="w-full rounded-lg border border-separator px-3 py-2 text-sm outline-hidden focus:border-green-400" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-500 font-medium mb-1.5">Banque / agence <span className="text-red-500">*</span></label>
+              <label className="block text-xs text-muted font-medium mb-1.5">Banque / agence <span className="text-red-500">*</span></label>
               <select value={banque} onChange={(e) => setBanque(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-hidden focus:border-green-400 bg-white">
+                className="w-full rounded-lg border border-separator px-3 py-2 text-sm outline-hidden focus:border-green-400 bg-surface">
                 <option value="">Sélectionner…</option>
                 {BANQUES.map((b) => <option key={b} value={b}>{b}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 font-medium mb-1.5">Montant déposé <span className="text-red-500">*</span></label>
+              <label className="block text-xs text-muted font-medium mb-1.5">Montant déposé <span className="text-red-500">*</span></label>
               <input type="number" value={montant} onChange={(e) => setMontant(e.target.value)}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-hidden focus:border-green-400" />
-              <p className="text-[11px] text-gray-400 mt-1">Doit égaler le montant visé.</p>
+                className="w-full rounded-lg border border-separator px-3 py-2 text-sm outline-hidden focus:border-green-400" />
+              <p className="text-[11px] text-muted mt-1">Doit égaler le montant visé.</p>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs text-gray-500 font-medium mb-1.5">Preuve (bordereau scanné) <span className="text-red-500">*</span></label>
-            <label className="flex items-center gap-2 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 px-4 py-3 cursor-pointer hover:border-green-300 hover:bg-green-50 transition-colors">
+            <label className="block text-xs text-muted font-medium mb-1.5">Preuve (bordereau scanné) <span className="text-red-500">*</span></label>
+            <label className="flex items-center gap-2 rounded-lg border-2 border-dashed border-separator bg-surface-secondary px-4 py-3 cursor-pointer hover:border-green-300 hover:bg-green-50 transition-colors">
               <Upload className="w-4 h-4 text-green-500 shrink-0" />
-              <span className="text-xs text-gray-600 truncate">{fileName ?? 'Importer le bordereau (PDF, PNG, JPG)'}</span>
+              <span className="text-xs text-muted truncate">{fileName ?? 'Importer le bordereau (PDF, PNG, JPG)'}</span>
               <input type="file" accept=".pdf,.png,.jpg,.jpeg" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
             </label>
           </div>

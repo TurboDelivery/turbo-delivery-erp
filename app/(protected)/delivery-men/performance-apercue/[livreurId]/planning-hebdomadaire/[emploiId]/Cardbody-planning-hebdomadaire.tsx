@@ -55,7 +55,7 @@ const CardBodyPlanningHebdomadaire: React.FC<Props> = ({ initialData }) => {
 
   return (
     <div className="py-4">
-    <div className="w-full flex  gap-2 ">
+    <div className="w-full flex gap-2 ">
       {columns.map(col => (
         <div key={col.key} className="flex flex-col items-center gap-4">
           <span className="w-14 text-sm">{col.label}</span>

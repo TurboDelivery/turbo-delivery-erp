@@ -79,7 +79,7 @@ export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction
       return (
         <div className="flex flex-col">
           <span className="font-medium">{employee?.name ?? '-'}</span>
-          <span className="text-xs text-gray-500">{employee?.email ?? '-'}</span>
+          <span className="text-xs text-muted">{employee?.email ?? '-'}</span>
         </div>
       );
     },

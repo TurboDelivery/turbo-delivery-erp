@@ -155,7 +155,7 @@ export default function CaissierView() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <p className="text-sm text-gray-500">Comptabilité</p>
+        <p className="text-sm text-muted">Comptabilité</p>
         <h1 className="text-2xl font-bold text-primary">Espace Caissier</h1>
       </div>
 
@@ -175,7 +175,7 @@ export default function CaissierView() {
       </GrilleStats>
 
       {/* Filtres */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs">
+      <div className="bg-surface rounded-xl border border-separator p-4 shadow-xs">
         <div className="flex flex-wrap gap-1.5">
           {statutChips.map((s) => {
             const active = s === 'Tous' ? !statut : statut === s;
@@ -186,7 +186,7 @@ export default function CaissierView() {
                 className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                   active
                     ? 'bg-indigo-600 border-indigo-600 text-white'
-                    : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600'
+                    : 'bg-surface border-separator text-muted hover:border-indigo-300 hover:text-indigo-600'
                 }`}
               >
                 {s}
@@ -197,7 +197,7 @@ export default function CaissierView() {
       </div>
 
       {/* Table — desktop uniquement (≥ md) */}
-      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
+      <div className="hidden md:block bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
         <Table
           isStriped
           aria-label="Factures caissier"
@@ -215,7 +215,7 @@ export default function CaissierView() {
           }
           classNames={{
             wrapper: 'rounded-none shadow-none p-0',
-            th: 'bg-gray-50 text-gray-600 text-xs uppercase tracking-wide',
+            th: 'bg-surface-secondary text-muted text-xs uppercase tracking-wide',
           }}
         >
           <TableHeader>
@@ -227,7 +227,7 @@ export default function CaissierView() {
           </TableHeader>
           <TableBody
             emptyContent={isError ? String(error) : 'Aucune facture trouvée'}
-            loadingContent={<div className="py-12 text-sm text-gray-400">Chargement…</div>}
+            loadingContent={<div className="py-12 text-sm text-muted">Chargement…</div>}
             isLoading={isLoading}
           >
             {isLoading
@@ -235,7 +235,7 @@ export default function CaissierView() {
                   <TableRow key={i}>
                     {table.getFlatHeaders().map((h) => (
                       <TableCell key={h.id}>
-                        <div className="h-4 rounded bg-gray-200 animate-pulse" />
+                        <div className="h-4 rounded bg-surface-tertiary animate-pulse" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -257,10 +257,10 @@ export default function CaissierView() {
       <MobileCardList>
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-36 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={i} className="h-36 rounded-xl bg-surface-secondary animate-pulse" />
           ))
         ) : table.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">
+          <p className="text-sm text-muted text-center py-10">
             {isError ? String(error) : 'Aucune facture trouvée'}
           </p>
         ) : (

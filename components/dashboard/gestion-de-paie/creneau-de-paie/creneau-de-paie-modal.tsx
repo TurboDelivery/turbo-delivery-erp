@@ -20,11 +20,11 @@ export function CreneauDePaieModal({ gainsHedomadaires, isOpen, onClose, periode
                     <>
                         <ModalHeader className="flex flex-col gap-1 text-center text-primary font-bold text-sm">Créneau de paie du {periode} </ModalHeader>
                         <ModalBody>
-                            <div className="flex  justify-center gap-4 items-center">
+                            <div className="flex justify-center gap-4 items-center">
                                 <Dropdown>
                                     <DropdownTrigger>
-                                        <Button variant="bordered" className="min-w-[150px] flex justify-between rounded-full border-gray-300 bg-gray-300 h-8">
-                                            <ChevronLeft className="text-gray-500" size={15} />{ctrl.daySelected}  <ChevronRight className="text-gray-500" size={15} /></Button>
+                                        <Button variant="bordered" className="min-w-[150px] flex justify-between rounded-full border-separator bg-surface-tertiary h-8">
+                                            <ChevronLeft className="text-muted" size={15} />{ctrl.daySelected}  <ChevronRight className="text-muted" size={15} /></Button>
                                     </DropdownTrigger>
                                     <DropdownMenu
                                         aria-label="Périodes"
@@ -37,7 +37,7 @@ export function CreneauDePaieModal({ gainsHedomadaires, isOpen, onClose, periode
                                         }
                                     </DropdownMenu>
                                 </Dropdown>
-                                <div className="text-gray-400" style={{ fontSize: 15 }}>Gain du jour <span className="text-primary  !text-md font-bold">
+                                <div className="text-muted" style={{ fontSize: 15 }}>Gain du jour <span className="text-primary !text-md font-bold">
                                     {ctrl.gainParJours ? ctrl.gainParJours.map((item) => {
                                         let gainTotal = 0;
                                         gainTotal = item.commission ? gainTotal + item.commission : gainTotal
@@ -55,12 +55,12 @@ export function CreneauDePaieModal({ gainsHedomadaires, isOpen, onClose, periode
                                     <TableBody>
                                         {ctrl.gainParJours && ctrl.gainParJours.map((item: GainVm, index: number) => (
                                             <TableRow key={index} className={"hover:bg-primary/10"} >
-                                                <TableCell className="border-b-2 text-gray-500 text-sm">
+                                                <TableCell className="border-b-2 text-muted text-sm">
                                                     <div className="flex items-center gap-2"><Banknote size={18} />{item.date && moment(item.date).format("DD/MM/YYYY HH:mm")}</div>
                                                 </TableCell>
-                                                <TableCell className="border-b-2 text-gray-500 font-bold text-sm">{item.code}</TableCell>
-                                                <TableCell className="border-b-2 text-gray-500 font-bold text-sm">{item.frais}&nbsp;&nbsp; FCFA</TableCell>
-                                                <TableCell className="border-b-2 text-gray-500 font-bold text-sm">
+                                                <TableCell className="border-b-2 text-muted font-bold text-sm">{item.code}</TableCell>
+                                                <TableCell className="border-b-2 text-muted font-bold text-sm">{item.frais}&nbsp;&nbsp; FCFA</TableCell>
+                                                <TableCell className="border-b-2 text-muted font-bold text-sm">
                                                     <div className="flex flex-col text-green-500">
                                                         <span className="text-sm">{item.commission}&nbsp;&nbsp; FCFA</span>
                                                         <span style={{ fontSize: 10 }} className="-mt-2">Commission</span>
@@ -73,7 +73,7 @@ export function CreneauDePaieModal({ gainsHedomadaires, isOpen, onClose, periode
                             </div>
                         </ModalBody>
                         <ModalFooter className="flex justify-center">
-                            <Button variant="light" className="text-sm text-gray-500 border-1 mt-5 mb-3" size="sm" onPress={onClose}>
+                            <Button variant="light" className="text-sm text-muted border-1 mt-5 mb-3" size="sm" onPress={onClose}>
                                 <Printer size={18} className="mr-2" /> Imprimer
                             </Button>
                         </ModalFooter>

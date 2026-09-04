@@ -76,8 +76,8 @@ export default function Content({ demandeAssignations, allRestaurant }: { demand
     <div className="p-6 pt-0 flex-wrap">
       <SearchField searchKey={demandeCtrl.selectValue} onChange={demandeCtrl.setSelectValue} />
 
-      <div className="bg-white rounded-lg overflow-x-auto lg:overflow-hidden xl:overflow-hidden md:overflow-x-auto ms:overflow-x-auto">
-        <div className="bg-white rounded-lg overflow-x-auto py-4 shadow-sm">
+      <div className="bg-surface rounded-lg overflow-x-auto lg:overflow-hidden xl:overflow-hidden md:overflow-x-auto ms:overflow-x-auto">
+        <div className="bg-surface rounded-lg overflow-x-auto py-4 shadow-sm">
           {rows.length === 0 ? (
             <div className="text-center mt-10 text-xl text-primary font-bold">
               <EmptyDataTable title="Aucune demande" />
@@ -107,14 +107,14 @@ export default function Content({ demandeAssignations, allRestaurant }: { demand
               {/* Mobile — cartes tactiles (mêmes données / handlers via renderDemandeCell) */}
               <div className="md:hidden space-y-3 px-4">
                 {rows.map((row: any) => (
-                  <div key={row.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+                  <div key={row.id} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">{renderDemandeCell(row, 'nom')}</div>
                       <div className="shrink-0">{renderDemandeCell(row, 'statut')}</div>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs text-gray-400 shrink-0">Date</span>
-                      <span className="text-sm text-gray-700 text-right truncate">{renderDemandeCell(row, 'date')}</span>
+                      <span className="text-xs text-muted shrink-0">Date</span>
+                      <span className="text-sm text-foreground text-right truncate">{renderDemandeCell(row, 'date')}</span>
                     </div>
                     <div className="pt-2 flex flex-wrap gap-2">{renderDemandeCell(row, 'actions')}</div>
                   </div>

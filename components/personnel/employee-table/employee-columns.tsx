@@ -32,7 +32,7 @@ export const getEmployeeStatutConfig = (statut: IEmployee['statut']): { label: s
     case 'Congé':
       return { label: statut, className: 'bg-yellow-500 text-white border-yellow-200' };
     default:
-      return { label: statut, className: 'bg-gray-100 text-gray-800 border-gray-200' };
+      return { label: statut, className: 'bg-surface-secondary text-foreground border-separator' };
   }
 };
 
@@ -101,7 +101,7 @@ export const EmployeeActions = React.memo(
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               <div className="flex items-center w-full" onClick={handleDeactivate}>
                 <span>{employee.statut === 'Actif' ? 'Désactiver' : 'Activer'}</span>
-                {changeStatusMutation.isPending && <span className="ml-2 text-xs text-gray-500">...</span>}
+                {changeStatusMutation.isPending && <span className="ml-2 text-xs text-muted">...</span>}
               </div>
             </DropdownMenuItem>
           )}
@@ -120,7 +120,7 @@ export const EmployeeActions = React.memo(
                     Êtes-vous sûr de vouloir supprimer l&#39;employé <strong>{employee.name}</strong> ?
                     <br />
                     <br />
-                    <div className="bg-gray-50 rounded p-2 text-sm">
+                    <div className="bg-surface-secondary rounded p-2 text-sm">
                       <p>
                         <strong>Email:</strong> {employee.email}
                       </p>
@@ -161,7 +161,7 @@ export const employeeColumns: ColumnDef<IEmployee>[] = [
     cell: ({ row }) => (
       <div>
         <div className="font-medium">{row.original.name}</div>
-        <div className="text-sm text-gray-500">{row.original.email}</div>
+        <div className="text-sm text-muted">{row.original.email}</div>
       </div>
     ),
     enableSorting: true,

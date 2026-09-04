@@ -170,7 +170,7 @@ export default function EditContent({ id }: { id: string }) {
   if (isError || !turboy) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">
-        <p className="text-sm text-gray-500">Impossible de charger les données du livreur.</p>
+        <p className="text-sm text-muted">Impossible de charger les données du livreur.</p>
         <Button variant="flat" onPress={() => router.push('/delivery-men/men')}>Retour</Button>
       </div>
     );
@@ -192,14 +192,14 @@ export default function EditContent({ id }: { id: string }) {
     <div className="pb-16">
       <Link
         href="/delivery-men/men"
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-4 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-muted hover:text-primary mb-4 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Retour à la liste
       </Link>
 
       {/* En-tête identité — synthèse du coursier en un coup d'œil */}
-      <div className="bg-white rounded-xl border border-default-200 p-5 mb-6">
+      <div className="bg-surface rounded-xl border border-default-200 p-5 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           <Avatar
             src={toAbsoluteUrl(turboy.avatarUrl) ?? undefined}
@@ -210,7 +210,7 @@ export default function EditContent({ id }: { id: string }) {
             <h1 className="text-2xl font-bold text-primary truncate">
               {turboy.prenoms} {turboy.nom}
             </h1>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted">
               {turboy.matricule ?? turboy.id}
               {turboy.telephone ? ` · ${turboy.telephone}` : ''}
             </p>

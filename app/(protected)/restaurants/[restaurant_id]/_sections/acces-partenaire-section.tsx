@@ -32,7 +32,7 @@ const ROLE_COLORS: Record<string, 'primary' | 'secondary' | 'default'> = {
 function SubTitle({ icon, children, action }: { icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
         <span className="text-primary">{icon}</span>
         {children}
       </div>
@@ -84,9 +84,9 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
   const liste = comptes ?? [];
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
       <h2 className="text-base font-semibold text-primary mb-1">Accès Espace partenaire</h2>
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="text-sm text-muted mb-6">
         Comptes permettant au partenaire de se connecter à l&apos;Espace partenaire (demande de coursier).
         Créer un accès avec un email existant réinitialise son mot de passe.
       </p>
@@ -96,7 +96,7 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
         <SubTitle
           icon={<Users className="w-4 h-4" />}
           action={
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted">
               {liste.length} compte{liste.length > 1 ? 's' : ''}
             </span>
           }
@@ -115,7 +115,7 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
             enCours={isFetching}
           />
         ) : liste.length === 0 ? (
-          <div className="text-xs text-gray-400 border border-dashed border-gray-200 rounded-lg p-4 text-center">
+          <div className="text-xs text-muted border border-dashed border-separator rounded-lg p-4 text-center">
             Aucun accès créé pour ce partenaire.
           </div>
         ) : (
@@ -123,11 +123,11 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
             {liste.map((compte) => (
               <div
                 key={compte.id}
-                className="flex items-center justify-between gap-3 border border-gray-100 rounded-lg px-4 py-2.5 bg-gray-50/50"
+                className="flex items-center justify-between gap-3 border border-separator rounded-lg px-4 py-2.5 bg-surface-secondary/50"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-700 truncate">{compte.email}</p>
-                  {compte.nom && <p className="text-xs text-gray-400 truncate">{compte.nom}</p>}
+                  <p className="text-sm font-medium text-foreground truncate">{compte.email}</p>
+                  {compte.nom && <p className="text-xs text-muted truncate">{compte.nom}</p>}
                 </div>
                 <Chip size="sm" variant="flat" color={ROLE_COLORS[compte.role] ?? 'default'} className="shrink-0">
                   {ROLE_LABELS[compte.role] ?? compte.role}
@@ -158,7 +158,7 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
         </SubTitle>
 
         {formOpen && (
-          <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/50">
+          <div className="border border-separator rounded-lg p-4 bg-surface-secondary/50">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
                 label="Email"
@@ -170,7 +170,7 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
                 isRequired
                 isInvalid={email.length > 0 && !emailValid}
                 errorMessage={email.length > 0 && !emailValid ? 'Email invalide' : undefined}
-                classNames={{ inputWrapper: 'bg-white' }}
+                classNames={{ inputWrapper: 'bg-surface' }}
               />
               <Input
                 label="Mot de passe"
@@ -183,12 +183,12 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
                 description="8 caractères minimum"
                 isInvalid={password.length > 0 && !passwordValid}
                 errorMessage={password.length > 0 && !passwordValid ? '8 caractères minimum' : undefined}
-                classNames={{ inputWrapper: 'bg-white' }}
+                classNames={{ inputWrapper: 'bg-surface' }}
                 endContent={
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-muted hover:text-foreground"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -200,7 +200,7 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
                 value={nom}
                 onValueChange={setNom}
                 placeholder="Nom du contact"
-                classNames={{ inputWrapper: 'bg-white' }}
+                classNames={{ inputWrapper: 'bg-surface' }}
               />
               <Select
                 label="Rôle"
@@ -211,7 +211,7 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
                   if (next) setRole(next);
                 }}
                 disallowEmptySelection
-                classNames={{ trigger: 'bg-white' }}
+                classNames={{ trigger: 'bg-surface' }}
               >
                 {ROLE_OPTIONS.map((o) => (
                   <SelectItem key={o.value}>{o.label}</SelectItem>
@@ -230,7 +230,7 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
       {/* ── URL de connexion ── */}
       <div>
         <SubTitle icon={<Link2 className="w-4 h-4" />}>URL de connexion</SubTitle>
-        <p className="text-xs text-gray-500 mb-2">
+        <p className="text-xs text-muted mb-2">
           Communiquez cette adresse au partenaire avec ses identifiants pour accéder à son espace.
         </p>
         {loginUrl ? (
@@ -238,7 +238,7 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
             <span className="font-mono text-xs break-all">{loginUrl}</span>
           </Snippet>
         ) : (
-          <p className="rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs text-gray-500">
+          <p className="rounded-lg border border-dashed border-separator px-3 py-2 text-xs text-muted">
             Le portail partenaire est une application distincte de l&apos;ERP. Son adresse
             n&apos;est pas encore configurée&nbsp;: demandez-la à l&apos;équipe technique avant
             de communiquer les identifiants.

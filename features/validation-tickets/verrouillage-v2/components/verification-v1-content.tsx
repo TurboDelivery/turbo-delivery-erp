@@ -1,7 +1,7 @@
 'use client';
 
 import { Lock, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, Spinner } from '@heroui-v3/react';
 import TicketReadyList from './TicketReadyList';
 import TicketLockedList from './TicketLockedList';
 import useVerrouillageV2 from '../hooks/use-verrouillage-v2';
@@ -39,14 +39,30 @@ export default function VerificationV1Content() {
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
       <div className="flex">
+        {/*
+         * La validation en masse envoie une requete PAR ticket : sur une file chargee,
+         * l'attente dure plusieurs secondes. Elle n'etait signalee que par un bouton
+         * eteint, ce qui se lit comme « rien a valider » et non comme « en cours ».
+         * `isPending` porte l'attente ET bloque le second clic, comme `disabled` avant.
+         * Le rien-a-valider garde son propre etat, sinon les deux causes se confondent.
+         */}
         <Button
           variant="outline"
-          onClick={handleLockAll}
-          disabled={readyTickets.length === 0 || isLockingAll}
-          className="flex items-center gap-2 rounded-full border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 w-full sm:w-auto"
+          onPress={handleLockAll}
+          isDisabled={readyTickets.length === 0}
+          isPending={isLockingAll}
+          className="w-full sm:w-auto"
         >
-          <Lock className="h-4 w-4" />
-          Tout valider V1 ({totalReady})
+          {({ isPending }: { isPending: boolean }) => (
+            <>
+              {isPending ? (
+                <Spinner color="current" size="sm" />
+              ) : (
+                <Lock aria-hidden="true" className="size-4" />
+              )}
+              Tout valider V1 ({totalReady})
+            </>
+          )}
         </Button>
       </div>
 
@@ -54,8 +70,8 @@ export default function VerificationV1Content() {
 
       <div className="flex flex-col gap-5 md:flex-row md:items-start">
         <TicketReadyList
-        isError={isErrorReady}
-        onReessayer={refetchReady}
+          isError={isErrorReady}
+          onReessayer={refetchReady}
           tickets={readyTickets}
           total={totalReady}
           onLock={handleLock}
@@ -65,8 +81,8 @@ export default function VerificationV1Content() {
           fetchNextPage={fetchNextReady}
         />
         <TicketLockedList
-        isError={isErrorLocked}
-        onReessayer={refetchLocked}
+          isError={isErrorLocked}
+          onReessayer={refetchLocked}
           tickets={lockedTickets}
           total={totalLocked}
           hasNextPage={!!hasNextLocked}
@@ -75,11 +91,11 @@ export default function VerificationV1Content() {
         />
       </div>
 
-      <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4">
-        <ArrowRight className="h-5 w-5 text-gray-500 shrink-0" />
-        <p className="text-sm text-gray-600">
+      <div className="flex items-center gap-3 rounded-xl border border-separator bg-surface px-5 py-4">
+        <ArrowRight aria-hidden="true" className="h-5 w-5 text-muted shrink-0" />
+        <p className="text-sm text-muted">
           Une fois validés V1, les tickets sont transmis automatiquement à la{' '}
-          <span className="font-semibold text-gray-900">validation finale (V2)</span> du DG.
+          <span className="font-semibold text-foreground">validation finale (V2)</span> du DG.
         </p>
       </div>
 

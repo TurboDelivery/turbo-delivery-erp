@@ -114,7 +114,7 @@ export function CommissionVariableDetailModal({ commissionVariable }: Commission
 
                     {/* Ligne Commission */}
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="commission" className=" flex items-center gap-2  text-red-500">
+                        <Label htmlFor="commission" className=" flex items-center gap-2 text-red-500">
                             <Percent className="h-4 w-4 text-red-500" />
                             Commission
                         </Label>

@@ -49,8 +49,8 @@ export interface IFactureRF {
 }
 
 const statutConfig: Record<string, { label: string; className: string }> = {
-  'DRAFT':                { label: 'À valider',             className: 'bg-gray-100 text-gray-600 border-gray-200' },
-  'À valider':             { label: 'À valider',             className: 'bg-gray-100 text-gray-600 border-gray-200' },
+  'DRAFT':                { label: 'À valider',             className: 'bg-surface-secondary text-muted border-separator' },
+  'À valider':             { label: 'À valider',             className: 'bg-surface-secondary text-muted border-separator' },
   'Validé':                { label: 'Validé',                className: 'bg-blue-100 text-blue-700 border-blue-200' },
   'Recouvrement':          { label: 'Recouvrement',          className: 'bg-orange-100 text-orange-700 border-orange-200' },
   'En cours':              { label: 'En cours',              className: 'bg-orange-100 text-orange-700 border-orange-200' },
@@ -69,7 +69,7 @@ const statutConfig: Record<string, { label: string; className: string }> = {
 export function getStatutConfig(statut: string) {
   if (statut in statutConfig) return statutConfig[statut];
   if (statut.startsWith('Acompte')) return { label: statut, className: 'bg-yellow-100 text-yellow-700 border-yellow-200' };
-  return { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
+  return { label: statut, className: 'bg-surface-secondary text-muted border-separator' };
 }
 
 /**
@@ -121,7 +121,7 @@ export function createResponsableFinancierColumns(
     header: 'RECOUVRÉ',
     cell: ({ row }) => {
       const { montantRecouvre, pourcentageRecouvre } = row.original;
-      if (!montantRecouvre) return <span className="text-gray-400">—</span>;
+      if (!montantRecouvre) return <span className="text-muted">—</span>;
       return (
         <div className="flex flex-col gap-1">
           <span className="text-sm">{formatMontant(montantRecouvre)}</span>
@@ -156,11 +156,11 @@ export function createResponsableFinancierColumns(
     header: 'DÉPÔT PARTENAIRE',
     cell: ({ row }) => {
       const d = row.original.depotPartenaire;
-      if (!d) return <span className="text-gray-400">—</span>;
+      if (!d) return <span className="text-muted">—</span>;
       return (
         <div className="flex flex-col gap-1">
           <span className="text-sm">{d.date}</span>
-          <span className="text-xs text-gray-500">{d.agent}</span>
+          <span className="text-xs text-muted">{d.agent}</span>
           <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 text-xs px-2 py-0.5 w-fit font-medium">
             ✓ Preuve
           </span>
@@ -173,7 +173,7 @@ export function createResponsableFinancierColumns(
     header: 'DÉPÔT BANQUE',
     cell: ({ row }) => {
       const d = row.original.depotBanque;
-      return d ? <span className="text-sm">{d}</span> : <span className="text-gray-400">—</span>;
+      return d ? <span className="text-sm">{d}</span> : <span className="text-muted">—</span>;
     },
   },
   {

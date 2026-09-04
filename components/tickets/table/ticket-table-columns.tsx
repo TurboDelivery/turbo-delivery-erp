@@ -482,36 +482,55 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
         // (V2 inclus, ex. corriger le restaurant lie) ; les autres roles restent limites
         // aux statuts non figes.
         const canEdit = meta.permissions.isAdmin || canMutate;
-        const canDelete = meta.permissions.isAdmin || canMutate;
+        /*
+         * `meta.permissions.canDelete` etait renseigne puis jamais lu : tout le bloc
+         * lecture etait garde par `canUpdate`, et la corbeille de ligne s'affichait pour
+         * des roles qui n'ont pas `delete` sur `Ticket`. Ces comptes voyaient la corbeille
+         * active sur chaque ligne alors que le bouton Supprimer de la barre du bas, lui,
+         * leur etait grise. Le droit compte desormais, comme pour la suppression en masse.
+         */
+        const canDelete = meta.permissions.canDelete && (meta.permissions.isAdmin || canMutate);
 
         return (
           <div className="flex gap-1">
             <Tooltip>
-              <Button
-                aria-label="Modifier ce ticket"
-                isDisabled={!canEdit}
-                isIconOnly
-                onPress={() => meta.onEditRow(ticket.id)}
-                size="sm"
-                variant="ghost"
-              >
-                <Pen aria-hidden="true" className="size-4" />
-              </Button>
+              {/* Un bouton natif DESACTIVE n'emet ni survol ni focus : l'info-bulle ne
+                  s'ouvrait donc jamais, et c'est precisement quand le bouton est grise
+                  que son motif de blocage doit se lire. Le declencheur, lui, n'est pas
+                  desactive et porte l'evenement a sa place. */}
+              <Tooltip.Trigger>
+                <Button
+                  aria-label="Modifier ce ticket"
+                  isDisabled={!canEdit}
+                  isIconOnly
+                  onPress={() => meta.onEditRow(ticket.id)}
+                  size="sm"
+                  variant="ghost"
+                >
+                  <Pen aria-hidden="true" className="size-4" />
+                </Button>
+              </Tooltip.Trigger>
               <Tooltip.Content>
                 {canEdit ? 'Modifier ce ticket' : "Ce ticket n'est pas modifiable"}
               </Tooltip.Content>
             </Tooltip>
             <Tooltip>
-              <Button
-                aria-label="Supprimer ce ticket"
-                isDisabled={!canDelete}
-                isIconOnly
-                onPress={() => meta.onDeleteRow(ticket.id)}
-                size="sm"
-                variant="danger-soft"
-              >
-                <Trash2 aria-hidden="true" className="size-4" />
-              </Button>
+              {/* Un bouton natif DESACTIVE n'emet ni survol ni focus : l'info-bulle ne
+                  s'ouvrait donc jamais, et c'est precisement quand le bouton est grise
+                  que son motif de blocage doit se lire. Le declencheur, lui, n'est pas
+                  desactive et porte l'evenement a sa place. */}
+              <Tooltip.Trigger>
+                <Button
+                  aria-label="Supprimer ce ticket"
+                  isDisabled={!canDelete}
+                  isIconOnly
+                  onPress={() => meta.onDeleteRow(ticket.id)}
+                  size="sm"
+                  variant="danger-soft"
+                >
+                  <Trash2 aria-hidden="true" className="size-4" />
+                </Button>
+              </Tooltip.Trigger>
               <Tooltip.Content>
                 {canDelete ? 'Supprimer ce ticket' : "Ce ticket n'est pas supprimable"}
               </Tooltip.Content>

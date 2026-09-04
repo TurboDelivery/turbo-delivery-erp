@@ -28,7 +28,7 @@ export default function Content({ initialData }: Props) {
     if (!data) return <div>Chargement...</div>;
 
     return (
-        <div className="p-4 bg-gray-100 rounded-md">
+        <div className="p-4 bg-surface-secondary rounded-md">
             <UserRestaurantListe turboysCreneau={turboysCreneau} />
             <UserRestaurantListeNotCreneau turboysCreneau={turboysNotCreneau} />
 
@@ -42,7 +42,7 @@ export default function Content({ initialData }: Props) {
                     Précédent
                 </button>
 
-                <span className="px-4 py-2 bg-white border rounded">
+                <span className="px-4 py-2 bg-surface border rounded">
                     Page {page + 1} / {data.totalPages}
                 </span>
 

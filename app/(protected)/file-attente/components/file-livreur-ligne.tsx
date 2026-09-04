@@ -51,13 +51,13 @@ export function FileLivreurLigne({
     <li
       className={`flex items-center gap-3 rounded-xl px-2.5 py-2 ${
         premier
-          ? 'bg-[#1AA05A]/8 ring-1 ring-inset ring-[#1AA05A]/25'
+          ? 'bg-success/8 ring-1 ring-inset ring-success/25'
           : 'hover:bg-default-50 dark:hover:bg-default-100/40'
       }`}
     >
       <span
         className={`flex h-8 shrink-0 items-center justify-center rounded-[10px] px-2 text-[13px] font-bold tabular-nums ${
-          premier ? 'bg-[#1AA05A] text-white' : 'bg-default-100 text-default-500'
+          premier ? 'bg-success text-white' : 'bg-default-100 text-default-500'
         }`}
         aria-label={`Rang ${ligne.rang}`}
       >
@@ -70,7 +70,7 @@ export function FileLivreurLigne({
         <p className="truncate text-sm font-semibold text-default-800">{ligne.nomComplet}</p>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
           {premier && (
-            <span className="rounded-full bg-[#1AA05A]/12 px-2 py-px text-[10px] font-bold uppercase tracking-wide text-[#1AA05A]">
+            <span className="rounded-full bg-success/12 px-2 py-px text-[10px] font-bold uppercase tracking-wide text-success-soft-foreground">
               Prochaine course
             </span>
           )}

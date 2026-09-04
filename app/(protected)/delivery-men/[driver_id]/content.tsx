@@ -14,7 +14,7 @@ export default function Content({ driver }: { driver: DeliveryMan | null }) {
             <header className="border-b">
                 <div className="px-4 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div onClick={() => router.back()} className="text-gray-600 dark:text-white hover:text-primary cursor-pointer">
+                        <div onClick={() => router.back()} className="text-muted hover:text-primary cursor-pointer">
                             <ArrowLeft className="h-6 w-6" />
                         </div>
                         <h1 className="text-2xl font-bold text-primary capitalize">

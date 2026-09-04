@@ -19,8 +19,8 @@ import { formatMontant } from '@/utils/format.utils';
 type StatutFacture = IFactureRFDetail['statut'];
 
 const statutConfigMap: Record<string, { label: string; className: string }> = {
-  'DRAFT':               { label: 'À valider',           className: 'bg-gray-100 text-gray-600 border-gray-200' },
-  'À valider':           { label: 'À valider',           className: 'bg-gray-100 text-gray-600 border-gray-200' },
+  'DRAFT':               { label: 'À valider',           className: 'bg-surface-secondary text-muted border-separator' },
+  'À valider':           { label: 'À valider',           className: 'bg-surface-secondary text-muted border-separator' },
   'Validé':              { label: 'Validé',              className: 'bg-blue-100 text-blue-700 border-blue-200' },
   'Recouvrement':        { label: 'Recouvrement',        className: 'bg-orange-100 text-orange-700 border-orange-200' },
   'En cours':            { label: 'En cours',            className: 'bg-orange-100 text-orange-700 border-orange-200' },
@@ -37,7 +37,7 @@ const statutConfigMap: Record<string, { label: string; className: string }> = {
 function getStatutConfig(statut: string) {
   if (statut in statutConfigMap) return statutConfigMap[statut];
   if (statut.startsWith('Acompte')) return { label: statut, className: 'bg-yellow-100 text-yellow-700 border-yellow-200' };
-  return { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
+  return { label: statut, className: 'bg-surface-secondary text-muted border-separator' };
 }
 
 
@@ -85,7 +85,7 @@ export default function FactureDetailView({ facture }: Props) {
       {/* Back link */}
       <Link
         href="/finance/comptabilite/responsable-financier"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-gray-800 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Retour aux paiements
@@ -94,9 +94,9 @@ export default function FactureDetailView({ facture }: Props) {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs text-gray-400 mb-0.5">Facture</p>
+          <p className="text-xs text-muted mb-0.5">Facture</p>
           <h1 className="text-2xl font-bold text-primary">{facture.numero}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-muted mt-0.5">
             {facture.partenaire} · Cycle {facture.cycle}
           </p>
         </div>
@@ -133,36 +133,36 @@ export default function FactureDetailView({ facture }: Props) {
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
-          <p className="text-xs text-gray-500 mb-1">Montant total</p>
+        <div className="bg-surface rounded-xl border border-separator p-5 shadow-xs">
+          <p className="text-xs text-muted mb-1">Montant total</p>
           <p className="text-2xl font-bold text-red-500">{formatMontant(facture.montant)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
-          <p className="text-xs text-gray-500 mb-1">Recouvré</p>
-          <p className="text-2xl font-bold text-gray-900">{formatMontant(recouvre)}</p>
+        <div className="bg-surface rounded-xl border border-separator p-5 shadow-xs">
+          <p className="text-xs text-muted mb-1">Recouvré</p>
+          <p className="text-2xl font-bold text-foreground">{formatMontant(recouvre)}</p>
           <div className="mt-3 space-y-1">
-            <div className="w-full bg-gray-100 rounded-full h-2">
+            <div className="w-full bg-surface-secondary rounded-full h-2">
               <div
                 className="bg-green-500 h-2 rounded-full transition-all"
                 style={{ width: `${pct}%` }}
               />
             </div>
-            <p className="text-xs text-gray-400">{pct}% du montant</p>
+            <p className="text-xs text-muted">{pct}% du montant</p>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
-          <p className="text-xs text-gray-500 mb-1">Reste à recouvrer</p>
-          <p className={`text-2xl font-bold ${restant > 0 ? 'text-red-500' : 'text-gray-900'}`}>{formatMontant(restant)}</p>
+        <div className="bg-surface rounded-xl border border-separator p-5 shadow-xs">
+          <p className="text-xs text-muted mb-1">Reste à recouvrer</p>
+          <p className={`text-2xl font-bold ${restant > 0 ? 'text-red-500' : 'text-foreground'}`}>{formatMontant(restant)}</p>
         </div>
       </div>
 
       {/* Body: timeline + infos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Timeline */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
+        <div className="lg:col-span-2 bg-surface rounded-xl border border-separator p-5 shadow-xs">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="font-semibold text-gray-800">Historique des statuts</h2>
-            <button className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors">
+            <h2 className="font-semibold text-foreground">Historique des statuts</h2>
+            <button className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-gray-700 border border-separator rounded-lg px-3 py-1.5 transition-colors">
               <Download className="w-3.5 h-3.5" />
               Exporter PDF
             </button>
@@ -173,13 +173,13 @@ export default function FactureDetailView({ facture }: Props) {
                 {/* Dot */}
                 <span
                   className={`absolute left-[-13px] w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-xs ${
-                    item.isPending ? 'bg-gray-200' : item.isCurrent ? 'bg-green-500' : 'bg-green-400'
+                    item.isPending ? 'bg-surface-tertiary' : item.isCurrent ? 'bg-green-500' : 'bg-green-400'
                   }`}
                 >
-                  <span className={`w-2 h-2 rounded-full ${item.isPending ? 'bg-gray-400' : 'bg-white'}`} />
+                  <span className={`w-2 h-2 rounded-full ${item.isPending ? 'bg-gray-400' : 'bg-surface'}`} />
                 </span>
                 <div>
-                  <p className={`text-sm font-medium ${item.isPending ? 'text-gray-400' : item.isCurrent ? 'text-gray-900' : 'text-gray-700'}`}>
+                  <p className={`text-sm font-medium ${item.isPending ? 'text-muted' : item.isCurrent ? 'text-foreground' : 'text-foreground'}`}>
                     {item.label}
                     {item.isCurrent && (
                       <span className="ml-2 inline-flex items-center rounded-full bg-red-500 text-white text-[10px] font-bold px-2 py-0.5">
@@ -187,7 +187,7 @@ export default function FactureDetailView({ facture }: Props) {
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-muted mt-0.5">
                     {item.isPending
                       ? [item.agent ? `par ${item.agent}` : undefined, item.montant ? new Intl.NumberFormat('fr-FR').format(item.montant) + ' CFA' : undefined, 'En attente']
                           .filter(Boolean).join(' · ')
@@ -202,8 +202,8 @@ export default function FactureDetailView({ facture }: Props) {
         </div>
 
         {/* Infos */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs space-y-4">
-          <h2 className="font-semibold text-gray-800">Informations</h2>
+        <div className="bg-surface rounded-xl border border-separator p-5 shadow-xs space-y-4">
+          <h2 className="font-semibold text-foreground">Informations</h2>
           <dl className="space-y-3 text-sm">
             {[
               ['Partenaire', facture.partenaire],
@@ -215,8 +215,8 @@ export default function FactureDetailView({ facture }: Props) {
               ['Agent recouvreur', facture.agent],
             ].map(([label, value]) => (
               <div key={label} className="flex justify-between gap-4">
-                <dt className="text-gray-400 shrink-0">{label}</dt>
-                <dd className="text-gray-900 font-medium text-right">{value}</dd>
+                <dt className="text-muted shrink-0">{label}</dt>
+                <dd className="text-foreground font-medium text-right">{value}</dd>
               </div>
             ))}
           </dl>
@@ -229,25 +229,25 @@ export default function FactureDetailView({ facture }: Props) {
             A aucun moment on voit les trois types de preuve pour chaque facture.
             Peux-tu rendre ça visible ici" → Section dédiée + indicateurs clairs
             des preuves disponibles vs en attente de migration backend. */}
-        <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs space-y-4 md:col-span-2 lg:col-span-1">
-          <h2 className="font-semibold text-gray-800">Preuves &amp; Documents</h2>
+        <div className="bg-surface rounded-xl border border-separator p-5 shadow-xs space-y-4 md:col-span-2 lg:col-span-1">
+          <h2 className="font-semibold text-foreground">Preuves &amp; Documents</h2>
           <div className="space-y-3 text-sm">
             {/* Preuve 1 : Dépôt partenaire — actuellement date + agent seuls
                 (la preuve fichier physique sera ajoutée dans un commit suivant
                 car nécessite migration backend). */}
-            <div className="border border-gray-100 rounded-lg p-3 space-y-1">
+            <div className="border border-separator rounded-lg p-3 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-gray-700">Dépôt chez partenaire</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.depotPartenaire ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-500'}`}>
+                <span className="text-xs font-semibold text-foreground">Dépôt chez partenaire</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.depotPartenaire ? 'bg-emerald-50 text-emerald-700' : 'bg-surface-secondary text-muted'}`}>
                   {facture.depotPartenaire ? 'Effectué' : 'En attente'}
                 </span>
               </div>
               {facture.depotPartenaire ? (
-                <div className="text-xs text-gray-600">
+                <div className="text-xs text-muted">
                   Le {facture.depotPartenaire.date} par <strong>{facture.depotPartenaire.agent}</strong>
                 </div>
               ) : (
-                <div className="text-xs text-gray-400 italic">Pas encore déposé.</div>
+                <div className="text-xs text-muted italic">Pas encore déposé.</div>
               )}
             </div>
 
@@ -255,10 +255,10 @@ export default function FactureDetailView({ facture }: Props) {
                 de réception physique des fonds. C'est la preuve principale qui
                 est aujourd'hui persistée en DB (ajouterPreuve / confirmer
                 réception). */}
-            <div className="border border-gray-100 rounded-lg p-3 space-y-1">
+            <div className="border border-separator rounded-lg p-3 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-gray-700">Fiche de paiement (réception fonds)</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.preuve ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-500'}`}>
+                <span className="text-xs font-semibold text-foreground">Fiche de paiement (réception fonds)</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.preuve ? 'bg-emerald-50 text-emerald-700' : 'bg-surface-secondary text-muted'}`}>
                   {facture.preuve ? 'Disponible' : 'Non fournie'}
                 </span>
               </div>
@@ -270,7 +270,7 @@ export default function FactureDetailView({ facture }: Props) {
                   Voir la fiche
                 </button>
               ) : (
-                <div className="text-xs text-gray-400 italic">Le Comptable peut l'ajouter après confirmation de réception.</div>
+                <div className="text-xs text-muted italic">Le Comptable peut l'ajouter après confirmation de réception.</div>
               )}
             </div>
 
@@ -278,10 +278,10 @@ export default function FactureDetailView({ facture }: Props) {
                 fichier uploadé par l'agent recouvreur dans le modal
                 "Ajouter un paiement" (encaissement-drawer). Persistée via
                 colonne factures.preuve_encaissement (migration V52). */}
-            <div className="border border-gray-100 rounded-lg p-3 space-y-1">
+            <div className="border border-separator rounded-lg p-3 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-gray-700">Preuve d&apos;encaissement (partenaire)</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.preuveEncaissement ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-500'}`}>
+                <span className="text-xs font-semibold text-foreground">Preuve d&apos;encaissement (partenaire)</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.preuveEncaissement ? 'bg-emerald-50 text-emerald-700' : 'bg-surface-secondary text-muted'}`}>
                   {facture.preuveEncaissement ? 'Disponible' : 'Non fournie'}
                 </span>
               </div>
@@ -293,17 +293,17 @@ export default function FactureDetailView({ facture }: Props) {
                   Voir la preuve d&apos;encaissement
                 </button>
               ) : (
-                <div className="text-xs text-gray-400 italic">Uploadée par l&apos;agent recouvreur lors de l&apos;encaissement chez le partenaire.</div>
+                <div className="text-xs text-muted italic">Uploadée par l&apos;agent recouvreur lors de l&apos;encaissement chez le partenaire.</div>
               )}
             </div>
 
             {/* V52 (2026-05) — Preuve de versement au caissier : fichier
                 uploadé par l'agent dans le modal "Verser au caissier".
                 Persistée via factures.preuve_versement_caissier. */}
-            <div className="border border-gray-100 rounded-lg p-3 space-y-1">
+            <div className="border border-separator rounded-lg p-3 space-y-1">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold text-gray-700">Preuve de versement au caissier</span>
-                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.preuveVersementCaissier ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-50 text-gray-500'}`}>
+                <span className="text-xs font-semibold text-foreground">Preuve de versement au caissier</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded ${facture.preuveVersementCaissier ? 'bg-emerald-50 text-emerald-700' : 'bg-surface-secondary text-muted'}`}>
                   {facture.preuveVersementCaissier ? 'Disponible' : 'Non fournie'}
                 </span>
               </div>
@@ -315,7 +315,7 @@ export default function FactureDetailView({ facture }: Props) {
                   Voir la preuve de versement
                 </button>
               ) : (
-                <div className="text-xs text-gray-400 italic">Uploadée par l&apos;agent lors du transfert au caissier.</div>
+                <div className="text-xs text-muted italic">Uploadée par l&apos;agent lors du transfert au caissier.</div>
               )}
             </div>
           </div>

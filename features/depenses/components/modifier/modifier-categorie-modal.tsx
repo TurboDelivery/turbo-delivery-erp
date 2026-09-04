@@ -99,7 +99,7 @@ export function ModifierCategorieModal({ categorieDepense }: ModdifierDepenseMod
                     <div className="grid gap-6">
                         {/* nom de la categorie */}
                         <div className="grid gap-3">
-                            <Label htmlFor="nomCategorie" className="text-sm text-gray-500">
+                            <Label htmlFor="nomCategorie" className="text-sm text-muted">
                                 Nom de la categorie
                             </Label>
                             <Input
@@ -115,7 +115,7 @@ export function ModifierCategorieModal({ categorieDepense }: ModdifierDepenseMod
 
                         {/* description */}
                         <div className="grid gap-3">
-                            <Label htmlFor="description" className="text-sm text-gray-500">
+                            <Label htmlFor="description" className="text-sm text-muted">
                                 Description
                             </Label>
                             <Input

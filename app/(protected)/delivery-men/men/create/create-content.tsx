@@ -39,7 +39,7 @@ function UploadZone({
       <button
         type="button"
         onClick={() => ref.current?.click()}
-        className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors"
+        className="w-16 h-16 border-2 border-dashed border-separator rounded-lg flex flex-col items-center justify-center text-muted hover:border-primary hover:text-primary transition-colors"
       >
         {preview ? (
           <img src={preview} alt="preview" className="w-full h-full object-cover rounded-lg" />
@@ -53,7 +53,7 @@ function UploadZone({
       <button
         type="button"
         onClick={() => ref.current?.click()}
-        className="w-10 h-10 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors"
+        className="w-10 h-10 rounded-full border-2 border-dashed border-separator flex items-center justify-center text-muted hover:border-primary hover:text-primary transition-colors"
       >
         <Plus className="w-4 h-4" />
       </button>
@@ -148,7 +148,7 @@ export default function CreateContent() {
       {/* Back link */}
       <Link
         href="/delivery-men/men"
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-4 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-muted hover:text-primary mb-4 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Retour à la liste
@@ -156,11 +156,11 @@ export default function CreateContent() {
 
       {/* Header */}
       <h1 className="text-2xl font-bold text-primary mb-1">Créer un nouveau profil</h1>
-      <p className="text-sm text-gray-500 mb-8">Enregistrer un nouveau coursier dans le système</p>
+      <p className="text-sm text-muted mb-8">Enregistrer un nouveau coursier dans le système</p>
 
       <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
         {/* ── Photo de profil ── */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+        <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
           <SectionTitle>Photo de profil</SectionTitle>
           <div className="flex items-center gap-5">
             <div className="relative">
@@ -184,18 +184,18 @@ export default function CreateContent() {
               <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700">Téléchargez une photo</p>
-              <p className="text-xs text-gray-400">JPG, PNG ou GIF (max: 2MB)</p>
+              <p className="text-sm font-medium text-foreground">Téléchargez une photo</p>
+              <p className="text-xs text-muted">JPG, PNG ou GIF (max: 2MB)</p>
             </div>
           </div>
 
           {/* Contrat + Fiche d'identification */}
-          <div className="mt-5 pt-5 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="mt-5 pt-5 border-t border-separator grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Contrat */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Contrat du livreur</p>
+              <p className="text-sm font-medium text-foreground mb-2">Contrat du livreur</p>
               <label className="flex items-center gap-3 cursor-pointer">
-                <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-separator rounded-lg text-muted hover:border-primary hover:text-primary transition-colors text-sm">
                   <FileText className="w-4 h-4 shrink-0" />
                   <span>{contratFile ? contratFile.name : 'Importer le contrat (PDF, JPG, PNG)'}</span>
                 </div>
@@ -213,9 +213,9 @@ export default function CreateContent() {
 
             {/* Fiche d'identification Turboy */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Fiche d'identification Turboy</p>
+              <p className="text-sm font-medium text-foreground mb-2">Fiche d'identification Turboy</p>
               <label className="flex items-center gap-3 cursor-pointer">
-                <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
+                <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-separator rounded-lg text-muted hover:border-primary hover:text-primary transition-colors text-sm">
                   <FileText className="w-4 h-4 shrink-0" />
                   <span>{ficheIdentificationFile ? ficheIdentificationFile.name : 'Importer la fiche (PDF, JPG, PNG)'}</span>
                 </div>
@@ -234,7 +234,7 @@ export default function CreateContent() {
         </section>
 
         {/* ── Informations personnelles ── */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+        <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
           <SectionTitle>Informations personnelles</SectionTitle>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Controller
@@ -255,28 +255,28 @@ export default function CreateContent() {
               name="birthDay"
               control={control}
               render={({ field }) => (
-                <Input {...field} type="date" label="Date de naissance" isInvalid={!!errors.birthDay} errorMessage={errors.birthDay?.message} variant="bordered" startContent={<span className="text-gray-400 text-sm">📅</span>} />
+                <Input {...field} type="date" label="Date de naissance" isInvalid={!!errors.birthDay} errorMessage={errors.birthDay?.message} variant="bordered" startContent={<span className="text-muted text-sm">📅</span>} />
               )}
             />
             <Controller
               name="habitation"
               control={control}
               render={({ field }) => (
-                <Input {...field} label="Domicile" placeholder="Koumasi Zone 4" isInvalid={!!errors.habitation} errorMessage={errors.habitation?.message} variant="bordered" startContent={<span className="text-gray-400 text-sm">🏠</span>} />
+                <Input {...field} label="Domicile" placeholder="Koumasi Zone 4" isInvalid={!!errors.habitation} errorMessage={errors.habitation?.message} variant="bordered" startContent={<span className="text-muted text-sm">🏠</span>} />
               )}
             />
             <Controller
               name="telephone"
               control={control}
               render={({ field }) => (
-                <Input {...field} label="Téléphone" placeholder="+225 0000000000" description="Laisser vide si le numéro n'est pas connu" isInvalid={!!errors.telephone} errorMessage={errors.telephone?.message} variant="bordered" startContent={<span className="text-gray-400 text-sm">📞</span>} />
+                <Input {...field} label="Téléphone" placeholder="+225 0000000000" description="Laisser vide si le numéro n'est pas connu" isInvalid={!!errors.telephone} errorMessage={errors.telephone?.message} variant="bordered" startContent={<span className="text-muted text-sm">📞</span>} />
               )}
             />
             <Controller
               name="email"
               control={control}
               render={({ field }) => (
-                <Input {...field} type="email" label="Adresse mail" placeholder="email@example.com" isInvalid={!!errors.email} errorMessage={errors.email?.message} variant="bordered" startContent={<span className="text-gray-400 text-sm">✉️</span>} />
+                <Input {...field} type="email" label="Adresse mail" placeholder="email@example.com" isInvalid={!!errors.email} errorMessage={errors.email?.message} variant="bordered" startContent={<span className="text-muted text-sm">✉️</span>} />
               )}
             />
             <Controller
@@ -290,7 +290,7 @@ export default function CreateContent() {
                   isInvalid={!!errors.numeroPersonneAContacter}
                   errorMessage={errors.numeroPersonneAContacter?.message}
                   variant="bordered"
-                  startContent={<span className="text-gray-400 text-sm">📞</span>}
+                  startContent={<span className="text-muted text-sm">📞</span>}
                   className="sm:col-span-2"
                 />
               )}
@@ -298,15 +298,15 @@ export default function CreateContent() {
           </div>
 
           {/* Permis de conduire */}
-          <div className="mt-5 pt-5 border-t border-gray-100">
+          <div className="mt-5 pt-5 border-t border-separator">
             <Controller
               name="permisConduire"
               control={control}
               render={({ field }) => (
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Permis de conduire</p>
-                    <p className="text-xs text-gray-400">Le livreur détient-il un permis valide ?</p>
+                    <p className="text-sm font-medium text-foreground">Permis de conduire</p>
+                    <p className="text-xs text-muted">Le livreur détient-il un permis valide ?</p>
                   </div>
                   <Switch
                     isSelected={field.value ?? false}
@@ -319,7 +319,7 @@ export default function CreateContent() {
         </section>
 
         {/* ── Document d'identité ── */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+        <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
           <SectionTitle>Document d'identité</SectionTitle>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
             <Controller
@@ -348,7 +348,7 @@ export default function CreateContent() {
             />
           </div>
           <div>
-            <p className="text-sm text-gray-600 mb-2">Photo de la pièce (max 2)</p>
+            <p className="text-sm text-muted mb-2">Photo de la pièce (max 2)</p>
             <UploadZone
               label="Importer"
               multiple
@@ -363,7 +363,7 @@ export default function CreateContent() {
         </section>
 
         {/* ── Informations du véhicule ── */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+        <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
           <SectionTitle>Informations du véhicule</SectionTitle>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
             <Controller
@@ -399,7 +399,7 @@ export default function CreateContent() {
             />
           </div>
           <div>
-            <p className="text-sm text-gray-600 mb-2">Photo du véhicule</p>
+            <p className="text-sm text-muted mb-2">Photo du véhicule</p>
             <UploadZone
               label="Ajouter une photo"
               onChange={(files) => { if (files?.[0]) setVehicleFile(files[0]); }}
@@ -411,7 +411,7 @@ export default function CreateContent() {
         </section>
 
         {/* ── Compte du livreur ── */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+        <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
           <SectionTitle>Compte du livreur</SectionTitle>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Controller
@@ -434,7 +434,7 @@ export default function CreateContent() {
                   errorMessage={errors.password?.message}
                   variant="bordered"
                   endContent={
-                    <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-gray-400 hover:text-gray-600">
+                    <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-muted hover:text-foreground">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   }

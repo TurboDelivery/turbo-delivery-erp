@@ -43,7 +43,7 @@ export function RestaurantMobileCard({
 }) {
   return (
     <div
-      className={`bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-3 ${onClick ? 'cursor-pointer active:bg-gray-50' : ''}`}
+      className={`bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-3 ${onClick ? 'cursor-pointer active:bg-gray-50' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
@@ -56,7 +56,7 @@ export function RestaurantMobileCard({
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 capitalize truncate flex items-center gap-1.5">
+            <p className="text-sm font-semibold text-foreground capitalize truncate flex items-center gap-1.5">
               <span className="truncate">{nom}</span>
               {verified && <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />}
               {gratuite && <Diamond className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
@@ -68,8 +68,8 @@ export function RestaurantMobileCard({
 
       {fields?.filter((f) => f.value !== null && f.value !== undefined && f.value !== '').map((f, i) => (
         <div key={i} className="flex items-center justify-between gap-3">
-          <span className="text-xs text-gray-400 shrink-0">{f.label}</span>
-          <span className="text-sm text-gray-700 text-right truncate">{f.value}</span>
+          <span className="text-xs text-muted shrink-0">{f.label}</span>
+          <span className="text-sm text-foreground text-right truncate">{f.value}</span>
         </div>
       ))}
 

@@ -55,15 +55,15 @@ export default function CreneauxDetail({ dataCreneau }: { dataCreneau: CreneauID
 
     if (dataCreneau && dataCreneau.length) {
         return (
-            <div className="p-4 bg-white">
+            <div className="p-4 bg-surface">
                 {/* En-tête */}
                 <div className="mb-4">
-                    <h2 className="text-lg font-medium text-gray-800">Créneau</h2>
+                    <h2 className="text-lg font-medium text-foreground">Créneau</h2>
                     <p className="text-pink-500 text-sm mt-1">Sélectionnez les jours de travail</p>
-                    <p className="text-gray-500 text-xs mt-2">
+                    <p className="text-muted text-xs mt-2">
                         Tu seras complètement rémunéré sur les 7 jours de travail
                     </p>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-muted text-xs">
                         La durée de travail est de 8 heures minimum.
                     </p>
                 </div>
@@ -83,7 +83,7 @@ export default function CreneauxDetail({ dataCreneau }: { dataCreneau: CreneauID
                                     onClick={() => setActiveTab(tabIndex)}
                                     className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-medium transition-colors ${activeTab === tabIndex
                                         ? 'bg-pink-500 text-white'
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        : 'bg-surface-tertiary text-foreground hover:bg-gray-300'
                                         }`}
                                 >
                                     Semaine du {jourDebut} - {jourFin} {fnMois(moiDebut || moiFin || '')}
@@ -102,15 +102,15 @@ export default function CreneauxDetail({ dataCreneau }: { dataCreneau: CreneauID
                                 ? item.jours
                                 : getJoursEntreDates(item.debut, item.fin) // fallback
                             ).map((jour: any, index: number) => (
-                                <div key={index} className="bg-gray-100 rounded-lg p-4">
+                                <div key={index} className="bg-surface-secondary rounded-lg p-4">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-3">
-                                            <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                                                <span className="text-gray-600 font-medium">
+                                            <div className="w-12 h-12 bg-surface-tertiary rounded-full flex items-center justify-center">
+                                                <span className="text-muted font-medium">
                                                     {jour.date?.substring(8, 10) ?? jour.numero}
                                                 </span>
                                             </div>
-                                            <span className="text-gray-700 font-medium">
+                                            <span className="text-foreground font-medium">
                                                 {jour.jour ?? jour.nom}
                                             </span>
                                         </div>
@@ -127,7 +127,7 @@ export default function CreneauxDetail({ dataCreneau }: { dataCreneau: CreneauID
                                                     } relative cursor-pointer`}
                                             >
                                                 <div
-                                                    className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${jour.actif ? "translate-x-6" : "translate-x-0.5"
+                                                    className={`w-5 h-5 bg-surface rounded-full absolute top-0.5 transition-transform ${jour.actif ? "translate-x-6" : "translate-x-0.5"
                                                         }`}
                                                 ></div>
                                             </div>
@@ -138,17 +138,17 @@ export default function CreneauxDetail({ dataCreneau }: { dataCreneau: CreneauID
                                     {(jour.actif ?? false) && (
                                         <div className="mt-4 flex items-center space-x-4">
                                             <div className="flex items-center space-x-2">
-                                                <span className="text-gray-500 text-sm">Heure de début</span>
-                                                <div className="bg-white rounded px-3 py-1 border">
-                                                    <span className="text-gray-700">
+                                                <span className="text-muted text-sm">Heure de début</span>
+                                                <div className="bg-surface rounded px-3 py-1 border">
+                                                    <span className="text-foreground">
                                                         {jour.debut ?? "08:00"}
                                                     </span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center space-x-2">
-                                                <span className="text-gray-500 text-sm">Heure de fin</span>
-                                                <div className="bg-white rounded px-3 py-1 border">
-                                                    <span className="text-gray-700">
+                                                <span className="text-muted text-sm">Heure de fin</span>
+                                                <div className="bg-surface rounded px-3 py-1 border">
+                                                    <span className="text-foreground">
                                                         {jour.fin ?? "22:00"}
                                                     </span>
                                                 </div>
@@ -169,8 +169,8 @@ export default function CreneauxDetail({ dataCreneau }: { dataCreneau: CreneauID
                 <div className="space-y-4">
                     <p className="text-pink-500 text-lg">Aucun créneau trouvé</p>
                     {[...Array(4)].map((_, index) => (
-                        <Skeleton key={index} className="bg-gray-200 rounded-xl p-4">
-                            <div className="h-16 w-full rounded-lg bg-gray-300" />
+                        <Skeleton key={index} className="bg-surface-tertiary rounded-xl p-4">
+                            <div className="h-16 w-full rounded-lg bg-surface-tertiary" />
                         </Skeleton>
                     ))}
                 </div>

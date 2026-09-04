@@ -49,7 +49,7 @@ export function DemandesPanel({ demandes, restaurants }: DemandesPanelProps) {
       case 'statut':
         return ctrl.recupererStatut(item.statutDemandeAssignation);
       case 'date':
-        return <span className="text-sm text-gray-500">{item.date}</span>;
+        return <span className="text-sm text-muted">{item.date}</span>;
       case 'actions': {
         const isRejected = item.statutDemandeAssignation === 'REJETER';
         return (
@@ -81,7 +81,7 @@ export function DemandesPanel({ demandes, restaurants }: DemandesPanelProps) {
               onClick={() => !isRejected && ctrl.retirer(item.id)}
               className={`p-1.5 rounded-full text-white transition-colors ${
                 isRejected
-                  ? 'bg-gray-300 cursor-not-allowed'
+                  ? 'bg-surface-tertiary cursor-not-allowed'
                   : 'bg-gray-400 hover:bg-red-500 cursor-pointer'
               }`}
             >
@@ -98,16 +98,16 @@ export function DemandesPanel({ demandes, restaurants }: DemandesPanelProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-gray-700">
+        <h2 className="text-base font-semibold text-foreground">
           Demandes d'assignation en cours ({ctrl.data?.length ?? 0})
         </h2>
         <SearchField searchKey={ctrl.selectValue} onChange={ctrl.setSelectValue} />
       </div>
-      <div className="rounded-xl border border-gray-100 bg-white shadow-xs overflow-hidden">
+      <div className="rounded-xl border border-separator bg-surface shadow-xs overflow-hidden">
         <Table
           aria-label="Tableau des demandes"
           removeWrapper
-          classNames={{ th: 'bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide', td: 'py-3' }}
+          classNames={{ th: 'bg-surface-secondary text-xs font-semibold text-muted uppercase tracking-wide', td: 'py-3' }}
         >
           <TableHeader>
             {DEMANDE_COLUMNS.map((col) => (

@@ -68,7 +68,7 @@ export function DepenseForm({
       {/* Date et Montant */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
-          <Label htmlFor="dateDepense" className="text-sm text-gray-500">
+          <Label htmlFor="dateDepense" className="text-sm text-muted">
             Date de comptabilisation *
           </Label>
           <Popover>
@@ -90,7 +90,7 @@ export function DepenseForm({
         </div>
 
         <div className="flex flex-col gap-1">
-          <Label htmlFor="montant" className="text-sm text-gray-500">
+          <Label htmlFor="montant" className="text-sm text-muted">
             Montant de la dépense *
           </Label>
           <Input 
@@ -112,7 +112,7 @@ export function DepenseForm({
 
       {/* Statut */}
       <div className="flex flex-col gap-1">
-        <Label htmlFor="statut" className="text-sm text-gray-500">
+        <Label htmlFor="statut" className="text-sm text-muted">
           Statut de la dépense *
         </Label>
         <Select 
@@ -139,7 +139,7 @@ export function DepenseForm({
       {/* Catégorie + Source */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col gap-1">
-          <Label htmlFor="categorieDepense" className="text-sm text-gray-500">
+          <Label htmlFor="categorieDepense" className="text-sm text-muted">
             Catégorie de dépenses *
           </Label>
           <Select onValueChange={(value) => setValue('categorieDepense', value)} defaultValue={defaultCategorieId}>
@@ -171,7 +171,7 @@ export function DepenseForm({
         </div>
 
         <div className="flex flex-col gap-1">
-          <Label htmlFor="sourcePaiement" className="text-sm text-gray-500">
+          <Label htmlFor="sourcePaiement" className="text-sm text-muted">
             Source
           </Label>
           <Select onValueChange={(value) => setValue('sourcePaiement', value)} defaultValue={defaultSource}>
@@ -196,7 +196,7 @@ export function DepenseForm({
 
       {/* Description */}
       <div className="grid gap-3">
-        <Label htmlFor="description" className="text-sm text-gray-500">
+        <Label htmlFor="description" className="text-sm text-muted">
           Description *
         </Label>
         <Textarea id="description" placeholder="Description" {...register('description')} />
@@ -217,7 +217,7 @@ export function DepenseForm({
               }
             }}
           />
-          <Label htmlFor="toggle-type-depense" className="text-sm text-gray-500 cursor-pointer">
+          <Label htmlFor="toggle-type-depense" className="text-sm text-muted cursor-pointer">
             Dépense récurrente (fixe)
           </Label>
         </div>
@@ -262,7 +262,7 @@ export function DepenseForm({
 
       {/* Investisseur */}
       <div className="grid gap-3">
-        <Label htmlFor="investisseur" className="text-sm text-gray-500">
+        <Label htmlFor="investisseur" className="text-sm text-muted">
           Investissement (optionnel)
         </Label>
         <Select

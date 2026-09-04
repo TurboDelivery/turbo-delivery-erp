@@ -18,8 +18,8 @@ function UserListeModel2({ turboy }: any) {
                 <DropDownAction id={turboy.id} />
             </CardHeader>
             <CardBody className='flex flex-col gap-2'>
-                <p className="w-1/2 text-sm text-gray-500">Inscrit le : {turboy.dateInscrit ? formatDate(turboy.dateInscrit, 'DD/MM/YYYY') : '-'}</p>
-                <p className="text-sm text-gray-500 mr-3">Défini le : {turboy.dateDefiniEmploiTemps ? formatDate(turboy.dateDefiniEmploiTemps, 'DD/MM/YYYY') : '-'}</p>
+                <p className="w-1/2 text-sm text-muted">Inscrit le : {turboy.dateInscrit ? formatDate(turboy.dateInscrit, 'DD/MM/YYYY') : '-'}</p>
+                <p className="text-sm text-muted mr-3">Défini le : {turboy.dateDefiniEmploiTemps ? formatDate(turboy.dateDefiniEmploiTemps, 'DD/MM/YYYY') : '-'}</p>
 
             </CardBody>
             <CardFooter>
@@ -27,7 +27,7 @@ function UserListeModel2({ turboy }: any) {
                     {progresseBare(turboy)}
                     <span className='relative mt-5  '>
                         {turboy.disponibilite ? <IconPointFilled style={{ border: 'none' }} color="#16B84E" size={30} /> : <IconPointFilled style={{ border: 'none' }} color="#FF0000" size={30} />}
-                        {turboy.disponibilite ? <span className="absolute top-[-3px] inline-flex h-full w-full animate-ping  rounded-full bg-success/50 opacity-75 ltr:left-[-3px] rtl:right-[-3px]"></span> : ''}
+                        {turboy.disponibilite ? <span className="absolute top-[-3px] inline-flex h-full w-full animate-ping rounded-full bg-success/50 opacity-75 ltr:left-[-3px] rtl:right-[-3px]"></span> : ''}
                     </span>
                 </div>
             </CardFooter>

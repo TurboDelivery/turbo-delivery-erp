@@ -50,7 +50,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
             case "CANCELLED":
                 return "bg-red-50 text-red-800 border-red-400";
             default:
-                return "bg-gray-50 text-gray-800 border-gray-300";
+                return "bg-surface-secondary text-foreground border-separator";
         }
     };
 
@@ -189,11 +189,11 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
 
     return (
         <div className="p-2 w-full ">
-            <div className="w-full bg-white border border-gray-200 shadow-xs rounded-md px-4 py-2 mb-2 sm:p-6">
+            <div className="w-full bg-surface border border-separator shadow-xs rounded-md px-4 py-2 mb-2 sm:p-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                     {/* Filtre période */}
                     <div className="flex flex-col gap-1">
-                        <label className="text-sm font-semibold font-medium text-gray-700">Rechercher par période</label>
+                        <label className="text-sm font-semibold font-medium text-foreground">Rechercher par période</label>
                         <DateRangePicker
                             aria-label="Période"
                             className="w-full"
@@ -203,7 +203,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
 
                     {/* Filtre restaurant */}
                     <div className="flex flex-col gap-2">
-                        <label className="text-sm font-semibold font-medium text-gray-700">Sélectionnez un restaurant</label>
+                        <label className="text-sm font-semibold font-medium text-foreground">Sélectionnez un restaurant</label>
                         <SelectField
                             options={restaurants}
                             optionLabel="nomEtablissement"
@@ -232,7 +232,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                                 className={`p-3 rounded-lg border-l-4 shadow-xs flex flex-col items-center justify-center ${statusColor(key.toUpperCase())}`}
                             >
                                 <div className="text-2xl font-bold">{stat?.nbre ?? 0}</div>
-                                <div className="text-xs text-gray-700 mt-1 truncate">{label}</div>
+                                <div className="text-xs text-foreground mt-1 truncate">{label}</div>
                                 <span className="text-sm mt-1">
                                     {new Intl.NumberFormat("fr-FR").format(stat?.amount ?? 0)} Fcfa
                                 </span>
@@ -247,29 +247,29 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
             <div className="space-y-4">
                 <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                     {commandes?.content?.map((cmd) => (
-                        <article key={cmd.id} className={`bg-white rounded-lg shadow-xs border ${statusColor(cmd.orderState)} overflow-hidden w-full`}>
+                        <article key={cmd.id} className={`bg-surface rounded-lg shadow-xs border ${statusColor(cmd.orderState)} overflow-hidden w-full`}>
                             <div className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 flex-wrap">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-700">
+                                        <div className="w-10 h-10 rounded bg-surface-secondary flex items-center justify-center text-sm font-semibold text-foreground">
                                             {cmd.id.slice(0, 4).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
                                             <div className="font-semibold text-sm truncate">Commande #{cmd.numero}</div>
-                                            <div className="text-xs text-gray-500 truncate">{new Date(cmd.dateCreation ?? "").toLocaleString()}</div>
+                                            <div className="text-xs text-muted truncate">{new Date(cmd.dateCreation ?? "").toLocaleString()}</div>
                                         </div>
                                     </div>
 
-                                    <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:gap-6 gap-2 text-xs text-gray-600 flex-wrap">
+                                    <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:gap-6 gap-2 text-xs text-muted flex-wrap">
                                         <div className="flex items-center gap-2 truncate">
-                                            <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none">
+                                            <svg className="w-4 h-4 text-muted shrink-0" viewBox="0 0 24 24" fill="none">
                                                 <path d="M12 2C8 2 4 5 4 9c0 6 8 13 8 13s8-7 8-13c0-4-4-7-8-7z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
                                             </svg>
                                             <span className="truncate">{cmd.adresseM?.libelle ?? "Adresse inconnue"}</span>
                                         </div>
 
                                         <div className="flex items-center gap-2 truncate">
-                                            <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none">
+                                            <svg className="w-4 h-4 text-muted shrink-0" viewBox="0 0 24 24" fill="none">
                                                 <path d="M3 12h18" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                                                 <path d="M6 6h.01M6 18h.01M12 6h.01M12 18h.01M18 6h.01M18 18h.01" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
                                             </svg>
@@ -277,7 +277,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                                         </div>
 
                                         <div className="flex items-center gap-2 truncate">
-                                            <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 24 24" fill="none">
+                                            <svg className="w-4 h-4 text-muted shrink-0" viewBox="0 0 24 24" fill="none">
                                                 <path d="M3 3h18v18H3z" stroke="currentColor" strokeWidth="1.2" />
                                             </svg>
                                             <span className="truncate">{currency(cmd.totalAmount)} Fcfa</span>
@@ -297,8 +297,8 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                                 </div>
                             </div>
 
-                            <div className="border-t px-4 py-3 bg-gray-50">
-                                <div className="flex items-center justify-between text-xs text-gray-600 flex-wrap">
+                            <div className="border-t px-4 py-3 bg-surface-secondary">
+                                <div className="flex items-center justify-between text-xs text-muted flex-wrap">
                                     <div>{cmd.orderItemM?.length ?? 0} article(s)</div>
                                     <div>Frais: {currency(cmd.deliveryFee)} Fcfa</div>
                                 </div>
@@ -312,16 +312,16 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                     <button
                         onClick={() => handlePagination(currentPage - 1)}
                         disabled={currentPage === 0 || loadingPage}
-                        className="px-3 py-2 rounded border bg-white disabled:opacity-50">
+                        className="px-3 py-2 rounded border bg-surface disabled:opacity-50">
                         Précédent
                     </button>
-                    <div className="text-sm text-gray-700">
+                    <div className="text-sm text-foreground">
                         Page {(commandes?.number ?? 0) + 1} / {commandes?.totalPages ?? 1}
                     </div>
                     <button
                         onClick={() => handlePagination(currentPage + 1)}
                         disabled={currentPage + 1 >= (commandes?.totalPages ?? 1) || loadingPage}
-                        className="px-3 py-2 rounded border bg-white disabled:opacity-50"
+                        className="px-3 py-2 rounded border bg-surface disabled:opacity-50"
                     >
                         Suivant
                     </button>
@@ -333,17 +333,17 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
             {showModal && detailOrder && (
                 <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-4">
                     <div className="absolute inset-0 bg-black/40" onClick={closeDetail} />
-                    <div className="relative w-full max-w-full sm:max-w-3xl max-h-[90vh] overflow-auto bg-white rounded-lg shadow-lg">
+                    <div className="relative w-full max-w-full sm:max-w-3xl max-h-[90vh] overflow-auto bg-surface rounded-lg shadow-lg">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b gap-2 sm:gap-0">
                             <div>
                                 <div className="font-semibold">Détails commande #{detailOrder.id.slice(0, 8)}</div>
-                                <div className="text-xs text-gray-500">{new Date(detailOrder.dateCreation ?? "").toLocaleString()}</div>
+                                <div className="text-xs text-muted">{new Date(detailOrder.dateCreation ?? "").toLocaleString()}</div>
                             </div>
                             <div className="flex items-center gap-2 flex-wrap">
                                 <div className={`px-2 py-1 rounded text-xs font-medium border ${statusColor(detailOrder.orderState)}`}>
                                     {detailOrder.orderState}
                                 </div>
-                                <button onClick={closeDetail} className="px-2 sm:px-3 py-1 text-xs sm:text-sm text-gray-600 rounded-md border">
+                                <button onClick={closeDetail} className="px-2 sm:px-3 py-1 text-xs sm:text-sm text-muted rounded-md border">
                                     Fermer
                                 </button>
                             </div>
@@ -356,7 +356,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                                 <div className="space-y-3 max-h-[420px] overflow-auto pr-2">
                                     {detailOrder.orderItemM?.map((it) => (
                                         <div key={it.id} className="flex items-start gap-3 p-3 rounded border flex-wrap">
-                                            <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-600">
+                                            <div className="w-16 h-16 bg-surface-secondary rounded flex items-center justify-center text-xs text-muted">
                                                 Img
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -364,18 +364,18 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                                                     <div className="font-medium text-sm truncate">{`Produit ${it.platId.slice(0, 6)}`}</div>
                                                     <div className="text-sm font-semibold">{currency(it.price)} Fcfa</div>
                                                 </div>
-                                                <div className="text-xs text-gray-500 mt-1 truncate">
+                                                <div className="text-xs text-muted mt-1 truncate">
                                                     Qté: {it.quantity} {it.optionValues?.length ? ` • Options: ${it.optionValues.join(", ")}` : ""}
                                                 </div>
                                                 {it.accompIds?.length ? (
-                                                    <div className="text-xs text-gray-500 mt-1 truncate">Accompagnements: {it.accompIds.join(", ")}</div>
+                                                    <div className="text-xs text-muted mt-1 truncate">Accompagnements: {it.accompIds.join(", ")}</div>
                                                 ) : null}
                                             </div>
                                         </div>
                                     ))}
                                 </div>
 
-                                <div className="mt-4 p-3 border rounded bg-gray-50">
+                                <div className="mt-4 p-3 border rounded bg-surface-secondary">
                                     <div className="flex justify-between text-sm">
                                         <span>Sous-total</span>
                                         <span>{currency(detailOrder.totalAmount - (detailOrder.deliveryFee ?? 0) - (detailOrder.serviceFee ?? 0))} Fcfa</span>
@@ -398,12 +398,12 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                             {/* Right: adresse + client */}
                             <div>
                                 <h4 className="font-semibold mb-2">Livraison & client</h4>
-                                <div className="mb-3 p-3 rounded border bg-white">
+                                <div className="mb-3 p-3 rounded border bg-surface">
                                     <div className="text-sm font-medium truncate">{detailOrder.recipientName ?? detailOrder.userM?.nom}</div>
-                                    <div className="text-xs text-gray-500 truncate">{detailOrder.recipientPhone ?? detailOrder.userM?.telephone}</div>
-                                    <div className="text-xs text-gray-600 mt-2 truncate">{detailOrder.adresseM?.libelle ?? "Adresse non fournie"}</div>
+                                    <div className="text-xs text-muted truncate">{detailOrder.recipientPhone ?? detailOrder.userM?.telephone}</div>
+                                    <div className="text-xs text-muted mt-2 truncate">{detailOrder.adresseM?.libelle ?? "Adresse non fournie"}</div>
                                     {(detailOrder.adresseM?.etage || detailOrder.adresseM?.numeroPorte) && (
-                                        <div className="text-xs text-gray-500 mt-1 truncate">
+                                        <div className="text-xs text-muted mt-1 truncate">
                                             {detailOrder.adresseM?.batName ? `${detailOrder.adresseM.batName} • ` : ""}
                                             {detailOrder.adresseM?.etage ? `Etage ${detailOrder.adresseM.etage} • ` : ""}
                                             {detailOrder.adresseM?.numeroPorte ? `Porte ${detailOrder.adresseM.numeroPorte}` : ""}
@@ -411,7 +411,7 @@ export default function OrdersPage({ commandesInitiales, restaurants, stats }: O
                                     )}
                                 </div>
 
-                                <div className="mt-3 text-xs text-gray-600">
+                                <div className="mt-3 text-xs text-muted">
                                     <div>Mode paiement: <strong>{detailOrder.paymentMethod ?? "—"}</strong></div>
                                     <div className="mt-1">Commande créée: {new Date(detailOrder.dateCreation ?? "").toLocaleString()}</div>
                                 </div>

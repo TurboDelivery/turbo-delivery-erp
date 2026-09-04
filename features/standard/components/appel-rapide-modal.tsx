@@ -127,7 +127,7 @@ export function AppelRapideModal({ isOpen, onOpenChange }: AppelRapideModalProps
                 </div>
               )}
               {enAppel && (
-                <p className="text-center text-xs text-warning">
+                <p className="text-center text-xs text-warning-soft-foreground">
                   Un appel est déjà en cours.
                 </p>
               )}

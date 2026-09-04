@@ -140,7 +140,7 @@ export function RequestForm({ isOpen, onOpenChange, isEditMode, editingRequestId
               <div className="space-y-6">
                 {/* Employee Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Employé</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Employé</label>
                   <Select
                     placeholder="Sélectionnez un employé"
                     selectedKeys={request.employeeId ? [request.employeeId] : []}
@@ -176,7 +176,7 @@ export function RequestForm({ isOpen, onOpenChange, isEditMode, editingRequestId
 
                 {/* Leave Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Type de congé</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Type de congé</label>
                   <Select
                     placeholder="Sélectionnez le type"
                     selectedKeys={[request.type]}
@@ -202,7 +202,7 @@ export function RequestForm({ isOpen, onOpenChange, isEditMode, editingRequestId
 
                 {/* Duration Selection */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Durée</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Durée</label>
                   <div className="grid grid-cols-4 gap-2">
                     <Button
                       variant={request.durationType === 'mois' ? 'solid' : 'bordered'}
@@ -246,7 +246,7 @@ export function RequestForm({ isOpen, onOpenChange, isEditMode, editingRequestId
                 {/* Date Selection */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date de début</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Date de début</label>
                     <Input
                       type="date"
                       value={request.startDate}
@@ -257,7 +257,7 @@ export function RequestForm({ isOpen, onOpenChange, isEditMode, editingRequestId
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Date de fin</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Date de fin</label>
                     <Input
                       type="date"
                       value={request.endDate}
@@ -272,7 +272,7 @@ export function RequestForm({ isOpen, onOpenChange, isEditMode, editingRequestId
 
                 {/* Reason Input */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Motif du congé</label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Motif du congé</label>
                   <Input
                     placeholder="Veuillez saisir le motif"
                     value={request.reason}
@@ -286,7 +286,7 @@ export function RequestForm({ isOpen, onOpenChange, isEditMode, editingRequestId
                 {/* Status Selection - Only in edit mode */}
                 {isEditMode && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Statut du congé</label>
+                    <label className="block text-sm font-medium text-foreground mb-2">Statut du congé</label>
                     <Select
                       placeholder="Sélectionnez le statut"
                       selectedKeys={[request.statut]}
@@ -316,11 +316,11 @@ export function RequestForm({ isOpen, onOpenChange, isEditMode, editingRequestId
 
                 {/* Summary */}
                 {request.duration > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                    <h4 className="text-sm font-medium text-gray-700">Résumé</h4>
+                  <div className="bg-surface-secondary rounded-lg p-4 space-y-2">
+                    <h4 className="text-sm font-medium text-foreground">Résumé</h4>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">{request.duration} jours de congé</span>
-                      <span className="text-sm font-medium text-gray-800">Solde restant après ce congé : {getRemainingBalance()} jours</span>
+                      <span className="text-sm text-muted">{request.duration} jours de congé</span>
+                      <span className="text-sm font-medium text-foreground">Solde restant après ce congé : {getRemainingBalance()} jours</span>
                     </div>
                   </div>
                 )}

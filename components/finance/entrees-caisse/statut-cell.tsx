@@ -36,7 +36,7 @@ export function EntreeCaisseStatutCell({ entree }: { entree: IEntreeCaisse }) {
         'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors disabled:opacity-50',
         paye
           ? 'bg-green-100 text-green-700 hover:bg-green-200'
-          : 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+          : 'bg-surface-secondary text-muted hover:bg-surface-tertiary',
       )}
     >
       <span className={cn('size-1.5 rounded-full', paye ? 'bg-green-600' : 'bg-gray-400')} />

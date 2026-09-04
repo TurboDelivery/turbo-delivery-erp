@@ -32,12 +32,12 @@ interface AgentCellProps {
 }
 
 function AgentCell({ agent, date }: AgentCellProps) {
-  if (!agent) return <span className="text-gray-400">—</span>;
+  if (!agent) return <span className="text-muted">—</span>;
   const formatted = formatDateTime(date);
   return (
     <div className="flex flex-col leading-tight">
-      <span className="text-gray-800 font-medium">{`${agent.prenoms} ${agent.nom}`}</span>
-      {formatted && <span className="text-[11px] text-gray-500">{formatted}</span>}
+      <span className="text-foreground font-medium">{`${agent.prenoms} ${agent.nom}`}</span>
+      {formatted && <span className="text-[11px] text-muted">{formatted}</span>}
     </div>
   );
 }

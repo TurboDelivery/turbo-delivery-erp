@@ -16,14 +16,14 @@ export function Pagination({ currentPage, totalPages, itemsPerPage, totalItems, 
   const startIndex = (currentPage - 1) * itemsPerPage
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t bg-gray-50">
-      <p className="text-sm text-gray-600 mb-2 sm:mb-0">
+    <div className="flex flex-col sm:flex-row justify-between items-center p-4 border-t bg-surface-secondary">
+      <p className="text-sm text-muted mb-2 sm:mb-0">
         Affichage de {startIndex + 1} à {Math.min(startIndex + itemsPerPage, totalItems)} sur {totalItems} dépenses
       </p>
       
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Lignes par page:</span>
+          <span className="text-sm text-muted">Lignes par page:</span>
           <select
             value={itemsPerPage}
             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
@@ -61,7 +61,7 @@ export function Pagination({ currentPage, totalPages, itemsPerPage, totalItems, 
             )
           })}
 
-          {totalPages > 5 && <span className="px-2 text-sm text-gray-500">...</span>}
+          {totalPages > 5 && <span className="px-2 text-sm text-muted">...</span>}
 
           <Button
             variant="outline"

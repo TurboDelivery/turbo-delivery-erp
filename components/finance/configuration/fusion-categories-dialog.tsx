@@ -111,7 +111,7 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                   <Spinner color="primary" label="Analyse des données rattachées…" />
                 </div>
               ) : isError ? (
-                <p className="py-6 text-center text-sm text-danger">
+                <p className="py-6 text-center text-sm text-danger-soft-foreground">
                   Impossible de charger les données rattachées.
                 </p>
               ) : (
@@ -169,7 +169,7 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
 
               {!isLoading && !isError && (
                 <label className="mt-2 flex items-start gap-2 rounded-lg bg-warning-50 p-3 text-xs text-warning-800">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning-soft-foreground" />
                   <span className="flex-1">
                     Je confirme fusionner les {ids.length} catégories dans celle sélectionnée. Les
                     autres seront supprimées définitivement.

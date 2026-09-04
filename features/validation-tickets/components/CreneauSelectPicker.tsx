@@ -30,7 +30,7 @@ export default function CreneauSelectPicker({
       disabled={disabled}
     >
       <SelectTrigger className="w-full sm:w-64 gap-2 text-sm font-medium">
-        <CalendarDays className="h-4 w-4 shrink-0 text-gray-400" />
+        <CalendarDays className="h-4 w-4 shrink-0 text-muted" />
         <SelectValue placeholder="Choisir un créneau…" />
       </SelectTrigger>
       <SelectContent>

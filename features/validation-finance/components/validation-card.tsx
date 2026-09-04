@@ -32,23 +32,23 @@ export function ValidationCard({ depense, current, total, totalFile, onPrev, onN
   const [showJustificatif, setShowJustificatif] = useState(false);
 
   return (
-    <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white">
+    <div className="rounded-b-xl border border-t-0 border-separator bg-surface">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+      <div className="flex items-center justify-between border-b border-separator px-5 py-4">
         <div>
-          <h2 className="font-semibold text-gray-900">{acceptLabel === 'Viser' ? 'Validation DGA' : acceptLabel === 'Approuver' ? 'Approbation DG' : 'Décaissement Comptable'}</h2>
-          <p className="text-sm text-gray-400">
+          <h2 className="font-semibold text-foreground">{acceptLabel === 'Viser' ? 'Validation DGA' : acceptLabel === 'Approuver' ? 'Approbation DG' : 'Décaissement Comptable'}</h2>
+          <p className="text-sm text-muted">
             Dépense {current + 1} sur {total}
             {typeof totalFile === 'number' && totalFile > total && (
-              <span className="ml-1 text-gray-300">({totalFile} en attente au total)</span>
+              <span className="ml-1 text-muted">({totalFile} en attente au total)</span>
             )}
           </p>
         </div>
         <div className="flex gap-1">
-          <button onClick={onPrev} disabled={current === 0} className="rounded p-1.5 hover:bg-gray-100 disabled:opacity-30">
+          <button onClick={onPrev} disabled={current === 0} className="rounded p-1.5 hover:bg-surface-secondary disabled:opacity-30">
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <button onClick={onNext} disabled={current === total - 1} className="rounded p-1.5 hover:bg-gray-100 disabled:opacity-30">
+          <button onClick={onNext} disabled={current === total - 1} className="rounded p-1.5 hover:bg-surface-secondary disabled:opacity-30">
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -59,29 +59,29 @@ export function ValidationCard({ depense, current, total, totalFile, onPrev, onN
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <TypeBadge type={depense.typeDepense} />
-            <span className="text-sm text-gray-500">{fmtDate(depense.dateDepense)}</span>
+            <span className="text-sm text-muted">{fmtDate(depense.dateDepense)}</span>
           </div>
-          <span className="text-xl font-bold text-[#E8541E]">{formatCFA(depense.montant)}</span>
+          <span className="text-xl font-bold text-warning-soft-foreground">{formatCFA(depense.montant)}</span>
         </div>
 
-        <p className="mb-0.5 font-semibold text-gray-900">{depense.libelle}</p>
+        <p className="mb-0.5 font-semibold text-foreground">{depense.libelle}</p>
         <p className="mb-3 text-sm text-blue-500">{depense.categorie?.nomCategorie}</p>
 
         <WorkflowStepper statut={depense.statut} />
 
-        <div className="mt-2 grid grid-cols-2 rounded-lg bg-gray-50 p-3">
+        <div className="mt-2 grid grid-cols-2 rounded-lg bg-surface-secondary p-3">
           <div>
-            <p className="text-xs text-gray-400">Créé par</p>
-            <p className="text-sm font-medium text-gray-700">Comptable</p>
+            <p className="text-xs text-muted">Créé par</p>
+            <p className="text-sm font-medium text-foreground">Comptable</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400">Date de création</p>
-            <p className="text-sm font-medium text-gray-700">{fmtDate(depense.createdAt ?? depense.dateDepense)}</p>
+            <p className="text-xs text-muted">Date de création</p>
+            <p className="text-sm font-medium text-foreground">{fmtDate(depense.createdAt ?? depense.dateDepense)}</p>
           </div>
           {depense.justificatif && (
             <div
               onClick={() => setShowJustificatif(true)}
-              className="col-span-2 mt-2 flex items-center gap-1.5 text-sm text-gray-500 cursor-pointer hover:text-gray-800">
+              className="col-span-2 mt-2 flex items-center gap-1.5 text-sm text-muted cursor-pointer hover:text-gray-800">
               <FileText className="h-4 w-4" />
               <span>Voir le justificatif</span>
             </div>
@@ -96,7 +96,7 @@ export function ValidationCard({ depense, current, total, totalFile, onPrev, onN
             <DialogTitle>Justificatif — {depense.libelle}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+            <div className="overflow-hidden rounded-lg border border-separator bg-surface-secondary">
               <img
                 src={createUrlFile(depense.justificatif!, 'backend')}
                 alt="Justificatif"
@@ -121,7 +121,7 @@ export function ValidationCard({ depense, current, total, totalFile, onPrev, onN
               href={createUrlFile(depense.justificatif!, 'backend')}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-separator px-4 py-2 text-sm text-muted hover:bg-surface-secondary transition-colors"
             >
               <Download className="h-4 w-4" />
               Télécharger
@@ -133,12 +133,12 @@ export function ValidationCard({ depense, current, total, totalFile, onPrev, onN
       {/* Actions */}
       {canAct ? (
         isDGA ? (
-          <div className={`grid ${onEdit ? 'grid-cols-3' : 'grid-cols-2'} border-t border-gray-200`}>
+          <div className={`grid ${onEdit ? 'grid-cols-3' : 'grid-cols-2'} border-t border-separator`}>
             <Can I="rejeter-dga" a="Depense">
               <button
                 onClick={() => onReject(depense.id)}
                 disabled={isPending}
-                className="flex items-center justify-center gap-1.5 rounded-bl-xl py-4 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 border-r border-gray-200 transition-colors"
+                className="flex items-center justify-center gap-1.5 rounded-bl-xl py-4 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 border-r border-separator transition-colors"
               >
                 <X className="h-4 w-4" /> Rejeter
               </button>
@@ -148,7 +148,7 @@ export function ValidationCard({ depense, current, total, totalFile, onPrev, onN
                 <button
                   onClick={onEdit}
                   disabled={isPending}
-                  className="flex items-center justify-center gap-1.5 py-4 text-sm font-medium text-orange-500 hover:bg-orange-50 disabled:opacity-50 border-r border-gray-200 transition-colors"
+                  className="flex items-center justify-center gap-1.5 py-4 text-sm font-medium text-orange-500 hover:bg-orange-50 disabled:opacity-50 border-r border-separator transition-colors"
                 >
                   <Pencil className="h-4 w-4" /> Modifier
                 </button>
@@ -166,11 +166,11 @@ export function ValidationCard({ depense, current, total, totalFile, onPrev, onN
           </div>
         ) : (
           // Comptable / DG : 2 actions
-          <div className="grid grid-cols-2 border-t border-gray-200">
+          <div className="grid grid-cols-2 border-t border-separator">
             <button
               onClick={() => onReject(depense.id)}
               disabled={isPending}
-              className="flex items-center justify-center gap-2 rounded-bl-xl py-4 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 border-r border-gray-200 transition-colors"
+              className="flex items-center justify-center gap-2 rounded-bl-xl py-4 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 border-r border-separator transition-colors"
             >
               <X className="h-4 w-4" /> Rejeter
             </button>
@@ -184,7 +184,7 @@ export function ValidationCard({ depense, current, total, totalFile, onPrev, onN
           </div>
         )
       ) : (
-        <div className="flex items-center justify-center gap-2 rounded-b-xl border-t border-gray-100 py-3 text-sm text-gray-400">
+        <div className="flex items-center justify-center gap-2 rounded-b-xl border-t border-separator py-3 text-sm text-muted">
           <StatusBadge statut={depense.statut} />
         </div>
       )}

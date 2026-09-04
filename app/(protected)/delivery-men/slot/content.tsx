@@ -37,7 +37,7 @@ export default function Content({ initialData }: Props) {
     );
 
     return (
-        <div className="p-4 bg-gray-100 rounded-md">
+        <div className="p-4 bg-surface-secondary rounded-md">
             <AllModelView
                 value={value}
                 setValue={setValue}
@@ -56,7 +56,7 @@ export default function Content({ initialData }: Props) {
                     Précédent
                 </button>
 
-                <span className="px-4 py-2 bg-white border rounded">
+                <span className="px-4 py-2 bg-surface border rounded">
                     Page {page + 1} / {data.totalPages}
                 </span>
 

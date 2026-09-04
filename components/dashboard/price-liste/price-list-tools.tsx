@@ -29,7 +29,7 @@ const PriceListeTools = ({ id }: { id: string }) => {
             ) : null}
           </DropdownSection>
           {canDelete ? (
-            <DropdownItem key="delete" className="text-danger" color="danger" onPress={() => setOpenDelete(true)}>
+            <DropdownItem key="delete" className="text-danger-soft-foreground" color="danger" onPress={() => setOpenDelete(true)}>
               Suprimer
             </DropdownItem>
           ) : null}

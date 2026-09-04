@@ -87,11 +87,11 @@ const UsersResetPassword = ({
                                 <button
                                     type="button"
                                     onClick={fermer}
-                                    className="absolute top-4 text-gray-400 outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
+                                    className="absolute top-4 text-muted outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
                                 >
                                     <IconX />
                                 </button>
-                                <div className="bg-[#fbfbfb] py-3 text-lg font-medium text-primary ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5 dark:bg-[#121c2c]">
+                                <div className="bg-surface-secondary py-3 text-lg font-medium text-primary ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5 ">
                                     {motDePasse
                                         ? 'Nouvel accès provisoire'
                                         : 'Réinitialiser le mot de passe'}
@@ -132,7 +132,7 @@ const UsersResetPassword = ({
                                     </div>
                                 ) : (
                                     <div className="grid gap-4 p-5">
-                                        <p className="text-gray-500 dark:text-gray-400">
+                                        <p className="text-muted">
                                             Générer un nouveau mot de passe pour{' '}
                                             <strong>
                                                 {[user.prenoms, user.nom].filter(Boolean).join(' ') ||
@@ -141,11 +141,11 @@ const UsersResetPassword = ({
                                             ?
                                         </p>
                                         <div className="rounded border border-danger/30 bg-danger/5 p-3 text-sm">
-                                            <p className="font-medium text-danger">
+                                            <p className="font-medium text-danger-soft-foreground">
                                                 Son mot de passe actuel cessera immédiatement de
                                                 fonctionner.
                                             </p>
-                                            <p className="mt-1 text-gray-500 dark:text-gray-400">
+                                            <p className="mt-1 text-muted">
                                                 À n&apos;utiliser que si la personne a réellement perdu son
                                                 accès : l&apos;ERP n&apos;a pas de « mot de passe oublié », donc
                                                 elle ne pourra pas se dépanner seule.

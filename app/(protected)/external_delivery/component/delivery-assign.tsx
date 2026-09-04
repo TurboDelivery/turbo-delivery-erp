@@ -91,7 +91,7 @@ export default function DeliveryAssign({ delivery, delivers, open, setOpen, onAs
                 <BikeIcon className="w-5 h-5 text-primary" />
                 Assigner la course {delivery.code ? `· ${delivery.code}` : ''}
               </span>
-              <span className="text-xs font-normal text-gray-500">
+              <span className="text-xs font-normal text-muted">
                 Le livreur sélectionné reçoit la course immédiatement dans son application.
               </span>
             </ModalHeader>
@@ -110,7 +110,7 @@ export default function DeliveryAssign({ delivery, delivers, open, setOpen, onAs
                       <Avatar src={l.avatarUrl || undefined} name={l.nomComplet?.[0] ?? '?'} size="sm" />
                       <div className="flex flex-col">
                         <span className="text-sm font-medium">{l.nomComplet}</span>
-                        <span className="text-xs text-gray-500">{l.telephone}</span>
+                        <span className="text-xs text-muted">{l.telephone}</span>
                       </div>
                     </div>
                   </SelectItem>
@@ -130,7 +130,7 @@ export default function DeliveryAssign({ delivery, delivers, open, setOpen, onAs
                 placeholder="Ex. : 1500"
               />
               {fraisResolus > 0 && (
-                <p className="flex items-start gap-1.5 text-xs text-gray-500">
+                <p className="flex items-start gap-1.5 text-xs text-muted">
                   <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-primary" />
                   Frais résolus automatiquement depuis la grille tarifaire du partenaire :{' '}
                   <b>{fmtXof(fraisResolus)}</b>. Ils restent appliqués aux commandes de cette course.

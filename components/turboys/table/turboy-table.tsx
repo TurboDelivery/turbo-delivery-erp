@@ -26,7 +26,7 @@ const getRowTypeClass = (typeLivreur?: TurboyType) => {
     return 'bg-sky-50/70 dark:bg-sky-900/20 hover:bg-sky-100/70 dark:hover:bg-sky-900/30';
   }
 
-  return 'hover:bg-gray-50 dark:hover:bg-gray-800/40';
+  return 'hover:bg-surface-secondary dark:hover:bg-gray-800/40';
 };
 
 export function TurboyTable() {
@@ -50,7 +50,7 @@ export function TurboyTable() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-primary">Turboys</h1>
-            <p className="text-xs sm:text-sm text-gray-500">Gestion des livreurs et prestataires</p>
+            <p className="text-xs sm:text-sm text-muted">Gestion des livreurs et prestataires</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -92,7 +92,7 @@ export function TurboyTable() {
               bottomContent={
                 turboysData &&
                 turboysData.livreurs?.totalPages > 1 && (
-                  <div className="flex justify-center p-4 border-t border-gray-200">
+                  <div className="flex justify-center p-4 border-t border-separator">
                     <Pagination
                       total={turboysData.livreurs.totalPages}
                       page={filters.page ? filters.page + 1 : 1}
@@ -121,7 +121,7 @@ export function TurboyTable() {
                       <TableRow key={`skeleton-${i}`}>
                         {Array.from({ length: table.getAllColumns().length }).map((_, j) => (
                           <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                            <div className="h-4 bg-surface-tertiary rounded w-full animate-pulse" />
                           </TableCell>
                         ))}
                       </TableRow>
@@ -158,10 +158,10 @@ export function TurboyTable() {
         <LivreurMobileCardList>
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-44 rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-44 rounded-xl bg-surface-secondary animate-pulse" />
             ))
           ) : table.getRowModel().rows.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-10">Aucun turboy trouvé.</p>
+            <p className="text-sm text-muted text-center py-10">Aucun turboy trouvé.</p>
           ) : (
             table.getRowModel().rows.map((row) => {
               const t = row.original;
@@ -174,10 +174,10 @@ export function TurboyTable() {
                   sousTitre={
                     <div className="flex flex-col gap-0.5">
                       <span className="flex items-center gap-1">
-                        <Phone className="w-3.5 h-3.5 text-gray-400" /> {t.telephone || '-'}
+                        <Phone className="w-3.5 h-3.5 text-muted" /> {t.telephone || '-'}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Mail className="w-3.5 h-3.5 text-gray-400" /> {t.email || '-'}
+                        <Mail className="w-3.5 h-3.5 text-muted" /> {t.email || '-'}
                       </span>
                     </div>
                   }

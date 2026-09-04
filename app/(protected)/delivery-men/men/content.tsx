@@ -93,7 +93,7 @@ export default function Content({
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-primary">Coursiers ({totalCount})</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Gérez tous vos livreurs en un seul endroit</p>
+          <p className="text-sm text-muted mt-0.5">Gérez tous vos livreurs en un seul endroit</p>
         </div>
         <div className="flex items-center gap-2">
           <DropdownMenu>

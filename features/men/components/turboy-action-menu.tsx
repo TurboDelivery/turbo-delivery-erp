@@ -170,7 +170,7 @@ export function TurboyActionMenu({
             <DropdownItem
               key={item.key}
               showDivider={item.showDivider}
-              className={item.danger ? 'text-danger' : ''}
+              className={item.danger ? 'text-danger-soft-foreground' : ''}
               color={item.danger ? 'danger' : 'default'}
             >
               {item.label}

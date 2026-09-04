@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { Chip, Switch } from '@/components/heroui';
+import { Chip, Switch } from '@heroui-v3/react';
 import { EyeOff } from 'lucide-react';
 import { useSetCreneauActifMutation } from '@/features/creneaux/queries/creneau.query';
 import type { ICreneauActifVm } from '@/features/creneaux/types/creneau.types';
@@ -27,18 +27,33 @@ export default function CreneauActifToggleCell({ creneau }: { creneau: ICreneauA
 
   return (
     <div className="flex items-center gap-2">
+      {/*
+       * L'interrupteur est compose en v3 : la piste et la pastille sont des enfants
+       * explicites. Sans elles, `Switch` ne dessine rien et la colonne "Visible"
+       * apparait vide, alors que la bascule reste cliquable au clavier.
+       *
+       * Le rappel s'appelle `onChange` et non `onValueChange` : la prop v2 aurait ete
+       * ignoree sans erreur, et masquer un creneau n'aurait plus rien envoye au backend.
+       */}
       <Switch
         size="sm"
         isSelected={actif}
         isDisabled={isPending || !userId}
-        onValueChange={() => {
-          if (userId) mutate({ creneauId: creneau.id, actif: !actif, userId });
+        onChange={(nextActif) => {
+          if (userId) mutate({ creneauId: creneau.id, actif: nextActif, userId });
         }}
         aria-label={`${actif ? 'Masquer' : 'Réafficher'} le créneau ${creneau.label}`}
-      />
+      >
+        <Switch.Content>
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
+        </Switch.Content>
+      </Switch>
       {!actif && (
-        <Chip size="sm" variant="flat" color="warning" startContent={<EyeOff className="w-3 h-3" />}>
-          Masqué
+        <Chip size="sm" variant="soft" color="warning">
+          <EyeOff className="w-3 h-3" />
+          <Chip.Label>Masqué</Chip.Label>
         </Chip>
       )}
     </div>

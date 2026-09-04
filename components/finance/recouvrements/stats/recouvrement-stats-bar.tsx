@@ -19,10 +19,10 @@ export default function RecouvrementStatsBar() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {isLoading ? (
           <>
-            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-32 bg-surface-tertiary rounded animate-pulse" />
+            <div className="h-32 bg-surface-tertiary rounded animate-pulse" />
+            <div className="h-32 bg-surface-tertiary rounded animate-pulse" />
+            <div className="h-32 bg-surface-tertiary rounded animate-pulse" />
           </>
         ) : isError ? (
           // sans cette branche les quatre cartes affichaient 0 F CFA, indiscernable d'un vrai zero

@@ -15,9 +15,9 @@ export function DepenseMobileCard({ depense }: { depense: IDepense }) {
   const dateAjout = format(new Date(depense.dateDepense), 'dd/MM/yyyy');
 
   return (
-    <div className="bg-white dark:bg-transparent border border-gray-100 dark:border-gray-700 rounded-xl p-4 shadow-xs space-y-2">
+    <div className="bg-surface dark:bg-transparent border border-separator rounded-xl p-4 shadow-xs space-y-2">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 min-w-0 wrap-break-word">
+        <p className="text-sm font-semibold text-foreground min-w-0 wrap-break-word">
           {depense.description || depense.categorie?.nomCategorie || 'Dépense'}
         </p>
         <Badge variant={typeInfo.variant} className="shrink-0">
@@ -26,20 +26,20 @@ export function DepenseMobileCard({ depense }: { depense: IDepense }) {
       </div>
 
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-gray-400">Catégorie</span>
-        <span className="text-sm text-gray-700 dark:text-gray-300 text-right wrap-break-word">{depense.categorie?.nomCategorie ?? '-'}</span>
+        <span className="text-xs text-muted">Catégorie</span>
+        <span className="text-sm text-foreground text-right wrap-break-word">{depense.categorie?.nomCategorie ?? '-'}</span>
       </div>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-gray-400">Date d&apos;ajout</span>
-        <span className="text-sm text-gray-700 dark:text-gray-300">{dateAjout}</span>
+        <span className="text-xs text-muted">Date d&apos;ajout</span>
+        <span className="text-sm text-foreground">{dateAjout}</span>
       </div>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-gray-400">Comptabilisation</span>
-        <span className="text-sm text-gray-700 dark:text-gray-300">{dateAjout}</span>
+        <span className="text-xs text-muted">Comptabilisation</span>
+        <span className="text-sm text-foreground">{dateAjout}</span>
       </div>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-gray-400">Montant</span>
-        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+        <span className="text-xs text-muted">Montant</span>
+        <span className="text-sm font-semibold text-foreground">
           {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(depense.montant)}
         </span>
       </div>

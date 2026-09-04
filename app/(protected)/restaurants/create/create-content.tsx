@@ -199,7 +199,7 @@ export default function CreateContent() {
   return (
     <div className="pb-24">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/restaurants" className="text-gray-500 hover:text-primary transition-colors">
+        <Link href="/restaurants" className="text-muted hover:text-primary transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <span className="text-xl font-bold text-primary">Créer un restaurant</span>
@@ -266,7 +266,7 @@ export default function CreateContent() {
           onFileChange={setAutreDocFile}
         />
 
-        <div className="fixed bottom-[calc(52px+env(safe-area-inset-bottom))] left-0 right-0 lg:bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-end gap-3 z-10">
+        <div className="fixed bottom-[calc(52px+env(safe-area-inset-bottom))] left-0 right-0 lg:bottom-0 bg-surface border-t border-separator px-6 py-4 flex justify-end gap-3 z-10">
           <Button type="button" variant="flat" as={Link} href="/restaurants">Annuler</Button>
           <Button type="submit" color="primary" isLoading={isSubmitting}>Enregistrer</Button>
         </div>

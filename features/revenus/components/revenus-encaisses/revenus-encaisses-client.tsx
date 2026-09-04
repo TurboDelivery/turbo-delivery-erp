@@ -165,7 +165,7 @@ export default function RevenusEncaissesClient() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold text-primary">Historique des Revenus Encaissés</h1>
-                        <p className="text-gray-600 mt-2">
+                        <p className="text-muted mt-2">
                             Consultez l'historique complet des recouvrements et investissements
                         </p>
                     </div>
@@ -281,7 +281,7 @@ export default function RevenusEncaissesClient() {
                 {/* Filtres */}
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-3 w-4 h-4 text-muted" />
                         <Input
                             placeholder="Rechercher par référence, restaurant..."
                             value={searchTerm}
@@ -305,16 +305,16 @@ export default function RevenusEncaissesClient() {
 
                 {/* Onglets */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
+                    <TabsList className="grid w-full grid-cols-2 bg-surface-secondary p-1 rounded-lg">
                         <TabsTrigger 
                             value="recouvrements" 
                             className={`flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 ${
-                                activeTab === "recouvrements" ? "bg-red-500 text-white shadow-lg" : "text-gray-600 hover:text-gray-900"
+                                activeTab === "recouvrements" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-gray-900"
                             }`}
                         >
                             <span>Recouvrements</span>
                             <Badge variant={activeTab === "recouvrements" ? "secondary" : "outline"} className={
-                                activeTab === "recouvrements" ? "bg-white text-red-500" : ""
+                                activeTab === "recouvrements" ? "bg-surface text-red-500" : ""
                             }>
                                 {filteredRecouvrements.length}
                             </Badge>
@@ -322,12 +322,12 @@ export default function RevenusEncaissesClient() {
                         <TabsTrigger 
                             value="investissements" 
                             className={`flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 ${
-                                activeTab === "investissements" ? "bg-red-500 text-white shadow-lg" : "text-gray-600 hover:text-gray-900"
+                                activeTab === "investissements" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-gray-900"
                             }`}
                         >
                             <span>Investissements</span>
                             <Badge variant={activeTab === "investissements" ? "secondary" : "outline"} className={
-                                activeTab === "investissements" ? "bg-white text-red-500" : ""
+                                activeTab === "investissements" ? "bg-surface text-red-500" : ""
                             }>
                                 {sortedInvestissements.length}
                             </Badge>
@@ -349,7 +349,7 @@ export default function RevenusEncaissesClient() {
                             ) : filteredRecouvrements.length === 0 ? (
                                 <Card>
                                     <CardContent className="p-8 text-center">
-                                        <p className="text-gray-500">Aucun recouvrement trouvé</p>
+                                        <p className="text-muted">Aucun recouvrement trouvé</p>
                                     </CardContent>
                                 </Card>
                             ) : (
@@ -368,8 +368,8 @@ export default function RevenusEncaissesClient() {
                                                                 Validé
                                                             </Badge>
                                                         </div>
-                                                        <p className="text-sm text-gray-600">{recouvrement.nomRestaurant}</p>
-                                                        <p className="text-xs text-gray-500">
+                                                        <p className="text-sm text-muted">{recouvrement.nomRestaurant}</p>
+                                                        <p className="text-xs text-muted">
                                                             {recouvrement.dateRecouvrement && format(new Date(recouvrement.dateRecouvrement), 'PPP', { locale: fr })}
                                                         </p>
                                                     </div>
@@ -403,7 +403,7 @@ export default function RevenusEncaissesClient() {
                             ) : filteredInvestissements.length === 0 ? (
                                 <Card>
                                     <CardContent className="p-8 text-center">
-                                        <p className="text-gray-500">Aucun investissement trouvé</p>
+                                        <p className="text-muted">Aucun investissement trouvé</p>
                                     </CardContent>
                                 </Card>
                             ) : (
@@ -436,8 +436,8 @@ export default function RevenusEncaissesClient() {
                                                                 </Badge>
                                                             )}
                                                         </div>
-                                                        <p className="text-sm text-gray-600">{investissement.nomInvestisseur}</p>
-                                                        <p className="text-xs text-gray-500">
+                                                        <p className="text-sm text-muted">{investissement.nomInvestisseur}</p>
+                                                        <p className="text-xs text-muted">
                                                             {investissement.dateInvestissement && format(new Date(investissement.dateInvestissement), 'PPP', { locale: fr })}
                                                         </p>
                                                         {investissement.deadline && (
@@ -451,7 +451,7 @@ export default function RevenusEncaissesClient() {
                                                     <p className="font-bold text-lg text-green-600">
                                                         {formatMontant(investissement.montant ?? 0)}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-muted">
                                                         Investissement personnel
                                                     </p>
                                                 </div>

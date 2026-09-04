@@ -9,7 +9,7 @@ import CarteStat, { type TonStat } from '@/components/commons/CarteStat';
  * d'appel. Elle portait un `hover:shadow-md` qui la faisait paraitre cliquable alors
  * qu'aucun gestionnaire n'etait branche : c'est retire.</p>
  *
- * <p>`iconBg` recevait des classes Tailwind brutes (`bg-blue-50`, `bg-[#111827]`), ce qui
+ * <p>`iconBg` recevait des classes Tailwind brutes (`bg-blue-50`, `bg-foreground`), ce qui
  * empechait toute garantie en mode sombre. Elles sont traduites en tons.</p>
  */
 const TON_PAR_FOND: Record<string, TonStat> = {
@@ -17,7 +17,7 @@ const TON_PAR_FOND: Record<string, TonStat> = {
   'bg-green-50': 'succes',
   'bg-orange-50': 'attention',
   'bg-yellow-50': 'attention',
-  'bg-[#111827]': 'neutre',
+  'bg-foreground': 'neutre',
 };
 
 export function StatCard({ icon, iconBg, label, value }: {

@@ -43,7 +43,7 @@ export function PrivilegesMatrix() {
   const rows = React.useMemo(() => flatten(menuData), []);
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-default-200 bg-white">
+    <div className="overflow-x-auto rounded-xl border border-default-200 bg-surface">
       <Table
         aria-label="Matrice des privilèges par rôle"
         removeWrapper

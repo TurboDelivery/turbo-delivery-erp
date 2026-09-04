@@ -40,13 +40,13 @@ const UsersTools = ({ user, value }: { user: User; value: 'list' | 'grid' }) => 
                                 </DropdownItem>
                             ) : null}
                             {canUpdate ? (
-                                <DropdownItem key="disableEnable" className="text-danger" color="danger" onPress={() => setOpenDisableEnable(true)}>
+                                <DropdownItem key="disableEnable" className="text-danger-soft-foreground" color="danger" onPress={() => setOpenDisableEnable(true)}>
                                     {user.status ? 'Désactiver' : 'Activer'}
                                 </DropdownItem>
                             ) : null}
                         </DropdownSection>
                         {canDelete ? (
-                            <DropdownItem key="delete" className="text-danger" color="danger" onPress={() => setOpenDelete(true)}>
+                            <DropdownItem key="delete" className="text-danger-soft-foreground" color="danger" onPress={() => setOpenDelete(true)}>
                                 {user.deleted ? 'Restaurer' : 'Supprimer'}
                             </DropdownItem>
                         ) : null}

@@ -58,11 +58,11 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
             <span className="text-sm font-medium">
               {turboy.prenoms} {turboy.nom}
             </span>
-            <span className="text-xs text-gray-500 flex gap-1">
-              <Phone className="w-4 h-4 text-gray-400" /> {tel}
+            <span className="text-xs text-muted flex gap-1">
+              <Phone className="w-4 h-4 text-muted" /> {tel}
             </span>
-            <span className="text-xs text-gray-500 flex gap-1">
-              <Mail className="w-4 h-4 text-gray-400" /> {email}
+            <span className="text-xs text-muted flex gap-1">
+              <Mail className="w-4 h-4 text-muted" /> {email}
             </span>
           </div>
         </div>

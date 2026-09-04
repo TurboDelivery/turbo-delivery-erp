@@ -32,7 +32,7 @@ export function MonthPicker({ debut, onChange }: MonthPickerProps) {
         <Button isIconOnly size="sm" variant="bordered" radius="full" onPress={() => goToMonth(currentYear - 1, currentMonthIndex)}>
           <ChevronLeft size={16} />
         </Button>
-        <span className="text-lg font-semibold text-gray-900 min-w-[80px] text-center">{currentYear}</span>
+        <span className="text-lg font-semibold text-foreground min-w-[80px] text-center">{currentYear}</span>
         <Button isIconOnly size="sm" variant="bordered" radius="full" onPress={() => goToMonth(currentYear + 1, currentMonthIndex)}>
           <ChevronRight size={16} />
         </Button>
@@ -44,7 +44,7 @@ export function MonthPicker({ debut, onChange }: MonthPickerProps) {
           <button
             key={name}
             onClick={() => goToMonth(currentYear, index)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${index === currentMonthIndex ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${index === currentMonthIndex ? 'bg-orange-500 text-white' : 'bg-surface-secondary text-muted hover:bg-surface-tertiary'}`}
           >
             {name}
           </button>

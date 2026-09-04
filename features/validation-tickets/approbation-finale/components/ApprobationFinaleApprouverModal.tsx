@@ -1,7 +1,30 @@
 'use client';
 
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+/*
+ * Derniere confirmation avant le declenchement reel des virements Wave.
+ *
+ * <p>Trois defauts corriges au passage en V3 :</p>
+ *
+ * <p>1. Le recapitulatif etait peint en `bg-green-50` / `divide-green-100` et le montant
+ * en `text-emerald-600`, sans variante sombre. Avec la bascule de theme de l'en-tete,
+ * l'operateur en sombre lisait du vert fonce sur un fond clair au milieu d'une fenetre
+ * sombre : le nombre de Turboys et le montant a virer, les deux seuls chiffres qu'il doit
+ * verifier avant un virement irreversible, devenaient les moins lisibles de l'ecran.</p>
+ *
+ * <p>2. Le pave d'avertissement etait en `bg-amber-50 text-amber-700`, meme probleme. Il
+ * passe sur l'echelle `warning`, qui suit le theme et porte deja le sens d'alerte.</p>
+ *
+ * <p>3. Le bouton de confirmation etait force en `bg-green-600 hover:bg-green-700`. Une
+ * couleur repeinte a la main sur un composant qui a ses propres etats laissait le focus
+ * et le survol desaccordes du reste de l'ERP. Le bouton primaire s'en charge ; le vert de
+ * l'approbation reste porte par la pastille d'en-tete et par le montant.</p>
+ *
+ * <p>Les chiffres passent en chasse tabulaire et alignes a droite : ce sont deux valeurs
+ * a rapprocher d'un lot de paie, pas du texte courant.</p>
+ */
+
+import { Button, Modal, Spinner } from '@heroui-v3/react';
+import { CheckCircle2 } from 'lucide-react';
 
 function formatNumber(n: number) {
   return n.toLocaleString('fr-FR');
@@ -28,44 +51,61 @@ export default function ApprobationFinaleApprouverModal({
   totaux,
 }: Props) {
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md gap-0 p-0 overflow-hidden rounded-2xl">
-        <div className="px-6 pt-6 pb-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-gray-900">Approuver et déclencher Wave</h2>
-          <p className="text-sm text-gray-500 mt-0.5">Créneau : {codeCreneau}</p>
-        </div>
+    <Modal.Backdrop
+      isOpen={open}
+      onOpenChange={(ouvert) => {
+        if (!ouvert) onClose();
+      }}
+    >
+      <Modal.Container>
+        <Modal.Dialog>
+          <Modal.CloseTrigger />
 
-        <div className="px-6 py-5 flex flex-col gap-4">
-          <div className="rounded-xl bg-green-50 divide-y divide-green-100">
-            <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-              <span className="text-gray-500">Nombre de Turboys</span>
-              <span className="font-medium text-gray-900">{totaux.livreurs}</span>
+          <Modal.Header>
+            <Modal.Icon className="bg-success-soft text-success-soft-foreground">
+              <CheckCircle2 className="size-5" />
+            </Modal.Icon>
+            <div className="flex flex-col gap-0.5">
+              <Modal.Heading>Approuver et déclencher Wave</Modal.Heading>
+              <p className="text-sm text-muted">Créneau : {codeCreneau}</p>
             </div>
-            <div className="flex items-center justify-between px-4 py-2.5 text-sm">
-              <span className="text-gray-500">Montant total à virer (Indépendants)</span>
-              <span className="font-semibold text-emerald-600">{formatNumber(totaux.net)} FCFA</span>
-            </div>
-          </div>
+          </Modal.Header>
 
-          <div className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
-            <span className="font-bold">Attention :</span> Cette action déclenche immédiatement les
-            virements Wave. Elle est irréversible.
-          </div>
-        </div>
+          <Modal.Body>
+            <dl className="divide-y divide-separator overflow-hidden rounded-xl bg-surface-secondary">
+              <div className="flex items-center justify-between gap-4 px-4 py-2.5">
+                <dt>Nombre de Turboys</dt>
+                <dd className="font-medium tabular-nums text-foreground">{totaux.livreurs}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4 px-4 py-2.5">
+                <dt>Montant total à virer (Indépendants)</dt>
+                <dd className="font-semibold tabular-nums text-success-soft-foreground">
+                  {formatNumber(totaux.net)} FCFA
+                </dd>
+              </div>
+            </dl>
 
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100">
-          <Button variant="outline" onClick={onClose} disabled={isLoading} className="rounded-full px-6">
-            Annuler
-          </Button>
-          <Button
-            onClick={onConfirm}
-            disabled={isLoading}
-            className="rounded-full px-6 bg-green-600 text-white hover:bg-green-700"
-          >
-            {isLoading ? 'Envoi...' : 'Confirmer et déclencher'}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+            <p className="mt-4 rounded-xl bg-warning-soft px-4 py-3 text-warning-soft-foreground">
+              <span className="font-bold">Attention :</span> Cette action déclenche immédiatement
+              les virements Wave. Elle est irréversible.
+            </p>
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button variant="outline" isDisabled={isLoading} onPress={onClose}>
+              Annuler
+            </Button>
+            <Button isPending={isLoading} onPress={onConfirm}>
+              {({ isPending }) => (
+                <>
+                  {isPending ? <Spinner color="current" size="sm" /> : null}
+                  {isPending ? 'Envoi...' : 'Confirmer et déclencher'}
+                </>
+              )}
+            </Button>
+          </Modal.Footer>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   );
 }

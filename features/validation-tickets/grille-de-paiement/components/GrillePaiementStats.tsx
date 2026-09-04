@@ -87,35 +87,51 @@ export default function GrillePaiementStats({ stats }: Props) {
       </GrilleStats>
 
       {/* V54 — Sous-lignes "dont…" détaillant ce qui est exclu et pourquoi. */}
+      {/* Les trois montants sont en chasse tabulaire : ils se lisent l'un sous
+          l'autre et le comptable compare les ordres de grandeur d'un coup d'oeil,
+          ce qu'une chasse proportionnelle interdit. Le `gap` empeche un libelle
+          long de venir toucher son montant sur un ecran etroit. */}
       {(nbJourn > 0 || nbSup > 0 || hasACategoriser) && (
-        <div className="rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 space-y-1.5">
-          <p className="text-[10px] font-bold uppercase text-gray-600 mb-1">Détail des exclusions</p>
+        <div className="rounded-xl border border-separator bg-surface-secondary/50 px-4 py-3 space-y-1.5">
+          <p className="text-[10px] font-bold uppercase text-muted mb-1">Détail des exclusions</p>
           {nbJourn > 0 && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-muted">
                 <span className="font-semibold">{nbJourn}</span> Journalier{nbJourn > 1 ? 's' : ''} —
-                <span className="ml-1 text-gray-400">hors paie hebdo (autre circuit)</span>
+                <span className="ml-1 text-muted">hors paie hebdo (autre circuit)</span>
               </span>
-              <span className="font-medium text-gray-700">{formatMontant(dontJourn)}</span>
+              <span className="font-medium tabular-nums text-foreground">
+                {formatMontant(dontJourn)}
+              </span>
             </div>
           )}
           {nbSup > 0 && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-muted">
                 <span className="font-semibold">{nbSup}</span> Superviseur{nbSup > 1 ? 's' : ''} —
-                <span className="ml-1 text-gray-400">salariés, jamais inclus</span>
+                <span className="ml-1 text-muted">salariés, jamais inclus</span>
               </span>
-              <span className="font-medium text-gray-700">{formatMontant(dontSup)}</span>
+              <span className="font-medium tabular-nums text-foreground">
+                {formatMontant(dontSup)}
+              </span>
             </div>
           )}
+          {/* La ligne "a categoriser" etait la seule peinte en dur (amber-700 sur le
+              libelle, amber-800 sur le montant). En theme sombre ces deux teintes
+              tombent sur une surface sombre : l'alerte qui doit declencher une action
+              RH devenait illisible, donc invisible. Le jeton `warning` porte le meme
+              sens et suit les deux themes. Le montant garde son poids superieur par
+              la graisse, l'echelle de jetons n'ayant pas deux nuances a opposer. */}
           {hasACategoriser && (
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-amber-700">
-                <AlertTriangle className="inline-block w-3 h-3 mr-1" />
+            <div className="flex items-center justify-between gap-3 text-xs">
+              <span className="text-warning-soft-foreground">
+                <AlertTriangle aria-hidden="true" className="inline-block w-3 h-3 mr-1" />
                 <span className="font-semibold">{nbAcat}</span> à catégoriser —
                 <span className="ml-1">RH doit assigner un type</span>
               </span>
-              <span className="font-medium text-amber-800">{formatMontant(dontAcat)}</span>
+              <span className="font-semibold tabular-nums text-warning-soft-foreground">
+                {formatMontant(dontAcat)}
+              </span>
             </div>
           )}
         </div>

@@ -61,8 +61,8 @@ export default function CACard({
                     <div className="hidden w-px self-stretch bg-green-200 lg:block" />
                     <div className="block h-px w-full bg-green-200 lg:hidden" />
                     <div className="grid flex-1 grid-cols-1 content-center gap-3 sm:grid-cols-2">
-                        <div className="h-16 animate-pulse rounded-xl bg-white/60" />
-                        <div className="h-16 animate-pulse rounded-xl bg-white/60" />
+                        <div className="h-16 animate-pulse rounded-xl bg-surface/60" />
+                        <div className="h-16 animate-pulse rounded-xl bg-surface/60" />
                         <div className="h-8 animate-pulse rounded bg-green-200/60 sm:col-span-2" />
                     </div>
                 </div>
@@ -79,7 +79,7 @@ export default function CACard({
                         <div className="rounded-xl bg-green-200/70 p-2.5 text-green-700">
                             <Wallet className="size-5" />
                         </div>
-                        <h3 className="text-medium font-medium text-gray-600 2xl:text-lg">{title}</h3>
+                        <h3 className="text-medium font-medium text-muted 2xl:text-lg">{title}</h3>
                     </div>
                     {/* Une fleche verte montante accompagnait ce montant. Aucune variation
                         n'est calculee ni recue — `CACardProps` ne porte ni periode
@@ -126,24 +126,24 @@ export default function CACard({
 
                 {/* Partie 2 : Décomposition du CA — remplit la largeur restante */}
                 <div className="grid flex-1 grid-cols-1 content-center gap-3 sm:grid-cols-2">
-                    <div className="flex items-center gap-3 rounded-xl bg-white/60 px-4 py-3">
+                    <div className="flex items-center gap-3 rounded-xl bg-surface/60 px-4 py-3">
                         <div className="shrink-0 rounded-full bg-blue-100 p-2">
                             <Receipt className="size-4 text-blue-600" />
                         </div>
                         <div className="min-w-0">
-                            <span className="block text-sm text-gray-600">Frais Livraison</span>
+                            <span className="block text-sm text-muted">Frais Livraison</span>
                             <span className="block truncate text-lg font-bold text-blue-600 2xl:text-xl">
                                 {formatCFA(fraisLivraison)}
                             </span>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 rounded-xl bg-white/60 px-4 py-3">
+                    <div className="flex items-center gap-3 rounded-xl bg-surface/60 px-4 py-3">
                         <div className="shrink-0 rounded-full bg-purple-100 p-2">
                             <TrendingUp className="size-4 text-purple-600" />
                         </div>
                         <div className="min-w-0">
-                            <span className="block text-sm text-gray-600">Commissions</span>
+                            <span className="block text-sm text-muted">Commissions</span>
                             <span className="block truncate text-lg font-bold text-purple-600 2xl:text-xl">
                                 {formatCFA(commissions)}
                             </span>

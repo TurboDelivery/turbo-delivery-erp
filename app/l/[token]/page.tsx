@@ -185,15 +185,15 @@ export default function LocalisationClientPage() {
   // ---------------------------------------------------------------- rendus
 
   if (etat.phase === 'chargement') {
-    return <Cadre><p className="animate-pulse text-center text-gray-500">Chargement…</p></Cadre>;
+    return <Cadre><p className="animate-pulse text-center text-muted">Chargement…</p></Cadre>;
   }
 
   if (etat.phase === 'invalide') {
     return (
       <Cadre>
         <div className="text-center">
-          <p className="text-lg font-semibold text-gray-800">Ce lien n'est plus valable</p>
-          <p className="mt-2 text-sm text-gray-500">{etat.message}</p>
+          <p className="text-lg font-semibold text-foreground">Ce lien n'est plus valable</p>
+          <p className="mt-2 text-sm text-muted">{etat.message}</p>
         </div>
       </Cadre>
     );
@@ -204,13 +204,13 @@ export default function LocalisationClientPage() {
       <Cadre reference={contexte?.reference}>
         <div className="flex flex-col items-center gap-3 text-center">
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-2xl">✓</span>
-          <p className="text-lg font-semibold text-gray-900">Position envoyée !</p>
-          <p className="text-sm text-gray-500">
+          <p className="text-lg font-semibold text-foreground">Position envoyée !</p>
+          <p className="text-sm text-muted">
             Votre livreur Turbo voit maintenant votre position exacte
             {etat.precisionM ? ` (précision ~${Math.round(etat.precisionM)} m)` : ''}.
           </p>
           <button
-            className="mt-2 rounded-xl border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700"
+            className="mt-2 rounded-xl border border-separator px-4 py-3 text-sm font-medium text-foreground"
             onClick={() => {
               setEtat({ phase: 'saisie' });
               setPosition(null);
@@ -218,7 +218,7 @@ export default function LocalisationClientPage() {
           >
             Modifier ma position
           </button>
-          <p className="text-xs text-gray-400">Modifiable jusqu'à l'enlèvement de votre commande.</p>
+          <p className="text-xs text-muted">Modifiable jusqu'à l'enlèvement de votre commande.</p>
         </div>
       </Cadre>
     );
@@ -226,7 +226,7 @@ export default function LocalisationClientPage() {
 
   return (
     <Cadre reference={contexte?.reference}>
-      <p className="text-center text-lg font-semibold text-gray-900">Où vous livre-t-on ?</p>
+      <p className="text-center text-lg font-semibold text-foreground">Où vous livre-t-on ?</p>
 
       <button
         onClick={partagerGps}
@@ -242,11 +242,11 @@ export default function LocalisationClientPage() {
       )}
       {gpsErreur && <p className="text-center text-sm text-amber-600">{gpsErreur}</p>}
 
-      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-gray-400">
-        <span className="h-px flex-1 bg-gray-200" /> ou sur la carte <span className="h-px flex-1 bg-gray-200" />
+      <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted">
+        <span className="h-px flex-1 bg-surface-tertiary" /> ou sur la carte <span className="h-px flex-1 bg-surface-tertiary" />
       </div>
 
-      <div ref={carteRef} className="h-64 w-full overflow-hidden rounded-2xl border border-gray-200 bg-gray-100" />
+      <div ref={carteRef} className="h-64 w-full overflow-hidden rounded-2xl border border-separator bg-surface-secondary" />
       {position?.source === 'CARTE' && (
         <p className="text-center text-sm text-green-600">Repère posé — vous pouvez le déplacer.</p>
       )}
@@ -256,7 +256,7 @@ export default function LocalisationClientPage() {
         onChange={(e) => setRepere(e.target.value)}
         maxLength={200}
         placeholder="Repère (facultatif) : immeuble, étage, « portail bleu »…"
-        className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm"
+        className="w-full rounded-xl border border-separator px-4 py-3 text-sm"
       />
 
       <button
@@ -268,7 +268,7 @@ export default function LocalisationClientPage() {
         Envoyer ma position
       </button>
 
-      <p className="text-center text-xs text-gray-400">
+      <p className="text-center text-xs text-muted">
         Votre position n'est utilisée que pour cette livraison, jamais après.
       </p>
     </Cadre>
@@ -277,16 +277,16 @@ export default function LocalisationClientPage() {
 
 function Cadre({ children, reference }: { children: React.ReactNode; reference?: string }) {
   return (
-    <div className="flex min-h-screen flex-col items-center bg-gray-50 p-4">
+    <div className="flex min-h-screen flex-col items-center bg-surface-secondary p-4">
       <div className="w-full max-w-md">
         <div className="mb-4 mt-2 flex items-center justify-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-black text-white">T</span>
           <div className="text-center">
-            <p className="text-sm font-bold text-gray-900">TURBO DELIVERY</p>
-            {reference && <p className="text-xs text-gray-400">Course {reference}</p>}
+            <p className="text-sm font-bold text-foreground">TURBO DELIVERY</p>
+            {reference && <p className="text-xs text-muted">Course {reference}</p>}
           </div>
         </div>
-        <div className="flex flex-col gap-4 rounded-3xl border border-gray-100 bg-white p-5 shadow-xs">{children}</div>
+        <div className="flex flex-col gap-4 rounded-3xl border border-separator bg-surface p-5 shadow-xs">{children}</div>
       </div>
     </div>
   );

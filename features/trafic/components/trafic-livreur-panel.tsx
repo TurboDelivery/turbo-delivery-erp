@@ -48,7 +48,7 @@ export default function TraficLivreurPanel({
   const sansPosition = useMemo(() => livreurs.filter((l) => !l.aPosition).length, [livreurs]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-default-200/50 bg-white dark:bg-content1">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-default-200/50 bg-surface dark:bg-content1">
       <div className="shrink-0 border-b border-default-200/60 px-4 py-3">
         <div className="flex items-center gap-2.5">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-primary/10">

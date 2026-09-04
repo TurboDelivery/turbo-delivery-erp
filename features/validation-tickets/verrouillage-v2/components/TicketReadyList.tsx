@@ -33,11 +33,11 @@ export default function TicketReadyList({ tickets, total, onLock, onReject, hasN
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
   return (
-    <div className="flex-1 bg-white rounded-2xl border border-gray-200 p-5 flex flex-col gap-4 max-h-[70vh]">
+    <div className="flex-1 bg-surface rounded-2xl border border-separator p-5 flex flex-col gap-4 max-h-[70vh]">
       <div className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-green-500 inline-block" />
-          <h2 className="text-base font-semibold text-gray-800">Prêts pour V1</h2>
+          <h2 className="text-base font-semibold text-foreground">Prêts pour V1</h2>
         </div>
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 text-xs font-bold">
           {total}
@@ -49,13 +49,13 @@ export default function TicketReadyList({ tickets, total, onLock, onReject, hasN
             muet dans les deux cas, et rien ne distinguait « rien a verifier » d'une panne. */}
         {isError && <EtatErreur quoi="les tickets à vérifier" onReessayer={onReessayer} />}
         {!isError && tickets.length === 0 && (
-          <p className="py-16 text-center text-sm text-gray-400">Aucun ticket à vérifier pour cette période.</p>
+          <p className="py-16 text-center text-sm text-muted">Aucun ticket à vérifier pour cette période.</p>
         )}
         {tickets.map((ticket) => (
           <TicketReadyCard key={ticket.commandeId} ticket={ticket} onLock={onLock} onReject={onReject} />
         ))}
         <div ref={bottomRef} className="flex items-center justify-center py-1 shrink-0">
-          {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-300" />}
+          {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-muted" />}
         </div>
       </div>
     </div>

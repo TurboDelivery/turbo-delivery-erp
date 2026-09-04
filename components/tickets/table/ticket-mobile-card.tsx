@@ -138,7 +138,9 @@ export function TicketMobileCard({
     const mutable = !statutOrigine || MODIFIABLE_STATUTS.has(statutOrigine);
     // L'admin/direction peut modifier ET supprimer un ticket quel que soit son statut (V2 inclus).
     const peutModifier = meta.permissions.isAdmin || mutable;
-    const peutSupprimer = meta.permissions.isAdmin || mutable;
+    // Le droit de SUPPRIMER etait ignore ici comme dans les colonnes : seul `canUpdate`
+    // gardait la corbeille. Un role sans `delete` la voyait active.
+    const peutSupprimer = meta.permissions.canDelete && (meta.permissions.isAdmin || mutable);
 
     return (
         <Card className={cn('gap-2 p-4', isSelected && 'border-accent bg-accent-soft/40')}>
@@ -158,12 +160,17 @@ export function TicketMobileCard({
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                     {!enEdition && <StatutTicket statut={statutEffectif} />}
-                    <Checkbox
-                        aria-label="Sélectionner la ligne"
-                        checked={isSelected}
-                        disabled={estNouveau}
-                        onCheckedChange={(v) => onToggleSelect(!!v)}
-                    />
+                    {/* La case fait 16 px de cote, sur la SEULE surface tactile de
+                        l'ecran. La regle des cibles demande 44 px. L'enveloppe porte la
+                        cible sans changer d'un pixel ce qui est dessine. */}
+                    <label className="-m-3.5 flex size-11 cursor-pointer items-center justify-center">
+                        <Checkbox
+                            aria-label="Sélectionner la ligne"
+                            checked={isSelected}
+                            disabled={estNouveau}
+                            onCheckedChange={(v) => onToggleSelect(!!v)}
+                        />
+                    </label>
                 </div>
             </div>
 

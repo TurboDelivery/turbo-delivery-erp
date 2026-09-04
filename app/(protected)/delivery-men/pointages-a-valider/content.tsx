@@ -120,11 +120,11 @@ export function PointagesAValiderContent() {
 
   return (
     <div className="pt-5">
-      <div className="mb-5 rounded-xl border bg-white p-5 dark:bg-black">
+      <div className="mb-5 rounded-xl border bg-surface p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-primary">Pointages hors zone</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-muted">
               File d&apos;arbitrage et historique des décisions. Un pointage validé compte comme une
               présence normale (la montée fait entrer le livreur dans la file d&apos;attente) ; un
               rejet entraîne la pénalité de cote.
@@ -189,7 +189,7 @@ export function PointagesAValiderContent() {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-white p-4 dark:bg-black">
+      <div className="rounded-xl border bg-surface p-4">
         {/* L'echec de lecture remplace le tableau. Avant, il affichait « Aucun
             pointage sur ces criteres. », soit exactement le message d'un backlog
             vide : l'equipe concluait qu'il n'y avait rien a trancher pendant que
@@ -220,7 +220,7 @@ export function PointagesAValiderContent() {
             {lignes.map((p) => (
               <TableRow key={`${p.emploiId}-${p.date}-${p.type}`}>
                 <TableCell className="font-medium">{p.livreur ?? '—'}</TableCell>
-                <TableCell className="text-sm text-gray-600">{p.restaurant ?? '—'}</TableCell>
+                <TableCell className="text-sm text-muted">{p.restaurant ?? '—'}</TableCell>
                 <TableCell>{new Date(p.date).toLocaleDateString('fr-FR')}</TableCell>
                 <TableCell>
                   <Chip size="sm" variant="flat">
@@ -243,8 +243,8 @@ export function PointagesAValiderContent() {
                     : '—'}
                 </TableCell>
                 <TableCell className="max-w-[200px]">
-                  <span className="block truncate text-sm text-gray-600" title={p.motif ?? ''}>
-                    {p.motif || <span className="text-gray-400">—</span>}
+                  <span className="block truncate text-sm text-muted" title={p.motif ?? ''}>
+                    {p.motif || <span className="text-muted">—</span>}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -258,7 +258,7 @@ export function PointagesAValiderContent() {
                       Voir
                     </a>
                   ) : (
-                    <span className="text-sm text-gray-400">—</span>
+                    <span className="text-sm text-muted">—</span>
                   )}
                 </TableCell>
                 <TableCell>
@@ -296,7 +296,7 @@ export function PointagesAValiderContent() {
                         <div className="max-w-[260px] p-1 text-xs">
                           {p.arbitre && <p className="font-semibold">{p.arbitre}</p>}
                           {p.valideAt && (
-                            <p className="text-gray-500">
+                            <p className="text-muted">
                               {new Date(p.valideAt).toLocaleString('fr-FR')}
                             </p>
                           )}
@@ -304,12 +304,12 @@ export function PointagesAValiderContent() {
                             <p className="mt-1">{p.commentaireValidation}</p>
                           )}
                           {!p.arbitre && !p.commentaireValidation && (
-                            <p className="text-gray-500">Décision d&apos;avant la refonte.</p>
+                            <p className="text-muted">Décision d&apos;avant la refonte.</p>
                           )}
                         </div>
                       }
                     >
-                      <span className="cursor-help text-sm text-gray-600 underline decoration-dotted underline-offset-2">
+                      <span className="cursor-help text-sm text-muted underline decoration-dotted underline-offset-2">
                         {p.arbitre ?? 'Détail'}
                       </span>
                     </Tooltip>
@@ -335,7 +335,7 @@ export function PointagesAValiderContent() {
             <>
               <ModalHeader>Rejeter le pointage</ModalHeader>
               <ModalBody className="gap-3">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted">
                   {rejet?.livreur} — {rejet ? TYPE_POINTAGE_LABEL[rejet.type] : ''} du{' '}
                   {rejet ? new Date(rejet.date).toLocaleDateString('fr-FR') : ''}. Le rejet applique
                   la pénalité de cote ; le commentaire est visible dans son historique.

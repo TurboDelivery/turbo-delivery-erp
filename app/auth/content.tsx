@@ -20,14 +20,14 @@ export default function Content() {
       *
       * <p>Le degrade portait `#FFFF00`, du JAUNE PUR : luminance maximale sur le rouge et
       * le vert a la fois, c'est la teinte la plus fatigante qui existe a l'ecran. Le
-      * panneau interieur etant en `bg-white/60`, elle traversait et venait se placer
+      * panneau interieur etant en `bg-surface/60`, elle traversait et venait se placer
       * DERRIERE le texte et les champs. Remplace par un ambre doux (#FFD9A0), qui garde
       * la chaleur de la marque sans agresser, et le panneau passe a 90 % d'opacite pour
       * que le fond cesse de concurrencer le contenu.</p>
       */}
     <div className="relative flex min-h-screen items-center justify-center bg-cover bg-center bg-no-repeat px-2 py-3 dark:bg-[#060818] sm:px-16">
         <div className="relative w-full max-w-[600px] rounded-md bg-[linear-gradient(45deg,#fff9f9_0%,rgba(255,255,255,0)_30%,#FFD9A0_75%,_#fff9f9_100%)] p-2 dark:bg-[linear-gradient(52.22deg,#0E1726_0%,rgba(14,23,38,0)_18.66%,rgba(14,23,38,0)_51.04%,rgba(14,23,38,0)_80.07%,#0E1726_100%)]">
-          <div className="relative flex flex-col justify-center rounded-md bg-white/90 px-2 py-3 backdrop-blur-lg dark:bg-black/60 lg:min-h-[500px]">
+          <div className="relative flex flex-col justify-center rounded-md bg-surface/90 px-2 py-3 backdrop-blur-lg/60 lg:min-h-[500px]">
             <div className="mx-auto w-full max-w-[440px]">
               <div className="mb-8 text-center">
                 <Image src="/assets/images/logo.png" alt="LOGO" width={80} height={80} priority className="mx-auto object-contain" />

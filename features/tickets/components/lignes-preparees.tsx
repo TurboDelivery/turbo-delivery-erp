@@ -18,6 +18,7 @@ import {
 import { CalendarDate, Time, type DateValue } from '@internationalized/date';
 import { Check, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import React from 'react';
+import { toast } from 'sonner';
 
 import { cn } from '@/lib/utils';
 import type { Ticket } from '@/types/bon-livraison.model';
@@ -60,7 +61,16 @@ interface LignesPrepareesProps {
     onChange: (id: string, champ: keyof Ticket, valeur: string) => void;
     onPatch: (id: string, patch: Partial<Ticket>) => void;
     onRetirer: (id: string) => void;
-    onEnregistrer: (id: string) => void;
+    /**
+     * Enregistre le LOT en une fois et rend le compte de ce qui est passe.
+     *
+     * <p>Il ne s'agit pas d'une commodite. Boucler sur un enregistrement unitaire
+     * n'aurait retire qu'une seule ligne de l'ecran sur N : les N appels visent la meme
+     * instance de mutation, qui ne notifie que le dernier. Les tickets partaient tous,
+     * mais l'ecran laissait croire a un echec et l'operateur recliquait, creant autant
+     * de doublons.</p>
+     */
+    onEnregistrerLot: (ids: string[]) => Promise<{ reussis: number; echoues: number }>;
     enregistrement?: boolean;
 }
 
@@ -102,13 +112,35 @@ export function LignesPreparees({
     onChange,
     onPatch,
     onRetirer,
-    onEnregistrer,
+    onEnregistrerLot,
     enregistrement = false,
 }: LignesPrepareesProps) {
+    // Un envoi en cours BLOQUE le bouton. Sans cela, deux clics rapides envoient deux
+    // fois la meme liasse : la creation n'a pas de garde d'unicite en base.
+    const [envoiEnCours, setEnvoiEnCours] = React.useState(false);
+
     if (tickets.length === 0) return null;
 
     const completes = tickets.filter(ligneComplete);
     const toutesCompletes = completes.length === tickets.length;
+
+    const enregistrerLeLot = async () => {
+        if (envoiEnCours || completes.length === 0) return;
+        setEnvoiEnCours(true);
+        try {
+            const { reussis, echoues } = await onEnregistrerLot(completes.map((t) => t.id));
+            if (echoues > 0) {
+                toast.warning(
+                    `${reussis} ticket${reussis > 1 ? 's' : ''} enregistré${reussis > 1 ? 's' : ''}, ${echoues} en échec.`,
+                    { description: 'Les lignes en échec restent affichées ci-dessus.' },
+                );
+            } else if (reussis > 0) {
+                toast.success(`${reussis} ticket${reussis > 1 ? 's' : ''} enregistré${reussis > 1 ? 's' : ''}.`);
+            }
+        } finally {
+            setEnvoiEnCours(false);
+        }
+    };
 
     return (
         <Card className="gap-3">
@@ -423,9 +455,9 @@ export function LignesPreparees({
                      * partent, les autres restent a l'ecran.
                      */}
                     <Button
-                        isDisabled={completes.length === 0}
-                        isPending={enregistrement}
-                        onPress={() => completes.forEach((t) => onEnregistrer(t.id))}
+                        isDisabled={completes.length === 0 || envoiEnCours}
+                        isPending={envoiEnCours || enregistrement}
+                        onPress={enregistrerLeLot}
                     >
                         Enregistrer {completes.length} ticket{completes.length > 1 ? 's' : ''}
                     </Button>

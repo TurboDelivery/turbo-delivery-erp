@@ -85,7 +85,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-xs">
+    <section className="rounded-xl border border-separator bg-surface p-6 shadow-xs">
       <div className="mb-4 flex items-center justify-between">
         <SectionTitle>Documents du livreur</SectionTitle>
         <Chip size="sm" variant="flat" color="primary">
@@ -104,7 +104,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                   setZoom(false);
                   setOpenIndex(i);
                 }}
-                className="relative block aspect-4/3 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50 transition-all hover:border-primary hover:shadow-md focus:outline-hidden focus:ring-2 focus:ring-primary/40"
+                className="relative block aspect-4/3 w-full overflow-hidden rounded-xl border border-separator bg-surface-secondary transition-all hover:border-primary hover:shadow-md focus:outline-hidden focus:ring-2 focus:ring-primary/40"
                 aria-label={`Voir ${d.label}`}
               >
                 {pdf ? (
@@ -116,21 +116,21 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                   <DocThumbnail url={d.url} label={d.label} />
                 )}
                 <div className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
-                  <span className="flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-800 shadow-sm">
+                  <span className="flex items-center gap-1.5 rounded-full bg-surface/95 px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm">
                     <Eye className="h-3.5 w-3.5" /> Agrandir
                   </span>
                 </div>
               </button>
 
               <div className="flex items-center justify-between gap-1">
-                <span className="truncate text-xs font-medium text-gray-600" title={d.label}>
+                <span className="truncate text-xs font-medium text-muted" title={d.label}>
                   {d.label}
                 </span>
                 <Tooltip content="Télécharger" size="sm">
                   <button
                     type="button"
                     onClick={() => telecharger(d.url, `${d.label}.${extensionDepuisUrl(d.url)}`)}
-                    className="shrink-0 rounded-md p-1 text-gray-400 transition-colors hover:bg-primary/10 hover:text-primary"
+                    className="shrink-0 rounded-md p-1 text-muted transition-colors hover:bg-primary/10 hover:text-primary"
                     aria-label={`Télécharger ${d.label}`}
                   >
                     <Download className="h-4 w-4" />
@@ -171,7 +171,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                   <Button
                     size="sm"
                     variant="flat"
-                    className="bg-white/10 text-white"
+                    className="bg-surface/10 text-white"
                     startContent={<Download className="h-4 w-4" />}
                     onPress={() => telecharger(doc.url, `${doc.label}.${extensionDepuisUrl(doc.url)}`)}
                   >
@@ -203,7 +203,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                       <button
                         type="button"
                         onClick={() => go(-1)}
-                        className="absolute left-2 z-10 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/25"
+                        className="absolute left-2 z-10 rounded-full bg-surface/10 p-2 text-white transition-colors hover:bg-white/25"
                         aria-label="Précédent"
                       >
                         <ChevronLeft className="h-6 w-6" />
@@ -211,7 +211,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                       <button
                         type="button"
                         onClick={() => go(1)}
-                        className="absolute right-2 z-10 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/25"
+                        className="absolute right-2 z-10 rounded-full bg-surface/10 p-2 text-white transition-colors hover:bg-white/25"
                         aria-label="Suivant"
                       >
                         <ChevronRight className="h-6 w-6" />
@@ -223,7 +223,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                     <iframe
                       src={urlInline(doc.url)}
                       title={doc.label}
-                      className="h-[75vh] w-full rounded-lg bg-white"
+                      className="h-[75vh] w-full rounded-lg bg-surface"
                     />
                   ) : (
                     // eslint-disable-next-line @next/next/no-img-element

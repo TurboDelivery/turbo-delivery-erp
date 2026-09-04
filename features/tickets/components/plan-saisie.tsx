@@ -11,7 +11,7 @@ import {
     Label,
     ListBox,
     NumberField,
-    RangeCalendar,
+    Calendar,
     Separator,
 } from '@heroui-v3/react';
 import { CalendarDate, type DateValue } from '@internationalized/date';
@@ -93,7 +93,20 @@ export function PlanSaisie({
 }: PlanSaisieProps) {
     const enCours = preparees > 0;
     const restant = Math.max(0, preparees - completees);
-    const pret = Boolean(etat.restaurantId && etat.livreurId && etat.date && etat.nombreLignes > 0);
+    /*
+     * Preparer des lignes n'exige QUE leur nombre.
+     *
+     * <p>La barre precedente ne gardait que le droit de creer : on pouvait inserer N
+     * lignes vierges et renseigner livreur et partenaire ligne par ligne. Exiger les
+     * trois valeurs en tete fermait cette porte, et avec elle le cas le plus courant de
+     * fin de service : une liasse qui melange trois livreurs et deux restaurants ne
+     * pouvait plus etre preparee en un seul lot.</p>
+     *
+     * <p>Les trois champs restent des PREREMPLISSAGES, ce qu'ils ont toujours ete : ils
+     * evitent de ressaisir douze fois la meme chose quand la liasse est homogene, et
+     * chaque ligne reste modifiable ensuite.</p>
+     */
+    const pret = etat.nombreLignes > 0;
 
     return (
         <Card className="gap-3 border border-accent/20">
@@ -175,26 +188,41 @@ export function PlanSaisie({
                                 <DatePicker.TriggerIndicator />
                             </DatePicker.Trigger>
                         </DateField.Group>
+                        {/*
+                          * `Calendar`, PAS `RangeCalendar`.
+                          *
+                          * <p>Un `DatePicker` fournit `CalendarContext` ; `RangeCalendar`
+                          * consomme `RangeCalendarContext`, que seul un `DateRangePicker`
+                          * fournit. Le calendrier ne recevait donc ni valeur ni
+                          * gestionnaire : il s'affichait en composant autonome, cliquer un
+                          * jour ne changeait rien, et le popover ne se refermait pas.</p>
+                          *
+                          * <p>Consequence : l'operateur ouvrait le calendrier pour saisir
+                          * la liasse de la veille, cliquait le bon jour, et le lot partait
+                          * quand meme a la date du jour. Toute la liasse se retrouvait
+                          * rattachee au mauvais creneau, donc a la mauvaise semaine de
+                          * paie. L'ancien champ de date natif, lui, fonctionnait.</p>
+                          */}
                         <DatePicker.Popover>
-                            <RangeCalendar>
-                                <RangeCalendar.Header>
-                                    <RangeCalendar.NavButton slot="previous">
+                            <Calendar>
+                                <Calendar.Header>
+                                    <Calendar.NavButton slot="previous">
                                         <ChevronLeft aria-hidden="true" className="size-4" />
-                                    </RangeCalendar.NavButton>
-                                    <RangeCalendar.Heading />
-                                    <RangeCalendar.NavButton slot="next">
+                                    </Calendar.NavButton>
+                                    <Calendar.Heading />
+                                    <Calendar.NavButton slot="next">
                                         <ChevronRight aria-hidden="true" className="size-4" />
-                                    </RangeCalendar.NavButton>
-                                </RangeCalendar.Header>
-                                <RangeCalendar.Grid>
-                                    <RangeCalendar.GridHeader>
-                                        {(jour: string) => <RangeCalendar.HeaderCell>{jour}</RangeCalendar.HeaderCell>}
-                                    </RangeCalendar.GridHeader>
-                                    <RangeCalendar.GridBody>
-                                        {(date: CalendarDate) => <RangeCalendar.Cell date={date} />}
-                                    </RangeCalendar.GridBody>
-                                </RangeCalendar.Grid>
-                            </RangeCalendar>
+                                    </Calendar.NavButton>
+                                </Calendar.Header>
+                                <Calendar.Grid>
+                                    <Calendar.GridHeader>
+                                        {(jour: string) => <Calendar.HeaderCell>{jour}</Calendar.HeaderCell>}
+                                    </Calendar.GridHeader>
+                                    <Calendar.GridBody>
+                                        {(date: CalendarDate) => <Calendar.Cell date={date} />}
+                                    </Calendar.GridBody>
+                                </Calendar.Grid>
+                            </Calendar>
                         </DatePicker.Popover>
                     </DatePicker>
 

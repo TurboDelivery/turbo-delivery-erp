@@ -56,7 +56,7 @@ function Timeline({ statut }: { statut: string }) {
         const active = i === current;
         return (
           <React.Fragment key={etape.key}>
-            {i > 0 && <div className={`h-0.5 flex-1 min-w-6 ${i <= current ? 'bg-primary' : 'bg-gray-200'}`} />}
+            {i > 0 && <div className={`h-0.5 flex-1 min-w-6 ${i <= current ? 'bg-primary' : 'bg-surface-tertiary'}`} />}
             <div className="flex flex-col items-center gap-1 shrink-0 px-1">
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-colors ${
@@ -64,12 +64,12 @@ function Timeline({ statut }: { statut: string }) {
                     ? 'bg-primary border-primary text-white'
                     : active
                     ? 'border-primary text-primary bg-primary/10'
-                    : 'border-gray-200 text-gray-300 bg-white'
+                    : 'border-separator text-muted bg-surface'
                 }`}
               >
                 {done ? <Check className="w-4 h-4" /> : i + 1}
               </div>
-              <span className={`text-[11px] font-medium whitespace-nowrap ${active || done ? 'text-primary' : 'text-gray-400'}`}>
+              <span className={`text-[11px] font-medium whitespace-nowrap ${active || done ? 'text-primary' : 'text-muted'}`}>
                 {etape.label}
               </span>
             </div>
@@ -86,8 +86,8 @@ const mapsUrl = (p?: { latitude?: number; longitude?: number } | null) =>
 
 function InfoRow({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-600">
-      <span className="text-gray-400 shrink-0">{icon}</span>
+    <div className="flex items-center gap-2 text-sm text-muted">
+      <span className="text-muted shrink-0">{icon}</span>
       {children}
     </div>
   );
@@ -155,7 +155,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
       {/* Back */}
       <Link
         href="/external_delivery"
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-4 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-muted hover:text-primary mb-4 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Retour aux courses
@@ -168,7 +168,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
             <h1 className="text-2xl font-bold text-primary">Course {course.code}</h1>
             <CourseStatutChip statut={course.statut} size="md" />
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted mt-1">
             {course.dateHeureDebut ? `Créée le ${dayjs(course.dateHeureDebut).format('DD/MM/YYYY à HH:mm')}` : ''}
             {course.dateHeureFin ? ` · terminée le ${dayjs(course.dateHeureFin).format('DD/MM/YYYY à HH:mm')}` : ''}
           </p>
@@ -210,7 +210,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
       </div>
 
       {/* ── Timeline ── */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-xs px-6 py-4 mb-6">
+      <div className="bg-surface rounded-xl border border-separator shadow-xs px-6 py-4 mb-6">
         <Timeline statut={course.statut} />
       </div>
 
@@ -225,9 +225,9 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
             const recup = mapsUrl(cmd.lieuRecuperation);
             const livr = mapsUrl(cmd.lieuLivraison);
             return (
-              <div key={cmd.id} className="bg-white rounded-xl border border-gray-100 shadow-xs p-5">
+              <div key={cmd.id} className="bg-surface rounded-xl border border-separator shadow-xs p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                  <span className="font-mono text-sm font-semibold text-gray-800">{cmd.numero}</span>
+                  <span className="font-mono text-sm font-semibold text-foreground">{cmd.numero}</span>
                   <CommandeStatutChip statut={cmd.statut} />
                 </div>
 
@@ -277,12 +277,12 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
                   </InfoRow>
                 </div>
 
-                <div className="flex items-center justify-end gap-6 mt-4 pt-3 border-t border-gray-50 text-sm">
-                  <span className="text-gray-500">
-                    Frais : <b className="text-gray-700">{fmtXof(cmd.fraisLivraison ?? 0)}</b>
+                <div className="flex items-center justify-end gap-6 mt-4 pt-3 border-t border-separator text-sm">
+                  <span className="text-muted">
+                    Frais : <b className="text-foreground">{fmtXof(cmd.fraisLivraison ?? 0)}</b>
                   </span>
-                  <span className="text-gray-500">
-                    Commande : <b className="text-gray-800">{fmtXof(cmd.prix ?? 0)}</b>
+                  <span className="text-muted">
+                    Commande : <b className="text-foreground">{fmtXof(cmd.prix ?? 0)}</b>
                   </span>
                 </div>
               </div>
@@ -293,8 +293,8 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
         {/* ── Colonne latérale ── */}
         <div className="flex flex-col gap-4">
           {/* Partenaire */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <div className="bg-surface rounded-xl border border-separator shadow-xs p-5">
+            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
               <Store className="w-4 h-4 text-primary" />
               Partenaire
             </h3>
@@ -305,8 +305,8 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
                 size="md"
               />
               <div className="min-w-0">
-                <p className="font-medium text-sm text-gray-800 truncate">{course.restaurant?.nomEtablissement ?? '—'}</p>
-                <p className="text-xs text-gray-500 truncate">{course.restaurant?.commune ?? course.restaurant?.localisation ?? ''}</p>
+                <p className="font-medium text-sm text-foreground truncate">{course.restaurant?.nomEtablissement ?? '—'}</p>
+                <p className="text-xs text-muted truncate">{course.restaurant?.commune ?? course.restaurant?.localisation ?? ''}</p>
               </div>
             </div>
             {course.restaurant?.id && (
@@ -324,8 +324,8 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
           </div>
 
           {/* Livreur */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <div className="bg-surface rounded-xl border border-separator shadow-xs p-5">
+            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
               <BikeIcon className="w-4 h-4 text-primary" />
               Livreur
             </h3>
@@ -333,17 +333,17 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
               <div className="flex items-center gap-3">
                 <Avatar src={course.livreur.avatarUrl || undefined} name={course.livreur.nom?.[0] ?? '?'} size="md" />
                 <div className="min-w-0">
-                  <p className="font-medium text-sm text-gray-800 truncate">
+                  <p className="font-medium text-sm text-foreground truncate">
                     {course.livreur.nom} {course.livreur.prenoms}
                   </p>
                   <a href={`tel:${course.livreur.telephone}`} className="text-xs text-primary hover:underline">
                     {course.livreur.telephone}
                   </a>
-                  {course.livreur.matricule && <p className="text-xs text-gray-400">Mat. {course.livreur.matricule}</p>}
+                  {course.livreur.matricule && <p className="text-xs text-muted">Mat. {course.livreur.matricule}</p>}
                 </div>
               </div>
             ) : (
-              <div className="text-xs text-gray-400 border border-dashed border-gray-200 rounded-lg p-4 text-center">
+              <div className="text-xs text-muted border border-dashed border-separator rounded-lg p-4 text-center">
                 Aucun livreur assigné pour l&apos;instant.
                 {canUpdate && enAttente && (
                   <Button size="sm" color="primary" variant="flat" className="mt-3 w-full" onPress={() => setOpenAssign(true)}>
@@ -355,21 +355,21 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
           </div>
 
           {/* Récapitulatif */}
-          <div className="bg-white rounded-xl border border-gray-100 shadow-xs p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+          <div className="bg-surface rounded-xl border border-separator shadow-xs p-5">
+            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
               <Wallet className="w-4 h-4 text-primary" />
               Récapitulatif
             </h3>
             <div className="flex flex-col gap-2 text-sm">
-              <div className="flex items-center justify-between text-gray-600">
+              <div className="flex items-center justify-between text-muted">
                 <span>Commandes</span>
                 <span>{fmtXof(sousTotal)}</span>
               </div>
-              <div className="flex items-center justify-between text-gray-600">
+              <div className="flex items-center justify-between text-muted">
                 <span>Frais de livraison</span>
                 <span>{fmtXof(totalFrais)}</span>
               </div>
-              <div className="flex items-center justify-between font-semibold text-gray-900 border-t border-gray-100 pt-2 mt-1">
+              <div className="flex items-center justify-between font-semibold text-foreground border-t border-separator pt-2 mt-1">
                 <span>Total</span>
                 <span>{fmtXof(sousTotal + totalFrais)}</span>
               </div>
@@ -392,7 +392,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
           { label: 'Annuler la course', color: 'danger', variant: 'solid', onPress: handleCancel },
         ]}
       >
-        <p className="text-sm text-gray-700">
+        <p className="text-sm text-foreground">
           La course sera annulée et ne sera plus proposée aux livreurs. Possible uniquement tant qu&apos;elle est en attente.
         </p>
       </ConfirmModal>
@@ -408,7 +408,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
           { label: 'Terminer', color: 'success', variant: 'solid', onPress: handleFinish },
         ]}
       >
-        <p className="text-sm text-gray-700">
+        <p className="text-sm text-foreground">
           La course sera marquée comme terminée. À utiliser si le livreur n&apos;a pas pu clôturer depuis son application.
         </p>
       </ConfirmModal>

@@ -1,3 +1,5 @@
+import { Chip, type ChipProps } from '@heroui-v3/react';
+
 import {
   Table,
   TableBody,
@@ -12,10 +14,23 @@ function fmt(n: number) {
   return new Intl.NumberFormat('fr-FR').format(n);
 }
 
-const STATUT_BADGE: Record<StatutLivreurDetail, { label: string; className: string }> = {
-  OK:      { label: 'OK',      className: 'bg-green-100 text-green-700' },
-  REJETE:  { label: 'Rejeté', className: 'bg-red-100 text-red-600' },
-  ATTENTE: { label: 'Attente', className: 'bg-gray-100 text-gray-600' },
+/**
+ * Les trois etats d'un livreur dans le lot, rendus par `Chip`.
+ *
+ * <p>Les pastilles etaient des `span` habilles a la main en `bg-green-100 text-green-700`
+ * et `bg-red-100 text-red-600`, sans variante sombre. Depuis que la bascule de theme est
+ * dans l'en-tete, le comptable qui travaillait en sombre lisait du vert pastel sur fond
+ * sombre : le statut devenait illisible sur la colonne meme qui dit si la ligne part en
+ * paiement ou non.</p>
+ *
+ * <p>Ici, contrairement au statut de ticket qui compte SIX crans, l'echelle semantique de
+ * la v3 suffit exactement : succes, danger, neutre. Aucune couleur n'a donc a etre ecrite
+ * a la main, et les deux themes sont couverts par le composant.</p>
+ */
+const STATUT_CHIP: Record<StatutLivreurDetail, { label: string; couleur: ChipProps['color'] }> = {
+  OK:      { label: 'OK',      couleur: 'success' },
+  REJETE:  { label: 'Rejeté',  couleur: 'danger' },
+  ATTENTE: { label: 'Attente', couleur: 'default' },
 };
 
 interface Props {
@@ -40,13 +55,13 @@ export default function HistoriqueCreneauDetailLivreurs({ livreurs, totalLivreur
   const tronque = livreurs.length < totalLivreurs;
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100">
-        <h2 className="text-sm font-semibold text-gray-900">Détail livreurs</h2>
-        <p className="text-xs text-gray-400 mt-0.5">
+    <div className="rounded-xl border border-separator bg-surface overflow-hidden">
+      <div className="px-5 py-4 border-b border-separator">
+        <h2 className="text-sm font-semibold text-foreground">Détail livreurs</h2>
+        <p className="text-xs text-muted mt-0.5">
           {totalLivreurs} livreurs · {totalTickets} tickets
           {tronque && (
-            <span className="ml-2 text-gray-400">{livreurs.length} affichés</span>
+            <span className="ml-2 text-muted">{livreurs.length} affichés</span>
           )}
         </p>
       </div>
@@ -57,46 +72,51 @@ export default function HistoriqueCreneauDetailLivreurs({ livreurs, totalLivreur
         removeWrapper
         classNames={{
           base: 'hidden md:block',
-          th: 'bg-gray-50 text-[10px] font-bold uppercase tracking-wide text-gray-500 py-3 px-4',
-          td: 'py-3 px-4 border-b border-gray-100',
-          tr: 'hover:bg-gray-50/50 transition-colors',
+          th: 'bg-surface-secondary text-[10px] font-bold uppercase tracking-wide text-muted py-3 px-4',
+          td: 'py-3 px-4 border-b border-separator',
+          tr: 'hover:bg-surface-secondary/50 transition-colors',
         }}
       >
         <TableHeader>
           <TableColumn>Turboy</TableColumn>
-          <TableColumn>Tickets</TableColumn>
-          <TableColumn>Brut</TableColumn>
-          <TableColumn>Taux</TableColumn>
-          <TableColumn>Net</TableColumn>
+          {/*
+            Quatre colonnes de chiffres qui se comparent d'une ligne a l'autre : elles
+            s'alignent a droite en chasse tabulaire, sinon « 1 250 » et « 980 » ne se
+            lisent qu'en comptant les caracteres.
+          */}
+          <TableColumn align="end">Tickets</TableColumn>
+          <TableColumn align="end">Brut</TableColumn>
+          <TableColumn align="end">Taux</TableColumn>
+          <TableColumn align="end">Net</TableColumn>
           <TableColumn>Statut</TableColumn>
         </TableHeader>
         <TableBody emptyContent="Aucun livreur">
           {livreurs.map((l) => {
-            const badge = STATUT_BADGE[l.statut];
+            const chip = STATUT_CHIP[l.statut];
             return (
               <TableRow key={l.id}>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-900">{l.nom}</span>
-                    <span className="text-[11px] text-gray-400">{l.code}</span>
+                    <span className="text-sm font-medium text-foreground">{l.nom}</span>
+                    <span className="text-[11px] text-muted">{l.code}</span>
                   </div>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm text-gray-700">{l.tickets}</span>
+                  <span className="text-sm tabular-nums text-foreground">{l.tickets}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm text-gray-700">{fmt(l.brut)}</span>
+                  <span className="text-sm tabular-nums text-foreground">{fmt(l.brut)}</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm text-gray-700">{l.taux}%</span>
+                  <span className="text-sm tabular-nums text-foreground">{l.taux}%</span>
                 </TableCell>
                 <TableCell>
-                  <span className="text-sm font-semibold text-green-600">{fmt(l.net)}</span>
+                  <span className="text-sm font-semibold tabular-nums text-success-soft-foreground">{fmt(l.net)}</span>
                 </TableCell>
                 <TableCell>
-                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${badge.className}`}>
-                    {badge.label}
-                  </span>
+                  <Chip color={chip.couleur} size="sm" variant="soft">
+                    {chip.label}
+                  </Chip>
                 </TableCell>
               </TableRow>
             );
@@ -107,38 +127,36 @@ export default function HistoriqueCreneauDetailLivreurs({ livreurs, totalLivreur
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <div className="md:hidden space-y-3 p-4">
         {livreurs.length === 0 ? (
-          <p className="py-6 text-center text-sm text-gray-400">Aucun livreur</p>
+          <p className="py-6 text-center text-sm text-muted">Aucun livreur</p>
         ) : (
           livreurs.map((l) => {
-            const badge = STATUT_BADGE[l.statut];
+            const chip = STATUT_CHIP[l.statut];
             return (
-              <div key={l.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+              <div key={l.id} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-gray-900">{l.nom}</p>
-                    <p className="text-[11px] text-gray-400">{l.code}</p>
+                    <p className="truncate text-sm font-medium text-foreground">{l.nom}</p>
+                    <p className="text-[11px] text-muted">{l.code}</p>
                   </div>
-                  <span
-                    className={`shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${badge.className}`}
-                  >
-                    {badge.label}
-                  </span>
+                  <Chip className="shrink-0" color={chip.couleur} size="sm" variant="soft">
+                    {chip.label}
+                  </Chip>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Tickets</span>
-                  <span className="text-right text-sm text-gray-700">{l.tickets}</span>
+                  <span className="shrink-0 text-xs text-muted">Tickets</span>
+                  <span className="text-right text-sm tabular-nums text-foreground">{l.tickets}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Brut</span>
-                  <span className="text-right text-sm text-gray-700">{fmt(l.brut)}</span>
+                  <span className="shrink-0 text-xs text-muted">Brut</span>
+                  <span className="text-right text-sm tabular-nums text-foreground">{fmt(l.brut)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Taux</span>
-                  <span className="text-right text-sm text-gray-700">{l.taux}%</span>
+                  <span className="shrink-0 text-xs text-muted">Taux</span>
+                  <span className="text-right text-sm tabular-nums text-foreground">{l.taux}%</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Net</span>
-                  <span className="text-right text-sm font-semibold text-green-600">{fmt(l.net)}</span>
+                  <span className="shrink-0 text-xs text-muted">Net</span>
+                  <span className="text-right text-sm font-semibold tabular-nums text-success-soft-foreground">{fmt(l.net)}</span>
                 </div>
               </div>
             );

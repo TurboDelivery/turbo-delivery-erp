@@ -42,7 +42,7 @@ export default function PerformanceReport() {
   };
 
   return (
-    <div className="bg-gray-50 p-6">
+    <div className="bg-surface-secondary p-6">
       <PerformanceHeader
         selectedRestaurant={selectedRestaurant}
         restaurantId={filters.restaurantId || undefined}

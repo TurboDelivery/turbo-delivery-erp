@@ -41,7 +41,7 @@ export default function CourseCard({
   const accent = COURSE_STATUT_ACCENTS[course.statut?.toUpperCase() ?? ''] ?? 'border-l-gray-200';
 
   return (
-    <div className={`bg-white rounded-xl border border-gray-100 border-l-4 ${accent} shadow-xs hover:shadow-md transition-shadow p-5 flex flex-col gap-3`}>
+    <div className={`bg-surface rounded-xl border border-separator border-l-4 ${accent} shadow-xs hover:shadow-md transition-shadow p-5 flex flex-col gap-3`}>
       {/* Header : partenaire + montant */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -51,15 +51,15 @@ export default function CourseCard({
             size="md"
           />
           <div className="min-w-0">
-            <p className="font-semibold text-sm text-gray-900 truncate">{course.restaurant?.nomEtablissement ?? '—'}</p>
-            <p className="text-xs text-gray-500 truncate">{course.restaurant?.commune ?? ''}</p>
+            <p className="font-semibold text-sm text-foreground truncate">{course.restaurant?.nomEtablissement ?? '—'}</p>
+            <p className="text-xs text-muted truncate">{course.restaurant?.commune ?? ''}</p>
           </div>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
           <span className="bg-gray-900 text-white text-sm font-semibold rounded-lg px-2.5 py-1">
             {fmtXof(montantCourse(course.commandes))}
           </span>
-          <span className="flex items-center gap-1 text-[11px] text-gray-400">
+          <span className="flex items-center gap-1 text-[11px] text-muted">
             <Clock className="w-3 h-3" />
             {timeAgo(course.createdAt)}
           </span>
@@ -67,28 +67,28 @@ export default function CourseCard({
       </div>
 
       {/* Meta */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600">
-        <span className="font-mono font-semibold text-gray-800">{course.code}</span>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
+        <span className="font-mono font-semibold text-foreground">{course.code}</span>
         <span className="flex items-center gap-1">
-          <Package className="w-3.5 h-3.5 text-gray-400" />
+          <Package className="w-3.5 h-3.5 text-muted" />
           {course.nombreCommande ?? course.commandes?.length ?? 0} commande{(course.nombreCommande ?? 0) > 1 ? 's' : ''}
         </span>
         {premiere?.destinataire?.nomComplet && (
           <span className="flex items-center gap-1 truncate max-w-[220px]">
-            <Phone className="w-3.5 h-3.5 text-gray-400" />
+            <Phone className="w-3.5 h-3.5 text-muted" />
             {premiere.destinataire.nomComplet}
           </span>
         )}
         {premiere?.zone && (
           <span className="flex items-center gap-1 truncate max-w-[220px]">
-            <MapPin className="w-3.5 h-3.5 text-gray-400" />
+            <MapPin className="w-3.5 h-3.5 text-muted" />
             {premiere.zone}
           </span>
         )}
       </div>
 
       {/* Footer : statut + actions */}
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-50">
+      <div className="flex items-center justify-between gap-2 pt-2 border-t border-separator">
         <CourseStatutChip statut={course.statut} />
         <div className="flex items-center gap-1.5">
           {enAttente && canUpdate && (

@@ -22,7 +22,7 @@ export function getStatutConfig(statut: string) {
   if (statut in statutConfig) return statutConfig[statut];
   // Acompte 1, Acompte 2…
   if (statut.startsWith('Acompte')) return { label: statut, className: 'bg-yellow-100 text-yellow-700 border-yellow-200' };
-  return { label: statut, className: 'bg-gray-100 text-gray-600 border-gray-200' };
+  return { label: statut, className: 'bg-surface-secondary text-muted border-separator' };
 }
 
 /**
@@ -173,7 +173,7 @@ export function renderAgentActions(
       </span>
     );
   }
-  return <span className="text-gray-400 text-xs">—</span>;
+  return <span className="text-muted text-xs">—</span>;
 }
 
 export function createAgentRecouvreurColumns(
@@ -190,7 +190,7 @@ export function createAgentRecouvreurColumns(
       <input
         type="checkbox"
         aria-label="Tout sélectionner"
-        className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer accent-green-600"
+        className="h-4 w-4 rounded border-separator text-green-600 focus:ring-green-500 cursor-pointer accent-green-600"
         checked={table.getIsAllPageRowsSelected()}
         ref={(el) => {
           if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
@@ -203,7 +203,7 @@ export function createAgentRecouvreurColumns(
         <input
           type="checkbox"
           aria-label="Sélectionner la facture"
-          className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer accent-green-600"
+          className="h-4 w-4 rounded border-separator text-green-600 focus:ring-green-500 cursor-pointer accent-green-600"
           checked={row.getIsSelected()}
           onChange={row.getToggleSelectedHandler()}
         />
@@ -225,7 +225,7 @@ export function createAgentRecouvreurColumns(
       accessorKey: 'partenaire',
       header: 'PARTENAIRE',
       cell: ({ row }) => (
-        <span className="text-xs font-medium text-gray-800">{row.original.partenaire}</span>
+        <span className="text-xs font-medium text-foreground">{row.original.partenaire}</span>
       ),
     },
     {

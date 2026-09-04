@@ -17,7 +17,7 @@ export function UploadZone({ label, preview, onChange, multiple }: UploadZonePro
       <button
         type="button"
         onClick={() => ref.current?.click()}
-        className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors"
+        className="w-16 h-16 border-2 border-dashed border-separator rounded-lg flex flex-col items-center justify-center text-muted hover:border-primary hover:text-primary transition-colors"
       >
         {preview ? (
           <img src={preview} alt="preview" className="w-full h-full object-cover rounded-lg" />
@@ -31,7 +31,7 @@ export function UploadZone({ label, preview, onChange, multiple }: UploadZonePro
       <button
         type="button"
         onClick={() => ref.current?.click()}
-        className="w-10 h-10 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors"
+        className="w-10 h-10 rounded-full border-2 border-dashed border-separator flex items-center justify-center text-muted hover:border-primary hover:text-primary transition-colors"
       >
         <Plus className="w-4 h-4" />
       </button>

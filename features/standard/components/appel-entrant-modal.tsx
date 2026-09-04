@@ -51,8 +51,7 @@ export function AppelEntrantModal({
       className="fixed inset-0 z-200 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs sm:p-4"
     >
       <div
-        className="relative flex h-full w-full flex-col overflow-hidden bg-linear-to-b from-slate-800 via-slate-900 to-slate-950 text-white shadow-2xl
-                   sm:h-auto sm:max-w-sm sm:rounded-3xl sm:ring-1 sm:ring-white/10"
+        className="relative flex h-full w-full flex-col overflow-hidden bg-linear-to-b from-slate-800 via-slate-900 to-slate-950 text-white shadow-2xl sm:h-auto sm:max-w-sm sm:rounded-3xl sm:ring-1 sm:ring-white/10"
       >
         {/* Halo d'ambiance */}
         <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-emerald-500/20 blur-3xl" />
@@ -77,9 +76,9 @@ export function AppelEntrantModal({
             <p className="mt-2 text-sm text-white/50">
               Sonne depuis {secondes}s
               <span className="ml-1 inline-flex gap-0.5 align-middle">
-                <span className="h-1 w-1 animate-bounce rounded-full bg-white/60 [animation-delay:0ms]" />
-                <span className="h-1 w-1 animate-bounce rounded-full bg-white/60 [animation-delay:150ms]" />
-                <span className="h-1 w-1 animate-bounce rounded-full bg-white/60 [animation-delay:300ms]" />
+                <span className="h-1 w-1 animate-bounce rounded-full bg-surface/60 [animation-delay:0ms]" />
+                <span className="h-1 w-1 animate-bounce rounded-full bg-surface/60 [animation-delay:150ms]" />
+                <span className="h-1 w-1 animate-bounce rounded-full bg-surface/60 [animation-delay:300ms]" />
               </span>
             </p>
           </div>
@@ -93,8 +92,7 @@ export function AppelEntrantModal({
               onClick={onRefuser}
               disabled={enCours}
               aria-label="Refuser l'appel"
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-rose-600 text-white shadow-lg transition
-                         hover:bg-rose-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:h-14 sm:w-14"
+              className="flex h-16 w-16 items-center justify-center rounded-full bg-rose-600 text-white shadow-lg transition hover:bg-rose-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 sm:h-14 sm:w-14"
             >
               <IconPhoneOff size={26} />
             </button>
@@ -107,8 +105,7 @@ export function AppelEntrantModal({
               onClick={onAccepter}
               disabled={enCours}
               aria-label="Répondre à l'appel"
-              className="relative flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg transition
-                         hover:bg-emerald-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:h-14 sm:w-14"
+              className="relative flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg transition hover:bg-emerald-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:h-14 sm:w-14"
             >
               {!enCours && (
                 <span className="absolute inset-0 animate-ping rounded-full bg-emerald-400/40 [animation-duration:1.6s]" />

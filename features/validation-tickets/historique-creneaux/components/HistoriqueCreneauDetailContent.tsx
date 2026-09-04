@@ -1,13 +1,36 @@
 'use client';
 
+/*
+ * Detail d'un creneau de paie, rendu avec HeroUI V3.
+ *
+ * <p>L'en-tete et les quatre cartes d'indicateurs etaient des `div` habillees a la main
+ * (`rounded-xl border border-separator bg-surface`). Une surface et un rayon reecrits a
+ * cote d'un composant qui les porte deja finissent par diverger du reste de l'ecran des
+ * que le theme bouge. `Card` apporte sa surface, son rayon et son ombre.</p>
+ *
+ * <p>Le squelette d'attente venait de `@/components/ui/skeleton`, dont le fond prend la
+ * couleur de marque : les blocs d'attente etaient donc des rectangles rouges, et le
+ * chargement se lisait comme un incident sur un ecran ou l'operateur cherche justement
+ * un rejet. Le `Skeleton` V3 se peint sur la surface tertiaire, neutre dans les deux
+ * themes.</p>
+ *
+ * <p>Trois teintes ecrites en dur n'avaient pas de couple sombre et gardaient leur aplat
+ * pale sur fond sombre : l'ambre du motif de regularisation, dont le texte fonce
+ * devenait illisible, et les pastilles `bg-red-50` des icones. Le motif passe sur
+ * l'echelle `warning`, qui porte ses deux themes. Les trois pastilles rouges ne
+ * distinguaient rien — c'etait la meme teinte quatre fois — et redeviennent neutres ;
+ * seul le total net garde sa couleur, sur l'echelle `success`, parce qu'il dit ce qui
+ * sera reellement verse aux livreurs.</p>
+ */
 import { AlertTriangle, CreditCard, Receipt, TrendingUp, Users } from 'lucide-react';
+import { Card, Chip, Skeleton } from '@heroui-v3/react';
 import GrillePaiementExportButton from '@/features/validation-tickets/grille-de-paiement/components/GrillePaiementExportButton';
+import { cn } from '@/lib/utils';
 import { formatMontantCompact } from '@/utils/format.utils';
 import useHistoriqueCreneauDetail from '../hooks/use-historique-creneau-detail';
 import HistoriqueCreneauDetailLivreurs from './HistoriqueCreneauDetailLivreurs';
 import HistoriqueCreneauDetailTimeline from './HistoriqueCreneauDetailTimeline';
 import { getLotStatutConfig } from '../utils/lot-statut.utils';
-import { Skeleton } from '@/components/ui/skeleton';
 import EtatErreur from '@/components/commons/EtatErreur';
 
 interface Props {
@@ -20,13 +43,13 @@ export default function HistoriqueCreneauDetailContent({ id }: Props) {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-5 p-4 sm:p-6">
-        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-32 w-full rounded-3xl" />
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
+            <Skeleton key={i} className="h-24 rounded-3xl" />
           ))}
         </div>
-        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-3xl" />
       </div>
     );
   }
@@ -45,30 +68,55 @@ export default function HistoriqueCreneauDetailContent({ id }: Props) {
 
   const statut = getLotStatutConfig(detail.statut);
 
+  /*
+   * `unit` et `ton` sont portes par les quatre entrees, meme vides : une cle presente sur
+   * une seule d'entre elles fait inferer a TypeScript une union ou la destructuration du
+   * champ manquant ne compile plus.
+   */
+  const indicateurs = [
+    { label: 'Livreurs',   value: detail.kpi.livreurs,  icon: Users,      compact: false, unit: '',     verse: false },
+    { label: 'Tickets',    value: detail.kpi.tickets,   icon: Receipt,    compact: false, unit: '',     verse: false },
+    { label: 'Total Brut', value: detail.kpi.totalBrut, icon: TrendingUp, compact: true,  unit: 'FCFA', verse: false },
+    { label: 'Total Net',  value: detail.kpi.totalNet,  icon: CreditCard, compact: true,  unit: 'FCFA', verse: true  },
+  ];
+
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
-      {/* Header card */}
-      <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
+      {/* En-tete : code du creneau, statut du lot, provenance, export */}
+      <Card>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-xl font-bold text-gray-900">{detail.code}</h1>
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${statut.className}`}>{statut.label}</span>
+              <h1 className="text-xl font-bold text-foreground">{detail.code}</h1>
+              {/*
+               * La teinte vient de `lot-statut.utils` faute d'equivalent : la chaine de
+               * validation d'un lot compte HUIT etats et `Chip` n'offre que quatre
+               * variantes. Le libelle reste toujours ecrit, pour que l'etat ne tienne pas
+               * qu'a la couleur.
+               */}
+              <Chip className={cn('whitespace-nowrap', statut.className)} size="sm" variant="soft">
+                {statut.label}
+              </Chip>
             </div>
             {detail.soumisLe && (
-              <p className="text-xs text-gray-500">
-                <span className="text-red-400">Soumis le</span> {detail.soumisLe}
+              /*
+               * Le rouge etait pose sur le libelle « Soumis le », pas sur la date, et sans
+               * variante sombre : la seule couleur de la ligne mettait en avant le mot, pas
+               * l'information. C'est la date et l'auteur qu'on lit ici.
+               */
+              <p className="text-xs text-muted">
+                Soumis le <span className="font-medium text-foreground">{detail.soumisLe}</span>
                 {detail.soumisParNom && (
                   <>
                     {' '}
-                    · Par <span className="font-medium text-gray-700">{detail.soumisParNom}</span>
+                    · Par <span className="font-medium text-foreground">{detail.soumisParNom}</span>
                   </>
                 )}
               </p>
             )}
             {detail.derniereAction && (
-              <p className="text-xs text-gray-400">
-                Dernière action : <span className="text-gray-600">{detail.derniereAction}</span>
+              <p className="text-xs text-muted">
+                Dernière action : <span className="text-muted">{detail.derniereAction}</span>
               </p>
             )}
           </div>
@@ -77,39 +125,45 @@ export default function HistoriqueCreneauDetailContent({ id }: Props) {
             <GrillePaiementExportButton creneauId={id} grilleCode={detail.code} totalItems={detail.kpi.livreurs} />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Motif de régularisation */}
       {detail.motifRegularisation && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
-          <p className="text-sm font-semibold text-amber-700 flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
+        <div className="flex flex-col gap-1 rounded-xl border border-warning/30 bg-warning-soft px-5 py-4">
+          <p className="flex items-center gap-2 text-sm font-semibold text-warning-soft-foreground">
+            <AlertTriangle aria-hidden="true" className="h-4 w-4" />
             Motif de régularisation
           </p>
-          <p className="mt-1 text-sm text-amber-800">{detail.motifRegularisation}</p>
+          <p className="text-sm text-warning-soft-foreground">{detail.motifRegularisation}</p>
         </div>
       )}
 
-      {/* KPI cards */}
+      {/* Indicateurs du créneau */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {[
-          { label: 'Livreurs', value: detail.kpi.livreurs, icon: Users, compact: false, color: 'text-red-500', bg: 'bg-red-50' },
-          { label: 'Tickets', value: detail.kpi.tickets, icon: Receipt, compact: false, color: 'text-red-500', bg: 'bg-red-50' },
-          { label: 'Total Brut', value: detail.kpi.totalBrut, icon: TrendingUp, compact: true, color: 'text-red-500', bg: 'bg-red-50', unit: 'FCFA' },
-          { label: 'Total Net', value: detail.kpi.totalNet, icon: CreditCard, compact: true, color: 'text-green-500', bg: 'bg-green-50', unit: 'FCFA', valueClass: 'text-green-500' },
-        ].map(({ label, value, icon: Icon, compact, color, bg, unit, valueClass }) => (
-          <div key={label} className="rounded-xl border border-gray-200 bg-white px-5 py-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-bold uppercase tracking-wide text-gray-500">{label}</span>
-              <div className={`flex h-8 w-8 items-center justify-center rounded-full ${bg}`}>
-                <Icon className={`h-4 w-4 ${color}`} />
+        {indicateurs.map(({ label, value, icon: Icon, compact, unit, verse }) => (
+          <Card key={label}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-muted">{label}</span>
+              <div
+                className={cn(
+                  'flex h-8 w-8 items-center justify-center rounded-full',
+                  verse ? 'bg-success-soft' : 'bg-surface-secondary',
+                )}
+              >
+                <Icon aria-hidden="true" className={cn('h-4 w-4', verse ? 'text-success-soft-foreground' : 'text-muted')} />
               </div>
             </div>
-            <p className={`text-2xl font-bold ${valueClass ?? 'text-gray-900'} leading-tight`}>
-              {compact ? formatMontantCompact(value as number) : value}
-              {unit && <span className="ml-1 text-sm font-medium text-gray-500">{unit}</span>}
+            {/* Chasse tabulaire : sans elle, deux montants empiles ne s'alignent pas et ne se comparent plus. */}
+            <p
+              className={cn(
+                'text-2xl font-bold leading-tight tabular-nums',
+                verse ? 'text-success-soft-foreground' : 'text-foreground',
+              )}
+            >
+              {compact ? formatMontantCompact(value) : value}
+              {unit && <span className="ml-1 text-sm font-medium text-muted">{unit}</span>}
             </p>
-          </div>
+          </Card>
         ))}
       </div>
 

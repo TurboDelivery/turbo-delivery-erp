@@ -67,13 +67,13 @@ const DeliveryMenValidate = ({
                                 <button
                                     type="button"
                                     onClick={() => setOpen(false)}
-                                    className="absolute top-4 text-gray-400 outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
+                                    className="absolute top-4 text-muted outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
                                 >
                                     <IconX />
                                 </button>
-                                <div className="bg-[#fbfbfb] py-3 text-lg font-medium ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5 dark:bg-[#121c2c] text-primary">Valider l&apos; établissement</div>
+                                <div className="bg-surface-secondary py-3 text-lg font-medium ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5 text-primary">Valider l&apos; établissement</div>
                                 <div className="grid gap-4 p-5">
-                                    <p className="text-gray-500 dark:text-gray-400">Voulez-vous valider le livreur ?</p>
+                                    <p className="text-muted dark:text-gray-400">Voulez-vous valider le livreur ?</p>
                                     <div className="mt-8 flex items-center justify-end">
                                         <button type="button" className="btn btn-outline-danger" onClick={() => setOpen(false)}>
                                             Annuler

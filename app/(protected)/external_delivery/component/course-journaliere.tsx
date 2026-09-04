@@ -29,15 +29,15 @@ const CourseJournaliere: React.FC<CourseJournaliereProps> = ({ restaurant: r }) 
 
   return (
     <div
-      className={`bg-white rounded-xl border shadow-xs hover:shadow-md transition-shadow p-4 flex flex-col gap-3 ${
-        aSuivre ? 'border-amber-200' : 'border-gray-100'
+      className={`bg-surface rounded-xl border shadow-xs hover:shadow-md transition-shadow p-4 flex flex-col gap-3 ${
+        aSuivre ? 'border-amber-200' : 'border-separator'
       }`}
     >
       <div className="flex items-center gap-3 min-w-0">
         <div className={`w-9 h-9 rounded-full ${color} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
           {nom[0]?.toUpperCase() ?? <Store className="w-4 h-4" />}
         </div>
-        <p className="font-semibold text-sm text-gray-900 truncate" title={nom}>
+        <p className="font-semibold text-sm text-foreground truncate" title={nom}>
           {nom}
         </p>
         {aSuivre && <span className="ml-auto w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" />}

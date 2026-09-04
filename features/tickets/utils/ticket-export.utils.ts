@@ -5,8 +5,21 @@ import { newTicket } from '@/features/tickets/types/tickets.type';
 import { autoFitColumns } from '@/features/tickets/utils/export.utils';
 
 export function generatePdfTemplate(tickets: Ticket[]): string {
-  const totalLivraison = tickets.reduce((sum, t) => sum + parseFloat(t.montantLivraison.replace(/[^0-9]/g, '')), 0);
-  const totalCommission = tickets.reduce((sum, t) => sum + parseFloat(t.commission?.replace(/[^0-9]/g, '') ?? '0'), 0);
+  /*
+   * LES TOTAUX ETAIENT MULTIPLIES PAR CENT DES QU'UN MONTANT AVAIT DES DECIMALES.
+   *
+   * <p>`replace(/[^0-9]/g, '')` retirait le point decimal avec le reste : « 1049.33 »
+   * devenait « 104933 ». Or les commissions viennent de `calculateFinalCommission`, qui
+   * rend `Number(x.toFixed(2))` : les decimales sont la regle, pas l'exception.</p>
+   *
+   * <p>Les LIGNES du tableau, elles, passaient par `formatNumberFR` et comptaient juste.
+   * Le rapport affichait donc « Montant total des commissions : 10 493 300 CFA » au-dessus
+   * d'un detail qui totalisait 104 933 CFA. Le total et son detail ne comptaient pas la
+   * meme chose.</p>
+   */
+  const enNombre = (v: string | undefined) => Number(v) || 0;
+  const totalLivraison = tickets.reduce((somme, t) => somme + enNombre(t.montantLivraison), 0);
+  const totalCommission = tickets.reduce((somme, t) => somme + enNombre(t.commission), 0);
   const totalRevenu = totalLivraison + totalCommission;
 
   return `<!DOCTYPE html>

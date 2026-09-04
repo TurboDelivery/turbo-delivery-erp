@@ -22,11 +22,11 @@ interface HorairesSectionProps {
 export function HorairesSection({ horaires, onUpdate }: HorairesSectionProps) {
   return (
     <section>
-      <p className="text-sm font-medium text-gray-700 mb-4">Horaires d'ouverture</p>
-      <div className="flex flex-col divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden">
+      <p className="text-sm font-medium text-foreground mb-4">Horaires d'ouverture</p>
+      <div className="flex flex-col divide-y divide-separator border border-separator rounded-xl overflow-hidden">
         {horaires.map((h, i) => (
           <div key={h.jour} className="grid grid-cols-[110px_1fr_1fr_80px] items-center gap-3 px-4 py-2.5">
-            <span className="text-sm font-medium text-gray-700">{JOURS_LABELS[h.jour]}</span>
+            <span className="text-sm font-medium text-foreground">{JOURS_LABELS[h.jour]}</span>
             <Input
               type="time"
               size="sm"
@@ -52,7 +52,7 @@ export function HorairesSection({ horaires, onUpdate }: HorairesSectionProps) {
                 onChange={(e) => onUpdate(i, 'ferme', e.target.checked)}
                 className="w-4 h-4 accent-primary"
               />
-              <span className="text-xs text-gray-500">Fermé</span>
+              <span className="text-xs text-muted">Fermé</span>
             </label>
           </div>
         ))}

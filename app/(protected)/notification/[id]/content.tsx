@@ -19,10 +19,10 @@ export function DetailNotification({ detailNotification }: DetailNotificationPro
     return (
         <PageWrapper>
             <CardHeader title="Detail des notifications" />
-            <div className="flex-wrap lg:flex xl:flex gap-2  justify-between">
+            <div className="flex-wrap lg:flex xl:flex gap-2 justify-between">
                 <div className="h1 text-md lg:text-2xl xl:text-2xl font-bold flex lg:flex xl:flex gap-2 ">
                     <div>Objet : </div>
-                    <div className="text-gray-500">{detailNotification.titre}</div>
+                    <div className="text-muted">{detailNotification.titre}</div>
                 </div>
                 <Link href="/notification">
                     <div className="flex justify-end">

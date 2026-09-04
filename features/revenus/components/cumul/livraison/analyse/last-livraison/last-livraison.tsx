@@ -72,33 +72,33 @@ export default function LastLivraison({ lastlivraisons }: LastLivraisonProps) {
                                 {livraisonsMoisCourant?.map((livraison, index) => (
                                     <CarouselItem key={index} className="pt-4 basis-1/2">
                                         <div className="p-2">
-                                            <Card className="rounded-lg shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300">
+                                            <Card className="rounded-lg shadow-md overflow-hidden border border-separator hover:shadow-lg transition-all duration-300">
                                                 <div className="p-4">
                                                     <div className="flex flex-col gap-3">
                                                         <div className="flex justify-between items-start">
                                                             <div className="space-y-1">
-                                                                <span className="text-xs text-gray-500 font-medium">Livreur</span>
+                                                                <span className="text-xs text-muted font-medium">Livreur</span>
                                                                 <h3 className="font-semibold text-sm text-blue-600">{livraison.nomLivreur}</h3>
                                                             </div>
                                                             <div className="text-right">
-                                                                <span className="text-xs text-gray-500 block">Cout</span>
+                                                                <span className="text-xs text-muted block">Cout</span>
                                                                 <span className="text-sm font-bold text-green-600">{formatMontant(livraison.totalAmount)}</span>
                                                             </div>
                                                         </div>
                                                         <div className="flex justify-between items-start">
                                                             <div className="space-y-1">
-                                                                <span className="text-xs text-gray-500 font-medium">restaurant</span>
+                                                                <span className="text-xs text-muted font-medium">restaurant</span>
                                                                 <h3 className="font-semibold text-sm text-blue-600">{livraison.nomRestaurant}</h3>
                                                             </div>
                                                             <div className="text-right">
-                                                                <span className="text-xs text-gray-500 block">commission</span>
+                                                                <span className="text-xs text-muted block">commission</span>
                                                                 <span className="text-sm font-bold text-green-600">{formatMontant(livraison.fraisLivraison)}</span>
                                                             </div>
                                                         </div>
 
                                                         <div className="space-y-2">
                                                             <div className="flex justify-between items-center">
-                                                                <span className="text-xs text-gray-500">Date</span>
+                                                                <span className="text-xs text-muted">Date</span>
                                                                 <span className="text-xs font-medium">{formatDate(livraison.createdAt)}</span>
                                                             </div>
                                                         </div>
@@ -117,9 +117,9 @@ export default function LastLivraison({ lastlivraisons }: LastLivraisonProps) {
                     </div>
 
                     {/* Pied de carte avec statistiques */}
-                    <div className="px-5 py-4 border-t border-gray-200 bg-gray-50">
+                    <div className="px-5 py-4 border-t border-separator bg-surface-secondary">
                         <div className="flex justify-between items-center">
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-muted">
                                 Total ce mois: {livraisonsMoisCourant?.length} investissement(s)
                             </div>
                             <div className="text-sm font-semibold text-blue-600">

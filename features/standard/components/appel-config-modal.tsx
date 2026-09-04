@@ -132,7 +132,7 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
                       ))}
                     </CheckboxGroup>
                     {repondants.length === 0 && (
-                      <p className="mt-1 text-xs text-danger">
+                      <p className="mt-1 text-xs text-danger-soft-foreground">
                         Au moins un rôle répondant est requis.
                       </p>
                     )}

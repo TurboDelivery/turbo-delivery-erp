@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from 'react';
 import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-table';
+import { Skeleton, Spinner } from '@heroui-v3/react';
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import EtatErreur from '@/components/commons/EtatErreur';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { buildV2ValideColumns, V2ValideRowActions } from './v2-valide-columns';
 import TicketV2MobileCard from './ticket-v2-mobile-card';
@@ -63,16 +64,19 @@ export function V2ValideTable({
   });
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+    <div className="rounded-xl border border-separator bg-surface overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-separator">
         <div className="flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 text-green-600" />
+          {/* `text-green-600` etait ecrit en dur, sans variante sombre : la coche restait
+              au meme vert quel que soit le theme, et se detachait mal du fond fonce.
+              `text-success-soft-foreground` porte le meme sens et suit la bascule clair/sombre. */}
+          <CheckCircle aria-hidden="true" className="h-4 w-4 text-success-soft-foreground" />
           <div>
-            <p className="font-semibold text-gray-900">Tickets V2 validés</p>
-            <p className="text-xs text-gray-400">Historique des tickets verrouillés V2</p>
+            <p className="font-semibold text-foreground">Tickets V2 validés</p>
+            <p className="text-xs text-muted">Historique des tickets verrouillés V2</p>
           </div>
         </div>
-        <p className="text-xs text-gray-500">{totalElements} ligne{totalElements > 1 ? 's' : ''}</p>
+        <p className="text-xs text-muted">{totalElements} ligne{totalElements > 1 ? 's' : ''}</p>
       </div>
       {/* Tableau — desktop uniquement (≥ md) */}
       <div className="hidden md:block overflow-x-auto">
@@ -85,8 +89,11 @@ export function V2ValideTable({
             wrapper: 'max-h-[60vh] rounded-none shadow-none p-0',
           }}
           bottomContent={
-            <div ref={bottomRef} className="flex items-center justify-center py-3">
-              {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+            /* Le rond de chargement etait dessine a la main (`Loader2` + `animate-spin`) :
+               sa couleur et sa vitesse ne suivaient rien. `Spinner` en `color="current"`
+               herite du `text-muted` porte par la sentinelle, donc du theme. */
+            <div ref={bottomRef} className="flex items-center justify-center py-3 text-muted">
+              {isFetchingNextPage && <Spinner color="current" size="sm" />}
             </div>
           }
         >
@@ -106,7 +113,7 @@ export function V2ValideTable({
                   <TableRow key={i}>
                     {table.getFlatHeaders().map((header) => (
                       <TableCell key={header.id}>
-                        <div className="h-4 rounded bg-gray-100 animate-pulse" />
+                        <Skeleton className="h-4" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -128,10 +135,12 @@ export function V2ValideTable({
       <div className="md:hidden space-y-3 p-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={`m-skel-${i}`} className="h-52 rounded-xl bg-gray-100 animate-pulse" />
+            /* Le gabarit garde la hauteur et l'arrondi de la carte qu'il remplace :
+               sans cela, la liste saute au moment ou les vraies cartes arrivent. */
+            <Skeleton key={`m-skel-${i}`} className="h-52 rounded-xl" />
           ))
         ) : tickets.length === 0 ? (
-          <p className="py-10 text-center text-sm text-gray-400">Aucun ticket V2 validé</p>
+          <p className="py-10 text-center text-sm text-muted">Aucun ticket V2 validé</p>
         ) : (
           tickets.map((ticket) => (
             <TicketV2MobileCard
@@ -150,8 +159,8 @@ export function V2ValideTable({
             />
           ))
         )}
-        <div ref={bottomRefMobile} className="flex items-center justify-center py-1">
-          {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+        <div ref={bottomRefMobile} className="flex items-center justify-center py-1 text-muted">
+          {isFetchingNextPage && <Spinner color="current" size="sm" />}
         </div>
       </div>
     </div>

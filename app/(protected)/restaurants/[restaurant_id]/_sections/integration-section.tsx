@@ -68,7 +68,7 @@ function fmtDate(iso: string) {
 function SubTitle({ icon, children, action }: { icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
         <span className="text-primary">{icon}</span>
         {children}
       </div>
@@ -126,7 +126,7 @@ function WebhookFormModal({
           <>
             <ModalHeader className="flex flex-col gap-1">
               {isEdit ? 'Modifier le webhook' : 'Ajouter un webhook'}
-              <span className="text-xs font-normal text-gray-500">
+              <span className="text-xs font-normal text-muted">
                 URL appelée par Turbo (POST) à chaque évènement de course de ce partenaire.
               </span>
             </ModalHeader>
@@ -200,46 +200,46 @@ function LogDetailsModal({
                 )}
                 <span className="text-sm">{log?.evenement}</span>
               </span>
-              <span className="text-xs font-normal text-gray-500">{log ? fmtDate(log.createdAt) : ''}</span>
+              <span className="text-xs font-normal text-muted">{log ? fmtDate(log.createdAt) : ''}</span>
             </ModalHeader>
             <ModalBody className="text-sm">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <p className="text-xs text-gray-500">Méthode</p>
+                  <p className="text-xs text-muted">Méthode</p>
                   <p className="font-medium">{log?.methode ?? '—'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Statut HTTP</p>
+                  <p className="text-xs text-muted">Statut HTTP</p>
                   <p className="font-medium">{log?.reponseStatut ?? '—'}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Résultat</p>
+                  <p className="text-xs text-muted">Résultat</p>
                   <p className="font-medium">{log?.succes ? 'Succès' : 'Échec'}</p>
                 </div>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">URL</p>
-                <p className="font-mono text-xs break-all bg-gray-50 rounded-md p-2 border border-gray-100">
+                <p className="text-xs text-muted mb-1">URL</p>
+                <p className="font-mono text-xs break-all bg-surface-secondary rounded-md p-2 border border-separator">
                   {log?.url ?? '—'}
                 </p>
               </div>
               {log?.erreur && (
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">Erreur</p>
+                  <p className="text-xs text-muted mb-1">Erreur</p>
                   <pre className="font-mono text-xs whitespace-pre-wrap break-all bg-red-50 text-red-700 rounded-md p-2 border border-red-100">
                     {log.erreur}
                   </pre>
                 </div>
               )}
               <div>
-                <p className="text-xs text-gray-500 mb-1">Requête</p>
-                <pre className="font-mono text-xs whitespace-pre-wrap break-all bg-gray-50 rounded-md p-2 border border-gray-100 max-h-60 overflow-auto">
+                <p className="text-xs text-muted mb-1">Requête</p>
+                <pre className="font-mono text-xs whitespace-pre-wrap break-all bg-surface-secondary rounded-md p-2 border border-separator max-h-60 overflow-auto">
                   {pretty(log?.requete ?? null)}
                 </pre>
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">Réponse</p>
-                <pre className="font-mono text-xs whitespace-pre-wrap break-all bg-gray-50 rounded-md p-2 border border-gray-100 max-h-60 overflow-auto">
+                <p className="text-xs text-muted mb-1">Réponse</p>
+                <pre className="font-mono text-xs whitespace-pre-wrap break-all bg-surface-secondary rounded-md p-2 border border-separator max-h-60 overflow-auto">
                   {pretty(log?.reponseCorps ?? null)}
                 </pre>
               </div>
@@ -281,11 +281,11 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
         icon={<Radio className="w-4 h-4" />}
         action={
           isFetching ? (
-            <span className="flex items-center gap-1.5 text-xs text-gray-400">
+            <span className="flex items-center gap-1.5 text-xs text-muted">
               <Spinner size="sm" /> actualisation…
             </span>
           ) : (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-muted">
               {data?.totalElements ?? 0} appel{(data?.totalElements ?? 0) > 1 ? 's' : ''}
             </span>
           )
@@ -366,7 +366,7 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
         >
           {logs.map((log) => (
             <TableRow key={log.id}>
-              <TableCell className="whitespace-nowrap text-xs text-gray-600">{fmtDate(log.createdAt)}</TableCell>
+              <TableCell className="whitespace-nowrap text-xs text-muted">{fmtDate(log.createdAt)}</TableCell>
               <TableCell>
                 {log.direction === 'ENTRANT' ? (
                   <Chip size="sm" color="primary" variant="flat" startContent={<ArrowDownLeft className="w-3 h-3" />}>
@@ -378,8 +378,8 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
                   </Chip>
                 )}
               </TableCell>
-              <TableCell className="text-xs font-medium text-gray-700">{log.evenement}</TableCell>
-              <TableCell className="text-xs text-gray-600">{log.reponseStatut ?? '—'}</TableCell>
+              <TableCell className="text-xs font-medium text-foreground">{log.evenement}</TableCell>
+              <TableCell className="text-xs text-muted">{log.reponseStatut ?? '—'}</TableCell>
               <TableCell>
                 {log.succes ? (
                   <Chip size="sm" color="success" variant="flat" startContent={<CheckCircle2 className="w-3 h-3" />}>
@@ -452,9 +452,9 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
   const webhookList = useMemo(() => webhooks ?? [], [webhooks]);
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
       <h2 className="text-base font-semibold text-primary mb-1">Intégration</h2>
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="text-sm text-muted mb-6">
         Connectez la solution de ce partenaire à Turbo : clé d&apos;accès, endpoint de création de course,
         webhooks de suivi et journal complet des échanges réseau.
       </p>
@@ -462,7 +462,7 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
       {/* ── Clé API ── */}
       <div className="mb-8">
         <SubTitle icon={<KeyRound className="w-4 h-4" />}>Clé API</SubTitle>
-        <p className="text-xs text-gray-500 mb-2">
+        <p className="text-xs text-muted mb-2">
           Le partenaire l&apos;envoie dans l&apos;en-tête <code className="text-primary">X-API-KEY</code> de chaque
           requête. À communiquer de façon sécurisée.
         </p>
@@ -494,14 +494,14 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
             </Tooltip>
           </div>
         ) : (
-          <p className="text-xs text-gray-400">Aucune clé API pour ce partenaire.</p>
+          <p className="text-xs text-muted">Aucune clé API pour ce partenaire.</p>
         )}
       </div>
 
       {/* ── Endpoint entrant (documentation) ── */}
       <div className="mb-8">
         <SubTitle icon={<ArrowDownLeft className="w-4 h-4" />}>Endpoint de création de course (entrant)</SubTitle>
-        <p className="text-xs text-gray-500 mb-2">
+        <p className="text-xs text-muted mb-2">
           Le partenaire crée une course en envoyant un <b>POST</b> à cette URL, avec sa clé API en en-tête.
         </p>
         <Snippet symbol="POST " variant="bordered" className="w-full" codeString={ENDPOINT_ENTRANT}>
@@ -521,7 +521,7 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
         >
           Webhooks (sortant)
         </SubTitle>
-        <p className="text-xs text-gray-500 mb-3">
+        <p className="text-xs text-muted mb-3">
           À chaque évènement de course (créée, récupérée, en route, livrée, annulée), Turbo envoie une notification
           <b> POST</b> à ces URL. Sans webhook configuré, aucune notification n&apos;est envoyée.
         </p>
@@ -537,7 +537,7 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
             enCours={webhooksRelecture}
           />
         ) : webhookList.length === 0 ? (
-          <div className="text-xs text-gray-400 border border-dashed border-gray-200 rounded-lg p-4 text-center">
+          <div className="text-xs text-muted border border-dashed border-separator rounded-lg p-4 text-center">
             Aucun webhook configuré.
           </div>
         ) : (
@@ -545,11 +545,11 @@ export default function IntegrationSection({ restaurantId }: { restaurantId: str
             {webhookList.map((w) => (
               <div
                 key={w.id}
-                className="flex items-center justify-between gap-3 border border-gray-100 rounded-lg px-4 py-2.5 bg-gray-50/50"
+                className="flex items-center justify-between gap-3 border border-separator rounded-lg px-4 py-2.5 bg-surface-secondary/50"
               >
                 <div className="min-w-0">
-                  <p className="font-mono text-xs text-gray-700 truncate">{w.url}</p>
-                  {w.description && <p className="text-xs text-gray-400 truncate">{w.description}</p>}
+                  <p className="font-mono text-xs text-foreground truncate">{w.url}</p>
+                  {w.description && <p className="text-xs text-muted truncate">{w.description}</p>}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <Tooltip content="Modifier">

@@ -1,9 +1,48 @@
 'use client';
 
+/*
+ * Point par livreur des regularisations, rendu avec HeroUI V3.
+ *
+ * <p>Quatre defauts corriges au passage, aucun visible au build, tous payes par le
+ * comptable ou par un livreur.</p>
+ *
+ * <p>1. Le panneau peignait a la main tout ce que le theme fournit : bordure, fond et
+ * rayon de la coquille, aplats des pastilles (`bg-blue-50`, `bg-amber-50`,
+ * `bg-emerald-50`) et des boutons (`bg-blue-600`, `bg-indigo-600`, `bg-emerald-600`).
+ * Aucune de ces teintes n'avait de variante sombre : avec la bascule de l'en-tete,
+ * l'etat du lot et le mot « manquant » a cote d'un numero Wave absent devenaient du
+ * texte fonce sur aplat clair, au moment precis ou ils disent qu'un virement ne
+ * partira pas.</p>
+ *
+ * <p>2. Une seule pastille bleue servait pour les huit etats du lot : un lot REJETE
+ * avait exactement l'allure d'un lot en attente de visa. On relancait la chaine sans
+ * voir qu'elle avait ete refusee. L'echelle d'etat de la V3 distingue le refus, le
+ * paiement lance et le solde.</p>
+ *
+ * <p>3. Le seul garde-fou contre un second appui pendant l'appel etait le changement de
+ * libelle (« Envoi… », « Visa… ») : `disabled` n'arrivait qu'au rendu suivant. Sur des
+ * actions qui soumettent, visent puis DECLENCHENT des virements Wave reels, un
+ * double-appui n'est pas une gene d'affichage. `isPending` coupe la pression des
+ * l'appui.</p>
+ *
+ * <p>4. Le filtre par livreur etait un `<input>` nu dans une boite dessinee a la main :
+ * ni anneau de focus du theme, ni moyen de l'effacer autrement qu'en selectionnant le
+ * texte. Un filtre oublie fait lire « il ne reste que ces trois livreurs a payer ».</p>
+ */
+
 import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Banknote, CheckCircle2, ListChecks, RefreshCw, Search, Send, ShieldCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Banknote, CheckCircle2, ListChecks, Send, ShieldCheck } from 'lucide-react';
+import {
+  Button,
+  Card,
+  Chip,
+  EmptyState,
+  SearchField,
+  Skeleton,
+  Spinner,
+  Table,
+} from '@heroui-v3/react';
 
 import { useCreneauxListQuery } from '@/features/creneaux/queries/creneau.query';
 import CreneauSelectPicker from '@/features/validation-tickets/components/CreneauSelectPicker';
@@ -31,6 +70,21 @@ const LOT_LABEL: Record<string, string> = {
   PAIEMENT_EN_COURS: 'Paiements Wave en cours',
   REJETE: 'Rejeté — re-générer pour corriger',
   SOLDE: 'Payé (soldé)',
+};
+
+/**
+ * Ce que l'etat du lot veut dire, en couleur : un refus se voit, un paiement lance se
+ * voit, le reste attend une signature et ne reclame pas l'oeil.
+ */
+const LOT_TON: Record<string, 'default' | 'accent' | 'success' | 'warning' | 'danger'> = {
+  EN_ATTENTE: 'default',
+  CALCUL_EN_COURS: 'default',
+  SOUMIS_DGA: 'warning',
+  VALIDE_DGA: 'warning',
+  APPROUVE_DG: 'accent',
+  PAIEMENT_EN_COURS: 'accent',
+  REJETE: 'danger',
+  SOLDE: 'success',
 };
 
 /**
@@ -77,17 +131,17 @@ export function RegularisationRecapPanel() {
   const lotId = recap?.lotId ?? null;
 
   return (
-    <section className="rounded-xl border border-gray-200 bg-white">
-      <header className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <Card>
+      <Card.Header className="gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900">
-            <Banknote className="h-4 w-4 text-emerald-600" />
+          <Card.Title className="flex items-center gap-2">
+            <Banknote aria-hidden="true" className="size-4 text-success-soft-foreground" />
             Point par livreur — paiement des régularisations
-          </h2>
-          <p className="mt-0.5 text-xs text-gray-400">
+          </Card.Title>
+          <Card.Description>
             Tickets approuvés en retard · net = brut × 0,6 · seuls les indépendants sont payés ·
             chaîne Comptable → DGA → DG → Wave.
-          </p>
+          </Card.Description>
         </div>
         <div className="w-full sm:w-64">
           <CreneauSelectPicker
@@ -97,153 +151,214 @@ export function RegularisationRecapPanel() {
             disabled={busy}
           />
         </div>
-      </header>
+      </Card.Header>
 
       {!creneauId || isLoading ? (
-        <p className="px-5 py-10 text-center text-sm text-gray-400">Chargement…</p>
+        <Card.Content className="gap-3">
+          <Skeleton className="h-9 w-full sm:w-72" />
+          <Skeleton className="h-48 w-full" />
+        </Card.Content>
       ) : isError ? (
         /* Un echec de chargement ne doit pas se lire comme « rien a payer » : le
            comptable en concluait qu'aucune regularisation n'attendait de virement. */
-        <EtatErreur
-          quoi="les régularisations à payer"
-          onReessayer={() => refetch()}
-          enCours={isFetching}
-        />
+        <Card.Content>
+          <EtatErreur
+            quoi="les régularisations à payer"
+            onReessayer={() => refetch()}
+            enCours={isFetching}
+          />
+        </Card.Content>
       ) : (recap?.lignes.length ?? 0) === 0 ? (
-        <p className="px-5 py-10 text-center text-sm text-gray-400">
-          Aucun ticket régularisé en attente de paiement sur ce créneau.
-        </p>
+        <Card.Content>
+          <EmptyState className="py-10 text-center">
+            Aucun ticket régularisé en attente de paiement sur ce créneau.
+          </EmptyState>
+        </Card.Content>
       ) : (
         <>
-          {/* Filtre + statut du lot */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
-            <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-1.5">
-              <Search className="h-4 w-4 text-gray-400" />
-              <input
+          <Card.Content className="gap-4">
+            {/* Filtre + statut du lot */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <SearchField
+                aria-label="Filtrer par livreur"
+                className="w-full sm:w-72"
+                onChange={setFiltre}
                 value={filtre}
-                onChange={(e) => setFiltre(e.target.value)}
-                placeholder="Filtrer par livreur…"
-                className="w-48 bg-transparent text-sm focus:outline-hidden"
-              />
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              {statut && (
-                <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-                  {LOT_LABEL[statut] ?? statut}
-                </span>
-              )}
-              {(recap?.ticketsHorsLot ?? 0) > 0 && lotId && (
-                <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                  {recap?.ticketsHorsLot} nouveau(x) ticket(s) à intégrer
-                </span>
-              )}
-              {isFetching && <RefreshCw className="h-3.5 w-3.5 animate-spin text-gray-300" />}
-            </div>
-          </div>
+              >
+                <SearchField.Group>
+                  <SearchField.SearchIcon />
+                  <SearchField.Input placeholder="Filtrer par livreur…" />
+                  <SearchField.ClearButton />
+                </SearchField.Group>
+              </SearchField>
 
-          {/* Tableau par livreur */}
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-left text-[11px] uppercase tracking-wide text-gray-500">
-                  <th className="px-5 py-2.5">Livreur</th>
-                  <th className="px-3 py-2.5">Type</th>
-                  <th className="px-3 py-2.5 text-right">Tickets</th>
-                  <th className="px-3 py-2.5 text-right">Brut</th>
-                  <th className="px-3 py-2.5 text-right">Net (× 0,6)</th>
-                  <th className="px-3 py-2.5">N° Wave</th>
-                  <th className="px-3 py-2.5">Payé ?</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lignes.map((l) => (
-                  <tr key={l.turboyId} className="border-b border-gray-100">
-                    <td className="px-5 py-2.5 font-medium text-gray-800">{l.nom}</td>
-                    <td className="px-3 py-2.5 text-gray-500">{l.typeLivreur ?? '—'}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{l.nbTickets}</td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">{fmt(l.brut)}</td>
-                    <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-emerald-700">
-                      {fmt(l.net)}
-                    </td>
-                    <td className="px-3 py-2.5 text-gray-500">
-                      {l.numeroWave || <span className="text-amber-600">manquant</span>}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      {l.inclusDansPaie ? (
-                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                          Inclus
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-500">
-                          Non payé
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              <div className="flex items-center gap-2 text-muted">
+                {statut && (
+                  <Chip color={LOT_TON[statut] ?? 'default'} size="sm" variant="soft">
+                    {LOT_LABEL[statut] ?? statut}
+                  </Chip>
+                )}
+                {(recap?.ticketsHorsLot ?? 0) > 0 && lotId && (
+                  <Chip color="warning" size="sm" variant="soft">
+                    {recap?.ticketsHorsLot} nouveau(x) ticket(s) à intégrer
+                  </Chip>
+                )}
+                {isFetching && <Spinner color="current" size="sm" />}
+              </div>
+            </div>
+
+            {/* Tableau par livreur */}
+            <Table variant="secondary">
+              <Table.ScrollContainer>
+                <Table.Content
+                  aria-label="Point par livreur des régularisations à payer"
+                  className="min-w-[720px]"
+                >
+                  <Table.Header>
+                    <Table.Column isRowHeader>Livreur</Table.Column>
+                    <Table.Column>Type</Table.Column>
+                    <Table.Column className="text-right">Tickets</Table.Column>
+                    <Table.Column className="text-right">Brut</Table.Column>
+                    <Table.Column className="text-right">Net (× 0,6)</Table.Column>
+                    <Table.Column>N° Wave</Table.Column>
+                    <Table.Column>Payé ?</Table.Column>
+                  </Table.Header>
+                  <Table.Body
+                    /* Un filtre trop etroit rendait un tableau a l'entete seul, sans un
+                       mot : on le lisait comme « plus personne a payer ». */
+                    renderEmptyState={() => (
+                      <EmptyState className="py-10 text-center">
+                        Aucun livreur ne correspond à ce filtre.
+                      </EmptyState>
+                    )}
+                  >
+                    {lignes.map((l) => (
+                      <Table.Row key={l.turboyId} id={l.turboyId}>
+                        <Table.Cell className="font-medium">{l.nom}</Table.Cell>
+                        <Table.Cell className="text-muted">{l.typeLivreur ?? '—'}</Table.Cell>
+                        <Table.Cell className="text-right tabular-nums">{l.nbTickets}</Table.Cell>
+                        <Table.Cell className="text-right tabular-nums">{fmt(l.brut)}</Table.Cell>
+                        <Table.Cell className="text-right font-semibold tabular-nums text-success-soft-foreground">
+                          {fmt(l.net)}
+                        </Table.Cell>
+                        <Table.Cell className="text-muted">
+                          {l.numeroWave || <span className="text-warning-soft-foreground">manquant</span>}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {l.inclusDansPaie ? (
+                            <Chip color="success" size="sm" variant="soft">
+                              Inclus
+                            </Chip>
+                          ) : (
+                            <Chip size="sm" variant="soft">
+                              Non payé
+                            </Chip>
+                          )}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
+            </Table>
+          </Card.Content>
 
           {/* Total + chaîne d'actions */}
-          <div className="flex flex-col gap-3 border-t border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-gray-600">
+          <Card.Footer className="flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted">
               Total à payer (indépendants) :{' '}
-              <span className="text-base font-bold text-emerald-700">{fmt(recap?.totalAPayer)}</span>
-              <span className="ml-2 text-xs text-gray-400">{recap?.nbTickets} ticket(s)</span>
+              <span className="text-base font-bold tabular-nums text-success-soft-foreground">
+                {fmt(recap?.totalAPayer)}
+              </span>
+              <span className="ml-2 text-xs text-muted">{recap?.nbTickets} ticket(s)</span>
             </p>
             <div className="flex flex-wrap items-center gap-2">
               {(!lotId || statut === 'REJETE' || (recap?.ticketsHorsLot ?? 0) > 0) && (
                 <Button
-                  onClick={() => creneauId && generer.mutate({ creneauId, userId })}
-                  disabled={busy || !userId}
+                  isDisabled={busy || !userId}
+                  isPending={generer.isPending}
                   variant="outline"
-                  className="flex items-center gap-2 border-emerald-600 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40"
+                  onPress={() => creneauId && generer.mutate({ creneauId, userId })}
                 >
-                  <ListChecks className="h-4 w-4" />
-                  {generer.isPending
-                    ? 'Génération…'
-                    : statut === 'REJETE'
-                      ? 'Re-générer le lot'
-                      : lotId
-                        ? 'Actualiser le lot'
-                        : 'Générer le lot de paiement'}
+                  {({ isPending }) => (
+                    <>
+                      {isPending ? (
+                        <Spinner color="current" size="sm" />
+                      ) : (
+                        <ListChecks aria-hidden="true" className="size-4" />
+                      )}
+                      {isPending
+                        ? 'Génération…'
+                        : statut === 'REJETE'
+                          ? 'Re-générer le lot'
+                          : lotId
+                            ? 'Actualiser le lot'
+                            : 'Générer le lot de paiement'}
+                    </>
+                  )}
                 </Button>
               )}
               {lotId && (statut === 'CALCUL_EN_COURS' || statut === 'EN_ATTENTE') && (
                 <Button
-                  onClick={() => creneauId && soumettre.mutate({ lotId, userId, creneauId })}
-                  disabled={busy || !userId}
-                  className="flex items-center gap-2 bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40"
+                  isDisabled={busy || !userId}
+                  isPending={soumettre.isPending}
+                  variant="primary"
+                  onPress={() => creneauId && soumettre.mutate({ lotId, userId, creneauId })}
                 >
-                  <Send className="h-4 w-4" />
-                  {soumettre.isPending ? 'Envoi…' : 'Soumettre au DGA'}
+                  {({ isPending }) => (
+                    <>
+                      {isPending ? (
+                        <Spinner color="current" size="sm" />
+                      ) : (
+                        <Send aria-hidden="true" className="size-4" />
+                      )}
+                      {isPending ? 'Envoi…' : 'Soumettre au DGA'}
+                    </>
+                  )}
                 </Button>
               )}
               {lotId && statut === 'SOUMIS_DGA' && peutViser && (
                 <Button
-                  onClick={() => creneauId && viser.mutate({ lotId, userId, creneauId })}
-                  disabled={busy || !userId}
-                  className="flex items-center gap-2 bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-40"
+                  isDisabled={busy || !userId}
+                  isPending={viser.isPending}
+                  variant="primary"
+                  onPress={() => creneauId && viser.mutate({ lotId, userId, creneauId })}
                 >
-                  <ShieldCheck className="h-4 w-4" />
-                  {viser.isPending ? 'Visa…' : 'Viser (DGA)'}
+                  {({ isPending }) => (
+                    <>
+                      {isPending ? (
+                        <Spinner color="current" size="sm" />
+                      ) : (
+                        <ShieldCheck aria-hidden="true" className="size-4" />
+                      )}
+                      {isPending ? 'Visa…' : 'Viser (DGA)'}
+                    </>
+                  )}
                 </Button>
               )}
               {lotId && statut === 'VALIDE_DGA' && peutApprouver && (
                 <Button
-                  onClick={() => creneauId && approuver.mutate({ lotId, userId, creneauId })}
-                  disabled={busy || !userId}
-                  className="flex items-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40"
+                  isDisabled={busy || !userId}
+                  isPending={approuver.isPending}
+                  variant="primary"
+                  onPress={() => creneauId && approuver.mutate({ lotId, userId, creneauId })}
                 >
-                  <CheckCircle2 className="h-4 w-4" />
-                  {approuver.isPending ? 'Approbation…' : 'Approuver → paiement Wave'}
+                  {({ isPending }) => (
+                    <>
+                      {isPending ? (
+                        <Spinner color="current" size="sm" />
+                      ) : (
+                        <CheckCircle2 aria-hidden="true" className="size-4" />
+                      )}
+                      {isPending ? 'Approbation…' : 'Approuver → paiement Wave'}
+                    </>
+                  )}
                 </Button>
               )}
             </div>
-          </div>
+          </Card.Footer>
         </>
       )}
-    </section>
+    </Card>
   );
 }

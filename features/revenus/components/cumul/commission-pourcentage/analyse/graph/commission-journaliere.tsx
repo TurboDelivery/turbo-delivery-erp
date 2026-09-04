@@ -132,7 +132,7 @@ export function CommissionJournaliereChart({ commission = [] }: CommissionJourna
                         />
                     </AreaChart>
                 </ChartContainer>
-                <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+                <div className="flex justify-between items-center mt-2 text-xs text-muted">
                     <span>Commission journalière (FCFA)</span>
                     <span>Jour</span>
                 </div>

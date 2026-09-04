@@ -136,9 +136,9 @@ export default function PlanningConges() {
 
   if (employeesLoading || congesLoading) {
     return (
-      <div className="p-6 bg-gray-50">
+      <div className="p-6 bg-surface-secondary">
         <div className="text-center py-8">
-          <div className="text-gray-500">Chargement du planning...</div>
+          <div className="text-muted">Chargement du planning...</div>
         </div>
       </div>
     );
@@ -148,8 +148,8 @@ export default function PlanningConges() {
   // soit exactement l'image d'un mois sans aucun conge.
   if ((congesError || employeesError) && conges.length === 0) {
     return (
-      <div className="p-6 bg-gray-50">
-        <div className="bg-white rounded-xl shadow-sm p-6">
+      <div className="p-6 bg-surface-secondary">
+        <div className="bg-surface rounded-xl shadow-sm p-6">
           <EtatErreur
             quoi="le planning des congés"
             onReessayer={() => {
@@ -164,21 +164,21 @@ export default function PlanningConges() {
   }
 
   return (
-    <div className="p-6 bg-gray-50">
-      <div className="bg-white rounded-xl shadow-sm p-6">
+    <div className="p-6 bg-surface-secondary">
+      <div className="bg-surface rounded-xl shadow-sm p-6">
         {/* Titre et contrôles */}
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold">Planning des Congés</h2>
           <div className="flex items-center gap-4">
             {/* Navigation entre les mois */}
             <div className="flex items-center gap-2">
-              <button onClick={previousMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Mois précédent">
+              <button onClick={previousMonth} className="p-2 rounded-lg hover:bg-surface-secondary transition-colors" title="Mois précédent">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <span className="text-sm font-medium text-gray-600 min-w-[150px] text-center">{currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
-              <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-gray-100 transition-colors" title="Mois suivant">
+              <span className="text-sm font-medium text-muted min-w-[150px] text-center">{currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
+              <button onClick={nextMonth} className="p-2 rounded-lg hover:bg-surface-secondary transition-colors" title="Mois suivant">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
@@ -188,8 +188,8 @@ export default function PlanningConges() {
         </div>
 
         {/* Header jours */}
-        <div className="flex text-xs text-gray-400 mb-2 overflow-x-auto scrollbar-hide">
-          <div className="w-[200px] font-medium text-gray-500 shrink-0">Employé</div>
+        <div className="flex text-xs text-muted mb-2 overflow-x-auto scrollbar-hide">
+          <div className="w-[200px] font-medium text-muted shrink-0">Employé</div>
           <div className="flex flex-1">
             {days.map((day) => {
               const isToday = new Date().getDate() === day && new Date().getMonth() === currentMonth.getMonth() && new Date().getFullYear() === currentMonth.getFullYear();
@@ -207,12 +207,12 @@ export default function PlanningConges() {
         {(Object.entries(employeesByDepartment) as [string, IEmployee[]][]).map(([department, deptEmployees]) => (
           <div key={department}>
             {/* Section département */}
-            <div className="text-xs text-gray-400 font-semibold mb-1 mt-4">{department.toUpperCase()}</div>
+            <div className="text-xs text-muted font-semibold mb-1 mt-4">{department.toUpperCase()}</div>
 
             {/* Lignes des employés */}
             {deptEmployees.map((employee: IEmployee) => (
               <div key={employee.id} className="flex items-center mb-2 overflow-x-auto scrollbar-hide">
-                <div className="w-[200px] text-sm text-gray-600 truncate shrink-0" title={employee.name}>
+                <div className="w-[200px] text-sm text-muted truncate shrink-0" title={employee.name}>
                   {employee.name}
                 </div>
                 <div className="flex flex-1">
@@ -228,7 +228,7 @@ export default function PlanningConges() {
         ))}
 
         {/* Légende */}
-        <div className="flex gap-6 mt-6 text-xs text-gray-500">
+        <div className="flex gap-6 mt-6 text-xs text-muted">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 bg-red-400 rounded-full"></span>
             Congé annuel
@@ -248,26 +248,26 @@ export default function PlanningConges() {
         </div>
 
         {/* Statistiques */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        <div className="mt-6 p-4 bg-surface-secondary rounded-lg">
           <div className="grid grid-cols-4 gap-4 text-center">
             <div>
               {/* Affichait `congesData.content.length`, soit un nombre de CONGES
                   sous le libelle « Total employes » : deux erreurs a la fois, la
                   mauvaise grandeur et le plafond de la page. */}
-              <div className="text-2xl font-bold text-gray-800">{employees.length}</div>
-              <div className="text-xs text-gray-500">Total employés</div>
+              <div className="text-2xl font-bold text-foreground">{employees.length}</div>
+              <div className="text-xs text-muted">Total employés</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-red-600">
                 {conges.filter((c: IConge) => c.type?.toLowerCase().includes('annuel') && ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')).length}
               </div>
-              <div className="text-xs text-gray-500">Congés annuels</div>
+              <div className="text-xs text-muted">Congés annuels</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-orange-600">
                 {conges.filter((c: IConge) => c.type?.toLowerCase().includes('maladie') && ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')).length}
               </div>
-              <div className="text-xs text-gray-500">Congés maladie</div>
+              <div className="text-xs text-muted">Congés maladie</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-blue-600">
@@ -278,13 +278,13 @@ export default function PlanningConges() {
                   ).length
                 }
               </div>
-              <div className="text-xs text-gray-500">Congés maternité</div>
+              <div className="text-xs text-muted">Congés maternité</div>
             </div>
             <div>
               <div className="text-2xl font-bold text-yellow-600">
                 {conges.filter((c: IConge) => c.type?.toLowerCase().includes('sans_solde') && ((c.statut as string) === 'APPROUVEE' || (c.statut as string) === 'EN_COURS')).length}
               </div>
-              <div className="text-xs text-gray-500">Congés sans solde</div>
+              <div className="text-xs text-muted">Congés sans solde</div>
             </div>
           </div>
         </div>

@@ -10,9 +10,9 @@ interface Props {
 
 export default function ApprobationFinaleActionBar({ isApprouvant, isRejetant, onRejeter, onApprouver }: Props) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 rounded-xl border border-gray-200 bg-white px-5 py-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 rounded-xl border border-separator bg-surface px-5 py-4">
       <Lock className="h-4 w-4 text-green-500 shrink-0 hidden sm:block" />
-      <p className="text-sm text-gray-500 flex-1">
+      <p className="text-sm text-muted flex-1">
         Confirmation à double validation requise — déclenche immédiatement les virements Wave.
       </p>
       <div className="flex flex-wrap gap-3 shrink-0">

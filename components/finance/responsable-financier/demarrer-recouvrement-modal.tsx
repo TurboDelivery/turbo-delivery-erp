@@ -45,41 +45,41 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0 gap-0">
         {/* Header */}
-        <SheetHeader className="px-6 py-5 border-b border-gray-100">
-          <SheetTitle className="text-base font-semibold text-gray-900">
+        <SheetHeader className="px-6 py-5 border-b border-separator">
+          <SheetTitle className="text-base font-semibold text-foreground">
             Démarrer le recouvrement
           </SheetTitle>
         </SheetHeader>
 
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted">
             Assigner un agent recouvrement pour cette facture. L&apos;agent sera responsable de la
             récupération du paiement auprès du partenaire.
           </p>
 
           {/* Détails de la facture */}
           {facture && (
-            <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-3">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <div className="rounded-xl border border-separator bg-surface-secondary p-4 space-y-3">
+              <p className="text-xs font-semibold text-muted uppercase tracking-wide">
                 Détails de la facture
               </p>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <p className="text-xs text-gray-400 mb-0.5">N° Facture</p>
-                  <p className="font-medium text-gray-800">{facture.numero}</p>
+                  <p className="text-xs text-muted mb-0.5">N° Facture</p>
+                  <p className="font-medium text-foreground">{facture.numero}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Partenaire</p>
-                  <p className="font-medium text-gray-800">{facture.partenaire}</p>
+                  <p className="text-xs text-muted mb-0.5">Partenaire</p>
+                  <p className="font-medium text-foreground">{facture.partenaire}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Montant</p>
+                  <p className="text-xs text-muted mb-0.5">Montant</p>
                   <p className="font-semibold text-red-500">{formatMontant(facture.montant)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Date d&apos;émission</p>
-                  <p className="font-medium text-gray-800">{facture.emission}</p>
+                  <p className="text-xs text-muted mb-0.5">Date d&apos;émission</p>
+                  <p className="font-medium text-foreground">{facture.emission}</p>
                 </div>
               </div>
             </div>
@@ -87,7 +87,7 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
 
           {/* Sélection agent */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Sélectionner un agent recouvrement <span className="text-red-500">*</span>
             </label>
             <div className="space-y-2">
@@ -106,15 +106,15 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-colors ${
                     selectedAgent?.id === agent.id
                       ? 'border-red-400 bg-red-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      : 'border-separator bg-surface hover:border-gray-300'
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center shrink-0 text-xs font-bold text-gray-600">
+                  <div className="w-8 h-8 rounded-full bg-surface-tertiary flex items-center justify-center shrink-0 text-xs font-bold text-muted">
                     {agent.nom.charAt(0)}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-800">{agent.nom}</p>
-                    <p className="text-xs text-gray-400">{agent.role}</p>
+                    <p className="text-sm font-medium text-foreground">{agent.nom}</p>
+                    <p className="text-xs text-muted">{agent.role}</p>
                   </div>
                   {selectedAgent?.id === agent.id && (
                     <div className="ml-auto w-4 h-4 rounded-full bg-red-500 flex items-center justify-center shrink-0">
@@ -136,7 +136,7 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-100">
+        <div className="px-6 py-4 border-t border-separator">
           <Button
             onClick={handleConfirm}
             disabled={!selectedAgent}

@@ -86,13 +86,13 @@ export function ConsignerAppelModal({ restaurantId, restaurantNom, isOpen, onOpe
               >
                 <Radio value="oui">
                   <span className="flex items-center gap-1.5">
-                    <PhoneCall className="h-4 w-4 text-[#1AA05A]" />
+                    <PhoneCall className="h-4 w-4 text-success-soft-foreground" />
                     Abouti
                   </span>
                 </Radio>
                 <Radio value="non">
                   <span className="flex items-center gap-1.5">
-                    <PhoneMissed className="h-4 w-4 text-[#E11D48]" />
+                    <PhoneMissed className="h-4 w-4 text-danger-soft-foreground" />
                     Manqué
                   </span>
                 </Radio>

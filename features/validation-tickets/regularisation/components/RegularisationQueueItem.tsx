@@ -15,8 +15,8 @@ export default function RegularisationQueueItem({ ticket, isSelected, onSelect }
     <button
       type="button"
       onClick={() => onSelect(ticket.commandeId)}
-      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 ${
-        isSelected ? 'border-l-4 border-indigo-500 bg-gray-50' : 'border-l-4 border-transparent'
+      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-secondary ${
+        isSelected ? 'border-l-4 border-indigo-500 bg-surface-secondary' : 'border-l-4 border-transparent'
       }`}
     >
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100">
@@ -24,14 +24,14 @@ export default function RegularisationQueueItem({ ticket, isSelected, onSelect }
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-gray-900">{ticket.reference}</p>
-        <p className="text-xs text-gray-500 truncate">
+        <p className="text-sm font-bold text-foreground">{ticket.reference}</p>
+        <p className="text-xs text-muted truncate">
           {ticket.livreur} · {ticket.restaurant}
         </p>
       </div>
 
       <div className="flex flex-col items-end shrink-0">
-        <span className="text-sm font-semibold text-gray-800">{formatMontant(ticket.coutCommande)}</span>
+        <span className="text-sm font-semibold text-foreground">{formatMontant(ticket.coutCommande)}</span>
         <span className="text-xs font-medium text-orange-500">{ticket.heure}</span>
       </div>
     </button>

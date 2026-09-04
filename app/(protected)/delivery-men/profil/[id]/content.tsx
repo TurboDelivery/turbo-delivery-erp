@@ -144,7 +144,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
     };    
 
     return (
-        <Card className="py-6 px-4 lg:px-20 bg-gray-50">
+        <Card className="py-6 px-4 lg:px-20 bg-surface-secondary">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
                     <RetourButton />
@@ -179,13 +179,13 @@ export default function Content({ user }: { user: LivreurDetail }) {
                 l'agent ne l'a pas ferme, le temps de le dicter au livreur. */}
             {cleEmise && (
                 <Card className="mb-4 border-2 border-primary bg-primary/5 p-4">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted">
                         Cle d&apos;activation a dicter au livreur. Elle ne sera plus affichee.
                     </p>
                     <p className="my-2 text-3xl font-bold tracking-[0.3em] text-primary">
                         {cleEmise.code}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted">
                         Valable jusqu&apos;au{" "}
                         {new Date(cleEmise.expireLe).toLocaleString("fr-FR")}. Le livreur la
                         saisit dans l&apos;application, sur l&apos;ecran de connexion.
@@ -213,7 +213,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
                             style={{ objectFit: 'cover' }}
                         />
                     </Card>
-                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-gray-200 rounded cursor-pointer hover:bg-gray-300">
+                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-surface-tertiary rounded cursor-pointer hover:bg-gray-300">
                         <Upload size={16} /> Changer Recto CNI
                         <input
                             type="file"
@@ -234,7 +234,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
                             style={{ objectFit: 'cover' }}
                         />
                     </Card>
-                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-gray-200 rounded cursor-pointer hover:bg-gray-300">
+                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-surface-tertiary rounded cursor-pointer hover:bg-gray-300">
                         <Upload size={16} /> Changer Photo
                         <input
                             type="file"
@@ -255,7 +255,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
                             style={{ objectFit: 'cover' }}
                         />
                     </Card>
-                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-gray-200 rounded cursor-pointer hover:bg-gray-300">
+                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-surface-tertiary rounded cursor-pointer hover:bg-gray-300">
                         <Upload size={16} /> Changer Verso CNI
                         <input
                             type="file"
@@ -278,7 +278,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
                     <Input label="Email" type="email" value={formData.email} onChange={e => handleChange("email", e.target.value)} />
 
                     <label className="flex flex-col mb-4">
-                        <span className="mb-1 font-medium text-gray-700">Type</span>
+                        <span className="mb-1 font-medium text-foreground">Type</span>
                         <select
                             value={formData.type}
                             onChange={e => handleChange("type", e.target.value)}

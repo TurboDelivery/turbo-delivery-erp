@@ -15,7 +15,7 @@ export function EncoursDeductionsTable({
 
   return (
     <div className="mt-6 max-w-2xl">
-      <h3 className="mb-2 text-sm font-semibold text-gray-700">Récapitulatif des déductions &amp; avances</h3>
+      <h3 className="mb-2 text-sm font-semibold text-foreground">Récapitulatif des déductions &amp; avances</h3>
       <Table aria-label="Déductions et avances" isStriped removeWrapper>
         <TableHeader>
           <TableColumn>PARTENAIRE</TableColumn>
@@ -31,7 +31,7 @@ export function EncoursDeductionsTable({
                 <TableCell className="whitespace-nowrap text-right">{formatFcfa(d.montant)}</TableCell>
               </TableRow>
             )),
-            <TableRow key="d-total" className="bg-gray-100 font-bold">
+            <TableRow key="d-total" className="bg-surface-secondary font-bold">
               <TableCell className="whitespace-nowrap">TOTAL</TableCell>
               <TableCell>{''}</TableCell>
               <TableCell className="whitespace-nowrap text-right">{formatFcfa(total)}</TableCell>

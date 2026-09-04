@@ -136,11 +136,11 @@ const UsersAdd = () => {
                                             setOpen(false);
                                             router.refresh();
                                         }}
-                                        className="absolute top-4 text-gray-400 outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
+                                        className="absolute top-4 text-muted outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
                                     >
                                         <IconX />
                                     </button>
-                                    <div className="bg-[#fbfbfb] py-3 text-lg font-medium ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5 dark:bg-[#121c2c] text-primary">
+                                    <div className="bg-surface-secondary py-3 text-lg font-medium ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5 text-primary">
                                         {state.status === 'success' && state.data?.password ? "Les accès de l'utilisateur créé" : 'Ajouter un utilisateur'}
                                     </div>
                                     {state.status === 'success' ? (

@@ -26,12 +26,12 @@ export function PerformanceHeader({
   onExportPdf,
 }: PerformanceHeaderProps) {
   return (
-    <div className="mb-6 bg-white rounded-lg shadow-sm">
+    <div className="mb-6 bg-surface rounded-lg shadow-sm">
       <div className="p-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-primary">Rapport de Performance</h1>
-            <p className="text-sm text-gray-500 mt-1">Restaurant {selectedRestaurant || 'Tous'}</p>
+            <p className="text-sm text-muted mt-1">Restaurant {selectedRestaurant || 'Tous'}</p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -39,7 +39,7 @@ export function PerformanceHeader({
             </div>
               <RestaurantSelect value={restaurantId} onChange={onRestaurantChange} />
 
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 rounded-lg">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-secondary rounded-lg">
               <DateFilterInput
                 filters={{ debut, fin }}
                 handleDateChange={onDateChange}

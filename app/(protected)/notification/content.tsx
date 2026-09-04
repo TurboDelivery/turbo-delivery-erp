@@ -121,12 +121,12 @@ export function NotificationContent() {
       </div>
 
       {/* Filtres */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs mb-4">
+      <div className="bg-surface rounded-xl border border-separator p-4 shadow-xs mb-4">
         <div className="flex flex-wrap items-end gap-3">
           <Input
             className="flex-1 min-w-[200px]"
             placeholder="Rechercher dans le titre ou le message..."
-            startContent={<Search className="text-gray-400 w-4 h-4 shrink-0" />}
+            startContent={<Search className="text-muted w-4 h-4 shrink-0" />}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -201,7 +201,7 @@ export function NotificationContent() {
                           {notification.titre}
                         </h6>
                         {notification.message && (
-                          <p className={`text-sm text-gray-600 ${!notification.lu && 'font-medium'}`}>
+                          <p className={`text-sm text-muted ${!notification.lu && 'font-medium'}`}>
                             {notification.message}
                           </p>
                         )}
@@ -224,7 +224,7 @@ export function NotificationContent() {
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-2 shrink-0">
-                        <span className="text-xs text-gray-500">{notification.tempsPasse}</span>
+                        <span className="text-xs text-muted">{notification.tempsPasse}</span>
                         {!notification.lu && (
                           <Button
                             size="sm"
@@ -257,7 +257,7 @@ export function NotificationContent() {
             </div>
           )}
 
-          <p className="text-xs text-gray-400 text-center mt-3">
+          <p className="text-xs text-muted text-center mt-3">
             {filtered.length} notification{filtered.length > 1 ? 's' : ''}
             {filtered.length !== data.length && ` (filtrées sur ${data.length})`}
           </p>

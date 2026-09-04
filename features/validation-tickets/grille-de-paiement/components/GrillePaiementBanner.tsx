@@ -18,7 +18,7 @@ interface Props {
 export default function GrillePaiementBanner({ grille }: Props) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 rounded-xl px-5 sm:px-6 py-4 text-white bg-blue-600">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface/20">
         <Lock className="h-5 w-5 text-white" />
       </div>
       <div className="flex-1">

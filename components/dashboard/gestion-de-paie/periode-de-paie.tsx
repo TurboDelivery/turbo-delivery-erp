@@ -20,18 +20,18 @@ export const PeriodeDePaie = ({
     const [startDate, endDate] = (periode ?? "").split(" - ");
 
     return (
-        <div className=" mb-5 bg-white rounded-lg">
-            <div className="lg:flex md:flex  xl:flex items-center  mb-4 gap-4 flex-wrap">
-                <div className="text-gray-500">Période</div>
+        <div className=" mb-5 bg-surface rounded-lg">
+            <div className="lg:flex md:flex xl:flex items-center  mb-4 gap-4 flex-wrap">
+                <div className="text-muted">Période</div>
                 <Dropdown>
                     <DropdownTrigger>
                         <Button
                             variant="bordered"
-                            className="min-w-[200px] flex justify-between items-center px-4 py-2 rounded-full border-gray-300"
+                            className="min-w-[200px] flex justify-between items-center px-4 py-2 rounded-full border-separator"
                         >
-                            <ChevronLeft className="text-gray-500 cursor-pointer" onClick={handlePrevious} />
+                            <ChevronLeft className="text-muted cursor-pointer" onClick={handlePrevious} />
                             {periodes && periodes[selectedPeriodIndex]}
-                            <ChevronRight className="text-gray-500 cursor-pointer" onClick={handleNext} />
+                            <ChevronRight className="text-muted cursor-pointer" onClick={handleNext} />
                         </Button>
                     </DropdownTrigger>
                     <DropdownMenu
@@ -46,7 +46,7 @@ export const PeriodeDePaie = ({
                 </Dropdown>
             </div>
             <Card className="mt-5 p-4">
-                <div className="mb-4 text-sm text-gray-500 flex justify-between">
+                <div className="mb-4 text-sm text-muted flex justify-between">
                     <span>Début du mois &nbsp;:&nbsp;&nbsp; {startDate}</span>
                     <span>Fin du mois &nbsp;:&nbsp;&nbsp; {endDate}</span>
                 </div>
@@ -55,13 +55,13 @@ export const PeriodeDePaie = ({
                         {MoisEnCours && MoisEnCours.map((item: string) => {
                             return (
                                 <div key={item} className="min-w-8 h-auto lg:w-8 xl:w-8 md:w-8 lg:h-8 xl:h-8 md:h-8 flex items-center justify-center text-white text-sm rounded-lg">
-                                    <span className={`${joursDeTravailsValides(Number(item)) ? "bg-green-500 text-white" : "bg-gray-200 text-gray-400 "}p-1 pl-2 pr-2 font-bold rounded-md `}>{item}</span>
+                                    <span className={`${joursDeTravailsValides(Number(item)) ? "bg-green-500 text-white" : "bg-surface-tertiary text-muted "}p-1 pl-2 pr-2 font-bold rounded-md `}>{item}</span>
                                 </div>
                             )
                         })}
                     </div>
                 </div>
-                <div className="mt-4 text-sm text-gray-400 flex justify-between">
+                <div className="mt-4 text-sm text-muted flex justify-between">
                     <span>Paie en cours</span>
                     <span>Prochaine paie: Mercredi</span>
                 </div>

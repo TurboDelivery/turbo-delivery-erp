@@ -6,8 +6,8 @@ import { FileText } from 'lucide-react';
 function DocumentUpload({ label, file, onChange }: { label: string; file: File | null; onChange: (f: File | null) => void }) {
   return (
     <div>
-      <p className="text-sm font-medium text-gray-700 mb-2">{label}</p>
-      <label className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm cursor-pointer w-full">
+      <p className="text-sm font-medium text-foreground mb-2">{label}</p>
+      <label className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-separator rounded-lg text-muted hover:border-primary hover:text-primary transition-colors text-sm cursor-pointer w-full">
         <FileText className="w-4 h-4 shrink-0" />
         <span className="truncate">{file ? file.name : 'Importer (PDF, JPG, PNG)'}</span>
         <input
@@ -42,10 +42,10 @@ export function DocumentsPartenaireSection({
   return (
     <section>
       <div className="flex items-center gap-2 mb-1">
-        <FileText className="w-4 h-4 text-gray-500" />
-        <p className="text-sm font-semibold text-gray-700">Documents partenariat</p>
+        <FileText className="w-4 h-4 text-muted" />
+        <p className="text-sm font-semibold text-foreground">Documents partenariat</p>
       </div>
-      <p className="text-xs text-gray-400 mb-3">Documents officiels liés au partenariat</p>
+      <p className="text-xs text-muted mb-3">Documents officiels liés au partenariat</p>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <DocumentUpload
           label="Fiche de renseignement partner"

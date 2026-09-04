@@ -165,7 +165,7 @@ export function MasseSalarialeTab() {
   };
 
   return (
-    <div className="space-y-3 rounded-xl border border-default-200 bg-white p-4">
+    <div className="space-y-3 rounded-xl border border-default-200 bg-surface p-4">
       <div className="flex flex-wrap items-end gap-2">
         <Select
           label="Mois"
@@ -257,7 +257,7 @@ export function MasseSalarialeTab() {
               <TableCell className="text-right tabular-nums">
                 {l.retenues ? (
                   <div>
-                    <div className="text-danger">−{formaterMontant(l.retenues)}</div>
+                    <div className="text-danger-soft-foreground">−{formaterMontant(l.retenues)}</div>
                     {(l.detailRetenues ?? []).length > 0 ? (
                       <div className="text-[10.5px] text-default-400">
                         {(l.detailRetenues ?? [])
@@ -305,7 +305,7 @@ export function MasseSalarialeTab() {
               La clôture fige l&apos;instantané du mois : liste nominative et montants ne seront plus recalculés,
               même si une fiche change ensuite.
             </p>
-            <p className="font-semibold text-danger">
+            <p className="font-semibold text-danger-soft-foreground">
               L&apos;opération est définitive. Toute correction ultérieure passera par une régularisation tracée sur
               un mois ouvert.
             </p>

@@ -58,7 +58,7 @@ function BulleMessage({ message }: { message: IMessagePartenaire }) {
             {formaterDate(message.creeLe)}
             <span className="mx-0.5">·</span>
             {message.accuseAt ? (
-              <span className="inline-flex items-center gap-0.5 text-[#1AA05A]" title={`Accusé le ${formaterDate(message.accuseAt)}`}>
+              <span className="inline-flex items-center gap-0.5 text-success-soft-foreground" title={`Accusé le ${formaterDate(message.accuseAt)}`}>
                 <ThumbsUp className="h-3 w-3" /> vu
               </span>
             ) : (
@@ -242,7 +242,7 @@ export function ChatPartenairesContent() {
             <h1 className="flex items-center gap-2 text-2xl font-bold text-primary">
               Messages partenaires
               {totalNonLus > 0 && (
-                <span className="inline-flex items-center rounded-full bg-[#E11D48]/10 px-2.5 py-1 text-xs font-bold text-[#B4123B]">
+                <span className="inline-flex items-center rounded-full bg-danger/10 px-2.5 py-1 text-xs font-bold text-danger-soft-foreground">
                   {totalNonLus} non lu{totalNonLus > 1 ? 's' : ''}
                 </span>
               )}
@@ -262,7 +262,7 @@ export function ChatPartenairesContent() {
         style={hauteur ? { height: hauteur } : undefined}
       >
         {/* Colonne conversations */}
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-default-200/60 bg-white dark:bg-content1">
+        <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-default-200/60 bg-surface dark:bg-content1">
           <div className="border-b border-default-100 p-3">
             <Input
               size="sm"
@@ -303,7 +303,7 @@ export function ChatPartenairesContent() {
                       {c.nom}
                     </span>
                     {c.nonLus > 0 && (
-                      <span className="inline-flex min-w-[20px] shrink-0 items-center justify-center rounded-full bg-[#E11D48] px-1.5 py-0.5 text-[11px] font-bold text-white">
+                      <span className="inline-flex min-w-[20px] shrink-0 items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-[11px] font-bold text-white">
                         {c.nonLus}
                       </span>
                     )}
@@ -315,7 +315,7 @@ export function ChatPartenairesContent() {
         </div>
 
         {/* Colonne fil */}
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-default-200/60 bg-white dark:bg-content1">
+        <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-default-200/60 bg-surface dark:bg-content1">
           {!selection ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-default-400">
               <MessageSquare className="h-8 w-8" />

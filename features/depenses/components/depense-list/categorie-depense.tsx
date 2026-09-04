@@ -59,7 +59,7 @@ export function CategorieDepenseList() {
               <div className="flex items-center gap-2">
                 {sel.size > 0 && (
                   <>
-                    <span className="text-sm text-gray-500">{sel.size} sélectionnée{sel.size > 1 ? 's' : ''}</span>
+                    <span className="text-sm text-muted">{sel.size} sélectionnée{sel.size > 1 ? 's' : ''}</span>
                     <HButton
                       size="sm"
                       color="primary"
@@ -139,10 +139,10 @@ export function CategorieDepenseList() {
           {/* Mobile — cartes tactiles (remplace le tableau < md) */}
           <div className="md:hidden space-y-3 p-4">
             {categorie_depenses.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-10">Aucune catégorie</p>
+              <p className="text-sm text-muted text-center py-10">Aucune catégorie</p>
             ) : (
               categorie_depenses.map((categorie_depense) => (
-                <div key={categorie_depense.id} className="bg-white dark:bg-transparent border border-gray-100 dark:border-gray-700 rounded-xl p-4 shadow-xs space-y-2">
+                <div key={categorie_depense.id} className="bg-surface dark:bg-transparent border border-separator rounded-xl p-4 shadow-xs space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <Checkbox
@@ -173,12 +173,12 @@ export function CategorieDepenseList() {
                     </DropdownMenu>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-gray-400">Date</span>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{formatDate(categorie_depense.createdAt)}</span>
+                    <span className="text-xs text-muted">Date</span>
+                    <span className="text-sm text-foreground">{formatDate(categorie_depense.createdAt)}</span>
                   </div>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-gray-400">Montant total</span>
-                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(categorie_depense.totalDepense)}</span>
+                    <span className="text-xs text-muted">Montant total</span>
+                    <span className="text-sm font-semibold text-foreground">{Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(categorie_depense.totalDepense)}</span>
                   </div>
                 </div>
               ))

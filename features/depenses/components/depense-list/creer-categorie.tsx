@@ -74,7 +74,7 @@ export function CreerCategorieModal() {
           <div className="grid gap-6">
             {/* Nom de la catégorie */}
             <div className="grid gap-3">
-              <Label htmlFor="nomCategorie" className="text-sm text-gray-500">
+              <Label htmlFor="nomCategorie" className="text-sm text-muted">
                 Nom
               </Label>
               <Input id="nomCategorie" {...register('nomCategorie')} placeholder="Nom de la catégorie" />
@@ -83,7 +83,7 @@ export function CreerCategorieModal() {
 
             {/* Description */}
             <div className="grid gap-3">
-              <Label htmlFor="description" className="text-sm text-gray-500">
+              <Label htmlFor="description" className="text-sm text-muted">
                 Description
               </Label>
               <Input id="description" {...register('description')} placeholder="Description" />

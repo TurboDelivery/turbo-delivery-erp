@@ -40,8 +40,8 @@ export function getMenColumns(restaurants: Restaurant[]): ColumnDef<ITurboy>[] {
         <div className="flex items-center gap-3 min-w-[200px]">
           <AvatarCell turboy={t} />
           <div className="flex flex-col">
-            <span className="font-medium text-sm text-gray-800">{t.prenoms} {t.nom}</span>
-            <span className="flex items-center gap-1 text-xs text-gray-400">
+            <span className="font-medium text-sm text-foreground">{t.prenoms} {t.nom}</span>
+            <span className="flex items-center gap-1 text-xs text-muted">
               <Mail className="w-3 h-3 shrink-0" />
               {t.email ?? '-'}
             </span>
@@ -54,7 +54,7 @@ export function getMenColumns(restaurants: Restaurant[]): ColumnDef<ITurboy>[] {
     accessorKey: 'commission',
     header: 'COMMISSION',
     cell: ({ row }) => (
-      <span className="text-sm text-gray-500">
+      <span className="text-sm text-muted">
         {row.original.commission != null ? `${row.original.commission}%` : '--'}
       </span>
     ),
@@ -81,8 +81,8 @@ export function getMenColumns(restaurants: Restaurant[]): ColumnDef<ITurboy>[] {
     accessorKey: 'habitation',
     header: 'DOMICILIÉ',
     cell: ({ row }) => (
-      <div className="flex items-center gap-1 text-sm text-gray-500">
-        <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+      <div className="flex items-center gap-1 text-sm text-muted">
+        <MapPin className="w-3.5 h-3.5 text-muted shrink-0" />
         <span>{row.original.habitation ?? '-'}</span>
       </div>
     ),
@@ -90,7 +90,7 @@ export function getMenColumns(restaurants: Restaurant[]): ColumnDef<ITurboy>[] {
   {
     id: 'proprietaire',
     header: 'PROPRIÉTAIRE',
-    cell: () => <span className="text-sm text-gray-500">Peut être utilisé partout</span>,
+    cell: () => <span className="text-sm text-muted">Peut être utilisé partout</span>,
   },
   {
     id: 'assignation',

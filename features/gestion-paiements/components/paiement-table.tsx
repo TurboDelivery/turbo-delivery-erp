@@ -51,7 +51,7 @@ export default function PaiementTable<T>({ table, isLoading, isFetching, pageCou
             <TableRow key={`skeleton-${i}`}>
               {Array.from({ length: colsCount }).map((_, j) => (
                 <TableCell key={`skeleton-cell-${j}`}>
-                  <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+                  <div className="h-4 bg-surface-tertiary rounded w-full animate-pulse" />
                 </TableCell>
               ))}
             </TableRow>
@@ -97,10 +97,10 @@ export default function PaiementTable<T>({ table, isLoading, isFetching, pageCou
       <div className={`md:hidden space-y-3 p-4 ${isFetching ? 'opacity-60' : ''}`}>
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={`m-skel-${i}`} className="h-28 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={`m-skel-${i}`} className="h-28 rounded-xl bg-surface-secondary animate-pulse" />
           ))
         ) : rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">{emptyMessage}</p>
+          <p className="text-sm text-muted text-center py-10">{emptyMessage}</p>
         ) : (
           rows.map((row) => renderMobileCard(row))
         )}

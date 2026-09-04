@@ -51,7 +51,7 @@ export function IncidentsHistorique({ onOuvrir }: { onOuvrir: (incident: IIncide
   };
 
   return (
-    <section className="rounded-2xl border border-default-200/50 bg-white dark:bg-content1">
+    <section className="rounded-2xl border border-default-200/50 bg-surface dark:bg-content1">
       <button
         type="button"
         onClick={() => setOuvert((o) => !o)}
@@ -86,7 +86,7 @@ export function IncidentsHistorique({ onOuvrir }: { onOuvrir: (incident: IIncide
                   onClick={() => changerFiltre(f.cle)}
                   className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                     actif
-                      ? 'bg-[#17181C] text-white'
+                      ? 'bg-surface-secondary text-white'
                       : 'bg-default-100 text-default-600 hover:bg-default-200'
                   }`}
                 >

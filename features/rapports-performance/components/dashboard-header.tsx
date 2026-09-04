@@ -38,7 +38,7 @@ export function DashboardHeader({ selectedYear, years, onYearChange }: Dashboard
           </Select>
         </div>
       </div>
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-muted">
         Vue chronologique de la santé financière et opérationnelle
       </p>
     </div>

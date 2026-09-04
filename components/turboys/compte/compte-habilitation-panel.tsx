@@ -60,9 +60,9 @@ function PieceRow({ driverId, cible, libelle, statut, motif }: PieceRowProps) {
   const mutation = useChangerStatutPieceMutation(driverId);
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-gray-100 p-3 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-3 rounded-lg border border-separator p-3 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-gray-700">{libelle}</span>
+        <span className="text-sm font-medium text-foreground">{libelle}</span>
         <Chip size="sm" variant="flat" color={STATUT_COLOR[statut]}>
           {STATUT_LABEL[statut]}
         </Chip>
@@ -107,7 +107,7 @@ function PieceRow({ driverId, cible, libelle, statut, motif }: PieceRowProps) {
   );
 }
 
-const sectionClass = 'bg-white rounded-xl border border-gray-100 shadow-xs p-6';
+const sectionClass = 'bg-surface rounded-xl border border-separator shadow-xs p-6';
 const titleClass = 'text-base font-semibold text-primary mb-4';
 
 export default function CompteHabilitationPanel({ driverId }: { driverId: string }) {
@@ -163,7 +163,7 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
   const coteColor: 'success' | 'warning' | 'danger' | 'default' =
     score == null ? 'default' : score >= 80 ? 'success' : score >= 50 ? 'warning' : 'danger';
   const coteBar =
-    score == null ? 'bg-gray-300' : score >= 80 ? 'bg-green-500' : score >= 50 ? 'bg-amber-500' : 'bg-red-500';
+    score == null ? 'bg-surface-tertiary' : score >= 80 ? 'bg-green-500' : score >= 50 ? 'bg-amber-500' : 'bg-red-500';
   const coteLabel = score == null ? 'Non évaluée' : score >= 80 ? 'Fiable' : score >= 50 ? 'Moyenne' : 'Faible';
 
   return (
@@ -176,15 +176,15 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
         ) : (
           <>
             <div className="flex items-center gap-3">
-              <span className="text-3xl font-bold text-gray-800">
+              <span className="text-3xl font-bold text-foreground">
                 {score ?? '—'}
-                <span className="ml-0.5 text-base font-normal text-gray-400">/100</span>
+                <span className="ml-0.5 text-base font-normal text-muted">/100</span>
               </span>
               <Chip variant="flat" color={coteColor}>
                 {coteLabel}
               </Chip>
             </div>
-            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+            <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-secondary">
               <div className={`h-full rounded-full ${coteBar}`} style={{ width: `${score ?? 0}%` }} />
             </div>
             {/* La cote elle-meme vient de la fiche : seul l historique manque ici.
@@ -197,20 +197,20 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
                 enCours={cote.isFetching}
               />
             ) : cote.data && cote.data.historique.length > 0 ? (
-              <ul className="mt-4 space-y-1.5 text-sm text-gray-600">
+              <ul className="mt-4 space-y-1.5 text-sm text-muted">
                 {cote.data.historique.slice(0, 8).map((h) => (
                   <li key={h.id} className="flex flex-wrap items-center gap-2">
-                    <span className="text-gray-400">{formatDate(h.horodatage)}</span>
+                    <span className="text-muted">{formatDate(h.horodatage)}</span>
                     <Chip size="sm" variant="flat" color={h.delta < 0 ? 'danger' : 'success'}>
                       {h.delta > 0 ? `+${h.delta}` : h.delta}
                     </Chip>
                     {h.raison && <span>{h.raison}</span>}
-                    <span className="text-gray-400">→ {h.coteApres}/100</span>
+                    <span className="text-muted">→ {h.coteApres}/100</span>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="mt-4 text-sm text-gray-400">Aucune variation enregistrée.</p>
+              <p className="mt-4 text-sm text-muted">Aucune variation enregistrée.</p>
             )}
           </>
         )}
@@ -283,13 +283,13 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
                     )}
                   </Autocomplete>
                 ))}
-              <p className="col-span-full text-xs text-gray-400">
+              <p className="col-span-full text-xs text-muted">
                 Le rattachement est indépendant du type de livreur : tout contrat
                 (y compris journalier / superviseur) peut être BIRD ou assigné.
               </p>
             </div>
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted">
                 {toutConforme
                   ? 'Les 3 pièces sont conformes — validation possible.'
                   : 'Les 3 pièces doivent être conformes avant de valider.'}
@@ -339,10 +339,10 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
             </button>
           </div>
         )}
-        <p className="mb-1 text-xs text-gray-400">
+        <p className="mb-1 text-xs text-muted">
           Appareil lié : {turboy.deviceLabel ?? turboy.deviceId ?? '— aucun'}
         </p>
-        <p className="mb-3 text-xs text-gray-400">
+        <p className="mb-3 text-xs text-muted">
           Réémettre une clé délie l’appareil actuel : le livreur pourra se
           connecter sur un nouveau téléphone en saisissant la nouvelle clé.
         </p>
@@ -359,7 +359,7 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
         ) : cles.data && cles.data.length > 0 ? (
           <div className="space-y-1.5">
             {cles.data.map((c) => (
-              <div key={c.id} className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+              <div key={c.id} className="flex flex-wrap items-center gap-3 text-sm text-muted">
                 <Chip
                   size="sm"
                   variant="flat"
@@ -376,12 +376,12 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
                   {c.statut}
                 </Chip>
                 <span className="font-mono">••••{c.codeApercu ?? '????'}</span>
-                {c.expireLe && <span className="text-gray-400">exp. {formatDate(c.expireLe)}</span>}
+                {c.expireLe && <span className="text-muted">exp. {formatDate(c.expireLe)}</span>}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-400">Aucune clé émise.</p>
+          <p className="text-sm text-muted">Aucune clé émise.</p>
         )}
       </section>
 
@@ -397,19 +397,19 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
             enCours={evenements.isFetching}
           />
         ) : evenements.data && evenements.data.length > 0 ? (
-          <ul className="space-y-1.5 text-sm text-gray-600">
+          <ul className="space-y-1.5 text-sm text-muted">
             {evenements.data.map((e) => (
               <li key={e.id} className="flex flex-wrap items-center gap-2">
-                <span className="text-gray-400">{formatDate(e.horodatage)}</span>
+                <span className="text-muted">{formatDate(e.horodatage)}</span>
                 <Chip size="sm" variant="flat">
                   {e.type}
                 </Chip>
-                {e.auteurRole && <span className="text-gray-400">par {e.auteurRole}</span>}
+                {e.auteurRole && <span className="text-muted">par {e.auteurRole}</span>}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-400">Aucun événement.</p>
+          <p className="text-sm text-muted">Aucun événement.</p>
         )}
       </section>
     </div>

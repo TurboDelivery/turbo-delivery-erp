@@ -37,7 +37,7 @@ export default function Content() {
                                         <div className="flex items-center gap-2">
                                             <div className={`w-8 h-8 flex items-center justify-center rounded-full text-white font-bold ${bgColor}`}>{initial}</div>
                                             <div className="flex">
-                                                <span className="text-gray-800 font-medium">{item.nomComplet}</span>
+                                                <span className="text-foreground font-medium">{item.nomComplet}</span>
                                                 <span className="ml-5 font-bold">{item.montant}</span>
                                             </div>
                                         </div>

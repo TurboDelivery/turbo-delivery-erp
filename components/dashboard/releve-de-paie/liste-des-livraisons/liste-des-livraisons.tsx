@@ -30,25 +30,25 @@ function LivraisonsMobileCards() {
     return (
         <div className="space-y-3 md:hidden">
             {data.length === 0 ? (
-                <p className="py-10 text-center text-sm text-gray-400">Aucune livraison</p>
+                <p className="py-10 text-center text-sm text-muted">Aucune livraison</p>
             ) : (
                 data.map((item: any, index: number) => (
                     <Link
                         key={index}
                         href={`/analystics/pay-slip/${item.id}/details`}
-                        className="block space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-xs active:bg-red-50"
+                        className="block space-y-2 rounded-xl border border-separator bg-surface p-4 shadow-xs active:bg-red-50"
                     >
                         <div className="flex items-start justify-between gap-2">
-                            <span className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                            <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
                                 <Circle className="text-red-500" size={18} /> {item.date}
                             </span>
-                            <span className="shrink-0 text-sm font-semibold text-gray-700">{item.cout}</span>
+                            <span className="shrink-0 text-sm font-semibold text-foreground">{item.cout}</span>
                         </div>
                         <div className="flex items-center justify-between gap-3">
-                            <span className="shrink-0 text-xs text-gray-400">Partenaire</span>
-                            <span className="truncate text-right text-sm text-gray-700">{item.partenaire}</span>
+                            <span className="shrink-0 text-xs text-muted">Partenaire</span>
+                            <span className="truncate text-right text-sm text-foreground">{item.partenaire}</span>
                         </div>
-                        <p className="text-xs text-gray-500">Total {item.cout}</p>
+                        <p className="text-xs text-muted">Total {item.cout}</p>
                     </Link>
                 ))
             )}
@@ -100,7 +100,7 @@ export function ListeDesLivraisons() {
                             </AccordionTrigger>
                             <AccordionContent>
                                 <div className="flex flex-col md:flex-row gap-4 p-4 items-start h-full">
-                                    <div className="w-full md:w-1/4 bg-gray-100 flex-1 rounded-lg p-4 self-stretch flex flex-col">
+                                    <div className="w-full md:w-1/4 bg-surface-secondary flex-1 rounded-lg p-4 self-stretch flex flex-col">
                                         <div className=" text-red-500">
                                             <span className="flex gap-2 items-center">
                                                 <User /> Profil
@@ -110,7 +110,7 @@ export function ListeDesLivraisons() {
                                             <div className="w-16 h-16 bg-purple-500 text-white text-center rounded-full pt-[8%]">{'KRAH Éric'.charAt(0)}</div>
                                             <h2 className="mt-2 font-semibold text-lg">KRAH Éric</h2>
                                             <div className="mt-6 text-center">
-                                                <p className="text-gray-500 text-sm">Total général</p>
+                                                <p className="text-muted text-sm">Total général</p>
                                                 <p className="text-red-500 text-2xl font-bold">117 800 F CFA</p>
                                             </div>
                                         </div>
@@ -144,7 +144,7 @@ export function ListeDesLivraisons() {
                                                                 <span className="flex items-center gap-2">
                                                                     <Circle className="text-red-500" /> <span>{item.date}</span>
                                                                 </span>
-                                                                <p className="text-xs text-gray-500">Total {item.cout}</p>
+                                                                <p className="text-xs text-muted">Total {item.cout}</p>
                                                             </Link>
                                                         </TableCell>
                                                         <TableCell className="py-2 px-4">
@@ -168,7 +168,7 @@ export function ListeDesLivraisons() {
                 ))
             ) : (
                 <div className="flex flex-col md:flex-row gap-4 p-4 items-start h-full">
-                    <div className="w-full md:w-1/4 bg-gray-100 flex-1 rounded-lg p-4 self-stretch flex flex-col">
+                    <div className="w-full md:w-1/4 bg-surface-secondary flex-1 rounded-lg p-4 self-stretch flex flex-col">
                         <div className=" text-red-500">
                             <span className="flex gap-2 items-center">
                                 <User /> Profil
@@ -178,7 +178,7 @@ export function ListeDesLivraisons() {
                             <div className="w-16 h-16 bg-purple-500 text-white text-center rounded-full pt-[8%]">{'KRAH Éric'.charAt(0)}</div>
                             <h2 className="mt-2 font-semibold text-lg">KRAH Éric</h2>
                             <div className="mt-6 text-center">
-                                <p className="text-gray-500 text-sm">Total général</p>
+                                <p className="text-muted text-sm">Total général</p>
                                 <p className="text-red-500 text-2xl font-bold">117 800 F CFA</p>
                             </div>
                         </div>
@@ -212,7 +212,7 @@ export function ListeDesLivraisons() {
                                                 <span className="flex items-center gap-2">
                                                     <Circle className="text-red-500" /> <span>{item.date}</span>
                                                 </span>
-                                                <p className="text-xs text-gray-500">Total {item.cout}</p>
+                                                <p className="text-xs text-muted">Total {item.cout}</p>
                                             </Link>
                                         </TableCell>
                                         <TableCell className="py-2 px-4">

@@ -154,7 +154,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
           enCours={isFetching}
         />
       ) : list.length === 0 ? (
-        <p className="text-sm text-gray-400 py-4">Aucune version de commission enregistrée.</p>
+        <p className="text-sm text-muted py-4">Aucune version de commission enregistrée.</p>
       ) : (
         <>
           {/* Desktop : tableau */}
@@ -187,8 +187,8 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                       )}
                     </TableCell>
                     <TableCell>{sourceChip(v.source)}</TableCell>
-                    <TableCell className="text-gray-500">{v.auteurNom ?? '—'}</TableCell>
-                    <TableCell className="max-w-[200px] truncate text-gray-500">{v.motif ?? '—'}</TableCell>
+                    <TableCell className="text-muted">{v.auteurNom ?? '—'}</TableCell>
+                    <TableCell className="max-w-[200px] truncate text-muted">{v.motif ?? '—'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -198,10 +198,10 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
           {/* Mobile : cartes */}
           <div className="md:hidden space-y-3">
             {list.map((v) => (
-              <div key={v.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+              <div key={v.id} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-xs text-gray-400">{formatType(v.type)}</p>
+                    <p className="text-xs text-muted">{formatType(v.type)}</p>
                     <p className="text-sm font-semibold text-primary">{formatValeur(v)}</p>
                   </div>
                   {v.courante ? (
@@ -211,27 +211,27 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
                   )}
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400">Période</span>
-                  <span className="text-sm text-gray-700 text-right">
+                  <span className="text-xs text-muted">Période</span>
+                  <span className="text-sm text-foreground text-right">
                     {formatDate(v.dateDebutEffet)} → {formatDate(v.dateFinEffet)}
                   </span>
                 </div>
                 {v.seuil != null && (
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-gray-400">Seuil</span>
-                    <span className="text-sm text-gray-700">{formatMontant(Number(v.seuil))}</span>
+                    <span className="text-xs text-muted">Seuil</span>
+                    <span className="text-sm text-foreground">{formatMontant(Number(v.seuil))}</span>
                   </div>
                 )}
                 {v.auteurNom && (
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-gray-400">Auteur</span>
-                    <span className="text-sm text-gray-700 text-right">{v.auteurNom}</span>
+                    <span className="text-xs text-muted">Auteur</span>
+                    <span className="text-sm text-foreground text-right">{v.auteurNom}</span>
                   </div>
                 )}
                 {v.motif && (
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-gray-400">Motif</span>
-                    <span className="text-sm text-gray-700 text-right">{v.motif}</span>
+                    <span className="text-xs text-muted">Motif</span>
+                    <span className="text-sm text-foreground text-right">{v.motif}</span>
                   </div>
                 )}
               </div>

@@ -88,14 +88,14 @@ export default function InvestissementList() {
         {/* Mobile — cartes tactiles (remplace le tableau < md) */}
         <div className="md:hidden space-y-3 p-4">
           {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />)
+            Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-surface-secondary animate-pulse" />)
           ) : (investissements || []).length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-10">Aucun investissement</p>
+            <p className="text-sm text-muted text-center py-10">Aucun investissement</p>
           ) : (
             (investissements || []).map((inv) => (
-              <div key={inv.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+              <div key={inv.id} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{inv.nomInvestisseur}</p>
+                  <p className="text-sm font-semibold text-foreground min-w-0 wrap-break-word">{inv.nomInvestisseur}</p>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="shrink-0">
@@ -116,15 +116,15 @@ export default function InvestissementList() {
                   </DropdownMenu>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400">Date</span>
-                  <span className="text-sm text-gray-700">{formatDateFR(inv.dateInvestissement)}</span>
+                  <span className="text-xs text-muted">Date</span>
+                  <span className="text-sm text-foreground">{formatDateFR(inv.dateInvestissement)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400">Montant du prêt</span>
-                  <span className="text-sm font-semibold text-gray-900">{formatCFA(inv.montant)}</span>
+                  <span className="text-xs text-muted">Montant du prêt</span>
+                  <span className="text-sm font-semibold text-foreground">{formatCFA(inv.montant)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400">Échéance</span>
+                  <span className="text-xs text-muted">Échéance</span>
                   <span className={`text-sm ${getDeadlineColor(inv.deadline)}`}>{formatDateFR(inv.deadline)}</span>
                 </div>
               </div>

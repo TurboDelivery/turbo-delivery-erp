@@ -121,7 +121,7 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
       <div className="flex items-center gap-3">
         <Input
           className="flex-1"
-          startContent={<Search className="text-gray-400 w-4 h-4 shrink-0" />}
+          startContent={<Search className="text-muted w-4 h-4 shrink-0" />}
           placeholder="Rechercher par nom, prénom, téléphone"
           value={filters.search ?? ''}
           onChange={(e) => setSearch(e.target.value)}
@@ -131,7 +131,7 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
           size="sm"
         />
         <Button isIconOnly variant="bordered" size="sm" aria-label="Filtres" className="shrink-0">
-          <SlidersHorizontal className="w-4 h-4 text-gray-400" />
+          <SlidersHorizontal className="w-4 h-4 text-muted" />
         </Button>
         <Select
           aria-label="Filtrer par type"
@@ -148,7 +148,7 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
       {/* Content area */}
       <div className="relative">
         {(isLoading || isFetching) && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 rounded-xl">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface/60 rounded-xl">
             <Spinner color="primary" />
           </div>
         )}
@@ -158,11 +158,11 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
         {isError ? (
           <EtatErreur quoi="les coursiers" onReessayer={() => refetch()} enCours={isFetching} />
         ) : viewMode === 'list' ? (
-          <div className="rounded-xl border border-gray-100 bg-white shadow-xs overflow-hidden">
+          <div className="rounded-xl border border-separator bg-surface shadow-xs overflow-hidden">
             <Table
               aria-label="Tableau des coursiers"
               removeWrapper
-              classNames={{ th: 'bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide', td: 'py-3' }}
+              classNames={{ th: 'bg-surface-secondary text-xs font-semibold text-muted uppercase tracking-wide', td: 'py-3' }}
             >
               <TableHeader>
                 {table.getFlatHeaders().map((header) => (
@@ -173,7 +173,7 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
               </TableHeader>
               <TableBody emptyContent={isLoading ? ' ' : 'Aucun coursier à afficher.'}>
                 {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className="hover:bg-gray-50 transition-colors">
+                  <TableRow key={row.id} className="hover:bg-surface-secondary transition-colors">
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -187,7 +187,7 @@ export function TurboysPanel({ restaurants = [] }: TurboysPanelProps) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {turboys.length === 0 && !isLoading && (
-              <p className="col-span-3 text-center text-sm text-gray-400 py-12">
+              <p className="col-span-3 text-center text-sm text-muted py-12">
                 Aucun coursier à afficher.
               </p>
             )}

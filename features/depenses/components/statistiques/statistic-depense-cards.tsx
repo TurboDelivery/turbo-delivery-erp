@@ -73,7 +73,7 @@ export default function StatisticDepenseCards({ filters }: StatisticDepenseCards
 
   if (isError) {
     return (
-      <div className="w-full rounded-xl border border-gray-200 bg-white">
+      <div className="w-full rounded-xl border border-separator bg-surface">
         <EtatErreur
           quoi="les statistiques de dépenses"
           onReessayer={() => {

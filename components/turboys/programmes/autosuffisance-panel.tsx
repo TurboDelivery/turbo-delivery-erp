@@ -23,7 +23,7 @@ export function AutosuffisancePanel({ annee, semaine }: { annee: number; semaine
   const max = Math.max(1, ...jours.map((j) => j.total));
 
   return (
-    <section className="mt-4 rounded-xl border border-default-200 bg-white p-4">
+    <section className="mt-4 rounded-xl border border-default-200 bg-surface p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-base font-semibold text-primary">Autosuffisance — livreurs actifs / jour</h3>
         <div className="flex items-center gap-3 text-xs text-default-500">
@@ -41,7 +41,7 @@ export function AutosuffisancePanel({ annee, semaine }: { annee: number; semaine
           <Spinner size="sm" />
         </div>
       ) : isError ? (
-        <p className="py-4 text-center text-sm text-danger">Erreur de chargement de l&apos;autosuffisance</p>
+        <p className="py-4 text-center text-sm text-danger-soft-foreground">Erreur de chargement de l&apos;autosuffisance</p>
       ) : (
         <div className="flex items-end justify-between gap-2">
           {jours.map((j) => (

@@ -14,7 +14,7 @@ export const DashboardUserDropdown = ({ profile }: { profile: User }) => {
       {/* Nom masqué sur mobile (évite le chevauchement avec l'icône notification) ;
           tronqué + taille réduite sur écran ≥ sm. Le nom reste accessible via le
           menu (avatar → Mon compte). */}
-      <span className="hidden sm:inline max-w-[160px] truncate text-sm font-semibold uppercase text-gray-700 dark:text-gray-200">
+      <span className="hidden sm:inline max-w-[160px] truncate text-sm font-semibold uppercase text-foreground">
         {profile.username ?? ''}
       </span>
       <DropdownMenu>

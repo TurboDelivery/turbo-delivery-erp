@@ -21,12 +21,12 @@ export default function UserRestaurantListe({ turboysCreneau }: { turboysCreneau
     return (
         <div className="relative mb-6 text-slate-500">
             <div className="relative mb-6">
-                <h2 className="text-lg font-semibold bg-white text-center w-full rounded-md shadow-sm py-2 mb-2">RESTAURANT(S) AYANT DES TURBOYS AVEC CRENEAU HORAIRE</h2>
+                <h2 className="text-lg font-semibold bg-surface text-center w-full rounded-md shadow-sm py-2 mb-2">RESTAURANT(S) AYANT DES TURBOYS AVEC CRENEAU HORAIRE</h2>
                 <div className="relative flex items-center flex-col gap-1 rounded-md overflow-auto">
                     {
                         turboysCreneau.map((restaurant, index) => {
                             return (
-                                <div key={index} className="w-full bg-white shadow-sm flex flex-col md:flex-row gap-4 border-2 rounded-md">
+                                <div key={index} className="w-full bg-surface shadow-sm flex flex-col md:flex-row gap-4 border-2 rounded-md">
                                     <div className="relative w-full md:w-[180px] flex flex-col items-center text-center space-y-2 p-3">
                                         {/* Logo */}
                                         <Avatar
@@ -53,10 +53,10 @@ export default function UserRestaurantListe({ turboysCreneau }: { turboysCreneau
                                                         </div>
                                                         <p className="w-[calc(100%-2rem)] md:w-2/6 text-md px-2">{child.nomComplet}</p>
                                                         <p className="w-1/2 md:w-1/5 px-2 text-sm">
-                                                            <span className="pr-1">Inscrit le :</span> <span className="text-gray-600">{formatDate(child.dateInscrit, 'DD/MM/YYYY')}</span>
+                                                            <span className="pr-1">Inscrit le :</span> <span className="text-muted">{formatDate(child.dateInscrit, 'DD/MM/YYYY')}</span>
                                                         </p>
                                                         <p className="w-1/2 md:w-1/5 px-2 text-sm">
-                                                            <span className="pr-1">Defini le: </span> <span className="text-gray-600">{child.dateDefiniEmploiTemps != null ? formatDate(child.dateDefiniEmploiTemps, 'DD/MM/YYYY') : '-' }</span>
+                                                            <span className="pr-1">Defini le: </span> <span className="text-muted">{child.dateDefiniEmploiTemps != null ? formatDate(child.dateDefiniEmploiTemps, 'DD/MM/YYYY') : '-' }</span>
                                                         </p>
                                                         <div className="relative w-full md:w-2/5 px-2 flex items-center justify-between">
                                                             {progresseBare(child)}

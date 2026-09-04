@@ -58,7 +58,7 @@ export default function Content() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-primary">Partenaires ({counts?.total ?? '…'})</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Gérez tous vos partenaires en un seul endroit</p>
+          <p className="text-sm text-muted mt-0.5">Gérez tous vos partenaires en un seul endroit</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="bordered" startContent={<Download className="w-4 h-4" />} size="sm" onPress={handleExport} isLoading={isExporting}>
@@ -110,7 +110,7 @@ export default function Content() {
         <div className="flex items-center gap-3">
           <Input
             className="flex-1"
-            startContent={<Search className="text-gray-400 w-4 h-4 shrink-0" />}
+            startContent={<Search className="text-muted w-4 h-4 shrink-0" />}
             placeholder="Rechercher par nom..."
             value={filters.search ?? ''}
             onChange={(e) => setSearch(e.target.value)}
@@ -122,7 +122,7 @@ export default function Content() {
             size="sm"
             className="shrink-0 gap-1.5"
             onPress={() => setShowAdvanced((v) => !v)}
-            startContent={<SlidersHorizontal className="w-4 h-4 text-gray-400" />}
+            startContent={<SlidersHorizontal className="w-4 h-4 text-muted" />}
             endContent={showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           >
             Filtres
@@ -130,7 +130,7 @@ export default function Content() {
         </div>
 
         {showAdvanced && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 p-4 bg-gray-50 rounded-xl border border-gray-100">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 p-4 bg-surface-secondary rounded-xl border border-separator">
             <Input
               label="Localisation"
               size="sm"
@@ -187,9 +187,9 @@ export default function Content() {
         <EtatErreur quoi="les partenaires" onReessayer={() => refetch()} enCours={isFetching} />
       )}
 
-      <div className="hidden md:block relative rounded-xl border border-gray-100 bg-white shadow-xs overflow-hidden">
+      <div className="hidden md:block relative rounded-xl border border-separator bg-surface shadow-xs overflow-hidden">
         {(isLoading || isFetching) && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface/60">
             <Spinner color="primary" />
           </div>
         )}
@@ -197,12 +197,12 @@ export default function Content() {
           aria-label="Liste des partenaires"
           removeWrapper
           classNames={{
-            th: 'bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide',
+            th: 'bg-surface-secondary text-xs font-semibold text-muted uppercase tracking-wide',
             td: 'py-3',
           }}
           bottomContent={
             pagination && pagination.pageCount > 1 ? (
-              <div className="flex justify-center py-3 border-t border-gray-100">
+              <div className="flex justify-center py-3 border-t border-separator">
                 <Pagination
                   total={pagination.pageCount}
                   page={pagination.page + 1}
@@ -233,13 +233,13 @@ export default function Content() {
                   <TableRow key={`sk-${i}`}>
                     {Array.from({ length: colsCount }).map((_, j) => (
                       <TableCell key={`sk-c-${j}`}>
-                        <div className="h-4 bg-gray-100 rounded w-full animate-pulse" />
+                        <div className="h-4 bg-surface-secondary rounded w-full animate-pulse" />
                       </TableCell>
                     ))}
                   </TableRow>
                 ))
               : table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className="hover:bg-gray-50 transition-colors">
+                  <TableRow key={row.id} className="hover:bg-surface-secondary transition-colors">
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -255,10 +255,10 @@ export default function Content() {
       <RestaurantMobileCardList>
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={`sk-card-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={`sk-card-${i}`} className="h-32 rounded-xl bg-surface-secondary animate-pulse" />
           ))
         ) : table.getRowModel().rows.length === 0 ? (
-          isError ? null : <p className="text-sm text-gray-400 text-center py-10">Aucun partenaire trouvé.</p>
+          isError ? null : <p className="text-sm text-muted text-center py-10">Aucun partenaire trouvé.</p>
         ) : (
           table.getRowModel().rows.map((row) => {
             const r = row.original;

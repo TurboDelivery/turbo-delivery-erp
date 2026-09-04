@@ -120,12 +120,12 @@ export default function CommissionPourcentageList({ commissionvariable }: Commis
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-red-500 hover:bg-red-600">
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white">Date</TableHead>
-                                    <TableHead className="font-semibold text-white bg-[#fb2c36] text-center hover:text-white">Restaurant</TableHead>
-                                    <TableHead className="font-semibold text-white bg-[#fb2c36] text-center hover:text-white">Localisation</TableHead>
-                                    <TableHead className="font-semibold text-white bg-[#fb2c36] text-center hover:text-white">Montant de la commande</TableHead>
-                                    <TableHead className="font-semibold text-white bg-[#fb2c36] text-center hover:text-white">Commission(%)</TableHead>
-                                    <TableHead className="font-semibold text-white bg-[#fb2c36] text-center hover:text-white">Actions</TableHead>
+                                    <TableHead className="font-semibold bg-accent text-white text-center hover:text-white">Date</TableHead>
+                                    <TableHead className="font-semibold text-white bg-accent text-center hover:text-white">Restaurant</TableHead>
+                                    <TableHead className="font-semibold text-white bg-accent text-center hover:text-white">Localisation</TableHead>
+                                    <TableHead className="font-semibold text-white bg-accent text-center hover:text-white">Montant de la commande</TableHead>
+                                    <TableHead className="font-semibold text-white bg-accent text-center hover:text-white">Commission(%)</TableHead>
+                                    <TableHead className="font-semibold text-white bg-accent text-center hover:text-white">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>

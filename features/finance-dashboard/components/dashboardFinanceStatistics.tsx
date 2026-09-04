@@ -124,7 +124,7 @@ export default function DashboardFinanceStatistics() {
   return (
     <div className="w-full px-4 py-6">
       {/* En-tête avec filtre */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 bg-white">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 bg-surface">
         <h2 className="text-2xl font-bold text-primary">Tableau de bord financier</h2>
         <DateFilterInput filters={dateFilters} handleDateChange={setDateRange} />
       </div>
@@ -132,7 +132,7 @@ export default function DashboardFinanceStatistics() {
       <div className="grid grid-cols-1 gap-6">
         {/* Carte CA du Mois sur toute la largeur */}
         {isErrorGlobal ? (
-          <Card className="rounded-xl border border-gray-200 p-0">
+          <Card className="rounded-xl border border-separator p-0">
             <EtatErreur
               quoi="le chiffre d'affaires"
               onReessayer={() => refetchGlobal()}
@@ -158,10 +158,10 @@ export default function DashboardFinanceStatistics() {
         {/* ── Section : indicateurs de la période ── */}
         <div className="flex items-center gap-2 pt-1">
           <CalendarRange className="size-4 text-primary" />
-          <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Indicateurs de la période</h3>
+          <h3 className="text-sm 2xl:text-base font-semibold text-foreground">Indicateurs de la période</h3>
         </div>
         {isErrorIndicateurs ? (
-          <Card className="rounded-xl border border-gray-200 p-0">
+          <Card className="rounded-xl border border-separator p-0">
             <EtatErreur
               quoi="les indicateurs de la période"
               onReessayer={reessayerIndicateurs}
@@ -225,7 +225,7 @@ export default function DashboardFinanceStatistics() {
         <Card className="mt-1 gap-3 rounded-xl border border-indigo-100 bg-indigo-50/30 p-4">
           <div className="flex items-center gap-2">
             <Layers className="size-4 text-indigo-500" />
-            <h3 className="text-sm 2xl:text-base font-semibold text-gray-700">Cumul · tout l&apos;historique</h3>
+            <h3 className="text-sm 2xl:text-base font-semibold text-foreground">Cumul · tout l&apos;historique</h3>
           </div>
           {isErrorResume ? (
             <EtatErreur

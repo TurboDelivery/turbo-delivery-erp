@@ -49,14 +49,14 @@ function DocPreview({ label, url }: { label: string; url: string }) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <p className="text-xs font-medium text-muted">{label}</p>
       <a href={url} target="_blank" rel="noreferrer" className="group relative block">
         {!isPdf && !imgError ? (
           <>
             <img
               src={url}
               alt={label}
-              className="w-full h-28 object-cover rounded-lg border border-gray-200"
+              className="w-full h-28 object-cover rounded-lg border border-separator"
               onError={() => setImgError(true)}
             />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 rounded-lg flex items-center justify-center transition-opacity">
@@ -64,7 +64,7 @@ function DocPreview({ label, url }: { label: string; url: string }) {
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-lg border-2 border-gray-200 bg-gray-50 hover:border-primary hover:bg-primary/5 transition-colors text-gray-500 hover:text-primary">
+          <div className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-lg border-2 border-separator bg-surface-secondary hover:border-primary hover:bg-primary/5 transition-colors text-muted hover:text-primary">
             {isPdf ? <FileText className="w-8 h-8" /> : <FileImage className="w-8 h-8" />}
             <span className="text-[11px] font-medium text-center px-2 truncate w-full">
               {imgError ? 'Voir le document' : label}
@@ -210,7 +210,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
       {/* Back link */}
       <Link
         href="/restaurants"
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-primary mb-4 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-muted hover:text-primary mb-4 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Retour à la liste
@@ -218,7 +218,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
 
       <h1 className="text-2xl font-bold text-primary mb-1">Fiche partenaire</h1>
       <div className="flex items-center justify-between gap-3 mb-6">
-        <p className="text-sm text-gray-500 capitalize truncate">{restaurant.nomEtablissement}</p>
+        <p className="text-sm text-muted capitalize truncate">{restaurant.nomEtablissement}</p>
         <button
           type="button"
           onClick={handleToggleStatus}
@@ -241,7 +241,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
         destroyInactiveTabPanel={false}
         classNames={{
           base: 'w-full',
-          tabList: 'w-full gap-6 rounded-none p-0 border-b border-gray-200 overflow-x-auto',
+          tabList: 'w-full gap-6 rounded-none p-0 border-b border-separator overflow-x-auto',
           tab: 'max-w-fit px-0 h-11',
           tabContent: 'text-sm font-medium',
           panel: 'px-0 pt-6',
@@ -251,7 +251,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
         <Tab key="profil" title={<TabTitle icon={<Building2 className="w-4 h-4" />}>Profil</TabTitle>}>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
             {/* ── Informations générales ── */}
-            <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+            <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
               <SectionTitle>Informations générales</SectionTitle>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Controller
@@ -294,11 +294,11 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                           }}
                         />
                         {!loadingGeo && localisationSuggestions.length > 0 && (
-                          <ul className="absolute z-50 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                          <ul className="absolute z-50 w-full bg-surface border border-separator mt-1 rounded-md shadow-lg max-h-48 overflow-y-auto">
                             {localisationSuggestions.map((s) => (
                               <li
                                 key={s.place_id}
-                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                className="px-4 py-2 hover:bg-surface-secondary cursor-pointer text-sm"
                                 onMouseDown={async () => {
                                   field.onChange(s.description);
                                   setLocalisationSuggestions([]);
@@ -360,7 +360,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
             </section>
 
             {/* ── Configuration financière ── */}
-            <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+            <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
               <SectionTitle>Configuration financière</SectionTitle>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Controller
@@ -416,7 +416,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
             </section>
 
             {/* ── Compte du partenaire ── */}
-            <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+            <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
               <SectionTitle>Compte du partenaire</SectionTitle>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input
@@ -434,7 +434,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   endContent={
-                    <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-gray-400 hover:text-gray-600">
+                    <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-muted hover:text-foreground">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   }
@@ -457,7 +457,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
         {/* ── Horaires & documents ── */}
         <Tab key="horaires" title={<TabTitle icon={<CalendarClock className="w-4 h-4" />}>Horaires &amp; documents</TabTitle>}>
           <div className="flex flex-col gap-8">
-            <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+            <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
               <SectionTitle>Horaires d&apos;ouverture</SectionTitle>
               {(() => {
                 const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
@@ -471,16 +471,16 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                         <div
                           key={jour}
                           className={`flex items-center justify-between px-4 py-2.5 rounded-lg text-sm border ${
-                            !h ? 'bg-gray-50 border-gray-100 text-gray-400'
-                              : h.closed ? 'bg-gray-50 border-gray-100 text-gray-400'
-                              : 'bg-green-50 border-green-100 text-gray-700'
+                            !h ? 'bg-surface-secondary border-separator text-muted'
+                              : h.closed ? 'bg-surface-secondary border-separator text-muted'
+                              : 'bg-green-50 border-green-100 text-foreground'
                           }`}
                         >
                           <span className="font-medium w-24">{LABELS[jour]}</span>
                           {!h ? (
-                            <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Non défini</span>
+                            <span className="text-xs font-medium text-muted bg-surface-secondary px-2 py-0.5 rounded-full">Non défini</span>
                           ) : h.closed ? (
-                            <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">Fermé</span>
+                            <span className="text-xs font-medium text-muted bg-surface-secondary px-2 py-0.5 rounded-full">Fermé</span>
                           ) : (
                             <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
                               {h.openingTime?.slice(0, 5)} – {h.closingTime?.slice(0, 5)}
@@ -494,7 +494,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
               })()}
             </section>
 
-            <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+            <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
               <SectionTitle>Documents</SectionTitle>
               {hasDocuments ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -506,7 +506,7 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-gray-400 border border-dashed border-gray-200 rounded-lg p-6 text-center">
+                <div className="text-sm text-muted border border-dashed border-separator rounded-lg p-6 text-center">
                   Aucun document fourni pour ce partenaire.
                 </div>
               )}

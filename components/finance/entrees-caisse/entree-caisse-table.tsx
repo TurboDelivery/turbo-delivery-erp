@@ -71,7 +71,7 @@ export function EntreeCaisseTable({
                 <TableRow key={`skeleton-${i}`}>
                   {Array.from({ length: colsCount }).map((_, j) => (
                     <TableCell key={`cell-${j}`}>
-                      <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
+                      <div className="h-4 bg-surface-tertiary rounded w-full animate-pulse" />
                     </TableCell>
                   ))}
                 </TableRow>
@@ -93,27 +93,27 @@ export function EntreeCaisseTable({
     <div className={`md:hidden space-y-3 ${isFetching ? 'opacity-70' : ''}`}>
       {isLoading ? (
         Array.from({ length: 5 }).map((_, i) => (
-          <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />
+          <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-surface-secondary animate-pulse" />
         ))
       ) : rows.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-10">Aucune entrée caisse trouvée</p>
+        <p className="text-sm text-muted text-center py-10">Aucune entrée caisse trouvée</p>
       ) : (
         rows.map((row) => {
           const e = row.original;
           return (
-            <div key={row.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+            <div key={row.id} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{e.libelle}</p>
-                <span className="text-sm font-semibold text-gray-900 shrink-0">{formatMontant(e.montant)}</span>
+                <p className="text-sm font-semibold text-foreground min-w-0 wrap-break-word">{e.libelle}</p>
+                <span className="text-sm font-semibold text-foreground shrink-0">{formatMontant(e.montant)}</span>
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-xs text-gray-400">Date</span>
-                <span className="text-sm text-gray-700">{format(new Date(e.dateEntree), 'dd/MM/yyyy', { locale: fr })}</span>
+                <span className="text-xs text-muted">Date</span>
+                <span className="text-sm text-foreground">{format(new Date(e.dateEntree), 'dd/MM/yyyy', { locale: fr })}</span>
               </div>
               {e.commentaire && (
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Commentaire</span>
-                  <span className="text-sm text-gray-700 text-right wrap-break-word">{e.commentaire}</span>
+                  <span className="text-xs text-muted shrink-0">Commentaire</span>
+                  <span className="text-sm text-foreground text-right wrap-break-word">{e.commentaire}</span>
                 </div>
               )}
               <div className="pt-1 flex gap-2 justify-end">

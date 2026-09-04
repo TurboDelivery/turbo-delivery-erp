@@ -71,11 +71,11 @@ export function InvestissementMonthlyChart() {
     return (
       <Card>
         <CardHeader>
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-64 animate-pulse mb-2" />
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse" />
+          <div className="h-6 bg-surface-tertiary rounded w-64 animate-pulse mb-2" />
+          <div className="h-4 bg-surface-tertiary rounded w-48 animate-pulse" />
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <div className="h-[300px] bg-surface-tertiary rounded animate-pulse" />
         </CardContent>
       </Card>
     );

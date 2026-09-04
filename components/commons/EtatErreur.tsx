@@ -62,8 +62,8 @@ export default function EtatErreur({
     if (compact) {
         return (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-danger/25 bg-danger-soft px-3 py-2.5">
-                <WifiOff aria-hidden="true" className="size-4 shrink-0 text-danger" />
-                <span className="min-w-0 flex-1 text-sm text-danger">
+                <WifiOff aria-hidden="true" className="size-4 shrink-0 text-danger-soft-foreground" />
+                <span className="min-w-0 flex-1 text-sm text-danger-soft-foreground">
                     {quoi ? `Impossible de charger ${quoi}` : 'Impossible de charger cette donnée'}
                 </span>
                 {onReessayer && (
@@ -82,7 +82,7 @@ export default function EtatErreur({
 
     return (
         <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
-            <WifiOff aria-hidden="true" className="h-10 w-10 text-danger" />
+            <WifiOff aria-hidden="true" className="h-10 w-10 text-danger-soft-foreground" />
             <div className="space-y-1">
                 <h3 className="text-base font-semibold text-foreground">
                     {quoi ? `Impossible de charger ${quoi}` : 'Impossible de charger cette donnée'}

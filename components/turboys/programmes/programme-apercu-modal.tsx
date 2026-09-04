@@ -62,7 +62,7 @@ export function ProgrammeApercuModal({ programme, annee, semaine, isOpen, onOpen
                         <li key={jr.key} className="flex items-center justify-between py-2 text-sm">
                           <span className="text-default-600">{jr.label}</span>
                           {repos ? (
-                            <span className="font-medium text-danger">Repos</span>
+                            <span className="font-medium text-danger-soft-foreground">Repos</span>
                           ) : (
                             <span className="font-medium text-default-800">
                               {hhmm(j!.debut)} – {hhmm(j!.fin)}

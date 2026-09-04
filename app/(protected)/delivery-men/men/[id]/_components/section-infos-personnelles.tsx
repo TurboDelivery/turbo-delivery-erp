@@ -13,7 +13,7 @@ interface SectionInfosPersonnellesProps {
 
 export function SectionInfosPersonnelles({ control, errors }: SectionInfosPersonnellesProps) {
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
       <SectionTitle>Informations personnelles</SectionTitle>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Controller
@@ -55,7 +55,7 @@ export function SectionInfosPersonnelles({ control, errors }: SectionInfosPerson
               isInvalid={!!errors.birthDay}
               errorMessage={errors.birthDay?.message}
               variant="bordered"
-              startContent={<span className="text-gray-400 text-sm">📅</span>}
+              startContent={<span className="text-muted text-sm">📅</span>}
             />
           )}
         />
@@ -70,7 +70,7 @@ export function SectionInfosPersonnelles({ control, errors }: SectionInfosPerson
               isInvalid={!!errors.habitation}
               errorMessage={errors.habitation?.message}
               variant="bordered"
-              startContent={<span className="text-gray-400 text-sm">🏠</span>}
+              startContent={<span className="text-muted text-sm">🏠</span>}
             />
           )}
         />
@@ -85,7 +85,7 @@ export function SectionInfosPersonnelles({ control, errors }: SectionInfosPerson
               isInvalid={!!errors.telephone}
               errorMessage={errors.telephone?.message}
               variant="bordered"
-              startContent={<span className="text-gray-400 text-sm">📞</span>}
+              startContent={<span className="text-muted text-sm">📞</span>}
             />
           )}
         />
@@ -101,7 +101,7 @@ export function SectionInfosPersonnelles({ control, errors }: SectionInfosPerson
               isInvalid={!!errors.email}
               errorMessage={errors.email?.message}
               variant="bordered"
-              startContent={<span className="text-gray-400 text-sm">✉️</span>}
+              startContent={<span className="text-muted text-sm">✉️</span>}
             />
           )}
         />
@@ -117,7 +117,7 @@ export function SectionInfosPersonnelles({ control, errors }: SectionInfosPerson
               isInvalid={!!errors.numeroPersonneAContacter}
               errorMessage={errors.numeroPersonneAContacter?.message}
               variant="bordered"
-              startContent={<span className="text-gray-400 text-sm">🚨</span>}
+              startContent={<span className="text-muted text-sm">🚨</span>}
             />
           )}
         />

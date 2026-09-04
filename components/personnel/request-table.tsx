@@ -51,7 +51,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
     switch (statut) {
       case 'En attente': 
       case 'EN_ATTENTE':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-surface-secondary text-foreground border-separator';
       case 'Approuvée': 
       case 'APPROUVEE':
         return 'bg-green-600 text-white border-green-300';
@@ -65,7 +65,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
       case 'TERMINE':
         return 'bg-green-600 text-white border-green-300';
       default: 
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-surface-secondary text-foreground border-separator';
     }
   };
 
@@ -146,7 +146,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
       case 'MATERNITÉ': 
         return 'bg-purple-600 text-white border-purple-300';
       default: 
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-surface-secondary text-foreground border-separator';
     }
   };
 
@@ -208,7 +208,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
   if (congesLoading) {
     return (
       <div className="text-center py-8">
-        <div className="text-gray-500">Chargement des demandes...</div>
+        <div className="text-muted">Chargement des demandes...</div>
       </div>
     );
   }
@@ -251,7 +251,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
                   </div>
                   <div>
                     <div className="font-medium">{request.employeeName}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-muted">
                       Demande créée le {new Date(request.createdAt || request.startDate).toLocaleDateString('fr-FR')}
                     </div>
                   </div>
@@ -297,7 +297,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
         ) : (
           <TableRow>
             <TableCell colSpan={7} className="text-center py-8">
-              <div className="text-gray-500">
+              <div className="text-muted">
                 {congesData ? 'Aucune demande de congé' : 'Chargement...'}
               </div>
             </TableCell>
@@ -350,7 +350,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
           />
         ))
       ) : (
-        <p className="text-sm text-gray-400 text-center py-10">
+        <p className="text-sm text-muted text-center py-10">
           {congesData ? 'Aucune demande de congé' : 'Chargement...'}
         </p>
       )}
@@ -374,7 +374,7 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold">Actions pour la demande</h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted">
                     {selectedRequest ? selectedRequest.employeeName : ''}
                   </p>
                 </div>
@@ -384,17 +384,17 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
               {selectedRequest && (
                 <div className="space-y-4">
                   {/* Détails de la demande */}
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="bg-surface-secondary rounded-lg p-4">
                     <h4 className="font-semibold mb-3">Détails de la demande</h4>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <span className="text-gray-600">Type :</span>
+                        <span className="text-muted">Type :</span>
                         <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors ml-2 ${getLeaveTypeColor(selectedRequest.type)}`}>
                           {getLeaveTypeLabel(selectedRequest.type)}
                         </div>
                       </div>
                       <div>
-                        <span className="text-gray-600">Statut :</span>
+                        <span className="text-muted">Statut :</span>
                         <div className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors ml-2 ${getStatusColor(selectedRequest.statut)}`}
                              title={getStatusDescription(selectedRequest.statut)}>
                           <span className="text-xs">{getStatusIcon(selectedRequest.statut)}</span>
@@ -402,17 +402,17 @@ export function RequestTable({ requests, onApproveRequest, onRejectRequest, onDe
                         </div>
                       </div>
                       <div>
-                        <span className="text-gray-600">Période :</span>
+                        <span className="text-muted">Période :</span>
                         <span className="ml-2">{selectedRequest.startDate} - {selectedRequest.endDate}</span>
                       </div>
                       <div>
-                        <span className="text-gray-600">Durée :</span>
+                        <span className="text-muted">Durée :</span>
                         <span className="ml-2">{selectedRequest.duration} jours</span>
                       </div>
                     </div>
                     {selectedRequest.reason && (
                       <div className="mt-3">
-                        <span className="text-gray-600">Motif :</span>
+                        <span className="text-muted">Motif :</span>
                         <p className="mt-1 text-sm">{selectedRequest.reason}</p>
                       </div>
                     )}

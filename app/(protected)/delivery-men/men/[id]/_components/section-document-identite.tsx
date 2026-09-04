@@ -28,7 +28,7 @@ export function SectionDocumentIdentite({
   onFicheIdentificationChange,
 }: SectionDocumentIdentiteProps) {
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
       <SectionTitle>Document d'identité</SectionTitle>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
         <Controller
@@ -68,7 +68,7 @@ export function SectionDocumentIdentite({
         />
       </div>
       <div>
-        <p className="text-sm text-gray-600 mb-2">Changer les photos de la pièce (max 2)</p>
+        <p className="text-sm text-muted mb-2">Changer les photos de la pièce (max 2)</p>
         <UploadZone
           label="Importer"
           multiple
@@ -82,10 +82,10 @@ export function SectionDocumentIdentite({
       </div>
 
       {/* V48 (2026-05) — Fiche d'identification (PDF/image) */}
-      <div className="mt-5 pt-5 border-t border-gray-100">
-        <p className="text-sm font-medium text-gray-700 mb-2">Fiche d&apos;identification</p>
+      <div className="mt-5 pt-5 border-t border-separator">
+        <p className="text-sm font-medium text-foreground mb-2">Fiche d&apos;identification</p>
         <label className="flex items-center gap-3 cursor-pointer">
-          <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
+          <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-separator rounded-lg text-muted hover:border-primary hover:text-primary transition-colors text-sm">
             <FileText className="w-4 h-4 shrink-0" />
             <span>
               {ficheIdentificationFile
@@ -108,15 +108,15 @@ export function SectionDocumentIdentite({
       </div>
 
       {/* V48 (2026-05) — Permis de conduire */}
-      <div className="mt-5 pt-5 border-t border-gray-100">
+      <div className="mt-5 pt-5 border-t border-separator">
         <Controller
           name="permisConduire"
           control={control}
           render={({ field }) => (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-700">Permis de conduire</p>
-                <p className="text-xs text-gray-400">Le livreur détient-il un permis valide ?</p>
+                <p className="text-sm font-medium text-foreground">Permis de conduire</p>
+                <p className="text-xs text-muted">Le livreur détient-il un permis valide ?</p>
               </div>
               <Switch
                 isSelected={field.value ?? false}

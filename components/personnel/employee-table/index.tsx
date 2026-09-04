@@ -67,7 +67,7 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
     <div className="space-y-2">
       {/* Carte de statistiques pour les employés */}
       <Card>
-        <CardContent className="p-0  ">
+        <CardContent className="p-0 ">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-linear-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-100 rounded-full">
@@ -166,7 +166,7 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
                       <TableRow key={`skeleton-${i}`}>
                         {employeeColumns.map((col) => (
                           <TableCell key={`skeleton-cell-${col.header || col.id}`} className="h-12">
-                            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                            <div className="h-4 bg-surface-tertiary rounded w-full animate-pulse" />
                           </TableCell>
                         ))}
                       </TableRow>
@@ -209,11 +209,11 @@ export default function EmployeeTableNew({ onEditPosition, onDeactivate, onRemov
 
         <PersonnelMobileCardList>
           {isLoading ? (
-            Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-40 rounded-xl bg-gray-100 animate-pulse" />)
+            Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-40 rounded-xl bg-surface-secondary animate-pulse" />)
           ) : enEchec ? (
             <EtatErreur quoi="les employés" onReessayer={() => refetch()} enCours={isFetching} />
           ) : table.getRowModel().rows.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-10">Aucun employé trouvé</p>
+            <p className="text-sm text-muted text-center py-10">Aucun employé trouvé</p>
           ) : (
             table.getRowModel().rows.map((row) => {
               const employee = row.original;

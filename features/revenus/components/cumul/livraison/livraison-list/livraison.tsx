@@ -229,20 +229,20 @@ export default function LivraisonList() {
                                     value={globalFilter ?? ''}
                                     onChange={(e) => setGlobalFilter(e.target.value)}
                                     placeholder="Rechercher..."
-                                    className="px-4 py-2 border border-gray-300 rounded-lg w-full max-w-sm focus:outline-hidden focus:ring-2 ring-1 ring-gray-300 focus:ring-blue-500"
+                                    className="px-4 py-2 border border-separator rounded-lg w-full max-w-sm focus:outline-hidden focus:ring-2 ring-1 ring-gray-300 focus:ring-blue-500"
                                 />
                             </div>
 
                             {/* Tableau */}
-                            <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm bg-white">
-                                <table className="min-w-full divide-y divide-gray-200">
+                            <div className="overflow-x-auto border border-separator rounded-lg shadow-sm bg-surface">
+                                <table className="min-w-full divide-y divide-separator">
                                     <thead className="bg-red-500 hover:bg-red-600">
                                         {table.getHeaderGroups().map((headerGroup) => (
                                             <tr key={headerGroup.id}>
                                                 {headerGroup.headers.map((header) => (
                                                     <th
                                                         key={header.id}
-                                                        className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-red-600 bg-[#fb2c36] hover:text-white capitalize select-none"
+                                                        className="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-red-600 bg-accent hover:text-white capitalize select-none"
                                                         onClick={header.column.getToggleSortingHandler()}
                                                     >
                                                         <div className="flex items-center justify-center gap-2">
@@ -258,13 +258,13 @@ export default function LivraisonList() {
                                             </tr>
                                         ))}
                                     </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
+                                    <tbody className="bg-surface divide-y divide-separator">
                                         {table.getRowModel().rows.map((row) => (
-                                            <tr key={row.id} className="transition-colors hover:bg-gray-50">
+                                            <tr key={row.id} className="transition-colors hover:bg-surface-secondary">
                                                 {row.getVisibleCells().map((cell) => (
                                                     <td
                                                         key={cell.id}
-                                                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
+                                                        className="px-6 py-4 whitespace-nowrap text-sm text-foreground"
                                                     >
                                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                     </td>
@@ -276,7 +276,7 @@ export default function LivraisonList() {
                             </div>
 
                             {/* Indicateur de pagination */}
-                            <div className="flex justify-between items-center text-sm text-gray-600 px-4">
+                            <div className="flex justify-between items-center text-sm text-muted px-4">
                                 <span>
                                     Page <strong>{currentPage}</strong> sur <strong>{filteredTotalPages}</strong>
                                 </span>
@@ -326,7 +326,7 @@ export default function LivraisonList() {
                     {/* Message si aucune livraison */}
                     {filteredCurrentLivraisons.length === 0 && (
                         <div className="text-center py-8">
-                            <p className="text-gray-500">Aucune livraison trouvée</p>
+                            <p className="text-muted">Aucune livraison trouvée</p>
                         </div>
                     )}
 

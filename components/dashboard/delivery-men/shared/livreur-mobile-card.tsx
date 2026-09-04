@@ -42,7 +42,7 @@ export function LivreurMobileCard({
 }) {
   return (
     <div
-      className={`bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2 ${onClick ? 'cursor-pointer active:bg-gray-50' : ''}`}
+      className={`bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2 ${onClick ? 'cursor-pointer active:bg-gray-50' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
@@ -51,8 +51,8 @@ export function LivreurMobileCard({
             <Avatar isBordered name={nom} size="sm" src={avatarUrl ?? undefined} className="shrink-0" />
           )}
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{nom}</p>
-            {sousTitre ? <div className="text-xs text-gray-500">{sousTitre}</div> : null}
+            <p className="text-sm font-semibold text-foreground truncate">{nom}</p>
+            {sousTitre ? <div className="text-xs text-muted">{sousTitre}</div> : null}
           </div>
         </div>
         {statut !== undefined && statut !== null && statut !== '' ? (
@@ -64,8 +64,8 @@ export function LivreurMobileCard({
 
       {fields?.filter((f) => f.value !== null && f.value !== undefined && f.value !== '').map((f, i) => (
         <div key={i} className="flex items-center justify-between gap-3">
-          <span className="text-xs text-gray-400 shrink-0">{f.label}</span>
-          <span className="text-sm text-gray-700 text-right truncate">{f.value}</span>
+          <span className="text-xs text-muted shrink-0">{f.label}</span>
+          <span className="text-sm text-foreground text-right truncate">{f.value}</span>
         </div>
       ))}
 

@@ -228,7 +228,7 @@ export default function ProgrammesSection() {
   };
 
   return (
-    <section className="rounded-xl border border-default-200 bg-white p-4">
+    <section className="rounded-xl border border-default-200 bg-surface p-4">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold text-primary">Programmes hebdomadaires</h2>

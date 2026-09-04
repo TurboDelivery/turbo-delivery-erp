@@ -53,13 +53,13 @@ function Step({ label, sub, active }: { label: string; sub: string; active?: boo
         className={`w-10 h-10 flex items-center justify-center rounded-full border-2 ${
           active
             ? 'bg-green-500 border-green-500 text-white'
-            : 'bg-gray-200 border-gray-300 text-gray-500'
+            : 'bg-surface-tertiary border-separator text-muted'
         }`}
       >
         {active ? <Check size={18} /> : null}
       </div>
       <p className="text-sm mt-2 font-medium">{label}</p>
-      <p className="text-xs text-gray-500">{sub}</p>
+      <p className="text-xs text-muted">{sub}</p>
     </div>
   );
 }
@@ -228,7 +228,7 @@ export default function AddDepenseVariableModal({
                 setValue('montant', Number(e.target.value), { shouldValidate: true })
               }
               variant="bordered"
-              startContent={<span className="text-gray-500 text-sm">FCFA</span>}
+              startContent={<span className="text-muted text-sm">FCFA</span>}
               isInvalid={!!errors.montant}
               errorMessage={errors.montant?.message}
             />
@@ -256,7 +256,7 @@ export default function AddDepenseVariableModal({
 
             {/* Justificatif (fichier) */}
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">
+              <p className="text-sm font-medium text-foreground mb-2">
                 Justificatif <span className="text-red-500">*</span>
               </p>
               <input
@@ -269,11 +269,11 @@ export default function AddDepenseVariableModal({
               {justificatifFile ? (
                 <div className="flex items-center gap-2 rounded-lg border border-purple-300 bg-purple-50 px-4 py-3">
                   <Paperclip size={16} className="text-purple-600 shrink-0" />
-                  <span className="text-sm text-gray-700 truncate flex-1">{justificatifFile.name}</span>
+                  <span className="text-sm text-foreground truncate flex-1">{justificatifFile.name}</span>
                   <button
                     type="button"
                     onClick={() => { setJustificatifFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-                    className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                    className="text-muted hover:text-red-500 transition-colors shrink-0"
                   >
                     <X size={16} />
                   </button>
@@ -282,7 +282,7 @@ export default function AddDepenseVariableModal({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 w-full rounded-lg border-2 border-dashed border-gray-300 px-4 py-3 text-sm text-gray-500 hover:border-purple-400 hover:text-purple-600 transition-colors"
+                  className="flex items-center gap-2 w-full rounded-lg border-2 border-dashed border-separator px-4 py-3 text-sm text-muted hover:border-purple-400 hover:text-purple-600 transition-colors"
                 >
                   <Paperclip size={16} />
                   Joindre un fichier (image ou PDF)
@@ -290,12 +290,12 @@ export default function AddDepenseVariableModal({
               )}
               {justificatifUrl && !justificatifFile && (
                 <div className="mt-2">
-                  <p className="text-xs text-gray-400 mb-1">Justificatif actuel</p>
+                  <p className="text-xs text-muted mb-1">Justificatif actuel</p>
                   {justificatifEstPdf ? (
                     <iframe
                       src={justificatifUrl}
                       title="Justificatif actuel (PDF)"
-                      className="w-full h-56 rounded-lg border border-gray-200 bg-gray-50"
+                      className="w-full h-56 rounded-lg border border-separator bg-surface-secondary"
                     />
                   ) : (
                     <a
@@ -309,11 +309,11 @@ export default function AddDepenseVariableModal({
                       <img
                         src={justificatifUrl}
                         alt="Justificatif actuel"
-                        className="max-h-56 w-auto rounded-lg border border-gray-200 object-contain hover:opacity-90 transition-opacity"
+                        className="max-h-56 w-auto rounded-lg border border-separator object-contain hover:opacity-90 transition-opacity"
                       />
                     </a>
                   )}
-                  <p className="text-[11px] text-gray-400 mt-1">
+                  <p className="text-[11px] text-muted mt-1">
                     Joindre un nouveau fichier remplacera ce justificatif.
                   </p>
                 </div>
@@ -326,17 +326,17 @@ export default function AddDepenseVariableModal({
             {/* Workflow */}
             <div className="flex items-center justify-between pt-4">
               <Step label="Comptable" sub="Saisie" active />
-              <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
+              <div className="flex-1 h-[2px] bg-surface-tertiary mx-2" />
               <Step label="DGA" sub="Visa" />
-              <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
+              <div className="flex-1 h-[2px] bg-surface-tertiary mx-2" />
               <Step label="DG" sub="Approbation" />
-              <div className="flex-1 h-[2px] bg-gray-300 mx-2" />
+              <div className="flex-1 h-[2px] bg-surface-tertiary mx-2" />
               <Step label="Paiement" sub="Décaissement" />
             </div>
 
             {/* Aperçu */}
             {isValid && hasJustificatif && (
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-surface-secondary p-4 rounded-lg">
                 <p className="font-semibold">{formValues.designation}</p>
                 <Badge color="secondary" variant="flat">
                   {categories.find((c) => c.id === formValues.categorieId)?.nomCategorie}

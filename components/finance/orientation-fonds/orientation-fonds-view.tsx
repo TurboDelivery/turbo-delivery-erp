@@ -35,21 +35,21 @@ const MOTIF_MIN = 30;
 
 function FactureCard({ facture, children }: { facture: IFactureRF; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
+    <div className="rounded-xl border border-separator bg-surface p-4 shadow-xs">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
             <Building2 className="w-4 h-4 text-indigo-500" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{facture.partenaire}</p>
-            <p className="text-xs text-gray-400">{facture.numero}</p>
+            <p className="text-sm font-semibold text-foreground truncate">{facture.partenaire}</p>
+            <p className="text-xs text-muted">{facture.numero}</p>
           </div>
         </div>
         <p className="text-sm font-bold text-red-600 whitespace-nowrap">{formatMontant(facture.montant)}</p>
       </div>
       {facture.numeroVisa ? (
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-400">
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted">
           <span className="font-semibold text-indigo-600">{facture.numeroVisa}</span>
           {facture.dateVisa && <span>visa du {formatDateFr(facture.dateVisa)}</span>}
           {facture.viseur && <span>par {facture.viseur}</span>}
@@ -136,9 +136,9 @@ export default function OrientationFondsView() {
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div>
-        <p className="text-sm text-gray-500">Comptabilité — Direction</p>
+        <p className="text-sm text-muted">Comptabilité — Direction</p>
         <h1 className="text-2xl font-bold text-primary">Orientation des fonds</h1>
-        <p className="text-sm text-gray-400 mt-0.5">
+        <p className="text-sm text-muted mt-0.5">
           La Direction décide de la destination des fonds : dépôt en banque ou conservation en caisse (fonds de roulement).
           Décider vaut visa — depuis « En attente visa DGA », le visa DGA est posé automatiquement.
         </p>
@@ -146,10 +146,10 @@ export default function OrientationFondsView() {
 
       {/* Section 1 — En attente d'orientation */}
       <section>
-        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-muted mb-3">
           En attente d&apos;orientation ({totalAOrienter})
           {orientTronque && (
-            <span className="ml-2 font-normal normal-case tracking-normal text-gray-400">
+            <span className="ml-2 font-normal normal-case tracking-normal text-muted">
               {aOrienter.length} affichées
             </span>
           )}
@@ -165,10 +165,10 @@ export default function OrientationFondsView() {
           />
         ) : chargementOrient ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-28 rounded-xl bg-gray-100 animate-pulse" />)}
+            {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-28 rounded-xl bg-surface-secondary animate-pulse" />)}
           </div>
         ) : aOrienter.length === 0 ? (
-          <p className="text-sm text-gray-400 py-8 text-center rounded-xl border border-dashed border-gray-200">Aucune opération en attente d&apos;orientation.</p>
+          <p className="text-sm text-muted py-8 text-center rounded-xl border border-dashed border-separator">Aucune opération en attente d&apos;orientation.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {aOrienter.map((f) => (
@@ -189,10 +189,10 @@ export default function OrientationFondsView() {
 
       {/* Section 2 — Conservés en caisse (ré-orientables) */}
       <section>
-        <h2 className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-muted mb-3">
           Conservés en caisse ({totalConservees})
           {conserveesTronque && (
-            <span className="ml-2 font-normal normal-case tracking-normal text-gray-400">
+            <span className="ml-2 font-normal normal-case tracking-normal text-muted">
               {conservees.length} affichées
             </span>
           )}
@@ -205,10 +205,10 @@ export default function OrientationFondsView() {
           />
         ) : loadingCaisse ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-28 rounded-xl bg-gray-100 animate-pulse" />)}
+            {Array.from({ length: 2 }).map((_, i) => <div key={i} className="h-28 rounded-xl bg-surface-secondary animate-pulse" />)}
           </div>
         ) : conservees.length === 0 ? (
-          <p className="text-sm text-gray-400 py-8 text-center rounded-xl border border-dashed border-gray-200">Aucun fonds conservé en caisse.</p>
+          <p className="text-sm text-muted py-8 text-center rounded-xl border border-dashed border-separator">Aucun fonds conservé en caisse.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {conservees.map((f) => (
@@ -237,9 +237,9 @@ export default function OrientationFondsView() {
           {(onClose) => (
             <>
               <ModalHeader className="flex-col items-start gap-0">
-                <span className="text-lg font-bold text-gray-900">Orienter les fonds</span>
+                <span className="text-lg font-bold text-foreground">Orienter les fonds</span>
                 {orientFacture && (
-                  <span className="text-sm font-normal text-gray-400">
+                  <span className="text-sm font-normal text-muted">
                     {orientFacture.numero} — {orientFacture.partenaire} · {formatMontant(orientFacture.montant)}
                   </span>
                 )}
@@ -247,13 +247,13 @@ export default function OrientationFondsView() {
               <ModalBody>
                 {/* Rappel en lecture seule (SPEC-RECOUV-002 §4.1) */}
                 {orientFacture && (
-                  <div className="rounded-lg bg-gray-50 border border-gray-100 p-3 text-xs space-y-1">
-                    <div className="flex justify-between gap-3"><span className="text-gray-400">N° facture</span><span className="font-medium text-gray-800">{orientFacture.numero}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-gray-400">Partenaire</span><span className="font-medium text-gray-800 text-right">{orientFacture.partenaire}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-gray-400">Montant recouvré</span><span className="font-semibold text-red-600">{formatMontant(orientFacture.montant)}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-gray-400">N° de visa</span><span className="font-semibold text-indigo-600">{orientFacture.numeroVisa ?? '—'}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-gray-400">Date du visa</span><span className="text-gray-800">{formatDateFr(orientFacture.dateVisa)}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-gray-400">Viseur</span><span className="text-gray-800">{orientFacture.viseur ?? '—'}</span></div>
+                  <div className="rounded-lg bg-surface-secondary border border-separator p-3 text-xs space-y-1">
+                    <div className="flex justify-between gap-3"><span className="text-muted">N° facture</span><span className="font-medium text-foreground">{orientFacture.numero}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted">Partenaire</span><span className="font-medium text-foreground text-right">{orientFacture.partenaire}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted">Montant recouvré</span><span className="font-semibold text-red-600">{formatMontant(orientFacture.montant)}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted">N° de visa</span><span className="font-semibold text-indigo-600">{orientFacture.numeroVisa ?? '—'}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted">Date du visa</span><span className="text-foreground">{formatDateFr(orientFacture.dateVisa)}</span></div>
+                    <div className="flex justify-between gap-3"><span className="text-muted">Viseur</span><span className="text-foreground">{orientFacture.viseur ?? '—'}</span></div>
                   </div>
                 )}
                 <RadioGroup value={choix} onValueChange={(v) => setChoix(v as typeof choix)}>
@@ -305,9 +305,9 @@ export default function OrientationFondsView() {
           {(onClose) => (
             <>
               <ModalHeader className="flex-col items-start gap-0">
-                <span className="text-lg font-bold text-gray-900">Ré-orienter vers la banque</span>
+                <span className="text-lg font-bold text-foreground">Ré-orienter vers la banque</span>
                 {reorientFacture && (
-                  <span className="text-sm font-normal text-gray-400">
+                  <span className="text-sm font-normal text-muted">
                     {reorientFacture.numero} — {reorientFacture.partenaire} · {formatMontant(reorientFacture.montant)}
                   </span>
                 )}

@@ -75,7 +75,7 @@ export default function TraficLivreurItem({
         }
       }}
       className={[
-        'flex w-full cursor-pointer items-start gap-3 rounded-[14px] border bg-white p-3 text-left transition-colors dark:bg-content1',
+        'flex w-full cursor-pointer items-start gap-3 rounded-[14px] border bg-surface p-3 text-left transition-colors dark:bg-content1',
         'hover:border-default-300 hover:bg-default-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40',
         isSelected ? 'border-default-900 ring-1 ring-default-900' : 'border-default-200/70',
       ].join(' ')}

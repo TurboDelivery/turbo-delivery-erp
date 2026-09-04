@@ -22,7 +22,7 @@ export function SectionPhotoProfil({
   const avatarRef = useRef<HTMLInputElement>(null);
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
       <SectionTitle>Photo de profil</SectionTitle>
       <div className="flex items-center gap-5">
         <div className="relative">
@@ -54,16 +54,16 @@ export function SectionPhotoProfil({
           />
         </div>
         <div>
-          <p className="text-sm font-medium text-gray-700">Changer la photo</p>
-          <p className="text-xs text-gray-400">JPG, PNG ou GIF (max: 2MB)</p>
+          <p className="text-sm font-medium text-foreground">Changer la photo</p>
+          <p className="text-xs text-muted">JPG, PNG ou GIF (max: 2MB)</p>
         </div>
       </div>
 
       {/* Contrat */}
-      <div className="mt-5 pt-5 border-t border-gray-100">
-        <p className="text-sm font-medium text-gray-700 mb-2">Contrat du livreur</p>
+      <div className="mt-5 pt-5 border-t border-separator">
+        <p className="text-sm font-medium text-foreground mb-2">Contrat du livreur</p>
         <label className="flex items-center gap-3 cursor-pointer">
-          <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm">
+          <div className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-separator rounded-lg text-muted hover:border-primary hover:text-primary transition-colors text-sm">
             <FileText className="w-4 h-4 shrink-0" />
             <span>{contratFile ? contratFile.name : 'Importer le contrat (PDF, JPG, PNG)'}</span>
           </div>

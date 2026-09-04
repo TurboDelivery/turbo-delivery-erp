@@ -129,7 +129,7 @@ export function ContestationsTabsContent({ restoOpts, isOptionsLoading }: Contes
         )}
 
         {filters.restaurantId && !isLoading && !isError && filteredContestations.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-muted">
             <p>Aucune contestation trouvée</p>
           </div>
         )}

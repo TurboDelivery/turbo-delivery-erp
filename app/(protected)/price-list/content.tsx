@@ -107,7 +107,7 @@ export default function Content() {
                   <TableRow key={item.id}>
                     {priceListColumns.map((col) => (
                       <TableCell key={col.uid}>
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                        <div className="h-4 bg-surface-tertiary rounded animate-pulse" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -127,7 +127,7 @@ export default function Content() {
         <div className="md:hidden mt-4 space-y-3">
           {isLoading && !!selectedKey ? (
             Array.from({ length: 6 }).map((_, i) => (
-              <div key={`sk-card-${i}`} className="h-32 rounded-xl bg-gray-100 animate-pulse" />
+              <div key={`sk-card-${i}`} className="h-32 rounded-xl bg-surface-secondary animate-pulse" />
             ))
           ) : deliveryFees.length === 0 ? (
             <EmptyDataTable title="Aucun frais de livraison" />
@@ -135,31 +135,31 @@ export default function Content() {
             deliveryFees.map((fee) => (
               <div
                 key={fee.id}
-                className={`bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2 ${(fee.actif ?? true) ? '' : 'opacity-50'}`}
+                className={`bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2 ${(fee.actif ?? true) ? '' : 'opacity-50'}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{fee.name || fee.zone}</p>
-                    {fee.name && <p className="text-xs text-gray-400 truncate">{fee.zone}</p>}
+                    <p className="text-sm font-semibold text-foreground truncate">{fee.name || fee.zone}</p>
+                    {fee.name && <p className="text-xs text-muted truncate">{fee.zone}</p>}
                   </div>
                   <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
                     {renderCell(fee, 'actions')}
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Distance</span>
-                  <span className="text-sm text-gray-700 text-right">{renderCell(fee, 'distance')}</span>
+                  <span className="text-xs text-muted shrink-0">Distance</span>
+                  <span className="text-sm text-foreground text-right">{renderCell(fee, 'distance')}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Coût de livraison</span>
-                  <span className="text-sm font-semibold text-gray-900 text-right">{renderCell(fee, 'prix')}</span>
+                  <span className="text-xs text-muted shrink-0">Coût de livraison</span>
+                  <span className="text-sm font-semibold text-foreground text-right">{renderCell(fee, 'prix')}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Commission</span>
-                  <span className="text-sm text-gray-700 text-right">{renderCell(fee, 'commission')}</span>
+                  <span className="text-xs text-muted shrink-0">Commission</span>
+                  <span className="text-sm text-foreground text-right">{renderCell(fee, 'commission')}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Active</span>
+                  <span className="text-xs text-muted shrink-0">Active</span>
                   <span className="text-right" onClick={(e) => e.stopPropagation()}>{renderCell(fee, 'actif')}</span>
                 </div>
               </div>

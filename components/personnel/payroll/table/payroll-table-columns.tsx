@@ -49,7 +49,7 @@ export const getStatusClassName = (status: string) => {
     return 'bg-red-100 text-red-700';
   }
 
-  return 'bg-gray-100 text-gray-700';
+  return 'bg-surface-secondary text-foreground';
 };
 
 export const getSalaryStatusClassName = (status: string) => {
@@ -66,7 +66,7 @@ export const createPayrollTableColumns = (onPayClick?: (payroll: IPayroll) => vo
     cell: ({ row }) => (
       <div className="flex flex-col">
         <span className="font-medium">{row.original.name || '-'}</span>
-        <span className="text-xs text-gray-500">{row.original.email || '-'}</span>
+        <span className="text-xs text-muted">{row.original.email || '-'}</span>
       </div>
     ),
   },

@@ -25,16 +25,16 @@ export function AppelsManquesPanel() {
   );
 
   return (
-    <section className="rounded-2xl border border-default-200/50 bg-white dark:bg-content1">
+    <section className="rounded-2xl border border-default-200/50 bg-surface dark:bg-content1">
       <header className="flex items-center justify-between gap-2 border-b border-default-100 px-4 py-3">
         <h3 className="flex items-center gap-2.5 text-sm font-bold text-default-700">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E11D48]/10 text-[#E11D48]">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10 text-danger-soft-foreground">
             <PhoneMissed className="h-5 w-5" />
           </span>
           Appels manqués
         </h3>
         {manques.length > 0 && (
-          <span className="rounded-full bg-[#E11D48]/10 px-2 py-0.5 text-xs font-bold text-[#B4123B]">
+          <span className="rounded-full bg-danger/10 px-2 py-0.5 text-xs font-bold text-danger-soft-foreground">
             {manques.length}
           </span>
         )}

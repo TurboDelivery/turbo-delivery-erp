@@ -35,16 +35,16 @@ export default function PreuveModal({ open, onClose, preuve, factureNumero, titr
       onClick={onClose}
     >
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden"
+        className="relative bg-surface rounded-2xl shadow-2xl w-full max-w-2xl mx-4 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-separator">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center">
               <FileText className="w-4 h-4 text-purple-600" />
             </div>
-            <h2 className="text-base font-semibold text-gray-900">
+            <h2 className="text-base font-semibold text-foreground">
               {titre ?? 'Preuve de dépôt'}{factureNumero ? ` — ${factureNumero}` : ''}
             </h2>
           </div>
@@ -52,7 +52,7 @@ export default function PreuveModal({ open, onClose, preuve, factureNumero, titr
             {preuve && (
               <button
                 onClick={handleDownload}
-                className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg px-3 py-1.5 transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-gray-800 border border-separator rounded-lg px-3 py-1.5 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
                 Télécharger
@@ -60,7 +60,7 @@ export default function PreuveModal({ open, onClose, preuve, factureNumero, titr
             )}
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="text-muted hover:text-foreground transition-colors"
               aria-label="Fermer"
             >
               <X className="w-5 h-5" />
@@ -71,7 +71,7 @@ export default function PreuveModal({ open, onClose, preuve, factureNumero, titr
         {/* Body */}
         <div className="p-6">
           {!preuve ? (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-16 text-muted">
               <FileText className="w-12 h-12 mb-3 opacity-30" />
               <p className="text-sm font-medium">Aucune preuve disponible</p>
               <p className="text-xs mt-1">La preuve n&apos;a pas encore été ajoutée pour cette facture.</p>
@@ -79,12 +79,12 @@ export default function PreuveModal({ open, onClose, preuve, factureNumero, titr
           ) : isPdf ? (
             <iframe
               src={preuve}
-              className="w-full rounded-lg border border-gray-200"
+              className="w-full rounded-lg border border-separator"
               style={{ height: '60vh' }}
               title="Preuve PDF"
             />
           ) : isImage ? (
-            <div className="flex items-center justify-center bg-gray-50 rounded-lg border border-gray-200 p-4" style={{ minHeight: '40vh' }}>
+            <div className="flex items-center justify-center bg-surface-secondary rounded-lg border border-separator p-4" style={{ minHeight: '40vh' }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={preuve}
@@ -95,12 +95,12 @@ export default function PreuveModal({ open, onClose, preuve, factureNumero, titr
           ) : isHttpUrl ? (
             <iframe
               src={preuve}
-              className="w-full rounded-lg border border-gray-200"
+              className="w-full rounded-lg border border-separator"
               style={{ height: '60vh' }}
               title="Preuve"
             />
           ) : (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-16 text-muted">
               <FileText className="w-12 h-12 mb-3 opacity-30" />
               <p className="text-sm font-medium">Format non reconnu</p>
               <p className="text-xs mt-1 font-mono break-all max-w-xs text-center">{preuve.slice(0, 80)}…</p>

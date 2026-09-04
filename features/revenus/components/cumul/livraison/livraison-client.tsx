@@ -26,7 +26,7 @@ export default function LivraisonClient() {
                 <div className="flex justify-center items-center h-64">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Chargement des livraisons...</p>
+                        <p className="text-muted">Chargement des livraisons...</p>
                     </div>
                 </div>
             </div>
@@ -42,8 +42,8 @@ export default function LivraisonClient() {
                     <div className="text-center max-w-md">
                         <div className="text-red-500 text-6xl mb-4">⚠️</div>
                         <h3 className="text-lg font-semibold text-red-600 mb-2">Erreur de chargement</h3>
-                        <p className="text-gray-600 mb-4">Impossible de charger les livraisons: {error instanceof Error ? error.message : "Erreur inconnue"}</p>
-                        <p className="text-sm text-gray-500">Vérifiez la console pour plus de détails</p>
+                        <p className="text-muted mb-4">Impossible de charger les livraisons: {error instanceof Error ? error.message : "Erreur inconnue"}</p>
+                        <p className="text-sm text-muted">Vérifiez la console pour plus de détails</p>
                     </div>
                 </div>
             </div>

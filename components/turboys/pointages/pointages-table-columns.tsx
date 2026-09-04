@@ -24,14 +24,14 @@ function heureDe(iso: string | null): string {
 
 /** Cellule d'un signalement : pastille statut + heure pointée + distance (rouge si hors-zone). */
 function SignalementCell({ s }: { s: ISignalementPointage | null }) {
-  if (!s || !s.pointeAt) return <span className="text-gray-300 text-xs">—</span>;
+  if (!s || !s.pointeAt) return <span className="text-muted text-xs">—</span>;
   const horsZone = s.distanceMetres != null && s.distanceMetres > RAYON_M;
   return (
     <div className="flex items-center gap-1.5 whitespace-nowrap text-xs">
-      <span className={`h-2 w-2 shrink-0 rounded-full ${STATUT_DOT[s.statut ?? ''] ?? 'bg-gray-300'}`} />
-      <span className="font-medium text-gray-800">{heureDe(s.pointeAt)}</span>
+      <span className={`h-2 w-2 shrink-0 rounded-full ${STATUT_DOT[s.statut ?? ''] ?? 'bg-surface-tertiary'}`} />
+      <span className="font-medium text-foreground">{heureDe(s.pointeAt)}</span>
       {s.distanceMetres != null && (
-        <span className={horsZone ? 'font-semibold text-red-600' : 'text-gray-400'}>
+        <span className={horsZone ? 'font-semibold text-red-600' : 'text-muted'}>
           {Math.round(s.distanceMetres)} m
         </span>
       )}
@@ -44,7 +44,7 @@ const STATUT_JOUR_CLS: Record<string, string> = {
   RETARD: 'bg-amber-100 text-amber-700',
   ABSENT: 'bg-red-100 text-red-700',
   JUSTIFIE: 'bg-blue-100 text-blue-700',
-  NON_INSCRIT: 'bg-gray-100 text-gray-500',
+  NON_INSCRIT: 'bg-surface-secondary text-muted',
 };
 
 /** Au moins un signalement du jour hors du rayon. */
@@ -76,7 +76,7 @@ export const pointageColumns: ColumnDef<IPointageRow>[] = [
     id: 'horsZone',
     header: 'Hors-zone',
     cell: ({ row }) => {
-      if (!jourHorsZone(row.original)) return <span className="text-xs text-gray-300">—</span>;
+      if (!jourHorsZone(row.original)) return <span className="text-xs text-muted">—</span>;
       const justifie = row.original.absenceJustifiee === true;
       return (
         <span
@@ -97,7 +97,7 @@ export const pointageColumns: ColumnDef<IPointageRow>[] = [
       return (
         <span
           className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
-            STATUT_JOUR_CLS[s] ?? 'bg-gray-100 text-gray-500'
+            STATUT_JOUR_CLS[s] ?? 'bg-surface-secondary text-muted'
           }`}
         >
           {s.toLowerCase().replace(/_/g, ' ')}

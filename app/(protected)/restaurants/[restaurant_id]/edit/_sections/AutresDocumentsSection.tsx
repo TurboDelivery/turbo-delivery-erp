@@ -29,10 +29,10 @@ export function AutresDocumentsSection({
   return (
     <section>
       <div className="flex items-center gap-2 mb-1">
-        <Settings className="w-4 h-4 text-gray-500" />
-        <p className="text-sm font-semibold text-gray-700">Autres Documents</p>
+        <Settings className="w-4 h-4 text-muted" />
+        <p className="text-sm font-semibold text-foreground">Autres Documents</p>
       </div>
-      <p className="text-xs text-gray-400 mb-3">Sélectionnez un document fourni par de l'entreprise</p>
+      <p className="text-xs text-muted mb-3">Sélectionnez un document fourni par de l'entreprise</p>
       <div className="flex items-center gap-3">
         <Select
           className="flex-1"
@@ -43,7 +43,7 @@ export function AutresDocumentsSection({
         >
           {AUTRES_DOCUMENTS_OPTIONS.map((o) => <SelectItem key={o.value}>{o.label}</SelectItem>)}
         </Select>
-        <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-500 hover:border-primary hover:text-primary cursor-pointer transition-colors shrink-0 whitespace-nowrap">
+        <label className="flex items-center gap-2 px-3 py-2 border border-separator rounded-lg text-sm text-muted hover:border-primary hover:text-primary cursor-pointer transition-colors shrink-0 whitespace-nowrap">
           ⬆ {autreDocFile ? autreDocFile.name : 'Importer fichier .pdf ou .png ou .jpg'}
           <input
             ref={autreDocRef}

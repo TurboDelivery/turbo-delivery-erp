@@ -77,7 +77,7 @@ export default function Content({ initialData, delivers }: Props) {
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-primary">Toutes les courses</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-muted mt-0.5">
             Historique des courses du canal intégration (assignées, en livraison, terminées, annulées).
           </p>
         </div>
@@ -98,7 +98,7 @@ export default function Content({ initialData, delivers }: Props) {
       {/* Recherche + filtres statut */}
       <div className="flex flex-col gap-3">
         <Input
-          startContent={<Search className="text-gray-400 w-4 h-4" />}
+          startContent={<Search className="text-muted w-4 h-4" />}
           variant="bordered"
           placeholder="Rechercher par code ou partenaire..."
           value={searchTerm}

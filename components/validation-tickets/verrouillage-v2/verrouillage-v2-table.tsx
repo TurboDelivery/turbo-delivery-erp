@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-table';
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Skeleton, Spinner } from '@heroui-v3/react';
 import EtatErreur from '@/components/commons/EtatErreur';
-import { Loader2 } from 'lucide-react';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { buildVerrouillageV2Columns, VerrouillageV2RowActions } from './verrouillage-v2-columns';
 import TicketV2MobileCard from './ticket-v2-mobile-card';
@@ -69,13 +69,13 @@ export function VerrouillageV2Table({
   });
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+    <div className="rounded-xl border border-separator bg-surface overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-separator">
         <div>
-          <p className="font-semibold text-gray-900">Récapitulatif final</p>
-          <p className="text-xs text-gray-400">À vérifier avant verrouillage définitif</p>
+          <p className="font-semibold text-foreground">Récapitulatif final</p>
+          <p className="text-xs text-muted">À vérifier avant verrouillage définitif</p>
         </div>
-        <p className="text-xs text-gray-500">{totalElements} ligne{totalElements > 1 ? 's' : ''}</p>
+        <p className="text-xs text-muted">{totalElements} ligne{totalElements > 1 ? 's' : ''}</p>
       </div>
       {/* Tableau — desktop uniquement (≥ md) */}
       <div className="hidden md:block overflow-x-auto">
@@ -88,8 +88,15 @@ export function VerrouillageV2Table({
             wrapper: 'max-h-[60vh] rounded-none shadow-none p-0',
           }}
           bottomContent={
-            <div ref={bottomRef} className="flex items-center justify-center py-3">
-              {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+            /*
+             * `text-muted` est pose sur la sentinelle, pas sur le Spinner : la couleur
+             * du composant se choisit par sa prop `color`, et `current` la fait heriter
+             * du conteneur. Une classe de couleur posee sur le Spinner lui-meme serait
+             * ecrasee par ses propres styles, et l'attente repasserait en accent vif
+             * alors que ce n'est qu'un chargement de page suivante, pas une action.
+             */
+            <div ref={bottomRef} className="flex items-center justify-center py-3 text-muted">
+              {isFetchingNextPage && <Spinner color="current" size="sm" />}
             </div>
           }
         >
@@ -109,7 +116,8 @@ export function VerrouillageV2Table({
                   <TableRow key={i}>
                     {table.getFlatHeaders().map((header) => (
                       <TableCell key={header.id}>
-                        <div className="h-4 rounded bg-gray-100 animate-pulse" />
+                        {/* La hauteur reste en classe : un Skeleton sans dimension n'occupe rien et ne se voit pas. */}
+                        <Skeleton className="h-4" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -131,10 +139,11 @@ export function VerrouillageV2Table({
       <div className="md:hidden space-y-3 p-4">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => (
-            <div key={`m-skel-${i}`} className="h-52 rounded-xl bg-gray-100 animate-pulse" />
+            /* Meme gabarit que la carte qui va prendre sa place : sans hauteur ni rayon, la liste sauterait au chargement. */
+            <Skeleton key={`m-skel-${i}`} className="h-52 rounded-xl" />
           ))
         ) : tickets.length === 0 ? (
-          <p className="py-10 text-center text-sm text-gray-400">Aucun ticket trouvé</p>
+          <p className="py-10 text-center text-sm text-muted">Aucun ticket trouvé</p>
         ) : (
           tickets.map((ticket) => (
             <TicketV2MobileCard
@@ -154,8 +163,8 @@ export function VerrouillageV2Table({
             />
           ))
         )}
-        <div ref={bottomRefMobile} className="flex items-center justify-center py-1">
-          {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+        <div ref={bottomRefMobile} className="flex items-center justify-center py-1 text-muted">
+          {isFetchingNextPage && <Spinner color="current" size="sm" />}
         </div>
       </div>
     </div>

@@ -213,9 +213,9 @@ export default function FinancialReport() {
   });
 
   return (
-    <div className="bg-gray-50 p-6">
+    <div className="bg-surface-secondary p-6">
       {/* Header */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+      <div className="bg-surface rounded-xl border border-separator p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
@@ -230,7 +230,7 @@ export default function FinancialReport() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-primary">Rapports Financiers</h1>
-              <p className="text-sm text-gray-500">Consultez et exportez vos rapports mensuels</p>
+              <p className="text-sm text-muted">Consultez et exportez vos rapports mensuels</p>
             </div>
           </div>
 
@@ -259,7 +259,7 @@ export default function FinancialReport() {
           {/* Vue d'Ensemble */}
           <Card>
             <CardBody className="p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Vue d&#39;Ensemble</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Vue d&#39;Ensemble</h2>
               {/* Sans rapport, `metrics` retombe sur une liste entierement a « 0 FCFA »
                   y compris le benefice : un rapport illisible se lisait comme un mois blanc. */}
               {isErrorRapport ? (
@@ -271,8 +271,8 @@ export default function FinancialReport() {
                     key={index}
                     className={`flex justify-between items-center py-2 px-3 rounded-lg ${metric.highlight === 'warning' ? 'bg-orange-50' : metric.highlight === 'success' ? 'bg-green-50' : ''}`}
                   >
-                    <span className={`text-sm ${metric.highlight ? 'font-medium' : 'text-gray-600'}`}>{metric.label}</span>
-                    <span className={`text-sm font-semibold ${metric.highlight === 'warning' ? 'text-orange-700' : metric.highlight === 'success' ? 'text-green-700' : 'text-gray-900'}`}>
+                    <span className={`text-sm ${metric.highlight ? 'font-medium' : 'text-muted'}`}>{metric.label}</span>
+                    <span className={`text-sm font-semibold ${metric.highlight === 'warning' ? 'text-orange-700' : metric.highlight === 'success' ? 'text-green-700' : 'text-foreground'}`}>
                       {metric.value}
                     </span>
                   </div>
@@ -285,17 +285,17 @@ export default function FinancialReport() {
           {/* Indicateurs Clés */}
           <Card>
             <CardBody className="p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Indicateurs Clés</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">Indicateurs Clés</h2>
               {isErrorRapport ? (
                 <EtatErreur quoi="les indicateurs clés" onReessayer={() => refetchRapport()} enCours={isFetchingRapport} />
               ) : (
               <div className="space-y-3">
                 {kpis.map((kpi, index) => (
-                  <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-sm text-gray-500 mb-1">{kpi.label}</p>
-                    <p className="text-xl font-bold text-gray-900">
+                  <div key={index} className="p-4 bg-surface-secondary rounded-lg border border-separator">
+                    <p className="text-sm text-muted mb-1">{kpi.label}</p>
+                    <p className="text-xl font-bold text-foreground">
                       {kpi.value}
-                      {kpi.unit && <span className="text-base font-normal text-gray-600 ml-1">{kpi.unit}</span>}
+                      {kpi.unit && <span className="text-base font-normal text-muted ml-1">{kpi.unit}</span>}
                     </p>
                   </div>
                 ))}
@@ -308,10 +308,10 @@ export default function FinancialReport() {
         {/* Répartition des Charges Fixes */}
         <Card>
           <CardBody className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
               Répartition des Charges Fixes
               {fixesTronquees && (
-                <span className="ml-2 text-sm font-normal text-gray-400">
+                <span className="ml-2 text-sm font-normal text-muted">
                   {chargesFixesData?.content?.length} charges sur {chargesFixesData?.totalElements} — répartition partielle
                 </span>
               )}
@@ -325,10 +325,10 @@ export default function FinancialReport() {
               {fixedCosts.map((cost, index) => (
                 <div key={index} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">{cost.label}</span>
+                    <span className="text-sm text-muted">{cost.label}</span>
                     <div className="flex items-center gap-4">
-                      <span className="text-sm text-gray-500">{cost.percentage}%</span>
-                      <span className="text-sm font-medium text-gray-900 w-24 text-right">{cost.amount}</span>
+                      <span className="text-sm text-muted">{cost.percentage}%</span>
+                      <span className="text-sm font-medium text-foreground w-24 text-right">{cost.amount}</span>
                     </div>
                   </div>
                   <ProgressBar value={cost.percentage} color="accent" className="h-2"><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
@@ -342,10 +342,10 @@ export default function FinancialReport() {
         {/* Dépenses Variables de la Période */}
         <Card>
           <CardBody className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 className="text-lg font-semibold text-foreground mb-4">
               Dépenses Variables de la Période
               {variablesTronquees && (
-                <span className="ml-2 text-sm font-normal text-gray-400">
+                <span className="ml-2 text-sm font-normal text-muted">
                   {chargesVariablesData?.content?.length} sur {chargesVariablesData?.totalElements} affichées
                 </span>
               )}
@@ -373,9 +373,9 @@ export default function FinancialReport() {
                 >
                   {variableExpenses.map((expense, index) => (
                     <TableRow key={index}>
-                      <TableCell className="text-sm text-gray-600">{expense.date}</TableCell>
-                      <TableCell className="text-sm text-gray-900">{expense.designation}</TableCell>
-                      <TableCell className="text-sm text-gray-900 text-right font-medium">{expense.amount}</TableCell>
+                      <TableCell className="text-sm text-muted">{expense.date}</TableCell>
+                      <TableCell className="text-sm text-foreground">{expense.designation}</TableCell>
+                      <TableCell className="text-sm text-foreground text-right font-medium">{expense.amount}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -385,17 +385,17 @@ export default function FinancialReport() {
             {/* Mobile — cartes tactiles (remplace le tableau < md) */}
             <div className="md:hidden space-y-3">
               {variableExpenses.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-10">Aucune dépense variable sur la période</p>
+                <p className="text-sm text-muted text-center py-10">Aucune dépense variable sur la période</p>
               ) : (
                 variableExpenses.map((expense, index) => (
-                  <div key={index} className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+                  <div key={index} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm font-semibold text-gray-900 min-w-0 wrap-break-word">{expense.designation}</p>
-                      <span className="text-sm font-semibold text-gray-900 shrink-0">{expense.amount}</span>
+                      <p className="text-sm font-semibold text-foreground min-w-0 wrap-break-word">{expense.designation}</p>
+                      <span className="text-sm font-semibold text-foreground shrink-0">{expense.amount}</span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs text-gray-400">Date</span>
-                      <span className="text-sm text-gray-700">{expense.date}</span>
+                      <span className="text-xs text-muted">Date</span>
+                      <span className="text-sm text-foreground">{expense.date}</span>
                     </div>
                   </div>
                 ))

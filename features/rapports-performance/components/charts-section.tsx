@@ -73,9 +73,9 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
     const zone = payload[0].payload;
 
     return (
-      <div className="rounded-md border border-gray-200 bg-white p-2 shadow-xs">
-        <p className="text-xs font-medium text-gray-900">{zone.name}</p>
-        <p className="text-xs text-gray-600">{zone.deliveries} livraisons</p>
+      <div className="rounded-md border border-separator bg-surface p-2 shadow-xs">
+        <p className="text-xs font-medium text-foreground">{zone.name}</p>
+        <p className="text-xs text-muted">{zone.deliveries} livraisons</p>
       </div>
     );
   };
@@ -130,8 +130,8 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
       <Card>
         <CardBody className="p-6">
           <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Répartition Géographique</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="text-xl font-semibold text-foreground">Répartition Géographique</h2>
+            <p className="text-sm text-muted">
               Zone Top: {geographicData[0]?.name ?? 'N/A'} ({geographicData[0]?.deliveries ?? 0} livraisons)
             </p>
           </div>
@@ -142,8 +142,8 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
       <Card>
         <CardBody className="p-6">
           <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Pics d&#39;Activité Hebdomadaire</h2>
-            {/*<p className="text-sm text-gray-500">*/}
+            <h2 className="text-xl font-semibold text-foreground">Pics d&#39;Activité Hebdomadaire</h2>
+            {/*<p className="text-sm text-muted">*/}
             {/*  Jour de Pic: <span className="font-medium">Dimanche</span> - 55% des livraisons vers Marcory*/}
             {/*</p>*/}
           </div>
@@ -151,11 +151,11 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
           <div className="flex items-center justify-center gap-6 mt-4">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-red-500 rounded"></div>
-              <span className="text-sm text-gray-600">Livraisons</span>
+              <span className="text-sm text-muted">Livraisons</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-orange-500 rounded"></div>
-              <span className="text-sm text-gray-600">Chiffre d&#39;affaires (FCFA)</span>
+              <span className="text-sm text-muted">Chiffre d&#39;affaires (FCFA)</span>
             </div>
           </div>
         </CardBody>

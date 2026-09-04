@@ -64,7 +64,7 @@ export function TraficPointagesBanner() {
         href={LIEN_ARBITRAGE}
         size="sm"
         radius="lg"
-        className="bg-[#17181C] text-white dark:bg-white dark:text-[#17181C]"
+        className="bg-surface-secondary text-white dark:text-foreground"
         endContent={<ArrowRight className="h-4 w-4" />}
       >
         Arbitrer les pointages

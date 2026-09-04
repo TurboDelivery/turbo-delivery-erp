@@ -113,31 +113,31 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
       {value === 'list' && (
         <div className="mt-5 space-y-3 md:hidden">
           {paginatedItems.length === 0 ? (
-            <p className="py-10 text-center text-sm text-gray-400">Aucun utilisateur trouvé</p>
+            <p className="py-10 text-center text-sm text-muted">Aucun utilisateur trouvé</p>
           ) : (
             paginatedItems.map((user: User) => (
-              <div key={user.id} className="space-y-2 rounded-xl border border-gray-100 bg-white p-4 shadow-xs">
+              <div key={user.id} className="space-y-2 rounded-xl border border-separator bg-surface p-4 shadow-xs">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-2">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-white">{user.nom[0]}</div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-900">{`${user.nom} ${user.prenoms}`}</p>
-                      <p className="truncate text-xs text-gray-500">{user.role.libelle}</p>
+                      <p className="truncate text-sm font-semibold text-foreground">{`${user.nom} ${user.prenoms}`}</p>
+                      <p className="truncate text-xs text-muted">{user.role.libelle}</p>
                     </div>
                   </div>
                   {user.status === 1 ? <Chip color="success">Actif</Chip> : <Chip color="warning">Inactif</Chip>}
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Email</span>
-                  <span className="truncate text-right text-sm text-gray-700">{user.email}</span>
+                  <span className="shrink-0 text-xs text-muted">Email</span>
+                  <span className="truncate text-right text-sm text-foreground">{user.email}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Nom d&apos;utilisateur</span>
-                  <span className="truncate text-right text-sm text-gray-700">{user.username}</span>
+                  <span className="shrink-0 text-xs text-muted">Nom d&apos;utilisateur</span>
+                  <span className="truncate text-right text-sm text-foreground">{user.username}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Emails de notif</span>
+                  <span className="shrink-0 text-xs text-muted">Emails de notif</span>
                   <UsersEmailPrimaryToggle user={user} />
                 </div>
 
@@ -154,13 +154,13 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
         <div className="mt-5 grid w-full grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {paginatedItems.map((user: User) => {
             return (
-              <div className="relative overflow-hidden rounded-md bg-white text-center shadow-sm dark:bg-[#1c232f]" key={user.id}>
-                <div className="relative overflow-hidden rounded-md bg-white text-center shadow-sm dark:bg-[#1c232f]">
-                  <div className="rounded-t-md bg-white/40 bg-[url('/assets/images/notification-bg.png')] bg-cover bg-center p-6 pb-0">
+              <div className="relative overflow-hidden rounded-md bg-surface text-center shadow-sm " key={user.id}>
+                <div className="relative overflow-hidden rounded-md bg-surface text-center shadow-sm ">
+                  <div className="rounded-t-md bg-surface/40 bg-[url('/assets/images/notification-bg.png')] bg-cover bg-center p-6 pb-0">
                     <div className="mx-auto h-20 w-20 rounded-full bg-primary text-3xl font-bold text-white flex items-center justify-center">{user.nom[0]}</div>
                   </div>
                   <div className="relative -mt-10 px-6 pb-24">
-                    <div className="rounded-md bg-white px-2 py-4 shadow-md dark:bg-gray-900">
+                    <div className="rounded-md bg-surface px-2 py-4 shadow-md dark:bg-gray-900">
                       <div className="text-xl">{`${user.nom} ${user.prenoms}`}</div>
                       <div className="text-white-dark">{user.role.libelle}</div>
                       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

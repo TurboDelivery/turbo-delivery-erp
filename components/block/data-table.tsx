@@ -97,7 +97,7 @@ export function DataTable<TData>({
                   <TableRow key={`skeleton-${i}`}>
                     {Array.from({ length: colsCount }).map((_, j) => (
                       <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                        <div className="h-4 bg-surface-tertiary rounded w-full" />
                       </TableCell>
                     ))}
                   </TableRow>

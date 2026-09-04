@@ -20,7 +20,7 @@ export function ChargeTypeSwitcher({ chargeType, onChange }: ChargeTypeSwitcherP
           className={`rounded-lg px-5 py-2 text-sm font-medium transition-all ${
             chargeType === value
               ? 'bg-black text-white'
-              : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-100'
+              : 'border border-separator bg-surface text-muted hover:bg-surface-secondary'
           }`}
         >
           {label}

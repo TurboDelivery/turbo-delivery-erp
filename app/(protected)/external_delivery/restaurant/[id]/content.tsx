@@ -29,9 +29,9 @@ const getStatusTextColor = (statut: string) => {
         case 'VALIDER': return 'text-yellow-700';
         case 'TERMINER': return 'text-green-700';
         case 'ANNULER': return 'text-red-700';
-        case 'EN_ATTENTE': return 'text-gray-500';
+        case 'EN_ATTENTE': return 'text-muted';
         case 'PREPARATION': return 'text-orange-600';
-        default: return 'text-gray-600';
+        default: return 'text-muted';
     }
 };
 
@@ -180,7 +180,7 @@ export default function Content({ initialData, delivers, restaurantId }: Props) 
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {dataFilter.map((delivery) => (
-                                <Card key={delivery.id} className={`w-full bg-white ${getStatusBorderClass(delivery.statut)} shadow-md rounded-md`}>
+                                <Card key={delivery.id} className={`w-full bg-surface ${getStatusBorderClass(delivery.statut)} shadow-md rounded-md`}>
                                     <CardHeader className="flex justify-between items-center py-3 border-b">
                                         <div className="flex items-center gap-5">
                                             <span className={`font-bold text-base ${getStatusTextColor(delivery.statut)}`}>Code: {delivery.code}</span>
@@ -197,17 +197,17 @@ export default function Content({ initialData, delivers, restaurantId }: Props) 
                                     </CardHeader>
                                     <CardBody className="py-3">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Package className="text-gray-400" />
+                                            <Package className="text-muted" />
                                             <span className="font-medium">
                                                 {delivery.nombreCommande} commande{delivery.nombreCommande > 1 ? 's' : ''}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Clock className="text-gray-400" />
+                                            <Clock className="text-muted" />
                                             <span>Créé le {delivery.createdAt ? dayjs(delivery.createdAt).format('DD/MM/YYYY HH:mm:ss') : '-'}</span>
                                         </div>
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Clock className="text-gray-400" />                                        
+                                            <Clock className="text-muted" />                                        
 
                                             {/* Statut */}
                                             <Chip
@@ -224,11 +224,11 @@ export default function Content({ initialData, delivers, restaurantId }: Props) 
                                                 {delivery?.restaurant?.logo ? (
                                                     <Avatar src={createUrlFile(delivery.restaurant.logo, 'restaurant')} size="sm" />
                                                 ) : (
-                                                    <Store className="text-gray-400" />
+                                                    <Store className="text-muted" />
                                                 )}
                                                 <div>
-                                                    <p className="font-semibold text-gray-900">{delivery?.restaurant?.nomEtablissement}</p>
-                                                    <p className="text-gray-500 text-sm">{delivery?.restaurant?.commune}</p>
+                                                    <p className="font-semibold text-foreground">{delivery?.restaurant?.nomEtablissement}</p>
+                                                    <p className="text-muted text-sm">{delivery?.restaurant?.commune}</p>
                                                 </div>
                                             </div>
                                         </div>

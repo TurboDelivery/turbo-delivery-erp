@@ -1,5 +1,6 @@
 'use client';
 
+import { Card, EmptyState } from '@heroui-v3/react';
 import RegularisationPageHeader from './RegularisationPageHeader';
 import RegularisationQueue from './RegularisationQueue';
 import RegularisationDetail from './RegularisationDetail';
@@ -53,9 +54,16 @@ export default function RegularisationContent() {
             onReject={handleReject}
           />
         ) : (
-          <div className="flex-1 w-full flex items-center justify-center rounded-xl border border-gray-200 bg-white py-24">
-            <p className="text-sm text-gray-400">Sélectionnez un ticket pour voir les détails.</p>
-          </div>
+          /*
+           * La zone de detail au repos etait une div habillee a la main (bordure, fond et
+           * rayon recopies a cote du theme). Ces valeurs recopiees derivent des que le
+           * theme bouge, et l'ecart ne se voit qu'une fois l'ecran ouvert : l'operateur
+           * se retrouve avec un cadre qui ne ressemble plus au reste de la page. `Card`
+           * porte sa surface et son rayon, `EmptyState` la typographie d'attente.
+           */
+          <Card className="flex-1 w-full items-center justify-center py-24">
+            <EmptyState>Sélectionnez un ticket pour voir les détails.</EmptyState>
+          </Card>
         )}
       </div>
 

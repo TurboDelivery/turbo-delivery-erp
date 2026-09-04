@@ -22,7 +22,7 @@ export function SectionVehicule({
   onVehicleChange,
 }: SectionVehiculeProps) {
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
       <SectionTitle>Informations du véhicule</SectionTitle>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
         <Controller
@@ -77,7 +77,7 @@ export function SectionVehicule({
         />
       </div>
       <div>
-        <p className="text-sm text-gray-600 mb-2">Changer la photo du véhicule</p>
+        <p className="text-sm text-muted mb-2">Changer la photo du véhicule</p>
         <UploadZone
           label="Ajouter une photo"
           onChange={(files) => {

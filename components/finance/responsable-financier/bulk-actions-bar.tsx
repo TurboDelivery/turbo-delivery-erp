@@ -136,11 +136,11 @@ export default function BulkActionsBar({
   return (
     <>
       {/* Barre flottante */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 rounded-2xl border border-gray-200 bg-white shadow-xl px-4 py-2.5">
-        <button onClick={onClear} className="p-1 rounded-md hover:bg-gray-100 text-gray-400" aria-label="Vider la sélection">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 rounded-2xl border border-separator bg-surface shadow-xl px-4 py-2.5">
+        <button onClick={onClear} className="p-1 rounded-md hover:bg-surface-secondary text-muted" aria-label="Vider la sélection">
           <X className="w-4 h-4" />
         </button>
-        <span className="text-sm font-medium text-gray-700">
+        <span className="text-sm font-medium text-foreground">
           {selectAllMatching ? (
             <>Toutes les <b>{totalElements}</b> factures du filtre</>
           ) : (
@@ -176,7 +176,7 @@ export default function BulkActionsBar({
                 {action?.verbe} — {cible} facture{cible > 1 ? 's' : ''}
               </ModalHeader>
               <ModalBody>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted">
                   {selectAllMatching ? (
                     <>L&apos;action <b>{action?.verbe}</b> va être appliquée à <b>toutes les {totalElements} factures</b> correspondant au filtre courant (toutes pages).</>
                   ) : (
@@ -204,7 +204,7 @@ export default function BulkActionsBar({
                   >
                     {(agents ?? []).map((ag) => (
                       <SelectItem key={ag.id} textValue={ag.nom}>
-                        {ag.nom} {ag.role ? <span className="text-gray-400">· {ag.role}</span> : null}
+                        {ag.nom} {ag.role ? <span className="text-muted">· {ag.role}</span> : null}
                       </SelectItem>
                     ))}
                   </Select>
@@ -224,32 +224,32 @@ export default function BulkActionsBar({
 
                 {action?.besoin === 'orientation' && (
                   <div className="flex flex-col gap-3">
-                    <p className="text-xs font-medium text-gray-500">Décision d&apos;orientation des fonds :</p>
+                    <p className="text-xs font-medium text-muted">Décision d&apos;orientation des fonds :</p>
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         type="button"
                         onClick={() => setOrientation('BANQUE')}
                         className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-4 text-center transition ${
-                          orientation === 'BANQUE' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'
+                          orientation === 'BANQUE' ? 'border-primary bg-primary/5' : 'border-separator hover:border-gray-300'
                         }`}
                       >
-                        <Landmark className={`w-6 h-6 ${orientation === 'BANQUE' ? 'text-primary' : 'text-gray-400'}`} />
-                        <span className="text-sm font-semibold text-gray-800">Dépôt en banque</span>
-                        <span className="text-[11px] text-gray-500">Débloque le dépôt du Comptable</span>
+                        <Landmark className={`w-6 h-6 ${orientation === 'BANQUE' ? 'text-primary' : 'text-muted'}`} />
+                        <span className="text-sm font-semibold text-foreground">Dépôt en banque</span>
+                        <span className="text-[11px] text-muted">Débloque le dépôt du Comptable</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setOrientation('CAISSE')}
                         className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-4 text-center transition ${
-                          orientation === 'CAISSE' ? 'border-warning bg-warning/5' : 'border-gray-200 hover:border-gray-300'
+                          orientation === 'CAISSE' ? 'border-warning bg-warning/5' : 'border-separator hover:border-gray-300'
                         }`}
                       >
-                        <PiggyBank className={`w-6 h-6 ${orientation === 'CAISSE' ? 'text-warning' : 'text-gray-400'}`} />
-                        <span className="text-sm font-semibold text-gray-800">Conserver en caisse</span>
-                        <span className="text-[11px] text-gray-500">Fonds de roulement · motif requis</span>
+                        <PiggyBank className={`w-6 h-6 ${orientation === 'CAISSE' ? 'text-warning-soft-foreground' : 'text-muted'}`} />
+                        <span className="text-sm font-semibold text-foreground">Conserver en caisse</span>
+                        <span className="text-[11px] text-muted">Fonds de roulement · motif requis</span>
                       </button>
                     </div>
-                    <p className="text-[11px] text-gray-400">
+                    <p className="text-[11px] text-muted">
                       Le visa DGA est posé automatiquement (auteur, date, N° de visa) au moment de la décision.
                     </p>
                     {orientation === 'CAISSE' && (

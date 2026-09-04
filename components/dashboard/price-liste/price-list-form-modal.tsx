@@ -247,11 +247,11 @@ export default function PriceListFormModal({ open, onClose, mode, initialData }:
                     }}
                   />
                   {!loadingGeo && suggestions.length > 0 && (
-                    <ul className="absolute z-50 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                    <ul className="absolute z-50 w-full bg-surface border border-separator mt-1 rounded-md shadow-lg max-h-48 overflow-y-auto">
                       {suggestions.map((s) => (
                         <li
                           key={s.place_id}
-                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                          className="px-4 py-2 hover:bg-surface-secondary cursor-pointer text-sm"
                           onClick={() => handleSuggestionClick(s)}
                         >
                           {s.description}

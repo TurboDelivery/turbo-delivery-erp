@@ -42,13 +42,23 @@ export function SelecteurZone({ className, ticketId, restaurantId, zoneId, onPat
     const choisir = (cle: string) => {
         const zone = zones.find((z) => z.id === cle);
         if (!zone) return;
-        // Prix ET commission viennent de la grille : les dissocier ferait saisir a la main
-        // un montant que le partenaire a deja fixe.
+        /*
+         * La zone pose le PRIX DE LIVRAISON, pas la commission.
+         *
+         * <p>Elle ecrivait aussi `coutLivraison` depuis `zone.commission`, alors que
+         * `applyTicketPatch` reecrit ce meme champ avec le taux du PARTENAIRE des que le
+         * montant de commande change. Deux sources, une seule case, et rien pour
+         * arbitrer : selon qu'on choisissait la zone avant ou apres le montant, deux
+         * operateurs voyaient deux commissions differentes sur la meme ligne.</p>
+         *
+         * <p>Le serveur tranche deja : `createBonLivraison` recalcule la commission
+         * depuis le partenaire et ecrase les deux champs avant d'envoyer. Ce que la zone
+         * affichait n'etait donc jamais enregistre. L'ecran cesse de l'annoncer.</p>
+         */
         onPatch(ticketId, {
             zoneId: zone.id,
             nomZone: zone.name ?? '',
             montantLivraison: String(zone.prix ?? 0),
-            coutLivraison: String(zone.commission ?? 0),
         });
     };
 

@@ -17,14 +17,14 @@ export const historiqueCreneauxColumns: ColumnDef<ICreneauActifVm>[] = [
     accessorKey: 'label',
     header: 'Créneau',
     cell: ({ row }) => (
-      <span className="font-semibold text-gray-900 text-sm whitespace-nowrap">{row.original.label}</span>
+      <span className="font-semibold text-foreground text-sm whitespace-nowrap">{row.original.label}</span>
     ),
   },
   {
     id: 'periode',
     header: 'Période',
     cell: ({ row }) => (
-      <span className="text-sm text-gray-600 whitespace-nowrap">
+      <span className="text-sm text-muted whitespace-nowrap">
         {fmtDate(row.original.dateDebut)} → {fmtDate(row.original.dateFin)}
       </span>
     ),
@@ -32,18 +32,18 @@ export const historiqueCreneauxColumns: ColumnDef<ICreneauActifVm>[] = [
   {
     accessorKey: 'nbLivreurs',
     header: 'Livreurs',
-    cell: ({ row }) => <span className="text-sm text-gray-700">{row.original.nbLivreurs}</span>,
+    cell: ({ row }) => <span className="text-sm text-foreground">{row.original.nbLivreurs}</span>,
   },
   {
     accessorKey: 'totalTickets',
     header: 'Tickets',
-    cell: ({ row }) => <span className="text-sm text-gray-700">{row.original.totalTickets}</span>,
+    cell: ({ row }) => <span className="text-sm text-foreground">{row.original.totalTickets}</span>,
   },
   {
     accessorKey: 'nbTicketsPending',
     header: 'En attente',
     cell: ({ row }) => (
-      <span className={`text-sm font-medium ${row.original.nbTicketsPending > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
+      <span className={`text-sm font-medium ${row.original.nbTicketsPending > 0 ? 'text-amber-600' : 'text-muted'}`}>
         {row.original.nbTicketsPending}
       </span>
     ),
@@ -52,7 +52,7 @@ export const historiqueCreneauxColumns: ColumnDef<ICreneauActifVm>[] = [
     accessorKey: 'totalNet',
     header: 'Net (FCFA)',
     cell: ({ row }) => (
-      <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+      <span className="text-sm font-semibold text-foreground whitespace-nowrap">
         {formatCFA(row.original.totalNet)}
       </span>
     ),
@@ -62,9 +62,9 @@ export const historiqueCreneauxColumns: ColumnDef<ICreneauActifVm>[] = [
     header: 'Soumis le',
     cell: ({ row }) => (
       <div className="flex flex-col gap-0.5">
-        <span className="text-sm text-gray-700 whitespace-nowrap">{fmtDate(row.original.soumisAt)}</span>
+        <span className="text-sm text-foreground whitespace-nowrap">{fmtDate(row.original.soumisAt)}</span>
         {row.original.soumisParNom && (
-          <span className="text-xs text-gray-400">par {row.original.soumisParNom}</span>
+          <span className="text-xs text-muted">par {row.original.soumisParNom}</span>
         )}
       </div>
     ),
@@ -80,7 +80,7 @@ export const historiqueCreneauxColumns: ColumnDef<ICreneauActifVm>[] = [
             {config.label}
           </span>
           {row.original.commentaireRejet && (
-            <p className="text-xs text-gray-500 max-w-[220px] line-clamp-2">{row.original.commentaireRejet}</p>
+            <p className="text-xs text-muted max-w-[220px] line-clamp-2">{row.original.commentaireRejet}</p>
           )}
         </div>
       );

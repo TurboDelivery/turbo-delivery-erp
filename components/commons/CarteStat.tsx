@@ -16,17 +16,17 @@ export type TonStat = 'neutre' | 'primaire' | 'succes' | 'attention' | 'danger';
 const CHIFFRE: Record<TonStat, string> = {
     neutre: 'text-default-900',
     primaire: 'text-primary',
-    succes: 'text-success',
-    attention: 'text-warning',
-    danger: 'text-danger',
+    succes: 'text-success-soft-foreground',
+    attention: 'text-warning-soft-foreground',
+    danger: 'text-danger-soft-foreground',
 };
 
 const PASTILLE: Record<TonStat, string> = {
     neutre: 'bg-default-100 text-default-600',
     primaire: 'bg-primary/10 text-primary',
-    succes: 'bg-success/10 text-success',
-    attention: 'bg-warning/10 text-warning',
-    danger: 'bg-danger/10 text-danger',
+    succes: 'bg-success/10 text-success-soft-foreground',
+    attention: 'bg-warning/10 text-warning-soft-foreground',
+    danger: 'bg-danger/10 text-danger-soft-foreground',
 };
 
 const SURFACE_ACCENT: Record<TonStat, string> = {

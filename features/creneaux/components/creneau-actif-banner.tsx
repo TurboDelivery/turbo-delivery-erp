@@ -50,13 +50,13 @@ export function CreneauActifBanner() {
   const statut = STATUT_CONFIG[creneau.statut] ?? { label: creneau.statut, className: 'bg-gray-500 text-white' };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 px-5 py-4 mb-4">
-      <p className="text-base font-bold text-gray-900">
+    <div className="bg-surface rounded-lg border border-separator px-5 py-4 mb-4">
+      <p className="text-base font-bold text-foreground">
         Semaine {week} — {range}
       </p>
       <div className="flex items-center gap-4 mt-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">Statut :</span>
+          <span className="text-sm text-muted">Statut :</span>
           <Badge className={`${statut.className} text-xs font-semibold px-2.5 py-0.5 rounded-full border-0`}>{statut.label}</Badge>
         </div>
         {countdown && (

@@ -123,7 +123,7 @@ export default function AllModelView({ value, birdCreneau, birdNotCreneau, setVa
             </div>
 
             {/* TURBOYS AVEC CRENEAU */}
-            <h2 className="text-lg font-semibold bg-white text-center w-full rounded-md shadow-sm py-2 mb-2">
+            <h2 className="text-lg font-semibold bg-surface text-center w-full rounded-md shadow-sm py-2 mb-2">
                 TURBOYS AVEC CRENEAU HORAIRE
             </h2>
             <div className={`mb-4 ${value === 'list' ? styleList : styleGrid}`}>
@@ -133,14 +133,14 @@ export default function AllModelView({ value, birdCreneau, birdNotCreneau, setVa
                         <UserListeModel2 key={turboy.id ?? index} turboy={turboy} />
                     )
                 ) : (
-                    <p className="text-center py-4 text-gray-500 col-span-full">Aucun livreur trouvé</p>
+                    <p className="text-center py-4 text-muted col-span-full">Aucun livreur trouvé</p>
                 )}
             </div>
 
             {/* TURBOYS SANS CRENEAU */}
             {birdNotCreneau.length > 0 && (
                 <>
-                    <h2 className="text-lg font-semibold bg-white text-center w-full rounded-md shadow-sm py-2 mt-10 mb-2">
+                    <h2 className="text-lg font-semibold bg-surface text-center w-full rounded-md shadow-sm py-2 mt-10 mb-2">
                         TURBOYS SANS CRENEAU HORAIRE
                     </h2>
                     <div className={`${value === 'list' ? styleList : styleGrid}`}>

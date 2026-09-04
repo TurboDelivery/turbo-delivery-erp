@@ -82,7 +82,7 @@ export function AbsenceActionDialog({ target, onClose }: AbsenceActionDialogProp
               onClick={() => setAction('justifier')}
               className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-colors ${
                 action === 'justifier'
-                  ? 'border-success bg-success-50 text-success'
+                  ? 'border-success bg-success-50 text-success-soft-foreground'
                   : 'border-border hover:border-success/50 hover:bg-success-50/40'
               }`}
             >
@@ -94,7 +94,7 @@ export function AbsenceActionDialog({ target, onClose }: AbsenceActionDialogProp
               onClick={() => setAction('retard')}
               className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-colors ${
                 action === 'retard'
-                  ? 'border-warning bg-warning-50 text-warning'
+                  ? 'border-warning bg-warning-50 text-warning-soft-foreground'
                   : 'border-border hover:border-warning/50 hover:bg-warning-50/40'
               }`}
             >

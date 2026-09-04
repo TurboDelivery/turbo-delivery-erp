@@ -296,7 +296,10 @@ export default function ApercuContenu() {
                                 prec.map((l) => (l.id === id ? { ...l, [champ]: valeur } : l)),
                             )
                         }
-                        onEnregistrer={(id) => setLignesSaisie((prec) => prec.filter((l) => l.id !== id))}
+                        onEnregistrerLot={async (ids: string[]) => {
+                            setLignesSaisie((prec) => prec.filter((l) => !ids.includes(l.id)));
+                            return { reussis: ids.length, echoues: 0 };
+                        }}
                         onPatch={(id, patch) =>
                             setLignesSaisie((prec) => prec.map((l) => (l.id === id ? { ...l, ...patch } : l)))
                         }

@@ -170,7 +170,7 @@ export default function AgentRecouvreurView() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <p className="text-sm text-gray-500">Gestion des Paiements</p>
+        <p className="text-sm text-muted">Gestion des Paiements</p>
         <h1 className="text-2xl font-bold text-primary">Espace Agent Recouvreur</h1>
       </div>
 
@@ -190,8 +190,8 @@ export default function AgentRecouvreurView() {
       </GrilleStats>
 
       {/* Filtres */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+      <div className="bg-surface rounded-xl border border-separator p-4 shadow-xs space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted">
           <span>▼</span> Filtres
         </div>
         <div className="flex flex-wrap items-end gap-4">
@@ -207,7 +207,7 @@ export default function AgentRecouvreurView() {
 
           {/* Restaurant / Partenaire */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-medium">Partenaire</label>
+            <label className="text-xs text-muted font-medium">Partenaire</label>
             <RestaurantSelect
               value={filters.restaurantId || undefined}
               onChange={handleRestaurantChange}
@@ -235,7 +235,7 @@ export default function AgentRecouvreurView() {
 
           {/* Statut chips (envoyés au backend) */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-gray-500 font-medium">Statut</label>
+            <label className="text-xs text-muted font-medium">Statut</label>
             <div className="flex flex-wrap gap-1.5">
               {statutChips.map((s) => {
                 const active = (s === 'Tous' && !filters.statut) || filters.statut === s;
@@ -246,7 +246,7 @@ export default function AgentRecouvreurView() {
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                       active
                         ? 'bg-green-600 text-white border-green-600'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                        : 'bg-surface text-muted border-separator hover:border-gray-300'
                     }`}
                   >
                     {s}
@@ -267,19 +267,19 @@ export default function AgentRecouvreurView() {
       )}
 
       {/* Table — desktop uniquement (≥ md) */}
-      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
-        <div className="flex items-center justify-between gap-4 px-5 py-4 border-b border-gray-100">
+      <div className="hidden md:block bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
+        <div className="flex items-center justify-between gap-4 px-5 py-4 border-b border-separator">
           <div>
-            <p className="text-sm font-semibold text-gray-800">Suivi des factures</p>
-            <p className="text-xs text-gray-400">{String(totalElements).padStart(2, '0')} factures</p>
+            <p className="text-sm font-semibold text-foreground">Suivi des factures</p>
+            <p className="text-xs text-muted">{String(totalElements).padStart(2, '0')} factures</p>
           </div>
           {facturesSelection.length > 0 && (
             <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted">
                 {facturesSelection.length} sélectionnée(s) ·{' '}
-                <span className="font-semibold text-gray-700">{formatMontant(totalSelection)}</span>
+                <span className="font-semibold text-foreground">{formatMontant(totalSelection)}</span>
               </span>
-              <button onClick={() => setRowSelection({})} className="text-xs text-gray-400 hover:text-gray-600 underline">
+              <button onClick={() => setRowSelection({})} className="text-xs text-muted hover:text-foreground underline">
                 Tout désélectionner
               </button>
               <Button size="sm" onClick={() => setLotOpen(true)} className="bg-green-600 hover:bg-green-700 text-white text-xs gap-1.5">
@@ -306,7 +306,7 @@ export default function AgentRecouvreurView() {
         >
           <TableHeader>
             {table.getFlatHeaders().map((h) => (
-              <TableColumn key={h.id} className="text-xs font-semibold text-gray-500 uppercase bg-gray-50">
+              <TableColumn key={h.id} className="text-xs font-semibold text-muted uppercase bg-surface-secondary">
                 {flexRender(h.column.columnDef.header, h.getContext())}
               </TableColumn>
             ))}
@@ -331,11 +331,11 @@ export default function AgentRecouvreurView() {
       {/* Barre d'action lot — mobile */}
       {facturesSelection.length > 0 && (
         <div className="md:hidden sticky top-2 z-20 flex items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 shadow-xs">
-          <span className="text-xs text-gray-600">
+          <span className="text-xs text-muted">
             {facturesSelection.length} · <span className="font-semibold">{formatMontant(totalSelection)}</span>
           </span>
           <div className="flex items-center gap-2">
-            <button onClick={() => setRowSelection({})} className="text-xs text-gray-400 underline">
+            <button onClick={() => setRowSelection({})} className="text-xs text-muted underline">
               Annuler
             </button>
             <Button size="sm" onClick={() => setLotOpen(true)} className="bg-green-600 hover:bg-green-700 text-white text-xs gap-1.5">
@@ -349,10 +349,10 @@ export default function AgentRecouvreurView() {
       <MobileCardList>
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-44 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={i} className="h-44 rounded-xl bg-surface-secondary animate-pulse" />
           ))
         ) : table.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">
+          <p className="text-sm text-muted text-center py-10">
             {isError ? String(error) : 'Aucune facture trouvée'}
           </p>
         ) : (
@@ -374,7 +374,7 @@ export default function AgentRecouvreurView() {
                 <input
                   type="checkbox"
                   aria-label="Sélectionner la facture"
-                  className="mt-4 h-4 w-4 shrink-0 rounded border-gray-300 accent-green-600 cursor-pointer"
+                  className="mt-4 h-4 w-4 shrink-0 rounded border-separator accent-green-600 cursor-pointer"
                   checked={row.getIsSelected()}
                   onChange={row.getToggleSelectedHandler()}
                 />

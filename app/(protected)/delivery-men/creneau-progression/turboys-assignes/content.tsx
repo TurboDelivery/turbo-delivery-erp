@@ -39,7 +39,7 @@ export default function Content({ initialData }: Props) {
                 >
                     Précédent
                 </Button>
-                <span className="px-4 py-2 bg-white border rounded">
+                <span className="px-4 py-2 bg-surface border rounded">
                     Page {page + 1} / {data.totalPages}
                 </span>
                 <Button
@@ -78,7 +78,7 @@ export default function Content({ initialData }: Props) {
                 >
                     Précédent
                 </Button>
-                <span className="px-4 py-2 bg-white border rounded">
+                <span className="px-4 py-2 bg-surface border rounded">
                     Page {page + 1} / {data.totalPages}
                 </span>
                 <Button

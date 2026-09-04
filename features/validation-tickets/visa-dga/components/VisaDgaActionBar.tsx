@@ -23,7 +23,7 @@ export default function VisaDgaActionBar({ isVisant, isRejetant, onVoirGrille, o
 
       <Button
         variant="outline"
-        className="gap-2 text-gray-600"
+        className="gap-2 text-muted"
         onClick={onRejeter}
         disabled={isRejetant}
       >

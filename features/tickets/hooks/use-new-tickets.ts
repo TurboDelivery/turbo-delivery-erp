@@ -15,9 +15,23 @@ interface UseNewTicketsParams {
     vars: { ticket: Ticket; restaurant?: { typeCommission: string; commission: number } },
     callbacks?: { onSuccess?: () => void },
   ) => void;
+  /**
+   * La version qui REND une promesse. Indispensable pour enregistrer un lot : les
+   * rappels par appel ne survivent pas a plusieurs `mutate` d'affilee sur la meme
+   * instance, alors qu'un `await` sait exactement ce qui a reussi.
+   */
+  createBonLivraisonAsync: (
+    vars: { ticket: Ticket; restaurant?: { typeCommission: string; commission: number } },
+  ) => Promise<unknown>;
 }
 
-export function useNewTickets({ restaurants, livreurOptions, restaurantOptions, createBonLivraisonMutation }: UseNewTicketsParams) {
+export function useNewTickets({
+  restaurants,
+  livreurOptions,
+  restaurantOptions,
+  createBonLivraisonMutation,
+  createBonLivraisonAsync,
+}: UseNewTicketsParams) {
   const [newTickets, setNewTickets] = useState<Ticket[]>([]);
 
   // Insert bar state
@@ -65,6 +79,50 @@ export function useNewTickets({ restaurants, livreurOptions, restaurantOptions, 
     [newTickets, createBonLivraisonMutation, restaurants],
   );
 
+  /**
+   * Enregistrer PLUSIEURS lignes d'un coup.
+   *
+   * <p>Appeler `handleSaveNewTicket` en boucle ne marche pas, et le defaut est
+   * silencieux. Les N appels visent la MEME instance de mutation : a chaque appel,
+   * `MutationObserver.mutate()` retire l'observateur de la mutation precedente et
+   * remplace ses options. Seul le rappel du DERNIER appel est notifie. Les N tickets
+   * partent bien au serveur et y sont crees, mais une seule ligne quitte l'ecran.</p>
+   *
+   * <p>Ce que voyait l'operateur : une liasse de douze part, douze tickets sont crees,
+   * onze lignes restent affichees et cochees completes. Il en conclut a un echec,
+   * reclique, et cree onze doublons — donc onze commissions partenaire et onze lignes
+   * de paie comptees deux fois, sans contrainte en base pour l'arreter.</p>
+   *
+   * <p>On enchaine donc les envois un par un, on collecte les identifiants REUSSIS, et
+   * on ne retire de l'etabli que ceux-la, en une seule mise a jour. Une ligne dont
+   * l'envoi echoue reste a l'ecran : c'est precisement ce qu'on veut voir.</p>
+   */
+  const handleSaveNewTickets = useCallback(
+    async (ids: string[]) => {
+      const aEnvoyer = newTickets.filter((t) => ids.includes(t.id));
+      if (aEnvoyer.length === 0) return { reussis: 0, echoues: 0 };
+
+      const reussis: string[] = [];
+      for (const ticket of aEnvoyer) {
+        try {
+          await createBonLivraisonAsync({
+            ticket,
+            restaurant: getRestaurantInfo(ticket.restaurantId, restaurants),
+          });
+          reussis.push(ticket.id);
+        } catch {
+          // Le message d'erreur est deja porte par le `onError` de la mutation.
+        }
+      }
+
+      if (reussis.length > 0) {
+        setNewTickets((prev) => prev.filter((t) => !reussis.includes(t.id)));
+      }
+      return { reussis: reussis.length, echoues: aEnvoyer.length - reussis.length };
+    },
+    [newTickets, createBonLivraisonAsync, restaurants],
+  );
+
   const handleCancelNewTicket = useCallback((id: string) => {
     setNewTickets((prev) => prev.filter((t) => t.id !== id));
   }, []);
@@ -93,6 +151,7 @@ export function useNewTickets({ restaurants, livreurOptions, restaurantOptions, 
     insertState: { insertCount, insertLivreurId, insertRestaurantId, insertDate, setInsertCount, setInsertLivreurId, setInsertRestaurantId, setInsertDate },
     handleInsert,
     handleSaveNewTicket,
+    handleSaveNewTickets,
     handleCancelNewTicket,
     handleNewTicketChange,
     handleNewTicketPatch,

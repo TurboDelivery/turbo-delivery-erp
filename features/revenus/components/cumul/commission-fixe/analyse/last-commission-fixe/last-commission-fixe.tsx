@@ -58,23 +58,23 @@ export default function LastCommission({ commission }: LastCommissionProps) {
                                 {commissionMoisCourant?.map((commission) => (
                                     <CarouselItem key={commission.id} className="pt-4 basis-1/2">
                                         <div className="p-2">
-                                            <Card className="rounded-lg shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300">
+                                            <Card className="rounded-lg shadow-md overflow-hidden border border-separator hover:shadow-lg transition-all duration-300">
                                                 <div className="p-4">
                                                     <div className="flex flex-col gap-3">
                                                         <div className="flex justify-between items-start">
                                                             <div className="space-y-1">
-                                                                <span className="text-xs text-gray-500 font-medium">Restaurant</span>
+                                                                <span className="text-xs text-muted font-medium">Restaurant</span>
                                                                 <h3 className="font-semibold text-sm text-blue-600">{commission.nomRestaurant}</h3>
                                                             </div>
                                                             <div className="text-right">
-                                                                <span className="text-xs text-gray-500 block">Montant</span>
+                                                                <span className="text-xs text-muted block">Montant</span>
                                                                 <span className="text-sm font-bold text-green-600">{formatMontant(commission.commission)}</span>
                                                             </div>
                                                         </div>
 
                                                         <div className="space-y-2">
                                                             <div className="flex justify-between items-center">
-                                                                <span className="text-xs text-gray-500">Date</span>
+                                                                <span className="text-xs text-muted">Date</span>
                                                                 <span className="text-xs font-medium">{commission.createdAt}</span>
                                                             </div>
                                                         </div>
@@ -93,9 +93,9 @@ export default function LastCommission({ commission }: LastCommissionProps) {
                     </div>
 
                     {/* Pied de carte avec statistiques */}
-                    <div className="px-5 py-4 border-t border-gray-200 bg-gray-50">
+                    <div className="px-5 py-4 border-t border-separator bg-surface-secondary">
                         <div className="flex justify-between items-center">
-                            <div className="text-sm text-gray-600">
+                            <div className="text-sm text-muted">
                                 Total ce mois: {commissionMoisCourant?.length} commission(s)
                             </div>
                             <div className="text-sm font-semibold text-blue-600">

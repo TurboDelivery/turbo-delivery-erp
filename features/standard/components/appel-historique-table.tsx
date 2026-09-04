@@ -75,7 +75,7 @@ export function AppelHistoriqueTable() {
   const totalPages = data?.totalPages ?? 0;
 
   return (
-    <section className="rounded-2xl border border-default-200/50 bg-white p-4 dark:bg-content1">
+    <section className="rounded-2xl border border-default-200/50 bg-surface p-4 dark:bg-content1">
       <h2 className="mb-3 flex items-center gap-2.5 text-sm font-bold text-default-700">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <Phone className="h-5 w-5" />
@@ -127,7 +127,7 @@ export function AppelHistoriqueTable() {
                 <TableCell>
                   <span className="inline-flex items-center gap-1.5">
                     {entrant ? (
-                      <PhoneIncoming className="h-4 w-4 text-success" />
+                      <PhoneIncoming className="h-4 w-4 text-success-soft-foreground" />
                     ) : (
                       <PhoneOutgoing className="h-4 w-4 text-primary" />
                     )}

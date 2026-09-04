@@ -7,8 +7,8 @@ export const approbationFinaleWaveColumns: ColumnDef<IGrillePaiementLigne>[] = [
     header: 'Turboy',
     cell: ({ row }) => (
       <div>
-        <p className="text-sm font-semibold text-gray-800">{row.original.turboy.nom}</p>
-        <p className="text-[11px] text-gray-400 mt-0.5">{row.original.turboy.code}</p>
+        <p className="text-sm font-semibold text-foreground">{row.original.turboy.nom}</p>
+        <p className="text-[11px] text-muted mt-0.5">{row.original.turboy.code}</p>
       </div>
     ),
   },
@@ -17,9 +17,9 @@ export const approbationFinaleWaveColumns: ColumnDef<IGrillePaiementLigne>[] = [
     header: 'N° Wave',
     cell: ({ row }) =>
       row.original.numeroWave ? (
-        <span className="text-sm text-gray-600">{row.original.numeroWave}</span>
+        <span className="text-sm text-muted">{row.original.numeroWave}</span>
       ) : (
-        <span className="text-gray-300">—</span>
+        <span className="text-muted">—</span>
       ),
   },
   {

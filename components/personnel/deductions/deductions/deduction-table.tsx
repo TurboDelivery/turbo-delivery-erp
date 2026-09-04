@@ -98,7 +98,7 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
                   <TableRow key={`skeleton-${i}`}>
                     {Array.from({ length: colsCount }).map((_, j) => (
                       <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                        <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                        <div className="h-4 w-full animate-pulse rounded bg-surface-tertiary" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -119,11 +119,11 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <PersonnelMobileCardList>
         {isDeductionLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 animate-pulse" />)
+          Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-surface-secondary animate-pulse" />)
         ) : enEchec ? (
           <EtatErreur quoi="les déductions" onReessayer={() => refetchDeductions()} enCours={isDeductionFetching} />
         ) : deductionTable.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucune déduction trouvée</p>
+          <p className="text-sm text-muted text-center py-10">Aucune déduction trouvée</p>
         ) : (
           deductionTable.getRowModel().rows.map((row) => {
             const deduction = row.original;

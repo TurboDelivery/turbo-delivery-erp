@@ -35,19 +35,19 @@ export function PersonnelMobileCard({
 }) {
   return (
     <div
-      className={`bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2 ${onClick ? 'cursor-pointer active:bg-gray-50' : ''}`}
+      className={`bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2 ${onClick ? 'cursor-pointer active:bg-gray-50' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">{title}</p>
+          <p className="text-sm font-semibold text-foreground truncate">{title}</p>
           {subtitle !== null && subtitle !== undefined && subtitle !== '' && (
-            <p className="text-xs text-gray-500 truncate">{subtitle}</p>
+            <p className="text-xs text-muted truncate">{subtitle}</p>
           )}
         </div>
         {statut !== null && statut !== undefined && statut !== '' && (
           <span
-            className={`shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium whitespace-nowrap ${statutClassName ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}
+            className={`shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-medium whitespace-nowrap ${statutClassName ?? 'bg-surface-secondary text-muted border-separator'}`}
           >
             {statut}
           </span>
@@ -56,8 +56,8 @@ export function PersonnelMobileCard({
 
       {fields?.filter((f) => f.value !== null && f.value !== undefined && f.value !== '').map((f, i) => (
         <div key={i} className="flex items-center justify-between gap-3">
-          <span className="text-xs text-gray-400 shrink-0">{f.label}</span>
-          <span className="text-sm text-gray-700 text-right truncate">{f.value}</span>
+          <span className="text-xs text-muted shrink-0">{f.label}</span>
+          <span className="text-sm text-foreground text-right truncate">{f.value}</span>
         </div>
       ))}
 

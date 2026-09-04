@@ -20,7 +20,7 @@ export default function RegularisationPageHeader({ pendingCount }: Props) {
       </div>
 
       <div className="flex shrink-0 flex-col items-center gap-1">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface/20">
           <Timer className="h-6 w-6 text-white" />
         </div>
         <span className="text-[10px] font-medium text-red-100 uppercase tracking-wide">En attente</span>

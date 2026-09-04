@@ -25,8 +25,8 @@ export function PerformanceSummarySection({
             <AlertCircle className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 mb-2">Résumé de Performance</h3>
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <h3 className="font-semibold text-foreground mb-2">Résumé de Performance</h3>
+            <p className="text-sm text-foreground leading-relaxed">
               {mainKPIs && secondaryKPIs ? (
                 <>
                   Grâce à Turbo Delivery, Restaurant {selectedRestaurant || 'Tous'} a réalisé{' '}

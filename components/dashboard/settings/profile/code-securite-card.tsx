@@ -52,7 +52,7 @@ export function CodeSecuriteCard({ username }: { username: string }) {
         <IconShieldCheck size={20} className="text-primary" />
         <h5 className="text-lg font-semibold dark:text-white-light">Code de sécurité</h5>
       </div>
-      <p className="mb-4 text-sm text-gray-500">
+      <p className="mb-4 text-sm text-muted">
         Code à 4 chiffres, <span className="font-medium">différent de votre mot de passe</span>,
         demandé pour les actions sensibles (ex. suppression d&apos;une déduction). Votre mot de
         passe est requis pour le définir ou le changer.
@@ -71,7 +71,7 @@ export function CodeSecuriteCard({ username }: { username: string }) {
           variant="bordered"
           value={motDePasse}
           onValueChange={setMotDePasse}
-          startContent={<IconLock size={16} className="text-gray-400" />}
+          startContent={<IconLock size={16} className="text-muted" />}
         />
         <div className="grid grid-cols-2 gap-3">
           <Input

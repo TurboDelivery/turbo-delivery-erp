@@ -24,13 +24,13 @@ function User({ user, dataCreneau, exerianceLivreur }: props) {
     }
 
     return (
-        <div className="flex gap-4  mb-6 ">
+        <div className="flex gap-4 mb-6 ">
             <Card className="w-24 h-24 overflow-hidden rounded-md">
 
                 <Image src={createUrlFile(user?.avatarUrl ?? '', "backend")} alt="Photo de profil" layout="fill" objectFit="cover" />
             </Card>
-            <div className="flex justify-between  grow">
-                <div className="w-1/3 flex flex-col gap-2  border-r px-6 border-black">
+            <div className="flex justify-between grow">
+                <div className="w-1/3 flex flex-col gap-2 border-r px-6 border-black">
                     <div className=" flex justify-between">
                         <span>Nom</span>
                         <span>{user.prenoms} {user.nom}</span>
@@ -49,7 +49,7 @@ function User({ user, dataCreneau, exerianceLivreur }: props) {
                     </div>
                 </div>
 
-                <div className="w-1/3 flex flex-col gap-2  border-r px-6 border-black">
+                <div className="w-1/3 flex flex-col gap-2 border-r px-6 border-black">
                     <div className=" flex justify-between">
                         <span>Type de Turboy</span>
                         <span>{user.type}</span>
@@ -70,7 +70,7 @@ function User({ user, dataCreneau, exerianceLivreur }: props) {
                     </div>
                 </div>
 
-                <div className="w-1/3 flex flex-col gap-2  px-6 ">
+                <div className="w-1/3 flex flex-col gap-2 px-6 ">
                     <div className="flex justify-between">
                         <span>Contacts</span>
                         <span>{user.telephone}</span>

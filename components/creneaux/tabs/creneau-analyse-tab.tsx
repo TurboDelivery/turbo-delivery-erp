@@ -48,7 +48,7 @@ export function CreneauAnalyseTab() {
       <CapaciteFiabiliteCards capacite={capacite} fiabilite={fiabilite} />
 
       {/* Alerte écart */}
-      <div className={`flex items-center gap-3 rounded-lg p-4 ${ecartPositif ? 'bg-success-50 text-success' : 'bg-danger-50 text-danger'}`}>
+      <div className={`flex items-center gap-3 rounded-lg p-4 ${ecartPositif ? 'bg-success-50 text-success-soft-foreground' : 'bg-danger-50 text-danger-soft-foreground'}`}>
         {ecartPositif ? <TrendingUp className="size-5 shrink-0" /> : <TrendingDown className="size-5 shrink-0" />}
         <div>
           <p className="font-semibold">Ecart Prevision / Realite</p>
@@ -70,7 +70,7 @@ export function CreneauAnalyseTab() {
 
       {/* Banner comparaison */}
       {diffMatinSoir !== 0 && (
-        <div className={`flex items-center justify-center gap-2 rounded-lg p-4 ${diffMatinSoir > 0 ? 'bg-success-50 text-success' : 'bg-warning-50 text-warning'}`}>
+        <div className={`flex items-center justify-center gap-2 rounded-lg p-4 ${diffMatinSoir > 0 ? 'bg-success-50 text-success-soft-foreground' : 'bg-warning-50 text-warning-soft-foreground'}`}>
           {diffMatinSoir > 0 ? <TrendingUp className="size-5 shrink-0" /> : <TrendingDown className="size-5 shrink-0" />}
           <p className="font-semibold">
             {diffMatinSoir > 0

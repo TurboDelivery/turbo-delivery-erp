@@ -104,7 +104,7 @@ export function GroupeDetailPanel({ groupeId, userId, peutAdministrer, onRetour 
               </p>
             </div>
           ) : (
-            <p className="text-sm text-warning">
+            <p className="text-sm text-warning-soft-foreground">
               Ce groupe n&apos;a pas de compte principal — désignez-en un pour qu&apos;il soit administrable.
             </p>
           )}

@@ -23,7 +23,11 @@ export default function useTickets(restaurants: Restaurant[] = []) {
   const { data, isLoading, status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, isError, error, refetch } =
     useTicketsInfiniteQuery(currentSearchParams);
 
-  const { mutate: deleteBonLivraisonMutation, isPending: isDeletingBonLivraison } = useDeleteBonLivraison();
+  const {
+    mutate: deleteBonLivraisonMutation,
+    mutateAsync: deleteBonLivraisonAsync,
+    isPending: isDeletingBonLivraison,
+  } = useDeleteBonLivraison();
   const { mutate: updateBonLivraisonMutation, isPending: isUpdatingBonLivraison } = useUpdateBonLivraison();
 
   const ticketsRaw = useMemo(
@@ -48,7 +52,7 @@ export default function useTickets(restaurants: Restaurant[] = []) {
     isError,
     error,
     infiniteState: { status, isFetching, isFetchingNextPage, isFetchingPreviousPage, fetchNextPage, hasNextPage, totalItems, refetch },
-    mutations: { deleteBonLivraisonMutation, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
+    mutations: { deleteBonLivraisonMutation, deleteBonLivraisonAsync, isDeletingBonLivraison, updateBonLivraisonMutation, isUpdatingBonLivraison },
     editing,
   };
 }

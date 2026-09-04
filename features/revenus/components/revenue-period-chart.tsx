@@ -170,8 +170,8 @@ export default function RevenuePeriodChart() {
     return (
       <div className="space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-64 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-surface-tertiary rounded w-64 mb-4"></div>
+          <div className="h-64 bg-surface-tertiary rounded"></div>
         </div>
       </div>
     );
@@ -196,9 +196,9 @@ export default function RevenuePeriodChart() {
 
         {/* Section de debugging pour les plages personnalisées */}
         {dateRange && (
-          <Card className="p-4 bg-gray-50 border-gray-200">
-            <h4 className="text-sm font-semibold text-gray-800 mb-2">Informations de debugging</h4>
-            <div className="text-xs text-gray-600 space-y-1">
+          <Card className="p-4 bg-surface-secondary border-separator">
+            <h4 className="text-sm font-semibold text-foreground mb-2">Informations de debugging</h4>
+            <div className="text-xs text-muted space-y-1">
               <p>
                 <strong>Période sélectionnée:</strong> {selectedPeriod}
               </p>
@@ -253,9 +253,9 @@ export default function RevenuePeriodChart() {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="w-5 h-5 text-red-600" />
-              <h3 className="text-lg font-semibold text-gray-800">Revenu {periodLabels[selectedPeriod]}</h3>
+              <h3 className="text-lg font-semibold text-foreground">Revenu {periodLabels[selectedPeriod]}</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-4">{getPeriodDisplay()}</p>
+            <p className="text-sm text-muted mb-4">{getPeriodDisplay()}</p>
             <div className="flex items-baseline gap-3">
               <p className="text-3xl font-bold text-red-600">{formatCurrency(stats?.total || 0)}</p>
             </div>
@@ -268,27 +268,27 @@ export default function RevenuePeriodChart() {
         {/* Statistiques additionnelles */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-red-200">
           <div>
-            <p className="text-xs text-gray-600">Moyenne</p>
-            <p className="text-sm font-semibold text-gray-800">{formatCurrency(stats?.average || 0)}</p>
+            <p className="text-xs text-muted">Moyenne</p>
+            <p className="text-sm font-semibold text-foreground">{formatCurrency(stats?.average || 0)}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-600">Maximum</p>
-            <p className="text-sm font-semibold text-gray-800">{formatCurrency(stats?.max || 0)}</p>
+            <p className="text-xs text-muted">Maximum</p>
+            <p className="text-sm font-semibold text-foreground">{formatCurrency(stats?.max || 0)}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-600">Livraisons</p>
-            <p className="text-sm font-semibold text-gray-800">{stats?.deliveriesCount || 0}</p>
+            <p className="text-xs text-muted">Livraisons</p>
+            <p className="text-sm font-semibold text-foreground">{stats?.deliveriesCount || 0}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-600">Moyenne/Livraison</p>
-            <p className="text-sm font-semibold text-gray-800">{formatCurrency(stats?.averagePerDelivery || 0)}</p>
+            <p className="text-xs text-muted">Moyenne/Livraison</p>
+            <p className="text-sm font-semibold text-foreground">{formatCurrency(stats?.averagePerDelivery || 0)}</p>
           </div>
         </div>
       </Card>
 
       {/* Graphique */}
       <Card className="p-6 shadow-lg">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Évolution des revenus - Mois de {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">Évolution des revenus - Mois de {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</h3>
         <ResponsiveContainer width="100%" height={400}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -310,10 +310,10 @@ export default function RevenuePeriodChart() {
 
       {/* Carte de comparaison mensuelle */}
       {isYearError && (
-        <Card className="p-6 border-gray-200 shadow-lg">
+        <Card className="p-6 border-separator shadow-lg">
           <div className="flex items-center gap-2 mb-2">
             <BarChart3 className="w-5 h-5 text-red-600" />
-            <h3 className="text-lg font-semibold text-gray-800">Comparaison mensuelle</h3>
+            <h3 className="text-lg font-semibold text-foreground">Comparaison mensuelle</h3>
           </div>
           <EtatErreur
             quoi="la comparaison mensuelle"
@@ -323,25 +323,25 @@ export default function RevenuePeriodChart() {
       )}
 
       {!isYearError && monthlyComparison && (
-        <Card className="p-6 bg-linear-to-r from-gray-50 to-gray-100 border-gray-200 shadow-lg">
+        <Card className="p-6 bg-linear-to-r from-gray-50 to-gray-100 border-separator shadow-lg">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="w-5 h-5 text-red-600" />
-            <h3 className="text-lg font-semibold text-gray-800">Comparaison mensuelle</h3>
+            <h3 className="text-lg font-semibold text-foreground">Comparaison mensuelle</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Mois précédent */}
             <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Mois précédent</p>
-              <p className="text-xs text-gray-500 mb-2">{monthlyComparison.previousMonth.name}</p>
-              <p className="text-2xl font-bold text-gray-700">{formatCurrency(monthlyComparison.previousMonth.revenue)}</p>
+              <p className="text-sm text-muted mb-1">Mois précédent</p>
+              <p className="text-xs text-muted mb-2">{monthlyComparison.previousMonth.name}</p>
+              <p className="text-2xl font-bold text-foreground">{formatCurrency(monthlyComparison.previousMonth.revenue)}</p>
             </div>
 
             {/* Flèche de comparaison */}
             <div className="flex items-center justify-center">
               <div className="flex flex-col items-center">
-                <ArrowRight className="w-6 h-6 text-gray-400 mb-2" />
-                <p className="text-xs text-gray-600 mt-1">
+                <ArrowRight className="w-6 h-6 text-muted mb-2" />
+                <p className="text-xs text-muted mt-1">
                   {monthlyComparison.change >= 0 ? '+' : ''}
                   {formatCurrency(monthlyComparison.change)}
                 </p>
@@ -350,8 +350,8 @@ export default function RevenuePeriodChart() {
 
             {/* Mois en cours */}
             <div className="text-center">
-              <p className="text-sm text-gray-600 mb-1">Mois en cours</p>
-              <p className="text-xs text-gray-500 mb-2">{monthlyComparison.currentMonth.name}</p>
+              <p className="text-sm text-muted mb-1">Mois en cours</p>
+              <p className="text-xs text-muted mb-2">{monthlyComparison.currentMonth.name}</p>
               <p className="text-2xl font-bold text-red-600">{formatCurrency(monthlyComparison.currentMonth.revenue)}</p>
             </div>
           </div>

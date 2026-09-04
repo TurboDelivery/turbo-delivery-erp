@@ -22,18 +22,18 @@ export default function RegularisationQueue({
   onReessayer,
 }: Props) {
   return (
-    <div className="w-full lg:w-[340px] lg:shrink-0 rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+    <div className="w-full lg:w-[340px] lg:shrink-0 rounded-xl border border-separator bg-surface overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-separator">
         <div className="flex items-center gap-2">
           <span className="h-4 w-4 text-orange-400">⏱</span>
-          <span className="text-sm font-semibold text-gray-800">File d&apos;attente</span>
+          <span className="text-sm font-semibold text-foreground">File d&apos;attente</span>
         </div>
         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 text-orange-600 text-xs font-bold">
           {tickets.length}
         </span>
       </div>
 
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-separator">
         {tickets.map((ticket) => (
           <RegularisationQueueItem
             key={ticket.commandeId}
@@ -53,7 +53,7 @@ export default function RegularisationQueue({
           />
         )}
         {!isError && tickets.length === 0 && (
-          <p className="py-10 text-center text-sm text-gray-400">Aucun ticket en attente</p>
+          <p className="py-10 text-center text-sm text-muted">Aucun ticket en attente</p>
         )}
       </div>
     </div>

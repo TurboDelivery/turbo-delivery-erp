@@ -32,7 +32,7 @@ export function useTableauDePaiController(initialData: PaieErpVM | null, searchK
             case "TURBO":
                 return <Chip className="bg-yellow-100 text-yellow-500" size="sm">Assigné</Chip>;
             case "WAITING":
-                return <Chip className="bg-gray-100 text-gray-500" size="sm">En attente</Chip>;
+                return <Chip className="bg-surface-secondary text-muted" size="sm">En attente</Chip>;
             default:
                 return null;
         }
@@ -69,7 +69,7 @@ export function useTableauDePaiController(initialData: PaieErpVM | null, searchK
         if (weekend && weekend.statut === "VALIDE") {
             return <Chip className={`bg-green-500 mr-1 text-white`} size="sm" >{weekend?.jour?.charAt(0).toLowerCase()}</Chip>
         } else {
-            return <Chip className={`bg-gray-300 mr-1 text-white`} size="sm" >{weekend?.jour?.charAt(0).toLowerCase()}</Chip>
+            return <Chip className={`bg-surface-tertiary mr-1 text-white`} size="sm" >{weekend?.jour?.charAt(0).toLowerCase()}</Chip>
         }
     }
     return {

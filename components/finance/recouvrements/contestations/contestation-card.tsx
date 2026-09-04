@@ -78,8 +78,8 @@ export function ContestationCard({ contestation, onResolve }: ContestationCardPr
           {/* En-tête avec statut */}
           <div className="flex justify-between items-start gap-2">
             <div>
-              <p className="text-sm font-semibold text-gray-600">Facture</p>
-              <p className="text-lg font-bold text-gray-800">{contestation.facture?.code}</p>
+              <p className="text-sm font-semibold text-muted">Facture</p>
+              <p className="text-lg font-bold text-foreground">{contestation.facture?.code}</p>
             </div>
             <Chip
               color={getStatusColor(contestation.statut)}
@@ -98,7 +98,7 @@ export function ContestationCard({ contestation, onResolve }: ContestationCardPr
           {/* Informations restaurant */}
           {contestation.facture && (
             <div>
-              <p className="text-xs text-gray-600 font-medium">Restaurant</p>
+              <p className="text-xs text-muted font-medium">Restaurant</p>
               <p className="text-sm font-semibold">{contestation.facture.restaurantName || 'N/A'}</p>
             </div>
           )}
@@ -106,21 +106,21 @@ export function ContestationCard({ contestation, onResolve }: ContestationCardPr
           {/* Montant de la facture */}
           {contestation.facture?.montant && (
             <div>
-              <p className="text-xs text-gray-600 font-medium">Montant</p>
+              <p className="text-xs text-muted font-medium">Montant</p>
               <p className="text-sm font-bold text-blue-600">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(contestation.facture.montant)}</p>
             </div>
           )}
 
           {/* Description limitée */}
           <div>
-            <p className="text-xs text-gray-600 font-medium mb-1">Description</p>
-            <p className="text-sm text-gray-700 line-clamp-2">{contestation.description}</p>
+            <p className="text-xs text-muted font-medium mb-1">Description</p>
+            <p className="text-sm text-foreground line-clamp-2">{contestation.description}</p>
           </div>
 
           {/* Date de création */}
-          <div className="pt-2 border-t border-gray-300">
-            <p className="text-xs text-gray-600 font-medium">Date de contestation</p>
-            <p className="text-sm font-medium text-gray-800">{format(new Date(contestation.createdAt), 'd MMMM yyyy', { locale: fr })}</p>
+          <div className="pt-2 border-t border-separator">
+            <p className="text-xs text-muted font-medium">Date de contestation</p>
+            <p className="text-sm font-medium text-foreground">{format(new Date(contestation.createdAt), 'd MMMM yyyy', { locale: fr })}</p>
           </div>
 
           {/* Actions */}
@@ -162,23 +162,23 @@ export function ContestationCard({ contestation, onResolve }: ContestationCardPr
               <ModalBody className="gap-4">
                 {/* Informations facture */}
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Informations de la facture</h4>
+                  <h4 className="font-semibold text-foreground mb-2">Informations de la facture</h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-600 font-medium">Code facture</p>
-                      <p className="text-gray-800 font-semibold">{contestation.facture?.code}</p>
+                      <p className="text-muted font-medium">Code facture</p>
+                      <p className="text-foreground font-semibold">{contestation.facture?.code}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600 font-medium">Restaurant</p>
-                      <p className="text-gray-800 font-semibold">{contestation.facture?.restaurantName}</p>
+                      <p className="text-muted font-medium">Restaurant</p>
+                      <p className="text-foreground font-semibold">{contestation.facture?.restaurantName}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600 font-medium">Montant</p>
+                      <p className="text-muted font-medium">Montant</p>
                       <p className="font-bold text-blue-600">{new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(contestation.facture?.montant || 0)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-600 font-medium">Période</p>
-                      <p className="text-gray-800 text-xs">
+                      <p className="text-muted font-medium">Période</p>
+                      <p className="text-foreground text-xs">
                         {format(new Date(contestation.facture?.periodeDebut || ''), 'dd MMM yyyy', { locale: fr })} au{' '}
                         {format(new Date(contestation.facture?.periodeFin || ''), 'dd MMM yyyy', { locale: fr })}
                       </p>
@@ -188,17 +188,17 @@ export function ContestationCard({ contestation, onResolve }: ContestationCardPr
 
                 {/* Description complète */}
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">Description de la contestation</h4>
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-gray-700 whitespace-pre-wrap">{contestation.description}</p>
+                  <h4 className="font-semibold text-foreground mb-2">Description de la contestation</h4>
+                  <div className="bg-surface-secondary p-4 rounded-lg border border-separator">
+                    <p className="text-foreground whitespace-pre-wrap">{contestation.description}</p>
                   </div>
                 </div>
 
                 {/* Dates */}
-                <div className="grid grid-cols-1 gap-4 text-sm border-t border-gray-200 pt-4">
+                <div className="grid grid-cols-1 gap-4 text-sm border-t border-separator pt-4">
                   <div>
-                    <p className="text-gray-600 font-medium">Date de contestation</p>
-                    <p className="text-gray-800">{format(new Date(contestation.createdAt), 'dd MMMM yyyy HH:mm', { locale: fr })}</p>
+                    <p className="text-muted font-medium">Date de contestation</p>
+                    <p className="text-foreground">{format(new Date(contestation.createdAt), 'dd MMMM yyyy HH:mm', { locale: fr })}</p>
                   </div>
                 </div>
               </ModalBody>

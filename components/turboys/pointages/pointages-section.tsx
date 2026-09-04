@@ -87,30 +87,30 @@ export default function PointagesSection({ driverId }: { driverId: string }) {
   }
 
   return (
-    <section className="space-y-4 rounded-xl border border-gray-100 bg-white p-5">
+    <section className="space-y-4 rounded-xl border border-separator bg-surface p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-primary">Pointages</h3>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-muted">
             {synth.total} jour(s) · {synth.present} présents · {synth.retard} retards · {synth.absent} absents ·{' '}
             {synth.horsZone} hors-zone
             {cote?.cote != null && <> · cote {cote.cote}/100</>}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <label className="text-gray-500">Du</label>
+          <label className="text-muted">Du</label>
           <input
             type="date"
             value={debut}
             onChange={(e) => setDebut(e.target.value)}
-            className="rounded-lg border border-gray-200 px-2 py-1 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
+            className="rounded-lg border border-separator px-2 py-1 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
           />
-          <label className="text-gray-500">au</label>
+          <label className="text-muted">au</label>
           <input
             type="date"
             value={fin}
             onChange={(e) => setFin(e.target.value)}
-            className="rounded-lg border border-gray-200 px-2 py-1 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
+            className="rounded-lg border border-separator px-2 py-1 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
           />
           <Button size="sm" variant="outline" onClick={exporterCsv} disabled={rows.length === 0} className="gap-1.5">
             <Download className="size-3.5" /> CSV
@@ -124,7 +124,7 @@ export default function PointagesSection({ driverId }: { driverId: string }) {
         <Table aria-label="Pointages du livreur" isStriped removeWrapper>
           <TableHeader>
             {table.getFlatHeaders().map((h) => (
-              <TableColumn key={h.id} className="bg-gray-50 text-xs font-semibold uppercase text-gray-500">
+              <TableColumn key={h.id} className="bg-surface-secondary text-xs font-semibold uppercase text-muted">
                 {flexRender(h.column.columnDef.header, h.getContext())}
               </TableColumn>
             ))}

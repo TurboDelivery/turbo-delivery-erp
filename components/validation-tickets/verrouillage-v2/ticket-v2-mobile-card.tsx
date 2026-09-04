@@ -1,84 +1,112 @@
 'use client';
 
+import { Card, Chip } from '@heroui-v3/react';
 import type { ReactNode } from 'react';
-import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
+
+import { cn } from '@/lib/utils';
+import type { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+
 import { AgentCell, formatDate } from './verrouillage-v2-columns';
 
 /**
- * Carte mobile d'un ticket V2 — remplace la ligne du tableau dense sur petit
- * écran (cf. wrapper `hidden md:block` / `md:hidden`). Mêmes données que les
- * colonnes (verrouillage-v2-columns / v2-valide-columns) : on réutilise
- * `AgentCell`, `formatDate` et `formatCFA` pour garantir zéro divergence.
- * Les actions (Valider V2 / Rejeter) sont passées par la liste appelante.
+ * La carte d'un ticket V2 au telephone, en remplacement du tableau dense sous `md`
+ * (cf. l'enveloppe `hidden md:block` / `md:hidden` des deux tables).
+ *
+ * <p>Elle lit les MEMES donnees que les colonnes et reutilise `AgentCell`, `formatDate`
+ * et `formatCFA` : aucune divergence possible entre les deux surfaces. Les actions
+ * (Valider V2 / Rejeter) restent fournies par la liste appelante, qui seule connait
+ * le role de l'operateur et l'etat d'envoi.</p>
+ *
+ * <h3>Ce qui change</h3>
+ * <ul>
+ *   <li>Le cadre etait un `div` habille a la main (`bg-surface`, bordure, arrondi, ombre).
+ *       C'est une carte de la bibliotheque : elle suit le theme sans qu'on le redise.</li>
+ *   <li>La pastille de zone etait ecrite en `border-green-500 bg-green-50 text-green-700`,
+ *       sans variante sombre : depuis que la bascule de theme est dans l'en-tete, elle
+ *       s'affichait vert pastel sur fond sombre. Elle passe au `Chip` en couleur success,
+ *       qui a ses deux themes.</li>
+ *   <li>Les trois montants etaient poses en ligne, separes par des points mediens. Un
+ *       operateur qui fait defiler vingt tickets compare des montants : ils rejoignent la
+ *       liste libelle/valeur des autres champs, alignes a droite et en chasse tabulaire,
+ *       donc comparables d'une carte a l'autre. Les libelles reprennent mot pour mot les
+ *       en-tetes du tableau (MONTANT CMD, MONTANT LIV., COMMISSION) plutot que les
+ *       abreviations CMD / LIV / COM, qui n'existaient que dans cette carte.</li>
+ * </ul>
  */
-export default function TicketV2MobileCard({
-  ticket,
-  actions,
-}: {
-  ticket: TicketControleV2;
-  actions?: ReactNode;
-}) {
+
+/** Une valeur en lecture : libelle a gauche, valeur a droite, alignees d'une ligne a l'autre. */
+function Champ({ libelle, className, children }: { libelle: string; className?: string; children: ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className="shrink-0 text-xs text-muted">{libelle}</span>
+      <span className={cn('truncate text-right text-sm text-foreground', className)}>{children}</span>
+    </div>
+  );
+}
+
+/** Un maillon de la chaine de controle : qui a fait quoi, et quand. */
+function Etape({ libelle, children }: { libelle: string; children: ReactNode }) {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-wide text-muted">{libelle}</p>
+      {children}
+    </div>
+  );
+}
+
+export default function TicketV2MobileCard({ ticket, actions }: { ticket: TicketControleV2; actions?: ReactNode }) {
   const zone = ticket.nomZone ?? 'VERTE';
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2">
+    <Card className="gap-2">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-gray-900">{ticket.reference}</p>
-          <p className="truncate text-xs text-gray-500">{ticket.livreur}</p>
+          <p className="truncate text-sm font-semibold text-foreground">{ticket.reference}</p>
+          <p className="truncate text-xs text-muted">{ticket.livreur}</p>
         </div>
-        <span
-          title={zone}
-          className="shrink-0 inline-flex items-center gap-1 rounded-full border border-green-500 bg-green-50 px-2 py-0.5 text-[11px] font-medium text-green-700 max-w-[140px]"
-        >
-          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-500" />
-          <span className="truncate">{zone}</span>
-        </span>
+        {/* Le nom de zone est tronque faute de place : l'info-bulle native donne le nom entier. */}
+        <Chip className="max-w-[140px]" color="success" title={zone} variant="soft">
+          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
+          <Chip.Label className="truncate">{zone}</Chip.Label>
+        </Chip>
       </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <span className="shrink-0 text-xs text-gray-400">Partenaire</span>
-        <span className="truncate text-right text-sm text-blue-500">{ticket.restaurant}</span>
-      </div>
-      <div className="flex items-center justify-between gap-3">
-        <span className="shrink-0 text-xs text-gray-400">Date</span>
-        <span className="text-right text-sm text-gray-700">{formatDate(ticket.date)}</span>
-      </div>
+      <Champ className="text-blue-600 dark:text-blue-400" libelle="Partenaire">
+        {ticket.restaurant}
+      </Champ>
+      <Champ libelle="Date">{formatDate(ticket.date)}</Champ>
+      <Champ className="font-semibold tabular-nums" libelle="Montant CMD">
+        {formatCFA(ticket.coutCommande)}
+      </Champ>
+      <Champ className="font-semibold tabular-nums" libelle="Montant LIV.">
+        {formatCFA(ticket.coutLivraison)}
+      </Champ>
+      <Champ className="font-semibold tabular-nums text-success-soft-foreground" libelle="Commission">
+        {ticket.commission != null ? formatCFA(ticket.commission) : '—'}
+      </Champ>
 
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-        <span className="text-gray-400">CMD</span>
-        <span className="font-semibold text-gray-700">{formatCFA(ticket.coutCommande)}</span>
-        <span className="text-gray-200">·</span>
-        <span className="text-gray-400">LIV</span>
-        <span className="font-semibold text-gray-700">{formatCFA(ticket.coutLivraison)}</span>
-        <span className="text-gray-200">·</span>
-        <span className="text-gray-400">COM</span>
-        <span className="font-semibold text-green-600">
-          {ticket.commission != null ? formatCFA(ticket.commission) : '—'}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 border-t border-gray-50 pt-2 text-xs">
-        <div>
-          <p className="text-[10px] uppercase tracking-wide text-gray-400">Créé par</p>
+      <div className="grid grid-cols-2 gap-2 border-t border-separator pt-2 text-xs">
+        <Etape libelle="Créé par">
           <AgentCell agent={ticket.createdByUser} />
-        </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-wide text-gray-400">Auth par</p>
+        </Etape>
+        <Etape libelle="Auth par">
           <AgentCell agent={ticket.vauthAgent} date={ticket.vauthAt} />
-        </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-wide text-gray-400">V1 par</p>
+        </Etape>
+        <Etape libelle="V1 par">
           <AgentCell agent={ticket.v1Agent} date={ticket.v1ValideAt} />
-        </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-wide text-gray-400">V2 par</p>
+        </Etape>
+        <Etape libelle="V2 par">
           <AgentCell agent={ticket.v2Agent} date={ticket.v2ValideAt} />
-        </div>
+        </Etape>
       </div>
 
+      {/*
+       * Les actions restent dans un bloc et non dans `Card.Footer` : le pied de carte
+       * est une rangee flex, ou le groupe de boutons `fullWidth` cesserait de s'etendre
+       * et redeviendrait deux cibles etroites au doigt.
+       */}
       {actions && <div className="pt-1">{actions}</div>}
-    </div>
+    </Card>
   );
 }

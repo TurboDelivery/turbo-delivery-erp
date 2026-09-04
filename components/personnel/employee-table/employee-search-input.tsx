@@ -25,7 +25,7 @@ export function EmployeeSearchInput({
       value={value}
       onChange={handleChange}
       startContent={
-        <Search className="h-4 w-4 text-gray-400" />
+        <Search className="h-4 w-4 text-muted" />
       }
       variant="bordered"
       size="sm"

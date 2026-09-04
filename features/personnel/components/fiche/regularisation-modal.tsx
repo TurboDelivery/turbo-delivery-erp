@@ -173,7 +173,7 @@ export function RegularisationModal({ employeId, ouvert, onFermer }: Props) {
           </div>
 
           {moisClotures.length === 0 ? (
-            <p className="text-xs text-warning">
+            <p className="text-xs text-warning-soft-foreground">
               Aucun mois clôturé : une correction se fait alors directement sur le mois concerné, sans régularisation.
             </p>
           ) : null}

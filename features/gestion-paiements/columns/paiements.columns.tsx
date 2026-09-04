@@ -61,17 +61,17 @@ export function createPaiementsColumns({ onDecaisser, isPending, onDelete, isDel
     {
       accessorKey: 'designation',
       header: 'Désignation',
-      cell: ({ row }) => <span className="text-sm text-gray-900">{row.getValue('designation')}</span>,
+      cell: ({ row }) => <span className="text-sm text-foreground">{row.getValue('designation')}</span>,
     },
     {
       id: 'categorie',
       header: 'Catégorie',
-      cell: ({ row }) => <span className="text-sm text-gray-600">{row.original.categorie?.nomCategorie ?? '—'}</span>,
+      cell: ({ row }) => <span className="text-sm text-muted">{row.original.categorie?.nomCategorie ?? '—'}</span>,
     },
     {
       accessorKey: 'montant',
       header: 'Montant',
-      cell: ({ row }) => <span className="text-sm font-medium text-gray-900">{formatMontant(row.getValue<number>('montant'))}</span>,
+      cell: ({ row }) => <span className="text-sm font-medium text-foreground">{formatMontant(row.getValue<number>('montant'))}</span>,
     },
     {
       accessorKey: 'statut',

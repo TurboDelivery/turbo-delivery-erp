@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Button,
   ComboBox,
@@ -25,6 +25,7 @@ import { useRestaurerArchives } from '@/features/tickets/queries/tickets.mutatio
 import { IArchiveBonLivraisonVm } from '@/features/tickets/types/tickets.type';
 import { ticketArchivesColumns, TicketArchivesColumnMeta } from './ticket-archives-columns';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 
 interface TicketArchivesTableProps {
   restaurantOptions: { value: string; label: string }[];
@@ -42,6 +43,9 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
   const [restaurantId, setRestaurantId] = useState('');
   const [livreurId, setLivreurId] = useState('');
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  const zoneArchivesRef = useRef<HTMLDivElement>(null);
+  const hauteurArchives = useHauteurDisponible(zoneArchivesRef);
+
   const [restoringId, setRestoringId] = useState<string | null>(null);
   const [confirmIds, setConfirmIds] = useState<string[] | null>(null);
 
@@ -61,11 +65,20 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
   // Sentinelle dédiée aux cartes mobile (le sentinel desktop est masqué < md et n'intersecte jamais)
   const observerTargetMobile = useInfiniteScroll(archivesQuery.fetchNextPage, archivesQuery.hasNextPage ?? false);
 
-  const restaurerMutation = useRestaurerArchives(() => {
-    setRowSelection({});
-    setRestoringId(null);
-    setConfirmIds(null);
-  });
+  const restaurerMutation = useRestaurerArchives(
+    // Sur succes seulement : la selection se vide et la modale se ferme.
+    () => {
+      setRowSelection({});
+      setConfirmIds(null);
+    },
+    /*
+     * Dans TOUS les cas : l'attente s'arrete. Elle etait remise a zero dans le seul
+     * rappel de succes, donc sur echec le bouton tournait indefiniment et la modale
+     * restait ouverte, sans que rien n'annonce l'echec ni ne rende la main. La modale
+     * reste ouverte apres un echec, mais operable : on peut reessayer ou fermer.
+     */
+    () => setRestoringId(null),
+  );
 
   const handleRestoreRow = useCallback((commandeId: string) => {
     setConfirmIds([commandeId]);
@@ -224,7 +237,15 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
       ) : (
         <>
       <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
-        <div className="max-h-[420px] overflow-y-auto">
+        {/* Hauteur MESUREE, comme l'onglet « Tous les tickets ». Le plafond de 420 px
+            ecrit en dur laissait environ 340 px de tableau sur la fenetre reelle des
+            postes (1000x563) et perdait une rangee des qu'un titre passait sur deux
+            lignes. C'est le defaut deja corrige a cote, et nomme dans son commentaire. */}
+        <div
+          className="overflow-y-auto md:h-[calc(100vh-15rem)] md:min-h-[320px]"
+          ref={zoneArchivesRef}
+          style={hauteurArchives ? { height: hauteurArchives } : undefined}
+        >
           <Table isStriped>
             <TableHeader>
               {table.getFlatHeaders().map((header) => (

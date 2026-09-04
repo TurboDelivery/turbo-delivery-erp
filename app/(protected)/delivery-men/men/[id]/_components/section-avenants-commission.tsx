@@ -36,7 +36,7 @@ export function SectionAvenantsCommission({
   }
 
   return (
-    <section className="bg-white rounded-xl border border-gray-100 shadow-xs p-6">
+    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
       <SectionTitle>Commission &amp; Avenants</SectionTitle>
 
       {/* Commission */}
@@ -66,7 +66,7 @@ export function SectionAvenantsCommission({
       {/* Avenants existants */}
       {existingAvenants && existingAvenants.length > 0 && (
         <div className="mb-4">
-          <p className="text-sm font-medium text-gray-600 mb-2">Avenants actuels</p>
+          <p className="text-sm font-medium text-muted mb-2">Avenants actuels</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {existingAvenants.map((url, i) => (
               <DocPreview key={i} label={`Avenant ${i + 1}`} url={url} />
@@ -77,7 +77,7 @@ export function SectionAvenantsCommission({
 
       {/* Upload nouveaux avenants */}
       <div>
-        <p className="text-sm font-medium text-gray-700 mb-2">Ajouter des avenants</p>
+        <p className="text-sm font-medium text-foreground mb-2">Ajouter des avenants</p>
         {avenantFiles.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
             {avenantFiles.map((file, i) => {
@@ -97,7 +97,7 @@ export function SectionAvenantsCommission({
                       className="w-full h-28 object-cover rounded-lg border-2 border-primary/30"
                     />
                   )}
-                  <p className="text-[11px] text-gray-400 mt-1 truncate">{file.name}</p>
+                  <p className="text-[11px] text-muted mt-1 truncate">{file.name}</p>
                   <button
                     type="button"
                     onClick={() => removeFile(i)}
@@ -113,7 +113,7 @@ export function SectionAvenantsCommission({
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border-2 border-dashed border-gray-300 text-gray-400 hover:border-primary hover:text-primary transition-colors text-sm"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border-2 border-dashed border-separator text-muted hover:border-primary hover:text-primary transition-colors text-sm"
         >
           <Plus className="w-4 h-4" />
           Ajouter un fichier
@@ -126,7 +126,7 @@ export function SectionAvenantsCommission({
           className="hidden"
           onChange={handleFileChange}
         />
-        <p className="text-xs text-gray-400 mt-2">PDF, JPG ou PNG — plusieurs fichiers acceptés</p>
+        <p className="text-xs text-muted mt-2">PDF, JPG ou PNG — plusieurs fichiers acceptés</p>
       </div>
     </section>
   );

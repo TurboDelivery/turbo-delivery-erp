@@ -5,14 +5,12 @@ import { tv } from '@/components/heroui';
 export const title = tv({
   base: "tracking-tight inline font-semibold",
   variants: {
+    /*
+     * Sept degrades du gabarit d'origine (violet, jaune, bleu, cyan, vert, rose,
+     * `foreground`) ont ete retires : aucun n'etait employe. Seul `primary` sert, 219
+     * fois, et il est le seul a suivre le theme puisqu'il passe par les jetons.
+     */
     color: {
-      violet: "from-[#FF1CF7] to-[#b249f8]",
-      yellow: "from-[#FF705B] to-[#FFB457]",
-      blue: "from-[#5EA2EF] to-[#0072F5]",
-      cyan: "from-[#00b7fa] to-[#01cfea]",
-      green: "from-[#6FEE8D] to-[#17c964]",
-      pink: "from-[#FF72E1] to-[#F54C7A]",
-      foreground: "dark:from-[#FFFFFF] dark:to-[#4B4B4B]",
       primary: "from-[hsl(var(--primary))] to-[var(--accent)]",
     },
     size: {
@@ -32,16 +30,7 @@ export const title = tv({
   },
   compoundVariants: [
     {
-      color: [
-        "violet",
-        "yellow",
-        "blue",
-        "cyan",
-        "green",
-        "pink",
-        "foreground",
-        "primary",
-      ],
+      color: ["primary"],
       class: "bg-clip-text text-transparent bg-linear-to-b",
     },
   ],
@@ -51,13 +40,6 @@ export const subtitle = tv({
   base: "leading-6 w-full my-2 text-lg lg:text-xl 2xl:text-2xl text-default-600 block max-w-full",
   variants: {
     color: {
-      violet: "from-[#FF1CF7] to-[#b249f8]",
-      yellow: "from-[#FF705B] to-[#FFB457]",
-      blue: "from-[#5EA2EF] to-[#0072F5]",
-      cyan: "from-[#00b7fa] to-[#01cfea]",
-      green: "from-[#6FEE8D] to-[#17c964]",
-      pink: "from-[#FF72E1] to-[#F54C7A]",
-      foreground: "dark:from-[#FFFFFF] dark:to-[#4B4B4B]",
       primary: "from-[hsl(var(--primary))] to-[var(--accent)]",
     },
     fullWidth: {
@@ -69,16 +51,7 @@ export const subtitle = tv({
   },
   compoundVariants: [
     {
-      color: [
-        "violet",
-        "yellow",
-        "blue",
-        "cyan",
-        "green",
-        "pink",
-        "foreground",
-        "primary",
-      ],
+      color: ["primary"],
       class: "bg-clip-text text-transparent bg-linear-to-b",
     },
   ],
@@ -88,13 +61,6 @@ export const body = tv({
   base: "text-base 2xl:text-lg leading-6",
   variants: {
     color: {
-      violet: "from-[#FF1CF7] to-[#b249f8]",
-      yellow: "from-[#FF705B] to-[#FFB457]",
-      blue: "from-[#5EA2EF] to-[#0072F5]",
-      cyan: "from-[#00b7fa] to-[#01cfea]",
-      green: "from-[#6FEE8D] to-[#17c964]",
-      pink: "from-[#FF72E1] to-[#F54C7A]",
-      foreground: "dark:from-[#FFFFFF] dark:to-[#4B4B4B]",
       primary: "from-[hsl(var(--primary))] to-[var(--accent)]",
     },
     size: {
@@ -109,16 +75,7 @@ export const body = tv({
   },
   compoundVariants: [
     {
-      color: [
-        "violet",
-        "yellow",
-        "blue",
-        "cyan",
-        "green",
-        "pink",
-        "foreground",
-        "primary",
-      ],
+      color: ["primary"],
       class: "bg-clip-text text-transparent bg-linear-to-b",
     },
   ],

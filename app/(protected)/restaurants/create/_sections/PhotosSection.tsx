@@ -13,8 +13,8 @@ export function PhotosSection({ pictureRef, picturePreviews, onPicturesChange, o
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-medium text-gray-700">Photos de l'établissement</p>
-        <span className="text-xs text-gray-400">{picturePreviews.length} / 8</span>
+        <p className="text-sm font-medium text-foreground">Photos de l'établissement</p>
+        <span className="text-xs text-muted">{picturePreviews.length} / 8</span>
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
         {picturePreviews.map((url, i) => (
@@ -31,7 +31,7 @@ export function PhotosSection({ pictureRef, picturePreviews, onPicturesChange, o
           <button
             type="button"
             onClick={() => pictureRef.current?.click()}
-            className="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary transition-colors gap-1"
+            className="aspect-square border-2 border-dashed border-separator rounded-lg flex flex-col items-center justify-center text-muted hover:border-primary hover:text-primary transition-colors gap-1"
           >
             <Plus className="w-5 h-5" />
             <span className="text-[10px]">Ajouter</span>

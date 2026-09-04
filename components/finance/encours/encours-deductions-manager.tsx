@@ -120,7 +120,7 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
                     <div key={d.id} className="flex items-center justify-between gap-2 py-2 text-sm">
                       <div className="min-w-0">
                         <span className="font-medium">{d.groupePartenaire}</span>
-                        <span className="text-gray-500"> — {d.motif || '—'}</span>
+                        <span className="text-muted"> — {d.motif || '—'}</span>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <span className="font-semibold">{formatFcfa(d.montant)}</span>
@@ -147,7 +147,7 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
                     <EtatErreur quoi="les déductions" onReessayer={() => refetch()} enCours={isFetching} />
                   ) : (
                     (!deductions || deductions.length === 0) && (
-                      <p className="py-2 text-sm text-gray-500">Aucune déduction pour {annee}.</p>
+                      <p className="py-2 text-sm text-muted">Aucune déduction pour {annee}.</p>
                     )
                   )}
                 </div>
@@ -177,11 +177,11 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
           {(fermer) => (
             <>
               <ModalHeader className="flex items-center gap-2">
-                <Lock className="h-4 w-4 text-danger" />
+                <Lock className="h-4 w-4 text-danger-soft-foreground" />
                 Code de sécurité requis
               </ModalHeader>
               <ModalBody className="gap-3">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted">
                   Supprimer la déduction{' '}
                   <span className="font-medium">{suppression?.groupePartenaire}</span> de{' '}
                   <span className="font-semibold">{formatFcfa(suppression?.montant ?? 0)}</span> ?

@@ -72,7 +72,7 @@ export default function Content({ data: initialData }: Props) {
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold text-primary">Courses journalières</h1>
-          <p className="text-sm text-gray-500 mt-0.5 capitalize">
+          <p className="text-sm text-muted mt-0.5 capitalize">
             {dayjs().format('dddd DD/MM/YYYY')} — point par restaurant partenaire
           </p>
         </div>

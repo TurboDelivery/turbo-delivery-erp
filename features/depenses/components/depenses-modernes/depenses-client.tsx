@@ -131,7 +131,7 @@ export default function DepensesModernesClient() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-bold text-primary">Historique des Dépenses</h1>
-                        <p className="text-gray-600 mt-2">
+                        <p className="text-muted mt-2">
                             Consultez l'historique complet des dépenses par catégorie
                         </p>
                     </div>
@@ -225,7 +225,7 @@ export default function DepensesModernesClient() {
                 {/* Filtres */}
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-3 w-4 h-4 text-muted" />
                         <Input
                             placeholder="Rechercher par libellé, catégorie..."
                             value={searchTerm}
@@ -262,16 +262,16 @@ export default function DepensesModernesClient() {
 
                 {/* Onglets */}
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1 rounded-lg">
+                    <TabsList className="grid w-full grid-cols-2 bg-surface-secondary p-1 rounded-lg">
                         <TabsTrigger 
                             value="toutes" 
                             className={`flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 ${
-                                activeTab === "toutes" ? "bg-red-500 text-white shadow-lg" : "text-gray-600 hover:text-gray-900"
+                                activeTab === "toutes" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-gray-900"
                             }`}
                         >
                             <span>Toutes les dépenses</span>
                             <Badge variant={activeTab === "toutes" ? "secondary" : "outline"} className={
-                                activeTab === "toutes" ? "bg-white text-red-500" : ""
+                                activeTab === "toutes" ? "bg-surface text-red-500" : ""
                             }>
                                 {filteredDepenses.length}
                             </Badge>
@@ -279,12 +279,12 @@ export default function DepensesModernesClient() {
                         <TabsTrigger 
                             value="categories" 
                             className={`flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 ${
-                                activeTab === "categories" ? "bg-red-500 text-white shadow-lg" : "text-gray-600 hover:text-gray-900"
+                                activeTab === "categories" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-gray-900"
                             }`}
                         >
                             <span>Par catégorie</span>
                             <Badge variant={activeTab === "categories" ? "secondary" : "outline"} className={
-                                activeTab === "categories" ? "bg-white text-red-500" : ""
+                                activeTab === "categories" ? "bg-surface text-red-500" : ""
                             }>
                                 {sortedCategories.length}
                             </Badge>
@@ -306,7 +306,7 @@ export default function DepensesModernesClient() {
                             ) : filteredDepenses.length === 0 ? (
                                 <Card>
                                     <CardContent className="p-8 text-center">
-                                        <p className="text-gray-500">Aucune dépense trouvée</p>
+                                        <p className="text-muted">Aucune dépense trouvée</p>
                                     </CardContent>
                                 </Card>
                             ) : (
@@ -325,10 +325,10 @@ export default function DepensesModernesClient() {
                                                                 {depense.categorie?.nomCategorie || 'Non catégorisé'}
                                                             </Badge>
                                                         </div>
-                                                        <p className="text-sm text-gray-600">
+                                                        <p className="text-sm text-muted">
                                                             REF-{depense.id}
                                                         </p>
-                                                        <p className="text-xs text-gray-500">
+                                                        <p className="text-xs text-muted">
                                                             {depense.dateDepense && format(new Date(depense.dateDepense), 'PPP', { locale: fr })}
                                                         </p>
                                                     </div>
@@ -337,7 +337,7 @@ export default function DepensesModernesClient() {
                                                     <p className="font-bold text-lg text-red-600">
                                                         {formatMontant(depense.montant ?? 0)}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-muted">
                                                         Dépense {depense.categorie?.nomCategorie?.toLowerCase() || 'générale'}
                                                     </p>
                                                 </div>
@@ -364,7 +364,7 @@ export default function DepensesModernesClient() {
                             ) : sortedCategories.length === 0 ? (
                                 <Card>
                                     <CardContent className="p-8 text-center">
-                                        <p className="text-gray-500">Aucune catégorie trouvée</p>
+                                        <p className="text-muted">Aucune catégorie trouvée</p>
                                     </CardContent>
                                 </Card>
                             ) : (
@@ -383,17 +383,17 @@ export default function DepensesModernesClient() {
                                                                 {categorie.nombre} dépenses
                                                             </Badge>
                                                         </div>
-                                                        <p className="text-sm text-gray-600">
+                                                        <p className="text-sm text-muted">
                                                             {categorie.depenses.length} transactions
                                                         </p>
                                                         <div className="flex flex-wrap gap-1 mt-2">
                                                             {categorie.depenses.slice(0, 3).map((dep: any) => (
-                                                                <span key={dep.id} className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                                                <span key={dep.id} className="text-xs bg-surface-secondary px-2 py-1 rounded">
                                                                     {dep.libelle}
                                                                 </span>
                                                             ))}
                                                             {categorie.depenses.length > 3 && (
-                                                                <span className="text-xs bg-gray-100 px-2 py-1 rounded">
+                                                                <span className="text-xs bg-surface-secondary px-2 py-1 rounded">
                                                                     +{categorie.depenses.length - 3} autres
                                                                 </span>
                                                             )}
@@ -404,7 +404,7 @@ export default function DepensesModernesClient() {
                                                     <p className="font-bold text-lg text-orange-600">
                                                         {formatMontant(categorie.total)}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className="text-xs text-muted">
                                                         Moyenne: {formatMontant(Math.round(categorie.total / categorie.nombre))}
                                                     </p>
                                                 </div>

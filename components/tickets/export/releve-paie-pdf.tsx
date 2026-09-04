@@ -141,7 +141,10 @@ export function RelevePaiePdf({ data, period }: { data: IReleveDePaie; period: s
           </View>
           <View style={styles.row}>
             <Text>Pourcentage applicable</Text>
-            <Text>{data.pourcentageApplicable}</Text>
+            {/* La valeur est une FRACTION (0,6 pour 60 %). Elle etait imprimee brute :
+                le livreur lisait « 0.6 » entre son total general et son gain, et ne
+                pouvait donc pas refaire le calcul a partir de ce qu'on lui remettait. */}
+            <Text>{`${Math.round(data.pourcentageApplicable * 100)} %`}</Text>
           </View>
           <View style={styles.row}>
             <Text>Gain</Text>

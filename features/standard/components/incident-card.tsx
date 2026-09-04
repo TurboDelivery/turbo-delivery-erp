@@ -85,8 +85,8 @@ export function IncidentCard({ incident, livreur, estNouveau, canUpdate, onOuvri
 
   return (
     <article
-      className={`rounded-2xl border bg-white p-4 transition-shadow hover:shadow-xs dark:bg-content1 ${ton.carte} ${
-        estNouveau ? 'ring-2 ring-[#E11D48]/25' : ''
+      className={`rounded-2xl border bg-surface p-4 transition-shadow hover:shadow-xs dark:bg-content1 ${ton.carte} ${
+        estNouveau ? 'ring-2 ring-danger/25' : ''
       }`}
     >
       {/* Motif + heure + appel : ce qu'on lit en premier, et le geste d'urgence. */}
@@ -100,7 +100,7 @@ export function IncidentCard({ incident, livreur, estNouveau, canUpdate, onOuvri
             <h3 className="truncate text-[15px] font-bold text-default-800">{incident.motifLibelle}</h3>
             <IncidentStatutChip statut={incident.statut} />
             {estNouveau && (
-              <span className="inline-flex items-center rounded-full bg-[#E11D48] px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+              <span className="inline-flex items-center rounded-full bg-danger px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
                 Nouveau
               </span>
             )}
@@ -113,7 +113,7 @@ export function IncidentCard({ incident, livreur, estNouveau, canUpdate, onOuvri
         {incident.livreurId && (
           <Button
             size="sm"
-            className="shrink-0 bg-[#1AA05A]/10 font-semibold text-[#147A45]"
+            className="shrink-0 bg-success/10 font-semibold text-success-soft-foreground"
             startContent={<Phone className="h-4 w-4" />}
             isDisabled={enAppel}
             onPress={() => appelerLivreur(incident.livreurId, nom, incident.id)}
@@ -219,8 +219,8 @@ export function IncidentCard({ incident, livreur, estNouveau, canUpdate, onOuvri
                 size="sm"
                 className={
                   confirmationAttendue
-                    ? 'bg-[#B91C1C] font-semibold text-white'
-                    : 'bg-[#17181C] font-semibold text-white'
+                    ? 'bg-danger font-semibold text-white'
+                    : 'bg-surface-secondary font-semibold text-white'
                 }
                 endContent={confirmationAttendue ? undefined : <ArrowRight className="h-4 w-4" />}
                 isLoading={changerStatut.isPending}

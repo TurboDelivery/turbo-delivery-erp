@@ -22,12 +22,12 @@ interface HorairesSectionProps {
 export function HorairesSection({ horaires, setHoraires }: HorairesSectionProps) {
   return (
     <section>
-      <p className="text-sm font-medium text-gray-700 mb-3">Horaires d'ouverture</p>
-      <div className="divide-y divide-gray-100 border border-gray-200 rounded-lg overflow-hidden">
+      <p className="text-sm font-medium text-foreground mb-3">Horaires d'ouverture</p>
+      <div className="divide-y divide-separator border border-separator rounded-lg overflow-hidden">
         {horaires.map((h, i) => (
           <div key={h.jour} className="flex flex-wrap items-center gap-2 px-4 py-2.5 text-sm">
-            <span className="font-medium text-gray-700 w-24">{DAY_LABELS[h.jour]}</span>
-            <label className="flex items-center gap-1.5 text-xs text-gray-500 ml-auto">
+            <span className="font-medium text-foreground w-24">{DAY_LABELS[h.jour]}</span>
+            <label className="flex items-center gap-1.5 text-xs text-muted ml-auto">
               <input
                 type="checkbox"
                 checked={h.ferme}
@@ -42,14 +42,14 @@ export function HorairesSection({ horaires, setHoraires }: HorairesSectionProps)
                   type="time"
                   value={h.ouverture}
                   onChange={(e) => setHoraires((prev) => prev.map((x, idx) => idx === i ? { ...x, ouverture: e.target.value } : x))}
-                  className="border border-gray-200 rounded px-2 py-1 text-xs"
+                  className="border border-separator rounded px-2 py-1 text-xs"
                 />
-                <span className="text-gray-400">–</span>
+                <span className="text-muted">–</span>
                 <input
                   type="time"
                   value={h.fermeture}
                   onChange={(e) => setHoraires((prev) => prev.map((x, idx) => idx === i ? { ...x, fermeture: e.target.value } : x))}
-                  className="border border-gray-200 rounded px-2 py-1 text-xs"
+                  className="border border-separator rounded px-2 py-1 text-xs"
                 />
               </>
             )}

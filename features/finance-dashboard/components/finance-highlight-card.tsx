@@ -89,11 +89,11 @@ export default function FinanceHighlightCard({
                 </div>
                 <div>
                     {/* Pas `text-muted` ici : ce gris est calibre pour les surfaces neutres et ne
-                        donne que 3,79:1 a 4,26:1 sur les fonds teintes des tuiles. `text-gray-600`
+                        donne que 3,79:1 a 4,26:1 sur les fonds teintes des tuiles. `text-muted`
                         tient 5,93:1 au pire cas tout en restant nettement plus clair que le
                         montant, qui garde la hierarchie. Le fond de la tuile etant une pastel
                         fixe, un gris fixe est le bon choix dans les deux themes. */}
-                    <h4 className="text-medium mb-2 text-gray-600 2xl:text-lg">{title}</h4>
+                    <h4 className="text-medium mb-2 text-muted 2xl:text-lg">{title}</h4>
                     <span className={cn('text-xl 2xl:text-2xl', style.value)}>{value}</span>
                 </div>
             </div>

@@ -163,7 +163,7 @@ export function ContratsTab() {
   };
 
   return (
-    <div className="space-y-3 rounded-xl border border-default-200 bg-white p-4">
+    <div className="space-y-3 rounded-xl border border-default-200 bg-surface p-4">
       <div className="flex flex-wrap items-end gap-2">
         <Select
           label="Filtre"

@@ -46,9 +46,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
     if (this.state.error) {
       return (
         <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-danger-200 bg-danger-50 px-4 py-10 text-center">
-          <AlertTriangle className="h-8 w-8 text-danger" />
+          <AlertTriangle className="h-8 w-8 text-danger-soft-foreground" />
           <div>
-            <p className="font-semibold text-danger">{this.props.title ?? 'Une erreur est survenue'}</p>
+            <p className="font-semibold text-danger-soft-foreground">{this.props.title ?? 'Une erreur est survenue'}</p>
             <p className="mt-1 max-w-md text-xs text-danger-500">{this.state.error.message}</p>
           </div>
           <Button size="sm" color="danger" variant="flat" onPress={() => this.setState({ error: null })}>

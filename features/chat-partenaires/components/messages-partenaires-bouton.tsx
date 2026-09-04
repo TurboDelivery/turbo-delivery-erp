@@ -28,7 +28,7 @@ export function MessagesPartenairesBouton() {
       startContent={<MessagesSquare className="h-4 w-4" />}
       endContent={
         total > 0 ? (
-          <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-[#E11D48] px-1.5 py-0.5 text-[11px] font-bold text-white">
+          <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-[11px] font-bold text-white">
             {total}
           </span>
         ) : undefined

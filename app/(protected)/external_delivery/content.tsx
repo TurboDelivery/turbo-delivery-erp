@@ -102,7 +102,7 @@ export default function Content({ initialData, delivers }: Props) {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-primary">Nouvelles courses</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-muted mt-0.5">
             Courses envoyées par les partenaires via l&apos;intégration — à dispatcher aux livreurs.
           </p>
         </div>

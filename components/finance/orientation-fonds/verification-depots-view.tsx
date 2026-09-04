@@ -99,9 +99,9 @@ export default function VerificationDepotsView() {
     <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
-          <p className="text-sm text-gray-500">Comptabilité</p>
+          <p className="text-sm text-muted">Comptabilité</p>
           <h1 className="text-2xl font-bold text-primary">Vérification dépôt en banque</h1>
-          <p className="text-sm text-gray-400 mt-0.5">
+          <p className="text-sm text-muted mt-0.5">
             Rapprochement croisé N° de visa ↔ N° de bordereau, et suivi des fonds conservés en caisse.
           </p>
         </div>
@@ -154,14 +154,14 @@ export default function VerificationDepotsView() {
         )}
 
         {/* Section A — orientés banque */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
-          <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
+        <section className="bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-separator">
             <Landmark className="w-4 h-4 text-indigo-500" />
-            <p className="font-semibold text-gray-900">Recouvrements orientés banque</p>
-            <span className="text-xs text-gray-400">· rapprochement visa ↔ bordereau</span>
+            <p className="font-semibold text-foreground">Recouvrements orientés banque</p>
+            <span className="text-xs text-muted">· rapprochement visa ↔ bordereau</span>
           </div>
           <div className="overflow-x-auto hidden md:block">
-            <Table aria-label="Rapprochement banque" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-gray-50 text-gray-600 text-xs uppercase' }}>
+            <Table aria-label="Rapprochement banque" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-surface-secondary text-muted text-xs uppercase' }}>
               <TableHeader>
                 <TableColumn>N° VISA</TableColumn>
                 <TableColumn>N° BORDEREAU</TableColumn>
@@ -189,33 +189,33 @@ export default function VerificationDepotsView() {
             </Table>
           </div>
           {/* Mobile — cartes (lecture seule) */}
-          <div className="md:hidden divide-y divide-gray-100">
+          <div className="md:hidden divide-y divide-separator">
             {banque.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">Aucun recouvrement orienté banque</p>
+              <p className="text-sm text-muted text-center py-8">Aucun recouvrement orienté banque</p>
             ) : banque.map((l) => (
               <div key={l.factureId} className="p-4 space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{l.partenaire}</p>
-                    <p className="text-[11px] text-gray-400">Visa {l.numeroVisa ?? '—'} · Bord. {l.numeroBordereau ?? '—'}</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{l.partenaire}</p>
+                    <p className="text-[11px] text-muted">Visa {l.numeroVisa ?? '—'} · Bord. {l.numeroBordereau ?? '—'}</p>
                   </div>
                   <Chip size="sm" color={ETAT_BANQUE[l.etatRapprochement].color} variant="flat">{ETAT_BANQUE[l.etatRapprochement].label}</Chip>
                 </div>
-                <div className="flex justify-between text-xs"><span className="text-gray-400">Visé / Déposé</span><span className="text-gray-700">{formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}</span></div>
-                <div className="flex justify-between text-xs"><span className="text-gray-400">Date dépôt</span><span className="text-gray-700">{fmtDate(l.dateDepot)}</span></div>
+                <div className="flex justify-between text-xs"><span className="text-muted">Visé / Déposé</span><span className="text-foreground">{formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}</span></div>
+                <div className="flex justify-between text-xs"><span className="text-muted">Date dépôt</span><span className="text-foreground">{fmtDate(l.dateDepot)}</span></div>
               </div>
             ))}
           </div>
         </section>
 
         {/* Section B — conservés en caisse */}
-        <section className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
-          <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
+        <section className="bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-separator">
             <PiggyBank className="w-4 h-4 text-amber-500" />
-            <p className="font-semibold text-gray-900">Recouvrements conservés en caisse</p>
+            <p className="font-semibold text-foreground">Recouvrements conservés en caisse</p>
           </div>
           <div className="overflow-x-auto hidden md:block">
-            <Table aria-label="Suivi caisse" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-gray-50 text-gray-600 text-xs uppercase' }}>
+            <Table aria-label="Suivi caisse" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-surface-secondary text-muted text-xs uppercase' }}>
               <TableHeader>
                 <TableColumn>N° VISA</TableColumn>
                 <TableColumn>PARTENAIRE</TableColumn>
@@ -230,7 +230,7 @@ export default function VerificationDepotsView() {
                     <TableCell>{l.numeroVisa ?? '—'}</TableCell>
                     <TableCell>{l.partenaire}</TableCell>
                     <TableCell className="whitespace-nowrap">{formatMontant(l.montantConserve)}</TableCell>
-                    <TableCell><span className="text-xs text-gray-500 line-clamp-2 max-w-[260px]">{l.motif ?? '—'}</span></TableCell>
+                    <TableCell><span className="text-xs text-muted line-clamp-2 max-w-[260px]">{l.motif ?? '—'}</span></TableCell>
                     <TableCell>{l.ancienneteJours} j</TableCell>
                     <TableCell>
                       <Chip size="sm" color={l.alerteDormant ? 'danger' : 'warning'} variant="flat">
@@ -243,20 +243,20 @@ export default function VerificationDepotsView() {
             </Table>
           </div>
           {/* Mobile — cartes (lecture seule) */}
-          <div className="md:hidden divide-y divide-gray-100">
+          <div className="md:hidden divide-y divide-separator">
             {caisse.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-8">Aucun fonds conservé en caisse</p>
+              <p className="text-sm text-muted text-center py-8">Aucun fonds conservé en caisse</p>
             ) : caisse.map((l) => (
               <div key={l.factureId} className="p-4 space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{l.partenaire}</p>
-                    <p className="text-[11px] text-gray-400">Visa {l.numeroVisa ?? '—'} · {l.ancienneteJours} j</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{l.partenaire}</p>
+                    <p className="text-[11px] text-muted">Visa {l.numeroVisa ?? '—'} · {l.ancienneteJours} j</p>
                   </div>
                   <Chip size="sm" color={l.alerteDormant ? 'danger' : 'warning'} variant="flat">{l.alerteDormant ? 'Dormant' : 'En caisse'}</Chip>
                 </div>
-                <div className="flex justify-between text-xs"><span className="text-gray-400">Montant</span><span className="text-gray-700 font-semibold">{formatMontant(l.montantConserve)}</span></div>
-                {l.motif && <p className="text-[11px] text-gray-500 line-clamp-2">{l.motif}</p>}
+                <div className="flex justify-between text-xs"><span className="text-muted">Montant</span><span className="text-foreground font-semibold">{formatMontant(l.montantConserve)}</span></div>
+                {l.motif && <p className="text-[11px] text-muted line-clamp-2">{l.motif}</p>}
               </div>
             ))}
           </div>
@@ -266,13 +266,13 @@ export default function VerificationDepotsView() {
 
       {/* Registre des attestations de caisse */}
       {attestations && attestations.length > 0 && (
-        <section className="bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
-          <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
+        <section className="bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-separator">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            <p className="font-semibold text-gray-900">Attestations de comptage physique</p>
+            <p className="font-semibold text-foreground">Attestations de comptage physique</p>
           </div>
           <div className="overflow-x-auto">
-            <Table aria-label="Attestations" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-gray-50 text-gray-600 text-xs uppercase' }}>
+            <Table aria-label="Attestations" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-surface-secondary text-muted text-xs uppercase' }}>
               <TableHeader>
                 <TableColumn>DATE</TableColumn>
                 <TableColumn>SOLDE THÉORIQUE</TableColumn>
@@ -302,8 +302,8 @@ export default function VerificationDepotsView() {
           {(onClose) => (
             <>
               <ModalHeader className="flex-col items-start gap-0">
-                <span className="text-lg font-bold text-gray-900">Attestation de caisse</span>
-                <span className="text-sm font-normal text-gray-400">
+                <span className="text-lg font-bold text-foreground">Attestation de caisse</span>
+                <span className="text-sm font-normal text-muted">
                   Solde théorique : {formatMontant(synthese?.totalConserve ?? 0)} (somme des fonds conservés)
                 </span>
               </ModalHeader>
@@ -316,7 +316,7 @@ export default function VerificationDepotsView() {
                   isRequired
                 />
                 <Textarea label="Commentaire (facultatif)" value={commentaire} onValueChange={setCommentaire} minRows={2} />
-                <p className="text-xs text-gray-400">Le système calcule l&apos;écart avec le solde théorique ; tout écart est signalé à la Direction.</p>
+                <p className="text-xs text-muted">Le système calcule l&apos;écart avec le solde théorique ; tout écart est signalé à la Direction.</p>
               </ModalBody>
               <ModalFooter>
                 <Button variant="light" onPress={onClose} isDisabled={attester.isPending}>Annuler</Button>

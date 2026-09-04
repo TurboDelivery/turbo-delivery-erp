@@ -101,7 +101,7 @@ function LigneActions({ p, h }: { p: IProgramme; h: ProgrammeGridHandlers }) {
         </Button>
       )}
       {s === 'REFUSE' && p.motifRefus && (
-        <span className="text-xs italic text-danger" title={p.motifRefus}>
+        <span className="text-xs italic text-danger-soft-foreground" title={p.motifRefus}>
           Refusé
         </span>
       )}

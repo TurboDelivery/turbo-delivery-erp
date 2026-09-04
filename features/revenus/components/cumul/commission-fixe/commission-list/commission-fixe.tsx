@@ -54,11 +54,11 @@ export default function CommissionFixe({commissionFixe}: ICommissionFixe) {
                         <Table>
                             <TableHeader>
                                 <TableRow className="bg-red-500 hover:bg-red-600">
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white">Date</TableHead>
-                                        <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white">Restaurant</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white">Localisation</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white">Commission</TableHead>
-                                    <TableHead className="font-semibold bg-[#fb2c36] text-white text-center hover:text-white">Actions</TableHead>
+                                    <TableHead className="font-semibold bg-accent text-white text-center hover:text-white">Date</TableHead>
+                                        <TableHead className="font-semibold bg-accent text-white text-center hover:text-white">Restaurant</TableHead>
+                                    <TableHead className="font-semibold bg-accent text-white text-center hover:text-white">Localisation</TableHead>
+                                    <TableHead className="font-semibold bg-accent text-white text-center hover:text-white">Commission</TableHead>
+                                    <TableHead className="font-semibold bg-accent text-white text-center hover:text-white">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -128,7 +128,7 @@ export default function CommissionFixe({commissionFixe}: ICommissionFixe) {
 
                     {/* Pagination */}
                     <div className="flex justify-between items-center p-4 border-t">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted">
                             Affichage de 1 à {commissionFixe?.length} sur {commissionFixe?.length} commissions(fixe)
                         </p>
                         <div className="flex gap-2">

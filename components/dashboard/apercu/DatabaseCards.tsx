@@ -48,7 +48,7 @@ export default function DatabaseCards() {
             <div className={GRILLE}>
                 <Card className="border border-danger/40 sm:col-span-2 lg:col-span-3 xl:col-span-5">
                     <Card.Header>
-                        <Card.Title className={title({ size: 'h6', class: 'text-danger' })}>
+                        <Card.Title className={title({ size: 'h6', class: 'text-danger-soft-foreground' })}>
                             Erreur de chargement
                         </Card.Title>
                     </Card.Header>

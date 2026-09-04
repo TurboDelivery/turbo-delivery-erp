@@ -13,11 +13,11 @@ export function FinancialDetailRow({
   label,
   value,
   rowClassName = '',
-  labelClassName = 'text-gray-600',
-  valueClassName = 'font-semibold text-gray-900',
+  labelClassName = 'text-muted',
+  valueClassName = 'font-semibold text-foreground',
   withBorder = false,
 }: FinancialDetailRowProps) {
-  const borderClassName = withBorder ? 'border-b border-gray-100' : '';
+  const borderClassName = withBorder ? 'border-b border-separator' : '';
 
   return (
     <div className={`flex items-center text-medium justify-between py-3 ${borderClassName} ${rowClassName}`.trim()}>

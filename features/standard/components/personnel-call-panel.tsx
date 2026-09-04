@@ -136,7 +136,7 @@ export function PersonnelCallPanel() {
                 type="button"
                 onClick={() => setOuvert(false)}
                 aria-label="Fermer"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 transition hover:bg-white/20"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-surface/10 transition hover:bg-white/20"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -150,7 +150,7 @@ export function PersonnelCallPanel() {
                   type="button"
                   onClick={() => setOnglet(t)}
                   className={`flex-1 rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition ${
-                    onglet === t ? 'bg-white/15 text-white' : 'text-white/50 hover:text-white'
+                    onglet === t ? 'bg-surface/15 text-white' : 'text-white/50 hover:text-white'
                   }`}
                 >
                   {t === 'contacts' ? 'Contacts' : t === 'clavier' ? 'Clavier' : 'Journal'}
@@ -175,7 +175,7 @@ export function PersonnelCallPanel() {
             ) : onglet === 'contacts' ? (
               <>
                 <div className="p-3">
-                  <div className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2">
+                  <div className="flex items-center gap-2 rounded-xl bg-surface/10 px-3 py-2">
                     <Search className="h-4 w-4 text-white/50" />
                     <input
                       value={recherche}
@@ -226,7 +226,7 @@ export function PersonnelCallPanel() {
               </>
             ) : (
               <div className="p-4">
-                <div className="mb-3 flex min-h-10 items-center justify-center rounded-xl bg-white/5 px-3 text-2xl font-light tracking-widest tabular-nums">
+                <div className="mb-3 flex min-h-10 items-center justify-center rounded-xl bg-surface/5 px-3 text-2xl font-light tracking-widest tabular-nums">
                   {numero || <span className="text-white/60">Numéro</span>}
                 </div>
                 <div className="grid grid-cols-3 gap-2">
@@ -235,7 +235,7 @@ export function PersonnelCallPanel() {
                       key={t}
                       type="button"
                       onClick={() => setNumero((n) => (n.length < 20 ? n + t : n))}
-                      className="rounded-xl bg-white/10 py-3 text-lg font-semibold transition hover:bg-white/20 active:scale-95"
+                      className="rounded-xl bg-surface/10 py-3 text-lg font-semibold transition hover:bg-white/20 active:scale-95"
                     >
                       {t}
                     </button>
@@ -255,7 +255,7 @@ export function PersonnelCallPanel() {
                     onClick={() => setNumero((n) => n.slice(0, -1))}
                     disabled={!numero}
                     aria-label="Effacer"
-                    className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 transition hover:bg-white/20 disabled:opacity-40"
+                    className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface/10 transition hover:bg-white/20 disabled:opacity-40"
                   >
                     <Delete className="h-5 w-5" />
                   </button>
@@ -344,7 +344,7 @@ function JournalAppels({
                 manque
                   ? 'bg-rose-500/20 text-rose-300'
                   : sortant
-                    ? 'bg-white/10 text-emerald-300'
+                    ? 'bg-surface/10 text-emerald-300'
                     : 'bg-sky-500/15 text-sky-300'
               }`}
             >
@@ -368,7 +368,7 @@ function JournalAppels({
                 type="button"
                 onClick={() => onRappeler(autreId!, nom)}
                 aria-label={`Rappeler ${nom}`}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-emerald-300 transition hover:bg-emerald-600 hover:text-white"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface/10 text-emerald-300 transition hover:bg-emerald-600 hover:text-white"
               >
                 <Phone className="h-4 w-4" />
               </button>

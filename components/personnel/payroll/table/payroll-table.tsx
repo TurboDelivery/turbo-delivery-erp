@@ -125,7 +125,7 @@ function PayrollTable() {
                   <TableRow key={`skeleton-${i}`}>
                     {Array.from({ length: colsCount }).map((_, j) => (
                       <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                        <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
+                        <div className="h-4 w-full animate-pulse rounded bg-surface-tertiary" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -167,11 +167,11 @@ function PayrollTable() {
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <PersonnelMobileCardList>
         {isPayrollLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-48 rounded-xl bg-gray-100 animate-pulse" />)
+          Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-48 rounded-xl bg-surface-secondary animate-pulse" />)
         ) : enEchec ? (
           <EtatErreur quoi="les paiements" onReessayer={() => refetchPayrolls()} enCours={isPayrollFetching} />
         ) : payrollTable.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucun paiement trouvé</p>
+          <p className="text-sm text-muted text-center py-10">Aucun paiement trouvé</p>
         ) : (
           payrollTable.getRowModel().rows.map((row) => {
             const payroll = row.original;
@@ -224,7 +224,7 @@ function PayrollTable() {
               <div>
                 Êtes-vous sûr de vouloir payer <span className="font-semibold">{selectedPayroll?.name}</span> ?
               </div>
-              <div className="space-y-1 rounded-lg bg-gray-100 p-3 dark:bg-gray-900">
+              <div className="space-y-1 rounded-lg bg-surface-secondary p-3">
                 <div className="flex justify-between">
                   <span className="text-sm">Montant net:</span>
                   <span className="font-semibold">{formatCfa(selectedPayroll?.netToPay || 0)}</span>

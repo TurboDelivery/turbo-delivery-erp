@@ -34,15 +34,15 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
       }));
   }, [dailyStats]);
   return (
-    <div className="w-full bg-white rounded-lg p-4 sm:p-6 shadow-xs">
-      <h2 className="text-lg font-semibold text-gray-800 mb-6">
+    <div className="w-full bg-surface rounded-lg p-4 sm:p-6 shadow-xs">
+      <h2 className="text-lg font-semibold text-foreground mb-6">
         Évolution CA vs Dépenses
       </h2>
       
       <div className="h-[260px] sm:h-[340px] md:h-[400px] w-full">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-gray-500">Chargement des données...</div>
+            <div className="text-muted">Chargement des données...</div>
           </div>
         ) : isError ? (
           /* Sur echec la courbe affichait « Aucun chiffre d'affaires ni depense sur
@@ -52,7 +52,7 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
           </div>
         ) : data.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-gray-500">Aucun chiffre d&apos;affaires ni dépense sur la période</div>
+            <div className="text-muted">Aucun chiffre d&apos;affaires ni dépense sur la période</div>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
@@ -121,11 +121,11 @@ export default function RevenueExpenseChart({ debut, fin }: RevenueExpenseChartP
       <div className="flex justify-center gap-6 mt-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-emerald-500" />
-          <span className="text-sm text-gray-600">Chiffre d&#39;Affaires</span>
+          <span className="text-sm text-muted">Chiffre d&#39;Affaires</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-red-500" />
-          <span className="text-sm text-gray-600">Dépenses Totales</span>
+          <span className="text-sm text-muted">Dépenses Totales</span>
         </div>
       </div>
     </div>

@@ -86,7 +86,7 @@ export function FactureTable({
                   <TableRow key={`skeleton-${i}`}>
                     {Array.from({ length: colsCount }).map((_, j) => (
                       <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full animate-pulse" />
+                        <div className="h-4 bg-surface-tertiary rounded w-full animate-pulse" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -115,11 +115,11 @@ export function FactureTable({
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <div className={`md:hidden space-y-3 ${isFactureFetching ? 'opacity-70' : ''}`}>
         {isFactureLoading ? (
-          Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+          Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-surface-secondary animate-pulse" />)
         ) : isFactureError ? (
           zoneErreur
         ) : factureTable.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-10">Aucune facture trouvée</p>
+          <p className="text-sm text-muted text-center py-10">Aucune facture trouvée</p>
         ) : (
           factureTable.getRowModel().rows.map((row) => <FactureRecouvrementMobileCard key={row.id} facture={row.original} />)
         )}

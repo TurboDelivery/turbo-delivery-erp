@@ -195,7 +195,7 @@ export default function ResponsableFinancierView() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <p className="text-sm text-gray-500">Gestion des Paiements</p>
+        <p className="text-sm text-muted">Gestion des Paiements</p>
         <h1 className="text-2xl font-bold text-primary">Espace Responsable Financier</h1>
       </div>
 
@@ -244,8 +244,8 @@ export default function ResponsableFinancierView() {
       </GrilleStats>
 
       {/* Filtres */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-xs space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+      <div className="bg-surface rounded-xl border border-separator p-4 shadow-xs space-y-3">
+        <div className="flex items-center gap-2 text-sm font-medium text-muted">
           <span>🔽</span> Filtres
         </div>
         <div className="flex flex-wrap items-end gap-4">
@@ -261,7 +261,7 @@ export default function ResponsableFinancierView() {
 
           {/* Restaurant / Partenaire */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-medium">Partenaire</label>
+            <label className="text-xs text-muted font-medium">Partenaire</label>
             <RestaurantSelect
               value={filters.restaurantId || undefined}
               onChange={handleRestaurantChange}
@@ -289,7 +289,7 @@ export default function ResponsableFinancierView() {
 
           {/* Statut */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-gray-500 font-medium">Statut</label>
+            <label className="text-xs text-muted font-medium">Statut</label>
             <div className="flex flex-wrap gap-1.5">
               {statutFilters.map((s) => (
                 <button
@@ -298,7 +298,7 @@ export default function ResponsableFinancierView() {
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                     (s.value === 'Tous' && !filters.statut) || filters.statut === s.value
                       ? 'bg-green-600 text-white border-green-600'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                      : 'bg-surface text-muted border-separator hover:border-gray-300'
                   }`}
                 >
                   {s.label}
@@ -317,7 +317,7 @@ export default function ResponsableFinancierView() {
             isIndeterminate={somePageSelected && !selectAllMatching}
             onValueChange={togglePage}
           >
-            <span className="text-gray-600">Sélectionner la page</span>
+            <span className="text-muted">Sélectionner la page</span>
           </Checkbox>
           {allPageSelected && !selectAllMatching && totalElements > pageIds.length && (
             <button
@@ -328,7 +328,7 @@ export default function ResponsableFinancierView() {
             </button>
           )}
           {selectAllMatching && (
-            <span className="text-gray-600">
+            <span className="text-muted">
               Les <b>{totalElements}</b> factures du filtre sont sélectionnées ·{' '}
               <button onClick={clearSelection} className="text-primary font-medium hover:underline">
                 Effacer
@@ -347,7 +347,7 @@ export default function ResponsableFinancierView() {
       )}
 
       {/* Table — desktop uniquement (≥ md) */}
-      <div className="hidden md:block bg-white rounded-xl border border-gray-100 shadow-xs overflow-hidden">
+      <div className="hidden md:block bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
         <Table
           isStriped
           aria-label="Factures responsable financier"
@@ -365,7 +365,7 @@ export default function ResponsableFinancierView() {
         >
           <TableHeader>
             {table.getFlatHeaders().map((h) => (
-              <TableColumn key={h.id} className="text-xs font-semibold text-gray-500 uppercase bg-gray-50">
+              <TableColumn key={h.id} className="text-xs font-semibold text-muted uppercase bg-surface-secondary">
                 {flexRender(h.column.columnDef.header, h.getContext())}
               </TableColumn>
             ))}
@@ -403,10 +403,10 @@ export default function ResponsableFinancierView() {
       <MobileCardList>
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-40 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={i} className="h-40 rounded-xl bg-surface-secondary animate-pulse" />
           ))
         ) : table.getRowModel().rows.length === 0 ? (
-          isError ? null : <p className="text-sm text-gray-400 text-center py-10">Aucune facture trouvée</p>
+          isError ? null : <p className="text-sm text-muted text-center py-10">Aucune facture trouvée</p>
         ) : (
           table.getRowModel().rows.map((row) => {
             const f = row.original;
@@ -414,7 +414,7 @@ export default function ResponsableFinancierView() {
             const detailLink = (
               <Link
                 href={`/finance/comptabilite/responsable-financier/${f.id}`}
-                className="w-full text-center text-sm font-medium text-red-500 border border-gray-200 rounded-md py-2"
+                className="w-full text-center text-sm font-medium text-red-500 border border-separator rounded-md py-2"
               >
                 Voir le détail ›
               </Link>

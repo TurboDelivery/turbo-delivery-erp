@@ -96,7 +96,7 @@ export function RestaurantsTable({ restoOpts, isOptionsLoading = false }: restau
                     <TableRow key={`skeleton-${i}`}>
                       {restaurantRecouvrementTableColumns.map((col) => (
                         <TableCell key={`skeleton-cell-${col.header}`} className="h-12">
-                          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full" />
+                          <div className="h-4 bg-surface-tertiary rounded w-full" />
                         </TableCell>
                       ))}
                     </TableRow>
@@ -115,11 +115,11 @@ export function RestaurantsTable({ restoOpts, isOptionsLoading = false }: restau
         {/* Mobile — cartes tactiles (remplace le tableau < md) */}
         <div className={`md:hidden space-y-3 ${isRestaurantFetching ? 'opacity-70' : ''}`}>
           {isRestaurantLoading ? (
-            Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />)
+            Array.from({ length: 4 }).map((_, i) => <div key={`m-skel-${i}`} className="h-32 rounded-xl bg-surface-secondary animate-pulse" />)
           ) : isRestaurantError ? (
             zoneErreur
           ) : restaurantTable.getRowModel().rows.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-10">Aucun restaurant</p>
+            <p className="text-sm text-muted text-center py-10">Aucun restaurant</p>
           ) : (
             restaurantTable.getRowModel().rows.map((row) => <RestaurantRecouvrementMobileCard key={row.id} restaurant={row.original} />)
           )}

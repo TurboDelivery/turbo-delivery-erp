@@ -134,7 +134,7 @@ export function LivraisonHebdomadaireChart({ livraison = [] }: LivraisonHebdomad
                             />
                         </AreaChart>
                     </ChartContainer>
-                    <div className="flex justify-between items-center mt-2 text-xs text-gray-500">
+                    <div className="flex justify-between items-center mt-2 text-xs text-muted">
                         <span>Livraison hebdomadaire (FCFA)</span>
                         <span>Semaine</span>
                     </div>

@@ -13,7 +13,7 @@ interface CommissionAnalysePourcentageChartProps {
 export default function CommissionAnalysePourcentageChart({ commission }: CommissionAnalysePourcentageChartProps) {
     return (
         <div className="w-full px-4 py-6 -mt-6">
-            <div className="w-full px-4 py-6 shadow-lg rounded-lg border border-gray-200">
+            <div className="w-full px-4 py-6 shadow-lg rounded-lg border border-separator">
                 <h2 className="text-xl font-bold mb-2 ">Rapport des commissions(pourcentage)</h2>
 
                 <Tabs defaultValue="commission-journaliere" className="w-full">

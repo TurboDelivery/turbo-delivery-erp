@@ -71,7 +71,7 @@ const DeliveryTools = ({ delivery, delivers }: { delivery: CourseExterne; delive
             {enAttente && canUpdate ? (
               <DropdownItem
                 key="assign"
-                startContent={<UserRoundPlus className="w-4 h-4 text-success" />}
+                startContent={<UserRoundPlus className="w-4 h-4 text-success-soft-foreground" />}
                 onPress={() => setOpenAssign(true)}
               >
                 Assigner un livreur
@@ -81,7 +81,7 @@ const DeliveryTools = ({ delivery, delivers }: { delivery: CourseExterne; delive
             {enAttente && canUpdate ? (
               <DropdownItem
                 key="cancel"
-                className="text-danger"
+                className="text-danger-soft-foreground"
                 color="danger"
                 startContent={<XCircle className="w-4 h-4" />}
                 onPress={() => setOpenCancel(true)}
@@ -107,11 +107,11 @@ const DeliveryTools = ({ delivery, delivers }: { delivery: CourseExterne; delive
         ]}
       >
         <div className="flex flex-col gap-2 text-sm">
-          <p className="text-gray-700">
+          <p className="text-foreground">
             La course sera annulée et ne sera plus proposée aux livreurs. Le partenaire{' '}
             <b>{delivery.restaurant?.nomEtablissement ?? ''}</b> devra renvoyer une commande si besoin.
           </p>
-          <p className="text-gray-500 text-xs">Possible uniquement tant que la course est en attente.</p>
+          <p className="text-muted text-xs">Possible uniquement tant que la course est en attente.</p>
         </div>
       </ConfirmModal>
     </>

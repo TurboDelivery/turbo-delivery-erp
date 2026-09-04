@@ -79,7 +79,7 @@ export function RemunerationHistorique({ historique, chargement, echec = false, 
               <TableCell className="text-right tabular-nums">
                 {m.retenues ? (
                   <div>
-                    <div className="text-danger">−{formaterMontant(m.retenues)}</div>
+                    <div className="text-danger-soft-foreground">−{formaterMontant(m.retenues)}</div>
                     {(m.detailRetenues ?? []).length > 0 ? (
                       <div className="text-[10.5px] text-default-400">
                         {(m.detailRetenues ?? [])
@@ -112,9 +112,9 @@ export function RemunerationHistorique({ historique, chargement, echec = false, 
                 <span
                   className={
                     m.sensEcart === 'GAIN'
-                      ? 'text-success'
+                      ? 'text-success-soft-foreground'
                       : m.sensEcart === 'PERTE'
-                        ? 'text-danger'
+                        ? 'text-danger-soft-foreground'
                         : 'text-default-400'
                   }
                 >

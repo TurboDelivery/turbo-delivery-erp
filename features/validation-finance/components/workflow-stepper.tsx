@@ -32,17 +32,17 @@ export function WorkflowStepper({ statut }: { statut: string }) {
             <div className="flex flex-col items-center">
               <div className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-bold ${
                 done    ? 'border-green-500 bg-green-500 text-white'
-                : current ? 'border-blue-500  bg-white      text-blue-500'
-                          : 'border-gray-200  bg-white      text-gray-400'
+                : current ? 'border-blue-500  bg-surface      text-blue-500'
+                          : 'border-separator  bg-surface      text-muted'
               }`}>
                 {done ? <Check className="h-4 w-4" /> : i + 1}
               </div>
-              <span className={`mt-1 text-xs font-medium ${done ? 'text-green-600' : current ? 'text-blue-600' : 'text-gray-400'}`}>
+              <span className={`mt-1 text-xs font-medium ${done ? 'text-green-600' : current ? 'text-blue-600' : 'text-muted'}`}>
                 {step.label}
               </span>
-              <span className="text-[10px] text-gray-400">{step.sub}</span>
+              <span className="text-[10px] text-muted">{step.sub}</span>
             </div>
-            {!last && <div className={`h-0.5 flex-1 ${done ? 'bg-green-500' : 'bg-gray-200'}`} />}
+            {!last && <div className={`h-0.5 flex-1 ${done ? 'bg-green-500' : 'bg-surface-tertiary'}`} />}
           </div>
         );
       })}

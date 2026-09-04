@@ -90,9 +90,9 @@ export function InvestDetailModal({ investissement }: InvestDetailModalProps) {
           {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Date d'investissement */}
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-gray-50 dark:bg-gray-900">
-              <div className="p-2 rounded-full bg-gray-100 dark:bg-gray-800">
-                <Calendar className="h-5 w-5 text-gray-600" />
+            <div className="flex items-start gap-3 p-4 rounded-lg bg-surface-secondary">
+              <div className="p-2 rounded-full bg-surface-secondary">
+                <Calendar className="h-5 w-5 text-muted" />
               </div>
               <div className="flex-1">
                 <p className="text-xs text-muted-foreground">Date d'investissement</p>
@@ -102,7 +102,7 @@ export function InvestDetailModal({ investissement }: InvestDetailModalProps) {
 
             {/* Échéance */}
             <div className={`flex items-start gap-3 p-4 rounded-lg ${deadlineStatus.color}`}>
-              <div className="p-2 rounded-full bg-white/50">
+              <div className="p-2 rounded-full bg-surface/50">
                 <Clock className="h-5 w-5" />
               </div>
               <div className="flex-1">

@@ -84,7 +84,7 @@ export default function PaymentManagementV2() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-primary">Gestion des Paiements</h1>
-          <p className="text-sm text-gray-500 mt-1">Décaissez les charges approuvées</p>
+          <p className="text-sm text-muted mt-1">Décaissez les charges approuvées</p>
         </div>
         <Can I="decaisser" a="Depense">
           <Button color="danger" startContent={<Wallet size={16} />} onPress={() => setConfirmIds(selectedIds)} isDisabled={selectedIds.length === 0}>
@@ -118,7 +118,7 @@ export default function PaymentManagementV2() {
             <button
               key={value}
               onClick={() => switchChargeType(value)}
-              className={`rounded-lg px-5 py-2 text-sm font-medium transition-all ${chargeType === value ? 'bg-black text-white' : 'border border-gray-200 bg-white text-gray-600 hover:bg-gray-100'}`}
+              className={`rounded-lg px-5 py-2 text-sm font-medium transition-all ${chargeType === value ? 'bg-black text-white' : 'border border-separator bg-surface text-muted hover:bg-surface-secondary'}`}
             >
               {label}
             </button>
@@ -156,7 +156,7 @@ export default function PaymentManagementV2() {
           { label: 'Décaisser', color: 'danger', onPress: handleConfirmDecaisser },
         ]}
       >
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted">
           Vous êtes sur le point de décaisser{' '}
           <span className="font-semibold">
             {confirmIds.length} charge{confirmIds.length > 1 ? 's' : ''}
@@ -176,7 +176,7 @@ export default function PaymentManagementV2() {
           { label: 'Supprimer', color: 'danger', onPress: handleConfirmDelete },
         ]}
       >
-        <p className="text-sm text-gray-600">Voulez-vous vraiment supprimer cette charge variable ? Cette action est irréversible.</p>
+        <p className="text-sm text-muted">Voulez-vous vraiment supprimer cette charge variable ? Cette action est irréversible.</p>
       </ConfirmModal>
 
       {/* Delete Fixe Modal */}
@@ -190,7 +190,7 @@ export default function PaymentManagementV2() {
           { label: 'Supprimer', color: 'danger', onPress: handleConfirmDeleteFixe },
         ]}
       >
-        <p className="text-sm text-gray-600">Voulez-vous vraiment supprimer la dépense du mois pour cette charge fixe ? Cette action est irréversible.</p>
+        <p className="text-sm text-muted">Voulez-vous vraiment supprimer la dépense du mois pour cette charge fixe ? Cette action est irréversible.</p>
       </ConfirmModal>
     </div>
   );

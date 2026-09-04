@@ -62,7 +62,7 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
   };
 
   return (
-    <div className="bg-gray-50">
+    <div className="bg-surface-secondary">
       <ValidationHeader role={userRole} pendingCount={pendingCount} />
 
       <main className="px-4 py-6 sm:px-6 lg:px-8">
@@ -75,7 +75,7 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
         ) : (
           <>
             {isErrorStats ? (
-              <div className="rounded-xl border border-gray-200 bg-white">
+              <div className="rounded-xl border border-separator bg-surface">
                 <EtatErreur
                   quoi="les compteurs de validation"
                   onReessayer={() => refetchStats()}
@@ -91,7 +91,7 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
               /* Sur echec, la file de validation tombait sur « Aucune depense a valider » :
                  le valideur en concluait qu'il n'avait rien a traiter. */
               isError ? (
-                <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white">
+                <div className="rounded-b-xl border border-t-0 border-separator bg-surface">
                   <EtatErreur
                     quoi="les dépenses à valider"
                     onReessayer={() => refetch()}
@@ -99,7 +99,7 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
                   />
                 </div>
               ) : depenses.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-b-xl border border-t-0 border-gray-200 bg-white py-16 text-gray-400">
+                <div className="flex flex-col items-center justify-center rounded-b-xl border border-t-0 border-separator bg-surface py-16 text-muted">
                   <CheckCircle2 className="mb-2 h-10 w-10" />
                   <p className="text-sm">Aucune dépense à valider</p>
                 </div>
@@ -122,11 +122,11 @@ export function ValidationPageAuthorized({ userRole }: { userRole: Role }) {
               )
             ) : (
               isLoadingHistory ? (
-                <div className="flex justify-center rounded-b-xl border border-t-0 border-gray-200 bg-white py-16">
+                <div className="flex justify-center rounded-b-xl border border-t-0 border-separator bg-surface py-16">
                   <Spinner />
                 </div>
               ) : isErrorHistory ? (
-                <div className="rounded-b-xl border border-t-0 border-gray-200 bg-white">
+                <div className="rounded-b-xl border border-t-0 border-separator bg-surface">
                   <EtatErreur
                     quoi="l'historique des validations"
                     onReessayer={() => refetchHistory()}

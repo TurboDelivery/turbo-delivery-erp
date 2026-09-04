@@ -47,7 +47,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
     isLoading,
     isError,
     infiniteState,
-    mutations: { deleteBonLivraisonMutation, isDeletingBonLivraison, isUpdatingBonLivraison },
+    mutations: { deleteBonLivraisonAsync, isDeletingBonLivraison, isUpdatingBonLivraison },
     editing,
   } = useTickets(restaurants);
 
@@ -157,17 +157,38 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
 
   const colsCount = table.getAllColumns().length;
 
-  const handleConfirmDelete = useCallback(() => {
+  /*
+   * La suppression en lot ne disait RIEN, ni reussite ni echec.
+   *
+   * <p>Trois defauts se cumulaient. Les N appels visaient la meme instance de mutation,
+   * qui ne notifie que le dernier : les rappels des N-1 premiers ne partaient jamais. Le
+   * message de reussite etait de toute facon conditionne a `length === 1`, donc muet en
+   * lot. Et la modale se fermait AVANT que la moindre suppression n'aboutisse, en vidant
+   * la selection, ce qui donnait l'apparence du travail fait.</p>
+   *
+   * <p>On enchaine donc les suppressions, on compte, et on rend un seul message qui dit
+   * la verite. La modale reste ouverte pendant l'operation : elle porte l'attente.</p>
+   */
+  const handleConfirmDelete = useCallback(async () => {
     if (!ticketsToDelete || ticketsToDelete.length === 0) return;
+    let reussis = 0;
     for (const id of ticketsToDelete) {
-      deleteBonLivraisonMutation(id, {
-        onSuccess: () => { if (ticketsToDelete.length === 1) toast.success('Le ticket a été supprimé avec succès.'); },
-        onError: () => toast.error('Erreur lors de la suppression du ticket.'),
-      });
+      try {
+        await deleteBonLivraisonAsync(id);
+        reussis += 1;
+      } catch {
+        // Le message d'echec est deja porte par le `onError` de la mutation.
+      }
+    }
+    const echoues = ticketsToDelete.length - reussis;
+    if (echoues === 0) {
+      toast.success(`${reussis} ticket${reussis > 1 ? 's' : ''} supprimé${reussis > 1 ? 's' : ''}.`);
+    } else if (reussis > 0) {
+      toast.warning(`${reussis} supprimé${reussis > 1 ? 's' : ''}, ${echoues} en échec.`);
     }
     setRowSelection({});
     setTicketsToDelete(null);
-  }, [ticketsToDelete, deleteBonLivraisonMutation]);
+  }, [ticketsToDelete, deleteBonLivraisonAsync]);
 
   const handleDeleteRows = useCallback(() => {
     if (selectedRowIds.length === 0) { toast.warning('Aucune ligne sélectionnée'); return; }
@@ -214,8 +235,11 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
               <Tabs.Indicator />
             </Tabs.List>
           </Tabs>
+          {/* `totalItems` se replie sur 0 quand la lecture echoue : le compteur
+              affirmait « 0 ticket » comme un FAIT, la ou l'on ne savait simplement pas.
+              Le tableau d'archives avait deja cette garde, quinze lignes plus bas. */}
           <span className="whitespace-nowrap pb-3 text-[11px] font-semibold uppercase tracking-wide tabular-nums text-muted">
-            {infiniteState.totalItems} ticket{infiniteState.totalItems > 1 ? 's' : ''}
+            {isError ? '— ticket' : `${infiniteState.totalItems} ticket${infiniteState.totalItems > 1 ? 's' : ''}`}
           </span>
         </div>
 
@@ -269,7 +293,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
                       /* Un echec de chargement ne doit PAS se lire comme un resultat vide :
                          l'operateur en concluait qu'il n'y avait aucun ticket a traiter. */
                       isError ? (
-                        <EtatErreur quoi="les tickets" onReessayer={() => infiniteState.refetch()} />
+                        <EtatErreur quoi="les tickets" onReessayer={() => infiniteState.refetch()} enCours={infiniteState.isFetching} />
                       ) : isLoading ? (
                         'Chargement des tickets...'
                       ) : (
@@ -304,9 +328,19 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
               </div>
             </div>
 
-            {/* Mobile — cartes tactiles (remplace le tableau < md) */}
+            {/* Mobile — cartes tactiles (remplace le tableau < md).
+                L'echec de lecture n'y etait pas traite : `isLoading` faux et zero ligne,
+                donc « Aucun ticket trouve » s'affichait sur une panne reseau. L'operateur
+                mobile en concluait qu'il n'avait rien a traiter. La branche desktop, elle,
+                distinguait deja les trois etats. */}
             <div className="md:hidden space-y-3">
-              {isLoading ? (
+              {isError ? (
+                <EtatErreur
+                  quoi="les tickets"
+                  onReessayer={() => infiniteState.refetch()}
+                  enCours={infiniteState.isFetching}
+                />
+              ) : isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-72 animate-pulse rounded-xl bg-surface-secondary" />)
               ) : table.getRowModel().rows.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted">Aucun ticket trouvé</p>

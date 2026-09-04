@@ -20,7 +20,7 @@ const ThemeSwitch = ({ className, size }: { className?: string; size?: ButtonPro
         <Button
           isIconOnly
           size={size}
-          className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
+          className={`flex items-center rounded-full bg-black/10 p-2 text-foreground hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-muted dark:hover:bg-white/15 ${className ?? ''}`}
           onPress={() => {
             dispatch(toggleTheme('dark'));
             setTheme('dark');
@@ -35,7 +35,7 @@ const ThemeSwitch = ({ className, size }: { className?: string; size?: ButtonPro
         <Button
           isIconOnly
           size={size}
-          className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
+          className={`flex items-center rounded-full bg-black/10 p-2 text-foreground hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-muted dark:hover:bg-white/15 ${className ?? ''}`}
           onPress={() => {
             dispatch(toggleTheme('system'));
             setTheme('system');
@@ -48,7 +48,7 @@ const ThemeSwitch = ({ className, size }: { className?: string; size?: ButtonPro
         <Button
           isIconOnly
           size={size}
-          className={`flex items-center rounded-full bg-black/10 p-2 text-gray-700 hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-[#d0d2d6] dark:hover:bg-white/15 ${className ?? ''}`}
+          className={`flex items-center rounded-full bg-black/10 p-2 text-foreground hover:bg-black/15 hover:text-primary dark:bg-white/10 dark:text-muted dark:hover:bg-white/15 ${className ?? ''}`}
           onPress={() => {
             dispatch(toggleTheme('light'));
             setTheme('light');

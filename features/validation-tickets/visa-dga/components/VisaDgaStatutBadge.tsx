@@ -1,7 +1,7 @@
 import { StatutVisaDga } from '../types/visa-dga.type';
 
 const map: Record<StatutVisaDga, { label: string; className: string }> = {
-  EN_ATTENTE:      { label: 'EN ATTENTE',      className: 'bg-gray-200 text-gray-600' },
+  EN_ATTENTE:      { label: 'EN ATTENTE',      className: 'bg-surface-tertiary text-muted' },
   CALCUL_EN_COURS: { label: 'CALCUL EN COURS',  className: 'bg-blue-100 text-blue-700' },
   SOUMIS_DGA:      { label: 'SOUMIS DGA',       className: 'bg-amber-500 text-white' },
   VISE:            { label: 'VISÉ',             className: 'bg-green-500 text-white' },

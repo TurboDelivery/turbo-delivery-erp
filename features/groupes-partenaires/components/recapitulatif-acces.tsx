@@ -72,9 +72,9 @@ export function RecapitulatifAcces({ recapitulatif, intention, note }: Props) {
         }`}
       >
         {rienDePerdu ? (
-          <ShieldCheck className="h-4 w-4 shrink-0 text-success" />
+          <ShieldCheck className="h-4 w-4 shrink-0 text-success-soft-foreground" />
         ) : (
-          <ShieldAlert className="h-4 w-4 shrink-0 text-danger" />
+          <ShieldAlert className="h-4 w-4 shrink-0 text-danger-soft-foreground" />
         )}
         <span>
           <strong className="tabular-nums">{nbComptes}</strong> compte{nbComptes > 1 ? 's' : ''} concerné
@@ -85,7 +85,7 @@ export function RecapitulatifAcces({ recapitulatif, intention, note }: Props) {
           {nbAccesGagnes > 1 ? 's' : ''}
         </span>
         <span>
-          <strong className={`tabular-nums ${rienDePerdu ? 'text-success-600' : 'text-danger'}`}>
+          <strong className={`tabular-nums ${rienDePerdu ? 'text-success-600' : 'text-danger-soft-foreground'}`}>
             {nbAccesPerdus}
           </strong>{' '}
           accès retiré{nbAccesPerdus > 1 ? 's' : ''}
@@ -99,7 +99,7 @@ export function RecapitulatifAcces({ recapitulatif, intention, note }: Props) {
 
       {blocages.length > 0 && (
         <div className="space-y-1 rounded-medium border border-danger/40 bg-danger/5 px-3 py-2">
-          <p className="text-sm font-medium text-danger">
+          <p className="text-sm font-medium text-danger-soft-foreground">
             {blocages.length} établissement{blocages.length > 1 ? 's' : ''} empêche
             {blocages.length > 1 ? 'nt' : ''} la validation
           </p>
@@ -177,7 +177,7 @@ export function RecapitulatifAcces({ recapitulatif, intention, note }: Props) {
                         {ligne.pertes.map((etablissement) => (
                           <li
                             key={`perte-${etablissement.restaurantId}`}
-                            className="truncate text-[13px] text-danger line-through"
+                            className="truncate text-[13px] text-danger-soft-foreground line-through"
                           >
                             {etablissement.nom ?? 'Établissement sans nom'}
                           </li>

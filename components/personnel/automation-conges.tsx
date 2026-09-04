@@ -135,12 +135,12 @@ export default function AutomatisationConges() {
   });
 
   return (
-    <div className="p-6 bg-gray-100">
+    <div className="p-6 bg-surface-secondary">
       {/* Header */}
-      <div className="bg-gray-200 rounded-xl p-4 mb-6">
+      <div className="bg-surface-tertiary rounded-xl p-4 mb-6">
         <h1 className="text-lg font-semibold mb-1">Automatisation des congés</h1>
-        <p className="text-sm text-gray-600">Le système calcule automatiquement les droits aux congés basé sur la date d&#39;embauche :</p>
-        <ul className="text-sm text-gray-700 mt-2 list-disc ml-5">
+        <p className="text-sm text-muted">Le système calcule automatiquement les droits aux congés basé sur la date d&#39;embauche :</p>
+        <ul className="text-sm text-foreground mt-2 list-disc ml-5">
           <li>
             <strong>Après 1 an d&#39;ancienneté :</strong> 30 jours de congés annuels
           </li>
@@ -171,12 +171,12 @@ export default function AutomatisationConges() {
                   {emp.isOnLeave && <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">🏖️ En congé</span>}
                 </h2>
 
-                <div className="text-sm text-gray-600 space-y-1 mb-3">
+                <div className="text-sm text-muted space-y-1 mb-3">
                   <p>📅 Embauche: {emp.embauche}</p>
                   <p>Ancienneté: {emp.anciennete}</p>
                 </div>
 
-                <div className="bg-gray-100 rounded-lg p-3 text-sm space-y-1">
+                <div className="bg-surface-secondary rounded-lg p-3 text-sm space-y-1">
                   <div className="flex justify-between">
                     <span>Droits congés</span>
                     <span className="font-medium">{emp.droits} jours</span>

@@ -286,7 +286,7 @@ function MapUnavailable({ title, details }: { title: string; details: string }) 
   return (
     <div className="w-full h-full min-h-[400px] flex items-center justify-center bg-default-100 p-6">
       <div className="max-w-md flex flex-col items-center text-center gap-2">
-        <AlertTriangle className="w-8 h-8 text-warning" />
+        <AlertTriangle className="w-8 h-8 text-warning-soft-foreground" />
         <p className="text-sm font-semibold text-default-800">{title}</p>
         <p className="text-xs text-default-600 leading-relaxed">{details}</p>
       </div>

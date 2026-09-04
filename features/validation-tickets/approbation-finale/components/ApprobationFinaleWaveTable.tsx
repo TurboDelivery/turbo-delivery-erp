@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import { flexRender, Table } from '@tanstack/react-table';
+import { Card, Spinner } from '@heroui-v3/react';
 import { Table as HeroTable, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
-import { Loader2 } from 'lucide-react';
 import { IGrillePaiementLigne } from '@/features/validation-tickets/grille-de-paiement/types/grille-paiement.type';
 
 interface Props {
@@ -32,9 +32,9 @@ export default function ApprobationFinaleWaveTable({ waveTable, isFetchingNextPa
   }, [hasNextPage, fetchNextPage, isFetchingNextPage]);
 
   return (
-    <div className="flex-1 min-w-0 rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-100">
-        <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
+    <div className="flex-1 min-w-0 rounded-xl border border-separator bg-surface overflow-hidden">
+      <div className="px-5 py-3 border-b border-separator">
+        <p className="text-xs font-bold uppercase tracking-widest text-muted">
           Récapitulatif des virements Wave
         </p>
       </div>
@@ -45,8 +45,11 @@ export default function ApprobationFinaleWaveTable({ waveTable, isFetchingNextPa
         aria-label="Récapitulatif des virements Wave"
         classNames={{ base: 'hidden md:block' }}
         bottomContent={
-          <div ref={bottomRef} className="flex items-center justify-center py-2">
-            {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-300" />}
+          /* Le rond de chargement etait dessine a la main (`Loader2` + `animate-spin`) :
+             sa couleur etait figee et ne suivait pas la bascule de theme. `Spinner` en
+             `color="current"` herite du `text-muted` porte par la sentinelle. */
+          <div ref={bottomRef} className="flex items-center justify-center py-2 text-muted">
+            {isFetchingNextPage && <Spinner color="current" size="sm" />}
           </div>
         }
       >
@@ -73,39 +76,45 @@ export default function ApprobationFinaleWaveTable({ waveTable, isFetchingNextPa
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <div className="md:hidden space-y-3 p-4">
         {waveTable.getRowModel().rows.length === 0 ? (
-          <p className="py-10 text-center text-sm text-gray-400">Aucun livreur trouvé</p>
+          <p className="py-10 text-center text-sm text-muted">Aucun livreur trouvé</p>
         ) : (
           waveTable.getRowModel().rows.map((row) => {
             const ligne = row.original;
             return (
-              <div
-                key={row.id}
-                className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2"
-              >
+              /*
+               * Le cadre etait un `div` habille a la main (fond, bordure, arrondi, ombre,
+               * rembourrage). C'est une carte de la bibliotheque : elle porte ce cadre et
+               * suit le theme sans qu'on le redise. Ne reste que l'ecart entre les lignes.
+               */
+              <Card key={row.id} className="gap-2">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-gray-800">{ligne.turboy.nom}</p>
-                  <p className="text-[11px] text-gray-400">{ligne.turboy.code}</p>
+                  <p className="truncate text-sm font-semibold text-foreground">{ligne.turboy.nom}</p>
+                  <p className="text-[11px] text-muted">{ligne.turboy.code}</p>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">N° Wave</span>
+                  <span className="shrink-0 text-xs text-muted">N° Wave</span>
                   {ligne.numeroWave ? (
-                    <span className="text-right text-sm text-gray-600">{ligne.numeroWave}</span>
+                    <span className="text-right text-sm tabular-nums text-muted">{ligne.numeroWave}</span>
                   ) : (
-                    <span className="text-gray-300">—</span>
+                    <span className="text-right text-sm text-muted">—</span>
                   )}
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Net</span>
-                  <span className="text-right text-sm font-bold text-green-600">
+                  <span className="shrink-0 text-xs text-muted">Net</span>
+                  {/* `text-green-600` etait ecrit en dur, sans variante sombre : depuis que la
+                      bascule de theme est dans l'en-tete, le montant a virer restait vert clair
+                      sur fond fonce, illisible au moment de verifier une paie. `text-success-soft-foreground`
+                      porte le meme sens et a ses deux themes. */}
+                  <span className="text-right text-sm font-bold tabular-nums text-success-soft-foreground">
                     {ligne.netAPayer.toLocaleString('fr-FR')}
                   </span>
                 </div>
-              </div>
+              </Card>
             );
           })
         )}
-        <div ref={bottomRefMobile} className="flex items-center justify-center py-1">
-          {isFetchingNextPage && <Loader2 className="h-4 w-4 animate-spin text-gray-300" />}
+        <div ref={bottomRefMobile} className="flex items-center justify-center py-1 text-muted">
+          {isFetchingNextPage && <Spinner color="current" size="sm" />}
         </div>
       </div>
     </div>

@@ -1,9 +1,23 @@
 'use client';
 
-import { Download } from 'lucide-react';
-import { getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { ChevronRight, Download, ListFilter } from 'lucide-react';
+import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+/*
+ * `Button`, `Skeleton` et le groupe de bascules viennent de la V3.
+ *
+ * <p>Le bouton d'export portait `variant="bordered"`, `color="primary"` et
+ * `startContent` : trois props de la V2. Posees sur le composant V3 elles sont ignorees
+ * SANS ERREUR — le bouton se serait affiche sans son icone de telechargement, et rien
+ * dans la console ne l'aurait signale.</p>
+ *
+ * <p>`Skeleton` venait de `components/ui`, ou il se peint en `bg-primary/10`, c'est-a-dire
+ * dans le rouge de la marque : les quatre blocs d'attente en tete d'ecran se lisaient
+ * comme une alerte. Le composant V3 se peint sur la surface du theme, en clair comme en
+ * sombre.</p>
+ */
+import { Button, Skeleton, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
+import { buttonVariants } from '@heroui-v3/styles';
 import {
-  Button,
   Table,
   TableBody,
   TableCell,
@@ -11,9 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/heroui';
-import { flexRender } from '@tanstack/react-table';
 import Link from 'next/link';
-import { Skeleton } from '@/components/ui/skeleton';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import useHistoriqueCreneaux from '../hooks/use-historique-creneaux';
@@ -59,13 +71,8 @@ export default function HistoriqueCreneauxContent() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-primary">Historique des créneaux</h1>
-        <Button
-          variant="bordered"
-          color="primary"
-          startContent={<Download size={16} />}
-          isDisabled={filtered.length === 0}
-          onPress={exportXlsx}
-        >
+        <Button isDisabled={filtered.length === 0} onPress={exportXlsx} variant="outline">
+          <Download aria-hidden="true" className="size-4" />
           Exporter Excel
         </Button>
       </div>
@@ -81,40 +88,59 @@ export default function HistoriqueCreneauxContent() {
         <HistoriqueCreneauxStats stats={stats} />
       )}
 
-      {/* Search + Filters */}
-      <div className="rounded-xl border border-gray-200 bg-white p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="flex items-center gap-1 text-xs text-gray-500 mr-1">
-            <svg className="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M2 4h12M4 8h8M6 12h4" strokeLinecap="round" />
-            </svg>
+      {/* Filtres de statut */}
+      <div className="rounded-xl border border-separator bg-surface p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="flex items-center gap-1 text-xs text-muted">
+            <ListFilter aria-hidden="true" className="size-3.5" />
             Statut :
           </span>
-          {STATUT_FILTERS.map((f) => (
-            <button
-              key={f.value}
-              onClick={() => setStatutFilter(f.value)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                statutFilter === f.value
-                  ? 'bg-red-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              {f.label}
-            </button>
-          ))}
+          {/*
+           * Neuf `<button>` nus, dont le filtre actif se peignait en `bg-red-500`.
+           *
+           * <p>Deux consequences. D'abord le rouge de l'accent, reserve a ce qui appelle
+           * une action, servait ici a marquer un simple etat de lecture : sur cet ecran
+           * la pastille du filtre criait plus fort que le seul vrai bouton, l'export.
+           * Ensuite rien ne disait quel filtre etait actif a un lecteur d'ecran : aucun
+           * role, aucun etat selectionne, et neuf arrets de tabulation independants.</p>
+           *
+           * <p>Le groupe V3 porte la selection, la navigation au clavier et les roles
+           * ARIA. `disallowEmptySelection` evite l'etat impossible « aucun filtre » :
+           * re-cliquer le filtre actif le laissait sinon sans selection alors que la
+           * liste, elle, restait filtree. `flex-wrap` parce que neuf libelles ne tiennent
+           * pas sur la largeur d'un telephone, et que le groupe ne se replie pas seul.</p>
+           */}
+          <ToggleButtonGroup
+            aria-label="Filtrer par statut"
+            className="flex-wrap"
+            disallowEmptySelection
+            isDetached
+            onSelectionChange={(cles) => {
+              const premiere = [...cles][0];
+              if (premiere) setStatutFilter(premiere as StatutFilter);
+            }}
+            selectedKeys={new Set([statutFilter])}
+            selectionMode="single"
+            size="sm"
+          >
+            {STATUT_FILTERS.map((f) => (
+              <ToggleButton id={f.value} key={f.value}>
+                {f.label}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
         </div>
       </div>
 
       {/* Table — desktop uniquement (≥ md) */}
-      <div className="hidden md:block rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="hidden md:block rounded-xl border border-separator bg-surface overflow-hidden">
         <Table
           aria-label="Historique des créneaux"
           removeWrapper
           classNames={{
-            th: 'bg-gray-50 text-[10px] font-bold uppercase tracking-wide text-gray-500 py-3 px-4',
-            td: 'py-4 px-4 border-b border-gray-100',
-            tr: 'hover:bg-gray-50/60 transition-colors',
+            th: 'bg-surface-secondary text-[10px] font-bold uppercase tracking-wide text-muted py-3 px-4',
+            td: 'py-4 px-4 border-b border-separator',
+            tr: 'hover:bg-surface-secondary/60 transition-colors',
           }}
         >
           <TableHeader>
@@ -132,7 +158,7 @@ export default function HistoriqueCreneauxContent() {
               ) : isLoading ? (
                 ' '
               ) : (
-                <span className="text-sm text-gray-400">Aucun créneau trouvé</span>
+                <span className="text-sm text-muted">Aucun créneau trouvé</span>
               )
             }
           >
@@ -141,7 +167,7 @@ export default function HistoriqueCreneauxContent() {
                   <TableRow key={`skel-${i}`}>
                     {historiqueCreneauxColumns.map((col) => (
                       <TableCell key={String(col.id ?? i)}>
-                        <div className="h-4 animate-pulse rounded bg-gray-100" />
+                        <Skeleton className="h-4 rounded" />
                       </TableCell>
                     ))}
                   </TableRow>
@@ -163,27 +189,30 @@ export default function HistoriqueCreneauxContent() {
       <div className="md:hidden space-y-3">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={`m-skel-${i}`} className="h-44 rounded-xl bg-gray-100 animate-pulse" />
+            <Skeleton key={`m-skel-${i}`} className="h-44 rounded-xl" />
           ))
         ) : isError ? (
           <EtatErreur quoi="les créneaux" onReessayer={() => refetch()} enCours={isFetching} />
         ) : filtered.length === 0 ? (
-          <p className="py-10 text-center text-sm text-gray-400">Aucun créneau trouvé</p>
+          <p className="py-10 text-center text-sm text-muted">Aucun créneau trouvé</p>
         ) : (
           filtered.map((creneau) => {
             const config = getLotStatutConfig(creneau.lotStatut);
             return (
               <div
                 key={creneau.id}
-                className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2"
+                className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-gray-900">{creneau.label}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="truncate text-sm font-semibold text-foreground">{creneau.label}</p>
+                    <p className="text-xs text-muted">
                       {fmtDate(creneau.dateDebut)} → {fmtDate(creneau.dateFin)}
                     </p>
                   </div>
+                  {/* La pastille garde ses huit teintes : la chaine de validation compte
+                      huit etats et l'echelle d'etat du theme n'en offre que trois. Les
+                      couples clair/sombre sont fournis par `lot-statut.utils`. */}
                   <span
                     className={`shrink-0 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${config.className}`}
                   >
@@ -192,51 +221,64 @@ export default function HistoriqueCreneauxContent() {
                 </div>
 
                 {creneau.commentaireRejet && (
-                  <p className="line-clamp-2 text-xs text-gray-500">{creneau.commentaireRejet}</p>
+                  <p className="line-clamp-2 text-xs text-muted">{creneau.commentaireRejet}</p>
                 )}
 
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Livreurs</span>
-                  <span className="text-right text-sm text-gray-700">{creneau.nbLivreurs}</span>
+                  <span className="shrink-0 text-xs text-muted">Livreurs</span>
+                  <span className="text-right text-sm text-foreground">{creneau.nbLivreurs}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Tickets</span>
-                  <span className="text-right text-sm text-gray-700">{creneau.totalTickets}</span>
+                  <span className="shrink-0 text-xs text-muted">Tickets</span>
+                  <span className="text-right text-sm text-foreground">{creneau.totalTickets}</span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">En attente</span>
+                  <span className="shrink-0 text-xs text-muted">En attente</span>
+                  {/* `text-amber-600` n'avait pas de variante sombre : sur fond sombre, le
+                      seul chiffre qui reclame un traitement passait inapercu. Le jeton
+                      d'etat porte ses deux themes. */}
                   <span
-                    className={`text-right text-sm font-medium ${creneau.nbTicketsPending > 0 ? 'text-amber-600' : 'text-gray-400'}`}
+                    className={`text-right text-sm font-medium ${creneau.nbTicketsPending > 0 ? 'text-warning-soft-foreground' : 'text-muted'}`}
                   >
                     {creneau.nbTicketsPending}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Net (FCFA)</span>
-                  <span className="text-right text-sm font-semibold text-gray-900">{formatCFA(creneau.totalNet)}</span>
+                  <span className="shrink-0 text-xs text-muted">Net (FCFA)</span>
+                  <span className="text-right text-sm font-semibold text-foreground">{formatCFA(creneau.totalNet)}</span>
                 </div>
                 {creneau.soumisAt && (
                   <div className="flex items-center justify-between gap-3">
-                    <span className="shrink-0 text-xs text-gray-400">Soumis le</span>
-                    <span className="text-right text-sm text-gray-700">
+                    <span className="shrink-0 text-xs text-muted">Soumis le</span>
+                    <span className="text-right text-sm text-foreground">
                       {fmtDate(creneau.soumisAt)}
                       {creneau.soumisParNom && (
-                        <span className="text-gray-400"> · {creneau.soumisParNom}</span>
+                        <span className="text-muted"> · {creneau.soumisParNom}</span>
                       )}
                     </span>
                   </div>
                 )}
                 <div className="flex items-center justify-between gap-3">
-                  <span className="shrink-0 text-xs text-gray-400">Visible</span>
+                  <span className="shrink-0 text-xs text-muted">Visible</span>
                   <CreneauActifToggleCell creneau={creneau} />
                 </div>
 
                 <div className="pt-1">
+                  {/*
+                   * Le lien de detail etait peint a la main en `border-red-200`,
+                   * `text-red-500` et `hover:bg-red-50`, sans variante sombre : en theme
+                   * sombre, l'appui posait un aplat presque blanc sous un libelle clair,
+                   * et le seul chemin vers le detail du creneau disparaissait le temps du
+                   * toucher. `buttonVariants` est la facon documentee d'habiller un lien
+                   * de routage avec les styles V3 : la navigation reste celle de Next,
+                   * l'apparence vient du theme.
+                   */}
                   <Link
+                    className={buttonVariants({ fullWidth: true, variant: 'outline' })}
                     href={`/validation-tickets/historique-creneaux/${creneau.id}`}
-                    className="inline-flex w-full items-center justify-center rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-50"
                   >
-                    Voir le détail &rsaquo;
+                    Voir le détail
+                    <ChevronRight aria-hidden="true" className="size-4" />
                   </Link>
                 </div>
               </div>

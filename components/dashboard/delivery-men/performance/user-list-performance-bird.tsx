@@ -98,7 +98,7 @@ export default function UserListPerformanceBird({ data }: props) {
                                 className={`px-4 py-2 rounded-md whitespace-nowrap text-sm font-medium transition-colors ${
                                     activeIndex === idx
                                     ? 'bg-primary text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    : 'bg-surface-tertiary text-foreground hover:bg-gray-300'
                                 }`}
                             >
                                 Semaine du {jourDebut} - {jourFin} {fnMois(moiDebut || moiFin || '')}
@@ -186,7 +186,7 @@ export default function UserListPerformanceBird({ data }: props) {
                             </div>
 
                             {/* Carte tactile — mobile (< md), mêmes données / handlers que la ligne */}
-                            <div className="md:hidden bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-3">
+                            <div className="md:hidden bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="flex items-center gap-2 min-w-0">
                                         <Avatar
@@ -205,7 +205,7 @@ export default function UserListPerformanceBird({ data }: props) {
                                 </div>
 
                                 <div className="space-y-1">
-                                    <span className="text-xs text-gray-400">En cours</span>
+                                    <span className="text-xs text-muted">En cours</span>
                                     <div className="flex flex-wrap items-center gap-2">{dayButtons}</div>
                                 </div>
 
@@ -216,11 +216,11 @@ export default function UserListPerformanceBird({ data }: props) {
 
                                 <div className="flex items-center justify-between gap-3">
                                     <div>
-                                        <h3 className="text-xs text-gray-400">Commission</h3>
+                                        <h3 className="text-xs text-muted">Commission</h3>
                                         <h4 className="text-lg">{item.commission}</h4>
                                     </div>
                                     <div className="text-right">
-                                        <h3 className="text-xs text-gray-400">Prime</h3>
+                                        <h3 className="text-xs text-muted">Prime</h3>
                                         <h4 className="text-lg">{item.prime}</h4>
                                     </div>
                                 </div>
@@ -240,7 +240,7 @@ export default function UserListPerformanceBird({ data }: props) {
                                 Précédent
                             </button>
 
-                            <span className="px-4 py-2 bg-white border rounded">
+                            <span className="px-4 py-2 bg-surface border rounded">
                                 Page {page + 1} / {totalPages}
                             </span>
 

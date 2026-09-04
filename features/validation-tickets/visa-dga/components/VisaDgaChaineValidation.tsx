@@ -1,4 +1,20 @@
+/*
+ * Frise de la chaine de validation d'un creneau, rendue avec HeroUI V3.
+ *
+ * <p>Le panneau etait une `div` habillee a la main (`rounded-xl border border-separator
+ * bg-surface p-5`) : le rayon et la surface devaient etre reportes ici a chaque reglage du
+ * theme, et l'ecran s'est deja retrouve avec deux rayons differents pour la meme carte.
+ * `Card` porte deja sa surface, son rayon et son espacement.</p>
+ *
+ * <p>Les etats etaient peints en vert et bleu fixes (`bg-green-500`, `bg-blue-600`,
+ * `bg-blue-50`, `text-blue-700`). En theme sombre le bleu tres clair du bloc de l'etape
+ * courante restait clair sous du texte clair : l'operateur ne lisait plus a quelle etape
+ * le creneau se trouvait. L'echelle `success` marque ce qui est fait, `accent` ce qui
+ * appelle l'attention, et les deux suivent le theme.</p>
+ */
+import { Card } from '@heroui-v3/react';
 import { Check } from 'lucide-react';
+
 import { IEtapeValidation } from '../types/visa-dga.type';
 
 interface Props {
@@ -7,90 +23,100 @@ interface Props {
 
 export default function VisaDgaChaineValidation({ etapes }: Props) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 w-full lg:w-[300px] lg:shrink-0 self-start lg:sticky lg:top-6">
-      <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">
-        Chaîne de validation
-      </p>
-      <p className="text-[11px] text-gray-400 mb-5">Statuts traversés par le créneau</p>
+    <Card className="w-full self-start lg:sticky lg:top-6 lg:w-[300px] lg:shrink-0">
+      <Card.Header>
+        <Card.Title>Chaîne de validation</Card.Title>
+        <Card.Description>Statuts traversés par le créneau</Card.Description>
+      </Card.Header>
 
-      <ol className="flex flex-col gap-0">
-        {etapes.map((etape, idx) => {
-          const isLast = idx === etapes.length - 1;
-          return (
-            <li key={etape.numero} className="flex gap-3">
-              {/* Indicateur + ligne verticale */}
-              <div className="flex flex-col items-center">
-                <StepIcon etape={etape} />
-                {!isLast && (
-                  <div
-                    className={[
-                      'w-px flex-1 mt-1',
-                      etape.statut === 'done' ? 'bg-green-300' : 'bg-gray-200',
-                    ].join(' ')}
-                    style={{ minHeight: '20px' }}
-                  />
-                )}
-              </div>
+      <Card.Content>
+        <ol className="flex flex-col">
+          {etapes.map((etape, idx) => {
+            const isLast = idx === etapes.length - 1;
+            const isCourant = etape.statut === 'current';
 
-              {/* Contenu */}
-              <div
-                className={[
-                  'pb-5 flex-1',
-                  etape.statut === 'current'
-                    ? 'rounded-lg bg-blue-50 px-3 py-2 -mt-1 -mr-1 mb-2'
-                    : '',
-                ].join(' ')}
+            return (
+              <li
+                key={etape.numero}
+                aria-current={isCourant ? 'step' : undefined}
+                className="flex gap-3"
               >
-                <p
+                {/* Indicateur + ligne verticale */}
+                <div className="flex flex-col items-center">
+                  <StepIcon etape={etape} />
+                  {!isLast && (
+                    <div
+                      aria-hidden="true"
+                      className={[
+                        'mt-1 min-h-5 w-px flex-1',
+                        etape.statut === 'done' ? 'bg-success' : 'bg-separator',
+                      ].join(' ')}
+                    />
+                  )}
+                </div>
+
+                {/* Contenu */}
+                <div
                   className={[
-                    'text-sm font-semibold leading-tight',
-                    etape.statut === 'done'
-                      ? 'text-gray-700'
-                      : etape.statut === 'current'
-                        ? 'text-blue-700'
-                        : 'text-gray-400',
+                    'flex-1',
+                    isCourant
+                      ? '-mt-1 mb-3 rounded-lg bg-accent-soft px-3 py-2'
+                      : isLast
+                        ? ''
+                        : 'pb-5',
                   ].join(' ')}
                 >
-                  {etape.label}
-                </p>
-                <p
-                  className={[
-                    'text-[11px] mt-0.5',
-                    etape.statut === 'done'
-                      ? 'text-gray-400'
-                      : etape.statut === 'current'
-                        ? 'text-blue-500 font-medium'
-                        : 'text-gray-300',
-                  ].join(' ')}
-                >
-                  {etape.agent}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ol>
-    </div>
+                  <p
+                    className={[
+                      'text-sm font-semibold leading-tight',
+                      etape.statut === 'done'
+                        ? 'text-foreground'
+                        : isCourant
+                          ? 'text-accent-soft-foreground'
+                          : 'text-muted',
+                    ].join(' ')}
+                  >
+                    {etape.label}
+                  </p>
+                  <p
+                    className={[
+                      'mt-0.5 text-[11px]',
+                      isCourant
+                        ? 'font-medium text-accent-soft-foreground/80'
+                        : 'text-muted',
+                    ].join(' ')}
+                  >
+                    {etape.agent}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </Card.Content>
+    </Card>
   );
 }
 
 function StepIcon({ etape }: { etape: IEtapeValidation }) {
   if (etape.statut === 'done') {
     return (
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-green-500 text-white">
-        <Check className="h-3.5 w-3.5" strokeWidth={3} />
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground">
+        <Check aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={3} />
+        {/* Sans ce libelle, l'etape franchie ne se distingue des autres que par la couleur. */}
+        <span className="sr-only">Étape validée</span>
       </div>
     );
   }
   if (etape.statut === 'current') {
     return (
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
         {etape.numero}
       </div>
     );
   }
   return (
-    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-gray-200 text-gray-300 text-xs font-bold">
+    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-separator text-xs font-bold text-muted">
       {etape.numero}
     </div>
   );

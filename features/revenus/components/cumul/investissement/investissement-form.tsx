@@ -55,7 +55,7 @@ export function InvestissementForm({ register, errors, defaultValues }: Investis
               className="h-10 pr-16"
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-              <span className="text-gray-500 text-sm">FCFA</span>
+              <span className="text-muted text-sm">FCFA</span>
             </div>
           </div>
           {errors.montant && (

@@ -65,21 +65,21 @@ export default function EncaissementModal({
           <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" onClick={onClose} />
 
           {/* Panel */}
-          <div className="relative z-10 w-full max-w-2xl max-h-[90vh] mx-4 bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+          <div className="relative z-10 w-full max-w-2xl max-h-[90vh] mx-4 bg-surface rounded-2xl shadow-2xl flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-separator shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                   <DollarSign className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Encaissement</p>
-                  <p className="text-xs text-gray-400">{facture.numero}</p>
+                  <p className="text-sm font-semibold text-foreground">Encaissement</p>
+                  <p className="text-xs text-muted">{facture.numero}</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-secondary text-muted hover:text-foreground transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -88,44 +88,44 @@ export default function EncaissementModal({
             {/* Scrollable body */}
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
               {/* Informations générales */}
-              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 space-y-4">
+              <div className="rounded-xl border border-separator bg-surface-secondary p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-800">Informations générales</p>
+                  <p className="text-sm font-semibold text-foreground">Informations générales</p>
                   <span className="inline-flex items-center rounded-full bg-orange-100 text-orange-700 border border-orange-200 px-2.5 py-0.5 text-xs font-medium">
                     • {facture.statut}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Partner</p>
-                    <p className="font-medium text-gray-800">{facture.partenaire}</p>
+                    <p className="text-xs text-muted mb-0.5">Partner</p>
+                    <p className="font-medium text-foreground">{facture.partenaire}</p>
                   </div>
                   <div className="flex items-start gap-2">
                     <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-xs font-bold shrink-0 mt-0.5">
                       {agentNom.charAt(0) || '?'}
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 mb-0.5">Agent recouvreur</p>
-                      <p className="font-medium text-gray-800">{agentNom || '—'}</p>
+                      <p className="text-xs text-muted mb-0.5">Agent recouvreur</p>
+                      <p className="font-medium text-foreground">{agentNom || '—'}</p>
                     </div>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Montant total</p>
-                    <p className="font-semibold text-gray-800">{formatMontant(facture.montant)}</p>
+                    <p className="text-xs text-muted mb-0.5">Montant total</p>
+                    <p className="font-semibold text-foreground">{formatMontant(facture.montant)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Cycle de paiement</p>
-                    <p className="font-medium text-gray-800">{facture.cycle}</p>
+                    <p className="text-xs text-muted mb-0.5">Cycle de paiement</p>
+                    <p className="font-medium text-foreground">{facture.cycle}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Date d&apos;émission</p>
-                    <p className="font-medium text-gray-800">
+                    <p className="text-xs text-muted mb-0.5">Date d&apos;émission</p>
+                    <p className="font-medium text-foreground">
                       {facture.emission !== '—' ? facture.emission : '—'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Base dépôt partner</p>
-                    <p className="font-medium text-gray-500">
+                    <p className="text-xs text-muted mb-0.5">Base dépôt partner</p>
+                    <p className="font-medium text-muted">
                       {facture.depotPartenaire?.date ?? 'jj/mm/aaaa'}
                     </p>
                   </div>
@@ -133,22 +133,22 @@ export default function EncaissementModal({
               </div>
 
               {/* Progression */}
-              <div className="rounded-xl bg-gray-50 border border-gray-100 p-4 space-y-3">
+              <div className="rounded-xl bg-surface-secondary border border-separator p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-800">Progression du recouvrement</p>
+                  <p className="text-sm font-semibold text-foreground">Progression du recouvrement</p>
                   <p
                     className={`text-sm font-bold ${
                       progression === 100
                         ? 'text-green-600'
                         : progression > 0
                         ? 'text-blue-600'
-                        : 'text-gray-400'
+                        : 'text-muted'
                     }`}
                   >
                     {progression}%
                   </p>
                 </div>
-                <div className="w-full h-2 rounded-full bg-gray-200">
+                <div className="w-full h-2 rounded-full bg-surface-tertiary">
                   <div
                     className="h-2 rounded-full bg-blue-500 transition-all duration-500"
                     style={{ width: `${progression}%` }}
@@ -156,11 +156,11 @@ export default function EncaissementModal({
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <div>
-                    <p className="text-gray-400">Montant recouvré</p>
-                    <p className="font-semibold text-gray-700">{formatMontant(montantRecouvre)}</p>
+                    <p className="text-muted">Montant recouvré</p>
+                    <p className="font-semibold text-foreground">{formatMontant(montantRecouvre)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-gray-400">Montant restant</p>
+                    <p className="text-muted">Montant restant</p>
                     <p className="font-semibold text-red-500">{formatMontant(montantRestant)}</p>
                   </div>
                 </div>
@@ -169,7 +169,7 @@ export default function EncaissementModal({
               {/* Paiements */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-800">Paiements ({paiements.length})</p>
+                  <p className="text-sm font-semibold text-foreground">Paiements ({paiements.length})</p>
                   <Button
                     size="sm"
                     className="bg-blue-600 hover:bg-blue-700 text-white text-xs gap-1.5"
@@ -180,7 +180,7 @@ export default function EncaissementModal({
                   </Button>
                 </div>
                 {paiements.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-gray-400 rounded-xl border border-dashed border-gray-200">
+                  <div className="flex flex-col items-center justify-center py-8 text-muted rounded-xl border border-dashed border-separator">
                     <DollarSign className="w-8 h-8 mb-2 opacity-30" />
                     <p className="text-xs">Aucun paiement enregistré</p>
                   </div>
@@ -189,13 +189,13 @@ export default function EncaissementModal({
                     {paiements.map((p) => (
                       <div
                         key={p.id}
-                        className="flex items-center justify-between rounded-xl border border-gray-100 bg-white px-4 py-3"
+                        className="flex items-center justify-between rounded-xl border border-separator bg-surface px-4 py-3"
                       >
                         <div>
-                          <p className="text-xs font-semibold text-gray-800">{p.type}</p>
-                          <p className="text-xs text-gray-400">{p.date}</p>
+                          <p className="text-xs font-semibold text-foreground">{p.type}</p>
+                          <p className="text-xs text-muted">{p.date}</p>
                           {p.remarque && (
-                            <p className="text-xs text-gray-500 mt-0.5 italic">{p.remarque}</p>
+                            <p className="text-xs text-muted mt-0.5 italic">{p.remarque}</p>
                           )}
                         </div>
                         <p className="text-sm font-bold text-green-600">{formatMontant(p.montant)}</p>

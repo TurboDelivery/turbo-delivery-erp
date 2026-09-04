@@ -21,7 +21,7 @@ export function SelectWithCheckbox(props: SelectWithCheckboxProps) {
     return (
         <Popover placement="bottom">
             <PopoverTrigger>
-                <Button className="w-64 bg-white border border-gray-300 text-gray-700">{props.selected.length > 0 ? props.selected.join(', ') : 'Sélectionner des utilisateurs'}</Button>
+                <Button className="w-64 bg-surface border border-separator text-foreground">{props.selected.length > 0 ? props.selected.join(', ') : 'Sélectionner des utilisateurs'}</Button>
             </PopoverTrigger>
             <PopoverContent>
                 <Card className="p-4 w-64 shadow-lg border border-red-300">

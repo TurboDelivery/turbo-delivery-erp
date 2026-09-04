@@ -58,9 +58,14 @@ export function VerrouillageV2Content() {
 
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
+      {/* Le titre etait peint en `text-primary`, le rouge de marque. Deux raisons de le
+          reprendre : l'accent est reserve a ce qui appelle une action, et l'ecran en a
+          UNE, le verrouillage en masse du bas de page. Un titre rouge lui disputait le
+          regard. Ensuite `--primary` est un jeton de l'ancienne palette, que la v3 ne
+          fournit plus. */}
       <div>
-        <h1 className="text-2xl font-bold text-primary">Verrouillage V2 — Responsable V&A</h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-foreground">Verrouillage V2 — Responsable V&A</h1>
+        <p className="text-sm text-muted mt-1">
           Étape 4 — Double passe complète.
         </p>
       </div>

@@ -153,7 +153,7 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
               {incident.livreurId && (
                 <Button
                   size="sm"
-                  className="w-fit bg-[#1AA05A]/10 font-semibold text-[#147A45]"
+                  className="w-fit bg-success/10 font-semibold text-success-soft-foreground"
                   startContent={<Phone className="h-4 w-4" />}
                   isDisabled={enAppel}
                   onPress={() =>

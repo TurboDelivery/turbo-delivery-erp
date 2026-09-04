@@ -25,25 +25,25 @@ export interface TonIncident {
 
 export const TON_INCIDENT: Record<StatutIncident, TonIncident> = {
   RECU: {
-    pastille: 'bg-[#E11D48]/10 text-[#E11D48]',
-    etat: 'bg-[#E11D48]/10 text-[#B4123B]',
-    point: 'bg-[#E11D48]',
-    carte: 'border-[#E11D48]/30',
-    texte: 'text-[#E11D48]',
+    pastille: 'bg-danger/10 text-danger-soft-foreground',
+    etat: 'bg-danger/10 text-danger-soft-foreground',
+    point: 'bg-danger',
+    carte: 'border-danger/30',
+    texte: 'text-danger-soft-foreground',
   },
   EN_COURS: {
-    pastille: 'bg-[#D97706]/10 text-[#D97706]',
-    etat: 'bg-[#D97706]/10 text-[#A45B05]',
-    point: 'bg-[#D97706]',
-    carte: 'border-[#D97706]/25',
-    texte: 'text-[#D97706]',
+    pastille: 'bg-warning/10 text-warning-soft-foreground',
+    etat: 'bg-warning/10 text-warning-soft-foreground',
+    point: 'bg-warning',
+    carte: 'border-warning/25',
+    texte: 'text-warning-soft-foreground',
   },
   TRAITE: {
-    pastille: 'bg-[#1AA05A]/10 text-[#1AA05A]',
-    etat: 'bg-[#1AA05A]/10 text-[#147A45]',
-    point: 'bg-[#1AA05A]',
+    pastille: 'bg-success/10 text-success-soft-foreground',
+    etat: 'bg-success/10 text-success-soft-foreground',
+    point: 'bg-success',
     carte: 'border-default-200/50',
-    texte: 'text-[#1AA05A]',
+    texte: 'text-success-soft-foreground',
   },
   CLOTURE: {
     pastille: 'bg-default-200/60 text-default-500',
@@ -56,8 +56,8 @@ export const TON_INCIDENT: Record<StatutIncident, TonIncident> = {
 
 /** Statut terrain du livreur : DISPONIBLE = présent dans la file du jour (pointage). */
 export const TON_TRAFIC: Record<StatutTraficLivreur, string> = {
-  EN_COURSE: 'bg-[#D97706]/10 text-[#A45B05]',
-  DISPONIBLE: 'bg-[#1AA05A]/10 text-[#147A45]',
+  EN_COURSE: 'bg-warning/10 text-warning-soft-foreground',
+  DISPONIBLE: 'bg-success/10 text-success-soft-foreground',
   EN_PAUSE: 'bg-default-200/60 text-default-600',
   HORS_SERVICE: 'bg-default-200/60 text-default-500',
 };
