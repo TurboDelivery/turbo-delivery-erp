@@ -117,7 +117,7 @@ export function PersonnelCallPanel() {
           type="button"
           onClick={() => setOuvert(true)}
           aria-label="Appeler un membre du personnel"
-          className="fixed bottom-6 left-6 z-90 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xl ring-1 ring-white/10 transition hover:bg-emerald-500 active:scale-95"
+          className="fixed bottom-[calc(64px+env(safe-area-inset-bottom))] left-4 z-90 flex size-12 items-center justify-center rounded-full bg-emerald-600 text-white shadow-xl ring-1 ring-white/10 transition hover:bg-emerald-500 active:scale-95 lg:bottom-6 lg:left-6"
         >
           <Phone className="h-6 w-6" />
         </button>

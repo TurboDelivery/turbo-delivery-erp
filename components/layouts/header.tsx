@@ -72,10 +72,13 @@ const Header = ({ profile }: { profile: User }) => {
             * mobile.</p>
             */}
           <div className="relative flex h-16 w-full items-center gap-3 border-b border-separator bg-surface px-4">
+            {/* Masque sur mobile : la barre de navigation basse porte deja « Menu »,
+                et deux commandes pour la meme chose brouillent la lecture. Il reste sur
+                grand ecran, ou la barre basse n'existe pas. */}
             <Button
               isIconOnly
               aria-label="Afficher ou masquer la navigation"
-              className="shrink-0"
+              className="hidden shrink-0 lg:inline-flex"
               variant="light"
               onPress={() => dispatch(toggleSidebar())}
             >
