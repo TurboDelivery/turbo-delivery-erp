@@ -10,6 +10,7 @@ import TicketFilterBar from '@/components/validation-tickets/TicketFilterBar';
 
 export default function RegularisationContent() {
   const {
+    totalEnAttente,
     tickets,
     filteredTickets,
     filters,
@@ -29,7 +30,7 @@ export default function RegularisationContent() {
 
   return (
     <div className="flex flex-col gap-5 p-4 sm:p-6">
-      <RegularisationPageHeader pendingCount={tickets.length} />
+      <RegularisationPageHeader pendingCount={totalEnAttente} />
 
       <TicketFilterBar value={filters} onChange={setFilters} livreurOptions={livreurOptions} />
 

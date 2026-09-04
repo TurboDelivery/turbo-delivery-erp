@@ -13,7 +13,14 @@ import { handleServerActionError } from '@/utils/handleServerActionError';
 
 export const listerRegularisationMutation = async (): Promise<ActionResponse<PaginatedResponse<BonLivraisonTerminee>>> => {
   try {
-    const data = await listerTicketsParStatutRequest({ statuts: [StatutControle.TARDIF] });
+    /*
+     * `size` explicite : sans lui, `listerTicketsParStatutRequest` retombe sur
+     * page 0 / size 50 (tickets.request.ts:205-206). La file n'affichait donc jamais
+     * plus de 50 tickets, et son compteur, calcule sur `content.length`, annonçait 50
+     * quel qu'en soit le nombre reel. Une file qui ment sur sa propre taille laisse
+     * croire le travail fini.
+     */
+    const data = await listerTicketsParStatutRequest({ statuts: [StatutControle.TARDIF], page: 0, size: 500 });
     return { success: true, data, message: 'Tickets en retard récupérés' };
   } catch (error) {
     return handleServerActionError(error, 'Erreur lors de la récupération des tickets en retard');

@@ -20,6 +20,12 @@ export default function useRegularisation() {
 
   const tickets: BonLivraisonTerminee[] = useMemo(() => data?.content ?? [], [data]);
 
+  // Le compteur suit le TOTAL renvoye par le service, pas la taille de la page
+  // recue : `content.length` plafonnait a la taille de page et faisait passer une
+  // file de 200 tickets pour une file de 50.
+  const totalEnAttente = data?.totalElements ?? tickets.length;
+  const listeTronquee = (data?.totalElements ?? 0) > tickets.length;
+
   const filteredTickets = useMemo(() => applyTicketFilters(tickets, filters), [tickets, filters]);
 
   const selectedTicket = tickets.find((t) => t.commandeId === selectedId) ?? null;
@@ -47,6 +53,8 @@ export default function useRegularisation() {
 
   return {
     tickets,
+    totalEnAttente,
+    listeTronquee,
     filteredTickets,
     filters,
     setFilters,
