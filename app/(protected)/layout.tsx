@@ -4,6 +4,7 @@ import React from 'react';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Portals from '@/components/portals';
+import { BarreBasse } from '@/components/layouts/barre-basse';
 import Footer from '@/components/layouts/footer';
 import Header from '@/components/layouts/header';
 import Overlay from '@/components/layouts/overlay';
@@ -120,6 +121,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
               {/* END FOOTER */}
 
               <Portals />
+
+              {/* Navigation basse, mobile uniquement. Le rembourrage evite qu'elle
+                  recouvre la fin du contenu — une barre fixe doit reserver sa place. */}
+              <BarreBasse />
+              <div aria-hidden="true" className="h-[calc(52px+env(safe-area-inset-bottom))] lg:hidden" />
             </div>
           </MainContainer>
         </div>

@@ -13,7 +13,7 @@ import {
 import { fr } from 'date-fns/locale';
 import { ArrowDownRight, Clock, Download, Layers, TrendingUp, Wallet } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { getLocalTimeZone, fromDate, type DateValue } from '@internationalized/date';
+import { CalendarDate, getLocalTimeZone, type DateValue } from '@internationalized/date';
 
 import EtatErreur from '@/components/commons/EtatErreur';
 import { Montant } from '@/components/commons/montant';
@@ -56,10 +56,31 @@ import { useAbility } from '@/hooks/use-ability';
  * roles que les 24 pages `/finance/*` bloquent. Ce n'est pas une preference de mise en
  * page, c'est une regle d'autorisation que l'ecran ignorait.</p>
  */
+/**
+ * Convertit une date JS en date CALENDAIRE, sans heure ni fuseau.
+ *
+ * <p>`fromDate` produisait un `ZonedDateTime` : les champs de saisie affichaient alors
+ * « 01/09/2026 00:00 UTC+0 – 30/09/2026 00:00 UTC+0 », ce qui debordait la largeur d'un
+ * telephone. Une periode financiere n'a ni heure ni fuseau : elle porte un jour.</p>
+ */
+const versDateCalendaire = (d: Date) => new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
+
 export default function Pilotage() {
+    /*
+     * Filtrage par role SUSPENDU, sur demande — tout le monde voit tout pour l'instant.
+     *
+     * <p>Le constat reste entier et il faudra y revenir : `/analystics` figure dans
+     * `ALWAYS_ALLOWED_PATHS`, qui court-circuite la regle d'habilitation, si bien que les
+     * quinze roles atteignent cet ecran alors que cinq seulement ont le droit de lire
+     * `Finance`. Les 24 pages `/finance/*` les bloquent, ce tableau de bord non.</p>
+     *
+     * <p>Le branchement est conserve, commente d'une ligne : retablir le filtrage revient
+     * a rendre leur valeur aux deux constantes ci-dessous.</p>
+     */
     const ability = useAbility();
-    const voitFinance = ability.can('read', 'Finance');
-    const voitLivreurs = ability.can('read', 'Livreur');
+    void ability;
+    const voitFinance = true; // ability.can('read', 'Finance')
+    const voitLivreurs = true; // ability.can('read', 'Livreur')
 
     const [raccourci, setRaccourci] = useState<Raccourci>('mois');
     /**
@@ -123,7 +144,7 @@ export default function Pilotage() {
     // Le calendrier reflete la periode ACTIVE, d'ou qu'elle vienne : sans cela il
     // s'ouvrait vide apres un clic sur « Ce mois ».
     const plageAffichee = useMemo(
-        () => plage ?? { start: fromDate(debut, getLocalTimeZone()), end: fromDate(fin, getLocalTimeZone()) },
+        () => plage ?? { start: versDateCalendaire(debut), end: versDateCalendaire(fin) },
         [plage, debut, fin],
     );
 
@@ -243,14 +264,14 @@ export default function Pilotage() {
 
     return (
         <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end md:justify-between">
                 <div>
                     <h1 className="text-xl font-bold">Pilotage Turbo Delivery</h1>
                     <p className="text-sm text-muted">
                         {format(debut, 'd MMMM', { locale: fr })} – {format(fin, 'd MMMM yyyy', { locale: fr })}
                     </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex w-full flex-wrap items-center gap-2 md:w-auto">
                     <SelecteurPeriode
                         libelle={libelle}
                         onPlage={(p) => {

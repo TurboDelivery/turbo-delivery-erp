@@ -6,7 +6,7 @@ import { ArrowDownRight, Clock, Download, Layers, TrendingUp, Wallet } from 'luc
 import { Ecart } from '@/components/commons/ecart';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { useState } from 'react';
-import { fromDate, getLocalTimeZone, type DateValue } from '@internationalized/date';
+import { CalendarDate, type DateValue } from '@internationalized/date';
 
 import { JEUX_EXEMPLE, jeuParCle } from '@/features/finance-dashboard/apercu/jeux-exemple';
 import { BandePerimetre } from '@/features/finance-dashboard/components/etat/bande-perimetre';
@@ -213,8 +213,11 @@ export default function ApercuContenu() {
                                 }}
                                 plage={
                                     plage ?? {
-                                        start: fromDate(debut, getLocalTimeZone()),
-                                        end: fromDate(fin, getLocalTimeZone()),
+                                        // Date CALENDAIRE : `fromDate` donne un ZonedDateTime,
+                                        // dont les segments d'heure et de fuseau debordaient
+                                        // la largeur d'un telephone.
+                                        start: new CalendarDate(2026, 9, 1),
+                                        end: new CalendarDate(2026, 9, 30),
                                     }
                                 }
                                 raccourci={raccourci}

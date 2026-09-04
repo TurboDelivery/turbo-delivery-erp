@@ -52,7 +52,9 @@ export function SelecteurPeriode({
 }: SelecteurPeriodeProps) {
     return (
         <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-lg border border-separator p-1">
+            {/* Sur telephone la barre se replie : raccourcis d'un cote, plage de l'autre.
+                Forcee sur une ligne, elle debordait la largeur de l'ecran. */}
+            <div className="flex w-full flex-wrap items-center gap-1 rounded-lg border border-separator p-1 sm:w-auto">
                 {/* `ToggleButtonGroup` v3 plutot que des <button> nus : il porte l'etat
                     selectionne, la navigation au clavier et les roles ARIA du groupe. */}
                 <ToggleButtonGroup

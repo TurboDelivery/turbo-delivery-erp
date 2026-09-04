@@ -66,13 +66,16 @@ export function BandeauAction({ elements }: BandeauActionProps) {
         <div className="flex flex-wrap gap-2">
             {aFaire.map((e) => (
                 <Chip
-                    className="max-w-full gap-2 border-accent/30 bg-accent-soft text-foreground"
+                    className="max-w-full items-start gap-2 border-accent/30 bg-accent-soft text-foreground sm:items-center"
                     key={e.cle}
                     variant="soft"
                 >
                     <ShieldAlert aria-hidden="true" className="size-3.5 shrink-0 text-accent" />
                     <span className="font-semibold tabular-nums text-foreground">{e.titre}</span>
-                    {e.incise && <span className="truncate text-muted">— {e.incise}</span>}
+                    {/* L'incise disparait sous `sm` : tronquee en « — la carte du tr... »
+                        elle ne dit plus rien, et volait la place au libelle et au lien.
+                        La consequence complete reste portee par l'info-bulle du lien. */}
+                    {e.incise && <span className="hidden truncate text-muted sm:inline">— {e.incise}</span>}
                     <Link
                         className="shrink-0 rounded-sm font-medium text-accent underline-offset-2 hover:underline focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
                         href={e.href}
