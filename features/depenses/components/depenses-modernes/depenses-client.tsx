@@ -266,7 +266,7 @@ export default function DepensesModernesClient() {
                         <TabsTrigger 
                             value="toutes" 
                             className={`flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 ${
-                                activeTab === "toutes" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-gray-900"
+                                activeTab === "toutes" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-foreground"
                             }`}
                         >
                             <span>Toutes les dépenses</span>
@@ -279,7 +279,7 @@ export default function DepensesModernesClient() {
                         <TabsTrigger 
                             value="categories" 
                             className={`flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 ${
-                                activeTab === "categories" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-gray-900"
+                                activeTab === "categories" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-foreground"
                             }`}
                         >
                             <span>Par catégorie</span>

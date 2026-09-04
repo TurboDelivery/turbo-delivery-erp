@@ -164,7 +164,7 @@ function RenderMenu({ menu, openMenus, cheminActif, toggleMenu, level = 0, t }: 
                 <button
                   onClick={() => toggleMenu(key)}
                   className={`w-full flex justify-between items-center px-3 py-2 rounded transition
-                                        ${isOpen ? 'bg-primary/10 text-primary' : 'hover:bg-surface-secondary dark:hover:bg-gray-800'}
+                                        ${isOpen ? 'bg-primary/10 text-primary' : 'hover:bg-surface-secondary dark:hover:bg-foreground'}
                                     `}
                 >
                   <div className="flex items-center gap-3">
@@ -183,7 +183,7 @@ function RenderMenu({ menu, openMenus, cheminActif, toggleMenu, level = 0, t }: 
             ) : (
               <Link
                 href={item.path ?? ''}
-                className={`flex items-center gap-3 px-3 py-2 rounded hover:bg-surface-secondary dark:hover:bg-gray-800 ${
+                className={`flex items-center gap-3 px-3 py-2 rounded hover:bg-surface-secondary dark:hover:bg-foreground ${
                   item.path === cheminActif ? 'active' : ''
                 }`}
               >

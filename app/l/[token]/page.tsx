@@ -262,7 +262,7 @@ export default function LocalisationClientPage() {
       <button
         onClick={envoyer}
         disabled={!position || (etat as Etat).phase === 'envoi'}
-        className="w-full rounded-2xl bg-gray-900 px-4 py-4 text-base font-semibold text-white disabled:opacity-40"
+        className="w-full rounded-2xl bg-foreground px-4 py-4 text-base font-semibold text-background disabled:opacity-40"
         style={{ minHeight: 56 }}
       >
         Envoyer ma position

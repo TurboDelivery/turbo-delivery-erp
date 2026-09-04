@@ -45,7 +45,7 @@ export function CoverLogoSection({
       {/* Logo */}
       <div className="absolute left-4 -bottom-10">
         <div
-          className="w-16 h-16 rounded-xl border-2 border-white bg-surface-tertiary overflow-hidden cursor-pointer shadow-sm"
+          className="w-16 h-16 rounded-xl border-2 border-separator bg-surface-tertiary overflow-hidden cursor-pointer shadow-sm"
           onClick={() => logoRef.current?.click()}
         >
           {logoPreview && <img src={logoPreview} alt="logo" className="w-full h-full object-cover" />}

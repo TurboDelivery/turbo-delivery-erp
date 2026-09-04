@@ -128,7 +128,7 @@ export function PersonnelCallPanel() {
         <div className="fixed inset-x-0 bottom-0 z-95 sm:inset-x-auto sm:bottom-6 sm:left-6 sm:w-80">
           <div className="flex max-h-[75vh] flex-col overflow-hidden bg-linear-to-b from-slate-800 to-slate-900 text-white shadow-2xl ring-1 ring-white/10 rounded-t-3xl sm:rounded-3xl">
             {/* En-tête */}
-            <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
+            <div className="flex items-center justify-between gap-2 border-b border-separator/10 px-4 py-3">
               <span className="flex items-center gap-2 text-sm font-semibold">
                 <Users className="h-4 w-4 text-emerald-300" /> Appeler le personnel
               </span>
@@ -136,7 +136,7 @@ export function PersonnelCallPanel() {
                 type="button"
                 onClick={() => setOuvert(false)}
                 aria-label="Fermer"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-surface/10 transition hover:bg-white/20"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-surface/10 transition hover:bg-surface/20"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -207,7 +207,7 @@ export function PersonnelCallPanel() {
                         type="button"
                         onClick={() => lancer(c)}
                         disabled={enAppel}
-                        className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition hover:bg-white/10 disabled:opacity-40"
+                        className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition hover:bg-surface/10 disabled:opacity-40"
                       >
                         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-emerald-400 to-teal-600 text-sm font-bold">
                           {initialesDe(c.nom)}
@@ -235,7 +235,7 @@ export function PersonnelCallPanel() {
                       key={t}
                       type="button"
                       onClick={() => setNumero((n) => (n.length < 20 ? n + t : n))}
-                      className="rounded-xl bg-surface/10 py-3 text-lg font-semibold transition hover:bg-white/20 active:scale-95"
+                      className="rounded-xl bg-surface/10 py-3 text-lg font-semibold transition hover:bg-surface/20 active:scale-95"
                     >
                       {t}
                     </button>
@@ -255,7 +255,7 @@ export function PersonnelCallPanel() {
                     onClick={() => setNumero((n) => n.slice(0, -1))}
                     disabled={!numero}
                     aria-label="Effacer"
-                    className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface/10 transition hover:bg-white/20 disabled:opacity-40"
+                    className="flex h-12 w-12 items-center justify-center rounded-xl bg-surface/10 transition hover:bg-surface/20 disabled:opacity-40"
                   >
                     <Delete className="h-5 w-5" />
                   </button>
@@ -337,7 +337,7 @@ function JournalAppels({
         return (
           <div
             key={a.id}
-            className="flex w-full items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-white/10"
+            className="flex w-full items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-surface/10"
           >
             <span
               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${

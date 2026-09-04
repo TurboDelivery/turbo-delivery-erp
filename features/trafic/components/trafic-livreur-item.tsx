@@ -90,7 +90,7 @@ export default function TraficLivreurItem({
         />
         <span
           aria-hidden
-          className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-content1"
+          className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-separator dark:border-content1"
           style={{ backgroundColor: meta.couleur }}
         />
       </div>

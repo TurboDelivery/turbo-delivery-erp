@@ -32,14 +32,14 @@ export function HistoryRow({ depense }: { depense: IDepense }) {
             {depense.justificatif && (
               <button
                 onClick={() => window.open(createUrlFile(depense.justificatif!, 'backend'), '_blank')}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-muted hover:bg-surface-secondary hover:text-gray-900 transition-colors">
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-muted hover:bg-surface-secondary hover:text-foreground transition-colors">
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">Justificatif</span>
               </button>
             )}
             <button
               onClick={() => setOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-separator px-3 py-1.5 text-sm text-muted hover:bg-surface-secondary hover:text-gray-900 transition-colors">
+              className="inline-flex items-center gap-1.5 rounded-lg border border-separator px-3 py-1.5 text-sm text-muted hover:bg-surface-secondary hover:text-foreground transition-colors">
               <Eye className="h-4 w-4" />
               <span className="hidden sm:inline">Détails</span>
             </button>

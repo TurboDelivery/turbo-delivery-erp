@@ -98,7 +98,7 @@ export default function UserListPerformanceBird({ data }: props) {
                                 className={`px-4 py-2 rounded-md whitespace-nowrap text-sm font-medium transition-colors ${
                                     activeIndex === idx
                                     ? 'bg-primary text-white'
-                                    : 'bg-surface-tertiary text-foreground hover:bg-gray-300'
+                                    : 'bg-surface-tertiary text-foreground hover:bg-surface-tertiary'
                                 }`}
                             >
                                 Semaine du {jourDebut} - {jourFin} {fnMois(moiDebut || moiFin || '')}

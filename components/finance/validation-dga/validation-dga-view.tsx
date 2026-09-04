@@ -48,7 +48,7 @@ function FactureItem({ facture, selected, onClick }: FactureItemProps) {
       className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all ${
         selected
           ? 'border-blue-400 bg-blue-50 shadow-xs'
-          : 'border-separator bg-surface hover:border-gray-200 hover:bg-surface-secondary'
+          : 'border-separator bg-surface hover:border-separator hover:bg-surface-secondary'
       }`}
     >
       <div className="flex items-start justify-between gap-2">

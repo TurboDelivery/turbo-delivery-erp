@@ -97,7 +97,7 @@ export default function DropDownPerformanceCrenea({open,setOpen,gainsData,jour}:
                                   <button
                                       type="button"
                                       onClick={() => setOpen(false)}
-                                      className="absolute top-4 text-muted outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
+                                      className="absolute top-4 text-muted outline-hidden hover:text-foreground ltr:right-4 rtl:left-4 dark:hover:text-muted"
                                   >
                                       <IconX />
                                   </button>

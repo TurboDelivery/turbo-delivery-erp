@@ -81,7 +81,7 @@ export function ValidationCard({ depense, current, total, totalFile, onPrev, onN
           {depense.justificatif && (
             <div
               onClick={() => setShowJustificatif(true)}
-              className="col-span-2 mt-2 flex items-center gap-1.5 text-sm text-muted cursor-pointer hover:text-gray-800">
+              className="col-span-2 mt-2 flex items-center gap-1.5 text-sm text-muted cursor-pointer hover:text-foreground">
               <FileText className="h-4 w-4" />
               <span>Voir le justificatif</span>
             </div>

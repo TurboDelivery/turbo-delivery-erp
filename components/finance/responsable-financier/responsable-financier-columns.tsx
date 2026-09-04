@@ -225,7 +225,7 @@ export function createResponsableFinancierColumns(
           <div className="flex items-center gap-2">
             <Button
               size="sm"
-              className="bg-gray-900 text-white hover:bg-gray-700 text-xs px-3"
+              className="bg-foreground text-background hover:bg-foreground/85 text-xs px-3"
               onClick={() => onLancerRecouvrement(row.original)}
             >
               Lancer recouvrement →

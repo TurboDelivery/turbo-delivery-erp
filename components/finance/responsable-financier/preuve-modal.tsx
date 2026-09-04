@@ -52,7 +52,7 @@ export default function PreuveModal({ open, onClose, preuve, factureNumero, titr
             {preuve && (
               <button
                 onClick={handleDownload}
-                className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-gray-800 border border-separator rounded-lg px-3 py-1.5 transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-foreground border border-separator rounded-lg px-3 py-1.5 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
                 Télécharger

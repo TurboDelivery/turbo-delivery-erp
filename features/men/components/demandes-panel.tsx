@@ -82,7 +82,7 @@ export function DemandesPanel({ demandes, restaurants }: DemandesPanelProps) {
               className={`p-1.5 rounded-full text-white transition-colors ${
                 isRejected
                   ? 'bg-surface-tertiary cursor-not-allowed'
-                  : 'bg-gray-400 hover:bg-red-500 cursor-pointer'
+                  : 'bg-surface-tertiary hover:bg-red-500 cursor-pointer'
               }`}
             >
               <X className="w-4 h-4" />

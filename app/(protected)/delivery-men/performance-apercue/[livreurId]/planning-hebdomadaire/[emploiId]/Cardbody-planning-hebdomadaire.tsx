@@ -47,9 +47,9 @@ const CardBodyPlanningHebdomadaire: React.FC<Props> = ({ initialData }) => {
       case "HORS_SERVICE":
         return "bg-yellow-500 text-black";
       case "NON_DEMARRE":
-        return "bg-gray-400 text-white";
+        return "bg-surface-tertiary text-white";
       default:
-        return "text-gray-400";
+        return "text-muted";
     }
   };
 

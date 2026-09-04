@@ -92,12 +92,12 @@ export default function Content({ initialData, restaurants }: Props) {
                 )}
 
                 <span
-                    className="text-white p-1 bg-gray-400 rounded-full hover:bg-red-500 cursor-pointer"
+                    className="text-white p-1 bg-surface-tertiary rounded-full hover:bg-red-500 cursor-pointer"
                     onClick={() => livreurAssigneCtrl.setUpdateLivreurId(item?.livreurId)}
                 >
                     <PencilIcon className="h-5 w-5" />
                 </span>
-                <span className="text-white p-1 bg-gray-400 rounded-full hover:bg-red-500 cursor-pointer" onClick={() => livreurAssigneCtrl.supprimerLivreur(item)}
+                <span className="text-white p-1 bg-surface-tertiary rounded-full hover:bg-red-500 cursor-pointer" onClick={() => livreurAssigneCtrl.supprimerLivreur(item)}
                 >
                     <XIcon className="h-5 w-5" />
                 </span>

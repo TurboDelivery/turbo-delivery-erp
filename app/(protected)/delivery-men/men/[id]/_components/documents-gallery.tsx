@@ -155,7 +155,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
         <ModalContent>
           {doc && (
             <>
-              <div className="flex items-center justify-between gap-2 border-b border-white/10 px-4 py-3">
+              <div className="flex items-center justify-between gap-2 border-b border-separator/10 px-4 py-3">
                 <div className="flex min-w-0 items-center gap-2">
                   {estPdf(doc.url) ? (
                     <FileText className="h-4 w-4 shrink-0 text-red-400" />
@@ -203,7 +203,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                       <button
                         type="button"
                         onClick={() => go(-1)}
-                        className="absolute left-2 z-10 rounded-full bg-surface/10 p-2 text-white transition-colors hover:bg-white/25"
+                        className="absolute left-2 z-10 rounded-full bg-surface/10 p-2 text-white transition-colors hover:bg-surface/25"
                         aria-label="Précédent"
                       >
                         <ChevronLeft className="h-6 w-6" />
@@ -211,7 +211,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                       <button
                         type="button"
                         onClick={() => go(1)}
-                        className="absolute right-2 z-10 rounded-full bg-surface/10 p-2 text-white transition-colors hover:bg-white/25"
+                        className="absolute right-2 z-10 rounded-full bg-surface/10 p-2 text-white transition-colors hover:bg-surface/25"
                         aria-label="Suivant"
                       >
                         <ChevronRight className="h-6 w-6" />

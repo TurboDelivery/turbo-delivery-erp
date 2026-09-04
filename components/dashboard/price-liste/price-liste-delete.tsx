@@ -63,7 +63,7 @@ const PriceListeDelete = ({ id, open, setOpen }: { id: string; open: boolean; se
                                 <button
                                     type="button"
                                     onClick={() => setOpen(false)}
-                                    className="absolute top-4 text-muted outline-hidden hover:text-gray-800 ltr:right-4 rtl:left-4 dark:hover:text-gray-600"
+                                    className="absolute top-4 text-muted outline-hidden hover:text-foreground ltr:right-4 rtl:left-4 dark:hover:text-muted"
                                 >
                                     <IconX />
                                 </button>
@@ -71,7 +71,7 @@ const PriceListeDelete = ({ id, open, setOpen }: { id: string; open: boolean; se
                                     utilisateur
                                 </div>
                                 <div className="grid gap-4 p-5">
-                                    <p className="text-muted dark:text-gray-400">Etre vous sur de vouloir supprimer ?</p>
+                                    <p className="text-muted dark:text-muted">Etre vous sur de vouloir supprimer ?</p>
                                     <div className="mt-8 flex items-center justify-end">
                                         <button type="button" className="btn btn-outline-danger" onClick={() => setOpen(false)}>
                                             Annuler

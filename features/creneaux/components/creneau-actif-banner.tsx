@@ -47,7 +47,11 @@ export function CreneauActifBanner() {
 
   const week = getISOWeek(new Date(creneau.dateDebut));
   const range = formatRange(creneau.dateDebut, creneau.dateFin);
-  const statut = STATUT_CONFIG[creneau.statut] ?? { label: creneau.statut, className: 'bg-gray-500 text-white' };
+  // Repli pour un statut inconnu du serveur : un gris neutre, mais qui suit le theme.
+  const statut = STATUT_CONFIG[creneau.statut] ?? {
+    label: creneau.statut,
+    className: 'bg-surface-tertiary text-foreground',
+  };
 
   return (
     <div className="bg-surface rounded-lg border border-separator px-5 py-4 mb-4">

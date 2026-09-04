@@ -166,7 +166,7 @@ export function AppelWidget({
             type="button"
             onClick={() => setReduit(false)}
             aria-label="Agrandir l'appel"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface/10 transition hover:bg-white/20"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface/10 transition hover:bg-surface/20"
           >
             <IconChevronUp size={16} />
           </button>
@@ -208,7 +208,7 @@ export function AppelWidget({
             type="button"
             onClick={() => setReduit(true)}
             aria-label="Réduire l'appel"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface/10 text-white/80 transition hover:bg-white/20"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface/10 text-white/80 transition hover:bg-surface/20"
           >
             <IconChevronDown size={16} />
           </button>
@@ -250,7 +250,7 @@ export function AppelWidget({
         )}
 
         {/* Contrôles */}
-        <div className="relative mt-4 flex items-center justify-center gap-8 border-t border-white/10 bg-black/20 px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-5">
+        <div className="relative mt-4 flex items-center justify-center gap-8 border-t border-separator/10 bg-black/20 px-6 py-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:pb-5">
           {!ecouteSeule && (
             <div className="flex flex-col items-center gap-1.5">
               <button
@@ -258,7 +258,7 @@ export function AppelWidget({
                 onClick={() => toggleMic()}
                 aria-label={micEnabled ? 'Couper le micro' : 'Activer le micro'}
                 className={`flex h-14 w-14 items-center justify-center rounded-full transition active:scale-95 ${
-                  micEnabled ? 'bg-surface/10 hover:bg-white/20' : 'bg-amber-500 hover:bg-amber-400'
+                  micEnabled ? 'bg-surface/10 hover:bg-surface/20' : 'bg-amber-500 hover:bg-amber-400'
                 }`}
               >
                 {micEnabled ? <IconMicrophone size={22} /> : <IconMicrophoneOff size={22} />}
@@ -278,7 +278,7 @@ export function AppelWidget({
                 }}
                 aria-label={isScreenSharing ? 'Arrêter le partage' : "Partager l'écran"}
                 className={`flex h-14 w-14 items-center justify-center rounded-full transition active:scale-95 ${
-                  isScreenSharing ? 'bg-sky-500 hover:bg-sky-400' : 'bg-surface/10 hover:bg-white/20'
+                  isScreenSharing ? 'bg-sky-500 hover:bg-sky-400' : 'bg-surface/10 hover:bg-surface/20'
                 }`}
               >
                 {isScreenSharing ? <IconScreenShareOff size={22} /> : <IconScreenShare size={22} />}

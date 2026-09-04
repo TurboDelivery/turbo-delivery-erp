@@ -246,7 +246,7 @@ export default function AgentRecouvreurView() {
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                       active
                         ? 'bg-green-600 text-white border-green-600'
-                        : 'bg-surface text-muted border-separator hover:border-gray-300'
+                        : 'bg-surface text-muted border-separator hover:border-separator'
                     }`}
                   >
                     {s}

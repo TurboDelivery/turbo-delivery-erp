@@ -26,7 +26,7 @@ const getRowTypeClass = (typeLivreur?: TurboyType) => {
     return 'bg-sky-50/70 dark:bg-sky-900/20 hover:bg-sky-100/70 dark:hover:bg-sky-900/30';
   }
 
-  return 'hover:bg-surface-secondary dark:hover:bg-gray-800/40';
+  return 'hover:bg-surface-secondary dark:hover:bg-foreground/40';
 };
 
 export function TurboyTable() {

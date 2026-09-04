@@ -83,7 +83,7 @@ export default function CreneauxDetail({ dataCreneau }: { dataCreneau: CreneauID
                                     onClick={() => setActiveTab(tabIndex)}
                                     className={`px-4 py-2 rounded-lg whitespace-nowrap text-sm font-medium transition-colors ${activeTab === tabIndex
                                         ? 'bg-pink-500 text-white'
-                                        : 'bg-surface-tertiary text-foreground hover:bg-gray-300'
+                                        : 'bg-surface-tertiary text-foreground hover:bg-surface-tertiary'
                                         }`}
                                 >
                                     Semaine du {jourDebut} - {jourFin} {fnMois(moiDebut || moiFin || '')}
@@ -123,7 +123,7 @@ export default function CreneauxDetail({ dataCreneau }: { dataCreneau: CreneauID
                                                 defaultChecked={jour.actif ?? false}
                                             />
                                             <div
-                                                className={`w-12 h-6 rounded-full ${jour.actif ? "bg-pink-500" : "bg-gray-400"
+                                                className={`w-12 h-6 rounded-full ${jour.actif ? "bg-pink-500" : "bg-surface-tertiary"
                                                     } relative cursor-pointer`}
                                             >
                                                 <div

@@ -59,7 +59,7 @@ export default function Content({ demandeAssignations, allRestaurant }: { demand
             )}
 
             <span
-              className={`text-white p-1 bg-gray-400 rounded-full hover:bg-primary ${isRejected ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
+              className={`text-white p-1 bg-surface-tertiary rounded-full hover:bg-primary ${isRejected ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer'}`}
               onClick={() => !isRejected && demandeCtrl.retirer(item.id)}
             >
               <XIcon className="h-5 w-5" />

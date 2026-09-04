@@ -230,7 +230,7 @@ export default function BulkActionsBar({
                         type="button"
                         onClick={() => setOrientation('BANQUE')}
                         className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-4 text-center transition ${
-                          orientation === 'BANQUE' ? 'border-primary bg-primary/5' : 'border-separator hover:border-gray-300'
+                          orientation === 'BANQUE' ? 'border-primary bg-primary/5' : 'border-separator hover:border-separator'
                         }`}
                       >
                         <Landmark className={`w-6 h-6 ${orientation === 'BANQUE' ? 'text-primary' : 'text-muted'}`} />
@@ -241,7 +241,7 @@ export default function BulkActionsBar({
                         type="button"
                         onClick={() => setOrientation('CAISSE')}
                         className={`flex flex-col items-center gap-1.5 rounded-xl border-2 p-4 text-center transition ${
-                          orientation === 'CAISSE' ? 'border-warning bg-warning/5' : 'border-separator hover:border-gray-300'
+                          orientation === 'CAISSE' ? 'border-warning bg-warning/5' : 'border-separator hover:border-separator'
                         }`}
                       >
                         <PiggyBank className={`w-6 h-6 ${orientation === 'CAISSE' ? 'text-warning-soft-foreground' : 'text-muted'}`} />

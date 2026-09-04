@@ -135,7 +135,7 @@ export default function AjouterPaiementModal({ open, onClose, facture, montantDe
                   type="button"
                   onClick={() => setType(t)}
                   className={`py-2.5 rounded-lg text-sm font-medium border transition-colors ${
-                    type === t ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface text-muted border-separator hover:border-gray-300'
+                    type === t ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface text-muted border-separator hover:border-separator'
                   }`}
                 >
                   <p className="font-semibold">{t}</p>

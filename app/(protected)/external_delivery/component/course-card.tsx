@@ -56,7 +56,7 @@ export default function CourseCard({
           </div>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className="bg-gray-900 text-white text-sm font-semibold rounded-lg px-2.5 py-1">
+          <span className="bg-foreground text-background text-sm font-semibold rounded-lg px-2.5 py-1">
             {fmtXof(montantCourse(course.commandes))}
           </span>
           <span className="flex items-center gap-1 text-[11px] text-muted">

@@ -28,7 +28,7 @@ export default function Content() {
                 <Tabs items={tabs} className="w-[90%] rounded-md shadow-sm mr-10">
                     {(item) => {
                         const initial = item.nomComplet.charAt(0).toUpperCase();
-                        const bgColor = colorMap[initial] || 'bg-gray-400';
+                        const bgColor = colorMap[initial] || 'bg-surface-tertiary';
                         return (
                             <Tab
                                 key={item.id}

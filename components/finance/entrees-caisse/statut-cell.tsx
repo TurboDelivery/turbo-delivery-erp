@@ -39,7 +39,7 @@ export function EntreeCaisseStatutCell({ entree }: { entree: IEntreeCaisse }) {
           : 'bg-surface-secondary text-muted hover:bg-surface-tertiary',
       )}
     >
-      <span className={cn('size-1.5 rounded-full', paye ? 'bg-green-600' : 'bg-gray-400')} />
+      <span className={cn('size-1.5 rounded-full', paye ? 'bg-green-600' : 'bg-surface-tertiary')} />
       {paye ? 'Payée' : 'Non payée'}
     </button>
   );

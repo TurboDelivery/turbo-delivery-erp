@@ -130,7 +130,7 @@ export default function PlanningConges() {
       case 'accident':
         return 'bg-purple-500';
       default:
-        return 'bg-gray-400';
+        return 'bg-surface-tertiary';
     }
   };
 

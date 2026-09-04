@@ -298,7 +298,7 @@ export default function ResponsableFinancierView() {
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                     (s.value === 'Tous' && !filters.statut) || filters.statut === s.value
                       ? 'bg-green-600 text-white border-green-600'
-                      : 'bg-surface text-muted border-separator hover:border-gray-300'
+                      : 'bg-surface text-muted border-separator hover:border-separator'
                   }`}
                 >
                   {s.label}
@@ -437,12 +437,12 @@ export default function ResponsableFinancierView() {
                 actions={
                   <>
                     {(f.statut === 'DRAFT' || f.statut === 'À valider') && (
-                      <Button onClick={() => setFactureAValider(f)} className="w-full bg-gray-900 hover:bg-gray-700 text-white text-sm">
+                      <Button onClick={() => setFactureAValider(f)} className="w-full bg-foreground text-background hover:bg-foreground/85 text-sm">
                         ✓ Valider la facture
                       </Button>
                     )}
                     {f.statut === 'Validé' && (
-                      <Button onClick={() => setFactureRecouvrement(f)} className="w-full bg-gray-900 hover:bg-gray-700 text-white text-sm">
+                      <Button onClick={() => setFactureRecouvrement(f)} className="w-full bg-foreground text-background hover:bg-foreground/85 text-sm">
                         Lancer le recouvrement →
                       </Button>
                     )}

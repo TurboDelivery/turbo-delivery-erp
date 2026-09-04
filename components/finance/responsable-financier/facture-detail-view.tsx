@@ -85,7 +85,7 @@ export default function FactureDetailView({ facture }: Props) {
       {/* Back link */}
       <Link
         href="/finance/comptabilite/responsable-financier"
-        className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-gray-800 transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Retour aux paiements
@@ -115,7 +115,7 @@ export default function FactureDetailView({ facture }: Props) {
           {facture.statut === 'Validé' && (
             <button
               onClick={() => setRecouvrementOpen(true)}
-              className="inline-flex items-center gap-2 bg-gray-900 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 bg-foreground text-background hover:bg-foreground/85 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
               Lancer recouvrement →
             </button>
@@ -162,7 +162,7 @@ export default function FactureDetailView({ facture }: Props) {
         <div className="lg:col-span-2 bg-surface rounded-xl border border-separator p-5 shadow-xs">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-semibold text-foreground">Historique des statuts</h2>
-            <button className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-gray-700 border border-separator rounded-lg px-3 py-1.5 transition-colors">
+            <button className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-foreground border border-separator rounded-lg px-3 py-1.5 transition-colors">
               <Download className="w-3.5 h-3.5" />
               Exporter PDF
             </button>
@@ -172,11 +172,11 @@ export default function FactureDetailView({ facture }: Props) {
               <li key={i} className="relative pl-6">
                 {/* Dot */}
                 <span
-                  className={`absolute left-[-13px] w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow-xs ${
+                  className={`absolute left-[-13px] w-6 h-6 rounded-full flex items-center justify-center border-2 border-separator shadow-xs ${
                     item.isPending ? 'bg-surface-tertiary' : item.isCurrent ? 'bg-green-500' : 'bg-green-400'
                   }`}
                 >
-                  <span className={`w-2 h-2 rounded-full ${item.isPending ? 'bg-gray-400' : 'bg-surface'}`} />
+                  <span className={`w-2 h-2 rounded-full ${item.isPending ? 'bg-surface-tertiary' : 'bg-surface'}`} />
                 </span>
                 <div>
                   <p className={`text-sm font-medium ${item.isPending ? 'text-muted' : item.isCurrent ? 'text-foreground' : 'text-foreground'}`}>

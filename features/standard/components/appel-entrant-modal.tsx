@@ -85,7 +85,7 @@ export function AppelEntrantModal({
         </div>
 
         {/* Actions */}
-        <div className="relative flex items-start justify-center gap-14 border-t border-white/10 bg-black/20 px-6 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] sm:gap-12 sm:py-6 sm:pb-6">
+        <div className="relative flex items-start justify-center gap-14 border-t border-separator/10 bg-black/20 px-6 py-8 pb-[max(2rem,env(safe-area-inset-bottom))] sm:gap-12 sm:py-6 sm:pb-6">
           <div className="flex flex-col items-center gap-2">
             <button
               type="button"

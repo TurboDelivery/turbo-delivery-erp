@@ -198,7 +198,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
   return (
     <div className="p-2">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4 lg:mb-8">
-        {/* `bg-red-500` et `text-gray-500` etaient ecrits en dur : depuis que la bascule
+        {/* `bg-red-500` et `text-muted` etaient ecrits en dur : depuis que la bascule
             de theme est dans l'en-tete, ce bloc s'affichait en clair sur une interface
             sombre. Jetons semantiques, comme partout ailleurs. */}
         <div className="flex items-center gap-3">

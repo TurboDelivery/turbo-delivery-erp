@@ -54,11 +54,11 @@ export default function Content({ initialData, restaurants }: Props) {
               </span>
             </Button>
 
-            <span className="text-white p-1 bg-gray-400 rounded-full hover:bg-red-500 cursor-pointer" onClick={() => livreurNonAssingeCtrl.setUpdateLivreurId(item?.livreurId)}>
+            <span className="text-white p-1 bg-surface-tertiary rounded-full hover:bg-red-500 cursor-pointer" onClick={() => livreurNonAssingeCtrl.setUpdateLivreurId(item?.livreurId)}>
               <PencilIcon className="h-4 w-4" />
             </span>
 
-            <span className="text-white p-1 bg-gray-400 rounded-full hover:bg-red-500 cursor-pointer" onClick={() => livreurNonAssingeCtrl.supprimerLivreur(item, 'WAITING')}>
+            <span className="text-white p-1 bg-surface-tertiary rounded-full hover:bg-red-500 cursor-pointer" onClick={() => livreurNonAssingeCtrl.supprimerLivreur(item, 'WAITING')}>
               <XIcon className="h-4 w-4" />
             </span>
 

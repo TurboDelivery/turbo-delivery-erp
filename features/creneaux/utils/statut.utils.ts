@@ -11,9 +11,9 @@ export const getStatutColor = (statut: CreneauStatutJour): string => {
     case CreneauStatutJour.JUSTIFIE:
       return 'text-blue-500';
     case CreneauStatutJour.NON_INSCRIT:
-      return 'text-gray-400';
+      return 'text-muted';
     default:
-      return 'text-gray-400';
+      return 'text-muted';
   }
 };
 
@@ -28,9 +28,9 @@ export const getStatutDotColor = (statut: CreneauStatutJour): string => {
     case CreneauStatutJour.JUSTIFIE:
       return 'bg-blue-500';
     case CreneauStatutJour.NON_INSCRIT:
-      return 'bg-gray-300';
+      return 'bg-surface-tertiary';
     default:
-      return 'bg-gray-300';
+      return 'bg-surface-tertiary';
   }
 };
 

@@ -309,7 +309,7 @@ export default function RevenusEncaissesClient() {
                         <TabsTrigger 
                             value="recouvrements" 
                             className={`flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 ${
-                                activeTab === "recouvrements" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-gray-900"
+                                activeTab === "recouvrements" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-foreground"
                             }`}
                         >
                             <span>Recouvrements</span>
@@ -322,7 +322,7 @@ export default function RevenusEncaissesClient() {
                         <TabsTrigger 
                             value="investissements" 
                             className={`flex items-center gap-2 data-[state=active]:bg-red-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-200 ${
-                                activeTab === "investissements" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-gray-900"
+                                activeTab === "investissements" ? "bg-red-500 text-white shadow-lg" : "text-muted hover:text-foreground"
                             }`}
                         >
                             <span>Investissements</span>

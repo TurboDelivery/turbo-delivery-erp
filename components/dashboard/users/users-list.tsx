@@ -160,7 +160,7 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                     <div className="mx-auto h-20 w-20 rounded-full bg-primary text-3xl font-bold text-white flex items-center justify-center">{user.nom[0]}</div>
                   </div>
                   <div className="relative -mt-10 px-6 pb-24">
-                    <div className="rounded-md bg-surface px-2 py-4 shadow-md dark:bg-gray-900">
+                    <div className="rounded-md bg-surface px-2 py-4 shadow-md dark:bg-foreground">
                       <div className="text-xl">{`${user.nom} ${user.prenoms}`}</div>
                       <div className="text-white-dark">{user.role.libelle}</div>
                       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

@@ -30,10 +30,10 @@ export const getDeductionTypeLabel = (type: DeductionTypeEnum): string =>
   TYPE_LABELS[type] ?? type;
 
 export const getDeductionTypeClassName = (type: DeductionTypeEnum): string =>
-  TYPE_CLASSNAMES[type] ?? 'bg-gray-100 text-gray-700';
+  TYPE_CLASSNAMES[type] ?? 'bg-surface-secondary text-foreground';
 
 export const getDeductionStatusLabel = (status: DeductionStatusEnum): string =>
   STATUS_LABELS[status] ?? status;
 
 export const getDeductionStatusClassName = (status: DeductionStatusEnum): string =>
-  STATUS_CLASSNAMES[status] ?? 'bg-gray-100 text-gray-700';
+  STATUS_CLASSNAMES[status] ?? 'bg-surface-secondary text-foreground';

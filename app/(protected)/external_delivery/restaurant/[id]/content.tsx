@@ -184,7 +184,7 @@ export default function Content({ initialData, delivers, restaurantId }: Props) 
                                     <CardHeader className="flex justify-between items-center py-3 border-b">
                                         <div className="flex items-center gap-5">
                                             <span className={`font-bold text-base ${getStatusTextColor(delivery.statut)}`}>Code: {delivery.code}</span>
-                                            <span className="bg-gray-900 text-white font-semibold rounded px-2 ml-2 py-1">
+                                            <span className="bg-foreground text-background font-semibold rounded px-2 ml-2 py-1">
                                                 {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF' }).format(
                                                     (delivery.commandes?.reduce((sum, cmd) => sum + (cmd.prix ?? 0), 0) || 0) +
                                                     (delivery.commandes?.reduce((sum, cmd) => sum + (cmd.fraisLivraison ?? 0), 0) || 0)

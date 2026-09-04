@@ -42,7 +42,7 @@ import type { TicketColumnMeta } from './ticket-table-columns';
  *   <li>Les champs de saisie etaient des `<input>` bruts et deux `react-select`. Ils
  *       passent aux composants de la bibliotheque, donc au theme et au clavier mobile
  *       adapte (segments de date et d'heure, pave numerique pour les montants).</li>
- *   <li>Aucune couleur n'etait declinee en sombre — `bg-white`, `text-gray-400`,
+ *   <li>Aucune couleur n'etait declinee en sombre — `bg-surface`, `text-muted`,
  *       `bg-green-500` — et depuis que la bascule est dans l'en-tete, la carte s'affichait
  *       blanche sur une interface sombre.</li>
  *   <li>Les six actions etaient des `<button>` colores a la main, sans libelle accessible.

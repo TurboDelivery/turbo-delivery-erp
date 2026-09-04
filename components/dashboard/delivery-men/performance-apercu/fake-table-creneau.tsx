@@ -126,17 +126,17 @@ const data ={
             {progressions.map((item: Progression) => (
               <div
                 key={item.jour}
-                className="bg-white border border-gray-100 rounded-xl p-4 shadow-xs space-y-2 cursor-pointer active:bg-gray-50"
+                className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2 cursor-pointer active:bg-surface-secondary"
                 onClick={() => setOpen(true)}
               >
-                <p className="text-sm font-semibold text-gray-900 opacity-50">{item.jour}</p>
+                <p className="text-sm font-semibold text-foreground opacity-50">{item.jour}</p>
                 <div className="space-y-1">
-                  <span className="text-xs text-gray-400">Progression du jour</span>
+                  <span className="text-xs text-muted">Progression du jour</span>
                   {renderCell(item, 'progression')}
                 </div>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-gray-400 shrink-0">Commission du jour</span>
-                  <span className="text-sm text-gray-700 text-right">{renderCell(item, 'commission')}</span>
+                  <span className="text-xs text-muted shrink-0">Commission du jour</span>
+                  <span className="text-sm text-foreground text-right">{renderCell(item, 'commission')}</span>
                 </div>
               </div>
             ))}

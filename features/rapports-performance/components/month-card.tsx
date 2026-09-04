@@ -90,7 +90,7 @@ function MonthProfitability({ month }: MonthCardProps) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-foreground font-semibold mb-3">
-        <div className="w-1 h-4 bg-gray-800 rounded-full" />
+        <div className="w-1 h-4 bg-foreground rounded-full" />
         RENTABILITÉ
       </div>
       <Card className="bg-green-50 border-green-200">

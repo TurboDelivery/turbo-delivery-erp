@@ -106,7 +106,7 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-colors ${
                     selectedAgent?.id === agent.id
                       ? 'border-red-400 bg-red-50'
-                      : 'border-separator bg-surface hover:border-gray-300'
+                      : 'border-separator bg-surface hover:border-separator'
                   }`}
                 >
                   <div className="w-8 h-8 rounded-full bg-surface-tertiary flex items-center justify-center shrink-0 text-xs font-bold text-muted">

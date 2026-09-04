@@ -213,7 +213,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
                             style={{ objectFit: 'cover' }}
                         />
                     </Card>
-                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-surface-tertiary rounded cursor-pointer hover:bg-gray-300">
+                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-surface-tertiary rounded cursor-pointer hover:bg-surface-tertiary">
                         <Upload size={16} /> Changer Recto CNI
                         <input
                             type="file"
@@ -234,7 +234,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
                             style={{ objectFit: 'cover' }}
                         />
                     </Card>
-                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-surface-tertiary rounded cursor-pointer hover:bg-gray-300">
+                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-surface-tertiary rounded cursor-pointer hover:bg-surface-tertiary">
                         <Upload size={16} /> Changer Photo
                         <input
                             type="file"
@@ -255,7 +255,7 @@ export default function Content({ user }: { user: LivreurDetail }) {
                             style={{ objectFit: 'cover' }}
                         />
                     </Card>
-                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-surface-tertiary rounded cursor-pointer hover:bg-gray-300">
+                    <label className="mt-3 flex items-center gap-2 px-3 py-1 bg-surface-tertiary rounded cursor-pointer hover:bg-surface-tertiary">
                         <Upload size={16} /> Changer Verso CNI
                         <input
                             type="file"
