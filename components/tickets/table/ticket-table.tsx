@@ -226,13 +226,20 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
           d'ecran annoncait deux boutons sans dire lequel etait actif ni combien il y en
           avait, et les fleches du clavier ne circulaient pas entre eux. `Tabs` porte le
           role, l'etat selectionne et la navigation au clavier sans qu'on ait a les ecrire.
+
+          PAS de `Tabs.Indicator` : il rend un `SelectionIndicator` de react-aria, qui rend
+          lui-meme un `SharedElement` exigeant un `SharedElementTransition` en ancetre. Sans
+          ce conteneur, il LEVE — « <SharedElement> must be rendered inside a
+          <SharedElementTransition> » — et fait tomber toute la page dans sa limite
+          d'erreur. C'etait le cas ici : l'ecran Tickets ne s'affichait plus du tout.
+          L'onglet actif reste parfaitement lisible, la bibliotheque le stylant par
+          `data-selected`.
         */}
         <div className="flex items-end justify-between gap-4 border-b border-separator px-4 pt-3">
           <Tabs onSelectionChange={(cle) => setFilter('tab', String(cle))} selectedKey={activeTab}>
             <Tabs.List>
               <Tabs.Tab id="tous">Tous les tickets</Tabs.Tab>
               <Tabs.Tab id="archives">Archives</Tabs.Tab>
-              <Tabs.Indicator />
             </Tabs.List>
           </Tabs>
           {/* `totalItems` se replie sur 0 quand la lecture echoue : le compteur
