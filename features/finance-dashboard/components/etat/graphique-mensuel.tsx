@@ -13,6 +13,7 @@ import {
     YAxis,
 } from 'recharts';
 
+import { cn } from '@/lib/utils';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 /**
@@ -47,8 +48,17 @@ interface GraphiqueMensuelProps {
     hauteur?: number;
 }
 
-const VERT = '#15803d';
-const ROUGE = '#b91c1c';
+/*
+ * Couleurs portees par des variables CSS, definies sur le conteneur avec une valeur
+ * par theme. Mesure a l'ecran : `#15803d` tient 4,95:1 sur une carte claire mais tombe
+ * a 3,53:1 sur une carte sombre — sous le seuil pour le texte de la legende, qui reprend
+ * la couleur de sa serie. Les nuances 400 remontent a 9,96 et 6,13 en sombre.
+ */
+const VERT = 'var(--graphique-revenus)';
+const ROUGE = 'var(--graphique-depenses)';
+const JETONS =
+    '[--graphique-revenus:#15803d] [--graphique-depenses:#b91c1c] ' +
+    'dark:[--graphique-revenus:#4ade80] dark:[--graphique-depenses:#f87171]';
 
 /** Abrege l'axe : « 28,0 M » se lit, « 28 040 000 » remplit l'ecran. */
 const abrege = (v: number) => {
@@ -72,7 +82,7 @@ export function GraphiqueMensuel({ donnees, hauteur }: GraphiqueMensuelProps) {
     }, [donnees]);
 
     return (
-        <div className={hauteur ? undefined : 'h-full min-h-[260px]'} style={hauteur ? { height: hauteur } : undefined}>
+        <div className={cn(JETONS, hauteur ? undefined : 'h-full min-h-[260px]')} style={hauteur ? { height: hauteur } : undefined}>
             <ResponsiveContainer height="100%" width="100%">
                 <ComposedChart data={serie} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
                     <CartesianGrid stroke="var(--separator)" strokeDasharray="3 3" vertical={false} />
@@ -99,12 +109,23 @@ export function GraphiqueMensuel({ donnees, hauteur }: GraphiqueMensuelProps) {
                             fontSize: 12,
                         }}
                         formatter={(valeur, nom) => [
-                            typeof valeur === 'number' ? formatCFA(valeur) : '—',
+                            // Meme signe moins qu'ailleurs : le trait d'union d'Intl est
+                            // etroit, et sur une marge negative c'est le signe qui porte le sens.
+                            typeof valeur === 'number' ? formatCFA(valeur).replace(/^[-\u2212]/, '\u2212') : '—',
                             String(nom),
                         ]}
                         labelStyle={{ color: 'var(--foreground)', fontWeight: 600 }}
                     />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: 12, paddingTop: 4 }} />
+                    {/* Le libelle de legende reprenait la couleur de sa serie, donc 3,53:1
+                        en sombre. La pastille suffit a porter l'identite ; le texte revient
+                        a la couleur de lecture. */}
+                    <Legend
+                        formatter={(valeur) => (
+                            <span style={{ color: 'var(--foreground)' }}>{String(valeur)}</span>
+                        )}
+                        iconType="circle"
+                        wrapperStyle={{ fontSize: 12, paddingTop: 4 }}
+                    />
                     <Bar dataKey="revenus" fill={VERT} name="Revenus" radius={[3, 3, 0, 0]} />
                     <Bar dataKey="depenses" fill={ROUGE} name="Dépenses" radius={[3, 3, 0, 0]} />
                     <Line
