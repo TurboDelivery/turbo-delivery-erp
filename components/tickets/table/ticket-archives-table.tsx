@@ -3,6 +3,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Button,
+  Spinner,
   ComboBox,
   Tooltip,
   Input as InputV3,
@@ -214,7 +215,7 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
               size="sm"
               variant="primary"
             >
-              <ArchiveRestore aria-hidden="true" className="size-4" />
+              {restaurerMutation.isPending ? <Spinner color="current" size="sm" /> : <ArchiveRestore aria-hidden="true" className="size-4" />}
               Restaurer ({selectedIds.length})
             </Button>
             <Tooltip.Content>
@@ -346,7 +347,7 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
                       onPress={() => handleRestoreRow(a.commandeId)}
                       variant="primary"
                     >
-                      <ArchiveRestore aria-hidden="true" className="size-4" />
+                      {restoringId === a.commandeId ? <Spinner color="current" size="sm" /> : <ArchiveRestore aria-hidden="true" className="size-4" />}
                       Restaurer
                     </Button>
                   </div>

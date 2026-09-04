@@ -17,16 +17,24 @@ export const approbationFinaleWaveColumns: ColumnDef<IGrillePaiementLigne>[] = [
     header: 'N° Wave',
     cell: ({ row }) =>
       row.original.numeroWave ? (
-        <span className="text-sm text-muted">{row.original.numeroWave}</span>
+        /* Chasse proportionnelle : deux numeros Wave de meme longueur ne s'alignaient pas
+           d'une ligne a l'autre, et un chiffre en trop passait inapercu au moment de
+           verifier le destinataire d'un virement. */
+        <span className="text-sm tabular-nums text-muted">{row.original.numeroWave}</span>
       ) : (
-        <span className="text-muted">—</span>
+        <span className="text-sm text-muted">—</span>
       ),
   },
   {
     accessorKey: 'netAPayer',
     header: 'Net',
     cell: ({ row }) => (
-      <span className="text-sm font-bold text-green-600">
+      /* `text-green-600` etait ecrit en dur, sans variante sombre : depuis que la bascule
+         de theme est dans l'en-tete, le montant a virer restait vert clair sur fond fonce,
+         illisible au moment de verifier une paie. `text-success-soft-foreground` porte le
+         meme sens et suit les deux themes. La carte mobile equivalente, dans
+         ApprobationFinaleWaveTable, affiche deja ce montant ainsi. */
+      <span className="text-sm font-bold tabular-nums text-success-soft-foreground">
         {row.original.netAPayer.toLocaleString('fr-FR')}
       </span>
     ),

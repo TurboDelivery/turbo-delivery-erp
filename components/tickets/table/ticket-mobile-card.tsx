@@ -2,6 +2,7 @@
 
 import {
     Button,
+  Spinner,
     Calendar,
     Card,
     ComboBox,
@@ -348,7 +349,7 @@ export function TicketMobileCard({
                             onPress={() => meta.onSaveNew(ticket.id)}
                             variant="primary"
                         >
-                            <Check aria-hidden="true" className="size-4" />
+                            {meta.isSavingNew ? <Spinner color="current" size="sm" /> : <Check aria-hidden="true" className="size-4" />}
                             Enregistrer
                         </Button>
                         <Button className="flex-1" onPress={() => meta.onCancelNew(ticket.id)} variant="ghost">
@@ -366,7 +367,7 @@ export function TicketMobileCard({
                                 onPress={() => meta.onSaveEdit(ticket.id)}
                                 variant="primary"
                             >
-                                <Check aria-hidden="true" className="size-4" />
+                                {meta.isSavingEdit ? <Spinner color="current" size="sm" /> : <Check aria-hidden="true" className="size-4" />}
                                 Enregistrer
                             </Button>
                             <Tooltip.Content>

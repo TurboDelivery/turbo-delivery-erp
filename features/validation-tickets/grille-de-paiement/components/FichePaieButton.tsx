@@ -6,7 +6,7 @@ import { FileText } from 'lucide-react';
 import ReactPDF from '@react-pdf/renderer';
 import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
-import { Button } from '@heroui-v3/react';
+import { Button , Spinner } from '@heroui-v3/react';
 import { toast } from 'sonner';
 import { livreurTicketsListQueryOption } from '@/features/tickets/queries/livreur-ticket-list.query';
 import { livreurStatsQueryOption } from '@/features/tickets/queries/livreur-stats.query';
@@ -102,7 +102,7 @@ export default function FichePaieButton({ turboyId, turboyNom, creneauDebut, cre
      * main la ou `isPending` la porte deja.
      */
     <Button isPending={loading} onPress={handleClick} size="sm" variant="outline">
-      <FileText aria-hidden="true" className="size-3.5" />
+      {loading ? <Spinner color="current" size="sm" /> : <FileText aria-hidden="true" className="size-3.5" />}
       {loading ? 'Génération…' : 'Fiche de paie'}
     </Button>
   );

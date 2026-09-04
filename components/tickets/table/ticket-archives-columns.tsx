@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Button, Tooltip } from '@heroui-v3/react';
+import { Button,
+Spinner, Tooltip } from '@heroui-v3/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArchiveRestore } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
@@ -147,7 +148,7 @@ export const ticketArchivesColumns: ColumnDef<IArchiveBonLivraisonVm>[] = [
             size="sm"
             variant="primary"
           >
-            <ArchiveRestore aria-hidden="true" className="size-4" />
+            {isRestoring ? <Spinner color="current" size="sm" /> : <ArchiveRestore aria-hidden="true" className="size-4" />}
           </Button>
           <Tooltip.Content>Restaurer ce ticket</Tooltip.Content>
         </Tooltip>

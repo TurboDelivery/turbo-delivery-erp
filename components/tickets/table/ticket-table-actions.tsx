@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Button, Tooltip } from '@heroui-v3/react';
+import { Button,
+Spinner, Tooltip } from '@heroui-v3/react';
 import { Trash } from 'lucide-react';
 
 import { Ticket } from '@/types/bon-livraison.model';
@@ -40,7 +41,7 @@ export function TicketTableActions({ selectedRows, permissions, isDeletingBonLiv
             onPress={onDeleteRows}
             variant="danger-soft"
           >
-            <Trash aria-hidden="true" className="size-4" />
+            {isDeletingBonLivraison ? <Spinner color="current" size="sm" /> : <Trash aria-hidden="true" className="size-4" />}
             Supprimer
           </Button>
           <Tooltip.Content>

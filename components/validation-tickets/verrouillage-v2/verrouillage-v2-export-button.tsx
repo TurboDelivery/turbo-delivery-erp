@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 import { FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { Button, Tooltip } from '@heroui-v3/react';
 import { listerTicketsParStatutRequest } from '@/features/tickets/request/tickets.request';
 import { StatutControle } from '@/types/statut-controle.enum';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
@@ -121,15 +121,38 @@ export function VerrouillageV2ExportButton({ totalItems }: VerrouillageV2ExportB
     }
   }, [totalItems]);
 
+  const rienAExporter = totalItems === 0;
+
+  // Le bouton se grisait pour deux causes distinctes reunies dans un seul `disabled` :
+  // rien a exporter, ou export deja lance. La premiere ne s'ecrivait nulle part, et un
+  // bouton grise sans motif se lit comme une panne de la page a l'etape 4 de la chaine
+  // de paiement. L'attente passe par `isPending` et l'impossibilite par `isDisabled`,
+  // et l'info-bulle nomme laquelle des deux s'applique. `isPending` grise le bouton
+  // comme `disabled` le faisait — il pose `aria-disabled` — et ne dessine aucun rond :
+  // c'est a l'appelant de le rendre, ce que fait le libelle ci-dessous.
+  const motifInfoBulle = rienAExporter
+    ? 'Aucun ticket à exporter'
+    : isExporting
+      ? 'Export en cours, patientez'
+      : `Exporter ${totalItems} ticket(s) en PDF`;
+
   return (
-    <Button
-      variant="outline"
-      className="gap-2"
-      disabled={totalItems === 0 || isExporting}
-      onClick={handleExport}
-    >
-      <FileText className="h-4 w-4" />
-      {isExporting ? 'Export en cours...' : 'Exporter PDF'}
-    </Button>
+    <Tooltip>
+      {/* Un bouton DESACTIVE n'emet ni survol ni focus : pose directement sous `Tooltip`,
+          il n'ouvrirait jamais l'info-bulle, et c'est justement grise que son motif doit
+          se lire. Le declencheur, lui, n'est pas desactive et porte l'evenement. */}
+      <Tooltip.Trigger>
+        <Button
+          isDisabled={rienAExporter}
+          isPending={isExporting}
+          onPress={handleExport}
+          variant="outline"
+        >
+          <FileText aria-hidden="true" className="size-4" />
+          {isExporting ? 'Export en cours...' : 'Exporter PDF'}
+        </Button>
+      </Tooltip.Trigger>
+      <Tooltip.Content>{motifInfoBulle}</Tooltip.Content>
+    </Tooltip>
   );
 }

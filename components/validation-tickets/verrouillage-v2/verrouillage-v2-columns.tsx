@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { memo } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, Chip, Spinner, Tooltip } from '@heroui-v3/react';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { format, parseISO } from 'date-fns';
@@ -50,7 +50,27 @@ interface RowActionsProps {
   onReject: (id: string) => void;
 }
 
-/** Actions d'une ligne V2 (Valider V2 / Rejeter) — partagé colonne + carte mobile. */
+/**
+ * Actions d'une ligne V2 (Valider V2 / Rejeter), partagees entre la colonne du tableau
+ * et la carte mobile.
+ *
+ * <h3>Ce qui change</h3>
+ * <ul>
+ *   <li>Les deux boutons etaient habilles a la main : vert plein ecrit en dur pour la
+ *       validation, hauteur et taille de texte forcees sur les deux. Aucune variante
+ *       sombre, alors que la bascule de theme est dans l'en-tete. Ce sont des boutons de
+ *       la bibliotheque, qui suivent le theme sans qu'on le redise.</li>
+ *   <li>Le rejet portait `variant="destructive"`, qui n'existe pas en v3 : la prop serait
+ *       ignoree en silence et le bouton retomberait sur la variante par defaut. L'operateur
+ *       aurait alors deux boutons d'apparence identique pour deux actions opposees. C'est
+ *       `danger-soft`.</li>
+ *   <li>Pendant la validation d'une ligne, les deux boutons etaient simplement grises. Un
+ *       bouton grise sans explication se lit comme une panne : la validation dit son
+ *       attente par un Spinner, et le rejet nomme son motif de blocage. Un declencheur
+ *       desactive n'emet ni survol ni focus, d'ou le `Tooltip.Trigger` autour du bouton :
+ *       sans lui l'info-bulle ne s'ouvrirait jamais, justement quand elle sert.</li>
+ * </ul>
+ */
 export const VerrouillageV2RowActions = memo(function VerrouillageV2RowActions({
   ticket,
   isValidating,
@@ -61,24 +81,36 @@ export const VerrouillageV2RowActions = memo(function VerrouillageV2RowActions({
   return (
     <div className="flex items-center gap-2">
       <Button
+        fullWidth={fullWidth}
+        isPending={isValidating}
+        onPress={() => onValidate(ticket.commandeId)}
         size="sm"
-        className={`h-7 px-2 text-xs bg-green-600 hover:bg-green-700 text-white ${fullWidth ? 'flex-1' : ''}`}
-        onClick={() => onValidate(ticket.commandeId)}
-        disabled={isValidating}
+        variant="primary"
       >
-        <CheckCircle className="h-3.5 w-3.5 mr-1" />
+        {isValidating ? (
+          <Spinner color="current" size="sm" />
+        ) : (
+          <CheckCircle aria-hidden="true" className="size-4" />
+        )}
         Valider V2
       </Button>
-      <Button
-        size="sm"
-        variant="destructive"
-        className={`h-7 px-2 text-xs ${fullWidth ? 'flex-1' : ''}`}
-        onClick={() => onReject(ticket.commandeId)}
-        disabled={isValidating}
-      >
-        <XCircle className="h-3.5 w-3.5 mr-1" />
-        Rejeter
-      </Button>
+      <Tooltip>
+        <Tooltip.Trigger className={fullWidth ? 'w-full' : undefined}>
+          <Button
+            fullWidth={fullWidth}
+            isDisabled={isValidating}
+            onPress={() => onReject(ticket.commandeId)}
+            size="sm"
+            variant="danger-soft"
+          >
+            <XCircle aria-hidden="true" className="size-4" />
+            Rejeter
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Content>
+          {isValidating ? 'Validation en cours sur ce ticket' : 'Rejeter ce ticket pour fraude'}
+        </Tooltip.Content>
+      </Tooltip>
     </div>
   );
 });
@@ -104,7 +136,9 @@ export function buildVerrouillageV2Columns(
       accessorKey: 'restaurant',
       header: 'PARTENAIRE',
       enableSorting: false,
-      cell: ({ row }) => <span className="text-blue-500">{row.original.restaurant}</span>,
+      // Le nom du partenaire etait en `text-blue-500` sans pendant sombre. La teinte
+      // est conservee, la carte mobile la porte aussi, mais avec sa variante sombre.
+      cell: ({ row }) => <span className="text-blue-600 dark:text-blue-400">{row.original.restaurant}</span>,
     },
     {
       accessorKey: 'date',
@@ -112,35 +146,59 @@ export function buildVerrouillageV2Columns(
       enableSorting: false,
       cell: ({ row }) => <span>{formatDate(row.original.date)}</span>,
     },
+    /*
+     * Chasse tabulaire sur les trois montants : l'operateur parcourt la colonne pour
+     * comparer des ordres de grandeur, et des chiffres de largeurs inegales ne
+     * s'alignent pas d'une ligne a l'autre.
+     */
     {
       accessorKey: 'coutCommande',
       header: 'MONTANT CMD',
       enableSorting: false,
-      cell: ({ row }) => <span>{formatCFA(row.original.coutCommande)}</span>,
+      cell: ({ row }) => <span className="tabular-nums">{formatCFA(row.original.coutCommande)}</span>,
     },
     {
       accessorKey: 'coutLivraison',
       header: 'MONTANT LIV.',
       enableSorting: false,
-      cell: ({ row }) => <span>{formatCFA(row.original.coutLivraison)}</span>,
+      cell: ({ row }) => <span className="tabular-nums">{formatCFA(row.original.coutLivraison)}</span>,
     },
     {
       accessorKey: 'commission',
       header: 'COMMISSION',
       enableSorting: false,
-      cell: ({ row }) => <span>{row.original.commission != null ? formatCFA(row.original.commission) : '—'}</span>,
+      /*
+       * La commission est ce que la course rapporte : meme vert que dans la carte mobile,
+       * dans sa declinaison de TEXTE. `text-success-soft-foreground` nu est une couleur de remplissage,
+       * mesuree a 2,19 de contraste sur une carte claire, donc sous le seuil de 4,5.
+       */
+      cell: ({ row }) =>
+        row.original.commission != null ? (
+          <span className="tabular-nums font-medium text-success-soft-foreground">
+            {formatCFA(row.original.commission)}
+          </span>
+        ) : (
+          <span className="text-muted">—</span>
+        ),
     },
     {
       accessorKey: 'nomZone',
       header: 'ZONE',
       enableSorting: false,
+      /*
+       * La pastille de zone etait ecrite en vert clair pose a la main (bordure, fond
+       * pastel, texte) sans variante sombre : sur fond sombre elle gardait son fond
+       * pastel et devenait illisible. C'est le Chip success de la bibliotheque, celui
+       * de la carte mobile : la meme zone se lit pareil sur les deux surfaces.
+       */
       cell: ({ row }) => {
         const zone = row.original.nomZone ?? 'VERTE';
         return (
-          <span title={zone} className="inline-flex items-center gap-1 rounded-full border border-green-500 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 max-w-[160px]">
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-500" />
-            <span className="truncate">{zone}</span>
-          </span>
+          // Le nom de zone est tronque faute de place : l'info-bulle native donne le nom entier.
+          <Chip className="max-w-[160px]" color="success" title={zone} variant="soft">
+            <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
+            <Chip.Label className="truncate">{zone}</Chip.Label>
+          </Chip>
         );
       },
     },

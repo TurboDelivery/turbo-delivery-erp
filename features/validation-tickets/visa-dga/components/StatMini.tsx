@@ -6,7 +6,7 @@ interface StatMiniProps {
 }
 
 /**
- * Pas d'icone, et c'est deliberе.
+ * Pas d'icone, et c'est delibere.
  *
  * <p>La prop `icon` etait DECLAREE OBLIGATOIRE, destructuree sous le nom `Icon`, et
  * jamais rendue : les quatre appelants passaient consciencieusement `Users`, `Ticket`,
@@ -24,8 +24,13 @@ export default function StatMini({ label, value, sub, highlight }: StatMiniProps
       <span className="text-[10px] font-bold uppercase tracking-widest text-muted">{label}</span>
       <span
         className={[
-          'text-base sm:text-xl font-bold wrap-break-word',
-          highlight ? 'text-green-600' : 'text-foreground',
+          'text-base sm:text-xl font-bold tabular-nums wrap-break-word',
+          // La valeur mise en avant etait peinte en `text-green-600`, une couleur ecrite en
+          // dur sans variante sombre : la bascule clair/sombre de l'en-tete ne l'atteignait
+          // pas, alors que c'est le montant que le DGA lit avant de viser. Le jeton du theme
+          // suit les deux themes. Sa forme nue `text-success-soft-foreground` est un remplissage : en texte
+          // sur carte claire elle tombe a 2,19 de contraste, d'ou la variante -soft-foreground.
+          highlight ? 'text-success-soft-foreground' : 'text-foreground',
         ].join(' ')}
       >
         {value}

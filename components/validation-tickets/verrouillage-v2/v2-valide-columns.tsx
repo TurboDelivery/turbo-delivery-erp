@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { memo } from 'react';
 import { XCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, Chip, Spinner } from '@heroui-v3/react';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { format, parseISO } from 'date-fns';
@@ -55,15 +55,31 @@ export const V2ValideRowActions = memo(function V2ValideRowActions({
   onReject,
   fullWidth = false,
 }: RowActionsProps & { fullWidth?: boolean }) {
+  /*
+   * `variant="destructive"` n'existe pas en v3 : la valeur aurait ete ignoree en silence
+   * et le rejet d'un ticket deja verrouille se serait presente comme une action ordinaire.
+   * `danger` est le nom de la meme intention dans la bibliotheque.
+   *
+   * Le bouton etait seulement grise pendant l'envoi (`disabled`), sans rien montrer :
+   * l'operateur qui ne voyait aucune reaction reappuyait. `isPending` BLOQUE l'appui —
+   * il pose `aria-disabled` et `data-pending`, donc grisage et clic inerte — mais il ne
+   * DESSINE rien : la bibliotheque laisse le rond de chargement a la charge de l'appelant,
+   * comme le font ses propres exemples. On rend donc le `Spinner` a la place de l'icone,
+   * sans quoi l'attente resterait aussi muette qu'avec `disabled`.
+   *
+   * La hauteur, le rembourrage et la taille de texte etaient reecrits a la main
+   * (`h-7 px-2 text-xs`) : `size="sm"` porte deja ce gabarit, et `w-full` devient la prop
+   * `fullWidth` que la carte mobile demande pour une cible large au doigt.
+   */
   return (
     <Button
+      fullWidth={fullWidth}
+      isPending={isRejecting}
+      onPress={() => onReject(ticket.commandeId)}
       size="sm"
-      variant="destructive"
-      className={`h-7 px-2 text-xs ${fullWidth ? 'w-full' : ''}`}
-      onClick={() => onReject(ticket.commandeId)}
-      disabled={isRejecting}
+      variant="danger"
     >
-      <XCircle className="h-3.5 w-3.5 mr-1" />
+      {isRejecting ? <Spinner color="current" size="sm" /> : <XCircle aria-hidden="true" />}
       Rejeter
     </Button>
   );
@@ -89,7 +105,10 @@ export function buildV2ValideColumns(
     accessorKey: 'restaurant',
     header: 'PARTENAIRE',
     enableSorting: false,
-    cell: ({ row }) => <span className="text-blue-500">{row.original.restaurant}</span>,
+    /* `text-blue-500` etait ecrit sans variante sombre. Le bleu est la seule marque qui
+       distingue le partenaire du reste de la ligne : il prend ses deux themes, et la meme
+       paire que la carte mobile, pour que les deux surfaces se lisent pareil. */
+    cell: ({ row }) => <span className="text-blue-600 dark:text-blue-400">{row.original.restaurant}</span>,
   },
   {
     accessorKey: 'date',
@@ -97,23 +116,28 @@ export function buildV2ValideColumns(
     enableSorting: false,
     cell: ({ row }) => <span>{formatDate(row.original.date)}</span>,
   },
+  /* Les trois montants se comparent d'une ligne a la suivante : en chasse tabulaire les
+     unites tombent les unes sous les autres, alors qu'en chasse proportionnelle un 1 et
+     un 8 n'ont pas la meme largeur et les colonnes de chiffres ondulent. */
   {
     accessorKey: 'coutCommande',
     header: 'MONTANT CMD',
     enableSorting: false,
-    cell: ({ row }) => <span>{formatCFA(row.original.coutCommande)}</span>,
+    cell: ({ row }) => <span className="tabular-nums">{formatCFA(row.original.coutCommande)}</span>,
   },
   {
     accessorKey: 'coutLivraison',
     header: 'MONTANT LIV.',
     enableSorting: false,
-    cell: ({ row }) => <span>{formatCFA(row.original.coutLivraison)}</span>,
+    cell: ({ row }) => <span className="tabular-nums">{formatCFA(row.original.coutLivraison)}</span>,
   },
   {
     accessorKey: 'commission',
     header: 'COMMISSION',
     enableSorting: false,
-    cell: ({ row }) => <span>{row.original.commission != null ? formatCFA(row.original.commission) : '—'}</span>,
+    cell: ({ row }) => (
+      <span className="tabular-nums">{row.original.commission != null ? formatCFA(row.original.commission) : '—'}</span>
+    ),
   },
   {
     accessorKey: 'nomZone',
@@ -121,11 +145,16 @@ export function buildV2ValideColumns(
     enableSorting: false,
     cell: ({ row }) => {
       const zone = row.original.nomZone ?? 'VERTE';
+      /* La pastille etait ecrite en `border-green-500 bg-green-50 text-green-700`, sans
+         variante sombre : depuis que la bascule de theme est dans l'en-tete, elle restait
+         vert pastel sur fond fonce et se lisait mal. Le `Chip` en couleur success porte le
+         meme sens avec ses deux themes. Le nom de zone est tronque faute de place, donc
+         `title` garde le nom entier accessible au survol, comme sur la carte mobile. */
       return (
-        <span title={zone} className="inline-flex items-center gap-1 rounded-full border border-green-500 bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 max-w-[160px]">
-          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-green-500" />
-          <span className="truncate">{zone}</span>
-        </span>
+        <Chip className="max-w-[160px]" color="success" size="sm" title={zone} variant="soft">
+          <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-current" />
+          <Chip.Label className="truncate">{zone}</Chip.Label>
+        </Chip>
       );
     },
   },

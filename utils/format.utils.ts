@@ -32,9 +32,16 @@ export function formatMontant(montant: number): string {
 }
 
 /**
- * Formate un nombre avec séparateurs de milliers
+ * Formate un nombre avec séparateurs de milliers.
+ *
+ * <p>Une valeur absente rend un tiret, pas « NaN ». `Intl.NumberFormat.format(undefined)`
+ * rend litteralement la chaine « NaN », et un champ manquant dans une charge utile
+ * suffisait a l'afficher en gros sur une carte de statistiques. `formatCFA` se protegeait
+ * deja ainsi ; celle-ci ne le faisait pas, et la difference ne se voyait qu'en
+ * production.</p>
  */
-export function formatNombre(nombre: number): string {
+export function formatNombre(nombre: number | null | undefined): string {
+    if (nombre === null || nombre === undefined || !Number.isFinite(nombre)) return '—';
     return new Intl.NumberFormat('fr-FR').format(nombre);
 }
 

@@ -7,6 +7,7 @@ import { formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.map
 import { formatMontant } from '@/utils/format.utils';
 import {
   Button,
+  Spinner,
   ComboBox,
   DateField,
   DatePicker,
@@ -426,7 +427,7 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
               size="sm"
               variant="primary"
             >
-              <Check aria-hidden="true" className="size-4" />
+              {meta.isSavingNew ? <Spinner color="current" size="sm" /> : <Check aria-hidden="true" className="size-4" />}
             </Button>
             <Button
               aria-label="Abandonner cette ligne"
@@ -454,7 +455,7 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
               size="sm"
               variant="primary"
             >
-              <Check aria-hidden="true" className="size-4" />
+              {meta.isSavingEdit ? <Spinner color="current" size="sm" /> : <Check aria-hidden="true" className="size-4" />}
             </Button>
             <Button
               aria-label="Annuler les modifications"

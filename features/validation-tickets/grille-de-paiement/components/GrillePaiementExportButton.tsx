@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Button } from '@/components/heroui';
+import { Button, Spinner } from '@heroui-v3/react';
 import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { getGrillePaiementApi } from '../apis/grille-paiement.api';
@@ -65,14 +65,21 @@ export default function GrillePaiementExportButton({
   }, [creneauId, grilleCode, totalItems]);
 
   return (
-    <Button
-      variant="bordered"
-      color="primary"
-      startContent={<Download size={16} />}
-      isDisabled={isDisabled || isExporting}
-      isLoading={isExporting}
-      onPress={handleExport}
-    >
+    /*
+     * Un composant V3 ignore en SILENCE une prop qu'il ne connait pas, et cet export
+     * en portait trois : `startContent`, `isLoading` et `color`. Les laisser telles
+     * quelles aurait donne un bouton sans icone et surtout sans aucun signe d'attente
+     * pendant la lecture des mille lignes puis la fabrication du classeur, deux temps
+     * ou rien ne bouge a l'ecran. Le comptable aurait appuye une seconde fois et
+     * relance l'export. L'icone redevient un enfant, l'attente passe par `isPending`,
+     * qui coupe en plus la pression des l'appui au lieu d'attendre le rendu suivant.
+     */
+    <Button isDisabled={isDisabled} isPending={isExporting} variant="outline" onPress={handleExport}>
+      {isExporting ? (
+        <Spinner color="current" size="sm" />
+      ) : (
+        <Download aria-hidden="true" className="size-4" />
+      )}
       Exporter Excel
     </Button>
   );
