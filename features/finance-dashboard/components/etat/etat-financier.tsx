@@ -172,7 +172,7 @@ export function EtatFinancier({
                     <tbody key={section.titre}>
                         <tr>
                             <th
-                                className="pb-1 pt-5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted"
+                                className="pb-0.5 pt-3.5 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-muted"
                                 colSpan={3}
                                 scope="colgroup"
                             >
@@ -186,7 +186,7 @@ export function EtatFinancier({
                             >
                                 <th
                                     className={cn(
-                                        'py-1.5 text-left font-normal',
+                                        'py-1 text-left font-normal',
                                         // Le filet du total est porte par les CELLULES : la regle globale
                                         // `table tbody tr { border-b ... !important }` gagnerait sur le `tr`.
                                         ligne.total && 'border-t border-foreground/25',
@@ -208,10 +208,10 @@ export function EtatFinancier({
                                         )}
                                     </span>
                                 </th>
-                                <td className={cn('py-1.5 ps-4', ligne.total && 'border-t border-foreground/25')}>
+                                <td className={cn('py-1 ps-4', ligne.total && 'border-t border-foreground/25')}>
                                     <Cellule appuyee={ligne.total} cellule={ligne.periode} />
                                 </td>
-                                <td className={cn('hidden py-1.5 ps-4 sm:table-cell', ligne.total && 'border-t border-foreground/25')}>
+                                <td className={cn('hidden py-1 ps-4 sm:table-cell', ligne.total && 'border-t border-foreground/25')}>
                                     <Cellule appuyee={ligne.total} cellule={ligne.cumul} />
                                 </td>
                             </tr>

@@ -1,23 +1,50 @@
 'use client';
 
-import { Card, Separator } from '@heroui-v3/react';
-import { useState } from 'react';
+import { Button, Card, Separator } from '@heroui-v3/react';
+import { Download } from 'lucide-react';
 
 import { Ecart } from '@/components/commons/ecart';
-import { Effectif, Montant } from '@/components/commons/montant';
+import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { useState } from 'react';
+
+import { JEUX_EXEMPLE, jeuParCle } from '@/features/finance-dashboard/apercu/jeux-exemple';
+import { BandePerimetre } from '@/features/finance-dashboard/components/etat/bande-perimetre';
+import { BandeauAction } from '@/features/finance-dashboard/components/etat/bandeau-action';
 import { construireEtat } from '@/features/finance-dashboard/components/etat/construire-etat';
 import { EtatFinancier } from '@/features/finance-dashboard/components/etat/etat-financier';
-import { JEUX_EXEMPLE, jeuParCle } from '@/features/finance-dashboard/apercu/jeux-exemple';
+import { defineAbilityFor, type AppRole } from '@/lib/casl/ability';
 import { cn } from '@/lib/utils';
 
-/** Bascule de jeu de donnees et de theme, pour verifier les deux d'un meme geste. */
+/**
+ * Prevalisation du tableau de bord propose.
+ *
+ * <p>La barre du haut n'appartient PAS a l'ecran : elle sert a le regarder dans les etats
+ * qu'on oublie de verifier — periode vide, deficit, valeurs extremes, theme sombre, et
+ * role de l'utilisateur. Tout ce qui est SOUS elle est l'ecran lui-meme.</p>
+ */
+
+/** Deux roles qui lisent la finance, deux qui n'en ont pas le droit. */
+const ROLES_MONTRES: AppRole[] = ['COMPTABLE', 'DG', 'OPS_MANAGER', 'DIRECTEUR_OPERATIONS'];
+
 export default function ApercuContenu() {
     const [cle, setCle] = useState('ordinaire');
     const [sombre, setSombre] = useState(false);
+    const [role, setRole] = useState<AppRole>('COMPTABLE');
     const jeu = jeuParCle(cle);
-    // Date fixe : `new Date()` au rendu ferait diverger serveur et client.
+
+    // Dates fixes : `new Date()` au rendu ferait diverger serveur et client.
     const debut = new Date('2026-09-01');
     const fin = new Date('2026-09-30');
+
+    // Le VRAI moteur d'habilitation du projet, pas une imitation.
+    const ability = defineAbilityFor(role);
+    const voitFinance = ability.can('read', 'Finance');
+    const voitLivreurs = ability.can('read', 'Livreur');
+
+    // Le resultat, calcule ici pour etre ENONCE en tete.
+    const resultat = jeu.statsGlobales.chiffreAffaire - jeu.resume.totalDepenses;
+    const resultatPrecedent = jeu.statsPeriodePrecedente.chiffreAffaire - jeu.statsPeriodePrecedente.depenses;
+
     const sections = construireEtat({
         statsGlobales: jeu.statsGlobales,
         statsPeriodePrecedente: jeu.statsPeriodePrecedente,
@@ -27,19 +54,51 @@ export default function ApercuContenu() {
         fin,
     });
 
+    const reperes = [
+        { cle: 'partenaires', libelle: 'Partenaires actifs', valeur: jeu.effectifs.partenaireActif, href: '/restaurants' },
+        {
+            cle: 'turboys',
+            libelle: 'Turboys',
+            valeur: jeu.effectifs.turboys,
+            href: '/delivery-men/men',
+            details: [
+                { libelle: 'Indép.', valeur: jeu.effectifs.turboysIndependant, href: '/delivery-men/men?typeLivreur=INDEPENDANT&tab=independant' },
+                { libelle: 'Journ.', valeur: jeu.effectifs.turboysJournalier, href: '/delivery-men/men?typeLivreur=JOURNALIER&tab=journalier' },
+                ...(jeu.effectifs.turboysSuperviseurLivreur !== undefined
+                    ? [{ libelle: 'Superv.', valeur: jeu.effectifs.turboysSuperviseurLivreur, href: '/delivery-men/men?typeLivreur=SUPERVISEUR_LIVREUR&tab=superviseur_livreur' }]
+                    : []),
+            ],
+        },
+        { cle: 'personnel', libelle: 'Personnel Turbo', valeur: jeu.effectifs.personnel, href: '/personnel' },
+        { cle: 'utilisateurs', libelle: 'Utilisateurs actifs', valeur: jeu.effectifs.utilisateurs, href: '/users' },
+    ];
+
+    const actions = voitLivreurs
+        ? [
+              {
+                  cle: 'comptes',
+                  quoi: 'compte livreur',
+                  quoiPluriel: 'comptes livreurs',
+                  nombre: jeu.comptesEnAttente,
+                  consequence: "Tant que le compte n'est pas validé, le livreur ne peut pas se connecter à l'application.",
+                  href: '/delivery-men/not-valide',
+                  libelleAction: 'Valider les comptes',
+              },
+          ]
+        : [];
+
     return (
         <div className={cn(sombre && 'dark')}>
             <div className="min-h-screen bg-background text-foreground">
-                <header className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-separator bg-surface px-4 py-3">
-                    <span className="text-sm font-semibold">Prévisualisation</span>
+                {/* Barre de contrôle de la prévisualisation — ne fait pas partie de l'écran. */}
+                <header className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-separator bg-surface px-4 py-2.5">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-muted">Aperçu</span>
                     <Separator className="mx-1 h-5" orientation="vertical" />
                     {JEUX_EXEMPLE.map((j) => (
                         <button
                             className={cn(
                                 'rounded-md px-2.5 py-1.5 text-xs transition-colors',
-                                j.cle === cle
-                                    ? 'bg-accent text-white'
-                                    : 'text-muted hover:bg-surface-secondary hover:text-foreground',
+                                j.cle === cle ? 'bg-accent text-white' : 'text-muted hover:bg-surface-secondary hover:text-foreground',
                             )}
                             key={j.cle}
                             onClick={() => setCle(j.cle)}
@@ -50,120 +109,94 @@ export default function ApercuContenu() {
                         </button>
                     ))}
                     <Separator className="mx-1 h-5" orientation="vertical" />
+                    {ROLES_MONTRES.map((r) => (
+                        <button
+                            className={cn(
+                                'rounded-md px-2.5 py-1.5 text-xs transition-colors',
+                                r === role ? 'bg-foreground text-background' : 'text-muted hover:bg-surface-secondary hover:text-foreground',
+                            )}
+                            key={r}
+                            onClick={() => setRole(r)}
+                            type="button"
+                        >
+                            {r}
+                        </button>
+                    ))}
+                    <Separator className="mx-1 h-5" orientation="vertical" />
                     <button
                         className="rounded-md px-2.5 py-1.5 text-xs text-muted hover:bg-surface-secondary hover:text-foreground"
                         onClick={() => setSombre((v) => !v)}
                         type="button"
                     >
-                        {sombre ? 'thème sombre' : 'thème clair'}
+                        {sombre ? 'sombre' : 'clair'}
                     </button>
                     <span className="ms-auto text-xs text-muted">{jeu.intitule}</span>
                 </header>
 
-                <main className="space-y-6 p-4">
-                    <Card>
-                        <Card.Header>
-                            <Card.Title>État financier</Card.Title>
-                            <Card.Description>
-                                Les mêmes grandeurs sur deux périodes : deux colonnes d&apos;un même
-                                document, au lieu de deux sections de tuiles.
-                            </Card.Description>
-                        </Card.Header>
-                        <Card.Content>
-                            <EtatFinancier
-                                libelleCumul="Depuis 2024"
-                                libellePeriode="Septembre 2026"
-                                libelleReference="vs août"
-                                sections={sections}
-                            />
-                        </Card.Content>
-                    </Card>
+                {/* ══ L'ÉCRAN PROPOSÉ COMMENCE ICI ══ */}
+                <main className="mx-auto flex max-w-[1100px] flex-col gap-4 p-4">
+                    <BandeauAction elements={actions} />
 
-                    <Card>
-                        <Card.Header>
-                            <Card.Title>Montants alignés</Card.Title>
-                            <Card.Description>
-                                Chasse tabulaire et alignement à droite : les ordres de grandeur tombent
-                                les uns sous les autres.
-                            </Card.Description>
-                        </Card.Header>
-                        <Card.Content>
-                            <div className="max-w-md space-y-1">
-                                {[
-                                    ["Chiffre d'affaires", jeu.statsGlobales.chiffreAffaire],
-                                    ['Frais de livraison', jeu.statsGlobales.fraisLivraison],
-                                    ['Commissions', jeu.statsGlobales.commission],
-                                    ['Dépenses', jeu.resume.totalDepenses],
-                                    ['Encours', jeu.resume.totalFacturesEnCours],
-                                    ['Investissements', jeu.resume.totalInvestissements],
-                                ].map(([libelle, valeur]) => (
-                                    <div className="flex items-baseline justify-between gap-6" key={libelle as string}>
-                                        <span className="text-sm text-muted">{libelle}</span>
-                                        <Montant attenuerSiNul taille="md" valeur={valeur as number} />
-                                    </div>
-                                ))}
-                            </div>
-                        </Card.Content>
-                    </Card>
+                    <BandePerimetre reperes={reperes} />
 
-                    <Card>
-                        <Card.Header>
-                            <Card.Title>Écarts avec la période précédente</Card.Title>
-                            <Card.Description>
-                                La flèche suit le signe réel ; seule la couleur suit ce qu&apos;une hausse
-                                veut dire pour cette grandeur-là.
-                            </Card.Description>
-                        </Card.Header>
-                        <Card.Content>
-                            <div className="max-w-lg space-y-2">
-                                {[
-                                    ["Chiffre d'affaires", jeu.statsGlobales.chiffreAffaire, jeu.statsPeriodePrecedente.chiffreAffaire, 'favorable'],
-                                    ['Dépenses', jeu.statsGlobales.depenses, jeu.statsPeriodePrecedente.depenses, 'defavorable'],
-                                    ['Commissions', jeu.statsGlobales.commission, jeu.statsPeriodePrecedente.commission, 'favorable'],
-                                    ['Investissements', jeu.statsGlobales.investissement, jeu.statsPeriodePrecedente.investissement, 'neutre'],
-                                    ['Sans référence disponible', jeu.statsGlobales.solde, undefined, 'neutre'],
-                                ].map(([libelle, v, ref, sens]) => (
-                                    <div className="flex items-baseline justify-between gap-6" key={libelle as string}>
-                                        <span className="text-sm text-muted">{libelle as string}</span>
-                                        <span className="flex items-baseline gap-3">
-                                            <Montant attenuerSiNul valeur={v as number} />
+                    {voitFinance ? (
+                        <Card>
+                            {/*
+                             * Le RESULTAT est enonce ici, pas au terme du tableau. Mesure a la
+                             * taille reelle du poste (720 x 563), la ligne « Resultat » tombait a
+                             * 796 px : ce que la conception designe comme le premier regard
+                             * demandait de defiler. Le document annonce donc sa conclusion, et le
+                             * tableau en dessous montre comment on y arrive.
+                             */}
+                            <Card.Header>
+                                <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+                                    <div className="min-w-0">
+                                        <Card.Title className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted">
+                                            Résultat · septembre 2026
+                                        </Card.Title>
+                                        <p
+                                            className={cn(
+                                                'mt-0.5 text-3xl font-bold tabular-nums',
+                                                resultat < 0 && 'text-red-800 dark:text-red-400',
+                                            )}
+                                        >
+                                            {formatCFA(resultat).replace(/^[-\u2212]/, '\u2212')}
+                                        </p>
+                                        <span className="mt-1 flex items-center gap-2">
                                             <Ecart
-                                                libelleReference="vs période précédente"
-                                                reference={ref as number | undefined}
-                                                sens={sens as 'favorable' | 'defavorable' | 'neutre'}
-                                                valeur={v as number}
+                                                libelleReference="vs août"
+                                                reference={resultatPrecedent}
+                                                sens="favorable"
+                                                valeur={resultat}
                                             />
                                         </span>
                                     </div>
-                                ))}
-                            </div>
-                        </Card.Content>
-                    </Card>
-
-                    <Card>
-                        <Card.Header>
-                            <Card.Title>Effectifs</Card.Title>
-                        </Card.Header>
-                        <Card.Content>
-                            <div className="max-w-md space-y-1">
-                                {[
-                                    ['Partenaires actifs', jeu.effectifs.partenaireActif],
-                                    ['Turboys', jeu.effectifs.turboys],
-                                    ['— indépendants', jeu.effectifs.turboysIndependant],
-                                    ['— journaliers', jeu.effectifs.turboysJournalier],
-                                    ['— superviseurs-livreurs', jeu.effectifs.turboysSuperviseurLivreur ?? 0],
-                                    ['Personnel Turbo', jeu.effectifs.personnel],
-                                    ['Utilisateurs actifs', jeu.effectifs.utilisateurs],
-                                    ['Comptes en attente', jeu.comptesEnAttente],
-                                ].map(([libelle, valeur]) => (
-                                    <div className="flex items-baseline justify-between gap-6" key={libelle as string}>
-                                        <span className="text-sm text-muted">{libelle as string}</span>
-                                        <Effectif taille="md" valeur={valeur as number} />
-                                    </div>
-                                ))}
-                            </div>
-                        </Card.Content>
-                    </Card>
+                                    <Button size="sm" variant="outline">
+                                        <Download aria-hidden="true" className="size-4" />
+                                        Télécharger les détails
+                                    </Button>
+                                </div>
+                            </Card.Header>
+                            <Card.Content>
+                                <EtatFinancier
+                                    libelleCumul="Depuis 2024"
+                                    libellePeriode="Septembre 2026"
+                                    libelleReference="vs août"
+                                    sections={sections}
+                                />
+                            </Card.Content>
+                        </Card>
+                    ) : (
+                        <Card variant="secondary">
+                            <Card.Content className="py-6 text-center">
+                                <p className="text-sm text-muted">
+                                    Le rôle <span className="font-semibold text-foreground">{role}</span> n&apos;a pas
+                                    le droit de lire les données financières. L&apos;écran actuel les lui montre
+                                    quand même.
+                                </p>
+                            </Card.Content>
+                        </Card>
+                    )}
                 </main>
             </div>
         </div>
