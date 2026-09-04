@@ -22,9 +22,21 @@ interface AccompteTabsContentProps {
 export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTabsContentProps) {
   const [selectedRestaurant, setSelectedRestaurant] = useState<string>('');
   const [selectedStatuts, setSelectedStatuts] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date('2026-03-01'),
-    to: new Date('2026-03-31'),
+  /*
+   * La periode etait FIGEE sur mars 2026, en dur dans le code.
+   *
+   * <p>L'onglet n'a pas de selecteur de date : quel que soit le jour, il ne montrait que
+   * les acomptes de mars 2026. Passe ce mois-la, l'ecran affichait « aucun acompte » a
+   * une equipe qui en enregistrait, et il aurait fallu redeployer pour voir avril.</p>
+   *
+   * <p>Il s'ouvre desormais sur le MOIS COURANT, calcule au montage.</p>
+   */
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const maintenant = new Date();
+    return {
+      from: new Date(maintenant.getFullYear(), maintenant.getMonth(), 1),
+      to: new Date(maintenant.getFullYear(), maintenant.getMonth() + 1, 0),
+    };
   });
   const [filters, setFilters] = useState({
     page: 0,
@@ -39,8 +51,12 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
     isFetching,
     refetch,
   } = useAccompteQuery({
-    page: 0,
-    limit: 20,
+    // La pagination etait MORTE : la requete demandait toujours la page 0 avec vingt
+    // lignes, pendant que les boutons de page faisaient bouger `filters.page` sans effet.
+    // Le tableau annoncait N pages et rendait toujours la premiere, et les totaux ne
+    // portaient que sur ces vingt lignes.
+    page: filters.page,
+    limit: filters.size,
     restaurantId: selectedRestaurant || undefined,
     debut: dateRange?.from,
     fin: dateRange?.to,
@@ -51,7 +67,7 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
     pageCount: accomptesData?.totalPages || 1,
     page: filters.page,
     pageSize: filters.size,
-    handlePageChange: (newPage: number) => setFilters({ page: newPage - 1, size: 10 }),
+    handlePageChange: (newPage: number) => setFilters((f) => ({ ...f, page: newPage - 1 })),
   };
 
   const table = useReactTable({

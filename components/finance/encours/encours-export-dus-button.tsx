@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { construireResumeDus, type PartenaireResumeDu } from '@/features/encours/utils/resume-dus.utils';
 import {
   Button,
   Dropdown,
@@ -13,13 +14,6 @@ import { toast } from 'sonner';
 import type { IEncoursReleve } from '@/features/encours';
 import { buildEncoursDusPdf } from './encours-export-dus-pdf';
 
-interface PartenaireResumeDu {
-  partenaire: string;
-  cycle: string;
-  totalDu: number;
-  nbFactures: number;
-  periodes: string[];
-}
 
 /**
  * Resume client-side : factures encore dues sur les periodes passees ou en
@@ -29,30 +23,6 @@ interface PartenaireResumeDu {
  * Reutilise par les 2 formats d'export (CSV resume rapide + PDF executive
  * report) pour garantir une coherence du filtre.
  */
-function buildResumeDus(releve: IEncoursReleve): PartenaireResumeDu[] {
-  return releve.partenaires
-    .map<PartenaireResumeDu | null>((p) => {
-      const facturesDues = p.stores
-        .flatMap((s) => s.factures)
-        .filter(
-          (f) => (f.solde ?? 0) > 0 && f.statut !== 'À venir' && f.libelle !== '—',
-        );
-      if (facturesDues.length === 0) return null;
-      return {
-        partenaire: p.groupe,
-        cycle: p.cycle,
-        totalDu: facturesDues.reduce((sum, f) => sum + (f.solde ?? 0), 0),
-        // Une periode facturee en frais + commission compte pour UNE, comme dans le
-        // releve : les lignes de complement ne sont pas des periodes de plus.
-        nbFactures: facturesDues.filter((f) => !f.complement).length,
-        periodes: facturesDues.map((f) =>
-          `${f.periode}${f.libelle ? ' — ' + f.libelle : ''}`.trim(),
-        ),
-      };
-    })
-    .filter((x): x is PartenaireResumeDu => x !== null)
-    .sort((a, b) => b.totalDu - a.totalDu);
-}
 
 // ── CSV (Excel-friendly, UTF-8 BOM + ';' separator) ──────────────────────
 function csvEscape(value: string | number): string {
@@ -135,7 +105,7 @@ export function EncoursExportDusButton({
     setLoading(format);
     const tid = toast.loading('Génération du fichier…');
     try {
-      const rows = buildResumeDus(releve);
+      const rows = construireResumeDus(releve);
       if (rows.length === 0) {
         toast.info('Aucun partenaire avec des restes à payer', {
           id: tid,

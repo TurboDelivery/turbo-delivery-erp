@@ -9,6 +9,7 @@
 // (date, filtres, pagination).
 
 import jsPDF from 'jspdf';
+import { construireResumeDus, type PartenaireResumeDu } from '@/features/encours/utils/resume-dus.utils';
 import type { IEncoursReleve, IEncoursParams } from '@/features/encours';
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -111,55 +112,6 @@ function setStroke(doc: jsPDF, [r, g, b]: readonly [number, number, number]) {
 // ──────────────────────────────────────────────────────────────────────────
 // Resume : meme logique que CSV (solde > 0, hors "A venir" / placeholder "—")
 // ──────────────────────────────────────────────────────────────────────────
-interface PartenaireResume {
-  partenaire: string;
-  cycle: string;
-  totalDu: number;
-  nbFactures: number;
-  periodes: string[];
-}
-
-/**
- * Dedupe les libelles de periodes identiques (cas frequent quand un partenaire
- * a plusieurs stores qui ont chacun la meme facture mensuelle). Affiche un
- * compteur "(×N)" si la periode apparait plusieurs fois.
- *
- * Decouvert 2026-06-06 sur MARROUCHE ZONE 4 : 53 factures pour "Janvier — Mois"
- * et "Février — Mois" rendaient le PDF illisible.
- */
-function dedupPeriodes(periodes: string[]): string[] {
-  const counts = new Map<string, number>();
-  for (const p of periodes) counts.set(p, (counts.get(p) ?? 0) + 1);
-  return Array.from(counts.entries()).map(([p, c]) => (c > 1 ? `${p} (×${c})` : p));
-}
-
-function buildResumeDus(releve: IEncoursReleve): PartenaireResume[] {
-  return releve.partenaires
-    .map<PartenaireResume | null>((p) => {
-      const facturesDues = p.stores
-        .flatMap((s) => s.factures)
-        .filter(
-          (f) => (f.solde ?? 0) > 0 && f.statut !== 'À venir' && f.libelle !== '—',
-        );
-      if (facturesDues.length === 0) return null;
-      // Inclut l'annee dans le libelle (fix 2026-06-06 : `f.periode` est juste
-      // le nom du mois "Mai", pas "Mai 2026" -> ambigu sur un releve annuel).
-      const periodesRaw = facturesDues.map((f) =>
-        `${f.periode} ${releve.annee}${f.libelle ? ' — ' + f.libelle : ''}`.trim(),
-      );
-      return {
-        partenaire: p.groupe,
-        cycle: p.cycle,
-        totalDu: facturesDues.reduce((s, f) => s + (f.solde ?? 0), 0),
-        // Une periode facturee en frais + commission compte pour UNE, comme dans le
-        // releve : les lignes de complement ne sont pas des periodes de plus.
-        nbFactures: facturesDues.filter((f) => !f.complement).length,
-        periodes: dedupPeriodes(periodesRaw),
-      };
-    })
-    .filter((x): x is PartenaireResume => x !== null)
-    .sort((a, b) => b.totalDu - a.totalDu);
-}
 
 // ──────────────────────────────────────────────────────────────────────────
 // Layout pieces
@@ -308,7 +260,7 @@ function drawFooter(doc: jsPDF, page: number, info: FooterInfo) {
 export function buildEncoursDusPdf(releve: IEncoursReleve, params: IEncoursParams): Blob {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
 
-  const rows = buildResumeDus(releve);
+  const rows = construireResumeDus(releve, { avecAnnee: true, dedupliquerPeriodes: true });
   const totalDu = rows.reduce((s, r) => s + r.totalDu, 0);
   const top = rows[0];
 

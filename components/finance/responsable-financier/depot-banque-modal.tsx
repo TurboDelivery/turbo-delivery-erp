@@ -46,7 +46,8 @@ export default function DepotBanqueModal({ open, onClose, facture, onConfirm }: 
       setDate('');
       setNumeroBordereau('');
       setBanque('');
-      setMontant(String(facture.montant ?? ''));
+      // Le montant REELLEMENT encaisse, pas la valeur faciale de la facture.
+      setMontant(String(facture.montantRecouvre ?? facture.montant ?? ''));
       setPreuve(null);
       setFileName(null);
     }
@@ -108,7 +109,7 @@ export default function DepotBanqueModal({ open, onClose, facture, onConfirm }: 
               <label className="block text-xs text-muted font-medium mb-1.5">Montant déposé <span className="text-red-500">*</span></label>
               <input type="number" value={montant} onChange={(e) => setMontant(e.target.value)}
                 className="w-full rounded-lg border border-separator px-3 py-2 text-sm outline-hidden focus:border-green-400" />
-              <p className="text-[11px] text-muted mt-1">Doit égaler le montant visé.</p>
+              <p className="mt-1 text-[11px] text-muted">Le montant réellement déposé, qui peut différer du montant facturé.</p>
             </div>
           </div>
 

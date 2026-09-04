@@ -11,7 +11,9 @@ import RevenusHeader from "@/components/components-finance/revenus/header";
 
 export default function RevenueCommissionPourcentagePage() {
     const { 
-        commissionspourcentage, 
+        commissionspourcentage,
+        isLoading,
+        isError,
     } =  useCommissionPourcentageList();
     prefetchCommissionPourcentageListQuery({
         page: 1,
@@ -21,7 +23,7 @@ export default function RevenueCommissionPourcentagePage() {
         <div>
             <RevenusHeader title="Gestion des revenus sur les commission pourcentage" />
             {/* <FilterRestaurant /> */}
-            <Statistics commissionvariable={commissionspourcentage} />
+            <Statistics commissionvariable={commissionspourcentage} isError={isError} isLoading={isLoading} />
             <CommissionPourcentageAnalyse commission={commissionspourcentage} />
             <CommissionPourcentageList commissionvariable={commissionspourcentage} />
         </div>

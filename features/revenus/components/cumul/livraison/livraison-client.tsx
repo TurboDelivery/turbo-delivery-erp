@@ -54,7 +54,7 @@ export default function LivraisonClient() {
         <div>
             <RevenusHeader title="Gestion des revenus sur les livraisons"/>
             <FilterRestaurant livraisons={livraisons} />
-            <Statistics livraisons={livraisons} />   
+            <Statistics livraisons={livraisons} isError={isError} isLoading={isLoading} />   
             <LivraisonAnalyse livraison={livraisons}/>
             <LivraisonList />
         </div>

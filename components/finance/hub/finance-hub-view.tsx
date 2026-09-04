@@ -217,7 +217,13 @@ export function FinanceHubView() {
     ca: renta?.caCumule ?? 0,
     dep: renta?.totalCumule ?? 0,
     profit: renta?.profit ?? 0,
-    marge: renta?.marge ?? true,
+    /*
+     * `?? true` annoncait « Rentable a ce stade », en vert, quand la requete de
+     * rentabilite echouait ou n'avait pas encore repondu : un verdict rendu sur une
+     * donnee absente, sur l'ecran ou l'on decide de decaisser. Un troisieme etat dit
+     * ce qu'on sait vraiment — on ne sait pas.
+     */
+    marge: renta?.marge ?? null,
     coutJour: renta?.coutJournalier ?? 0,
     fixeProrata: renta?.fixeProrata ?? 0,
     variableReel: renta?.variableReel ?? 0,
@@ -349,7 +355,7 @@ export function FinanceHubView() {
     ca: k.ca,
     dep: k.dep,
     profit: k.profit,
-    marge: k.marge,
+    marge: k.marge ?? false,
     bapTotal,
   });
 
@@ -475,11 +481,28 @@ export function FinanceHubView() {
             <span className="text-xs text-default-400">Charges fixes (prorata) {fmtFcfa(k.fixeProrata)} · Dépenses variables {fmtFcfa(k.variableReel)}</span>
           </CardBody>
         </Card>
-        <Card shadow="none" className={`border ${k.marge ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}>
+        <Card
+          shadow="none"
+          className={`border ${k.marge === null ? 'border-separator' : k.marge ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-400/25 dark:bg-emerald-400/10' : 'border-rose-200 bg-rose-50 dark:border-rose-400/25 dark:bg-rose-400/10'}`}
+        >
           <CardBody className="gap-1 p-4">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-default-500">{k.marge ? 'Marge actuelle' : 'Déficit actuel'}</span>
-            <span className={`text-2xl font-bold tabular-nums ${k.marge ? 'text-emerald-700' : 'text-rose-700'}`}>{k.profit >= 0 ? '+' : ''}{fmtFcfa(k.profit)}</span>
-            <span className={`mt-0.5 inline-block w-fit rounded-full px-2 py-0.5 text-[11px] font-semibold ${k.marge ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>{k.marge ? 'Rentable à ce stade' : 'En déficit à ce stade'}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-muted">
+              {k.marge === null ? 'Marge' : k.marge ? 'Marge actuelle' : 'Déficit actuel'}
+            </span>
+            <span
+              className={`text-2xl font-bold tabular-nums ${k.marge === null ? 'text-muted' : k.marge ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300'}`}
+            >
+              {k.marge === null ? '—' : `${k.profit >= 0 ? '+' : ''}${fmtFcfa(k.profit)}`}
+            </span>
+            <span
+              className={`mt-0.5 inline-block w-fit rounded-full px-2 py-0.5 text-[11px] font-semibold ${k.marge === null ? 'bg-surface-secondary text-muted' : k.marge ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-400/15 dark:text-emerald-300' : 'bg-rose-100 text-rose-900 dark:bg-rose-400/15 dark:text-rose-300'}`}
+            >
+              {k.marge === null
+                ? 'Rentabilité indisponible'
+                : k.marge
+                  ? 'Rentable à ce stade'
+                  : 'En déficit à ce stade'}
+            </span>
           </CardBody>
         </Card>
       </div>

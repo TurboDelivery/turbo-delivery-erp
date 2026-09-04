@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { depenseAPI } from '../apis/depense.api';
 import { IDepense, IDepenseStats } from '../types/depense.type';
 import { saveAsExcelFile } from '@/utils/reporting-file';
@@ -53,26 +54,28 @@ export function useDepenseExport() {
         }
       }
 
-      // Dédoublonnage : par id d'abord, puis par (description normalisée + montant + date)
-      const seenIds = new Set<string>();
-      const seenSignatures = new Set<string>();
+      /*
+       * Dedoublonnage par IDENTIFIANT seulement.
+       *
+       * <p>Un second filtre retirait aussi les lignes de meme signature — description
+       * normalisee, montant et date. Or deux depenses DISTINCTES partagent souvent ces
+       * trois valeurs : deux pleins de carburant le meme jour au meme prix, deux achats
+       * identiques pour deux etablissements. Chacune etait silencieusement retiree de
+       * l'export, et le total du fichier ne correspondait plus a celui de l'ecran.</p>
+       *
+       * <p>L'identifiant suffit a ecarter les vrais doublons : deux lignes de meme id
+       * sont la meme depense vue deux fois, deux lignes d'id different sont deux
+       * depenses.</p>
+       */
+      const idsVus = new Set<string>();
       allDepenses = allDepenses.filter((d) => {
-        if (seenIds.has(d.id)) return false;
-        seenIds.add(d.id);
-        // Normalise la description (retire tirets, espaces multiples, casse)
-        const descNorm = (d.description ?? '').replace(/[-–]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
-        const date = d.dateDepense ? new Date(d.dateDepense).toISOString().split('T')[0] : '';
-        const sig = `${descNorm}|${d.montant}|${date}`;
-        if (seenSignatures.has(sig)) return false;
-        seenSignatures.add(sig);
+        if (idsVus.has(d.id)) return false;
+        idsVus.add(d.id);
         return true;
       });
 
       // Calculer le total des montants pour comparaison
-      const totalMontant = allDepenses.reduce((sum, depense) => {
-        console.log(`💰 Addition: ${sum} + ${depense.montant} = ${sum + depense.montant}`);
-        return sum + depense.montant;
-      }, 0);
+      const totalMontant = allDepenses.reduce((somme, depense) => somme + depense.montant, 0);
 
       // Générer les données Excel
       const worksheetData = allDepenses.map((depense, index) => ({
@@ -149,6 +152,22 @@ export function useDepenseExport() {
       throw error;
     }
   },
+    /*
+     * L'echec ne se disait NULLE PART. La mutation relancait bien, mais sans `onError` et
+     * sans que l'appelant lise `isErrorDepenseExport` : l'operateur cliquait « Exporter »,
+     * le bouton se rallumait, et aucun fichier n'arrivait. Rien ne distinguait un export
+     * en panne d'un export lent.
+     */
+    onSuccess: (resultat) => {
+      toast.success(`${resultat.totalDepenses} dépense(s) exportée(s).`, {
+        description: resultat.fileName,
+      });
+    },
+    onError: (error) => {
+      toast.error("L'export des dépenses a échoué.", {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    },
   });
 
   const exportDepensesToExcel = (params: UseDepenseExportParams) => {

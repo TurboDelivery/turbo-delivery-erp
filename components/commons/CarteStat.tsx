@@ -58,6 +58,17 @@ export interface CarteStatProps {
     accent?: boolean;
     /** Remplace le chiffre par un squelette. Le libellé et la note restent lisibles. */
     isLoading?: boolean;
+    /**
+     * La lecture a ÉCHOUÉ : la carte rend un tiret, pas un zéro.
+     *
+     * <p>Sans cet état, un appelant se replie sur `?? 0` et la carte AFFIRME zéro :
+     * « Chiffre d'affaires 0 FCFA », « Taux de recouvrement 0 % », « Montant en attente
+     * 0 FCFA ». Un directeur lit une mauvaise nouvelle là où il n'y a qu'une panne, et
+     * rien à l'écran ne le détrompe.</p>
+     *
+     * <p>Un tiret ne dit pas « zéro », il dit « on ne sait pas ». C'est la vérité.</p>
+     */
+    isError?: boolean;
     /** Rend la carte cliquable : vrai <button>, aria-pressed, focus visible. */
     onClick?: () => void;
     /** Filtre appliqué : anneau de sélection. N'a de sens qu'avec `onClick`. */
@@ -77,9 +88,20 @@ export interface CarteStatProps {
  * les couleurs passent par des jetons : le mode sombre est masqué aujourd'hui, il
  * reviendra, et aucune retouche ne doit être nécessaire ce jour-là.</p>
  *
- * <p>Ce que la carte ne fait PAS : formater un montant (l'appelant le fait, elle ne
- * peut pas deviner l'unité) et afficher une erreur (une carte seule ressemblerait à
- * un zéro, l'échec se traite au niveau du bandeau avec `EtatErreur`).</p>
+ * <p>Ce que la carte ne fait PAS : formater un montant. L'appelant le fait, elle ne peut
+ * pas deviner l'unité.</p>
+ *
+ * <h3>Deux façons de dire l'échec, et quand choisir laquelle</h3>
+ * <ul>
+ *   <li>Le bandeau ENTIER dépend d'une seule lecture : remplacer le bandeau par
+ *       `EtatErreur`, qui porte le motif et le bouton de relance. C'est le cas ordinaire.</li>
+ *   <li>Le bandeau mélange plusieurs sources et une seule tombe : `isError` sur la carte
+ *       concernée, qui rend un tiret. Les cartes voisines gardent leur chiffre, et celle
+ *       qui ne sait pas le dit.</li>
+ * </ul>
+ * <p>Ce qu'il ne faut jamais faire, c'est se replier sur `?? 0` : la carte AFFIRME alors
+ * zéro, et « Chiffre d'affaires 0 FCFA » se lit comme une mauvaise nouvelle, pas comme
+ * une panne.</p>
  */
 export default function CarteStat({
     libelle,
@@ -89,6 +111,7 @@ export default function CarteStat({
     ton = 'neutre',
     accent = false,
     isLoading = false,
+    isError = false,
     onClick,
     estActif = false,
     badge,
@@ -148,6 +171,14 @@ export default function CarteStat({
 
             {isLoading ? (
                 <Skeleton className="mt-2 h-7 w-24 rounded-medium" />
+            ) : isError ? (
+                <p
+                    className="mt-2 text-xl font-semibold leading-none tracking-tight text-default-400 sm:text-2xl"
+                    title="La lecture a échoué : cette valeur est indisponible."
+                >
+                    <span aria-hidden="true">—</span>
+                    <span className="sr-only">Valeur indisponible, la lecture a échoué</span>
+                </p>
             ) : (
                 <p
                     className={cn(

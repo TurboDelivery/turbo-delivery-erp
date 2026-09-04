@@ -88,7 +88,9 @@ export default function AgentRecouvreurView() {
       onRowSelectionChange: setRowSelection,
       enableRowSelection: (row) => isBulkEligible(row.original),
     });
-  const { statsCards } = useAgentRecouvreurStats(params);
+  // Le hook exposait `isError` sans que personne ne le lise : « Taux de recouvrement
+  // 0 % » s'affichait sur un echec de lecture, ce qui se lit comme un resultat.
+  const { statsCards, isError: isErrorStats } = useAgentRecouvreurStats(params);
 
   const depotPartenaireMutation = useDepotPartenaireMutation();
   const encaissementMutation = useEncaissementMutation();
@@ -184,6 +186,7 @@ export default function AgentRecouvreurView() {
             libelle={card.label}
             valeur={card.value}
             icone={card.icon}
+            isError={isErrorStats}
             ton={card.ton}
           />
         ))}

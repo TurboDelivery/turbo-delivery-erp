@@ -1,5 +1,6 @@
 'use client';;
 import { use } from "react";
+import EtatErreur from '@/components/commons/EtatErreur';
 
 import { notFound } from 'next/navigation';
 import { Skeleton } from '@/components/heroui';
@@ -12,7 +13,7 @@ interface Props {
 
 export default function FactureDetailPage(props: Props) {
   const params = use(props.params);
-  const { data: facture, isLoading, isError } = useFactureRFQuery(params.id);
+  const { data: facture, isLoading, isError, isFetching, refetch } = useFactureRFQuery(params.id);
 
   if (isLoading) {
     return (
@@ -29,7 +30,23 @@ export default function FactureDetailPage(props: Props) {
     );
   }
 
-  if (isError || !facture) notFound();
+  /*
+   * `isError || !facture` confondait DEUX choses opposees : la facture n'existe pas, et
+   * la facture n'a pas pu etre lue. Sur un 500, un delai depasse ou une coupure reseau,
+   * l'ecran annoncait « cette page n'existe pas » — l'operateur en concluait que la
+   * facture avait ete supprimee, et cessait de la chercher.
+   */
+  if (isError) {
+    return (
+      <EtatErreur
+        quoi="la facture"
+        onReessayer={() => refetch()}
+        enCours={isFetching}
+      />
+    );
+  }
+
+  if (!facture) notFound();
 
   return <FactureDetailView facture={facture} />;
 }

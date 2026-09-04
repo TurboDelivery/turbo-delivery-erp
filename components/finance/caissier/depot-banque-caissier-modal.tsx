@@ -42,13 +42,25 @@ export default function DepotBanqueCaissierModal({ open, onClose, facture, onCon
     setMounted(true);
   }, []);
 
-  // Prefill du montant déposé avec le montant visé (= montant de la facture).
+  /*
+   * Le pre-remplissage prenait le montant FACTURE, pas l'encaisse recue.
+   *
+   * <p>Le maillon precedent de la chaine fait l'inverse : le versement au caissier est
+   * pre-rempli avec `montantRecouvre`, et la carte du caissier annonce explicitement ce
+   * qu'il DETIENT. Ici, une facture de 500 000 F recouvree a 300 000 F proposait
+   * 500 000 F au depot, sous une mention « Doit egaler le montant vise » qui poussait a
+   * valider tel quel.</p>
+   *
+   * <p>Le bordereau enregistrait alors 500 000 F pour 300 000 F sortis, et le
+   * rapprochement classait la ligne CONCORDANT : l'ecart de 200 000 F n'apparaissait
+   * nulle part.</p>
+   */
   useEffect(() => {
     if (open && facture) {
       setDate('');
       setNumeroBordereau('');
       setBanque('');
-      setMontant(String(facture.montant ?? ''));
+      setMontant(String(facture.montantRecouvre ?? facture.montant ?? ''));
       setPreuve(null);
       setFileName(null);
     }
@@ -112,7 +124,7 @@ export default function DepotBanqueCaissierModal({ open, onClose, facture, onCon
               <label className="block text-xs text-muted font-medium mb-1.5">Montant déposé <span className="text-red-500">*</span></label>
               <input type="number" value={montant} onChange={(e) => setMontant(e.target.value)}
                 className="w-full rounded-lg border border-separator px-3 py-2 text-sm outline-hidden focus:border-green-400" />
-              <p className="text-[11px] text-muted mt-1">Doit égaler le montant visé.</p>
+              <p className="mt-1 text-[11px] text-muted">Le montant réellement déposé, qui peut différer du montant facturé.</p>
             </div>
           </div>
 

@@ -53,7 +53,14 @@ export default function CaissierView() {
   // pour alimenter les cartes. Chaque requete de cette famille declenche cote serveur
   // un appel HTTP au service utilisateurs (`loadViseurNames`) : on cesse de payer ce
   // prix pour un decompte, et on cesse au passage de le payer pour un chiffre faux.
-  const { data: agregats } = useCaissierStatsParStatutQuery({ periode: 'cycle' });
+  /*
+   * `isError` n'etait pas lu : sur echec, `agregats` restait indefini, les replis `?? 0`
+   * jouaient, et les quatre cartes affirmaient zero — dont « Montant en attente ».
+   * Un caissier lit « rien a encaisser » la ou la lecture a simplement echoue.
+   */
+  const { data: agregats, isError: isErrorAgregats } = useCaissierStatsParStatutQuery({
+    periode: 'cycle',
+  });
 
   const [factureAConfirmer, setFactureAConfirmer] = useState<IFactureCaissier | null>(null);
   const [factureDepotBanque, setFactureDepotBanque] = useState<IFactureCaissier | null>(null);
@@ -169,6 +176,7 @@ export default function CaissierView() {
             libelle={card.label}
             valeur={card.value}
             icone={card.icon}
+            isError={isErrorAgregats}
             ton={card.ton}
           />
         ))}

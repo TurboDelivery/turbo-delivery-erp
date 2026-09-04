@@ -6,9 +6,14 @@ import { CalendarClock, CalendarCheck2, CalendarPlus, CalendarCog } from "lucide
 import type { LucideIcon } from "lucide-react";
 
 interface StatisticsProps {
+    /** La lecture a echoue : les cartes rendent un tiret, pas un zero calcule sur une
+     * liste vide. Un montant a zero se lit comme un fait ; le tiret dit qu'on ne sait pas. */
+    isError?: boolean;
+    /** Lecture en cours : les cartes rendent leur squelette. */
+    isLoading?: boolean;
     commissionvariable: ICommission[];
 }
-export default function Statistics({ commissionvariable }: StatisticsProps) {
+export default function Statistics({ commissionvariable, isError = false, isLoading = false }: StatisticsProps) {
 
     // Obtenir la date actuelle
     const aujourdHui = new Date();
@@ -114,6 +119,8 @@ export default function Statistics({ commissionvariable }: StatisticsProps) {
             <GrilleStats colonnes={4}>
                 {stats.map((stat, index) => (
                     <CarteStat
+                        isError={isError}
+                        isLoading={isLoading}
                         key={index}
                         libelle={stat.title}
                         valeur={formatMontant(stat.value)}

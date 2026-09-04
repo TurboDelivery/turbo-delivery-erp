@@ -32,11 +32,31 @@ const statutOptions = [
 ];
 
 export function FactureFilters({ filters, handleStatutFilterChange, handlePeriodeFilterChange, handleRestaurantFilterChange, onReset, restaurants, restaurantsLoading }: FactureFiltersProps) {
+  /*
+   * Un champ de date VIDE rendait une date invalide.
+   *
+   * <p>`new Date('')` rend `Invalid Date`, qui est un objet donc TRUTHY : les gardes
+   * `debut ? … : valeurDefaut` la laissaient passer, et la borne partait invalide
+   * jusqu'au formatage, ou elle jetait une `RangeError`. Vider le champ pour resaisir
+   * une periode faisait donc tomber le filtre et perdait la saisie en cours.</p>
+   *
+   * <p>Une date qu'on ne sait pas lire n'est pas propagee : la borne precedente tient
+   * jusqu'a ce qu'une date valide arrive.</p>
+   */
+  const enDateValide = (valeur: string): Date | undefined => {
+    if (!valeur) return undefined;
+    const d = new Date(valeur);
+    return Number.isNaN(d.getTime()) ? undefined : d;
+  };
   const handleDebutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handlePeriodeFilterChange(new Date(e.target.value), filters.periodeFin);
+    const d = enDateValide(e.target.value);
+    if (!d) return;
+    handlePeriodeFilterChange(d, filters.periodeFin);
   };
   const handleFinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handlePeriodeFilterChange(filters.periodeDebut, new Date(e.target.value));
+    const d = enDateValide(e.target.value);
+    if (!d) return;
+    handlePeriodeFilterChange(filters.periodeDebut, d);
   };
   return (
     <div className="space-y-4 p-4 border rounded-lg bg-background">

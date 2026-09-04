@@ -8,13 +8,15 @@ import { useCommissionFixeList } from "@/features/revenus/hooks/use-commissionfi
 
 export default function CommissionFixeClient() {
     const { 
-        commissionsfixe, 
+        commissionsfixe,
+        isLoading,
+        isError,
     } =  useCommissionFixeList();
     return (
         <div>
             <RevenusHeader title="Gestion des revenus sur les commission fixe" />
             {/* <FilterRestaurant/> */}
-            <Statistics commissionFixe={commissionsfixe} />
+            <Statistics commissionFixe={commissionsfixe} isError={isError} isLoading={isLoading} />
             <CommissionFixeAnalyse />
             <CommissionFixe />
 
