@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Card, Spinner } from '@heroui-v3/react';
-import { ArrowRight, ArrowUp, Download, Receipt, TrendingUp, Wallet } from 'lucide-react';
+import { ArrowRight, Download, Receipt, TrendingUp, Wallet } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
@@ -81,12 +81,12 @@ export default function CACard({
                         </div>
                         <h3 className="text-medium font-medium text-gray-600 2xl:text-lg">{title}</h3>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <p className="text-3xl font-bold text-green-600 2xl:text-4xl">{formatCFA(totalAmount)}</p>
-                        <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-green-100">
-                            <ArrowUp className="size-4 text-green-600" />
-                        </div>
-                    </div>
+                    {/* Une fleche verte montante accompagnait ce montant. Aucune variation
+                        n'est calculee ni recue — `CACardProps` ne porte ni periode
+                        precedente ni tendance — donc elle pointait vers le haut meme
+                        quand le chiffre d'affaires s'effondrait. Un signal constant qui
+                        se fait passer pour une mesure vaut moins que pas de signal. */}
+                    <p className="text-3xl font-bold text-green-600 2xl:text-4xl">{formatCFA(totalAmount)}</p>
                     {onDownload && (
                         <Button
                             className="mt-1 w-fit gap-2 bg-green-600 text-xs font-medium text-white hover:bg-green-700 pressed:bg-green-800 disabled:bg-green-400"

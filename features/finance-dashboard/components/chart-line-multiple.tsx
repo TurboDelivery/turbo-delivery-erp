@@ -36,12 +36,14 @@ export function ChartLineMultiple() {
     fin: new Date(selectedYear, 11, 31),
   });
 
+  // `color` teinte le fond et identifie la serie ; `textColor` est la nuance sombre de
+  // la meme teinte, seule a se lire sur ce fond (6,45:1 a 7,71:1, mesure au canvas).
   const summaryCards = [
-    { label: 'Revenus totaux', value: formatCFA(resume?.chiffreAffaire ?? 0), color: '#10b981', boldColor: '#047857' },
-    { label: 'Dépenses totales', value: formatCFA(resume?.totalDepenses ?? 0), color: '#ef4444', boldColor: '#dc2626' },
-    { label: 'Revenus encaissés', value: formatCFA(resume?.totalRevenus ?? 0), color: '#3b82f6', boldColor: '#2563eb' },
-    { label: 'Investissements', value: formatCFA(resume?.totalInvestissements ?? 0), color: '#f59e0b', boldColor: '#d97706' },
-    { label: 'Encours', value: formatCFA(resume?.totalFacturesEnCours ?? 0), color: '#8b5cf6', boldColor: '#7c3aed' },
+    { label: 'Revenus totaux', value: formatCFA(resume?.chiffreAffaire ?? 0), color: '#10b981', textColor: '#065f46' },
+    { label: 'Dépenses totales', value: formatCFA(resume?.totalDepenses ?? 0), color: '#ef4444', textColor: '#991b1b' },
+    { label: 'Revenus encaissés', value: formatCFA(resume?.totalRevenus ?? 0), color: '#3b82f6', textColor: '#1e40af' },
+    { label: 'Investissements', value: formatCFA(resume?.totalInvestissements ?? 0), color: '#f59e0b', textColor: '#92400e' },
+    { label: 'Encours', value: formatCFA(resume?.totalFacturesEnCours ?? 0), color: '#8b5cf6', textColor: '#5b21b6' },
   ];
 
   if (isError) {

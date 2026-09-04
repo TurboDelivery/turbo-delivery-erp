@@ -15,6 +15,13 @@ interface FinanceHighlightCardProps {
     children?: React.ReactNode;
 }
 
+/*
+ * Le montant etait ecrit en `text-<teinte>-500` sur `bg-<teinte>-200/50`. Mesure au
+ * canvas sur le fond effectif de chaque tuile : de 1,68:1 (jaune) a 3,39:1 (violet),
+ * quand un texte de 20 px non gras demande 4,5:1. La teinte reste celle de la tuile,
+ * seule la nuance descend jusqu'a la premiere qui franchit le seuil — elle differe
+ * d'une teinte a l'autre parce que les teintes n'ont pas la meme clarte.
+ */
 const toneClasses: Record<
     FinanceHighlightCardProps['tone'],
     { container: string; iconBox: string; icon: string; value: string }
@@ -23,43 +30,43 @@ const toneClasses: Record<
         container: 'bg-red-200/50',
         iconBox: 'bg-red-300/40',
         icon: 'text-red-700',
-        value: 'text-red-500',
+        value: 'text-red-700',   // 5,10:1 sur bg-red-200/50
     },
     orange: {
         container: 'bg-orange-200/50',
         iconBox: 'bg-orange-300/40',
         icon: 'text-orange-700',
-        value: 'text-orange-500',
+        value: 'text-orange-800',   // 6,06:1 sur bg-orange-200/50
     },
     blue: {
         container: 'bg-blue-200/50',
         iconBox: 'bg-blue-300/40',
         icon: 'text-blue-700',
-        value: 'text-blue-500',
+        value: 'text-blue-700',   // 5,49:1 sur bg-blue-200/50
     },
     yellow: {
         container: 'bg-yellow-200/50',
         iconBox: 'bg-yellow-300/40',
         icon: 'text-yellow-700',
-        value: 'text-yellow-500',
+        value: 'text-yellow-800',   // 6,03:1 sur bg-yellow-200/50
     },
     purple: {
         container: 'bg-purple-200/50',
         iconBox: 'bg-purple-300/40',
         icon: 'text-purple-700',
-        value: 'text-purple-500',
+        value: 'text-purple-700',   // 5,81:1 sur bg-purple-200/50
     },
     indigo: {
         container: 'bg-indigo-200/50',
         iconBox: 'bg-indigo-300/40',
         icon: 'text-indigo-700',
-        value: 'text-indigo-500',
+        value: 'text-indigo-700',   // 6,35:1 sur bg-indigo-200/50
     },
     green: {
         container: 'bg-green-200/50',
         iconBox: 'bg-green-300/40',
         icon: 'text-green-700',
-        value: 'text-green-600',
+        value: 'text-green-800',   // 6,17:1 sur bg-green-200/50
     },
 };
 
@@ -81,7 +88,12 @@ export default function FinanceHighlightCard({
                     <Icon className={cn('size-6', style.icon)} />
                 </div>
                 <div>
-                    <h4 className="text-medium mb-2 text-muted 2xl:text-lg">{title}</h4>
+                    {/* Pas `text-muted` ici : ce gris est calibre pour les surfaces neutres et ne
+                        donne que 3,79:1 a 4,26:1 sur les fonds teintes des tuiles. `text-gray-600`
+                        tient 5,93:1 au pire cas tout en restant nettement plus clair que le
+                        montant, qui garde la hierarchie. Le fond de la tuile etant une pastel
+                        fixe, un gris fixe est le bon choix dans les deux themes. */}
+                    <h4 className="text-medium mb-2 text-gray-600 2xl:text-lg">{title}</h4>
                     <span className={cn('text-xl 2xl:text-2xl', style.value)}>{value}</span>
                 </div>
             </div>

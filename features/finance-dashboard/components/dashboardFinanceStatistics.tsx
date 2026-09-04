@@ -181,11 +181,13 @@ export default function DashboardFinanceStatistics() {
           />
           <FinanceHighlightCard title="Total dépenses" value={formattedDepenses} icon={ArrowDown} tone="red" href="/finance/dashboard" ariaLabel="Voir les dépenses de la période">
             <div className="flex flex-col gap-0.5">
-              <div className="bg-red-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium 2xl:text-lg">
+              {/* red-500 et orange-500 donnaient 3,81:1 et 2,89:1 en blanc dessus ; les nuances 700
+                     montent a 6,42:1 et 5,22:1 sans changer de teinte. */}
+              <div className="bg-red-700 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium 2xl:text-lg">
                 <span>Charges fixes</span>
                 <span>{formattedRecurrentes}</span>
               </div>
-              <div className="bg-orange-500 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium 2xl:text-lg">
+              <div className="bg-orange-700 text-white rounded-lg px-2 py-1.5 flex gap-4 justify-between text-medium 2xl:text-lg">
                 <span>Charges variables</span>
                 <span>{formattedNonRecurrentes}</span>
               </div>
