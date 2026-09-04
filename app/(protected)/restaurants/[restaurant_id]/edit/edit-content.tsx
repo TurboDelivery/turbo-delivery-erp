@@ -258,7 +258,7 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
             autreDocRef={autreDocRef}
           />
 
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-end gap-3 z-10">
+          <div className="fixed bottom-[calc(52px+env(safe-area-inset-bottom))] left-0 right-0 lg:bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex justify-end gap-3 z-10">
             <Button type="button" variant="flat" as={Link} href="/restaurants">Annuler</Button>
             <Button type="submit" color="primary" isLoading={isSubmitting}>Enregistrer</Button>
           </div>

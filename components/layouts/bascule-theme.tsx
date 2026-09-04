@@ -2,6 +2,7 @@
 
 import { Button, Tooltip } from '@heroui-v3/react';
 import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useDispatch, useSelector } from 'react-redux';
 
 import type { IRootState } from '@/store';
@@ -25,6 +26,14 @@ import { toggleTheme } from '@/store/themeConfigSlice';
  */
 export function BasculeTheme() {
     const dispatch = useDispatch();
+    // DEUX systemes de theme cohabitent et il faut prevenir les deux.
+    //
+    // Redux pose la classe `dark` sur `<body>`, ce dont dependent les jetons CSS.
+    // `next-themes` est lu par les composants qui choisissent une ressource selon le
+    // theme — `MapTrafic` charge son fond de carte ainsi, et `icons.tsx` son logo.
+    // Ma premiere version ne dispatchait que Redux : la carte du trafic restait donc
+    // en tuiles claires sur une interface sombre.
+    const { setTheme } = useTheme();
     const themeConfig = useSelector((state: IRootState) => state.themeConfig);
     const sombre = themeConfig.theme === 'dark';
 
@@ -33,7 +42,11 @@ export function BasculeTheme() {
             <Button
                 aria-label={sombre ? 'Passer au thème clair' : 'Passer au thème sombre'}
                 isIconOnly
-                onPress={() => dispatch(toggleTheme(sombre ? 'light' : 'dark'))}
+                onPress={() => {
+                    const cible = sombre ? 'light' : 'dark';
+                    dispatch(toggleTheme(cible));
+                    setTheme(cible);
+                }}
                 size="sm"
                 variant="ghost"
             >
