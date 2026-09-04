@@ -1,6 +1,6 @@
 'use client';
 
-import { DateRangePicker, RangeCalendar, Separator } from '@heroui-v3/react';
+import { DateRangePicker, RangeCalendar, Separator, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { DateValue } from 'react-aria-components/Calendar';
 
@@ -46,22 +46,22 @@ export function SelecteurPeriode({
     return (
         <div className="flex flex-wrap items-center gap-2">
             <div className="flex items-center gap-1 rounded-lg border border-separator p-1">
-                {RACCOURCIS.map((r) => (
-                    <button
-                        aria-pressed={raccourci === r.cle}
-                        className={cn(
-                            'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-                            raccourci === r.cle
-                                ? 'bg-accent text-white'
-                                : 'text-muted hover:bg-surface-secondary hover:text-foreground',
-                        )}
-                        key={r.cle}
-                        onClick={() => onRaccourci(r.cle)}
-                        type="button"
-                    >
-                        {r.libelle}
-                    </button>
-                ))}
+                {/* `ToggleButtonGroup` v3 plutot que des <button> nus : il porte l'etat
+                    selectionne, la navigation au clavier et les roles ARIA du groupe. */}
+                <ToggleButtonGroup
+                    onSelectionChange={(cles) => {
+                        const premiere = [...cles][0];
+                        if (premiere) onRaccourci(premiere as Raccourci);
+                    }}
+                    selectedKeys={new Set([raccourci])}
+                    selectionMode="single"
+                >
+                    {RACCOURCIS.map((r) => (
+                        <ToggleButton id={r.cle} key={r.cle} size="sm">
+                            {r.libelle}
+                        </ToggleButton>
+                    ))}
+                </ToggleButtonGroup>
 
                 <Separator className="mx-0.5 h-5" orientation="vertical" />
 

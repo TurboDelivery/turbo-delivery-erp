@@ -1,3 +1,4 @@
+import { Chip } from '@heroui-v3/react';
 import { ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 
@@ -57,12 +58,17 @@ export function BandeauAction({ elements }: BandeauActionProps) {
     // Forme de PASTILLE, pas de bandeau pleine largeur : quatre bandeaux empiles
     // repoussaient les chiffres sous la ligne de flottaison. Une pastille dit la meme
     // chose — le fait, sa consequence en une incise, le lien — sur une ligne.
+    //
+    // `soft` est la seule variante neutre du `Chip` v3 (les autres sont primary,
+    // secondary et tertiary) ; l'accent vient des classes, puisque c'est la seule zone
+    // de l'ecran qui appelle un geste.
     return (
         <div className="flex flex-wrap gap-2">
             {aFaire.map((e) => (
-                <div
-                    className="flex min-w-0 items-center gap-2 rounded-lg border border-accent/30 bg-accent-soft px-3 py-1.5 text-xs"
+                <Chip
+                    className="max-w-full gap-2 border-accent/30 bg-accent-soft text-foreground"
                     key={e.cle}
+                    variant="soft"
                 >
                     <ShieldAlert aria-hidden="true" className="size-3.5 shrink-0 text-accent" />
                     <span className="font-semibold tabular-nums text-foreground">{e.titre}</span>
@@ -74,7 +80,7 @@ export function BandeauAction({ elements }: BandeauActionProps) {
                     >
                         {e.libelleAction}
                     </Link>
-                </div>
+                </Chip>
             ))}
         </div>
     );
