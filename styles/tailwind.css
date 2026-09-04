@@ -1514,6 +1514,32 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
         @apply border-b border-white-light/40! dark:border-[#3f121a]!;
     }
 
+    /*
+     * Les regles `table` ci-dessus viennent du gabarit d'administration et visent TOUT
+     * `<table>` de l'application. Elles atteignent donc aussi les composants de la
+     * bibliotheque qui en rendent un — et les cassent.
+     *
+     * Cas mesure : le calendrier de `DateRangePicker`. Sa cellule fait 17 px, mais le
+     * `<td>` qui la porte recevait `px-4 py-3`, soit 32 px de remplissage horizontal par
+     * colonne. Sept colonnes reclamaient alors 347 px dans un popover de 276, et samedi
+     * et dimanche etaient coupes : les dates sautaient de 4 a 7.
+     *
+     * On rend donc leur geometrie aux tables rendues par la bibliotheque. Le selecteur
+     * `[class*="__grid"]` ne vise que les grilles de calendrier ; les tableaux de donnees
+     * de l'ERP gardent l'habillage du gabarit.
+     */
+    table[class*='__grid'] thead tr th,
+    table[class*='__grid'] tbody tr td {
+        @apply p-0!;
+    }
+    table[class*='__grid'] thead tr,
+    table[class*='__grid'] tfoot tr {
+        @apply bg-transparent!;
+    }
+    table[class*='__grid'] tbody tr {
+        @apply border-b-0!;
+    }
+
     /* code hightlight */
     pre {
         direction: ltr;

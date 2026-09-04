@@ -114,7 +114,18 @@ export function SelecteurPeriode({
                                     <ChevronRight aria-hidden="true" className="size-4" />
                                 </RangeCalendar.NavButton>
                             </RangeCalendar.Header>
-                            <RangeCalendar.Grid>
+                            {/*
+                             * `weekdayStyle="narrow"` — « L M M J V S D » — et non le
+                             * « short » par defaut de HeroUI, qui donne « lun. mar. ».
+                             *
+                             * La grille est en `repeat(7, 1fr)`, et `1fr` ne descend jamais
+                             * sous la largeur du CONTENU. Avec « lun. » les sept colonnes
+                             * reclamaient 393 px dans un popover de 276 : samedi et dimanche
+                             * etaient coupes, et les dates sautaient de 4 a 7. Mesure a
+                             * l'ecran — les sept colonnes etaient bien rendues, elles
+                             * debordaient simplement de leur conteneur.
+                             */}
+                            <RangeCalendar.Grid weekdayStyle="narrow">
                                 <RangeCalendar.GridHeader>
                                     {(jour) => <RangeCalendar.HeaderCell>{jour}</RangeCalendar.HeaderCell>}
                                 </RangeCalendar.GridHeader>
