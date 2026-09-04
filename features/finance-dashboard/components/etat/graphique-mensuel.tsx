@@ -30,6 +30,17 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
  * appariees font de mieux — et la marge, qui est leur difference, passe en courbe
  * par-dessus : une grandeur derivee se lit comme une tendance, pas comme un volume.</p>
  *
+ * <h3>Lisible sans la couleur</h3>
+ * <p>Les deux series se distinguaient par la seule paire vert/rouge. Simule en
+ * deuteranopie — la forme la plus courante du daltonisme, environ 6 % des hommes — les
+ * deux couleurs deviennent `#6e6e40` et `#6c6c03` : un rapport de 1,05:1, c'est-a-dire
+ * la MEME couleur. Le graphique etait illisible pour eux.</p>
+ *
+ * <p>Changer de teinte ne reglait rien : bleu contre orange ne monte qu'a 1,5:1, parce
+ * que le probleme est la clarte, pas la teinte. Les depenses portent donc des HACHURES.
+ * La distinction ne depend plus de la couleur du tout, et les teintes gardent leur sens
+ * financier pour ceux qui les voient.</p>
+ *
  * <h3>Les mois a venir</h3>
  * <p>Une annee en cours porte des mois futurs a zero. Les tracer ferait plonger la courbe
  * jusqu'a l'origine, ce qui se lit comme un effondrement alors que rien ne s'est encore
@@ -98,6 +109,20 @@ export function GraphiqueMensuel({ donnees, hauteur }: GraphiqueMensuelProps) {
             <div className="absolute inset-0">
             <ResponsiveContainer height="100%" width="100%">
                 <ComposedChart data={serie} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+                    <defs>
+                        {/* Hachures diagonales : la seconde serie reste identifiable en
+                            niveaux de gris comme en vision daltonienne. */}
+                        <pattern
+                            height={6}
+                            id="hachure-depenses"
+                            patternTransform="rotate(45)"
+                            patternUnits="userSpaceOnUse"
+                            width={6}
+                        >
+                            <rect fill={ROUGE} height={6} width={6} />
+                            <line stroke="var(--surface)" strokeWidth={2.4} x1={0} x2={0} y1={0} y2={6} />
+                        </pattern>
+                    </defs>
                     <CartesianGrid stroke="var(--separator)" strokeDasharray="3 3" vertical={false} />
                     <XAxis
                         axisLine={false}
@@ -140,7 +165,7 @@ export function GraphiqueMensuel({ donnees, hauteur }: GraphiqueMensuelProps) {
                         wrapperStyle={{ fontSize: 12, paddingTop: 4 }}
                     />
                     <Bar dataKey="revenus" fill={VERT} name="Revenus" radius={[3, 3, 0, 0]} />
-                    <Bar dataKey="depenses" fill={ROUGE} name="Dépenses" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="depenses" fill="url(#hachure-depenses)" name="Dépenses" radius={[3, 3, 0, 0]} stroke={ROUGE} strokeWidth={1} />
                     <Line
                         connectNulls={false}
                         dataKey="marge"

@@ -13,6 +13,7 @@ import { CarteIndicateur } from '@/features/finance-dashboard/components/etat/ca
 import { GraphiqueMensuel } from '@/features/finance-dashboard/components/etat/graphique-mensuel';
 import { DisponibiliteJour, RepartitionParc } from '@/features/finance-dashboard/components/etat/repartition-parc';
 import { SelecteurPeriode, type Raccourci } from '@/features/finance-dashboard/components/etat/selecteur-periode';
+import { TableauMensuel } from '@/features/finance-dashboard/components/etat/tableau-mensuel';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { Montant } from '@/components/commons/montant';
 import { BandeauAction } from '@/features/finance-dashboard/components/etat/bandeau-action';
@@ -404,6 +405,28 @@ export default function ApercuContenu() {
                         </Card>
                     </div>
 
+                    {voitFinance && etat !== 'echec' && (
+                        <Card>
+                            <Card.Header>
+                                <Card.Title className="text-sm">Mois par mois · 2026</Card.Title>
+                                <Card.Description>
+                                    Les mêmes chiffres que le graphique, en valeurs exactes — un
+                                    graphique seul n&apos;est pas lisible par un lecteur d&apos;écran.
+                                </Card.Description>
+                            </Card.Header>
+                            <Card.Content>
+                                {etat === 'chargement' ? (
+                                    <div className="space-y-1.5">
+                                        {Array.from({ length: 6 }).map((_, k) => (
+                                            <Skeleton className="h-6 w-full rounded" key={k} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <TableauMensuel annee={2026} lignes={jeu.serieAnnuelle} />
+                                )}
+                            </Card.Content>
+                        </Card>
+                    )}
                 </main>
             </div>
         </div>

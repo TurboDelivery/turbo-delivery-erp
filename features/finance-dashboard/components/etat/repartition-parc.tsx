@@ -18,11 +18,13 @@ export interface PartParc {
     couleur: string;
 }
 
-export function RepartitionParc({ parts, hauteur = 200 }: { parts: PartParc[]; hauteur?: number }) {
+export function RepartitionParc({ parts, hauteur = 160 }: { parts: PartParc[]; hauteur?: number }) {
     const total = parts.reduce((s, p) => s + p.valeur, 0);
 
+    // Anneau et legende s'empilent quand la carte est etroite : cote a cote dans 353 px,
+    // la legende n'avait que 137 px et ses lignes se repliaient.
     return (
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-center gap-4 sm:flex-nowrap">
             <div className="shrink-0" style={{ width: hauteur, height: hauteur }}>
                 <ResponsiveContainer height="100%" width="100%">
                     <PieChart>
@@ -59,7 +61,7 @@ export function RepartitionParc({ parts, hauteur = 200 }: { parts: PartParc[]; h
 
             {/* Les nombres exacts restent lisibles : l'anneau ajoute la proportion, il ne
                 remplace pas la valeur. */}
-            <ul className="min-w-0 flex-1 space-y-1.5">
+            <ul className="w-full min-w-[150px] flex-1 space-y-1.5">
                 {parts.map((p) => (
                     <li className="flex items-baseline gap-2 text-sm" key={p.libelle}>
                         <span
