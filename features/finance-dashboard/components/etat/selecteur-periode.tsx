@@ -1,10 +1,17 @@
 'use client';
 
-import { DateRangePicker, RangeCalendar, Separator, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
+import {
+    DateField,
+    DateRangePicker,
+    RangeCalendar,
+    Separator,
+    ToggleButton,
+    ToggleButtonGroup,
+} from '@heroui-v3/react';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import React from 'react';
 import type { DateValue } from 'react-aria-components/Calendar';
 
-import { cn } from '@/lib/utils';
 
 /**
  * Selecteur de periode : trois raccourcis, et une plage libre.
@@ -65,18 +72,36 @@ export function SelecteurPeriode({
 
                 <Separator className="mx-0.5 h-5" orientation="vertical" />
 
+                {/*
+                 * Composition attendue par le composant, sans habillage de ma part.
+                 *
+                 * Le popover ne s'ancre PAS sur le declencheur mais sur le GROUPE DE
+                 * SAISIE : c'est lui que react-aria enregistre comme reference de
+                 * positionnement. Sans `DateInputGroup`, cette reference reste nulle et
+                 * le calendrier s'ouvrait dans le coin superieur gauche de la page —
+                 * mesure a l'ecran, popover en (0,0) alors que le bouton etait en (807,114).
+                 * Retirer mes classes n'y avait rien change : la cause etait structurelle.
+                 *
+                 * Au passage on y gagne de vrais champs de date, saisissables au clavier
+                 * segment par segment, que mon bouton textuel ne permettait pas.
+                 */}
                 <DateRangePicker onChange={onPlage} value={plage}>
-                    <DateRangePicker.Trigger
-                        className={cn(
-                            'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-                            raccourci === 'libre'
-                                ? 'bg-accent text-white'
-                                : 'text-muted hover:bg-surface-secondary hover:text-foreground',
-                        )}
-                    >
-                        <CalendarDays aria-hidden="true" className="size-3.5" />
-                        {raccourci === 'libre' ? libelle : 'Période…'}
-                    </DateRangePicker.Trigger>
+                    <DateField.Group>
+                        <DateField.Input slot="start">
+                            {(segment: React.ComponentProps<typeof DateField.Segment>['segment']) => (
+                                <DateField.Segment segment={segment} />
+                            )}
+                        </DateField.Input>
+                        <DateRangePicker.RangeSeparator />
+                        <DateField.Input slot="end">
+                            {(segment: React.ComponentProps<typeof DateField.Segment>['segment']) => (
+                                <DateField.Segment segment={segment} />
+                            )}
+                        </DateField.Input>
+                        <DateRangePicker.Trigger>
+                            <CalendarDays aria-hidden="true" className="size-4" />
+                        </DateRangePicker.Trigger>
+                    </DateField.Group>
 
                     <DateRangePicker.Popover>
                         <RangeCalendar>

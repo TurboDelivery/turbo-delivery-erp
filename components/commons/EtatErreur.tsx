@@ -1,6 +1,19 @@
 'use client';
 
-import { Button } from '@/components/heroui';
+/*
+ * `Button` de HeroUI V3, et non plus celui de la V2.
+ *
+ * <p>Ce composant est rendu par 125 fichiers : c'etait le dernier point de l'ecran de
+ * refonte a dependre encore de l'ancienne bibliotheque. La bascule ne touche que le
+ * rendu interne — les props d'`EtatErreur` (`quoi`, `onReessayer`, `enCours`, `detail`,
+ * `compact`) ne changent pas, donc aucun des 125 appelants n'est a modifier.</p>
+ *
+ * <p>Les noms de props different d'une version a l'autre : `color` devient une `variant`
+ * semantique, `isLoading` devient `isPending`, `onClick` devient `onPress`, et
+ * `startContent` disparait au profit d'enfants ordinaires. Une prop V2 laissee en place
+ * serait SILENCIEUSEMENT ignoree — le bouton resterait cliquable pendant une relance.</p>
+ */
+import { Button, Spinner } from '@heroui-v3/react';
 import { RefreshCcw, WifiOff } from 'lucide-react';
 import React from 'react';
 
@@ -54,8 +67,13 @@ export default function EtatErreur({
                     {quoi ? `Impossible de charger ${quoi}` : 'Impossible de charger cette donnée'}
                 </span>
                 {onReessayer && (
-                    <Button color="danger" isLoading={enCours} onClick={onReessayer} size="sm" variant="flat">
-                        Réessayer
+                    <Button isPending={enCours} onPress={onReessayer} size="sm" variant="danger-soft">
+                        {({ isPending }: { isPending: boolean }) => (
+                            <>
+                                {isPending && <Spinner color="current" size="sm" />}
+                                Réessayer
+                            </>
+                        )}
                     </Button>
                 )}
             </div>
@@ -75,15 +93,17 @@ export default function EtatErreur({
                 </p>
             </div>
             {onReessayer && (
-                <Button
-                    color="danger"
-                    isLoading={enCours}
-                    onClick={onReessayer}
-                    size="sm"
-                    startContent={!enCours && <RefreshCcw className="h-4 w-4" />}
-                    variant="flat"
-                >
-                    Réessayer
+                <Button isPending={enCours} onPress={onReessayer} size="sm" variant="danger-soft">
+                    {({ isPending }: { isPending: boolean }) => (
+                        <>
+                            {isPending ? (
+                                <Spinner color="current" size="sm" />
+                            ) : (
+                                <RefreshCcw aria-hidden="true" className="size-4" />
+                            )}
+                            Réessayer
+                        </>
+                    )}
                 </Button>
             )}
             {detail && <p className="max-w-sm truncate text-xs text-default-400">{detail}</p>}
