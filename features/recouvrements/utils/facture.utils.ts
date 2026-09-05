@@ -1,30 +1,29 @@
-export const getStatutBadgeVariant = (statut: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
+/**
+ * Le ton d'un statut de facture, sur l'echelle semantique du theme.
+ *
+ * <p>Les deux fonctions precedentes rendaient d'un cote une variante shadcn
+ * (`default` / `secondary` / `destructive`) et de l'autre HUIT classes de palette
+ * Tailwind — `bg-green-50 text-green-700 dark:bg-green-950 …` — recopiees pour le mode
+ * sombre parce qu'aucune ne suivait le theme. Une seule fonction rend desormais le
+ * couple (`color`, `variant`) du `Chip` de la bibliotheque, qui suit le theme seul.</p>
+ *
+ * <p>« Brouillon » etait peint en ROUGE, la couleur du danger : une facture non encore
+ * validee n'est pas une alerte, c'est une etape. Elle passe au ton neutre.</p>
+ */
+export const getStatutChip = (
+  statut: string,
+): { color: 'danger' | 'default' | 'success' | 'warning'; variant: 'primary' | 'soft' } => {
   switch (statut?.toUpperCase()) {
-    case 'PAID':
-      return 'default';
-    case 'PARTIAL':
-      return 'secondary';
     case 'DRAFT':
-      return 'destructive';
-    case 'VALIDATED':
-      return 'default';
-    default:
-      return 'outline';
-  }
-};
-
-export const getStatutColor = (statut: string): string => {
-  switch (statut?.toUpperCase()) {
+      return { color: 'default', variant: 'soft' };
     case 'PAID':
-      return 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300';
+      return { color: 'success', variant: 'primary' };
     case 'PARTIAL':
-      return 'bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300';
-    case 'DRAFT':
-      return 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300';
+      return { color: 'warning', variant: 'soft' };
     case 'VALIDATED':
-      return 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300';
+      return { color: 'default', variant: 'primary' };
     default:
-      return '';
+      return { color: 'default', variant: 'soft' };
   }
 };
 

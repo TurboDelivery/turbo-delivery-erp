@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Select, SelectItem, Spinner, Pagination } from '@/components/heroui';
+import { ComboBox, Input, Label, ListBox, Spinner } from '@heroui-v3/react';
+
+import { PaginationTableau } from '../common/pagination-tableau';
 import useContestationsDashboard from '@/features/recouvrements/hooks/use-contestations-dashboard';
 import { useContestationsQuery } from '@/features/recouvrements/queries/contestation.query';
 import { RestaurantSelect } from '../common/restaurant-select';
@@ -75,24 +77,46 @@ export function ContestationsTabsContent({ restoOpts, isOptionsLoading }: Contes
             variant="secondary"
           />
 
-          <Select
-            label="Statut"
-            variant="bordered"
-            selectedKeys={filters.status ? [filters.status] : []}
-            onChange={(e) => handleStatusChange(e.target.value || '')}
+          {/*
+           * Un `ComboBox` et non un `Select`, comme partout ailleurs — et surtout, le
+           * `Select` de la v2 recevait un `onChange` DOM alors qu'il rend
+           * `onSelectionChange` : le filtre de statut ne changeait rien.
+           */}
+          <ComboBox
             className="w-full max-w-xs"
+            onSelectionChange={(c) => handleStatusChange(c === 'TOUS' ? '' : String(c ?? ''))}
+            selectedKey={filters.status || 'TOUS'}
           >
-            <SelectItem key="">Tous les statuts</SelectItem>
-            <SelectItem key="ACTIVE">Active</SelectItem>
-            <SelectItem key="RESOLUE">Résolue</SelectItem>
-          </Select>
+            <Label>Statut</Label>
+            <ComboBox.InputGroup>
+              <Input />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox
+                items={[
+                  { cle: 'TOUS', libelle: 'Tous les statuts' },
+                  { cle: 'ACTIVE', libelle: 'Active' },
+                  { cle: 'RESOLUE', libelle: 'Résolue' },
+                ]}
+              >
+                {(o: { cle: string; libelle: string }) => (
+                  <ListBox.Item id={o.cle} textValue={o.libelle}>
+                    {o.libelle}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                )}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
         </div>
       </CardHeader>
 
       <CardContent className="w-full">
         {filters.restaurantId && isLoading && (
-          <div className="flex justify-center items-center py-12">
-            <Spinner label="Chargement des contestations..." />
+          <div className="flex flex-col items-center justify-center gap-2 py-12">
+            <Spinner />
+            <p className="text-sm text-muted">Chargement des contestations…</p>
           </div>
         )}
 
@@ -115,14 +139,7 @@ export function ContestationsTabsContent({ restoOpts, isOptionsLoading }: Contes
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center pt-4">
-                <Pagination
-                  total={totalPages}
-                  page={currentPage}
-                  onChange={handlePageChange}
-                  color="primary"
-                  showControls
-                  isCompact
-                />
+                <PaginationTableau onPage={handlePageChange} page={currentPage} total={totalPages} />
               </div>
             )}
           </>

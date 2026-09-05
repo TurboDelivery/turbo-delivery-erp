@@ -1,10 +1,18 @@
 'use client';
 import React from 'react';
-import { Select, SelectItem } from '@/components/heroui';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { X } from 'lucide-react';
+import {
+  Button,
+  Calendar,
+  Card,
+  ComboBox,
+  DateField,
+  DatePicker,
+  Input,
+  Label,
+  ListBox,
+} from '@heroui-v3/react';
+import { CalendarDate, type DateValue } from '@internationalized/date';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { RestaurantSelect } from '../common/restaurant-select';
 
 interface FactureFiltersProps {
@@ -32,85 +40,129 @@ const statutOptions = [
 ];
 
 export function FactureFilters({ filters, handleStatutFilterChange, handlePeriodeFilterChange, handleRestaurantFilterChange, onReset, restaurants, restaurantsLoading }: FactureFiltersProps) {
-  /*
-   * Un champ de date VIDE rendait une date invalide.
-   *
-   * <p>`new Date('')` rend `Invalid Date`, qui est un objet donc TRUTHY : les gardes
-   * `debut ? … : valeurDefaut` la laissaient passer, et la borne partait invalide
-   * jusqu'au formatage, ou elle jetait une `RangeError`. Vider le champ pour resaisir
-   * une periode faisait donc tomber le filtre et perdait la saisie en cours.</p>
-   *
-   * <p>Une date qu'on ne sait pas lire n'est pas propagee : la borne precedente tient
-   * jusqu'a ce qu'une date valide arrive.</p>
-   */
-  const enDateValide = (valeur: string): Date | undefined => {
-    if (!valeur) return undefined;
-    const d = new Date(valeur);
-    return Number.isNaN(d.getTime()) ? undefined : d;
-  };
-  const handleDebutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const d = enDateValide(e.target.value);
-    if (!d) return;
-    handlePeriodeFilterChange(d, filters.periodeFin);
-  };
-  const handleFinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const d = enDateValide(e.target.value);
-    if (!d) return;
-    handlePeriodeFilterChange(filters.periodeDebut, d);
-  };
+  /** Une date ISO vers le type calendaire de la bibliothèque. */
+  const enDateCalendaire = (d: Date): CalendarDate | null =>
+    Number.isNaN(d.getTime())
+      ? null
+      : new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate());
+
+  /** Le champ de date de la bibliothèque, posé aux deux bornes. */
+  const ChampDate = ({
+    label,
+    onDate,
+    valeur,
+  }: {
+    label: string;
+    onDate: (d: Date) => void;
+    valeur: Date;
+  }) => (
+    <DatePicker
+      onChange={(d: DateValue | null) => {
+        if (d) onDate(new Date(d.toString()));
+      }}
+      value={enDateCalendaire(valeur)}
+    >
+      <Label>{label}</Label>
+      <DateField.Group>
+        <DateField.Input>
+          {(segment: React.ComponentProps<typeof DateField.Segment>['segment']) => (
+            <DateField.Segment segment={segment} />
+          )}
+        </DateField.Input>
+        <DatePicker.Trigger>
+          <DatePicker.TriggerIndicator />
+        </DatePicker.Trigger>
+      </DateField.Group>
+      <DatePicker.Popover>
+        <Calendar>
+          <Calendar.Header>
+            <Calendar.NavButton slot="previous">
+              <ChevronLeft aria-hidden="true" className="size-4" />
+            </Calendar.NavButton>
+            <Calendar.Heading />
+            <Calendar.NavButton slot="next">
+              <ChevronRight aria-hidden="true" className="size-4" />
+            </Calendar.NavButton>
+          </Calendar.Header>
+          <Calendar.Grid>
+            <Calendar.GridHeader>
+              {(jour: string) => <Calendar.HeaderCell>{jour}</Calendar.HeaderCell>}
+            </Calendar.GridHeader>
+            <Calendar.GridBody>{(date: CalendarDate) => <Calendar.Cell date={date} />}</Calendar.GridBody>
+          </Calendar.Grid>
+        </Calendar>
+      </DatePicker.Popover>
+    </DatePicker>
+  );
+
   return (
-    <div className="space-y-4 p-4 border rounded-lg bg-background">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Filtres</h3>
-        {onReset && (
-          <Button variant="ghost" size="sm" onClick={onReset}>
-            <X className="h-4 w-4 mr-2" />
-            Réinitialiser
-          </Button>
-        )}
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* ✅ AJOUTÉ: Filtre par restaurant */}
-        <div className="space-y-2">
-          <Label htmlFor="restaurant-filter">Restaurant</Label>
-          <RestaurantSelect
-            value={filters.restaurantId}
-            onChange={(value?: string) => handleRestaurantFilterChange?.(value)}
-            options={restaurants || []}
-            isLoading={restaurantsLoading}
-            placeholder="Sélectionner un restaurant"
+    <Card>
+      <Card.Content className="gap-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-foreground">Filtres</h3>
+          {onReset && (
+            <Button onPress={onReset} size="sm" variant="ghost">
+              <X aria-hidden="true" className="size-4" />
+              Réinitialiser
+            </Button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="flex flex-col gap-2">
+            <Label>Restaurant</Label>
+            <RestaurantSelect
+              className="w-full"
+              isLoading={restaurantsLoading}
+              onChange={(value?: string) => handleRestaurantFilterChange?.(value)}
+              options={restaurants || []}
+              placeholder="Sélectionner un restaurant"
+              value={filters.restaurantId}
+            />
+          </div>
+
+          {/* Un ComboBox et non un Select : dans ce projet, toute liste se cherche. */}
+          <ComboBox
+            onSelectionChange={(c) => handleStatutFilterChange(c ? String(c) : null)}
+            selectedKey={filters.statut || null}
+          >
+            <Label>Statut</Label>
+            <ComboBox.InputGroup>
+              <Input placeholder="Sélectionner un statut" />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox items={statutOptions}>
+                {(o: { key: string; label: string }) => (
+                  <ListBox.Item id={o.key} textValue={o.label}>
+                    {o.label}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                )}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
+
+          {/*
+           * Les deux bornes etaient des `<input type="date">` bruts, avec une garde ecrite
+           * a la main contre `new Date('')` — qui rend `Invalid Date`, un objet donc
+           * TRUTHY : vider le champ pour resaisir une periode faisait partir une borne
+           * invalide jusqu'au formatage, ou elle jetait une `RangeError`. Le `DatePicker`
+           * de la bibliotheque ne rend jamais de date invalide ; la garde disparait avec
+           * la cause.
+           */}
+          <ChampDate
+            label="Période début"
+            onDate={(d) => handlePeriodeFilterChange(d, filters.periodeFin)}
+            valeur={filters.periodeDebut}
+          />
+          <ChampDate
+            label="Période fin"
+            onDate={(d) => handlePeriodeFilterChange(filters.periodeDebut, d)}
+            valeur={filters.periodeFin}
           />
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="statut-filter">Statut</Label>
-          <Select
-            id="statut-filter"
-            placeholder="Sélectionner un statut"
-            selectedKeys={filters.statut ? [filters.statut] : []}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0] as string;
-              handleStatutFilterChange(selected || null);
-            }}
-          >
-            {statutOptions.map((option) => (
-              <SelectItem key={option.key} value={option.key}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="debut-filter">Période Début</Label>
-          <Input id="debut-filter" type="date" value={filters.periodeDebut.toISOString().split('T')[0] || ''} onChange={handleDebutChange} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="fin-filter">Période Fin</Label>
-          <Input id="fin-filter" type="date" value={filters.periodeFin.toISOString().split('T')[0] || ''} onChange={handleFinChange} />
-        </div>
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }

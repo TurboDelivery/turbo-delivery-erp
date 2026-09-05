@@ -179,11 +179,29 @@ features/<domain>/hooks/use-<name>-table.ts   ← useReactTable instance + data 
 
 #### Rules
 
-- **Columns always in a separate file** (`*-table-columns.tsx`). Never inline `ColumnDef` arrays inside the table component or the hook.
-- **Render with HeroUI**: import `Table, TableHeader, TableBody, TableColumn, TableRow, TableCell, Pagination` from `@heroui/react`. Use `flexRender` from `@tanstack/react-table` to render cells.
-- **Hook owns the table instance**: call `useReactTable({ data, columns, getCoreRowModel(), ... })` inside a `useXxxTable` hook, not in the component.
-- **Pagination**: use the HeroUI `<Pagination>` component inside `Table`'s `bottomContent` prop. For infinite scroll, put the sentinel `<div ref={bottomRef}>` in `bottomContent` instead.
-- **Loading skeletons**: loop `Array.from({ length: n })` inside `TableBody` when `isLoading`, rendering empty cells with a `animate-pulse` div.
+- **HeroUI v3** (`@heroui-v3/react`), pas la v2. Le composant est composé :
+  `Table > Table.ScrollContainer > Table.Content > Table.Header / Table.Body`.
+- **Columns always in a separate file** (`*-table-columns.tsx`). Never inline `ColumnDef`
+  arrays inside the table component or the hook.
+- **Hook owns the table instance**: call `useReactTable({ data, columns, getCoreRowModel(), … })`
+  inside a `useXxxTable` hook, not in the component. `flexRender` reste le pont entre
+  TanStack et le rendu.
+- **Autant de cellules que de colonnes**, toujours. React Aria lève « Cell count must match
+  column count » et **la page entière tombe en 500**. Dériver le compte du squelette de
+  chargement de la liste des colonnes, jamais d'un nombre écrit à la main.
+- **Pagination** : `Table.Footer` — qui est FRÈRE de `Table.ScrollContainer`, hors de
+  `Table.Content`, sans quoi il ne rend rien, sans erreur.
+- **Sélection** : `selectionMode` + `Checkbox slot="selection"`. Si la sélection vient
+  d'ailleurs (TanStack), passer `slot={null}` sur les cases, faute de quoi la v3 lève
+  « A slot prop is required » et la page tombe.
+- **Loading skeletons**: des `Table.Row` de la même forme que les vraies lignes, avec un
+  `div animate-pulse` par cellule.
+- Les autres pièges de la v3 sont documentés dans `app/apercu/composants` (galerie) et
+  dans les bancs `app/apercu/*`, qui rendent chaque écran refondu sur données d'exemple,
+  en clair et en sombre. **Un banc bascule le thème sur `<html>`, jamais sur une
+  enveloppe** : `styles/tailwind.css` déclare encore les jetons shadcn en triplets HSL
+  bruts dans la même portée `.dark`, et sur un div imbriqué c'est le triplet qui gagne —
+  `bg-success` ne peint alors plus rien.
 
 #### Minimal example
 
@@ -195,28 +213,40 @@ export const myColumns: ColumnDef<IMyType>[] = [
 ];
 
 // *-table.tsx
+import { Table } from '@heroui-v3/react';
 import { flexRender } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react';
 import useMyTable from '@/features/.../hooks/use-my-table';
 
 export function MyTable() {
   const { table, isLoading } = useMyTable();
   return (
-    <Table isStriped>
-      <TableHeader>
-        {table.getFlatHeaders().map(h => (
-          <TableColumn key={h.id}>{flexRender(h.column.columnDef.header, h.getContext())}</TableColumn>
-        ))}
-      </TableHeader>
-      <TableBody emptyContent="Aucun résultat">
-        {table.getRowModel().rows.map(row => (
-          <TableRow key={row.id}>
-            {row.getVisibleCells().map(cell => (
-              <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+    <Table>
+      <Table.ScrollContainer>
+        <Table.Content aria-label="Mon tableau" className="min-w-[48rem]">
+          <Table.Header>
+            {table.getFlatHeaders().map((h, i) => (
+              <Table.Column id={h.id} isRowHeader={i === 0} key={h.id}>
+                {flexRender(h.column.columnDef.header, h.getContext())}
+              </Table.Column>
             ))}
-          </TableRow>
-        ))}
-      </TableBody>
+          </Table.Header>
+          <Table.Body
+            renderEmptyState={() =>
+              isLoading ? null : <p className="py-8 text-center text-sm text-muted">Aucun résultat</p>
+            }
+          >
+            {(isLoading ? [] : table.getRowModel().rows).map((row) => (
+              <Table.Row id={row.id} key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <Table.Cell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </Table.Cell>
+                ))}
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Content>
+      </Table.ScrollContainer>
     </Table>
   );
 }

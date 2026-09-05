@@ -6,7 +6,11 @@ import { Calendar, DollarSign, TrendingUp, Users } from 'lucide-react';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { RestaurantSelect } from '../common/restaurant-select';
 import { useAccompteQuery } from '@/features/recouvrements/queries/accompte.query';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Table } from '@heroui-v3/react';
+
+import { cn } from '@/lib/utils';
+
+import { PaginationTableau } from '../common/pagination-tableau';
 import { flexRender, getCoreRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table';
 import { accompteColumns } from '@/features/recouvrements/columns/accompte-columns';
 import { DateRange } from 'react-day-picker';
@@ -163,76 +167,93 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
         </CardHeader>
         <CardContent>
           {/* Tableau — desktop uniquement (≥ md) */}
-          <div className="hidden md:block overflow-x-auto">
-            <Table
-              bottomContent={
-                pagination &&
-                pagination.pageCount > 1 && (
-                  <div className="flex justify-center pt-4 sm:pt-6">
-                    <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} color="primary" />
-                  </div>
-                )
-              }
-            >
-              <TableHeader>
-                {table.getFlatHeaders().map((header) => (
-                  <TableColumn key={header.id} className="text-primary" allowsSorting={header.column.getCanSort()} onClick={header.column.getToggleSortingHandler()}>
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableColumn>
-                ))}
-              </TableHeader>
-              {/* sur echec, l'erreur prend la place du message "Aucun acompte" qui se lirait comme un resultat vide */}
-              <TableBody emptyContent={isLoading ? ' ' : isError ? zoneErreur : 'Aucun acompte'}>
-                {isLoading
-                  ? Array.from({ length: 10 }).map((_, i) => (
-                      <TableRow key={`skeleton-${i}`}>
-                        {Array.from({ length: table.getAllColumns().length }).map((_, j) => (
-                          <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                            <div className="h-4 bg-surface-tertiary rounded w-full" />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  : table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={isFetching ? 'opacity-70' : ''}>
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                        ))}
-                      </TableRow>
+          <div className="hidden md:block">
+            <Table>
+              <Table.ScrollContainer>
+                <Table.Content aria-label="Acomptes" className="min-w-[48rem]">
+                  <Table.Header>
+                    {table.getFlatHeaders().map((header, i) => (
+                      <Table.Column
+                        allowsSorting={header.column.getCanSort()}
+                        id={header.id}
+                        isRowHeader={i === 0}
+                        key={header.id}
+                      >
+                        {({ sortDirection }) =>
+                          header.column.getCanSort() ? (
+                            <Table.SortableColumnHeader sortDirection={sortDirection}>
+                              {header.isPlaceholder
+                                ? ''
+                                : flexRender(header.column.columnDef.header, header.getContext())}
+                            </Table.SortableColumnHeader>
+                          ) : (
+                            <>
+                              {header.isPlaceholder
+                                ? ''
+                                : flexRender(header.column.columnDef.header, header.getContext())}
+                            </>
+                          )
+                        }
+                      </Table.Column>
                     ))}
-              </TableBody>
-            </Table>
+                  </Table.Header>
 
-            {/* Pagination */}
-            {accomptesData && accomptesData.totalPages > 1 && (
-              <div className="flex justify-center pt-4">
-                <Pagination
-                  total={accomptesData.totalElements}
-                  page={accomptesData.number + 1}
-                  onChange={(page) => {
-                    const currentSearchParams = {
-                      page: page - 1,
-                      limit: 10,
-                      restaurantId: selectedRestaurant,
-                      debut: dateRange?.from,
-                      fin: dateRange?.to,
-                      statuts: selectedStatuts.length > 0 ? selectedStatuts : undefined,
-                    };
-                    // Mettre à jour l'URL manuellement
-                    const params = new URLSearchParams();
-                    if (currentSearchParams.restaurantId) params.append('restaurantId', currentSearchParams.restaurantId);
-                    if (currentSearchParams.debut) params.append('debut', currentSearchParams.debut.toISOString().split('T')[0]);
-                    if (currentSearchParams.fin) params.append('fin', currentSearchParams.fin.toISOString().split('T')[0]);
-                    if (currentSearchParams.statuts) {
-                      currentSearchParams.statuts.forEach((statut) => params.append('statuts', statut));
+                  {/* sur echec, l'erreur prend la place du message "Aucun acompte" qui se
+                      lirait comme un resultat vide */}
+                  <Table.Body
+                    renderEmptyState={() =>
+                      isLoading ? null : isError ? (
+                        <div className="py-6">{zoneErreur}</div>
+                      ) : (
+                        <p className="py-8 text-center text-sm text-muted">Aucun acompte</p>
+                      )
                     }
-                    params.append('page', (page - 1).toString());
-                    params.append('limit', '10');
-                    window.history.pushState({}, '', `${window.location.pathname}?${params.toString()}`);
-                  }}
-                />
-              </div>
-            )}
+                  >
+                    {isLoading
+                      ? Array.from({ length: 10 }).map((_, i) => (
+                          <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                            {table.getFlatHeaders().map((h) => (
+                              <Table.Cell key={`sq-${i}-${h.id}`}>
+                                <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                              </Table.Cell>
+                            ))}
+                          </Table.Row>
+                        ))
+                      : null}
+
+                    {(isLoading || isError ? [] : table.getRowModel().rows).map((row) => (
+                      <Table.Row id={row.id} key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <Table.Cell className={cn(isFetching && 'opacity-70')} key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
+
+              {/*
+               * UNE seule pagination.
+               *
+               * <p>Il y en avait DEUX sous ce tableau. La seconde passait
+               * `accomptesData.totalElements` — le nombre d'acomptes — dans `total`, qui
+               * attend un nombre de PAGES : elle affichait donc cent trente-sept pages
+               * pour cent trente-sept lignes. Et elle changeait l'URL par un
+               * `window.history.pushState` direct, que React ne voit pas : cliquer une
+               * page réécrivait la barre d'adresse sans rien recharger.</p>
+               */}
+              {pagination && pagination.pageCount > 1 && (
+                <Table.Footer className="justify-center">
+                  <PaginationTableau
+                    onPage={pagination.handlePageChange}
+                    page={pagination.page + 1}
+                    total={pagination.pageCount}
+                  />
+                </Table.Footer>
+              )}
+            </Table>
           </div>
 
           {/* Mobile — cartes tactiles (remplace le tableau < md) */}
@@ -248,7 +269,11 @@ export function AccompteTabsContent({ restoOpts, isOptionsLoading }: AccompteTab
             )}
             {pagination && pagination.pageCount > 1 && (
               <div className="flex justify-center pt-2">
-                <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} color="primary" />
+                <PaginationTableau
+                  onPage={pagination.handlePageChange}
+                  page={pagination.page + 1}
+                  total={pagination.pageCount}
+                />
               </div>
             )}
           </div>

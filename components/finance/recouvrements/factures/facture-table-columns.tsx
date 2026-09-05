@@ -3,8 +3,6 @@ import { IFacture } from '@/features/recouvrements/types/facture.types';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { AlertCircle, CheckCircle, RefreshCw, RotateCcw, Trash2 } from 'lucide-react';
 import FacturePdfViewer from '@/components/finance/recouvrements/factures/pdf/facture-pdf-viewer';
 import { ValiderFactureDialog } from '@/components/finance/recouvrements/factures/valider-facture-dialog';
@@ -12,9 +10,8 @@ import { RecalculerFactureDialog } from '@/components/finance/recouvrements/fact
 import { ReinitialiserFactureDialog } from '@/components/finance/recouvrements/factures/reinitialiser-facture-dialog';
 import { SupprimerFactureDialog } from '@/components/finance/recouvrements/factures/supprimer-facture-dialog';
 import React, { useState } from 'react';
-import { Tooltip } from '@/components/heroui';
-import { getStatutBadgeVariant, getStatutColor, getStatutLabel } from '@/features/recouvrements/utils/facture.utils';
-import { cn } from '@/lib/utils';
+import { Button, Chip, Tooltip } from '@heroui-v3/react';
+import { getStatutChip, getStatutLabel } from '@/features/recouvrements/utils/facture.utils';
 
 const formatDate = (dateString: string) => {
   try {
@@ -36,41 +33,69 @@ export const FactureActions = ({ facture }: { facture: IFacture }) => {
 
   return (
     <>
-      <div className="flex items-center space-x-2">
+      {/*
+       * Les quatre gestes etaient des boutons shadcn habilles a la main —
+       * `border-destructive/40 text-destructive hover:bg-destructive/10` recopie deux
+       * fois — dans des info-bulles de la v2. Ce sont des `Button` de la bibliotheque,
+       * et le ton destructeur vient de sa variante.
+       */}
+      <div className="flex items-center gap-2">
         <FacturePdfViewer factureId={facture.id} />
-        <Tooltip content="Recalculer le montant (même période)">
-          <Button size={'icon'} onClick={() => setShowRecalculateDialog(true)} variant="outline">
-            <RefreshCw className="size-4" />
-          </Button>
-        </Tooltip>
-        {canValidate && (
-          <Tooltip content="Valider la facture">
-            <Button size={'icon'} onClick={() => setShowValidateDialog(true)} variant="secondary">
-              <CheckCircle className="size-4" />
-            </Button>
-          </Tooltip>
-        )}
-        {canReset && (
-          <Tooltip content="Réinitialiser (annuler tout le recouvrement)">
-            <Button
-              size={'icon'}
-              onClick={() => setShowResetDialog(true)}
-              variant="outline"
-              className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <RotateCcw className="size-4" />
-            </Button>
-          </Tooltip>
-        )}
-        <Tooltip content="Supprimer définitivement (doublon / facture erronée)">
+
+        <Tooltip>
           <Button
-            size={'icon'}
-            onClick={() => setShowDeleteDialog(true)}
+            aria-label="Recalculer le montant"
+            isIconOnly
+            onPress={() => setShowRecalculateDialog(true)}
+            size="sm"
             variant="outline"
-            className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
           >
-            <Trash2 className="size-4" />
+            <RefreshCw aria-hidden="true" className="size-4" />
           </Button>
+          <Tooltip.Content>Recalculer le montant (même période)</Tooltip.Content>
+        </Tooltip>
+
+        {canValidate && (
+          <Tooltip>
+            <Button
+              aria-label="Valider la facture"
+              isIconOnly
+              onPress={() => setShowValidateDialog(true)}
+              size="sm"
+              variant="secondary"
+            >
+              <CheckCircle aria-hidden="true" className="size-4" />
+            </Button>
+            <Tooltip.Content>Valider la facture</Tooltip.Content>
+          </Tooltip>
+        )}
+
+        {canReset && (
+          <Tooltip>
+            <Button
+              aria-label="Réinitialiser le recouvrement"
+              isIconOnly
+              onPress={() => setShowResetDialog(true)}
+              size="sm"
+              variant="danger-soft"
+            >
+              <RotateCcw aria-hidden="true" className="size-4" />
+            </Button>
+            <Tooltip.Content>Réinitialiser (annuler tout le recouvrement)</Tooltip.Content>
+          </Tooltip>
+        )}
+
+        <Tooltip>
+          <Button
+            aria-label="Supprimer la facture"
+            isIconOnly
+            onPress={() => setShowDeleteDialog(true)}
+            size="sm"
+            variant="danger-soft"
+          >
+            <Trash2 aria-hidden="true" className="size-4" />
+          </Button>
+          <Tooltip.Content>Supprimer définitivement (doublon / facture erronée)</Tooltip.Content>
         </Tooltip>
       </div>
 
@@ -121,7 +146,15 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
       const isFullyPaid = montantRestant <= 0;
       
       return (
-        <span className={`font-bold ${isFullyPaid ? 'text-green-600' : 'text-red-600'}`}>
+        // `text-green-600` / `text-red-600` etaient des teintes de palette, indifferentes
+        // au theme sombre : les jetons `-soft-foreground` sont lisibles sur les deux fonds.
+        <span
+          className={
+            isFullyPaid
+              ? 'font-bold tabular-nums text-success-soft-foreground'
+              : 'font-bold tabular-nums text-danger-soft-foreground'
+          }
+        >
           {formatCFA(Math.max(0, montantRestant))}
         </span>
       );
@@ -132,17 +165,23 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
     header: 'Statut',
     cell: ({ row }) => {
       const hasContestation = row.original.contestationActive > 0;
+      const chip = getStatutChip(row.original.statut);
       return (
         <div className="flex items-center gap-2">
-          <Badge variant={getStatutBadgeVariant(row.original.statut)} className={cn('capitalize text-nowrap', getStatutColor(row.original.statut))}>
-            {getStatutLabel(row.original.statut)}
-          </Badge>
+          <Chip color={chip.color} size="sm" variant={chip.variant}>
+            <Chip.Label>{getStatutLabel(row.original.statut)}</Chip.Label>
+          </Chip>
           {hasContestation && (
-            <Tooltip content={`${row.original.contestationActive} contestation${row.original.contestationActive > 1 ? 's' : ''} active${row.original.contestationActive > 1 ? 's' : ''}`}>
-              <div className="flex items-center gap-1 text-red-600 cursor-pointer">
-                <AlertCircle className="size-4" />
+            <Tooltip>
+              <span className="flex cursor-help items-center gap-1 text-danger-soft-foreground">
+                <AlertCircle aria-hidden="true" className="size-4" />
                 <span className="text-xs font-semibold">{row.original.contestationActive}</span>
-              </div>
+              </span>
+              <Tooltip.Content>
+                {row.original.contestationActive} contestation
+                {row.original.contestationActive > 1 ? 's' : ''} active
+                {row.original.contestationActive > 1 ? 's' : ''}
+              </Tooltip.Content>
             </Tooltip>
           )}
         </div>
@@ -152,7 +191,7 @@ export const factureTableColumns: ColumnDef<IFacture>[] = [
   {
     accessorKey: 'createdAt',
     header: 'Date Création',
-    cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDate(row.original.createdAt)}</span>,
+    cell: ({ row }) => <span className="text-sm text-muted">{formatDate(row.original.createdAt)}</span>,
   },
   {
     id: 'actions',

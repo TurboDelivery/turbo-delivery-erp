@@ -21,7 +21,9 @@ import {
     Separator,
     Skeleton,
     Spinner,
+    Pagination,
     Switch,
+    Table,
     Tabs,
     TextArea,
     TextField,
@@ -458,6 +460,79 @@ export default function GalerieComposants() {
                                 <Tooltip.Content>Le motif du blocage</Tooltip.Content>
                             </Tooltip>
                         </div>
+                    </Bloc>
+
+                    {/*
+                     * Le Table avec le MELANGE qui compte : une colonne triable rendue par
+                     * `Table.SortableColumnHeader` via la fonction enfant, et deux qui ne le
+                     * sont pas. C'est la forme employee par tous les tableaux TanStack du
+                     * projet, ou `getCanSort()` decide colonne par colonne.
+                     *
+                     * Rappels durement acquis : `Table.Footer` est FRERE du conteneur de
+                     * defilement — dedans, il ne rend rien sans erreur — et le nombre de
+                     * cellules doit egaler le nombre de colonnes, sinon la page tombe en 500.
+                     */}
+                    <Bloc titre="Table (tri, pied, pagination)">
+                        <Table>
+                            <Table.ScrollContainer>
+                                <Table.Content aria-label="Exemple de tableau" className="min-w-[28rem]">
+                                    <Table.Header>
+                                        <Table.Column allowsSorting id="nom" isRowHeader>
+                                            {({ sortDirection }) => (
+                                                <Table.SortableColumnHeader sortDirection={sortDirection}>
+                                                    Nom
+                                                </Table.SortableColumnHeader>
+                                            )}
+                                        </Table.Column>
+                                        <Table.Column id="role">Rôle</Table.Column>
+                                        <Table.Column id="montant">Montant</Table.Column>
+                                    </Table.Header>
+                                    <Table.Body>
+                                        {[
+                                            { id: 'a', montant: '12 400 FCFA', nom: 'OTE Azo', role: 'Journalier' },
+                                            { id: 'b', montant: '8 900 FCFA', nom: 'KONE Salif', role: 'Indépendant' },
+                                        ].map((l) => (
+                                            <Table.Row id={l.id} key={l.id}>
+                                                <Table.Cell>{l.nom}</Table.Cell>
+                                                <Table.Cell>{l.role}</Table.Cell>
+                                                <Table.Cell>
+                                                    <span className="block text-right tabular-nums">{l.montant}</span>
+                                                </Table.Cell>
+                                            </Table.Row>
+                                        ))}
+                                    </Table.Body>
+                                </Table.Content>
+                            </Table.ScrollContainer>
+                            <Table.Footer className="justify-between text-sm">
+                                <span className="text-muted">2 lignes</span>
+                                <span className="font-semibold tabular-nums text-foreground">21 300 FCFA</span>
+                            </Table.Footer>
+                        </Table>
+                    </Bloc>
+
+                    <Bloc titre="Pagination">
+                        <Pagination size="sm">
+                            <Pagination.Summary>Page 2 sur 5</Pagination.Summary>
+                            <Pagination.Content>
+                                <Pagination.Item>
+                                    <Pagination.Previous>
+                                        <Pagination.PreviousIcon />
+                                        Précédent
+                                    </Pagination.Previous>
+                                </Pagination.Item>
+                                {[1, 2, 3, 4, 5].map((p) => (
+                                    <Pagination.Item key={p}>
+                                        <Pagination.Link isActive={p === 2}>{p}</Pagination.Link>
+                                    </Pagination.Item>
+                                ))}
+                                <Pagination.Item>
+                                    <Pagination.Next>
+                                        Suivant
+                                        <Pagination.NextIcon />
+                                    </Pagination.Next>
+                                </Pagination.Item>
+                            </Pagination.Content>
+                        </Pagination>
                     </Bloc>
 
                     <Bloc titre="Card">
