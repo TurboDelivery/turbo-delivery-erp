@@ -1,39 +1,32 @@
 'use client';
 
+import { Avatar } from '@heroui-v3/react';
 import React from 'react';
+
 import { type ITurboy } from '@/features/turboys/types/turboys.types';
+import { cn } from '@/lib/utils';
 import { createUrlFile } from '@/utils/createUrlFile';
-
-const AVATAR_COLORS = ['#F97316', '#3B82F6', '#8B5CF6', '#10B981', '#EC4899', '#F59E0B', '#6366F1', '#14B8A6'];
-
-function getAvatarColor(id: string): string {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
 
 function getInitials(prenoms: string, nom: string): string {
   return `${prenoms?.[0] ?? ''}${nom?.[0] ?? ''}`.toUpperCase();
 }
 
-export function AvatarCell({ turboy, size = 'sm' }: { turboy: ITurboy; size?: 'sm' | 'lg' }) {
-  const bg = getAvatarColor(turboy.id);
-  const cls = size === 'lg' ? 'w-11 h-11 text-sm font-bold' : 'w-9 h-9 text-xs font-semibold';
-  if (turboy.avatarUrl) {
-    return (
-      <img
-        src={createUrlFile(turboy.avatarUrl, 'backend')}
-        alt={`${turboy.prenoms} ${turboy.nom}`}
-        className={`${cls} rounded-full object-cover shrink-0`}
-      />
-    );
-  }
+/**
+ * La photo d'un coursier, ou ses initiales.
+ *
+ * <p>Les initiales étaient peintes dans une palette de huit hexadécimaux tirés au hasard
+ * de l'identifiant : `#F97316`, `#8B5CF6`, `#EC4899`… Huit teintes qui ne disent rien,
+ * sur un écran où la couleur doit dire l'état du compte et le type de contrat. Elles
+ * étaient de surcroît écrites en dur, donc indifférentes au thème sombre. Elles passent
+ * au gris neutre du thème, comme sur l'écran de la file d'attente, pour la même
+ * raison.</p>
+ */
+export function AvatarCell({ turboy, size = 'sm' }: { turboy: ITurboy; size?: 'lg' | 'sm' }) {
+  const url = turboy.avatarUrl ? createUrlFile(turboy.avatarUrl, 'backend') : '';
   return (
-    <div
-      className={`${cls} rounded-full flex items-center justify-center text-white shrink-0`}
-      style={{ backgroundColor: bg }}
-    >
-      {getInitials(turboy.prenoms, turboy.nom)}
-    </div>
+    <Avatar className={cn('shrink-0', size === 'lg' ? 'size-11 text-sm' : 'size-9 text-xs')}>
+      {url && <Avatar.Image alt={`${turboy.prenoms} ${turboy.nom}`} src={url} />}
+      <Avatar.Fallback>{getInitials(turboy.prenoms, turboy.nom)}</Avatar.Fallback>
+    </Avatar>
   );
 }

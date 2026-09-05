@@ -1,22 +1,15 @@
 'use client';
 
-import React from 'react';
-import {
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { Avatar, Button, Card, Table, Tooltip } from '@heroui-v3/react';
 import { Check, X } from 'lucide-react';
-import { SearchField } from '@/components/commons/form/search-field';
-import { createUrlFile } from '@/utils/createUrlFile';
-import { type DemandeAssignationVM, type Restaurant } from '@/types/models';
+import React from 'react';
+
 import { useDemandeAssignationController } from '@/app/(protected)/delivery-men/(valided)/requests/useDemandeAssignationController';
-import ValidateDialog from '@/components/commons/validate-dialog';
 import { ConfirmDialog } from '@/components/commons/confirm-dialog';
+import { SearchField } from '@/components/commons/form/search-field';
+import ValidateDialog from '@/components/commons/validate-dialog';
+import { type DemandeAssignationVM, type Restaurant } from '@/types/models';
+import { createUrlFile, getInitials } from '@/utils/createUrlFile';
 
 interface DemandesPanelProps {
   demandes: DemandeAssignationVM[];
@@ -24,72 +17,73 @@ interface DemandesPanelProps {
 }
 
 const DEMANDE_COLUMNS = [
-  { uid: 'nom', name: 'Nom complet' },
-  { uid: 'statut', name: 'Statut' },
-  { uid: 'date', name: 'Date' },
-  { uid: 'actions', name: 'Actions' },
+  { name: 'Nom complet', uid: 'nom' },
+  { name: 'Statut', uid: 'statut' },
+  { name: 'Date', uid: 'date' },
+  { name: '', uid: 'actions' },
 ];
 
+/**
+ * Les demandes d'assignation en attente.
+ *
+ * <p>Le refus était un `<button>` écrit à la main, rond, gris, sans libellé accessible,
+ * qui virait au `bg-red-500` au survol — une teinte de la palette Tailwind, indifférente
+ * au thème. C'est un `Button` de la bibliothèque, avec son intitulé en info-bulle.</p>
+ */
 export function DemandesPanel({ demandes, restaurants }: DemandesPanelProps) {
   const ctrl = useDemandeAssignationController(demandes);
 
   function renderCell(item: DemandeAssignationVM, columnKey: string) {
     switch (columnKey) {
+      case 'actions': {
+        const isRejected = item.statutDemandeAssignation === 'REJETER';
+        return (
+          <div className="flex items-center justify-end gap-2">
+            {item.type === 'FREE' ? (
+              <Button onPress={() => ctrl.accortder(item)} size="sm" variant="outline">
+                <Check aria-hidden="true" className="size-3.5" />
+                Accorder
+              </Button>
+            ) : (
+              <Button onPress={() => ctrl.onOpenDialog(item)} size="sm" variant="primary">
+                <Check aria-hidden="true" className="size-3.5" />
+                Accepter
+              </Button>
+            )}
+            <Tooltip>
+              <Button
+                aria-label={`Rejeter la demande de ${item.nomComplet}`}
+                isDisabled={isRejected}
+                isIconOnly
+                onPress={() => ctrl.retirer(item.id)}
+                size="sm"
+                variant="ghost"
+              >
+                <X aria-hidden="true" className="size-4" />
+              </Button>
+              <Tooltip.Content>
+                {isRejected ? 'Demande déjà rejetée' : 'Rejeter la demande'}
+              </Tooltip.Content>
+            </Tooltip>
+          </div>
+        );
+      }
+      case 'date':
+        return <span className="text-sm text-muted">{item.date}</span>;
       case 'nom':
         return (
           <div className="flex items-center gap-3">
-            <img
-              src={item.avatarUrl ? createUrlFile(item.avatarUrl, 'backend') : '/assets/images/avatar.png'}
-              alt={item.nomComplet}
-              className="w-8 h-8 rounded-full object-cover shadow-xs"
-            />
+            <Avatar className="size-8 shrink-0">
+              {item.avatarUrl && (
+                <Avatar.Image alt={item.nomComplet} src={createUrlFile(item.avatarUrl, 'backend')} />
+              )}
+              <Avatar.Fallback>{getInitials(item.nomComplet)}</Avatar.Fallback>
+            </Avatar>
             <span className="font-medium capitalize">{item.nomComplet}</span>
           </div>
         );
       case 'statut':
         return ctrl.recupererStatut(item.statutDemandeAssignation);
-      case 'date':
-        return <span className="text-sm text-muted">{item.date}</span>;
-      case 'actions': {
-        const isRejected = item.statutDemandeAssignation === 'REJETER';
-        return (
-          <div className="flex items-center gap-2">
-            {item.type === 'FREE' ? (
-              <Button
-                size="sm"
-                color="warning"
-                variant="flat"
-                onPress={() => ctrl.accortder(item)}
-                startContent={<Check className="w-3.5 h-3.5" />}
-              >
-                Accorder
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                color="primary"
-                variant="flat"
-                onPress={() => ctrl.onOpenDialog(item)}
-                startContent={<Check className="w-3.5 h-3.5" />}
-              >
-                Accepter
-              </Button>
-            )}
-            <button
-              type="button"
-              disabled={isRejected}
-              onClick={() => !isRejected && ctrl.retirer(item.id)}
-              className={`p-1.5 rounded-full text-white transition-colors ${
-                isRejected
-                  ? 'bg-surface-tertiary cursor-not-allowed'
-                  : 'bg-surface-tertiary hover:bg-red-500 cursor-pointer'
-              }`}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        );
-      }
       default:
         return null;
     }
@@ -97,43 +91,55 @@ export function DemandesPanel({ demandes, restaurants }: DemandesPanelProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-foreground">
-          Demandes d'assignation en cours ({ctrl.data?.length ?? 0})
+          Demandes d&apos;assignation en cours ({ctrl.data?.length ?? 0})
         </h2>
-        <SearchField searchKey={ctrl.selectValue} onChange={ctrl.setSelectValue} />
+        <SearchField onChange={ctrl.setSelectValue} searchKey={ctrl.selectValue} />
       </div>
-      <div className="rounded-xl border border-separator bg-surface shadow-xs overflow-hidden">
-        <Table
-          aria-label="Tableau des demandes"
-          removeWrapper
-          classNames={{ th: 'bg-surface-secondary text-xs font-semibold text-muted uppercase tracking-wide', td: 'py-3' }}
-        >
-          <TableHeader>
-            {DEMANDE_COLUMNS.map((col) => (
-              <TableColumn key={col.uid}>{col.name}</TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody emptyContent="Aucune demande à afficher.">
-            {(ctrl.data ?? []).map((row) => (
-              <TableRow key={row.id}>
-                {DEMANDE_COLUMNS.map((col) => (
-                  <TableCell key={col.uid}>{renderCell(row, col.uid) as React.ReactNode}</TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+
+      <Card>
+        <Card.Content className="p-0">
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Tableau des demandes" className="min-w-[40rem]">
+                <Table.Header>
+                  {DEMANDE_COLUMNS.map((col) => (
+                    <Table.Column id={col.uid} isRowHeader={col.uid === 'nom'} key={col.uid}>
+                      {col.name}
+                    </Table.Column>
+                  ))}
+                </Table.Header>
+                <Table.Body
+                  renderEmptyState={() => (
+                    <p className="py-8 text-center text-sm text-muted">Aucune demande à afficher.</p>
+                  )}
+                >
+                  {(ctrl.data ?? []).map((row) => (
+                    <Table.Row id={row.id} key={row.id}>
+                      {DEMANDE_COLUMNS.map((col) => (
+                        <Table.Cell key={col.uid}>
+                          {renderCell(row, col.uid) as React.ReactNode}
+                        </Table.Cell>
+                      ))}
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+          </Table>
+        </Card.Content>
+      </Card>
+
       <ValidateDialog
-        restaurants={restaurants}
+        demandeAssignationId={ctrl.demandeAssignationId}
         isOpen={ctrl.isOpen}
-        onClose={ctrl.onCloseDialog}
         nomComplet={ctrl.nomComplet}
+        onClose={ctrl.onCloseDialog}
+        rejeter={ctrl.rejeter}
+        restaurants={restaurants}
         setRestaurantId={ctrl.setRestaurantSelectId}
         valider={ctrl.valider}
-        rejeter={ctrl.rejeter}
-        demandeAssignationId={ctrl.demandeAssignationId}
       />
       <ConfirmDialog {...ctrl.confirm} />
     </div>

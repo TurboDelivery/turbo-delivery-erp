@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Tooltip } from '@/components/heroui';
+import { Button, Dropdown, Separator, Tooltip } from '@heroui-v3/react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { MoreVertical } from 'lucide-react';
@@ -37,7 +37,7 @@ export function turboyToLivreurStatut(turboy: ITurboy): LivreurStatutVM {
   };
 }
 
-type MenuItem = { key: string; label: string; danger?: boolean; showDivider?: boolean };
+type MenuItem = { danger?: boolean; key: string; label: string };
 
 export function TurboyActionMenu({
   turboy,
@@ -71,17 +71,18 @@ export function TurboyActionMenu({
 
   if (turboy.status == null) {
     return (
-      <Tooltip
-        content="Ce livreur est à l'étape 1 de son inscription. Aucune action n'est disponible pour le moment."
-        color="secondary"
-        placement="left"
-        classNames={{ content: 'max-w-[220px] text-xs' }}
-      >
-        <span>
-          <Button variant="light" isIconOnly size="sm" isDisabled>
-            <MoreVertical className="w-4 h-4 opacity-30" />
+      // Un bouton desactive n'emet ni survol ni focus : l'info-bulle doit envelopper
+      // autre chose que lui, sinon elle ne s'ouvre jamais.
+      <Tooltip>
+        <span className="inline-flex">
+          <Button aria-label="Aucune action disponible" isDisabled isIconOnly size="sm" variant="ghost">
+            <MoreVertical aria-hidden="true" className="size-4" />
           </Button>
         </span>
+        <Tooltip.Content className="max-w-[220px] text-xs">
+          Ce livreur est à l&apos;étape 1 de son inscription. Aucune action n&apos;est disponible
+          pour le moment.
+        </Tooltip.Content>
       </Tooltip>
     );
   }
@@ -136,47 +137,47 @@ export function TurboyActionMenu({
     canEdit && isActive ? [{ key: 'change-type', label: 'Changer le type' }] : [],
   ];
 
-  // On aplatit en marquant un séparateur à la fin de chaque groupe non terminal.
+  // Les groupes vides disparaissent ; ceux qui restent sont séparés à l'affichage.
   const visibleGroups = groups.filter((g) => g.length > 0);
-  const items: MenuItem[] = visibleGroups.flatMap((g, gi) =>
-    g.map((it, ii) => ({
-      ...it,
-      showDivider: ii === g.length - 1 && gi !== visibleGroups.length - 1,
-    })),
-  );
 
   return (
     <>
+      {/*
+       * Le `Button` est enfant DIRECT de `Dropdown`, sans `Dropdown.Trigger` : ce dernier
+       * rend son propre `<button>`, et lui en donner un produisait un bouton DANS un
+       * bouton — balisage invalide et erreur d'hydratation a chaque rendu de ligne.
+       */}
       <Dropdown>
-        <DropdownTrigger>
-          <Button variant="light" isIconOnly size="sm">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
-        </DropdownTrigger>
-        <DropdownMenu
-          aria-label="Actions du livreur"
-          items={items}
-          onAction={(key) => {
-            if (key === 'details') router.push(`/delivery-men/men/${turboy.id}`);
-            if (key === 'edit') router.push(`/delivery-men/men/${turboy.id}`);
-            if (key === 'change-type') setOpenUpdateType(true);
-            if (key === 'validate' || key === 'activate') setOpenValidate(true);
-            if (key === 'assign') setOpenAssign(true);
-            if (key === 'bird') setOpenBird(true);
-            if (key === 'reject') setOpenReject(true);
-          }}
-        >
-          {(item) => (
-            <DropdownItem
-              key={item.key}
-              showDivider={item.showDivider}
-              className={item.danger ? 'text-danger-soft-foreground' : ''}
-              color={item.danger ? 'danger' : 'default'}
-            >
-              {item.label}
-            </DropdownItem>
-          )}
-        </DropdownMenu>
+        <Button aria-label={`Actions pour ${turboy.prenoms} ${turboy.nom}`} isIconOnly size="sm" variant="ghost">
+          <MoreVertical aria-hidden="true" className="size-4" />
+        </Button>
+        <Dropdown.Popover>
+          <Dropdown.Menu
+            aria-label="Actions du livreur"
+            onAction={(key) => {
+              if (key === 'details') router.push(`/delivery-men/men/${turboy.id}`);
+              if (key === 'edit') router.push(`/delivery-men/men/${turboy.id}`);
+              if (key === 'change-type') setOpenUpdateType(true);
+              if (key === 'validate' || key === 'activate') setOpenValidate(true);
+              if (key === 'assign') setOpenAssign(true);
+              if (key === 'bird') setOpenBird(true);
+              if (key === 'reject') setOpenReject(true);
+            }}
+          >
+            {/*
+             * Les actions restent groupées par finalité — consulter, cycle de vie,
+             * affectation, classification — avec un trait entre les groupes.
+             */}
+            {visibleGroups.flatMap((groupe, gi) => [
+              ...(gi > 0 ? [<Separator key={`sep-${gi}`} />] : []),
+              ...groupe.map((item) => (
+                <Dropdown.Item id={item.key} key={item.key} variant={item.danger ? 'danger' : undefined}>
+                  {item.label}
+                </Dropdown.Item>
+              )),
+            ])}
+          </Dropdown.Menu>
+        </Dropdown.Popover>
       </Dropdown>
       {(validateBy !== 'no-body' || isInactive) && (
         <DeliveryMenStatusValidate
