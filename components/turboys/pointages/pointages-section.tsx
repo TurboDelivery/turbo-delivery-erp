@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
-import { Button } from '@/components/ui/button';
+import { Button, Table } from '@heroui-v3/react';
 import { Download } from 'lucide-react';
+
+import { ChampTexte } from '@/components/commons/champs-formulaire';
+import EtatErreur from '@/components/commons/EtatErreur';
 import { endOfMonth, isWithinInterval, parseISO, startOfMonth } from 'date-fns';
 import { usePointagesLivreurQuery } from '@/features/turboys/queries/pointage.query';
 import { useCoteQuery } from '@/features/turboys/queries/compte-livreur.queries';
@@ -21,7 +23,7 @@ const sigCsv = (s: ISignalementPointage | null) =>
  * client. Colonnes : montée / relance 1 / relance 2 / fin / hors-zone + statut.
  */
 export default function PointagesSection({ driverId }: { driverId: string }) {
-  const { data, isLoading, isError } = usePointagesLivreurQuery(driverId);
+  const { data, isError, isFetching, isLoading, refetch } = usePointagesLivreurQuery(driverId);
   const { data: cote } = useCoteQuery(driverId);
 
   const today = new Date();
@@ -86,60 +88,113 @@ export default function PointagesSection({ driverId }: { driverId: string }) {
     URL.revokeObjectURL(url);
   }
 
+  const mesures = [
+    { libelle: 'Jours', valeur: synth.total },
+    { libelle: 'Présents', valeur: synth.present },
+    { libelle: 'Retards', valeur: synth.retard },
+    { libelle: 'Absents', valeur: synth.absent },
+    { libelle: 'Hors-zone', valeur: synth.horsZone },
+    ...(cote?.cote != null ? [{ libelle: 'Cote', valeur: `${cote.cote}/100` }] : []),
+  ];
+
   return (
-    <section className="space-y-4 rounded-xl border border-separator bg-surface p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold text-primary">Pointages</h3>
-          <p className="text-xs text-muted">
-            {synth.total} jour(s) · {synth.present} présents · {synth.retard} retards · {synth.absent} absents ·{' '}
-            {synth.horsZone} hors-zone
-            {cote?.cote != null && <> · cote {cote.cote}/100</>}
-          </p>
+    <section className="flex flex-col gap-4 rounded-xl border border-separator bg-surface p-5">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-3">
+          {/* Le titre etait peint en ROUGE DE MARQUE. */}
+          <h3 className="text-base font-semibold text-foreground">Pointages</h3>
+          {/*
+           * La synthese etait une phrase a puces : « 24 jour(s) · 18 presents · 3 retards ·
+           * 2 absents · 1 hors-zone · cote 74/100 ». Six chiffres a la file, en petit et en
+           * gris, qu'il fallait relire pour trouver celui qu'on cherchait. Ce sont six
+           * mesures : elles s'alignent, et se comparent d'une periode a l'autre.
+           */}
+          <dl className="flex flex-wrap gap-x-8 gap-y-2">
+            {mesures.map((m) => (
+              <div className="flex flex-col" key={m.libelle}>
+                <dt className="text-xs tracking-wide text-muted uppercase">{m.libelle}</dt>
+                <dd className="text-lg font-bold tabular-nums text-foreground">{m.valeur}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <label className="text-muted">Du</label>
-          <input
-            type="date"
-            value={debut}
-            onChange={(e) => setDebut(e.target.value)}
-            className="rounded-lg border border-separator px-2 py-1 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-          />
-          <label className="text-muted">au</label>
-          <input
-            type="date"
-            value={fin}
-            onChange={(e) => setFin(e.target.value)}
-            className="rounded-lg border border-separator px-2 py-1 focus:outline-hidden focus:ring-2 focus:ring-primary/30"
-          />
-          <Button size="sm" variant="outline" onClick={exporterCsv} disabled={rows.length === 0} className="gap-1.5">
-            <Download className="size-3.5" /> CSV
+
+        <div className="flex flex-wrap items-end gap-2">
+          {/*
+           * C'etaient deux `<input type="date">` nus, avec leurs classes de bordure et
+           * d'anneau de focus ecrites a la main, et deux `<label>` « Du » / « au » qui
+           * n'etaient RATTACHES a aucun des deux champs : au lecteur d'ecran, deux champs
+           * de date sans nom.
+           */}
+          <div className="w-40">
+            <ChampTexte label="Du" onChange={setDebut} type="date" valeur={debut} />
+          </div>
+          <div className="w-40">
+            <ChampTexte label="Au" onChange={setFin} type="date" valeur={fin} />
+          </div>
+          <Button
+            isDisabled={rows.length === 0}
+            onPress={exporterCsv}
+            size="sm"
+            variant="outline"
+          >
+            <Download aria-hidden="true" className="size-4" />
+            CSV
           </Button>
         </div>
       </div>
 
+      {/* L'echec etait une phrase en `text-red-600`, sans moyen de relancer : le seul
+          recours etait de recharger la page. */}
       {isError ? (
-        <p className="text-sm text-red-600">Erreur de chargement des pointages.</p>
+        <EtatErreur enCours={isFetching} onReessayer={() => void refetch()} quoi="les pointages" />
       ) : (
-        <Table aria-label="Pointages du livreur" isStriped removeWrapper>
-          <TableHeader>
-            {table.getFlatHeaders().map((h) => (
-              <TableColumn key={h.id} className="bg-surface-secondary text-xs font-semibold uppercase text-muted">
-                {flexRender(h.column.columnDef.header, h.getContext())}
-              </TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody emptyContent={isLoading ? 'Chargement…' : 'Aucun pointage sur la période'}>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="py-2">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+        <Table>
+          <Table.ScrollContainer>
+            <Table.Content aria-label="Pointages du livreur">
+              <Table.Header>
+                {table.getFlatHeaders().map((h, i) => (
+                  <Table.Column
+                    className="text-xs font-semibold uppercase"
+                    id={h.id}
+                    isRowHeader={i === 0}
+                    key={h.id}
+                  >
+                    {flexRender(h.column.columnDef.header, h.getContext())}
+                  </Table.Column>
                 ))}
-              </TableRow>
-            ))}
-          </TableBody>
+              </Table.Header>
+              <Table.Body
+                renderEmptyState={() =>
+                  isLoading ? null : (
+                    <p className="py-8 text-center text-sm text-muted">
+                      Aucun pointage sur la période
+                    </p>
+                  )
+                }
+              >
+                {isLoading
+                  ? Array.from({ length: 6 }).map((_, i) => (
+                      <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                        {table.getAllColumns().map((c) => (
+                          <Table.Cell key={`sq-${i}-${c.id}`}>
+                            <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))
+                  : table.getRowModel().rows.map((row) => (
+                      <Table.Row id={row.id} key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <Table.Cell className="py-2" key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
         </Table>
       )}
     </section>

@@ -19,14 +19,29 @@ import type { TurboyType } from '@/features/turboys/types/turboys.types';
  * livreur doit passer par {@link #getTurboyTypeDisplay}. Aucun ternaire
  * binaire en dur dans les composants.</p>
  */
-export type HeroUIChipColor = 'success' | 'warning' | 'secondary' | 'primary' | 'danger' | 'default';
+/**
+ * Les teintes d'une pastille HeroUI v3. La v2 en proposait deux de plus, `primary` et
+ * `secondary`, qui n'existent plus : sur une pastille elles disaient une COULEUR DE MARQUE,
+ * pas un état.
+ */
+export type HeroUIChipColor = 'accent' | 'danger' | 'default' | 'success' | 'warning';
 
 export interface TurboyTypeDisplay {
   /** Libellé court à afficher dans les chips/badges. */
   label: string;
   /** Libellé pluriel pour les compteurs ("Indépendants", "Journaliers", etc.). */
   labelPlural: string;
-  /** Couleur HeroUI pour les composants {@code Chip}/{@code Button}. */
+  /**
+   * Teinte de la pastille.
+   *
+   * <p>Les trois types réels valent `default` : un type de contrat est une CATÉGORIE, pas
+   * un état. Ils étaient peints en vert, en violet et en ambre — du vert pour dire
+   * « indépendant », de l'ambre pour dire « superviseur ». Sur un tableau de cent
+   * livreurs, cela donnait trois couleurs vives qui ne signalaient rien à traiter.</p>
+   *
+   * <p>Seul le repli garde une teinte, parce qu'il dit une vraie lacune : un contrat que
+   * la RH n'a pas encore qualifié, et qui échappe donc au circuit de paie.</p>
+   */
   chipColor: HeroUIChipColor;
   /** Couleur hex pour les pins de carte ou exports PDF. */
   hexColor: string;
@@ -38,21 +53,21 @@ const DISPLAY_BY_TYPE: Record<TurboyType, TurboyTypeDisplay> = {
   INDEPENDANT: {
     label: 'Indépendant',
     labelPlural: 'Indépendants',
-    chipColor: 'success',
+    chipColor: 'default',
     hexColor: '#2563eb',
     description: 'Seul concerné par la paie hebdomadaire automatique.',
   },
   JOURNALIER: {
     label: 'Journalier',
     labelPlural: 'Journaliers',
-    chipColor: 'secondary',
+    chipColor: 'default',
     hexColor: '#dc2626',
     description: 'Vérifié dans le créneau mais payé via un autre circuit.',
   },
   SUPERVISEUR_LIVREUR: {
     label: 'Superviseur-livreur',
     labelPlural: 'Superviseurs-livreurs',
-    chipColor: 'warning',
+    chipColor: 'default',
     hexColor: '#9333ea',
     description: 'Superviseur effectuant aussi des livraisons. Exclu de la paie hebdo.',
   },
@@ -61,7 +76,7 @@ const DISPLAY_BY_TYPE: Record<TurboyType, TurboyTypeDisplay> = {
 const FALLBACK_DISPLAY: TurboyTypeDisplay = {
   label: 'À catégoriser',
   labelPlural: 'À catégoriser',
-  chipColor: 'default',
+  chipColor: 'warning',
   hexColor: '#6b7280',
   description: 'Contrat non catégorisé — la RH doit qualifier ce profil.',
 };

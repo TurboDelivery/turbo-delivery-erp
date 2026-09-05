@@ -10,6 +10,8 @@ import {
   Label,
   ListBox,
   NumberField,
+  Tag,
+  TagGroup,
   TextArea,
   TextField,
 } from '@heroui-v3/react';
@@ -219,6 +221,86 @@ export function ChampListe({
         </ListBox>
       </ComboBox.Popover>
     </ComboBox>
+  );
+}
+
+/**
+ * Un choix MULTIPLE dans une liste longue : on cherche, on ajoute, on retire.
+ *
+ * <p>La v2 offrait un `Select selectionMode="multiple"` qui ne se cherchait pas. Sur les
+ * quelques listes concernées — les partenaires desservis dans un programme, par exemple —
+ * cela voulait dire dérouler plusieurs centaines de restaurants pour en cocher trois.</p>
+ *
+ * <p>Le `ComboBox` sert ici à AJOUTER : il se vide après chaque choix, et n'offre plus que
+ * ce qui n'est pas déjà retenu. Les choix faits sont des étiquettes, chacune avec son
+ * bouton de retrait — c'est aussi la seule façon de voir d'un coup d'œil ce qui est
+ * sélectionné, là où le `Select` n'en montrait qu'un décompte.</p>
+ */
+export function ChampListeMultiple({
+  aide,
+  label,
+  onChange,
+  options,
+  placeholder,
+  valeurs,
+}: {
+  aide?: string;
+  label: string;
+  onChange: (v: string[]) => void;
+  options: readonly { label: string; value: string }[];
+  placeholder?: string;
+  valeurs: string[];
+}) {
+  const libelle = React.useCallback(
+    (v: string) => options.find((o) => o.value === v)?.label ?? v,
+    [options],
+  );
+  const restantes = options.filter((o) => !valeurs.includes(o.value));
+
+  return (
+    <div className="flex flex-col gap-2">
+      <ComboBox
+        // La cle force le remontage : sans elle, le ComboBox garde le texte tape et le
+        // dernier choix reste affiche dans le champ apres avoir ete transforme en etiquette.
+        key={valeurs.length}
+        onSelectionChange={(k) => k != null && onChange([...valeurs, String(k)])}
+        selectedKey={null}
+      >
+        <Label>{label}</Label>
+        <ComboBox.InputGroup>
+          <Input placeholder={placeholder} />
+          <ComboBox.Trigger />
+        </ComboBox.InputGroup>
+        {aide && <Description>{aide}</Description>}
+        <ComboBox.Popover>
+          <ListBox items={restantes.map((o) => ({ id: o.value, label: o.label }))}>
+            {(o: { id: string; label: string }) => (
+              <ListBox.Item id={o.id} textValue={o.label}>
+                {o.label}
+                <ListBox.ItemIndicator />
+              </ListBox.Item>
+            )}
+          </ListBox>
+        </ComboBox.Popover>
+      </ComboBox>
+
+      {valeurs.length > 0 && (
+        <TagGroup
+          aria-label={label}
+          onRemove={(cles) => onChange(valeurs.filter((v) => !cles.has(v)))}
+          size="sm"
+        >
+          <TagGroup.List items={valeurs.map((v) => ({ id: v, label: libelle(v) }))}>
+            {(t: { id: string; label: string }) => (
+              <Tag id={t.id} textValue={t.label}>
+                {t.label}
+                <Tag.RemoveButton />
+              </Tag>
+            )}
+          </TagGroup.List>
+        </TagGroup>
+      )}
+    </div>
   );
 }
 

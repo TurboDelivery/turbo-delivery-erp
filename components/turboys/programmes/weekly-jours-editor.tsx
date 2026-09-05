@@ -1,8 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Button, Input, Select, SelectItem, Switch, Tooltip } from '@/components/heroui';
+import { Button, Card, Switch, TimeField, Tooltip } from '@heroui-v3/react';
+import { Time, parseTime } from '@internationalized/date';
 import { Copy } from 'lucide-react';
+
+import { ChampListeMultiple } from '@/components/commons/champs-formulaire';
 import { IJourProgramme } from '@/features/turboys/types/programme.types';
 
 export interface OptionResto {
@@ -42,6 +45,21 @@ export function normaliserJours(jours: IJourProgramme[] | undefined | null): IJo
 }
 
 const hhmm = (t?: string | null) => (t ? t.slice(0, 5) : '');
+
+/** « 08:30 » ou « 08:30:00 » vers une heure typee. Une valeur illisible vaut « pas d'heure ». */
+const enHeure = (t?: string | null): Time | null => {
+  const v = hhmm(t);
+  if (!/^\d{2}:\d{2}$/.test(v)) return null;
+  try {
+    return parseTime(v);
+  } catch {
+    return null;
+  }
+};
+
+/** L'inverse : le backend attend « HH:mm ». */
+const enTexte = (t: Time) =>
+  `${String(t.hour).padStart(2, '0')}:${String(t.minute).padStart(2, '0')}`;
 
 /** Lundi (UTC) de la semaine ISO donnée. ISO : la semaine 1 contient le 4 janvier. */
 export function isoWeekMonday(year: number, week: number): Date {
@@ -85,81 +103,107 @@ export function WeeklyJoursEditor({
   const nomResto = (id: string) => restaurants.find((r) => r.id === id)?.nom ?? id;
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       {value.map((j) => (
-        <div key={j.jour} className="space-y-2 rounded-lg border border-default-200 px-3 py-2">
-          <div className="flex items-center gap-3">
-            <Switch
-              size="sm"
-              isSelected={j.actif}
-              isDisabled={disabled}
-              onValueChange={(v) => set(j.jour, { actif: v })}
-            >
-              <span className="inline-block w-20 text-sm font-medium">{LABEL[j.jour] ?? j.jour}</span>
-            </Switch>
+        <Card key={j.jour}>
+          <Card.Content className="gap-2 p-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <Switch
+                isDisabled={disabled}
+                isSelected={j.actif}
+                onChange={(v) => set(j.jour, { actif: v })}
+                size="sm"
+              >
+                <Switch.Content>
+                  <span className="inline-block w-20 text-sm font-medium">
+                    {LABEL[j.jour] ?? j.jour}
+                  </span>
+                </Switch.Content>
+                <Switch.Control>
+                  <Switch.Thumb />
+                </Switch.Control>
+              </Switch>
 
-            <Input
-              type="time"
-              size="sm"
-              aria-label={`Début ${LABEL[j.jour] ?? j.jour}`}
-              value={hhmm(j.debut)}
-              isDisabled={disabled || !j.actif}
-              onValueChange={(v) => set(j.jour, { debut: v })}
-              className="max-w-[130px]"
-            />
-            <span className="text-default-400">→</span>
-            <Input
-              type="time"
-              size="sm"
-              aria-label={`Fin ${LABEL[j.jour] ?? j.jour}`}
-              value={hhmm(j.fin)}
-              isDisabled={disabled || !j.actif}
-              onValueChange={(v) => set(j.jour, { fin: v })}
-              className="max-w-[130px]"
-            />
+              {/*
+               * `TimeField` et non un `<input type="time">` : la v2 laissait au navigateur
+               * un champ dont la mise en forme change d'un poste a l'autre, et dont la
+               * valeur remontait en texte libre — une saisie partielle comme « 8: » etait
+               * enregistree telle quelle.
+               */}
+              <TimeField
+                aria-label={`Début ${LABEL[j.jour] ?? j.jour}`}
+                hourCycle={24}
+                isDisabled={disabled || !j.actif}
+                onChange={(v) => set(j.jour, { debut: v ? enTexte(v) : null })}
+                value={enHeure(j.debut)}
+              >
+                <TimeField.Group className="max-w-[130px]">
+                  <TimeField.Input>
+                    {(segment: React.ComponentProps<typeof TimeField.Segment>['segment']) => (
+                      <TimeField.Segment segment={segment} />
+                    )}
+                  </TimeField.Input>
+                </TimeField.Group>
+              </TimeField>
+              <span aria-hidden="true" className="text-muted">
+                →
+              </span>
+              <TimeField
+                aria-label={`Fin ${LABEL[j.jour] ?? j.jour}`}
+                hourCycle={24}
+                isDisabled={disabled || !j.actif}
+                onChange={(v) => set(j.jour, { fin: v ? enTexte(v) : null })}
+                value={enHeure(j.fin)}
+              >
+                <TimeField.Group className="max-w-[130px]">
+                  <TimeField.Input>
+                    {(segment: React.ComponentProps<typeof TimeField.Segment>['segment']) => (
+                      <TimeField.Segment segment={segment} />
+                    )}
+                  </TimeField.Input>
+                </TimeField.Group>
+              </TimeField>
 
-            {j.actif ? (
-              <Tooltip content="Appliquer ces horaires à tous les jours travaillés" size="sm">
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  isDisabled={disabled}
-                  aria-label="Appliquer ces horaires à tous les jours travaillés"
-                  onPress={() => appliquerHorairesATous(j.debut, j.fin)}
-                >
-                  <Copy className="h-4 w-4 text-default-400" />
-                </Button>
-              </Tooltip>
-            ) : (
-              <span className="text-xs text-default-400">Repos</span>
+              {j.actif ? (
+                <Tooltip>
+                  <Button
+                    aria-label="Appliquer ces horaires à tous les jours travaillés"
+                    isDisabled={disabled}
+                    isIconOnly
+                    onPress={() => appliquerHorairesATous(j.debut, j.fin)}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <Copy aria-hidden="true" className="size-4" />
+                  </Button>
+                  <Tooltip.Content>
+                    Appliquer ces horaires à tous les jours travaillés
+                  </Tooltip.Content>
+                </Tooltip>
+              ) : (
+                <span className="text-xs text-muted">Repos</span>
+              )}
+            </div>
+
+            {/* Maquette M2 — postes/partenaires desservis ce jour (jours travaillés). */}
+            {j.actif && restaurants.length > 0 && (
+              <ChampListeMultiple
+                label="Postes / partenaires desservis"
+                onChange={(ids) =>
+                  set(j.jour, {
+                    postes: ids.map((id) => ({
+                      restaurantId: id,
+                      restaurantNom: nomResto(id),
+                    })),
+                  })
+                }
+                options={restaurants.map((r) => ({ label: r.nom, value: r.id }))}
+                placeholder="Rechercher un partenaire"
+                valeurs={(j.postes ?? []).map((p) => p.restaurantId)}
+              />
             )}
-          </div>
-
-          {/* Maquette M2 — postes/partenaires desservis ce jour (jours travaillés). */}
-          {j.actif && restaurants.length > 0 && (
-            <Select
-              size="sm"
-              selectionMode="multiple"
-              label="Postes / partenaires desservis"
-              aria-label={`Postes ${LABEL[j.jour] ?? j.jour}`}
-              isDisabled={disabled}
-              selectedKeys={new Set((j.postes ?? []).map((p) => p.restaurantId))}
-              onSelectionChange={(keys) =>
-                set(j.jour, {
-                  postes: Array.from(keys).map((id) => ({
-                    restaurantId: String(id),
-                    restaurantNom: nomResto(String(id)),
-                  })),
-                })
-              }
-            >
-              {restaurants.map((r) => (
-                <SelectItem key={r.id}>{r.nom}</SelectItem>
-              ))}
-            </Select>
-          )}
-        </div>
+          </Card.Content>
+        </Card>
       ))}
     </div>
   );

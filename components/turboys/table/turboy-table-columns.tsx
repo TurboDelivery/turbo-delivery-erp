@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ITurboy } from '@/features/turboys/types/turboys.types';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
-import { Avatar, Button, Chip } from '@/components/heroui';
+import { Avatar, Button, Chip } from '@heroui-v3/react';
 import { Edit2, Mail, Phone } from 'lucide-react';
 import { UpdateTurboyTypeModal } from '@/components/turboys/modals';
 import { formatMontant } from '@/utils/format.utils';
+import { getInitials } from '@/utils/createUrlFile';
 
 // V54 (2026-05-29) — Les anciennes fonctions locales getTypeColor / getTypeLabel
 // ne connaissaient pas SUPERVISEUR_LIVREUR (default → 'default' / brut). On
@@ -34,8 +35,20 @@ export function TurboyActionsCell({ turboy }: { turboy: ITurboy }) {
 
   return (
     <>
-      <Button isIconOnly className="bg-blue-500 hover:bg-blue-600 text-white" size="sm" title="Modifier le type" onPress={() => setOpenEdit(true)}>
-        <Edit2 className="w-4 h-4" />
+      {/*
+       * Le bouton etait peint en `bg-blue-500` avec son survol et son texte blanc ecrits a
+       * la main : un bleu qui n'existe nulle part ailleurs dans l'ERP, sur le seul bouton
+       * d'une ligne de tableau. `title` n'est pas un nom accessible non plus — un bouton
+       * sans texte visible a besoin d'un `aria-label`.
+       */}
+      <Button
+        aria-label={`Modifier le type de ${turboy.prenoms} ${turboy.nom}`}
+        isIconOnly
+        onPress={() => setOpenEdit(true)}
+        size="sm"
+        variant="ghost"
+      >
+        <Edit2 aria-hidden="true" className="size-4" />
       </Button>
 
       <UpdateTurboyTypeModal isOpen={openEdit} onOpenChange={setOpenEdit} turboy={turboy} />
@@ -53,16 +66,21 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
       const tel = row.original.telephone || '-';
       return (
         <div className="flex items-center gap-3">
-          <Avatar isBordered name={`${turboy.prenoms} ${turboy.nom}`} size="sm" src={turboy.avatarUrl ?? undefined} />
+          <Avatar className="size-9 shrink-0">
+            {turboy.avatarUrl && (
+              <Avatar.Image alt={`${turboy.prenoms} ${turboy.nom}`} src={turboy.avatarUrl} />
+            )}
+            <Avatar.Fallback>{getInitials(`${turboy.prenoms} ${turboy.nom}`)}</Avatar.Fallback>
+          </Avatar>
           <div className="flex flex-col">
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium text-foreground">
               {turboy.prenoms} {turboy.nom}
             </span>
-            <span className="text-xs text-muted flex gap-1">
-              <Phone className="w-4 h-4 text-muted" /> {tel}
+            <span className="flex items-center gap-1 text-xs text-muted">
+              <Phone aria-hidden="true" className="size-3.5" /> {tel}
             </span>
-            <span className="text-xs text-muted flex gap-1">
-              <Mail className="w-4 h-4 text-muted" /> {email}
+            <span className="flex items-center gap-1 text-xs text-muted">
+              <Mail aria-hidden="true" className="size-3.5" /> {email}
             </span>
           </div>
         </div>
@@ -83,8 +101,8 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
     cell: ({ row }) => {
       const display = getTurboyTypeDisplay(row.original.typeLivreur);
       return (
-        <Chip color={display.chipColor} size="sm" variant="flat">
-          {display.label}
+        <Chip color={display.chipColor} size="sm" variant="soft">
+          <Chip.Label>{display.label}</Chip.Label>
         </Chip>
       );
     },
@@ -94,7 +112,11 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
     header: 'Salaire',
     cell: ({ row }) => {
       const salaire = row.original.salaire;
-      return <span className="text-sm font-mono">{salaire ? `${formatMontant(salaire)}` : '-'}</span>;
+      return (
+        <span className="block text-right text-sm tabular-nums">
+          {salaire ? `${formatMontant(salaire)}` : '-'}
+        </span>
+      );
     },
   },
   {
@@ -103,7 +125,7 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
     cell: ({ row }) => {
       const commission = row.original.commission;
       return (
-        <span className="text-sm font-mono">
+        <span className="block text-right text-sm tabular-nums">
           {commission !== null && commission !== undefined ? `${commission} %` : '-'}
         </span>
       );
@@ -114,7 +136,7 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
     header: 'Immatriculation',
     cell: ({ row }) => {
       const immatriculation = row.original.immatriculation;
-      return <span className="text-sm font-mono">{immatriculation || '-'}</span>;
+      return <span className="text-sm tabular-nums">{immatriculation || '-'}</span>;
     },
   },
   {
@@ -122,7 +144,7 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
     header: 'Matricule',
     cell: ({ row }) => {
       const matricule = row.original.matricule;
-      return <span className="text-sm font-mono">{matricule || '-'}</span>;
+      return <span className="text-sm tabular-nums">{matricule || '-'}</span>;
     },
   },
   {
@@ -131,8 +153,8 @@ export const turboyTableColumns: ColumnDef<ITurboy>[] = [
     cell: ({ row }) => {
       const status = row.original.status;
       return (
-        <Chip color={getStatusColor(status)} size="sm" variant="flat">
-          {getStatusLabel(status)}
+        <Chip color={getStatusColor(status)} size="sm" variant="soft">
+          <Chip.Label>{getStatusLabel(status)}</Chip.Label>
         </Chip>
       );
     },

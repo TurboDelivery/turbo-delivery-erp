@@ -1,47 +1,73 @@
 'use client';
 
-import React from 'react';
 import {
-  Autocomplete,
-  AutocompleteItem,
+  Alert,
   Button,
+  ComboBox,
   Input,
+  Label,
+  ListBox,
   Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from '@/components/heroui';
+  NumberField,
+} from '@heroui-v3/react';
 import { useQuery } from '@tanstack/react-query';
+import React from 'react';
 import { toast } from 'sonner';
+
 import EtatErreur from '@/components/commons/EtatErreur';
-import { IJourProgramme, IProgramme } from '@/features/turboys/types/programme.types';
-import { useCreerProgrammeMutation, useModifierProgrammeMutation } from '@/features/turboys/queries/programme.query';
+import { DeliveryMan } from '@/types/models';
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
+import {
+  useCreerProgrammeMutation,
+  useModifierProgrammeMutation,
+} from '@/features/turboys/queries/programme.query';
+import { IJourProgramme, IProgramme } from '@/features/turboys/types/programme.types';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
+
 import { defaultJours, joursAvecDates, normaliserJours, WeeklyJoursEditor } from './weekly-jours-editor';
 
-const nomLivreur = (l: { nom: string | null; prenoms: string | null; telephone?: string; matricule?: string }) =>
-  `${l.prenoms ?? ''} ${l.nom ?? ''}`.trim() || l.telephone || l.matricule || 'Livreur';
+const nomLivreur = (l: {
+  matricule?: string;
+  nom: string | null;
+  prenoms: string | null;
+  telephone?: string;
+}) => `${l.prenoms ?? ''} ${l.nom ?? ''}`.trim() || l.telephone || l.matricule || 'Livreur';
 
+/**
+ * Créer ou modifier le programme hebdomadaire d'un livreur.
+ *
+ * <h3>Ce qui change</h3>
+ * <p>« Annuler » était ROUGE, et le seul geste qui engage — enregistrer un programme qui
+ * renvoie une notification au livreur — était en bleu à côté. Se raviser n'est pas
+ * dangereux.</p>
+ *
+ * <p>L'avertissement « ce programme a déjà été envoyé » était un `&lt;div&gt;` peint à la
+ * main en `bg-warning-50 text-warning-700`, sans variante sombre : sur un poste en thème
+ * sombre, du texte ambre foncé sur un fond ambre clair. C'est un `Alert`, qui porte aussi
+ * son rôle pour les lecteurs d'écran — l'ancien n'était annoncé nulle part.</p>
+ *
+ * <p>L'année et la semaine étaient deux `&lt;input type="number"&gt;` dont la valeur
+ * remontait en TEXTE : `Number(v) || 0` transformait toute saisie partielle en zéro, et
+ * l'erreur « Année ou semaine invalide » n'arrivait qu'au moment d'envoyer.</p>
+ */
 export function ProgrammeFormModal({
+  anneeInitiale,
   isOpen,
   onOpenChange,
   programme,
-  anneeInitiale,
   semaineInitiale,
 }: {
+  anneeInitiale: number;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   programme?: IProgramme | null;
-  anneeInitiale: number;
   semaineInitiale: number;
 }) {
   const isEdit = !!programme;
   const livreursQuery = useLivreursListQuery();
   const restaurantsQuery = useQuery({
-    queryKey: ['restaurants', 'all', 'programmes'],
     queryFn: getAllRestaurants,
+    queryKey: ['restaurants', 'all', 'programmes'],
     staleTime: 5 * 60 * 1000,
   });
   const restaurants = React.useMemo(
@@ -72,7 +98,10 @@ export function ProgrammeFormModal({
 
   const onSubmit = () => {
     if (isEdit) {
-      modifier.mutate({ id: programme!.id, jours: joursAvecDates(jours, programme!.annee, programme!.semaine) });
+      modifier.mutate({
+        id: programme!.id,
+        jours: joursAvecDates(jours, programme!.annee, programme!.semaine),
+      });
       return;
     }
     if (!livreurId) {
@@ -83,114 +112,164 @@ export function ProgrammeFormModal({
       toast.error('Année ou semaine invalide.');
       return;
     }
-    creer.mutate({ livreurId, annee, semaine, jours: joursAvecDates(jours, annee, semaine) });
+    creer.mutate({ annee, jours: joursAvecDates(jours, annee, semaine), livreurId, semaine });
   };
 
+  const dejaEnvoye = isEdit && ['ACCEPTE', 'NOTIFIE', 'REFUSE'].includes(programme?.statut ?? '');
+
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" scrollBehavior="inside" backdrop="blur">
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">
-          {isEdit ? 'Modifier le programme' : 'Nouveau programme hebdomadaire'}
-          {isEdit && (
-            <span className="text-sm font-normal text-default-500">
-              {programme!.livreurNom ?? 'Livreur'} — semaine {programme!.semaine} / {programme!.annee}
-            </span>
-          )}
-        </ModalHeader>
-        <ModalBody>
-          {!isEdit && (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {/* Une liste de livreurs illisible donne un menu deroulant vide, qui se
-                  lit comme « aucun livreur » : on le dit, et on propose de relancer. */}
-              {livreursQuery.isError ? (
-                <div className="sm:col-span-3">
-                  <EtatErreur
-                    quoi="la liste des livreurs"
-                    onReessayer={() => void livreursQuery.refetch()}
-                    enCours={livreursQuery.isFetching}
-                  />
-                </div>
-              ) : (
-              /* Autocomplete (recherche par nom / matricule / téléphone) — la
-                 liste des livreurs peut être longue, le Select simple ne filtrait pas. */
-              <Autocomplete
-                label="Livreur"
-                className="sm:col-span-3"
-                isLoading={livreursQuery.isLoading}
-                isDisabled={isLoading}
-                defaultItems={livreursQuery.data ?? []}
-                selectedKey={livreurId || null}
-                onSelectionChange={(key) => setLivreurId((key as string) ?? '')}
-                placeholder="Rechercher un livreur…"
-                listboxProps={{ itemClasses: { base: 'py-2 data-[hover=true]:bg-default-100' } }}
-              >
-                {(l) => (
-                  <AutocompleteItem
-                    key={l.id}
-                    textValue={`${nomLivreur(l)}${l.matricule ? ` ${l.matricule}` : ''}${l.telephone ? ` ${l.telephone}` : ''}`}
-                  >
-                    <div className="flex flex-col gap-0.5 py-0.5">
-                      <span className="text-sm font-medium text-default-700">{nomLivreur(l)}</span>
-                      {(l.matricule || l.telephone) && (
-                        <span className="text-xs text-default-400">
-                          {[l.matricule, l.telephone].filter(Boolean).join(' · ')}
-                        </span>
-                      )}
-                    </div>
-                  </AutocompleteItem>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-3xl">
+            <Modal.Header>
+              <div className="flex flex-col gap-0.5">
+                <Modal.Heading>
+                  {isEdit ? 'Modifier le programme' : 'Nouveau programme hebdomadaire'}
+                </Modal.Heading>
+                {isEdit && (
+                  <span className="text-sm text-muted">
+                    {programme!.livreurNom ?? 'Livreur'} — semaine {programme!.semaine} /{' '}
+                    {programme!.annee}
+                  </span>
                 )}
-              </Autocomplete>
+              </div>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+
+            <Modal.Body className="flex flex-col gap-4">
+              {!isEdit && (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {/* Une liste de livreurs illisible donne un menu deroulant vide, qui se
+                      lit comme « aucun livreur » : on le dit, et on propose de relancer. */}
+                  {livreursQuery.isError ? (
+                    <div className="sm:col-span-3">
+                      <EtatErreur
+                        enCours={livreursQuery.isFetching}
+                        onReessayer={() => void livreursQuery.refetch()}
+                        quoi="la liste des livreurs"
+                      />
+                    </div>
+                  ) : (
+                    /* La liste des livreurs peut etre longue : on cherche par nom,
+                       matricule ou telephone, on ne deroule pas. */
+                    <ComboBox
+                      className="sm:col-span-3"
+                      isDisabled={isLoading}
+                      onSelectionChange={(key) => setLivreurId(key == null ? '' : String(key))}
+                      selectedKey={livreurId || null}
+                    >
+                      <Label>Livreur</Label>
+                      <ComboBox.InputGroup>
+                        <Input placeholder="Rechercher un livreur, un matricule, un numéro" />
+                        <ComboBox.Trigger />
+                      </ComboBox.InputGroup>
+                      <ComboBox.Popover>
+                        <ListBox items={livreursQuery.data ?? []}>
+                          {(l: DeliveryMan) => (
+                            <ListBox.Item
+                              id={l.id}
+                              textValue={`${nomLivreur(l)}${l.matricule ? ` ${l.matricule}` : ''}${l.telephone ? ` ${l.telephone}` : ''}`}
+                            >
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-sm font-medium">{nomLivreur(l)}</span>
+                                {(l.matricule || l.telephone) && (
+                                  <span className="text-xs text-muted">
+                                    {[l.matricule, l.telephone].filter(Boolean).join(' · ')}
+                                  </span>
+                                )}
+                              </div>
+                              <ListBox.ItemIndicator />
+                            </ListBox.Item>
+                          )}
+                        </ListBox>
+                      </ComboBox.Popover>
+                    </ComboBox>
+                  )}
+
+                  <NumberField
+                    formatOptions={{ useGrouping: false }}
+                    isDisabled={isLoading}
+                    minValue={2020}
+                    onChange={setAnnee}
+                    value={annee}
+                  >
+                    <Label>Année</Label>
+                    <NumberField.Group>
+                      <NumberField.DecrementButton />
+                      <NumberField.Input />
+                      <NumberField.IncrementButton />
+                    </NumberField.Group>
+                  </NumberField>
+
+                  <NumberField
+                    isDisabled={isLoading}
+                    maxValue={53}
+                    minValue={1}
+                    onChange={setSemaine}
+                    value={semaine}
+                  >
+                    <Label>Semaine (ISO)</Label>
+                    <NumberField.Group>
+                      <NumberField.DecrementButton />
+                      <NumberField.Input />
+                      <NumberField.IncrementButton />
+                    </NumberField.Group>
+                  </NumberField>
+                </div>
               )}
-              <Input
-                type="number"
-                label="Année"
-                value={String(annee)}
-                onValueChange={(v) => setAnnee(Number(v) || 0)}
-                isDisabled={isLoading}
-              />
-              <Input
-                type="number"
-                label="Semaine (ISO)"
-                value={String(semaine)}
-                onValueChange={(v) => setSemaine(Number(v) || 0)}
-                isDisabled={isLoading}
-              />
-            </div>
-          )}
 
-          {isEdit && ['NOTIFIE', 'ACCEPTE', 'REFUSE'].includes(programme?.statut ?? '') && (
-            <div className="rounded-lg border border-warning-200 bg-warning-50 p-3 text-xs text-warning-700">
-              Ce programme a déjà été envoyé au livreur
-              {programme?.statut === 'ACCEPTE' ? ' et accepté' : programme?.statut === 'REFUSE' ? ' (refusé)' : ''}.
-              L&apos;enregistrer le renverra pour une <strong>nouvelle acceptation</strong> — le livreur sera notifié.
-            </div>
-          )}
+              {dejaEnvoye && (
+                <Alert status="warning">
+                  <Alert.Indicator />
+                  <Alert.Content>
+                    <Alert.Title>Ce programme a déjà été envoyé au livreur</Alert.Title>
+                    <Alert.Description>
+                      {programme?.statut === 'ACCEPTE'
+                        ? 'Il a été accepté. '
+                        : programme?.statut === 'REFUSE'
+                          ? 'Il a été refusé. '
+                          : ''}
+                      L&apos;enregistrer le renverra pour une nouvelle acceptation, et le
+                      livreur sera notifié.
+                    </Alert.Description>
+                  </Alert.Content>
+                </Alert>
+              )}
 
-          <div className="mt-1">
-            <p className="mb-2 text-sm font-medium text-default-600">Jours travaillés</p>
-            {/* getAllRestaurants relance desormais. L editeur ne montre le selecteur
-                « Postes / partenaires desservis » que si la liste est non vide : sans
-                ce message, une lecture en echec se lit comme « aucun poste a affecter »
-                et le programme part sans poste. On garde l edition des horaires. */}
-            {restaurantsQuery.isError && (
-              <EtatErreur
-                quoi="la liste des partenaires"
-                onReessayer={() => void restaurantsQuery.refetch()}
-                enCours={restaurantsQuery.isFetching}
-              />
-            )}
-            <WeeklyJoursEditor value={jours} onChange={setJours} disabled={isLoading} restaurants={restaurants} />
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <Button variant="light" color="danger" onPress={() => onOpenChange(false)} isDisabled={isLoading}>
-            Annuler
-          </Button>
-          <Button color="primary" onPress={onSubmit} isLoading={isLoading}>
-            {isEdit ? 'Enregistrer' : 'Créer le brouillon'}
-          </Button>
-        </ModalFooter>
-      </ModalContent>
+              <div className="flex flex-col gap-2">
+                <p className="text-sm font-medium text-foreground">Jours travaillés</p>
+                {/* getAllRestaurants relance desormais. L editeur ne montre le selecteur
+                    « Postes / partenaires desservis » que si la liste est non vide : sans
+                    ce message, une lecture en echec se lit comme « aucun poste a affecter »
+                    et le programme part sans poste. On garde l edition des horaires. */}
+                {restaurantsQuery.isError && (
+                  <EtatErreur
+                    enCours={restaurantsQuery.isFetching}
+                    onReessayer={() => void restaurantsQuery.refetch()}
+                    quoi="la liste des partenaires"
+                  />
+                )}
+                <WeeklyJoursEditor
+                  disabled={isLoading}
+                  onChange={setJours}
+                  restaurants={restaurants}
+                  value={jours}
+                />
+              </div>
+            </Modal.Body>
+
+            <Modal.Footer>
+              <Button isDisabled={isLoading} onPress={() => onOpenChange(false)} variant="ghost">
+                Annuler
+              </Button>
+              <Button isPending={isLoading} onPress={onSubmit} variant="primary">
+                {isEdit ? 'Enregistrer' : 'Créer le brouillon'}
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

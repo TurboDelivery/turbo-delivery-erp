@@ -1,25 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Avatar,
-  Button,
-  Chip,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Radio,
-  RadioGroup,
-  Spinner,
-} from '@/components/heroui';
+import { Alert, Avatar, Button, Checkbox, Chip, Modal, Radio, RadioGroup } from '@heroui-v3/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { AlertTriangle, GitMerge } from 'lucide-react';
 
-import { createUrlFile } from '@/utils/createUrlFile';
+import EtatErreur from '@/components/commons/EtatErreur';
+import { createUrlFile, getInitials } from '@/utils/createUrlFile';
 import {
   donneesRattacheesRequest,
   fusionnerLivreursRequest,
@@ -48,7 +37,7 @@ export function FusionLivreursDialog({ ids, isOpen, onOpenChange, onDone }: Prop
   const userId = session?.user?.id as string | undefined;
   const qc = useQueryClient();
 
-  const { data, isLoading, isError } = useQuery({
+  const { data, isError, isFetching, isLoading, refetch } = useQuery({
     queryKey: ['livreur-donnees-rattachees', ...[...ids].sort()],
     queryFn: () => donneesRattacheesRequest(ids),
     enabled: isOpen && ids.length >= 2,
@@ -90,80 +79,108 @@ export function FusionLivreursDialog({ ids, isOpen, onOpenChange, onDone }: Prop
   }, [isOpen]);
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl" scrollBehavior="inside">
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              <span className="flex items-center gap-2 text-primary">
-                <GitMerge className="h-5 w-5" />
-                Fusionner des comptes livreurs en doublon
-              </span>
-              <span className="text-xs font-normal text-default-400">
-                Choisis le compte à GARDER. Les données des autres y sont réassignées, puis ils sont
-                désactivés (réversible). Aucune donnée n&apos;est perdue.
-              </span>
-            </ModalHeader>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-4xl">
+            <Modal.Header>
+              <div className="flex flex-col gap-1">
+                {/* Le titre etait peint en ROUGE DE MARQUE, la couleur reservee ici a ce
+                    qui appelle une action — or l'action est le bouton, en bas. */}
+                <Modal.Heading className="flex items-center gap-2">
+                  <GitMerge aria-hidden="true" className="size-5" />
+                  Fusionner des comptes livreurs en doublon
+                </Modal.Heading>
+                <span className="text-xs text-muted">
+                  Choisissez le compte à GARDER. Les données des autres y sont réassignées,
+                  puis ils sont désactivés (réversible). Aucune donnée n&apos;est perdue.
+                </span>
+              </div>
+              <Modal.CloseTrigger />
+            </Modal.Header>
 
-            <ModalBody>
+            <Modal.Body className="flex flex-col gap-3">
               {isLoading ? (
-                <div className="flex justify-center py-10">
-                  <Spinner color="primary" label="Analyse des données rattachées…" />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {ids.map((id) => (
+                    <div className="h-56 animate-pulse rounded-xl bg-surface-secondary" key={id} />
+                  ))}
                 </div>
               ) : isError ? (
-                <p className="py-6 text-center text-sm text-danger-soft-foreground">
-                  Impossible de charger les données rattachées.
-                </p>
+                /* L'echec etait une phrase rouge, sans moyen de relancer : sur une fenetre
+                   qu'on ouvre pour agir, le seul recours etait de tout refermer. */
+                <EtatErreur
+                  enCours={isFetching}
+                  onReessayer={() => void refetch()}
+                  quoi="les données rattachées"
+                />
               ) : (
-                <RadioGroup value={gardeId} onValueChange={setGardeId}>
+                <RadioGroup onChange={setGardeId} value={gardeId}>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {comptes.map((c) => {
                       const estSuggere = c.total === maxTotal && maxTotal > 0;
                       const estGarde = c.livreurId === gardeId;
                       return (
                         <div
-                          key={c.livreurId}
                           className={`rounded-xl border p-3 transition-colors ${
-                            estGarde ? 'border-primary bg-primary-50' : 'border-default-200'
+                            estGarde ? 'border-accent bg-accent-soft' : 'border-separator'
                           }`}
+                          key={c.livreurId}
                         >
-                          <div className="flex items-start gap-3">
-                            <Radio value={c.livreurId} className="mt-1" />
-                            <Avatar
-                              src={c.avatarUrl ? createUrlFile(c.avatarUrl, 'backend') : undefined}
-                              name={c.nomComplet}
-                              size="sm"
-                              className="shrink-0"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <span className="truncate text-sm font-semibold text-default-800">
-                                  {c.nomComplet}
-                                </span>
-                                {estSuggere && (
-                                  <Chip size="sm" color="success" variant="flat">
-                                    + de données
-                                  </Chip>
+                          {/*
+                           * La pastille de choix etait un `<Radio>` SANS libelle, pose a
+                           * cote du nom : la zone cliquable se limitait au cercle de
+                           * quelques pixels, et le lecteur d'ecran annoncait un bouton
+                           * radio sans nom. Le nom du livreur EST le libelle du choix.
+                           */}
+                          <Radio value={c.livreurId}>
+                            <Radio.Content className="items-start gap-3">
+                              <Radio.Control className="mt-1">
+                                <Radio.Indicator />
+                              </Radio.Control>
+                              <Avatar className="size-8 shrink-0">
+                                {c.avatarUrl && (
+                                  <Avatar.Image
+                                    alt={c.nomComplet}
+                                    src={createUrlFile(c.avatarUrl, 'backend')}
+                                  />
                                 )}
+                                <Avatar.Fallback>{getInitials(c.nomComplet)}</Avatar.Fallback>
+                              </Avatar>
+                              <div className="min-w-0 flex-1 text-left">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  <span className="truncate text-sm font-semibold text-foreground">
+                                    {c.nomComplet}
+                                  </span>
+                                  {/* « + de donnees » etait VERT, comme si ce compte etait
+                                      le bon. C'est un indice de volume, pas un verdict. */}
+                                  {estSuggere && (
+                                    <Chip size="sm" variant="soft">
+                                      <Chip.Label>+ de données</Chip.Label>
+                                    </Chip>
+                                  )}
+                                </div>
+                                <p className="truncate text-xs text-muted">
+                                  {c.email ?? c.telephone ?? '—'}
+                                </p>
                               </div>
-                              <p className="truncate text-xs text-default-400">{c.email ?? c.telephone ?? '—'}</p>
-                            </div>
-                          </div>
+                            </Radio.Content>
+                          </Radio>
 
-                          <div className="mt-3 space-y-1 border-t border-default-100 pt-2">
+                          <dl className="mt-3 flex flex-col gap-1 border-t border-separator pt-2">
                             {METRIQUES.map((m) => (
-                              <div key={m.key} className="flex justify-between text-xs">
-                                <span className="text-default-500">{m.label}</span>
-                                <span className="font-medium tabular-nums text-default-700">
+                              <div className="flex justify-between text-xs" key={m.key}>
+                                <dt className="text-muted">{m.label}</dt>
+                                <dd className="font-medium tabular-nums text-foreground">
                                   {c[m.key] as number}
-                                </span>
+                                </dd>
                               </div>
                             ))}
-                            <div className="flex justify-between border-t border-default-100 pt-1 text-xs font-semibold">
-                              <span className="text-default-600">Total</span>
-                              <span className="tabular-nums text-primary">{c.total}</span>
+                            <div className="flex justify-between border-t border-separator pt-1 text-xs font-semibold">
+                              <dt className="text-foreground">Total</dt>
+                              <dd className="tabular-nums text-foreground">{c.total}</dd>
                             </div>
-                          </div>
+                          </dl>
                         </div>
                       );
                     })}
@@ -172,39 +189,53 @@ export function FusionLivreursDialog({ ids, isOpen, onOpenChange, onDone }: Prop
               )}
 
               {!isLoading && !isError && (
-                <label className="mt-2 flex items-start gap-2 rounded-lg bg-warning-50 p-3 text-xs text-warning-800">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning-soft-foreground" />
-                  <span className="flex-1">
-                    Je confirme fusionner les {ids.length} comptes dans le compte sélectionné. Les autres
-                    seront désactivés (réversible).
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={confirme}
-                    onChange={(e) => setConfirme(e.target.checked)}
-                    className="mt-0.5 h-4 w-4"
-                  />
-                </label>
+                /*
+                 * La confirmation etait un `<input type="checkbox">` nu, place APRES la
+                 * phrase, dans un `<label>` peint a la main en `bg-warning-50
+                 * text-warning-800` — deux tons ambres sans variante sombre. Sur un poste
+                 * en theme sombre, la seule phrase qui dit ce qu'on s'apprete a faire
+                 * etait illisible.
+                 */
+                <Alert status="warning">
+                  <Alert.Indicator />
+                  <Alert.Content>
+                    <Checkbox isSelected={confirme} onChange={setConfirme}>
+                      <Checkbox.Content className="items-start">
+                        <Checkbox.Control className="mt-0.5">
+                          <Checkbox.Indicator />
+                        </Checkbox.Control>
+                        <span className="flex-1 text-left text-xs">
+                          Je confirme fusionner les {ids.length} comptes dans le compte
+                          sélectionné. Les autres seront désactivés (réversible).
+                        </span>
+                      </Checkbox.Content>
+                    </Checkbox>
+                  </Alert.Content>
+                </Alert>
               )}
-            </ModalBody>
+            </Modal.Body>
 
-            <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={fusion.isPending}>
+            <Modal.Footer>
+              <Button
+                isDisabled={fusion.isPending}
+                onPress={() => onOpenChange(false)}
+                variant="ghost"
+              >
                 Annuler
               </Button>
               <Button
-                color="primary"
-                startContent={<GitMerge className="h-4 w-4" />}
-                isLoading={fusion.isPending}
                 isDisabled={!gardeId || !confirme || comptes.length < 2 || !userId}
+                isPending={fusion.isPending}
                 onPress={() => fusion.mutate()}
+                variant="primary"
               >
+                <GitMerge aria-hidden="true" className="size-4" />
                 Fusionner dans ce compte
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

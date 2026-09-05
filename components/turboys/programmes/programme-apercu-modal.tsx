@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@/components/heroui';
+import { Button, Modal } from '@heroui-v3/react';
 import { Download, Send } from 'lucide-react';
 
 import { IProgramme } from '@/features/turboys/types/programme.types';
@@ -37,34 +37,54 @@ export function ProgrammeApercuModal({ programme, annee, semaine, isOpen, onOpen
   const prenom = (programme?.livreurNom ?? '').split(' ')[0] || 'Bonjour';
   const envoyer = useEnvoyerProgrammeMutation();
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="md">
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col items-start gap-0">
-              <span className="text-base font-semibold text-primary">Programme individuel</span>
-              <span className="text-sm font-normal text-default-500">
-                {programme?.livreurNom ?? '—'}
-                {programme?.typeLivreur ? ` · ${getTurboyTypeDisplay(programme.typeLivreur).label}` : ''} — Semaine {semaine} / {annee}
-              </span>
-            </ModalHeader>
-            <ModalBody>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog>
+            <Modal.Header>
+              <div className="flex flex-col items-start gap-0.5">
+                {/* Le titre etait peint en ROUGE DE MARQUE : un intitule de fenetre
+                    n'appelle aucune action. */}
+                <Modal.Heading>Programme individuel</Modal.Heading>
+                <span className="text-sm text-muted">
+                  {programme?.livreurNom ?? '—'}
+                  {programme?.typeLivreur
+                    ? ` · ${getTurboyTypeDisplay(programme.typeLivreur).label}`
+                    : ''}{' '}
+                  — Semaine {semaine} / {annee}
+                </span>
+              </div>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+
+            <Modal.Body>
               {programme && (
-                <div className="rounded-xl border border-default-200 p-4">
-                  <p className="mb-3 text-sm font-medium text-default-700">
+                <div className="rounded-xl border border-separator p-4">
+                  <p className="mb-3 text-sm font-medium text-foreground">
                     {prenom}, voici ton programme cette semaine
                   </p>
-                  <ul className="divide-y divide-default-100">
+                  <ul className="divide-y divide-separator">
                     {JOURS.map((jr) => {
-                      const j = programme.jours?.find((x) => (x.jour ?? '').toUpperCase() === jr.key);
+                      const j = programme.jours?.find(
+                        (x) => (x.jour ?? '').toUpperCase() === jr.key,
+                      );
                       const repos = !j || !j.actif;
                       return (
-                        <li key={jr.key} className="flex items-center justify-between py-2 text-sm">
-                          <span className="text-default-600">{jr.label}</span>
+                        <li
+                          className="flex items-center justify-between py-2 text-sm"
+                          key={jr.key}
+                        >
+                          <span className="text-muted">{jr.label}</span>
+                          {/*
+                           * Le repos etait ecrit en ROUGE. Un jour de repos n'est ni une
+                           * erreur ni une alerte : c'est le programme normal d'un livreur,
+                           * et sur une semaine a deux repos la fenetre affichait deux
+                           * lignes rouges comme si quelque chose n'allait pas.
+                           */}
                           {repos ? (
-                            <span className="font-medium text-danger-soft-foreground">Repos</span>
+                            <span className="text-muted">Repos</span>
                           ) : (
-                            <span className="font-medium text-default-800">
+                            <span className="font-medium tabular-nums text-foreground">
                               {hhmm(j!.debut)} – {hhmm(j!.fin)}
                             </span>
                           )}
@@ -74,32 +94,35 @@ export function ProgrammeApercuModal({ programme, annee, semaine, isOpen, onOpen
                   </ul>
                 </div>
               )}
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose}>
+            </Modal.Body>
+
+            <Modal.Footer>
+              <Button onPress={() => onOpenChange(false)} variant="ghost">
                 Fermer
               </Button>
               <Button
-                variant="flat"
                 isDisabled={!programme}
-                startContent={<Download className="h-4 w-4" />}
-                onPress={() => programme && exporterProgrammeIndividuelPdf(programme, annee, semaine)}
+                onPress={() =>
+                  programme && exporterProgrammeIndividuelPdf(programme, annee, semaine)
+                }
+                variant="outline"
               >
+                <Download aria-hidden="true" className="size-4" />
                 Exporter PDF
               </Button>
               <Button
-                color="primary"
                 isDisabled={!programme}
-                isLoading={envoyer.isPending}
-                startContent={!envoyer.isPending && <Send className="h-4 w-4" />}
+                isPending={envoyer.isPending}
                 onPress={() => programme && envoyer.mutate(programme.id)}
+                variant="primary"
               >
+                <Send aria-hidden="true" className="size-4" />
                 Envoyer au livreur
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
