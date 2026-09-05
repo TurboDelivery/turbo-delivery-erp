@@ -156,6 +156,12 @@ export const useCreneauDashboardQuery = (params?: ICreneauDashboardParams) => {
   const query = useQuery({
     queryKey: creneauKeys.dashboard(params),
     queryFn: () => creneauAPI.obtenirDashboard(params),
+    /*
+     * L'appelant passe `undefined` pour la source qu'il n'affiche PAS. Sans garde, la
+     * requete partait quand meme : deux appels reseau a chaque changement de semaine, de
+     * page ou de recherche, dont un pour un mode que personne ne regarde.
+     */
+    enabled: params !== undefined,
     staleTime: 30_000,
     refetchOnMount: true,
     placeholderData: keepPreviousData,
@@ -174,6 +180,12 @@ export const useCreneauDashboardRealiteQuery = (params?: ICreneauDashboardParams
   const query = useQuery({
     queryKey: creneauKeys.dashboardRealite(params),
     queryFn: () => creneauAPI.obtenirDashboardRealite(params),
+    /*
+     * L'appelant passe `undefined` pour la source qu'il n'affiche PAS. Sans garde, la
+     * requete partait quand meme : deux appels reseau a chaque changement de semaine, de
+     * page ou de recherche, dont un pour un mode que personne ne regarde.
+     */
+    enabled: params !== undefined,
     staleTime: 30_000,
     refetchOnMount: true,
     placeholderData: keepPreviousData,

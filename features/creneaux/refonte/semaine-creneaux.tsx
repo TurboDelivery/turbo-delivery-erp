@@ -49,6 +49,8 @@ export interface LigneTurboy {
     avatar?: string;
     jours: JourCreneau[];
     assiduite: number;
+    /** L'emploi du temps sur lequel s'ecrit la justification d'absence. */
+    emploiId?: string;
 }
 
 export interface AlerteCreneau {
@@ -162,16 +164,19 @@ export function SemaineCreneaux({
                             </span>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
-                            {/*
-                             * Le selecteur de semaine EN TETE : tout l'ecran ne parle que
-                             * d'une semaine, et il etait relegue a droite d'une barre
-                             * secondaire, sous la legende.
-                             */}
+                        {/*
+                         * Le selecteur de semaine EN TETE : tout l'ecran ne parle que d'une
+                         * semaine, et il etait relegue a droite d'une barre secondaire, sous
+                         * la legende. `flex-nowrap` : les deux fleches et le libelle forment
+                         * UN controle, ils ne se separent pas sur un ecran etroit.
+                         */}
+                        <div className="flex flex-nowrap items-center gap-1">
                             <Button aria-label="Semaine précédente" isIconOnly onPress={onSemainePrecedente} size="sm" variant="ghost">
                                 <ChevronLeft aria-hidden="true" className="size-4" />
                             </Button>
-                            <span className="whitespace-nowrap text-sm font-medium text-foreground">{libelleSemaine}</span>
+                            <span className="whitespace-nowrap px-1 text-sm font-medium text-foreground">
+                                {libelleSemaine}
+                            </span>
                             <Button aria-label="Semaine suivante" isIconOnly onPress={onSemaineSuivante} size="sm" variant="ghost">
                                 <ChevronRight aria-hidden="true" className="size-4" />
                             </Button>
@@ -260,7 +265,7 @@ export function SemaineCreneaux({
              * de jours et colonne des noms fixes, et le filtre du bandeau isole les lignes
              * a traiter plutot que de les faire chercher.
              */}
-            <Card>
+            <Card className="hidden md:block">
                 <Card.Content className="p-0">
                     <div className="overflow-x-auto">
                         <div className="max-h-[32rem] overflow-y-auto">
@@ -412,6 +417,85 @@ export function SemaineCreneaux({
                     </div>
                 </Card.Content>
             </Card>
+
+            {/*
+             * AU TELEPHONE, DES CARTES.
+             *
+             * <p>Une matrice de sept colonnes ne se lit pas sur un ecran de trois cent
+             * soixante quinze pixels : elle deborde, et on la fait glisser pour trouver une
+             * pastille. L'ecran d'origine avait deja des cartes ; elles sont conservees, avec
+             * les memes gestes que la matrice — la bande des sept jours reste cliquable la ou
+             * il y a une absence a traiter.</p>
+             */}
+            <div className="flex flex-col gap-3 md:hidden">
+                {isError ? (
+                    <Card>
+                        <Card.Content className="items-center gap-3 py-8 text-center">
+                            <p className="text-sm text-foreground">La semaine n’a pas pu être lue.</p>
+                            {onReessayer && (
+                                <Button onPress={onReessayer} size="sm" variant="outline">
+                                    Réessayer
+                                </Button>
+                            )}
+                        </Card.Content>
+                    </Card>
+                ) : isLoading ? (
+                    Array.from({ length: 4 }).map((_, i) => (
+                        <div className="h-36 animate-pulse rounded-xl bg-surface-secondary" key={`sq-${i}`} />
+                    ))
+                ) : lignes.length === 0 ? (
+                    <p className="py-10 text-center text-sm text-muted">
+                        {seulementATraiter
+                            ? 'Aucune absence à traiter cette semaine.'
+                            : 'Aucun turboy sur cette semaine.'}
+                    </p>
+                ) : (
+                    lignes.map((t) => (
+                        <Card key={t.id}>
+                            <Card.Content className="gap-3">
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="truncate text-sm font-semibold text-foreground">
+                                        {t.nomComplet}
+                                    </span>
+                                    <span className="shrink-0 text-sm tabular-nums text-muted">
+                                        {t.assiduite}%
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-7 gap-1">
+                                    {t.jours.map((j) => {
+                                        const traitable = estATraiter(j);
+                                        return (
+                                            <button
+                                                aria-label={`${LIBELLE[j.statut]} — ${j.jour}${traitable ? '. Traiter cette absence' : ''}`}
+                                                className={cn(
+                                                    'flex min-h-11 flex-col items-center justify-center gap-1 rounded-md transition-colors',
+                                                    traitable && 'bg-accent-soft/60',
+                                                )}
+                                                disabled={!traitable}
+                                                key={j.date}
+                                                onClick={() => traitable && onTraiterAbsence(t, j)}
+                                                type="button"
+                                            >
+                                                <span className="text-[10px] uppercase text-muted">
+                                                    {j.jour.slice(0, 3)}
+                                                </span>
+                                                <span
+                                                    className={cn(
+                                                        'block size-2.5 rounded-full',
+                                                        TEINTE[j.statut],
+                                                        traitable && 'ring-2 ring-red-500/35',
+                                                    )}
+                                                />
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </Card.Content>
+                        </Card>
+                    ))
+                )}
+            </div>
 
             {/*
              * LES TAUX INFORMENT, ILS N'APPELLENT AUCUN GESTE. Ils occupaient le haut de
