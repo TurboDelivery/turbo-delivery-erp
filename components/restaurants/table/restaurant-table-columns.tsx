@@ -135,19 +135,11 @@ export function ActionsMenu({ id, name, status }: { id: string; name: string; st
         onClose={() => setToggleModalOpen(false)}
         title={isActive ? `Désactiver "${name}"` : `Réactiver "${name}"`}
         isLoading={toggleMutation.isPending}
-        size="sm"
         actions={[
           {
-            label: 'Annuler',
-            color: 'default',
-            variant: 'bordered',
-            onPress: () => setToggleModalOpen(false),
-          },
-          {
             label: isActive ? 'Désactiver' : 'Réactiver',
-            color: isActive ? 'warning' : 'success',
-            variant: 'solid',
             onPress: handleToggle,
+            variante: isActive ? 'danger-soft' : 'primary',
           },
         ]}
       >
@@ -168,26 +160,13 @@ export function ActionsMenu({ id, name, status }: { id: string; name: string; st
         onClose={() => setDeleteModalOpen(false)}
         title={`Supprimer "${name}"`}
         isLoading={isLoading}
-        size="md"
         actions={[
           {
-            label: 'Annuler',
-            color: 'default',
-            variant: 'bordered',
-            onPress: () => setDeleteModalOpen(false),
-          },
-          {
-            label: 'Supprimer (historique conservé)',
-            color: 'warning',
-            variant: 'flat',
+            label: 'Supprimer, historique conservé',
             onPress: handleSoftDelete,
+            variante: 'danger-soft',
           },
-          {
-            label: 'Suppression totale',
-            color: 'danger',
-            variant: 'solid',
-            onPress: handleHardDelete,
-          },
+          { label: 'Suppression totale', onPress: handleHardDelete, variante: 'danger' },
         ]}
       >
         <div className="flex flex-col gap-3 text-sm">

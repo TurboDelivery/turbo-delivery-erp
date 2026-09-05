@@ -1,25 +1,103 @@
 'use client';
 
-import { Chip } from '@/components/heroui';
+import { Card } from '@heroui-v3/react';
 import { TrendingDown, TrendingUp } from 'lucide-react';
+
+import EtatErreur from '@/components/commons/EtatErreur';
 import { CapaciteFiabiliteCards } from '@/components/creneaux/analyse/capacite-fiabilite-cards';
 import { CreneauPeriodeCard } from '@/components/creneaux/analyse/creneau-periode-card';
 import { EvolutionTable } from '@/components/creneaux/analyse/evolution-table';
 import { useCreneauAnalyseComparaisonQuery } from '@/features/creneaux/queries/creneau.query';
-import EtatErreur from '@/components/commons/EtatErreur';
+
+/**
+ * Les trois chiffres du mois, en tête d'onglet.
+ *
+ * <p>C'étaient trois pastilles alignées À DROITE, en vert, en rouge de marque et en rouge
+ * de danger. Le vert et le rouge y disaient « bon » et « mauvais » d'un taux dont personne
+ * ne connaît le seuil : 78 % de présence, est-ce bien ? Les couleurs répondaient à la
+ * place du lecteur. Restent trois mesures, alignées à gauche parce qu'on les lit, en
+ * chasse tabulaire parce qu'on les compare d'un mois sur l'autre.</p>
+ */
+function BandeauMois({
+  absences,
+  fiabilite,
+  presence,
+}: {
+  absences: number;
+  fiabilite: number;
+  presence: number;
+}) {
+  const mesures = [
+    { libelle: 'Taux de présence', valeur: `${presence} %` },
+    { libelle: 'Fiabilité', valeur: `${fiabilite} %` },
+    { libelle: 'Absences ce mois', valeur: String(absences) },
+  ];
+
+  return (
+    <Card>
+      <Card.Content className="flex-row flex-wrap gap-x-10 gap-y-4 p-4">
+        {mesures.map((m) => (
+          <div className="flex flex-col" key={m.libelle}>
+            <span className="text-xs tracking-wide text-muted uppercase">{m.libelle}</span>
+            <span className="text-xl font-bold tabular-nums text-foreground">{m.valeur}</span>
+          </div>
+        ))}
+      </Card.Content>
+    </Card>
+  );
+}
+
+/**
+ * Bandeau de comparaison : un écart, sa direction, sa phrase.
+ *
+ * <p>Les deux bandeaux de l'onglet étaient peints à la main en `bg-success-50` /
+ * `bg-danger-50` / `bg-warning-50`. Le second faisait passer pour un AVERTISSEMENT le
+ * simple fait que le soir soit plus fiable que le matin — une information, pas une alerte.
+ * La direction du chiffre se lit maintenant sur la flèche et sur le signe, la surface
+ * reste neutre.</p>
+ */
+function BandeauEcart({
+  hausse,
+  message,
+  titre,
+}: {
+  hausse: boolean;
+  message: string;
+  titre: string;
+}) {
+  const Fleche = hausse ? TrendingUp : TrendingDown;
+  return (
+    <Card>
+      <Card.Content className="flex-row items-center gap-3 p-4">
+        <Fleche
+          aria-hidden="true"
+          className={`size-5 shrink-0 ${hausse ? 'text-success' : 'text-warning'}`}
+        />
+        <div>
+          <p className="text-sm font-semibold text-foreground">{titre}</p>
+          <p className="text-sm text-muted">{message}</p>
+        </div>
+      </Card.Content>
+    </Card>
+  );
+}
 
 export function CreneauAnalyseTab() {
   const { data, isError, isFetching, refetch } = useCreneauAnalyseComparaisonQuery();
 
   const miniStats = data?.miniStats;
-  const capacite = data?.capacite ?? { pourcentage: 0, inscrits: 0, total: 0, tauxConfirmation: 0 };
-  const fiabilite = data?.fiabilite ?? { pourcentage: 0, gpsConfirme: 0, total: 0, absencesJustifiees: 0 };
+  const capacite = data?.capacite ?? { inscrits: 0, pourcentage: 0, tauxConfirmation: 0, total: 0 };
+  const fiabilite = data?.fiabilite ?? {
+    absencesJustifiees: 0,
+    gpsConfirme: 0,
+    pourcentage: 0,
+    total: 0,
+  };
   const ecart = data?.ecartPrevisionRealite;
-  const matin = data?.creneaux?.matin ?? { taux: 0, absences: 0, justifiees: 0 };
-  const soir = data?.creneaux?.soir ?? { taux: 0, absences: 0, justifiees: 0 };
+  const matin = data?.creneaux?.matin ?? { absences: 0, justifiees: 0, taux: 0 };
+  const soir = data?.creneaux?.soir ?? { absences: 0, justifiees: 0, taux: 0 };
   const evolution = data?.evolutionMensuelle ?? [];
 
-  const ecartPositif = (ecart?.valeur ?? 0) >= 0;
   const diffMatinSoir = matin.taux - soir.taux;
 
   // Sans cette sortie, une lecture ratee retombait sur les valeurs par defaut :
@@ -27,62 +105,61 @@ export function CreneauAnalyseTab() {
   // pas lus. On remplace l'analyse entiere plutot que d'afficher des zeros.
   if (isError) {
     return (
-      <EtatErreur
-        quoi="l'analyse des créneaux"
-        onReessayer={() => refetch()}
-        enCours={isFetching}
-      />
+      <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="l'analyse des créneaux" />
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Mini stats */}
-      <div className="flex justify-end gap-3">
-        <Chip color="success" variant="flat">{miniStats?.tauxPresence ?? 0}% Taux Presence</Chip>
-        <Chip color="primary" variant="flat">{miniStats?.fiabilite ?? 0}% Fiabilite</Chip>
-        <Chip color="danger" variant="flat">{miniStats?.absencesMois ?? 0} Absences ce mois</Chip>
-      </div>
+      <BandeauMois
+        absences={miniStats?.absencesMois ?? 0}
+        fiabilite={miniStats?.fiabilite ?? 0}
+        presence={miniStats?.tauxPresence ?? 0}
+      />
 
-      {/* Capacité & Fiabilité */}
       <CapaciteFiabiliteCards capacite={capacite} fiabilite={fiabilite} />
 
-      {/* Alerte écart */}
-      <div className={`flex items-center gap-3 rounded-lg p-4 ${ecartPositif ? 'bg-success-50 text-success-soft-foreground' : 'bg-danger-50 text-danger-soft-foreground'}`}>
-        {ecartPositif ? <TrendingUp className="size-5 shrink-0" /> : <TrendingDown className="size-5 shrink-0" />}
-        <div>
-          <p className="font-semibold">Ecart Prevision / Realite</p>
-          <p className="text-sm">{ecart?.message ?? '-'}</p>
-        </div>
-      </div>
+      <BandeauEcart
+        hausse={(ecart?.valeur ?? 0) >= 0}
+        message={ecart?.message ?? '-'}
+        titre="Écart prévision / réalité"
+      />
 
-      {/* Comparaison Matin vs Soir */}
       <div className="space-y-3">
         <div>
-          <h3 className="text-lg font-semibold">Comparaison Matin vs Soir</h3>
-          <p className="text-sm text-default-500">Analyse des taux de presence par creneau</p>
+          <h3 className="text-lg font-semibold text-foreground">Comparaison matin / soir</h3>
+          <p className="text-sm text-muted">Taux de présence par créneau</p>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <CreneauPeriodeCard label="Creneau Matin" variant="matin" taux={matin.taux} absences={matin.absences} justifiees={matin.justifiees} />
-          <CreneauPeriodeCard label="Creneau Soir" variant="soir" taux={soir.taux} absences={soir.absences} justifiees={soir.justifiees} />
+          <CreneauPeriodeCard
+            absences={matin.absences}
+            justifiees={matin.justifiees}
+            label="Créneau du matin"
+            taux={matin.taux}
+            variant="matin"
+          />
+          <CreneauPeriodeCard
+            absences={soir.absences}
+            justifiees={soir.justifiees}
+            label="Créneau du soir"
+            taux={soir.taux}
+            variant="soir"
+          />
         </div>
+        {diffMatinSoir !== 0 && (
+          <BandeauEcart
+            hausse={diffMatinSoir > 0}
+            message={
+              diffMatinSoir > 0
+                ? `Le matin est plus fiable de ${diffMatinSoir} points.`
+                : `Le soir est plus fiable de ${Math.abs(diffMatinSoir)} points.`
+            }
+            titre="Le créneau le plus fiable"
+          />
+        )}
       </div>
 
-      {/* Banner comparaison */}
-      {diffMatinSoir !== 0 && (
-        <div className={`flex items-center justify-center gap-2 rounded-lg p-4 ${diffMatinSoir > 0 ? 'bg-success-50 text-success-soft-foreground' : 'bg-warning-50 text-warning-soft-foreground'}`}>
-          {diffMatinSoir > 0 ? <TrendingUp className="size-5 shrink-0" /> : <TrendingDown className="size-5 shrink-0" />}
-          <p className="font-semibold">
-            {diffMatinSoir > 0
-              ? `+${diffMatinSoir}% Meilleure fiabilite le matin`
-              : `+${Math.abs(diffMatinSoir)}% Meilleure fiabilite le soir`}
-          </p>
-        </div>
-      )}
-
-      {/* Évolution Mensuelle */}
       <EvolutionTable data={evolution} />
     </div>
   );
 }
-

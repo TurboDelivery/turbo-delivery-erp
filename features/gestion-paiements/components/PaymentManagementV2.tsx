@@ -148,10 +148,7 @@ export default function PaymentManagementV2() {
         onClose={closeConfirm}
         title="Confirmer le décaissement"
         isLoading={decaisserMutation.isPending}
-        actions={[
-          { label: 'Annuler', variant: 'light', onPress: closeConfirm },
-          { label: 'Décaisser', color: 'danger', onPress: handleConfirmDecaisser },
-        ]}
+        actions={[{ label: 'Décaisser', onPress: handleConfirmDecaisser, variante: 'danger' }]}
       >
         <p className="text-sm text-muted">
           Vous êtes sur le point de décaisser{' '}
@@ -168,10 +165,7 @@ export default function PaymentManagementV2() {
         onClose={closeDelete}
         title="Supprimer la charge variable"
         isLoading={supprimerChargeVariableMutation.isPending}
-        actions={[
-          { label: 'Annuler', variant: 'light', onPress: closeDelete },
-          { label: 'Supprimer', color: 'danger', onPress: handleConfirmDelete },
-        ]}
+        actions={[{ label: 'Supprimer', onPress: handleConfirmDelete, variante: 'danger' }]}
       >
         <p className="text-sm text-muted">Voulez-vous vraiment supprimer cette charge variable ? Cette action est irréversible.</p>
       </ConfirmModal>
@@ -182,10 +176,7 @@ export default function PaymentManagementV2() {
         onClose={closeDeleteFixe}
         title="Supprimer la dépense du mois"
         isLoading={supprimerDepenseDuMoisMutation.isPending}
-        actions={[
-          { label: 'Annuler', variant: 'light', onPress: closeDeleteFixe },
-          { label: 'Supprimer', color: 'danger', onPress: handleConfirmDeleteFixe },
-        ]}
+        actions={[{ label: 'Supprimer', onPress: handleConfirmDeleteFixe, variante: 'danger' }]}
       >
         <p className="text-sm text-muted">Voulez-vous vraiment supprimer la dépense du mois pour cette charge fixe ? Cette action est irréversible.</p>
       </ConfirmModal>

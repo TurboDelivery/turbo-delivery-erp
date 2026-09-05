@@ -1,34 +1,59 @@
 'use client';
 
-import { useState } from 'react';
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  Button,
-  Textarea,
-} from '@/components/heroui';
+import { Button, Modal, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
 import { AlertTriangle, Clock } from 'lucide-react';
-import { useJustifierAbsenceMutation, useAccuserRetardMutation } from '@/features/creneaux/mutations/index.query';
+import { useState } from 'react';
+
 import { Can } from '@/components/auth/Can';
+import { ChampZoneTexte } from '@/components/commons/champs-formulaire';
+import {
+  useAccuserRetardMutation,
+  useJustifierAbsenceMutation,
+} from '@/features/creneaux/mutations/index.query';
 
 export interface AbsenceActionTarget {
+  date: string; // ISO "2026-04-13"
   emploiId: string;
-  turoyNomComplet: string;
-  date: string;      // ISO "2026-04-13"
   jourLabel: string; // "Lundi", "Mardi" …
+  turoyNomComplet: string;
 }
 
 type Action = 'justifier' | 'retard' | null;
 
 interface AbsenceActionDialogProps {
-  target: AbsenceActionTarget | null;
   onClose: () => void;
+  target: AbsenceActionTarget | null;
 }
 
-export function AbsenceActionDialog({ target, onClose }: AbsenceActionDialogProps) {
+const ACTIONS = [
+  { icone: AlertTriangle, id: 'justifier', libelle: "Justifier l'absence" },
+  { icone: Clock, id: 'retard', libelle: 'Accuser un retard' },
+] as const;
+
+const INVITE: Record<Exclude<Action, null>, string> = {
+  justifier: 'Pourquoi cette absence est-elle justifiée ?',
+  retard: "De combien, et pour quelle raison ? C'est ce motif que lira le livreur.",
+};
+
+/**
+ * Requalifier une absence : la justifier, ou la ramener à un retard.
+ *
+ * <h3>Ce qui change</h3>
+ * <p>Le choix entre les deux gestes se faisait sur deux `&lt;button&gt;` nus portant chacun
+ * quinze classes recopiées pour imiter une case à cocher — bordure verte quand « justifier »
+ * était choisi, bordure ambre pour « retard ». Aucun des deux n'était annoncé comme
+ * sélectionné : au clavier et au lecteur d'écran, c'étaient deux boutons ordinaires dont
+ * rien ne disait lequel était actif. C'est un choix unique entre deux options, donc un
+ * `ToggleButtonGroup`, qui porte `aria-pressed` tout seul.</p>
+ *
+ * <p>Le bouton de confirmation virait au vert pour l'un et à l'ambre pour l'autre.
+ * Confirmer n'est ni un succès ni un avertissement : c'est l'action principale de la
+ * fenêtre, et elle en garde la couleur.</p>
+ *
+ * <p>Le champ de motif ne disait pas ce qu'on attend d'un motif. Il porte maintenant une
+ * invite propre à chacun des deux gestes.</p>
+ */
+export function AbsenceActionDialog({ onClose, target }: AbsenceActionDialogProps) {
   const [action, setAction] = useState<Action>(null);
   const [motif, setMotif] = useState('');
 
@@ -44,97 +69,78 @@ export function AbsenceActionDialog({ target, onClose }: AbsenceActionDialogProp
   }
 
   async function handleConfirm() {
-    if (!target) return;
+    if (!target || !action) return;
 
-    if (action === 'justifier') {
-      await justifierMutation.mutateAsync({
-        id: target.emploiId,
-        date: target.date,
-        motif,
-      });
-      handleClose();
-    } else if (action === 'retard') {
-      await retardMutation.mutateAsync({
-        id: target.emploiId,
-        date: target.date,
-        motif,
-      });
-      handleClose();
-    }
+    const mutation = action === 'justifier' ? justifierMutation : retardMutation;
+    await mutation.mutateAsync({ date: target.date, id: target.emploiId, motif });
+    handleClose();
   }
 
   const isPending = justifierMutation.isPending || retardMutation.isPending;
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={(open) => { if (!open) handleClose(); }} size="sm">
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-0.5">
-          <span className="text-base font-semibold">Absence — {target?.turoyNomComplet}</span>
-          <span className="text-xs font-normal text-default-400">
-            {target?.jourLabel} · {target?.date}
-          </span>
-        </ModalHeader>
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+      }}
+    >
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog>
+            <Modal.Header>
+              <div className="flex flex-col gap-0.5">
+                <Modal.Heading>Absence de {target?.turoyNomComplet}</Modal.Heading>
+                <span className="text-xs text-muted">
+                  {target?.jourLabel} · {target?.date}
+                </span>
+              </div>
+              <Modal.CloseTrigger />
+            </Modal.Header>
 
-        <ModalBody className="gap-3">
-          {/* Action selector */}
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => setAction('justifier')}
-              className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-colors ${
-                action === 'justifier'
-                  ? 'border-success bg-success-50 text-success-soft-foreground'
-                  : 'border-border hover:border-success/50 hover:bg-success-50/40'
-              }`}
-            >
-              <AlertTriangle className="size-5" />
-              Justifier l&apos;absence
-            </button>
+            <Modal.Body className="flex flex-col gap-4">
+              <ToggleButtonGroup
+                className="flex-wrap"
+                onSelectionChange={(sel) => setAction((Array.from(sel)[0] as Action) ?? null)}
+                selectedKeys={action ? new Set([action]) : new Set()}
+                selectionMode="single"
+              >
+                {ACTIONS.map((a) => (
+                  <ToggleButton id={a.id} key={a.id}>
+                    <a.icone aria-hidden="true" className="size-4" />
+                    {a.libelle}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
 
-            <button
-              onClick={() => setAction('retard')}
-              className={`flex flex-col items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-colors ${
-                action === 'retard'
-                  ? 'border-warning bg-warning-50 text-warning-soft-foreground'
-                  : 'border-border hover:border-warning/50 hover:bg-warning-50/40'
-              }`}
-            >
-              <Clock className="size-5" />
-              Accuser un retard
-            </button>
-          </div>
+              {action && (
+                <ChampZoneTexte
+                  label="Motif"
+                  onChange={setMotif}
+                  placeholder={INVITE[action]}
+                  valeur={motif}
+                />
+              )}
+            </Modal.Body>
 
-          {/* Motif input */}
-          {(action === 'justifier' || action === 'retard') && (
-            <Textarea
-              label="Motif"
-              placeholder={action === 'justifier' ? 'Saisir le motif de justification...' : 'Saisir le motif du retard...'}
-              value={motif}
-              onValueChange={setMotif}
-              minRows={3}
-              isRequired
-            />
-          )}
-        </ModalBody>
-
-        <ModalFooter>
-          <Button variant="flat" onPress={handleClose} isDisabled={isPending}>
-            Annuler
-          </Button>
-          <Can I="manage" a="Creneau">
-            <Button
-              color={action === 'justifier' ? 'success' : 'warning'}
-              onPress={handleConfirm}
-              isLoading={isPending}
-              isDisabled={
-                !action ||
-                motif.trim().length === 0
-              }
-            >
-              Confirmer
-            </Button>
-          </Can>
-        </ModalFooter>
-      </ModalContent>
+            <Modal.Footer>
+              <Button isDisabled={isPending} onPress={handleClose} variant="ghost">
+                Annuler
+              </Button>
+              <Can I="manage" a="Creneau">
+                <Button
+                  isDisabled={!action || motif.trim().length === 0}
+                  isPending={isPending}
+                  onPress={handleConfirm}
+                  variant="primary"
+                >
+                  Confirmer
+                </Button>
+              </Can>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

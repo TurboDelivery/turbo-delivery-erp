@@ -5,7 +5,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Home, ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
+
+import { LienBouton } from '@/components/commons/LienBouton';
 
 /**
  * Ecran de refus d'acces.
@@ -52,13 +54,14 @@ export default function AccesRefuse() {
           transition={{ delay: 0.4 }}
           className="flex flex-col justify-center gap-4 sm:flex-row"
         >
-          <Button color="primary" as={Link} href="/" className="space-x-2">
-            <Home className="h-4 w-4" />
-            <span>Accueil</span>
-          </Button>
-          <Button variant="light" onPress={() => router.back()} className="space-x-2">
-            <ArrowLeft className="h-4 w-4" />
-            <span>Retour</span>
+          {/* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3. */}
+          <LienBouton href="/" variante="primary">
+            <Home aria-hidden="true" className="size-4" />
+            Accueil
+          </LienBouton>
+          <Button onPress={() => router.back()} variant="ghost">
+            <ArrowLeft aria-hidden="true" className="size-4" />
+            Retour
           </Button>
         </motion.div>
       </div>

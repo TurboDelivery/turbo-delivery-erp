@@ -1008,10 +1008,7 @@ export function FinanceHubView() {
         onClose={() => setItemToDelete(null)}
         title="Supprimer la dépense"
         isLoading={delFixe.isPending || delVar.isPending}
-        actions={[
-          { label: 'Annuler', variant: 'bordered', onPress: () => setItemToDelete(null) },
-          { label: 'Supprimer', color: 'danger', onPress: confirmDelete },
-        ]}
+        actions={[{ label: 'Supprimer', onPress: confirmDelete, variante: 'danger' }]}
       >
         <p className="text-sm text-foreground">
           Voulez-vous vraiment supprimer <span className="font-semibold">{itemToDelete?.designation}</span> ? Cette action est irréversible.

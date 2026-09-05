@@ -2,7 +2,9 @@
 
 import Link from 'next/link';
 import { User } from '@/types/models';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
+
+import { LienBouton } from '@/components/commons/LienBouton';
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -36,13 +38,14 @@ const ProtectedPage = ({ profile: _profile, children }: ProtectedPageProps) => {
               </motion.p>
 
               <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button color="primary" as={Link} href={'/'} className="space-x-2">
-                  <Home className="w-4 h-4" />
-                  <span>Accueil</span>
-                </Button>
-                <Button variant="light" onPress={() => router.back()} className="space-x-2">
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Retour</span>
+                {/* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3. */}
+                <LienBouton href="/" variante="primary">
+                  <Home aria-hidden="true" className="size-4" />
+                  Accueil
+                </LienBouton>
+                <Button onPress={() => router.back()} variant="ghost">
+                  <ArrowLeft aria-hidden="true" className="size-4" />
+                  Retour
                 </Button>
               </motion.div>
             </div>

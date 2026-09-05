@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
 import { AlertTriangle } from 'lucide-react';
 
 interface Props {
@@ -51,7 +51,8 @@ export class ErrorBoundary extends React.Component<Props, State> {
             <p className="font-semibold text-danger-soft-foreground">{this.props.title ?? 'Une erreur est survenue'}</p>
             <p className="mt-1 max-w-md text-xs text-danger-500">{this.state.error.message}</p>
           </div>
-          <Button size="sm" color="danger" variant="flat" onPress={() => this.setState({ error: null })}>
+          {/* « Réessayer » n'est pas un geste dangereux : le rouge y disait le contraire. */}
+          <Button onPress={() => this.setState({ error: null })} size="sm" variant="outline">
             Réessayer
           </Button>
         </div>

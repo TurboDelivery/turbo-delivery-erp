@@ -403,11 +403,8 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
         onClose={() => setOpenCancel(false)}
         title={`Annuler la course ${course.code}`}
         isLoading={pending}
-        size="sm"
-        actions={[
-          { label: 'Retour', color: 'default', variant: 'bordered', onPress: () => setOpenCancel(false) },
-          { label: 'Annuler la course', color: 'danger', variant: 'solid', onPress: handleCancel },
-        ]}
+        annuler="Retour"
+        actions={[{ label: 'Annuler la course', onPress: handleCancel, variante: 'danger' }]}
       >
         <p className="text-sm text-foreground">
           La course sera annulée et ne sera plus proposée aux livreurs. Possible uniquement tant qu&apos;elle est en attente.
@@ -419,11 +416,8 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
         onClose={() => setOpenFinish(false)}
         title={`Terminer la course ${course.code}`}
         isLoading={pending}
-        size="sm"
-        actions={[
-          { label: 'Retour', color: 'default', variant: 'bordered', onPress: () => setOpenFinish(false) },
-          { label: 'Terminer', color: 'success', variant: 'solid', onPress: handleFinish },
-        ]}
+        annuler="Retour"
+        actions={[{ label: 'Terminer', onPress: handleFinish }]}
       >
         <p className="text-sm text-foreground">
           La course sera marquée comme terminée. À utiliser si le livreur n&apos;a pas pu clôturer depuis son application.

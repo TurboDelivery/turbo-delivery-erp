@@ -2,8 +2,7 @@
 
 import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
-import { Tabs } from '@heroui-v3/react';
+import { Table, Tabs } from '@heroui-v3/react';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 import { toast } from 'sonner';
@@ -269,7 +268,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
             <div className="mb-3 flex justify-end">
               <TicketTableExportButton filters={filters} totalItems={infiniteState.totalItems} isDisabled={isLoading} />
             </div>
-            <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
+            <div className="hidden md:block -mx-4 sm:mx-0">
               {/* Hauteur MESUREE, jamais un plafond en dur. Le `max-h-[420px]` precedent
                   laissait environ 340 px de tableau sur la fenetre reelle des postes
                   (1000x563), et perdait une rangee des qu'un titre passait sur deux lignes. */}
@@ -282,56 +281,90 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
                   fin et c'est la PAGE qui defilait, l'en-tete de colonnes disparaissant
                   vers le haut. Le repli borne la zone des `md` (la ou ce tableau
                   apparait), et la mesure le remplace des qu'elle arrive. */}
-              <div
-                ref={zoneTableRef}
-                className="overflow-y-auto md:h-[calc(100vh-15rem)] md:min-h-[320px]"
-                style={hauteurTable ? { height: hauteurTable } : undefined}
-              >
-                <Table isStriped>
-                  <TableHeader>
-                    {table.getFlatHeaders().map((header) => (
-                      <TableColumn key={header.id} className="text-xs sm:text-sm font-medium whitespace-nowrap">
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                      </TableColumn>
-                    ))}
-                  </TableHeader>
-                  <TableBody
-                    emptyContent={
-                      /* Un echec de chargement ne doit PAS se lire comme un resultat vide :
-                         l'operateur en concluait qu'il n'y avait aucun ticket a traiter. */
-                      isError ? (
-                        <EtatErreur quoi="les tickets" onReessayer={() => infiniteState.refetch()} enCours={infiniteState.isFetching} />
-                      ) : isLoading ? (
-                        'Chargement des tickets...'
-                      ) : (
-                        'Aucun ticket trouvé'
-                      )
-                    }
-                  >
-                    {isLoading
-                      ? Array.from({ length: 10 }).map((_, i) => (
-                          <TableRow key={`skeleton-${i}`}>
-                            {Array.from({ length: colsCount }).map((_, j) => (
-                              <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                                <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        ))
-                      : table.getRowModel().rows.map((row) => (
-                          <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={row.getIsSelected() ? 'bg-accent-soft' : 'hover:bg-surface-secondary'}>
-                            {row.getVisibleCells().map((cell) => (
-                              <TableCell key={cell.id} className="px-2 py-1 text-xs whitespace-nowrap">
-                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                              </TableCell>
-                            ))}
-                          </TableRow>
-                        ))}
-                  </TableBody>
-                </Table>
-                <div className="h-0.5" ref={observerTarget}>
-                  {infiniteState.isFetchingNextPage && <p className="w-full py-2 text-center text-xs text-muted">Chargement des données...</p>}
-                </div>
+              {/* La mesure et le repli portent maintenant sur `Table.ScrollContainer`
+                  lui-meme : la v3 y met deja le defilement, un `<div overflow-y-auto>`
+                  par-dessus en aurait fait DEUX imbriques, et l'en-tete colle se serait
+                  decroche du mauvais. */}
+              <Table>
+                <Table.ScrollContainer
+                  className="md:h-[calc(100vh-15rem)] md:min-h-[320px]"
+                  ref={zoneTableRef}
+                  style={hauteurTable ? { height: hauteurTable } : undefined}
+                >
+                  <Table.Content aria-label="Tickets de livraison">
+                    <Table.Header>
+                      {table.getFlatHeaders().map((header, i) => (
+                        <Table.Column
+                          className="text-xs font-medium whitespace-nowrap sm:text-sm"
+                          id={header.id}
+                          isRowHeader={i === 0}
+                          key={header.id}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </Table.Column>
+                      ))}
+                    </Table.Header>
+                    <Table.Body
+                      renderEmptyState={
+                        /* Un echec de chargement ne doit PAS se lire comme un resultat vide :
+                           l'operateur en concluait qu'il n'y avait aucun ticket a traiter. */
+                        isError
+                          ? () => (
+                              <div className="py-6">
+                                <EtatErreur
+                                  enCours={infiniteState.isFetching}
+                                  onReessayer={() => infiniteState.refetch()}
+                                  quoi="les tickets"
+                                />
+                              </div>
+                            )
+                          : isLoading
+                            ? () => null
+                            : () => (
+                                <p className="py-8 text-center text-sm text-muted">
+                                  Aucun ticket trouvé
+                                </p>
+                              )
+                      }
+                    >
+                      {isLoading
+                        ? Array.from({ length: 10 }).map((_, i) => (
+                            <Table.Row id={`skeleton-${i}`} key={`skeleton-${i}`}>
+                              {Array.from({ length: colsCount }).map((_, j) => (
+                                <Table.Cell className="h-12" key={`skeleton-cell-${j}`}>
+                                  <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                                </Table.Cell>
+                              ))}
+                            </Table.Row>
+                          ))
+                        : table.getRowModel().rows.map((row) => (
+                            <Table.Row
+                              className={row.getIsSelected() ? 'bg-accent-soft' : undefined}
+                              id={row.id}
+                              key={row.id}
+                            >
+                              {row.getVisibleCells().map((cell) => (
+                                <Table.Cell
+                                  className="px-2 py-1 text-xs whitespace-nowrap"
+                                  key={cell.id}
+                                >
+                                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                </Table.Cell>
+                              ))}
+                            </Table.Row>
+                          ))}
+                    </Table.Body>
+                  </Table.Content>
+                </Table.ScrollContainer>
+              </Table>
+              <div className="h-0.5" ref={observerTarget}>
+                {infiniteState.isFetchingNextPage && (
+                  <p className="w-full py-2 text-center text-xs text-muted">
+                    Chargement des données...
+                  </p>
+                )}
               </div>
             </div>
 
@@ -387,10 +420,7 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
         onClose={() => setTicketsToDelete(null)}
         title={ticketsToDelete?.length === 1 ? 'Supprimer le ticket' : `Supprimer ${ticketsToDelete?.length ?? 0} ticket(s)`}
         isLoading={isDeletingBonLivraison}
-        actions={[
-          { label: 'Annuler', variant: 'light', onPress: () => setTicketsToDelete(null) },
-          { label: 'Supprimer', color: 'danger', onPress: handleConfirmDelete },
-        ]}
+        actions={[{ label: 'Supprimer', onPress: handleConfirmDelete, variante: 'danger' }]}
       >
         {ticketsToDelete?.length === 1
           ? 'Confirmez-vous la suppression définitive de ce ticket ? Cette action est irréversible.'

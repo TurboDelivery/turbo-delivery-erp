@@ -1,6 +1,5 @@
 'use client';
 
-import { Skeleton } from '@/components/heroui';
 import type { LucideIcon } from 'lucide-react';
 import React from 'react';
 
@@ -170,7 +169,7 @@ export default function CarteStat({
             </div>
 
             {isLoading ? (
-                <Skeleton className="mt-2 h-7 w-24 rounded-medium" />
+                <div className="mt-2 h-7 w-24 animate-pulse rounded-lg bg-surface-secondary" />
             ) : isError ? (
                 <p
                     className="mt-2 text-xl font-semibold leading-none tracking-tight text-default-400 sm:text-2xl"

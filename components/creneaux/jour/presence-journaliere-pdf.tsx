@@ -72,13 +72,13 @@ function PresenceJournalierePdfDocument({ data }: { data: ICreneauJourDetail }) 
             <Text>{fmtDate(data.date)}</Text>
           </View>
           <View style={s.metaRow}>
-            <Text style={s.metaLabel}>Date d'export :</Text>
+            <Text style={s.metaLabel}>{"Date d'export :"}</Text>
             <Text>{fmtNow()}</Text>
           </View>
         </View>
 
         {/* Stats */}
-        <Text style={s.sectionTitle}>Vue d'ensemble</Text>
+        <Text style={s.sectionTitle}>{"Vue d'ensemble"}</Text>
         <View style={s.statsRow}>
           <View style={s.statCard}>
             <Text style={s.statLabel}>Inscrits</Text>

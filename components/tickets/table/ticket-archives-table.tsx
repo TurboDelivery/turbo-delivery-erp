@@ -5,6 +5,7 @@ import {
   Button,
   Spinner,
   ComboBox,
+  Table,
   Tooltip,
   Input as InputV3,
   Label,
@@ -12,7 +13,6 @@ import {
   SearchField,
 } from '@heroui-v3/react';
 import { flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
 import { toast } from 'sonner';
 import { ArchiveRestore, X } from 'lucide-react';
 
@@ -237,49 +237,72 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
         />
       ) : (
         <>
-      <div className="hidden md:block overflow-x-auto -mx-4 sm:mx-0">
+      <div className="hidden md:block -mx-4 sm:mx-0">
         {/* Hauteur MESUREE, comme l'onglet « Tous les tickets ». Le plafond de 420 px
             ecrit en dur laissait environ 340 px de tableau sur la fenetre reelle des
             postes (1000x563) et perdait une rangee des qu'un titre passait sur deux
-            lignes. C'est le defaut deja corrige a cote, et nomme dans son commentaire. */}
-        <div
-          className="overflow-y-auto md:h-[calc(100vh-15rem)] md:min-h-[320px]"
-          ref={zoneArchivesRef}
-          style={hauteurArchives ? { height: hauteurArchives } : undefined}
-        >
-          <Table isStriped>
-            <TableHeader>
-              {table.getFlatHeaders().map((header) => (
-                <TableColumn key={header.id} className="text-xs sm:text-sm font-medium whitespace-nowrap">
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableColumn>
-              ))}
-            </TableHeader>
-            <TableBody emptyContent={archivesQuery.isLoading ? 'Chargement des archives...' : 'Aucun ticket archivé'}>
-              {archivesQuery.isLoading
-                ? Array.from({ length: 10 }).map((_, i) => (
-                    <TableRow key={`skeleton-${i}`}>
-                      {Array.from({ length: colsCount }).map((_, j) => (
-                        <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                          <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                : table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'} className={row.getIsSelected() ? 'bg-accent-soft' : 'hover:bg-surface-secondary'}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} className="px-2 py-1 text-xs whitespace-nowrap">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
-            </TableBody>
-          </Table>
-          <div className="h-0.5" ref={observerTarget}>
-            {archivesQuery.isFetchingNextPage && <p className="w-full py-2 text-center text-xs text-muted">Chargement des données...</p>}
-          </div>
+            lignes. C'est le defaut deja corrige a cote, et nomme dans son commentaire.
+            La mesure porte sur `Table.ScrollContainer`, qui EST le defilement de la v3 :
+            un div `overflow-y-auto` par-dessus en aurait fait deux imbriques. */}
+        <Table>
+          <Table.ScrollContainer
+            className="md:h-[calc(100vh-15rem)] md:min-h-[320px]"
+            ref={zoneArchivesRef}
+            style={hauteurArchives ? { height: hauteurArchives } : undefined}
+          >
+            <Table.Content aria-label="Tickets archivés">
+              <Table.Header>
+                {table.getFlatHeaders().map((header, i) => (
+                  <Table.Column
+                    className="text-xs font-medium whitespace-nowrap sm:text-sm"
+                    id={header.id}
+                    isRowHeader={i === 0}
+                    key={header.id}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </Table.Column>
+                ))}
+              </Table.Header>
+              <Table.Body
+                renderEmptyState={() =>
+                  archivesQuery.isLoading ? null : (
+                    <p className="py-8 text-center text-sm text-muted">Aucun ticket archivé</p>
+                  )
+                }
+              >
+                {archivesQuery.isLoading
+                  ? Array.from({ length: 10 }).map((_, i) => (
+                      <Table.Row id={`skeleton-${i}`} key={`skeleton-${i}`}>
+                        {Array.from({ length: colsCount }).map((_, j) => (
+                          <Table.Cell className="h-12" key={`skeleton-cell-${j}`}>
+                            <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))
+                  : table.getRowModel().rows.map((row) => (
+                      <Table.Row
+                        className={row.getIsSelected() ? 'bg-accent-soft' : undefined}
+                        id={row.id}
+                        key={row.id}
+                      >
+                        {row.getVisibleCells().map((cell) => (
+                          <Table.Cell className="px-2 py-1 text-xs whitespace-nowrap" key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
+        </Table>
+        <div className="h-0.5" ref={observerTarget}>
+          {archivesQuery.isFetchingNextPage && (
+            <p className="w-full py-2 text-center text-xs text-muted">Chargement des données...</p>
+          )}
         </div>
       </div>
 
@@ -368,10 +391,7 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
         onClose={() => setConfirmIds(null)}
         title={confirmIds?.length === 1 ? 'Restaurer le ticket' : `Restaurer ${confirmIds?.length ?? 0} ticket(s)`}
         isLoading={restaurerMutation.isPending}
-        actions={[
-          { label: 'Annuler', variant: 'light', onPress: () => setConfirmIds(null) },
-          { label: 'Restaurer', color: 'success', onPress: handleConfirmRestore },
-        ]}
+        actions={[{ label: 'Restaurer', onPress: handleConfirmRestore }]}
       >
         {confirmIds?.length === 1
           ? 'Confirmez-vous la restauration de ce ticket ?'

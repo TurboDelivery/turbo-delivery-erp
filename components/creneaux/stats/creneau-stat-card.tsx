@@ -1,6 +1,6 @@
 'use client';
 
-import { ProgressBar, Label } from '@/components/heroui';
+import { ProgressBar } from '@heroui-v3/react';
 
 import CarteStat, { type TonStat } from '@/components/commons/CarteStat';
 
@@ -29,7 +29,16 @@ const TON: Record<NonNullable<CreneauStatCardProps['color']>, TonStat> = {
 export function CreneauStatCard({ label, sublabel, value, color = 'accent' }: CreneauStatCardProps) {
   return (
     <CarteStat libelle={label} valeur={`${value}%`} note={sublabel} ton={TON[color]}>
-      <ProgressBar size="md" value={value} color={color} aria- className="mt-3"><Label>{label}</Label><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
+      {/*
+       * La barre etait passee en v3 par une reecriture automatique qui lui avait laisse un
+       * attribut `aria-` vide et un `<Label>` REDONDANT — le libelle est deja rendu par la
+       * carte, le lecteur d'ecran l'entendait deux fois.
+       */}
+      <ProgressBar aria-label={label} className="mt-3" value={value}>
+        <ProgressBar.Track>
+          <ProgressBar.Fill />
+        </ProgressBar.Track>
+      </ProgressBar>
     </CarteStat>
   );
 }

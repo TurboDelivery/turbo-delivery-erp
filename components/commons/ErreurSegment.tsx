@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
 import { RefreshCcw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -119,17 +119,22 @@ export default function ErreurSegment({
                         : 'Le reste de l’ERP fonctionne. Réessayez, et signalez-le si cela se répète.'}
                 </p>
             </div>
+            {/*
+             * `onClick` sur un Button v3 est ignore EN SILENCE : c'est `onPress`. Le
+             * bouton de RELANCE d'un ecran en erreur ne relancait donc rien — sur l'ecran
+             * meme ou l'utilisateur n'a que ce bouton pour s'en sortir. Et « Reessayer »
+             * n'est pas un geste dangereux : le rouge y disait le contraire.
+             */}
             <Button
-                color="danger"
-                variant="flat"
-                size="sm"
                 isDisabled={rechargementEnCours}
-                onClick={fragment ? rechargerMaintenant : reset}
-                startContent={<RefreshCcw className="h-4 w-4" />}
+                onPress={fragment ? rechargerMaintenant : reset}
+                size="sm"
+                variant="outline"
             >
+                <RefreshCcw aria-hidden="true" className="size-4" />
                 {fragment ? 'Recharger la page' : 'Réessayer'}
             </Button>
-            {error.digest && <p className="text-xs text-default-400">Référence : {error.digest}</p>}
+            {error.digest && <p className="text-xs text-muted">Référence : {error.digest}</p>}
         </div>
     );
 }

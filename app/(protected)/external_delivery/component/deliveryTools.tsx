@@ -103,11 +103,8 @@ const DeliveryTools = ({ delivery, delivers }: { delivery: CourseExterne; delive
         onClose={() => setOpenCancel(false)}
         title={`Annuler la course ${delivery.code ?? ''}`}
         isLoading={cancelPending}
-        size="sm"
-        actions={[
-          { label: 'Retour', color: 'default', variant: 'bordered', onPress: () => setOpenCancel(false) },
-          { label: 'Annuler la course', color: 'danger', variant: 'solid', onPress: handleCancel },
-        ]}
+        annuler="Retour"
+        actions={[{ label: 'Annuler la course', onPress: handleCancel, variante: 'danger' }]}
       >
         <div className="flex flex-col gap-2 text-sm">
           <p className="text-foreground">
