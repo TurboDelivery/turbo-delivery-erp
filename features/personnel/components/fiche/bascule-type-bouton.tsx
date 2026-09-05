@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { Button, Popover, PopoverContent, PopoverTrigger } from '@/components/heroui';
-import { useSession } from 'next-auth/react';
+import { Button, Popover } from '@heroui-v3/react';
 import { Repeat } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { TypeLivreurBascule } from '@/features/personnel/apis/personnel-historisation.api';
@@ -36,36 +36,40 @@ export function BasculeTypeBouton({ employeId, livreurId, typeActuel }: Props) {
     bascule.mutate(
       { livreurId, typeLivreur: cible, userId: session?.user?.id ? String(session.user.id) : null },
       {
+        onError: () => toast.error('La bascule a échoué.'),
         onSuccess: () => {
           toast.success(`Agent basculé en ${libelleCible}.`);
           setOuvert(false);
         },
-        onError: () => toast.error('La bascule a échoué.'),
       },
     );
   };
 
   return (
-    <Popover isOpen={ouvert} onOpenChange={setOuvert} placement="bottom-end">
-      <PopoverTrigger>
-        <Button size="sm" variant="bordered" startContent={<Repeat className="h-4 w-4" />}>
-          Basculer en {libelleCible}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="max-w-xs p-3">
-        <p className="text-sm text-default-600">
-          Basculer cet agent en <span className="font-semibold">{libelleCible}</span> ? L&apos;événement est
-          enregistré automatiquement au parcours.
+    /*
+     * `Popover.Trigger` rend son PROPRE bouton : le `Button` est enfant direct du
+     * `Popover`, faute de quoi on obtient un bouton dans un bouton et une erreur
+     * d'hydratation a chaque rendu.
+     */
+    <Popover isOpen={ouvert} onOpenChange={setOuvert}>
+      <Button size="sm" variant="outline">
+        <Repeat aria-hidden="true" className="size-4" />
+        Basculer en {libelleCible}
+      </Button>
+      <Popover.Content className="max-w-xs" placement="bottom end">
+        <p className="text-sm text-muted">
+          Basculer cet agent en <span className="font-semibold text-foreground">{libelleCible}</span> ?
+          L&apos;événement est enregistré automatiquement au parcours.
         </p>
         <div className="mt-3 flex justify-end gap-2">
-          <Button size="sm" variant="light" onPress={() => setOuvert(false)}>
+          <Button onPress={() => setOuvert(false)} size="sm" variant="ghost">
             Annuler
           </Button>
-          <Button size="sm" color="primary" isLoading={bascule.isPending} onPress={confirmer}>
+          <Button isPending={bascule.isPending} onPress={confirmer} size="sm" variant="primary">
             Confirmer
           </Button>
         </div>
-      </PopoverContent>
+      </Popover.Content>
     </Popover>
   );
 }

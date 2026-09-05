@@ -1,14 +1,13 @@
+import { Button, Tooltip } from '@heroui-v3/react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Button } from '@/components/heroui';
 import { Pencil, Trash2, XCircle } from 'lucide-react';
+
+import {
+  ChipStatutDeduction,
+  ChipTypeDeduction,
+} from '@/components/personnel/deductions/deductions/chips-deduction';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
 import { formatCfa, formatDateFr } from '@/lib/date-utils';
-import {
-  getDeductionTypeLabel,
-  getDeductionTypeClassName,
-  getDeductionStatusLabel,
-  getDeductionStatusClassName,
-} from '@/features/personnel/utils/deduction.utils';
 
 type CreateDeductionTableColumnsOptions = {
   onEditDeduction?: (deduction: IDeduction) => void;
@@ -34,38 +33,53 @@ export const renderDeductionActions = (
 
   return (
     <div className="flex items-center gap-1">
-      <Button
-        size="sm"
-        variant="light"
-        color="primary"
-        isIconOnly
-        isDisabled={isPret}
-        onPress={() => handlers.onEditDeduction?.(deduction)}
-        title={isPret ? 'Modification du prêt désactivée' : 'Modifier'}
-      >
-        <Pencil className="size-4" />
-      </Button>
-      <Button
-        size="sm"
-        variant="light"
-        color="danger"
-        isIconOnly
-        isDisabled={isCancelled}
-        onPress={() => handlers.onCancelDeduction?.(deduction)}
-        title={isCancelled ? 'Déduction déjà annulée' : 'Annuler'}
-      >
-        <XCircle className="size-4" />
-      </Button>
-      <Button
-        size="sm"
-        variant="light"
-        color="danger"
-        isIconOnly
-        onPress={() => handlers.onDeleteDeduction?.(deduction)}
-        title="Supprimer"
-      >
-        <Trash2 className="size-4" />
-      </Button>
+      {/*
+       * `danger-soft` sur les deux gestes qui DEFONT, `ghost` sur celui qui modifie :
+       * la v2 peignait « Modifier » en `color="primary"` et les deux autres en
+       * `color="danger"` plein, ce qui mettait trois boutons colores par ligne. Et le
+       * `title=` du HTML n'est pas annonce de facon fiable : un `aria-label` porte le
+       * nom, une infobulle le montre.
+       */}
+      <Tooltip>
+        <Button
+          aria-label={isPret ? 'Modification du prêt désactivée' : 'Modifier la déduction'}
+          isDisabled={isPret}
+          isIconOnly
+          onPress={() => handlers.onEditDeduction?.(deduction)}
+          size="sm"
+          variant="ghost"
+        >
+          <Pencil aria-hidden="true" className="size-4" />
+        </Button>
+        <Tooltip.Content>
+          {isPret ? 'Modification du prêt désactivée' : 'Modifier'}
+        </Tooltip.Content>
+      </Tooltip>
+      <Tooltip>
+        <Button
+          aria-label={isCancelled ? 'Déduction déjà annulée' : 'Annuler la déduction'}
+          isDisabled={isCancelled}
+          isIconOnly
+          onPress={() => handlers.onCancelDeduction?.(deduction)}
+          size="sm"
+          variant="danger-soft"
+        >
+          <XCircle aria-hidden="true" className="size-4" />
+        </Button>
+        <Tooltip.Content>{isCancelled ? 'Déduction déjà annulée' : 'Annuler'}</Tooltip.Content>
+      </Tooltip>
+      <Tooltip>
+        <Button
+          aria-label="Supprimer la déduction"
+          isIconOnly
+          onPress={() => handlers.onDeleteDeduction?.(deduction)}
+          size="sm"
+          variant="danger-soft"
+        >
+          <Trash2 aria-hidden="true" className="size-4" />
+        </Button>
+        <Tooltip.Content>Supprimer</Tooltip.Content>
+      </Tooltip>
     </div>
   );
 };
@@ -88,9 +102,7 @@ export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction
     accessorKey: 'typeDeduction',
     header: 'Type',
     cell: ({ row }) => (
-      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getDeductionTypeClassName(row.original.typeDeduction)}`}>
-        {getDeductionTypeLabel(row.original.typeDeduction)}
-      </span>
+      <ChipTypeDeduction type={row.original.typeDeduction} />
     ),
   },
   {
@@ -112,9 +124,7 @@ export const createDeductionTableColumns = ({ onEditDeduction, onCancelDeduction
     accessorKey: 'status',
     header: 'Statut',
     cell: ({ row }) => (
-      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getDeductionStatusClassName(row.original.status)}`}>
-        {getDeductionStatusLabel(row.original.status)}
-      </span>
+      <ChipStatutDeduction statut={row.original.status} />
     ),
   },
   {

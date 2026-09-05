@@ -49,7 +49,14 @@ export function initiales(nom: string | null | undefined): string {
 // Typologie contractuelle
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type CouleurChip = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
+/**
+ * Les tons sémantiques de la bibliothèque, et rien de plus.
+ *
+ * <p>La v2 offrait `primary` et `secondary` comme COULEURS de pastille ; la v3 les a
+ * déplacés sur `variant`, où ils disent une intensité, pas un sens. Ce qui reste ici est
+ * une échelle : neutre, informatif, bon, à surveiller, mauvais.</p>
+ */
+export type CouleurChip = 'accent' | 'danger' | 'default' | 'success' | 'warning';
 
 const LIBELLE_TYPE: Record<string, string> = {
   CDI: 'CDI',
@@ -70,12 +77,16 @@ export function libelleTypeCollaborateur(type: string | null | undefined): strin
   return LIBELLE_TYPE[cle] ?? type.trim();
 }
 
-/** CDI bleu, CDD ambre, Prestataire violet, le reste neutre (maquette v1.1). */
-export function couleurTypeCollaborateur(type: string | null | undefined): CouleurChip {
-  const cle = (type ?? '').trim().toUpperCase();
-  if (cle === 'CDI') return 'primary';
-  if (cle === 'CDD') return 'warning';
-  if (cle === 'PRESTATAIRE' || cle === 'PRESTATION') return 'secondary';
+/**
+ * Le type de contrat ne porte plus de couleur.
+ *
+ * <p>La maquette v1.1 peignait CDI en bleu, CDD en ambre et Prestataire en violet. Un
+ * type de contrat est une CATÉGORIE, pas un état : un CDD n'est ni un avertissement ni
+ * un problème, et l'ambre le laissait entendre sur chaque ligne de l'effectif. Le libellé
+ * dit déjà CDI, CDD ou Prestataire — la teinte n'ajoutait rien et prenait la place de
+ * celles qui, elles, disent quelque chose : la déclaration et la gravité.</p>
+ */
+export function couleurTypeCollaborateur(): CouleurChip {
   return 'default';
 }
 
@@ -111,10 +122,11 @@ export const LIBELLE_GRAVITE: Record<string, string> = {
   A_VERIFIER: 'À vérifier',
 };
 
+/** Une échelle de gravité : rouge, ambre, informatif. */
 export const COULEUR_GRAVITE: Record<string, CouleurChip> = {
-  CRITIQUE: 'danger',
   A_TRAITER: 'warning',
-  A_VERIFIER: 'primary',
+  A_VERIFIER: 'default',
+  CRITIQUE: 'danger',
 };
 
 export const RANG_GRAVITE: Record<string, number> = {

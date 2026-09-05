@@ -1,35 +1,38 @@
 'use client';
 
-import React from 'react';
-import { Input } from '@/components/heroui';
+import { InputGroup, TextField } from '@heroui-v3/react';
 import { Search } from 'lucide-react';
+import React from 'react';
 
 interface EmployeeSearchInputProps {
-  value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  value: string;
 }
 
-export function EmployeeSearchInput({ 
-  value, 
-  onChange, 
-  placeholder = "Rechercher un employé..." 
+export function EmployeeSearchInput({
+  onChange,
+  placeholder = 'Rechercher un employé...',
+  value,
 }: EmployeeSearchInputProps) {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-  };
-
   return (
-    <Input
-      placeholder={placeholder}
+    <TextField
+      aria-label={placeholder}
+      className="w-[250px] max-w-full"
+      onChange={onChange}
       value={value}
-      onChange={handleChange}
-      startContent={
-        <Search className="h-4 w-4 text-muted" />
-      }
-      variant="bordered"
-      size="sm"
-      className="w-[250px]"
-    />
+    >
+      {/*
+       * `InputGroup.Prefix` et `InputGroup.Input`, et non l'`Input` autonome : ce dernier
+       * porte SA propre bordure et sa propre largeur de contenu, ce qui donne un petit
+       * champ borde flottant dans un grand cadre vide.
+       */}
+      <InputGroup>
+        <InputGroup.Prefix>
+          <Search aria-hidden="true" className="size-4" />
+        </InputGroup.Prefix>
+        <InputGroup.Input placeholder={placeholder} />
+      </InputGroup>
+    </TextField>
   );
 }

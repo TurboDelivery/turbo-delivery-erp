@@ -1,76 +1,80 @@
+'use client';
+
+import { ComboBox, Input, ListBox } from '@heroui-v3/react';
 import React, { useMemo } from 'react';
-import Select from 'react-select';
+
 import { useEmployeeListQuery } from '@/features/personnel/queries';
 
 interface EmployeeSelectProps {
-  value?: string;
+  className?: string;
+  isDisabled?: boolean;
+  isLoading?: boolean;
+  limit?: number;
   onChange: (value?: string) => void;
   options?: Array<{ label: string; value: string }>;
-  isLoading?: boolean;
-  isDisabled?: boolean;
   placeholder?: string;
-  className?: string;
-  limit?: number;
+  value?: string;
 }
 
+/**
+ * Le choix d'un employé, parmi cinq cents.
+ *
+ * <h3>Ce qui change</h3>
+ * <p>C'était un `react-select` : une SECONDE bibliothèque de composants montée pour ce
+ * seul champ, avec sa propre apparence, ses propres classes, et une hauteur de 36 px
+ * écrite en dur dans un objet `styles` — donc un champ qui ne s'accordait ni au thème
+ * sombre, ni aux autres champs de la même fenêtre.</p>
+ *
+ * <p>La `ComboBox` de la bibliothèque fait la même chose : on tape, la liste se filtre.
+ * Sur cinq cents employés, c'est le seul contrôle praticable.</p>
+ */
 export function EmployeeSelect({
-  value,
+  className = 'w-full max-w-md',
+  isDisabled = false,
+  isLoading = false,
+  limit = 500,
   onChange,
   options,
-  isLoading = false,
-  isDisabled = false,
   placeholder = 'Sélectionner un employé',
-  className = 'text-xs w-full max-w-md',
-  limit = 500,
+  value,
 }: EmployeeSelectProps) {
   const { data, isLoading: queryLoading } = useEmployeeListQuery({
-    page: 0,
     limit,
+    page: 0,
   });
 
   const employeeOptions = useMemo(() => {
     const employees = data?.content ?? [];
     return [...employees]
       .sort((a, b) => a.name.localeCompare(b.name))
-      .map((employee) => ({
-        label: employee.name,
-        value: employee.id,
-      }));
+      .map((employee) => ({ label: employee.name, value: employee.id }));
   }, [data?.content]);
 
   const selectOptions = options && options.length > 0 ? options : employeeOptions;
   const loading = isLoading || queryLoading;
 
   return (
-    <Select
-      options={selectOptions}
-      value={selectOptions.find((o) => o.value === value) ?? null}
-      onChange={(opt) => onChange(opt?.value)}
-      placeholder={placeholder}
-      isClearable
-      isLoading={loading}
-      isDisabled={loading || isDisabled}
+    <ComboBox
+      aria-label={placeholder}
       className={className}
-      classNamePrefix="react-select"
-      styles={{
-        control: (base) => ({
-          ...base,
-          minHeight: '36px',
-          height: '36px',
-          width: '100%',
-        }),
-        valueContainer: (base) => ({
-          ...base,
-          height: '36px',
-          padding: '0 8px',
-        }),
-        indicatorsContainer: (base) => ({
-          ...base,
-          height: '36px',
-        }),
-      }}
-    />
+      isDisabled={loading || isDisabled}
+      onSelectionChange={(k) => onChange(k == null ? undefined : String(k))}
+      selectedKey={value || null}
+    >
+      <ComboBox.InputGroup>
+        <Input placeholder={loading ? 'Chargement…' : placeholder} />
+        <ComboBox.Trigger />
+      </ComboBox.InputGroup>
+      <ComboBox.Popover>
+        <ListBox items={selectOptions.map((o) => ({ id: o.value, label: o.label }))}>
+          {(o: { id: string; label: string }) => (
+            <ListBox.Item id={o.id} textValue={o.label}>
+              {o.label}
+              <ListBox.ItemIndicator />
+            </ListBox.Item>
+          )}
+        </ListBox>
+      </ComboBox.Popover>
+    </ComboBox>
   );
 }
-
-

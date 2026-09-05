@@ -1,9 +1,9 @@
+import { Chip } from '@heroui-v3/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { format, isValid, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Badge } from '@/components/ui/badge';
+
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { IPayroll } from '@/features/personnel/types/payroll.types';
 
 const toDate = (value: unknown): Date | null => {
@@ -34,30 +34,38 @@ export const formatCfa = (amount: number): string => {
 
 export { formatDateFr };
 
-export const getStatusClassName = (status: string) => {
+type TonPaie = 'danger' | 'default' | 'success';
+
+/**
+ * Le ton d'un statut de bulletin.
+ *
+ * <p>« En attente » était peint en ambre : c'est pourtant l'état NORMAL d'un bulletin
+ * du mois en cours, et l'ambre y annonçait un problème qui n'existe pas. Reste ce qui
+ * dit vraiment quelque chose : payé (bon), annulé (défait).</p>
+ */
+export const getStatusTon = (status: string): TonPaie => {
   const normalized = status?.toUpperCase?.() || '';
-
-  if (normalized.includes('PAID') || normalized.includes('PAYE')) {
-    return 'bg-green-100 text-green-700';
-  }
-
-  if (normalized.includes('PENDING') || normalized.includes('ATTENTE')) {
-    return 'bg-amber-100 text-amber-700';
-  }
-
-  if (normalized.includes('CANCEL')) {
-    return 'bg-red-100 text-red-700';
-  }
-
-  return 'bg-surface-secondary text-foreground';
+  if (normalized.includes('PAID') || normalized.includes('PAYE')) return 'success';
+  if (normalized.includes('CANCEL')) return 'danger';
+  return 'default';
 };
 
-export const getSalaryStatusClassName = (status: string) => {
-  if (status === 'PAID') {
-    return 'bg-green-100 text-green-700';
-  }
-  return 'bg-red-100 text-red-700';
-};
+/**
+ * Le salaire est-il versé.
+ *
+ * <p>C'était binaire vert/ROUGE : un salaire pas encore versé le 3 du mois s'affichait
+ * en rouge sur toute la colonne, comme un impayé. Non versé n'est pas une faute, c'est
+ * l'état de départ.</p>
+ */
+export const getSalaryStatusTon = (status: string): TonPaie =>
+  status === 'PAID' ? 'success' : 'default';
+
+/** La pastille de statut, montée une fois pour la colonne et pour la carte tactile. */
+export const ChipStatutPaie = ({ statut, ton }: { statut: string; ton: TonPaie }) => (
+  <Chip color={ton} size="sm" variant="soft">
+    <Chip.Label className="whitespace-nowrap capitalize">{statut || '-'}</Chip.Label>
+  </Chip>
+);
 
 export const createPayrollTableColumns = (onPayClick?: (payroll: IPayroll) => void): ColumnDef<IPayroll>[] => [
   {
@@ -93,7 +101,10 @@ export const createPayrollTableColumns = (onPayClick?: (payroll: IPayroll) => vo
   {
     accessorKey: 'totalDeductionsPaid',
     header: 'Déductions payées',
-    cell: ({ row }) => <span className="text-green-700">{formatCfa(row.original.totalDeductionsPaid)}</span>,
+    /* Un montant deduit n'est pas une bonne nouvelle : le vert n'y disait rien. */
+    cell: ({ row }) => (
+      <span className="tabular-nums text-foreground">{formatCfa(row.original.totalDeductionsPaid)}</span>
+    ),
   },
   {
     accessorKey: 'netToPay',
@@ -104,16 +115,17 @@ export const createPayrollTableColumns = (onPayClick?: (payroll: IPayroll) => vo
     accessorKey: 'salary_status',
     header: 'Statut paiement',
     cell: ({ row }) => (
-      <Badge className={cn('capitalize text-nowrap', getSalaryStatusClassName(row.original.salary_status))}>
-        {row.original.salary_status === 'PAID' ? 'Payé' : 'Non payé'}
-      </Badge>
+      <ChipStatutPaie
+        statut={row.original.salary_status === 'PAID' ? 'Payé' : 'Non payé'}
+        ton={getSalaryStatusTon(row.original.salary_status)}
+      />
     ),
   },
   {
     accessorKey: 'statut',
     header: 'Statut',
     cell: ({ row }) => (
-      <Badge className={cn('capitalize text-nowrap', getStatusClassName(row.original.statut))}>{row.original.statut || '-'}</Badge>
+      <ChipStatutPaie statut={row.original.statut} ton={getStatusTon(row.original.statut)} />
     ),
   },
   {

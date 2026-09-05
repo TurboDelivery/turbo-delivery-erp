@@ -1,56 +1,70 @@
 'use client';
 
-import React, { useState } from 'react';
+import { Button, Card, Modal, Table } from '@heroui-v3/react';
 import { flexRender } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState } from 'react';
+
+import EtatErreur from '@/components/commons/EtatErreur';
+import { ChampListe } from '@/components/personnel/common/champs-personnel';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  ChipStatutPaie,
+  formatDateFr,
+  getSalaryStatusTon,
+  getStatusTon,
+} from '@/components/personnel/payroll/table/payroll-table-columns';
+import {
+  PersonnelMobileCard,
+  PersonnelMobileCardList,
+} from '@/components/personnel/shared/personnel-mobile-card';
 import { usePayrollTable } from '@/features/personnel/hooks/use-payroll-table';
 import { IPayroll } from '@/features/personnel/types/payroll.types';
-import { PersonnelMobileCard, PersonnelMobileCardList } from '@/components/personnel/shared/personnel-mobile-card';
-import EtatErreur from '@/components/commons/EtatErreur';
-import { getSalaryStatusClassName, getStatusClassName, formatDateFr } from '@/components/personnel/payroll/table/payroll-table-columns';
 
-const MONTHS = [
-  { value: 1, label: 'Janvier' },
-  { value: 2, label: 'Fevrier' },
-  { value: 3, label: 'Mars' },
-  { value: 4, label: 'Avril' },
-  { value: 5, label: 'Mai' },
-  { value: 6, label: 'Juin' },
-  { value: 7, label: 'Juillet' },
-  { value: 8, label: 'Aout' },
-  { value: 9, label: 'Septembre' },
-  { value: 10, label: 'Octobre' },
-  { value: 11, label: 'Novembre' },
-  { value: 12, label: 'Decembre' },
-];
+/** Les libellés étaient écrits sans accents — « Fevrier », « Aout », « Decembre ». */
+const MOIS = [
+  { label: 'Janvier', value: '1' },
+  { label: 'Février', value: '2' },
+  { label: 'Mars', value: '3' },
+  { label: 'Avril', value: '4' },
+  { label: 'Mai', value: '5' },
+  { label: 'Juin', value: '6' },
+  { label: 'Juillet', value: '7' },
+  { label: 'Août', value: '8' },
+  { label: 'Septembre', value: '9' },
+  { label: 'Octobre', value: '10' },
+  { label: 'Novembre', value: '11' },
+  { label: 'Décembre', value: '12' },
+] as const;
+
+const formatCfa = (amount: number): string =>
+  new Intl.NumberFormat('fr-FR', {
+    currency: 'XOF',
+    maximumFractionDigits: 0,
+    style: 'currency',
+  }).format(amount || 0);
 
 function PayrollTable() {
-  const { payrollTable, isPayrollLoading, isPayrollFetching, isPayrollError, refetchPayrolls, filters, handleMonthFilterChange, handleYearFilterChange, handlePayPayroll, isPayingPayroll } =
-    usePayrollTable();
+  const {
+    filters,
+    handleMonthFilterChange,
+    handlePayPayroll,
+    handleYearFilterChange,
+    isPayingPayroll,
+    isPayrollError,
+    isPayrollFetching,
+    isPayrollLoading,
+    payrollTable,
+    refetchPayrolls,
+  } = usePayrollTable();
   const [selectedPayroll, setSelectedPayroll] = useState<IPayroll | null>(null);
-  const colsCount = payrollTable.getAllColumns().length;
   // L'echec ne prend la place des lignes que s'il n'y a rien a montrer : un rafraichissement
   // rate laisse la paie deja chargee en place.
   const enEchec = isPayrollError && payrollTable.getRowModel().rows.length === 0;
   const currentYear = new Date().getFullYear();
   const startYear = 2024;
-  const yearOptions = Array.from({ length: Math.max(currentYear - startYear + 1, 1) }, (_, index) => startYear + index);
-
-  const handlePayClick = (payroll: IPayroll) => {
-    setSelectedPayroll(payroll);
-  };
+  const annees = Array.from({ length: Math.max(currentYear - startYear + 1, 1) }, (_, i) => ({
+    label: String(startYear + i),
+    value: String(startYear + i),
+  }));
 
   const handleConfirmPay = () => {
     if (selectedPayroll) {
@@ -59,187 +73,237 @@ function PayrollTable() {
     }
   };
 
-  const formatCfa = (amount: number): string => {
-    return new Intl.NumberFormat('fr-FR', {
-      style: 'currency',
-      currency: 'XOF',
-      maximumFractionDigits: 0,
-    }).format(amount || 0);
+  const enTetes = payrollTable.getFlatHeaders();
+
+  /**
+   * Le bouton « Payer », monté une fois.
+   *
+   * <p>C'était un `<button>` nu portant TRENTE classes recopiées à la main pour imiter un
+   * bouton — jusqu'aux états `disabled:` et à l'anneau de focus —, dupliqué à l'identique
+   * dans le tableau et dans la carte tactile.</p>
+   */
+  const boutonPayer = (payroll: IPayroll, pleineLargeur = false) => {
+    const isPaid = payroll.salary_status === 'PAID';
+    return (
+      <Button
+        className={pleineLargeur ? 'w-full' : undefined}
+        isDisabled={isPaid || isPayingPayroll}
+        onPress={() => setSelectedPayroll(payroll)}
+        size="sm"
+        variant="primary"
+      >
+        {isPaid ? 'Payé' : 'Payer'}
+      </Button>
+    );
   };
 
   return (
     <div className="space-y-4">
       <div className="flex w-full flex-col gap-4 sm:flex-row">
-        <div className="w-full max-w-xs space-y-2">
-          <Label htmlFor="payroll-year">Année</Label>
-          <Select value={String(filters.year)} onValueChange={(value) => handleYearFilterChange(Number(value))}>
-            <SelectTrigger id="payroll-year">
-              <SelectValue placeholder="Sélectionner une année" />
-            </SelectTrigger>
-            <SelectContent>
-              {yearOptions.map((year) => (
-                <SelectItem key={year} value={String(year)}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="w-full max-w-xs">
+          <ChampListe
+            label="Année"
+            onChange={(v) => handleYearFilterChange(Number(v))}
+            options={annees}
+            placeholder="Sélectionner une année"
+            valeur={String(filters.year)}
+          />
         </div>
-
-        <div className="w-full max-w-xs space-y-2">
-          <Label htmlFor="payroll-month">Mois</Label>
-          <Select value={String(filters.month)} onValueChange={(value) => handleMonthFilterChange(Number(value))}>
-            <SelectTrigger id="payroll-month">
-              <SelectValue placeholder="Sélectionner un mois" />
-            </SelectTrigger>
-            <SelectContent>
-              {MONTHS.map((month) => (
-                <SelectItem key={month.value} value={String(month.value)}>
-                  {month.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="w-full max-w-xs">
+          <ChampListe
+            label="Mois"
+            onChange={(v) => handleMonthFilterChange(Number(v))}
+            options={MOIS}
+            placeholder="Sélectionner un mois"
+            valeur={String(filters.month)}
+          />
         </div>
       </div>
 
       {/* Tableau — desktop uniquement (≥ md) */}
-      <div className="hidden md:block overflow-x-auto">
-        <Table isStriped>
-          <TableHeader>
-            {payrollTable.getFlatHeaders().map((header) => (
-              <TableColumn key={header.id} className="text-primary" allowsSorting={header.column.getCanSort()} onClick={header.column.getToggleSortingHandler()}>
-                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-              </TableColumn>
-            ))}
-          </TableHeader>
-
-          {/* L'echec remplace « Aucun paiement trouve », qui se lirait comme un mois sans paie. */}
-          <TableBody
-            emptyContent={
-              enEchec ? <EtatErreur quoi="les paiements" onReessayer={() => refetchPayrolls()} enCours={isPayrollFetching} /> : 'Aucun paiement trouvé'
-            }
-          >
-            {isPayrollLoading
-              ? Array.from({ length: 10 }).map((_, i) => (
-                  <TableRow key={`skeleton-${i}`}>
-                    {Array.from({ length: colsCount }).map((_, j) => (
-                      <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                        <div className="h-4 w-full animate-pulse rounded bg-surface-tertiary" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : enEchec
-                ? []
-                : payrollTable.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className={isPayrollFetching ? 'opacity-70' : ''}>
-                    {row.getVisibleCells().map((cell) => {
-                      if (cell.column.id === 'actions') {
-                        return (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              () => (
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => handlePayClick(row.original)}
-                                    disabled={row.original.salary_status === 'PAID' || isPayingPayroll}
-                                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-surface-tertiary disabled:text-muted"
-                                  >
-                                    {row.original.salary_status === 'PAID' ? 'Payé' : 'Payer'}
-                                  </button>
-                                </div>
-                              ),
-                              cell.getContext(),
-                            )}
-                          </TableCell>
-                        );
+      <Card className="hidden md:block">
+        <Card.Content className="p-0">
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Bulletins de paie" className="min-w-[72rem]">
+                <Table.Header>
+                  {enTetes.map((header) => (
+                    <Table.Column
+                      allowsSorting={header.column.getCanSort()}
+                      id={header.id}
+                      isRowHeader={header.id === 'name'}
+                      key={header.id}
+                    >
+                      {({ sortDirection }) =>
+                        header.column.getCanSort() ? (
+                          <Table.SortableColumnHeader sortDirection={sortDirection}>
+                            {header.isPlaceholder
+                              ? ''
+                              : flexRender(header.column.columnDef.header, header.getContext())}
+                          </Table.SortableColumnHeader>
+                        ) : (
+                          <>
+                            {header.isPlaceholder
+                              ? ''
+                              : flexRender(header.column.columnDef.header, header.getContext())}
+                          </>
+                        )
                       }
+                    </Table.Column>
+                  ))}
+                </Table.Header>
 
-                      return <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>;
-                    })}
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-      </div>
+                {/* L'echec remplace « Aucun paiement trouve », qui se lirait comme un mois sans paie. */}
+                <Table.Body
+                  renderEmptyState={() =>
+                    isPayrollLoading ? null : enEchec ? (
+                      <div className="py-6">
+                        <EtatErreur
+                          enCours={isPayrollFetching}
+                          onReessayer={() => refetchPayrolls()}
+                          quoi="les paiements"
+                        />
+                      </div>
+                    ) : (
+                      <p className="py-8 text-center text-sm text-muted">Aucun paiement trouvé</p>
+                    )
+                  }
+                >
+                  {/* Le squelette compte ses cellules sur les MEMES en-tetes que les lignes. */}
+                  {isPayrollLoading
+                    ? Array.from({ length: 10 }).map((_, i) => (
+                        <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                          {enTetes.map((h) => (
+                            <Table.Cell key={`sq-${i}-${h.id}`}>
+                              <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                            </Table.Cell>
+                          ))}
+                        </Table.Row>
+                      ))
+                    : null}
+
+                  {(isPayrollLoading || enEchec ? [] : payrollTable.getRowModel().rows).map(
+                    (row) => (
+                      <Table.Row id={row.id} key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <Table.Cell
+                            className={isPayrollFetching ? 'opacity-70' : undefined}
+                            key={cell.id}
+                          >
+                            {cell.column.id === 'actions'
+                              ? boutonPayer(row.original)
+                              : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ),
+                  )}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+          </Table>
+        </Card.Content>
+      </Card>
 
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <PersonnelMobileCardList>
         {isPayrollLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <div key={`m-skel-${i}`} className="h-48 rounded-xl bg-surface-secondary animate-pulse" />)
+          Array.from({ length: 6 }).map((_, i) => (
+            <div className="h-48 animate-pulse rounded-xl bg-surface-secondary" key={`m-skel-${i}`} />
+          ))
         ) : enEchec ? (
-          <EtatErreur quoi="les paiements" onReessayer={() => refetchPayrolls()} enCours={isPayrollFetching} />
+          <EtatErreur
+            enCours={isPayrollFetching}
+            onReessayer={() => refetchPayrolls()}
+            quoi="les paiements"
+          />
         ) : payrollTable.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-muted text-center py-10">Aucun paiement trouvé</p>
+          <p className="py-10 text-center text-sm text-muted">Aucun paiement trouvé</p>
         ) : (
           payrollTable.getRowModel().rows.map((row) => {
             const payroll = row.original;
             const isPaid = payroll.salary_status === 'PAID';
             return (
               <PersonnelMobileCard
-                key={payroll.id}
-                title={payroll.name || '-'}
-                subtitle={payroll.email || '-'}
-                statut={isPaid ? 'Payé' : 'Non payé'}
-                statutClassName={getSalaryStatusClassName(payroll.salary_status)}
+                actions={boutonPayer(payroll, true)}
                 fields={[
                   { label: 'Poste', value: payroll.position || '-' },
                   { label: 'Département', value: payroll.department || '-' },
                   { label: 'Salaire brut', value: formatCfa(payroll.salaryBrut) },
-                  { label: 'Déductions en attente', value: <span className="text-amber-700">{formatCfa(payroll.totalDeductionsPending)}</span> },
-                  { label: 'Déductions payées', value: <span className="text-green-700">{formatCfa(payroll.totalDeductionsPaid)}</span> },
-                  { label: 'Net a payer', value: <span className="font-semibold">{formatCfa(payroll.netToPay)}</span> },
+                  {
+                    label: 'Déductions en attente',
+                    value: formatCfa(payroll.totalDeductionsPending),
+                  },
+                  { label: 'Déductions payées', value: formatCfa(payroll.totalDeductionsPaid) },
+                  {
+                    label: 'Net à payer',
+                    value: <span className="font-semibold">{formatCfa(payroll.netToPay)}</span>,
+                  },
                   {
                     label: 'Statut',
                     value: (
-                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium capitalize ${getStatusClassName(payroll.statut)}`}>
-                        {payroll.statut || '-'}
-                      </span>
+                      <ChipStatutPaie
+                        statut={payroll.statut}
+                        ton={getStatusTon(payroll.statut)}
+                      />
                     ),
                   },
                   { label: 'Date entrée', value: formatDateFr(payroll.entryDate) },
-                  { label: 'Dernière maj', value: formatDateFr(payroll.updatedAt, 'dd MMM yyyy HH:mm') },
+                  {
+                    label: 'Dernière maj',
+                    value: formatDateFr(payroll.updatedAt, 'dd MMM yyyy HH:mm'),
+                  },
                 ]}
-                actions={
-                  <button
-                    onClick={() => handlePayClick(payroll)}
-                    disabled={isPaid || isPayingPayroll}
-                    className="inline-flex w-full items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-9 px-3 bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-surface-tertiary disabled:text-muted"
-                  >
-                    {isPaid ? 'Payé' : 'Payer'}
-                  </button>
+                key={payroll.id}
+                statut={
+                  <ChipStatutPaie
+                    statut={isPaid ? 'Payé' : 'Non payé'}
+                    ton={getSalaryStatusTon(payroll.salary_status)}
+                  />
                 }
+                subtitle={payroll.email || '-'}
+                title={payroll.name || '-'}
               />
             );
           })
         )}
       </PersonnelMobileCardList>
 
-      <AlertDialog open={Boolean(selectedPayroll)} onOpenChange={(open) => !open && setSelectedPayroll(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmer le paiement</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <div>
-                Êtes-vous sûr de vouloir payer <span className="font-semibold">{selectedPayroll?.name}</span> ?
-              </div>
-              <div className="space-y-1 rounded-lg bg-surface-secondary p-3">
-                <div className="flex justify-between">
-                  <span className="text-sm">Montant net:</span>
-                  <span className="font-semibold">{formatCfa(selectedPayroll?.netToPay || 0)}</span>
+      <Modal
+        isOpen={Boolean(selectedPayroll)}
+        onOpenChange={(open) => !open && setSelectedPayroll(null)}
+      >
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>Confirmer le paiement</Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+              <Modal.Body className="flex flex-col gap-2">
+                <p className="text-sm text-muted">
+                  Êtes-vous sûr de vouloir payer{' '}
+                  <span className="font-semibold text-foreground">{selectedPayroll?.name}</span> ?
+                </p>
+                <div className="flex justify-between rounded-lg bg-surface-secondary p-3">
+                  <span className="text-sm text-muted">Montant net</span>
+                  <span className="font-semibold tabular-nums text-foreground">
+                    {formatCfa(selectedPayroll?.netToPay || 0)}
+                  </span>
                 </div>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmPay} disabled={isPayingPayroll}>
-              {isPayingPayroll ? 'Traitement...' : 'Confirmer'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button onPress={() => setSelectedPayroll(null)} variant="ghost">
+                  Annuler
+                </Button>
+                <Button isPending={isPayingPayroll} onPress={handleConfirmPay} variant="primary">
+                  Confirmer
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
     </div>
   );
 }

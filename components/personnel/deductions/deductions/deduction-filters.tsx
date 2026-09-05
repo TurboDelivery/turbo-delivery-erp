@@ -1,98 +1,100 @@
-import React from 'react';
-import { Select, SelectItem } from '@/components/heroui';
+'use client';
+
+import { Button, Card } from '@heroui-v3/react';
 import { X } from 'lucide-react';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+
+import {
+  ChampEnveloppe,
+  ChampListe,
+} from '@/components/personnel/common/champs-personnel';
 import { EmployeeSelect } from '@/components/personnel/common/employee-select';
 
 interface DeductionFiltersProps {
   filters: {
     employeeId: string;
-    year: number;
     month: number;
+    year: number;
   };
   handleEmployeeFilterChange: (employeeId?: string | null) => void;
-  handleYearFilterChange: (year?: number) => void;
   handleMonthFilterChange: (month?: number) => void;
+  handleYearFilterChange: (year?: number) => void;
   onReset?: () => void;
 }
 
-const monthOptions = [
-  { key: '1', label: 'Janvier' },
-  { key: '2', label: 'Fevrier' },
-  { key: '3', label: 'Mars' },
-  { key: '4', label: 'Avril' },
-  { key: '5', label: 'Mai' },
-  { key: '6', label: 'Juin' },
-  { key: '7', label: 'Juillet' },
-  { key: '8', label: 'Aout' },
-  { key: '9', label: 'Septembre' },
-  { key: '10', label: 'Octobre' },
-  { key: '11', label: 'Novembre' },
-  { key: '12', label: 'Decembre' },
-];
+const MOIS = [
+  { label: 'Janvier', value: '1' },
+  { label: 'Février', value: '2' },
+  { label: 'Mars', value: '3' },
+  { label: 'Avril', value: '4' },
+  { label: 'Mai', value: '5' },
+  { label: 'Juin', value: '6' },
+  { label: 'Juillet', value: '7' },
+  { label: 'Août', value: '8' },
+  { label: 'Septembre', value: '9' },
+  { label: 'Octobre', value: '10' },
+  { label: 'Novembre', value: '11' },
+  { label: 'Décembre', value: '12' },
+] as const;
 
-export function DeductionFilters({ filters, handleEmployeeFilterChange, handleYearFilterChange, handleMonthFilterChange, onReset }: DeductionFiltersProps) {
+/**
+ * Les filtres des déductions.
+ *
+ * <p>Les libellés de mois étaient écrits sans accents — « Fevrier », « Aout »,
+ * « Decembre » — sur un écran entièrement en français par ailleurs.</p>
+ */
+export function DeductionFilters({
+  filters,
+  handleEmployeeFilterChange,
+  handleMonthFilterChange,
+  handleYearFilterChange,
+  onReset,
+}: DeductionFiltersProps) {
   const currentYear = new Date().getFullYear();
-  const years = [currentYear - 1, currentYear, currentYear + 1];
+  const annees = [currentYear - 1, currentYear, currentYear + 1].map((a) => ({
+    label: String(a),
+    value: String(a),
+  }));
 
   return (
-    <div className="space-y-4 rounded-lg border bg-background p-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Filtres déductions</h3>
-        {onReset && (
-          <Button variant="ghost" size="sm" onClick={onReset}>
-            <X className="mr-2 h-4 w-4" />
-            Reinitialiser
-          </Button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="deduction-employee-filter">Employé</Label>
-          <EmployeeSelect value={filters.employeeId} onChange={(value) => handleEmployeeFilterChange(value || null)} className="text-xs w-full" />
+    <Card>
+      <Card.Content className="gap-4">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="font-semibold text-foreground">Filtres déductions</h3>
+          {onReset && (
+            <Button onPress={onReset} size="sm" variant="ghost">
+              <X aria-hidden="true" className="size-4" />
+              Réinitialiser
+            </Button>
+          )}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="deduction-year-filter">Année</Label>
-          <Select
-            id="deduction-year-filter"
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <ChampEnveloppe label="Employé">
+            <EmployeeSelect
+              className="w-full"
+              onChange={(value) => handleEmployeeFilterChange(value || null)}
+              value={filters.employeeId}
+            />
+          </ChampEnveloppe>
+
+          <ChampListe
+            label="Année"
+            onChange={(v) => handleYearFilterChange(Number(v))}
+            options={annees}
             placeholder="Sélectionner une année"
-            selectedKeys={[String(filters.year)]}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0] as string;
-              handleYearFilterChange(Number(selected));
-            }}
-          >
-            {years.map((year) => (
-              <SelectItem key={String(year)} value={String(year)}>
-                {String(year)}
-              </SelectItem>
-            ))}
-          </Select>
-        </div>
+            valeur={String(filters.year)}
+          />
 
-        <div className="space-y-2">
-          <Label htmlFor="deduction-month-filter">Mois</Label>
-          <Select
-            id="deduction-month-filter"
+          <ChampListe
+            label="Mois"
+            onChange={(v) => handleMonthFilterChange(Number(v))}
+            options={MOIS}
             placeholder="Sélectionner un mois"
-            selectedKeys={[String(filters.month)]}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0] as string;
-              handleMonthFilterChange(Number(selected));
-            }}
-          >
-            {monthOptions.map((option) => (
-              <SelectItem key={option.key} value={option.key}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </Select>
+            valeur={String(filters.month)}
+          />
         </div>
-      </div>
-    </div>
+      </Card.Content>
+    </Card>
   );
 }
-

@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from '@/components/heroui';
+import { Controller, useForm } from 'react-hook-form';
+import { Button, Modal } from '@heroui-v3/react';
 import { toast } from 'sonner';
+import { ChampEnveloppe, ChampTexte, ChampZoneTexte } from '@/components/personnel/common/champs-personnel';
 import { EmployeeSelect } from '@/components/personnel/common/employee-select';
-import { Label } from '@/components/ui/label';
 import { absenceDeductionFormSchema, AbsenceDeductionFormValues, CreateAbsenceDeductionDTO, createAbsenceDeductionSchema } from '@/features/personnel/schemas/deduction.schema';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
 import { IAbsence } from '@/features/personnel/types/absence.types';
@@ -36,7 +36,7 @@ export default function AbsenceModal({ isOpen, onClose, absence, deduction, onSu
   });
 
   const {
-    register,
+    control,
     handleSubmit,
     reset,
     setValue,
@@ -91,45 +91,83 @@ export default function AbsenceModal({ isOpen, onClose, absence, deduction, onSu
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
-      <ModalContent>
-        {(closeModal) => (
-          <>
-            <ModalHeader>{isEditMode ? 'Modifier une absence' : 'Signaler une absence'}</ModalHeader>
-            <ModalBody>
-              <form id="absence-form" className="space-y-4" onSubmit={handleSubmit(submitAbsence)}>
-                <div>
-                  <Label className="mb-1 block">Employé</Label>
-                  <EmployeeSelect value={form.watch('employeeId')} onChange={(value) => setValue('employeeId', value || '', { shouldValidate: true, shouldDirty: true })} className="text-xs w-full" />
-                  {errors.employeeId && <small className="text-red-500 text-sm">{errors.employeeId.message}</small>}
-                </div>
+    <Modal isOpen={isOpen} onOpenChange={(o) => !o && onClose()}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-2xl">
+            <Modal.Header>
+              <Modal.Heading>
+                {isEditMode ? 'Modifier une absence' : 'Signaler une absence'}
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body>
+              <form className="flex flex-col gap-4" id="absence-form" onSubmit={handleSubmit(submitAbsence)}>
+                <ChampEnveloppe erreur={errors.employeeId?.message} label="Employé">
+                  <EmployeeSelect
+                    className="w-full"
+                    onChange={(value) =>
+                      setValue('employeeId', value || '', { shouldDirty: true, shouldValidate: true })
+                    }
+                    value={form.watch('employeeId')}
+                  />
+                </ChampEnveloppe>
+
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="dateDebut">Date début</Label>
-                    <Input id="dateDebut" type="date" {...register('dateDebut')} variant="bordered" isInvalid={!!errors.dateDebut} errorMessage={errors.dateDebut?.message} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="dateFin">Date fin</Label>
-                    <Input id="dateFin" type="date" {...register('dateFin')} variant="bordered" isInvalid={!!errors.dateFin} errorMessage={errors.dateFin?.message} />
-                  </div>
+                  <Controller
+                    control={control}
+                    name="dateDebut"
+                    render={({ field }) => (
+                      <ChampTexte
+                        erreur={errors.dateDebut?.message}
+                        label="Date début"
+                        onChange={field.onChange}
+                        type="date"
+                        valeur={field.value ?? ''}
+                      />
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="dateFin"
+                    render={({ field }) => (
+                      <ChampTexte
+                        erreur={errors.dateFin?.message}
+                        label="Date fin"
+                        onChange={field.onChange}
+                        type="date"
+                        valeur={field.value ?? ''}
+                      />
+                    )}
+                  />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="motif">Motif</Label>
-                  <Textarea id="motif" placeholder="Saisissez le motif" {...register('motif')} variant="bordered" minRows={3} isInvalid={!!errors.motif} errorMessage={errors.motif?.message} />
-                </div>
+
+                <Controller
+                  control={control}
+                  name="motif"
+                  render={({ field }) => (
+                    <ChampZoneTexte
+                      erreur={errors.motif?.message}
+                      label="Motif"
+                      onChange={field.onChange}
+                      placeholder="Saisissez le motif"
+                      valeur={field.value ?? ''}
+                    />
+                  )}
+                />
               </form>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="light" color="danger" onPress={closeModal} isDisabled={isSubmitting}>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button isDisabled={isSubmitting} onPress={onClose} variant="ghost">
                 Annuler
               </Button>
-              <Button color="primary" type="submit" form="absence-form" isLoading={isSubmitting}>
+              <Button form="absence-form" isPending={isSubmitting} type="submit" variant="primary">
                 {isEditMode ? 'Modifier' : 'Créer'}
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

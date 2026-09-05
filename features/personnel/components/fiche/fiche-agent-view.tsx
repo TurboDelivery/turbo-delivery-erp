@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Button, Chip, Spinner } from '@/components/heroui';
+import { Avatar, Button, Chip, Spinner } from '@heroui-v3/react';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, ExternalLink, Undo2 } from 'lucide-react';
 
@@ -34,8 +34,8 @@ import { RemunerationHistorique } from './remuneration-historique';
 function Kv({ libelle, valeur }: { libelle: string; valeur: React.ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 py-1 text-sm">
-      <span className="shrink-0 text-default-400">{libelle}</span>
-      <span className="text-right font-medium text-default-700">{valeur}</span>
+      <span className="shrink-0 text-muted">{libelle}</span>
+      <span className="text-right font-medium text-foreground">{valeur}</span>
     </div>
   );
 }
@@ -70,14 +70,15 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
   if (isLoading) {
     return (
       <div className="flex justify-center py-24">
-        <Spinner color="primary" label="Chargement du dossier…" />
+        <Spinner />
+        <p className="text-sm text-muted">Chargement du dossier…</p>
       </div>
     );
   }
 
   if (isError || !dossier) {
     return (
-      <div className="rounded-xl border border-default-200 bg-surface p-6 text-sm text-default-500">
+      <div className="rounded-xl border border-separator bg-surface p-6 text-sm text-muted">
         Ce dossier est introuvable.{' '}
         <Link href="/personnel" className="font-semibold text-primary hover:underline">
           Retour à l&apos;effectif
@@ -102,26 +103,27 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
     <div className="space-y-4">
       <Link
         href="/personnel"
-        className="inline-flex items-center gap-1 text-sm font-medium text-default-500 hover:text-primary"
+        className="inline-flex items-center gap-1 text-sm font-medium text-muted hover:text-foreground"
       >
         <ArrowLeft className="h-4 w-4" />
         Retour à l&apos;effectif
       </Link>
 
       {/* En-tête */}
-      <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-default-200 bg-surface p-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 rounded-xl border border-separator bg-surface p-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-default-100 text-sm font-semibold text-default-600">
-            {initiales(fiche.name)}
-          </div>
+          {/* C'etait un rond dessine a la main : la bibliotheque a un avatar. */}
+          <Avatar size="lg">
+            <Avatar.Fallback>{initiales(fiche.name)}</Avatar.Fallback>
+          </Avatar>
           <div>
-            <h1 className="text-lg font-semibold text-default-800">
+            <h1 className="text-lg font-semibold text-foreground">
               {fiche.name ?? '—'}
               {fiche.matricule ? (
-                <span className="ml-2 font-mono text-xs font-normal text-default-400">{fiche.matricule}</span>
+                <span className="ml-2 font-mono text-xs font-normal text-muted">{fiche.matricule}</span>
               ) : null}
             </h1>
-            <p className="text-xs text-default-400">
+            <p className="text-xs text-muted">
               {[fiche.position, fiche.agence ?? fiche.department].filter(Boolean).join(' · ') ||
                 'Poste non renseigné'}
               {fiche.enregistreLe ? ` · enrôlé le ${formaterDate(fiche.enregistreLe)}` : ''}
@@ -154,8 +156,8 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[340px_1fr]">
             {/* Colonne gauche */}
             <div className="space-y-4">
-              <section className="rounded-xl border border-default-200 bg-surface p-4">
-                <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-default-500">
+              <section className="rounded-xl border border-separator bg-surface p-4">
+                <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
                   Dossier d&apos;enrôlement
                 </h2>
                 <Kv
@@ -175,7 +177,7 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                           </a>
                         ) : null}
                         {fiche.pieceExpireLe ? (
-                          <span className="block text-[11px] font-normal text-default-400">
+                          <span className="block text-xs font-normal text-muted">
                             expire le {formaterDate(fiche.pieceExpireLe)}
                           </span>
                         ) : null}
@@ -191,13 +193,13 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                     contrat ? (
                       <span>
                         {libelleTypeCollaborateur(contrat.typeContrat)}
-                        <span className="block text-[11px] font-normal text-default-400">
+                        <span className="block text-xs font-normal text-muted">
                           {formaterDate(contrat.dateDebut)}
                           {contrat.dateFin ? ` → ${formaterDate(contrat.dateFin)}` : ''}
                         </span>
                       </span>
                     ) : (
-                      <span className="text-default-400">{libelleTypeCollaborateur(fiche.typeCollaborateur)}</span>
+                      <span className="text-muted">{libelleTypeCollaborateur(fiche.typeCollaborateur)}</span>
                     )
                   }
                 />
@@ -205,12 +207,12 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                   libelle="Déclaration"
                   valeur={
                     declaration === 'NON_APPLICABLE' ? (
-                      <span className="text-default-400">Non applicable</span>
+                      <span className="text-muted">Non applicable</span>
                     ) : (
                       <span>
                         <DeclarationChip etat={declaration} />
                         {contrat?.referenceDeclaration ? (
-                          <span className="block text-[11px] font-normal text-default-400">
+                          <span className="block text-xs font-normal text-muted">
                             réf. {contrat.referenceDeclaration}
                             {contrat.dateDeclaration ? ` · ${formaterDate(contrat.dateDeclaration)}` : ''}
                           </span>
@@ -237,18 +239,18 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                     fiche.urgenceNom || fiche.urgenceTelephone ? (
                       <span>
                         {fiche.urgenceNom ?? '—'}
-                        <span className="block text-[11px] font-normal text-default-400">
+                        <span className="block text-xs font-normal text-muted">
                           {[fiche.urgenceTelephone, fiche.urgenceLien].filter(Boolean).join(' · ')}
                         </span>
                       </span>
                     ) : (
-                      <span className="text-default-400">Non renseigné</span>
+                      <span className="text-muted">Non renseigné</span>
                     )
                   }
                 />
                 <Kv
                   libelle="Rémunération de référence"
-                  valeur={fiche.salary ? formaterMontant(fiche.salary) : <span className="text-default-400">—</span>}
+                  valeur={fiche.salary ? formaterMontant(fiche.salary) : <span className="text-muted">—</span>}
                 />
                 {fiche.sorti ? (
                   <Kv
@@ -257,27 +259,27 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                       <span>
                         {formaterDate(fiche.sortieLe)}
                         {fiche.sortieMotif ? (
-                          <span className="block text-[11px] font-normal text-default-400">{fiche.sortieMotif}</span>
+                          <span className="block text-xs font-normal text-muted">{fiche.sortieMotif}</span>
                         ) : null}
                       </span>
                     }
                   />
                 ) : null}
 
-                <div className="mt-3 border-t border-default-100 pt-2">
-                  <h3 className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-default-500">
+                <div className="mt-3 border-t border-separator pt-2">
+                  <h3 className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted">
                     Pièces jointes
                   </h3>
                   {dossier.pieces.length === 0 ? (
-                    <p className="text-xs text-default-400">Aucune pièce jointe au dossier.</p>
+                    <p className="text-xs text-muted">Aucune pièce jointe au dossier.</p>
                   ) : (
                     <ul className="space-y-1">
                       {dossier.pieces.map((p) => (
                         <li key={p.id} className="flex items-center justify-between gap-2 text-xs">
-                          <span className="truncate text-default-600">
+                          <span className="truncate text-foreground">
                             {p.libelle ?? p.categorie ?? 'Pièce'}
                             {p.ajouteParNom ? (
-                              <span className="text-default-400"> · {p.ajouteParNom}</span>
+                              <span className="text-muted"> · {p.ajouteParNom}</span>
                             ) : null}
                           </span>
                           {p.url ? (
@@ -297,8 +299,8 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
                 </div>
               </section>
 
-              <section className="rounded-xl border border-default-200 bg-surface p-4">
-                <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-default-500">
+              <section className="rounded-xl border border-separator bg-surface p-4">
+                <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
                   Parcours de l&apos;agent
                 </h2>
                 <ParcoursTimeline evenements={dossier.parcours} />
@@ -306,24 +308,20 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
             </div>
 
             {/* Colonne droite */}
-            <section className="rounded-xl border border-default-200 bg-surface p-4">
+            <section className="rounded-xl border border-separator bg-surface p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-[11px] font-semibold uppercase tracking-wide text-default-500">
+                <h2 className="text-xs font-semibold uppercase tracking-wide text-muted">
                   Historique mensuel de rémunération
                 </h2>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Chip size="sm" variant="flat">
-                    Net moyen {formaterMontant(remunerations?.netMoyen)}
+                  <Chip size="sm" variant="soft">
+                    <Chip.Label>Net moyen {formaterMontant(remunerations?.netMoyen)}</Chip.Label>
                   </Chip>
-                  <Chip size="sm" variant="flat">
-                    Total perçu {formaterMontant(remunerations?.totalPercu)}
+                  <Chip size="sm" variant="soft">
+                    <Chip.Label>Total perçu {formaterMontant(remunerations?.totalPercu)}</Chip.Label>
                   </Chip>
-                  <Button
-                    size="sm"
-                    variant="bordered"
-                    startContent={<Undo2 className="h-4 w-4" />}
-                    onPress={() => setRegularisation(true)}
-                  >
+                  <Button onPress={() => setRegularisation(true)} size="sm" variant="outline">
+                    <Undo2 aria-hidden="true" className="size-4" />
                     Régulariser un mois clôturé
                   </Button>
                 </div>
@@ -345,8 +343,8 @@ export function FicheAgentView({ employeId }: { employeId: string }) {
         </TabsContent>
 
         <TabsContent value="audit" className="mt-4">
-          <div className="space-y-2 rounded-xl border border-default-200 bg-surface p-4">
-            <p className="text-xs text-default-400">
+          <div className="space-y-2 rounded-xl border border-separator bg-surface p-4">
+            <p className="text-xs text-muted">
               Toute écriture sur cette fiche est journalisée automatiquement, avec l&apos;auteur et la valeur avant /
               après. Le journal est immuable : il ne peut être ni modifié ni supprimé.
               {fiche.updatedAt ? ` Dernière mise à jour ${formaterDateHeure(fiche.updatedAt)}.` : ''}

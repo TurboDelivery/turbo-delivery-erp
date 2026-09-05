@@ -1,3 +1,5 @@
+import { Chip } from '@heroui-v3/react';
+
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
@@ -23,18 +25,35 @@ import { useAbility } from '@/hooks/use-ability';
  * Config du badge de statut employé — partagée par la colonne du tableau et la
  * carte mobile (zéro divergence d'affichage).
  */
-export const getEmployeeStatutConfig = (statut: IEmployee['statut']): { label: string; className: string } => {
+/**
+ * Le ton du statut d'un employé.
+ *
+ * <p>C'étaient trois badges PLEINS et saturés — vert `600`, jaune `500`, et pour
+ * « Inactif » la couleur de MARQUE, `bg-primary`. Trois pastilles pleines par ligne sur
+ * cinquante lignes, dont une qui empruntait le rouge de l'entreprise pour dire « ce
+ * compte ne sert plus ». Un employé inactif n'est pas une alerte, c'est une absence
+ * d'activité : le neutre le dit. Un congé, lui, se remarque — c'est une personne qu'on
+ * ne peut pas affecter aujourd'hui.</p>
+ */
+export const getEmployeeStatutTon = (
+  statut: IEmployee['statut'],
+): 'danger' | 'default' | 'success' | 'warning' => {
   switch (statut) {
     case 'Actif':
-      return { label: statut, className: 'bg-green-600 text-white border-green-300' };
-    case 'Inactif':
-      return { label: statut, className: 'bg-primary text-white border-primary' };
+      return 'success';
     case 'Congé':
-      return { label: statut, className: 'bg-yellow-500 text-white border-yellow-200' };
+      return 'warning';
     default:
-      return { label: statut, className: 'bg-surface-secondary text-foreground border-separator' };
+      return 'default';
   }
 };
+
+/** La pastille de statut, montée une fois pour la colonne et pour la carte tactile. */
+export const ChipStatutEmploye = ({ statut }: { statut: IEmployee['statut'] }) => (
+  <Chip color={getEmployeeStatutTon(statut)} size="sm" variant="soft">
+    <Chip.Label>{statut}</Chip.Label>
+  </Chip>
+);
 
 // Composant mémorisé pour les actions
 export const EmployeeActions = React.memo(
@@ -200,8 +219,7 @@ export const employeeColumns: ColumnDef<IEmployee>[] = [
     accessorKey: 'statut',
     header: 'Statut',
     cell: ({ row }) => {
-      const { label, className } = getEmployeeStatutConfig(row.original.statut);
-      return <div className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold ${className}`}>{label}</div>;
+      return <ChipStatutEmploye statut={row.original.statut} />;
     },
     enableSorting: false,
   },

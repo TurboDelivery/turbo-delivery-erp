@@ -1,176 +1,146 @@
 'use client';
 
-import { useState } from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/components/heroui';
-import { Button } from '@/components/heroui';
-import { Input } from '@/components/heroui';
-import { Select, SelectItem } from '@/components/heroui';
-import { EmployeeCreateDTO, EmployeeCreateSchema } from '@/features/personnel/schemas/employee.schema';
-import { DEPARTMENTS, POSTES } from '@/features/personnel/constants/employee.constants';
+import { Button, Modal } from '@heroui-v3/react';
 import { processAndValidateFormData } from 'ak-zod-form-kit';
+import { useState } from 'react';
 import { toast } from 'sonner';
+
+import {
+  ChampListe,
+  ChampMontant,
+  ChampTexte,
+} from '@/components/personnel/common/champs-personnel';
+import { DEPARTMENTS, POSTES } from '@/features/personnel/constants/employee.constants';
+import { EmployeeCreateDTO, EmployeeCreateSchema } from '@/features/personnel/schemas/employee.schema';
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
-  onClose: () => void;
   onAddEmployee: (employee: EmployeeCreateDTO) => void;
+  onClose: () => void;
 }
 
-export function AddEmployeeModal({ isOpen, onClose, onAddEmployee }: AddEmployeeModalProps) {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    position: '',
-    department: '',
-    salary: 0,
-    entryDate: new Date().toISOString().split('T')[0], // Date du jour par défaut
-    statut: 'Actif'
-  });
+/**
+ * Les vingt-neuf postes ne tiennent pas dans une liste déroulante : ils se cherchent.
+ * Les libellés étaient rendus en `.toLowerCase()`, ce qui donnait « chef aux operations »
+ * dans la liste et « CHEF AUX OPERATIONS » partout ailleurs.
+ */
+const POSTES_OPTIONS = POSTES.map((p) => ({ label: p, value: p }));
+const DEPARTEMENTS_OPTIONS = DEPARTMENTS.map((d) => ({ label: d.name, value: d.name }));
+const STATUTS_OPTIONS = [
+  { label: 'Actif', value: 'Actif' },
+  { label: 'Inactif', value: 'Inactif' },
+  { label: 'Congé', value: 'Congé' },
+] as const;
+
+const VALEURS_INITIALES = {
+  department: '',
+  email: '',
+  entryDate: new Date().toISOString().split('T')[0], // Date du jour par défaut
+  name: '',
+  position: '',
+  salary: 0,
+  statut: 'Actif',
+};
+
+export function AddEmployeeModal({ isOpen, onAddEmployee, onClose }: AddEmployeeModalProps) {
+  const [formData, setFormData] = useState(VALEURS_INITIALES);
 
   const handleSubmit = () => {
-   
-    
     // Validation des données avec Zod
     const validation = processAndValidateFormData(EmployeeCreateSchema, formData, {
       outputFormat: 'object',
     });
 
-  
-
     if (!validation.success) {
-      console.error('Validation - Erreurs:', validation.errorsInString);
       toast.error(validation.errorsInString || 'Veuillez remplir tous les champs correctement');
       return;
     }
 
-    console.log('Appel onAddEmployee avec données validées:', validation.data);
     onAddEmployee(validation.data as EmployeeCreateDTO);
-
-    // Reset du formulaire
-    setFormData({
-      name: '',
-      email: '',
-      position: '',
-      department: '',
-      salary: 0,
-      entryDate: new Date().toISOString().split('T')[0],
-      statut: 'Actif'
-    });
-
+    setFormData({ ...VALEURS_INITIALES, entryDate: new Date().toISOString().split('T')[0] });
     onClose();
   };
 
-  const handleInputChange = (field: string, value: string | number) => {
-    console.log('handleInputChange:', field, '=', value);
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const modifier = (champ: string, valeur: number | string) =>
+    setFormData((prev) => ({ ...prev, [champ]: valeur }));
 
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose}
-      size="2xl"
-      scrollBehavior="inside"
-    >
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              Ajouter un nouvel employé
-            </ModalHeader>
-            <ModalBody>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Nom complet"
-                    placeholder="Entrez le nom complet"
-                    value={formData.name}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('name', e.target.value)}
-                    variant="bordered"
-                  />
-                  <Input
-                    label="Email"
-                    type="email"
-                    placeholder="Entrez l'email"
-                    value={formData.email}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('email', e.target.value)}
-                    variant="bordered"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Select
-                    label="Fonction"
-                    placeholder="Sélectionnez une fonction"
-                    selectedKeys={formData.position ? [formData.position] : []}
-                    onSelectionChange={(keys) => handleInputChange('position', Array.from(keys)[0] as string)}
-                    variant="bordered"
-                  >
-                    {POSTES.map((poste) => (
-                      <SelectItem key={poste} value={poste}>
-                        {poste.toLowerCase()}
-                      </SelectItem>
-                    ))}
-                  </Select>
-
-                  <Select
-                    label="Département"
-                    placeholder="Sélectionnez un département"
-                    selectedKeys={formData.department ? [formData.department] : []}
-                    onSelectionChange={(keys) => handleInputChange('department', Array.from(keys)[0] as string)}
-                    variant="bordered"
-                  >
-                    {DEPARTMENTS.map((dept) => (
-                      <SelectItem key={dept.name} value={dept.name}>
-                        {dept.name}
-                      </SelectItem>
-                    ))}
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Salaire"
-                    type="number"
-                    placeholder="Entrez le salaire"
-                    value={formData.salary.toString()}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('salary', parseInt(e.target.value))}
-                    variant="bordered"
-                    endContent="F"
-                  />
-                  <Input
-                    label="Date d'entrée"
-                    type="date"
-                    value={formData.entryDate}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('entryDate', e.target.value)}
-                    variant="bordered"
-                  />
-                </div>
-
-                <Select
-                  label="Statut initial"
-                  placeholder="Sélectionnez le statut"
-                  selectedKeys={[formData.statut]}
-                  onSelectionChange={(keys) => handleInputChange('statut', Array.from(keys)[0] as string)}
-                  variant="bordered"
-                >
-                  <SelectItem key="Actif" value="Actif">Actif</SelectItem>
-                  <SelectItem key="Inactif" value="Inactif">Inactif</SelectItem>
-                  <SelectItem key="Congé" value="Congé">Congé</SelectItem>
-                </Select>
+    <Modal isOpen={isOpen} onOpenChange={(o) => !o && onClose()}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-2xl">
+            <Modal.Header>
+              <Modal.Heading>Ajouter un nouvel employé</Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <ChampTexte
+                  label="Nom complet"
+                  onChange={(v) => modifier('name', v)}
+                  placeholder="Entrez le nom complet"
+                  valeur={formData.name}
+                />
+                <ChampTexte
+                  label="Email"
+                  onChange={(v) => modifier('email', v)}
+                  placeholder="Entrez l'email"
+                  type="email"
+                  valeur={formData.email}
+                />
               </div>
-            </ModalBody>
-            <ModalFooter>
-              <Button color="danger" variant="light" onPress={onClose}>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <ChampListe
+                  label="Fonction"
+                  onChange={(v) => modifier('position', v)}
+                  options={POSTES_OPTIONS}
+                  placeholder="Rechercher une fonction"
+                  valeur={formData.position}
+                />
+                <ChampListe
+                  label="Département"
+                  onChange={(v) => modifier('department', v)}
+                  options={DEPARTEMENTS_OPTIONS}
+                  placeholder="Rechercher un département"
+                  valeur={formData.department}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <ChampMontant
+                  aide="En francs CFA"
+                  label="Salaire"
+                  onChange={(v) => modifier('salary', v)}
+                  valeur={formData.salary}
+                />
+                <ChampTexte
+                  label="Date d'entrée"
+                  onChange={(v) => modifier('entryDate', v)}
+                  type="date"
+                  valeur={formData.entryDate}
+                />
+              </div>
+
+              <ChampListe
+                label="Statut initial"
+                onChange={(v) => modifier('statut', v)}
+                options={STATUTS_OPTIONS}
+                placeholder="Sélectionnez le statut"
+                valeur={formData.statut}
+              />
+            </Modal.Body>
+            <Modal.Footer>
+              <Button onPress={onClose} variant="ghost">
                 Annuler
               </Button>
-              <Button color="primary" onPress={handleSubmit}>
+              <Button onPress={handleSubmit} variant="primary">
                 Ajouter l&#39;employé
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

@@ -1,23 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import {
-  Button,
-  Chip,
-  Select,
-  SelectItem,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { Button, Card, Chip, Table } from '@heroui-v3/react';
 import { Download } from 'lucide-react';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
+import { ChampListe } from '@/components/personnel/common/champs-personnel';
 
 import {
   EtatDeclaration,
@@ -41,10 +30,21 @@ import { DeclarationContratAction, usePeutDeclarer } from './shared/declaration-
 import { DeclarationChip, TypeContratChip } from './shared/personnel-chips';
 
 const FILTRES = [
-  { cle: 'TOUS', libelle: 'Tous les contrats' },
-  { cle: 'NON_DECLARES', libelle: 'Non déclarés' },
-  { cle: 'ECHEANCE', libelle: 'Échéance sous 30 jours' },
-];
+  { label: 'Tous les contrats', value: 'TOUS' },
+  { label: 'Non déclarés', value: 'NON_DECLARES' },
+  { label: 'Échéance sous 30 jours', value: 'ECHEANCE' },
+] as const;
+
+/** Les colonnes, déclarées une fois : le squelette y compte ses cellules. */
+const COLONNES = [
+  { id: 'agent', libelle: 'Agent' },
+  { id: 'type', libelle: 'Type' },
+  { id: 'debut', libelle: 'Début' },
+  { id: 'fin', libelle: 'Fin (CDD)' },
+  { id: 'declare', libelle: 'Déclaré' },
+  { id: 'alerte', libelle: 'Alerte' },
+  { id: 'suivi', libelle: 'Suivi' },
+] as const;
 
 interface LigneContrat {
   cle: string;
@@ -163,114 +163,138 @@ export function ContratsTab() {
   };
 
   return (
-    <div className="space-y-3 rounded-xl border border-default-200 bg-surface p-4">
-      <div className="flex flex-wrap items-end gap-2">
-        <Select
-          label="Filtre"
-          size="sm"
-          className="w-64"
-          selectedKeys={new Set([filtre])}
-          onSelectionChange={(keys) => setFiltre((Array.from(keys)[0] as string) ?? 'TOUS')}
-        >
-          {FILTRES.map((f) => (
-            <SelectItem key={f.cle} value={f.cle}>
-              {f.libelle}
-            </SelectItem>
-          ))}
-        </Select>
+    <Card>
+      <Card.Content className="gap-3">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="w-full sm:w-64">
+            <ChampListe
+              label="Filtre"
+              onChange={(v) => setFiltre(v || 'TOUS')}
+              options={FILTRES}
+              placeholder="Tous les contrats"
+              valeur={filtre}
+            />
+          </div>
 
-        <div className="flex-1" />
+          <div className="flex-1" />
 
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          startContent={<Download className="h-4 w-4" />}
-          onPress={exporter}
-          isDisabled={filtrees.length === 0}
-        >
-          Exporter CSV
-        </Button>
-      </div>
+          <Button
+            isDisabled={filtrees.length === 0}
+            onPress={exporter}
+            size="sm"
+            variant="outline"
+          >
+            <Download aria-hidden="true" className="size-4" />
+            Exporter CSV
+          </Button>
+        </div>
 
-      <Table aria-label="Contrats et déclarations" removeWrapper isStriped>
-        <TableHeader>
-          <TableColumn className="text-primary">AGENT</TableColumn>
-          <TableColumn className="text-primary">TYPE</TableColumn>
-          <TableColumn className="text-primary">DÉBUT</TableColumn>
-          <TableColumn className="text-primary">FIN (CDD)</TableColumn>
-          <TableColumn className="text-primary">DÉCLARÉ</TableColumn>
-          <TableColumn className="text-primary">ALERTE</TableColumn>
-          <TableColumn className="text-right text-primary">{peutDeclarer ? 'SUIVI' : ' '}</TableColumn>
-        </TableHeader>
-        <TableBody
-          emptyContent={
-            enEchec ? (
-              <EtatErreur quoi="les contrats" onReessayer={relancer} enCours={rechargeEffectif || rechargeContrats} />
-            ) : chargement ? (
-              ' '
-            ) : (
-              'Aucun contrat pour ce filtre.'
-            )
-          }
-          isLoading={chargement}
-          loadingContent={<Spinner color="primary" label="Chargement des contrats…" />}
-        >
-          {filtrees.map((l) => (
-            <TableRow key={l.cle}>
-              <TableCell>
-                <AgentCell
-                  nom={l.nom}
-                  matricule={l.matricule}
-                  employeId={l.employeId}
-                  sousTitre={[l.poste, l.agence].filter(Boolean).join(' · ')}
-                />
-              </TableCell>
-              <TableCell>
-                <TypeContratChip type={l.type} />
-              </TableCell>
-              <TableCell className="whitespace-nowrap text-default-500">{formaterDate(l.debut)}</TableCell>
-              <TableCell className="whitespace-nowrap text-default-500">
-                {l.fin ? formaterDate(l.fin) : '—'}
-              </TableCell>
-              <TableCell>
-                <DeclarationChip etat={l.declaration} />
-              </TableCell>
-              <TableCell>
-                <AlerteContrat ligne={l} />
-              </TableCell>
-              <TableCell className="text-right">
-                {l.contratId ? (
-                  <DeclarationContratAction
-                    contratId={l.contratId}
-                    employeId={l.employeId}
-                    etat={l.declaration}
-                    dateDeclaration={l.dateDeclaration}
-                    referenceDeclaration={l.referenceDeclaration}
-                    declarationUrl={l.declarationUrl}
-                  />
-                ) : peutDeclarer ? (
-                  // Cette liste ne porte que les contrats datés (CDD) : l'absence de ligne
-                  // ne prouve pas l'absence de contrat. On renvoie donc vers la fiche, où le
-                  // contrat actif — CDI compris — est lu directement.
-                  <Link
-                    href={`/personnel/${l.employeId}`}
-                    className="text-[11px] font-medium text-primary hover:underline"
+        <Table>
+          <Table.ScrollContainer>
+            <Table.Content aria-label="Contrats et déclarations" className="min-w-[68rem]">
+              <Table.Header>
+                {COLONNES.map((c) => (
+                  <Table.Column
+                    className={c.id === 'suivi' ? 'text-right' : undefined}
+                    id={c.id}
+                    isRowHeader={c.id === 'agent'}
+                    key={c.id}
                   >
-                    Sur la fiche
-                  </Link>
-                ) : null}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                    {c.id === 'suivi' && !peutDeclarer ? '' : c.libelle}
+                  </Table.Column>
+                ))}
+              </Table.Header>
+              <Table.Body
+                renderEmptyState={() =>
+                  chargement ? null : enEchec ? (
+                    <div className="py-6">
+                      <EtatErreur
+                        enCours={rechargeEffectif || rechargeContrats}
+                        onReessayer={relancer}
+                        quoi="les contrats"
+                      />
+                    </div>
+                  ) : (
+                    <p className="py-8 text-center text-sm text-muted">Aucun contrat pour ce filtre.</p>
+                  )
+                }
+              >
+                {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+                {chargement
+                  ? Array.from({ length: 8 }).map((_, i) => (
+                      <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                        {COLONNES.map((c) => (
+                          <Table.Cell key={`sq-${i}-${c.id}`}>
+                            <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))
+                  : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-default-100 pt-3 text-xs text-default-400">
-        <span>{filtrees.length} contrat(s) affiché(s)</span>
-        <span>Le suivi de déclaration est réservé aux profils habilités — chaque modification est tracée</span>
-      </div>
-    </div>
+                {(chargement || enEchec ? [] : filtrees).map((l) => (
+                  <Table.Row id={l.cle} key={l.cle}>
+                    <Table.Cell>
+                      <AgentCell
+                        employeId={l.employeId}
+                        matricule={l.matricule}
+                        nom={l.nom}
+                        sousTitre={[l.poste, l.agence].filter(Boolean).join(' · ')}
+                      />
+                    </Table.Cell>
+                    <Table.Cell>
+                      <TypeContratChip type={l.type} />
+                    </Table.Cell>
+                    <Table.Cell className="whitespace-nowrap text-muted">
+                      {formaterDate(l.debut)}
+                    </Table.Cell>
+                    <Table.Cell className="whitespace-nowrap text-muted">
+                      {l.fin ? formaterDate(l.fin) : '—'}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <DeclarationChip etat={l.declaration} />
+                    </Table.Cell>
+                    <Table.Cell>
+                      <AlerteContrat ligne={l} />
+                    </Table.Cell>
+                    <Table.Cell className="text-right">
+                      {l.contratId ? (
+                        <DeclarationContratAction
+                          contratId={l.contratId}
+                          dateDeclaration={l.dateDeclaration}
+                          declarationUrl={l.declarationUrl}
+                          employeId={l.employeId}
+                          etat={l.declaration}
+                          referenceDeclaration={l.referenceDeclaration}
+                        />
+                      ) : peutDeclarer ? (
+                        // Cette liste ne porte que les contrats datés (CDD) : l'absence de ligne
+                        // ne prouve pas l'absence de contrat. On renvoie donc vers la fiche, où le
+                        // contrat actif — CDI compris — est lu directement.
+                        <Link
+                          className="text-xs font-medium text-accent hover:underline"
+                          href={`/personnel/${l.employeId}`}
+                        >
+                          Sur la fiche
+                        </Link>
+                      ) : null}
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
+        </Table>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-separator pt-3 text-xs text-muted">
+          <span>{filtrees.length} contrat(s) affiché(s)</span>
+          <span>
+            Le suivi de déclaration est réservé aux profils habilités — chaque modification est
+            tracée
+          </span>
+        </div>
+      </Card.Content>
+    </Card>
   );
 }
 
@@ -288,14 +312,15 @@ function libelleAlerte(l: LigneContrat): string {
 
 function AlerteContrat({ ligne }: { ligne: LigneContrat }) {
   const texte = libelleAlerte(ligne);
-  if (texte === '—') return <span className="text-default-300">—</span>;
+  if (texte === '—') return <span className="text-muted">—</span>;
 
   const critique =
-    (ligne.joursAvantEcheance !== null && ligne.joursAvantEcheance < 0) || ligne.declaration === 'NON_DECLARE';
+    (ligne.joursAvantEcheance !== null && ligne.joursAvantEcheance < 0) ||
+    ligne.declaration === 'NON_DECLARE';
 
   return (
-    <Chip size="sm" variant="flat" color={critique ? 'danger' : 'warning'}>
-      {texte}
+    <Chip color={critique ? 'danger' : 'warning'} size="sm" variant="soft">
+      <Chip.Label className="whitespace-nowrap">{texte}</Chip.Label>
     </Chip>
   );
 }

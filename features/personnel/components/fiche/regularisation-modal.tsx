@@ -1,20 +1,15 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import {
-  Button,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Select,
-  SelectItem,
-  Textarea,
-} from '@/components/heroui';
+import { Button, Modal } from '@heroui-v3/react';
 import { useSession } from 'next-auth/react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
+
+import {
+  ChampListe,
+  ChampTexte,
+  ChampZoneTexte,
+} from '@/components/personnel/common/champs-personnel';
 
 import {
   useCreerRegularisationMutation,
@@ -133,102 +128,88 @@ export function RegularisationModal({ employeId, ouvert, onFermer }: Props) {
   };
 
   return (
-    <Modal isOpen={ouvert} onClose={fermer} size="lg">
-      <ModalContent>
-        <ModalHeader className="flex-col items-start gap-1">
-          <span>Régulariser un mois clôturé</span>
-          <span className="text-xs font-normal text-default-400">
-            Un mois clôturé est figé : la correction est payée sur un mois ouvert et reste tracée sur les deux.
-          </span>
-        </ModalHeader>
-        <ModalBody className="gap-3">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Select
-              label="Mois corrigé (clôturé)"
-              size="sm"
-              isLoading={chargementMois}
-              selectedKeys={moisOrigine ? new Set([moisOrigine]) : new Set()}
-              onSelectionChange={(keys) => setMoisOrigine((Array.from(keys)[0] as string) ?? '')}
-            >
-              {moisClotures.map((m) => (
-                <SelectItem key={m.mois} value={m.mois}>
-                  {m.moisLibelle}
-                </SelectItem>
-              ))}
-            </Select>
+    <Modal isOpen={ouvert} onOpenChange={(o) => !o && fermer()}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-lg">
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col items-start gap-1">
+                <span>Régulariser un mois clôturé</span>
+                <span className="text-xs font-normal text-muted">
+                  Un mois clôturé est figé : la correction est payée sur un mois ouvert et reste
+                  tracée sur les deux.
+                </span>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body className="flex flex-col gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <ChampListe
+                  label="Mois corrigé (clôturé)"
+                  onChange={setMoisOrigine}
+                  options={moisClotures.map((m) => ({ label: m.moisLibelle, value: m.mois }))}
+                  placeholder={chargementMois ? 'Chargement…' : 'Choisir un mois'}
+                  valeur={moisOrigine}
+                />
+                <ChampListe
+                  label="Payée sur le mois (ouvert)"
+                  onChange={setMoisOuvert}
+                  options={moisOuverts.map((m) => ({ label: m.moisLibelle, value: m.mois }))}
+                  placeholder={chargementMois ? 'Chargement…' : 'Choisir un mois'}
+                  valeur={moisOuvert}
+                />
+              </div>
 
-            <Select
-              label="Payée sur le mois (ouvert)"
-              size="sm"
-              isLoading={chargementMois}
-              selectedKeys={moisOuvert ? new Set([moisOuvert]) : new Set()}
-              onSelectionChange={(keys) => setMoisOuvert((Array.from(keys)[0] as string) ?? '')}
-            >
-              {moisOuverts.map((m) => (
-                <SelectItem key={m.mois} value={m.mois}>
-                  {m.moisLibelle}
-                </SelectItem>
-              ))}
-            </Select>
-          </div>
+              {moisClotures.length === 0 ? (
+                <p className="text-xs text-warning-soft-foreground">
+                  Aucun mois clôturé : une correction se fait alors directement sur le mois
+                  concerné, sans régularisation.
+                </p>
+              ) : null}
 
-          {moisClotures.length === 0 ? (
-            <p className="text-xs text-warning-soft-foreground">
-              Aucun mois clôturé : une correction se fait alors directement sur le mois concerné, sans régularisation.
-            </p>
-          ) : null}
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <ChampTexte label="Base" onChange={setBase} placeholder="0" valeur={base} />
+                <ChampTexte label="Primes" onChange={setPrimes} placeholder="0" valeur={primes} />
+                <ChampTexte
+                  label="Retenues"
+                  onChange={setRetenues}
+                  placeholder="0"
+                  valeur={retenues}
+                />
+              </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Input
-              label="Base"
-              size="sm"
-              inputMode="decimal"
-              placeholder="0"
-              value={base}
-              onValueChange={setBase}
-            />
-            <Input
-              label="Primes"
-              size="sm"
-              inputMode="decimal"
-              placeholder="0"
-              value={primes}
-              onValueChange={setPrimes}
-            />
-            <Input
-              label="Retenues"
-              size="sm"
-              inputMode="decimal"
-              placeholder="0"
-              value={retenues}
-              onValueChange={setRetenues}
-            />
-          </div>
+              <p className="text-xs text-muted">
+                Net de la régularisation :{' '}
+                <span className="font-semibold tabular-nums text-foreground">
+                  {formaterMontant(net)}
+                </span>
+                <span> (base + primes − retenues, un net négatif est une reprise)</span>
+              </p>
 
-          <p className="text-xs text-default-500">
-            Net de la régularisation : <span className="font-semibold tabular-nums">{formaterMontant(net)}</span>
-            <span className="text-default-400"> (base + primes − retenues, un net négatif est une reprise)</span>
-          </p>
-
-          <Textarea
-            label="Motif"
-            size="sm"
-            minRows={2}
-            isRequired
-            placeholder="Prime de juin oubliée à la saisie, retenue appliquée à tort…"
-            value={motif}
-            onValueChange={setMotif}
-          />
-        </ModalBody>
-        <ModalFooter>
-          <Button size="sm" variant="light" onPress={fermer}>
-            Annuler
-          </Button>
-          <Button size="sm" color="primary" isLoading={mutation.isPending} onPress={enregistrer}>
-            Enregistrer la régularisation
-          </Button>
-        </ModalFooter>
-      </ModalContent>
+              <ChampZoneTexte
+                label="Motif"
+                lignes={2}
+                onChange={setMotif}
+                placeholder="Prime de juin oubliée à la saisie, retenue appliquée à tort…"
+                valeur={motif}
+              />
+            </Modal.Body>
+            <Modal.Footer>
+              <Button onPress={fermer} size="sm" variant="ghost">
+                Annuler
+              </Button>
+              <Button
+                isPending={mutation.isPending}
+                onPress={enregistrer}
+                size="sm"
+                variant="primary"
+              >
+                Enregistrer la régularisation
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

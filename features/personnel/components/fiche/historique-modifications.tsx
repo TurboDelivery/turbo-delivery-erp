@@ -1,15 +1,6 @@
 'use client';
 
-import {
-  Chip,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { Chip, Table } from '@heroui-v3/react';
 
 import { IAuditActionFiche } from '@/features/personnel/types/personnel-historisation.types';
 import { formaterDateHeure } from '@/features/personnel/utils/personnel-historisation.utils';
@@ -20,13 +11,23 @@ interface Props {
   erreur: unknown;
 }
 
-const COULEUR_ACTION: Record<string, 'primary' | 'success' | 'warning' | 'danger' | 'default'> = {
-  CREATION: 'success',
-  MODIFICATION: 'primary',
-  SUPPRESSION: 'danger',
-  EXPORT: 'warning',
+/**
+ * Le ton d'une action d'audit.
+ *
+ * <p>« Modification » était en `primary` — la couleur de MARQUE — et « Export » en
+ * ambre. Or une modification est l'action ordinaire de ce journal : elle en compose la
+ * quasi-totalité, et la peindre revenait à colorer toute la colonne. Ce qui se distingue
+ * vraiment, c'est ce qui CRÉE et ce qui SUPPRIME.</p>
+ */
+const TON_ACTION: Record<string, 'danger' | 'default' | 'success'> = {
   CONSULTATION_AUDIT: 'default',
+  CREATION: 'success',
+  EXPORT: 'default',
+  MODIFICATION: 'default',
+  SUPPRESSION: 'danger',
 };
+
+const COLONNES = ['Quand', 'Qui', 'Action', 'Ce qui a changé'] as const;
 
 function texteValeur(valeur: unknown): string {
   if (valeur === null || valeur === undefined || valeur === '') return '∅';
@@ -41,18 +42,18 @@ function Diff({ action }: { action: IAuditActionFiche }) {
   const champs = Array.from(new Set([...Object.keys(avant), ...Object.keys(apres)]));
 
   if (champs.length === 0) {
-    return <span className="text-default-400">{action.entiteLibelle ?? '—'}</span>;
+    return <span className="text-muted">{action.entiteLibelle ?? '—'}</span>;
   }
 
   return (
-    <div className="space-y-0.5">
+    <div className="flex flex-col gap-0.5">
       {champs.map((champ) => (
-        <div key={champ} className="text-xs">
-          <span className="font-medium text-default-600">{champ}</span>
-          <span className="text-default-400"> : </span>
-          <span className="text-default-500 line-through decoration-default-300">{texteValeur(avant[champ])}</span>
-          <span className="text-default-400"> → </span>
-          <span className="font-medium text-default-700">{texteValeur(apres[champ])}</span>
+        <div className="text-xs" key={champ}>
+          <span className="font-medium text-foreground">{champ}</span>
+          <span className="text-muted"> : </span>
+          <span className="text-muted line-through">{texteValeur(avant[champ])}</span>
+          <span className="text-muted"> → </span>
+          <span className="font-medium text-foreground">{texteValeur(apres[champ])}</span>
         </div>
       ))}
     </div>
@@ -69,7 +70,7 @@ export function HistoriqueModifications({ actions, chargement, erreur }: Props) 
   if (erreur) {
     const statut = (erreur as { response?: { status?: number } })?.response?.status;
     return (
-      <p className="rounded-lg border border-default-200 bg-default-50 p-4 text-sm text-default-500">
+      <p className="rounded-lg border border-separator bg-surface-secondary p-4 text-sm text-muted">
         {statut === 403
           ? "La consultation de l'audit est réservée à la Direction, aux administrateurs et aux Ops Managers."
           : "L'historique des modifications n'a pas pu être chargé."}
@@ -78,37 +79,66 @@ export function HistoriqueModifications({ actions, chargement, erreur }: Props) 
   }
 
   return (
-    <Table aria-label="Historique des modifications de la fiche" removeWrapper isStriped>
-      <TableHeader>
-        <TableColumn className="text-primary">QUAND</TableColumn>
-        <TableColumn className="text-primary">QUI</TableColumn>
-        <TableColumn className="text-primary">ACTION</TableColumn>
-        <TableColumn className="text-primary">CE QUI A CHANGÉ</TableColumn>
-      </TableHeader>
-      <TableBody
-        emptyContent={chargement ? ' ' : 'Aucune modification enregistrée sur cette fiche.'}
-        isLoading={chargement}
-        loadingContent={<Spinner color="primary" label="Chargement de l’historique…" />}
-      >
-        {(actions ?? []).map((a) => (
-          <TableRow key={a.id}>
-            <TableCell className="whitespace-nowrap text-default-500">{formaterDateHeure(a.occurredAt)}</TableCell>
-            <TableCell>
-              <div className="text-sm font-medium text-default-700">{a.utilisateur ?? 'Inconnu'}</div>
-              {a.role ? <div className="text-[11px] text-default-400">{a.role}</div> : null}
-            </TableCell>
-            <TableCell>
-              <Chip size="sm" variant="flat" color={COULEUR_ACTION[a.typeAction ?? ''] ?? 'default'}>
-                {a.typeAction ?? '—'}
-              </Chip>
-              {a.ecran ? <div className="mt-0.5 text-[11px] text-default-400">{a.ecran}</div> : null}
-            </TableCell>
-            <TableCell>
-              <Diff action={a} />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
+    <Table>
+      <Table.ScrollContainer>
+        <Table.Content
+          aria-label="Historique des modifications de la fiche"
+          className="min-w-[48rem]"
+        >
+          <Table.Header>
+            {COLONNES.map((c) => (
+              <Table.Column id={c} isRowHeader={c === 'Quand'} key={c}>
+                {c}
+              </Table.Column>
+            ))}
+          </Table.Header>
+          <Table.Body
+            renderEmptyState={() =>
+              chargement ? null : (
+                <p className="py-8 text-center text-sm text-muted">
+                  Aucune modification enregistrée sur cette fiche.
+                </p>
+              )
+            }
+          >
+            {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+            {chargement
+              ? Array.from({ length: 6 }).map((_, i) => (
+                  <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                    {COLONNES.map((c) => (
+                      <Table.Cell key={`sq-${i}-${c}`}>
+                        <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                      </Table.Cell>
+                    ))}
+                  </Table.Row>
+                ))
+              : null}
+
+            {(chargement ? [] : (actions ?? [])).map((a) => (
+              <Table.Row id={a.id} key={a.id}>
+                <Table.Cell className="whitespace-nowrap text-muted">
+                  {formaterDateHeure(a.occurredAt)}
+                </Table.Cell>
+                <Table.Cell>
+                  <div className="text-sm font-medium text-foreground">
+                    {a.utilisateur ?? 'Inconnu'}
+                  </div>
+                  {a.role ? <div className="text-xs text-muted">{a.role}</div> : null}
+                </Table.Cell>
+                <Table.Cell>
+                  <Chip color={TON_ACTION[a.typeAction ?? ''] ?? 'default'} size="sm" variant="soft">
+                    <Chip.Label>{a.typeAction ?? '—'}</Chip.Label>
+                  </Chip>
+                  {a.ecran ? <div className="mt-0.5 text-xs text-muted">{a.ecran}</div> : null}
+                </Table.Cell>
+                <Table.Cell>
+                  <Diff action={a} />
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Content>
+      </Table.ScrollContainer>
     </Table>
   );
 }

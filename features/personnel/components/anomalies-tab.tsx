@@ -1,24 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import {
-  Button,
-  Select,
-  SelectItem,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { Button, Card, Table } from '@heroui-v3/react';
 import { ArrowRight, Download } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import EtatErreur from '@/components/commons/EtatErreur';
+import { ChampListe } from '@/components/personnel/common/champs-personnel';
 
 import { obtenirAnomalies } from '@/features/personnel/apis/personnel-historisation.api';
 import { useAnomaliesQuery } from '@/features/personnel/queries/personnel-historisation.query';
@@ -51,10 +41,10 @@ export function AnomaliesTab() {
   const options = useMemo(() => {
     const catalogue = data?.typesDisponibles ?? [];
     return [
-      { cle: TOUS, libelle: 'Toutes' },
+      { label: 'Toutes', value: TOUS },
       ...catalogue.map((t) => ({
-        cle: t.code,
-        libelle: `${t.libelle} (${LIBELLE_GRAVITE[t.gravite] ?? t.gravite})`,
+        label: `${t.libelle} (${LIBELLE_GRAVITE[t.gravite] ?? t.gravite})`,
+        value: t.code,
       })),
     ];
   }, [data?.typesDisponibles]);
@@ -95,103 +85,130 @@ export function AnomaliesTab() {
     }
   };
 
+  const colonnes = ['Gravité', 'Anomalie', 'Agent concerné', 'Détail', ''] as const;
+
   return (
-    <div className="space-y-3 rounded-xl border border-default-200 bg-surface p-4">
-      <div className="flex flex-wrap items-end gap-2">
-        <Select
-          label="Type d'anomalie"
-          size="sm"
-          className="w-80"
-          selectedKeys={new Set([type || TOUS])}
-          onSelectionChange={(keys) => {
-            const cle = Array.from(keys as Set<string>)[0];
-            setType(!cle || cle === TOUS ? '' : cle);
-          }}
-        >
-          {options.map((o) => (
-            <SelectItem key={o.cle} value={o.cle}>
-              {o.libelle}
-            </SelectItem>
-          ))}
-        </Select>
+    <Card>
+      <Card.Content className="gap-3">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="w-full sm:w-80">
+            <ChampListe
+              label="Type d'anomalie"
+              onChange={(cle) => setType(!cle || cle === TOUS ? '' : cle)}
+              options={options}
+              placeholder="Toutes"
+              valeur={type || TOUS}
+            />
+          </div>
 
-        <div className="flex-1" />
+          <div className="flex-1" />
 
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          startContent={!exportEnCours && <Download className="h-4 w-4" />}
-          isLoading={exportEnCours}
-          onPress={exporter}
-          isDisabled={anomalies.length === 0}
-        >
-          Exporter CSV
-        </Button>
-      </div>
+          <Button
+            isDisabled={anomalies.length === 0}
+            isPending={exportEnCours}
+            onPress={exporter}
+            size="sm"
+            variant="outline"
+          >
+            <Download aria-hidden="true" className="size-4" />
+            Exporter CSV
+          </Button>
+        </div>
 
-      <Table aria-label="Anomalies du personnel" removeWrapper isStriped>
-        <TableHeader>
-          <TableColumn className="text-primary">GRAVITÉ</TableColumn>
-          <TableColumn className="text-primary">ANOMALIE</TableColumn>
-          <TableColumn className="text-primary">AGENT CONCERNÉ</TableColumn>
-          <TableColumn className="text-primary">DÉTAIL</TableColumn>
-          <TableColumn className="text-right text-primary"> </TableColumn>
-        </TableHeader>
-        <TableBody
-          emptyContent={
-            enEchec ? (
-              <EtatErreur quoi="les anomalies" onReessayer={() => refetch()} enCours={isFetching} />
-            ) : isLoading || isFetching ? (
-              ' '
-            ) : (
-              'Aucune anomalie — profils conformes.'
-            )
-          }
-          isLoading={isLoading}
-          loadingContent={<Spinner color="primary" label="Analyse des dossiers…" />}
-        >
-          {anomalies.map((a, index) => (
-            <TableRow key={`${a.type}-${a.employeId ?? 'na'}-${index}`}>
-              <TableCell>
-                <GraviteChip gravite={a.gravite} />
-              </TableCell>
-              <TableCell className="font-medium text-default-700">{a.libelle}</TableCell>
-              <TableCell>
-                <AgentCell
-                  nom={a.employeNom}
-                  matricule={a.matricule}
-                  employeId={a.employeId}
-                  sousTitre={a.typeLibelle}
-                />
-              </TableCell>
-              <TableCell className="max-w-md text-default-500">{a.detail ?? '—'}</TableCell>
-              <TableCell className="text-right">
-                {a.employeId ? (
-                  <Link
-                    href={`/personnel/${a.employeId}`}
-                    className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold text-primary hover:underline"
+        <Table>
+          <Table.ScrollContainer>
+            <Table.Content aria-label="Anomalies du personnel" className="min-w-[56rem]">
+              <Table.Header>
+                {colonnes.map((c, i) => (
+                  <Table.Column
+                    className={i === colonnes.length - 1 ? 'text-right' : undefined}
+                    id={c || 'actions'}
+                    isRowHeader={c === 'Gravité'}
+                    key={c || 'actions'}
                   >
-                    Corriger
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                ) : null}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+                    {c}
+                  </Table.Column>
+                ))}
+              </Table.Header>
+              <Table.Body
+                renderEmptyState={() =>
+                  isLoading ? null : enEchec ? (
+                    <div className="py-6">
+                      <EtatErreur
+                        enCours={isFetching}
+                        onReessayer={() => refetch()}
+                        quoi="les anomalies"
+                      />
+                    </div>
+                  ) : (
+                    <p className="py-8 text-center text-sm text-muted">
+                      Aucune anomalie — profils conformes.
+                    </p>
+                  )
+                }
+              >
+                {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+                {isLoading
+                  ? Array.from({ length: 6 }).map((_, i) => (
+                      <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                        {colonnes.map((c, j) => (
+                          <Table.Cell key={`sq-${i}-${j}`}>
+                            <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))
+                  : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-default-100 pt-3 text-xs text-default-400">
-        <span>
-          {anomalies.length} anomalie(s) affichée(s) sur {data?.total ?? 0} · {data?.employesAnalyses ?? 0} dossier(s)
-          analysé(s)
-        </span>
-        <span>
-          {data?.calculeLe ? `Recalculé le ${formaterDateHeure(data.calculeLe)}` : 'Recalcul automatique'} — objectif
-          zéro anomalie avant chaque clôture
-        </span>
-      </div>
-    </div>
+                {(isLoading || enEchec ? [] : anomalies).map((a, index) => (
+                  <Table.Row
+                    id={`${a.type}-${a.employeId ?? 'na'}-${index}`}
+                    key={`${a.type}-${a.employeId ?? 'na'}-${index}`}
+                  >
+                    <Table.Cell>
+                      <GraviteChip gravite={a.gravite} />
+                    </Table.Cell>
+                    <Table.Cell className="font-medium text-foreground">{a.libelle}</Table.Cell>
+                    <Table.Cell>
+                      <AgentCell
+                        employeId={a.employeId}
+                        matricule={a.matricule}
+                        nom={a.employeNom}
+                        sousTitre={a.typeLibelle}
+                      />
+                    </Table.Cell>
+                    <Table.Cell className="max-w-md text-muted">{a.detail ?? '—'}</Table.Cell>
+                    <Table.Cell className="text-right">
+                      {a.employeId ? (
+                        <Link
+                          className="inline-flex items-center gap-1 text-xs font-semibold whitespace-nowrap text-accent hover:underline"
+                          href={`/personnel/${a.employeId}`}
+                        >
+                          Corriger
+                          <ArrowRight aria-hidden="true" className="size-3.5" />
+                        </Link>
+                      ) : null}
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
+        </Table>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-separator pt-3 text-xs text-muted">
+          <span>
+            {anomalies.length} anomalie(s) affichée(s) sur {data?.total ?? 0} ·{' '}
+            {data?.employesAnalyses ?? 0} dossier(s) analysé(s)
+          </span>
+          <span>
+            {data?.calculeLe
+              ? `Recalculé le ${formaterDateHeure(data.calculeLe)}`
+              : 'Recalcul automatique'}{' '}
+            — objectif zéro anomalie avant chaque clôture
+          </span>
+        </div>
+      </Card.Content>
+    </Card>
   );
 }

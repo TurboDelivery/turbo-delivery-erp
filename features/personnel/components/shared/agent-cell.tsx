@@ -1,5 +1,6 @@
 'use client';
 
+import { Avatar } from '@heroui-v3/react';
 import Link from 'next/link';
 
 import { initiales } from '@/features/personnel/utils/personnel-historisation.utils';
@@ -16,15 +17,14 @@ interface AgentCellProps {
 
 /** Identité d'un agent : initiales, nom, matricule, poste et agence — même rendu partout. */
 export function AgentCell({ nom, matricule, sousTitre, employeId, mention }: AgentCellProps) {
-  const contenuNom = (
-    <span className="text-sm font-semibold text-default-800">{nom ?? '—'}</span>
-  );
+  const contenuNom = <span className="text-sm font-semibold text-foreground">{nom ?? '—'}</span>;
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-default-100 text-[11px] font-semibold text-default-600">
-        {initiales(nom)}
-      </div>
+      {/* C'etait un rond dessine a la main en `bg-default-100` : la bibliotheque a un avatar. */}
+      <Avatar size="sm">
+        <Avatar.Fallback>{initiales(nom)}</Avatar.Fallback>
+      </Avatar>
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           {employeId ? (
@@ -34,11 +34,11 @@ export function AgentCell({ nom, matricule, sousTitre, employeId, mention }: Age
           ) : (
             contenuNom
           )}
-          {matricule ? <span className="font-mono text-[11px] text-default-400">{matricule}</span> : null}
+          {matricule ? <span className="font-mono text-xs text-muted">{matricule}</span> : null}
         </div>
-        <div className="truncate text-xs text-default-400">
+        <div className="truncate text-xs text-muted">
           {sousTitre && sousTitre.trim() ? sousTitre : 'Poste non renseigné'}
-          {mention ? <span className="text-default-400"> · {mention}</span> : null}
+          {mention ? <span> · {mention}</span> : null}
         </div>
       </div>
     </div>

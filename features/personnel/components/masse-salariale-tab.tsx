@@ -1,29 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import {
-  Button,
-  Chip,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Select,
-  SelectItem,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
-import { useSession } from 'next-auth/react';
+import { Button, Card, Chip, Modal, Table } from '@heroui-v3/react';
 import { Download, Lock } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import EtatErreur from '@/components/commons/EtatErreur';
+import { ChampListe } from '@/components/personnel/common/champs-personnel';
 import { useAbility } from '@/hooks/use-ability';
 import { normalizeRole } from '@/lib/casl/ability';
 import { obtenirMasseSalariale } from '@/features/personnel/apis/personnel-historisation.api';
@@ -42,6 +26,17 @@ import {
 
 import { AgentCell } from './shared/agent-cell';
 import { EtatMoisChip, TypeContratChip } from './shared/personnel-chips';
+
+/** Les colonnes, déclarées une fois : le squelette y compte ses cellules. */
+const COLONNES = [
+  { alignDroite: false, id: 'agent', libelle: 'Agent' },
+  { alignDroite: false, id: 'type', libelle: 'Type' },
+  { alignDroite: true, id: 'base', libelle: 'Base' },
+  { alignDroite: true, id: 'primes', libelle: 'Primes' },
+  { alignDroite: true, id: 'retenues', libelle: 'Retenues / pertes' },
+  { alignDroite: true, id: 'net', libelle: 'Net payé' },
+  { alignDroite: false, id: 'paiement', libelle: 'Paiement' },
+] as const;
 
 /**
  * Profils autorisés à clôturer, alignés sur `MasseSalarialeService.ROLES_CLOTURE`.
@@ -164,162 +159,206 @@ export function MasseSalarialeTab() {
     );
   };
 
-  return (
-    <div className="space-y-3 rounded-xl border border-default-200 bg-surface p-4">
-      <div className="flex flex-wrap items-end gap-2">
-        <Select
-          label="Mois"
-          size="sm"
-          className="w-72"
-          isLoading={chargementMois}
-          selectedKeys={moisSelectionne ? new Set([moisSelectionne]) : new Set()}
-          onSelectionChange={(keys) => setMoisSelectionne((Array.from(keys)[0] as string) ?? null)}
-        >
-          {(mois ?? []).map((m) => (
-            <SelectItem key={m.mois} value={m.mois}>
-              {`${m.moisLibelle} — ${m.statut === 'CLOTURE' ? 'clôturé' : 'brouillon'}`}
-            </SelectItem>
-          ))}
-        </Select>
+  const optionsMois = (mois ?? []).map((m) => ({
+    label: `${m.moisLibelle} — ${m.statut === 'CLOTURE' ? 'clôturé' : 'brouillon'}`,
+    value: m.mois,
+  }));
 
-        <div className="flex items-center gap-2 pb-1">
-          <EtatMoisChip statut={masse?.statut} />
-          {estCloture && masse?.clotureParNom ? (
-            <span className="text-xs text-default-400">par {masse.clotureParNom}</span>
+  return (
+    <Card>
+      <Card.Content className="gap-3">
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="w-full sm:w-72">
+            <ChampListe
+              label="Mois"
+              onChange={(v) => setMoisSelectionne(v || null)}
+              options={optionsMois}
+              placeholder={chargementMois ? 'Chargement…' : 'Choisir un mois'}
+              valeur={moisSelectionne ?? ''}
+            />
+          </div>
+
+          <div className="flex items-center gap-2 pb-1">
+            <EtatMoisChip statut={masse?.statut} />
+            {estCloture && masse?.clotureParNom ? (
+              <span className="text-xs text-muted">par {masse.clotureParNom}</span>
+            ) : null}
+          </div>
+
+          <div className="flex-1" />
+
+          <Button
+            isDisabled={!masse || masse.lignes.length === 0}
+            isPending={exportEnCours}
+            onPress={exporter}
+            size="sm"
+            variant="outline"
+          >
+            <Download aria-hidden="true" className="size-4" />
+            Exporter CSV
+          </Button>
+
+          {peutCloturer && moisCourant?.cloturable ? (
+            <Button onPress={() => setConfirmation(true)} size="sm" variant="primary">
+              <Lock aria-hidden="true" className="size-4" />
+              Clôturer le mois
+            </Button>
           ) : null}
         </div>
 
-        <div className="flex-1" />
+        <Table>
+          <Table.ScrollContainer>
+            <Table.Content aria-label="Masse salariale du mois" className="min-w-[68rem]">
+              <Table.Header>
+                {COLONNES.map((c) => (
+                  <Table.Column
+                    className={c.alignDroite ? 'text-right' : undefined}
+                    id={c.id}
+                    isRowHeader={c.id === 'agent'}
+                    key={c.id}
+                  >
+                    {c.libelle}
+                  </Table.Column>
+                ))}
+              </Table.Header>
+              <Table.Body
+                renderEmptyState={() =>
+                  isLoading ? null : enEchec ? (
+                    <div className="py-6">
+                      <EtatErreur
+                        enCours={isFetching || rechargeMois}
+                        onReessayer={relancer}
+                        quoi="la masse salariale"
+                      />
+                    </div>
+                  ) : (
+                    <p className="py-8 text-center text-sm text-muted">
+                      Aucune ligne de paie sur ce mois.
+                    </p>
+                  )
+                }
+              >
+                {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+                {isLoading
+                  ? Array.from({ length: 8 }).map((_, i) => (
+                      <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                        {COLONNES.map((c) => (
+                          <Table.Cell key={`sq-${i}-${c.id}`}>
+                            <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))
+                  : null}
 
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          startContent={!exportEnCours && <Download className="h-4 w-4" />}
-          isLoading={exportEnCours}
-          onPress={exporter}
-          isDisabled={!masse || masse.lignes.length === 0}
-        >
-          Exporter CSV
-        </Button>
+                {(isLoading || enEchec ? [] : (masse?.lignes ?? [])).map((l, index) => (
+                  <Table.Row
+                    id={`${l.employeId}-${l.regularisationDe ?? 'principal'}-${index}`}
+                    key={`${l.employeId}-${l.regularisationDe ?? 'principal'}-${index}`}
+                  >
+                    <Table.Cell>
+                      <AgentCell
+                        employeId={l.employeId}
+                        matricule={l.matricule}
+                        mention={l.regularisationDe ? `régularisation ${l.regularisationDe}` : null}
+                        nom={l.nom}
+                        sousTitre={[l.poste, l.agence].filter(Boolean).join(' · ')}
+                      />
+                    </Table.Cell>
+                    <Table.Cell>
+                      <TypeContratChip type={l.typeCollaborateur} />
+                    </Table.Cell>
+                    <Table.Cell className="text-right tabular-nums">
+                      {formaterMontant(l.base)}
+                    </Table.Cell>
+                    <Table.Cell className="text-right tabular-nums">
+                      {l.primes ? formaterMontant(l.primes) : '—'}
+                    </Table.Cell>
+                    <Table.Cell className="text-right tabular-nums">
+                      {l.retenues ? (
+                        <div>
+                          <div className="text-danger-soft-foreground">
+                            −{formaterMontant(l.retenues)}
+                          </div>
+                          {(l.detailRetenues ?? []).length > 0 ? (
+                            <div className="text-xs text-muted">
+                              {(l.detailRetenues ?? [])
+                                .map((r) => r.motif)
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : (
+                        '—'
+                      )}
+                    </Table.Cell>
+                    <Table.Cell className="text-right font-semibold tabular-nums">
+                      {formaterMontant(l.net)}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Chip color={estCloture ? 'success' : 'default'} size="sm" variant="soft">
+                        <Chip.Label>{estCloture ? 'Payé' : 'À payer'}</Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
+        </Table>
 
-        {peutCloturer && moisCourant?.cloturable ? (
-          <Button
-            size="sm"
-            color="primary"
-            startContent={<Lock className="h-4 w-4" />}
-            onPress={() => setConfirmation(true)}
-          >
-            Clôturer le mois
-          </Button>
-        ) : null}
-      </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-separator pt-3 text-xs text-muted">
+          <span className="font-semibold text-foreground">
+            {masse
+              ? `${masse.moisLibelle} : ${masse.effectif} agent(s) · total net ${formaterMontant(masse.totalNet)}`
+              : '—'}
+          </span>
+          <span>
+            {comparaison?.moisPrecedentLibelle
+              ? `Écart vs ${comparaison.moisPrecedentLibelle} : ${formaterMontantSigne(comparaison.ecartNet)} · effectif ${
+                  comparaison.ecartEffectif >= 0 ? '+' : '−'
+                }${Math.abs(comparaison.ecartEffectif)}`
+              : 'Aucun mois de comparaison'}
+          </span>
+        </div>
+      </Card.Content>
 
-      <Table aria-label="Masse salariale du mois" removeWrapper isStriped>
-        <TableHeader>
-          <TableColumn className="text-primary">AGENT</TableColumn>
-          <TableColumn className="text-primary">TYPE</TableColumn>
-          <TableColumn className="text-right text-primary">BASE</TableColumn>
-          <TableColumn className="text-right text-primary">PRIMES</TableColumn>
-          <TableColumn className="text-right text-primary">RETENUES / PERTES</TableColumn>
-          <TableColumn className="text-right text-primary">NET PAYÉ</TableColumn>
-          <TableColumn className="text-primary">PAIEMENT</TableColumn>
-        </TableHeader>
-        <TableBody
-          emptyContent={
-            enEchec ? (
-              <EtatErreur quoi="la masse salariale" onReessayer={relancer} enCours={isFetching || rechargeMois} />
-            ) : isLoading || isFetching ? (
-              ' '
-            ) : (
-              'Aucune ligne de paie sur ce mois.'
-            )
-          }
-          isLoading={isLoading}
-          loadingContent={<Spinner color="primary" label="Chargement de la masse salariale…" />}
-        >
-          {(masse?.lignes ?? []).map((l, index) => (
-            <TableRow key={`${l.employeId}-${l.regularisationDe ?? 'principal'}-${index}`}>
-              <TableCell>
-                <AgentCell
-                  nom={l.nom}
-                  matricule={l.matricule}
-                  employeId={l.employeId}
-                  sousTitre={[l.poste, l.agence].filter(Boolean).join(' · ')}
-                  mention={l.regularisationDe ? `régularisation ${l.regularisationDe}` : null}
-                />
-              </TableCell>
-              <TableCell>
-                <TypeContratChip type={l.typeCollaborateur} />
-              </TableCell>
-              <TableCell className="text-right tabular-nums">{formaterMontant(l.base)}</TableCell>
-              <TableCell className="text-right tabular-nums">{l.primes ? formaterMontant(l.primes) : '—'}</TableCell>
-              <TableCell className="text-right tabular-nums">
-                {l.retenues ? (
-                  <div>
-                    <div className="text-danger-soft-foreground">−{formaterMontant(l.retenues)}</div>
-                    {(l.detailRetenues ?? []).length > 0 ? (
-                      <div className="text-[10.5px] text-default-400">
-                        {(l.detailRetenues ?? [])
-                          .map((r) => r.motif)
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  '—'
-                )}
-              </TableCell>
-              <TableCell className="text-right font-semibold tabular-nums">{formaterMontant(l.net)}</TableCell>
-              <TableCell>
-                <Chip size="sm" variant="flat" color={estCloture ? 'success' : 'default'}>
-                  {estCloture ? 'Payé' : 'À payer'}
-                </Chip>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-default-100 pt-3 text-xs text-default-500">
-        <span className="font-semibold text-default-700">
-          {masse
-            ? `${masse.moisLibelle} : ${masse.effectif} agent(s) · total net ${formaterMontant(masse.totalNet)}`
-            : '—'}
-        </span>
-        <span>
-          {comparaison?.moisPrecedentLibelle
-            ? `Écart vs ${comparaison.moisPrecedentLibelle} : ${formaterMontantSigne(comparaison.ecartNet)} · effectif ${
-                comparaison.ecartEffectif >= 0 ? '+' : '−'
-              }${Math.abs(comparaison.ecartEffectif)}`
-            : 'Aucun mois de comparaison'}
-        </span>
-      </div>
-
-      <Modal isOpen={confirmation} onClose={() => setConfirmation(false)} size="md">
-        <ModalContent>
-          <ModalHeader>Clôturer {masse?.moisLibelle ?? 'le mois'} ?</ModalHeader>
-          <ModalBody className="text-sm text-default-600">
-            <p>
-              La clôture fige l&apos;instantané du mois : liste nominative et montants ne seront plus recalculés,
-              même si une fiche change ensuite.
-            </p>
-            <p className="font-semibold text-danger-soft-foreground">
-              L&apos;opération est définitive. Toute correction ultérieure passera par une régularisation tracée sur
-              un mois ouvert.
-            </p>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="light" size="sm" onPress={() => setConfirmation(false)}>
-              Annuler
-            </Button>
-            <Button color="primary" size="sm" isLoading={cloture.isPending} onPress={confirmerCloture}>
-              Clôturer définitivement
-            </Button>
-          </ModalFooter>
-        </ModalContent>
+      <Modal isOpen={confirmation} onOpenChange={(o) => !o && setConfirmation(false)}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading>Clôturer {masse?.moisLibelle ?? 'le mois'} ?</Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+              <Modal.Body className="flex flex-col gap-2 text-sm text-muted">
+                <p>
+                  La clôture fige l&apos;instantané du mois : liste nominative et montants ne seront
+                  plus recalculés, même si une fiche change ensuite.
+                </p>
+                <p className="font-semibold text-danger-soft-foreground">
+                  L&apos;opération est définitive. Toute correction ultérieure passera par une
+                  régularisation tracée sur un mois ouvert.
+                </p>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button onPress={() => setConfirmation(false)} size="sm" variant="ghost">
+                  Annuler
+                </Button>
+                <Button
+                  isPending={cloture.isPending}
+                  onPress={confirmerCloture}
+                  size="sm"
+                  variant="primary"
+                >
+                  Clôturer définitivement
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
-    </div>
+    </Card>
   );
 }

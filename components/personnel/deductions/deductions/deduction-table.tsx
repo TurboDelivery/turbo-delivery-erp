@@ -1,21 +1,24 @@
 'use client';
 
-import React from 'react';
+import { Card, Table } from '@heroui-v3/react';
 import { flexRender } from '@tanstack/react-table';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
-import { useDeductionTable } from '@/features/personnel/hooks/use-deduction-table';
+import React from 'react';
+
+import EtatErreur from '@/components/commons/EtatErreur';
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
+import {
+  ChipStatutDeduction,
+  ChipTypeDeduction,
+} from '@/components/personnel/deductions/deductions/chips-deduction';
 import { DeductionFilters } from '@/components/personnel/deductions/deductions/deduction-filters';
 import { renderDeductionActions } from '@/components/personnel/deductions/deductions/deduction-table-columns';
-import { IDeduction } from '@/features/personnel/types/deduction.types';
-import { PersonnelMobileCard, PersonnelMobileCardList } from '@/components/personnel/shared/personnel-mobile-card';
-import EtatErreur from '@/components/commons/EtatErreur';
-import { formatCfa, formatDateFr } from '@/lib/date-utils';
 import {
-  getDeductionStatusClassName,
-  getDeductionStatusLabel,
-  getDeductionTypeClassName,
-  getDeductionTypeLabel,
-} from '@/features/personnel/utils/deduction.utils';
+  PersonnelMobileCard,
+  PersonnelMobileCardList,
+} from '@/components/personnel/shared/personnel-mobile-card';
+import { useDeductionTable } from '@/features/personnel/hooks/use-deduction-table';
+import { IDeduction } from '@/features/personnel/types/deduction.types';
+import { formatCfa, formatDateFr } from '@/lib/date-utils';
 
 interface DeductionTableProps {
   showFilters?: boolean;
@@ -39,7 +42,7 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
     handleMonthFilterChange,
   } = useDeductionTable({ onEditDeduction, onCancelDeduction, onDeleteDeduction });
 
-  const colsCount = deductionTable.getAllColumns().length;
+  const enTetes = deductionTable.getFlatHeaders();
   // L'echec ne prend la place des lignes que s'il n'y a rien a montrer : un rafraichissement
   // rate laisse les deductions deja chargees en place.
   const enEchec = isDeductionError && deductionTable.getRowModel().rows.length === 0;
@@ -67,54 +70,99 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
       )}
 
       {/* Tableau — desktop uniquement (≥ md) */}
-      <div className="hidden md:block overflow-x-auto">
-        <Table
-          isStriped
-          bottomContent={
-            pagination &&
-            pagination.pageCount > 1 && (
-              <div className="flex justify-center pt-4 sm:pt-6">
-                <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} color="primary" />
-              </div>
-            )
-          }
-        >
-          <TableHeader>
-            {deductionTable.getFlatHeaders().map((header) => (
-              <TableColumn key={header.id} className="text-primary" allowsSorting={header.column.getCanSort()} onClick={header.column.getToggleSortingHandler()}>
-                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-              </TableColumn>
-            ))}
-          </TableHeader>
+      <Card className="hidden md:block">
+        <Card.Content className="p-0">
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Déductions" className="min-w-[60rem]">
+                <Table.Header>
+                  {enTetes.map((header) => (
+                    <Table.Column
+                      allowsSorting={header.column.getCanSort()}
+                      id={header.id}
+                      isRowHeader={header.id === 'employee'}
+                      key={header.id}
+                    >
+                      {({ sortDirection }) =>
+                        header.column.getCanSort() ? (
+                          <Table.SortableColumnHeader sortDirection={sortDirection}>
+                            {header.isPlaceholder
+                              ? ''
+                              : flexRender(header.column.columnDef.header, header.getContext())}
+                          </Table.SortableColumnHeader>
+                        ) : (
+                          <>
+                            {header.isPlaceholder
+                              ? ''
+                              : flexRender(header.column.columnDef.header, header.getContext())}
+                          </>
+                        )
+                      }
+                    </Table.Column>
+                  ))}
+                </Table.Header>
 
-          {/* L'echec remplace « Aucune deduction trouvee » : sinon le mois parait vierge de retenues. */}
-          <TableBody
-            emptyContent={
-              enEchec ? <EtatErreur quoi="les déductions" onReessayer={() => refetchDeductions()} enCours={isDeductionFetching} /> : 'Aucune déduction trouvée'
-            }
-          >
-            {isDeductionLoading
-              ? Array.from({ length: 10 }).map((_, i) => (
-                  <TableRow key={`skeleton-${i}`}>
-                    {Array.from({ length: colsCount }).map((_, j) => (
-                      <TableCell key={`skeleton-cell-${j}`} className="h-12">
-                        <div className="h-4 w-full animate-pulse rounded bg-surface-tertiary" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : enEchec
-                ? []
-                : deductionTable.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className={isDeductionFetching ? 'opacity-70' : ''}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-      </div>
+                {/* L'echec remplace « Aucune deduction trouvee » : sinon le mois parait
+                    vierge de retenues. */}
+                <Table.Body
+                  renderEmptyState={() =>
+                    isDeductionLoading ? null : enEchec ? (
+                      <div className="py-6">
+                        <EtatErreur
+                          enCours={isDeductionFetching}
+                          onReessayer={() => refetchDeductions()}
+                          quoi="les déductions"
+                        />
+                      </div>
+                    ) : (
+                      <p className="py-8 text-center text-sm text-muted">Aucune déduction trouvée</p>
+                    )
+                  }
+                >
+                  {/* Le squelette compte ses cellules sur les MEMES en-tetes que les lignes
+                      reelles : « Cell count must match column count » emporte la page. */}
+                  {isDeductionLoading
+                    ? Array.from({ length: 10 }).map((_, i) => (
+                        <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                          {enTetes.map((h) => (
+                            <Table.Cell key={`sq-${i}-${h.id}`}>
+                              <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                            </Table.Cell>
+                          ))}
+                        </Table.Row>
+                      ))
+                    : null}
+
+                  {(isDeductionLoading || enEchec ? [] : deductionTable.getRowModel().rows).map(
+                    (row) => (
+                      <Table.Row id={row.id} key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <Table.Cell
+                            className={isDeductionFetching ? 'opacity-70' : undefined}
+                            key={cell.id}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ),
+                  )}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+
+            {pagination && pagination.pageCount > 1 && (
+              <Table.Footer className="justify-center">
+                <PaginationTableau
+                  onPage={(p) => pagination.handlePageChange(p)}
+                  page={pagination.page + 1}
+                  total={pagination.pageCount}
+                />
+              </Table.Footer>
+            )}
+          </Table>
+        </Card.Content>
+      </Card>
 
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <PersonnelMobileCardList>
@@ -132,16 +180,11 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
                 key={row.id}
                 title={deduction.employee?.name ?? '-'}
                 subtitle={deduction.employee?.email ?? '-'}
-                statut={getDeductionStatusLabel(deduction.status)}
-                statutClassName={`${getDeductionStatusClassName(deduction.status)} border-transparent`}
+                statut={<ChipStatutDeduction statut={deduction.status} />}
                 fields={[
                   {
                     label: 'Type',
-                    value: (
-                      <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${getDeductionTypeClassName(deduction.typeDeduction)}`}>
-                        {getDeductionTypeLabel(deduction.typeDeduction)}
-                      </span>
-                    ),
+                    value: <ChipTypeDeduction type={deduction.typeDeduction} />,
                   },
                   { label: 'Montant', value: <span className="font-medium">{formatCfa(deduction.amount)}</span> },
                   { label: 'Date déduction', value: formatDateFr(deduction.deductionDate) },
@@ -155,7 +198,11 @@ export function DeductionTable({ showFilters = true, onEditDeduction, onCancelDe
         )}
         {pagination && pagination.pageCount > 1 && (
           <div className="flex justify-center pt-2">
-            <Pagination total={pagination.pageCount} page={pagination.page + 1} onChange={pagination.handlePageChange} color="primary" />
+            <PaginationTableau
+              onPage={(p) => pagination.handlePageChange(p)}
+              page={pagination.page + 1}
+              total={pagination.pageCount}
+            />
           </div>
         )}
       </PersonnelMobileCardList>

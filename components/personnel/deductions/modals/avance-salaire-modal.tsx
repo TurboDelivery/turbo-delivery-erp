@@ -3,10 +3,15 @@
 import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Textarea } from '@/components/heroui';
+import { Button, Modal } from '@heroui-v3/react';
 import { toast } from 'sonner';
+import {
+  ChampEnveloppe,
+  ChampMontant,
+  ChampTexte,
+  ChampZoneTexte,
+} from '@/components/personnel/common/champs-personnel';
 import { EmployeeSelect } from '@/components/personnel/common/employee-select';
-import { Label } from '@/components/ui/label';
 import { createAvanceSchema, CreateAvanceDTO } from '@/features/personnel/schemas/deduction.schema';
 import { IDeduction } from '@/features/personnel/types/deduction.types';
 import { getTodayDateInput } from '@/lib/date-utils';
@@ -82,103 +87,97 @@ function AvanceSalaireModal({ isOpen, onClose, deduction, onSubmit }: AvanceSala
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="2xl" scrollBehavior="inside">
-      <ModalContent>
-        {(closeModal) => (
-          <>
-            <ModalHeader>{isEditMode ? 'Modifier une avance' : 'Nouvelle avance sur salaire'}</ModalHeader>
-            <ModalBody>
-              <form id="avance-salaire-form" className="space-y-4" onSubmit={handleSubmit(submitForm)}>
-                <div>
-                  <Label className="mb-1 block">Employé</Label>
-                  <Controller
-                    name="employeeId"
-                    control={control}
-                    render={({ field }) => <EmployeeSelect value={field.value} onChange={(value) => field.onChange(value || '')} className="text-xs w-full" />}
-                  />
-                  {errors.employeeId && <small className="text-sm text-red-500">{errors.employeeId.message}</small>}
-                </div>
+    <Modal isOpen={isOpen} onOpenChange={(o) => !o && onClose()}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-2xl">
+            <Modal.Header>
+              <Modal.Heading>
+                {isEditMode ? 'Modifier une avance' : 'Nouvelle avance sur salaire'}
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body>
+              <form
+                className="flex flex-col gap-4"
+                id="avance-salaire-form"
+                onSubmit={handleSubmit(submitForm)}
+              >
+                <Controller
+                  control={control}
+                  name="employeeId"
+                  render={({ field }) => (
+                    <ChampEnveloppe erreur={errors.employeeId?.message} label="Employé">
+                      <EmployeeSelect
+                        className="w-full"
+                        onChange={(value) => field.onChange(value || '')}
+                        value={field.value}
+                      />
+                    </ChampEnveloppe>
+                  )}
+                />
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <Controller
-                    name="amount"
                     control={control}
+                    name="amount"
                     render={({ field }) => (
-                      <div className="space-y-2">
-                        <Label htmlFor="amount">Montant</Label>
-                        <Input
-                          id="amount"
-                          type="number"
-                          value={String(field.value ?? 0)}
-                          onChange={(e) => field.onChange(Number(e.target.value || 0))}
-                          variant="bordered"
-                          endContent="FCFA"
-                          isInvalid={!!errors.amount}
-                          errorMessage={errors.amount?.message}
-                        />
-                      </div>
+                      <ChampMontant
+                        aide="En francs CFA"
+                        erreur={errors.amount?.message}
+                        label="Montant"
+                        onChange={field.onChange}
+                        valeur={field.value}
+                      />
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="date"
+                    render={({ field }) => (
+                      <ChampTexte
+                        erreur={errors.date?.message}
+                        label="Date de la demande"
+                        onChange={field.onChange}
+                        type="date"
+                        valeur={field.value ?? ''}
+                      />
                     )}
                   />
                 </div>
 
                 <Controller
-                  name="date"
                   control={control}
-                  render={({ field }) => (
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Date de la demande</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={field.value || ''}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        variant="bordered"
-                        isInvalid={!!errors.date}
-                        errorMessage={errors.date?.message}
-                      />
-                    </div>
-                  )}
-                />
-
-                <Controller
                   name="motif"
-                  control={control}
                   render={({ field }) => (
-                    <div className="space-y-2">
-                      <Label htmlFor="motif">Motif</Label>
-                      <Textarea
-                        id="motif"
-                        value={field.value || ''}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        placeholder="Saisissez le motif"
-                        variant="bordered"
-                        minRows={3}
-                        isInvalid={!!errors.motif}
-                        errorMessage={errors.motif?.message}
-                      />
-                    </div>
+                    <ChampZoneTexte
+                      erreur={errors.motif?.message}
+                      label="Motif"
+                      onChange={field.onChange}
+                      placeholder="Saisissez le motif"
+                      valeur={field.value ?? ''}
+                    />
                   )}
                 />
-
-                <div className="rounded-md border border-yellow-400 bg-yellow-100 p-3">
-                  <p className="font-semibold text-red-600">Important</p>
-                  <p className="mt-1 text-sm text-red-600">L&#39;avance sur salaire sera déduite intégralement du salaire du mois prochain.</p>
-                </div>
               </form>
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="light" color="danger" onPress={closeModal} isDisabled={isSubmitting}>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button isDisabled={isSubmitting} onPress={onClose} variant="ghost">
                 Annuler
               </Button>
-              <Button color="primary" type="submit" form="avance-salaire-form" isLoading={isSubmitting}>
-                Enregistrer
+              <Button
+                form="avance-salaire-form"
+                isPending={isSubmitting}
+                type="submit"
+                variant="primary"
+              >
+                {isEditMode ? 'Modifier' : 'Créer'}
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
-
 export default AvanceSalaireModal;

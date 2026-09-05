@@ -1,76 +1,76 @@
 'use client';
 
+import { Button, Modal } from '@heroui-v3/react';
 import { useState } from 'react';
-import { Button } from '@/components/heroui';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from '@/components/heroui';
 
 interface ConfirmDialogProps {
+  isOpen: boolean;
   message: string;
   onConfirm: () => void;
-  isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function ConfirmDialog({ message, onConfirm, isOpen, onOpenChange }: ConfirmDialogProps) {
+/**
+ * La confirmation avant un geste irréversible du module Personnel.
+ *
+ * <p>Le bouton « Annuler » était peint en `color="danger"` : la couleur du DANGER sur le
+ * bouton qui NE FAIT RIEN, pendant que « Confirmer » — celui qui supprime — restait en
+ * bleu. Les deux couleurs disaient l'inverse de ce qui se passe. Annuler est neutre ;
+ * c'est le geste confirmé qui porte le rouge.</p>
+ */
+export function ConfirmDialog({ isOpen, message, onConfirm, onOpenChange }: ConfirmDialogProps) {
   const handleConfirm = () => {
     onConfirm();
     onOpenChange(false);
   };
 
-  const handleCancel = () => {
-    onOpenChange(false);
-  };
-
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
-      <ModalContent>
-        <ModalHeader>Confirmation</ModalHeader>
-        <ModalBody>
-          {message}
-        </ModalBody>
-        <ModalFooter>
-          <Button color="danger" variant="light" onPress={handleCancel}>
-            Annuler
-          </Button>
-          <Button color="primary" onPress={handleConfirm}>
-            Confirmer
-          </Button>
-        </ModalFooter>
-      </ModalContent>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog>
+            <Modal.Header>
+              <Modal.Heading>Confirmation</Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body>{message}</Modal.Body>
+            <Modal.Footer>
+              <Button onPress={() => onOpenChange(false)} variant="ghost">
+                Annuler
+              </Button>
+              <Button onPress={handleConfirm} variant="danger">
+                Confirmer
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
 
-// Hook personnalisé pour gérer le dialogue de confirmation
+/** Ouvre le dialogue en retenant le message et le geste à exécuter. */
 export const useConfirmDialog = () => {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [onConfirm, setOnConfirm] = useState<(() => void) | null>(null);
 
   const openDialog = (msg: string, confirmCallback: () => void) => {
     setMessage(msg);
     setOnConfirm(() => confirmCallback);
-    onOpen();
-  };
-
-  const confirm = () => {
-    if (onConfirm) {
-      onConfirm();
-    }
-    onOpenChange();
-  };
-
-  const cancel = () => {
-    onOpenChange();
+    setIsOpen(true);
   };
 
   return {
+    cancel: () => setIsOpen(false),
+    confirm: () => {
+      onConfirm?.();
+      setIsOpen(false);
+    },
     isOpen,
-    onOpen,
-    onOpenChange,
     message,
+    onOpen: () => setIsOpen(true),
+    onOpenChange: setIsOpen,
     openDialog,
-    confirm,
-    cancel
   };
 };

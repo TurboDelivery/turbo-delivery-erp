@@ -7,12 +7,14 @@ const TYPE_LABELS: Record<DeductionTypeEnum, string> = {
   [DeductionTypeEnum.RETARD]: 'Retard',
 };
 
-const TYPE_CLASSNAMES: Record<DeductionTypeEnum, string> = {
-  [DeductionTypeEnum.AVANCE]: 'bg-blue-100 text-blue-700',
-  [DeductionTypeEnum.PRET]: 'bg-purple-100 text-purple-700',
-  [DeductionTypeEnum.ABSENCE]: 'bg-red-100 text-red-700',
-  [DeductionTypeEnum.RETARD]: 'bg-amber-100 text-amber-700',
-};
+/**
+ * Le TYPE de déduction ne porte plus de couleur.
+ *
+ * <p>Avance en bleu, Prêt en violet, Absence en rouge, Retard en ambre : quatre teintes
+ * de la palette Tailwind, sans variante sombre, pour une CATÉGORIE. Un prêt n'est pas
+ * plus grave qu'une avance, et une absence n'est pas une erreur — le rouge le laissait
+ * entendre sur chaque ligne. Le libellé dit déjà lequel c'est.</p>
+ */
 
 const STATUS_LABELS: Record<DeductionStatusEnum, string> = {
   [DeductionStatusEnum.PENDING]: 'En attente',
@@ -20,20 +22,28 @@ const STATUS_LABELS: Record<DeductionStatusEnum, string> = {
   [DeductionStatusEnum.CANCELLED]: 'Annulé',
 };
 
-const STATUS_CLASSNAMES: Record<DeductionStatusEnum, string> = {
-  [DeductionStatusEnum.PENDING]: 'bg-amber-100 text-amber-700',
-  [DeductionStatusEnum.PAID]: 'bg-green-100 text-green-700',
-  [DeductionStatusEnum.CANCELLED]: 'bg-red-100 text-red-700',
+/**
+ * Le STATUT, lui, garde un ton : c'est un état, pas une catégorie.
+ *
+ * <p>« En attente » est l'état NORMAL d'une déduction qui n'a pas encore atteint un
+ * bulletin : l'ambre y annonçait un problème qui n'existe pas. « Annulé » reste rouge —
+ * dans une série comptable, une ligne défaite est l'exception qu'on veut voir.</p>
+ */
+export type TonDeduction = 'danger' | 'default' | 'success';
+
+const STATUS_TONS: Record<DeductionStatusEnum, TonDeduction> = {
+  [DeductionStatusEnum.CANCELLED]: 'danger',
+  [DeductionStatusEnum.PAID]: 'success',
+  [DeductionStatusEnum.PENDING]: 'default',
 };
 
 export const getDeductionTypeLabel = (type: DeductionTypeEnum): string =>
   TYPE_LABELS[type] ?? type;
 
-export const getDeductionTypeClassName = (type: DeductionTypeEnum): string =>
-  TYPE_CLASSNAMES[type] ?? 'bg-surface-secondary text-foreground';
+
 
 export const getDeductionStatusLabel = (status: DeductionStatusEnum): string =>
   STATUS_LABELS[status] ?? status;
 
-export const getDeductionStatusClassName = (status: DeductionStatusEnum): string =>
-  STATUS_CLASSNAMES[status] ?? 'bg-surface-secondary text-foreground';
+export const getDeductionStatusTon = (status: DeductionStatusEnum): TonDeduction =>
+  STATUS_TONS[status] ?? 'default';

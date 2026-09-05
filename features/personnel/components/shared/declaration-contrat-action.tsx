@@ -1,20 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import {
-  Button,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Select,
-  SelectItem,
-} from '@/components/heroui';
-import { useSession } from 'next-auth/react';
+import { Button, Modal } from '@heroui-v3/react';
 import { ShieldCheck } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+
+import { ChampListe, ChampTexte } from '@/components/personnel/common/champs-personnel';
 
 import { useAbility } from '@/hooks/use-ability';
 import { normalizeRole } from '@/lib/casl/ability';
@@ -42,10 +34,10 @@ export function usePeutDeclarer(): boolean {
 
 /** Les trois états possibles, « jamais renseigné » compris — ce n'est pas « non déclaré ». */
 const CHOIX = [
-  { cle: 'DECLARE', libelle: 'Déclaré' },
-  { cle: 'NON_DECLARE', libelle: 'Non déclaré' },
-  { cle: 'INCONNU', libelle: 'À confirmer (non renseigné)' },
-];
+  { label: 'Déclaré', value: 'DECLARE' },
+  { label: 'Non déclaré', value: 'NON_DECLARE' },
+  { label: 'À confirmer (non renseigné)', value: 'INCONNU' },
+] as const;
 
 function versChoix(etat: EtatDeclaration | null | undefined): string {
   if (etat === 'DECLARE' || etat === 'NON_DECLARE') return etat;
@@ -67,8 +59,8 @@ interface Props {
   dateDeclaration?: string | null;
   referenceDeclaration?: string | null;
   declarationUrl?: string | null;
-  /** `bordered` sur la fiche (action de tête), `light` dans les tableaux. */
-  variante?: 'bordered' | 'light';
+  /** `outline` sur la fiche (action de tête), `ghost` dans les tableaux. */
+  variante?: 'ghost' | 'outline';
 }
 
 /**
@@ -85,7 +77,7 @@ export function DeclarationContratAction({
   dateDeclaration,
   referenceDeclaration,
   declarationUrl,
-  variante = 'light',
+  variante = 'ghost',
 }: Props) {
   const { data: session } = useSession();
   const userId = session?.user?.id ? String(session.user.id) : null;
@@ -144,77 +136,77 @@ export function DeclarationContratAction({
 
   return (
     <>
-      <Button
-        size="sm"
-        variant={variante}
-        color="primary"
-        startContent={<ShieldCheck className="h-4 w-4" />}
-        onPress={() => setOuvert(true)}
-      >
+      <Button onPress={() => setOuvert(true)} size="sm" variant={variante}>
+        <ShieldCheck aria-hidden="true" className="size-4" />
         Déclaration
       </Button>
 
-      <Modal isOpen={ouvert} onClose={() => setOuvert(false)} size="md">
-        <ModalContent>
-          <ModalHeader className="flex-col items-start gap-1">
-            <span>Suivi de déclaration</span>
-            <span className="text-xs font-normal text-default-400">
-              Chaque modification est journalisée avec son auteur et inscrite au parcours de l&apos;agent.
-            </span>
-          </ModalHeader>
-          <ModalBody className="gap-3">
-            <Select
-              label="État de la déclaration"
-              size="sm"
-              selectedKeys={new Set([choix])}
-              onSelectionChange={(keys) => setChoix((Array.from(keys)[0] as string) ?? 'INCONNU')}
-            >
-              {CHOIX.map((c) => (
-                <SelectItem key={c.cle} value={c.cle}>
-                  {c.libelle}
-                </SelectItem>
-              ))}
-            </Select>
+      <Modal isOpen={ouvert} onOpenChange={(o) => !o && setOuvert(false)}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading className="flex flex-col items-start gap-1">
+                  <span>Suivi de déclaration</span>
+                  <span className="text-xs font-normal text-muted">
+                    Chaque modification est journalisée avec son auteur et inscrite au parcours de
+                    l&apos;agent.
+                  </span>
+                </Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+              <Modal.Body className="flex flex-col gap-3">
+                <ChampListe
+                  label="État de la déclaration"
+                  onChange={(v) => setChoix(v || 'INCONNU')}
+                  options={CHOIX}
+                  placeholder="Choisir un état"
+                  valeur={choix}
+                />
 
-            <Input
-              type="date"
-              label="Date de déclaration"
-              size="sm"
-              value={date}
-              onValueChange={setDate}
-              description={
-                choix === 'DECLARE'
-                  ? 'Laissée vide, le serveur retient la date du jour.'
-                  : 'Facultative hors déclaration effective.'
-              }
-            />
+                <ChampTexte
+                  aide={
+                    choix === 'DECLARE'
+                      ? 'Laissée vide, le serveur retient la date du jour.'
+                      : 'Facultative hors déclaration effective.'
+                  }
+                  label="Date de déclaration"
+                  onChange={setDate}
+                  type="date"
+                  valeur={date}
+                />
 
-            <Input
-              label="Référence de déclaration"
-              size="sm"
-              placeholder="N° de dépôt CNPS, référence du dossier…"
-              value={reference}
-              onValueChange={setReference}
-            />
+                <ChampTexte
+                  label="Référence de déclaration"
+                  onChange={setReference}
+                  placeholder="N° de dépôt CNPS, référence du dossier…"
+                  valeur={reference}
+                />
 
-            <Input
-              label="Pièce justificative (URL)"
-              size="sm"
-              placeholder="https://…"
-              value={url}
-              onValueChange={setUrl}
-              description="Lien vers l'attestation ou le récépissé déjà stocké."
-            />
-          </ModalBody>
-          <ModalFooter>
-            <Button size="sm" variant="light" onPress={() => setOuvert(false)}>
-              Annuler
-            </Button>
-            <Button size="sm" color="primary" isLoading={mutation.isPending} onPress={enregistrer}>
-              Enregistrer
-            </Button>
-          </ModalFooter>
-        </ModalContent>
+                <ChampTexte
+                  aide="Lien vers l'attestation ou le récépissé déjà stocké."
+                  label="Pièce justificative (URL)"
+                  onChange={setUrl}
+                  placeholder="https://…"
+                  valeur={url}
+                />
+              </Modal.Body>
+              <Modal.Footer>
+                <Button onPress={() => setOuvert(false)} size="sm" variant="ghost">
+                  Annuler
+                </Button>
+                <Button
+                  isPending={mutation.isPending}
+                  onPress={enregistrer}
+                  size="sm"
+                  variant="primary"
+                >
+                  Enregistrer
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </>
   );

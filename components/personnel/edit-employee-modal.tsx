@@ -1,16 +1,27 @@
 'use client';
 
-import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Button, Modal } from '@heroui-v3/react';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Button } from '@/components/heroui';
-import { Input } from '@/components/heroui';
-import { Select, SelectItem } from '@/components/heroui';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@/components/heroui';
-import { IEmployee } from '@/features/personnel/types/types';
+
+import {
+  ChampListe,
+  ChampMontant,
+  ChampTexte,
+} from '@/components/personnel/common/champs-personnel';
+import { DEPARTMENTS, POSTES } from '@/features/personnel/constants/employee.constants';
 import { useModifierEmployeMutation } from '@/features/personnel/mutations/employee.mutation';
 import { EmployeeSchema, type EmployeeDTO } from '@/features/personnel/schemas/employee.schema';
-import { DEPARTMENTS, POSTES } from '@/features/personnel/constants/employee.constants';
+import { IEmployee } from '@/features/personnel/types/types';
+
+const POSTES_OPTIONS = POSTES.map((p) => ({ label: p, value: p }));
+const DEPARTEMENTS_OPTIONS = DEPARTMENTS.map((d) => ({ label: d.name, value: d.name }));
+const STATUTS_OPTIONS = [
+  { label: 'Actif', value: 'Actif' },
+  { label: 'Inactif', value: 'Inactif' },
+  { label: 'Congé', value: 'Congé' },
+] as const;
 
 interface EditEmployeeModalProps {
   isOpen: boolean;
@@ -36,7 +47,6 @@ export function EditEmployeeModal({ isOpen, onClose, employee }: EditEmployeeMod
   });
 
   const {
-    register,
     control,
     handleSubmit,
     reset,
@@ -73,174 +83,146 @@ export function EditEmployeeModal({ isOpen, onClose, employee }: EditEmployeeMod
     }
   };
 
+  const enCours = isSubmitting || modifierEmployeMutation.isPending;
+
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={onClose}
-      size="2xl"
-      scrollBehavior="inside"
-      isDismissable={false}
-      hideCloseButton
-    >
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              <div className="flex justify-between items-center">
-                <span>Modifier l&apos;employé</span>
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  onPress={onClose}
-                >
-                  ✕
-                </Button>
-              </div>
-            </ModalHeader>
-            <ModalBody>
-              <form id="edit-employee-form" className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    label="Nom complet"
-                    placeholder="Entrez le nom complet"
-                    {...register('name')}
-                    variant="bordered"
-                    isInvalid={!!errors.name}
-                    errorMessage={errors.name?.message}
-                  />
-                  <Input
-                    label="Email"
-                    type="email"
-                    placeholder="Entrez l'email"
-                    {...register('email')}
-                    variant="bordered"
-                    isInvalid={!!errors.email}
-                    errorMessage={errors.email?.message}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+    <Modal isOpen={isOpen} onOpenChange={(o) => !o && onClose()}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-2xl">
+            <Modal.Header>
+              <Modal.Heading>Modifier l&apos;employé</Modal.Heading>
+              {/* La croix etait un caractere « ✕ » dans un bouton : la fenetre en a une. */}
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body>
+              <form
+                className="flex flex-col gap-4"
+                id="edit-employee-form"
+                onSubmit={handleSubmit(onSubmit)}
+              >
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Controller
-                    name="position"
                     control={control}
+                    name="name"
                     render={({ field }) => (
-                      <Select
-                        label="Fonction"
-                        placeholder="Sélectionnez une fonction"
-                        selectedKeys={field.value ? [field.value] : []}
-                        onSelectionChange={(keys) => {
-                          const firstKey = Array.from(keys as Set<string>)[0];
-                          field.onChange(firstKey ? String(firstKey) : '');
-                        }}
-                        variant="bordered"
-                        isInvalid={!!errors.position}
-                        errorMessage={errors.position?.message}
-                      >
-                        {POSTES.map((position) => (
-                          <SelectItem key={position} value={position}>
-                            {position.toLowerCase()}
-                          </SelectItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-
-                  <Controller
-                    name="department"
-                    control={control}
-                    render={({ field }) => (
-                      <Select
-                        label="Département"
-                        placeholder="Sélectionnez un département"
-                        selectedKeys={field.value ? [field.value] : []}
-                        onSelectionChange={(keys) => {
-                          const firstKey = Array.from(keys as Set<string>)[0];
-                          field.onChange(firstKey ? String(firstKey) : '');
-                        }}
-                        variant="bordered"
-                        isInvalid={!!errors.department}
-                        errorMessage={errors.department?.message}
-                      >
-                        {DEPARTMENTS.map((dept) => (
-                          <SelectItem key={dept.name} value={dept.name}>
-                            {dept.name}
-                          </SelectItem>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Controller
-                    name="salary"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        label="Salaire mensuel"
-                        type="number"
-                        placeholder="Entrez le salaire"
-                        value={field.value ? String(field.value) : ''}
-                        onChange={(e) => field.onChange(Number(e.target.value || 0))}
-                        variant="bordered"
-                        endContent="CFA"
-                        isInvalid={!!errors.salary}
-                        errorMessage={errors.salary?.message}
+                      <ChampTexte
+                        erreur={errors.name?.message}
+                        label="Nom complet"
+                        onChange={field.onChange}
+                        placeholder="Entrez le nom complet"
+                        valeur={field.value ?? ''}
                       />
                     )}
                   />
-                  <Input
-                    label="Date d'entrée"
-                    type="date"
-                    {...register('entryDate')}
-                    variant="bordered"
-                    isInvalid={!!errors.entryDate}
-                    errorMessage={errors.entryDate?.message}
+                  <Controller
+                    control={control}
+                    name="email"
+                    render={({ field }) => (
+                      <ChampTexte
+                        erreur={errors.email?.message}
+                        label="Email"
+                        onChange={field.onChange}
+                        placeholder="Entrez l'email"
+                        type="email"
+                        valeur={field.value ?? ''}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Controller
+                    control={control}
+                    name="position"
+                    render={({ field }) => (
+                      <ChampListe
+                        erreur={errors.position?.message}
+                        label="Fonction"
+                        onChange={field.onChange}
+                        options={POSTES_OPTIONS}
+                        placeholder="Rechercher une fonction"
+                        valeur={field.value ?? ''}
+                      />
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="department"
+                    render={({ field }) => (
+                      <ChampListe
+                        erreur={errors.department?.message}
+                        label="Département"
+                        onChange={field.onChange}
+                        options={DEPARTEMENTS_OPTIONS}
+                        placeholder="Rechercher un département"
+                        valeur={field.value ?? ''}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Controller
+                    control={control}
+                    name="salary"
+                    render={({ field }) => (
+                      <ChampMontant
+                        aide="En francs CFA"
+                        erreur={errors.salary?.message}
+                        label="Salaire"
+                        onChange={field.onChange}
+                        valeur={field.value}
+                      />
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="entryDate"
+                    render={({ field }) => (
+                      <ChampTexte
+                        erreur={errors.entryDate?.message}
+                        label="Date d'entrée"
+                        onChange={field.onChange}
+                        type="date"
+                        valeur={field.value ?? ''}
+                      />
+                    )}
                   />
                 </div>
 
                 <Controller
-                  name="statut"
                   control={control}
+                  name="statut"
                   render={({ field }) => (
-                    <Select
+                    <ChampListe
+                      erreur={errors.statut?.message}
                       label="Statut"
+                      onChange={field.onChange}
+                      options={STATUTS_OPTIONS}
                       placeholder="Sélectionnez le statut"
-                      selectedKeys={field.value ? [field.value] : []}
-                      onSelectionChange={(keys) => {
-                        const firstKey = Array.from(keys as Set<string>)[0];
-                        field.onChange(firstKey ? (firstKey as IEmployee['statut']) : 'Actif');
-                      }}
-                      variant="bordered"
-                      isInvalid={!!errors.statut}
-                      errorMessage={errors.statut?.message}
-                    >
-                      <SelectItem key="Actif" value="Actif">Actif</SelectItem>
-                      <SelectItem key="Inactif" value="Inactif">Inactif</SelectItem>
-                      <SelectItem key="Congé" value="Congé">Congé</SelectItem>
-                    </Select>
+                      valeur={field.value ?? ''}
+                    />
                   )}
                 />
               </form>
-            </ModalBody>
-            <ModalFooter>
-              <Button color="danger" variant="light" onPress={onClose} disabled={isSubmitting || modifierEmployeMutation.isPending}>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button isDisabled={enCours} onPress={onClose} variant="ghost">
                 Annuler
               </Button>
               <Button
-                color="primary"
-                type="submit"
                 form="edit-employee-form"
-                isLoading={isSubmitting || modifierEmployeMutation.isPending}
-                disabled={isSubmitting || modifierEmployeMutation.isPending}
+                isPending={enCours}
+                type="submit"
+                variant="primary"
               >
-                {isSubmitting || modifierEmployeMutation.isPending ? 'Modification...' : 'Modifier l\'employé'}
+                Modifier l&apos;employé
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

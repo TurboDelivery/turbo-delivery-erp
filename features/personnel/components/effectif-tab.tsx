@@ -1,22 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import {
-  Button,
-  Input,
-  Pagination,
-  Select,
-  SelectItem,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { Button, Card, InputGroup, Label, Table, TextField } from '@heroui-v3/react';
 import { AlertTriangle, ArrowRight, Download, Search } from 'lucide-react';
+import Link from 'next/link';
+import { useMemo, useState } from 'react';
+
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
+import { ChampListe } from '@/components/personnel/common/champs-personnel';
 
 import { useEffectifQuery } from '@/features/personnel/queries/personnel-historisation.query';
 import {
@@ -36,16 +26,26 @@ const TAILLE_PAGE = 25;
 const TOUS = '__TOUS__';
 
 const OPTIONS_STATUT = [
-  { cle: TOUS, libelle: 'Tous' },
-  { cle: 'actif', libelle: 'Actif' },
-  { cle: 'sorti', libelle: "Sorti de l'effectif" },
-];
+  { label: 'Tous', value: TOUS },
+  { label: 'Actif', value: 'actif' },
+  { label: "Sorti de l'effectif", value: 'sorti' },
+] as const;
 
-/** Sélection HeroUI → valeur de filtre ('' quand l'utilisateur choisit « tous »). */
-function lireCle(keys: unknown): string {
-  const cle = Array.from(keys as Set<string>)[0];
+/** Sélection → valeur de filtre ('' quand l'utilisateur choisit « tous »). */
+function lireCle(cle: string): string {
   return !cle || cle === TOUS ? '' : cle;
 }
+
+/** Les colonnes, déclarées une fois : le squelette y compte ses cellules. */
+const COLONNES = [
+  { alignDroite: false, id: 'agent', libelle: 'Agent' },
+  { alignDroite: false, id: 'type', libelle: 'Type' },
+  { alignDroite: false, id: 'enrole', libelle: 'Enrôlé le' },
+  { alignDroite: false, id: 'statut', libelle: 'Statut' },
+  { alignDroite: false, id: 'declare', libelle: 'Déclaré' },
+  { alignDroite: true, id: 'net', libelle: 'Net' },
+  { alignDroite: true, id: 'actions', libelle: '' },
+] as const;
 
 /**
  * Onglet « Effectif » (F1) : tout le personnel enregistré, actifs et sortis.
@@ -78,14 +78,17 @@ export function EffectifTab() {
 
   const optionsType = useMemo(
     () => [
-      { cle: TOUS, libelle: 'Tous' },
-      ...(data?.types ?? []).map((t) => ({ cle: t, libelle: libelleTypeCollaborateur(t) })),
+      { label: 'Tous', value: TOUS },
+      ...(data?.types ?? []).map((t) => ({ label: libelleTypeCollaborateur(t), value: t })),
     ],
     [data?.types],
   );
 
   const optionsAgence = useMemo(
-    () => [{ cle: TOUS, libelle: 'Toutes' }, ...(data?.agences ?? []).map((a) => ({ cle: a, libelle: a }))],
+    () => [
+      { label: 'Toutes', value: TOUS },
+      ...(data?.agences ?? []).map((a) => ({ label: a, value: a })),
+    ],
     [data?.agences],
   );
 
@@ -117,158 +120,167 @@ export function EffectifTab() {
   };
 
   return (
-    <div className="space-y-3 rounded-xl border border-default-200 bg-surface p-4">
-      {/* Barre de filtres */}
-      <div className="flex flex-wrap items-end gap-2">
-        <Select
-          label="Type"
-          size="sm"
-          className="w-44"
-          selectedKeys={new Set([type || TOUS])}
-          onSelectionChange={(keys) => remettreAZero(() => setType(lireCle(keys)))}
-        >
-          {optionsType.map((o) => (
-            <SelectItem key={o.cle} value={o.cle}>
-              {o.libelle}
-            </SelectItem>
-          ))}
-        </Select>
+    <Card>
+      <Card.Content className="gap-3">
+        {/* Barre de filtres */}
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="w-full sm:w-44">
+            <ChampListe
+              label="Type"
+              onChange={(c) => remettreAZero(() => setType(lireCle(c)))}
+              options={optionsType}
+              placeholder="Tous"
+              valeur={type || TOUS}
+            />
+          </div>
+          <div className="w-full sm:w-44">
+            <ChampListe
+              label="Statut"
+              onChange={(c) => remettreAZero(() => setStatut(lireCle(c)))}
+              options={OPTIONS_STATUT}
+              placeholder="Tous"
+              valeur={statut || TOUS}
+            />
+          </div>
+          <div className="w-full sm:w-48">
+            <ChampListe
+              label="Agence"
+              onChange={(c) => remettreAZero(() => setAgence(lireCle(c)))}
+              options={optionsAgence}
+              placeholder="Toutes"
+              valeur={agence || TOUS}
+            />
+          </div>
 
-        <Select
-          label="Statut"
-          size="sm"
-          className="w-44"
-          selectedKeys={new Set([statut || TOUS])}
-          onSelectionChange={(keys) => remettreAZero(() => setStatut(lireCle(keys)))}
-        >
-          {OPTIONS_STATUT.map((o) => (
-            <SelectItem key={o.cle} value={o.cle}>
-              {o.libelle}
-            </SelectItem>
-          ))}
-        </Select>
+          <TextField
+            className="min-w-56 flex-1"
+            onChange={(v) => remettreAZero(() => setRecherche(v))}
+            value={recherche}
+          >
+            <Label>Recherche</Label>
+            <InputGroup>
+              <InputGroup.Prefix>
+                <Search aria-hidden="true" className="size-4" />
+              </InputGroup.Prefix>
+              <InputGroup.Input placeholder="Nom, matricule, poste…" />
+            </InputGroup>
+          </TextField>
 
-        <Select
-          label="Agence"
-          size="sm"
-          className="w-48"
-          selectedKeys={new Set([agence || TOUS])}
-          onSelectionChange={(keys) => remettreAZero(() => setAgence(lireCle(keys)))}
-        >
-          {optionsAgence.map((o) => (
-            <SelectItem key={o.cle} value={o.cle}>
-              {o.libelle}
-            </SelectItem>
-          ))}
-        </Select>
-
-        <Input
-          label="Recherche"
-          size="sm"
-          className="min-w-56 flex-1"
-          placeholder="Nom, matricule, poste…"
-          startContent={<Search className="h-4 w-4 text-default-400" />}
-          value={recherche}
-          onValueChange={(v) => remettreAZero(() => setRecherche(v))}
-        />
-
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          startContent={<Download className="h-4 w-4" />}
-          onPress={exporter}
-          isDisabled={lignes.length === 0}
-        >
-          Exporter CSV
-        </Button>
-      </div>
-
-      {isError ? (
-        <EtatErreur quoi="l&apos;effectif" onReessayer={() => refetch()} enCours={isFetching} />
-      ) : (
-      <Table aria-label="Effectif du personnel" removeWrapper isStriped>
-        <TableHeader>
-          <TableColumn className="text-primary">AGENT</TableColumn>
-          <TableColumn className="text-primary">TYPE</TableColumn>
-          <TableColumn className="text-primary">ENRÔLÉ LE</TableColumn>
-          <TableColumn className="text-primary">STATUT</TableColumn>
-          <TableColumn className="text-primary">DÉCLARÉ</TableColumn>
-          <TableColumn className="text-right text-primary">
-            NET — {data?.dernierMoisClotureLibelle ?? 'DERNIER MOIS CLÔTURÉ'}
-          </TableColumn>
-          <TableColumn className="text-right text-primary"> </TableColumn>
-        </TableHeader>
-        <TableBody
-          emptyContent={isLoading || isFetching ? ' ' : 'Aucun agent ne correspond aux filtres.'}
-          isLoading={isLoading}
-          loadingContent={<Spinner color="primary" label="Chargement de l’effectif…" />}
-        >
-          {visibles.map((l) => (
-            <TableRow key={l.employeId}>
-              <TableCell>
-                <AgentCell
-                  nom={l.nom}
-                  matricule={l.matricule}
-                  employeId={l.employeId}
-                  sousTitre={[l.poste, l.agence].filter(Boolean).join(' · ')}
-                />
-              </TableCell>
-              <TableCell>
-                <TypeContratChip type={l.typeCollaborateur} />
-              </TableCell>
-              <TableCell className="whitespace-nowrap text-default-500">{formaterDate(l.enroleLe)}</TableCell>
-              <TableCell>
-                <StatutEffectifChip actif={l.actif} sortieLe={l.sortieLe} />
-              </TableCell>
-              <TableCell>
-                <DeclarationChip etat={l.declaration} />
-              </TableCell>
-              <TableCell className="text-right font-medium tabular-nums">
-                {formaterMontant(l.netDernierMoisCloture)}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                  {l.nbAnomalies > 0 ? (
-                    <span
-                      className="flex items-center gap-1 text-xs text-warning-soft-foreground"
-                      title={`${l.nbAnomalies} anomalie(s) sur ce dossier`}
-                    >
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                      {l.nbAnomalies}
-                    </span>
-                  ) : null}
-                  <Link
-                    href={`/personnel/${l.employeId}`}
-                    className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold text-primary hover:underline"
-                  >
-                    Voir la fiche
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      )}
-
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-default-100 pt-3 text-xs text-default-400">
-        <span>
-          {lignes.length} agent(s) affiché(s) sur {data?.lignes.length ?? 0} enregistrés (actifs et sortis)
-        </span>
-        {totalPages > 1 ? (
-          <Pagination
+          <Button
+            isDisabled={lignes.length === 0}
+            onPress={exporter}
             size="sm"
-            total={totalPages}
-            page={pageCourante}
-            onChange={setPage}
-            color="primary"
-            showControls
-          />
-        ) : null}
-        <span>Les agents sortis restent consultables avec tout leur historique</span>
-      </div>
-    </div>
+            variant="outline"
+          >
+            <Download aria-hidden="true" className="size-4" />
+            Exporter CSV
+          </Button>
+        </div>
+
+        {isError ? (
+          <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="l'effectif" />
+        ) : (
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Effectif du personnel" className="min-w-[68rem]">
+                <Table.Header>
+                  {COLONNES.map((c) => (
+                    <Table.Column
+                      className={c.alignDroite ? 'text-right' : undefined}
+                      id={c.id}
+                      isRowHeader={c.id === 'agent'}
+                      key={c.id}
+                    >
+                      {c.id === 'net'
+                        ? `Net — ${data?.dernierMoisClotureLibelle ?? 'dernier mois clôturé'}`
+                        : c.libelle}
+                    </Table.Column>
+                  ))}
+                </Table.Header>
+                <Table.Body
+                  renderEmptyState={() =>
+                    isLoading ? null : (
+                      <p className="py-8 text-center text-sm text-muted">
+                        Aucun agent ne correspond aux filtres.
+                      </p>
+                    )
+                  }
+                >
+                  {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+                  {isLoading
+                    ? Array.from({ length: 10 }).map((_, i) => (
+                        <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                          {COLONNES.map((c) => (
+                            <Table.Cell key={`sq-${i}-${c.id}`}>
+                              <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                            </Table.Cell>
+                          ))}
+                        </Table.Row>
+                      ))
+                    : null}
+
+                  {(isLoading ? [] : visibles).map((l) => (
+                    <Table.Row id={l.employeId} key={l.employeId}>
+                      <Table.Cell>
+                        <AgentCell
+                          employeId={l.employeId}
+                          matricule={l.matricule}
+                          nom={l.nom}
+                          sousTitre={[l.poste, l.agence].filter(Boolean).join(' · ')}
+                        />
+                      </Table.Cell>
+                      <Table.Cell>
+                        <TypeContratChip type={l.typeCollaborateur} />
+                      </Table.Cell>
+                      <Table.Cell className="whitespace-nowrap text-muted">
+                        {formaterDate(l.enroleLe)}
+                      </Table.Cell>
+                      <Table.Cell>
+                        <StatutEffectifChip actif={l.actif} sortieLe={l.sortieLe} />
+                      </Table.Cell>
+                      <Table.Cell>
+                        <DeclarationChip etat={l.declaration} />
+                      </Table.Cell>
+                      <Table.Cell className="text-right font-medium tabular-nums">
+                        {formaterMontant(l.netDernierMoisCloture)}
+                      </Table.Cell>
+                      <Table.Cell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {l.nbAnomalies > 0 ? (
+                            <span
+                              className="flex items-center gap-1 text-xs text-warning-soft-foreground"
+                              title={`${l.nbAnomalies} anomalie(s) sur ce dossier`}
+                            >
+                              <AlertTriangle aria-hidden="true" className="size-3.5" />
+                              {l.nbAnomalies}
+                            </span>
+                          ) : null}
+                          <Link
+                            className="inline-flex items-center gap-1 text-xs font-semibold whitespace-nowrap text-accent hover:underline"
+                            href={`/personnel/${l.employeId}`}
+                          >
+                            Voir la fiche
+                            <ArrowRight aria-hidden="true" className="size-3.5" />
+                          </Link>
+                        </div>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+          </Table>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-separator pt-3 text-xs text-muted">
+          <span>
+            {lignes.length} agent(s) affiché(s) sur {data?.lignes.length ?? 0} enregistrés (actifs
+            et sortis)
+          </span>
+          <PaginationTableau onPage={setPage} page={pageCourante} total={totalPages} />
+          <span>Les agents sortis restent consultables avec tout leur historique</span>
+        </div>
+      </Card.Content>
+    </Card>
   );
 }
