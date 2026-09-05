@@ -1,73 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-import {
-  Chip,
-  Input,
-  Select,
-  SelectItem,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { useMemo, useState } from 'react';
 
-import { CalendarDays, Clock, Gauge, Percent, UserCheck, UserX } from 'lucide-react';
-
+import { useRapportPresenceQuery } from '@/features/reporting';
+import { VueRapportPresence } from '@/features/reporting/refonte/vue-rapport-presence';
 import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
-import { IRapportJour, IRapportSignal, useRapportPresenceQuery } from '@/features/reporting';
-import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
-import EtatErreur from '@/components/commons/EtatErreur';
-import { formatNombre } from '@/utils/format.utils';
 
-function SignalCell({ signal }: { signal: IRapportSignal | null }) {
-  if (!signal || !signal.heure) return <span className="text-default-300">—</span>;
-  const heure = (() => {
-    try {
-      return new Date(signal.heure).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return signal.heure;
-    }
-  })();
-  // RG-29 : hors-zone explicite (jaune = justifié par ticket, rouge = non justifié) ;
-  // repli sur `conforme === false` (distance) pour les anciennes données sans le flag.
-  const horsZone = signal.horsZone || signal.conforme === false;
-  const justifie = signal.horsZoneJustifiee === true;
-  return (
-    <div className="flex items-center gap-1">
-      <span>{heure}</span>
-      {horsZone && (
-        <Chip
-          size="sm"
-          variant="flat"
-          color={justifie ? 'warning' : 'danger'}
-          className="h-4 text-[10px] px-1"
-        >
-          hors zone
-        </Chip>
-      )}
-    </div>
-  );
-}
-
-/** Synthèse hors-zone d'une journée : justifié (ticket) / non justifié (pénalité) / — (RG-29). */
-function HorsZoneCell({ jour }: { jour: IRapportJour }) {
-  const signaux = [jour.montee, jour.intermediaire, jour.intermediaire2, jour.fin].filter(
-    (s): s is IRapportSignal => s != null,
-  );
-  const horsZone = signaux.filter((s) => s.horsZone || s.conforme === false);
-  if (horsZone.length === 0) return <span className="text-default-300">—</span>;
-  const tousJustifies = horsZone.every((s) => s.horsZoneJustifiee === true);
-  return (
-    <Chip size="sm" variant="flat" color={tousJustifies ? 'success' : 'danger'}>
-      {tousJustifies ? 'Ticket joint — justifié' : 'Non justifié'}
-    </Chip>
-  );
-}
-
+/**
+ * Le rapport de présence par livreur (RG-21).
+ *
+ * <p>La conception et ses raisons sont documentées dans
+ * `features/reporting/refonte/vue-rapport-presence.tsx`, qui porte le rendu. Ce fichier
+ * ne fait plus que la lecture.</p>
+ */
 export function RapportPanel() {
   const livreursQuery = useLivreursListQuery();
   const [livreurId, setLivreurId] = useState<string | null>(null);
@@ -76,130 +21,36 @@ export function RapportPanel() {
 
   const {
     data: rapport,
+    isError,
     isFetching,
-    isError: rapportEnErreur,
-    refetch: rechargerRapport,
+    refetch,
   } = useRapportPresenceQuery(livreurId, debut || undefined, fin || undefined);
 
+  const livreurs = useMemo(
+    () =>
+      (livreursQuery.data ?? []).map((l) => ({
+        id: l.id,
+        nom: `${l.prenoms ?? ''} ${l.nom ?? ''}`.trim() || l.telephone || l.matricule || 'Livreur',
+      })),
+    [livreursQuery.data],
+  );
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end gap-2">
-        <Select
-          aria-label="Livreur"
-          label="Livreur"
-          size="sm"
-          className="w-64"
-          selectedKeys={livreurId ? [livreurId] : []}
-          onSelectionChange={(keys) => setLivreurId((Array.from(keys)[0] as string) ?? null)}
-        >
-          {(livreursQuery.data ?? []).map((l) => (
-            <SelectItem key={l.id} value={l.id}>
-              {`${l.prenoms ?? ''} ${l.nom ?? ''}`.trim() || l.telephone || l.matricule || 'Livreur'}
-            </SelectItem>
-          ))}
-        </Select>
-        <Input type="date" label="Du" size="sm" className="w-40" value={debut} onValueChange={setDebut} />
-        <Input type="date" label="Au" size="sm" className="w-40" value={fin} onValueChange={setFin} />
-      </div>
-
-      {!livreurId ? (
-        <p className="py-10 text-center text-sm text-default-400">Sélectionnez un livreur pour afficher son rapport.</p>
-      ) : rapportEnErreur ? (
-        // Sans ce branchement, un echec de lecture retombait sur "Aucun rapport pour ce
-        // livreur", donc sur une absence de pointage la ou la donnee n'a pas pu etre lue.
-        <EtatErreur
-          quoi="le rapport de présence"
-          onReessayer={() => {
-            void rechargerRapport();
-          }}
-          enCours={isFetching}
-        />
-      ) : isFetching && !rapport ? (
-        <div className="flex justify-center py-10">
-          <Spinner color="primary" label="Chargement du rapport…" />
-        </div>
-      ) : rapport ? (
-        <>
-          {/* Synthese : les couleurs passent par des tons et non par des classes de
-              palette, pour que le retour du mode sombre ne demande aucune retouche. */}
-          <GrilleStats colonnes={3}>
-            <CarteStat
-              libelle="Jours actifs"
-              valeur={formatNombre(rapport.synthese.joursActifs)}
-              icone={CalendarDays}
-            />
-            <CarteStat
-              libelle="Présents"
-              valeur={formatNombre(rapport.synthese.presents)}
-              icone={UserCheck}
-              ton="succes"
-            />
-            <CarteStat
-              libelle="Retards"
-              valeur={formatNombre(rapport.synthese.retards)}
-              icone={Clock}
-              ton="attention"
-            />
-            <CarteStat
-              libelle="Absents"
-              valeur={formatNombre(rapport.synthese.absents)}
-              icone={UserX}
-              ton="danger"
-            />
-            <CarteStat
-              libelle="Assiduité"
-              valeur={`${rapport.synthese.tauxAssiduite}%`}
-              icone={Percent}
-              ton="primaire"
-            />
-            <CarteStat
-              libelle="Cote"
-              valeur={rapport.cote != null ? `${rapport.cote}/100` : '—'}
-              icone={Gauge}
-            />
-          </GrilleStats>
-
-          {/* Détail par jour */}
-          <Table aria-label="Détail par jour" isStriped>
-            <TableHeader>
-              <TableColumn className="text-primary">JOUR</TableColumn>
-              <TableColumn className="text-primary">STATUT</TableColumn>
-              <TableColumn className="text-primary">MONTÉE</TableColumn>
-              <TableColumn className="text-primary">RELANCE 1</TableColumn>
-              <TableColumn className="text-primary">RELANCE 2</TableColumn>
-              <TableColumn className="text-primary">FIN</TableColumn>
-              <TableColumn className="text-primary">HORS ZONE</TableColumn>
-              <TableColumn className="text-primary">PÉNALITÉ</TableColumn>
-            </TableHeader>
-            <TableBody emptyContent="Aucun jour sur la période">
-              {rapport.jours.map((j) => (
-                <TableRow key={j.date}>
-                  <TableCell className="whitespace-nowrap">
-                    {(() => {
-                      try {
-                        return new Date(j.date).toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' });
-                      } catch {
-                        return j.date;
-                      }
-                    })()}
-                  </TableCell>
-                  <TableCell>{j.statutJour ?? '—'}</TableCell>
-                  <TableCell><SignalCell signal={j.montee} /></TableCell>
-                  <TableCell><SignalCell signal={j.intermediaire} /></TableCell>
-                  <TableCell><SignalCell signal={j.intermediaire2} /></TableCell>
-                  <TableCell><SignalCell signal={j.fin} /></TableCell>
-                  <TableCell><HorsZoneCell jour={j} /></TableCell>
-                  <TableCell className="text-default-500">
-                    {j.penaliteFcfa ? `${j.penaliteFcfa} F` : '—'}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </>
-      ) : (
-        <p className="py-10 text-center text-sm text-default-400">Aucun rapport pour ce livreur.</p>
-      )}
-    </div>
+    <VueRapportPresence
+      debut={debut}
+      fin={fin}
+      isError={isError}
+      isFetching={isFetching}
+      livreurId={livreurId}
+      livreurs={livreurs}
+      livreursEnCours={livreursQuery.isLoading}
+      onDebut={setDebut}
+      onFin={setFin}
+      onLivreur={setLivreurId}
+      onReessayer={() => {
+        void refetch();
+      }}
+      rapport={rapport}
+    />
   );
 }
