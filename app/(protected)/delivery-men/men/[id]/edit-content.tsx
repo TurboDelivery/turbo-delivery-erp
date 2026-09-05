@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { LienBouton } from '@/components/commons/LienBouton';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -337,11 +338,9 @@ export default function EditContent({ id }: { id: string }) {
              * SILENCE et le bouton « Annuler » ne naviguait plus nulle part.
              */}
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Link href="/delivery-men/men">
-                <Button type="button" variant="outline">
-                  Annuler
-                </Button>
-              </Link>
+              <LienBouton href="/delivery-men/men" variante="outline">
+                Annuler
+              </LienBouton>
               <Button isPending={isSubmitting} type="submit" variant="primary">
                 {isSubmitting ? <Spinner size="sm" /> : null}
                 Enregistrer les modifications

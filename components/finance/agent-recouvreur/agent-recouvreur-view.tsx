@@ -1,51 +1,52 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { toast } from 'sonner';
-import { Banknote } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableColumn,
-  TableRow,
-  TableCell,
-  Pagination,
-  Select,
-  SelectItem,
-} from '@/components/heroui';
+import { Button, Card, Checkbox, ComboBox, Input, Label, ListBox, Table } from '@heroui-v3/react';
 import { flexRender, type RowSelectionState } from '@tanstack/react-table';
+import { Banknote, SlidersHorizontal } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useEffect, useMemo, useState } from 'react';
 import type { DateRange } from 'react-day-picker';
-import { createAgentRecouvreurColumns, renderAgentActions, getStatutConfig, formatMontant } from './agent-recouvreur-columns';
-import { FactureMobileCard, MobileCardList } from '@/components/finance/shared/facture-mobile-card';
-import DepotPartenaireModal from './depot-partenaire-modal';
-import EncaissementModal from './encaissement-drawer';
-import VerserComptableModal from './verser-comptable-modal';
-import EncaisserLotModal, { resteAEncaisser } from './encaisser-lot-modal';
+import { toast } from 'sonner';
+
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import EtatErreur from '@/components/commons/EtatErreur';
+import { ChipStatutFacture } from '@/components/finance/common/chip-statut-facture';
+import { FiltreStatut } from '@/components/finance/common/filtre-statut';
 import DateFilterInput from '@/components/finance/date-filter-input';
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
+import { FactureMobileCard, MobileCardList } from '@/components/finance/shared/facture-mobile-card';
 import {
+  cycleOptions,
+  useAgentRecouvreurFilters,
+  useAgentRecouvreurStats,
+  useAgentRecouvreurTable,
   useDepotPartenaireMutation,
   useEncaissementMutation,
   useVersementCaissierMutation,
-  useAgentRecouvreurFilters,
-  useAgentRecouvreurTable,
-  useAgentRecouvreurStats,
-  cycleOptions,
 } from '@/features/agent-recouvreur';
-import { useAgentsRecouvrementQuery } from '@/features/responsable-financier';
 import type { IAgentFacture } from '@/features/agent-recouvreur';
-import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import { useAgentsRecouvrementQuery } from '@/features/responsable-financier';
 
-const statutChips = ['Tous', 'Recouvrement', 'Déposé partenaire', 'Soldé', 'Versé au caissier'] as const;
-type StatutChip = typeof statutChips[number];
+import { createAgentRecouvreurColumns, formatMontant, renderAgentActions } from './agent-recouvreur-columns';
+import DepotPartenaireModal from './depot-partenaire-modal';
+import EncaisserLotModal, { resteAEncaisser } from './encaisser-lot-modal';
+import EncaissementModal from './encaissement-drawer';
+import VerserComptableModal from './verser-comptable-modal';
+
+// Dans l'ordre de la chaîne : l'agent voit son dossier descendre la liste.
+const statutChips = [
+  { label: 'Tous', value: 'Tous' },
+  { label: 'Recouvrement', value: 'Recouvrement' },
+  { label: 'Déposé partenaire', value: 'Déposé partenaire' },
+  { label: 'Soldé', value: 'Soldé' },
+  { label: 'Versé au caissier', value: 'Versé au caissier' },
+] as const;
 
 export default function AgentRecouvreurView() {
   const { data: session } = useSession();
 
-  const { filters, setFilters, params } = useAgentRecouvreurFilters();
+  const { filters, params, setFilters } = useAgentRecouvreurFilters();
 
   const [factureDepot, setFactureDepot] = useState<IAgentFacture | null>(null);
   const [factureEncaissement, setFactureEncaissement] = useState<IAgentFacture | null>(null);
@@ -55,48 +56,49 @@ export default function AgentRecouvreurView() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [lotOpen, setLotOpen] = useState(false);
   const [lotRunning, setLotRunning] = useState(false);
-  const [lotProgress, setLotProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+  const [lotProgress, setLotProgress] = useState<{ done: number; total: number }>({
+    done: 0,
+    total: 0,
+  });
 
   const columns = useMemo(
-    () => createAgentRecouvreurColumns(
-      (facture) => setFactureDepot(facture),
-      (facture) => setFactureEncaissement(facture),
-      (facture) => setFactureVersement(facture),
-      true, // colonne de sélection (encaissement en masse)
-    ),
+    () =>
+      createAgentRecouvreurColumns(
+        (facture) => setFactureDepot(facture),
+        (facture) => setFactureEncaissement(facture),
+        (facture) => setFactureVersement(facture),
+        true, // colonne de sélection (encaissement en masse)
+      ),
     [],
   );
 
   const { data: agentsData } = useAgentsRecouvrementQuery();
-  const agentsList = agentsData ?? [];
+  const agentsList = useMemo(() => agentsData ?? [], [agentsData]);
 
   /** Nom de l'agent connecté résolu depuis la liste des agents RF */
-  const connectedAgentNom =
-    agentsList.find((a) => a.id === session?.user?.id)?.nom ??
-    session?.user?.nomComplet ??
-    session?.user?.name ??
-    '';
+  const connectedAgentNom = agentsList.find((a) => a.id === session?.user?.id)?.nom ?? session?.user?.nomComplet ?? session?.user?.name ?? '';
 
   // Seules les factures « Déposé partenaire » pas encore couvertes à 100% sont
   // encaissables en masse (= celles qui affichent le bouton « Encaisser »).
-  const isBulkEligible = (f: IAgentFacture) =>
-    f.statut === 'Déposé partenaire' && (f.montantRecouvre ?? 0) < f.montant;
+  const isBulkEligible = (f: IAgentFacture) => f.statut === 'Déposé partenaire' && (f.montantRecouvre ?? 0) < f.montant;
 
-  const { table, isLoading, isError, error, totalElements, totalPages } =
-    useAgentRecouvreurTable(columns, params, undefined, {
-      state: { rowSelection },
-      onRowSelectionChange: setRowSelection,
-      enableRowSelection: (row) => isBulkEligible(row.original),
-    });
+  const { error, isError, isFetching, isLoading, refetch, table, totalElements, totalPages } = useAgentRecouvreurTable(columns, params, undefined, {
+    enableRowSelection: (row) => isBulkEligible(row.original),
+    onRowSelectionChange: setRowSelection,
+    state: { rowSelection },
+  });
   // Le hook exposait `isError` sans que personne ne le lise : « Taux de recouvrement
   // 0 % » s'affichait sur un echec de lecture, ce qui se lit comme un resultat.
-  const { statsCards, isError: isErrorStats } = useAgentRecouvreurStats(params);
+  const { isError: isErrorStats, statsCards } = useAgentRecouvreurStats(params);
 
   const depotPartenaireMutation = useDepotPartenaireMutation();
   const encaissementMutation = useEncaissementMutation();
   const verserComptableMutation = useVersementCaissierMutation();
 
-  const facturesSelection = table.getSelectedRowModel().rows.map((r) => r.original).filter(isBulkEligible);
+  const facturesSelection = table
+    .getSelectedRowModel()
+    .rows.map((r) => r.original)
+    .filter(isBulkEligible);
   const totalSelection = facturesSelection.reduce((s, f) => s + resteAEncaisser(f), 0);
 
   // Réinitialise la sélection dès qu'un filtre / la page change (la liste change).
@@ -111,7 +113,9 @@ export default function AgentRecouvreurView() {
   async function runBulkEncaisser(shared: { preuve?: string; remarque?: string }) {
     const agentId = session?.user?.id ?? '';
     if (!agentId) {
-      toast.error('Session expirée', { description: 'Impossible de récupérer votre identifiant. Reconnectez-vous.' });
+      toast.error('Session expirée', {
+        description: 'Impossible de récupérer votre identifiant. Reconnectez-vous.',
+      });
       return;
     }
     const cibles = facturesSelection;
@@ -128,9 +132,15 @@ export default function AgentRecouvreurView() {
       }
       try {
         await encaissementMutation.mutateAsync({
-          factureId: f.id,
           agentIdOverride: agentId,
-          body: { type: 'Solde', date: today, montant: restant, preuve: shared.preuve, remarque: shared.remarque },
+          body: {
+            date: today,
+            montant: restant,
+            preuve: shared.preuve,
+            remarque: shared.remarque,
+            type: 'Solde',
+          },
+          factureId: f.id,
         });
         ok += 1;
       } catch {
@@ -144,7 +154,9 @@ export default function AgentRecouvreurView() {
     if (echecs.length === 0) {
       toast.success(`${ok} facture(s) encaissée(s) à 100%`);
     } else {
-      toast.warning(`${ok} encaissée(s), ${echecs.length} en échec`, { description: echecs.join(', ') });
+      toast.warning(`${ok} encaissée(s), ${echecs.length} en échec`, {
+        description: echecs.join(', '),
+      });
     }
   }
 
@@ -156,24 +168,35 @@ export default function AgentRecouvreurView() {
     });
   };
 
-  const handleCycleChange = (key: string) => {
-    setFilters({ cycle: key, page: 0 });
-  };
-
   const handleRestaurantChange = (value?: string) => {
-    setFilters({ restaurantId: value ?? '', page: 0 });
+    setFilters({ page: 0, restaurantId: value ?? '' });
   };
 
-  const handleStatutChip = (chip: StatutChip) => {
-    setFilters({ statut: chip === 'Tous' ? '' : chip, page: 0 });
-  };
+  const enTetes = table.getFlatHeaders();
+
+  /** La barre du lot : même contenu, deux placements (au-dessus du tableau, ou collante en mobile). */
+  const barreLot = (
+    <>
+      <span className="text-xs text-muted">
+        {facturesSelection.length} sélectionnée(s) · <span className="font-semibold tabular-nums text-foreground">{formatMontant(totalSelection)}</span>
+      </span>
+      <div className="flex items-center gap-2">
+        <Button onPress={() => setRowSelection({})} size="sm" variant="ghost">
+          Tout désélectionner
+        </Button>
+        <Button onPress={() => setLotOpen(true)} size="sm" variant="primary">
+          <Banknote aria-hidden="true" className="size-3.5" />
+          Encaisser à 100%
+        </Button>
+      </div>
+    </>
+  );
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
+    <div className="space-y-6 p-6">
       <div>
         <p className="text-sm text-muted">Gestion des Paiements</p>
-        <h1 className="text-2xl font-bold text-primary">Espace Agent Recouvreur</h1>
+        <h1 className="text-2xl font-bold text-foreground">Espace Agent Recouvreur</h1>
       </div>
 
       {/* Bandeau de statistiques. La carte locale supprimee ici etait une copie
@@ -181,207 +204,169 @@ export default function AgentRecouvreurView() {
           corriger le jour ou l'un des deux bougeait. */}
       <GrilleStats colonnes={4}>
         {statsCards.map((card) => (
-          <CarteStat
-            key={card.key}
-            libelle={card.label}
-            valeur={card.value}
-            icone={card.icon}
-            isError={isErrorStats}
-            ton={card.ton}
-          />
+          <CarteStat icone={card.icon} isError={isErrorStats} key={card.key} libelle={card.label} ton={card.ton} valeur={card.value} />
         ))}
       </GrilleStats>
 
-      {/* Filtres */}
-      <div className="bg-surface rounded-xl border border-separator p-4 shadow-xs space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted">
-          <span>▼</span> Filtres
-        </div>
-        <div className="flex flex-wrap items-end gap-4">
-          {/* Plage de dates (mois en cours par défaut) */}
-          <DateFilterInput
-            filters={{
-              debut: filters.dateDebut ?? undefined,
-              fin: filters.dateFin ?? undefined,
-            }}
-            handleDateChange={handleDateChange}
-            variant="outline"
-          />
-
-          {/* Restaurant / Partenaire */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-muted font-medium">Partenaire</label>
-            <RestaurantSelect
-              value={filters.restaurantId || undefined}
-              onChange={handleRestaurantChange}
-              placeholder="Tous les partenaires"
-              className="text-xs w-full sm:w-[220px]"
+      <Card>
+        <Card.Content className="gap-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted">
+            <SlidersHorizontal aria-hidden="true" className="size-4" />
+            Filtres
+          </div>
+          <div className="flex flex-wrap items-end gap-4">
+            {/* Plage de dates (mois en cours par défaut) */}
+            <DateFilterInput
+              filters={{
+                debut: filters.dateDebut ?? undefined,
+                fin: filters.dateFin ?? undefined,
+              }}
+              handleDateChange={handleDateChange}
+              variant="outline"
             />
-          </div>
 
-          {/* Cycle */}
-          <Select
-            label="Cycle"
-            selectedKeys={new Set([filters.cycle || 'TOUT'])}
-            onSelectionChange={(keys) => {
-              const key = Array.from(keys as Set<string>)[0];
-              if (key) handleCycleChange(key);
-            }}
-            variant="bordered"
-            className="max-w-xs w-full sm:w-[220px]"
-            disallowEmptySelection
-          >
-            {cycleOptions.map((opt) => (
-              <SelectItem key={opt.key}>{opt.label}</SelectItem>
-            ))}
-          </Select>
-
-          {/* Statut chips (envoyés au backend) */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted font-medium">Statut</label>
-            <div className="flex flex-wrap gap-1.5">
-              {statutChips.map((s) => {
-                const active = (s === 'Tous' && !filters.statut) || filters.statut === s;
-                return (
-                  <button
-                    key={s}
-                    onClick={() => handleStatutChip(s)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                      active
-                        ? 'bg-green-600 text-white border-green-600'
-                        : 'bg-surface text-muted border-separator hover:border-separator'
-                    }`}
-                  >
-                    {s}
-                  </button>
-                );
-              })}
+            {/* Restaurant / Partenaire */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-muted">Partenaire</span>
+              <RestaurantSelect className="w-full text-xs sm:w-[220px]" onChange={handleRestaurantChange} placeholder="Tous les partenaires" value={filters.restaurantId || undefined} />
             </div>
+
+            {/* Cycle — cherchable, comme tout ce qui se choisit dans une liste. */}
+            <ComboBox
+              className="w-full sm:w-[220px]"
+              onSelectionChange={(key) => {
+                if (key != null) setFilters({ cycle: String(key), page: 0 });
+              }}
+              selectedKey={filters.cycle || 'TOUT'}
+            >
+              <Label>Cycle</Label>
+              <ComboBox.InputGroup>
+                <Input placeholder="Tous les cycles" />
+                <ComboBox.Trigger />
+              </ComboBox.InputGroup>
+              <ComboBox.Popover>
+                <ListBox items={cycleOptions}>
+                  {(opt: { key: string; label: string }) => (
+                    <ListBox.Item id={opt.key} textValue={opt.label}>
+                      {opt.label}
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                  )}
+                </ListBox>
+              </ComboBox.Popover>
+            </ComboBox>
+
+            <FiltreStatut onChange={(statut) => setFilters({ page: 0, statut })} options={statutChips} valeur={filters.statut} />
           </div>
+        </Card.Content>
+      </Card>
 
-        </div>
-      </div>
-
-      {/* Error banner */}
-      {isError && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-          Erreur de chargement : {error instanceof Error ? error.message : 'Erreur inconnue'}
-        </div>
-      )}
+      {/* L'echec de lecture prend la place du message de vide : afficher les deux
+                revient a se contredire. */}
+      {isError && <EtatErreur detail={error instanceof Error ? error.message : undefined} enCours={isFetching} onReessayer={() => refetch()} quoi="les factures" />}
 
       {/* Table — desktop uniquement (≥ md) */}
-      <div className="hidden md:block bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
-        <div className="flex items-center justify-between gap-4 px-5 py-4 border-b border-separator">
-          <div>
-            <p className="text-sm font-semibold text-foreground">Suivi des factures</p>
-            <p className="text-xs text-muted">{String(totalElements).padStart(2, '0')} factures</p>
-          </div>
-          {facturesSelection.length > 0 && (
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted">
-                {facturesSelection.length} sélectionnée(s) ·{' '}
-                <span className="font-semibold text-foreground">{formatMontant(totalSelection)}</span>
-              </span>
-              <button onClick={() => setRowSelection({})} className="text-xs text-muted hover:text-foreground underline">
-                Tout désélectionner
-              </button>
-              <Button size="sm" onClick={() => setLotOpen(true)} className="bg-green-600 hover:bg-green-700 text-white text-xs gap-1.5">
-                <Banknote className="w-3.5 h-3.5" />
-                Encaisser à 100%
-              </Button>
+      <Card className="hidden md:block">
+        <Card.Content className="p-0">
+          <div className="flex items-center justify-between gap-4 border-b border-separator px-5 py-4">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Suivi des factures</p>
+              <p className="text-xs text-muted">{String(totalElements).padStart(2, '0')} factures</p>
             </div>
-          )}
-        </div>
-        <Table
-          isStriped
-          aria-label="Factures agent recouvreur"
-          bottomContent={
-            totalPages > 1 ? (
-              <div className="flex justify-center py-3">
-                <Pagination
-                  page={filters.page + 1}
-                  total={totalPages}
-                  onChange={(p) => setFilters({ page: p - 1 })}
-                />
-              </div>
-            ) : null
-          }
-        >
-          <TableHeader>
-            {table.getFlatHeaders().map((h) => (
-              <TableColumn key={h.id} className="text-xs font-semibold text-muted uppercase bg-surface-secondary">
-                {flexRender(h.column.columnDef.header, h.getContext())}
-              </TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody
-            emptyContent={isLoading ? ' ' : 'Aucune facture trouvée'}
-            isLoading={isLoading}
-          >
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="py-3">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            {facturesSelection.length > 0 && <div className="flex items-center gap-3">{barreLot}</div>}
+          </div>
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Factures agent recouvreur" className="min-w-[56rem]">
+                <Table.Header>
+                  {enTetes.map((header) => (
+                    <Table.Column id={header.id} isRowHeader={header.id === 'numero'} key={header.id}>
+                      {header.isPlaceholder ? '' : flexRender(header.column.columnDef.header, header.getContext())}
+                    </Table.Column>
+                  ))}
+                </Table.Header>
+                <Table.Body renderEmptyState={() => (isLoading || isError ? null : <p className="py-8 text-center text-sm text-muted">Aucune facture trouvée</p>)}>
+                  {/*
+                   * Le tableau n'avait AUCUN squelette : au chargement il se vidait
+                   * d'un coup et se remplissait, ce qui se lit comme « aucune facture ».
+                   * Le compte de cellules se derive des memes en-tetes que les lignes,
+                   * sinon « Cell count must match column count » emporte la page.
+                   */}
+                  {isLoading
+                    ? Array.from({ length: 8 }).map((_, i) => (
+                        <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                          {enTetes.map((h) => (
+                            <Table.Cell key={`sq-${i}-${h.id}`}>
+                              <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                            </Table.Cell>
+                          ))}
+                        </Table.Row>
+                      ))
+                    : null}
+
+                  {(isLoading || isError ? [] : table.getRowModel().rows).map((row) => (
+                    <Table.Row id={row.id} key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <Table.Cell className={isFetching ? 'opacity-70' : undefined} key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </Table.Cell>
+                      ))}
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+
+            {totalPages > 1 && (
+              <Table.Footer className="justify-center">
+                <PaginationTableau onPage={(p) => setFilters({ page: p - 1 })} page={filters.page + 1} total={totalPages} />
+              </Table.Footer>
+            )}
+          </Table>
+        </Card.Content>
+      </Card>
 
       {/* Barre d'action lot — mobile */}
       {facturesSelection.length > 0 && (
-        <div className="md:hidden sticky top-2 z-20 flex items-center justify-between gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 shadow-xs">
-          <span className="text-xs text-muted">
-            {facturesSelection.length} · <span className="font-semibold">{formatMontant(totalSelection)}</span>
-          </span>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setRowSelection({})} className="text-xs text-muted underline">
-              Annuler
-            </button>
-            <Button size="sm" onClick={() => setLotOpen(true)} className="bg-green-600 hover:bg-green-700 text-white text-xs gap-1.5">
-              <Banknote className="w-3.5 h-3.5" /> Encaisser à 100%
-            </Button>
-          </div>
-        </div>
+        <Card className="sticky top-2 z-20 md:hidden">
+          <Card.Content className="flex-row items-center justify-between gap-3 px-4 py-2.5">{barreLot}</Card.Content>
+        </Card>
       )}
 
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <MobileCardList>
         {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-44 rounded-xl bg-surface-secondary animate-pulse" />
-          ))
+          Array.from({ length: 4 }).map((_, i) => <div className="h-44 animate-pulse rounded-xl bg-surface-secondary" key={i} />)
         ) : table.getRowModel().rows.length === 0 ? (
-          <p className="text-sm text-muted text-center py-10">
-            {isError ? String(error) : 'Aucune facture trouvée'}
-          </p>
+          isError ? null : (
+            <p className="py-10 text-center text-sm text-muted">Aucune facture trouvée</p>
+          )
         ) : (
           table.getRowModel().rows.map((row) => {
             const f = row.original;
-            const cfg = getStatutConfig(f.statut);
             const card = (
               <FactureMobileCard
+                actions={renderAgentActions(f, setFactureDepot, setFactureEncaissement, setFactureVersement)}
+                montant={formatMontant(f.montant)}
                 numero={f.numero}
                 partenaire={f.partenaire}
-                montant={formatMontant(f.montant)}
-                statut={cfg.label}
-                statutClassName={cfg.className}
-                actions={renderAgentActions(f, setFactureDepot, setFactureEncaissement, setFactureVersement)}
+                statut={<ChipStatutFacture statut={f.statut} />}
               />
             );
             return row.getCanSelect() ? (
-              <div key={f.id} className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  aria-label="Sélectionner la facture"
-                  className="mt-4 h-4 w-4 shrink-0 rounded border-separator accent-green-600 cursor-pointer"
-                  checked={row.getIsSelected()}
-                  onChange={row.getToggleSelectedHandler()}
-                />
-                <div className="flex-1 min-w-0">{card}</div>
+              <div className="flex items-start gap-2" key={f.id}>
+                {/*
+                 * C'etait un `<input type="checkbox">` nu peint en `accent-green-600` :
+                 * ni etat de focus, ni taille de cible tactile, ni theme sombre.
+                 */}
+                <Checkbox aria-label="Sélectionner la facture" className="mt-4 shrink-0" isSelected={row.getIsSelected()} onChange={(checked) => row.toggleSelected(checked)}>
+                  <Checkbox.Content>
+                    <Checkbox.Control>
+                      <Checkbox.Indicator />
+                    </Checkbox.Control>
+                  </Checkbox.Content>
+                </Checkbox>
+                <div className="min-w-0 flex-1">{card}</div>
               </div>
             ) : (
               <div key={f.id}>{card}</div>
@@ -390,65 +375,68 @@ export default function AgentRecouvreurView() {
         )}
         {totalPages > 1 && (
           <div className="flex justify-center pt-2">
-            <Pagination page={filters.page + 1} total={totalPages} onChange={(p) => setFilters({ page: p - 1 })} />
+            <PaginationTableau onPage={(p) => setFilters({ page: p - 1 })} page={filters.page + 1} total={totalPages} />
           </div>
         )}
       </MobileCardList>
 
       <DepotPartenaireModal
-        open={factureDepot !== null}
-        onClose={() => setFactureDepot(null)}
-        facture={factureDepot}
         agentNom={connectedAgentNom}
-        onConfirm={(facture, { date, montant, agent }) => {
+        facture={factureDepot}
+        onClose={() => setFactureDepot(null)}
+        onConfirm={(facture, { agent, date, montant }) => {
           depotPartenaireMutation.mutate(
-            { factureId: facture.id, body: { date, montant, agent }, agentIdOverride: session?.user?.id ?? '' },
             {
-              onSuccess: () => toast.success('Dépôt enregistré avec succès'),
+              agentIdOverride: session?.user?.id ?? '',
+              body: { agent, date, montant },
+              factureId: facture.id,
+            },
+            {
               onError: (e) => toast.error(`Échec dépôt : ${e instanceof Error ? e.message : 'Erreur'}`),
+              onSuccess: () => toast.success('Dépôt enregistré avec succès'),
             },
           );
           setFactureDepot(null);
         }}
+        open={factureDepot !== null}
       />
 
       <EncaissementModal
-        open={factureEncaissement !== null}
-        onClose={() => setFactureEncaissement(null)}
-        facture={factureEncaissement}
         agentNom={connectedAgentNom}
+        facture={factureEncaissement}
+        onClose={() => setFactureEncaissement(null)}
         onPaiementAjoute={(facture, paiements) => {
           const dernierPaiement = paiements[paiements.length - 1];
           if (dernierPaiement) {
             encaissementMutation.mutate(
               {
-                factureId: facture.id,
                 agentIdOverride: session?.user?.id ?? '',
                 body: {
-                  type: dernierPaiement.type,
                   date: dernierPaiement.date,
                   montant: dernierPaiement.montant,
-                  remarque: dernierPaiement.remarque,
                   // V52 (2026-05) — Propager la preuve data URL base64 au
                   // backend pour persistance. Avant : champ jamais propagé,
                   // upload silencieusement perdu.
                   preuve: dernierPaiement.preuve,
+                  remarque: dernierPaiement.remarque,
+                  type: dernierPaiement.type,
                 },
+                factureId: facture.id,
               },
               {
-                onSuccess: () => toast.success('Encaissement enregistré'),
                 onError: (e) => toast.error(`Échec encaissement : ${e instanceof Error ? e.message : 'Erreur'}`),
+                onSuccess: () => toast.success('Encaissement enregistré'),
               },
             );
           }
         }}
+        open={factureEncaissement !== null}
       />
 
       <VerserComptableModal
-        open={factureVersement !== null}
-        onClose={() => setFactureVersement(null)}
         facture={factureVersement}
-        onConfirm={(facture, { montant, date, preuve }) => {
+        onClose={() => setFactureVersement(null)}
+        onConfirm={(facture, { date, montant, preuve }) => {
           const agentId = session?.user?.id ?? '';
           if (!agentId) {
             toast.error('Session expirée', {
@@ -458,8 +446,9 @@ export default function AgentRecouvreurView() {
           }
           verserComptableMutation.mutate(
             // V52 (2026-05) — Propager la preuve data URL base64 au backend.
-            { factureId: facture.id, agentIdOverride: agentId, body: { montant, date, preuve } },
+            { agentIdOverride: agentId, body: { date, montant, preuve }, factureId: facture.id },
             {
+              onError: (e) => toast.error(`Échec versement : ${e instanceof Error ? e.message : 'Erreur'}`),
               onSuccess: (data) => {
                 if (data && 'statut' in data && data.statut !== 'Versé au caissier') {
                   toast.error('Versement non enregistré', {
@@ -469,20 +458,22 @@ export default function AgentRecouvreurView() {
                   toast.success('Versement enregistré avec succès');
                 }
               },
-              onError: (e) => toast.error(`Échec versement : ${e instanceof Error ? e.message : 'Erreur'}`),
             },
           );
           setFactureVersement(null);
         }}
+        open={factureVersement !== null}
       />
 
       <EncaisserLotModal
-        open={lotOpen}
-        onClose={() => { if (!lotRunning) setLotOpen(false); }}
         factures={facturesSelection}
-        running={lotRunning}
-        progress={lotProgress}
+        onClose={() => {
+          if (!lotRunning) setLotOpen(false);
+        }}
         onConfirm={runBulkEncaisser}
+        open={lotOpen}
+        progress={lotProgress}
+        running={lotRunning}
       />
     </div>
   );

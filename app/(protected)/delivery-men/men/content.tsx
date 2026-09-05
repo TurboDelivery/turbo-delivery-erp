@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import React, { useState } from 'react';
+import { LienBouton } from '@/components/commons/LienBouton';
 import { Button, Dropdown, Spinner } from '@heroui-v3/react';
 import Link from 'next/link';
 import { ChevronDown, Download, Plus } from 'lucide-react';
@@ -125,12 +126,10 @@ export default function Content({
            * sont ignorees EN SILENCE. Le bouton avait donc perdu son icone « + » et sa
            * couleur de marque sans qu'aucune erreur ne le signale.
            */}
-          <Link href="/delivery-men/men/create">
-            <Button size="sm" variant="primary">
-              <Plus aria-hidden="true" className="size-4" />
-              Créer un profil
-            </Button>
-          </Link>
+          <LienBouton href="/delivery-men/men/create" taille="sm" variante="primary">
+            <Plus aria-hidden="true" className="size-4" />
+            Créer un profil
+          </LienBouton>
         </div>
       </div>
 

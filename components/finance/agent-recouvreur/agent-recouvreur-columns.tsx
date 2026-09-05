@@ -1,29 +1,12 @@
 'use client';
 
+import { Button, Checkbox } from '@heroui-v3/react';
 import { ColumnDef } from '@tanstack/react-table';
-import { Button } from '@/components/ui/button';
-import { Banknote, ClipboardList, Landmark, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { AlertCircle, Banknote, CheckCircle2, ClipboardList, Clock, Landmark } from 'lucide-react';
+
+import { ChipStatutFacture } from '@/components/finance/common/chip-statut-facture';
 import type { IAgentFacture as IFactureAgent } from '@/features/agent-recouvreur';
 import { formatMontant } from '@/utils/format.utils';
-
-// Statuts fixes — les statuts "Acompte N" sont traités dynamiquement via startsWith
-const statutConfig: Record<string, { label: string; className: string }> = {
-  'Recouvrement':         { label: 'Recouvrement',         className: 'bg-orange-100 text-orange-700 border-orange-200' },
-  'Déposé partenaire':    { label: 'Déposé partenaire',    className: 'bg-blue-100 text-blue-700 border-blue-200' },
-  'Soldé':               { label: 'Soldé',               className: 'bg-green-100 text-green-700 border-green-200' },
-  'Versé au caissier':    { label: 'Versé au caissier',    className: 'bg-slate-100 text-slate-700 border-slate-200' },
-  'En attente visa DGA':  { label: 'En attente visa DGA',  className: 'bg-violet-100 text-violet-700 border-violet-200' },
-  'Visé DGA':             { label: 'Visé DGA',             className: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  'Rejeté DGA':           { label: 'Rejeté DGA',           className: 'bg-red-100 text-red-700 border-red-200' },
-  'Clôturé':              { label: 'Clôturé',              className: 'bg-green-200 text-green-800 border-green-300' },
-};
-
-export function getStatutConfig(statut: string) {
-  if (statut in statutConfig) return statutConfig[statut];
-  // Acompte 1, Acompte 2…
-  if (statut.startsWith('Acompte')) return { label: statut, className: 'bg-yellow-100 text-yellow-700 border-yellow-200' };
-  return { label: statut, className: 'bg-surface-secondary text-muted border-separator' };
-}
 
 /**
  * Re-export du formateur UNIQUE.
@@ -35,226 +18,273 @@ export function getStatutConfig(statut: string) {
  */
 export { formatMontant };
 
+/** L'attente, dite d'une seule façon quel que soit le maillon de la chaîne. */
+function EnAttente({ children }: { children: React.ReactNode }) {
+    return (
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted">
+            <Clock aria-hidden="true" className="size-3.5 shrink-0" /> {children}
+        </span>
+    );
+}
+
+/** Le raccourci « verser au caissier », toujours second quand il accompagne un encaissement. */
+function VerserAuCaissier({
+    estPrincipal,
+    onPress,
+}: {
+    estPrincipal: boolean;
+    onPress: () => void;
+}) {
+    return (
+        <Button
+            className="whitespace-nowrap"
+            onPress={onPress}
+            size="sm"
+            variant={estPrincipal ? 'primary' : 'outline'}
+        >
+            <Landmark aria-hidden="true" className="size-3.5" />
+            Verser au caissier
+        </Button>
+    );
+}
+
 /**
  * Rendu des actions agent recouvreur selon le statut + le montant recouvré.
  * Extrait pour être PARTAGÉ entre la colonne du tableau (desktop) et les cartes
- * mobile (cf. agent-recouvreur-view) → logique conditionnelle unique, pas de
- * divergence. Reçoit la facture (row.original) et les 3 handlers.
+ * tactiles (mobile) : les deux affichaient auparavant leur propre copie.
+ *
+ * <h3>Six couleurs pour une seule intention</h3>
+ * <p>« Dépôt chez le partenaire » était `bg-red-600` — du rouge pour une étape
+ * ordinaire de la chaîne —, « Encaisser » `bg-green-600`, « Ajouter acompte »
+ * `bg-blue-600`, « Verser au caissier » `bg-slate-700`. Quatre teintes pour quatre
+ * gestes qui font tous la même chose : avancer la facture d'un cran.</p>
+ *
+ * <p>Ce qui compte réellement quand deux boutons cohabitent — « Encaisser » et
+ * « Verser au caissier » — c'est lequel est l'étape ATTENDUE et lequel est un
+ * raccourci. Un bouton plein pour l'étape attendue, un bouton bordé pour le
+ * raccourci. Un seul geste principal par ligne.</p>
  */
 export function renderAgentActions(
-  facture: IFactureAgent,
-  onDepotPartenaire: (f: IFactureAgent) => void,
-  onEncaisser: (f: IFactureAgent) => void,
-  onVerserCaissier: (f: IFactureAgent) => void,
+    facture: IFactureAgent,
+    onDepotPartenaire: (f: IFactureAgent) => void,
+    onEncaisser: (f: IFactureAgent) => void,
+    onVerserCaissier: (f: IFactureAgent) => void,
 ) {
-  const { statut } = facture;
-  if (statut === 'Recouvrement') {
-    return (
-      <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onDepotPartenaire(facture)}>
-        <ClipboardList className="w-3.5 h-3.5" />
-        Dépôt chez le partenaire
-      </Button>
-    );
-  }
-  if (statut === 'Déposé partenaire') {
-    const { montantRecouvre, montant } = facture;
-    const hasRecouvrement = montantRecouvre !== null && montantRecouvre > 0;
-    const isFullyCovered = hasRecouvrement && montant > 0 && (montantRecouvre as number) >= montant;
-    if (isFullyCovered) {
-      return (
-        <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onVerserCaissier(facture)}>
-          <Landmark className="w-3.5 h-3.5" />
-          Verser au caissier
-        </Button>
-      );
+    const { statut } = facture;
+
+    if (statut === 'Recouvrement') {
+        return (
+            <Button
+                className="whitespace-nowrap"
+                onPress={() => onDepotPartenaire(facture)}
+                size="sm"
+                variant="primary"
+            >
+                <ClipboardList aria-hidden="true" className="size-3.5" />
+                Dépôt chez le partenaire
+            </Button>
+        );
     }
-    return (
-      <div className="flex items-center gap-2">
-        <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onEncaisser(facture)}>
-          <Banknote className="w-3.5 h-3.5" />
-          Encaisser
-        </Button>
-        {hasRecouvrement && (
-          <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onVerserCaissier(facture)}>
-            <Landmark className="w-3.5 h-3.5" />
-            Verser au caissier
-          </Button>
-        )}
-      </div>
-    );
-  }
-  if (statut.startsWith('Acompte')) {
-    const { montantRecouvre, montant } = facture;
-    const isFullyCovered = montantRecouvre !== null && montant > 0 && montantRecouvre >= montant;
-    if (isFullyCovered) {
-      return (
-        <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onVerserCaissier(facture)}>
-          <Landmark className="w-3.5 h-3.5" />
-          Verser au caissier
-        </Button>
-      );
+
+    if (statut === 'Déposé partenaire') {
+        const { montant, montantRecouvre } = facture;
+        const hasRecouvrement = montantRecouvre !== null && montantRecouvre > 0;
+        const isFullyCovered = hasRecouvrement && montant > 0 && (montantRecouvre as number) >= montant;
+        if (isFullyCovered) {
+            return <VerserAuCaissier estPrincipal onPress={() => onVerserCaissier(facture)} />;
+        }
+        return (
+            <div className="flex items-center gap-2">
+                <Button
+                    className="whitespace-nowrap"
+                    onPress={() => onEncaisser(facture)}
+                    size="sm"
+                    variant="primary"
+                >
+                    <Banknote aria-hidden="true" className="size-3.5" />
+                    Encaisser
+                </Button>
+                {hasRecouvrement && (
+                    <VerserAuCaissier estPrincipal={false} onPress={() => onVerserCaissier(facture)} />
+                )}
+            </div>
+        );
     }
-    return (
-      <div className="flex items-center gap-2">
-        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onEncaisser(facture)}>
-          <Banknote className="w-3.5 h-3.5" />
-          Ajouter acompte
+
+    if (statut.startsWith('Acompte')) {
+        const { montant, montantRecouvre } = facture;
+        const isFullyCovered = montantRecouvre !== null && montant > 0 && montantRecouvre >= montant;
+        if (isFullyCovered) {
+            return <VerserAuCaissier estPrincipal onPress={() => onVerserCaissier(facture)} />;
+        }
+        return (
+            <div className="flex items-center gap-2">
+                <Button
+                    className="whitespace-nowrap"
+                    onPress={() => onEncaisser(facture)}
+                    size="sm"
+                    variant="primary"
+                >
+                    <Banknote aria-hidden="true" className="size-3.5" />
+                    Ajouter acompte
+                </Button>
+                <VerserAuCaissier estPrincipal={false} onPress={() => onVerserCaissier(facture)} />
+            </div>
+        );
+    }
+
+    if (statut === 'Soldé') {
+        return <VerserAuCaissier estPrincipal onPress={() => onVerserCaissier(facture)} />;
+    }
+
+    const { montant, montantRecouvre } = facture;
+    const peutEncaisserEncore = montantRecouvre === null || (montant > 0 && montantRecouvre < montant);
+
+    /** Le complément d'encaissement reste possible pendant l'attente : jamais le geste attendu. */
+    const nouvelAcompte = peutEncaisserEncore ? (
+        <Button
+            className="whitespace-nowrap"
+            onPress={() => onEncaisser(facture)}
+            size="sm"
+            variant="outline"
+        >
+            <Banknote aria-hidden="true" className="size-3.5" /> Nouvel acompte
         </Button>
-        <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onVerserCaissier(facture)}>
-          <Landmark className="w-3.5 h-3.5" />
-          Verser au caissier
-        </Button>
-      </div>
-    );
-  }
-  if (statut === 'Soldé') {
-    return (
-      <Button size="sm" className="bg-slate-700 hover:bg-slate-800 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onVerserCaissier(facture)}>
-        <Landmark className="w-3.5 h-3.5" />
-        Verser au caissier
-      </Button>
-    );
-  }
-  const { montantRecouvre, montant } = facture;
-  const peutEncaisserEncore = montantRecouvre === null || (montant > 0 && montantRecouvre < montant);
-  if (statut === 'Versé au caissier') {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500">
-          <Clock className="w-3.5 h-3.5" /> En attente Caissier
-        </span>
-        {peutEncaisserEncore && (
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onEncaisser(facture)}>
-            <Banknote className="w-3.5 h-3.5" /> Nouvel acompte
-          </Button>
-        )}
-      </div>
-    );
-  }
-  if (statut === 'En attente visa DGA') {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-violet-600">
-          <Clock className="w-3.5 h-3.5" /> En attente visa DGA
-        </span>
-        {peutEncaisserEncore && (
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onEncaisser(facture)}>
-            <Banknote className="w-3.5 h-3.5" /> Nouvel acompte
-          </Button>
-        )}
-      </div>
-    );
-  }
-  if (statut === 'Visé DGA') {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600">
-          <CheckCircle2 className="w-3.5 h-3.5" /> Visé DGA
-        </span>
-        {peutEncaisserEncore && (
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 gap-1.5 whitespace-nowrap" onClick={() => onEncaisser(facture)}>
-            <Banknote className="w-3.5 h-3.5" /> Nouvel acompte
-          </Button>
-        )}
-      </div>
-    );
-  }
-  if (statut === 'Rejeté DGA') {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600">
-        <AlertCircle className="w-3.5 h-3.5" /> Rejeté DGA
-      </span>
-    );
-  }
-  if (statut === 'Clôturé') {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700">
-        <CheckCircle2 className="w-3.5 h-3.5" /> Clôturé
-      </span>
-    );
-  }
-  return <span className="text-muted text-xs">—</span>;
+    ) : null;
+
+    if (statut === 'Versé au caissier') {
+        return (
+            <div className="flex items-center gap-2">
+                <EnAttente>En attente Caissier</EnAttente>
+                {nouvelAcompte}
+            </div>
+        );
+    }
+    if (statut === 'En attente visa DGA') {
+        return (
+            <div className="flex items-center gap-2">
+                <EnAttente>En attente visa DGA</EnAttente>
+                {nouvelAcompte}
+            </div>
+        );
+    }
+    if (statut === 'Visé DGA') {
+        return (
+            <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success">
+                    <CheckCircle2 aria-hidden="true" className="size-3.5 shrink-0" /> Visé DGA
+                </span>
+                {nouvelAcompte}
+            </div>
+        );
+    }
+    if (statut === 'Rejeté DGA') {
+        return (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-danger">
+                <AlertCircle aria-hidden="true" className="size-3.5 shrink-0" /> Rejeté DGA
+            </span>
+        );
+    }
+    if (statut === 'Clôturé') {
+        return (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success">
+                <CheckCircle2 aria-hidden="true" className="size-3.5 shrink-0" /> Clôturé
+            </span>
+        );
+    }
+    return <span className="text-xs text-muted">—</span>;
 }
 
 export function createAgentRecouvreurColumns(
-  onDepotPartenaire: (facture: IFactureAgent) => void,
-  onEncaisser: (facture: IFactureAgent) => void,
-  onVerserCaissier: (facture: IFactureAgent) => void,
-  // Ajoute une colonne de cases à cocher en tête (encaissement en masse). La
-  // sélectivité ligne par ligne est portée par `enableRowSelection` côté table.
-  withSelection = false,
+    onDepotPartenaire: (facture: IFactureAgent) => void,
+    onEncaisser: (facture: IFactureAgent) => void,
+    onVerserCaissier: (facture: IFactureAgent) => void,
+    // Ajoute une colonne de cases à cocher en tête (encaissement en masse). La
+    // sélectivité ligne par ligne est portée par `enableRowSelection` côté table.
+    withSelection = false,
 ): ColumnDef<IFactureAgent>[] {
-  const selectionColumn: ColumnDef<IFactureAgent> = {
-    id: 'select',
-    header: ({ table }) => (
-      <input
-        type="checkbox"
-        aria-label="Tout sélectionner"
-        className="h-4 w-4 rounded border-separator text-green-600 focus:ring-green-500 cursor-pointer accent-green-600"
-        checked={table.getIsAllPageRowsSelected()}
-        ref={(el) => {
-          if (el) el.indeterminate = table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected();
-        }}
-        onChange={table.getToggleAllPageRowsSelectedHandler()}
-      />
-    ),
-    cell: ({ row }) =>
-      row.getCanSelect() ? (
-        <input
-          type="checkbox"
-          aria-label="Sélectionner la facture"
-          className="h-4 w-4 rounded border-separator text-green-600 focus:ring-green-500 cursor-pointer accent-green-600"
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-        />
-      ) : null,
-    enableSorting: false,
-  };
+    const selectionColumn: ColumnDef<IFactureAgent> = {
+        cell: ({ row }) =>
+            row.getCanSelect() ? (
+                <Checkbox
+                    aria-label="Sélectionner la facture"
+                    isSelected={row.getIsSelected()}
+                    onChange={(checked) => row.toggleSelected(checked)}
+                    /*
+                     * `slot={null}` : dans un `Table` v3, tout `Checkbox` est branche sur le
+                     * contexte de selection de la table et exige `slot="selection"`, faute de
+                     * quoi la page tombe en 500. Ici la selection est celle de TanStack, dont
+                     * depend l'encaissement en masse.
+                     */
+                    slot={null}
+                >
+                    <Checkbox.Content>
+                        <Checkbox.Control>
+                            <Checkbox.Indicator />
+                        </Checkbox.Control>
+                    </Checkbox.Content>
+                </Checkbox>
+            ) : null,
+        enableSorting: false,
+        header: ({ table }) => (
+            <Checkbox
+                aria-label="Tout sélectionner"
+                isIndeterminate={
+                    table.getIsSomePageRowsSelected() && !table.getIsAllPageRowsSelected()
+                }
+                isSelected={table.getIsAllPageRowsSelected()}
+                onChange={(checked) => table.toggleAllPageRowsSelected(checked)}
+                slot={null}
+            >
+                <Checkbox.Content>
+                    <Checkbox.Control>
+                        <Checkbox.Indicator />
+                    </Checkbox.Control>
+                </Checkbox.Content>
+            </Checkbox>
+        ),
+        id: 'select',
+    };
 
-  const columns: ColumnDef<IFactureAgent>[] = [
-    {
-      accessorKey: 'numero',
-      header: 'N° FACTURE',
-      cell: ({ row }) => (
-        <span className="font-medium text-red-500 text-xs whitespace-nowrap">
-          {row.original.numero}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'partenaire',
-      header: 'PARTENAIRE',
-      cell: ({ row }) => (
-        <span className="text-xs font-medium text-foreground">{row.original.partenaire}</span>
-      ),
-    },
-    {
-      accessorKey: 'montant',
-      header: 'MONTANT',
-      cell: ({ row }) => (
-        <span className="font-bold text-red-500 text-xs whitespace-nowrap">
-          {formatMontant(row.original.montant)}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'statut',
-      header: 'STATUT',
-      cell: ({ row }) => {
-        const config = getStatutConfig(row.original.statut);
-        return (
-          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${config.className}`}>
-            • {config.label}
-          </span>
-        );
-      },
-    },
-    {
-      id: 'actions',
-      header: 'ACTIONS',
-      cell: ({ row }) => renderAgentActions(row.original, onDepotPartenaire, onEncaisser, onVerserCaissier),
-    },
-  ];
+    const columns: ColumnDef<IFactureAgent>[] = [
+        {
+            accessorKey: 'numero',
+            cell: ({ row }) => (
+                <span className="text-xs font-medium whitespace-nowrap text-foreground">
+                    {row.original.numero}
+                </span>
+            ),
+            header: 'N° facture',
+        },
+        {
+            accessorKey: 'partenaire',
+            cell: ({ row }) => (
+                <span className="text-xs font-medium text-foreground">{row.original.partenaire}</span>
+            ),
+            header: 'Partenaire',
+        },
+        {
+            accessorKey: 'montant',
+            /* Le montant etait ecrit en `text-red-500` : un montant facture n'est pas une erreur. */
+            cell: ({ row }) => (
+                <span className="text-xs font-bold tabular-nums whitespace-nowrap text-foreground">
+                    {formatMontant(row.original.montant)}
+                </span>
+            ),
+            header: 'Montant',
+        },
+        {
+            accessorKey: 'statut',
+            cell: ({ row }) => <ChipStatutFacture statut={row.original.statut} />,
+            header: 'Statut',
+        },
+        {
+            cell: ({ row }) =>
+                renderAgentActions(row.original, onDepotPartenaire, onEncaisser, onVerserCaissier),
+            header: 'Actions',
+            id: 'actions',
+        },
+    ];
 
-  return withSelection ? [selectionColumn, ...columns] : columns;
+    return withSelection ? [selectionColumn, ...columns] : columns;
 }

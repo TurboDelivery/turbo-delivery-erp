@@ -7,7 +7,8 @@ import { Button, Card, Table, ToggleButton, ToggleButtonGroup } from '@heroui-v3
 import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import { flexRender } from '@tanstack/react-table';
 import { Landmark, Clock, CheckCircle2, FileCheck } from 'lucide-react';
-import { createCaissierColumns, getCaissierStatutConfig } from './caissier-columns';
+import { createCaissierColumns } from './caissier-columns';
+import { ChipStatutFacture } from '@/components/finance/common/chip-statut-facture';
 import { FactureMobileCard, MobileCardList } from '@/components/finance/shared/facture-mobile-card';
 import ConfirmerReceptionModal from './confirmer-reception-modal';
 import DepotBanqueCaissierModal from './depot-banque-caissier-modal';
@@ -270,7 +271,6 @@ export default function CaissierView() {
         ) : (
           table.getRowModel().rows.map((row) => {
             const f = row.original;
-            const cfg = getCaissierStatutConfig(f.statut);
             const isFiche = f.statut === 'Versé au caissier' || f.statut === 'Rejeté DGA';
             const isDepot = f.statut === 'Orienté banque';
             return (
@@ -279,8 +279,7 @@ export default function CaissierView() {
                 numero={f.numero}
                 partenaire={f.partenaire}
                 montant={formatMontant(f.montant)}
-                statut={cfg.label}
-                statutClassName={cfg.className}
+                statut={<ChipStatutFacture statut={f.statut} />}
                 fields={[
                   { label: 'Recouvré', value: f.montantRecouvre ? `${formatMontant(f.montantRecouvre)} (${f.pourcentageRecouvre ?? 0}%)` : '—' },
                   { label: 'Cycle', value: f.cycle },

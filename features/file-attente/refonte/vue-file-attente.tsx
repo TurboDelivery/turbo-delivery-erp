@@ -10,6 +10,7 @@ import {
   ToggleButtonGroup,
 } from '@heroui-v3/react';
 import { AlertTriangle, Map, RefreshCw, Store } from 'lucide-react';
+import { LienBouton } from '@/components/commons/LienBouton';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
@@ -113,12 +114,10 @@ export function VueFileAttente({
            * `as={Link}` etait une prop de la v2 : sur un Button v3 elle est ignoree EN
            * SILENCE et le bouton ne naviguait plus. Le lien porte le bouton.
            */}
-          <Link href="/trafic">
-            <Button size="sm" variant="outline">
-              <Map aria-hidden="true" className="size-4" />
-              Carte Trafic
-            </Button>
-          </Link>
+          <LienBouton href="/trafic" taille="sm" variante="outline">
+            <Map aria-hidden="true" className="size-4" />
+            Carte Trafic
+          </LienBouton>
           <Button isPending={rafraichissementDemande} onPress={actualiser} size="sm" variant="primary">
             {rafraichissementDemande ? (
               <Spinner size="sm" />

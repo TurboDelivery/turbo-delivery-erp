@@ -1,52 +1,42 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableColumn,
-  TableRow,
-  TableCell,
-  Pagination,
-  Skeleton,
-  Select,
-  SelectItem,
-  Checkbox,
-} from '@/components/heroui';
+import { Button, Card, Checkbox, ComboBox, Input, Label, ListBox, Table } from '@heroui-v3/react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';
-import Link from 'next/link';
-import { TrendingUp, FileText, Users, Percent } from 'lucide-react';
-import BulkActionsBar from './bulk-actions-bar';
-import type { IActionsGroupeesFiltres } from '@/features/responsable-financier/types/responsable-financier.types';
+import { CheckCircle2, FileText, Percent, SlidersHorizontal, TrendingUp, Users } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import type { DateRange } from 'react-day-picker';
-import { Button } from '@/components/ui/button';
-import { createResponsableFinancierColumns, getStatutConfig, formatMontant, type IFactureRF } from './responsable-financier-columns';
-import { FactureMobileCard, MobileCardList } from '@/components/finance/shared/facture-mobile-card';
-import { formatPeriodeFacturee } from '@/lib/finance/periode-facturee';
-import { cycleOptions } from '@/features/responsable-financier/filters/responsable-financier.filter';
-import type { IFactureRFParams } from '@/features/responsable-financier/types/responsable-financier.types';
+
+import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import EtatErreur from '@/components/commons/EtatErreur';
+import { LienBouton } from '@/components/commons/LienBouton';
+import { ChipStatutFacture } from '@/components/finance/common/chip-statut-facture';
+import { FiltreStatut } from '@/components/finance/common/filtre-statut';
+import DateFilterInput from '@/components/finance/date-filter-input';
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
-import ValiderFactureModal from './valider-facture-modal';
+import { FactureMobileCard, MobileCardList } from '@/components/finance/shared/facture-mobile-card';
+import { useConfirmerReceptionComptableMutation, useDepotBanqueMutation, useLancerRecouvrementMutation, useValiderFactureRFMutation } from '@/features/responsable-financier';
+import { cycleOptions } from '@/features/responsable-financier/filters/responsable-financier.filter';
+import { useResponsableFinancierStats } from '@/features/responsable-financier/hooks/use-responsable-financier-stats';
+import { useResponsableFinancierTable } from '@/features/responsable-financier/hooks/use-responsable-financier-table';
+import type { IActionsGroupeesFiltres, IFactureRFParams } from '@/features/responsable-financier/types/responsable-financier.types';
+import { formatPeriodeFacturee } from '@/lib/finance/periode-facturee';
+
+import BulkActionsBar from './bulk-actions-bar';
 import DepotBanqueModal from './depot-banque-modal';
 import DemarrerRecouvrementDrawer from './demarrer-recouvrement-modal';
-import DateFilterInput from '@/components/finance/date-filter-input';
-import { useResponsableFinancierTable } from '@/features/responsable-financier/hooks/use-responsable-financier-table';
-import { useResponsableFinancierStats } from '@/features/responsable-financier/hooks/use-responsable-financier-stats';
-import EtatErreur from '@/components/commons/EtatErreur';
-import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
-import {
-  useValiderFactureRFMutation,
-  useLancerRecouvrementMutation,
-  useDepotBanqueMutation,
-  useConfirmerReceptionComptableMutation,
-} from '@/features/responsable-financier';
+import { createResponsableFinancierColumns, formatMontant, type IFactureRF } from './responsable-financier-columns';
+import ValiderFactureModal from './valider-facture-modal';
 
 // Onglets de statut. 2026-07-27 : l'onglet « Visé DGA » devient « Orientation des fonds »
 // (le visa est implicite depuis « En attente visa DGA » — plus d'étape manuelle de visa).
 // La valeur backend reste « Visé DGA » : l'onglet liste le stock visé non encore orienté,
 // sur lequel l'action groupée « Orientation des fonds » s'applique aussi.
+//
+// L'ordre est celui de la CHAÎNE, pas l'alphabet : une facture descend cette liste de
+// l'émission à la clôture. C'est pour cela que le filtre reste une rangée visible et
+// n'est pas rentré dans une liste déroulante — l'ordre est l'information.
 const statutFilters = [
   { label: 'Tous', value: 'Tous' },
   { label: 'DRAFT', value: 'DRAFT' },
@@ -91,18 +81,34 @@ export default function ResponsableFinancierView() {
 
   const selectColumn: ColumnDef<IFactureRF> = useMemo(
     () => ({
-      id: '__select',
-      header: () => <span className="sr-only">Sélection</span>,
       cell: ({ row }) => (
         <Checkbox
           aria-label={`Sélectionner ${row.original.numero}`}
-          isSelected={selectAllMatching || selectedIds.has(row.original.id)}
           isDisabled={selectAllMatching}
-          onValueChange={() => toggleRow(row.original.id)}
-        />
+          isSelected={selectAllMatching || selectedIds.has(row.original.id)}
+          onChange={() => toggleRow(row.original.id)}
+          /*
+           * `slot={null}` : dans un `Table` v3, tout `Checkbox` est branche sur le
+           * contexte de selection de la table et exige `slot="selection"`, faute de
+           * quoi React Aria leve « A slot prop is required » et la page tombe en 500.
+           * Ici la selection est un `Set` local dont dependent les actions groupees
+           * ET le « selectionner les N factures de toutes les pages » : on sort du
+           * contexte plutot que de changer de modele.
+           */
+          slot={null}
+        >
+          <Checkbox.Content>
+            <Checkbox.Control>
+              <Checkbox.Indicator />
+            </Checkbox.Control>
+          </Checkbox.Content>
+        </Checkbox>
       ),
       enableSorting: false,
+      header: () => <span className="sr-only">Sélection</span>,
+      id: '__select',
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedIds, selectAllMatching],
   );
 
@@ -123,8 +129,7 @@ export default function ResponsableFinancierView() {
     [confirmerReceptionMutation, selectColumn],
   );
 
-  const { table, filters, setFilters, isLoading, isFetching, isError, refetch, totalPages, totalElements } =
-    useResponsableFinancierTable(columns);
+  const { filters, isError, isFetching, isLoading, refetch, setFilters, table, totalElements, totalPages } = useResponsableFinancierTable(columns);
 
   // Ids de la page courante + états de la case « page ».
   const pageIds = table.getRowModel().rows.map((r) => r.original.id);
@@ -150,24 +155,27 @@ export default function ResponsableFinancierView() {
 
   const bulkFiltres: IActionsGroupeesFiltres = useMemo(
     () => ({
-      periode: 'plage',
+      cycle: filters.cycle && filters.cycle !== 'TOUT' ? filters.cycle : undefined,
       debut: filters.dateDebut ? filters.dateDebut.toISOString().split('T')[0] : undefined,
       fin: filters.dateFin ? filters.dateFin.toISOString().split('T')[0] : undefined,
-      statut: filters.statut || 'Tous',
-      cycle: filters.cycle && filters.cycle !== 'TOUT' ? filters.cycle : undefined,
+      periode: 'plage',
       restaurantId: filters.restaurantId || undefined,
+      statut: filters.statut || 'Tous',
     }),
     [filters],
   );
 
-  const statsParams = useMemo((): IFactureRFParams => ({
-    periode: 'plage',
-    dateDebut: filters.dateDebut ? filters.dateDebut.toISOString().split('T')[0] : undefined,
-    dateFin: filters.dateFin ? filters.dateFin.toISOString().split('T')[0] : undefined,
-    statut: filters.statut || undefined,
-    cycle: filters.cycle && filters.cycle !== 'TOUT' ? filters.cycle : undefined,
-    restaurantId: filters.restaurantId || undefined,
-  }), [filters]);
+  const statsParams = useMemo(
+    (): IFactureRFParams => ({
+      cycle: filters.cycle && filters.cycle !== 'TOUT' ? filters.cycle : undefined,
+      dateDebut: filters.dateDebut ? filters.dateDebut.toISOString().split('T')[0] : undefined,
+      dateFin: filters.dateFin ? filters.dateFin.toISOString().split('T')[0] : undefined,
+      periode: 'plage',
+      restaurantId: filters.restaurantId || undefined,
+      statut: filters.statut || undefined,
+    }),
+    [filters],
+  );
 
   const { statsCards } = useResponsableFinancierStats(statsParams);
 
@@ -183,23 +191,19 @@ export default function ResponsableFinancierView() {
     });
   };
 
-  const handleCycleChange = (key: string) => {
-    setFilters({ cycle: key, page: 0 });
+  const handleRestaurantChange = (value?: string) => {
+    setFilters({ page: 0, restaurantId: value ?? '' });
   };
 
-  const handleRestaurantChange = (value?: string) => {
-    setFilters({ restaurantId: value ?? '', page: 0 });
-  };
+  const enTetes = table.getFlatHeaders();
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
+    <div className="space-y-6 p-6">
       <div>
         <p className="text-sm text-muted">Gestion des Paiements</p>
-        <h1 className="text-2xl font-bold text-primary">Espace Responsable Financier</h1>
+        <h1 className="text-2xl font-bold text-foreground">Espace Responsable Financier</h1>
       </div>
 
-      {/* Stat Cards */}
       <GrilleStats colonnes={4}>
         {/*
           NB métier (2026-05) : ce "Total factures émises" est la somme des
@@ -209,130 +213,90 @@ export default function ResponsableFinancierView() {
           commissions + entrées de caisse côté commandes (notion comptable
           distincte). Voir DashboardFinancierService vs.
           ResponsableFinancierFactureService.buildStats côté backend.
-          TODO UX : ajouter un Tooltip HeroUI sur le label avec cette
-          explication courte ("Somme des factures émises ce mois ; ≠ CA
-          dashboard qui inclut entrées caisse").
         */}
-        <CarteStat
-          icone={TrendingUp}
-          ton="succes"
-          libelle="Total factures émises"
-          valeur={formatMontant(statsCards[1]?.value ?? 0)}
-          note="Somme des montants facturés"
-        />
-        <CarteStat
-          icone={FileText}
-          ton="primaire"
-          libelle="Nombre de factures"
-          valeur={String(statsCards[0]?.value ?? 0)}
-          note="Période sélectionnée"
-        />
-        <CarteStat
-          icone={Users}
-          ton="primaire"
-          libelle="Nombre de partenaires"
-          valeur={String(statsCards[2]?.value ?? 0)}
-          note="Partenaires uniques"
-        />
-        <CarteStat
-          icone={Percent}
-          ton="attention"
-          libelle="Taux de recouvrement"
-          valeur={`${statsCards[3]?.value ?? 0} %`}
-          note="Période sélectionnée"
-        />
+        <CarteStat icone={TrendingUp} libelle="Total factures émises" note="Somme des montants facturés" ton="succes" valeur={formatMontant(statsCards[1]?.value ?? 0)} />
+        <CarteStat icone={FileText} libelle="Nombre de factures" note="Période sélectionnée" ton="primaire" valeur={String(statsCards[0]?.value ?? 0)} />
+        <CarteStat icone={Users} libelle="Nombre de partenaires" note="Partenaires uniques" ton="primaire" valeur={String(statsCards[2]?.value ?? 0)} />
+        <CarteStat icone={Percent} libelle="Taux de recouvrement" note="Période sélectionnée" ton="attention" valeur={`${statsCards[3]?.value ?? 0} %`} />
       </GrilleStats>
 
-      {/* Filtres */}
-      <div className="bg-surface rounded-xl border border-separator p-4 shadow-xs space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted">
-          <span>🔽</span> Filtres
-        </div>
-        <div className="flex flex-wrap items-end gap-4">
-          {/* Plage de dates (mois en cours par défaut) */}
-          <DateFilterInput
-            filters={{
-              debut: filters.dateDebut ?? undefined,
-              fin: filters.dateFin ?? undefined,
-            }}
-            handleDateChange={handleDateChange}
-            variant="outline"
-          />
-
-          {/* Restaurant / Partenaire */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-muted font-medium">Partenaire</label>
-            <RestaurantSelect
-              value={filters.restaurantId || undefined}
-              onChange={handleRestaurantChange}
-              placeholder="Tous les partenaires"
-              className="text-xs w-full sm:w-[220px]"
+      <Card>
+        <Card.Content className="gap-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted">
+            <SlidersHorizontal aria-hidden="true" className="size-4" />
+            Filtres
+          </div>
+          <div className="flex flex-wrap items-end gap-4">
+            {/* Plage de dates (mois en cours par défaut) */}
+            <DateFilterInput
+              filters={{
+                debut: filters.dateDebut ?? undefined,
+                fin: filters.dateFin ?? undefined,
+              }}
+              handleDateChange={handleDateChange}
+              variant="outline"
             />
-          </div>
 
-          {/* Cycle */}
-          <Select
-            label="Cycle"
-            selectedKeys={new Set([filters.cycle || 'TOUT'])}
-            onSelectionChange={(keys) => {
-              const key = Array.from(keys as Set<string>)[0];
-              if (key) handleCycleChange(key);
-            }}
-            variant="bordered"
-            className="max-w-xs w-full sm:w-[220px]"
-            disallowEmptySelection
-          >
-            {cycleOptions.map((opt) => (
-              <SelectItem key={opt.key}>{opt.label}</SelectItem>
-            ))}
-          </Select>
-
-          {/* Statut */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-muted font-medium">Statut</label>
-            <div className="flex flex-wrap gap-1.5">
-              {statutFilters.map((s) => (
-                <button
-                  key={s.value}
-                  onClick={() => setFilters({ statut: s.value === 'Tous' ? '' : s.value, page: 0 })}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                    (s.value === 'Tous' && !filters.statut) || filters.statut === s.value
-                      ? 'bg-green-600 text-white border-green-600'
-                      : 'bg-surface text-muted border-separator hover:border-separator'
-                  }`}
-                >
-                  {s.label}
-                </button>
-              ))}
+            {/* Restaurant / Partenaire */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-muted">Partenaire</span>
+              <RestaurantSelect className="w-full text-xs sm:w-[220px]" onChange={handleRestaurantChange} placeholder="Tous les partenaires" value={filters.restaurantId || undefined} />
             </div>
+
+            {/* Cycle — cherchable, comme tout ce qui se choisit dans une liste. */}
+            <ComboBox
+              className="w-full sm:w-[220px]"
+              onSelectionChange={(key) => {
+                if (key != null) setFilters({ cycle: String(key), page: 0 });
+              }}
+              selectedKey={filters.cycle || 'TOUT'}
+            >
+              <Label>Cycle</Label>
+              <ComboBox.InputGroup>
+                <Input placeholder="Tous les cycles" />
+                <ComboBox.Trigger />
+              </ComboBox.InputGroup>
+              <ComboBox.Popover>
+                <ListBox items={cycleOptions}>
+                  {(opt: { key: string; label: string }) => (
+                    <ListBox.Item id={opt.key} textValue={opt.label}>
+                      {opt.label}
+                      <ListBox.ItemIndicator />
+                    </ListBox.Item>
+                  )}
+                </ListBox>
+              </ComboBox.Popover>
+            </ComboBox>
+
+            <FiltreStatut onChange={(statut) => setFilters({ page: 0, statut })} options={statutFilters} valeur={filters.statut} />
           </div>
-        </div>
-      </div>
+        </Card.Content>
+      </Card>
 
       {/* Barre de sélection (desktop) */}
       {!isLoading && pageIds.length > 0 && (
-        <div className="hidden md:flex items-center gap-4 text-sm px-1 -mb-2">
-          <Checkbox
-            isSelected={allPageSelected || selectAllMatching}
-            isIndeterminate={somePageSelected && !selectAllMatching}
-            onValueChange={togglePage}
-          >
-            <span className="text-muted">Sélectionner la page</span>
+        <div className="-mb-2 hidden items-center gap-4 px-1 text-sm md:flex">
+          <Checkbox isIndeterminate={somePageSelected && !selectAllMatching} isSelected={allPageSelected || selectAllMatching} onChange={togglePage}>
+            <Checkbox.Content>
+              <Checkbox.Control>
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              {/* `Checkbox` n'expose que Root/Content/Control/Indicator : le libelle
+                                est un enfant ordinaire du Content, qui est deja la zone cliquable. */}
+              <span className="text-sm text-muted">Sélectionner la page</span>
+            </Checkbox.Content>
           </Checkbox>
           {allPageSelected && !selectAllMatching && totalElements > pageIds.length && (
-            <button
-              onClick={() => setSelectAllMatching(true)}
-              className="text-primary font-medium hover:underline"
-            >
+            <Button onPress={() => setSelectAllMatching(true)} size="sm" variant="ghost">
               Sélectionner les {totalElements} factures de toutes les pages
-            </button>
+            </Button>
           )}
           {selectAllMatching && (
-            <span className="text-muted">
-              Les <b>{totalElements}</b> factures du filtre sont sélectionnées ·{' '}
-              <button onClick={clearSelection} className="text-primary font-medium hover:underline">
+            <span className="flex items-center gap-1 text-muted">
+              Les <b>{totalElements}</b> factures du filtre sont sélectionnées
+              <Button onPress={clearSelection} size="sm" variant="ghost">
                 Effacer
-              </button>
+              </Button>
             </span>
           )}
         </div>
@@ -342,172 +306,164 @@ export default function ResponsableFinancierView() {
           (tableau desktop + cartes mobiles) sont neutralises en dessous : sans
           cela, l'ecran afficherait l'erreur ET « aucune donnee », ce qui revient
           a se contredire. */}
-      {isError && (
-        <EtatErreur quoi="les factures" onReessayer={() => refetch()} enCours={isFetching} />
-      )}
+      {isError && <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="les factures" />}
 
       {/* Table — desktop uniquement (≥ md) */}
-      <div className="hidden md:block bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
-        <Table
-          isStriped
-          aria-label="Factures responsable financier"
-          bottomContent={
-            totalPages > 1 ? (
-              <div className="flex justify-center py-3">
-                <Pagination
-                  page={filters.page + 1}
-                  total={totalPages}
-                  onChange={(p) => setFilters({ page: p - 1 })}
-                />
-              </div>
-            ) : null
-          }
-        >
-          <TableHeader>
-            {table.getFlatHeaders().map((h) => (
-              <TableColumn key={h.id} className="text-xs font-semibold text-muted uppercase bg-surface-secondary">
-                {flexRender(h.column.columnDef.header, h.getContext())}
-              </TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody
-            emptyContent={isLoading || isError ? ' ' : 'Aucune facture trouvée'}
-            items={isLoading ? [] : table.getRowModel().rows}
-          >
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={`skeleton-${i}`}>
-                  {table.getAllColumns().map((col) => (
-                    <TableCell key={col.id}>
-                      <Skeleton className="h-4 w-full rounded" />
-                    </TableCell>
+      <Card className="hidden md:block">
+        <Card.Content className="p-0">
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Factures responsable financier" className="min-w-[80rem]">
+                <Table.Header>
+                  {enTetes.map((header) => (
+                    <Table.Column id={header.id} isRowHeader={header.id === 'numero'} key={header.id}>
+                      {header.isPlaceholder ? '' : flexRender(header.column.columnDef.header, header.getContext())}
+                    </Table.Column>
                   ))}
-                </TableRow>
-              )) as unknown as React.ReactElement<any>
-            ) : (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-3">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
+                </Table.Header>
+                <Table.Body renderEmptyState={() => (isLoading || isError ? null : <p className="py-8 text-center text-sm text-muted">Aucune facture trouvée</p>)}>
+                  {/*
+                   * Le squelette compte ses cellules sur les MEMES en-tetes que les
+                   * lignes reelles : un compte tenu a la main derive des qu'on
+                   * ajoute une colonne, et « Cell count must match column count »
+                   * emporte la page entiere en 500.
+                   */}
+                  {isLoading
+                    ? Array.from({ length: 5 }).map((_, i) => (
+                        <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                          {enTetes.map((h) => (
+                            <Table.Cell key={`sq-${i}-${h.id}`}>
+                              <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                            </Table.Cell>
+                          ))}
+                        </Table.Row>
+                      ))
+                    : null}
+
+                  {(isLoading || isError ? [] : table.getRowModel().rows).map((row) => (
+                    <Table.Row id={row.id} key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <Table.Cell className={isFetching ? 'opacity-70' : undefined} key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </Table.Cell>
+                      ))}
+                    </Table.Row>
                   ))}
-                </TableRow>
-              )) as unknown as React.ReactElement<any>
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+
+            {totalPages > 1 && (
+              <Table.Footer className="justify-center">
+                <PaginationTableau onPage={(p) => setFilters({ page: p - 1 })} page={filters.page + 1} total={totalPages} />
+              </Table.Footer>
             )}
-          </TableBody>
-        </Table>
-      </div>
+          </Table>
+        </Card.Content>
+      </Card>
 
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <MobileCardList>
         {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-40 rounded-xl bg-surface-secondary animate-pulse" />
-          ))
+          Array.from({ length: 4 }).map((_, i) => <div className="h-40 animate-pulse rounded-xl bg-surface-secondary" key={i} />)
         ) : table.getRowModel().rows.length === 0 ? (
-          isError ? null : <p className="text-sm text-muted text-center py-10">Aucune facture trouvée</p>
+          isError ? null : (
+            <p className="py-10 text-center text-sm text-muted">Aucune facture trouvée</p>
+          )
         ) : (
           table.getRowModel().rows.map((row) => {
             const f = row.original;
-            const cfg = getStatutConfig(f.statut);
-            const detailLink = (
-              <Link
-                href={`/finance/comptabilite/responsable-financier/${f.id}`}
-                className="w-full text-center text-sm font-medium text-red-500 border border-separator rounded-md py-2"
-              >
-                Voir le détail ›
-              </Link>
-            );
             return (
               <FactureMobileCard
-                key={f.id}
-                numero={f.numero}
-                partenaire={f.partenaire}
-                montant={formatMontant(f.montant)}
-                statut={cfg.label}
-                statutClassName={cfg.className}
-                fields={[
-                  { label: 'Recouvré', value: f.montantRecouvre ? `${formatMontant(f.montantRecouvre)} (${f.pourcentageRecouvre ?? 0}%)` : '—' },
-                  { label: 'Cycle', value: f.cycle },
-                  { label: 'Agent', value: f.agent },
-                  { label: 'Période facturée', value: formatPeriodeFacturee(f.cycle, f.periodeDebut, f.periodeFin) },
-                  { label: 'Émission', value: f.emission },
-                ]}
                 actions={
                   <>
                     {(f.statut === 'DRAFT' || f.statut === 'À valider') && (
-                      <Button onClick={() => setFactureAValider(f)} className="w-full bg-foreground text-background hover:bg-foreground/85 text-sm">
-                        ✓ Valider la facture
+                      <Button className="w-full" onPress={() => setFactureAValider(f)} variant="primary">
+                        <CheckCircle2 aria-hidden="true" className="size-4" />
+                        Valider la facture
                       </Button>
                     )}
                     {f.statut === 'Validé' && (
-                      <Button onClick={() => setFactureRecouvrement(f)} className="w-full bg-foreground text-background hover:bg-foreground/85 text-sm">
-                        Lancer le recouvrement →
+                      <Button className="w-full" onPress={() => setFactureRecouvrement(f)} variant="primary">
+                        Lancer le recouvrement
                       </Button>
                     )}
                     {f.statut === 'Versé au caissier' && (
-                      <Button onClick={() => confirmerReceptionMutation.mutate(f.id)} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-sm">
+                      <Button className="w-full" onPress={() => confirmerReceptionMutation.mutate(f.id)} variant="primary">
                         Confirmer la réception des fonds
                       </Button>
                     )}
                     {f.statut === 'Orienté banque' && (
-                      <Button onClick={() => setFactureDepotBanque(f)} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm">
-                        🏦 Dépôt en banque
+                      <Button className="w-full" onPress={() => setFactureDepotBanque(f)} variant="primary">
+                        Dépôt en banque
                       </Button>
                     )}
-                    {detailLink}
+                    <LienBouton href={`/finance/comptabilite/responsable-financier/${f.id}`} pleineLargeur variante="outline">
+                      Voir le détail
+                    </LienBouton>
                   </>
                 }
+                fields={[
+                  {
+                    label: 'Recouvré',
+                    value: f.montantRecouvre ? `${formatMontant(f.montantRecouvre)} (${f.pourcentageRecouvre ?? 0}%)` : '—',
+                  },
+                  { label: 'Cycle', value: f.cycle },
+                  { label: 'Agent', value: f.agent },
+                  {
+                    label: 'Période facturée',
+                    value: formatPeriodeFacturee(f.cycle, f.periodeDebut, f.periodeFin),
+                  },
+                  { label: 'Émission', value: f.emission },
+                ]}
+                key={f.id}
+                montant={formatMontant(f.montant)}
+                numero={f.numero}
+                partenaire={f.partenaire}
+                statut={<ChipStatutFacture statut={f.statut} />}
               />
             );
           })
         )}
         {totalPages > 1 && (
           <div className="flex justify-center pt-2">
-            <Pagination page={filters.page + 1} total={totalPages} onChange={(p) => setFilters({ page: p - 1 })} />
+            <PaginationTableau onPage={(p) => setFilters({ page: p - 1 })} page={filters.page + 1} total={totalPages} />
           </div>
         )}
       </MobileCardList>
 
       <ValiderFactureModal
-        open={factureAValider !== null}
-        onClose={() => setFactureAValider(null)}
         facture={factureAValider}
+        onClose={() => setFactureAValider(null)}
         onConfirm={(facture, cycle) => {
-          validerMutation.mutate({ id: facture.id, data: { cycle } });
+          validerMutation.mutate({ data: { cycle }, id: facture.id });
           setFactureAValider(null);
         }}
+        open={factureAValider !== null}
       />
 
       <DemarrerRecouvrementDrawer
-        open={factureRecouvrement !== null}
-        onClose={() => setFactureRecouvrement(null)}
         facture={factureRecouvrement}
+        onClose={() => setFactureRecouvrement(null)}
         onConfirm={(facture, agent) => {
-          lancerRecouvrementMutation.mutate({ id: facture.id, data: { agentId: agent.id } });
+          lancerRecouvrementMutation.mutate({ data: { agentId: agent.id }, id: facture.id });
           setFactureRecouvrement(null);
         }}
+        open={factureRecouvrement !== null}
       />
 
       <DepotBanqueModal
-        open={factureDepotBanque !== null}
-        onClose={() => setFactureDepotBanque(null)}
         facture={factureDepotBanque}
+        onClose={() => setFactureDepotBanque(null)}
         onConfirm={(facture, data) => {
-          depotBanqueMutation.mutate({ id: facture.id, data });
+          depotBanqueMutation.mutate({ data, id: facture.id });
           setFactureDepotBanque(null);
         }}
+        open={factureDepotBanque !== null}
       />
 
       {/* Actions groupées (barre flottante) */}
-      <BulkActionsBar
-        selectedIds={Array.from(selectedIds)}
-        selectAllMatching={selectAllMatching}
-        totalElements={totalElements}
-        filtres={bulkFiltres}
-        onClear={clearSelection}
-      />
+      <BulkActionsBar filtres={bulkFiltres} onClear={clearSelection} selectAllMatching={selectAllMatching} selectedIds={Array.from(selectedIds)} totalElements={totalElements} />
     </div>
   );
 }

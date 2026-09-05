@@ -24,7 +24,7 @@ export function useAgentRecouvreurTable(
   agentIdOverride?: string,
   options?: AgentTableSelectionOptions,
 ) {
-  const { data, isLoading, isFetching, isError, error } = useAgentFacturesQuery(params, agentIdOverride);
+  const { data, error, isError, isFetching, isLoading, refetch } = useAgentFacturesQuery(params, agentIdOverride);
 
   // Backend renvoie directement une Page Spring "flat" {content, totalElements,
   // totalPages, size, number} — pas de wrap {factures: {...}}. Voir le record
@@ -48,6 +48,9 @@ export function useAgentRecouvreurTable(
     isFetching,
     isError,
     error,
+    // `refetch` etait retenu par le hook : l'ecran affichait l'echec sans pouvoir
+    // relancer la lecture, et il fallait recharger la page entiere.
+    refetch,
     totalElements: data?.totalElements ?? 0,
     totalPages: data?.totalPages ?? 0,
   };

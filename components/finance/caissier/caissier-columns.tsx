@@ -3,24 +3,9 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, Landmark } from 'lucide-react';
+import { ChipStatutFacture } from '@/components/finance/common/chip-statut-facture';
 import type { IFactureCaissier } from '@/features/caissier';
 import { formatMontant } from '@/utils/format.utils';
-
-const statutConfig: Record<string, { label: string; className: string }> = {
-  'Versé au caissier':    { label: 'Versé au caissier',    className: 'bg-amber-100 text-amber-700 border-amber-200' },
-  'En attente visa DGA': { label: 'En attente visa DGA', className: 'bg-violet-100 text-violet-700 border-violet-200' },
-  'Rejeté DGA':          { label: 'Rejeté DGA',          className: 'bg-red-100 text-red-700 border-red-200' },
-  'Visé DGA':             { label: 'Visé DGA',             className: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  'Orienté banque':       { label: 'Orienté banque',       className: 'bg-blue-100 text-blue-700 border-blue-200' },
-  'Conservé en caisse':   { label: 'Conservé en caisse',   className: 'bg-amber-100 text-amber-700 border-amber-200' },
-  'Clôturé':             { label: 'Clôturé',             className: 'bg-green-100 text-green-800 border-green-300' },
-};
-
-/** Réutilisé par les cartes mobile (cf. caissier-view) pour le chip de statut. */
-export function getCaissierStatutConfig(statut: string): { label: string; className: string } {
-  return statutConfig[statut] ?? { label: statut, className: 'bg-surface-secondary text-muted border-separator' };
-}
-
 
 export function createCaissierColumns(
   onConfirmer: (facture: IFactureCaissier) => void,
@@ -84,17 +69,7 @@ export function createCaissierColumns(
     {
       accessorKey: 'statut',
       header: 'STATUT',
-      cell: ({ row }) => {
-        const config = statutConfig[row.original.statut] ?? {
-          label: row.original.statut,
-          className: 'bg-surface-secondary text-muted border-separator',
-        };
-        return (
-          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap ${config.className}`}>
-            • {config.label}
-          </span>
-        );
-      },
+      cell: ({ row }) => <ChipStatutFacture statut={row.original.statut} />,
     },
     {
       id: 'actions',
