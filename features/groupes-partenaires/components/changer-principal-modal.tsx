@@ -1,17 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Button,
-  Chip,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Radio,
-  RadioGroup,
-} from '@/components/heroui';
+import { Button, Chip, Modal, Radio, RadioGroup } from '@heroui-v3/react';
+
+import { cn } from '@/lib/utils';
 import { Crown } from 'lucide-react';
 
 import { useChangerProprietaireMutation } from '../queries/groupes-partenaires.query';
@@ -70,56 +62,74 @@ export function ChangerPrincipalModal({ isOpen, onClose, groupe, userId }: Props
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="4xl" scrollBehavior="inside">
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">
-          <span>Changer le compte principal</span>
-          <span className="text-[12px] font-normal text-default-500">
-            Groupe « {groupe.nom} » — compte principal actuel :{' '}
-            {groupe.proprietaire ? nomCompte(groupe.proprietaire) : 'aucun'}
-          </span>
-        </ModalHeader>
+    <Modal isOpen={isOpen} onOpenChange={(o) => !o && onClose()}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-4xl">
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col gap-1">
+                <span>Changer le compte principal</span>
+                <span className="text-xs font-normal text-muted">
+                  Groupe « {groupe.nom} » — compte principal actuel :{' '}
+                  {groupe.proprietaire ? nomCompte(groupe.proprietaire) : 'aucun'}
+                </span>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
 
-        <ModalBody>
+            <Modal.Body>
           {etape === 'choix' ? (
             candidats.length === 0 ? (
-              <p className="rounded-medium border border-warning/40 bg-warning/5 px-3 py-2 text-sm text-default-600">
+              <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-foreground">
                 Ce groupe n&apos;a pas d&apos;autre membre. Rattachez un établissement supplémentaire, ou créez un
                 accès partenaire, pour disposer d&apos;un candidat.
               </p>
             ) : (
               <RadioGroup
                 aria-label="Nouveau compte principal"
+                onChange={setChoisi}
                 value={choisi ?? ''}
-                onValueChange={setChoisi}
-                classNames={{ wrapper: 'gap-1.5' }}
               >
-                {candidats.map((membre) => (
-                  <Radio
-                    key={membre.userId}
-                    value={membre.userId}
-                    classNames={{
-                      base: 'm-0 max-w-full items-start gap-2 rounded-medium border border-default-200 px-3 py-2 data-[selected=true]:border-primary',
-                      label: 'w-full',
-                    }}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{nomCompte(membre)}</p>
-                        <p className="truncate text-[11px] text-default-400">{membre.email ?? '—'}</p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <RoleChip role={membre.role} />
-                        <PorteeChip portee={membre.portee} />
-                        {membre.restaurantNom && (
-                          <Chip size="sm" variant="flat">
-                            {membre.restaurantNom}
-                          </Chip>
-                        )}
-                      </div>
+                <div className="flex flex-col gap-1.5">
+                  {candidats.map((membre) => (
+                    <div
+                      className={cn(
+                        'rounded-lg border px-3 py-2 transition-colors',
+                        choisi === membre.userId
+                          ? 'border-accent bg-accent-soft/30'
+                          : 'border-separator',
+                      )}
+                      key={membre.userId}
+                    >
+                      <Radio className="w-full items-start" value={membre.userId}>
+                        <Radio.Content className="flex w-full items-start gap-3">
+                          <Radio.Control className="mt-1">
+                            <Radio.Indicator />
+                          </Radio.Control>
+                          <span className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-2">
+                            <span className="min-w-0">
+                              <span className="block truncate text-sm font-medium text-foreground">
+                                {nomCompte(membre)}
+                              </span>
+                              <span className="block truncate text-xs text-muted">
+                                {membre.email ?? '—'}
+                              </span>
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                              <RoleChip role={membre.role} />
+                              <PorteeChip portee={membre.portee} />
+                              {membre.restaurantNom && (
+                                <Chip size="sm" variant="soft">
+                                  <Chip.Label>{membre.restaurantNom}</Chip.Label>
+                                </Chip>
+                              )}
+                            </span>
+                          </span>
+                        </Radio.Content>
+                      </Radio>
                     </div>
-                  </Radio>
-                ))}
+                  ))}
+                </div>
               </RadioGroup>
             )
           ) : (
@@ -129,35 +139,42 @@ export function ChangerPrincipalModal({ isOpen, onClose, groupe, userId }: Props
               note="Le compte principal sortant reste membre du groupe avec un accès à l'ensemble des établissements : le changement transfère le titre, il ne révoque aucun accès. Le retirer du groupe serait une seconde décision, explicite."
             />
           )}
-        </ModalBody>
+            </Modal.Body>
 
-        <ModalFooter className="justify-between">
-          <Button variant="light" onPress={onClose}>
-            Annuler
-          </Button>
-          <div className="flex items-center gap-2">
-            {etape === 'recapitulatif' && (
-              <Button variant="flat" onPress={() => setEtape('choix')}>
-                Retour
+            <Modal.Footer className="justify-between">
+              <Button onPress={onClose} variant="ghost">
+                Annuler
               </Button>
-            )}
-            {etape === 'choix' ? (
-              <Button
-                color="primary"
-                isDisabled={!choisi}
-                startContent={<Crown className="h-4 w-4" />}
-                onPress={() => setEtape('recapitulatif')}
-              >
-                Voir ce qui va changer
-              </Button>
-            ) : (
-              <Button color="primary" isDisabled={!choisi} isLoading={changer.isPending} onPress={valider}>
-                Désigner ce compte principal
-              </Button>
-            )}
-          </div>
-        </ModalFooter>
-      </ModalContent>
+              <div className="flex items-center gap-2">
+                {etape === 'recapitulatif' && (
+                  <Button onPress={() => setEtape('choix')} variant="outline">
+                    Retour
+                  </Button>
+                )}
+                {etape === 'choix' ? (
+                  <Button
+                    isDisabled={!choisi}
+                    onPress={() => setEtape('recapitulatif')}
+                    variant="primary"
+                  >
+                    <Crown aria-hidden="true" className="size-4" />
+                    Voir ce qui va changer
+                  </Button>
+                ) : (
+                  <Button
+                    isDisabled={!choisi}
+                    isPending={changer.isPending}
+                    onPress={valider}
+                    variant="primary"
+                  >
+                    Désigner ce compte principal
+                  </Button>
+                )}
+              </div>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

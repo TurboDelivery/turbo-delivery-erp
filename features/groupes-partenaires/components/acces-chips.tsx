@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@/components/heroui';
+import { Chip } from '@heroui-v3/react';
 
 import {
   EffetSurCompte,
@@ -8,38 +8,54 @@ import {
   ROLE_PARTENAIRE_LABELS,
 } from '../types/groupes-partenaires.types';
 
+/**
+ * Les pastilles du volet Groupes.
+ *
+ * <p>Le RÔLE d'un compte et la PORTÉE de son accès sont des catégories : elles étaient
+ * peintes en `primary` — la couleur de marque — et `secondary`, deux teintes qui n'ont
+ * plus de sens sémantique en v3 (`variant` y porte l'intensité, `color` le sens). Le
+ * libellé dit déjà lequel c'est.</p>
+ *
+ * <p>L'EFFET d'une opération sur un compte, lui, garde sa couleur : c'est ce que
+ * l'écran promet de montrer avant validation — qui gagne un accès, qui en perd un.</p>
+ */
+
 /** Rôle du compte sur son périmètre. Le code brut reste affiché s'il est inconnu du front. */
-export function RoleChip({ role, size = 'sm' }: { role: string | null; size?: 'sm' | 'md' }) {
-  if (!role) return <span className="text-default-400">—</span>;
+export function RoleChip({ role, size = 'sm' }: { role: null | string; size?: 'md' | 'sm' }) {
+  if (!role) return <span className="text-muted">—</span>;
   return (
-    <Chip size={size} variant="flat" color={role === 'OWNER' || role === 'ADMIN' ? 'primary' : 'default'}>
-      {ROLE_PARTENAIRE_LABELS[role] ?? role}
+    <Chip size={size} variant="soft">
+      <Chip.Label className="whitespace-nowrap">{ROLE_PARTENAIRE_LABELS[role] ?? role}</Chip.Label>
     </Chip>
   );
 }
 
 /** Étendue de l'accès : tout le groupe, ou un seul établissement. */
 export function PorteeChip({ portee }: { portee: string }) {
-  const groupe = portee === 'GROUPE';
   return (
-    <Chip size="sm" variant="dot" color={groupe ? 'secondary' : 'default'}>
-      {PORTEE_ACCES_LABELS[portee] ?? portee}
+    <Chip size="sm" variant="soft">
+      <Chip.Label className="whitespace-nowrap">
+        {PORTEE_ACCES_LABELS[portee] ?? portee}
+      </Chip.Label>
     </Chip>
   );
 }
 
-const EFFET_STYLE: Record<EffetSurCompte, { libelle: string; couleur: 'primary' | 'success' | 'default' | 'danger' }> = {
-  DEVIENT_PRINCIPAL: { libelle: 'Devient compte principal', couleur: 'primary' },
-  GAGNE: { libelle: 'Accès élargi', couleur: 'success' },
-  INCHANGE: { libelle: 'Inchangé', couleur: 'default' },
-  PERD: { libelle: 'Accès retiré', couleur: 'danger' },
+const EFFET_STYLE: Record<
+  EffetSurCompte,
+  { couleur: 'danger' | 'default' | 'success'; libelle: string }
+> = {
+  DEVIENT_PRINCIPAL: { couleur: 'success', libelle: 'Devient compte principal' },
+  GAGNE: { couleur: 'success', libelle: 'Accès élargi' },
+  INCHANGE: { couleur: 'default', libelle: 'Inchangé' },
+  PERD: { couleur: 'danger', libelle: 'Accès retiré' },
 };
 
 export function EffetChip({ effet }: { effet: EffetSurCompte }) {
   const style = EFFET_STYLE[effet];
   return (
-    <Chip size="sm" variant="flat" color={style.couleur}>
-      {style.libelle}
+    <Chip color={style.couleur} size="sm" variant="soft">
+      <Chip.Label className="whitespace-nowrap">{style.libelle}</Chip.Label>
     </Chip>
   );
 }

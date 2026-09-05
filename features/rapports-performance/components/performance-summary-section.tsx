@@ -1,7 +1,7 @@
 'use client';
 
 import { AlertCircle } from 'lucide-react';
-import { Card, CardBody } from '@/components/heroui';
+import { Card } from '@heroui-v3/react';
 import { IMainKPIs, ISecondaryKPIs } from '@/features/rapports-performance/types/performance.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { formatNumber } from '@/utils/formatNumber';
@@ -19,7 +19,7 @@ export function PerformanceSummarySection({
 }: PerformanceSummarySectionProps) {
   return (
     <Card>
-      <CardBody className="p-6 bg-orange-50">
+      <Card.Content className="p-6 bg-orange-50">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center shrink-0">
             <AlertCircle className="w-4 h-4 text-white" />
@@ -41,7 +41,7 @@ export function PerformanceSummarySection({
             </p>
           </div>
         </div>
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }

@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@/components/heroui';
+import { Button, Modal } from '@heroui-v3/react';
 import { Unlink } from 'lucide-react';
+import { useMemo } from 'react';
 
 import { useDetacherEtablissementMutation } from '../queries/groupes-partenaires.query';
 import { IEtablissementDuGroupe, IGroupeDetail } from '../types/groupes-partenaires.types';
@@ -34,36 +34,43 @@ export function DetacherEtablissementModal({ isOpen, onClose, groupe, etablissem
   const nomEtablissement = etablissement.nom ?? 'cet établissement';
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="4xl" scrollBehavior="inside">
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">
-          <span>Détacher {nomEtablissement}</span>
-          <span className="text-[12px] font-normal text-default-500">Groupe « {groupe.nom} »</span>
-        </ModalHeader>
+    <Modal isOpen={isOpen} onOpenChange={(o) => !o && onClose()}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-4xl">
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col gap-1">
+                <span>Détacher {nomEtablissement}</span>
+                <span className="text-xs font-normal text-muted">Groupe « {groupe.nom} »</span>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
 
-        <ModalBody>
+            <Modal.Body>
           <RecapitulatifAcces
             recapitulatif={recapitulatif}
             intention={`Si vous détachez « ${nomEtablissement} » du groupe, voici ce qui change pour chacun de ses membres.`}
             note="Un accès accordé directement sur l'établissement survit au détachement : il avait été donné à l'établissement, pas au groupe. Seul l'accès hérité du groupe disparaît. L'établissement redevient disponible et pourra être rattaché à un autre groupe."
           />
-        </ModalBody>
+            </Modal.Body>
 
-        <ModalFooter className="justify-between">
-          <Button variant="light" onPress={onClose}>
-            Annuler
-          </Button>
-          <Button
-            color="danger"
-            startContent={<Unlink className="h-4 w-4" />}
-            isDisabled={recapitulatif.blocages.length > 0 || detacher.isPending}
-            isLoading={detacher.isPending}
-            onPress={() => detacher.mutate(etablissement.restaurantId, { onSuccess: onClose })}
-          >
-            Détacher l&apos;établissement
-          </Button>
-        </ModalFooter>
-      </ModalContent>
+            <Modal.Footer className="justify-between">
+              <Button onPress={onClose} variant="ghost">
+                Annuler
+              </Button>
+              <Button
+                isDisabled={recapitulatif.blocages.length > 0 || detacher.isPending}
+                isPending={detacher.isPending}
+                onPress={() => detacher.mutate(etablissement.restaurantId, { onSuccess: onClose })}
+                variant="danger"
+              >
+                <Unlink aria-hidden="true" className="size-4" />
+                Détacher l&apos;établissement
+              </Button>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

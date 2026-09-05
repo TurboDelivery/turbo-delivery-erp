@@ -1,16 +1,11 @@
 'use client';
 
+import { Avatar, Card, Chip } from '@heroui-v3/react';
+import { ArrowRight, CheckCircle2 } from 'lucide-react';
 import React from 'react';
-import Link from 'next/link';
-import { Button, Chip } from '@/components/heroui';
-import { ArrowRight, CheckCircle2, Store } from 'lucide-react';
-import { Restaurant } from '@/types/models';
 
-const AVATAR_COLORS = [
-  'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500',
-  'bg-green-500', 'bg-teal-500', 'bg-blue-500', 'bg-indigo-500',
-  'bg-purple-500', 'bg-pink-500',
-];
+import { LienBouton } from '@/components/commons/LienBouton';
+import { Restaurant } from '@/types/models';
 
 interface CourseJournaliereProps {
   restaurant: Restaurant;
@@ -24,46 +19,52 @@ const CourseJournaliere: React.FC<CourseJournaliereProps> = ({ restaurant: r }) 
   const enCours = r.coursesEnCours ?? 0;
   const terminees = r.coursesTerminees ?? 0;
   const nom = r.nomRestaurant ?? '—';
-  const color = AVATAR_COLORS[(nom.charCodeAt(0) || 0) % AVATAR_COLORS.length];
   const aSuivre = enCours > 0;
 
   return (
-    <div
-      className={`bg-surface rounded-xl border shadow-xs hover:shadow-md transition-shadow p-4 flex flex-col gap-3 ${
-        aSuivre ? 'border-amber-200' : 'border-separator'
-      }`}
-    >
-      <div className="flex items-center gap-3 min-w-0">
-        <div className={`w-9 h-9 rounded-full ${color} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
-          {nom[0]?.toUpperCase() ?? <Store className="w-4 h-4" />}
+    /*
+     * L'avatar du partenaire etait un rond peint dans DIX couleurs de palette tirees au
+     * sort sur la premiere lettre du nom : « Pizza Roma » etait violet, « Kfc » bleu.
+     * Aucune de ces teintes ne dit quoi que ce soit, et aucune n'a de variante sombre.
+     */
+    <Card className={`transition-shadow hover:shadow-md ${aSuivre ? 'border-warning/40' : ''}`}>
+      <Card.Content className="gap-3 p-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <Avatar size="sm">
+            <Avatar.Fallback>{nom.slice(0, 2).toUpperCase()}</Avatar.Fallback>
+          </Avatar>
+          <p className="truncate text-sm font-semibold text-foreground" title={nom}>
+            {nom}
+          </p>
+          {aSuivre && (
+            <span className="ms-auto size-2.5 shrink-0 animate-pulse rounded-full bg-warning" />
+          )}
         </div>
-        <p className="font-semibold text-sm text-foreground truncate" title={nom}>
-          {nom}
-        </p>
-        {aSuivre && <span className="ml-auto w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" />}
-      </div>
 
-      <div className="flex items-center gap-2 flex-wrap">
-        <Chip size="sm" variant="flat" color={aSuivre ? 'warning' : 'default'}>
-          {enCours} en cours
-        </Chip>
-        <Chip size="sm" variant="flat" color={terminees > 0 ? 'success' : 'default'} startContent={terminees > 0 ? <CheckCircle2 className="w-3 h-3" /> : undefined}>
-          {terminees} terminée{terminees > 1 ? 's' : ''}
-        </Chip>
-      </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Chip color={aSuivre ? 'warning' : 'default'} size="sm" variant="soft">
+            <Chip.Label>{enCours} en cours</Chip.Label>
+          </Chip>
+          <Chip color={terminees > 0 ? 'success' : 'default'} size="sm" variant="soft">
+            {terminees > 0 && <CheckCircle2 aria-hidden="true" className="size-3" />}
+            <Chip.Label>
+              {terminees} terminée{terminees > 1 ? 's' : ''}
+            </Chip.Label>
+          </Chip>
+        </div>
 
-      <Button
-        as={Link}
-        href={`/external_delivery/restaurant/${r.restaurantId}`}
-        size="sm"
-        variant={aSuivre ? 'flat' : 'light'}
-        color={aSuivre ? 'primary' : 'default'}
-        className="justify-between"
-        endContent={<ArrowRight className="w-4 h-4" />}
-      >
-        Voir les courses
-      </Button>
-    </div>
+        {/* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3. */}
+        <LienBouton
+          className="justify-between"
+          href={`/external_delivery/restaurant/${r.restaurantId}`}
+          taille="sm"
+          variante={aSuivre ? 'outline' : 'ghost'}
+        >
+          Voir les courses
+          <ArrowRight aria-hidden="true" className="size-4" />
+        </LienBouton>
+      </Card.Content>
+    </Card>
   );
 };
 

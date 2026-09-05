@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownSection, DropdownItem, Button } from '@/components/heroui';
+import { Button, Dropdown } from '@heroui-v3/react';
 import { IconDotsVertical } from '@tabler/icons-react';
 import { Eye, UserRoundPlus, XCircle } from 'lucide-react';
 
@@ -51,46 +51,49 @@ const DeliveryTools = ({ delivery, delivers }: { delivery: CourseExterne; delive
 
   return (
     <>
+      {/*
+       * `Dropdown.Trigger` rend son PROPRE bouton : le `Button` est enfant DIRECT du
+       * `Dropdown`, faute de quoi on obtient un bouton dans un bouton.
+       */}
       <Dropdown>
-        <DropdownTrigger>
-          <Button variant="light" isIconOnly aria-label="Actions">
-            <IconDotsVertical />
-          </Button>
-        </DropdownTrigger>
-
-        <DropdownMenu aria-label="Actions de la course">
-          <DropdownSection showDivider title="Actions">
-            <DropdownItem
-              key="details"
-              startContent={<Eye className="w-4 h-4 text-primary" />}
-              onPress={() => router.push(`/external_delivery/${delivery.id}`)}
+        <Button aria-label="Actions sur cette course" isIconOnly variant="ghost">
+          <IconDotsVertical />
+        </Button>
+        <Dropdown.Popover>
+          <Dropdown.Menu aria-label="Actions de la course">
+            <Dropdown.Item
+              id="details"
+              onAction={() => router.push(`/external_delivery/${delivery.id}`)}
+              textValue="Voir le détail"
             >
+              <Eye aria-hidden="true" className="size-4" />
               Voir le détail
-            </DropdownItem>
+            </Dropdown.Item>
 
             {enAttente && canUpdate ? (
-              <DropdownItem
-                key="assign"
-                startContent={<UserRoundPlus className="w-4 h-4 text-success-soft-foreground" />}
-                onPress={() => setOpenAssign(true)}
+              <Dropdown.Item
+                id="assign"
+                onAction={() => setOpenAssign(true)}
+                textValue="Assigner un livreur"
               >
+                <UserRoundPlus aria-hidden="true" className="size-4" />
                 Assigner un livreur
-              </DropdownItem>
+              </Dropdown.Item>
             ) : null}
 
             {enAttente && canUpdate ? (
-              <DropdownItem
-                key="cancel"
+              <Dropdown.Item
                 className="text-danger-soft-foreground"
-                color="danger"
-                startContent={<XCircle className="w-4 h-4" />}
-                onPress={() => setOpenCancel(true)}
+                id="cancel"
+                onAction={() => setOpenCancel(true)}
+                textValue="Annuler la course"
               >
+                <XCircle aria-hidden="true" className="size-4" />
                 Annuler la course
-              </DropdownItem>
+              </Dropdown.Item>
             ) : null}
-          </DropdownSection>
-        </DropdownMenu>
+          </Dropdown.Menu>
+        </Dropdown.Popover>
       </Dropdown>
 
       <DeliveryAssign delivery={delivery} delivers={delivers} open={openAssign} setOpen={setOpenAssign} />

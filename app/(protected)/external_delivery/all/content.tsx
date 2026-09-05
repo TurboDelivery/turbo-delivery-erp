@@ -1,7 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Button, Chip, Input, Pagination, Skeleton } from '@/components/heroui';
+import { Chip, InputGroup, TextField, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
+
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import { Search } from 'lucide-react';
 
 import { PaginatedResponse } from '@/types';
@@ -82,7 +84,11 @@ export default function Content({ initialData, delivers }: Props) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Chip variant="flat">{data?.totalElements ?? 0} course{(data?.totalElements ?? 0) > 1 ? 's' : ''}</Chip>
+          <Chip size="sm" variant="soft">
+            <Chip.Label>
+              {data?.totalElements ?? 0} course{(data?.totalElements ?? 0) > 1 ? 's' : ''}
+            </Chip.Label>
+          </Chip>
           {/* Bouton « Nouvelle course » RETIRE : il pointait vers /delivery/create,
               route qui n'existe pas (il y a `delivery-men`, pas `delivery`) — le clic
               donnait un 404 plein ecran. Verifie : aucune page de creation de course
@@ -97,31 +103,37 @@ export default function Content({ initialData, delivers }: Props) {
 
       {/* Recherche + filtres statut */}
       <div className="flex flex-col gap-3">
-        <Input
-          startContent={<Search className="text-muted w-4 h-4" />}
-          variant="bordered"
-          placeholder="Rechercher par code ou partenaire..."
-          value={searchTerm}
-          onValueChange={setSearchTerm}
+        <TextField
+          aria-label="Rechercher une course"
           className="max-w-md"
+          onChange={setSearchTerm}
+          value={searchTerm}
+        >
+          <InputGroup>
+            <InputGroup.Prefix>
+              <Search aria-hidden="true" className="size-4" />
+            </InputGroup.Prefix>
+            <InputGroup.Input placeholder="Rechercher par code ou partenaire…" />
+          </InputGroup>
+        </TextField>
+        {/*
+         * C'etaient des `Button` independants dont l'actif se distinguait par
+         * `variant="solid"` pose a la main : des boutons separes pour un choix EXCLUSIF,
+         * sans navigation au clavier entre eux ni annonce « 1 sur N ».
+         */}
+        <ToggleButtonGroup
+          className="flex-wrap"
+          onSelectionChange={(sel) => setStatusFilter(String(Array.from(sel)[0] ?? FILTRES[0].id))}
+          selectedKeys={new Set([statusFilter])}
+          selectionMode="single"
           size="sm"
-          isClearable
-          onClear={() => setSearchTerm('')}
-        />
-        <div className="flex gap-2 flex-wrap">
+        >
           {FILTRES.map((f) => (
-            <Button
-              key={f.id}
-              size="sm"
-              className="rounded-md font-medium"
-              variant={statusFilter === f.id ? 'solid' : 'flat'}
-              color={statusFilter === f.id ? 'primary' : 'default'}
-              onPress={() => setStatusFilter(f.id)}
-            >
+            <ToggleButton id={f.id} key={f.id}>
               {f.name}
-            </Button>
+            </ToggleButton>
           ))}
-        </div>
+        </ToggleButtonGroup>
       </div>
 
       {/* Cartes — l'echec prend la place des cartes, jamais une ligne au-dessus :
@@ -135,7 +147,7 @@ export default function Content({ initialData, delivers }: Props) {
       ) : isLoading ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="rounded-xl h-44" />
+            <div className="h-44 animate-pulse rounded-xl bg-surface-secondary" key={i} />
           ))}
         </div>
       ) : courses.length ? (
@@ -154,14 +166,10 @@ export default function Content({ initialData, delivers }: Props) {
       {/* Pagination (serveur) */}
       {(data?.totalPages ?? 0) > 1 && (
         <div className="flex justify-center mt-2 w-full">
-          <Pagination
-            total={data?.totalPages ?? 1}
+          <PaginationTableau
+            onPage={fetchData}
             page={currentPage}
-            onChange={fetchData}
-            showControls
-            color="primary"
-            variant="bordered"
-            isDisabled={isLoading}
+            total={data?.totalPages ?? 1}
           />
         </div>
       )}

@@ -1,7 +1,7 @@
 'use client';
 
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RechartsTooltip, XAxis, YAxis } from 'recharts';
-import { Card, CardBody } from '@/components/heroui';
+import { Card } from '@heroui-v3/react';
 import { IGeographicLocation, IWeeklyActivity } from '@/features/rapports-performance/types/performance.type';
 
 interface ChartsSectionProps {
@@ -128,7 +128,7 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
-        <CardBody className="p-6">
+        <Card.Content className="p-6">
           <div className="mb-4">
             <h2 className="text-xl font-semibold text-foreground">Répartition Géographique</h2>
             <p className="text-sm text-muted">
@@ -136,11 +136,11 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
             </p>
           </div>
           {renderDonutChart()}
-        </CardBody>
+        </Card.Content>
       </Card>
 
       <Card>
-        <CardBody className="p-6">
+        <Card.Content className="p-6">
           <div className="mb-4">
             <h2 className="text-xl font-semibold text-foreground">Pics d&#39;Activité Hebdomadaire</h2>
             {/*<p className="text-sm text-muted">*/}
@@ -158,7 +158,7 @@ export function ChartsSection({ geographicData, weeklyActivityData }: ChartsSect
               <span className="text-sm text-muted">Chiffre d&#39;affaires (FCFA)</span>
             </div>
           </div>
-        </CardBody>
+        </Card.Content>
       </Card>
     </div>
   );

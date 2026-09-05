@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Card } from '@/components/heroui';
+import { Card } from '@heroui-v3/react';
 import { CardContent } from '@/components/ui/card';
 import { useBilanAnnuel } from '../hooks/use-bilan-annuel';
 import { EntreeCaisseMiniTable } from '@/components/finance/entrees-caisse/entree-caisse-mini-table';

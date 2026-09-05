@@ -2,48 +2,18 @@
 import { CourseExterne, LivreurDisponible } from '@/types/models';
 import { PaginatedResponse } from '@/types';
 import { ChevronDown, ChevronUp, Clock, CreditCard, MapPin, Package, Store, User } from 'lucide-react';
-import { Avatar, Button, Card, CardBody, CardHeader, Chip, Divider, Pagination, Skeleton } from '@/components/heroui';
+import { Avatar, Button, Card, Separator, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
+
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
+import { CommandeStatutChip, CourseStatutChip } from '../component/course-statut';
 import { useEffect, useState } from 'react';
 import { courses_statuses_filters, SORT_OPTIONS } from '@/data';
 import DeliveryTools from '../component/deliveryTools';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { getPaginationCourseExterneAutreStatus } from '@/src/actions/courses.actions';
 import EtatErreur from '@/components/commons/EtatErreur';
 
 type SortOption = (typeof SORT_OPTIONS)[keyof typeof SORT_OPTIONS];
-
-const getStatusColor = (statut: string) => {
-  switch (statut?.toUpperCase()) {
-    case 'VALIDER':
-      return 'warning';
-    case 'TERMINER':
-      return 'success';
-    case 'ANNULER':
-      return 'danger';
-    case 'EN_ATTENTE':
-      return 'secondary';
-    default:
-      return 'default';
-  }
-};
-
-const getCommandeStatusColor = (statut: string) => {
-  switch (statut?.toUpperCase()) {
-    case 'EN_ATTENTE_VERSEMENT':
-      return 'warning';
-    case 'TERMINER':
-      return 'success';
-    case 'ANNULER':
-      return 'danger';
-    case 'RECUPERER':
-      return 'secondary';
-    case 'EN_COURS_LIVRAISON':
-      return 'secondary';
-    default:
-      return 'default';
-  }
-};
 
 const getStatusBorderClass = (statut: string) => {
   switch (statut?.toUpperCase()) {
@@ -140,24 +110,28 @@ export default function Content({ initialData, delivers }: Props) {
             /new-deliveries (courses journalieres) : ce serait un bouton qui ment. */}
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
-        <ScrollArea className="w-full whitespace-nowrap pb-2">
+      <div className="mb-4 flex flex-col gap-4 sm:flex-row">
+        {/*
+         * C'etaient des `Button` independants dont l'actif se distinguait par
+         * `variant="solid"` pose a la main, dans une zone de defilement horizontal : des
+         * boutons separes pour un choix EXCLUSIF, sans navigation au clavier entre eux.
+         * Le groupe enroule plutot que de cacher les derniers filtres hors de l'ecran.
+         */}
+        <ToggleButtonGroup
+          className="flex-wrap"
+          onSelectionChange={(sel) => handleFilter(String(Array.from(sel)[0] ?? ''))}
+          selectedKeys={new Set([statusFilter])}
+          selectionMode="single"
+          size="sm"
+        >
           {courses_statuses_filters
             .filter((status) => status.id != 'EN_ATTENTE')
             .map((category) => (
-              <Button
-                key={category.id}
-                className="shrink-0 mx-2"
-                variant={statusFilter === category.id ? 'solid' : 'flat'}
-                color={statusFilter === category.id ? 'primary' : 'default'}
-                onPress={() => handleFilter(category.id)}
-                size="sm"
-              >
+              <ToggleButton id={category.id} key={category.id}>
                 {category.name}
-              </Button>
+              </ToggleButton>
             ))}
-          <ScrollBar orientation="horizontal" className="h-0" />
-        </ScrollArea>
+        </ToggleButtonGroup>
 
         {/* <Input
                     startContent={<Search className="text-muted w-4 h-4" />}
@@ -202,7 +176,7 @@ export default function Content({ initialData, delivers }: Props) {
       ) : isLoading ? (
         <div className="flex flex-col gap-6">
           {[...Array(2)].map((_, index) => (
-            <Skeleton key={index} className="rounded-lg h-52" />
+            <div className="h-52 animate-pulse rounded-xl bg-surface-secondary" key={index} />
           ))}
         </div>
       ) : data && data?.content.length ? (
@@ -210,38 +184,61 @@ export default function Content({ initialData, delivers }: Props) {
           <div className="grid grid-cols-1 gap-6">
             {dataFilter.map((delivery) => (
               <Card key={delivery.id} className={`w-full ${getStatusBorderClass(delivery.statut)}`}>
-                <CardHeader className="flex justify-between">
+                <Card.Header className="flex-row items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Chip color={getStatusColor(delivery.statut)} variant="flat">
-                      {delivery.statut}
-                    </Chip>
-                    <span className="text-default-500 font-bold">Code: {delivery.code}</span>
+                    {/* La pastille affichait le CODE brut du backend — « TERMINER »,
+                        « ANNULER » — au lieu du libelle francais. Le vocabulaire commun
+                        des courses le porte. */}
+                    <CourseStatutChip statut={delivery.statut} />
+                    <span className="font-bold text-muted">Code : {delivery.code}</span>
                   </div>
                   <div className="flex gap-2">
                     <DeliveryTools delivery={delivery} delivers={delivers} />
-
-                    <Button isIconOnly color="primary" variant="light" onPress={() => toggleExpand(delivery.id)}>
+                    <Button
+                      aria-label={
+                        expandedDelivery === delivery.id
+                          ? 'Replier le détail'
+                          : 'Déplier le détail'
+                      }
+                      isIconOnly
+                      onPress={() => toggleExpand(delivery.id)}
+                      variant="ghost"
+                    >
                       {expandedDelivery === delivery.id ? <ChevronUp /> : <ChevronDown />}
                     </Button>
                   </div>
-                </CardHeader>
+                </Card.Header>
 
-                <CardBody>
+                <Card.Content>
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      {delivery?.restaurant?.logo_Url ? <Avatar src={createUrlFile(delivery?.restaurant?.logo_Url, 'restaurant')} /> : <Store className="text-default-500" />}
+                      {delivery?.restaurant?.logo_Url ? (
+                        <Avatar>
+                          <Avatar.Image
+                            alt=""
+                            src={createUrlFile(delivery?.restaurant?.logo_Url, 'restaurant')}
+                          />
+                          <Avatar.Fallback>
+                            {(delivery?.restaurant?.nomEtablissement ?? '?')
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </Avatar.Fallback>
+                        </Avatar>
+                      ) : (
+                        <Store aria-hidden="true" className="text-muted" />
+                      )}
 
                       <div>
-                        <p className="text-default-700">{delivery?.restaurant?.nomEtablissement}</p>
-                        <p className="text-default-500 text-sm">{delivery?.restaurant?.commune}</p>
+                        <p className="text-foreground">{delivery?.restaurant?.nomEtablissement}</p>
+                        <p className="text-muted text-sm">{delivery?.restaurant?.commune}</p>
                       </div>
                     </div>
 
-                    <Divider />
+                    <Separator />
 
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <Package className="text-default-500" />
+                        <Package className="text-muted" />
                         <span>
                           {delivery.nombreCommande} commande{delivery.nombreCommande > 1 ? 's' : ''}
                         </span>
@@ -253,43 +250,41 @@ export default function Content({ initialData, delivers }: Props) {
                       <div className="mt-4 space-y-4">
                         {delivery.commandes.map((commande, index) => (
                           <Card key={commande.id} className="w-full">
-                            <CardHeader className="flex justify-between">
+                            <Card.Header className="flex-row items-center justify-between">
                               <div className="flex items-center gap-4">
-                                <Chip size="sm" variant="flat" color={getCommandeStatusColor(commande.statut)}>
-                                  {commande.statut ?? 'EN_ATTENTE'}
-                                </Chip>
-                                <span className="text-default-500 font-bold">Commande #{index + 1}</span>
+                                <CommandeStatutChip statut={commande.statut} />
+                                <span className="text-muted font-bold">Commande #{index + 1}</span>
                               </div>
                               <div className="flex gap-2">
-                                <span className="text-default-500 font-bold">{commande.numero}</span>
+                                <span className="text-muted font-bold">{commande.numero}</span>
                               </div>
-                            </CardHeader>
-                            <CardBody>
+                            </Card.Header>
+                            <Card.Content>
                               <div className="space-y-3">
                                 <div className="flex items-start gap-2">
-                                  <User className="text-default-500 mt-1" />
+                                  <User className="text-muted mt-1" />
                                   <div>
-                                    <p className="text-default-700">{commande.destinataire.nomComplet}</p>
-                                    <p className="text-default-500">{commande.destinataire.contact}</p>
+                                    <p className="text-foreground">{commande.destinataire.nomComplet}</p>
+                                    <p className="text-muted">{commande.destinataire.contact}</p>
                                   </div>
                                 </div>
 
                                 <div className="flex items-start gap-2">
-                                  <MapPin className="text-default-500 mt-1" />
+                                  <MapPin className="text-muted mt-1" />
                                   <p className="text-default-600">{`${commande.lieuLivraison.latitude}, ${commande.lieuLivraison.longitude}`}</p>
                                 </div>
 
-                                <Divider />
+                                <Separator />
 
                                 <div className="flex justify-between items-center">
                                   <div className="flex items-center gap-2">
-                                    <CreditCard className="text-default-500" />
+                                    <CreditCard className="text-muted" />
                                     <span className="text-default-600">{commande.modePaiement}</span>
                                   </div>
                                   <span className="font-semibold">{commande.prix.toFixed(2)} XOF</span>
                                 </div>
                               </div>
-                            </CardBody>
+                            </Card.Content>
                           </Card>
                         ))}
                         {/* <MapComponent
@@ -306,30 +301,30 @@ export default function Content({ initialData, delivers }: Props) {
                       </div>
                     )}
 
-                    <Divider />
+                    <Separator />
 
                     <div className="flex items-center gap-2">
-                      <Clock className="text-default-500" />
+                      <Clock className="text-muted" />
                       <div>
                         <p className="text-default-600">Début: {delivery.createdAt}</p>
                         <p className="text-default-600">Fin: {delivery.deliveredAt ?? '---'}</p>
                       </div>
                     </div>
                   </div>
-                </CardBody>
+                </Card.Content>
               </Card>
             ))}
           </div>
           <div className="flex h-fit z-10 justify-center mt-8 fixed bottom-4">
             <div className="bg-surface-tertiary absolute inset-0 w-full h-full blur-xs opacity-50"></div>
-            <Pagination total={data?.totalPages ?? 1} page={currentPage} onChange={fetchData} showControls color="primary" variant="bordered" isDisabled={isLoading} />
+            <PaginationTableau onPage={fetchData} page={currentPage} total={data?.totalPages ?? 1} />
           </div>
         </>
       ) : (
         <Card className="min-h-52">
-          <CardBody className="flex justify-center items-center">
-            <p className="text-center text-default-500">Aucune course ne correspond à vos critères de recherche. Essayez de modifier vos filtres.</p>
-          </CardBody>
+          <Card.Content className="flex justify-center items-center">
+            <p className="text-center text-muted">Aucune course ne correspond à vos critères de recherche. Essayez de modifier vos filtres.</p>
+          </Card.Content>
         </Card>
       )}
     </div>

@@ -1,7 +1,5 @@
 'use client';
 
-import { Skeleton } from '@/components/heroui';
-
 import TraficLivreurItem from '@/features/trafic/components/trafic-livreur-item';
 import { LivreurTraficVue } from '@/features/trafic/utils/normaliser-trafic';
 
@@ -26,14 +24,14 @@ export default function TraficLivreurList({
     return (
       <div className="flex flex-col gap-2 p-3">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-[86px] w-full rounded-[14px]" />
+          <div className="h-[86px] w-full animate-pulse rounded-xl bg-surface-secondary" key={i} />
         ))}
       </div>
     );
   }
 
   if (livreurs.length === 0) {
-    return <p className="px-4 py-10 text-center text-sm text-default-400">{emptyLabel}</p>;
+    return <p className="px-4 py-10 text-center text-sm text-muted">{emptyLabel}</p>;
   }
 
   return (

@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import dayjs from 'dayjs';
-import { Avatar, Button } from '@/components/heroui';
+import { Avatar, Button, Card } from '@heroui-v3/react';
+
+import { LienBouton } from '@/components/commons/LienBouton';
 import { Clock, Eye, MapPin, Package, Phone, UserRoundPlus } from 'lucide-react';
 
 import { CourseExterne, LivreurDisponible } from '@/types/models';
@@ -38,18 +40,27 @@ export default function CourseCard({
   const [openAssign, setOpenAssign] = useState(false);
   const premiere = course.commandes?.[0];
   const enAttente = course.statut?.toUpperCase() === 'EN_ATTENTE';
-  const accent = COURSE_STATUT_ACCENTS[course.statut?.toUpperCase() ?? ''] ?? 'border-l-gray-200';
+  const accent = COURSE_STATUT_ACCENTS[course.statut?.toUpperCase() ?? ''] ?? 'border-l-separator';
 
   return (
-    <div className={`bg-surface rounded-xl border border-separator border-l-4 ${accent} shadow-xs hover:shadow-md transition-shadow p-5 flex flex-col gap-3`}>
+    <Card className={`border-l-4 ${accent} transition-shadow hover:shadow-md`}>
+      <Card.Content className="gap-3 p-5">
       {/* Header : partenaire + montant */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <Avatar
-            src={course.restaurant?.logo ? createUrlFile(course.restaurant.logo, 'restaurant') : undefined}
-            name={course.restaurant?.nomEtablissement?.[0] ?? '?'}
-            size="md"
-          />
+          <Avatar size="md">
+            <Avatar.Image
+              alt=""
+              src={
+                course.restaurant?.logo
+                  ? createUrlFile(course.restaurant.logo, 'restaurant')
+                  : undefined
+              }
+            />
+            <Avatar.Fallback>
+              {(course.restaurant?.nomEtablissement ?? '?').slice(0, 2).toUpperCase()}
+            </Avatar.Fallback>
+          </Avatar>
           <div className="min-w-0">
             <p className="font-semibold text-sm text-foreground truncate">{course.restaurant?.nomEtablissement ?? '—'}</p>
             <p className="text-xs text-muted truncate">{course.restaurant?.commune ?? ''}</p>
@@ -59,7 +70,7 @@ export default function CourseCard({
           <span className="bg-foreground text-background text-sm font-semibold rounded-lg px-2.5 py-1">
             {fmtXof(montantCourse(course.commandes))}
           </span>
-          <span className="flex items-center gap-1 text-[11px] text-muted">
+          <span className="flex items-center gap-1 text-xs text-muted">
             <Clock className="w-3 h-3" />
             {timeAgo(course.createdAt)}
           </span>
@@ -92,18 +103,22 @@ export default function CourseCard({
         <CourseStatutChip statut={course.statut} />
         <div className="flex items-center gap-1.5">
           {enAttente && canUpdate && (
-            <Button size="sm" color="primary" startContent={<UserRoundPlus className="w-4 h-4" />} onPress={() => setOpenAssign(true)}>
+            <Button onPress={() => setOpenAssign(true)} size="sm" variant="primary">
+              <UserRoundPlus aria-hidden="true" className="size-4" />
               Assigner
             </Button>
           )}
-          <Button size="sm" variant="bordered" startContent={<Eye className="w-4 h-4" />} as={Link} href={`/external_delivery/${course.id}`}>
+          {/* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3. */}
+          <LienBouton href={`/external_delivery/${course.id}`} taille="sm" variante="outline">
+            <Eye aria-hidden="true" className="size-4" />
             Détail
-          </Button>
+          </LienBouton>
           <DeliveryTools delivery={course} delivers={delivers} />
         </div>
       </div>
 
       <DeliveryAssign delivery={course} delivers={delivers} open={openAssign} setOpen={setOpenAssign} />
-    </div>
+      </Card.Content>
+    </Card>
   );
 }

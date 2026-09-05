@@ -5,7 +5,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import dayjs from 'dayjs';
-import { Avatar, Button, Chip, Tooltip } from '@/components/heroui';
+import { Avatar, Button, Chip, Tooltip } from '@heroui-v3/react';
+
+import { LienBouton } from '@/components/commons/LienBouton';
 import {
   ArrowLeft,
   BikeIcon,
@@ -176,33 +178,22 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
         <div className="flex items-center gap-2">
           {canUpdate && enAttente && (
             <>
-              <Button
-                color="primary"
-                size="sm"
-                startContent={<UserRoundPlus className="w-4 h-4" />}
-                onPress={() => setOpenAssign(true)}
-              >
+              <Button onPress={() => setOpenAssign(true)} size="sm" variant="primary">
+                <UserRoundPlus aria-hidden="true" className="size-4" />
                 Assigner un livreur
               </Button>
-              <Button
-                color="danger"
-                variant="bordered"
-                size="sm"
-                startContent={<XCircle className="w-4 h-4" />}
-                onPress={() => setOpenCancel(true)}
-              >
+              <Button onPress={() => setOpenCancel(true)} size="sm" variant="danger-soft">
+                <XCircle aria-hidden="true" className="size-4" />
                 Annuler
               </Button>
             </>
           )}
           {canUpdate && enCours && (
-            <Button
-              color="success"
-              size="sm"
-              className="text-white"
-              startContent={<CheckCircle2 className="w-4 h-4" />}
-              onPress={() => setOpenFinish(true)}
-            >
+            /* Le bouton etait `color="success"` avec `text-white` pose a la main : du
+               vert plein pour l'action principale de l'ecran, la ou la bibliotheque a
+               une variante « geste principal ». */
+            <Button onPress={() => setOpenFinish(true)} size="sm" variant="primary">
+              <CheckCircle2 aria-hidden="true" className="size-4" />
               Terminer la course
             </Button>
           )}
@@ -235,20 +226,34 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
                   <InfoRow icon={<Store className="w-4 h-4" />}>
                     <span className="truncate">Récupération : {course.restaurant?.nomEtablissement ?? '—'}</span>
                     {recup && (
-                      <Tooltip content="Ouvrir dans Google Maps">
-                        <a href={recup} target="_blank" rel="noreferrer" className="text-primary hover:opacity-70">
-                          <ExternalLink className="w-3.5 h-3.5" />
+                      <Tooltip>
+                        <a
+                          className="text-accent hover:opacity-70"
+                          href={recup}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <ExternalLink aria-hidden="true" className="size-3.5" />
+                          <span className="sr-only">Ouvrir dans Google Maps</span>
                         </a>
+                        <Tooltip.Content>Ouvrir dans Google Maps</Tooltip.Content>
                       </Tooltip>
                     )}
                   </InfoRow>
                   <InfoRow icon={<MapPin className="w-4 h-4" />}>
                     <span className="truncate">Livraison : {cmd.zone ?? 'zone non renseignée'}</span>
                     {livr && (
-                      <Tooltip content="Ouvrir dans Google Maps">
-                        <a href={livr} target="_blank" rel="noreferrer" className="text-primary hover:opacity-70">
-                          <ExternalLink className="w-3.5 h-3.5" />
+                      <Tooltip>
+                        <a
+                          className="text-accent hover:opacity-70"
+                          href={livr}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <ExternalLink aria-hidden="true" className="size-3.5" />
+                          <span className="sr-only">Ouvrir dans Google Maps</span>
                         </a>
+                        <Tooltip.Content>Ouvrir dans Google Maps</Tooltip.Content>
                       </Tooltip>
                     )}
                   </InfoRow>
@@ -269,8 +274,8 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
                     <span>
                       {cmd.modePaiement ?? '—'}
                       {cmd.livraisonPaye && (
-                        <Chip size="sm" variant="flat" color="success" className="ml-2">
-                          Livraison payée
+                        <Chip className="ms-2" color="success" size="sm" variant="soft">
+                          <Chip.Label>Livraison payée</Chip.Label>
                         </Chip>
                       )}
                     </span>
@@ -295,48 +300,55 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
           {/* Partenaire */}
           <div className="bg-surface rounded-xl border border-separator shadow-xs p-5">
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Store className="w-4 h-4 text-primary" />
+              <Store aria-hidden="true" className="size-4 text-muted" />
               Partenaire
             </h3>
             <div className="flex items-center gap-3">
-              <Avatar
-                src={logoUrl ? createUrlFile(logoUrl, 'restaurant') : undefined}
-                name={course.restaurant?.nomEtablissement?.[0] ?? '?'}
-                size="md"
-              />
+              <Avatar size="md">
+                <Avatar.Image alt="" src={logoUrl ? createUrlFile(logoUrl, 'restaurant') : undefined} />
+                <Avatar.Fallback>
+                  {(course.restaurant?.nomEtablissement ?? '?').slice(0, 2).toUpperCase()}
+                </Avatar.Fallback>
+              </Avatar>
               <div className="min-w-0">
                 <p className="font-medium text-sm text-foreground truncate">{course.restaurant?.nomEtablissement ?? '—'}</p>
                 <p className="text-xs text-muted truncate">{course.restaurant?.commune ?? course.restaurant?.localisation ?? ''}</p>
               </div>
             </div>
             {course.restaurant?.id && (
-              <Button
-                as={Link}
+              /* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3. */
+              <LienBouton
+                className="mt-3"
                 href={`/restaurants/${course.restaurant.id}`}
-                size="sm"
-                variant="flat"
-                className="mt-3 w-full"
-                endContent={<ExternalLink className="w-3.5 h-3.5" />}
+                pleineLargeur
+                taille="sm"
+                variante="outline"
               >
                 Voir la fiche partenaire
-              </Button>
+                <ExternalLink aria-hidden="true" className="size-3.5" />
+              </LienBouton>
             )}
           </div>
 
           {/* Livreur */}
           <div className="bg-surface rounded-xl border border-separator shadow-xs p-5">
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <BikeIcon className="w-4 h-4 text-primary" />
+              <BikeIcon aria-hidden="true" className="size-4 text-muted" />
               Livreur
             </h3>
             {course.livreur ? (
               <div className="flex items-center gap-3">
-                <Avatar src={course.livreur.avatarUrl || undefined} name={course.livreur.nom?.[0] ?? '?'} size="md" />
+                <Avatar size="md">
+                  <Avatar.Image alt="" src={course.livreur.avatarUrl || undefined} />
+                  <Avatar.Fallback>
+                    {(course.livreur.nom ?? '?').slice(0, 2).toUpperCase()}
+                  </Avatar.Fallback>
+                </Avatar>
                 <div className="min-w-0">
                   <p className="font-medium text-sm text-foreground truncate">
                     {course.livreur.nom} {course.livreur.prenoms}
                   </p>
-                  <a href={`tel:${course.livreur.telephone}`} className="text-xs text-primary hover:underline">
+                  <a href={`tel:${course.livreur.telephone}`} className="text-xs text-accent hover:underline">
                     {course.livreur.telephone}
                   </a>
                   {course.livreur.matricule && <p className="text-xs text-muted">Mat. {course.livreur.matricule}</p>}
@@ -346,7 +358,12 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
               <div className="text-xs text-muted border border-dashed border-separator rounded-lg p-4 text-center">
                 Aucun livreur assigné pour l&apos;instant.
                 {canUpdate && enAttente && (
-                  <Button size="sm" color="primary" variant="flat" className="mt-3 w-full" onPress={() => setOpenAssign(true)}>
+                  <Button
+                    className="mt-3 w-full"
+                    onPress={() => setOpenAssign(true)}
+                    size="sm"
+                    variant="outline"
+                  >
                     Assigner maintenant
                   </Button>
                 )}
@@ -357,7 +374,7 @@ export default function Content({ course, delivers }: { course: CourseExterneDet
           {/* Récapitulatif */}
           <div className="bg-surface rounded-xl border border-separator shadow-xs p-5">
             <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <Wallet className="w-4 h-4 text-primary" />
+              <Wallet aria-hidden="true" className="size-4 text-muted" />
               Récapitulatif
             </h3>
             <div className="flex flex-col gap-2 text-sm">

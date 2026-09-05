@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { Button } from '@/components/heroui';
+import { LienBouton } from '@/components/commons/LienBouton';
 import { ArrowRight, ShieldAlert } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
@@ -47,28 +46,31 @@ export function TraficPointagesBanner() {
   if (enAttente === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-warning-200 bg-warning-50 p-4 dark:border-warning-500/30 dark:bg-warning-500/10">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-warning-500/15">
-        <ShieldAlert className="h-[22px] w-[22px] text-warning-600 dark:text-warning-400" aria-hidden />
+    /*
+     * Le bandeau etait peint en six teintes de palette avec leurs contreparties `dark:`
+     * ecrites a la main. Les jetons du theme font les deux.
+     */
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4">
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-warning/15">
+        <ShieldAlert aria-hidden="true" className="size-5 text-warning-soft-foreground" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-warning-700 dark:text-warning-300">
+        <p className="text-sm font-semibold text-foreground">
           {enAttente} pointage{enAttente > 1 ? 's' : ''} en attente de validation
         </p>
-        <p className="text-[12px] leading-snug text-warning-700/80 dark:text-warning-300/80">
+        <p className="text-xs leading-snug text-muted">
           Ces livreurs ne reçoivent aucune course tant que la décision n&apos;est pas prise.
         </p>
       </div>
-      <Button
-        as={Link}
-        href={LIEN_ARBITRAGE}
-        size="sm"
-        radius="lg"
-        className="bg-surface-secondary text-white dark:text-foreground"
-        endContent={<ArrowRight className="h-4 w-4" />}
-      >
+      {/*
+       * Le bouton portait `bg-surface-secondary text-white` : du BLANC sur une surface
+       * CLAIRE — son libelle etait invisible en mode clair. Et `as={Link}` etait une prop
+       * de la v2, ignoree en silence par le Button v3 : il ne naviguait plus.
+       */}
+      <LienBouton href={LIEN_ARBITRAGE} taille="sm" variante="primary">
         Arbitrer les pointages
-      </Button>
+        <ArrowRight aria-hidden="true" className="size-4" />
+      </LienBouton>
     </div>
   );
 }

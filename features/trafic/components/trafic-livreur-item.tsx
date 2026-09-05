@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, Button, Tooltip } from '@/components/heroui';
+import { Avatar, Button, Tooltip } from '@heroui-v3/react';
 import { History, MapPinOff, Navigation, PackagePlus, Phone } from 'lucide-react';
 
 import { LivreurTraficVue } from '@/features/trafic/utils/normaliser-trafic';
@@ -31,8 +31,8 @@ function Signal({
 }) {
   const classes =
     ton === 'alerte'
-      ? 'bg-danger-50 text-danger-600 dark:bg-danger-500/15 dark:text-danger-400'
-      : 'bg-default-100 text-default-500';
+      ? 'bg-danger/10 text-danger-soft-foreground'
+      : 'bg-surface-secondary text-muted';
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-full px-2 py-[2px] text-[10px] font-medium ${classes}`}
@@ -76,21 +76,21 @@ export default function TraficLivreurItem({
       }}
       className={[
         'flex w-full cursor-pointer items-start gap-3 rounded-[14px] border bg-surface p-3 text-left transition-colors dark:bg-content1',
-        'hover:border-default-300 hover:bg-default-50 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40',
-        isSelected ? 'border-default-900 ring-1 ring-default-900' : 'border-default-200/70',
+        'hover:border-separator hover:bg-surface-secondary focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/40',
+        isSelected ? 'border-foreground ring-1 ring-foreground' : 'border-separator',
       ].join(' ')}
     >
       <div className="relative shrink-0">
-        <Avatar
-          size="sm"
-          radius="full"
-          src={livreur.avatarUrl ? createUrlFile(livreur.avatarUrl, 'backend') : undefined}
-          name={livreur.nomComplet}
-          className="h-10 w-10"
-        />
+        <Avatar className="size-10" size="sm">
+          <Avatar.Image
+            alt=""
+            src={livreur.avatarUrl ? createUrlFile(livreur.avatarUrl, 'backend') : undefined}
+          />
+          <Avatar.Fallback>{(livreur.nomComplet ?? '?').slice(0, 2).toUpperCase()}</Avatar.Fallback>
+        </Avatar>
         <span
           aria-hidden
-          className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-separator dark:border-content1"
+          className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-surface"
           style={{ backgroundColor: meta.couleur }}
         />
       </div>
@@ -99,21 +99,22 @@ export default function TraficLivreurItem({
         <div className="flex items-center gap-2">
           <p className="truncate text-[13px] font-semibold leading-tight">{livreur.nomComplet}</p>
           {livreur.rangFile != null && (
-            <Tooltip content="Rang dans la file d'attente du jour" size="sm">
+            <Tooltip>
               <span
                 className="shrink-0 rounded-full px-1.5 py-px text-[10px] font-bold"
                 style={{ backgroundColor: meta.fond, color: meta.couleur }}
               >
                 N°{livreur.rangFile}
               </span>
+              <Tooltip.Content>Rang dans la file d&apos;attente du jour</Tooltip.Content>
             </Tooltip>
           )}
         </div>
 
-        <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-default-500">
+        <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted">
           <Phone className="h-3 w-3 shrink-0" aria-hidden />
           <span className="truncate">{livreur.telephone || '—'}</span>
-          <span className="text-default-300">·</span>
+          <span className="text-muted">·</span>
           <span className="truncate">{typeAffichage.label}</span>
         </div>
 
@@ -134,33 +135,36 @@ export default function TraficLivreurItem({
           )}
 
           {!livreur.aPosition ? (
-            <Tooltip
-              size="sm"
-              content="Aucune position reçue : pas de marqueur sur la carte, mais le livreur reste suivi."
-            >
+            <Tooltip>
               <span>
-                <Signal icone={<MapPinOff className="h-3 w-3" aria-hidden />} texte="Position inconnue" />
+                <Signal
+                  icone={<MapPinOff aria-hidden="true" className="size-3" />}
+                  texte="Position inconnue"
+                />
               </span>
+              <Tooltip.Content>
+                Aucune position reçue : pas de marqueur sur la carte, mais le livreur reste suivi.
+              </Tooltip.Content>
             </Tooltip>
           ) : (
             livreur.positionAncienne && (
-              <Tooltip
-                size="sm"
-                content={`Le marqueur montre la dernière position connue${maj ? ` (${maj})` : ''}.`}
-              >
+              <Tooltip>
                 <span>
                   <Signal
-                    icone={<History className="h-3 w-3" aria-hidden />}
+                    icone={<History aria-hidden="true" className="size-3" />}
                     texte="Position ancienne"
                   />
                 </span>
+                <Tooltip.Content>
+                  {`Le marqueur montre la dernière position connue${maj ? ` (${maj})` : ''}.`}
+                </Tooltip.Content>
               </Tooltip>
             )
           )}
         </div>
 
         {livreur.aPosition && (livreur.quartier || maj) && (
-          <p className="mt-1 truncate text-[10px] text-default-400">
+          <p className="mt-1 truncate text-[10px] text-muted">
             {livreur.quartier ?? 'Quartier inconnu'}
             {maj ? ` · point GPS ${maj}` : ''}
           </p>
@@ -171,17 +175,17 @@ export default function TraficLivreurItem({
         // Le clic sur « affecter » ne doit pas aussi déclencher la sélection de
         // la ligne : deux actions pour un seul geste dérouteraient l'opérateur.
         <span className="shrink-0" onClick={(e) => e.stopPropagation()}>
-          <Tooltip content="Affecter une course" size="sm">
+          <Tooltip>
             <Button
-              size="sm"
-              isIconOnly
-              variant="flat"
-              color="primary"
               aria-label={`Affecter une course à ${livreur.nomComplet}`}
+              isIconOnly
               onPress={() => onAffecter?.(livreur)}
+              size="sm"
+              variant="outline"
             >
-              <PackagePlus className="h-4 w-4" />
+              <PackagePlus aria-hidden="true" className="size-4" />
             </Button>
+            <Tooltip.Content>Affecter une course</Tooltip.Content>
           </Tooltip>
         </span>
       )}

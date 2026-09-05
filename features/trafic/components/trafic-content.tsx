@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Button, Select, SelectItem, Tooltip } from '@/components/heroui';
+import { Button, ComboBox, Input, ListBox, Tooltip } from '@heroui-v3/react';
 import { Navigation, RefreshCw, RotateCcw, Users } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -32,14 +32,20 @@ const MapTrafic = dynamic(() => import('@/components/dashboard/trafic/MapTrafic'
 
 const SANS_FILTRE = 'TOUS';
 
-/** Clé sélectionnée d'un Select HeroUI, sentinelle « TOUS » ramenée à vide. */
-function lireCle(keys: 'all' | Set<React.Key>): string {
-  if (keys === 'all') return '';
-  const cle = Array.from(keys)[0];
+/** Clé sélectionnée d'une liste, sentinelle « TOUS » ramenée à vide. */
+function lireCle(cle: null | React.Key): string {
   return !cle || cle === SANS_FILTRE ? '' : String(cle);
 }
 
-/** Chip de filtre — actif : fond sombre, texte blanc (langage de design ERP). */
+/**
+ * Chip de filtre.
+ *
+ * <p>Le commentaire d'origine décrivait l'état actif comme « fond sombre, texte blanc
+ * (langage de design ERP) ». Ce n'était pas ce qui s'affichait : `bg-surface-secondary`
+ * est une surface CLAIRE, et `text-white` dessus donne un libellé invisible en mode
+ * clair — le `dark:text-foreground` ne rattrapait que le mode sombre. C'est la même
+ * faute qu'on retrouvait au poste STANDARD et sur le bandeau des pointages.</p>
+ */
 function ChipFiltre({
   actif,
   onPress,
@@ -59,10 +65,10 @@ function ChipFiltre({
       onClick={onPress}
       className={[
         'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors',
-        'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/40',
+        'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent/40',
         actif
-          ? 'bg-surface-secondary text-white dark:text-foreground'
-          : 'bg-default-100 text-default-600 hover:bg-default-200',
+          ? 'bg-foreground text-background'
+          : 'bg-surface-secondary text-foreground hover:bg-surface-tertiary',
       ].join(' ')}
     >
       {children}
@@ -143,7 +149,7 @@ export default function TraficContent() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-2xl font-bold text-primary">Trafic — supervision en temps réel</h1>
-          <p className="mt-1 max-w-3xl text-sm text-default-500">
+          <p className="mt-1 max-w-3xl text-sm text-muted">
             Le statut vient du service du jour : le pointage de montée fait entrer le livreur dans la
             file d&apos;attente, et c&apos;est cette file qui reçoit les courses. La position GPS
             illustre la carte, elle ne décide plus de la disponibilité.
@@ -151,25 +157,27 @@ export default function TraficContent() {
         </div>
         <div className="flex items-center gap-2">
           <div className="rounded-2xl border border-default-200/50 bg-surface px-3.5 py-2 text-right dark:bg-content1">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-default-500">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-muted">
               En service
             </p>
             <p className="text-lg font-semibold leading-tight tabular-nums">
               {trafic.totalEnService}
-              <span className="text-xs font-normal text-default-400"> / {trafic.totalLivreurs}</span>
+              <span className="text-xs font-normal text-muted"> / {trafic.totalLivreurs}</span>
             </p>
           </div>
-          <Tooltip content={heureMaj ? `Dernière actualisation à ${heureMaj}` : 'Actualiser'} size="sm">
+          <Tooltip>
             <Button
-              isIconOnly
-              variant="flat"
-              radius="lg"
               aria-label="Actualiser le trafic"
-              isLoading={isFetching}
+              isIconOnly
+              isPending={isFetching}
               onPress={rafraichir}
+              variant="outline"
             >
-              <RefreshCw className="h-4 w-4" />
+              <RefreshCw aria-hidden="true" className="size-4" />
             </Button>
+            <Tooltip.Content>
+              {heureMaj ? `Dernière actualisation à ${heureMaj}` : 'Actualiser'}
+            </Tooltip.Content>
           </Tooltip>
         </div>
       </div>
@@ -221,52 +229,62 @@ export default function TraficContent() {
           <span className="tabular-nums opacity-70">({trafic.horsRayon})</span>
         </ChipFiltre>
 
-        <span className="mx-1 hidden h-5 w-px bg-default-200 sm:block" aria-hidden />
+        <span className="mx-1 hidden h-5 w-px bg-separator sm:block" aria-hidden />
 
-        <Select
+        {/* Les quartiers se comptent par dizaines : ils se cherchent. */}
+        <ComboBox
           aria-label="Filtrer par quartier"
-          size="sm"
-          radius="lg"
           className="w-44"
-          selectedKeys={new Set([filtres.quartier || SANS_FILTRE])}
-          onSelectionChange={(keys) => majFiltre('quartier', lireCle(keys))}
+          onSelectionChange={(k) => majFiltre('quartier', lireCle(k))}
+          selectedKey={filtres.quartier || SANS_FILTRE}
         >
-          {optionsQuartier.map((o) => (
-            <SelectItem key={o.cle} value={o.cle}>
-              {o.libelle}
-            </SelectItem>
-          ))}
-        </Select>
+          <ComboBox.InputGroup>
+            <Input placeholder="Quartier" />
+            <ComboBox.Trigger />
+          </ComboBox.InputGroup>
+          <ComboBox.Popover>
+            <ListBox items={optionsQuartier}>
+              {(o: { cle: string; libelle: string }) => (
+                <ListBox.Item id={o.cle} textValue={o.libelle}>
+                  {o.libelle}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              )}
+            </ListBox>
+          </ComboBox.Popover>
+        </ComboBox>
 
-        <Select
+        <ComboBox
           aria-label="Filtrer par type de livreur"
-          size="sm"
-          radius="lg"
           className="w-44"
-          selectedKeys={new Set([filtres.type || SANS_FILTRE])}
-          onSelectionChange={(keys) => majFiltre('type', lireCle(keys))}
+          onSelectionChange={(k) => majFiltre('type', lireCle(k))}
+          selectedKey={filtres.type || SANS_FILTRE}
         >
-          {optionsType.map((o) => (
-            <SelectItem key={o.cle} value={o.cle}>
-              {o.libelle}
-            </SelectItem>
-          ))}
-        </Select>
+          <ComboBox.InputGroup>
+            <Input placeholder="Type de livreur" />
+            <ComboBox.Trigger />
+          </ComboBox.InputGroup>
+          <ComboBox.Popover>
+            <ListBox items={optionsType}>
+              {(o: { cle: string; libelle: string }) => (
+                <ListBox.Item id={o.cle} textValue={o.libelle}>
+                  {o.libelle}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              )}
+            </ListBox>
+          </ComboBox.Popover>
+        </ComboBox>
 
         <div className="ml-auto flex items-center gap-3">
-          <span className="text-xs text-default-500">
-            <span className="font-semibold tabular-nums text-default-700">{livreursFiltres.length}</span>{' '}
+          <span className="text-xs text-muted">
+            <span className="font-semibold tabular-nums text-foreground">{livreursFiltres.length}</span>{' '}
             livreur{livreursFiltres.length > 1 ? 's' : ''} affiché
             {livreursFiltres.length > 1 ? 's' : ''}
           </span>
           {filtresActifs && (
-            <Button
-              size="sm"
-              variant="light"
-              radius="lg"
-              startContent={<RotateCcw className="h-3.5 w-3.5" />}
-              onPress={reinitialiserFiltres}
-            >
+            <Button onPress={reinitialiserFiltres} size="sm" variant="ghost">
+              <RotateCcw aria-hidden="true" className="size-3.5" />
               Réinitialiser
             </Button>
           )}
@@ -292,7 +310,7 @@ export default function TraficContent() {
           <div className="pointer-events-none absolute bottom-3 left-3 z-500 rounded-[14px] border border-default-200/50 bg-surface/95 px-3 py-2 shadow-xs backdrop-blur-sm dark:bg-content1/95">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
               {STATUTS_ORDONNES.map((statut) => (
-                <span key={statut} className="flex items-center gap-1.5 text-[10px] text-default-600">
+                <span key={statut} className="flex items-center gap-1.5 text-[10px] text-foreground">
                   <span
                     className="inline-block h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: STATUT_TRAFIC_META[statut].couleur }}

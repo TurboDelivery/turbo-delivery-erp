@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody } from '@/components/heroui';
+import { Card } from '@heroui-v3/react';
 import { IFinancialDetails } from '@/features/rapports-performance/types/performance.type';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { FinancialDetailRow } from '@/features/rapports-performance/components/financial-detail-row';
@@ -55,7 +55,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
 
   return (
     <Card>
-      <CardBody className="p-6">
+      <Card.Content className="p-6">
         <h2 className="text-xl font-semibold text-foreground mb-6">Détails Financiers</h2>
         <div className="space-y-4">
           {detailItems.map((item) => (
@@ -70,7 +70,7 @@ export function FinancialDetailsSection({ financialDetails }: FinancialDetailsSe
             />
           ))}
         </div>
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }

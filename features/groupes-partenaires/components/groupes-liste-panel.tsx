@@ -1,23 +1,21 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import {
-  Button,
-  Chip,
-  Input,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { Button, Chip, InputGroup, Table, TextField } from '@heroui-v3/react';
 import { Building2, Crown, Search } from 'lucide-react';
 
 import { formatDateFr } from '@/lib/date-utils';
 
 import { IGroupeResume } from '../types/groupes-partenaires.types';
+
+/** Les colonnes, déclarées une fois : le squelette y compte ses cellules. */
+const COLONNES = [
+  { id: 'groupe', libelle: 'Groupe' },
+  { id: 'etablissements', libelle: 'Établissements' },
+  { id: 'principal', libelle: 'Compte principal' },
+  { id: 'cree', libelle: 'Créé le' },
+  { id: 'action', libelle: 'Action' },
+] as const;
 
 interface Props {
   groupes: IGroupeResume[];
@@ -48,67 +46,93 @@ export function GroupesListePanel({ groupes, isLoading, onOuvrir }: Props) {
 
   return (
     <div className="space-y-3">
-      <Input
+      <TextField
         aria-label="Rechercher un groupe"
-        size="sm"
         className="max-w-sm"
-        placeholder="Nom du groupe, compte principal…"
-        startContent={<Search className="h-4 w-4 text-default-400" />}
+        onChange={setRecherche}
         value={recherche}
-        onValueChange={setRecherche}
-        isClearable
-        onClear={() => setRecherche('')}
-      />
+      >
+        <InputGroup>
+          <InputGroup.Prefix>
+            <Search aria-hidden="true" className="size-4" />
+          </InputGroup.Prefix>
+          <InputGroup.Input placeholder="Nom du groupe, compte principal…" />
+        </InputGroup>
+      </TextField>
 
-      <Table aria-label="Groupes de partenaires" isStriped removeWrapper>
-        <TableHeader>
-          <TableColumn className="text-primary">GROUPE</TableColumn>
-          <TableColumn className="text-primary">ÉTABLISSEMENTS</TableColumn>
-          <TableColumn className="text-primary">COMPTE PRINCIPAL</TableColumn>
-          <TableColumn className="text-primary">CRÉÉ LE</TableColumn>
-          <TableColumn className="text-primary">ACTION</TableColumn>
-        </TableHeader>
-        <TableBody
-          emptyContent={isLoading ? ' ' : 'Aucun groupe constitué pour l’instant.'}
-          isLoading={isLoading}
-          loadingContent={<Spinner color="primary" label="Chargement des groupes…" />}
+      <Table>
+        <Table.ScrollContainer>
+        <Table.Content aria-label="Groupes de partenaires" className="min-w-[52rem]">
+        <Table.Header>
+          {COLONNES.map((c) => (
+            <Table.Column id={c.id} isRowHeader={c.id === 'groupe'} key={c.id}>
+              {c.libelle}
+            </Table.Column>
+          ))}
+        </Table.Header>
+        <Table.Body
+          renderEmptyState={() =>
+            isLoading ? null : (
+              <p className="py-8 text-center text-sm text-muted">
+                Aucun groupe constitué pour l’instant.
+              </p>
+            )
+          }
         >
-          {lignes.map((groupe) => (
-            <TableRow key={groupe.id}>
-              <TableCell>
+          {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+          {isLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                  {COLONNES.map((c) => (
+                    <Table.Cell key={`sq-${i}-${c.id}`}>
+                      <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                    </Table.Cell>
+                  ))}
+                </Table.Row>
+              ))
+            : null}
+
+          {(isLoading ? [] : lignes).map((groupe) => (
+            <Table.Row id={groupe.id} key={groupe.id}>
+              <Table.Cell>
                 <p className="text-sm font-medium">{groupe.nom}</p>
-              </TableCell>
-              <TableCell>
-                <Chip size="sm" variant="flat" startContent={<Building2 className="ml-1 h-3.5 w-3.5" />}>
-                  {groupe.nbEtablissements}
+              </Table.Cell>
+              <Table.Cell>
+                <Chip size="sm" variant="soft">
+                  <Building2 aria-hidden="true" className="size-3.5" />
+                  <Chip.Label>{groupe.nbEtablissements}</Chip.Label>
                 </Chip>
-              </TableCell>
-              <TableCell>
+              </Table.Cell>
+              <Table.Cell>
                 {groupe.proprietaireUserId ? (
                   <div className="flex items-center gap-2">
-                    <Crown className="h-3.5 w-3.5 shrink-0 text-primary" />
+                    <Crown aria-hidden="true" className="size-3.5 shrink-0 text-muted" />
                     <div className="min-w-0">
                       <p className="truncate text-sm">{groupe.proprietaireNom ?? 'Compte sans nom'}</p>
-                      <p className="truncate text-[11px] text-default-400">{groupe.proprietaireEmail ?? '—'}</p>
+                      <p className="truncate text-xs text-muted">{groupe.proprietaireEmail ?? '—'}</p>
                     </div>
                   </div>
                 ) : (
-                  <Chip size="sm" variant="flat" color="warning">
-                    Aucun
+                  /* Un groupe sans compte principal EST un probleme : il n'est administre
+                     par personne. Ici l'ambre dit quelque chose. */
+                  <Chip color="warning" size="sm" variant="soft">
+                    <Chip.Label>Aucun</Chip.Label>
                   </Chip>
                 )}
-              </TableCell>
-              <TableCell className="whitespace-nowrap text-default-500">
+              </Table.Cell>
+              <Table.Cell className="whitespace-nowrap text-muted">
                 {formatDateFr(groupe.createdAt)}
-              </TableCell>
-              <TableCell>
-                <Button size="sm" variant="flat" color="primary" onPress={() => onOuvrir(groupe.id)}>
+              </Table.Cell>
+              <Table.Cell>
+                <Button onPress={() => onOuvrir(groupe.id)} size="sm" variant="outline">
                   Ouvrir la fiche
                 </Button>
-              </TableCell>
-            </TableRow>
+              </Table.Cell>
+            </Table.Row>
           ))}
-        </TableBody>
+        </Table.Body>
+        </Table.Content>
+        </Table.ScrollContainer>
       </Table>
     </div>
   );

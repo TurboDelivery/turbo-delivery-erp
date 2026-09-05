@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Chip, Pagination, Skeleton } from '@/components/heroui';
+import { Chip } from '@heroui-v3/react';
+
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 
 import { PaginatedResponse } from '@/types';
 import { CourseExterne, LivreurDisponible } from '@/types/models';
@@ -109,8 +111,10 @@ export default function Content({ initialData, delivers }: Props) {
         {/* Le compteur se tait en cas d'echec : "0 en attente" est la meme
             phrase que celle affichee quand il n'y a vraiment rien a dispatcher. */}
         {!(erreurLecture && courses.length === 0) && (
-          <Chip color={courses.length > 0 ? 'warning' : 'default'} variant="flat">
-            {data?.totalElements ?? 0} en attente
+          /* Des courses en attente de dispatch, c'est un travail qui attend : l'ambre
+              dit ici quelque chose. */
+          <Chip color={courses.length > 0 ? 'warning' : 'default'} size="sm" variant="soft">
+            <Chip.Label>{data?.totalElements ?? 0} en attente</Chip.Label>
           </Chip>
         )}
       </div>
@@ -127,7 +131,7 @@ export default function Content({ initialData, delivers }: Props) {
       ) : isLoading ? (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           {[...Array(4)].map((_, index) => (
-            <Skeleton key={index} className="rounded-xl h-44" />
+            <div className="h-44 animate-pulse rounded-xl bg-surface-secondary" key={index} />
           ))}
         </div>
       ) : courses.length ? (
@@ -146,15 +150,7 @@ export default function Content({ initialData, delivers }: Props) {
       {/* Pagination */}
       {(data?.totalPages ?? 0) > 1 && (
         <div className="flex justify-center mt-2 w-full">
-          <Pagination
-            total={data?.totalPages ?? 1}
-            page={currentPage}
-            onChange={fetchData}
-            showControls
-            color="primary"
-            variant="bordered"
-            isDisabled={isLoading}
-          />
+          <PaginationTableau onPage={fetchData} page={currentPage} total={data?.totalPages ?? 1} />
         </div>
       )}
     </div>

@@ -5,16 +5,15 @@ import {
   Button,
   Checkbox,
   Chip,
-  Input,
+  InputGroup,
   Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
   Radio,
   RadioGroup,
-  Spinner,
-} from '@/components/heroui';
+  TextField,
+} from '@heroui-v3/react';
+
+import { ChampTexte } from '@/components/commons/champs-formulaire';
+import { cn } from '@/lib/utils';
 import { Building2, Search, UserCog } from 'lucide-react';
 
 import {
@@ -145,56 +144,69 @@ export function ConstituerGroupeModal({ isOpen, onClose, userId, onCree }: Props
   const indexEtape = ETAPES.findIndex((e) => e.cle === etape);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="5xl" scrollBehavior="inside">
-      <ModalContent>
-        <ModalHeader className="flex flex-col gap-1">
-          <span>Constituer un groupe de partenaires</span>
-          <div className="flex items-center gap-2">
-            {ETAPES.map((e, index) => (
-              <Chip
-                key={e.cle}
-                size="sm"
-                variant={index === indexEtape ? 'solid' : 'flat'}
-                color={index <= indexEtape ? 'primary' : 'default'}
-              >
-                {index + 1}. {e.titre}
-              </Chip>
-            ))}
-          </div>
-        </ModalHeader>
+    <Modal isOpen={isOpen} onOpenChange={(o) => !o && onClose()}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-5xl">
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col gap-1">
+                <span>Constituer un groupe de partenaires</span>
+                {/*
+                 * Les etapes FRANCHIES et l'etape COURANTE se distinguaient par la seule
+                 * intensite d'un meme bleu : `solid` contre `flat`. L'etape courante est
+                 * maintenant la seule a porter une couleur.
+                 */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {ETAPES.map((e, index) => (
+                    <Chip
+                      color={index === indexEtape ? 'accent' : 'default'}
+                      key={e.cle}
+                      size="sm"
+                      variant="soft"
+                    >
+                      <Chip.Label>
+                        {index + 1}. {e.titre}
+                      </Chip.Label>
+                    </Chip>
+                  ))}
+                </div>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
 
-        <ModalBody>
+            <Modal.Body>
           {etape === 'etablissements' && (
             <div className="space-y-3">
-              <Input
+              <ChampTexte
+                aide="Ce nom apparaîtra dans l'ERP et dans l'espace partenaire."
                 label="Nom du groupe"
-                size="sm"
+                onChange={setNom}
                 placeholder="Ex. Groupe Chicken Nation"
-                value={nom}
-                onValueChange={setNom}
-                description="Ce nom apparaîtra dans l'ERP et dans l'espace partenaire."
-                isRequired
+                valeur={nom}
               />
-              <Input
+              <TextField
                 aria-label="Rechercher un établissement"
-                label="Rechercher"
-                size="sm"
-                placeholder="Nom d'établissement, commune…"
-                startContent={<Search className="h-4 w-4 text-default-400" />}
+                onChange={setRecherche}
                 value={recherche}
-                onValueChange={setRecherche}
-                isClearable
-                onClear={() => setRecherche('')}
-              />
+              >
+                <InputGroup>
+                  <InputGroup.Prefix>
+                    <Search aria-hidden="true" className="size-4" />
+                  </InputGroup.Prefix>
+                  <InputGroup.Input placeholder="Nom d'établissement, commune…" />
+                </InputGroup>
+              </TextField>
 
               {isLoading ? (
-                <div className="flex justify-center py-10">
-                  <Spinner color="primary" label="Chargement des établissements…" />
+                <div className="flex flex-col gap-2 py-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div className="h-14 animate-pulse rounded-lg bg-surface-secondary" key={i} />
+                  ))}
                 </div>
               ) : (
                 <div className="max-h-88 space-y-1.5 overflow-y-auto pr-1">
                   {etablissements.length === 0 && (
-                    <p className="py-8 text-center text-sm text-default-400">
+                    <p className="py-8 text-center text-sm text-muted">
                       Aucun établissement ne correspond à cette recherche.
                     </p>
                   )}
@@ -209,7 +221,7 @@ export function ConstituerGroupeModal({ isOpen, onClose, userId, onCree }: Props
                 </div>
               )}
 
-              <p className="text-[12px] text-default-500">
+              <p className="text-xs text-muted">
                 {selection.length} établissement{selection.length > 1 ? 's' : ''} sélectionné
                 {selection.length > 1 ? 's' : ''}. Un établissement déjà rattaché à un autre groupe ne peut pas
                 être repris ici : il doit d&apos;abord en être détaché.
@@ -233,34 +245,54 @@ export function ConstituerGroupeModal({ isOpen, onClose, userId, onCree }: Props
               ) : (
                 <RadioGroup
                   aria-label="Compte principal du groupe"
+                  onChange={setPrincipal}
                   value={principal ?? ''}
-                  onValueChange={setPrincipal}
-                  classNames={{ wrapper: 'gap-1.5' }}
                 >
-                  {comptesEligibles.map(({ compte, etablissements: rattachements }) => (
-                    <Radio
-                      key={compte.userId}
-                      value={compte.userId}
-                      classNames={{
-                        base: 'm-0 max-w-full items-start gap-2 rounded-medium border border-default-200 px-3 py-2 data-[selected=true]:border-primary',
-                        label: 'w-full',
-                      }}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{nomCompte(compte)}</p>
-                          <p className="truncate text-[11px] text-default-400">{compte.email ?? '—'}</p>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <RoleChip role={compte.role} />
-                          <Chip size="sm" variant="flat">
-                            {rattachements.length} établissement{rattachements.length > 1 ? 's' : ''}
-                          </Chip>
-                        </div>
+                  <div className="flex flex-col gap-1.5">
+                    {comptesEligibles.map(({ compte, etablissements: rattachements }) => (
+                      <div
+                        className={cn(
+                          'rounded-lg border px-3 py-2 transition-colors',
+                          principal === compte.userId
+                            ? 'border-accent bg-accent-soft/30'
+                            : 'border-separator',
+                        )}
+                        key={compte.userId}
+                      >
+                        <Radio className="w-full items-start" value={compte.userId}>
+                          <Radio.Content className="flex w-full items-start gap-3">
+                            <Radio.Control className="mt-1">
+                              <Radio.Indicator />
+                            </Radio.Control>
+                            <span className="flex min-w-0 flex-1 flex-col">
+                              <span className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="min-w-0">
+                                  <span className="block truncate text-sm font-medium text-foreground">
+                                    {nomCompte(compte)}
+                                  </span>
+                                  <span className="block truncate text-xs text-muted">
+                                    {compte.email ?? '—'}
+                                  </span>
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                  <RoleChip role={compte.role} />
+                                  <Chip size="sm" variant="soft">
+                                    <Chip.Label>
+                                      {rattachements.length} établissement
+                                      {rattachements.length > 1 ? 's' : ''}
+                                    </Chip.Label>
+                                  </Chip>
+                                </span>
+                              </span>
+                              <span className="mt-0.5 truncate text-xs text-muted">
+                                {rattachements.join(' · ')}
+                              </span>
+                            </span>
+                          </Radio.Content>
+                        </Radio>
                       </div>
-                      <p className="mt-0.5 truncate text-[11px] text-default-500">{rattachements.join(' · ')}</p>
-                    </Radio>
-                  ))}
+                    ))}
+                  </div>
                 </RadioGroup>
               )}
             </div>
@@ -273,44 +305,57 @@ export function ConstituerGroupeModal({ isOpen, onClose, userId, onCree }: Props
               note="Les comptes non principaux gardent leur accès sur leur propre établissement, avec leur rôle actuel : le groupe ajoute une vue d'ensemble au compte principal, il ne retire l'accès de personne. Le rôle de chacun reste modifiable ensuite depuis l'espace partenaire."
             />
           )}
-        </ModalBody>
+            </Modal.Body>
 
-        <ModalFooter className="justify-between">
-          <Button variant="light" onPress={onClose}>
-            Annuler
-          </Button>
-          <div className="flex items-center gap-2">
-            {etape !== 'etablissements' && (
-              <Button
-                variant="flat"
-                onPress={() => setEtape(etape === 'recapitulatif' ? 'principal' : 'etablissements')}
-              >
-                Retour
+            <Modal.Footer className="justify-between">
+              <Button onPress={onClose} variant="ghost">
+                Annuler
               </Button>
-            )}
-            {etape === 'etablissements' && (
-              <Button color="primary" isDisabled={!peutPasserAuPrincipal} onPress={() => setEtape('principal')}>
-                Choisir le compte principal
-              </Button>
-            )}
-            {etape === 'principal' && (
-              <Button
-                color="primary"
-                isDisabled={!principal}
-                startContent={<UserCog className="h-4 w-4" />}
-                onPress={() => setEtape('recapitulatif')}
-              >
-                Voir ce qui va changer
-              </Button>
-            )}
-            {etape === 'recapitulatif' && (
-              <Button color="primary" isDisabled={!peutValider} isLoading={creer.isPending} onPress={valider}>
-                Constituer le groupe
-              </Button>
-            )}
-          </div>
-        </ModalFooter>
-      </ModalContent>
+              <div className="flex items-center gap-2">
+                {etape !== 'etablissements' && (
+                  <Button
+                    onPress={() =>
+                      setEtape(etape === 'recapitulatif' ? 'principal' : 'etablissements')
+                    }
+                    variant="outline"
+                  >
+                    Retour
+                  </Button>
+                )}
+                {etape === 'etablissements' && (
+                  <Button
+                    isDisabled={!peutPasserAuPrincipal}
+                    onPress={() => setEtape('principal')}
+                    variant="primary"
+                  >
+                    Choisir le compte principal
+                  </Button>
+                )}
+                {etape === 'principal' && (
+                  <Button
+                    isDisabled={!principal}
+                    onPress={() => setEtape('recapitulatif')}
+                    variant="primary"
+                  >
+                    <UserCog aria-hidden="true" className="size-4" />
+                    Voir ce qui va changer
+                  </Button>
+                )}
+                {etape === 'recapitulatif' && (
+                  <Button
+                    isDisabled={!peutValider}
+                    isPending={creer.isPending}
+                    onPress={valider}
+                    variant="primary"
+                  >
+                    Constituer le groupe
+                  </Button>
+                )}
+              </div>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
@@ -329,35 +374,41 @@ function LigneEtablissement({
   // <label>, l'envelopper dans un second imbriquerait deux labels — HTML invalide,
   // et un clic qui bascule deux fois.
   return (
-    <Checkbox
-      isSelected={coche}
-      onValueChange={onChange}
-      classNames={{
-        base: `m-0 max-w-full w-full items-center gap-3 rounded-medium border px-3 py-2 transition-colors ${
-          coche ? 'border-primary bg-primary/5' : 'border-default-200 hover:bg-default-50'
-        }`,
-        label: 'w-full',
-      }}
+    <div
+      className={cn(
+        'w-full rounded-lg border px-3 py-2 transition-colors',
+        coche ? 'border-accent bg-accent-soft/30' : 'border-separator hover:bg-surface-secondary',
+      )}
     >
-      <div className="flex w-full items-center gap-3">
-        <Building2 className="h-4 w-4 shrink-0 text-default-400" />
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{etablissement.nom ?? 'Établissement sans nom'}</p>
-          <p className="truncate text-[11px] text-default-400">
-            {[
-              etablissement.commune,
-              `${etablissement.comptes.length} compte${etablissement.comptes.length > 1 ? 's' : ''}`,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
-        </div>
-        {dejaGroupe && (
-          <Chip size="sm" variant="flat" color="warning">
-            Déjà dans « {etablissement.groupeNom ?? 'un groupe'} »
-          </Chip>
-        )}
-      </div>
-    </Checkbox>
+      <Checkbox className="w-full" isSelected={coche} onChange={onChange}>
+        <Checkbox.Content className="w-full items-center gap-3">
+          <Checkbox.Control>
+            <Checkbox.Indicator />
+          </Checkbox.Control>
+          <span className="flex w-full items-center gap-3">
+            <Building2 aria-hidden="true" className="size-4 shrink-0 text-muted" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium text-foreground">
+                {etablissement.nom ?? 'Établissement sans nom'}
+              </span>
+              <span className="block truncate text-xs text-muted">
+                {[
+                  etablissement.commune,
+                  `${etablissement.comptes.length} compte${etablissement.comptes.length > 1 ? 's' : ''}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+            </span>
+            {dejaGroupe && (
+              /* Un etablissement deja groupe ne peut pas etre repris : l'ambre le dit. */
+              <Chip color="warning" size="sm" variant="soft">
+                <Chip.Label>Déjà dans « {etablissement.groupeNom ?? 'un groupe'} »</Chip.Label>
+              </Chip>
+            )}
+          </span>
+        </Checkbox.Content>
+      </Checkbox>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Input } from '@/components/heroui';
+import { InputGroup, TextField } from '@heroui-v3/react';
 import { Search, Users } from 'lucide-react';
 
 import TraficLivreurList from '@/features/trafic/components/trafic-livreur-list';
@@ -48,31 +48,32 @@ export default function TraficLivreurPanel({
   const sansPosition = useMemo(() => livreurs.filter((l) => !l.aPosition).length, [livreurs]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-default-200/50 bg-surface dark:bg-content1">
-      <div className="shrink-0 border-b border-default-200/60 px-4 py-3">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-separator bg-surface">
+      <div className="shrink-0 border-b border-separator px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-primary/10">
-            <Users className="h-5 w-5 text-primary" aria-hidden />
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] bg-surface-secondary">
+            <Users aria-hidden="true" className="size-5 text-muted" />
           </span>
           <div className="min-w-0">
             <p className="text-sm font-semibold leading-tight">Livreurs affichés</p>
-            <p className="text-[11px] text-default-500">
+            <p className="text-xs text-muted">
               {livreurs.length} livreur{livreurs.length > 1 ? 's' : ''} selon les filtres actifs
             </p>
           </div>
         </div>
-        <Input
-          size="sm"
-          radius="lg"
-          className="mt-3"
+        <TextField
           aria-label="Rechercher un livreur"
-          placeholder="Rechercher un nom, un téléphone…"
+          className="mt-3"
+          onChange={onRechercheChange}
           value={recherche}
-          onValueChange={onRechercheChange}
-          isClearable
-          onClear={() => onRechercheChange('')}
-          startContent={<Search className="h-4 w-4 text-default-400" aria-hidden />}
-        />
+        >
+          <InputGroup>
+            <InputGroup.Prefix>
+              <Search aria-hidden="true" className="size-4" />
+            </InputGroup.Prefix>
+            <InputGroup.Input placeholder="Rechercher un nom, un téléphone…" />
+          </InputGroup>
+        </TextField>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -86,7 +87,7 @@ export default function TraficLivreurPanel({
       </div>
 
       {sansPosition > 0 && (
-        <p className="shrink-0 border-t border-default-200/60 px-4 py-2 text-[11px] text-default-500">
+        <p className="shrink-0 border-t border-separator px-4 py-2 text-xs text-muted">
           {sansPosition} livreur{sansPosition > 1 ? 's' : ''} sans position connue — listé
           {sansPosition > 1 ? 's' : ''} ici, sans marqueur sur la carte.
         </p>

@@ -1,17 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  Button,
-  Chip,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Spinner,
-} from '@/components/heroui';
+import { Button, Chip, Modal } from '@heroui-v3/react';
+
+import { ChampMontant } from '@/components/commons/champs-formulaire';
+import { cn } from '@/lib/utils';
 import { AlertTriangle, PackageCheck } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
@@ -59,73 +52,84 @@ export function AffecterCourseModal({ livreur, isOpen, onOpenChange }: Props) {
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" scrollBehavior="inside" backdrop="blur">
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              <span className="text-base font-semibold">Affecter une course</span>
-              {livreur && (
-                <span className="text-xs font-normal text-default-400">
-                  à {livreur.nomComplet}
-                  {livreur.rangFile != null ? ` — N°${livreur.rangFile} dans la file du jour` : ''}
-                </span>
-              )}
-            </ModalHeader>
-            <ModalBody>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-2xl">
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col gap-1">
+                <span className="text-base font-semibold">Affecter une course</span>
+                {livreur && (
+                  <span className="text-xs font-normal text-muted">
+                    à {livreur.nomComplet}
+                    {livreur.rangFile != null ? ` — N°${livreur.rangFile} dans la file du jour` : ''}
+                  </span>
+                )}
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body className="flex flex-col gap-3">
               {!enFile && (
-                <div className="flex items-start gap-2 rounded-[14px] bg-warning-50 px-3 py-2 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400">
-                  <AlertTriangle className="mt-[2px] h-4 w-4 shrink-0" aria-hidden />
-                  <p className="text-xs">
+                <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2">
+                  <AlertTriangle
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-warning-soft-foreground"
+                  />
+                  <p className="text-xs text-foreground">
                     Ce livreur n&apos;est plus dans la file d&apos;attente du jour : il ne peut pas
                     recevoir de course. Faites-le repointer avant d&apos;affecter.
                   </p>
                 </div>
               )}
               {isLoading ? (
-                <div className="flex justify-center py-10">
-                  <Spinner color="primary" label="Chargement des courses en attente…" />
+                <div className="flex flex-col gap-2 py-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div className="h-14 animate-pulse rounded-lg bg-surface-secondary" key={i} />
+                  ))}
                 </div>
               ) : isError ? (
                 /* « Aucune course en attente » ferait renoncer le regulateur alors
                    que des courses attendent peut-etre d etre affectees. */
                 <EtatErreur
-                  quoi="les courses en attente"
-                  onReessayer={() => void refetch()}
                   enCours={isFetching}
+                  onReessayer={() => void refetch()}
+                  quoi="les courses en attente"
                 />
               ) : courses.length === 0 ? (
-                <p className="py-8 text-center text-sm text-default-400">Aucune course en attente.</p>
+                <p className="py-8 text-center text-sm text-muted">Aucune course en attente.</p>
               ) : (
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   {courses.map((c) => {
                     const selected = selectedId === c.id;
                     return (
                       <button
+                        className={cn(
+                          'w-full rounded-lg border px-3 py-2 text-left transition-colors',
+                          selected
+                            ? 'border-accent bg-accent-soft/30'
+                            : 'border-separator hover:bg-surface-secondary',
+                        )}
                         key={c.id}
-                        type="button"
                         onClick={() => {
                           setSelectedId(c.id);
                           if (!frais) setFrais(String(c.total ?? 0));
                         }}
-                        className={[
-                          'w-full text-left rounded-medium border px-3 py-2 transition-colors',
-                          selected
-                            ? 'border-primary bg-primary/5'
-                            : 'border-default-200 hover:border-default-300',
-                        ].join(' ')}
+                        type="button"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-medium">
+                            <p className="truncate text-sm font-medium text-foreground">
                               {c.restaurant?.nomEtablissement ?? c.code ?? 'Course'}
                             </p>
-                            <p className="text-xs text-default-500">
-                              {c.code} · {c.nombreCommande} commande{c.nombreCommande > 1 ? 's' : ''}
+                            <p className="text-xs text-muted">
+                              {c.code} · {c.nombreCommande} commande
+                              {c.nombreCommande > 1 ? 's' : ''}
                             </p>
                           </div>
-                          <Chip size="sm" variant="flat" color={selected ? 'primary' : 'default'}>
-                            {c.total != null ? `${c.total} F` : '—'}
+                          <Chip size="sm" variant="soft">
+                            <Chip.Label className="tabular-nums">
+                              {c.total != null ? `${c.total} F` : '—'}
+                            </Chip.Label>
                           </Chip>
                         </div>
                       </button>
@@ -135,35 +139,35 @@ export function AffecterCourseModal({ livreur, isOpen, onOpenChange }: Props) {
               )}
 
               {selectedId && (
-                <Input
+                <ChampMontant
+                  aide="Montant versé au livreur pour cette course"
                   label="Frais de livraison (FCFA)"
-                  size="sm"
-                  type="number"
-                  min={0}
-                  value={frais}
-                  onValueChange={setFrais}
-                  className="mt-2"
-                  description="Montant versé au livreur pour cette course"
+                  onChange={(v) => setFrais(String(v))}
+                  valeur={frais === '' ? undefined : Number(frais)}
                 />
               )}
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={assigner.isPending}>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                isDisabled={assigner.isPending}
+                onPress={() => onOpenChange(false)}
+                variant="ghost"
+              >
                 Annuler
               </Button>
               <Button
-                color="primary"
-                startContent={<PackageCheck className="h-4 w-4" />}
                 isDisabled={!selectedId || !enFile}
-                isLoading={assigner.isPending}
+                isPending={assigner.isPending}
                 onPress={confirmer}
+                variant="primary"
               >
+                <PackageCheck aria-hidden="true" className="size-4" />
                 Affecter
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

@@ -73,7 +73,7 @@ function PerformancePdfDocument({ mainKPIs, secondaryKPIs, financialDetails, sel
             <Text>{fmtDate(debut)} - {fmtDate(fin)}</Text>
           </View>
           <View style={s.metaRow}>
-            <Text style={s.metaLabel}>Date d'export :</Text>
+            <Text style={s.metaLabel}>Date d&apos;export :</Text>
             <Text>{now}</Text>
           </View>
         </View>
@@ -86,11 +86,11 @@ function PerformancePdfDocument({ mainKPIs, secondaryKPIs, financialDetails, sel
             <Text style={s.kpiValue}>{fmtNum(mainKPIs?.totalDeliveries ?? 0)}</Text>
           </View>
           <View style={s.kpiCard}>
-            <Text style={s.kpiLabel}>Chiffre d'Affaires</Text>
+            <Text style={s.kpiLabel}>Chiffre d&apos;Affaires</Text>
             <Text style={s.kpiValue}>{fmtPdf(mainKPIs?.chiffreAffaires)}</Text>
           </View>
           <View style={s.kpiCard}>
-            <Text style={s.kpiLabel}>CA (Chiffre d'Affaires)</Text>
+            <Text style={s.kpiLabel}>CA (Chiffre d&apos;Affaires)</Text>
             <Text style={s.kpiValue}>{fmtPdf(financialDetails?.totalOrderAmount)}</Text>
           </View>
           <View style={s.kpiCard}>
@@ -131,7 +131,7 @@ function PerformancePdfDocument({ mainKPIs, secondaryKPIs, financialDetails, sel
           <Text style={s.colValue}>{fmtPdf(financialDetails?.totalOrderAmount)}</Text>
         </View>
         <View style={s.tableRowAlt}>
-          <Text style={s.colLabel}>Frais de livraison generes sur l'ensemble des courses</Text>
+          <Text style={s.colLabel}>Frais de livraison generes sur l&apos;ensemble des courses</Text>
           <Text style={s.colValue}>{fmtPdf(financialDetails?.deliveryFeesCollected)}</Text>
         </View>
         <View style={s.tableRow}>

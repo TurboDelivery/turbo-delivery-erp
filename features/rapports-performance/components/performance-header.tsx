@@ -1,7 +1,7 @@
 'use client';
 
 import { Download } from 'lucide-react';
-import { Card, CardBody, Button } from '@/components/heroui';
+import { Button, Card } from '@heroui-v3/react';
 import { DateRange } from 'react-day-picker';
 import { RestaurantSelect } from '@/components/finance/recouvrements/common/restaurant-select';
 import DateFilterInput from '@/components/finance/date-filter-input';
@@ -47,12 +47,13 @@ export function PerformanceHeader({
               />
             </div>
 
-            <Button
-              color="primary"
-              className="bg-orange-500"
-              onPress={onExportPdf}
-              startContent={<Download className="w-4 h-4" />}
-            >
+            {/*
+             * Le bouton portait `color="primary"` ET `bg-orange-500` : deux couleurs
+             * contradictoires posees sur le meme element, dont l'orange gagnait — une
+             * teinte qui n'appartient a aucun theme du projet.
+             */}
+            <Button onPress={onExportPdf} variant="primary">
+              <Download aria-hidden="true" className="size-4" />
               Exporter PDF
             </Button>
           </div>

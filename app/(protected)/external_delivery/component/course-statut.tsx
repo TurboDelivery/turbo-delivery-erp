@@ -1,6 +1,6 @@
 'use client';
 
-import { Chip } from '@/components/heroui';
+import { Chip } from '@heroui-v3/react';
 
 /**
  * Vocabulaire unique des statuts d'une course externe (canal intégration).
@@ -15,23 +15,43 @@ export const COURSE_STATUT_LABELS: Record<string, string> = {
   ANNULER: 'Annulée',
 };
 
-export const COURSE_STATUT_COLORS: Record<string, 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'> = {
-  EN_ATTENTE: 'warning',
-  EN_PREPARATION: 'secondary',
-  VALIDER: 'primary',
-  EN_COURS: 'secondary',
-  TERMINER: 'success',
+/**
+ * Le ton d'un statut de course.
+ *
+ * <h3>Six teintes deviennent trois</h3>
+ * <p>La chaîne compte cinq états d'acheminement plus l'annulation, et chacun portait sa
+ * couleur : ambre, violet, bleu, violet encore, vert, rouge. « En attente », « En
+ * préparation », « Assignée », « En livraison » sont les états NORMAUX d'une course qui
+ * avance — les peindre revenait à colorer toute la colonne, et l'ambre y annonçait un
+ * problème qui n'existe pas.</p>
+ *
+ * <p>Ce qui se distingue, c'est ce qui est FINI (terminée) et ce qui est DÉFAIT (annulée).
+ * Le geste attendu sur une course en attente est dit par son bouton, pas par sa pastille.
+ * Les six libellés restent.</p>
+ */
+export const COURSE_STATUT_COLORS: Record<string, 'danger' | 'default' | 'success'> = {
   ANNULER: 'danger',
+  EN_ATTENTE: 'default',
+  EN_COURS: 'default',
+  EN_PREPARATION: 'default',
+  TERMINER: 'success',
+  VALIDER: 'default',
 };
 
-/** Bordure gauche d'accent des cartes de la liste, par statut. */
+/**
+ * Bordure gauche d'accent des cartes de la liste, par statut.
+ *
+ * <p>C'étaient six teintes de la palette Tailwind — `amber-400`, `purple-400`, `blue-500`,
+ * `purple-500`, `green-500`, `red-400` — sans variante sombre. Le liseré ne distingue plus
+ * que ce qui est fini de ce qui est défait ; le reste suit son cours.</p>
+ */
 export const COURSE_STATUT_ACCENTS: Record<string, string> = {
-  EN_ATTENTE: 'border-l-amber-400',
-  EN_PREPARATION: 'border-l-purple-400',
-  VALIDER: 'border-l-blue-500',
-  EN_COURS: 'border-l-purple-500',
-  TERMINER: 'border-l-green-500',
-  ANNULER: 'border-l-red-400',
+  ANNULER: 'border-l-danger',
+  EN_ATTENTE: 'border-l-separator',
+  EN_COURS: 'border-l-separator',
+  EN_PREPARATION: 'border-l-separator',
+  TERMINER: 'border-l-success',
+  VALIDER: 'border-l-separator',
 };
 
 export function courseStatutLabel(statut?: string | null): string {
@@ -42,8 +62,8 @@ export function courseStatutLabel(statut?: string | null): string {
 export function CourseStatutChip({ statut, size = 'sm' }: { statut?: string | null; size?: 'sm' | 'md' }) {
   const key = (statut ?? '').toUpperCase();
   return (
-    <Chip color={COURSE_STATUT_COLORS[key] ?? 'default'} size={size} variant="flat">
-      {courseStatutLabel(statut)}
+    <Chip color={COURSE_STATUT_COLORS[key] ?? 'default'} size={size} variant="soft">
+      <Chip.Label className="whitespace-nowrap">{courseStatutLabel(statut)}</Chip.Label>
     </Chip>
   );
 }
@@ -59,21 +79,27 @@ export const COMMANDE_STATUT_LABELS: Record<string, string> = {
   ANNULER: 'Annulée',
 };
 
-export const COMMANDE_STATUT_COLORS: Record<string, 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'> = {
-  EN_PREPARATION: 'secondary',
-  EN_ATTENTE_RECUPERATION: 'warning',
-  RECUPERER: 'primary',
-  EN_COURS_LIVRAISON: 'secondary',
-  EN_ATTENTE_VERSEMENT: 'warning',
-  TERMINER: 'success',
+/**
+ * Même raisonnement pour les commandes d'une course : reste ce qui est fini, défait, et
+ * ce qui attend un VERSEMENT — c'est de l'argent qui n'est pas encore remonté.
+ */
+export const COMMANDE_STATUT_COLORS: Record<string, 'danger' | 'default' | 'success' | 'warning'> = {
   ANNULER: 'danger',
+  EN_ATTENTE_RECUPERATION: 'default',
+  EN_ATTENTE_VERSEMENT: 'warning',
+  EN_COURS_LIVRAISON: 'default',
+  EN_PREPARATION: 'default',
+  RECUPERER: 'default',
+  TERMINER: 'success',
 };
 
 export function CommandeStatutChip({ statut }: { statut?: string | null }) {
   const key = (statut ?? '').toUpperCase();
   return (
-    <Chip color={COMMANDE_STATUT_COLORS[key] ?? 'default'} size="sm" variant="flat">
-      {COMMANDE_STATUT_LABELS[key] ?? statut ?? '—'}
+    <Chip color={COMMANDE_STATUT_COLORS[key] ?? 'default'} size="sm" variant="soft">
+      <Chip.Label className="whitespace-nowrap">
+        {COMMANDE_STATUT_LABELS[key] ?? statut ?? '—'}
+      </Chip.Label>
     </Chip>
   );
 }

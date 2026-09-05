@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { Table } from '@heroui-v3/react';
 import { ArrowRight, ShieldAlert, ShieldCheck } from 'lucide-react';
 
 import { IEtablissementPerimetre, IRecapitulatif } from '../types/groupes-partenaires.types';
@@ -30,18 +23,18 @@ import { EffetChip, PorteeChip, RoleChip } from './acces-chips';
  * calcul se met un jour à retirer un accès, le bandeau vire au rouge de lui-même.
  *
  * Les lignes sont construites en ligne (et non dans un sous-composant) : la table
- * HeroUI s'appuie sur une collection React Aria, qui veut des `TableRow` comme enfants
- * directs de `TableBody`. Un composant intermédiaire casse la collection.
+ * s'appuie sur une collection React Aria, qui veut des `Table.Row` comme enfants
+ * directs de `Table.Body`. Un composant intermédiaire casse la collection.
  */
 
 function ListeEtablissements({ liste }: { liste: IEtablissementPerimetre[] }) {
   if (liste.length === 0) {
-    return <span className="text-default-400">Aucun établissement</span>;
+    return <span className="text-muted">Aucun établissement</span>;
   }
   return (
     <ul className="space-y-0.5">
       {liste.map((etablissement) => (
-        <li key={etablissement.restaurantId} className="truncate text-[13px]">
+        <li key={etablissement.restaurantId} className="truncate text-xs">
           {etablissement.nom ?? 'Établissement sans nom'}
         </li>
       ))}
@@ -63,38 +56,23 @@ export function RecapitulatifAcces({ recapitulatif, intention, note }: Props) {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-default-600">{intention}</p>
+      <p className="text-sm text-foreground">{intention}</p>
 
       {/* Le verdict, en une ligne, avant le détail. */}
-      <div
-        className={`flex flex-wrap items-center gap-x-6 gap-y-1 rounded-medium border px-3 py-2 text-sm ${
-          rienDePerdu ? 'border-success/30 bg-success/5' : 'border-danger/40 bg-danger/5'
-        }`}
-      >
-        {rienDePerdu ? (
-          <ShieldCheck className="h-4 w-4 shrink-0 text-success-soft-foreground" />
-        ) : (
-          <ShieldAlert className="h-4 w-4 shrink-0 text-danger-soft-foreground" />
-        )}
+      <div className={`flex flex-wrap items-center gap-x-6 gap-y-1 rounded-medium border px-3 py-2 text-sm ${rienDePerdu ? 'border-success/30 bg-success/5' : 'border-danger/40 bg-danger/5'}`}>
+        {rienDePerdu ? <ShieldCheck className="h-4 w-4 shrink-0 text-success-soft-foreground" /> : <ShieldAlert className="h-4 w-4 shrink-0 text-danger-soft-foreground" />}
         <span>
           <strong className="tabular-nums">{nbComptes}</strong> compte{nbComptes > 1 ? 's' : ''} concerné
           {nbComptes > 1 ? 's' : ''}
         </span>
         <span>
-          <strong className="tabular-nums text-success-600">{nbAccesGagnes}</strong> accès ajouté
+          <strong className="tabular-nums text-success-soft-foreground">{nbAccesGagnes}</strong> accès ajouté
           {nbAccesGagnes > 1 ? 's' : ''}
         </span>
         <span>
-          <strong className={`tabular-nums ${rienDePerdu ? 'text-success-600' : 'text-danger-soft-foreground'}`}>
-            {nbAccesPerdus}
-          </strong>{' '}
-          accès retiré{nbAccesPerdus > 1 ? 's' : ''}
+          <strong className={`tabular-nums ${rienDePerdu ? 'text-success-soft-foreground' : 'text-danger-soft-foreground'}`}>{nbAccesPerdus}</strong> accès retiré{nbAccesPerdus > 1 ? 's' : ''}
         </span>
-        <span className="text-default-500">
-          {rienDePerdu
-            ? 'Personne ne perd un accès qu’il possède aujourd’hui.'
-            : 'Des accès disparaissent — lisez le détail avant de valider.'}
-        </span>
+        <span className="text-muted">{rienDePerdu ? 'Personne ne perd un accès qu’il possède aujourd’hui.' : 'Des accès disparaissent — lisez le détail avant de valider.'}</span>
       </div>
 
       {blocages.length > 0 && (
@@ -103,7 +81,7 @@ export function RecapitulatifAcces({ recapitulatif, intention, note }: Props) {
             {blocages.length} établissement{blocages.length > 1 ? 's' : ''} empêche
             {blocages.length > 1 ? 'nt' : ''} la validation
           </p>
-          <ul className="space-y-0.5 text-[13px] text-default-600">
+          <ul className="space-y-0.5 text-xs text-foreground">
             {blocages.map((blocage) => (
               <li key={blocage.restaurantId}>
                 <strong>{blocage.nom ?? 'Établissement'}</strong> — {blocage.message}
@@ -113,93 +91,89 @@ export function RecapitulatifAcces({ recapitulatif, intention, note }: Props) {
         </div>
       )}
 
-      <Table aria-label="Effet de l'opération sur chaque compte" isStriped removeWrapper>
-        <TableHeader>
-          <TableColumn className="text-primary">COMPTE</TableColumn>
-          <TableColumn className="text-primary">AUJOURD&apos;HUI</TableColumn>
-          <TableColumn className="text-primary">
-            <span className="sr-only">Devient</span>
-          </TableColumn>
-          <TableColumn className="text-primary">APRÈS VALIDATION</TableColumn>
-          <TableColumn className="text-primary">EFFET</TableColumn>
-        </TableHeader>
-        <TableBody emptyContent="Aucun compte n’est rattaché aux établissements sélectionnés.">
-          {lignes.map((ligne) => {
-            const gains = new Set(ligne.gains.map((e) => e.restaurantId));
-            return (
-              <TableRow key={ligne.userId}>
-                <TableCell className="align-top">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{nomCompte(ligne)}</p>
-                    <p className="truncate text-[11px] text-default-400">{ligne.email ?? '—'}</p>
-                  </div>
-                </TableCell>
+      <Table>
+        <Table.ScrollContainer>
+          <Table.Content aria-label="Effet de l'opération sur chaque compte" className="min-w-[56rem]">
+            <Table.Header>
+              <Table.Column id="compte" isRowHeader>
+                Compte
+              </Table.Column>
+              <Table.Column id="avant">Aujourd&apos;hui</Table.Column>
+              <Table.Column id="fleche">
+                <span className="sr-only">Devient</span>
+              </Table.Column>
+              <Table.Column id="apres">Après validation</Table.Column>
+              <Table.Column id="effet">Effet</Table.Column>
+            </Table.Header>
+            <Table.Body renderEmptyState={() => <p className="py-8 text-center text-sm text-muted">Aucun compte n’est rattaché aux établissements sélectionnés.</p>}>
+              {lignes.map((ligne) => {
+                const gains = new Set(ligne.gains.map((e) => e.restaurantId));
+                return (
+                  <Table.Row id={ligne.userId} key={ligne.userId}>
+                    <Table.Cell className="align-top">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{nomCompte(ligne)}</p>
+                        <p className="truncate text-xs text-muted">{ligne.email ?? '—'}</p>
+                      </div>
+                    </Table.Cell>
 
-                {/* Avant */}
-                <TableCell className="align-top">
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-1">
-                      <RoleChip role={ligne.roleAvant} />
-                      <PorteeChip portee={ligne.porteeAvant} />
-                    </div>
-                    <ListeEtablissements liste={ligne.perimetreAvant} />
-                  </div>
-                </TableCell>
+                    {/* Avant */}
+                    <Table.Cell className="align-top">
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <RoleChip role={ligne.roleAvant} />
+                          <PorteeChip portee={ligne.porteeAvant} />
+                        </div>
+                        <ListeEtablissements liste={ligne.perimetreAvant} />
+                      </div>
+                    </Table.Cell>
 
-                <TableCell className="w-8 align-top text-default-300">
-                  <ArrowRight className="mt-1 h-4 w-4" />
-                </TableCell>
+                    <Table.Cell className="w-8 align-top text-muted">
+                      <ArrowRight className="mt-1 h-4 w-4" />
+                    </Table.Cell>
 
-                {/* Après — ce qui change est surligné, ce qui ne change pas reste sobre. */}
-                <TableCell className="align-top">
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-1">
-                      <RoleChip role={ligne.roleApres} />
-                      <PorteeChip portee={ligne.porteeApres} />
-                    </div>
-                    {ligne.perimetreApres.length === 0 && ligne.pertes.length === 0 ? (
-                      <span className="text-default-400">Aucun établissement</span>
-                    ) : (
-                      <ul className="space-y-0.5">
-                        {ligne.perimetreApres.map((etablissement) => (
-                          <li
-                            key={etablissement.restaurantId}
-                            className={`truncate text-[13px] ${
-                              gains.has(etablissement.restaurantId) ? 'font-medium text-success-600' : ''
-                            }`}
-                          >
-                            {etablissement.nom ?? 'Établissement sans nom'}
-                            {gains.has(etablissement.restaurantId) && (
-                              <span className="ml-1 text-[11px] font-normal text-success-600">nouveau</span>
-                            )}
-                          </li>
-                        ))}
-                        {ligne.pertes.map((etablissement) => (
-                          <li
-                            key={`perte-${etablissement.restaurantId}`}
-                            className="truncate text-[13px] text-danger-soft-foreground line-through"
-                          >
-                            {etablissement.nom ?? 'Établissement sans nom'}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </TableCell>
+                    {/* Après — ce qui change est surligné, ce qui ne change pas reste sobre. */}
+                    <Table.Cell className="align-top">
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-1">
+                          <RoleChip role={ligne.roleApres} />
+                          <PorteeChip portee={ligne.porteeApres} />
+                        </div>
+                        {ligne.perimetreApres.length === 0 && ligne.pertes.length === 0 ? (
+                          <span className="text-muted">Aucun établissement</span>
+                        ) : (
+                          <ul className="space-y-0.5">
+                            {ligne.perimetreApres.map((etablissement) => (
+                              <li key={etablissement.restaurantId} className={`truncate text-xs ${gains.has(etablissement.restaurantId) ? 'font-medium text-success-soft-foreground' : ''}`}>
+                                {etablissement.nom ?? 'Établissement sans nom'}
+                                {gains.has(etablissement.restaurantId) && <span className="ml-1 text-xs font-normal text-success-soft-foreground">nouveau</span>}
+                              </li>
+                            ))}
+                            {ligne.pertes.map((etablissement) => (
+                              <li key={`perte-${etablissement.restaurantId}`} className="truncate text-xs text-danger-soft-foreground line-through">
+                                {etablissement.nom ?? 'Établissement sans nom'}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </Table.Cell>
 
-                <TableCell className="align-top">
-                  <div className="space-y-1">
-                    <EffetChip effet={ligne.effet} />
-                    <p className="max-w-88 text-[12px] leading-snug text-default-500">{ligne.explication}</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
+                    <Table.Cell className="align-top">
+                      <div className="space-y-1">
+                        <EffetChip effet={ligne.effet} />
+                        <p className="max-w-88 text-xs leading-snug text-muted">{ligne.explication}</p>
+                      </div>
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })}
+            </Table.Body>
+          </Table.Content>
+        </Table.ScrollContainer>
       </Table>
 
-      {note && <p className="text-[12px] leading-snug text-default-500">{note}</p>}
+      {note && <p className="text-xs leading-snug text-muted">{note}</p>}
     </div>
   );
 }
