@@ -1,17 +1,17 @@
 'use client';
 
+import { Table } from '@heroui-v3/react';
+import { Check, Minus, X } from 'lucide-react';
 import React from 'react';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
-import { Check } from 'lucide-react';
 
 import menuData, { IMenuData } from '@/config/menu-data';
 import { APP_ROLES, AppRole, defineAbilityFor } from '@/lib/casl/ability';
 
 interface FlatRow {
+  can?: IMenuData['can'];
+  isParent: boolean;
   key: string;
   title: string;
-  isParent: boolean;
-  can?: IMenuData['can'];
 }
 
 /** Aplatit l'arbre du menu : parents (groupe) puis leurs enfants indentés. */
@@ -19,12 +19,12 @@ function flatten(items: IMenuData[]): FlatRow[] {
   const rows: FlatRow[] = [];
   for (const it of items) {
     if (it.children?.length) {
-      rows.push({ key: it.title, title: it.title, isParent: true, can: it.can });
+      rows.push({ can: it.can, isParent: true, key: it.title, title: it.title });
       for (const c of it.children) {
-        rows.push({ key: `${it.title}>${c.title}`, title: c.title, isParent: false, can: c.can });
+        rows.push({ can: c.can, isParent: false, key: `${it.title}>${c.title}`, title: c.title });
       }
     } else {
-      rows.push({ key: it.title, title: it.title, isParent: false, can: it.can });
+      rows.push({ can: it.can, isParent: false, key: it.title, title: it.title });
     }
   }
   return rows;
@@ -37,61 +37,107 @@ const ABILITIES: Record<string, ReturnType<typeof defineAbilityFor>> = Object.fr
 
 // Colonnes : "Menu / Page" + un rôle par colonne. Un seul tableau mappé
 // (pattern React-Aria du codebase).
-const COLONNES = [{ key: '__item', label: 'Menu / Page' }, ...APP_ROLES.map((r) => ({ key: r, label: r }))];
+const COLONNES = [
+  { key: '__item', label: 'Menu / Page' },
+  ...APP_ROLES.map((r) => ({ key: r, label: r })),
+];
+
+/**
+ * La marque d'une case : autorisé, refusé, ou sans règle.
+ *
+ * <h3>Ce qui change</h3>
+ * <p>« Refusé » était un point médian `·` et « aucune règle » un tiret `—`, tous deux en
+ * `text-default-200` — un gris presque blanc. Sur une matrice qui sert à AUDITER qui peut
+ * faire quoi, les deux cas se ressemblaient à s'y méprendre et se distinguaient à peine du
+ * fond. « Cette page n'a pas de règle » et « ce rôle n'y a pas droit » ne disent pourtant
+ * pas la même chose : la première est une lacune de configuration.</p>
+ *
+ * <p>Aucune des trois marques n'avait de texte : au lecteur d'écran, la matrice entière
+ * était une grille de cellules vides. Chacune porte maintenant son sens.</p>
+ */
+function Marque({ etat, role, titre }: { etat: boolean | null; role: string; titre: string }) {
+  if (etat === null) {
+    return (
+      <span className="inline-flex" title={`${titre} : aucune règle définie`}>
+        <Minus aria-hidden="true" className="size-4 text-muted/50" />
+        <span className="sr-only">{`${titre} — ${role} : aucune règle définie`}</span>
+      </span>
+    );
+  }
+  if (etat) {
+    return (
+      <span className="inline-flex" title={`${titre} : autorisé`}>
+        <Check aria-hidden="true" className="size-4 text-success" />
+        <span className="sr-only">{`${titre} — ${role} : autorisé`}</span>
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex" title={`${titre} : refusé`}>
+      {/* Un refus est la regle NORMALE d'une matrice de droits, pas une anomalie :
+          il se lit, il ne s'alarme pas. */}
+      <X aria-hidden="true" className="size-4 text-muted" />
+      <span className="sr-only">{`${titre} — ${role} : refusé`}</span>
+    </span>
+  );
+}
 
 export function PrivilegesMatrix() {
   const rows = React.useMemo(() => flatten(menuData), []);
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-default-200 bg-surface">
-      <Table
-        aria-label="Matrice des privilèges par rôle"
-        removeWrapper
-        isCompact
-        classNames={{
-          th: 'bg-default-100 text-[10px] font-semibold uppercase tracking-wide text-default-600 whitespace-nowrap',
-          td: 'border-b border-default-50',
-        }}
-      >
-        <TableHeader>
-          {COLONNES.map((c) => (
-            <TableColumn key={c.key} className={c.key === '__item' ? 'sticky left-0 z-10 bg-default-100' : 'text-center'}>
-              {c.label}
-            </TableColumn>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {rows.map((row) => (
-            <TableRow key={row.key} className={row.isParent ? 'bg-default-50' : undefined}>
-              {COLONNES.map((c) => {
-                if (c.key === '__item') {
-                  return (
-                    <TableCell key={c.key} className="sticky left-0 z-10 bg-inherit">
-                      {row.isParent ? (
-                        <span className="font-semibold text-default-800">{row.title}</span>
-                      ) : (
-                        <span className="pl-4 text-default-600">{row.title}</span>
-                      )}
-                    </TableCell>
-                  );
+    <Table>
+      <Table.ScrollContainer className="rounded-xl border border-separator">
+        <Table.Content aria-label="Matrice des privilèges par rôle">
+          <Table.Header>
+            {COLONNES.map((c, i) => (
+              <Table.Column
+                className={
+                  c.key === '__item'
+                    ? 'sticky left-0 z-10 bg-surface-secondary text-[10px] font-semibold tracking-wide uppercase'
+                    : 'text-center text-[10px] font-semibold tracking-wide whitespace-nowrap uppercase'
                 }
-                const allowed = row.can ? ABILITIES[c.key].can(row.can.action, row.can.subject) : null;
-                return (
-                  <TableCell key={c.key} className="text-center">
-                    {allowed === null ? (
-                      <span className="text-default-200">—</span>
-                    ) : allowed ? (
-                      <Check className="mx-auto h-4 w-4 text-success-600" />
-                    ) : (
-                      <span className="text-default-200">·</span>
-                    )}
-                  </TableCell>
-                );
-              })}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+                id={c.key}
+                isRowHeader={i === 0}
+                key={c.key}
+              >
+                {c.label}
+              </Table.Column>
+            ))}
+          </Table.Header>
+          <Table.Body>
+            {rows.map((row) => (
+              <Table.Row
+                className={row.isParent ? 'bg-surface-secondary' : undefined}
+                id={row.key}
+                key={row.key}
+              >
+                {COLONNES.map((c) => {
+                  if (c.key === '__item') {
+                    return (
+                      <Table.Cell className="sticky left-0 z-10 bg-inherit" key={c.key}>
+                        {row.isParent ? (
+                          <span className="font-semibold text-foreground">{row.title}</span>
+                        ) : (
+                          <span className="pl-4 text-muted">{row.title}</span>
+                        )}
+                      </Table.Cell>
+                    );
+                  }
+                  const allowed = row.can
+                    ? ABILITIES[c.key].can(row.can.action, row.can.subject)
+                    : null;
+                  return (
+                    <Table.Cell className="text-center" key={c.key}>
+                      <Marque etat={allowed} role={c.label} titre={row.title} />
+                    </Table.Cell>
+                  );
+                })}
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Content>
+      </Table.ScrollContainer>
+    </Table>
   );
 }

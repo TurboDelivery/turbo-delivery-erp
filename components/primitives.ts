@@ -1,6 +1,10 @@
-// `tv` transite par la couche unique comme le reste : `@heroui/react` le
-// reexporte (verifie a l'execution). Dernier import direct d'un sous-paquet.
-import { tv } from '@/components/heroui';
+/*
+ * `tv` vient de `tailwind-variants`, sa VRAIE origine — c'est une dependance directe du
+ * projet (package.json). Il transitait jusqu'ici par la couche `@/components/heroui`,
+ * c'est-a-dire par une reexportation de `@heroui/react` : le seul fichier a garder cette
+ * couche vivante n'etait donc pas un composant, mais un utilitaire qui n'a rien a y faire.
+ */
+import { tv } from 'tailwind-variants';
 
 export const title = tv({
   base: "tracking-tight inline font-semibold",
@@ -66,7 +70,7 @@ export const body = tv({
     size: {
       body: "text-base 2xl:text-lg leading-6",
       body2: "text-sm 2xl:text-base leading-5",
-      caption: "text-sm 2xl:text-base leading-4 text-muted-foreground",
+      caption: "text-sm 2xl:text-base leading-4 text-muted",
       overline: "text-sm 2xl:text-base leading-4 font-bold tracking-tight",
     },
   },

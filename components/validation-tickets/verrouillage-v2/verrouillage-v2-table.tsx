@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-table';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
-import { Skeleton, Spinner } from '@heroui-v3/react';
+import { Skeleton, Spinner, Table } from '@heroui-v3/react';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { buildVerrouillageV2Columns, VerrouillageV2RowActions } from './verrouillage-v2-columns';
 import TicketV2MobileCard from './ticket-v2-mobile-card';
@@ -41,6 +41,8 @@ export function VerrouillageV2Table({
 }: VerrouillageV2TableProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const bottomRefMobile = useRef<HTMLDivElement>(null);
+  const zoneTableRef = useRef<HTMLDivElement>(null);
+  const hauteurTable = useHauteurDisponible(zoneTableRef);
 
   useEffect(() => {
     if (!hasNextPage) return;
@@ -78,61 +80,74 @@ export function VerrouillageV2Table({
         <p className="text-xs text-muted">{totalElements} ligne{totalElements > 1 ? 's' : ''}</p>
       </div>
       {/* Tableau — desktop uniquement (≥ md) */}
-      <div className="hidden md:block overflow-x-auto">
-        <Table
-          isStriped
-          isHeaderSticky
-          aria-label="Récapitulatif final des tickets V2"
-          classNames={{
-            base: 'rounded-none',
-            wrapper: 'max-h-[60vh] rounded-none shadow-none p-0',
-          }}
-          bottomContent={
-            /*
-             * `text-muted` est pose sur la sentinelle, pas sur le Spinner : la couleur
-             * du composant se choisit par sa prop `color`, et `current` la fait heriter
-             * du conteneur. Une classe de couleur posee sur le Spinner lui-meme serait
-             * ecrasee par ses propres styles, et l'attente repasserait en accent vif
-             * alors que ce n'est qu'un chargement de page suivante, pas une action.
-             */
-            <div ref={bottomRef} className="flex items-center justify-center py-3 text-muted">
-              {isFetchingNextPage && <Spinner color="current" size="sm" />}
-            </div>
-          }
-        >
-          <TableHeader>
-            {table.getFlatHeaders().map((header) => (
-              <TableColumn key={header.id}>
-                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-              </TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody emptyContent={
-              /* Un echec de chargement ne doit pas se lire comme une liste vide. */
-              isError ? <EtatErreur quoi="les tickets à verrouiller" onReessayer={onReessayer} /> : isLoading ? ' ' : 'Aucun ticket trouvé'
-            }>
-            {isLoading
-              ? Array.from({ length: 8 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {table.getFlatHeaders().map((header) => (
-                      <TableCell key={header.id}>
-                        {/* La hauteur reste en classe : un Skeleton sans dimension n'occupe rien et ne se voit pas. */}
-                        <Skeleton className="h-4" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+      <div className="hidden md:block">
+        {/*
+         * Le plafond etait un `max-h-[60vh]` ecrit en dur : sur la fenetre reelle des
+         * postes (1000x563), 338 px, soit trois lignes visibles sur un recapitulatif
+         * qu'on relit AVANT de verrouiller definitivement. La hauteur se mesure.
+         */}
+        <Table>
+          <Table.ScrollContainer
+            className="md:h-[calc(100vh-18rem)] md:min-h-[320px]"
+            ref={zoneTableRef}
+            style={hauteurTable ? { height: hauteurTable } : undefined}
+          >
+            <Table.Content aria-label="Récapitulatif final des tickets V2">
+              <Table.Header>
+                {table.getFlatHeaders().map((header, i) => (
+                  <Table.Column id={header.id} isRowHeader={i === 0} key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </Table.Column>
                 ))}
-          </TableBody>
+              </Table.Header>
+              <Table.Body
+                renderEmptyState={() =>
+                  /* Un echec de chargement ne doit pas se lire comme une liste vide. */
+                  isError ? (
+                    <div className="py-6">
+                      <EtatErreur onReessayer={onReessayer} quoi="les tickets à verrouiller" />
+                    </div>
+                  ) : isLoading ? null : (
+                    <p className="py-8 text-center text-sm text-muted">Aucun ticket trouvé</p>
+                  )
+                }
+              >
+                {isLoading
+                  ? Array.from({ length: 8 }).map((_, i) => (
+                      <Table.Row id={`sq-${i}`} key={i}>
+                        {table.getFlatHeaders().map((header) => (
+                          <Table.Cell key={header.id}>
+                            {/* La hauteur reste en classe : un Skeleton sans dimension n'occupe rien et ne se voit pas. */}
+                            <Skeleton className="h-4" />
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))
+                  : table.getRowModel().rows.map((row) => (
+                      <Table.Row id={row.id} key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <Table.Cell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
         </Table>
+        {/*
+         * `text-muted` est pose sur la sentinelle, pas sur le Spinner : la couleur
+         * du composant se choisit par sa prop `color`, et `current` la fait heriter
+         * du conteneur. Une classe de couleur posee sur le Spinner lui-meme serait
+         * ecrasee par ses propres styles, et l'attente repasserait en accent vif
+         * alors que ce n'est qu'un chargement de page suivante, pas une action.
+         */}
+        <div className="flex items-center justify-center py-3 text-muted" ref={bottomRef}>
+          {isFetchingNextPage && <Spinner color="current" size="sm" />}
+        </div>
       </div>
 
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}

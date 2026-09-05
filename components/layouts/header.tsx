@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { IRootState } from '@/store';
 import { User } from '@/types/models';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
 import { getTranslation } from '@/i18n';
 import { useMemo, useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -17,7 +17,6 @@ import IconCaretDown from '@/components/icon/icon-caret-down';
 import Notifications from '../dashboard/notifications/notifications';
 import { BasculeTheme } from './bascule-theme';
 import { DashboardUserDropdown } from '../dashboard/dashboard-user-dropdown';
-import ThemeSwitch from '@/components/layouts/themeSwitch';
 
 const Header = ({ profile }: { profile: User }) => {
   const pathname = usePathname();
@@ -79,7 +78,7 @@ const Header = ({ profile }: { profile: User }) => {
               isIconOnly
               aria-label="Afficher ou masquer la navigation"
               className="hidden shrink-0 lg:inline-flex"
-              variant="light"
+              variant="ghost"
               onPress={() => dispatch(toggleSidebar())}
             >
               <IconMenu className="h-5 w-5" />
@@ -164,7 +163,7 @@ function RenderMenu({ menu, openMenus, cheminActif, toggleMenu, level = 0, t }: 
                 <button
                   onClick={() => toggleMenu(key)}
                   className={`w-full flex justify-between items-center px-3 py-2 rounded transition
-                                        ${isOpen ? 'bg-primary/10 text-primary' : 'hover:bg-surface-secondary dark:hover:bg-foreground'}
+                                        ${isOpen ? 'bg-accent-soft text-accent-soft-foreground' : 'hover:bg-surface-secondary'}
                                     `}
                 >
                   <div className="flex items-center gap-3">
@@ -183,7 +182,7 @@ function RenderMenu({ menu, openMenus, cheminActif, toggleMenu, level = 0, t }: 
             ) : (
               <Link
                 href={item.path ?? ''}
-                className={`flex items-center gap-3 px-3 py-2 rounded hover:bg-surface-secondary dark:hover:bg-foreground ${
+                className={`flex items-center gap-3 rounded px-3 py-2 hover:bg-surface-secondary ${
                   item.path === cheminActif ? 'active' : ''
                 }`}
               >

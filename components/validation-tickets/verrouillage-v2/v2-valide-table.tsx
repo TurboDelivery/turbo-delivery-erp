@@ -2,9 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 import { getCoreRowModel, useReactTable, flexRender } from '@tanstack/react-table';
-import { Skeleton, Spinner } from '@heroui-v3/react';
-import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import { Skeleton, Spinner, Table } from '@heroui-v3/react';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
 import { CheckCircle } from 'lucide-react';
 import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/types/tickets-v2.type';
 import { buildV2ValideColumns, V2ValideRowActions } from './v2-valide-columns';
@@ -39,6 +39,8 @@ export function V2ValideTable({
   readOnly = false,
 }: V2ValideTableProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const zoneTableRef = useRef<HTMLDivElement>(null);
+  const hauteurTable = useHauteurDisponible(zoneTableRef);
   const bottomRefMobile = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -79,56 +81,72 @@ export function V2ValideTable({
         <p className="text-xs text-muted">{totalElements} ligne{totalElements > 1 ? 's' : ''}</p>
       </div>
       {/* Tableau — desktop uniquement (≥ md) */}
-      <div className="hidden md:block overflow-x-auto">
-        <Table
-          isStriped
-          isHeaderSticky
-          aria-label="Tickets V2 validés"
-          classNames={{
-            base: 'rounded-none',
-            wrapper: 'max-h-[60vh] rounded-none shadow-none p-0',
-          }}
-          bottomContent={
-            /* Le rond de chargement etait dessine a la main (`Loader2` + `animate-spin`) :
-               sa couleur et sa vitesse ne suivaient rien. `Spinner` en `color="current"`
-               herite du `text-muted` porte par la sentinelle, donc du theme. */
-            <div ref={bottomRef} className="flex items-center justify-center py-3 text-muted">
-              {isFetchingNextPage && <Spinner color="current" size="sm" />}
-            </div>
-          }
-        >
-          <TableHeader>
-            {table.getFlatHeaders().map((header) => (
-              <TableColumn key={header.id}>
-                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-              </TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody emptyContent={
-              /* Un echec de chargement ne doit pas se lire comme une liste vide. */
-              isError ? <EtatErreur quoi="les tickets validés V2" onReessayer={onReessayer} /> : isLoading ? ' ' : 'Aucun ticket V2 validé'
-            }>
-            {isLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {table.getFlatHeaders().map((header) => (
-                      <TableCell key={header.id}>
-                        <Skeleton className="h-4" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+      {/* Tableau — desktop uniquement (≥ md) */}
+      <div className="hidden md:block">
+        {/*
+         * Le plafond etait un `max-h-[60vh]` ecrit en dur. Sur la fenetre reelle des
+         * postes (1000x563), cela faisait 338 px de tableau, soit trois lignes : c'est
+         * exactement le defaut deja corrige sur les deux tableaux de tickets, avec son
+         * commentaire. La hauteur se MESURE, et le repli ne s'applique que le temps de
+         * la mesure.
+         */}
+        <Table>
+          <Table.ScrollContainer
+            className="md:h-[calc(100vh-18rem)] md:min-h-[320px]"
+            ref={zoneTableRef}
+            style={hauteurTable ? { height: hauteurTable } : undefined}
+          >
+            <Table.Content aria-label="Tickets V2 validés">
+              <Table.Header>
+                {table.getFlatHeaders().map((header, i) => (
+                  <Table.Column id={header.id} isRowHeader={i === 0} key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </Table.Column>
                 ))}
-          </TableBody>
+              </Table.Header>
+              <Table.Body
+                renderEmptyState={() =>
+                  /* Un echec de chargement ne doit pas se lire comme une liste vide. */
+                  isError ? (
+                    <div className="py-6">
+                      <EtatErreur onReessayer={onReessayer} quoi="les tickets validés V2" />
+                    </div>
+                  ) : isLoading ? null : (
+                    <p className="py-8 text-center text-sm text-muted">Aucun ticket V2 validé</p>
+                  )
+                }
+              >
+                {isLoading
+                  ? Array.from({ length: 6 }).map((_, i) => (
+                      <Table.Row id={`sq-${i}`} key={i}>
+                        {table.getFlatHeaders().map((header) => (
+                          <Table.Cell key={header.id}>
+                            <Skeleton className="h-4" />
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))
+                  : table.getRowModel().rows.map((row) => (
+                      <Table.Row id={row.id} key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <Table.Cell key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
         </Table>
+        {/* Le rond de chargement etait dessine a la main (`Loader2` + `animate-spin`) :
+            sa couleur et sa vitesse ne suivaient rien. `Spinner` en `color="current"`
+            herite du `text-muted` porte par la sentinelle, donc du theme. */}
+        <div className="flex items-center justify-center py-3 text-muted" ref={bottomRef}>
+          {isFetchingNextPage && <Spinner color="current" size="sm" />}
+        </div>
       </div>
 
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
