@@ -1,9 +1,9 @@
 ﻿'use client';
 
 import React, { useState } from 'react';
-import { Button } from '@/components/heroui';
+import { Button, Dropdown, Spinner } from '@heroui-v3/react';
 import Link from 'next/link';
-import { Download, Plus } from 'lucide-react';
+import { ChevronDown, Download, Plus } from 'lucide-react';
 import { type DemandeAssignationVM, type Restaurant } from '@/types/models';
 import { useTurboyFilters, type ActiveTab } from '@/features/turboys/hooks/use-turboy-filters';
 import { type TurboyType } from '@/features/turboys/types/turboys.types';
@@ -13,12 +13,6 @@ import { exportTurboysPdf } from '@/features/men/utils/export-pdf';
 import { DemandesPanel } from '@/features/men/components/demandes-panel';
 import { TurboysPanel } from '@/features/men/components/turboys-panel';
 import { useTurboysByTypeQuery } from '@/features/turboys/queries/turboy-list.query';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 interface ContentProps {
   demandes: DemandeAssignationVM[];
@@ -92,46 +86,48 @@ export default function Content({
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Coursiers ({totalCount})</h1>
+          <h1 className="text-2xl font-bold text-foreground">Coursiers ({totalCount})</h1>
           <p className="text-sm text-muted mt-0.5">Gérez tous vos livreurs en un seul endroit</p>
         </div>
         <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="inline-flex items-center gap-2 rounded-medium border border-default-300 bg-transparent px-3 h-8 text-sm font-medium text-default-700 hover:bg-default-100 transition-colors disabled:opacity-50"
-                disabled={isExporting !== null}
+          {/*
+           * Le declencheur d'export etait un `<button>` ecrit a la main, avec sa propre
+           * bordure `border-default-300`, son propre survol et un anneau tournant fait de
+           * deux bordures — une reimplementation du Button et du Spinner de la
+           * bibliotheque. Le menu venait de shadcn alors que la v3 a le sien.
+           */}
+          <Dropdown>
+            <Button isDisabled={isExporting !== null} size="sm" variant="outline">
+              {isExporting !== null ? (
+                <Spinner size="sm" />
+              ) : (
+                <Download aria-hidden="true" className="size-4" />
+              )}
+              Exporter PDF
+              <ChevronDown aria-hidden="true" className="size-4" />
+            </Button>
+            <Dropdown.Popover>
+              <Dropdown.Menu
+                aria-label="Population à exporter"
+                onAction={(k) => handleExport(k as 'all' | TurboyType)}
               >
-                {isExporting !== null ? (
-                  <span className="w-4 h-4 animate-spin rounded-full border-2 border-default-400 border-t-transparent" />
-                ) : (
-                  <Download className="w-4 h-4" />
-                )}
-                Exporter PDF
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem onSelect={() => handleExport('all')} disabled={isExporting !== null}>
-                Tous les coursiers
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleExport('INDEPENDANT')} disabled={isExporting !== null}>
-                Indépendants
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleExport('JOURNALIER')} disabled={isExporting !== null}>
-                Journaliers
-              </DropdownMenuItem>
-              {/* V54 (2026-05) — Export de la nouvelle population aligné cadrage DGA. */}
-              <DropdownMenuItem onSelect={() => handleExport('SUPERVISEUR_LIVREUR')} disabled={isExporting !== null}>
-                Superviseurs-livreurs
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <Dropdown.Item id="all">Tous les coursiers</Dropdown.Item>
+                <Dropdown.Item id="INDEPENDANT">Indépendants</Dropdown.Item>
+                <Dropdown.Item id="JOURNALIER">Journaliers</Dropdown.Item>
+                {/* V54 (2026-05) — Export de la nouvelle population aligné cadrage DGA. */}
+                <Dropdown.Item id="SUPERVISEUR_LIVREUR">Superviseurs-livreurs</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
+          </Dropdown>
+
+          {/*
+           * `color` et `startContent` sont des props de la v2 : sur un Button v3 elles
+           * sont ignorees EN SILENCE. Le bouton avait donc perdu son icone « + » et sa
+           * couleur de marque sans qu'aucune erreur ne le signale.
+           */}
           <Link href="/delivery-men/men/create">
-            <Button
-              color="primary"
-              size="sm"
-              startContent={<Plus className="w-4 h-4" />}
-            >
+            <Button size="sm" variant="primary">
+              <Plus aria-hidden="true" className="size-4" />
               Créer un profil
             </Button>
           </Link>

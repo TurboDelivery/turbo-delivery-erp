@@ -1,37 +1,54 @@
 'use client';
 
-import React from 'react';
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Select, SelectItem } from '@/components/heroui';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { parseAsInteger, useQueryStates } from 'nuqs';
-import { IProgramme } from '@/features/turboys/types/programme.types';
-import { creerProgrammeAction, listerProgrammesSemaineAction } from '@/features/turboys/actions/programme.actions';
-import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
-import { lireFichierProgrammes, telechargerModeleProgrammes } from '@/features/turboys/utils/programmes-import.utils';
-import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
+import React from 'react';
+import { toast } from 'sonner';
+
+import { ProgrammeApercuModal } from './programme-apercu-modal';
+import { ProgrammeFormModal } from './programme-form-modal';
 import { joursAvecDates } from './weekly-jours-editor';
+import { ErrorBoundary } from '@/components/common/error-boundary';
+import { SemaineProgrammes } from '@/features/programmes/refonte/semaine-programmes';
+import { useLivreursListQuery } from '@/features/tickets/queries/livreur-list.query';
 import {
-  useProgrammesSemaineQuery,
-  useProgrammesIndependantsQuery,
+  creerProgrammeAction,
+  listerProgrammesSemaineAction,
+} from '@/features/turboys/actions/programme.actions';
+import {
+  useAutosuffisanceSemaineQuery,
+  useEnvoyerProgrammeMutation,
   usePlanifierProgrammeMutation,
+  useProgrammesIndependantsQuery,
+  useProgrammesSemaineQuery,
   usePublierProgrammeMutation,
   useSupprimerProgrammeMutation,
 } from '@/features/turboys/queries/programme.query';
-import { exporterProgrammesExcel, exporterProgrammesPdf } from '@/features/turboys/utils/programmes-export.utils';
+import { IProgramme } from '@/features/turboys/types/programme.types';
+import {
+  exporterProgrammesExcel,
+  exporterProgrammesPdf,
+} from '@/features/turboys/utils/programmes-export.utils';
+import {
+  lireFichierProgrammes,
+  telechargerModeleProgrammes,
+} from '@/features/turboys/utils/programmes-import.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
-import { ErrorBoundary } from '@/components/common/error-boundary';
-import EtatErreur from '@/components/commons/EtatErreur';
-import { ProgrammesGrid } from './programmes-grid';
-import { ProgrammeApercuModal } from './programme-apercu-modal';
-import { ProgrammeFormModal } from './programme-form-modal';
-import { AutosuffisancePanel } from './autosuffisance-panel';
+import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
+
+/**
+ * Les programmes hebdomadaires.
+ *
+ * <p>La conception et ses raisons sont documentées dans
+ * `features/programmes/refonte/semaine-programmes.tsx`, qui porte le rendu. Ce fichier
+ * ne fait plus que la lecture, les écritures et les deux imports.</p>
+ */
 
 const TYPE_OPTIONS = [
-  { key: 'TOUS', label: 'Tous' },
-  { key: 'JOURNALIER', label: getTurboyTypeDisplay('JOURNALIER').labelPlural },
-  { key: 'SUPERVISEUR_LIVREUR', label: getTurboyTypeDisplay('SUPERVISEUR_LIVREUR').labelPlural },
-  { key: 'INDEPENDANT', label: getTurboyTypeDisplay('INDEPENDANT').labelPlural },
+  { cle: 'TOUS', libelle: 'Tous' },
+  { cle: 'JOURNALIER', libelle: getTurboyTypeDisplay('JOURNALIER').labelPlural },
+  { cle: 'SUPERVISEUR_LIVREUR', libelle: getTurboyTypeDisplay('SUPERVISEUR_LIVREUR').labelPlural },
+  { cle: 'INDEPENDANT', libelle: getTurboyTypeDisplay('INDEPENDANT').labelPlural },
 ];
 
 /**
@@ -63,16 +80,19 @@ export default function ProgrammesSection() {
     semaine: parseAsInteger.withDefault(CURRENT_WEEK.semaine),
   });
 
-  const { data, isLoading, isError } = useProgrammesSemaineQuery(annee, semaine);
+  const { data, isError, isLoading, refetch } = useProgrammesSemaineQuery(annee, semaine);
   const independantsQuery = useProgrammesIndependantsQuery(annee, semaine);
+  const autosuffisanceQuery = useAutosuffisanceSemaineQuery(annee, semaine);
 
   const [createOpen, setCreateOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<IProgramme | null>(null);
   const [apercu, setApercu] = React.useState<IProgramme | null>(null);
   const [pendingId, setPendingId] = React.useState<string | null>(null);
+  const [lotEnCours, setLotEnCours] = React.useState(false);
 
   const planifier = usePlanifierProgrammeMutation();
   const publier = usePublierProgrammeMutation();
+  const envoyer = useEnvoyerProgrammeMutation();
   const supprimer = useSupprimerProgrammeMutation();
 
   const changeWeek = (delta: number) => {
@@ -106,6 +126,36 @@ export default function ProgrammesSection() {
     if (ok) runAction(p.id, supprimer.mutateAsync);
   };
 
+  /*
+   * Publier en LOT. Le backend ne publie qu'un programme à la fois ; la boucle est ici,
+   * séquentielle pour ne pas ouvrir quarante requêtes d'un coup, et le compte des échecs
+   * est rendu. Sans elle, lancer une semaine de quarante livreurs demandait quarante
+   * clics.
+   */
+  const publierLot = async (ids: string[]) => {
+    if (ids.length === 0 || lotEnCours) return;
+    setLotEnCours(true);
+    let ok = 0;
+    let echecs = 0;
+    try {
+      for (const id of ids) {
+        try {
+          await publier.mutateAsync(id);
+          ok += 1;
+        } catch {
+          echecs += 1;
+        }
+      }
+      if (echecs === 0) {
+        toast.success(`${ok} programme(s) publié(s).`);
+      } else {
+        toast.warning(`${ok} publié(s), ${echecs} en échec.`);
+      }
+    } finally {
+      setLotEnCours(false);
+    }
+  };
+
   const [typeFiltre, setTypeFiltre] = React.useState<string>('TOUS');
   const [partenaireFiltre, setPartenaireFiltre] = React.useState<string>('TOUS');
   const restaurantsQuery = useQuery({
@@ -118,6 +168,7 @@ export default function ProgrammesSection() {
     [restaurantsQuery.data],
   );
   const livreursQuery = useLivreursListQuery();
+
   const programmesFiltres = React.useMemo(() => {
     // Durcissement : une réponse non-tableau (erreur backend renvoyée en 200,
     // shape inattendue…) ne doit jamais faire planter `.filter` au rendu.
@@ -155,10 +206,10 @@ export default function ProgrammesSection() {
       let ok = 0;
       for (const src of aCreer) {
         const r = await creerProgrammeAction({
-          livreurId: src.livreurId!,
           annee,
-          semaine,
           jours: joursAvecDates(src.jours, annee, semaine),
+          livreurId: src.livreurId!,
+          semaine,
         });
         if (r.success) ok += 1;
       }
@@ -207,10 +258,10 @@ export default function ProgrammesSection() {
           continue;
         }
         const r = await creerProgrammeAction({
-          livreurId: id,
           annee,
-          semaine,
           jours: joursAvecDates(lg.jours, annee, semaine),
+          livreurId: id,
+          semaine,
         });
         if (r.success) ok += 1;
         dejaPresent.add(id);
@@ -228,107 +279,8 @@ export default function ProgrammesSection() {
   };
 
   return (
-    <section className="rounded-xl border border-default-200 bg-surface p-4">
-      <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-primary">Programmes hebdomadaires</h2>
-          <p className="text-sm text-default-500">
-            Planification des journaliers / superviseurs — semaine {semaine} / {annee}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="flat" onPress={() => changeWeek(-1)}>
-            ← Sem. préc.
-          </Button>
-          <Button size="sm" variant="flat" onPress={() => changeWeek(1)}>
-            Sem. suiv. →
-          </Button>
-          <Dropdown>
-            <DropdownTrigger>
-              <Button size="sm" variant="flat" isLoading={importing}>
-                Importer
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu aria-label="Options d'import">
-              <DropdownItem key="copier" onPress={copierSemainePrecedente}>
-                Copier la semaine précédente
-              </DropdownItem>
-              <DropdownItem key="fichier" onPress={() => fileRef.current?.click()}>
-                Importer un fichier (.xlsx, .csv)
-              </DropdownItem>
-              <DropdownItem
-                key="modele"
-                onPress={() =>
-                  telechargerModeleProgrammes(
-                    (livreursQuery.data ?? []).map((l) => ({
-                      matricule: l.matricule,
-                      telephone: l.telephone,
-                      nom: `${l.prenoms ?? ''} ${l.nom ?? ''}`.trim(),
-                    })),
-                  )
-                }
-              >
-                Télécharger le modèle
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown>
-          <input ref={fileRef} type="file" accept=".xlsx,.csv" className="hidden" onChange={onFichier} />
-          <Button
-            size="sm"
-            variant="flat"
-            onPress={() => exporterProgrammesExcel(programmesFiltres, annee, semaine)}
-            isDisabled={programmesFiltres.length === 0}
-          >
-            Exporter Excel
-          </Button>
-          <Button
-            size="sm"
-            variant="flat"
-            onPress={() =>
-              exporterProgrammesPdf(
-                programmesFiltres,
-                annee,
-                semaine,
-                TYPE_OPTIONS.find((o) => o.key === typeFiltre)?.label ?? 'Tous',
-              )
-            }
-            isDisabled={programmesFiltres.length === 0}
-          >
-            Exporter PDF
-          </Button>
-          <Button color="primary" onPress={() => setCreateOpen(true)}>
-            Nouveau programme
-          </Button>
-        </div>
-      </header>
-
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <Select
-          aria-label="Filtrer par type de livreur"
-          label="Type"
-          size="sm"
-          className="w-56"
-          selectedKeys={new Set([typeFiltre])}
-          onSelectionChange={(keys) => setTypeFiltre((Array.from(keys)[0] as string) ?? 'TOUS')}
-        >
-          {TYPE_OPTIONS.map((o) => (
-            <SelectItem key={o.key}>{o.label}</SelectItem>
-          ))}
-        </Select>
-        <Select
-          aria-label="Filtrer par partenaire"
-          label="Partenaire"
-          size="sm"
-          className="w-64"
-          isLoading={restaurantsQuery.isLoading}
-          selectedKeys={new Set([partenaireFiltre])}
-          onSelectionChange={(keys) => setPartenaireFiltre((Array.from(keys)[0] as string) ?? 'TOUS')}
-        >
-          {[{ id: 'TOUS', nom: 'Tous les partenaires' }, ...restaurants].map((r) => (
-            <SelectItem key={r.id}>{r.nom}</SelectItem>
-          ))}
-        </Select>
-      </div>
+    <>
+      <input accept=".xlsx,.csv" className="hidden" onChange={onFichier} ref={fileRef} type="file" />
 
       {/* Boundary rekeyé par semaine : un rendu qui throw sur les données d'une
           semaine n'emporte plus toute la page — et naviguer réarme l'affichage. */}
@@ -336,70 +288,86 @@ export default function ProgrammesSection() {
         resetKey={`${annee}-${semaine}`}
         title="Impossible d'afficher les programmes de cette semaine"
       >
-        <ProgrammesGrid
-          programmes={programmesFiltres}
-          emptyContent={
-            isLoading ? 'Chargement…' : isError ? 'Erreur de chargement des programmes' : 'Aucun programme pour cette semaine'
+        <SemaineProgrammes
+          annee={annee}
+          autosuffisance={Array.isArray(autosuffisanceQuery.data) ? autosuffisanceQuery.data : []}
+          autosuffisanceIsError={autosuffisanceQuery.isError}
+          autosuffisanceIsLoading={autosuffisanceQuery.isLoading}
+          idEnCours={pendingId}
+          importEnCours={importing}
+          independants={Array.isArray(independantsQuery.data) ? independantsQuery.data : []}
+          independantsIsError={independantsQuery.isError}
+          independantsIsLoading={independantsQuery.isLoading}
+          isError={isError}
+          isLoading={isLoading}
+          lotEnCours={lotEnCours}
+          onApercu={setApercu}
+          onCopierSemainePrecedente={copierSemainePrecedente}
+          onEditer={setEditing}
+          onEnvoyer={(p) => runAction(p.id, envoyer.mutateAsync)}
+          onExporterExcel={() => exporterProgrammesExcel(programmesFiltres, annee, semaine)}
+          onExporterPdf={() =>
+            exporterProgrammesPdf(
+              programmesFiltres,
+              annee,
+              semaine,
+              TYPE_OPTIONS.find((o) => o.cle === typeFiltre)?.libelle ?? 'Tous',
+            )
           }
-          onApercu={(p) => setApercu(p)}
-          onEdit={(p) => setEditing(p)}
+          onImporterFichier={() => fileRef.current?.click()}
+          onNouveau={() => setCreateOpen(true)}
+          onPartenaireFiltre={setPartenaireFiltre}
           onPlanifier={(p) => runAction(p.id, planifier.mutateAsync)}
           onPublier={(p) => runAction(p.id, publier.mutateAsync)}
-          onDelete={demanderSuppression}
-          pendingId={pendingId}
+          onPublierLot={publierLot}
+          onReessayer={() => void refetch()}
+          onReessayerIndependants={() => void independantsQuery.refetch()}
+          onSemaine={changeWeek}
+          onSupprimer={demanderSuppression}
+          onTelechargerModele={() =>
+            telechargerModeleProgrammes(
+              (livreursQuery.data ?? []).map((l) => ({
+                matricule: l.matricule,
+                nom: `${l.prenoms ?? ''} ${l.nom ?? ''}`.trim(),
+                telephone: l.telephone,
+              })),
+            )
+          }
+          onTypeFiltre={setTypeFiltre}
+          partenaireFiltre={partenaireFiltre}
+          partenaires={restaurants}
+          partenairesEnCours={restaurantsQuery.isLoading}
+          programmes={programmesFiltres}
+          semaine={semaine}
+          typeFiltre={typeFiltre}
+          typeOptions={TYPE_OPTIONS}
         />
-
-        <AutosuffisancePanel annee={annee} semaine={semaine} />
-
-        <div className="mt-6">
-          <h3 className="mb-2 text-sm font-semibold text-default-700">
-            Indépendants — créneaux déclarés via l&apos;app (lecture seule)
-          </h3>
-          {/* listerIndependantsAction relance desormais au lieu de rendre un tableau
-              vide : sans cette branche, une lecture en echec affichait « Aucun
-              independant declare cette semaine », lu comme une semaine sans creneau. */}
-          {independantsQuery.isError ? (
-            <EtatErreur
-              quoi="les créneaux déclarés par les indépendants"
-              onReessayer={() => void independantsQuery.refetch()}
-              enCours={independantsQuery.isFetching}
-            />
-          ) : (
-            <ProgrammesGrid
-              readOnly
-              programmes={Array.isArray(independantsQuery.data) ? independantsQuery.data : []}
-              emptyContent={
-                independantsQuery.isLoading ? 'Chargement…' : 'Aucun indépendant déclaré cette semaine'
-              }
-            />
-          )}
-        </div>
       </ErrorBoundary>
 
       <ProgrammeFormModal
+        anneeInitiale={annee}
         isOpen={createOpen}
         onOpenChange={setCreateOpen}
-        anneeInitiale={annee}
         semaineInitiale={semaine}
       />
       <ProgrammeFormModal
+        anneeInitiale={annee}
         isOpen={!!editing}
         onOpenChange={(open) => {
           if (!open) setEditing(null);
         }}
         programme={editing}
-        anneeInitiale={annee}
         semaineInitiale={semaine}
       />
       <ProgrammeApercuModal
-        programme={apercu}
         annee={annee}
-        semaine={semaine}
         isOpen={!!apercu}
         onOpenChange={(open) => {
           if (!open) setApercu(null);
         }}
+        programme={apercu}
+        semaine={semaine}
       />
-    </section>
+    </>
   );
 }

@@ -234,12 +234,10 @@ export default function GalerieComposants() {
 
                     <Bloc titre="Dropdown">
                         <Dropdown>
-                            <Dropdown.Trigger>
                                 <Button variant="outline">
                                     <Download aria-hidden="true" className="size-4" />
                                     Exporter
                                 </Button>
-                            </Dropdown.Trigger>
                             <Dropdown.Popover>
                                 <Dropdown.Menu aria-label="Format d'export">
                                     <Dropdown.Item id="pdf">PDF</Dropdown.Item>

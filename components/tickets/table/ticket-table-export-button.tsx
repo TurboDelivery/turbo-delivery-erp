@@ -31,11 +31,7 @@ interface TicketTableExportButtonProps {
   isDisabled?: boolean;
 }
 
-async function runWithConcurrency<T>(
-  tasks: Array<() => Promise<T>>,
-  concurrency: number,
-  onResolved: (value: T) => void,
-): Promise<void> {
+async function runWithConcurrency<T>(tasks: Array<() => Promise<T>>, concurrency: number, onResolved: (value: T) => void): Promise<void> {
   let next = 0;
   const workerCount = Math.min(concurrency, tasks.length);
   await Promise.all(
@@ -69,16 +65,10 @@ function buildCacheParams(filters: ITicketParams): ITicketParams {
   return params;
 }
 
-async function fetchAllTickets(
-  filters: ITicketParams,
-  queryClient: QueryClient,
-  onProgress: (loaded: number, total: number) => void,
-): Promise<Ticket[]> {
+async function fetchAllTickets(filters: ITicketParams, queryClient: QueryClient, onProgress: (loaded: number, total: number) => void): Promise<Ticket[]> {
   const cacheParams = buildCacheParams(filters);
 
-  const cached = queryClient.getQueryData<InfiniteData<PaginatedResponse<BonLivraisonTerminee>>>(
-    ticketsKeyQuery('list', cacheParams),
-  );
+  const cached = queryClient.getQueryData<InfiniteData<PaginatedResponse<BonLivraisonTerminee>>>(ticketsKeyQuery('list', cacheParams));
 
   if (cached && cached.pages.length > 0) {
     const totalElements = cached.pages[0].totalElements ?? 0;
@@ -159,7 +149,7 @@ export function TicketTableExportButton({ filters, totalItems, isDisabled }: Tic
         return;
       }
 
-      const toastId = toast.loading('Préparation de l\'export...');
+      const toastId = toast.loading("Préparation de l'export...");
 
       try {
         const tickets = await fetchAllTickets(filters, queryClient, (loaded, total) => {
@@ -216,20 +206,21 @@ export function TicketTableExportButton({ filters, totalItems, isDisabled }: Tic
      * composant v3 elles sont ignorees EN SILENCE — le bouton perdait ses deux icones
      * sans qu'aucune erreur ne le signale. En v3 les icones sont des enfants, et la
      * couleur passe par `variant`.
+     *
+     * Le `Button` est enfant DIRECT de `Dropdown`, sans `Dropdown.Trigger` : ce dernier
+     * rend son propre `<button>`, et lui donner un `Button` en enfant produisait un
+     * bouton dans un bouton — balisage invalide, et erreur d'hydratation a chaque rendu
+     * de la page. Le schema « Anatomy » de la documentation montre `Dropdown.Trigger`,
+     * aucun de ses exemples reels ne l'emploie.
      */
     <Dropdown>
-      <Dropdown.Trigger>
-        <Button isDisabled={isDisabled} variant="outline">
-          <Download aria-hidden="true" className="size-4" />
-          Exporter
-          <ChevronDown aria-hidden="true" className="size-4" />
-        </Button>
-      </Dropdown.Trigger>
+      <Button isDisabled={isDisabled} variant="outline">
+        <Download aria-hidden="true" className="size-4" />
+        Exporter
+        <ChevronDown aria-hidden="true" className="size-4" />
+      </Button>
       <Dropdown.Popover>
-        <Dropdown.Menu
-          aria-label="Format d'export"
-          onAction={(key) => handleExport(key as ExportFormat)}
-        >
+        <Dropdown.Menu aria-label="Format d'export" onAction={(key) => handleExport(key as ExportFormat)}>
           <Dropdown.Item id="PDF">PDF</Dropdown.Item>
           <Dropdown.Item id="EXCEL">Excel</Dropdown.Item>
         </Dropdown.Menu>
