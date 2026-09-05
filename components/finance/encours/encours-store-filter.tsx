@@ -1,15 +1,9 @@
 'use client';
 
-import { useMemo } from 'react';
-import {
-  Button,
-  Checkbox,
-  CheckboxGroup,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/heroui';
+import { Button, Checkbox, CheckboxGroup, Popover, Separator } from '@heroui-v3/react';
 import { ChevronDown, Store } from 'lucide-react';
+import { useMemo } from 'react';
+
 import { useEncoursStoresQuery } from '@/features/encours';
 
 /**
@@ -18,22 +12,23 @@ import { useEncoursStoresQuery } from '@/features/encours';
  * value = [] signifie « tous les points de vente ».
  */
 export function EncoursStoreFilter({
+  onChange,
   partenaire,
   value,
-  onChange,
 }: {
+  onChange: (ids: string[]) => void;
   partenaire: string;
   value: string[];
-  onChange: (ids: string[]) => void;
 }) {
-  const enabled = !!partenaire;
+  const enabled = Boolean(partenaire);
   const { data: stores } = useEncoursStoresQuery(partenaire);
-  const options = stores ?? [];
+  const options = useMemo(() => stores ?? [], [stores]);
   const allIds = useMemo(() => options.map((o) => o.id), [options]);
 
   if (!enabled) {
     return (
-      <Button size="sm" variant="flat" isDisabled startContent={<Store className="h-4 w-4" />}>
+      <Button isDisabled size="sm" variant="outline">
+        <Store aria-hidden="true" className="size-4" />
         Points de vente
       </Button>
     );
@@ -45,54 +40,46 @@ export function EncoursStoreFilter({
       : `${value.length} sélectionné${value.length > 1 ? 's' : ''}`;
 
   return (
-    <Popover placement="bottom-start">
-      <PopoverTrigger>
-        <Button
-          size="sm"
-          variant="bordered"
-          className="max-w-[220px]"
-          startContent={<Store className="h-4 w-4 shrink-0" />}
-          endContent={<ChevronDown className="h-4 w-4 shrink-0" />}
-        >
-          <span className="truncate">{label}</span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-72 p-0">
-        <div className="flex w-full items-center justify-between gap-2 border-b border-default-200 px-3 py-2">
-          <span className="text-xs font-medium text-default-500">Points de vente</span>
+    <Popover>
+      <Button className="max-w-[220px]" size="sm" variant="outline">
+        <Store aria-hidden="true" className="size-4 shrink-0" />
+        <span className="truncate">{label}</span>
+        <ChevronDown aria-hidden="true" className="size-4 shrink-0" />
+      </Button>
+      <Popover.Content className="w-72">
+        <div className="flex w-full items-center justify-between gap-2">
+          <span className="text-xs font-medium text-muted">Points de vente</span>
           <div className="flex gap-1">
-            <Button
-              size="sm"
-              variant="light"
-              className="h-6 min-w-0 px-2 text-xs"
-              onPress={() => onChange(allIds)}
-            >
+            <Button onPress={() => onChange(allIds)} size="sm" variant="ghost">
               Tout
             </Button>
-            <Button
-              size="sm"
-              variant="light"
-              className="h-6 min-w-0 px-2 text-xs"
-              onPress={() => onChange([])}
-            >
+            <Button onPress={() => onChange([])} size="sm" variant="ghost">
               Aucun
             </Button>
           </div>
         </div>
-        <div className="max-h-64 w-full overflow-y-auto p-3">
+
+        <Separator className="my-2" />
+
+        <div className="max-h-64 w-full overflow-y-auto">
           {options.length > 0 ? (
-            <CheckboxGroup value={value} onValueChange={onChange} size="sm">
+            <CheckboxGroup onChange={onChange} value={value}>
               {options.map((o) => (
                 <Checkbox key={o.id} value={o.id}>
-                  {o.nom}
+                  <Checkbox.Content>
+                    <Checkbox.Control>
+                      <Checkbox.Indicator />
+                    </Checkbox.Control>
+                    {o.nom}
+                  </Checkbox.Content>
                 </Checkbox>
               ))}
             </CheckboxGroup>
           ) : (
-            <p className="text-sm text-default-400">Aucun point de vente.</p>
+            <p className="text-sm text-muted">Aucun point de vente.</p>
           )}
         </div>
-      </PopoverContent>
+      </Popover.Content>
     </Popover>
   );
 }

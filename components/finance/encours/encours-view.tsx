@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryStates } from 'nuqs';
-import { Select, SelectItem, Spinner } from '@/components/heroui';
+import { Alert, Button, Card, ComboBox, Input, Label, ListBox, Spinner } from '@heroui-v3/react';
 import {
   encoursFilters,
   useEncoursQuery,
@@ -39,7 +39,7 @@ export function EncoursView() {
     stores: filters.stores ?? [],
   };
 
-  const { data: releve, isLoading, isError } = useEncoursQuery(params);
+  const { data: releve, isError, isFetching, isLoading, refetch } = useEncoursQuery(params);
   const { data: groupes } = useEncoursGroupesQuery();
 
   return (
@@ -47,8 +47,8 @@ export function EncoursView() {
       {/* En-tête */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Encours — Restes à payer</h1>
-          <p className="text-sm text-default-500">
+          <h1 className="text-2xl font-bold text-foreground">Encours — Restes à payer</h1>
+          <p className="text-sm text-muted">
             Factures éditées non encore recouvrées — détail par facture (mois / quinzaine / semaine)
           </p>
         </div>
@@ -59,106 +59,145 @@ export function EncoursView() {
         </div>
       </div>
 
-      {/* Filtres (responsives : 2 colonnes en mobile, ligne en desktop) */}
-      <div className="grid grid-cols-2 items-end gap-2 rounded-xl border border-default-200 bg-content1 p-3 sm:flex sm:flex-wrap sm:gap-3">
-        <Select
-          label="Année"
-          size="sm"
-          className="w-full sm:w-28"
-          selectedKeys={[String(filters.annee)]}
-          onSelectionChange={(keys) => {
-            const v = Array.from(keys)[0] as string;
-            if (v) setFilters({ annee: Number(v) });
-          }}
-        >
-          {ANNEES.map((y) => (
-            <SelectItem key={String(y)} value={String(y)}>
-              {String(y)}
-            </SelectItem>
-          ))}
-        </Select>
+      {/*
+       * Les filtres, dans une carte.
+       *
+       * <p>Des `ComboBox` et non des `Select` : la liste des partenaires suit le
+       * portefeuille et se cherche, comme partout ailleurs dans ce projet.</p>
+       */}
+      <Card>
+        <Card.Content className="grid grid-cols-2 items-end gap-3 sm:flex sm:flex-wrap">
+          <ComboBox
+            className="w-full sm:w-28"
+            onSelectionChange={(c) => {
+              if (c) setFilters({ annee: Number(c) });
+            }}
+            selectedKey={String(filters.annee)}
+          >
+            <Label>Année</Label>
+            <ComboBox.InputGroup>
+              <Input />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox items={ANNEES.map((y) => ({ cle: String(y) }))}>
+                {(o: { cle: string }) => (
+                  <ListBox.Item id={o.cle} textValue={o.cle}>
+                    {o.cle}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                )}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
 
-        <Select
-          label="Mois"
-          size="sm"
-          className="w-full sm:w-40"
-          selectedKeys={[filters.mois || 'TOUS']}
-          onSelectionChange={(keys) => {
-            const v = Array.from(keys)[0] as string;
-            setFilters({ mois: v === 'TOUS' ? '' : v });
-          }}
-        >
-          {[
-            <SelectItem key="TOUS" value="TOUS">
-              Tous (cumul annuel)
-            </SelectItem>,
-            ...MOIS.map((m) => (
-              <SelectItem key={String(m)} value={String(m)}>
-                {MOIS_LONGS[m]}
-              </SelectItem>
-            )),
-          ]}
-        </Select>
+          <ComboBox
+            className="w-full sm:w-44"
+            onSelectionChange={(c) => setFilters({ mois: c === 'TOUS' ? '' : String(c ?? '') })}
+            selectedKey={filters.mois || 'TOUS'}
+          >
+            <Label>Mois</Label>
+            <ComboBox.InputGroup>
+              <Input />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox
+                items={[
+                  { cle: 'TOUS', libelle: 'Tous (cumul annuel)' },
+                  ...MOIS.map((m) => ({ cle: String(m), libelle: MOIS_LONGS[m] })),
+                ]}
+              >
+                {(o: { cle: string; libelle: string }) => (
+                  <ListBox.Item id={o.cle} textValue={o.libelle}>
+                    {o.libelle}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                )}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
 
-        <Select
-          label="Cycle"
-          size="sm"
-          className="w-full sm:w-40"
-          selectedKeys={[filters.cycle || 'TOUS']}
-          onSelectionChange={(keys) => {
-            const v = Array.from(keys)[0] as string;
-            setFilters({ cycle: v === 'TOUS' ? '' : v });
-          }}
-        >
-          {CYCLES.map((c) => (
-            <SelectItem key={c.key} value={c.key}>
-              {c.label}
-            </SelectItem>
-          ))}
-        </Select>
+          <ComboBox
+            className="w-full sm:w-40"
+            onSelectionChange={(c) => setFilters({ cycle: c === 'TOUS' ? '' : String(c ?? '') })}
+            selectedKey={filters.cycle || 'TOUS'}
+          >
+            <Label>Cycle</Label>
+            <ComboBox.InputGroup>
+              <Input />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox items={CYCLES}>
+                {(o: { key: string; label: string }) => (
+                  <ListBox.Item id={o.key} textValue={o.label}>
+                    {o.label}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                )}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
 
-        <Select
-          label="Partenaire"
-          size="sm"
-          className="w-full sm:w-56"
-          selectedKeys={[filters.partenaire || 'TOUS']}
-          onSelectionChange={(keys) => {
-            const v = Array.from(keys)[0] as string;
+          <ComboBox
+            className="w-full sm:w-56"
             // changer de partenaire réinitialise la sélection de points de vente (§4)
-            setFilters({ partenaire: v === 'TOUS' ? '' : v, stores: [] });
-          }}
-        >
-          {[
-            <SelectItem key="TOUS" value="TOUS">
-              Tous
-            </SelectItem>,
-            ...(groupes ?? []).map((g) => (
-              <SelectItem key={g} value={g}>
-                {g}
-              </SelectItem>
-            )),
-          ]}
-        </Select>
+            onSelectionChange={(c) =>
+              setFilters({ partenaire: c === 'TOUS' ? '' : String(c ?? ''), stores: [] })
+            }
+            selectedKey={filters.partenaire || 'TOUS'}
+          >
+            <Label>Partenaire</Label>
+            <ComboBox.InputGroup>
+              <Input placeholder="Rechercher…" />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox
+                items={[{ cle: 'TOUS', libelle: 'Tous' }, ...(groupes ?? []).map((g) => ({ cle: g, libelle: g }))]}
+              >
+                {(o: { cle: string; libelle: string }) => (
+                  <ListBox.Item id={o.cle} textValue={o.libelle}>
+                    {o.libelle}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                )}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
 
-        <div className="col-span-2 sm:contents">
-          <EncoursStoreFilter
-            partenaire={filters.partenaire}
-            value={filters.stores ?? []}
-            onChange={(ids) => setFilters({ stores: ids })}
-          />
-        </div>
-      </div>
+          <div className="col-span-2 sm:contents">
+            <EncoursStoreFilter
+              onChange={(ids) => setFilters({ stores: ids })}
+              partenaire={filters.partenaire}
+              value={filters.stores ?? []}
+            />
+          </div>
+        </Card.Content>
+      </Card>
 
       {/* États */}
       {isLoading && (
-        <div className="flex items-center justify-center gap-2 py-16 text-sm text-default-500">
-          <Spinner size="sm" color="primary" /> Chargement du relevé…
+        <div className="flex items-center justify-center gap-2 py-16 text-sm text-muted">
+          <Spinner size="sm" /> Chargement du relevé…
         </div>
       )}
+      {/*
+       * L'echec n'offrait aucune reprise : il fallait recharger la page entiere pour
+       * retenter une lecture. Et il etait peint en `rose-200/50/600`, trois teintes de la
+       * palette Tailwind indifferentes au theme.
+       */}
       {isError && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 py-10 text-center text-sm text-rose-600">
-          Erreur de chargement du relevé.
-        </div>
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>Le relevé n’a pas pu être lu.</Alert.Description>
+          </Alert.Content>
+          <Button isPending={isFetching} onPress={() => void refetch()} size="sm" variant="outline">
+            Réessayer
+          </Button>
+        </Alert>
       )}
 
       {/* Contenu */}

@@ -2,13 +2,7 @@
 
 import { useState } from 'react';
 import { construireResumeDus, type PartenaireResumeDu } from '@/features/encours/utils/resume-dus.utils';
-import {
-  Button,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-} from '@/components/heroui';
+import { Button, Dropdown, Spinner } from '@heroui-v3/react';
 import { ChevronDown, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
 import type { IEncoursReleve } from '@/features/encours';
@@ -143,31 +137,22 @@ export function EncoursExportDusButton({
   };
 
   return (
+    /* Meme correction que l'autre export : voir `encours-export-button.tsx`. */
     <Dropdown>
-      <DropdownTrigger>
-        <Button
-          size="sm"
-          variant="bordered"
-          color="warning"
-          isLoading={loading !== null}
-          isDisabled={isDisabled || !releve}
-          startContent={!loading && <FileDown className="h-4 w-4" />}
-          endContent={<ChevronDown className="h-4 w-4" />}
+      <Button isDisabled={isDisabled || !releve} isPending={loading !== null} size="sm" variant="outline">
+        {loading ? <Spinner size="sm" /> : <FileDown aria-hidden="true" className="size-4" />}
+        Dus (jusqu&apos;à aujourd&apos;hui)
+        <ChevronDown aria-hidden="true" className="size-4" />
+      </Button>
+      <Dropdown.Popover>
+        <Dropdown.Menu
+          aria-label="Format d'export des dus"
+          onAction={(key) => handleExport(key as 'csv' | 'pdf')}
         >
-          Dus (jusqu&apos;à aujourd&apos;hui)
-        </Button>
-      </DropdownTrigger>
-      <DropdownMenu
-        aria-label="Format d'export des dus"
-        onAction={(key) => handleExport(key as 'csv' | 'pdf')}
-      >
-        <DropdownItem key="pdf" description="Rapport exécutif, prêt à partager">
-          PDF (relevé Turbo)
-        </DropdownItem>
-        <DropdownItem key="csv" description="Résumé tableur (Excel-ready)">
-          CSV (Excel)
-        </DropdownItem>
-      </DropdownMenu>
+          <Dropdown.Item id="pdf">PDF (relevé Turbo)</Dropdown.Item>
+          <Dropdown.Item id="csv">CSV (Excel)</Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown.Popover>
     </Dropdown>
   );
 }

@@ -1,13 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Button,
-  Dropdown,
-  DropdownItem,
-  DropdownMenu,
-  DropdownTrigger,
-} from '@/components/heroui';
+import { Button, Dropdown, Spinner } from '@heroui-v3/react';
 import { ChevronDown, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { encoursAPI, IEncoursParams } from '@/features/encours';
@@ -48,26 +42,27 @@ export function EncoursExportButton({
   };
 
   return (
+    /*
+     * Le `Button` est enfant DIRECT de `Dropdown` : `Dropdown.Trigger` rend son propre
+     * `<button>` et en produisait un dans un bouton. `isLoading`, `startContent` et
+     * `endContent` sont des props de la v2, ignorees EN SILENCE par la v3 — le bouton
+     * avait perdu ses deux icones et son indicateur d'attente.
+     */
     <Dropdown>
-      <DropdownTrigger>
-        <Button
-          size="sm"
-          variant="bordered"
-          isLoading={loading}
-          isDisabled={isDisabled}
-          startContent={!loading && <Download className="h-4 w-4" />}
-          endContent={<ChevronDown className="h-4 w-4" />}
+      <Button isDisabled={isDisabled} isPending={loading} size="sm" variant="outline">
+        {loading ? <Spinner size="sm" /> : <Download aria-hidden="true" className="size-4" />}
+        Exporter
+        <ChevronDown aria-hidden="true" className="size-4" />
+      </Button>
+      <Dropdown.Popover>
+        <Dropdown.Menu
+          aria-label="Format d'export"
+          onAction={(key) => handleExport(key as 'pdf' | 'xlsx')}
         >
-          Exporter
-        </Button>
-      </DropdownTrigger>
-      <DropdownMenu
-        aria-label="Format d'export"
-        onAction={(key) => handleExport(key as 'pdf' | 'xlsx')}
-      >
-        <DropdownItem key="pdf">PDF (relevé)</DropdownItem>
-        <DropdownItem key="xlsx">Excel (valeurs)</DropdownItem>
-      </DropdownMenu>
+          <Dropdown.Item id="pdf">PDF (relevé)</Dropdown.Item>
+          <Dropdown.Item id="xlsx">Excel (valeurs)</Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown.Popover>
     </Dropdown>
   );
 }

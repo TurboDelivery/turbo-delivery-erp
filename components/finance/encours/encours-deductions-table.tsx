@@ -1,7 +1,8 @@
 'use client';
 
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@/components/heroui';
-import { IEncoursDeduction, formatFcfa } from '@/features/encours';
+import { Table } from '@heroui-v3/react';
+
+import { formatFcfa, IEncoursDeduction } from '@/features/encours';
 
 /** Bloc « Récapitulatif des déductions & avances » (spec §6). */
 export function EncoursDeductionsTable({
@@ -15,29 +16,42 @@ export function EncoursDeductionsTable({
 
   return (
     <div className="mt-6 max-w-2xl">
-      <h3 className="mb-2 text-sm font-semibold text-foreground">Récapitulatif des déductions &amp; avances</h3>
-      <Table aria-label="Déductions et avances" isStriped removeWrapper>
-        <TableHeader>
-          <TableColumn>PARTENAIRE</TableColumn>
-          <TableColumn>MOTIF</TableColumn>
-          <TableColumn className="text-right">MONTANT DÉDUIT</TableColumn>
-        </TableHeader>
-        <TableBody>
-          {[
-            ...deductions.map((d, i) => (
-              <TableRow key={`d-${i}`}>
-                <TableCell className="whitespace-nowrap font-medium">{d.partenaire}</TableCell>
-                <TableCell>{d.motif || '—'}</TableCell>
-                <TableCell className="whitespace-nowrap text-right">{formatFcfa(d.montant)}</TableCell>
-              </TableRow>
-            )),
-            <TableRow key="d-total" className="bg-surface-secondary font-bold">
-              <TableCell className="whitespace-nowrap">TOTAL</TableCell>
-              <TableCell>{''}</TableCell>
-              <TableCell className="whitespace-nowrap text-right">{formatFcfa(total)}</TableCell>
-            </TableRow>,
-          ]}
-        </TableBody>
+      <h3 className="mb-2 text-sm font-semibold text-foreground">
+        Récapitulatif des déductions &amp; avances
+      </h3>
+      <Table>
+        <Table.ScrollContainer>
+          <Table.Content aria-label="Déductions et avances">
+            <Table.Header>
+              <Table.Column id="partenaire" isRowHeader>
+                Partenaire
+              </Table.Column>
+              <Table.Column id="motif">Motif</Table.Column>
+              <Table.Column id="montant">Montant déduit</Table.Column>
+            </Table.Header>
+            <Table.Body>
+              {deductions.map((d, i) => (
+                <Table.Row id={`d-${i}`} key={`${d.partenaire}-${i}`}>
+                  <Table.Cell>
+                    <span className="whitespace-nowrap font-medium">{d.partenaire}</span>
+                  </Table.Cell>
+                  <Table.Cell>{d.motif || '—'}</Table.Cell>
+                  <Table.Cell>
+                    <span className="block whitespace-nowrap text-right tabular-nums">
+                      {formatFcfa(d.montant)}
+                    </span>
+                  </Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Content>
+        </Table.ScrollContainer>
+
+        {/* Le total etait une LIGNE du tableau : c'est un pied, et le composant en a un. */}
+        <Table.Footer className="justify-between text-sm">
+          <span className="font-semibold text-foreground">Total</span>
+          <span className="font-bold tabular-nums text-foreground">{formatFcfa(total)}</span>
+        </Table.Footer>
       </Table>
     </div>
   );

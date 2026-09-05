@@ -43,13 +43,13 @@ export function EncoursKpiCards({ releve }: { releve: IEncoursReleve }) {
         ))}
       </GrilleStats>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs text-default-500">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-xs text-muted">
         <span className="inline-flex items-center gap-1">
-          <Users className="h-3.5 w-3.5" /> {releve.nbPartenaires} partenaire
+          <Users aria-hidden="true" className="size-3.5" /> {releve.nbPartenaires} partenaire
           {releve.nbPartenaires > 1 ? 's' : ''}
         </span>
         <span className="inline-flex items-center gap-1">
-          <Store className="h-3.5 w-3.5" /> {releve.nbStores} point{releve.nbStores > 1 ? 's' : ''} de
+          <Store aria-hidden="true" className="size-3.5" /> {releve.nbStores} point{releve.nbStores > 1 ? 's' : ''} de
           vente
         </span>
       </div>

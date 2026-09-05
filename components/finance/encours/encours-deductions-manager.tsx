@@ -1,16 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Button,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  useDisclosure,
-} from '@/components/heroui';
+import { Button, Input, Label, Modal, Spinner, TextField } from '@heroui-v3/react';
 import { Lock, Pencil, Plus, Trash2 } from 'lucide-react';
 import {
   useDeductionsQuery,
@@ -24,7 +15,7 @@ import EtatErreur from '@/components/commons/EtatErreur';
 
 /** Gestion (CRUD) des déductions / avances par partenaire pour une année (§6). */
 export function EncoursDeductionsManager({ annee }: { annee: number }) {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
   const { data: deductions, isError, isFetching, refetch } = useDeductionsQuery(annee);
   const creer = useCreerDeductionMutation();
   const modifier = useModifierDeductionMutation();
@@ -84,82 +75,109 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
 
   return (
     <>
-      <Button size="sm" variant="bordered" startContent={<Plus className="h-4 w-4" />} onPress={onOpen}>
+      <Button onPress={() => setIsOpen(true)} size="sm" variant="outline">
+        <Plus aria-hidden="true" className="size-4" />
         Gérer les déductions
       </Button>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" scrollBehavior="inside">
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader>Déductions / avances — {annee}</ModalHeader>
-              <ModalBody className="gap-4">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  <Input label="Partenaire (groupe)" size="sm" value={groupe} onValueChange={setGroupe} />
-                  <Input label="Montant (FCFA)" size="sm" type="number" value={montant} onValueChange={setMontant} />
-                  <Input label="Motif" size="sm" value={motif} onValueChange={setMotif} className="sm:col-span-2" />
+      <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog className="max-w-2xl">
+              <Modal.Header>
+                <Modal.Heading>Déductions / avances — {annee}</Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+
+              <Modal.Body className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <TextField onChange={setGroupe} value={groupe}>
+                    <Label>Partenaire (groupe)</Label>
+                    <Input />
+                  </TextField>
+                  <TextField onChange={setMontant} value={montant}>
+                    <Label>Montant (FCFA)</Label>
+                    <Input inputMode="numeric" />
+                  </TextField>
+                  <div className="sm:col-span-2">
+                    <TextField onChange={setMotif} value={motif}>
+                      <Label>Motif</Label>
+                      <Input />
+                    </TextField>
+                  </div>
                 </div>
+
                 <div className="flex gap-2">
                   <Button
-                    size="sm"
-                    color="primary"
-                    isLoading={creer.isPending || modifier.isPending}
+                    isPending={creer.isPending || modifier.isPending}
                     onPress={submit}
+                    size="sm"
+                    variant="primary"
                   >
+                    {creer.isPending || modifier.isPending ? <Spinner size="sm" /> : null}
                     {editingId ? 'Enregistrer' : 'Ajouter'}
                   </Button>
                   {editingId && (
-                    <Button size="sm" variant="light" onPress={reset}>
+                    <Button onPress={reset} size="sm" variant="ghost">
                       Annuler l&apos;édition
                     </Button>
                   )}
                 </div>
 
-                <div className="divide-y">
+                <div className="divide-y divide-separator">
                   {(deductions ?? []).map((d) => (
-                    <div key={d.id} className="flex items-center justify-between gap-2 py-2 text-sm">
+                    <div className="flex items-center justify-between gap-2 py-2 text-sm" key={d.id}>
                       <div className="min-w-0">
-                        <span className="font-medium">{d.groupePartenaire}</span>
+                        <span className="font-medium text-foreground">{d.groupePartenaire}</span>
                         <span className="text-muted"> — {d.motif || '—'}</span>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        <span className="font-semibold">{formatFcfa(d.montant)}</span>
-                        <Button isIconOnly size="sm" variant="light" onPress={() => startEdit(d)}>
-                          <Pencil className="h-4 w-4" />
+                        <span className="font-semibold tabular-nums text-foreground">
+                          {formatFcfa(d.montant)}
+                        </span>
+                        <Button
+                          aria-label={`Modifier la déduction ${d.groupePartenaire}`}
+                          isIconOnly
+                          onPress={() => startEdit(d)}
+                          size="sm"
+                          variant="ghost"
+                        >
+                          <Pencil aria-hidden="true" className="size-4" />
                         </Button>
                         <Button
+                          aria-label={`Supprimer la déduction ${d.groupePartenaire}`}
                           isIconOnly
-                          size="sm"
-                          variant="light"
-                          color="danger"
                           onPress={() => {
                             setCodeSecret('');
                             setSuppression(d);
                           }}
+                          size="sm"
+                          variant="danger-soft"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 aria-hidden="true" className="size-4" />
                         </Button>
                       </div>
                     </div>
                   ))}
                   {/* sur echec, "Aucune deduction" se lirait comme une absence reelle de deduction */}
                   {isError ? (
-                    <EtatErreur quoi="les déductions" onReessayer={() => refetch()} enCours={isFetching} />
+                    <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="les déductions" />
                   ) : (
                     (!deductions || deductions.length === 0) && (
                       <p className="py-2 text-sm text-muted">Aucune déduction pour {annee}.</p>
                     )
                   )}
                 </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={onClose}>
+              </Modal.Body>
+
+              <Modal.Footer>
+                <Button onPress={() => setIsOpen(false)} variant="ghost">
                   Fermer
                 </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
 
       {/* La suppression n'aboutit que si le code de sécurité (DG/DGA) est correct. */}
@@ -171,52 +189,68 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
             setCodeSecret('');
           }
         }}
-        size="sm"
       >
-        <ModalContent>
-          {(fermer) => (
-            <>
-              <ModalHeader className="flex items-center gap-2">
-                <Lock className="h-4 w-4 text-danger-soft-foreground" />
-                Code de sécurité requis
-              </ModalHeader>
-              <ModalBody className="gap-3">
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading className="flex items-center gap-2">
+                  <Lock aria-hidden="true" className="size-4 text-danger-soft-foreground" />
+                  Code de sécurité requis
+                </Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+
+              <Modal.Body className="flex flex-col gap-3">
                 <p className="text-sm text-muted">
                   Supprimer la déduction{' '}
-                  <span className="font-medium">{suppression?.groupePartenaire}</span> de{' '}
-                  <span className="font-semibold">{formatFcfa(suppression?.montant ?? 0)}</span> ?
-                  Cette action exige le code de sécurité à 4 chiffres défini par le DG ou le DGA.
+                  <span className="font-medium text-foreground">{suppression?.groupePartenaire}</span>{' '}
+                  de{' '}
+                  <span className="font-semibold text-foreground">
+                    {formatFcfa(suppression?.montant ?? 0)}
+                  </span>{' '}
+                  ? Cette action exige le code de sécurité à 4 chiffres défini par le DG ou le DGA.
                 </p>
-                <Input
+                <TextField
                   autoFocus
-                  label="Code de sécurité (4 chiffres)"
-                  size="sm"
-                  type="password"
-                  inputMode="numeric"
-                  maxLength={4}
+                  onChange={(v) => setCodeSecret(v.replace(/\D/g, '').slice(0, 4))}
                   value={codeSecret}
-                  onValueChange={(v) => setCodeSecret(v.replace(/\D/g, '').slice(0, 4))}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') confirmerSuppression();
+                >
+                  <Label>Code de sécurité (4 chiffres)</Label>
+                  <Input
+                    inputMode="numeric"
+                    maxLength={4}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') confirmerSuppression();
+                    }}
+                    type="password"
+                  />
+                </TextField>
+              </Modal.Body>
+
+              <Modal.Footer>
+                <Button
+                  onPress={() => {
+                    setSuppression(null);
+                    setCodeSecret('');
                   }}
-                />
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={fermer}>
+                  variant="ghost"
+                >
                   Annuler
                 </Button>
                 <Button
-                  color="danger"
                   isDisabled={codeSecret.length !== 4}
-                  isLoading={supprimer.isPending}
+                  isPending={supprimer.isPending}
                   onPress={confirmerSuppression}
+                  variant="danger"
                 >
+                  {supprimer.isPending ? <Spinner size="sm" /> : null}
                   Supprimer
                 </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </>
   );

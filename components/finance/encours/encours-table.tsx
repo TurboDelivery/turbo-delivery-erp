@@ -1,26 +1,20 @@
 'use client';
 
 import { ReactNode } from 'react';
-import {
-  Chip,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { Chip, Table } from '@heroui-v3/react';
+
+import { cn } from '@/lib/utils';
 import { IEncoursReleve, cycleLabel, formatFcfa } from '@/features/encours';
 import { formatPeriodeFacturee, formatPeriodeFactureeEncours } from '@/lib/finance/periode-facturee';
 
 type Cell = { node: ReactNode; cn?: string };
 type Line = { key: string; cn?: string; cells: Cell[] };
 
-const STATUT_COLOR: Record<string, 'success' | 'warning' | 'danger' | 'default'> = {
-  Payé: 'success',
-  Partiel: 'warning',
-  'En retard': 'danger',
+const STATUT_COLOR: Record<string, 'danger' | 'default' | 'success' | 'warning'> = {
   'En cours': 'default',
+  'En retard': 'danger',
+  Partiel: 'warning',
+  Payé: 'success',
 };
 
 /**
@@ -45,8 +39,8 @@ function formatPeriodeLibre(
 
 function StatutChip({ statut }: { statut: string }) {
   return (
-    <Chip size="sm" variant="flat" color={STATUT_COLOR[statut] ?? 'default'} className="h-5">
-      {statut}
+    <Chip color={STATUT_COLOR[statut] ?? 'default'} size="sm" variant="soft">
+      <Chip.Label>{statut}</Chip.Label>
     </Chip>
   );
 }
@@ -75,19 +69,16 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
   (releve.partenaires ?? []).forEach((p, pi) => {
     lines.push({
       key: `g-${pi}`,
-      cn: 'bg-default-100/80',
+      cn: 'bg-surface-secondary',
       cells: [
         {
           node: (
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-default-800">{p.groupe}</span>
-              <Chip
-                size="sm"
-                variant="flat"
-                color={p.cycle === 'QUINZAINE' ? 'secondary' : p.cycle === 'HEBDOMADAIRE' ? 'primary' : 'default'}
-                className="h-5"
-              >
-                {cycleLabel(p.cycle)}
+              <span className="font-semibold text-foreground">{p.groupe}</span>
+              {/* Le cycle est une ETIQUETTE, pas un etat : trois teintes de plus sur un
+                  releve ou la couleur doit dire le statut de paiement. */}
+              <Chip size="sm" variant="soft">
+                <Chip.Label>{cycleLabel(p.cycle)}</Chip.Label>
               </Chip>
             </div>
           ),
@@ -101,13 +92,13 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
         const aVenir = f.statut === 'À venir';
         lines.push({
           key: `g${pi}-s${si}-f${fi}`,
-          cn: aVenir ? 'text-default-300' : 'hover:bg-primary/5 transition-colors',
+          cn: aVenir ? 'text-muted' : undefined,
           cells: [
             {
               node:
                 fi === 0 ? (
-                  <span className="flex items-center gap-2 pl-3 font-medium text-default-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-default-300" />
+                  <span className="flex items-center gap-2 pl-3 font-medium text-foreground">
+                    <span className="size-1.5 rounded-full bg-surface-tertiary" />
                     {s.store}
                   </span>
                 ) : (
@@ -125,11 +116,11 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
                 // Une periode facturee en frais + commission reste UNE periode : la
                 // seconde ligne se presente comme un complement de celle du dessus,
                 // sans repeter les dates (arbitrage du 17/08/2026).
-                <div className="flex items-center gap-2 pl-6 text-[12px] text-secondary-600">
-                  <span className="text-default-300">+</span>
+                <div className="flex items-center gap-2 pl-6 text-[12px] text-muted">
+                  <span>+</span>
                   <span>{f.objet}</span>
                   {f.factureLieeCode ? (
-                    <span className="text-default-400">liée à {f.factureLieeCode}</span>
+                    <span className="text-muted">liée à {f.factureLieeCode}</span>
                   ) : null}
                 </div>
               ) : (
@@ -140,23 +131,23 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
                       : formatPeriodeFactureeEncours(releve.annee, f.mois, p.cycle, f.libelle)}
                   </span>
                   {f.objet && f.objet !== 'Globale' ? (
-                    <span className="text-[11px] text-secondary-600">
+                    <span className="text-[11px] text-muted">
                       {f.objet}
                       {f.factureLieeCode ? ` · liée à ${f.factureLieeCode}` : ''}
                     </span>
                   ) : null}
                   {f.mode === 'Plage de dates' ? (
-                    <span className="text-[11px] text-default-400">
+                    <span className="text-[11px] text-muted">
                       Plage de dates{f.origine === 'REPRISE' ? ' · reprise' : ''}
                     </span>
                   ) : null}
                 </div>
               ),
-              cn: 'text-default-600',
+              cn: undefined,
             },
             { node: formatFcfa(f.totalAPayer), cn: numCn },
             {
-              node: f.acompte ? formatFcfa(f.acompte) : <span className="text-default-300">—</span>,
+              node: f.acompte ? formatFcfa(f.acompte) : <span className="text-muted">—</span>,
               cn: numCn,
             },
             { node: <span className="font-semibold text-foreground">{formatFcfa(f.solde)}</span>, cn: numCn },
@@ -168,20 +159,24 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
 
     lines.push({
       key: `g${pi}-st`,
-      cn: 'bg-amber-50/70',
+      // Un sous-total n'est pas un avertissement : il etait peint en `bg-amber-50/70`
+      // avec trois nuances de `text-amber-*`. Il se distingue par la SURFACE, la graisse
+      // et un trait qui FERME le bloc du partenaire — sans lui, l'ouverture et la
+      // fermeture du bloc portaient exactement la meme bande.
+      cn: 'border-t border-separator bg-surface-secondary',
       cells: [
-        { node: <span className="font-semibold text-amber-800">Sous-total {p.groupe}</span> },
+        { node: <span className="font-semibold text-foreground">Sous-total {p.groupe}</span> },
         { node: '' },
-        { node: <span className="font-semibold text-amber-800">{formatFcfa(p.sousTotalFacture)}</span>, cn: numCn },
+        { node: <span className="font-semibold text-foreground">{formatFcfa(p.sousTotalFacture)}</span>, cn: numCn },
         {
           node: (
-            <span className="font-medium text-amber-700">
+            <span className="font-medium text-muted">
               {p.deduction ? `- ${formatFcfa(p.deduction)}` : '—'}
             </span>
           ),
           cn: numCn,
         },
-        { node: <span className="font-bold text-amber-900">{formatFcfa(p.sousTotalReste)}</span>, cn: numCn },
+        { node: <span className="font-bold text-foreground">{formatFcfa(p.sousTotalReste)}</span>, cn: numCn },
         { node: '' },
       ],
     });
@@ -195,53 +190,63 @@ export function EncoursTable({ releve }: { releve: IEncoursReleve }) {
   const deductionsAppliquees = releve.partenaires.reduce((s, p) => s + (p.deduction || 0), 0);
   lines.push({
     key: 'total-general',
-    cn: 'bg-primary/10',
+    cn: 'border-t-2 border-separator bg-surface-tertiary',
     cells: [
-      { node: <span className="font-bold text-primary">TOTAL GÉNÉRAL</span> },
+      { node: <span className="font-bold text-foreground">TOTAL GÉNÉRAL</span> },
       { node: '' },
-      { node: <span className="font-bold text-primary">{formatFcfa(releve.totalFacture)}</span>, cn: numCn },
+      { node: <span className="font-bold text-foreground">{formatFcfa(releve.totalFacture)}</span>, cn: numCn },
       {
         node: (
-          <span className="font-semibold text-primary/80">
+          <span className="font-semibold text-muted">
             {deductionsAppliquees ? `- ${formatFcfa(deductionsAppliquees)}` : '—'}
           </span>
         ),
         cn: numCn,
       },
-      { node: <span className="text-base font-bold text-primary">{formatFcfa(releve.totalReste)}</span>, cn: numCn },
+      { node: <span className="text-base font-bold text-foreground">{formatFcfa(releve.totalReste)}</span>, cn: numCn },
       { node: '' },
     ],
   });
 
   return (
-    <Table
-      aria-label="Relevé des restes à payer — détail factures"
-      isHeaderSticky
-      classNames={{
-        wrapper: 'max-h-[64vh] overflow-auto rounded-xl border border-default-200 p-0 shadow-none',
-        th: 'bg-default-100 text-[11px] font-semibold uppercase tracking-wide text-default-600',
-        td: 'py-2.5',
-      }}
-      className="min-w-[820px]"
-    >
-      <TableHeader>
-        {cols.map((c) => (
-          <TableColumn key={c.key} className={c.cn}>
-            {c.label}
-          </TableColumn>
-        ))}
-      </TableHeader>
-      <TableBody emptyContent="Aucun reste à payer pour cette sélection.">
-        {lines.map((l) => (
-          <TableRow key={l.key} className={l.cn}>
-            {l.cells.map((cell, i) => (
-              <TableCell key={cols[i].key} className={cell.cn}>
-                {cell.node}
-              </TableCell>
+    <Table>
+      <Table.ScrollContainer className="max-h-[64vh] overflow-y-auto">
+        <Table.Content
+          aria-label="Relevé des restes à payer — détail factures"
+          className="min-w-[52rem]"
+        >
+          <Table.Header>
+            {cols.map((c) => (
+              <Table.Column
+                className={cn('sticky top-0 z-20 bg-surface-secondary', c.cn)}
+                id={c.key}
+                isRowHeader={c.key === 'store'}
+                key={c.key}
+              >
+                {c.label}
+              </Table.Column>
             ))}
-          </TableRow>
-        ))}
-      </TableBody>
+          </Table.Header>
+
+          <Table.Body
+            renderEmptyState={() => (
+              <p className="py-8 text-center text-sm text-muted">
+                Aucun reste à payer pour cette sélection.
+              </p>
+            )}
+          >
+            {lines.map((l) => (
+              <Table.Row id={l.key} key={l.key}>
+                {l.cells.map((cell, i) => (
+                  <Table.Cell className={cn(l.cn, cell.cn)} key={cols[i].key}>
+                    {cell.node}
+                  </Table.Cell>
+                ))}
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Content>
+      </Table.ScrollContainer>
     </Table>
   );
 }
