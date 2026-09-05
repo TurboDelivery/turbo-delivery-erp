@@ -270,7 +270,7 @@ export default function FactureDetailView({ facture }: Props) {
                   Voir la fiche
                 </button>
               ) : (
-                <div className="text-xs text-muted italic">Le Comptable peut l'ajouter après confirmation de réception.</div>
+                <div className="text-xs text-muted italic">Le Comptable peut l&apos;ajouter après confirmation de réception.</div>
               )}
             </div>
 

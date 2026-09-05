@@ -32,7 +32,7 @@ export function SupprimerEntreeCaisseModal({ entreeCaisse }: SupprimerEntreeCais
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Supprimer l'entrée caisse</AlertDialogTitle>
+          <AlertDialogTitle>Supprimer l&apos;entrée caisse</AlertDialogTitle>
           <AlertDialogDescription>
             Supprimer «{entreeCaisse.libelle}» ? Cette action est irréversible.
           </AlertDialogDescription>

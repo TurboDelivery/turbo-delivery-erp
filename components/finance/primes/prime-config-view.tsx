@@ -1,47 +1,49 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Input,
-  Select,
-  SelectItem,
-  Spinner,
-  Switch,
-} from '@/components/heroui';
+import { Button, Card, Spinner, Switch } from '@heroui-v3/react';
 import { Coins, Percent, Save, Trophy } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+import EtatErreur from '@/components/commons/EtatErreur';
+import { ChampListe, ChampNombre } from '@/components/finance/common/champs-finance';
 import {
   IPrimeConfig,
   usePrimeConfigQuery,
   useUpdatePrimeConfigMutation,
 } from '@/features/primes-config';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 function Section({
-  title,
-  icon: Icon,
   children,
+  icon: Icon,
+  title,
 }: {
-  title: string;
-  icon: typeof Coins;
   children: React.ReactNode;
+  icon: typeof Coins;
+  title: string;
 }) {
   return (
-    <Card shadow="none" className="border border-default-200">
-      <CardHeader className="flex items-center gap-2 pb-1 text-sm font-semibold text-default-700">
-        <Icon className="h-4 w-4 text-primary" />
-        {title}
-      </CardHeader>
-      <CardBody className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</CardBody>
+    <Card>
+      <Card.Content className="gap-4">
+        <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Icon aria-hidden="true" className="size-4 text-muted" />
+          {title}
+        </span>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+      </Card.Content>
     </Card>
   );
 }
 
+/**
+ * La configuration de la commission et de la prime (CDC RG-18/19).
+ *
+ * <p>Les sept champs étaient des `<input type="number">` de la v2 : chaque valeur
+ * remontait en CHAÎNE, avec un `Number(v) || 0` recopié sept fois au point d'appel. Ce
+ * sont des `NumberField`, qui rendent un nombre. L'assiette de la prime était un
+ * `Select`, elle devient un `ComboBox` comme toutes les listes du projet.</p>
+ */
 export function PrimeConfigView() {
-  const { data, isLoading, isError, isFetching, refetch } = usePrimeConfigQuery();
+  const { data, isError, isFetching, isLoading, refetch } = usePrimeConfigQuery();
   const update = useUpdatePrimeConfigMutation();
   const [form, setForm] = useState<IPrimeConfig | null>(null);
 
@@ -54,15 +56,20 @@ export function PrimeConfigView() {
   if (isError) {
     return (
       <div className="p-4">
-        <EtatErreur quoi="la configuration prime" onReessayer={() => refetch()} enCours={isFetching} />
+        <EtatErreur
+          enCours={isFetching}
+          onReessayer={() => refetch()}
+          quoi="la configuration prime"
+        />
       </div>
     );
   }
 
   if (isLoading || !form) {
     return (
-      <div className="flex justify-center py-24">
-        <Spinner color="primary" label="Chargement de la configuration prime…" />
+      <div className="flex flex-col items-center justify-center gap-2 py-24">
+        <Spinner />
+        <p className="text-sm text-muted">Chargement de la configuration prime…</p>
       </div>
     );
   }
@@ -71,119 +78,104 @@ export function PrimeConfigView() {
     setForm((f) => (f ? { ...f, [k]: v } : f));
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Commission &amp; prime — Turboys</h1>
-          <p className="text-sm text-default-500">
-            CDC RG-18/19 : commission de base + prime hebdomadaire calculée <strong>séparément</strong> (et non un taux majoré).
+          <h1 className="text-2xl font-bold text-foreground">Commission &amp; prime — Turboys</h1>
+          <p className="text-sm text-muted">
+            CDC RG-18/19 : commission de base + prime hebdomadaire calculée{' '}
+            <strong>séparément</strong> (et non un taux majoré).
           </p>
         </div>
-        <Button
-          color="primary"
-          startContent={<Save className="h-4 w-4" />}
-          isLoading={update.isPending}
-          onPress={() => update.mutate(form)}
-        >
+        <Button isPending={update.isPending} onPress={() => update.mutate(form)} variant="primary">
+          {update.isPending ? <Spinner size="sm" /> : <Save aria-hidden="true" className="size-4" />}
           Enregistrer
         </Button>
       </div>
 
       {/* Rappel de la règle (anti-confusion avec l'ancien « taux 70 % »). */}
-      <div className="rounded-medium border border-primary/30 bg-primary/5 px-3 py-2 text-sm text-default-600">
-        Le net payé au livreur = <strong>commission ({form.tauxCommission}% du brut)</strong>{' '}
-        {form.primeActive ? (
-          <>+ <strong>prime ({form.tauxPrime}%)</strong> si éligible.</>
-        ) : (
-          <>(prime désactivée).</>
-        )}{' '}
-        La prime n&apos;est plus fusionnée dans le taux de commission.
-      </div>
+      <Card className="bg-surface-secondary">
+        <Card.Content>
+          <p className="text-sm text-foreground">
+            Le net payé au livreur = <strong>commission ({form.tauxCommission} % du brut)</strong>{' '}
+            {form.primeActive ? (
+              <>
+                + <strong>prime ({form.tauxPrime} %)</strong> si éligible.
+              </>
+            ) : (
+              <>(prime désactivée).</>
+            )}{' '}
+            La prime n&apos;est plus fusionnée dans le taux de commission.
+          </p>
+        </Card.Content>
+      </Card>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Section title="Taux" icon={Percent}>
-          <Input
+        <Section icon={Percent} title="Taux">
+          <ChampNombre
+            aide="Part du brut versée au livreur (CDC = 60)"
             label="Taux de commission (%)"
-            size="sm"
-            type="number"
-            min={0}
             max={100}
-            value={String(form.tauxCommission)}
-            onValueChange={(v) => set('tauxCommission', Number(v) || 0)}
-            description="Part du brut versée au livreur (CDC = 60)"
+            onChange={(v) => set('tauxCommission', v)}
+            valeur={form.tauxCommission}
           />
-          <Input
+          <ChampNombre
+            aide="Prime hebdomadaire si éligible (CDC = 10)"
             label="Taux de prime (%)"
-            size="sm"
-            type="number"
-            min={0}
             max={100}
-            value={String(form.tauxPrime)}
-            onValueChange={(v) => set('tauxPrime', Number(v) || 0)}
-            description="Prime hebdomadaire si éligible (CDC = 10)"
+            onChange={(v) => set('tauxPrime', v)}
+            valeur={form.tauxPrime}
           />
-          <Select
+          <ChampListe
+            aide="Base de calcul des 10 %"
             label="Assiette de la prime"
-            size="sm"
-            selectedKeys={[form.assiettePrime]}
-            onSelectionChange={(k) =>
-              set('assiettePrime', (Array.from(k)[0] as IPrimeConfig['assiettePrime']) ?? 'LIVRAISONS_BRUT')
+            onChange={(v) =>
+              set('assiettePrime', (v || 'LIVRAISONS_BRUT') as IPrimeConfig['assiettePrime'])
             }
-            description="Base de calcul des 10 %"
-          >
-            <SelectItem key="LIVRAISONS_BRUT" value="LIVRAISONS_BRUT">
-              Total des livraisons (brut) — CDC
-            </SelectItem>
-            <SelectItem key="COMMISSION_60" value="COMMISSION_60">
-              Commission (60 %) — ancien mode
-            </SelectItem>
-          </Select>
-          <div className="flex items-center justify-between rounded-medium border border-default-200 px-3 py-2">
-            <div>
-              <p className="text-sm font-medium">Prime active</p>
-              <p className="text-xs text-default-500">Désactivée = aucune prime versée</p>
-            </div>
-            <Switch isSelected={form.primeActive} onValueChange={(v) => set('primeActive', v)} />
+            options={[
+              { label: 'Total des livraisons (brut) — CDC', value: 'LIVRAISONS_BRUT' },
+              { label: 'Commission (60 %) — ancien mode', value: 'COMMISSION_60' },
+            ]}
+            valeur={form.assiettePrime}
+          />
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-separator px-3 py-2">
+            <Switch isSelected={form.primeActive} onChange={(v) => set('primeActive', v)}>
+              <Switch.Content className="flex flex-col items-start gap-0.5">
+                <span className="text-sm font-medium text-foreground">Prime active</span>
+                <span className="text-xs text-muted">Désactivée = aucune prime versée</span>
+              </Switch.Content>
+              <Switch.Control>
+                <Switch.Thumb />
+              </Switch.Control>
+            </Switch>
           </div>
         </Section>
 
-        <Section title="Éligibilité à la prime" icon={Trophy}>
-          <Input
+        <Section icon={Trophy} title="Éligibilité à la prime">
+          <ChampNombre
+            aide="0–7 jours travaillés requis"
             label="Présence min (jours/semaine)"
-            size="sm"
-            type="number"
-            min={0}
             max={7}
-            value={String(form.seuilPresenceJours)}
-            onValueChange={(v) => set('seuilPresenceJours', Number(v) || 0)}
-            description="0–7 jours travaillés requis"
+            onChange={(v) => set('seuilPresenceJours', v)}
+            valeur={form.seuilPresenceJours}
           />
-          <Input
+          <ChampNombre
+            aide="Seuil de frais de livraison réalisés"
             label="Montant brut min (FCFA/semaine)"
-            size="sm"
-            type="number"
-            min={0}
-            value={String(form.seuilMontantHebdo)}
-            onValueChange={(v) => set('seuilMontantHebdo', Number(v) || 0)}
-            description="Seuil de frais de livraison réalisés"
+            onChange={(v) => set('seuilMontantHebdo', v)}
+            valeur={form.seuilMontantHebdo}
           />
-          <Input
+          <ChampNombre
+            aide="0 = critère désactivé"
             label="Livraisons min (/semaine)"
-            size="sm"
-            type="number"
-            min={0}
-            value={String(form.seuilLivraisonsHebdo)}
-            onValueChange={(v) => set('seuilLivraisonsHebdo', Number(v) || 0)}
-            description="0 = critère désactivé"
+            onChange={(v) => set('seuilLivraisonsHebdo', v)}
+            valeur={form.seuilLivraisonsHebdo}
           />
-          <Input
+          <ChampNombre
+            aide="Ex-paramètre nombre.course.jour"
             label="Courses/jour pour « jour validé »"
-            size="sm"
-            type="number"
-            min={0}
-            value={String(form.seuilCoursesJour)}
-            onValueChange={(v) => set('seuilCoursesJour', Number(v) || 0)}
-            description="Ex-paramètre nombre.course.jour"
+            onChange={(v) => set('seuilCoursesJour', v)}
+            valeur={form.seuilCoursesJour}
           />
         </Section>
       </div>

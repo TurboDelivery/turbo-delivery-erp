@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Chip, Pagination, Select, SelectItem, Spinner } from '@/components/heroui';
+import { Card, Chip, ComboBox, Input, ListBox, Spinner, Table } from '@heroui-v3/react';
+
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import { CheckCircle2, PenLine, ShieldCheck, Wallet } from 'lucide-react';
 import { fmtFcfa, unifiedStatut, FinanceStatut } from '@/features/finances-hub';
 import {
@@ -13,13 +15,23 @@ import EtatErreur from '@/components/commons/EtatErreur';
 
 const PAGE_SIZE = 12;
 
-const STATUT: Record<FinanceStatut, { label: string; color: 'warning' | 'primary' | 'secondary' | 'success' | 'danger' }> = {
-  pending: { label: 'En attente', color: 'warning' },
-  vise: { label: 'Visé DGA', color: 'primary' },
-  approuve: { label: 'Approuvé DG', color: 'secondary' },
-  paye: { label: 'Payé', color: 'success' },
-  rejete: { label: 'Rejeté', color: 'danger' },
+/*
+ * `color` porte l'echelle semantique, `variant` l'intensite. Les deux etats de passage —
+ * vise, approuve — portaient `primary` et `secondary`, c'est-a-dire deux couleurs de
+ * marque : ils n'appellent aucun geste, ils passent au ton neutre.
+ */
+const STATUT: Record<
+  FinanceStatut,
+  { color: 'danger' | 'default' | 'success' | 'warning'; label: string; plein: boolean }
+> = {
+  approuve: { color: 'default', label: 'Approuvé DG', plein: true },
+  paye: { color: 'success', label: 'Payé', plein: true },
+  pending: { color: 'warning', label: 'En attente', plein: false },
+  rejete: { color: 'danger', label: 'Rejeté', plein: true },
+  vise: { color: 'default', label: 'Visé DGA', plein: false },
 };
+
+const COLONNES = ['designation', 'categorie', 'montant', 'statut', 'actions'];
 
 // ISO → « 07/04 · 14h30 » (ou « 07/04 » sans l'heure).
 const fmtDate = (iso?: string | null, avecHeure = false): string => {
@@ -75,114 +87,188 @@ export function FinanceHistoriqueTab({
   const options = useMemo(() => acteurs ?? [], [acteurs]);
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3">
       {/* Barre filtre (admin uniquement) */}
       {isAdmin && (
         <div className="flex flex-wrap items-center gap-3">
-          <Select
+          <ComboBox
             aria-label="Filtrer par utilisateur"
-            size="sm"
             className="w-full sm:w-72"
-            placeholder="Tous les utilisateurs"
-            selectedKeys={utilisateur ? [utilisateur] : []}
-            onSelectionChange={(keys) => setUtilisateur(String(Array.from(keys as Set<string>)[0] ?? ''))}
+            onSelectionChange={(c) => setUtilisateur(c === 'TOUS' ? '' : String(c ?? ''))}
+            selectedKey={utilisateur || 'TOUS'}
           >
-            {[
-              <SelectItem key="" value="">Tous les utilisateurs</SelectItem>,
-              ...options.map((a) => (
-                <SelectItem key={a} value={a}>{a}</SelectItem>
-              )),
-            ]}
-          </Select>
-          <span className="text-xs text-default-400">
+            <ComboBox.InputGroup>
+              <Input placeholder="Tous les utilisateurs" />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox
+                items={[
+                  { cle: 'TOUS', libelle: 'Tous les utilisateurs' },
+                  ...options.map((a) => ({ cle: a, libelle: a })),
+                ]}
+              >
+                {(o: { cle: string; libelle: string }) => (
+                  <ListBox.Item id={o.cle} textValue={o.libelle}>
+                    {o.libelle}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                )}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
+          <span className="text-xs text-muted">
             {totalElements} action{totalElements > 1 ? 's' : ''}
           </span>
         </div>
       )}
       {!isAdmin && (
-        <p className="text-sm text-default-500">
-          Vos actions sur les dépenses (création, visa, accord) — <span className="font-semibold">{moi}</span>.
+        <p className="text-sm text-muted">
+          Vos actions sur les dépenses (création, visa, accord) —{' '}
+          <span className="font-semibold text-foreground">{moi}</span>.
         </p>
       )}
 
-      {isLoading ? (
-        <div className="flex justify-center py-16"><Spinner color="primary" label="Chargement…" /></div>
-      ) : isError ? (
-        // sans cette branche, l'echec affichait "Aucune action sur cette periode", indiscernable d'un vrai vide
-        <EtatErreur quoi="l'historique des actions" onReessayer={() => refetch()} enCours={isFetching} />
+      {isError ? (
+        // sans cette branche, l'echec affichait "Aucune action sur cette periode",
+        // indiscernable d'un vrai vide
+        <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="l'historique des actions" />
       ) : (
-        <div className="rounded-xl border border-default-200 bg-content1">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-sm">
-              <thead>
-                <tr className="bg-default-100 text-left text-[11px] uppercase tracking-wide text-default-600">
-                  <th className="px-3 py-2.5">Désignation</th>
-                  <th className="px-3 py-2.5">Catégorie</th>
-                  <th className="px-3 py-2.5 text-right">Montant</th>
-                  <th className="px-3 py-2.5">Statut</th>
-                  <th className="px-3 py-2.5">Actions menées</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.length === 0 && (
-                  <tr><td colSpan={5} className="px-3 py-10 text-center text-default-400">Aucune action sur cette période.</td></tr>
-                )}
-                {rows.map((r) => {
-                  const st = unifiedStatut(r.statut);
-                  return (
-                    <tr key={`${r.type}-${r.id}`} className="border-b border-default-100 hover:bg-default-50">
-                      <td className="px-3 py-2.5">
-                        <div className="font-semibold text-foreground">{r.designation}</div>
-                        <div className="text-[11px] text-default-400">{r.type === 'FIXE' ? 'Charge fixe' : 'Dépense variable'}</div>
-                      </td>
-                      <td className="px-3 py-2.5 text-default-500">{r.categorie?.nomCategorie ?? '—'}</td>
-                      <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{fmtFcfa(r.montant)}</td>
-                      <td className="px-3 py-2.5"><Chip size="sm" variant="flat" color={STATUT[st].color} className="h-5">{STATUT[st].label}</Chip></td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex flex-col gap-1 text-[12px]">
-                          {r.creerPar && (
-                            <span className="inline-flex items-center gap-1.5 text-default-600">
-                              <PenLine className="h-3.5 w-3.5 text-default-400" />Créé par <b>{r.creerPar}</b>
-                              {r.createdAt && <span className="text-default-400">· {fmtDate(r.createdAt, true)}</span>}
+        <Card>
+          <Card.Content className="p-0">
+            {/*
+             * Un `<table>` BRUT, avec ses `<th>` et ses `<td>` peints a la main :
+             * `CLAUDE.md` interdit explicitement le balisage de tableau ecrit a la main.
+             */}
+            <Table>
+              <Table.ScrollContainer>
+                <Table.Content aria-label="Historique des actions" className="min-w-[52rem]">
+                  <Table.Header>
+                    <Table.Column id="designation" isRowHeader>
+                      Désignation
+                    </Table.Column>
+                    <Table.Column id="categorie">Catégorie</Table.Column>
+                    <Table.Column id="montant">Montant</Table.Column>
+                    <Table.Column id="statut">Statut</Table.Column>
+                    <Table.Column id="actions">Actions menées</Table.Column>
+                  </Table.Header>
+
+                  <Table.Body
+                    renderEmptyState={() =>
+                      isLoading ? null : (
+                        <p className="py-10 text-center text-sm text-muted">
+                          Aucune action sur cette période.
+                        </p>
+                      )
+                    }
+                  >
+                    {isLoading
+                      ? Array.from({ length: 6 }).map((_, i) => (
+                          <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                            {COLONNES.map((c) => (
+                              <Table.Cell key={`sq-${i}-${c}`}>
+                                <div className="h-4 animate-pulse rounded bg-surface-secondary" />
+                              </Table.Cell>
+                            ))}
+                          </Table.Row>
+                        ))
+                      : null}
+
+                    {(isLoading ? [] : rows).map((r) => {
+                      const st = unifiedStatut(r.statut);
+                      return (
+                        <Table.Row id={`${r.type}-${r.id}`} key={`${r.type}-${r.id}`}>
+                          <Table.Cell>
+                            <span className="block font-semibold text-foreground">
+                              {r.designation}
                             </span>
-                          )}
-                          {r.validePar && (
-                            <span className="inline-flex items-center gap-1.5 text-primary-600">
-                              <ShieldCheck className="h-3.5 w-3.5" />Visé par <b>{r.validePar}</b>
-                              {r.dateValidationDGA && <span className="text-default-400">· {fmtDate(r.dateValidationDGA, true)}</span>}
+                            <span className="block text-[11px] text-muted">
+                              {r.type === 'FIXE' ? 'Charge fixe' : 'Dépense variable'}
                             </span>
-                          )}
-                          {r.approuvePar && (
-                            <span className="inline-flex items-center gap-1.5 text-secondary-600">
-                              <CheckCircle2 className="h-3.5 w-3.5" />Approuvé par <b>{r.approuvePar}</b>
-                              {r.dateApprobationDG && <span className="text-default-400">· {fmtDate(r.dateApprobationDG, true)}</span>}
+                          </Table.Cell>
+
+                          <Table.Cell>
+                            <span className="text-muted">{r.categorie?.nomCategorie ?? '—'}</span>
+                          </Table.Cell>
+
+                          <Table.Cell>
+                            <span className="block text-right font-semibold tabular-nums">
+                              {fmtFcfa(r.montant)}
                             </span>
-                          )}
-                          {r.dateDecaissement && (
-                            <span className="inline-flex items-center gap-1.5 text-success-600">
-                              <Wallet className="h-3.5 w-3.5" />Décaissé <span className="text-default-400">· {fmtDate(r.dateDecaissement, true)}</span>
-                            </span>
-                          )}
-                          {!r.creerPar && !r.validePar && !r.approuvePar && !r.dateDecaissement && (
-                            <span className="text-default-400">—</span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-default-200 px-4 py-3">
-            <span className="text-xs text-default-400">
-              {totalElements} action{totalElements > 1 ? 's' : ''}{isFetching ? ' · actualisation…' : ''}
-            </span>
-            {totalPages > 1 && (
-              <Pagination total={totalPages} page={page} onChange={setPage} size="sm" color="primary" showControls />
-            )}
-          </div>
-        </div>
+                          </Table.Cell>
+
+                          <Table.Cell>
+                            <Chip
+                              color={STATUT[st].color}
+                              size="sm"
+                              variant={STATUT[st].plein ? 'primary' : 'soft'}
+                            >
+                              <Chip.Label>{STATUT[st].label}</Chip.Label>
+                            </Chip>
+                          </Table.Cell>
+
+                          <Table.Cell>
+                            {/*
+                             * Les quatre lignes d'action portaient chacune une couleur —
+                             * `text-primary-600`, `text-secondary-600`, `text-success-600` —
+                             * pour dire QUI a fait quoi, alors que le nom est ecrit juste
+                             * a cote. L'icone suffit a distinguer les etapes.
+                             */}
+                            <div className="flex flex-col gap-1 text-[12px] text-muted">
+                              {r.creerPar && (
+                                <span className="inline-flex items-center gap-1.5">
+                                  <PenLine aria-hidden="true" className="size-3.5" />
+                                  Créé par <b className="text-foreground">{r.creerPar}</b>
+                                  {r.createdAt && <span>· {fmtDate(r.createdAt, true)}</span>}
+                                </span>
+                              )}
+                              {r.validePar && (
+                                <span className="inline-flex items-center gap-1.5">
+                                  <ShieldCheck aria-hidden="true" className="size-3.5" />
+                                  Visé par <b className="text-foreground">{r.validePar}</b>
+                                  {r.dateValidationDGA && (
+                                    <span>· {fmtDate(r.dateValidationDGA, true)}</span>
+                                  )}
+                                </span>
+                              )}
+                              {r.approuvePar && (
+                                <span className="inline-flex items-center gap-1.5">
+                                  <CheckCircle2 aria-hidden="true" className="size-3.5" />
+                                  Approuvé par <b className="text-foreground">{r.approuvePar}</b>
+                                  {r.dateApprobationDG && (
+                                    <span>· {fmtDate(r.dateApprobationDG, true)}</span>
+                                  )}
+                                </span>
+                              )}
+                              {r.dateDecaissement && (
+                                <span className="inline-flex items-center gap-1.5 text-success-soft-foreground">
+                                  <Wallet aria-hidden="true" className="size-3.5" />
+                                  Décaissé · {fmtDate(r.dateDecaissement, true)}
+                                </span>
+                              )}
+                              {!r.creerPar &&
+                                !r.validePar &&
+                                !r.approuvePar &&
+                                !r.dateDecaissement && <span>—</span>}
+                            </div>
+                          </Table.Cell>
+                        </Table.Row>
+                      );
+                    })}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
+
+              <Table.Footer className="justify-between gap-2">
+                <span className="text-xs text-muted">
+                  {totalElements} action{totalElements > 1 ? 's' : ''}
+                  {isFetching ? ' · actualisation…' : ''}
+                </span>
+                <PaginationTableau onPage={setPage} page={page} total={totalPages} />
+              </Table.Footer>
+            </Table>
+          </Card.Content>
+        </Card>
       )}
     </div>
   );

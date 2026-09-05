@@ -196,6 +196,12 @@ features/<domain>/hooks/use-<name>-table.ts   ← useReactTable instance + data 
   « A slot prop is required » et la page tombe.
 - **Loading skeletons**: des `Table.Row` de la même forme que les vraies lignes, avec un
   `div animate-pulse` par cellule.
+- **Exception documentée** : un COMPTE DE RÉSULTAT n'est pas un tableau de données. Le
+  `Table` v3 rend un `<table role="grid">` — une grille interactive où l'on navigue aux
+  flèches — n'expose pas de `colSpan` et son pied est un simple `div`. Un document qui se
+  lit (lignes fixes, aucun tri, aucune pagination) reste un `<table>` avec `scope="col"` /
+  `scope="row"`. Voir `features/finance-dashboard/components/etat/etat-financier.tsx`, qui
+  porte le raisonnement mesuré.
 - Les autres pièges de la v3 sont documentés dans `app/apercu/composants` (galerie) et
   dans les bancs `app/apercu/*`, qui rendent chaque écran refondu sur données d'exemple,
   en clair et en sombre. **Un banc bascule le thème sur `<html>`, jamais sur une

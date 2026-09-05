@@ -1,141 +1,218 @@
 'use client';
 
-import { useState } from 'react';
 import {
+  Alert,
+  Button,
+  Calendar,
   Card,
-  CardBody,
-  Input,
+  DateField,
+  DatePicker,
+  Label,
   Popover,
-  PopoverContent,
-  PopoverTrigger,
+  Separator,
   Spinner,
-} from '@/components/heroui';
-import { CalendarDays, Info, TrendingDown, TrendingUp } from 'lucide-react';
+} from '@heroui-v3/react';
+import { CalendarDate, type DateValue } from '@internationalized/date';
+import { ChevronLeft, ChevronRight, Info, TrendingDown, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import { useRentabiliteQuery } from '@/features/rentabilite';
+import { cn } from '@/lib/utils';
 import { formatMontant } from '@/utils/format.utils';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-function Row({ k, v, bold }: { k: string; v: string; bold?: boolean }) {
+function Row({ bold, k, v }: { bold?: boolean; k: string; v: string }) {
   return (
-    <div className={`flex items-center justify-between gap-4 py-0.5 text-sm ${bold ? 'font-semibold' : ''}`}>
-      <span className="text-default-600">{k}</span>
-      <span className="tabular-nums">{v}</span>
+    <div
+      className={cn(
+        'flex items-center justify-between gap-4 py-0.5 text-sm',
+        bold && 'font-semibold',
+      )}
+    >
+      <span className="text-muted">{k}</span>
+      <span className="tabular-nums text-foreground">{v}</span>
     </div>
   );
 }
 
-/** Widget Rentabilité temps réel (§8) : date d'arrêté, marge/déficit, décomposition des dépenses. */
+function enDateCalendaire(iso: string): CalendarDate | null {
+  const [a, m, j] = (iso ?? '').split('-').map(Number);
+  return a && m && j ? new CalendarDate(a, m, j) : null;
+}
+
+/**
+ * Widget Rentabilité temps réel (§8) : date d'arrêté, marge/déficit, décomposition des
+ * dépenses.
+ *
+ * <p>La carte de tête était peinte en `emerald-50 / emerald-200 / emerald-700` ou
+ * `rose-*` selon le signe — six teintes de la palette Tailwind, sans variante sombre : en
+ * thème sombre, du texte vert foncé sur un fond vert pâle. Marge et déficit sont un ÉTAT,
+ * donc ils passent par les jetons `success` et `danger` du thème. La date d'arrêté était
+ * un `<input type="date">` brut.</p>
+ */
 export function RentabiliteView() {
   const [dateArret, setDateArret] = useState(today());
-  const { data, isLoading, isError } = useRentabiliteQuery(dateArret);
+  const { data, isError, isFetching, isLoading, refetch } = useRentabiliteQuery(dateArret);
 
   return (
-    <div className="space-y-4 p-4">
+    <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Rentabilité — temps réel</h1>
-          <p className="text-sm text-default-500">
+          <h1 className="text-2xl font-bold text-foreground">Rentabilité — temps réel</h1>
+          <p className="text-sm text-muted">
             Prorata des charges fixes + dépenses variables vs CA cumulé
           </p>
         </div>
-        <Input
-          type="date"
-          label="Date d'arrêté"
-          size="sm"
+
+        <DatePicker
           className="w-52"
-          value={dateArret}
-          onValueChange={setDateArret}
-          startContent={<CalendarDays className="h-4 w-4 text-default-400" />}
-        />
+          onChange={(d: DateValue | null) => {
+            if (d) setDateArret(d.toString());
+          }}
+          value={enDateCalendaire(dateArret)}
+        >
+          <Label>Date d&apos;arrêté</Label>
+          <DateField.Group>
+            <DateField.Input>
+              {(segment: React.ComponentProps<typeof DateField.Segment>['segment']) => (
+                <DateField.Segment segment={segment} />
+              )}
+            </DateField.Input>
+            <DatePicker.Trigger>
+              <DatePicker.TriggerIndicator />
+            </DatePicker.Trigger>
+          </DateField.Group>
+          <DatePicker.Popover>
+            <Calendar>
+              <Calendar.Header>
+                <Calendar.NavButton slot="previous">
+                  <ChevronLeft aria-hidden="true" className="size-4" />
+                </Calendar.NavButton>
+                <Calendar.Heading />
+                <Calendar.NavButton slot="next">
+                  <ChevronRight aria-hidden="true" className="size-4" />
+                </Calendar.NavButton>
+              </Calendar.Header>
+              <Calendar.Grid>
+                <Calendar.GridHeader>
+                  {(j: string) => <Calendar.HeaderCell>{j}</Calendar.HeaderCell>}
+                </Calendar.GridHeader>
+                <Calendar.GridBody>
+                  {(d: CalendarDate) => <Calendar.Cell date={d} />}
+                </Calendar.GridBody>
+              </Calendar.Grid>
+            </Calendar>
+          </DatePicker.Popover>
+        </DatePicker>
       </div>
 
       {isLoading && (
-        <div className="flex justify-center py-16">
-          <Spinner color="primary" label="Calcul de la rentabilité…" />
-        </div>
-      )}
-      {isError && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 py-10 text-center text-sm text-rose-600">
-          Erreur de chargement de la rentabilité.
+        <div className="flex flex-col items-center justify-center gap-2 py-16">
+          <Spinner />
+          <p className="text-sm text-muted">Calcul de la rentabilité…</p>
         </div>
       )}
 
+      {/* L'echec n'offrait aucune reprise : il fallait recharger la page entiere. */}
+      {isError && (
+        <Alert status="danger">
+          <Alert.Indicator />
+          <Alert.Content>
+            <Alert.Description>La rentabilité n’a pas pu être calculée.</Alert.Description>
+          </Alert.Content>
+          <Button isPending={isFetching} onPress={() => void refetch()} size="sm" variant="outline">
+            Réessayer
+          </Button>
+        </Alert>
+      )}
+
       {data && !isLoading && (
-        <div className="space-y-4">
-          {/* Hero marge / déficit */}
+        <div className="flex flex-col gap-4">
+          {/* Marge ou déficit — le seul endroit de l'écran où la couleur dit quelque chose. */}
           <Card
-            shadow="none"
-            className={`border ${data.marge ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50'}`}
+            className={cn(
+              'border',
+              data.marge ? 'border-success/30 bg-success/5' : 'border-danger/30 bg-danger/5',
+            )}
           >
-            <CardBody className="flex flex-row items-center justify-between gap-4 p-5">
+            <Card.Content className="flex-row items-center justify-between gap-4">
               <div>
                 <p
-                  className={`text-xs font-medium uppercase tracking-wide ${
-                    data.marge ? 'text-emerald-700' : 'text-rose-700'
-                  }`}
+                  className={cn(
+                    'text-xs font-medium uppercase tracking-wide',
+                    data.marge ? 'text-success-soft-foreground' : 'text-danger-soft-foreground',
+                  )}
                 >
-                  {data.marge ? 'Marge' : 'Déficit'} · arrêté au {data.dateArret} (jour {data.joursEcoules}/
-                  {data.nbJours})
+                  {data.marge ? 'Marge' : 'Déficit'} · arrêté au {data.dateArret} (jour{' '}
+                  {data.joursEcoules}/{data.nbJours})
                 </p>
                 <p
-                  className={`text-3xl font-bold tabular-nums ${
-                    data.marge ? 'text-emerald-700' : 'text-rose-700'
-                  }`}
+                  className={cn(
+                    'text-3xl font-bold tabular-nums',
+                    data.marge ? 'text-success-soft-foreground' : 'text-danger-soft-foreground',
+                  )}
                 >
                   {data.profit < 0 ? '- ' : ''}
                   {formatMontant(Math.abs(data.profit))}
                 </p>
-                <p className="text-xs text-default-500">
-                  CA cumulé {formatMontant(data.caCumule)} − Dépenses {formatMontant(data.totalCumule)}
+                <p className="text-xs text-muted">
+                  CA cumulé {formatMontant(data.caCumule)} − Dépenses{' '}
+                  {formatMontant(data.totalCumule)}
                 </p>
               </div>
               <span
-                className={`flex h-12 w-12 items-center justify-center rounded-xl ${
-                  data.marge ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                }`}
+                className={cn(
+                  'flex size-12 items-center justify-center rounded-xl',
+                  data.marge
+                    ? 'bg-success/15 text-success-soft-foreground'
+                    : 'bg-danger/15 text-danger-soft-foreground',
+                )}
               >
-                {data.marge ? <TrendingUp className="h-6 w-6" /> : <TrendingDown className="h-6 w-6" />}
+                {data.marge ? (
+                  <TrendingUp aria-hidden="true" className="size-6" />
+                ) : (
+                  <TrendingDown aria-hidden="true" className="size-6" />
+                )}
               </span>
-            </CardBody>
+            </Card.Content>
           </Card>
 
           <GrilleStats colonnes={3}>
             <CarteStat libelle="CA cumulé" valeur={formatMontant(data.caCumule)} />
 
-            {/* Le bouton reste le declencheur du popover : CarteStat n'expose pas
-                la ref ni les gestionnaires de press attendus par PopoverTrigger. */}
-            <Popover placement="bottom" showArrow>
-              <PopoverTrigger>
-                <button type="button" className="block h-full text-left">
-                  {/* L'icone Info annonce que le detail est dans le popover. CarteStat
-                      la pose dans la pastille a droite, jamais en ligne apres le libelle. */}
-                  <CarteStat
-                    libelle="Total dépenses (cumulé)"
-                    valeur={formatMontant(data.totalCumule)}
-                    icone={Info}
-                    className="h-full"
-                  />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-72 p-3">
-                <p className="mb-2 text-sm font-semibold">Décomposition des dépenses</p>
+            {/* Le declencheur reste un bouton autour de la carte : `CarteStat` n'expose ni
+                la ref ni les gestionnaires de press attendus par le `Popover`. */}
+            <Popover>
+              <Button className="h-full p-0 text-left" variant="ghost">
+                {/* L'icone Info annonce que le detail est dans le popover. CarteStat
+                    la pose dans la pastille a droite, jamais en ligne apres le libelle. */}
+                <CarteStat
+                  className="h-full"
+                  icone={Info}
+                  libelle="Total dépenses (cumulé)"
+                  valeur={formatMontant(data.totalCumule)}
+                />
+              </Button>
+              <Popover.Content className="w-72">
+                <p className="mb-2 text-sm font-semibold text-foreground">
+                  Décomposition des dépenses
+                </p>
                 <Row k="Charges fixes (prorata)" v={formatMontant(data.fixeProrata)} />
-                <p className="pl-1 text-xs text-default-400">
+                <p className="pl-1 text-xs text-muted">
                   {formatMontant(data.coutJournalier)}/j × {data.joursEcoules} j
                 </p>
                 <Row k="Dépenses variables (réel)" v={formatMontant(data.variableReel)} />
-                <div className="mt-1 border-t border-default-200 pt-1">
-                  <Row k="Total" v={formatMontant(data.totalCumule)} bold />
-                </div>
-              </PopoverContent>
+                <Separator className="my-1" />
+                <Row bold k="Total" v={formatMontant(data.totalCumule)} />
+              </Popover.Content>
             </Popover>
 
             <CarteStat
               libelle="Coût journalier"
-              valeur={formatMontant(data.coutJournalier)}
               note={`${formatMontant(data.chargesFixesMensuelles)} / ${data.nbJours} j`}
+              valeur={formatMontant(data.coutJournalier)}
             />
           </GrilleStats>
         </div>

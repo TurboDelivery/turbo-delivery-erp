@@ -4,21 +4,33 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Button,
   Card,
-  CardBody,
   Checkbox,
   Chip,
+  ComboBox,
+  Input,
+  Label,
+  ListBox,
   Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Pagination,
-  Select,
-  SelectItem,
   Spinner,
-  useDisclosure,
-} from '@/components/heroui';
-import { Banknote, CheckCircle2, Clock, Download, FileText, Pencil, Plus, ShieldCheck, Trash2, TrendingUp, Wallet } from 'lucide-react';
+  Table,
+} from '@heroui-v3/react';
+
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
+import { cn } from '@/lib/utils';
+import {
+  Banknote,
+  CheckCircle2,
+  Clock,
+  Download,
+  FileText,
+  Pencil,
+  Plus,
+  ShieldCheck,
+  Trash2,
+  TrendingUp,
+  Wallet,
+  X,
+} from 'lucide-react';
 import { CategoriesSelectFilter } from '@/components/depenses/depense-table/categories-select-filter';
 import { toast } from 'sonner';
 import ConfirmModal from '@/components/ui/confirm-modal';
@@ -59,12 +71,17 @@ const daysInMonth = (monthKey: string) => {
   return new Date(y, m, 0).getDate();
 };
 
-const STATUT: Record<FinanceStatut, { label: string; color: 'warning' | 'primary' | 'secondary' | 'success' | 'danger' }> = {
-  pending: { label: 'En attente', color: 'warning' },
-  vise: { label: 'Visé DGA', color: 'primary' },
-  approuve: { label: 'Approuvé DG', color: 'secondary' },
-  paye: { label: 'Payé', color: 'success' },
-  rejete: { label: 'Rejeté', color: 'danger' },
+/*
+ * `color` porte l'echelle semantique, `variant` l'intensite. Les deux etats de passage
+ * portaient `primary` et `secondary`, deux couleurs de MARQUE pour des etapes qui
+ * n'appellent aucun geste : ils passent au ton neutre.
+ */
+const STATUT: Record<FinanceStatut, { color: 'danger' | 'default' | 'success' | 'warning'; label: string; plein: boolean }> = {
+  pending: { color: 'warning', label: 'En attente', plein: false },
+  vise: { color: 'default', label: 'Visé DGA', plein: false },
+  approuve: { color: 'default', label: 'Approuvé DG', plein: true },
+  paye: { color: 'success', label: 'Payé', plein: true },
+  rejete: { color: 'danger', label: 'Rejeté', plein: true },
 };
 
 function Stepper({ item, seuil }: { item: IFinanceItem; seuil: number }) {
@@ -74,18 +91,18 @@ function Stepper({ item, seuil }: { item: IFinanceItem; seuil: number }) {
     <span
       className={`flex h-3.5 w-3.5 flex-none items-center justify-center rounded-full border-2 ${
         done
-          ? 'border-emerald-600 bg-emerald-600'
+          ? 'border-success bg-success'
           : current
             ? 'border-primary ring-2 ring-primary/20'
             : skip
-              ? 'border-dashed border-default-300 bg-default-100'
-              : 'border-default-300 bg-surface'
+              ? 'border-dashed border-separator bg-surface-secondary'
+              : 'border-separator bg-surface'
       }`}
     >
       {done && <span className="h-1 w-1 rounded-full bg-surface" />}
     </span>
   );
-  const line = (done: boolean) => <span className={`h-0.5 flex-1 ${done ? 'bg-emerald-600' : 'bg-default-200'}`} />;
+  const line = (done: boolean) => <span className={`h-0.5 flex-1 ${done ? 'bg-success' : 'bg-surface-tertiary'}`} />;
   return (
     <div className="flex min-w-[140px] items-center" title="Saisie → Visa DGA → Accord DG → Payé">
       <span className="flex flex-1 items-center">{node(st.saisie)}{line(st.visa)}</span>
@@ -191,7 +208,9 @@ export function FinanceHubView() {
   // Dates (objets) mémoïsées pour le graphique — stables tant que le mois ne change pas.
   const chartDebut = useMemo(() => new Date(periodeDebut), [periodeDebut]);
   const chartFin = useMemo(() => new Date(periodeFin), [periodeFin]);
-  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const [isOpen, setIsOpen] = useState(false);
+  const onOpen = () => setIsOpen(true);
+  const onClose = () => setIsOpen(false);
 
   // Changement de mois : on repositionne le curseur (jour courant si mois en
   // cours, sinon fin de mois) et on recalcule la date d'arrêté → la rentabilité
@@ -352,18 +371,38 @@ export function FinanceHubView() {
     const a = nextAction(item, seuil);
     return (
       <>
-        {a === 'vise' && peutViser(item) && <Button size="sm" variant="flat" color="primary" isLoading={busy} onPress={() => act(item, 'valider-dga', 'Visa DGA')}>Viser</Button>}
-        {a === 'approuve' && peutApprouver(item) && <Button size="sm" variant="flat" color="secondary" isLoading={busy} onPress={() => act(item, 'approuver-dg', 'Accord DG')}>Approuver</Button>}
-        {a === 'pay' && peutDecaisser(item) && <Button size="sm" color="success" isLoading={busy} onPress={() => openPay([item])}>Décaisser</Button>}
+        {a === 'vise' && peutViser(item) && (
+          <Button isPending={busy} onPress={() => act(item, 'valider-dga', 'Visa DGA')} size="sm" variant="outline">
+            Viser
+          </Button>
+        )}
+        {a === 'approuve' && peutApprouver(item) && (
+          <Button isPending={busy} onPress={() => act(item, 'approuver-dg', 'Accord DG')} size="sm" variant="outline">
+            Approuver
+          </Button>
+        )}
+        {a === 'pay' && peutDecaisser(item) && (
+          <Button isPending={busy} onPress={() => openPay([item])} size="sm" variant="primary">
+            Décaisser
+          </Button>
+        )}
         {/* Rejet : seules les dépenses VARIABLES ont un état REJETE côté backend
             (les charges fixes n'ont pas d'endpoint de rejet → on masque le bouton). */}
-        {a && item.statut !== 'paye' && item.type === 'variable' && peutRejeter(item) && <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => onReject(item)} title="Rejeter">✕</Button>}
-        {item.statut === 'paye' && <span className="text-[11px] text-default-400">Payé</span>}
+        {a && item.statut !== 'paye' && item.type === 'variable' && peutRejeter(item) && (
+          <Button aria-label="Rejeter" isIconOnly onPress={() => onReject(item)} size="sm" variant="danger-soft">
+            <X aria-hidden="true" className="size-4" />
+          </Button>
+        )}
+        {item.statut === 'paye' && <span className="text-[11px] text-muted">Payé</span>}
         {/* Admin : modifier / supprimer QUEL QUE SOIT le statut (hors charges système RH). */}
         {isAdmin && !item.dyn && (
           <>
-            <Button size="sm" variant="light" isIconOnly onPress={() => openEdit(item)} title="Modifier" aria-label="Modifier"><Pencil className="h-4 w-4" /></Button>
-            <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => setItemToDelete(item)} title="Supprimer" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></Button>
+            <Button aria-label="Modifier" isIconOnly onPress={() => openEdit(item)} size="sm" variant="ghost">
+              <Pencil aria-hidden="true" className="size-4" />
+            </Button>
+            <Button aria-label="Supprimer" isIconOnly onPress={() => setItemToDelete(item)} size="sm" variant="danger-soft">
+              <Trash2 aria-hidden="true" className="size-4" />
+            </Button>
           </>
         )}
       </>
@@ -419,40 +458,62 @@ export function FinanceHubView() {
     <div className="space-y-4 p-3 sm:p-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Finances — Dépenses, Décaissement & Rentabilité</h1>
-          <p className="text-sm text-default-500">
+          <h1 className="text-2xl font-bold text-foreground">Finances — Dépenses, Décaissement & Rentabilité</h1>
+          <p className="text-sm text-muted">
             Module unifié : charges fixes & variables · validation en cascade · prorata temps réel · décaissement
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Can I="create" a="ChargeFixe">
-            <Button size="sm" color="danger" variant="flat" startContent={<Plus className="h-4 w-4" />} onPress={() => setIsFixeModalOpen(true)}>Charge fixe</Button>
+            <Button onPress={() => setIsFixeModalOpen(true)} size="sm" variant="outline">
+              <Plus aria-hidden="true" className="size-4" />
+              Charge fixe
+            </Button>
           </Can>
           <Can I="create" a="ChargeVariable">
-            <Button size="sm" color="danger" variant="flat" startContent={<Plus className="h-4 w-4" />} onPress={() => setIsVariableModalOpen(true)}>Dépense</Button>
+            <Button onPress={() => setIsVariableModalOpen(true)} size="sm" variant="primary">
+              <Plus aria-hidden="true" className="size-4" />
+              Dépense
+            </Button>
           </Can>
-          <Select
+          <ComboBox
             aria-label="Période (mois)"
-            size="sm"
             className="w-[170px]"
-            selectedKeys={[monthKey]}
-            onSelectionChange={(keys) => changeMonth(String(Array.from(keys as Set<string>)[0] ?? CUR_MONTH_KEY))}
+            onSelectionChange={(c) => changeMonth(String(c ?? CUR_MONTH_KEY))}
+            selectedKey={monthKey}
           >
-            {monthOptions.map((m) => (
-              <SelectItem key={m.key} value={m.key}>{m.label}</SelectItem>
-            ))}
-          </Select>
-          <Button size="sm" variant="bordered" startContent={<Download className="h-4 w-4" />} onPress={exportXlsx}>Excel</Button>
-          <Button size="sm" className="bg-foreground text-background" startContent={<FileText className="h-4 w-4" />} onPress={exportPdf}>PDF</Button>
+            <ComboBox.InputGroup>
+              <Input />
+              <ComboBox.Trigger />
+            </ComboBox.InputGroup>
+            <ComboBox.Popover>
+              <ListBox items={monthOptions}>
+                {(m: { key: string; label: string }) => (
+                  <ListBox.Item id={m.key} textValue={m.label}>
+                    {m.label}
+                    <ListBox.ItemIndicator />
+                  </ListBox.Item>
+                )}
+              </ListBox>
+            </ComboBox.Popover>
+          </ComboBox>
+          <Button onPress={exportXlsx} size="sm" variant="outline">
+            <Download aria-hidden="true" className="size-4" />
+            Excel
+          </Button>
+          <Button onPress={exportPdf} size="sm" variant="outline">
+            <FileText aria-hidden="true" className="size-4" />
+            PDF
+          </Button>
         </div>
       </div>
 
       {/* Curseur date d'arrêté */}
-      <Card shadow="none" className="border border-default-200">
-        <CardBody className="gap-2">
-          <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wide text-default-500">
+      <Card className="border border-separator">
+        <Card.Content className="gap-2">
+          <div className="flex items-center justify-between text-xs font-medium uppercase tracking-wide text-muted">
             <span>Date d&apos;arrêté (jour du mois) — pilote le prorata</span>
-            <span className="font-bold text-primary">J{jour} / {realDays}</span>
+            <span className="font-bold text-foreground">J{jour} / {realDays}</span>
           </div>
           <input
             type="range" min={1} max={realDays} value={jour}
@@ -461,22 +522,22 @@ export function FinanceHubView() {
             onTouchEnd={(e) => setDateArret(buildDate(monthKey, Number((e.target as HTMLInputElement).value)))}
             className="w-full accent-primary"
           />
-        </CardBody>
+        </Card.Content>
       </Card>
 
       {/* CA cumulé + décomposition (réplique du tableau de bord principal) */}
-      <Card shadow="none" className="border border-emerald-200 bg-emerald-50/40">
-        <CardBody className="gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <Card className="border border-success/30 bg-success/5">
+        <Card.Content className="gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <span className="text-[11px] font-medium uppercase tracking-wide text-default-500">CA cumulé</span>
-            <div className="text-2xl font-bold tabular-nums text-emerald-700">{fmtFcfa(k.ca)}</div>
-            <span className="text-xs text-default-400">Frais de livraison + commissions + entrées de caisse</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-muted">CA cumulé</span>
+            <div className="text-2xl font-bold tabular-nums text-success-soft-foreground">{fmtFcfa(k.ca)}</div>
+            <span className="text-xs text-muted">Frais de livraison + commissions + entrées de caisse</span>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
             <CaPart label="Frais de livraison" value={fmtFcfa(k.fraisLivraison)} />
             <CaPart label="Commissions" value={fmtFcfa(k.commission)} hint={`Fixe ${fmtFcfa(k.commissionFixe)} · Pourcentage ${fmtFcfa(k.commissionPct)}`} />
           </div>
-        </CardBody>
+        </Card.Content>
       </Card>
 
       {/* Rubriques (réplique du tableau de bord principal) */}
@@ -497,28 +558,39 @@ export function FinanceHubView() {
 
       {/* Dépenses cumulées (détail) + marge */}
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <Card shadow="none" className="border border-default-200">
-          <CardBody className="gap-1 p-4">
-            <span className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wide text-default-500">Dépenses cumulées<Banknote className="h-4 w-4 text-default-300" /></span>
+        <Card className="border border-separator">
+          <Card.Content className="gap-1 p-4">
+            <span className="flex items-center justify-between text-[11px] font-medium uppercase tracking-wide text-muted">Dépenses cumulées<Banknote className="h-4 w-4 text-muted" /></span>
             <span className="text-xl font-bold tabular-nums text-foreground">{fmtFcfa(k.dep)}</span>
-            <span className="text-xs text-default-400">Charges fixes (prorata) {fmtFcfa(k.fixeProrata)} · Dépenses variables {fmtFcfa(k.variableReel)}</span>
-          </CardBody>
+            <span className="text-xs text-muted">Charges fixes (prorata) {fmtFcfa(k.fixeProrata)} · Dépenses variables {fmtFcfa(k.variableReel)}</span>
+          </Card.Content>
         </Card>
+        {/*
+         * Marge ou deficit : les six teintes `emerald-*` / `rose-*` et leurs quatre
+         * variantes sombres recopiees a la main passent aux jetons `success` et `danger`,
+         * qui suivent le theme seuls.
+         */}
         <Card
-          shadow="none"
-          className={`border ${k.marge === null ? 'border-separator' : k.marge ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-400/25 dark:bg-emerald-400/10' : 'border-rose-200 bg-rose-50 dark:border-rose-400/25 dark:bg-rose-400/10'}`}
+          className={cn(
+            'border',
+            k.marge === null
+              ? 'border-separator'
+              : k.marge
+                ? 'border-success/30 bg-success/5'
+                : 'border-danger/30 bg-danger/5',
+          )}
         >
-          <CardBody className="gap-1 p-4">
+          <Card.Content className="gap-1 p-4">
             <span className="text-[11px] font-medium uppercase tracking-wide text-muted">
               {k.marge === null ? 'Marge' : k.marge ? 'Marge actuelle' : 'Déficit actuel'}
             </span>
             <span
-              className={`text-2xl font-bold tabular-nums ${k.marge === null ? 'text-muted' : k.marge ? 'text-emerald-800 dark:text-emerald-300' : 'text-rose-800 dark:text-rose-300'}`}
+              className={`text-2xl font-bold tabular-nums ${k.marge === null ? 'text-muted' : k.marge ? 'text-success-soft-foreground' : 'text-danger-soft-foreground'}`}
             >
               {k.marge === null ? '—' : `${k.profit >= 0 ? '+' : ''}${fmtFcfa(k.profit)}`}
             </span>
             <span
-              className={`mt-0.5 inline-block w-fit rounded-full px-2 py-0.5 text-[11px] font-semibold ${k.marge === null ? 'bg-surface-secondary text-muted' : k.marge ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-400/15 dark:text-emerald-300' : 'bg-rose-100 text-rose-900 dark:bg-rose-400/15 dark:text-rose-300'}`}
+              className={`mt-0.5 inline-block w-fit rounded-full px-2 py-0.5 text-[11px] font-semibold ${k.marge === null ? 'bg-surface-secondary text-muted' : k.marge ? 'bg-success/15 text-success-soft-foreground' : 'bg-danger/15 text-danger-soft-foreground'}`}
             >
               {k.marge === null
                 ? 'Rentabilité indisponible'
@@ -526,13 +598,13 @@ export function FinanceHubView() {
                   ? 'Rentable à ce stade'
                   : 'En déficit à ce stade'}
             </span>
-          </CardBody>
+          </Card.Content>
         </Card>
       </div>
 
       {/* Décomposition prorata */}
-      <Card shadow="none" className="border border-default-200">
-        <CardBody>
+      <Card className="border border-separator">
+        <Card.Content>
           <p className="mb-2 flex items-center gap-2 text-sm font-semibold text-default-700"><span className="h-2 w-2 rounded-full bg-primary" />Décomposition au prorata (à J{k.jours})</p>
           <div className="grid grid-cols-2 gap-y-3 sm:grid-cols-4">
             <Cell l="Coût journalier" v={fmtFcfa(k.coutJour)} s={`${fmtFcfa(k.fixeMensuel)} ÷ ${nbJours} j`} />
@@ -540,15 +612,15 @@ export function FinanceHubView() {
             <Cell l="Dépenses variables réelles" v={fmtFcfa(k.variableReel)} s={`Jusqu'à J${k.jours}`} />
             <Cell l="Total dépenses" v={fmtFcfa(k.dep)} s="Prorata + variable" accent />
           </div>
-          <div className="mt-3 flex h-3 overflow-hidden rounded-full border border-default-200">
+          <div className="mt-3 flex h-3 overflow-hidden rounded-full border border-separator">
             <div className="bg-primary" style={{ width: `${pf}%` }} />
             <div className="bg-foreground/80" style={{ width: `${100 - pf}%` }} />
           </div>
-          <div className="mt-1.5 flex gap-4 text-xs text-default-500">
+          <div className="mt-1.5 flex gap-4 text-xs text-muted">
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-primary" />Charges fixes au prorata</span>
             <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-sm bg-foreground/80" />Dépenses variables réelles</span>
           </div>
-        </CardBody>
+        </Card.Content>
       </Card>
 
       {/* Graphiques — section « Répartition des dépenses » complète (résumé récurrentes/
@@ -570,8 +642,8 @@ export function FinanceHubView() {
           {TABS.map((t) => {
             const c = countFor(t.k);
             return (
-              <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-content1 text-foreground shadow-xs ring-1 ring-default-200' : 'text-default-500 hover:text-foreground'}`}>
-                {t.label}{c != null && <span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-primary/10 text-primary' : 'bg-default-100 text-default-500'}`}>{c}</span>}
+              <button key={t.k} onClick={() => setTab(t.k)} className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold ${tab === t.k ? 'bg-surface text-foreground shadow-xs ring-1 ring-separator' : 'text-muted hover:text-foreground'}`}>
+                {t.label}{c != null && <span className={`rounded-full px-1.5 text-[11px] font-bold ${tab === t.k ? 'bg-accent-soft text-accent-soft-foreground' : 'bg-surface-secondary text-muted'}`}>{c}</span>}
               </button>
             );
           })}
@@ -581,119 +653,227 @@ export function FinanceHubView() {
       {tab === 'histo' ? (
         <FinanceHistoriqueTab debut={periodeDebut} fin={periodeFin} isAdmin={isAdmin} moi={actor} />
       ) : isLoading ? (
-        <div className="flex justify-center py-16"><Spinner color="primary" label="Chargement…" /></div>
+        <div className="flex flex-col items-center justify-center gap-2 py-16">
+          <Spinner />
+          <p className="text-sm text-muted">Chargement…</p>
+        </div>
       ) : isError ? (
         // sans cette branche le tableau tombait a zero ligne et se lisait comme "rien a traiter"
         <EtatErreur quoi="les charges et dépenses" onReessayer={() => refetch()} enCours={isFetching} />
       ) : (
-        <Card shadow="none" className="border border-default-200">
+        <Card className="border border-separator">
           {/* Barre d'actions GROUPÉES sur la sélection (tous les onglets) */}
           {sel.size > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default-200 bg-primary/5 px-4 py-2.5">
-              <span className="text-sm font-medium text-default-600">{sel.size} sélectionné{sel.size > 1 ? 's' : ''}</span>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-separator bg-accent-soft/30 px-4 py-2.5">
+              <span className="text-sm font-medium text-muted">{sel.size} sélectionné{sel.size > 1 ? 's' : ''}</span>
               <div className="flex flex-wrap items-center gap-1.5">
                 {selByAction('vise').filter(peutViser).length > 0 && (
-                  <Button size="sm" variant="flat" color="primary" isLoading={busy} startContent={<ShieldCheck className="h-4 w-4" />} onPress={bulkViser}>
+                  <Button isPending={busy} onPress={bulkViser} size="sm" variant="outline">
+                    <ShieldCheck aria-hidden="true" className="size-4" />
                     Viser ({selByAction('vise').filter(peutViser).length})
                   </Button>
                 )}
                 {selByAction('approuve').filter(peutApprouver).length > 0 && (
-                  <Button size="sm" variant="flat" color="secondary" isLoading={busy} startContent={<CheckCircle2 className="h-4 w-4" />} onPress={bulkApprouver}>
+                  <Button isPending={busy} onPress={bulkApprouver} size="sm" variant="outline">
+                    <CheckCircle2 aria-hidden="true" className="size-4" />
                     Approuver ({selByAction('approuve').filter(peutApprouver).length})
                   </Button>
                 )}
                 {selByAction('pay').filter(peutDecaisser).length > 0 && (
-                  <Button size="sm" color="success" isLoading={busy} startContent={<Banknote className="h-4 w-4" />} onPress={bulkDecaisser}>
+                  <Button isPending={busy} onPress={bulkDecaisser} size="sm" variant="primary">
+                    <Banknote aria-hidden="true" className="size-4" />
                     Décaisser ({selByAction('pay').filter(peutDecaisser).length})
                   </Button>
                 )}
-                <Button size="sm" variant="light" onPress={() => setSel(new Set())}>Effacer</Button>
+                <Button onPress={() => setSel(new Set())} size="sm" variant="ghost">
+                  Effacer
+                </Button>
               </div>
             </div>
           )}
-          <div className="hidden overflow-x-auto md:block">
-            <table className="w-full min-w-[800px] text-sm">
-              <thead>
-                <tr className="bg-default-100 text-left text-[11px] uppercase tracking-wide text-default-600">
-                  <th className="w-10 px-3 py-2.5">
-                    <Checkbox
-                      size="sm"
-                      isSelected={allPageSelected}
-                      isIndeterminate={!allPageSelected && pageIds.some((id) => sel.has(id))}
-                      onValueChange={togglePage}
-                      aria-label="Tout sélectionner (page)"
-                    />
-                  </th>
-                  <th className="px-3 py-2.5">Désignation</th>
-                  <th className="px-3 py-2.5">{tab === 'bap' ? 'Type' : 'Catégorie'}</th>
-                  <th className="px-3 py-2.5 text-right">Montant</th>
-                  <th className="px-3 py-2.5">Échéance</th>
-                  {tab !== 'bap' && <th className="px-3 py-2.5">Validation</th>}
-                  <th className="px-3 py-2.5">Statut</th>
-                  <th className="px-3 py-2.5 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.length === 0 && (
-                  <tr><td colSpan={8} className="px-3 py-10 text-center text-default-400">Aucune dépense ne correspond à ces filtres.</td></tr>
-                )}
-                {paged.map((item) => (
-                    <tr id={`dep-row-${item.id}`} key={`${item.type}-${item.id}`} className={`border-b border-default-100 hover:bg-default-50 ${highlightId === item.id ? 'bg-primary/10 ring-2 ring-inset ring-primary' : ''}`}>
-                      <td className="px-3 py-2.5">
-                        <Checkbox size="sm" isSelected={sel.has(item.id)} onValueChange={(v) => toggleOne(item.id, v)} aria-label={`Sélectionner ${item.designation}`} />
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <div className="font-semibold text-foreground">{item.designation}{item.dyn && <span className="ml-1.5 rounded bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-teal-700">RH dyn.</span>}</div>
-                        <div className="text-[11px] text-default-400">{item.src} · {item.justif ? 'Reçu' : 'sans pièce'}</div>
-                      </td>
-                      <td className="px-3 py-2.5">
-                        {tab === 'bap'
-                          ? <Chip size="sm" variant="flat" color={item.type === 'fixe' ? 'default' : 'warning'} className="h-5">{item.type === 'fixe' ? 'Fixe' : 'Variable'}</Chip>
-                          : <span className="text-default-500">{item.categorie}</span>}
-                      </td>
-                      <td className="px-3 py-2.5 text-right font-semibold tabular-nums">{fmtFcfa(item.montant)}</td>
-                      <td className="px-3 py-2.5 text-default-500">{item.echeance}</td>
-                      {tab !== 'bap' && <td className="px-3 py-2.5"><Stepper item={item} seuil={seuil} /></td>}
-                      <td className="px-3 py-2.5"><Chip size="sm" variant="flat" color={STATUT[item.statut].color} className="h-5">{STATUT[item.statut].label}</Chip></td>
-                      <td className="px-3 py-2.5">
-                        <div className="flex justify-end gap-1.5">
-                          {rowActions(item)}
-                        </div>
-                      </td>
-                    </tr>
-                ))}
-              </tbody>
-            </table>
+          {/*
+           * Un `<table>` BRUT, avec ses `<th>` et ses `<td>` peints a la main :
+           * `CLAUDE.md` interdit explicitement le balisage de tableau ecrit a la main.
+           * La selection est un `Set` a nous, pas celle du composant : les cases portent
+           * donc `slot={null}` — sans quoi la v3 leve « A slot prop is required » et la
+           * page entiere tombe en 500.
+           */}
+          <div className="hidden md:block">
+            <Table>
+              <Table.ScrollContainer>
+                <Table.Content aria-label="Dépenses" className="min-w-[52rem]">
+                  <Table.Header>
+                    <Table.Column id="coche">
+                      <Checkbox
+                        aria-label="Tout sélectionner (page)"
+                        isIndeterminate={!allPageSelected && pageIds.some((id) => sel.has(id))}
+                        isSelected={allPageSelected}
+                        onChange={togglePage}
+                        slot={null}
+                      >
+                        <Checkbox.Content>
+                          <Checkbox.Control>
+                            <Checkbox.Indicator />
+                          </Checkbox.Control>
+                        </Checkbox.Content>
+                      </Checkbox>
+                    </Table.Column>
+                    <Table.Column id="designation" isRowHeader>
+                      Désignation
+                    </Table.Column>
+                    <Table.Column id="categorie">{tab === 'bap' ? 'Type' : 'Catégorie'}</Table.Column>
+                    <Table.Column id="montant">Montant</Table.Column>
+                    <Table.Column id="echeance">Échéance</Table.Column>
+                    {tab !== 'bap' ? <Table.Column id="validation">Validation</Table.Column> : null}
+                    <Table.Column id="statut">Statut</Table.Column>
+                    <Table.Column id="action">Action</Table.Column>
+                  </Table.Header>
+
+                  <Table.Body
+                    renderEmptyState={() => (
+                      <p className="py-10 text-center text-sm text-muted">
+                        Aucune dépense ne correspond à ces filtres.
+                      </p>
+                    )}
+                  >
+                    {paged.map((item) => (
+                      <Table.Row id={`dep-row-${item.id}`} key={`${item.type}-${item.id}`}>
+                        <Table.Cell
+                          className={cn(highlightId === item.id && 'bg-accent-soft/40')}
+                        >
+                          <Checkbox
+                            aria-label={`Sélectionner ${item.designation}`}
+                            isSelected={sel.has(item.id)}
+                            onChange={(v) => toggleOne(item.id, v)}
+                            slot={null}
+                          >
+                            <Checkbox.Content>
+                              <Checkbox.Control>
+                                <Checkbox.Indicator />
+                              </Checkbox.Control>
+                            </Checkbox.Content>
+                          </Checkbox>
+                        </Table.Cell>
+
+                        <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
+                          <span className="flex items-center gap-1.5 font-semibold text-foreground">
+                            {item.designation}
+                            {item.dyn && (
+                              <Chip size="sm" variant="soft">
+                                <Chip.Label>RH dyn.</Chip.Label>
+                              </Chip>
+                            )}
+                          </span>
+                          <span className="block text-[11px] text-muted">
+                            {item.src} · {item.justif ? 'Reçu' : 'sans pièce'}
+                          </span>
+                        </Table.Cell>
+
+                        <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
+                          {tab === 'bap' ? (
+                            <Chip
+                              color={item.type === 'fixe' ? 'default' : 'warning'}
+                              size="sm"
+                              variant="soft"
+                            >
+                              <Chip.Label>{item.type === 'fixe' ? 'Fixe' : 'Variable'}</Chip.Label>
+                            </Chip>
+                          ) : (
+                            <span className="text-muted">{item.categorie}</span>
+                          )}
+                        </Table.Cell>
+
+                        <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
+                          <span className="block text-right font-semibold tabular-nums">
+                            {fmtFcfa(item.montant)}
+                          </span>
+                        </Table.Cell>
+
+                        <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
+                          <span className="text-muted">{item.echeance}</span>
+                        </Table.Cell>
+
+                        {tab !== 'bap' ? (
+                          <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
+                            <Stepper item={item} seuil={seuil} />
+                          </Table.Cell>
+                        ) : null}
+
+                        <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
+                          <Chip
+                            color={STATUT[item.statut].color}
+                            size="sm"
+                            variant={STATUT[item.statut].plein ? 'primary' : 'soft'}
+                          >
+                            <Chip.Label>{STATUT[item.statut].label}</Chip.Label>
+                          </Chip>
+                        </Table.Cell>
+
+                        <Table.Cell className={cn(highlightId === item.id && 'bg-accent-soft/40')}>
+                          <div className="flex justify-end gap-1.5">{rowActions(item)}</div>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
+            </Table>
           </div>
 
           {/* Cartes tactiles — mobile (< md), remplacent le tableau à scroll horizontal */}
-          <div className="divide-y divide-default-100 md:hidden">
+          <div className="divide-y divide-separator md:hidden">
             {list.length === 0 && (
-              <p className="px-3 py-10 text-center text-default-400">Aucune dépense ne correspond à ces filtres.</p>
+              <p className="px-3 py-10 text-center text-sm text-muted">Aucune dépense ne correspond à ces filtres.</p>
             )}
             {paged.map((item) => (
               <div
                 id={`dep-row-m-${item.id}`}
                 key={`m-${item.type}-${item.id}`}
-                className={`p-3 ${highlightId === item.id ? 'bg-primary/10 ring-2 ring-inset ring-primary' : ''}`}
+                className={cn('p-3', highlightId === item.id && 'bg-accent-soft/40')}
               >
                 <div className="flex items-start gap-2.5">
-                  <Checkbox size="sm" className="mt-0.5" isSelected={sel.has(item.id)} onValueChange={(v) => toggleOne(item.id, v)} aria-label={`Sélectionner ${item.designation}`} />
+                  <Checkbox
+                    aria-label={`Sélectionner ${item.designation}`}
+                    className="mt-0.5"
+                    isSelected={sel.has(item.id)}
+                    onChange={(v) => toggleOne(item.id, v)}
+                    slot={null}
+                  >
+                    <Checkbox.Content>
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                    </Checkbox.Content>
+                  </Checkbox>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="truncate font-semibold text-foreground">{item.designation}{item.dyn && <span className="ml-1.5 rounded bg-teal-50 px-1.5 py-0.5 text-[9px] font-bold uppercase text-teal-700">RH dyn.</span>}</div>
-                        <div className="text-[11px] text-default-400">{item.src} · {item.justif ? 'Reçu' : 'sans pièce'}</div>
+                        <div className="flex items-center gap-1.5 truncate font-semibold text-foreground">
+                          {item.designation}
+                          {item.dyn && (
+                            <Chip size="sm" variant="soft">
+                              <Chip.Label>RH dyn.</Chip.Label>
+                            </Chip>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-muted">{item.src} · {item.justif ? 'Reçu' : 'sans pièce'}</div>
                       </div>
-                      <Chip size="sm" variant="flat" color={STATUT[item.statut].color} className="h-5 shrink-0">{STATUT[item.statut].label}</Chip>
+                      <Chip
+                        className="shrink-0"
+                        color={STATUT[item.statut].color}
+                        size="sm"
+                        variant={STATUT[item.statut].plein ? 'primary' : 'soft'}
+                      >
+                        <Chip.Label>{STATUT[item.statut].label}</Chip.Label>
+                      </Chip>
                     </div>
                     <div className="mt-1.5 flex items-center justify-between gap-2">
                       <span className="text-base font-bold tabular-nums text-foreground">{fmtFcfa(item.montant)}</span>
-                      <span className="truncate text-xs text-default-500">
+                      <span className="truncate text-xs text-muted">
                         {tab === 'bap' ? (item.type === 'fixe' ? 'Charge fixe' : 'Dépense variable') : item.categorie}
                       </span>
                     </div>
-                    <div className="mt-0.5 text-[11px] text-default-400">Échéance : {item.echeance}</div>
+                    <div className="mt-0.5 text-[11px] text-muted">Échéance : {item.echeance}</div>
                     {tab !== 'bap' && <div className="mt-2"><Stepper item={item} seuil={seuil} /></div>}
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                       {rowActions(item)}
@@ -704,48 +884,114 @@ export function FinanceHubView() {
             ))}
           </div>
           {/* Pagination */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-default-200 px-4 py-3">
-            <span className="text-xs text-default-400">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-separator px-4 py-3">
+            <span className="text-xs text-muted">
               {list.length} ligne{list.length > 1 ? 's' : ''}
               {sel.size > 0 ? ` · ${sel.size} sélectionnée${sel.size > 1 ? 's' : ''}` : ''}
             </span>
-            {pageCount > 1 && (
-              <Pagination total={pageCount} page={page} onChange={setPage} size="sm" color="primary" showControls />
-            )}
+            {pageCount > 1 && <PaginationTableau onPage={setPage} page={page} total={pageCount} />}
           </div>
         </Card>
       )}
 
       {/* Modal décaissement */}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="lg">
-        <ModalContent>
-          {(close) => (
-            <>
-              <ModalHeader className="bg-emerald-600 text-white">Décaisser {payTargets.length > 1 ? `la sélection (${payTargets.length})` : 'cette dépense'}</ModalHeader>
-              <ModalBody className="gap-4 py-4">
-                <div className="rounded-lg bg-default-100 p-3 text-sm">
-                  {payTargets.length === 1
-                    ? <>{payTargets[0]?.designation}<br />Montant : <b>{fmtFcfa(payTargets[0]?.montant)}</b></>
-                    : <>{payTargets.length} dépenses · Total : <b>{fmtFcfa(payTargets.reduce((s, i) => s + i.montant, 0))}</b></>}
+      <Modal isOpen={isOpen} onOpenChange={setIsOpen}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog className="max-w-lg">
+              <Modal.Header>
+                {/*
+                 * L'en-tete etait peint en `bg-emerald-600 text-white` : un vert ecrit en
+                 * dur, sans variante sombre, pour un titre de fenetre. Le decaissement
+                 * n'est pas un succes, c'est une action a confirmer.
+                 */}
+                <Modal.Heading>
+                  Décaisser{' '}
+                  {payTargets.length > 1 ? `la sélection (${payTargets.length})` : 'cette dépense'}
+                </Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+
+              <Modal.Body className="flex flex-col gap-4">
+                <div className="rounded-lg bg-surface-secondary p-3 text-sm text-foreground">
+                  {payTargets.length === 1 ? (
+                    <>
+                      {payTargets[0]?.designation}
+                      <br />
+                      Montant : <b>{fmtFcfa(payTargets[0]?.montant)}</b>
+                    </>
+                  ) : (
+                    <>
+                      {payTargets.length} dépenses · Total :{' '}
+                      <b>{fmtFcfa(payTargets.reduce((s, i) => s + i.montant, 0))}</b>
+                    </>
+                  )}
                 </div>
+
                 <div className="grid grid-cols-2 gap-3">
-                  <Select label="Compte débité" size="sm" selectedKeys={[acc]} onSelectionChange={(ks) => setAcc(String(Array.from(ks)[0] ?? 'Caisse physique'))}>
-                    <SelectItem key="Caisse physique" value="Caisse physique">Caisse physique</SelectItem>
-                    <SelectItem key="Banque" value="Banque">Banque</SelectItem>
-                  </Select>
-                  <Select label="Moyen de paiement" size="sm" selectedKeys={[moy]} onSelectionChange={(ks) => setMoy(String(Array.from(ks)[0] ?? 'Espèces'))}>
-                    {['Espèces', 'Chèque', 'Mobile Money', 'Virement'].map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                  </Select>
+                  <ComboBox
+                    onSelectionChange={(c) => setAcc(String(c ?? 'Caisse physique'))}
+                    selectedKey={acc}
+                  >
+                    <Label>Compte débité</Label>
+                    <ComboBox.InputGroup>
+                      <Input />
+                      <ComboBox.Trigger />
+                    </ComboBox.InputGroup>
+                    <ComboBox.Popover>
+                      <ListBox
+                        items={[{ cle: 'Caisse physique' }, { cle: 'Banque' }]}
+                      >
+                        {(o: { cle: string }) => (
+                          <ListBox.Item id={o.cle} textValue={o.cle}>
+                            {o.cle}
+                            <ListBox.ItemIndicator />
+                          </ListBox.Item>
+                        )}
+                      </ListBox>
+                    </ComboBox.Popover>
+                  </ComboBox>
+
+                  <ComboBox onSelectionChange={(c) => setMoy(String(c ?? 'Espèces'))} selectedKey={moy}>
+                    <Label>Moyen de paiement</Label>
+                    <ComboBox.InputGroup>
+                      <Input />
+                      <ComboBox.Trigger />
+                    </ComboBox.InputGroup>
+                    <ComboBox.Popover>
+                      <ListBox
+                        items={['Espèces', 'Chèque', 'Mobile Money', 'Virement'].map((m) => ({
+                          cle: m,
+                        }))}
+                      >
+                        {(o: { cle: string }) => (
+                          <ListBox.Item id={o.cle} textValue={o.cle}>
+                            {o.cle}
+                            <ListBox.ItemIndicator />
+                          </ListBox.Item>
+                        )}
+                      </ListBox>
+                    </ComboBox.Popover>
+                  </ComboBox>
                 </div>
-                <p className="text-xs text-default-400">Le passage en « Payé » crée la sortie de trésorerie (compte + moyen tracés).</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={close}>Annuler</Button>
-                <Button color="success" isLoading={busy} onPress={confirmPay}>Confirmer le décaissement</Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
+
+                <p className="text-xs text-muted">
+                  Le passage en « Payé » crée la sortie de trésorerie (compte + moyen tracés).
+                </p>
+              </Modal.Body>
+
+              <Modal.Footer>
+                <Button onPress={onClose} variant="ghost">
+                  Annuler
+                </Button>
+                <Button isPending={busy} onPress={confirmPay} variant="primary">
+                  {busy ? <Spinner size="sm" /> : null}
+                  Confirmer le décaissement
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
 
       {/* Modales de création (reprises de la page Charges, désormais pilotées ici) */}
@@ -777,10 +1023,10 @@ export function FinanceHubView() {
 
 function CaPart({ label, value, hint }: { label: string; value: string; hint?: string }) {
   return (
-    <div className="rounded-lg border border-emerald-200 bg-surface/70 px-3 py-2">
-      <div className="text-[10px] font-medium uppercase tracking-wide text-default-500">{label}</div>
+    <div className="rounded-lg border border-separator bg-surface px-3 py-2">
+      <div className="text-[10px] font-medium uppercase tracking-wide text-muted">{label}</div>
       <div className="text-sm font-bold tabular-nums text-foreground">{value}</div>
-      {hint && <div className="mt-0.5 text-[10px] text-default-400">{hint}</div>}
+      {hint && <div className="mt-0.5 text-[10px] text-muted">{hint}</div>}
     </div>
   );
 }
@@ -788,9 +1034,9 @@ function CaPart({ label, value, hint }: { label: string; value: string; hint?: s
 function Cell({ l, v, s, accent }: { l: string; v: string; s: string; accent?: boolean }) {
   return (
     <div className="px-1">
-      <div className="text-[11px] font-medium uppercase tracking-wide text-default-500">{l}</div>
-      <div className={`mt-1 text-lg font-bold tabular-nums ${accent ? 'text-primary' : 'text-foreground'}`}>{v}</div>
-      <div className="text-[11px] text-default-400">{s}</div>
+      <div className="text-[11px] font-medium uppercase tracking-wide text-muted">{l}</div>
+      <div className={`mt-1 text-lg font-bold tabular-nums ${accent ? 'text-accent' : 'text-foreground'}`}>{v}</div>
+      <div className="text-[11px] text-muted">{s}</div>
     </div>
   );
 }
