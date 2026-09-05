@@ -1,7 +1,7 @@
 'use client';
 
 import type { Row } from '@tanstack/react-table';
-import { Button, Chip } from '@/components/heroui';
+import { Button, Card, Chip } from '@heroui-v3/react';
 import { FileText, Trash2, Wallet } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Can } from '@/components/auth/Can';
@@ -39,60 +39,60 @@ export default function PaiementMobileCard({
   const config = getPaiementStatutConfig(charge.statut);
 
   return (
-    <div className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-start gap-2 min-w-0">
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            disabled={decaisse}
-            aria-label="Sélectionner la charge"
-            className="mt-0.5"
-          />
-          <p className="text-sm font-semibold text-foreground min-w-0 wrap-break-word">{charge.designation}</p>
+    <Card>
+      <Card.Content className="gap-2 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2 min-w-0">
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} disabled={decaisse} aria-label="Sélectionner la charge" className="mt-0.5" />
+            <p className="text-sm font-semibold text-foreground min-w-0 wrap-break-word">{charge.designation}</p>
+          </div>
+          <Chip className="shrink-0" color={config.color} size="sm" variant="soft">
+            <Chip.Label className="whitespace-nowrap">{config.label}</Chip.Label>
+          </Chip>
         </div>
-        <Chip color={config.color} variant="flat" size="sm" className="shrink-0">
-          {config.label}
-        </Chip>
-      </div>
 
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-muted">Catégorie</span>
-        <span className="text-sm text-foreground text-right wrap-break-word">{charge.categorie?.nomCategorie ?? '—'}</span>
-      </div>
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-xs text-muted">Montant</span>
-        <span className="text-sm font-medium text-foreground">{formatMontant(charge.montant)}</span>
-      </div>
-
-      {(!decaisse || (decaisse && charge.codeSysteme === 'MASSE_SALARIALE_NETTE') || onDelete || onDeleteFixe) && (
-        <div className="pt-1 flex flex-col gap-2">
-          {!decaisse && (
-            <Button size="sm" color="warning" variant="flat" className="w-full gap-1.5" startContent={<Wallet size={14} />} isLoading={isPending} onPress={() => onDecaisser(charge.id)}>
-              Décaisser
-            </Button>
-          )}
-          {decaisse && charge.codeSysteme === 'MASSE_SALARIALE_NETTE' && (
-            <Button size="sm" color="success" variant="flat" className="w-full gap-1.5" startContent={<FileText size={14} />} onPress={() => onRapport?.(charge)}>
-              Rapport
-            </Button>
-          )}
-          {onDelete && (
-            <Can I="delete" a="ChargeVariable">
-              <Button size="sm" color="danger" variant="flat" className="w-full gap-1.5" onPress={() => onDelete(charge.id)} isLoading={isDeleting} startContent={<Trash2 size={14} />}>
-                Supprimer
-              </Button>
-            </Can>
-          )}
-          {onDeleteFixe && (
-            <Can I="delete" a="ChargeFixe">
-              <Button size="sm" color="danger" variant="flat" className="w-full gap-1.5" onPress={() => onDeleteFixe(charge.id)} isLoading={isDeletingFixe} startContent={<Trash2 size={14} />}>
-                Supprimer la dépense du mois
-              </Button>
-            </Can>
-          )}
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs text-muted">Catégorie</span>
+          <span className="text-sm text-foreground text-right wrap-break-word">{charge.categorie?.nomCategorie ?? '—'}</span>
         </div>
-      )}
-    </div>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xs text-muted">Montant</span>
+          <span className="text-sm font-medium text-foreground">{formatMontant(charge.montant)}</span>
+        </div>
+
+        {(!decaisse || (decaisse && charge.codeSysteme === 'MASSE_SALARIALE_NETTE') || onDelete || onDeleteFixe) && (
+          <div className="pt-1 flex flex-col gap-2">
+            {!decaisse && (
+              <Button className="w-full" isPending={isPending} onPress={() => onDecaisser(charge.id)} size="sm" variant="primary">
+                <Wallet aria-hidden="true" className="size-3.5" />
+                Décaisser
+              </Button>
+            )}
+            {decaisse && charge.codeSysteme === 'MASSE_SALARIALE_NETTE' && (
+              <Button className="w-full" onPress={() => onRapport?.(charge)} size="sm" variant="outline">
+                <FileText aria-hidden="true" className="size-3.5" />
+                Rapport
+              </Button>
+            )}
+            {onDelete && (
+              <Can I="delete" a="ChargeVariable">
+                <Button className="w-full" isPending={isDeleting} onPress={() => onDelete(charge.id)} size="sm" variant="danger-soft">
+                  <Trash2 aria-hidden="true" className="size-3.5" />
+                  Supprimer
+                </Button>
+              </Can>
+            )}
+            {onDeleteFixe && (
+              <Can I="delete" a="ChargeFixe">
+                <Button className="w-full" isPending={isDeletingFixe} onPress={() => onDeleteFixe(charge.id)} size="sm" variant="danger-soft">
+                  <Trash2 aria-hidden="true" className="size-3.5" />
+                  Supprimer la dépense du mois
+                </Button>
+              </Can>
+            )}
+          </div>
+        )}
+      </Card.Content>
+    </Card>
   );
 }

@@ -1,20 +1,20 @@
 'use client';
 
-import { Card, CardBody, Chip, ProgressBar } from '@/components/heroui';
+import { Card, Chip, ProgressBar } from '@heroui-v3/react';
 import { Calendar, Clock } from 'lucide-react';
 
 interface CapaciteData {
-  pourcentage: number;
   inscrits: number;
-  total: number;
+  pourcentage: number;
   tauxConfirmation: number;
+  total: number;
 }
 
 interface FiabiliteData {
-  pourcentage: number;
-  gpsConfirme: number;
-  total: number;
   absencesJustifiees: number;
+  gpsConfirme: number;
+  pourcentage: number;
+  total: number;
 }
 
 interface CapaciteFiabiliteCardsProps {
@@ -22,54 +22,83 @@ interface CapaciteFiabiliteCardsProps {
   fiabilite: FiabiliteData;
 }
 
+/**
+ * Prévu contre réel : deux cartes côte à côte.
+ *
+ * <h3>Ce qui change</h3>
+ * <p>Les pastilles « PRÉVISIONNEL » et « RÉEL » étaient peintes en `bg-amber-100` et
+ * `bg-green-100` par un objet `classNames` qui court-circuitait le composant : de l'ambre
+ * pour dire « prévu », du vert pour dire « constaté ». Ce ne sont pas des états, ce sont
+ * deux natures de mesure, et les deux titres les nomment déjà.</p>
+ *
+ * <p>Tous les libellés avaient perdu leurs accents : « Capacite Prevue », « Fiabilite
+ * Terrain », « Presence GPS confirmee », « Absences justifiees ».</p>
+ */
+function CarteMesure({
+  chiffre,
+  icone: Icone,
+  lignes,
+  nature,
+  titre,
+}: {
+  chiffre: number;
+  icone: typeof Calendar;
+  lignes: { libelle: string; valeur: string }[];
+  nature: string;
+  titre: string;
+}) {
+  return (
+    <Card>
+      <Card.Content className="gap-3 p-5">
+        <div className="flex items-start justify-between">
+          <h3 className="text-base font-bold text-foreground">{titre}</h3>
+          <Icone aria-hidden="true" className="size-5 text-muted" />
+        </div>
+        <Chip className="w-fit" size="sm" variant="soft">
+          <Chip.Label>{nature}</Chip.Label>
+        </Chip>
+        <p className="text-4xl font-bold tabular-nums text-foreground">{chiffre}%</p>
+        <ProgressBar aria-label={titre} value={chiffre}>
+          <ProgressBar.Track>
+            <ProgressBar.Fill />
+          </ProgressBar.Track>
+        </ProgressBar>
+        <div className="flex flex-col gap-1 pt-1">
+          {lignes.map((l) => (
+            <div className="flex justify-between text-sm" key={l.libelle}>
+              <span className="text-muted">{l.libelle}</span>
+              <span className="font-semibold tabular-nums text-foreground">{l.valeur}</span>
+            </div>
+          ))}
+        </div>
+      </Card.Content>
+    </Card>
+  );
+}
+
 export function CapaciteFiabiliteCards({ capacite, fiabilite }: CapaciteFiabiliteCardsProps) {
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      {/* Capacité Prévue */}
-      <Card shadow="none" className="border border-default-200">
-        <CardBody className="gap-3 p-5">
-          <div className="flex items-start justify-between">
-            <h3 className="text-base font-bold">Capacite Prevue</h3>
-            <Calendar className="size-5 text-default-400" />
-          </div>
-          <Chip size="sm" classNames={{ base: 'bg-amber-100', content: 'text-amber-700 font-medium text-xs' }}>PREVISIONNEL</Chip>
-          <p className="text-4xl font-bold text-primary">{capacite.pourcentage}%</p>
-          <ProgressBar value={capacite.pourcentage} color="accent" size="md"><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
-          <div className="space-y-1 pt-1">
-            <div className="flex justify-between text-sm">
-              <span className="text-default-500">Turboys inscrits</span>
-              <span className="font-semibold">{capacite.inscrits} / {capacite.total}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-default-500">Taux de confirmation</span>
-              <span className="font-semibold">{capacite.tauxConfirmation}%</span>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
-
-      {/* Fiabilité Terrain */}
-      <Card shadow="none" className="border border-default-200">
-        <CardBody className="gap-3 p-5">
-          <div className="flex items-start justify-between">
-            <h3 className="text-base font-bold">Fiabilite Terrain</h3>
-            <Clock className="size-5 text-default-400" />
-          </div>
-          <Chip size="sm" classNames={{ base: 'bg-green-100', content: 'text-green-700 font-medium text-xs' }}>REEL</Chip>
-          <p className="text-4xl font-bold text-success-soft-foreground">{fiabilite.pourcentage}%</p>
-          <ProgressBar value={fiabilite.pourcentage} color="success" size="md"><ProgressBar.Track><ProgressBar.Fill /></ProgressBar.Track></ProgressBar>
-          <div className="space-y-1 pt-1">
-            <div className="flex justify-between text-sm">
-              <span className="text-default-500">Presence GPS confirmee</span>
-              <span className="font-semibold">{fiabilite.gpsConfirme} / {fiabilite.total}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-default-500">Absences justifiees</span>
-              <span className="font-semibold">{fiabilite.absencesJustifiees}</span>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
+      <CarteMesure
+        chiffre={capacite.pourcentage}
+        icone={Calendar}
+        lignes={[
+          { libelle: 'Turboys inscrits', valeur: `${capacite.inscrits} / ${capacite.total}` },
+          { libelle: 'Taux de confirmation', valeur: `${capacite.tauxConfirmation}%` },
+        ]}
+        nature="Prévisionnel"
+        titre="Capacité prévue"
+      />
+      <CarteMesure
+        chiffre={fiabilite.pourcentage}
+        icone={Clock}
+        lignes={[
+          { libelle: 'Présence GPS confirmée', valeur: `${fiabilite.gpsConfirme} / ${fiabilite.total}` },
+          { libelle: 'Absences justifiées', valeur: String(fiabilite.absencesJustifiees) },
+        ]}
+        nature="Réel"
+        titre="Fiabilité terrain"
+      />
     </div>
   );
 }

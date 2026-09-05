@@ -1,9 +1,10 @@
 'use client';
 
-import Link from 'next/link';
-import { useMemo } from 'react';
-import { Button } from '@/components/heroui';
+import { Chip } from '@heroui-v3/react';
 import { MessagesSquare } from 'lucide-react';
+import { useMemo } from 'react';
+
+import { LienBouton } from '@/components/commons/LienBouton';
 
 import { useNonLusQuery } from '../queries/chat-partenaires.query';
 
@@ -20,21 +21,15 @@ export function MessagesPartenairesBouton() {
   );
 
   return (
-    <Button
-      as={Link}
-      href="/trafic/standard/messages-partenaires"
-      variant="light"
-      className="text-default-600"
-      startContent={<MessagesSquare className="h-4 w-4" />}
-      endContent={
-        total > 0 ? (
-          <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-danger px-1.5 py-0.5 text-[11px] font-bold text-white">
-            {total}
-          </span>
-        ) : undefined
-      }
-    >
+    /* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3. */
+    <LienBouton href="/trafic/standard/messages-partenaires" variante="ghost">
+      <MessagesSquare aria-hidden="true" className="size-4" />
       Messages partenaires
-    </Button>
+      {total > 0 && (
+        <Chip color="danger" size="sm" variant="soft">
+          <Chip.Label>{total}</Chip.Label>
+        </Chip>
+      )}
+    </LienBouton>
   );
 }

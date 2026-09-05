@@ -188,7 +188,13 @@ export interface IAdoptionResultat {
 // Libellés & couleurs (français, ton back-office)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type ChipCouleur = 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
+/**
+ * Les tons sémantiques de la bibliothèque, et rien de plus.
+ *
+ * <p>La v2 offrait `primary` et `secondary` comme COULEURS de pastille ; la v3 les a
+ * déplacés sur `variant`, où ils disent une intensité, pas un sens.</p>
+ */
+export type ChipCouleur = 'danger' | 'default' | 'success' | 'warning';
 
 export const STATUT_ACTIVITE_LABELS: Record<string, string> = {
   ACTIF: 'Actif',
@@ -197,11 +203,12 @@ export const STATUT_ACTIVITE_LABELS: Record<string, string> = {
   FERMEE: 'Fermée',
 };
 
+/** Une session inactive n'est pas un avertissement : c'est une absence d'activité. */
 export const STATUT_ACTIVITE_COULEURS: Record<string, ChipCouleur> = {
   ACTIF: 'success',
-  INACTIF: 'warning',
   EN_INSTANCE: 'default',
   FERMEE: 'default',
+  INACTIF: 'default',
 };
 
 export const TYPE_ACTION_LABELS: Record<string, string> = {
@@ -217,17 +224,26 @@ export const TYPE_ACTION_LABELS: Record<string, string> = {
   CONSULTATION_AUDIT: "Consultation de l'audit",
 };
 
+/**
+ * Le ton d'une action d'audit.
+ *
+ * <p>« Modification » était en `primary` — la couleur de MARQUE — alors que c'est
+ * l'action ORDINAIRE de ce journal : elle en compose la quasi-totalité, et la peindre
+ * revenait à colorer toute la colonne. « Validation » était en ambre, « Changement de
+ * statut » en `secondary`. Ce qui se distingue, c'est ce qui CRÉE, ce qui DÉTRUIT, et ce
+ * qui touche aux DROITS.</p>
+ */
 export const TYPE_ACTION_COULEURS: Record<string, ChipCouleur> = {
-  CREATION: 'success',
-  MODIFICATION: 'primary',
-  SUPPRESSION: 'danger',
-  VALIDATION: 'warning',
   ANNULATION: 'danger',
-  CHANGEMENT_STATUT: 'secondary',
+  CHANGEMENT_STATUT: 'default',
+  CONSULTATION_AUDIT: 'default',
+  CREATION: 'success',
+  DROITS: 'danger',
   EXPORT: 'default',
   IMPRESSION: 'default',
-  DROITS: 'danger',
-  CONSULTATION_AUDIT: 'default',
+  MODIFICATION: 'default',
+  SUPPRESSION: 'danger',
+  VALIDATION: 'default',
 };
 
 /** Ordre d'affichage du filtre « Action » (aligné sur l'énum backend TypeAction). */
@@ -252,12 +268,20 @@ export const TYPE_EVENEMENT_LABELS: Record<string, string> = {
   FORCEE: 'Déconnexion forcée',
 };
 
+/**
+ * Le ton d'un événement de connexion.
+ *
+ * <p>Une déconnexion ordinaire était en `primary` — la couleur de MARQUE — et une
+ * expiration de session en ambre : ce sont les fins NORMALES d'une session, elles n'ont
+ * rien à signaler. Reste ce qu'un auditeur cherche dans ce journal : la connexion
+ * réussie, l'échec, et la déconnexion FORCÉE.</p>
+ */
 export const TYPE_EVENEMENT_COULEURS: Record<string, ChipCouleur> = {
-  LOGIN: 'success',
   ECHEC: 'danger',
-  LOGOUT: 'primary',
-  EXPIRATION: 'warning',
+  EXPIRATION: 'default',
   FORCEE: 'danger',
+  LOGIN: 'success',
+  LOGOUT: 'default',
 };
 
 export const TYPES_EVENEMENT: TypeEvenementConnexion[] = ['LOGIN', 'ECHEC', 'LOGOUT', 'EXPIRATION', 'FORCEE'];

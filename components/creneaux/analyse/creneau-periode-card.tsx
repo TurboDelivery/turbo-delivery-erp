@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardBody, Divider } from '@/components/heroui';
+import { Card, Separator } from '@heroui-v3/react';
 import { TrendingUp } from 'lucide-react';
 
 interface CreneauPeriodeCardProps {
@@ -8,40 +8,42 @@ interface CreneauPeriodeCardProps {
   taux: number;
   absences: number;
   justifiees: number;
-  variant: 'matin' | 'soir';
+  /** Conservé pour ne pas toucher les points d'appel ; sans effet sur le rendu. */
+  variant?: 'matin' | 'soir';
 }
 
-export function CreneauPeriodeCard({ label, taux, absences, justifiees, variant }: CreneauPeriodeCardProps) {
-  const isMatin = variant === 'matin';
-  const borderColor = isMatin ? 'border-l-blue-500' : 'border-l-purple-500';
-  const textColor = isMatin ? 'text-blue-600' : 'text-purple-600';
-  const iconBg = isMatin ? 'bg-blue-500' : 'bg-purple-500';
-
+export function CreneauPeriodeCard({ absences, justifiees, label, taux }: CreneauPeriodeCardProps) {
+  /*
+   * La carte du MATIN etait entierement bleue et celle du SOIR entierement violette :
+   * liseré, chiffres, libelles, pastille. Six teintes de palette pour distinguer deux
+   * cartes qui portent deja leur titre — « Matin » et « Soir » — cote a cote. Les
+   * chiffres reprennent la couleur du texte ; ce qui les distingue, c'est leur taille.
+   */
   return (
-    <Card shadow="none" className={`flex-1 border border-default-200 border-l-4 ${borderColor}`}>
-      <CardBody className="gap-3 p-5">
+    <Card className="flex-1">
+      <Card.Content className="gap-3 p-5">
         <div className="flex items-start justify-between">
-          <p className="text-sm font-semibold text-default-700">{label}</p>
-          <div className={`flex size-9 items-center justify-center rounded-full ${iconBg}`}>
-            <TrendingUp className="size-4 text-white" />
+          <p className="text-sm font-semibold text-foreground">{label}</p>
+          <div className="flex size-9 items-center justify-center rounded-full bg-surface-secondary">
+            <TrendingUp aria-hidden="true" className="size-4 text-muted" />
           </div>
         </div>
         <div>
-          <p className={`text-4xl font-bold ${textColor}`}>{taux}%</p>
-          <p className={`text-sm ${textColor}`}>Taux de presence</p>
+          <p className="text-4xl font-bold tabular-nums text-foreground">{taux}%</p>
+          <p className="text-sm text-muted">Taux de présence</p>
         </div>
-        <Divider />
+        <Separator />
         <div className="flex justify-between">
           <div>
-            <p className={`text-2xl font-bold ${textColor}`}>{absences}</p>
-            <p className={`text-xs ${textColor}`}>Absences totales</p>
+            <p className="text-2xl font-bold tabular-nums text-foreground">{absences}</p>
+            <p className="text-xs text-muted">Absences totales</p>
           </div>
           <div className="text-right">
-            <p className={`text-2xl font-bold ${textColor}`}>{justifiees}</p>
-            <p className={`text-xs ${textColor}`}>Justifiees</p>
+            <p className="text-2xl font-bold tabular-nums text-foreground">{justifiees}</p>
+            <p className="text-xs text-muted">Justifiées</p>
           </div>
         </div>
-      </CardBody>
+      </Card.Content>
     </Card>
   );
 }

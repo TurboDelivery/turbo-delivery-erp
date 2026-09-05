@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Card } from '@/components/heroui';
+import { Button, Card, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
 import { Wallet } from 'lucide-react';
 import { useQueryStates } from 'nuqs';
 import ConfirmModal from '@/components/ui/confirm-modal';
@@ -45,13 +45,7 @@ export default function PaymentManagementV2() {
     supprimerDepenseDuMoisMutation,
   } = usePaiementsTable(filters.debut, filters.fin, setConfirmIds, setDeleteTargetId, setDeleteFixeTargetId, depenseFilters.categoriesDepense || []);
 
-  const {
-    stats,
-    isLoading: isStatsLoading,
-    isFetching: isStatsFetching,
-    isError: isStatsError,
-    refetch: refetchStats,
-  } = usePaiementsStats(filters.debut, filters.fin);
+  const { stats, isLoading: isStatsLoading, isFetching: isStatsFetching, isError: isStatsError, refetch: refetchStats } = usePaiementsStats(filters.debut, filters.fin);
 
   const closeConfirm = () => setConfirmIds([]);
   const closeDelete = () => setDeleteTargetId(null);
@@ -72,10 +66,7 @@ export default function PaymentManagementV2() {
 
   const handleConfirmDeleteFixe = () => {
     if (!deleteFixeTargetId) return;
-    supprimerDepenseDuMoisMutation.mutate(
-      { id: deleteFixeTargetId, mois: filters.debut ?? '' },
-      { onSuccess: () => closeDeleteFixe() },
-    );
+    supprimerDepenseDuMoisMutation.mutate({ id: deleteFixeTargetId, mois: filters.debut ?? '' }, { onSuccess: () => closeDeleteFixe() });
   };
 
   return (
@@ -83,11 +74,14 @@ export default function PaymentManagementV2() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Gestion des Paiements</h1>
+          <h1 className="text-2xl font-bold text-foreground">Gestion des paiements</h1>
           <p className="text-sm text-muted mt-1">Décaissez les charges approuvées</p>
         </div>
         <Can I="decaisser" a="Depense">
-          <Button color="danger" startContent={<Wallet size={16} />} onPress={() => setConfirmIds(selectedIds)} isDisabled={selectedIds.length === 0}>
+          {/* Le bouton etait `color="danger"` : le rouge du DANGER sur le geste
+              principal de l'ecran, qui PAIE. Decaisser n'est pas detruire. */}
+          <Button isDisabled={selectedIds.length === 0} onPress={() => setConfirmIds(selectedIds)} variant="primary">
+            <Wallet aria-hidden="true" className="size-4" />
             Décaisser ({selectedIds.length})
           </Button>
         </Can>
@@ -100,49 +94,52 @@ export default function PaymentManagementV2() {
       {/* Sur echec, les trois cartes retombaient a 0 FCFA : un montant faux se lit
           comme un montant vrai. On remplace le bandeau au lieu de le laisser mentir. */}
       {isStatsError ? (
-        <Card className="border shadow-none overflow-hidden">
-          <EtatErreur
-            quoi="les montants à décaisser"
-            onReessayer={() => refetchStats()}
-            enCours={isStatsFetching}
-          />
+        <Card>
+          <Card.Content>
+            <EtatErreur enCours={isStatsFetching} onReessayer={() => refetchStats()} quoi="les montants à décaisser" />
+          </Card.Content>
         </Card>
       ) : (
         <PaiementStatsCards stats={stats} isLoading={isStatsLoading} />
       )}
-      
+
       {/* Charge Type Switcher + Filtre catégories */}
       <div className="flex flex-wrap justify-between items-center gap-3">
-        <div className="flex gap-2">
-          {CHARGE_TYPE_OPTIONS.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => switchChargeType(value)}
-              className={`rounded-lg px-5 py-2 text-sm font-medium transition-all ${chargeType === value ? 'bg-black text-white' : 'border border-separator bg-surface text-muted hover:bg-surface-secondary'}`}
-            >
+        {/*
+         * C'etaient deux `<button>` nus dont l'actif etait peint `bg-black text-white`
+         * — du noir absolu, hors de tout theme — pour un choix EXCLUSIF, sans
+         * navigation au clavier entre les deux options.
+         */}
+        <ToggleButtonGroup
+          onSelectionChange={(sel) => {
+            const v = Array.from(sel)[0];
+            if (v) switchChargeType(v as ChargeTypeFilter);
+          }}
+          selectedKeys={new Set([chargeType])}
+          selectionMode="single"
+        >
+          {CHARGE_TYPE_OPTIONS.map(({ label, value }) => (
+            <ToggleButton id={value} key={value}>
               {label}
-            </button>
+            </ToggleButton>
           ))}
-        </div>
-        <CategoriesSelectFilter
-          selectedCategories={depenseFilters.categoriesDepense || []}
-          onCategoriesChange={handleCategoriesChange}
-        />
+        </ToggleButtonGroup>
+        <CategoriesSelectFilter selectedCategories={depenseFilters.categoriesDepense || []} onCategoriesChange={handleCategoriesChange} />
       </div>
 
       {/* Table */}
-      <Card className="border shadow-none overflow-hidden">
-        {/* Ecran de decaissement : sur echec, le tableau affichait « Aucune charge
+      <Card>
+        <Card.Content className="p-0">
+          {/* Ecran de decaissement : sur echec, le tableau affichait « Aucune charge
             a decaisser » et laissait croire que tout etait paye. */}
-        {isError ? (
-          <EtatErreur
-            quoi="les charges à décaisser"
-            onReessayer={() => refetch()}
-            enCours={isFetching}
-          />
-        ) : (
-          <PaiementTable table={table} isLoading={isLoading} isFetching={isFetching} pageCount={pageCount} emptyMessage="Aucune charge à décaisser" renderMobileCard={renderMobileCard} />
-        )}
+          {isError ? (
+            <div className="p-4">
+              <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="les charges à décaisser" />
+            </div>
+          ) : (
+            <PaiementTable emptyMessage="Aucune charge à décaisser" isFetching={isFetching} isLoading={isLoading} pageCount={pageCount} renderMobileCard={renderMobileCard} table={table} />
+          )}
+        </Card.Content>
       </Card>
 
       {/* Confirm Modal */}

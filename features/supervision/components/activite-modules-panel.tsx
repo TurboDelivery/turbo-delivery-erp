@@ -1,39 +1,32 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Chip,
-  Input,
-  Pagination,
-  Select,
-  SelectItem,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-  Tooltip,
-} from '@/components/heroui';
+import { Chip, InputGroup, Label, Table, TextField, Tooltip } from '@heroui-v3/react';
+
+import { ChampListe, ChampTexte } from '@/components/commons/champs-formulaire';
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import { Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 import EtatErreur from '@/components/commons/EtatErreur';
 import { useAuditActionsQuery, useModulesAuditQuery } from '../queries/supervision.queries';
 import { useRechercheDifferee } from '../hooks/use-recherche-differee';
-import {
-  ExporteurOnglet,
-  IActionsFiltre,
-  TYPE_ACTION_COULEURS,
-  TYPE_ACTION_LABELS,
-  TYPES_ACTION,
-} from '../types';
+import { ExporteurOnglet, IActionsFiltre, TYPE_ACTION_COULEURS, TYPE_ACTION_LABELS, TYPES_ACTION } from '../types';
 import { exporterActions, messageTroncature } from '../utils/supervision-export.utils';
 import { formatHeure, formatInstant, libelleObjet } from '../utils/supervision-format.utils';
 import { DiffValeurs } from './diff-valeurs';
 
 const TAILLE_PAGE = 25;
+
+/** Les colonnes, déclarées une fois : le squelette y compte ses cellules. */
+const COLONNES = [
+  { id: 'heure', libelle: 'Heure' },
+  { id: 'utilisateur', libelle: 'Utilisateur' },
+  { id: 'module', libelle: 'Module' },
+  { id: 'action', libelle: 'Action' },
+  { id: 'objet', libelle: 'Objet concerné' },
+  { id: 'detail', libelle: 'Détail (avant → après)' },
+] as const;
 
 interface Props {
   userId: string;
@@ -102,149 +95,120 @@ export function ActiviteModulesPanel({ userId, enregistrerExport }: Props) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-2">
-        <Select
-          aria-label="Filtrer par module"
-          label="Module"
-          size="sm"
-          className="w-52"
-          selectedKeys={[module]}
-          onSelectionChange={(cles) => setModule((Array.from(cles)[0] as string) ?? 'TOUS')}
-        >
-          {[
-            <SelectItem key="TOUS">Tous les modules</SelectItem>,
-            ...(modules ?? []).map((nom) => <SelectItem key={nom}>{nom}</SelectItem>),
-          ]}
-        </Select>
-        <Select
-          aria-label="Filtrer par type d'action"
-          label="Action"
-          size="sm"
-          className="w-56"
-          selectedKeys={[typeAction]}
-          onSelectionChange={(cles) => setTypeAction((Array.from(cles)[0] as string) ?? 'TOUS')}
-        >
-          {[
-            <SelectItem key="TOUS">Toutes</SelectItem>,
-            ...TYPES_ACTION.map((type) => <SelectItem key={type}>{TYPE_ACTION_LABELS[type]}</SelectItem>),
-          ]}
-        </Select>
-        <Input
-          type="date"
-          label="Du"
-          aria-label="Date de début"
-          size="sm"
-          className="w-40"
-          value={depuis}
-          onValueChange={setDepuis}
-        />
-        <Input
-          type="date"
-          label="Au"
-          aria-label="Date de fin"
-          size="sm"
-          className="w-40"
-          value={jusqua}
-          onValueChange={setJusqua}
-        />
-        <Input
-          aria-label="Rechercher dans le journal des actions"
-          label="Recherche"
-          size="sm"
-          placeholder="Utilisateur, objet, référence…"
-          className="min-w-56 flex-1"
-          startContent={<Search className="h-4 w-4 text-default-400" />}
-          value={saisie}
-          onValueChange={setSaisie}
-          isClearable
-          onClear={() => setSaisie('')}
-        />
+        <div className="w-52">
+          <ChampListe
+            label="Module"
+            onChange={(v) => setModule(v || 'TOUS')}
+            options={[{ label: 'Tous les modules', value: 'TOUS' }, ...(modules ?? []).map((nom) => ({ label: nom, value: nom }))]}
+            placeholder="Tous les modules"
+            valeur={module}
+          />
+        </div>
+        <div className="w-56">
+          <ChampListe
+            label="Action"
+            onChange={(v) => setTypeAction(v || 'TOUS')}
+            options={[{ label: 'Toutes', value: 'TOUS' }, ...TYPES_ACTION.map((type) => ({ label: TYPE_ACTION_LABELS[type], value: type }))]}
+            placeholder="Toutes"
+            valeur={typeAction}
+          />
+        </div>
+        <div className="w-40">
+          <ChampTexte label="Du" onChange={setDepuis} type="date" valeur={depuis} />
+        </div>
+        <div className="w-40">
+          <ChampTexte label="Au" onChange={setJusqua} type="date" valeur={jusqua} />
+        </div>
+        <TextField className="min-w-56 flex-1" onChange={setSaisie} value={saisie}>
+          <Label>Recherche</Label>
+          <InputGroup>
+            <InputGroup.Prefix>
+              <Search aria-hidden="true" className="size-4" />
+            </InputGroup.Prefix>
+            <InputGroup.Input placeholder="Utilisateur, objet, référence…" />
+          </InputGroup>
+        </TextField>
       </div>
 
       {/* L echec REMPLACE le tableau : « Aucune action pour ces criteres » se lit
           comme un journal vide, alors qu il n a simplement pas pu etre lu. */}
       {isError ? (
-        <EtatErreur
-          quoi="le journal des actions"
-          onReessayer={() => void refetch()}
-          enCours={isFetching}
-        />
+        <EtatErreur quoi="le journal des actions" onReessayer={() => void refetch()} enCours={isFetching} />
       ) : (
-      <Table
-        aria-label="Journal des actions métier"
-        isStriped
-        removeWrapper
-        bottomContent={
-          totalPages > 1 ? (
-            <div className="flex justify-center pt-2">
-              <Pagination
-                total={totalPages}
-                page={page + 1}
-                onChange={(p) => setPage(p - 1)}
-                color="primary"
-                showControls
-              />
-            </div>
-          ) : null
-        }
-      >
-        <TableHeader>
-          <TableColumn className="text-primary">HEURE</TableColumn>
-          <TableColumn className="text-primary">UTILISATEUR</TableColumn>
-          <TableColumn className="text-primary">MODULE</TableColumn>
-          <TableColumn className="text-primary">ACTION</TableColumn>
-          <TableColumn className="text-primary">OBJET CONCERNÉ</TableColumn>
-          <TableColumn className="text-primary">DÉTAIL (AVANT → APRÈS)</TableColumn>
-        </TableHeader>
-        <TableBody
-          emptyContent={isLoading || isFetching ? ' ' : 'Aucune action pour ces critères.'}
-          isLoading={isLoading}
-          loadingContent={<Spinner color="primary" label="Chargement du journal…" />}
-        >
-          {lignes.map((action) => (
-            <TableRow key={action.id}>
-              <TableCell className="whitespace-nowrap font-mono text-[11px] tabular-nums text-default-500">
-                <Tooltip content={formatInstant(action.occurredAt)} size="sm">
-                  <span>{formatHeure(action.occurredAt)}</span>
-                </Tooltip>
-              </TableCell>
-              <TableCell>
-                <p className="text-sm font-medium">{action.utilisateur ?? 'Système'}</p>
-                {action.role && <p className="text-[11px] text-default-400">{action.role}</p>}
-              </TableCell>
-              <TableCell>
-                <Chip size="sm" variant="flat" className="text-[11px]">
-                  {action.module ?? '—'}
-                </Chip>
-              </TableCell>
-              <TableCell>
-                <Chip size="sm" variant="dot" color={TYPE_ACTION_COULEURS[action.typeAction] ?? 'default'}>
-                  {TYPE_ACTION_LABELS[action.typeAction] ?? action.typeAction}
-                </Chip>
-              </TableCell>
-              <TableCell>
-                <p className="text-sm font-medium">{libelleObjet(action)}</p>
-                {action.entiteId && (
-                  <p className="truncate text-[11px] text-default-400" title={action.entiteId}>
-                    {action.entiteId}
-                  </p>
-                )}
-              </TableCell>
-              <TableCell className="max-w-sm">
-                <DiffValeurs action={action} />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+        <Table>
+          <Table.ScrollContainer>
+            <Table.Content aria-label="Journal des actions métier" className="min-w-[68rem]">
+              <Table.Header>
+                {COLONNES.map((c) => (
+                  <Table.Column id={c.id} isRowHeader={c.id === 'heure'} key={c.id}>
+                    {c.libelle}
+                  </Table.Column>
+                ))}
+              </Table.Header>
+              <Table.Body renderEmptyState={() => (isLoading ? null : <p className="py-8 text-center text-sm text-muted">Aucune action pour ces critères.</p>)}>
+                {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+                {isLoading
+                  ? Array.from({ length: 10 }).map((_, i) => (
+                      <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                        {COLONNES.map((c) => (
+                          <Table.Cell key={`sq-${i}-${c.id}`}>
+                            <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))
+                  : null}
+
+                {(isLoading ? [] : lignes).map((action) => (
+                  <Table.Row id={action.id} key={action.id}>
+                    <Table.Cell className="whitespace-nowrap font-mono text-xs tabular-nums text-muted">
+                      <Tooltip>
+                        <span>{formatHeure(action.occurredAt)}</span>
+                        <Tooltip.Content>{formatInstant(action.occurredAt)}</Tooltip.Content>
+                      </Tooltip>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <p className="text-sm font-medium">{action.utilisateur ?? 'Système'}</p>
+                      {action.role && <p className="text-xs text-muted">{action.role}</p>}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Chip size="sm" variant="soft">
+                        <Chip.Label className="whitespace-nowrap">{action.module ?? '—'}</Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Chip color={TYPE_ACTION_COULEURS[action.typeAction] ?? 'default'} size="sm" variant="soft">
+                        <Chip.Label className="whitespace-nowrap">{TYPE_ACTION_LABELS[action.typeAction] ?? action.typeAction}</Chip.Label>
+                      </Chip>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <p className="text-sm font-medium">{libelleObjet(action)}</p>
+                      {action.entiteId && (
+                        <p className="truncate text-xs text-muted" title={action.entiteId}>
+                          {action.entiteId}
+                        </p>
+                      )}
+                    </Table.Cell>
+                    <Table.Cell className="max-w-sm">
+                      <DiffValeurs action={action} />
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
+
+          {totalPages > 1 && (
+            <Table.Footer className="justify-center">
+              <PaginationTableau onPage={(p) => setPage(p - 1)} page={page + 1} total={totalPages} />
+            </Table.Footer>
+          )}
+        </Table>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-default-400">
-        <span>
-          {isError ? '—' : `${total} action${total > 1 ? 's' : ''} pour ces critères`}
-        </span>
-        <span>
-          Audit central — toute écriture, dans tout module, est journalisée · lecture seule · rétention 24 mois
-        </span>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+        <span>{isError ? '—' : `${total} action${total > 1 ? 's' : ''} pour ces critères`}</span>
+        <span>Audit central — toute écriture, dans tout module, est journalisée · lecture seule · rétention 24 mois</span>
       </div>
     </div>
   );

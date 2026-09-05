@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/heroui';
+import { Button, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { endOfMonth, format, parse, startOfMonth } from 'date-fns';
 
@@ -29,27 +29,50 @@ export function MonthPicker({ debut, onChange }: MonthPickerProps) {
     <div className="space-y-4">
       {/* Year navigation */}
       <div className="flex items-center justify-center gap-4">
-        <Button isIconOnly size="sm" variant="bordered" radius="full" onPress={() => goToMonth(currentYear - 1, currentMonthIndex)}>
-          <ChevronLeft size={16} />
+        <Button
+          aria-label="Année précédente"
+          isIconOnly
+          onPress={() => goToMonth(currentYear - 1, currentMonthIndex)}
+          size="sm"
+          variant="outline"
+        >
+          <ChevronLeft aria-hidden="true" size={16} />
         </Button>
-        <span className="text-lg font-semibold text-foreground min-w-[80px] text-center">{currentYear}</span>
-        <Button isIconOnly size="sm" variant="bordered" radius="full" onPress={() => goToMonth(currentYear + 1, currentMonthIndex)}>
-          <ChevronRight size={16} />
+        <span className="min-w-[80px] text-center text-lg font-semibold tabular-nums text-foreground">
+          {currentYear}
+        </span>
+        <Button
+          aria-label="Année suivante"
+          isIconOnly
+          onPress={() => goToMonth(currentYear + 1, currentMonthIndex)}
+          size="sm"
+          variant="outline"
+        >
+          <ChevronRight aria-hidden="true" size={16} />
         </Button>
       </div>
 
-      {/* Month pills */}
-      <div className="flex items-center justify-center gap-1.5 flex-wrap">
+      {/*
+       * Les douze mois etaient des `<button>` nus dont l'actif etait peint
+       * `bg-orange-500` — une teinte qui n'appartient a aucun theme du projet — pour un
+       * choix EXCLUSIF, sans navigation au clavier entre les options.
+       */}
+      <ToggleButtonGroup
+        className="flex-wrap justify-center"
+        onSelectionChange={(sel) => {
+          const i = Number(Array.from(sel)[0]);
+          if (!Number.isNaN(i)) goToMonth(currentYear, i);
+        }}
+        selectedKeys={new Set([String(currentMonthIndex)])}
+        selectionMode="single"
+        size="sm"
+      >
         {MONTH_NAMES.map((name, index) => (
-          <button
-            key={name}
-            onClick={() => goToMonth(currentYear, index)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${index === currentMonthIndex ? 'bg-orange-500 text-white' : 'bg-surface-secondary text-muted hover:bg-surface-tertiary'}`}
-          >
+          <ToggleButton id={String(index)} key={name}>
             {name}
-          </button>
+          </ToggleButton>
         ))}
-      </div>
+      </ToggleButtonGroup>
     </div>
   );
 }

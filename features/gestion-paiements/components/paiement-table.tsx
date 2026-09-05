@@ -1,8 +1,10 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { Table } from '@heroui-v3/react';
 import { flexRender, Table as ReactTable, Row } from '@tanstack/react-table';
-import { Pagination, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@/components/heroui';
+import type { ReactNode } from 'react';
+
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 
 interface PaiementTableProps<T> {
   table: ReactTable<T>;
@@ -21,57 +23,62 @@ interface PaiementTableProps<T> {
 }
 
 export default function PaiementTable<T>({ table, isLoading, isFetching, pageCount = 0, emptyMessage = 'Aucun paiement', renderMobileCard }: PaiementTableProps<T>) {
-  const colsCount = table.getFlatHeaders().length;
+  const enTetes = table.getFlatHeaders();
   const rows = table.getRowModel().rows;
 
   const paginationBar = pageCount > 1 && (
-    <div className="flex justify-center py-4 border-t">
-      <Pagination
-        total={pageCount}
+    <div className="flex justify-center border-t border-separator py-4">
+      <PaginationTableau
+        onPage={(page) => table.setPageIndex(page - 1)}
         page={table.getState().pagination.pageIndex + 1}
-        onChange={(page) => table.setPageIndex(page - 1)}
-        color="primary"
-        isDisabled={isFetching}
+        total={pageCount}
       />
     </div>
   );
 
   const tableBlock = (
-    <Table isStriped aria-label="Tableau des charges à décaisser">
-      <TableHeader>
-        {table.getFlatHeaders().map((header) => (
-          <TableColumn key={header.id}>
-            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-          </TableColumn>
-        ))}
-      </TableHeader>
-      <TableBody emptyContent={emptyMessage}>
-        {isLoading ? (
-          Array.from({ length: 5 }).map((_, i) => (
-            <TableRow key={`skeleton-${i}`}>
-              {Array.from({ length: colsCount }).map((_, j) => (
-                <TableCell key={`skeleton-cell-${j}`}>
-                  <div className="h-4 bg-surface-tertiary rounded w-full animate-pulse" />
-                </TableCell>
-              ))}
-            </TableRow>
-          ))
-        ) : (
-          rows.map((row) => (
-            <TableRow
-              key={row.id}
-              data-state={row.getIsSelected() && 'selected'}
-              className={isFetching ? 'opacity-60' : ''}
-            >
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))
-        )}
-      </TableBody>
+    <Table>
+      <Table.ScrollContainer>
+        <Table.Content aria-label="Tableau des charges à décaisser" className="min-w-[52rem]">
+          <Table.Header>
+            {enTetes.map((header) => (
+              <Table.Column id={header.id} isRowHeader={header.id === 'designation'} key={header.id}>
+                {header.isPlaceholder
+                  ? ''
+                  : flexRender(header.column.columnDef.header, header.getContext())}
+              </Table.Column>
+            ))}
+          </Table.Header>
+          <Table.Body
+            renderEmptyState={() =>
+              isLoading ? null : <p className="py-8 text-center text-sm text-muted">{emptyMessage}</p>
+            }
+          >
+            {/* Le squelette compte ses cellules sur les MEMES en-tetes que les lignes. */}
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                    {enTetes.map((h) => (
+                      <Table.Cell key={`sq-${i}-${h.id}`}>
+                        <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                      </Table.Cell>
+                    ))}
+                  </Table.Row>
+                ))
+              : null}
+
+            {(isLoading ? [] : rows).map((row) => (
+              <Table.Row id={row.id} key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <Table.Cell className={isFetching ? 'opacity-60' : undefined} key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </Table.Cell>
+                ))}
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Content>
+      </Table.ScrollContainer>
     </Table>
   );
 
@@ -106,12 +113,10 @@ export default function PaiementTable<T>({ table, isLoading, isFetching, pageCou
         )}
         {pageCount > 1 && (
           <div className="flex justify-center pt-2">
-            <Pagination
-              total={pageCount}
+            <PaginationTableau
+              onPage={(page) => table.setPageIndex(page - 1)}
               page={table.getState().pagination.pageIndex + 1}
-              onChange={(page) => table.setPageIndex(page - 1)}
-              color="primary"
-              isDisabled={isFetching}
+              total={pageCount}
             />
           </div>
         )}
