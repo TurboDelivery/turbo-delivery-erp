@@ -1,17 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Radio,
-  RadioGroup,
-  Textarea,
-} from '@/components/heroui';
+import { Button, Description, FieldError, Label, Modal, Radio, RadioGroup, Spinner, TextArea } from '@heroui-v3/react';
 import { Landmark, PiggyBank, ArrowRightLeft, Building2 } from 'lucide-react';
 import { useFacturesRFQuery, type IFactureRF } from '@/features/responsable-financier';
 import EtatErreur from '@/components/commons/EtatErreur';
@@ -38,24 +28,24 @@ function FactureCard({ facture, children }: { facture: IFactureRF; children: Rea
     <div className="rounded-xl border border-separator bg-surface p-4 shadow-xs">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-            <Building2 className="w-4 h-4 text-indigo-500" />
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-secondary">
+            <Building2 aria-hidden="true" className="size-4 text-muted" />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground truncate">{facture.partenaire}</p>
             <p className="text-xs text-muted">{facture.numero}</p>
           </div>
         </div>
-        <p className="text-sm font-bold text-red-600 whitespace-nowrap">{formatMontant(facture.montant)}</p>
+        <p className="text-sm font-bold text-foreground whitespace-nowrap">{formatMontant(facture.montant)}</p>
       </div>
       {facture.numeroVisa ? (
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted">
-          <span className="font-semibold text-indigo-600">{facture.numeroVisa}</span>
+          <span className="font-semibold text-muted">{facture.numeroVisa}</span>
           {facture.dateVisa && <span>visa du {formatDateFr(facture.dateVisa)}</span>}
           {facture.viseur && <span>par {facture.viseur}</span>}
         </div>
       ) : (
-        <p className="mt-2 text-[11px] text-amber-600">Visa DGA posé automatiquement à l&apos;orientation</p>
+        <p className="mt-2 text-[11px] text-warning-soft-foreground">Visa DGA posé automatiquement à l&apos;orientation</p>
       )}
       <div className="mt-3">{children}</div>
     </div>
@@ -173,12 +163,8 @@ export default function OrientationFondsView() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {aOrienter.map((f) => (
               <FactureCard key={f.id} facture={f}>
-                <Button
-                  size="sm"
-                  className="w-full bg-indigo-600 text-white hover:bg-indigo-700"
-                  startContent={<Landmark className="w-4 h-4" />}
-                  onPress={() => openOrient(f)}
-                >
+                <Button className="w-full" onPress={() => openOrient(f)} size="sm" variant="primary">
+                  <Landmark aria-hidden="true" className="size-4" />
                   Orienter les fonds
                 </Button>
               </FactureCard>
@@ -213,16 +199,11 @@ export default function OrientationFondsView() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {conservees.map((f) => (
               <FactureCard key={f.id} facture={f}>
-                <div className="flex items-center gap-1.5 text-xs text-amber-600 mb-2">
-                  <PiggyBank className="w-3.5 h-3.5" /> Fonds de roulement
+                <div className="mb-2 flex items-center gap-1.5 text-xs text-warning-soft-foreground">
+                  <PiggyBank aria-hidden="true" className="size-3.5" /> Fonds de roulement
                 </div>
-                <Button
-                  size="sm"
-                  variant="bordered"
-                  className="w-full border-indigo-300 text-indigo-600"
-                  startContent={<ArrowRightLeft className="w-4 h-4" />}
-                  onPress={() => openReorient(f)}
-                >
+                <Button className="w-full" onPress={() => openReorient(f)} size="sm" variant="outline">
+                  <ArrowRightLeft aria-hidden="true" className="size-4" />
                   Ré-orienter vers la banque
                 </Button>
               </FactureCard>
@@ -232,112 +213,204 @@ export default function OrientationFondsView() {
       </section>
 
       {/* Modale orientation */}
-      <Modal isOpen={!!orientFacture} onOpenChange={(o) => !o && setOrientFacture(null)} size="lg">
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex-col items-start gap-0">
-                <span className="text-lg font-bold text-foreground">Orienter les fonds</span>
-                {orientFacture && (
-                  <span className="text-sm font-normal text-muted">
-                    {orientFacture.numero} — {orientFacture.partenaire} · {formatMontant(orientFacture.montant)}
-                  </span>
-                )}
-              </ModalHeader>
-              <ModalBody>
+      <Modal isOpen={!!orientFacture} onOpenChange={(o) => !o && setOrientFacture(null)}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog className="max-w-lg">
+              <Modal.Header>
+                <Modal.Heading className="flex flex-col items-start gap-0">
+                  <span className="text-lg font-bold text-foreground">Orienter les fonds</span>
+                  {orientFacture && (
+                    <span className="text-sm font-normal text-muted">
+                      {orientFacture.numero} — {orientFacture.partenaire} ·{' '}
+                      {formatMontant(orientFacture.montant)}
+                    </span>
+                  )}
+                </Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+
+              <Modal.Body className="flex flex-col gap-4">
                 {/* Rappel en lecture seule (SPEC-RECOUV-002 §4.1) */}
                 {orientFacture && (
-                  <div className="rounded-lg bg-surface-secondary border border-separator p-3 text-xs space-y-1">
-                    <div className="flex justify-between gap-3"><span className="text-muted">N° facture</span><span className="font-medium text-foreground">{orientFacture.numero}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-muted">Partenaire</span><span className="font-medium text-foreground text-right">{orientFacture.partenaire}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-muted">Montant recouvré</span><span className="font-semibold text-red-600">{formatMontant(orientFacture.montant)}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-muted">N° de visa</span><span className="font-semibold text-indigo-600">{orientFacture.numeroVisa ?? '—'}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-muted">Date du visa</span><span className="text-foreground">{formatDateFr(orientFacture.dateVisa)}</span></div>
-                    <div className="flex justify-between gap-3"><span className="text-muted">Viseur</span><span className="text-foreground">{orientFacture.viseur ?? '—'}</span></div>
+                  <div className="flex flex-col gap-1 rounded-lg border border-separator bg-surface-secondary p-3 text-xs">
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted">N° facture</span>
+                      <span className="font-medium text-foreground">{orientFacture.numero}</span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted">Partenaire</span>
+                      <span className="text-right font-medium text-foreground">
+                        {orientFacture.partenaire}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted">Montant recouvré</span>
+                      <span className="font-semibold tabular-nums text-foreground">
+                        {formatMontant(orientFacture.montant)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted">N° de visa</span>
+                      <span className="font-semibold text-foreground">
+                        {orientFacture.numeroVisa ?? '—'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted">Date du visa</span>
+                      <span className="text-foreground">{formatDateFr(orientFacture.dateVisa)}</span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-muted">Viseur</span>
+                      <span className="text-foreground">{orientFacture.viseur ?? '—'}</span>
+                    </div>
                   </div>
                 )}
-                <RadioGroup value={choix} onValueChange={(v) => setChoix(v as typeof choix)}>
-                  <Radio value="DEPOT_BANQUE" description="Le Comptable pourra exécuter le dépôt bancaire (bordereau + preuve).">
-                    Autoriser le dépôt en banque
+
+                <RadioGroup onChange={(v) => setChoix(v as typeof choix)} value={choix}>
+                  <Radio value="DEPOT_BANQUE">
+                    <Radio.Content className="items-start">
+                      <Radio.Control className="mt-1">
+                        <Radio.Indicator />
+                      </Radio.Control>
+                      <span className="flex flex-col items-start">
+                        <span className="text-sm text-foreground">Autoriser le dépôt en banque</span>
+                        <span className="text-xs text-muted">
+                          Le Comptable pourra exécuter le dépôt bancaire (bordereau + preuve).
+                        </span>
+                      </span>
+                    </Radio.Content>
                   </Radio>
-                  <Radio value="CONSERVATION_CAISSE" description="Garder les fonds en caisse comme fonds de roulement (aucun dépôt).">
-                    Conserver en caisse (fonds de roulement)
+                  <Radio value="CONSERVATION_CAISSE">
+                    <Radio.Content className="items-start">
+                      <Radio.Control className="mt-1">
+                        <Radio.Indicator />
+                      </Radio.Control>
+                      <span className="flex flex-col items-start">
+                        <span className="text-sm text-foreground">
+                          Conserver en caisse (fonds de roulement)
+                        </span>
+                        <span className="text-xs text-muted">
+                          Garder les fonds en caisse comme fonds de roulement (aucun dépôt).
+                        </span>
+                      </span>
+                    </Radio.Content>
                   </Radio>
                 </RadioGroup>
+
                 {motifRequis && (
-                  <Textarea
-                    label="Motif de conservation"
-                    placeholder={`Obligatoire — minimum ${MOTIF_MIN} caractères`}
-                    value={motif}
-                    onValueChange={setMotif}
-                    minRows={3}
-                    isRequired
-                    description={`${motif.trim().length}/${MOTIF_MIN} caractères`}
-                    color={motif.length > 0 && !motifValide ? 'danger' : 'default'}
-                  />
+                  <div className="flex flex-col gap-1">
+                    <Label>Motif de conservation</Label>
+                    <TextArea
+                      onChange={(e) => setMotif(e.target.value)}
+                      placeholder={`Obligatoire — minimum ${MOTIF_MIN} caractères`}
+                      required
+                      rows={3}
+                      value={motif}
+                    />
+                    {motif.length > 0 && !motifValide ? (
+                      <FieldError>{`${motif.trim().length}/${MOTIF_MIN} caractères`}</FieldError>
+                    ) : (
+                      <Description>{`${motif.trim().length}/${MOTIF_MIN} caractères`}</Description>
+                    )}
+                  </div>
                 )}
-                <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-100 px-3 py-2 text-xs text-amber-700">
+
+                {/* L'avertissement dit quelque chose : il garde son ton, mais en jetons —
+                    `bg-amber-50 border-amber-100 text-amber-700` etaient trois teintes de
+                    la palette Tailwind, sans variante sombre. */}
+                <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-foreground">
                   <span>
-                    La décision est tracée (auteur + horodatage) et vaut autorisation : c&apos;est elle qui débloque (ou non) l&apos;action du Comptable.
-                    {!orientFacture?.numeroVisa && ' Le visa DGA est posé automatiquement (N° de visa généré) par cette décision.'}
+                    La décision est tracée (auteur + horodatage) et vaut autorisation :
+                    c&apos;est elle qui débloque (ou non) l&apos;action du Comptable.
+                    {!orientFacture?.numeroVisa &&
+                      ' Le visa DGA est posé automatiquement (N° de visa généré) par cette décision.'}
                   </span>
                 </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={onClose} isDisabled={orienter.isPending}>Annuler</Button>
+              </Modal.Body>
+
+              <Modal.Footer>
                 <Button
-                  className="bg-indigo-600 text-white"
-                  onPress={handleConfirmOrient}
-                  isLoading={orienter.isPending}
-                  isDisabled={!motifValide}
+                  isDisabled={orienter.isPending}
+                  onPress={() => setOrientFacture(null)}
+                  variant="ghost"
                 >
+                  Annuler
+                </Button>
+                <Button
+                  isDisabled={!motifValide}
+                  isPending={orienter.isPending}
+                  onPress={handleConfirmOrient}
+                  variant="primary"
+                >
+                  {orienter.isPending ? <Spinner size="sm" /> : null}
                   Confirmer
                 </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
 
       {/* Modale ré-orientation */}
-      <Modal isOpen={!!reorientFacture} onOpenChange={(o) => !o && setReorientFacture(null)} size="lg">
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex-col items-start gap-0">
-                <span className="text-lg font-bold text-foreground">Ré-orienter vers la banque</span>
-                {reorientFacture && (
-                  <span className="text-sm font-normal text-muted">
-                    {reorientFacture.numero} — {reorientFacture.partenaire} · {formatMontant(reorientFacture.montant)}
+      <Modal isOpen={!!reorientFacture} onOpenChange={(o) => !o && setReorientFacture(null)}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog className="max-w-lg">
+              <Modal.Header>
+                <Modal.Heading className="flex flex-col items-start gap-0">
+                  <span className="text-lg font-bold text-foreground">
+                    Ré-orienter vers la banque
                   </span>
-                )}
-              </ModalHeader>
-              <ModalBody>
-                <Textarea
-                  label="Motif de ré-orientation"
-                  placeholder={`Obligatoire — minimum ${MOTIF_MIN} caractères (toute sortie de caisse doit être tracée)`}
-                  value={motifReorient}
-                  onValueChange={setMotifReorient}
-                  minRows={3}
-                  isRequired
-                  description={`${motifReorient.trim().length}/${MOTIF_MIN} caractères`}
-                  color={motifReorient.length > 0 && motifReorient.trim().length < MOTIF_MIN ? 'danger' : 'default'}
-                />
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={onClose} isDisabled={reorienter.isPending}>Annuler</Button>
+                  {reorientFacture && (
+                    <span className="text-sm font-normal text-muted">
+                      {reorientFacture.numero} — {reorientFacture.partenaire} ·{' '}
+                      {formatMontant(reorientFacture.montant)}
+                    </span>
+                  )}
+                </Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+
+              <Modal.Body>
+                <div className="flex flex-col gap-1">
+                  <Label>Motif de ré-orientation</Label>
+                  <TextArea
+                    onChange={(e) => setMotifReorient(e.target.value)}
+                    placeholder={`Obligatoire — minimum ${MOTIF_MIN} caractères (toute sortie de caisse doit être tracée)`}
+                    required
+                    rows={3}
+                    value={motifReorient}
+                  />
+                  {motifReorient.length > 0 && motifReorient.trim().length < MOTIF_MIN ? (
+                    <FieldError>{`${motifReorient.trim().length}/${MOTIF_MIN} caractères`}</FieldError>
+                  ) : (
+                    <Description>{`${motifReorient.trim().length}/${MOTIF_MIN} caractères`}</Description>
+                  )}
+                </div>
+              </Modal.Body>
+
+              <Modal.Footer>
                 <Button
-                  className="bg-indigo-600 text-white"
-                  onPress={handleConfirmReorient}
-                  isLoading={reorienter.isPending}
-                  isDisabled={motifReorient.trim().length < MOTIF_MIN}
+                  isDisabled={reorienter.isPending}
+                  onPress={() => setReorientFacture(null)}
+                  variant="ghost"
                 >
+                  Annuler
+                </Button>
+                <Button
+                  isDisabled={motifReorient.trim().length < MOTIF_MIN}
+                  isPending={reorienter.isPending}
+                  onPress={handleConfirmReorient}
+                  variant="primary"
+                >
+                  {reorienter.isPending ? <Spinner size="sm" /> : null}
                   Confirmer la ré-orientation
                 </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </div>
   );

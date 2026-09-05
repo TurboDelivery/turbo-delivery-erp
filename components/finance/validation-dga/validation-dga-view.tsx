@@ -4,15 +4,7 @@ import { useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Building2, Calendar, Download, FileText, Landmark, X, ZoomIn } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  Button,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Textarea,
-} from '@/components/heroui';
+import { Button, Label, Modal, Spinner, TextArea } from '@heroui-v3/react';
 import {
   useFacturesRFQuery,
   useFactureRFQuery,
@@ -47,14 +39,14 @@ function FactureItem({ facture, selected, onClick }: FactureItemProps) {
       onClick={onClick}
       className={`w-full text-left px-4 py-3.5 rounded-xl border transition-all ${
         selected
-          ? 'border-blue-400 bg-blue-50 shadow-xs'
+          ? 'border-accent bg-accent-soft/30 shadow-xs'
           : 'border-separator bg-surface hover:border-separator hover:bg-surface-secondary'
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${selected ? 'bg-blue-100' : 'bg-surface-secondary'}`}>
-            <Building2 className={`w-4 h-4 ${selected ? 'text-blue-600' : 'text-muted'}`} />
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${selected ? 'bg-accent-soft' : 'bg-surface-secondary'}`}>
+            <Building2 aria-hidden="true" className={`size-4 ${selected ? 'text-accent' : 'text-muted'}`} />
           </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-foreground truncate">{facture.partenaire}</p>
@@ -62,7 +54,7 @@ function FactureItem({ facture, selected, onClick }: FactureItemProps) {
           </div>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-sm font-bold text-red-600">{formatMontant(facture.montant)}</p>
+          <p className="text-sm font-bold tabular-nums text-foreground">{formatMontant(facture.montant)}</p>
           <p className="text-xs text-muted flex items-center justify-end gap-1 mt-0.5">
             <Calendar className="w-3 h-3" />
             {formatDate(facture.emission)}
@@ -114,8 +106,8 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-3.5 border-b border-separator">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center">
-            <FileText className="w-4 h-4 text-indigo-600" />
+          <div className="w-8 h-8 rounded-lg bg-accent-soft flex items-center justify-center">
+            <FileText aria-hidden="true" className="size-4 text-muted" />
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">PREUVE DE PAIEMENT</p>
@@ -139,7 +131,8 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
       <div className="flex-1 overflow-auto p-4 bg-surface-secondary">
         {isLoading ? (
           <div className="h-full flex items-center justify-center">
-            <div className="w-8 h-8 rounded-full border-2 border-indigo-300 border-t-indigo-600 animate-spin" />
+            {/* Un anneau tournant dessine a la main, en indigo : le composant en a un. */}
+            <Spinner />
           </div>
         ) : isError ? (
           /* Echec de LECTURE. Ne jamais le confondre avec « pas encore ajoutee » : le
@@ -169,7 +162,9 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
             <FileText className="w-12 h-12 mb-3 opacity-30" />
             <p className="text-sm font-medium">Format non supporté</p>
             <p className="text-xs mt-1 text-muted">
-              <button onClick={handleDownload} className="text-blue-500 underline">Télécharger le fichier</button>
+              <Button onPress={handleDownload} size="sm" variant="ghost">
+                Télécharger le fichier
+              </Button>
             </p>
           </div>
         )}
@@ -179,27 +174,19 @@ function ProofPanel({ facture, isLoading, isError, onReessayer, onViser, onRejet
       <div className="px-5 py-4 border-t border-separator flex items-center justify-between gap-3 bg-surface">
         <div className="text-xs text-muted">
           Montant :{' '}
-          <span className="font-semibold text-red-600">{formatMontant(facture.montant)}</span>
+          <span className="font-semibold tabular-nums text-foreground">{formatMontant(facture.montant)}</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="bordered"
-            size="sm"
-            className="text-muted border-separator hover:border-red-300 hover:text-red-600"
-            startContent={<X className="w-4 h-4" />}
-            onPress={onRejeter}
-            isDisabled={isPending}
-          >
+          <Button isDisabled={isPending} onPress={onRejeter} size="sm" variant="danger-soft">
+            <X aria-hidden="true" className="size-4" />
             Rejeter
           </Button>
-          <Button
-            color="success"
-            size="sm"
-            className="text-white font-semibold"
-            startContent={<Landmark className="w-4 h-4" />}
-            onPress={onViser}
-            isLoading={isPending}
-          >
+          <Button isPending={isPending} onPress={onViser} size="sm" variant="primary">
+            {isPending ? (
+              <Spinner size="sm" />
+            ) : (
+              <Landmark aria-hidden="true" className="size-4" />
+            )}
             Viser cette opération
           </Button>
         </div>
@@ -313,8 +300,8 @@ export default function ValidationDgaView() {
           <p className="text-sm text-muted mt-0.5">Validation des preuves de paiement — Étape 5</p>
         </div>
         <div className="flex items-center gap-2 bg-surface rounded-xl border border-separator px-3 py-2 shadow-xs">
-          <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center">
-            <span className="text-xs font-bold text-indigo-700">
+          <div className="w-7 h-7 rounded-full bg-accent-soft flex items-center justify-center">
+            <span className="text-xs font-bold text-accent-soft-foreground">
               {userName.charAt(0).toUpperCase()}
             </span>
           </div>
@@ -333,7 +320,7 @@ export default function ValidationDgaView() {
                 <p className="text-sm font-semibold text-foreground">En attente de visa</p>
                 <p className="text-xs text-muted mt-0.5">Étape 5 — Visa Direction</p>
               </div>
-              <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] rounded-full bg-red-500 text-white text-xs font-bold px-1.5">
+              <span className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-danger px-1.5 text-xs font-bold text-danger-foreground">
                 {pendingCount}
               </span>
             </div>
@@ -385,37 +372,52 @@ export default function ValidationDgaView() {
       </div>
 
       {/* Modale rejet DGA */}
-      <Modal isOpen={rejeterOpen} onOpenChange={setRejeterOpen} size="sm">
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="text-red-600">Rejeter la facture</ModalHeader>
-              <ModalBody>
-                <Textarea
-                  label="Motif du rejet"
+      <Modal isOpen={rejeterOpen} onOpenChange={setRejeterOpen}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-sm">
+            <Modal.Header>
+              <Modal.Heading>Rejeter la facture</Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body>
+              {/*
+               * `TextArea` n'est PAS composé en v3 : il n'expose que `Root`, il ne prend
+               * pas de `label` et son `onChange` reçoit un ÉVÉNEMENT DOM, à la différence
+               * de `TextField` qui reçoit la valeur.
+               */}
+              <div className="flex flex-col gap-1">
+                <Label>Motif du rejet</Label>
+                <TextArea
+                  onChange={(e) => setMotif(e.target.value)}
                   placeholder="Décrivez la raison du rejet…"
+                  required
+                  rows={3}
                   value={motif}
-                  onValueChange={setMotif}
-                  minRows={3}
-                  isRequired
                 />
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={onClose} isDisabled={rejeterMutation.isPending}>
-                  Annuler
-                </Button>
-                <Button
-                  color="danger"
-                  onPress={handleConfirmRejeter}
-                  isLoading={rejeterMutation.isPending}
-                  isDisabled={!motif.trim()}
-                >
-                  Confirmer le rejet
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
+              </div>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button
+                isDisabled={rejeterMutation.isPending}
+                onPress={() => setRejeterOpen(false)}
+                variant="ghost"
+              >
+                Annuler
+              </Button>
+              <Button
+                isDisabled={!motif.trim()}
+                isPending={rejeterMutation.isPending}
+                onPress={handleConfirmRejeter}
+                variant="danger"
+              >
+                {rejeterMutation.isPending ? <Spinner size="sm" /> : null}
+                Confirmer le rejet
+              </Button>
+            </Modal.Footer>
+        </Modal.Dialog>
+      </Modal.Container>
+      </Modal.Backdrop>
       </Modal>
     </div>
   );

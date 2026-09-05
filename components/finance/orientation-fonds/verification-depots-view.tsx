@@ -5,20 +5,13 @@ import * as XLSX from 'xlsx';
 import {
   Button,
   Chip,
-  Input,
+  Label,
   Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
+  NumberField,
+  Spinner,
   Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-  Textarea,
-} from '@/components/heroui';
+  TextArea,
+} from '@heroui-v3/react';
 import { Download, ScrollText, AlertTriangle, CheckCircle2, Landmark, PiggyBank } from 'lucide-react';
 import {
   useVerificationDepotsQuery,
@@ -100,16 +93,18 @@ export default function VerificationDepotsView() {
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <p className="text-sm text-muted">Comptabilité</p>
-          <h1 className="text-2xl font-bold text-primary">Vérification dépôt en banque</h1>
+          <h1 className="text-2xl font-bold text-foreground">Vérification dépôt en banque</h1>
           <p className="text-sm text-muted mt-0.5">
             Rapprochement croisé N° de visa ↔ N° de bordereau, et suivi des fonds conservés en caisse.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="bordered" startContent={<ScrollText className="w-4 h-4" />} onPress={() => setAttestOpen(true)}>
+          <Button onPress={() => setAttestOpen(true)} variant="outline">
+            <ScrollText aria-hidden="true" className="size-4" />
             Attestation de caisse
           </Button>
-          <Button color="primary" startContent={<Download className="w-4 h-4" />} onPress={exportXlsx} isDisabled={isLoading}>
+          <Button isDisabled={isLoading} onPress={exportXlsx} variant="primary">
+            <Download aria-hidden="true" className="size-4" />
             Exporter Excel
           </Button>
         </div>
@@ -147,7 +142,7 @@ export default function VerificationDepotsView() {
           />
         </GrilleStats>
         {synthese && !synthese.bouclageOk && (
-          <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="flex items-center gap-2 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger-soft-foreground">
             <AlertTriangle className="w-4 h-4 shrink-0" />
             Total visé ≠ Total déposé + Total conservé — anomalie à investiguer (opération visée ni déposée ni conservée, ou double comptage).
           </div>
@@ -156,36 +151,75 @@ export default function VerificationDepotsView() {
         {/* Section A — orientés banque */}
         <section className="bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-separator">
-            <Landmark className="w-4 h-4 text-indigo-500" />
+            <Landmark aria-hidden="true" className="size-4 text-muted" />
             <p className="font-semibold text-foreground">Recouvrements orientés banque</p>
             <span className="text-xs text-muted">· rapprochement visa ↔ bordereau</span>
           </div>
           <div className="overflow-x-auto hidden md:block">
-            <Table aria-label="Rapprochement banque" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-surface-secondary text-muted text-xs uppercase' }}>
-              <TableHeader>
-                <TableColumn>N° VISA</TableColumn>
-                <TableColumn>N° BORDEREAU</TableColumn>
-                <TableColumn>PARTENAIRE</TableColumn>
-                <TableColumn>VISÉ / DÉPOSÉ</TableColumn>
-                <TableColumn>DATE</TableColumn>
-                <TableColumn>ÉTAT</TableColumn>
-              </TableHeader>
-              <TableBody emptyContent={isLoading ? 'Chargement…' : 'Aucun recouvrement orienté banque'}>
-                {banque.map((l) => (
-                  <TableRow key={l.factureId}>
-                    <TableCell>{l.numeroVisa ?? '—'}</TableCell>
-                    <TableCell>{l.numeroBordereau ?? <span className="text-red-500">—</span>}</TableCell>
-                    <TableCell>{l.partenaire}</TableCell>
-                    <TableCell className="whitespace-nowrap">{formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}</TableCell>
-                    <TableCell>{fmtDate(l.dateDepot)}</TableCell>
-                    <TableCell>
-                      <Chip size="sm" color={ETAT_BANQUE[l.etatRapprochement].color} variant="flat">
-                        {ETAT_BANQUE[l.etatRapprochement].label}
-                      </Chip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+            <Table>
+              <Table.ScrollContainer>
+                <Table.Content aria-label="Rapprochement banque" className="min-w-[48rem]">
+                  <Table.Header>
+                    <Table.Column id="visa" isRowHeader>
+                      N° visa
+                    </Table.Column>
+                    <Table.Column id="bordereau">N° bordereau</Table.Column>
+                    <Table.Column id="partenaire">Partenaire</Table.Column>
+                    <Table.Column id="montants">Visé / déposé</Table.Column>
+                    <Table.Column id="date">Date</Table.Column>
+                    <Table.Column id="etat">État</Table.Column>
+                  </Table.Header>
+
+                  <Table.Body
+                    renderEmptyState={() =>
+                      isLoading ? null : (
+                        <p className="py-8 text-center text-sm text-muted">
+                          Aucun recouvrement orienté banque
+                        </p>
+                      )
+                    }
+                  >
+                    {isLoading
+                      ? Array.from({ length: 4 }).map((_, i) => (
+                          <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                            {['visa', 'bordereau', 'partenaire', 'montants', 'date', 'etat'].map((c) => (
+                              <Table.Cell key={`sq-${i}-${c}`}>
+                                <div className="h-4 animate-pulse rounded bg-surface-secondary" />
+                              </Table.Cell>
+                            ))}
+                          </Table.Row>
+                        ))
+                      : null}
+
+                    {(isLoading ? [] : banque).map((l) => (
+                      <Table.Row id={l.factureId} key={l.factureId}>
+                        <Table.Cell>{l.numeroVisa ?? '—'}</Table.Cell>
+                        <Table.Cell>
+                          {l.numeroBordereau ?? (
+                            <span className="text-danger-soft-foreground">—</span>
+                          )}
+                        </Table.Cell>
+                        <Table.Cell>{l.partenaire}</Table.Cell>
+                        <Table.Cell>
+                          <span className="block whitespace-nowrap text-right tabular-nums">
+                            {formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}
+                          </span>
+                        </Table.Cell>
+                        <Table.Cell>{fmtDate(l.dateDepot)}</Table.Cell>
+                        <Table.Cell>
+                          <Chip
+                            color={ETAT_BANQUE[l.etatRapprochement].color}
+                            size="sm"
+                            variant="soft"
+                          >
+                            <Chip.Label>{ETAT_BANQUE[l.etatRapprochement].label}</Chip.Label>
+                          </Chip>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
             </Table>
           </div>
           {/* Mobile — cartes (lecture seule) */}
@@ -199,7 +233,9 @@ export default function VerificationDepotsView() {
                     <p className="text-sm font-semibold text-foreground truncate">{l.partenaire}</p>
                     <p className="text-[11px] text-muted">Visa {l.numeroVisa ?? '—'} · Bord. {l.numeroBordereau ?? '—'}</p>
                   </div>
-                  <Chip size="sm" color={ETAT_BANQUE[l.etatRapprochement].color} variant="flat">{ETAT_BANQUE[l.etatRapprochement].label}</Chip>
+                  <Chip color={ETAT_BANQUE[l.etatRapprochement].color} size="sm" variant="soft">
+                    <Chip.Label>{ETAT_BANQUE[l.etatRapprochement].label}</Chip.Label>
+                  </Chip>
                 </div>
                 <div className="flex justify-between text-xs"><span className="text-muted">Visé / Déposé</span><span className="text-foreground">{formatMontant(l.montantVise)} / {formatMontant(l.montantDepose)}</span></div>
                 <div className="flex justify-between text-xs"><span className="text-muted">Date dépôt</span><span className="text-foreground">{fmtDate(l.dateDepot)}</span></div>
@@ -211,35 +247,72 @@ export default function VerificationDepotsView() {
         {/* Section B — conservés en caisse */}
         <section className="bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-separator">
-            <PiggyBank className="w-4 h-4 text-amber-500" />
+            <PiggyBank aria-hidden="true" className="size-4 text-warning-soft-foreground" />
             <p className="font-semibold text-foreground">Recouvrements conservés en caisse</p>
           </div>
-          <div className="overflow-x-auto hidden md:block">
-            <Table aria-label="Suivi caisse" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-surface-secondary text-muted text-xs uppercase' }}>
-              <TableHeader>
-                <TableColumn>N° VISA</TableColumn>
-                <TableColumn>PARTENAIRE</TableColumn>
-                <TableColumn>MONTANT</TableColumn>
-                <TableColumn>MOTIF</TableColumn>
-                <TableColumn>ANCIENNETÉ</TableColumn>
-                <TableColumn>ÉTAT</TableColumn>
-              </TableHeader>
-              <TableBody emptyContent={isLoading ? 'Chargement…' : 'Aucun fonds conservé en caisse'}>
-                {caisse.map((l) => (
-                  <TableRow key={l.factureId}>
-                    <TableCell>{l.numeroVisa ?? '—'}</TableCell>
-                    <TableCell>{l.partenaire}</TableCell>
-                    <TableCell className="whitespace-nowrap">{formatMontant(l.montantConserve)}</TableCell>
-                    <TableCell><span className="text-xs text-muted line-clamp-2 max-w-[260px]">{l.motif ?? '—'}</span></TableCell>
-                    <TableCell>{l.ancienneteJours} j</TableCell>
-                    <TableCell>
-                      <Chip size="sm" color={l.alerteDormant ? 'danger' : 'warning'} variant="flat">
-                        {l.alerteDormant ? 'Dormant' : 'En caisse'}
-                      </Chip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
+          <div className="hidden md:block">
+            <Table>
+              <Table.ScrollContainer>
+                <Table.Content aria-label="Suivi caisse" className="min-w-[48rem]">
+                  <Table.Header>
+                    <Table.Column id="visa" isRowHeader>
+                      N° visa
+                    </Table.Column>
+                    <Table.Column id="partenaire">Partenaire</Table.Column>
+                    <Table.Column id="montant">Montant</Table.Column>
+                    <Table.Column id="motif">Motif</Table.Column>
+                    <Table.Column id="anciennete">Ancienneté</Table.Column>
+                    <Table.Column id="etat">État</Table.Column>
+                  </Table.Header>
+
+                  <Table.Body
+                    renderEmptyState={() =>
+                      isLoading ? null : (
+                        <p className="py-8 text-center text-sm text-muted">
+                          Aucun fonds conservé en caisse
+                        </p>
+                      )
+                    }
+                  >
+                    {isLoading
+                      ? Array.from({ length: 4 }).map((_, i) => (
+                          <Table.Row id={`sqc-${i}`} key={`sqc-${i}`}>
+                            {['visa', 'partenaire', 'montant', 'motif', 'anciennete', 'etat'].map(
+                              (c) => (
+                                <Table.Cell key={`sqc-${i}-${c}`}>
+                                  <div className="h-4 animate-pulse rounded bg-surface-secondary" />
+                                </Table.Cell>
+                              ),
+                            )}
+                          </Table.Row>
+                        ))
+                      : null}
+
+                    {(isLoading ? [] : caisse).map((l) => (
+                      <Table.Row id={l.factureId} key={l.factureId}>
+                        <Table.Cell>{l.numeroVisa ?? '—'}</Table.Cell>
+                        <Table.Cell>{l.partenaire}</Table.Cell>
+                        <Table.Cell>
+                          <span className="block whitespace-nowrap text-right tabular-nums">
+                            {formatMontant(l.montantConserve)}
+                          </span>
+                        </Table.Cell>
+                        <Table.Cell>
+                          <span className="line-clamp-2 block max-w-[260px] text-xs text-muted">
+                            {l.motif ?? '—'}
+                          </span>
+                        </Table.Cell>
+                        <Table.Cell>{l.ancienneteJours} j</Table.Cell>
+                        <Table.Cell>
+                          <Chip color={l.alerteDormant ? 'danger' : 'warning'} size="sm" variant="soft">
+                            <Chip.Label>{l.alerteDormant ? 'Dormant' : 'En caisse'}</Chip.Label>
+                          </Chip>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
             </Table>
           </div>
           {/* Mobile — cartes (lecture seule) */}
@@ -253,7 +326,9 @@ export default function VerificationDepotsView() {
                     <p className="text-sm font-semibold text-foreground truncate">{l.partenaire}</p>
                     <p className="text-[11px] text-muted">Visa {l.numeroVisa ?? '—'} · {l.ancienneteJours} j</p>
                   </div>
-                  <Chip size="sm" color={l.alerteDormant ? 'danger' : 'warning'} variant="flat">{l.alerteDormant ? 'Dormant' : 'En caisse'}</Chip>
+                  <Chip color={l.alerteDormant ? 'danger' : 'warning'} size="sm" variant="soft">
+                    <Chip.Label>{l.alerteDormant ? 'Dormant' : 'En caisse'}</Chip.Label>
+                  </Chip>
                 </div>
                 <div className="flex justify-between text-xs"><span className="text-muted">Montant</span><span className="text-foreground font-semibold">{formatMontant(l.montantConserve)}</span></div>
                 {l.motif && <p className="text-[11px] text-muted line-clamp-2">{l.motif}</p>}
@@ -268,65 +343,129 @@ export default function VerificationDepotsView() {
       {attestations && attestations.length > 0 && (
         <section className="bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-separator">
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <CheckCircle2 aria-hidden="true" className="size-4 text-success-soft-foreground" />
             <p className="font-semibold text-foreground">Attestations de comptage physique</p>
           </div>
-          <div className="overflow-x-auto">
-            <Table aria-label="Attestations" classNames={{ wrapper: 'rounded-none shadow-none p-0', th: 'bg-surface-secondary text-muted text-xs uppercase' }}>
-              <TableHeader>
-                <TableColumn>DATE</TableColumn>
-                <TableColumn>SOLDE THÉORIQUE</TableColumn>
-                <TableColumn>COMPTÉ</TableColumn>
-                <TableColumn>ÉCART</TableColumn>
-                <TableColumn>CAISSIER</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {attestations.map((a) => (
-                  <TableRow key={a.id}>
-                    <TableCell>{fmtDate(a.dateAttestation)}</TableCell>
-                    <TableCell>{formatMontant(a.soldeTheorique)}</TableCell>
-                    <TableCell>{formatMontant(a.montantComptePhysique)}</TableCell>
-                    <TableCell className={a.ecart !== 0 ? 'text-red-600 font-semibold' : 'text-emerald-600'}>{formatMontant(a.ecart)}</TableCell>
-                    <TableCell>{a.caissier}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Attestations" className="min-w-[44rem]">
+                <Table.Header>
+                  <Table.Column id="date" isRowHeader>
+                    Date
+                  </Table.Column>
+                  <Table.Column id="theorique">Solde théorique</Table.Column>
+                  <Table.Column id="compte">Compté</Table.Column>
+                  <Table.Column id="ecart">Écart</Table.Column>
+                  <Table.Column id="caissier">Caissier</Table.Column>
+                </Table.Header>
+                <Table.Body>
+                  {attestations.map((a) => (
+                    <Table.Row id={a.id} key={a.id}>
+                      <Table.Cell>{fmtDate(a.dateAttestation)}</Table.Cell>
+                      <Table.Cell>
+                        <span className="block text-right tabular-nums">
+                          {formatMontant(a.soldeTheorique)}
+                        </span>
+                      </Table.Cell>
+                      <Table.Cell>
+                        <span className="block text-right tabular-nums">
+                          {formatMontant(a.montantComptePhysique)}
+                        </span>
+                      </Table.Cell>
+                      {/* Un ecart non nul est la SEULE chose que ce registre doit faire
+                          voir : il garde sa couleur, en jeton. */}
+                      <Table.Cell>
+                        <span
+                          className={
+                            a.ecart !== 0
+                              ? 'block text-right font-semibold tabular-nums text-danger-soft-foreground'
+                              : 'block text-right tabular-nums text-success-soft-foreground'
+                          }
+                        >
+                          {formatMontant(a.ecart)}
+                        </span>
+                      </Table.Cell>
+                      <Table.Cell>{a.caissier}</Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+          </Table>
         </section>
       )}
 
       {/* Modale attestation de caisse */}
-      <Modal isOpen={attestOpen} onOpenChange={setAttestOpen} size="md">
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className="flex-col items-start gap-0">
-                <span className="text-lg font-bold text-foreground">Attestation de caisse</span>
-                <span className="text-sm font-normal text-muted">
-                  Solde théorique : {formatMontant(synthese?.totalConserve ?? 0)} (somme des fonds conservés)
-                </span>
-              </ModalHeader>
-              <ModalBody>
-                <Input
-                  type="number"
-                  label="Montant physiquement compté (FCFA)"
-                  value={montantCompte}
-                  onValueChange={setMontantCompte}
+      <Modal isOpen={attestOpen} onOpenChange={setAttestOpen}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog className="max-w-md">
+              <Modal.Header>
+                <Modal.Heading className="flex flex-col items-start gap-0">
+                  <span className="text-lg font-bold text-foreground">Attestation de caisse</span>
+                  <span className="text-sm font-normal text-muted">
+                    Solde théorique : {formatMontant(synthese?.totalConserve ?? 0)} (somme des fonds
+                    conservés)
+                  </span>
+                </Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+
+              <Modal.Body className="flex flex-col gap-4">
+                {/*
+                 * Le montant compte remontait en CHAINE d'un `<input type="number">` :
+                 * c'est un `NumberField`, dont les trois enfants sont obligatoires.
+                 */}
+                <NumberField
                   isRequired
-                />
-                <Textarea label="Commentaire (facultatif)" value={commentaire} onValueChange={setCommentaire} minRows={2} />
-                <p className="text-xs text-muted">Le système calcule l&apos;écart avec le solde théorique ; tout écart est signalé à la Direction.</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="light" onPress={onClose} isDisabled={attester.isPending}>Annuler</Button>
-                <Button color="primary" onPress={handleAttester} isLoading={attester.isPending} isDisabled={montantCompte.trim() === ''}>
+                  minValue={0}
+                  onChange={(v) => setMontantCompte(Number.isNaN(v) ? '' : String(v))}
+                  value={montantCompte === '' ? Number.NaN : Number(montantCompte)}
+                >
+                  <Label>Montant physiquement compté (FCFA)</Label>
+                  <NumberField.Group>
+                    <NumberField.DecrementButton />
+                    <NumberField.Input />
+                    <NumberField.IncrementButton />
+                  </NumberField.Group>
+                </NumberField>
+
+                <div className="flex flex-col gap-1">
+                  <Label>Commentaire (facultatif)</Label>
+                  <TextArea
+                    onChange={(e) => setCommentaire(e.target.value)}
+                    rows={2}
+                    value={commentaire}
+                  />
+                </div>
+
+                <p className="text-xs text-muted">
+                  Le système calcule l&apos;écart avec le solde théorique ; tout écart est signalé
+                  à la Direction.
+                </p>
+              </Modal.Body>
+
+              <Modal.Footer>
+                <Button
+                  isDisabled={attester.isPending}
+                  onPress={() => setAttestOpen(false)}
+                  variant="ghost"
+                >
+                  Annuler
+                </Button>
+                <Button
+                  isDisabled={montantCompte.trim() === ''}
+                  isPending={attester.isPending}
+                  onPress={handleAttester}
+                  variant="primary"
+                >
+                  {attester.isPending ? <Spinner size="sm" /> : null}
                   Enregistrer l&apos;attestation
                 </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </div>
   );
