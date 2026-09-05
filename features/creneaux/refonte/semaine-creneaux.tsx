@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Card, Chip, SearchField, Separator, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
+import { Button, Card, Chip, SearchField, Separator, Table, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
 import { AlertTriangle, ChevronLeft, ChevronRight } from 'lucide-react';
 import React from 'react';
 
@@ -91,13 +91,29 @@ export interface SemaineCreneauxProps {
 /** Une absence non encore traitée : c'est ce qui reste à faire. */
 const estATraiter = (j: JourCreneau) => j.statut === 'ABSENT';
 
+/*
+ * Les cinq etats en JETONS du theme, pas en couleurs ecrites en dur : `bg-green-500` ne
+ * suit ni le mode sombre ni un changement de theme, `bg-success` si.
+ *
+ * <p>Le theme porte quatre tons semantiques et l'ecran a cinq etats. « Justifie » se
+ * distingue donc par la FORME et non par une cinquieme teinte : un anneau creux dans le
+ * ton du danger. C'est ce qu'il est — une absence, mais rendue compte — et cela satisfait
+ * la regle « ne jamais dire par la couleur seule ».</p>
+ */
 const TEINTE: Record<StatutJour, string> = {
-    PRESENT: 'bg-green-500',
-    ABSENT: 'bg-red-500',
-    RETARD: 'bg-orange-500',
-    JUSTIFIE: 'bg-blue-500',
-    NON_INSCRIT: 'bg-surface-tertiary',
+    PRESENT: 'bg-success',
+    ABSENT: 'bg-danger',
+    RETARD: 'bg-warning',
+    JUSTIFIE: 'border-2 border-danger bg-surface',
+    NON_INSCRIT: 'bg-surface-tertiary ring-1 ring-separator',
 };
+
+/** Le ton de la barre d'assiduité : les seuils d'origine, en jetons du thème. */
+function tonAssiduite(v: number): string {
+    if (v >= 80) return 'bg-success';
+    if (v >= 50) return 'bg-warning';
+    return 'bg-danger';
+}
 
 const LIBELLE: Record<StatutJour, string> = {
     PRESENT: 'Présent',
@@ -156,11 +172,17 @@ export function SemaineCreneaux({
                 <Card.Content className="gap-3">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-baseline gap-3">
+                            {/*
+                             * Un tiret tant qu'on ne SAIT pas. Pendant le chargement la flotte
+                             * est vide : afficher « 0 absence a traiter » au-dessus d'un
+                             * squelette annoncerait une semaine propre qui n'a pas ete lue.
+                             */}
                             <span className="text-2xl font-bold tabular-nums text-foreground">
-                                {isError ? '—' : aTraiter}
+                                {isError || isLoading ? '—' : aTraiter}
                             </span>
                             <span className="text-sm text-muted">
-                                {aTraiter > 1 ? 'absences à traiter' : 'absence à traiter'} cette semaine
+                                {aTraiter > 1 && !isLoading && !isError ? 'absences à traiter' : 'absence à traiter'} cette
+                                semaine
                             </span>
                         </div>
 
@@ -183,7 +205,7 @@ export function SemaineCreneaux({
                         </div>
                     </div>
 
-                    {aTraiter > 0 && (
+                    {aTraiter > 0 && !isLoading && !isError && (
                         <div className="flex flex-wrap items-center gap-2">
                             <Button
                                 onPress={() => setSeulementATraiter((v) => !v)}
@@ -267,154 +289,175 @@ export function SemaineCreneaux({
              */}
             <Card className="hidden md:block">
                 <Card.Content className="p-0">
-                    <div className="overflow-x-auto">
-                        <div className="max-h-[32rem] overflow-y-auto">
-                            <table className="w-full min-w-[52rem] border-collapse text-sm">
-                                <caption className="sr-only">
-                                    Présences de la flotte, jour par jour, pour {libelleSemaine}.
-                                </caption>
-                                <thead className="sticky top-0 z-10 bg-surface">
-                                    <tr>
-                                        <th
-                                            className="sticky left-0 z-20 bg-surface px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-muted"
-                                            scope="col"
+                    <Table>
+                        {/*
+                         * `Table.ScrollContainer` ne gere que le debordement horizontal. La
+                         * hauteur bornee et le defilement vertical s'ajoutent ici, pour que
+                         * l'en-tete colle en haut et la colonne des noms a gauche : on lit
+                         * toujours DE QUI et DE QUEL JOUR on parle, meme au milieu de la flotte.
+                         */}
+                        <Table.ScrollContainer className="max-h-[32rem] overflow-y-auto">
+                            <Table.Content
+                                aria-label={`Présences de la flotte, jour par jour, pour ${libelleSemaine}`}
+                                className="min-w-[52rem]"
+                            >
+                                <Table.Header>
+                                    <Table.Column
+                                        className="sticky left-0 top-0 z-30 bg-surface-secondary"
+                                        id="turboy"
+                                        isRowHeader
+                                    >
+                                        Turboy
+                                    </Table.Column>
+
+                                    {jours.map((j) => (
+                                        <Table.Column
+                                            className="sticky top-0 z-20 bg-surface-secondary px-2 py-1"
+                                            id={j.date}
+                                            key={j.date}
                                         >
-                                            Turboy
-                                        </th>
-                                        {jours.map((j) => (
-                                            <th className="px-2 py-2 text-center" key={j.date} scope="col">
-                                                {/*
-                                                 * Le lien vers la journee etait un texte de dix
-                                                 * pixels enterre dans l'en-tete, repete sept fois
-                                                 * et absent du mobile. L'en-tete ENTIER y mene.
-                                                 */}
-                                                <button
-                                                    className="mx-auto flex min-h-11 flex-col items-center justify-center rounded-md px-2 transition-colors hover:bg-surface-secondary"
-                                                    onClick={() => onOuvrirJour(j.date)}
-                                                    type="button"
-                                                >
-                                                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">
-                                                        {j.jour.slice(0, 3)}
+                                            {/*
+                                             * Le lien vers la journee etait un texte de dix pixels
+                                             * enterre dans l'en-tete, repete sept fois et absent du
+                                             * mobile. L'en-tete ENTIER y mene.
+                                             */}
+                                            <Button
+                                                aria-label={`Ouvrir la journée du ${j.jour}`}
+                                                className="mx-auto h-auto min-h-11 flex-col gap-0 px-2 py-1"
+                                                onPress={() => onOuvrirJour(j.date)}
+                                                size="sm"
+                                                variant="ghost"
+                                            >
+                                                <span className="text-[11px] font-semibold uppercase tracking-wider">
+                                                    {j.jour.slice(0, 3)}
+                                                </span>
+                                                {j.total > 0 && (
+                                                    <span className="text-[11px] font-normal tabular-nums">
+                                                        {j.presents}/{j.total}
                                                     </span>
-                                                    {j.total > 0 && (
-                                                        <span className="text-[11px] tabular-nums text-muted">
-                                                            {j.presents}/{j.total}
-                                                        </span>
-                                                    )}
-                                                </button>
-                                            </th>
-                                        ))}
-                                        <th
-                                            className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted"
-                                            scope="col"
-                                        >
-                                            Assiduité
-                                        </th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    {isError ? (
-                                        <tr>
-                                            <td className="px-4 py-10 text-center" colSpan={jours.length + 2}>
-                                                <p className="text-sm text-foreground">La semaine n’a pas pu être lue.</p>
-                                                {onReessayer && (
-                                                    <Button className="mt-3" onPress={onReessayer} size="sm" variant="outline">
-                                                        Réessayer
-                                                    </Button>
                                                 )}
-                                            </td>
-                                        </tr>
-                                    ) : isLoading ? (
-                                        Array.from({ length: 8 }).map((_, i) => (
-                                            <tr key={`squelette-${i}`}>
-                                                <td className="px-4 py-3" colSpan={jours.length + 2}>
-                                                    <div className="h-6 w-full animate-pulse rounded bg-surface-secondary" />
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : lignes.length === 0 ? (
-                                        <tr>
-                                            <td className="px-4 py-10 text-center text-sm text-muted" colSpan={jours.length + 2}>
-                                                {seulementATraiter
-                                                    ? 'Aucune absence à traiter cette semaine.'
-                                                    : 'Aucun turboy sur cette semaine.'}
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        lignes.map((t) => (
-                                            <tr className="border-t border-separator" key={t.id}>
-                                                <th
-                                                    className="sticky left-0 z-10 max-w-[14rem] truncate bg-surface px-4 py-2 text-left font-normal text-foreground"
-                                                    scope="row"
-                                                >
-                                                    {t.nomComplet}
-                                                </th>
+                                            </Button>
+                                        </Table.Column>
+                                    ))}
 
-                                                {t.jours.map((j) => {
-                                                    const traitable = estATraiter(j);
-                                                    return (
-                                                        <td className="px-2 py-1 text-center" key={j.date}>
-                                                            {/*
-                                                             * La cible faisait douze pixels. Elle en fait
-                                                             * quarante-quatre, le minimum tactile, sans que
-                                                             * la pastille change de taille : c'est
-                                                             * l'enveloppe qui porte la cible.
-                                                             */}
-                                                            <button
-                                                                aria-label={`${LIBELLE[j.statut]} — ${t.nomComplet}, ${j.jour}${traitable ? '. Traiter cette absence' : ''}`}
-                                                                className={cn(
-                                                                    'mx-auto flex size-11 items-center justify-center rounded-md transition-colors',
-                                                                    traitable
-                                                                        ? 'cursor-pointer hover:bg-accent-soft'
-                                                                        : 'cursor-default',
-                                                                )}
-                                                                disabled={!traitable}
-                                                                onClick={() => traitable && onTraiterAbsence(t, j)}
-                                                                type="button"
+                                    <Table.Column className="sticky top-0 z-20 bg-surface-secondary text-end" id="assiduite">
+                                        Assiduité
+                                    </Table.Column>
+                                </Table.Header>
+
+                                <Table.Body
+                                    renderEmptyState={() =>
+                                        isLoading ? null : (
+                                            <div className="flex flex-col items-center gap-3 py-10 text-center">
+                                                {isError ? (
+                                                    <>
+                                                        <p className="text-sm text-foreground">
+                                                            La semaine n’a pas pu être lue.
+                                                        </p>
+                                                        {onReessayer && (
+                                                            <Button onPress={onReessayer} size="sm" variant="outline">
+                                                                Réessayer
+                                                            </Button>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <p className="text-sm text-muted">
+                                                        {seulementATraiter
+                                                            ? 'Aucune absence à traiter cette semaine.'
+                                                            : 'Aucun turboy sur cette semaine.'}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )
+                                    }
+                                >
+                                    {/* Le squelette a la MEME forme que la matrice : la hauteur ne saute pas. */}
+                                    {isLoading
+                                        ? Array.from({ length: 8 }).map((_, i) => (
+                                              <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                                                  {Array.from({ length: jours.length + 2 }).map((__, c) => (
+                                                      <Table.Cell key={`sq-${i}-${c}`}>
+                                                          <div className="h-5 animate-pulse rounded bg-surface-secondary" />
+                                                      </Table.Cell>
+                                                  ))}
+                                              </Table.Row>
+                                          ))
+                                        : null}
+
+                                    {(isError || isLoading ? [] : lignes).map((t) => (
+                                        <Table.Row id={t.id} key={t.id}>
+                                            <Table.Cell className="sticky left-0 z-10 bg-surface">
+                                                <span className="block max-w-[14rem] truncate">{t.nomComplet}</span>
+                                            </Table.Cell>
+
+                                            {t.jours.map((j) => {
+                                                const traitable = estATraiter(j);
+                                                const pastille = (
+                                                    <span
+                                                        className={cn(
+                                                            'block size-3 rounded-full',
+                                                            TEINTE[j.statut],
+                                                            // Une absence a traiter porte un anneau : elle
+                                                            // se distingue sans qu'on ait a balayer
+                                                            // soixante-dix pastilles.
+                                                            traitable && 'ring-2 ring-danger/35 ring-offset-1',
+                                                        )}
+                                                    />
+                                                );
+                                                return (
+                                                    <Table.Cell className="px-2 py-1 text-center" key={j.date}>
+                                                        {/*
+                                                         * La cible faisait douze pixels. Elle en fait
+                                                         * quarante-quatre, le minimum tactile, sans que la
+                                                         * pastille change de taille : c'est l'enveloppe qui
+                                                         * porte la cible. Un jour qui n'appelle aucun geste
+                                                         * n'est PAS un bouton desactive — un bouton
+                                                         * desactive se serait affadi, et la matrice se lit
+                                                         * a la couleur.
+                                                         */}
+                                                        {traitable ? (
+                                                            <Button
+                                                                aria-label={`${LIBELLE[j.statut]} — ${t.nomComplet}, ${j.jour}. Traiter cette absence`}
+                                                                className="mx-auto size-11"
+                                                                isIconOnly
+                                                                onPress={() => onTraiterAbsence(t, j)}
+                                                                size="sm"
+                                                                variant="ghost"
                                                             >
-                                                                <span
-                                                                    className={cn(
-                                                                        'block size-3 rounded-full',
-                                                                        TEINTE[j.statut],
-                                                                        // Une absence a traiter porte un anneau :
-                                                                        // elle se distingue sans qu'on ait a
-                                                                        // balayer soixante-dix pastilles.
-                                                                        traitable && 'ring-2 ring-red-500/35 ring-offset-1',
-                                                                    )}
-                                                                />
-                                                            </button>
-                                                        </td>
-                                                    );
-                                                })}
-
-                                                <td className="px-4 py-2 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <span className="h-1.5 w-16 overflow-hidden rounded-full bg-surface-secondary">
+                                                                {pastille}
+                                                            </Button>
+                                                        ) : (
                                                             <span
-                                                                className={cn(
-                                                                    'block h-full rounded-full',
-                                                                    t.assiduite >= 80
-                                                                        ? 'bg-green-500'
-                                                                        : t.assiduite >= 50
-                                                                          ? 'bg-orange-500'
-                                                                          : 'bg-red-500',
-                                                                )}
-                                                                style={{ width: `${Math.min(100, Math.max(0, t.assiduite))}%` }}
-                                                            />
-                                                        </span>
-                                                        <span className="w-10 text-right text-sm tabular-nums text-foreground">
-                                                            {t.assiduite}%
-                                                        </span>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                                                                aria-label={`${LIBELLE[j.statut]} — ${t.nomComplet}, ${j.jour}`}
+                                                                className="mx-auto flex size-11 items-center justify-center"
+                                                                role="img"
+                                                            >
+                                                                {pastille}
+                                                            </span>
+                                                        )}
+                                                    </Table.Cell>
+                                                );
+                                            })}
+
+                                            <Table.Cell>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <span className="h-1.5 w-16 overflow-hidden rounded-full bg-surface-secondary">
+                                                        <span
+                                                            className={cn('block h-full rounded-full', tonAssiduite(t.assiduite))}
+                                                            style={{ width: `${Math.min(100, Math.max(0, t.assiduite))}%` }}
+                                                        />
+                                                    </span>
+                                                    <span className="w-10 text-right text-sm tabular-nums">
+                                                        {t.assiduite}%
+                                                    </span>
+                                                </div>
+                                            </Table.Cell>
+                                        </Table.Row>
+                                    ))}
+                                </Table.Body>
+                            </Table.Content>
+                        </Table.ScrollContainer>
+                    </Table>
                 </Card.Content>
             </Card>
 
@@ -465,18 +508,8 @@ export function SemaineCreneaux({
                                 <div className="grid grid-cols-7 gap-1">
                                     {t.jours.map((j) => {
                                         const traitable = estATraiter(j);
-                                        return (
-                                            <button
-                                                aria-label={`${LIBELLE[j.statut]} — ${j.jour}${traitable ? '. Traiter cette absence' : ''}`}
-                                                className={cn(
-                                                    'flex min-h-11 flex-col items-center justify-center gap-1 rounded-md transition-colors',
-                                                    traitable && 'bg-accent-soft/60',
-                                                )}
-                                                disabled={!traitable}
-                                                key={j.date}
-                                                onClick={() => traitable && onTraiterAbsence(t, j)}
-                                                type="button"
-                                            >
+                                        const contenu = (
+                                            <>
                                                 <span className="text-[10px] uppercase text-muted">
                                                     {j.jour.slice(0, 3)}
                                                 </span>
@@ -484,10 +517,34 @@ export function SemaineCreneaux({
                                                     className={cn(
                                                         'block size-2.5 rounded-full',
                                                         TEINTE[j.statut],
-                                                        traitable && 'ring-2 ring-red-500/35',
+                                                        traitable && 'ring-2 ring-danger/35',
                                                     )}
                                                 />
-                                            </button>
+                                            </>
+                                        );
+                                        return traitable ? (
+                                            <Button
+                                                aria-label={`${LIBELLE[j.statut]} — ${j.jour}. Traiter cette absence`}
+                                                className="h-auto min-h-11 flex-col gap-1 px-0 py-1"
+                                                key={j.date}
+                                                onPress={() => onTraiterAbsence(t, j)}
+                                                size="sm"
+                                                // `danger-soft` et non `secondary` : la tuile grise
+                                                // se lisait comme un jour SELECTIONNE, alors qu'elle
+                                                // marque un jour a traiter.
+                                                variant="danger-soft"
+                                            >
+                                                {contenu}
+                                            </Button>
+                                        ) : (
+                                            <span
+                                                aria-label={`${LIBELLE[j.statut]} — ${j.jour}`}
+                                                className="flex min-h-11 flex-col items-center justify-center gap-1"
+                                                key={j.date}
+                                                role="img"
+                                            >
+                                                {contenu}
+                                            </span>
                                         );
                                     })}
                                 </div>
@@ -532,7 +589,7 @@ export function SemaineCreneaux({
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-xs text-muted">
                 {(Object.keys(TEINTE) as StatutJour[]).map((s) => (
                     <span className="flex items-center gap-1.5" key={s}>
-                        <span className={cn('size-2.5 rounded-full', TEINTE[s])} />
+                        <span className={cn('size-3 rounded-full', TEINTE[s])} />
                         {LIBELLE[s]}
                     </span>
                 ))}

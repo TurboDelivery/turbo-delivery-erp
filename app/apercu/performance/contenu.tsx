@@ -54,14 +54,38 @@ const JEUX = {
     vide: { libelle: 'Aucun livreur', lignes: [] as LignePerformance[] },
 };
 
+
+/**
+ * Bascule le thème sur `<html>`, pas sur une enveloppe.
+ *
+ * <p>Un `<div class="dark">` MENT. `styles/tailwind.css` declare encore les jetons
+ * shadcn en triplets HSL bruts (`--success: 142 76% 36%`) dans la meme portee `.dark`
+ * que HeroUI ; sur `<html>`, le selecteur plus specifique de v3 l'emporte et la couleur
+ * est bonne, sur un div imbrique c'est le triplet brut qui gagne — il n'est pas une
+ * couleur valide, et `bg-success` ne peint plus rien. Un banc sur enveloppe montrait donc
+ * des pastilles vertes invisibles que la production n'a jamais eues.</p>
+ */
+function useThemeSombre(): [boolean, (v: (p: boolean) => boolean) => void] {
+    const [sombre, setSombre] = React.useState(false);
+    React.useEffect(() => {
+        const html = document.documentElement;
+        const avant = html.className;
+        html.className = sombre ? 'dark' : 'light';
+        return () => {
+            html.className = avant;
+        };
+    }, [sombre]);
+    return [sombre, setSombre];
+}
+
 export default function ApercuPerformance() {
     const [jeu, setJeu] = React.useState<keyof typeof JEUX>('ordinaire');
     const [etat, setEtat] = React.useState<'normal' | 'chargement' | 'echec'>('normal');
-    const [sombre, setSombre] = React.useState(false);
+    const [sombre, setSombre] = useThemeSombre();
     const [semaine, setSemaine] = React.useState('s1');
 
     return (
-        <div className={cn(sombre && 'dark')}>
+        <div>
             <div className="min-h-screen bg-background text-foreground">
                 <header className="flex flex-wrap items-center gap-2 border-b border-separator px-4 py-2 text-xs">
                     <span className="font-bold uppercase tracking-wider">Aperçu · Performance</span>

@@ -1,7 +1,7 @@
 'use client';
 
-import { Button, Card, SearchField, Tooltip } from '@heroui-v3/react';
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { Button, Card, SearchField, Table, Tooltip } from '@heroui-v3/react';
+import type { SortDescriptor } from '@heroui-v3/react';
 import React from 'react';
 
 import { cn } from '@/lib/utils';
@@ -70,10 +70,17 @@ interface EtatPerformanceProps {
     onReessayer?: () => void;
 }
 
+/** Largeurs des barres du squelette, colonne par colonne. */
+const COLONNES_SQUELETTE = ['w-40', 'w-32', 'w-16', 'w-20', 'w-20', 'w-8'];
+
+/*
+ * Des JETONS du theme, pas des couleurs de la palette Tailwind : `bg-green-500` ne suit
+ * ni le mode sombre ni un changement de theme, `bg-success` si.
+ */
 const TEINTE_STATUT: Record<string, string> = {
-    VALIDE: 'bg-green-500',
-    EN_COURS: 'bg-orange-500',
-    MANQUE: 'bg-red-500',
+    VALIDE: 'bg-success',
+    EN_COURS: 'bg-warning',
+    MANQUE: 'bg-danger',
 };
 
 /** Faible, Moyenne, Forte : les seuils d'origine, conservés. */
@@ -102,18 +109,26 @@ export function EtatPerformance({
     onReessayer,
 }: EtatPerformanceProps) {
     const [recherche, setRecherche] = React.useState('');
-    const [tri, setTri] = React.useState<{ colonne: Colonne; sens: 'asc' | 'desc' }>({
-        colonne: 'nom',
-        sens: 'asc',
+    /*
+     * Le tri est celui du composant, pas le mien. `Table.Content` prend un
+     * `sortDescriptor` et le rend par `Table.SortableColumnHeader` : l'indicateur, le role
+     * ARIA `aria-sort` et la navigation au clavier viennent avec. Je les avais reecrits a
+     * la main sur des `<button>` dans des `<th>` bruts, ce que la regle du projet interdit
+     * explicitement — et ma version n'annoncait rien aux lecteurs d'ecran.
+     */
+    const [tri, setTri] = React.useState<SortDescriptor>({
+        column: 'nom',
+        direction: 'ascending',
     });
 
     const visibles = React.useMemo(() => {
         const q = recherche.trim().toLowerCase();
         const filtrees = q ? lignes.filter((l) => l.nomComplet.toLowerCase().includes(q)) : lignes;
-        const signe = tri.sens === 'asc' ? 1 : -1;
+        const signe = tri.direction === 'ascending' ? 1 : -1;
+        const colonne = tri.column as Colonne;
         return [...filtrees].sort((a, b) => {
-            if (tri.colonne === 'nom') return signe * a.nomComplet.localeCompare(b.nomComplet, 'fr');
-            return signe * ((a[tri.colonne] ?? 0) - (b[tri.colonne] ?? 0));
+            if (colonne === 'nom') return signe * a.nomComplet.localeCompare(b.nomComplet, 'fr');
+            return signe * ((a[colonne] ?? 0) - (b[colonne] ?? 0));
         });
     }, [lignes, recherche, tri]);
 
@@ -134,35 +149,6 @@ export function EtatPerformance({
             ),
         [visibles],
     );
-
-    const basculerTri = (colonne: Colonne) =>
-        setTri((t) =>
-            t.colonne === colonne
-                ? { colonne, sens: t.sens === 'asc' ? 'desc' : 'asc' }
-                : { colonne, sens: colonne === 'nom' ? 'asc' : 'desc' },
-        );
-
-    const EnTete = ({ colonne, children, aDroite }: { colonne: Colonne; children: React.ReactNode; aDroite?: boolean }) => {
-        const actif = tri.colonne === colonne;
-        const Fleche = !actif ? ArrowUpDown : tri.sens === 'asc' ? ArrowUp : ArrowDown;
-        return (
-            <th className="px-3 py-2" scope="col">
-                <button
-                    aria-label={`Trier par ${String(children)}`}
-                    className={cn(
-                        'flex min-h-9 w-full items-center gap-1 rounded-md px-1 text-[11px] font-semibold uppercase tracking-wider transition-colors hover:bg-surface-secondary',
-                        aDroite ? 'justify-end' : 'justify-start',
-                        actif ? 'text-foreground' : 'text-muted',
-                    )}
-                    onClick={() => basculerTri(colonne)}
-                    type="button"
-                >
-                    {children}
-                    <Fleche aria-hidden="true" className="size-3 shrink-0" />
-                </button>
-            </th>
-        );
-    };
 
     return (
         <div className="flex flex-col gap-4">
@@ -242,83 +228,107 @@ export function EtatPerformance({
                 </SearchField>
             </div>
 
-            {/* ── L'ETAT, en colonnes alignees et comparables ─────────────────────────── */}
+            {/* ── L'ETAT, avec le Table de la bibliotheque ───────────────────────────── */}
             <Card className="hidden md:block">
                 <Card.Content className="p-0">
-                    <div className="overflow-x-auto">
-                        <table className="w-full min-w-[44rem] border-collapse text-sm">
-                            <caption className="sr-only">
-                                Performance, commission et prime de chaque livreur pour {libelleSemaine}.
-                            </caption>
-                            <thead className="border-b border-separator">
-                                <tr>
-                                    <EnTete colonne="nom">Livreur</EnTete>
-                                    <th
-                                        className="px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wider text-muted"
-                                        scope="col"
-                                    >
-                                        Jours pointés
-                                    </th>
-                                    <EnTete aDroite colonne="performance">
-                                        Performance
-                                    </EnTete>
-                                    <EnTete aDroite colonne="commission">
-                                        Commission
-                                    </EnTete>
-                                    <EnTete aDroite colonne="prime">
-                                        Prime
-                                    </EnTete>
-                                    {rendreActions && <th className="w-12 px-3 py-2" scope="col" />}
-                                </tr>
-                            </thead>
+                    <Table>
+                        <Table.ScrollContainer>
+                            <Table.Content
+                                aria-label={`Performance, commission et prime de chaque livreur pour ${libelleSemaine}`}
+                                className="min-w-[44rem]"
+                                onSortChange={setTri}
+                                sortDescriptor={tri}
+                            >
+                                <Table.Header>
+                                    <Table.Column allowsSorting id="nom" isRowHeader>
+                                        {({ sortDirection }) => (
+                                            <Table.SortableColumnHeader sortDirection={sortDirection}>
+                                                Livreur
+                                            </Table.SortableColumnHeader>
+                                        )}
+                                    </Table.Column>
+                                    <Table.Column id="jours">Jours pointés</Table.Column>
+                                    <Table.Column allowsSorting id="performance">
+                                        {({ sortDirection }) => (
+                                            <Table.SortableColumnHeader sortDirection={sortDirection}>
+                                                Performance
+                                            </Table.SortableColumnHeader>
+                                        )}
+                                    </Table.Column>
+                                    <Table.Column allowsSorting id="commission">
+                                        {({ sortDirection }) => (
+                                            <Table.SortableColumnHeader sortDirection={sortDirection}>
+                                                Commission
+                                            </Table.SortableColumnHeader>
+                                        )}
+                                    </Table.Column>
+                                    <Table.Column allowsSorting id="prime">
+                                        {({ sortDirection }) => (
+                                            <Table.SortableColumnHeader sortDirection={sortDirection}>
+                                                Prime
+                                            </Table.SortableColumnHeader>
+                                        )}
+                                    </Table.Column>
+                                    <Table.Column id="actions">{''}</Table.Column>
+                                </Table.Header>
 
-                            <tbody>
-                                {isError ? (
-                                    <tr>
-                                        <td className="px-4 py-10 text-center" colSpan={rendreActions ? 6 : 5}>
-                                            <p className="text-sm text-foreground">
-                                                La performance n’a pas pu être lue.
-                                            </p>
-                                            {onReessayer && (
-                                                <Button className="mt-3" onPress={onReessayer} size="sm" variant="outline">
-                                                    Réessayer
-                                                </Button>
+                                <Table.Body
+                                    renderEmptyState={() => (
+                                        <div className="flex flex-col items-center gap-3 py-10 text-center">
+                                            {isError ? (
+                                                <>
+                                                    <p className="text-sm text-foreground">
+                                                        La performance n’a pas pu être lue.
+                                                    </p>
+                                                    {onReessayer && (
+                                                        <Button onPress={onReessayer} size="sm" variant="outline">
+                                                            Réessayer
+                                                        </Button>
+                                                    )}
+                                                </>
+                                            ) : isLoading ? null : (
+                                                <p className="text-sm text-muted">
+                                                    {recherche.trim()
+                                                        ? 'Aucun livreur ne porte ce nom sur cette semaine.'
+                                                        : 'Aucun livreur sur cette semaine.'}
+                                                </p>
                                             )}
-                                        </td>
-                                    </tr>
-                                ) : isLoading ? (
-                                    Array.from({ length: 6 }).map((_, i) => (
-                                        <tr key={`sq-${i}`}>
-                                            <td className="px-3 py-3" colSpan={rendreActions ? 6 : 5}>
-                                                <div className="h-6 w-full animate-pulse rounded bg-surface-secondary" />
-                                            </td>
-                                        </tr>
-                                    ))
-                                ) : visibles.length === 0 ? (
-                                    <tr>
-                                        <td className="px-4 py-10 text-center text-sm text-muted" colSpan={rendreActions ? 6 : 5}>
-                                            {recherche.trim()
-                                                ? 'Aucun livreur ne porte ce nom sur cette semaine.'
-                                                : 'Aucun livreur sur cette semaine.'}
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    visibles.map((l) => (
-                                        <tr className="border-b border-separator last:border-0" key={l.id}>
-                                            <th
-                                                className="max-w-[16rem] truncate px-3 py-2.5 text-left font-normal text-foreground"
-                                                scope="row"
-                                            >
-                                                {l.nomComplet}
-                                            </th>
+                                        </div>
+                                    )}
+                                >
+                                    {/*
+                                     * Pendant le chargement, des lignes de la MEME forme que
+                                     * les vraies : la hauteur du tableau ne saute pas quand la
+                                     * reponse arrive, et l'oeil sait ou regarder d'avance.
+                                     */}
+                                    {isLoading
+                                        ? Array.from({ length: 6 }).map((_, i) => (
+                                              <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                                                  {COLONNES_SQUELETTE.map((largeur, c) => (
+                                                      <Table.Cell key={`sq-${i}-${c}`}>
+                                                          <div
+                                                              className={cn(
+                                                                  'h-4 animate-pulse rounded bg-surface-secondary',
+                                                                  largeur,
+                                                              )}
+                                                          />
+                                                      </Table.Cell>
+                                                  ))}
+                                              </Table.Row>
+                                          ))
+                                        : null}
+                                    {(isError || isLoading ? [] : visibles).map((l) => (
+                                        <Table.Row id={l.id} key={l.id}>
+                                            <Table.Cell>
+                                                <span className="block max-w-[16rem] truncate">{l.nomComplet}</span>
+                                            </Table.Cell>
 
-                                            <td className="px-3 py-2.5">
+                                            <Table.Cell>
                                                 {/*
                                                  * `etats[].date` etait recu et jete : seule la
                                                  * PREMIERE LETTRE du jour s'affichait, donc deux
-                                                 * jours sur trois portaient la meme lettre — M
-                                                 * pour mardi et mercredi, S pour samedi. La date
-                                                 * revient dans l'info-bulle.
+                                                 * jours sur trois portaient la meme — M pour mardi
+                                                 * et mercredi. La date revient dans l'info-bulle.
                                                  */}
                                                 <div className="flex gap-1">
                                                     {l.etats.map((e) => (
@@ -337,54 +347,73 @@ export function EtatPerformance({
                                                         </Tooltip>
                                                     ))}
                                                 </div>
-                                            </td>
+                                            </Table.Cell>
 
-                                            <td className="px-3 py-2.5 text-right">
-                                                <span className={cn('font-semibold tabular-nums', tonPerformance(l.performance))}>
-                                                    {l.performance}%
+                                            <Table.Cell>
+                                                <span className="block text-right">
+                                                    <span className={cn('font-semibold tabular-nums', tonPerformance(l.performance))}>
+                                                        {l.performance}%
+                                                    </span>
+                                                    <span className="ms-2 text-xs text-muted">
+                                                        {libellePerformance(l.performance)}
+                                                    </span>
                                                 </span>
-                                                <span className="ms-2 text-xs text-muted">
-                                                    {libellePerformance(l.performance)}
+                                            </Table.Cell>
+
+                                            {/* Les montants a DROITE, en chasse tabulaire : c'est ce
+                                                qui rend deux lignes comparables d'un coup d'oeil. */}
+                                            <Table.Cell>
+                                                <span className="block text-right font-medium tabular-nums">
+                                                    {formatCFA(l.commission)}
                                                 </span>
-                                            </td>
+                                            </Table.Cell>
+                                            <Table.Cell>
+                                                <span className="block text-right font-medium tabular-nums">
+                                                    {formatCFA(l.prime)}
+                                                </span>
+                                            </Table.Cell>
 
-                                            {/* Les montants a DROITE, en chasse tabulaire : c'est
-                                                ce qui rend deux lignes comparables d'un coup d'oeil. */}
-                                            <td className="px-3 py-2.5 text-right font-medium tabular-nums text-foreground">
-                                                {formatCFA(l.commission)}
-                                            </td>
-                                            <td className="px-3 py-2.5 text-right font-medium tabular-nums text-foreground">
-                                                {formatCFA(l.prime)}
-                                            </td>
+                                            <Table.Cell>
+                                                <span className="block text-right">
+                                                    {rendreActions ? rendreActions(l) : null}
+                                                </span>
+                                            </Table.Cell>
+                                        </Table.Row>
+                                    ))}
+                                </Table.Body>
 
-                                            {rendreActions && (
-                                                <td className="px-3 py-2.5 text-right">{rendreActions(l)}</td>
-                                            )}
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
+                            </Table.Content>
+                        </Table.ScrollContainer>
 
-                            {!isError && !isLoading && visibles.length > 0 && (
-                                <tfoot className="border-t-2 border-separator">
-                                    <tr>
-                                        <th className="px-3 py-3 text-left text-sm font-semibold text-foreground" scope="row">
-                                            Total
-                                        </th>
-                                        <td />
-                                        <td />
-                                        <td className="px-3 py-3 text-right text-sm font-bold tabular-nums text-foreground">
+                        {/*
+                         * `Table.Footer` est une barre posee SOUS le tableau, pas une ligne :
+                         * la bibliotheque le rend hors du `<table>`, et il ne s'aligne donc
+                         * pas sur les colonnes. Il porte ce qui compte quand on arrive au bas
+                         * d'une longue liste — le total de ce qui est affiche — pendant que le
+                         * bandeau du haut porte les memes chiffres en grand.
+                         */}
+                        {!isError && !isLoading && visibles.length > 0 && (
+                            <Table.Footer className="justify-between gap-4 text-sm">
+                                <span className="text-muted">
+                                    {visibles.length} livreur{visibles.length > 1 ? 's' : ''}
+                                </span>
+                                <span className="flex flex-wrap items-center gap-x-6 gap-y-1">
+                                    <span className="text-muted">
+                                        Commission{' '}
+                                        <span className="font-semibold tabular-nums text-foreground">
                                             {formatCFA(totaux.commission)}
-                                        </td>
-                                        <td className="px-3 py-3 text-right text-sm font-bold tabular-nums text-foreground">
+                                        </span>
+                                    </span>
+                                    <span className="text-muted">
+                                        Prime{' '}
+                                        <span className="font-semibold tabular-nums text-foreground">
                                             {formatCFA(totaux.prime)}
-                                        </td>
-                                        {rendreActions && <td />}
-                                    </tr>
-                                </tfoot>
-                            )}
-                        </table>
-                    </div>
+                                        </span>
+                                    </span>
+                                </span>
+                            </Table.Footer>
+                        )}
+                    </Table>
                 </Card.Content>
             </Card>
 
