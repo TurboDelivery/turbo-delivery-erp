@@ -1,9 +1,12 @@
 'use client';
 
-import { Control, FieldErrors } from 'react-hook-form';
-import { Controller } from 'react-hook-form';
-import { Input } from '@/components/heroui';
+import { Card } from '@heroui-v3/react';
+import { Phone } from 'lucide-react';
+import { Control, Controller, FieldErrors } from 'react-hook-form';
+
 import { type UpdateTurboyInfoDTO } from '@/features/turboys/schemas/update-turboy-info.schema';
+
+import { ChampTexte } from './champ-texte';
 import { SectionTitle } from './section-title';
 
 interface SectionCompteProps {
@@ -11,26 +14,30 @@ interface SectionCompteProps {
   errors: FieldErrors<UpdateTurboyInfoDTO>;
 }
 
+/** Le numéro qui porte le compte du livreur dans l'application. */
 export function SectionCompte({ control, errors }: SectionCompteProps) {
   return (
-    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
-      <SectionTitle>Compte du livreur</SectionTitle>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Controller
-          name="telephoneCompte"
-          control={control}
-          render={({ field }) => (
-            <Input
-              {...field}
-              label="Numéro de téléphone du compte"
-              placeholder="0930000300"
-              isInvalid={!!errors.telephoneCompte}
-              errorMessage={errors.telephoneCompte?.message}
-              variant="bordered"
-            />
-          )}
-        />
-      </div>
-    </section>
+    <Card>
+      <Card.Content>
+        <SectionTitle>Compte du livreur</SectionTitle>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Controller
+            control={control}
+            name="telephoneCompte"
+            render={({ field }) => (
+              <ChampTexte
+                erreur={errors.telephoneCompte?.message}
+                icone={Phone}
+                label="Numéro de téléphone du compte"
+                onChange={field.onChange}
+                placeholder="0930000300"
+                type="tel"
+                valeur={field.value ?? ''}
+              />
+            )}
+          />
+        </div>
+      </Card.Content>
+    </Card>
   );
 }

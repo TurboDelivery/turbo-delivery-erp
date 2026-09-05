@@ -6,7 +6,16 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Avatar, Button, Chip, Spinner, Tab, Tabs } from '@/components/heroui';
+import {
+  AlertDialog,
+  Avatar,
+  Button,
+  Card,
+  Chip,
+  Spinner,
+  ToggleButton,
+  ToggleButtonGroup,
+} from '@heroui-v3/react';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import {
   updateTurboyInfoSchema,
@@ -31,16 +40,6 @@ import { SectionCompte } from './_components/section-compte';
 import { SectionAvenantsCommission } from './_components/section-avenants-commission';
 import CompteHabilitationPanel from '@/components/turboys/compte/compte-habilitation-panel';
 import PointagesSection from '@/components/turboys/pointages/pointages-section';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 
 export default function EditContent({ id }: { id: string }) {
   const router = useRouter();
@@ -55,6 +54,7 @@ export default function EditContent({ id }: { id: string }) {
   // V48 — fiche d'identification (PDF/image)
   const [ficheIdentificationFile, setFicheIdentificationFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [onglet, setOnglet] = useState('profil');
 
   // Suppression d'un coursier : action irréversible réservée au DG.
   // `can('manage','all')` n'est accordé qu'au DG (les autres rôles d'édition
@@ -161,32 +161,36 @@ export default function EditContent({ id }: { id: string }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Spinner color="primary" />
+      <div className="flex h-64 items-center justify-center">
+        <Spinner />
       </div>
     );
   }
 
   if (isError || !turboy) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-3">
+      <div className="flex h-64 flex-col items-center justify-center gap-3">
         <p className="text-sm text-muted">Impossible de charger les données du livreur.</p>
-        <Button variant="flat" onPress={() => router.push('/delivery-men/men')}>Retour</Button>
+        <Button onPress={() => router.push('/delivery-men/men')} variant="outline">
+          Retour
+        </Button>
       </div>
     );
   }
 
   const typeDisplay = getTurboyTypeDisplay(turboy.typeLivreur);
-  const assignationChip =
-    turboy.type === 'TURBO' ? (
-      <Chip color="success" size="sm" variant="flat">Assigné</Chip>
-    ) : turboy.type === 'FREE' ? (
-      <Chip color="primary" size="sm" variant="flat">Bird / Libre</Chip>
-    ) : turboy.type === 'WAITING' ? (
-      <Chip color="warning" size="sm" variant="flat">{"En attente d'assignation"}</Chip>
-    ) : (
-      <Chip color="default" size="sm" variant="flat">Non assigné</Chip>
-    );
+  /* Meme echelle que dans la liste : `color` dit le sens, `variant` l'intensite. */
+  const ASSIGNATION: Record<string, { couleur: 'default' | 'success' | 'warning'; libelle: string }> = {
+    FREE: { couleur: 'default', libelle: 'Bird / Libre' },
+    TURBO: { couleur: 'success', libelle: 'Assigné' },
+    WAITING: { couleur: 'warning', libelle: "En attente d'assignation" },
+  };
+  const assignation = ASSIGNATION[turboy.type ?? ''];
+  const assignationChip = (
+    <Chip color={assignation?.couleur ?? 'default'} size="sm" variant="soft">
+      <Chip.Label>{assignation?.libelle ?? 'Non assigné'}</Chip.Label>
+    </Chip>
+  );
 
   return (
     <div className="pb-16">
@@ -199,64 +203,88 @@ export default function EditContent({ id }: { id: string }) {
       </Link>
 
       {/* En-tête identité — synthèse du coursier en un coup d'œil */}
-      <div className="bg-surface rounded-xl border border-default-200 p-5 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <Avatar
-            src={toAbsoluteUrl(turboy.avatarUrl) ?? undefined}
-            name={`${turboy.prenoms} ${turboy.nom}`}
-            className="w-16 h-16 shrink-0"
-          />
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl font-bold text-primary truncate">
+      <Card className="mb-6">
+        <Card.Content className="flex-row flex-wrap items-center gap-4">
+          <Avatar className="size-16 shrink-0">
+            {toAbsoluteUrl(turboy.avatarUrl) && (
+              <Avatar.Image
+                alt={`${turboy.prenoms} ${turboy.nom}`}
+                src={toAbsoluteUrl(turboy.avatarUrl) as string}
+              />
+            )}
+            <Avatar.Fallback>
+              {`${turboy.prenoms?.[0] ?? ''}${turboy.nom?.[0] ?? ''}`.toUpperCase()}
+            </Avatar.Fallback>
+          </Avatar>
+
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-2xl font-bold text-foreground">
               {turboy.prenoms} {turboy.nom}
             </h1>
             <p className="text-sm text-muted">
               {turboy.matricule ?? turboy.id}
               {turboy.telephone ? ` · ${turboy.telephone}` : ''}
             </p>
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              <Chip color={typeDisplay.chipColor} size="sm" variant="flat">
-                {typeDisplay.label}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {/* Le type de contrat est une étiquette de catégorie, pas un état :
+                  sur cet en-tête la couleur est réservée au compte et à l'affectation. */}
+              <Chip size="sm" variant="soft">
+                <Chip.Label>{typeDisplay.label}</Chip.Label>
               </Chip>
               <StatusChip status={turboy.status} />
               {assignationChip}
               {turboy.cote != null && (
-                <Chip color="secondary" size="sm" variant="flat">
-                  Cote {turboy.cote}/100
+                <Chip size="sm" variant="soft">
+                  <Chip.Label>Cote {turboy.cote}/100</Chip.Label>
                 </Chip>
               )}
             </div>
           </div>
+
           <div className="flex shrink-0 items-center gap-2">
             {/* Cycle de vie DEPUIS le détail : accepter la demande (Valider),
                 Activer, Désactiver, Assigner… — plus besoin de repasser par le
-                menu du listing (corrige l'aller-retour détail ↔ listing). */}
-            <div className="flex items-center gap-1 rounded-lg border border-default-200 px-1">
-              <span className="pl-2 text-xs text-default-400">Actions</span>
-              <TurboyActionMenu turboy={turboy} restaurants={restaurants} hideNavigation />
-            </div>
+                menu du listing (corrige l'aller-retour détail ↔ listing).
+                Le menu porte son nom : il était entouré d'un cadre affichant le mot
+                « Actions », soit un faux bouton dessiné autour d'un vrai. */}
+            <TurboyActionMenu avecLibelle hideNavigation restaurants={restaurants} turboy={turboy} />
             {canDelete && (
-              <Button
-                color="danger"
-                variant="flat"
-                startContent={<Trash2 className="w-4 h-4" />}
-                onPress={() => setOpenDelete(true)}
-              >
+              <Button onPress={() => setOpenDelete(true)} variant="danger-soft">
+                <Trash2 aria-hidden="true" className="size-4" />
                 Supprimer
               </Button>
             )}
           </div>
-        </div>
-      </div>
+        </Card.Content>
+      </Card>
 
-      <Tabs
-        aria-label="Sections du coursier"
-        variant="underlined"
-        color="primary"
-        classNames={{ tabList: 'gap-6', panel: 'pt-6' }}
-        destroyInactiveTabPanel={false}
+      {/*
+       * Un segmente, et non des onglets. `Tabs.Indicator` — le trait qui marque l'onglet
+       * actif — rend le `SharedElement` de react-aria, qui exige un conteneur d'animation
+       * absent du projet et fait tomber la page. Sans lui, la barre d'onglets ne
+       * distingue plus l'actif que par une nuance de gris.
+       */}
+      <ToggleButtonGroup
+        className="flex-wrap"
+        onSelectionChange={(sel) => {
+          const v = Array.from(sel)[0];
+          if (v) setOnglet(String(v));
+        }}
+        selectedKeys={new Set([onglet])}
+        selectionMode="single"
       >
-        <Tab key="profil" title="Profil & documents">
+        <ToggleButton id="profil">Profil &amp; documents</ToggleButton>
+        <ToggleButton id="habilitation">Habilitation &amp; pièces</ToggleButton>
+        <ToggleButton id="activite">Activité &amp; pointages</ToggleButton>
+      </ToggleButtonGroup>
+
+      {/*
+       * Les trois panneaux restent MONTES, seul l'affichage change : c'est ce que faisait
+       * `destroyInactiveTabPanel={false}`. Les demonter ferait perdre la saisie du
+       * formulaire et relancerait les lectures d'habilitation et de pointage a chaque
+       * aller-retour.
+       */}
+      <div className="pt-6" hidden={onglet !== 'profil'}>
           <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
             <SectionDocumentsActuels
               avatarUrl={turboy.avatarUrl}
@@ -304,51 +332,71 @@ export default function EditContent({ id }: { id: string }) {
               onAvenantsChange={setAvenantFiles}
             />
 
+            {/*
+             * `as={Link}` est une prop de la v2 : sur un Button v3 elle est ignoree EN
+             * SILENCE et le bouton « Annuler » ne naviguait plus nulle part.
+             */}
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Button type="button" variant="flat" as={Link} href="/delivery-men/men">
-                Annuler
-              </Button>
-              <Button type="submit" color="primary" isLoading={isSubmitting}>
+              <Link href="/delivery-men/men">
+                <Button type="button" variant="outline">
+                  Annuler
+                </Button>
+              </Link>
+              <Button isPending={isSubmitting} type="submit" variant="primary">
+                {isSubmitting ? <Spinner size="sm" /> : null}
                 Enregistrer les modifications
               </Button>
             </div>
           </form>
-        </Tab>
+      </div>
 
-        <Tab key="habilitation" title="Habilitation & pièces">
+      <div className="pt-6" hidden={onglet !== 'habilitation'}>
           {/* M1 — validation, conformité des pièces, clé d'activation, historique */}
           <CompteHabilitationPanel driverId={id} />
-        </Tab>
+      </div>
 
-        <Tab key="activite" title="Activité & pointages">
+      <div className="pt-6" hidden={onglet !== 'activite'}>
           {/* M3 — cote de fiabilité, montée / relances / fin / hors-zone */}
           <PointagesSection driverId={id} />
-        </Tab>
-      </Tabs>
+      </div>
 
       {/* Suppression — réservée au DG, action irréversible */}
-      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer le coursier</AlertDialogTitle>
-            <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer définitivement{' '}
-              <strong>
-                {turboy.prenoms} {turboy.nom}
-              </strong>{' '}? Cette action est irréversible.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteMutation.isPending}
-              onClick={() => deleteMutation.mutate(id)}
-            >
-              {deleteMutation.isPending ? 'Suppression...' : 'Supprimer'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+      <AlertDialog isOpen={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialog.Backdrop>
+          <AlertDialog.Container>
+            <AlertDialog.Dialog>
+              <AlertDialog.Header>
+                <AlertDialog.Heading>Supprimer le coursier</AlertDialog.Heading>
+              </AlertDialog.Header>
+              <AlertDialog.Body>
+                <p className="text-sm text-muted">
+                  Êtes-vous sûr de vouloir supprimer définitivement{' '}
+                  <strong className="text-foreground">
+                    {turboy.prenoms} {turboy.nom}
+                  </strong>{' '}
+                  ? Cette action est irréversible.
+                </p>
+              </AlertDialog.Body>
+              <AlertDialog.Footer>
+                <Button
+                  isDisabled={deleteMutation.isPending}
+                  onPress={() => setOpenDelete(false)}
+                  variant="ghost"
+                >
+                  Annuler
+                </Button>
+                <Button
+                  isPending={deleteMutation.isPending}
+                  onPress={() => deleteMutation.mutate(id)}
+                  variant="danger"
+                >
+                  {deleteMutation.isPending ? <Spinner size="sm" /> : null}
+                  {deleteMutation.isPending ? 'Suppression…' : 'Supprimer'}
+                </Button>
+              </AlertDialog.Footer>
+            </AlertDialog.Dialog>
+          </AlertDialog.Container>
+        </AlertDialog.Backdrop>
       </AlertDialog>
     </div>
   );

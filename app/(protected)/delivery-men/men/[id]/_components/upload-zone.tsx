@@ -1,47 +1,61 @@
 'use client';
 
+import { Button } from '@heroui-v3/react';
+import { Plus, Upload } from 'lucide-react';
 import { useRef } from 'react';
-import { Upload, Plus } from 'lucide-react';
 
 interface UploadZoneProps {
   label: string;
-  preview?: string | null;
-  onChange: (files: FileList | null) => void;
   multiple?: boolean;
+  onChange: (files: FileList | null) => void;
+  preview?: null | string;
 }
 
-export function UploadZone({ label, preview, onChange, multiple }: UploadZoneProps) {
+/**
+ * Une zone de dépôt de fichier.
+ *
+ * <p>Les deux zones cliquables étaient des `<button>` écrits à la main, avec leur propre
+ * bordure et leur propre survol en `hover:border-primary`. Ce sont des `Button` de la
+ * bibliothèque ; l'`<input type="file">` caché reste, c'est le seul moyen d'ouvrir le
+ * sélecteur de fichiers du système.</p>
+ */
+export function UploadZone({ label, multiple, onChange, preview }: UploadZoneProps) {
   const ref = useRef<HTMLInputElement>(null);
   return (
     <div className="flex items-center gap-3">
-      <button
-        type="button"
-        onClick={() => ref.current?.click()}
-        className="w-16 h-16 border-2 border-dashed border-separator rounded-lg flex flex-col items-center justify-center text-muted hover:border-primary hover:text-primary transition-colors"
+      <Button
+        className="size-16 flex-col gap-1 overflow-hidden border-dashed p-1"
+        onPress={() => ref.current?.click()}
+        variant="outline"
       >
         {preview ? (
-          <img src={preview} alt="preview" className="w-full h-full object-cover rounded-lg" />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img alt={label} className="size-full object-cover" src={preview} />
         ) : (
           <>
-            <Upload className="w-5 h-5 mb-1" />
-            <span className="text-[10px] text-center leading-tight">{label}</span>
+            <Upload aria-hidden="true" className="size-5" />
+            <span className="line-clamp-2 w-full text-center text-[9px] leading-tight">{label}</span>
           </>
         )}
-      </button>
-      <button
-        type="button"
-        onClick={() => ref.current?.click()}
-        className="w-10 h-10 rounded-full border-2 border-dashed border-separator flex items-center justify-center text-muted hover:border-primary hover:text-primary transition-colors"
+      </Button>
+
+      <Button
+        aria-label={`Ajouter — ${label}`}
+        className="size-10 rounded-full border-dashed"
+        isIconOnly
+        onPress={() => ref.current?.click()}
+        variant="outline"
       >
-        <Plus className="w-4 h-4" />
-      </button>
+        <Plus aria-hidden="true" className="size-4" />
+      </Button>
+
       <input
+        accept="image/*"
+        className="hidden"
+        multiple={multiple}
+        onChange={(e) => onChange(e.target.files)}
         ref={ref}
         type="file"
-        accept="image/*"
-        multiple={multiple}
-        className="hidden"
-        onChange={(e) => onChange(e.target.files)}
       />
     </div>
   );

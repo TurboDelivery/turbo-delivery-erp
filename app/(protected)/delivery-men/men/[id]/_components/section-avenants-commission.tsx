@@ -1,25 +1,38 @@
 'use client';
 
-import { useRef } from 'react';
-import { Controller, type Control, type FieldErrors } from 'react-hook-form';
-import { Input } from '@/components/heroui';
+import { Button, Card, Label, NumberField } from '@heroui-v3/react';
 import { FileText, Plus, X } from 'lucide-react';
-import { SectionTitle } from './section-title';
-import { DocPreview } from './doc-preview';
+import { useRef } from 'react';
+import { type Control, Controller, type FieldErrors } from 'react-hook-form';
+
 import type { UpdateTurboyInfoDTO } from '@/features/turboys/schemas/update-turboy-info.schema';
 
+import { DocPreview } from './doc-preview';
+import { SectionTitle } from './section-title';
+
 interface SectionAvenantsCommissionProps {
+  avenantFiles: File[];
   control: Control<UpdateTurboyInfoDTO>;
   errors: FieldErrors<UpdateTurboyInfoDTO>;
-  avenantFiles: File[];
-  existingAvenants?: string[] | null;
+  existingAvenants?: null | string[];
   onAvenantsChange: (files: File[]) => void;
 }
 
+/**
+ * La commission et les avenants au contrat.
+ *
+ * <p>La commission était un `<input type="number">` : elle devient un `NumberField`, dont
+ * les TROIS enfants — décrément, saisie, incrément — sont obligatoires, faute de quoi la
+ * grille `40px 1fr 40px` du composant écrase le champ dans la première piste.</p>
+ *
+ * <p>Le retrait d'un fichier était une pastille `bg-red-500` — une teinte de la palette
+ * Tailwind — qui n'apparaissait qu'AU SURVOL : au doigt, sur une tablette, elle était
+ * introuvable. Elle est toujours là, et c'est un `Button`.</p>
+ */
 export function SectionAvenantsCommission({
+  avenantFiles,
   control,
   errors,
-  avenantFiles,
   existingAvenants,
   onAvenantsChange,
 }: SectionAvenantsCommissionProps) {
@@ -36,98 +49,104 @@ export function SectionAvenantsCommission({
   }
 
   return (
-    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
-      <SectionTitle>Commission &amp; Avenants</SectionTitle>
+    <Card>
+      <Card.Content className="gap-6">
+        <SectionTitle>Commission &amp; avenants</SectionTitle>
 
-      {/* Commission */}
-      <div className="mb-6">
         <Controller
-          name="commission"
           control={control}
+          name="commission"
           render={({ field }) => (
-            <Input
-              {...field}
-              label="Commission (%)"
-              type="number"
-              min={0}
-              step={0.01}
-              placeholder="Ex: 15"
-              variant="bordered"
+            <NumberField
               className="max-w-xs"
-              isInvalid={!!errors.commission}
-              errorMessage={errors.commission?.message}
-              value={field.value !== undefined ? String(field.value) : ''}
-              onChange={(e) => field.onChange(e.target.value === '' ? undefined : Number(e.target.value))}
-            />
+              isInvalid={Boolean(errors.commission)}
+              minValue={0}
+              onChange={(v) => field.onChange(Number.isNaN(v) ? undefined : v)}
+              step={0.01}
+              value={field.value ?? Number.NaN}
+            >
+              <Label>Commission (%)</Label>
+              <NumberField.Group>
+                <NumberField.DecrementButton />
+                <NumberField.Input placeholder="Ex : 15" />
+                <NumberField.IncrementButton />
+              </NumberField.Group>
+            </NumberField>
           )}
         />
-      </div>
 
-      {/* Avenants existants */}
-      {existingAvenants && existingAvenants.length > 0 && (
-        <div className="mb-4">
-          <p className="text-sm font-medium text-muted mb-2">Avenants actuels</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {existingAvenants.map((url, i) => (
-              <DocPreview key={i} label={`Avenant ${i + 1}`} url={url} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Upload nouveaux avenants */}
-      <div>
-        <p className="text-sm font-medium text-foreground mb-2">Ajouter des avenants</p>
-        {avenantFiles.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
-            {avenantFiles.map((file, i) => {
-              const isPdf = file.type === 'application/pdf';
-              const objectUrl = URL.createObjectURL(file);
-              return (
-                <div key={i} className="relative group">
-                  {isPdf ? (
-                    <div className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-lg border-2 border-primary/30 bg-primary/5 text-primary">
-                      <FileText className="w-8 h-8" />
-                      <span className="text-[11px] font-medium text-center px-2 truncate w-full">{file.name}</span>
-                    </div>
-                  ) : (
-                    <img
-                      src={objectUrl}
-                      alt={file.name}
-                      className="w-full h-28 object-cover rounded-lg border-2 border-primary/30"
-                    />
-                  )}
-                  <p className="text-[11px] text-muted mt-1 truncate">{file.name}</p>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(i)}
-                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              );
-            })}
+        {existingAvenants && existingAvenants.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium text-muted">Avenants actuels</p>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+              {existingAvenants.map((url, i) => (
+                <DocPreview key={url} label={`Avenant ${i + 1}`} url={url} />
+              ))}
+            </div>
           </div>
         )}
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border-2 border-dashed border-separator text-muted hover:border-primary hover:text-primary transition-colors text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Ajouter un fichier
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".pdf,image/*"
-          multiple
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        <p className="text-xs text-muted mt-2">PDF, JPG ou PNG — plusieurs fichiers acceptés</p>
-      </div>
-    </section>
+
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium text-foreground">Ajouter des avenants</p>
+
+          {avenantFiles.length > 0 && (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+              {avenantFiles.map((file, i) => {
+                const isPdf = file.type === 'application/pdf';
+                const objectUrl = URL.createObjectURL(file);
+                return (
+                  <div className="relative" key={`${file.name}-${i}`}>
+                    {isPdf ? (
+                      <div className="flex h-28 w-full flex-col items-center justify-center gap-2 rounded-lg border border-separator bg-surface-secondary text-muted">
+                        <FileText aria-hidden="true" className="size-8" />
+                        <span className="w-full truncate px-2 text-center text-[11px] font-medium">
+                          {file.name}
+                        </span>
+                      </div>
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        alt={file.name}
+                        className="h-28 w-full rounded-lg border border-separator object-cover"
+                        src={objectUrl}
+                      />
+                    )}
+                    <p className="mt-1 truncate text-[11px] text-muted">{file.name}</p>
+                    <Button
+                      aria-label={`Retirer ${file.name}`}
+                      className="absolute -right-1.5 -top-1.5 size-6 rounded-full"
+                      isIconOnly
+                      onPress={() => removeFile(i)}
+                      size="sm"
+                      variant="danger"
+                    >
+                      <X aria-hidden="true" className="size-3" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <Button
+            className="w-fit border-dashed"
+            onPress={() => fileRef.current?.click()}
+            variant="outline"
+          >
+            <Plus aria-hidden="true" className="size-4" />
+            Ajouter un fichier
+          </Button>
+          <input
+            accept=".pdf,image/*"
+            className="hidden"
+            multiple
+            onChange={handleFileChange}
+            ref={fileRef}
+            type="file"
+          />
+          <p className="text-xs text-muted">PDF, JPG ou PNG — plusieurs fichiers acceptés</p>
+        </div>
+      </Card.Content>
+    </Card>
   );
 }

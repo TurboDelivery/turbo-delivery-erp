@@ -1,5 +1,6 @@
 import React from 'react';
 
+/** Le titre d'une section de la fiche coursier. */
 export function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-base font-semibold text-primary mb-4">{children}</h2>;
+  return <h2 className="mb-4 text-base font-semibold text-foreground">{children}</h2>;
 }

@@ -43,12 +43,19 @@ export function TurboyActionMenu({
   turboy,
   restaurants,
   hideNavigation,
+  avecLibelle,
 }: {
   turboy: ITurboy;
   restaurants?: Restaurant[];
   // Masque « Détails » / « Modifier » quand le menu est rendu DANS la fiche détail
   // (ces items y sont redondants — on ne garde que le cycle de vie / l'affectation).
   hideNavigation?: boolean;
+  /*
+   * Declencheur nomme, pour la fiche detail. Trois points sans libelle au milieu d'un
+   * en-tete ne se trouvent pas : la fiche entourait le menu d'un cadre portant le mot
+   * « Actions », un faux bouton autour d'un vrai. Le bouton porte son nom.
+   */
+  avecLibelle?: boolean;
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -148,8 +155,14 @@ export function TurboyActionMenu({
        * bouton — balisage invalide et erreur d'hydratation a chaque rendu de ligne.
        */}
       <Dropdown>
-        <Button aria-label={`Actions pour ${turboy.prenoms} ${turboy.nom}`} isIconOnly size="sm" variant="ghost">
+        <Button
+          aria-label={avecLibelle ? undefined : `Actions pour ${turboy.prenoms} ${turboy.nom}`}
+          isIconOnly={!avecLibelle}
+          size="sm"
+          variant={avecLibelle ? 'outline' : 'ghost'}
+        >
           <MoreVertical aria-hidden="true" className="size-4" />
+          {avecLibelle ? 'Actions' : null}
         </Button>
         <Dropdown.Popover>
           <Dropdown.Menu

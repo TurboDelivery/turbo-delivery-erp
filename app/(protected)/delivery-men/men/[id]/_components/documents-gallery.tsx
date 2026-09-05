@@ -108,7 +108,7 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
                 aria-label={`Voir ${d.label}`}
               >
                 {pdf ? (
-                  <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-linear-to-br from-red-50 to-orange-50 text-red-500">
+                  <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-surface-secondary text-muted">
                     <FileText className="h-9 w-9" />
                     <span className="text-[11px] font-semibold uppercase tracking-wide">PDF</span>
                   </div>
@@ -158,9 +158,9 @@ export function DocumentsGallery({ docs }: { docs: DocItem[] }) {
               <div className="flex items-center justify-between gap-2 border-b border-separator/10 px-4 py-3">
                 <div className="flex min-w-0 items-center gap-2">
                   {estPdf(doc.url) ? (
-                    <FileText className="h-4 w-4 shrink-0 text-red-400" />
+                    <FileText aria-hidden="true" className="size-4 shrink-0 text-white/60" />
                   ) : (
-                    <ImageIcon className="h-4 w-4 shrink-0 text-primary-300" />
+                    <ImageIcon aria-hidden="true" className="size-4 shrink-0 text-white/60" />
                   )}
                   <span className="truncate text-sm font-medium text-white">{doc.label}</span>
                   <span className="shrink-0 text-xs text-white/40">
@@ -253,7 +253,7 @@ function DocThumbnail({ url, label }: { url: string; label: string }) {
   const [erreur, setErreur] = useState(false);
   if (erreur) {
     return (
-      <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-linear-to-br from-blue-50 to-indigo-50 text-indigo-400">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-surface-secondary text-muted">
         <ImageIcon className="h-9 w-9" />
         <span className="px-2 text-center text-[10px] font-medium">Aperçu indisponible</span>
       </div>
