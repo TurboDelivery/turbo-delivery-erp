@@ -18,6 +18,31 @@ import { useEffect } from 'react';
  * plus rien n'avance. Une animation perpetuelle dit « patientez, ca charge » — ici c'est
  * faux, et cela retient l'utilisateur au lieu de l'inviter a agir.</p>
  */
+/**
+ * Un morceau de code de l'application n'a pas pu etre telecharge.
+ *
+ * <p>Next decoupe l'application en fragments charges a la demande. Quand l'un d'eux
+ * n'arrive pas — reseau coupe, proxy qui refuse, ou deploiement qui a renomme les
+ * fichiers pendant que l'onglet etait ouvert — React leve `ChunkLoadError`.</p>
+ *
+ * <p>C'est ici que ca finit, et c'est le pire endroit : le fragment qui manque est
+ * souvent celui de la limite d'erreur de la page elle-meme. La page tombe, son ecran
+ * d'erreur ne peut pas se charger non plus, et tout l'arbre est remplace par un 500
+ * plein format — menu compris. L'operateur perd sa navigation et n'a plus aucun moyen
+ * de s'en sortir, puisque `reset()` refait le rendu avec le meme code manquant.</p>
+ */
+function estErreurDeFragment(error: Error): boolean {
+    return (
+        error.name === 'ChunkLoadError' ||
+        /ChunkLoadError|Loading chunk [\d]+ failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i.test(
+            error.message ?? '',
+        )
+    );
+}
+
+/** Une seule tentative par session : recharger en boucle sur un reseau coupe est pire. */
+const CLE_TENTATIVE = 'erp:rechargement-fragment';
+
 export default function GlobalError({
     error,
     reset,
@@ -25,9 +50,28 @@ export default function GlobalError({
     error: Error & { digest?: string };
     reset: () => void;
 }) {
+    const fragment = estErreurDeFragment(error);
+
     useEffect(() => {
         console.error(error);
     }, [error]);
+
+    useEffect(() => {
+        if (!fragment || typeof window === 'undefined') return;
+        let dejaEssaye = false;
+        try {
+            dejaEssaye = window.sessionStorage.getItem(CLE_TENTATIVE) === '1';
+            window.sessionStorage.setItem(CLE_TENTATIVE, '1');
+        } catch {
+            // Stockage refuse : on ne recharge pas automatiquement plutot que de risquer
+            // une boucle qu'on ne saurait pas arreter.
+            return;
+        }
+        if (dejaEssaye) return;
+        // `reload()` REDEMANDE le document et ses fragments ; `reset()` se contente de
+        // refaire le rendu avec le meme code manquant.
+        window.location.reload();
+    }, [fragment]);
 
     return (
         <html lang="fr">
@@ -56,20 +100,34 @@ export default function GlobalError({
                             color: '#71717a',
                         }}
                     >
-                        Erreur 500
+                        {fragment ? 'Téléchargement interrompu' : 'Erreur 500'}
                     </p>
 
                     <h1 style={{ margin: '0.5rem 0 0', fontSize: '1.5rem', lineHeight: 1.3 }}>
-                        L&apos;application n&apos;a pas pu afficher cette page
+                        {fragment
+                            ? 'Une partie de l’application n’a pas pu être téléchargée'
+                            : 'L’application n’a pas pu afficher cette page'}
                     </h1>
 
                     <p style={{ margin: '0.75rem 0 0', lineHeight: 1.55, color: '#52525b' }}>
-                        Rien n&apos;a été perdu et votre session reste ouverte. Réessayez ; si cela se
-                        reproduit, signalez-le en indiquant le code ci-dessous.
+                        {fragment
+                            ? 'Le rechargement automatique n’a pas suffi. Vérifiez la connexion — un proxy ou un VPN peut bloquer le téléchargement — puis rechargez. Votre session reste ouverte.'
+                            : 'Rien n’a été perdu et votre session reste ouverte. Réessayez ; si cela se reproduit, signalez-le en indiquant le code ci-dessous.'}
                     </p>
 
                     <button
-                        onClick={() => reset()}
+                        onClick={() => {
+                            if (!fragment) {
+                                reset();
+                                return;
+                            }
+                            try {
+                                window.sessionStorage.removeItem(CLE_TENTATIVE);
+                            } catch {
+                                /* sans consequence */
+                            }
+                            window.location.reload();
+                        }}
                         style={{
                             marginTop: '1.5rem',
                             padding: '0.6rem 1.25rem',
@@ -83,7 +141,7 @@ export default function GlobalError({
                         }}
                         type="button"
                     >
-                        Réessayer
+                        {fragment ? 'Recharger la page' : 'Réessayer'}
                     </button>
 
                     {error.digest && (

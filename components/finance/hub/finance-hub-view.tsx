@@ -136,6 +136,29 @@ export function FinanceHubView() {
   // dans le workflow (le backend l'autorise via X-User-Roles, RBAC désactivé).
   const ability = useAbility();
   const isAdmin = ability.can('manage', 'all');
+
+  /*
+   * LA CHAINE DE VALIDATION N'ETAIT GARDEE NULLE PART SUR CET ECRAN.
+   *
+   * <p>« Viser » (visa DGA), « Approuver » (accord DG) et « Decaisser » ne dependaient que
+   * du STATUT de la charge. Un comptable pouvait donc creer sa depense, la viser comme
+   * DGA, l'approuver comme DG et la decaisser — seul, en quatre clics. Et comme l'auteur
+   * enregistre est la session courante, l'historique portait le visa DGA et l'accord DG a
+   * SON nom. La chaine Comptable puis DGA puis DG n'existait plus.</p>
+   *
+   * <p>La meme action est pourtant gardee ailleurs dans l'application, par
+   * `<Can I="valider-dga" a="Depense">`. On applique donc la regle du projet, on n'en
+   * invente pas.</p>
+   *
+   * <p>Le sujet compte : PAS `Finance`. Le recouvreur et le caissier ont `manage Finance`,
+   * donc une garde posee sur ce sujet leur ouvrirait tout. Les regles nomment
+   * `ChargeFixe`, `ChargeVariable` et `Depense`.</p>
+   */
+  const sujetDe = (item: IFinanceItem) => (item.type === 'fixe' ? 'ChargeFixe' : 'ChargeVariable');
+  const peutViser = (item: IFinanceItem) => ability.can('valider-dga', sujetDe(item));
+  const peutApprouver = (item: IFinanceItem) => ability.can('approuver-dg', sujetDe(item));
+  const peutDecaisser = (item: IFinanceItem) => ability.can('decaisser', sujetDe(item));
+  const peutRejeter = (item: IFinanceItem) => ability.can('rejeter-dga', sujetDe(item)) || ability.can('rejeter-dg', sujetDe(item));
   const delFixe = useSupprimerChargeFixeMutation();
   const delVar = useSupprimerChargeVariableMutation();
 
@@ -308,20 +331,20 @@ export function FinanceHubView() {
   // Actions GROUPÉES sur la sélection : chaque bouton n'agit que sur le sous-ensemble
   // éligible (à viser / à approuver / à décaisser), quel que soit l'onglet.
   const bulkViser = async () => {
-    for (const it of selByAction('vise')) {
+    for (const it of selByAction('vise').filter(peutViser)) {
       // eslint-disable-next-line no-await-in-loop
       await act(it, 'valider-dga', 'Visa DGA');
     }
     setSel(new Set());
   };
   const bulkApprouver = async () => {
-    for (const it of selByAction('approuve')) {
+    for (const it of selByAction('approuve').filter(peutApprouver)) {
       // eslint-disable-next-line no-await-in-loop
       await act(it, 'approuver-dg', 'Accord DG');
     }
     setSel(new Set());
   };
-  const bulkDecaisser = () => openPay(selByAction('pay'));
+  const bulkDecaisser = () => openPay(selByAction('pay').filter(peutDecaisser));
 
   // Boutons d'action d'une ligne — partagés entre le tableau (desktop) et les
   // cartes tactiles (mobile) pour éviter toute divergence.
@@ -329,12 +352,12 @@ export function FinanceHubView() {
     const a = nextAction(item, seuil);
     return (
       <>
-        {a === 'vise' && <Button size="sm" variant="flat" color="primary" isLoading={busy} onPress={() => act(item, 'valider-dga', 'Visa DGA')}>Viser</Button>}
-        {a === 'approuve' && <Button size="sm" variant="flat" color="secondary" isLoading={busy} onPress={() => act(item, 'approuver-dg', 'Accord DG')}>Approuver</Button>}
-        {a === 'pay' && <Button size="sm" color="success" isLoading={busy} onPress={() => openPay([item])}>Décaisser</Button>}
+        {a === 'vise' && peutViser(item) && <Button size="sm" variant="flat" color="primary" isLoading={busy} onPress={() => act(item, 'valider-dga', 'Visa DGA')}>Viser</Button>}
+        {a === 'approuve' && peutApprouver(item) && <Button size="sm" variant="flat" color="secondary" isLoading={busy} onPress={() => act(item, 'approuver-dg', 'Accord DG')}>Approuver</Button>}
+        {a === 'pay' && peutDecaisser(item) && <Button size="sm" color="success" isLoading={busy} onPress={() => openPay([item])}>Décaisser</Button>}
         {/* Rejet : seules les dépenses VARIABLES ont un état REJETE côté backend
             (les charges fixes n'ont pas d'endpoint de rejet → on masque le bouton). */}
-        {a && item.statut !== 'paye' && item.type === 'variable' && <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => onReject(item)} title="Rejeter">✕</Button>}
+        {a && item.statut !== 'paye' && item.type === 'variable' && peutRejeter(item) && <Button size="sm" variant="light" color="danger" isIconOnly onPress={() => onReject(item)} title="Rejeter">✕</Button>}
         {item.statut === 'paye' && <span className="text-[11px] text-default-400">Payé</span>}
         {/* Admin : modifier / supprimer QUEL QUE SOIT le statut (hors charges système RH). */}
         {isAdmin && !item.dyn && (
@@ -569,19 +592,19 @@ export function FinanceHubView() {
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-default-200 bg-primary/5 px-4 py-2.5">
               <span className="text-sm font-medium text-default-600">{sel.size} sélectionné{sel.size > 1 ? 's' : ''}</span>
               <div className="flex flex-wrap items-center gap-1.5">
-                {selByAction('vise').length > 0 && (
+                {selByAction('vise').filter(peutViser).length > 0 && (
                   <Button size="sm" variant="flat" color="primary" isLoading={busy} startContent={<ShieldCheck className="h-4 w-4" />} onPress={bulkViser}>
-                    Viser ({selByAction('vise').length})
+                    Viser ({selByAction('vise').filter(peutViser).length})
                   </Button>
                 )}
-                {selByAction('approuve').length > 0 && (
+                {selByAction('approuve').filter(peutApprouver).length > 0 && (
                   <Button size="sm" variant="flat" color="secondary" isLoading={busy} startContent={<CheckCircle2 className="h-4 w-4" />} onPress={bulkApprouver}>
-                    Approuver ({selByAction('approuve').length})
+                    Approuver ({selByAction('approuve').filter(peutApprouver).length})
                   </Button>
                 )}
-                {selByAction('pay').length > 0 && (
+                {selByAction('pay').filter(peutDecaisser).length > 0 && (
                   <Button size="sm" color="success" isLoading={busy} startContent={<Banknote className="h-4 w-4" />} onPress={bulkDecaisser}>
-                    Décaisser ({selByAction('pay').length})
+                    Décaisser ({selByAction('pay').filter(peutDecaisser).length})
                   </Button>
                 )}
                 <Button size="sm" variant="light" onPress={() => setSel(new Set())}>Effacer</Button>

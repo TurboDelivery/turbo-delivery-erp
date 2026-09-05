@@ -409,8 +409,25 @@ module.exports = {
                     light: 'hsl(var(--black-light) / <alpha-value>)',
                     'dark-light': 'rgba(14,23,38,.15)',
                 },
+                /*
+                 * LES 288 `text-white` DE L'ERP NE PEIGNAIENT RIEN.
+                 *
+                 * `hsl(var(--white))` suppose que `--white` est un TRIPLET HSL nu, ce
+                 * qu'il etait dans le gabarit d'administration : `0 0% 100%`. Mais
+                 * `@heroui/styles` redeclare `--white: oklch(100% 0 0)` APRES nous, a
+                 * specificite egale, et gagne donc la cascade. La regle produite devenait
+                 * `color: hsl(oklch(100% 0 0) / 1)`, invalide : le navigateur jette la
+                 * declaration en silence, et le texte retombe sur la couleur heritee.
+                 *
+                 * En theme clair cette couleur heritee est presque noire. Le chiffre du
+                 * badge de notifications, les libelles des boutons pleins, les en-tetes
+                 * de tableau colores : partout ou le texte devait etre blanc SUR une
+                 * couleur, il s'affichait sombre sur sombre.
+                 *
+                 * Le blanc n'a pas besoin d'une variable. On l'ecrit.
+                 */
                 white: {
-                    DEFAULT: 'hsl(var(--white) / <alpha-value>)',
+                    DEFAULT: 'rgb(255 255 255 / <alpha-value>)',
                     light: 'hsl(var(--white-light) / <alpha-value>)',
                     dark: 'rgba(255,255,255,0.5)',
                 },

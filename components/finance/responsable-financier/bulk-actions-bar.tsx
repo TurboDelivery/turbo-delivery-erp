@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
+import { useAbility } from '@/hooks/use-ability';
 import {
   Button,
   Dropdown,
@@ -94,6 +95,26 @@ export default function BulkActionsBar({
     setAction(meta);
   };
 
+  /*
+   * L'ORIENTATION DES FONDS VAUT VISA DGA, ET N'ETAIT GARDEE PAR RIEN.
+   *
+   * <p>Le commentaire du fichier le dit lui-meme : decider de l'orientation POSE le visa
+   * DGA implicitement. Or cet ecran n'exige que `read PageResponsableFinancier`, accorde
+   * au comptable et au caissier. L'un d'eux pouvait cocher « toutes les factures du
+   * filtre », choisir « Orientation des fonds », et viser puis affecter d'un coup tout le
+   * stock — alors que l'ecran PREVU pour cette decision,
+   * `/finance/comptabilite/orientation-fonds`, leur est ferme.</p>
+   *
+   * <p>On reprend donc exactement la garde de cet ecran-la : `read OrientationFonds`,
+   * que seuls le DG (`manage all`) et le DGA (`read all`) detiennent.</p>
+   */
+  const ability = useAbility();
+  const peutOrienter = ability.can('read', 'OrientationFonds');
+  const actionsDisponibles = useMemo(
+    () => ACTIONS.filter((a) => (a.key === 'ORIENTER' || a.key === 'REJETER_DGA' ? peutOrienter : true)),
+    [peutOrienter],
+  );
+
   const peutConfirmer = useMemo(() => {
     if (!action) return false;
     if (action.besoin === 'agent') return !!agentId;
@@ -108,6 +129,9 @@ export default function BulkActionsBar({
 
   const confirmer = () => {
     if (!action) return;
+    // Le GESTE est garde, pas seulement son entree de menu : une action retiree de la
+    // liste ne doit pas pouvoir partir par un autre chemin.
+    if ((action.key === 'ORIENTER' || action.key === 'REJETER_DGA') && !peutOrienter) return;
     // Une seule entrée « Orientation des fonds » → on dérive l'action réelle du choix banque/caisse.
     const key: ActionGroupee =
       action.besoin === 'orientation'
@@ -154,10 +178,10 @@ export default function BulkActionsBar({
             </Button>
           </DropdownTrigger>
           <DropdownMenu aria-label="Actions groupées" onAction={(k) => {
-            const meta = ACTIONS.find((a) => a.key === k);
+            const meta = actionsDisponibles.find((a) => a.key === k);
             if (meta) ouvrir(meta);
           }}>
-            {ACTIONS.map((a) => (
+            {actionsDisponibles.map((a) => (
               <DropdownItem key={a.key} startContent={<a.icon className="w-4 h-4" />} description={a.hint}>
                 {a.label}
               </DropdownItem>
