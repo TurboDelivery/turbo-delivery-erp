@@ -1,14 +1,18 @@
 'use client';
 
+import { Avatar, Card, Chip } from '@heroui-v3/react';
 import type { ReactNode } from 'react';
-import { Avatar, Chip } from '@/components/heroui';
 
 export interface LivreurMobileField {
   label: string;
   value: ReactNode;
 }
 
-type ChipColor = 'success' | 'warning' | 'secondary' | 'primary' | 'danger' | 'default';
+/*
+ * `primary` et `secondary` ne sont plus des COULEURS de pastille en v3 : ils y disent une
+ * intensite, pas un sens. Ce qui reste est une echelle semantique.
+ */
+type ChipColor = 'danger' | 'default' | 'success' | 'warning';
 
 /**
  * Carte mobile générique pour les lignes « livreur / turboy » (groupe
@@ -41,40 +45,47 @@ export function LivreurMobileCard({
   onClick?: () => void;
 }) {
   return (
-    <div
-      className={`bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2 ${onClick ? 'cursor-pointer active:bg-surface-secondary' : ''}`}
+    <Card
+      className={onClick ? 'cursor-pointer active:bg-surface-secondary' : undefined}
       onClick={onClick}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-3 min-w-0">
-          {avatarUrl !== undefined && (
-            <Avatar isBordered name={nom} size="sm" src={avatarUrl ?? undefined} className="shrink-0" />
-          )}
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-foreground truncate">{nom}</p>
-            {sousTitre ? <div className="text-xs text-muted">{sousTitre}</div> : null}
+      <Card.Content className="gap-2 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-3">
+            {avatarUrl !== undefined && (
+              <Avatar className="shrink-0" size="sm">
+                <Avatar.Image alt="" src={avatarUrl ?? undefined} />
+                <Avatar.Fallback>{(nom ?? '?').slice(0, 2).toUpperCase()}</Avatar.Fallback>
+              </Avatar>
+            )}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-foreground">{nom}</p>
+              {sousTitre ? <div className="text-xs text-muted">{sousTitre}</div> : null}
+            </div>
           </div>
+          {statut !== undefined && statut !== null && statut !== '' ? (
+            <Chip className="shrink-0" color={statutColor} size="sm" variant="soft">
+              <Chip.Label>{statut}</Chip.Label>
+            </Chip>
+          ) : null}
         </div>
-        {statut !== undefined && statut !== null && statut !== '' ? (
-          <Chip color={statutColor} size="sm" variant="flat" className="shrink-0">
-            {statut}
-          </Chip>
-        ) : null}
-      </div>
 
-      {fields?.filter((f) => f.value !== null && f.value !== undefined && f.value !== '').map((f, i) => (
-        <div key={i} className="flex items-center justify-between gap-3">
-          <span className="text-xs text-muted shrink-0">{f.label}</span>
-          <span className="text-sm text-foreground text-right truncate">{f.value}</span>
-        </div>
-      ))}
+        {fields
+          ?.filter((f) => f.value !== null && f.value !== undefined && f.value !== '')
+          .map((f, i) => (
+            <div className="flex items-center justify-between gap-3" key={i}>
+              <span className="shrink-0 text-xs text-muted">{f.label}</span>
+              <span className="truncate text-right text-sm text-foreground">{f.value}</span>
+            </div>
+          ))}
 
-      {actions && (
-        <div className="pt-2 flex flex-wrap gap-2" onClick={(e) => e.stopPropagation()}>
-          {actions}
-        </div>
-      )}
-    </div>
+        {actions && (
+          <div className="flex flex-wrap gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
+            {actions}
+          </div>
+        )}
+      </Card.Content>
+    </Card>
   );
 }
 

@@ -1,5 +1,5 @@
 'use client';
-import { Tooltip } from '@/components/heroui';
+import { Button, Tooltip } from '@heroui-v3/react';
 import { IconEdit } from '@tabler/icons-react';
 import { useCallback } from 'react';
 import { DeliveryFee } from '@/types/price-list';
@@ -50,17 +50,22 @@ export function usePriceListRenderCell({ currentRestaurant, onEdit }: RenderCell
           return (
             <div className="relative flex items-center gap-2">
               <ZoneHistoriqueButton fraisId={deliveryFee.id} zoneLabel={deliveryFee.name || deliveryFee.zone} />
-              <Tooltip content="Modifier">
-                <button
-                  type="button"
-                  className="text-lg text-default-400 cursor-pointer active:opacity-50"
-                  onClick={() => onEdit(deliveryFee)}
+              <Tooltip>
+                {/* C'etait un `<button>` nu : ni etat de focus, ni taille de cible. */}
+                <Button
+                  aria-label="Modifier cette zone tarifaire"
+                  isIconOnly
+                  onPress={() => onEdit(deliveryFee)}
+                  size="sm"
+                  variant="ghost"
                 >
-                  <IconEdit />
-                </button>
+                  <IconEdit size={18} />
+                </Button>
+                <Tooltip.Content>Modifier</Tooltip.Content>
               </Tooltip>
-              <Tooltip color="danger" content="Supprimer">
+              <Tooltip>
                 <PriceListeTools id={deliveryFee.id ?? ''} />
+                <Tooltip.Content>Autres actions</Tooltip.Content>
               </Tooltip>
             </div>
           );

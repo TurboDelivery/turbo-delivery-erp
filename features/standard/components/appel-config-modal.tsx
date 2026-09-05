@@ -1,18 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  Button,
-  Checkbox,
-  CheckboxGroup,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Spinner,
-  Switch,
-} from '@/components/heroui';
+import { Button, Card, Checkbox, CheckboxGroup, Modal, Switch } from '@heroui-v3/react';
 import { MonitorUp, PhoneIncoming, Users } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
@@ -88,48 +77,85 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
     );
   };
 
-  return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="lg" scrollBehavior="inside">
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              <span className="flex items-center gap-2 text-primary">
-                <PhoneIncoming className="h-5 w-5" />
-                Paramètres des appels
-              </span>
-              <span className="text-xs font-normal text-default-400">
-                Qui reçoit les appels des livreurs, et qui peut écouter un appel en cours.
-              </span>
-            </ModalHeader>
+  /** Une case à cocher de rôle, montée deux fois : répondants puis superviseurs. */
+  const caseRole = (role: (typeof ROLES_ORDONNES)[number]) => (
+    <Checkbox key={role} value={role}>
+      <Checkbox.Content>
+        <Checkbox.Control>
+          <Checkbox.Indicator />
+        </Checkbox.Control>
+        <span className="text-sm">{ROLE_LABELS[role] ?? role}</span>
+      </Checkbox.Content>
+    </Checkbox>
+  );
 
-            <ModalBody>
+  /** Un réglage on/off avec son explication, monté deux fois. */
+  const reglage = (
+    Icone: typeof Users,
+    titre: React.ReactNode,
+    detail: string,
+    actif: boolean,
+    onChange: (v: boolean) => void,
+    desactive?: boolean,
+  ) => (
+    <div className={`flex items-start justify-between gap-3 ${desactive ? 'opacity-50' : ''}`}>
+      <div className="min-w-0">
+        <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+          <Icone aria-hidden="true" className="size-4 text-muted" /> {titre}
+        </p>
+        <p className="mt-0.5 text-xs text-muted">{detail}</p>
+      </div>
+      <Switch isDisabled={desactive} isSelected={actif} onChange={onChange} size="sm">
+        <Switch.Content>
+          <Switch.Thumb />
+        </Switch.Content>
+      </Switch>
+    </div>
+  );
+
+  return (
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-lg">
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col gap-1">
+                <span className="flex items-center gap-2">
+                  <PhoneIncoming aria-hidden="true" className="size-5 text-muted" />
+                  Paramètres des appels
+                </span>
+                <span className="text-xs font-normal text-muted">
+                  Qui reçoit les appels des livreurs, et qui peut écouter un appel en cours.
+                </span>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+
+            <Modal.Body>
               {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <Spinner color="primary" label="Chargement…" />
+                <div className="flex flex-col gap-2 py-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div className="h-10 animate-pulse rounded-lg bg-surface-secondary" key={i} />
+                  ))}
                 </div>
               ) : isError ? (
                 // La config non lue laisse les cases decochees : le formulaire
                 // annoncerait « aucun repondant » et on enregistrerait par-dessus.
                 <EtatErreur
-                  quoi="les paramètres des appels"
-                  onReessayer={() => refetch()}
                   enCours={isFetching}
+                  onReessayer={() => refetch()}
+                  quoi="les paramètres des appels"
                 />
               ) : (
-                <div className="space-y-5">
+                <div className="flex flex-col gap-5">
                   <div>
-                    <p className="mb-1 text-sm font-semibold text-default-700">Répondants</p>
-                    <p className="mb-2 text-xs text-default-400">
+                    <p className="mb-1 text-sm font-semibold text-foreground">Répondants</p>
+                    <p className="mb-2 text-xs text-muted">
                       Ces rôles sonnent quand un livreur appelle. Le premier qui décroche prend
                       l&apos;appel ; un refus n&apos;arrête la sonnerie que chez soi.
                     </p>
-                    <CheckboxGroup value={repondants} onValueChange={setRepondants}>
-                      {ROLES_ORDONNES.map((role) => (
-                        <Checkbox key={role} value={role}>
-                          {ROLE_LABELS[role] ?? role}
-                        </Checkbox>
-                      ))}
+                    <CheckboxGroup onChange={setRepondants} value={repondants}>
+                      {ROLES_ORDONNES.map(caseRole)}
                     </CheckboxGroup>
                     {repondants.length === 0 && (
                       <p className="mt-1 text-xs text-danger-soft-foreground">
@@ -139,84 +165,60 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
                   </div>
 
                   <div>
-                    <p className="mb-1 text-sm font-semibold text-default-700">
+                    <p className="mb-1 text-sm font-semibold text-foreground">
                       Superviseurs (écoute)
                     </p>
-                    <p className="mb-2 text-xs text-default-400">
+                    <p className="mb-2 text-xs text-muted">
                       Ces rôles ne sonnent pas, mais peuvent rejoindre un appel en cours pour
                       l&apos;écouter (micro coupé). Laisser vide = personne.
                     </p>
-                    <CheckboxGroup value={superviseurs} onValueChange={setSuperviseurs}>
-                      {ROLES_ORDONNES.map((role) => (
-                        <Checkbox key={role} value={role}>
-                          {ROLE_LABELS[role] ?? role}
-                        </Checkbox>
-                      ))}
+                    <CheckboxGroup onChange={setSuperviseurs} value={superviseurs}>
+                      {ROLES_ORDONNES.map(caseRole)}
                     </CheckboxGroup>
                   </div>
 
                   {/* Appels entre personnel Turbo (pair-à-pair) + partage d'écran. */}
-                  <div className="rounded-xl border border-default-200 p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="flex items-center gap-1.5 text-sm font-semibold text-default-700">
-                          <Users className="h-4 w-4 text-primary" /> Appels entre personnel Turbo
-                        </p>
-                        <p className="mt-0.5 text-xs text-default-400">
-                          Autorise les appels audio in-app entre membres du personnel (en plus du
-                          circuit Standard ↔ livreur).
-                        </p>
+                  <Card>
+                    <Card.Content className="gap-3 p-3">
+                      {reglage(
+                        Users,
+                        'Appels entre personnel Turbo',
+                        'Autorise les appels audio in-app entre membres du personnel (en plus du circuit Standard ↔ livreur).',
+                        appelsPersonnel,
+                        setAppelsPersonnel,
+                      )}
+                      <div className="border-t border-separator pt-3">
+                        {reglage(
+                          MonitorUp,
+                          <>Partage d&apos;écran</>,
+                          "Autorise le partage d'écran pendant les appels du personnel.",
+                          appelsPersonnel && partageEcran,
+                          setPartageEcran,
+                          !appelsPersonnel,
+                        )}
                       </div>
-                      <Switch
-                        size="sm"
-                        isSelected={appelsPersonnel}
-                        onValueChange={setAppelsPersonnel}
-                        aria-label="Activer les appels entre personnel Turbo"
-                      />
-                    </div>
-
-                    <div
-                      className={`mt-3 flex items-start justify-between gap-3 border-t border-default-100 pt-3 ${
-                        appelsPersonnel ? '' : 'opacity-50'
-                      }`}
-                    >
-                      <div className="min-w-0">
-                        <p className="flex items-center gap-1.5 text-sm font-semibold text-default-700">
-                          <MonitorUp className="h-4 w-4 text-primary" /> Partage d&apos;écran
-                        </p>
-                        <p className="mt-0.5 text-xs text-default-400">
-                          Autorise le partage d&apos;écran pendant les appels du personnel.
-                        </p>
-                      </div>
-                      <Switch
-                        size="sm"
-                        isSelected={appelsPersonnel && partageEcran}
-                        isDisabled={!appelsPersonnel}
-                        onValueChange={setPartageEcran}
-                        aria-label="Activer le partage d'écran pendant les appels du personnel"
-                      />
-                    </div>
-                  </div>
+                    </Card.Content>
+                  </Card>
                 </div>
               )}
-            </ModalBody>
+            </Modal.Body>
 
-            <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={modifier.isPending}>
+            <Modal.Footer>
+              <Button isDisabled={modifier.isPending} onPress={() => onOpenChange(false)} variant="ghost">
                 Annuler
               </Button>
               <Button
-                color="primary"
-                isLoading={modifier.isPending}
                 isDisabled={repondants.length === 0}
+                isPending={modifier.isPending}
                 onPress={enregistrer}
+                variant="primary"
               >
                 Enregistrer
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

@@ -6,7 +6,7 @@ import { LivreurBird } from '@/types/creneau-bird';
 import { IconPointFilled } from '@tabler/icons-react';
 import DropDownAction from './dropDownAction';
 import progresseBare from '../progression/progression-barre';
-import { Avatar } from '@/components/heroui';
+import { Avatar } from '@heroui-v3/react';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { formatDate } from '@/utils/date-formate';
 
@@ -16,7 +16,12 @@ interface props {
 export default function UserListeModel1({ turboy }: props) {
     const dispoIndicator = (
         <span className="relative flex items-center">
-            {turboy.disponibilite ? <IconPointFilled color="#16B84E" size={30} /> : <IconPointFilled color="#FF0000" size={30} />}
+            {/* Les deux couleurs etaient des hexadecimaux ecrits en dur — `#16B84E` et
+                `#FF0000` — qui ne suivent aucun theme. */}
+            <IconPointFilled
+                className={turboy.disponibilite ? 'text-success' : 'text-danger'}
+                size={30}
+            />
             {turboy.disponibilite ? (
                 <span className="absolute top-[-3px] inline-flex h-full w-full animate-ping duration-3000 rounded-full bg-success/50 opacity-75 ltr:left-[-3px] rtl:right-[-3px]"></span>
             ) : (
@@ -32,7 +37,10 @@ export default function UserListeModel1({ turboy }: props) {
                 <div key={turboy.id} className="bg-surface w-full min-w-[1000px] flex items-center border-2 rounded-md">
                     <div className="shrink-0 py-2 px-4 flex-1 flex lg:justify-between gap-2 items-center rounded-md">
                         <div className="max-w-[300px] flex items-center w-1/2 gap-2">
-                            <Avatar isBordered radius="full" size="md" src={turboy?.avatar ? createUrlFile(turboy?.avatar ?? '', 'backend') : 'assets/images/avatar.png'} />
+                            <Avatar size="md">
+                                <Avatar.Image alt="" src={turboy?.avatar ? createUrlFile(turboy?.avatar ?? '', 'backend') : 'assets/images/avatar.png'} />
+                                <Avatar.Fallback>{(turboy.nomComplet ?? '?').slice(0, 2).toUpperCase()}</Avatar.Fallback>
+                            </Avatar>
                             <p className="font-semibold">{turboy.nomComplet}</p>
                         </div>
                         <p className="w-1/2 text-sm text-muted">Inscrit le : {turboy.dateInscrit ? formatDate(turboy.dateInscrit, 'DD/MM/YYYY') : '-'}</p>
@@ -56,7 +64,10 @@ export default function UserListeModel1({ turboy }: props) {
             <div className="md:hidden bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
                 <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                        <Avatar isBordered radius="full" size="sm" src={turboy?.avatar ? createUrlFile(turboy?.avatar ?? '', 'backend') : 'assets/images/avatar.png'} />
+                        <Avatar size="sm">
+                            <Avatar.Image alt="" src={turboy?.avatar ? createUrlFile(turboy?.avatar ?? '', 'backend') : 'assets/images/avatar.png'} />
+                            <Avatar.Fallback>{(turboy.nomComplet ?? '?').slice(0, 2).toUpperCase()}</Avatar.Fallback>
+                        </Avatar>
                         <p className="font-semibold truncate">{turboy.nomComplet}</p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">

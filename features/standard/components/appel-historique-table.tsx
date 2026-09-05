@@ -1,20 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import {
-  Button,
-  Chip,
-  Pagination,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { Button, Card, Chip, Table } from '@heroui-v3/react';
 import { Ear, Phone, PhoneIncoming, PhoneOutgoing } from 'lucide-react';
+import { useState } from 'react';
+
 import EtatErreur from '@/components/commons/EtatErreur';
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import {
   ContexteAppel,
   IAppelLog,
@@ -31,18 +22,33 @@ const CONTEXTE_LABEL: Record<ContexteAppel, string> = {
   PAIR_VERS_PAIR: 'Pair → Pair',
 };
 
-const STATUT_COLOR: Record<
-  StatutAppel,
-  'success' | 'primary' | 'warning' | 'danger' | 'default'
-> = {
-  INITIE: 'warning',
-  SONNE: 'warning',
-  EN_COURS: 'primary',
-  TERMINE: 'success',
-  REJETE: 'danger',
-  MANQUE: 'danger',
+/**
+ * Le ton d'un statut d'appel.
+ *
+ * <p>« Initié » et « Sonne » étaient en ambre : ce sont les états NORMAUX d'un appel qui
+ * part, pas des avertissements. « En cours » était en `primary` — la couleur de marque —
+ * là où c'est justement la ligne qu'un superviseur cherche : elle passe à l'accent, qui
+ * appelle l'œil sans dire « problème ».</p>
+ */
+const STATUT_COLOR: Record<StatutAppel, 'accent' | 'danger' | 'default' | 'success'> = {
   ANNULE: 'default',
+  EN_COURS: 'accent',
+  INITIE: 'default',
+  MANQUE: 'danger',
+  REJETE: 'danger',
+  SONNE: 'default',
+  TERMINE: 'success',
 };
+
+/** Les colonnes, déclarées une fois : le squelette y compte ses cellules. */
+const COLONNES = [
+  { alignDroite: false, id: 'date', libelle: 'Date' },
+  { alignDroite: false, id: 'sens', libelle: 'Sens' },
+  { alignDroite: false, id: 'destinataire', libelle: 'N° / destinataire' },
+  { alignDroite: false, id: 'statut', libelle: 'Statut' },
+  { alignDroite: false, id: 'duree', libelle: 'Durée' },
+  { alignDroite: true, id: 'ecouter', libelle: 'Écouter' },
+] as const;
 
 function formatInstant(iso: string): string {
   try {
@@ -75,105 +81,119 @@ export function AppelHistoriqueTable() {
   const totalPages = data?.totalPages ?? 0;
 
   return (
-    <section className="rounded-2xl border border-default-200/50 bg-surface p-4 dark:bg-content1">
-      <h2 className="mb-3 flex items-center gap-2.5 text-sm font-bold text-default-700">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-          <Phone className="h-5 w-5" />
-        </span>
-        Historique des appels
-      </h2>
-      {isError ? (
-        // Sans ce cas, une panne du journal affichait « Aucun appel enregistré »,
-        // soit exactement ce que montre un standard sans activite.
-        <EtatErreur quoi="les appels" onReessayer={() => refetch()} enCours={isFetching} />
-      ) : (
-      <Table
-        aria-label="Historique des appels"
-        isStriped
-        bottomContent={
-          totalPages > 1 ? (
-            <div className="flex justify-center pt-2">
-              <Pagination
-                total={totalPages}
-                page={page + 1}
-                onChange={(p) => setPage(p - 1)}
-                color="primary"
-                showControls
-              />
-            </div>
-          ) : null
-        }
-      >
-        <TableHeader>
-          <TableColumn className="text-primary">DATE</TableColumn>
-          <TableColumn className="text-primary">SENS</TableColumn>
-          <TableColumn className="text-primary">N° / DESTINATAIRE</TableColumn>
-          <TableColumn className="text-primary">STATUT</TableColumn>
-          <TableColumn className="text-primary">DURÉE</TableColumn>
-          <TableColumn className="text-primary text-right">ÉCOUTER</TableColumn>
-        </TableHeader>
-        <TableBody
-          emptyContent={isLoading ? ' ' : 'Aucun appel enregistré'}
-          isLoading={isLoading}
-          loadingContent={<Spinner color="primary" label="Chargement de l'historique…" />}
-        >
-          {appels.map((a) => {
-            const entrant = a.contexte === 'LIVREUR_VERS_STANDARD';
-            return (
-              <TableRow key={a.id}>
-                <TableCell className="whitespace-nowrap text-default-500">
-                  {formatInstant(a.declencheLe)}
-                </TableCell>
-                <TableCell>
-                  <span className="inline-flex items-center gap-1.5">
-                    {entrant ? (
-                      <PhoneIncoming className="h-4 w-4 text-success-soft-foreground" />
-                    ) : (
-                      <PhoneOutgoing className="h-4 w-4 text-primary" />
-                    )}
-                    {CONTEXTE_LABEL[a.contexte] ?? a.contexte}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {a.appeleTelephone ?? <span className="text-default-400">—</span>}
-                </TableCell>
-                <TableCell>
-                  {a.statut ? (
-                    <Chip size="sm" variant="flat" color={STATUT_COLOR[a.statut] ?? 'default'}>
-                      {STATUT_APPEL_LABEL[a.statut] ?? a.statut}
-                    </Chip>
-                  ) : (
-                    <span className="text-default-300">—</span>
-                  )}
-                </TableCell>
-                <TableCell className="tabular-nums">{formatDuree(a.dureeSec)}</TableCell>
-                <TableCell className="text-right">
-                  {a.statut === 'EN_COURS' && estSuperviseur ? (
-                    <Button
-                      size="sm"
-                      color="primary"
-                      variant="flat"
-                      startContent={<Ear className="h-4 w-4" />}
-                      isDisabled={enAppel}
-                      onPress={() =>
-                        superviser(
-                          a.id,
-                          `${a.appelantNom ?? 'Appelant'} ↔ ${a.appeleNom ?? a.appeleTelephone ?? 'Appelé'}`,
-                        )
-                      }
+    <Card>
+      <Card.Content className="gap-3 p-4">
+        <h2 className="flex items-center gap-2.5 text-sm font-bold text-foreground">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-surface-secondary text-muted">
+            <Phone aria-hidden="true" className="size-5" />
+          </span>
+          Historique des appels
+        </h2>
+        {isError ? (
+          // Sans ce cas, une panne du journal affichait « Aucun appel enregistré »,
+          // soit exactement ce que montre un standard sans activite.
+          <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="les appels" />
+        ) : (
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Historique des appels" className="min-w-[52rem]">
+                <Table.Header>
+                  {COLONNES.map((c) => (
+                    <Table.Column
+                      className={c.alignDroite ? 'text-right' : undefined}
+                      id={c.id}
+                      isRowHeader={c.id === 'date'}
+                      key={c.id}
                     >
-                      Écouter
-                    </Button>
-                  ) : (
-                    <span className="text-default-300">—</span>
-                  )}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-      )}
-    </section>
+                      {c.libelle}
+                    </Table.Column>
+                  ))}
+                </Table.Header>
+                <Table.Body
+                  renderEmptyState={() =>
+                    isLoading ? null : (
+                      <p className="py-8 text-center text-sm text-muted">Aucun appel enregistré</p>
+                    )
+                  }
+                >
+                  {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+                  {isLoading
+                    ? Array.from({ length: 6 }).map((_, i) => (
+                        <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                          {COLONNES.map((c) => (
+                            <Table.Cell key={`sq-${i}-${c.id}`}>
+                              <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                            </Table.Cell>
+                          ))}
+                        </Table.Row>
+                      ))
+                    : null}
+
+                  {(isLoading ? [] : appels).map((a) => {
+                    const entrant = a.contexte === 'LIVREUR_VERS_STANDARD';
+                    return (
+                      <Table.Row id={a.id} key={a.id}>
+                        <Table.Cell className="whitespace-nowrap text-muted">
+                          {formatInstant(a.declencheLe)}
+                        </Table.Cell>
+                        <Table.Cell>
+                          <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+                            {entrant ? (
+                              <PhoneIncoming aria-hidden="true" className="size-4 text-muted" />
+                            ) : (
+                              <PhoneOutgoing aria-hidden="true" className="size-4 text-muted" />
+                            )}
+                            {CONTEXTE_LABEL[a.contexte] ?? a.contexte}
+                          </span>
+                        </Table.Cell>
+                        <Table.Cell>
+                          {a.appeleTelephone ?? <span className="text-muted">—</span>}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {a.statut ? (
+                            <Chip color={STATUT_COLOR[a.statut] ?? 'default'} size="sm" variant="soft">
+                              <Chip.Label>{STATUT_APPEL_LABEL[a.statut] ?? a.statut}</Chip.Label>
+                            </Chip>
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )}
+                        </Table.Cell>
+                        <Table.Cell className="tabular-nums">{formatDuree(a.dureeSec)}</Table.Cell>
+                        <Table.Cell className="text-right">
+                          {a.statut === 'EN_COURS' && estSuperviseur ? (
+                            <Button
+                              isDisabled={enAppel}
+                              onPress={() =>
+                                superviser(
+                                  a.id,
+                                  `${a.appelantNom ?? 'Appelant'} ↔ ${a.appeleNom ?? a.appeleTelephone ?? 'Appelé'}`,
+                                )
+                              }
+                              size="sm"
+                              variant="outline"
+                            >
+                              <Ear aria-hidden="true" className="size-4" />
+                              Écouter
+                            </Button>
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )}
+                        </Table.Cell>
+                      </Table.Row>
+                    );
+                  })}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+
+            {totalPages > 1 && (
+              <Table.Footer className="justify-center">
+                <PaginationTableau onPage={(p) => setPage(p - 1)} page={page + 1} total={totalPages} />
+              </Table.Footer>
+            )}
+          </Table>
+        )}
+      </Card.Content>
+    </Card>
   );
 }

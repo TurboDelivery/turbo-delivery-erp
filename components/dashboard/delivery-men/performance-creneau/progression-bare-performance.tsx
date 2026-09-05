@@ -1,4 +1,4 @@
-import { ProgressBar } from '@/components/heroui';
+import { ProgressBar } from '@heroui-v3/react';
 // import { Livreur } from "@/types/creneau-bird"
 import { BirdPerformance } from "@/types/slot";
 

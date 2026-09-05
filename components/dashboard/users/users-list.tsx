@@ -10,7 +10,7 @@ import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import UsersAdd from './users-add';
 import UsersTools from './users-tools';
 import UsersEmailPrimaryToggle from './users-email-primary-toggle';
-import { Chip } from '@/components/heroui';
+import { Chip } from '@heroui-v3/react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import PaginationBlock from '@/components/pagination-block';
 import { Can } from '@/components/auth/Can';
@@ -38,7 +38,9 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-primary">Utilisateurs : {totalFilteredItems} (Page {currentPage + 1} sur {totalPages})</h2>
+        <h2 className="text-2xl font-bold text-primary">
+          Utilisateurs : {totalFilteredItems} (Page {currentPage + 1} sur {totalPages})
+        </h2>
         <div className="flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
           <div className="flex gap-3">
             <Can I="create" a="Utilisateur">
@@ -95,7 +97,15 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.username}</TableCell>
                   <TableCell>{user.role.libelle}</TableCell>
-                  <TableCell>{user.status === 1 ? <Chip color="success">Actif</Chip> : <Chip color="warning">Inactif</Chip>}</TableCell>
+                  <TableCell>
+                    {/*
+                     * Un compte inactif n'est pas un AVERTISSEMENT : c'est une absence
+                     * d'activite. L'ambre y annonçait un probleme qui n'existe pas.
+                     */}
+                    <Chip color={user.status === 1 ? 'success' : 'default'} size="sm" variant="soft">
+                      <Chip.Label>{user.status === 1 ? 'Actif' : 'Inactif'}</Chip.Label>
+                    </Chip>
+                  </TableCell>
                   <TableCell className="text-center">
                     <UsersEmailPrimaryToggle user={user} />
                   </TableCell>
@@ -125,7 +135,11 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                       <p className="truncate text-xs text-muted">{user.role.libelle}</p>
                     </div>
                   </div>
-                  {user.status === 1 ? <Chip color="success">Actif</Chip> : <Chip color="warning">Inactif</Chip>}
+                  {
+                    <Chip color={user.status === 1 ? 'success' : 'default'} size="sm" variant="soft">
+                      <Chip.Label>{user.status === 1 ? 'Actif' : 'Inactif'}</Chip.Label>
+                    </Chip>
+                  }
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
@@ -190,7 +204,13 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
                       </div>
                       <div className="flex items-center">
                         <div className="flex-none ltr:mr-2 rtl:ml-2">Statut :</div>
-                        <div className="">{user.status === 1 ? <Chip color="success">Actif</Chip> : <Chip color="warning">Inactif</Chip>}</div>
+                        <div className="">
+                          {
+                            <Chip color={user.status === 1 ? 'success' : 'default'} size="sm" variant="soft">
+                              <Chip.Label>{user.status === 1 ? 'Actif' : 'Inactif'}</Chip.Label>
+                            </Chip>
+                          }
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -201,15 +221,11 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
           })}
         </div>
       )}
-      
+
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-6 flex justify-center">
-          <PaginationBlock 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-          />
+          <PaginationBlock currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
         </div>
       )}
     </div>

@@ -1,16 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  Button,
-  Divider,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Textarea,
-} from '@/components/heroui';
+import { Button, Modal, Separator } from '@heroui-v3/react';
+
+import { ChampZoneTexte } from '@/components/commons/champs-formulaire';
 import { AlertTriangle, Camera, Clock, ExternalLink, MapPin, MessageSquare, Phone, User } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { createUrlFile } from '@/utils/createUrlFile';
@@ -63,7 +56,7 @@ function InfoRow({ icon: Icon, label, children }: { icon: typeof User; label: st
     <div className="flex items-start gap-2">
       <Icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
       <div className="min-w-0">
-        <p className="text-xs uppercase tracking-wide text-default-400">{label}</p>
+        <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
         <div className="text-sm text-default-700">{children}</div>
       </div>
     </div>
@@ -104,11 +97,12 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" scrollBehavior="inside" backdrop="blur">
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex items-center gap-3">
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-2xl">
+            <Modal.Header>
+              <Modal.Heading className="flex items-center gap-3">
               <span
                 className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] ${TON_INCIDENT[incident.statut].pastille}`}
               >
@@ -118,10 +112,12 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
                 <span className="truncate text-base font-bold">{incident.motifLibelle}</span>
                 <IncidentStatutChip statut={incident.statut} />
               </span>
-            </ModalHeader>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
 
-            <ModalBody>
-              <div className="rounded-large bg-default-50 px-4 py-3">
+            <Modal.Body className="flex flex-col gap-4">
+              <div className="rounded-xl bg-surface-secondary px-4 py-3">
                 <IncidentStatutStepper statut={incident.statut} />
               </div>
 
@@ -130,7 +126,7 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
                   <div className="flex flex-wrap items-center gap-2">
                     <span>
                       {livreur?.nomComplet ?? incident.livreurNom ?? (
-                        <span className="text-default-400">Inconnu</span>
+                        <span className="text-muted">Inconnu</span>
                       )}
                     </span>
                     {livreur && (
@@ -142,7 +138,7 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
                     )}
                   </div>
                   {hrefTel && (
-                    <a href={hrefTel} className="text-xs font-medium text-primary hover:underline">
+                    <a href={hrefTel} className="text-xs font-medium text-accent hover:underline">
                       {livreur?.telephone}
                     </a>
                   )}
@@ -152,10 +148,10 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
 
               {incident.livreurId && (
                 <Button
-                  size="sm"
-                  className="w-fit bg-success/10 font-semibold text-success-soft-foreground"
-                  startContent={<Phone className="h-4 w-4" />}
+                  className="w-fit"
                   isDisabled={enAppel}
+                  size="sm"
+                  variant="outline"
                   onPress={() =>
                     appelerLivreur(
                       incident.livreurId,
@@ -164,40 +160,41 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
                     )
                   }
                 >
+                  <Phone aria-hidden="true" className="size-4" />
                   Appeler le livreur (audio)
                 </Button>
               )}
 
               {incident.description && (
                 <>
-                  <Divider />
+                  <Separator />
                   <InfoRow icon={MessageSquare} label="Description">
                     <p className="whitespace-pre-wrap">{incident.description}</p>
                   </InfoRow>
                 </>
               )}
 
-              <Divider />
+              <Separator />
               <InfoRow icon={MapPin} label="Position">
                 {mapsHref ? (
                   <a
                     href={mapsHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-primary hover:underline"
+                    className="inline-flex items-center gap-1 text-accent hover:underline"
                   >
                     Voir sur la carte
                     <ExternalLink className="h-3.5 w-3.5" />
-                    <span className="text-default-400">
+                    <span className="text-muted">
                       ({incident.latitude?.toFixed(5)}, {incident.longitude?.toFixed(5)})
                     </span>
                   </a>
                 ) : (
-                  <span className="text-default-400">Non géolocalisé</span>
+                  <span className="text-muted">Non géolocalisé</span>
                 )}
               </InfoRow>
 
-              <Divider />
+              <Separator />
               <InfoRow icon={Camera} label="Preuve">
                 {preuveHref ? (
                   estPhoto ? (
@@ -206,7 +203,7 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
                       <img
                         src={preuveHref}
                         alt="Preuve de l'incident"
-                        className="max-h-56 rounded-medium border border-default-200 object-contain"
+                        className="max-h-56 rounded-lg border border-separator object-contain"
                       />
                     </a>
                   ) : (
@@ -214,20 +211,20 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
                       href={preuveHref}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-primary hover:underline"
+                      className="inline-flex items-center gap-1 text-accent hover:underline"
                     >
                       Ouvrir la preuve
                       <ExternalLink className="h-3.5 w-3.5" />
                     </a>
                   )
                 ) : (
-                  <span className="text-default-400">Aucune preuve jointe</span>
+                  <span className="text-muted">Aucune preuve jointe</span>
                 )}
               </InfoRow>
 
               {incident.commentaireTraitement && (
                 <>
-                  <Divider />
+                  <Separator />
                   <InfoRow icon={MessageSquare} label="Note de traitement">
                     <p className="whitespace-pre-wrap">{incident.commentaireTraitement}</p>
                   </InfoRow>
@@ -236,36 +233,40 @@ export function IncidentDetailModal({ incident, livreur, isOpen, onOpenChange, c
 
               {canUpdate && action && (
                 <>
-                  <Divider />
-                  <Textarea
+                  <Separator />
+                  <ChampZoneTexte
                     label="Commentaire (optionnel)"
+                    lignes={2}
+                    onChange={setCommentaire}
                     placeholder="Note jointe à la mise à jour du statut…"
-                    value={commentaire}
-                    onValueChange={setCommentaire}
-                    minRows={2}
+                    valeur={commentaire}
                   />
                 </>
               )}
-            </ModalBody>
+            </Modal.Body>
 
-            <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={changerStatut.isPending}>
+            <Modal.Footer>
+              <Button
+                isDisabled={changerStatut.isPending}
+                onPress={() => onOpenChange(false)}
+                variant="ghost"
+              >
                 Fermer
               </Button>
               {canUpdate && action && (
                 <Button
-                  color="primary"
-                  isLoading={changerStatut.isPending}
                   isDisabled={!userId}
+                  isPending={changerStatut.isPending}
                   onPress={() => appliquerTransition(action.next)}
+                  variant="primary"
                 >
                   {action.label}
                 </Button>
               )}
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

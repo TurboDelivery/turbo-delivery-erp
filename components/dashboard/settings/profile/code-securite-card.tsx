@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Button, Input } from '@/components/heroui';
+import { Button, InputGroup, Label, TextField } from '@heroui-v3/react';
 import { IconLock, IconShieldCheck } from '@tabler/icons-react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 
+import { ChampMotDePasse } from '@/components/commons/champs-formulaire';
 import { definirCodeSecurite } from '@/src/actions/users.actions';
 
 /**
@@ -49,7 +50,7 @@ export function CodeSecuriteCard({ username }: { username: string }) {
   return (
     <div className="panel">
       <div className="mb-4 flex items-center gap-2">
-        <IconShieldCheck size={20} className="text-primary" />
+        <IconShieldCheck className="text-muted" size={20} />
         <h5 className="text-lg font-semibold dark:text-white-light">Code de sécurité</h5>
       </div>
       <p className="mb-4 text-sm text-muted">
@@ -64,42 +65,49 @@ export function CodeSecuriteCard({ username }: { username: string }) {
           enregistrer();
         }}
       >
-        <Input
+        <ChampMotDePasse
           label="Votre mot de passe"
-          type="password"
-          size="sm"
-          variant="bordered"
-          value={motDePasse}
-          onValueChange={setMotDePasse}
-          startContent={<IconLock size={16} className="text-muted" />}
+          onChange={setMotDePasse}
+          valeur={motDePasse}
         />
-        <div className="grid grid-cols-2 gap-3">
-          <Input
-            label="Nouveau code (4 chiffres)"
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {/*
+           * `inputMode="numeric"` ouvre le pave numerique sur un telephone, et
+           * `maxLength` s'applique au champ lui-meme : les deux sont portes par
+           * `InputGroup.Input`, pas par le `TextField` qui l'englobe.
+           */}
+          <TextField
+            onChange={(v) => setCode(chiffresSeuls(v))}
             type="password"
-            inputMode="numeric"
-            size="sm"
-            variant="bordered"
-            maxLength={4}
             value={code}
-            onValueChange={(v) => setCode(chiffresSeuls(v))}
-          />
-          <Input
-            label="Confirmation"
+          >
+            <Label>Nouveau code (4 chiffres)</Label>
+            <InputGroup>
+              <InputGroup.Prefix>
+                <IconLock size={16} />
+              </InputGroup.Prefix>
+              <InputGroup.Input inputMode="numeric" maxLength={4} />
+            </InputGroup>
+          </TextField>
+          <TextField
+            onChange={(v) => setConfirmation(chiffresSeuls(v))}
             type="password"
-            inputMode="numeric"
-            size="sm"
-            variant="bordered"
-            maxLength={4}
             value={confirmation}
-            onValueChange={(v) => setConfirmation(chiffresSeuls(v))}
-          />
+          >
+            <Label>Confirmation</Label>
+            <InputGroup>
+              <InputGroup.Prefix>
+                <IconLock size={16} />
+              </InputGroup.Prefix>
+              <InputGroup.Input inputMode="numeric" maxLength={4} />
+            </InputGroup>
+          </TextField>
         </div>
         <Button
-          type="submit"
-          color="primary"
-          isLoading={enCours}
           isDisabled={!motDePasse || code.length !== 4 || confirmation.length !== 4}
+          isPending={enCours}
+          type="submit"
+          variant="primary"
         >
           Enregistrer le code
         </Button>

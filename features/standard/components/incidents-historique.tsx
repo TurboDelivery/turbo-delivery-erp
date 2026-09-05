@@ -1,23 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import {
-  Pagination,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
+import { Card, Table, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
 import { Camera, ChevronDown, FileText, History } from 'lucide-react';
+import React, { useState } from 'react';
 
+import EtatErreur from '@/components/commons/EtatErreur';
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import { IIncident, StatutIncident, useIncidentsQuery } from '@/features/standard';
 
 import { IncidentStatutChip } from './incident-statut-chip';
 import { dateIncident } from '../utils/incident-ui.utils';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 type FiltreHistorique = 'TRAITE' | 'CLOTURE' | 'TOUS';
 
@@ -26,6 +18,15 @@ const FILTRES: { cle: FiltreHistorique; libelle: string }[] = [
   { cle: 'CLOTURE', libelle: 'Clôturés' },
   { cle: 'TOUS', libelle: 'Tous les incidents' },
 ];
+
+/** Les colonnes, déclarées une fois : le squelette y compte ses cellules. */
+const COLONNES = [
+  { id: 'etat', libelle: 'État' },
+  { id: 'motif', libelle: 'Motif' },
+  { id: 'livreur', libelle: 'Livreur' },
+  { id: 'signale', libelle: 'Signalé le' },
+  { id: 'preuve', libelle: 'Preuve' },
+] as const;
 
 const TAILLE_PAGE = 10;
 
@@ -51,116 +52,137 @@ export function IncidentsHistorique({ onOuvrir }: { onOuvrir: (incident: IIncide
   };
 
   return (
-    <section className="rounded-2xl border border-default-200/50 bg-surface dark:bg-content1">
+    <Card>
       <button
-        type="button"
-        onClick={() => setOuvert((o) => !o)}
         aria-expanded={ouvert}
-        className="flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3.5 text-left transition-colors hover:bg-default-50 dark:hover:bg-default-100/40"
+        className="flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3.5 text-left transition-colors hover:bg-surface-secondary"
+        onClick={() => setOuvert((o) => !o)}
+        type="button"
       >
         <span className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-default-200/60 text-default-500">
-            <History className="h-5 w-5" />
+          <span className="flex size-10 items-center justify-center rounded-xl bg-surface-secondary text-muted">
+            <History aria-hidden="true" className="size-5" />
           </span>
           <span>
-            <span className="block text-sm font-bold text-default-700">Traités et clôturés</span>
-            <span className="block text-xs text-default-400">
-              Historique des signalements réglés — replié pour laisser la place à l&apos;urgence.
+            <span className="block text-sm font-bold text-foreground">Traités et clôturés</span>
+            <span className="block text-xs text-muted">
+              Historique des signalements réglés — replié pour laisser la place à
+              l&apos;urgence.
             </span>
           </span>
         </span>
         <ChevronDown
-          className={`h-5 w-5 shrink-0 text-default-400 transition-transform ${ouvert ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+          className={`size-5 shrink-0 text-muted transition-transform ${ouvert ? 'rotate-180' : ''}`}
         />
       </button>
 
       {ouvert && (
-        <div className="space-y-3 border-t border-default-200/60 px-4 py-4">
-          <div className="flex flex-wrap gap-2">
-            {FILTRES.map((f) => {
-              const actif = f.cle === filtre;
-              return (
-                <button
-                  key={f.cle}
-                  type="button"
-                  onClick={() => changerFiltre(f.cle)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    actif
-                      ? 'bg-surface-secondary text-white'
-                      : 'bg-default-100 text-default-600 hover:bg-default-200'
-                  }`}
-                >
-                  {f.libelle}
-                </button>
-              );
-            })}
-          </div>
+        <div className="flex flex-col gap-3 border-t border-separator px-4 py-4">
+          {/*
+           * Le filtre actif etait peint `bg-surface-secondary text-white` : du BLANC sur
+           * une surface CLAIRE. Le libellé du filtre choisi était donc illisible — c'est
+           * justement celui qu'on veut lire.
+           */}
+          <ToggleButtonGroup
+            onSelectionChange={(sel) =>
+              changerFiltre(String(Array.from(sel)[0] ?? 'TRAITE') as FiltreHistorique)
+            }
+            selectedKeys={new Set([filtre])}
+            selectionMode="single"
+            size="sm"
+          >
+            {FILTRES.map((f) => (
+              <ToggleButton id={f.cle} key={f.cle}>
+                {f.libelle}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
 
           {isError ? (
-            <EtatErreur quoi="les incidents" onReessayer={() => refetch()} enCours={isFetching} />
+            <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="les incidents" />
           ) : (
-          <Table
-            aria-label="Historique des incidents"
-            removeWrapper
-            onRowAction={(cle) => {
-              const inc = incidents.find((i) => i.id === String(cle));
-              if (inc) onOuvrir(inc);
-            }}
-            bottomContent={
-              totalPages > 1 ? (
-                <div className="flex justify-center pt-2">
-                  <Pagination
-                    total={totalPages}
-                    page={page + 1}
-                    onChange={(p) => setPage(p - 1)}
-                    color="primary"
-                    size="sm"
-                    showControls
-                  />
-                </div>
-              ) : null
-            }
-          >
-            <TableHeader>
-              <TableColumn className="text-default-500">ÉTAT</TableColumn>
-              <TableColumn className="text-default-500">MOTIF</TableColumn>
-              <TableColumn className="text-default-500">LIVREUR</TableColumn>
-              <TableColumn className="text-default-500">SIGNALÉ LE</TableColumn>
-              <TableColumn className="text-default-500">PREUVE</TableColumn>
-            </TableHeader>
-            <TableBody
-              emptyContent={isLoading ? ' ' : 'Aucun incident dans cette sélection'}
-              isLoading={isLoading}
-              loadingContent={<Spinner color="primary" label="Chargement…" />}
-            >
-              {incidents.map((inc) => (
-                <TableRow key={inc.id} className="cursor-pointer">
-                  <TableCell>
-                    <IncidentStatutChip statut={inc.statut} />
-                  </TableCell>
-                  <TableCell className="font-medium">{inc.motifLibelle}</TableCell>
-                  <TableCell>{inc.livreurNom ?? <span className="text-default-400">—</span>}</TableCell>
-                  <TableCell className="whitespace-nowrap text-default-500">
-                    {dateIncident(inc.signaleLe)}
-                  </TableCell>
-                  <TableCell>
-                    {inc.preuveUrl ? (
-                      inc.preuveType === 'PHOTO' || inc.preuveType === null ? (
-                        <Camera className="h-4 w-4 text-primary" />
-                      ) : (
-                        <FileText className="h-4 w-4 text-primary" />
+            <Table>
+              <Table.ScrollContainer>
+                <Table.Content
+                  aria-label="Historique des incidents"
+                  className="min-w-[48rem]"
+                  onRowAction={(cle: React.Key) => {
+                    const inc = incidents.find((i) => i.id === String(cle));
+                    if (inc) onOuvrir(inc);
+                  }}
+                >
+                  <Table.Header>
+                    {COLONNES.map((c) => (
+                      <Table.Column id={c.id} isRowHeader={c.id === 'etat'} key={c.id}>
+                        {c.libelle}
+                      </Table.Column>
+                    ))}
+                  </Table.Header>
+                  <Table.Body
+                    renderEmptyState={() =>
+                      isLoading ? null : (
+                        <p className="py-8 text-center text-sm text-muted">
+                          Aucun incident dans cette sélection
+                        </p>
                       )
-                    ) : (
-                      <span className="text-default-300">—</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    }
+                  >
+                    {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+                    {isLoading
+                      ? Array.from({ length: 5 }).map((_, i) => (
+                          <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                            {COLONNES.map((c) => (
+                              <Table.Cell key={`sq-${i}-${c.id}`}>
+                                <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                              </Table.Cell>
+                            ))}
+                          </Table.Row>
+                        ))
+                      : null}
+
+                    {(isLoading ? [] : incidents).map((inc) => (
+                      <Table.Row className="cursor-pointer" id={inc.id} key={inc.id}>
+                        <Table.Cell>
+                          <IncidentStatutChip statut={inc.statut} />
+                        </Table.Cell>
+                        <Table.Cell className="font-medium">{inc.motifLibelle}</Table.Cell>
+                        <Table.Cell>
+                          {inc.livreurNom ?? <span className="text-muted">—</span>}
+                        </Table.Cell>
+                        <Table.Cell className="whitespace-nowrap text-muted">
+                          {dateIncident(inc.signaleLe)}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {inc.preuveUrl ? (
+                            inc.preuveType === 'PHOTO' || inc.preuveType === null ? (
+                              <Camera aria-hidden="true" className="size-4 text-muted" />
+                            ) : (
+                              <FileText aria-hidden="true" className="size-4 text-muted" />
+                            )
+                          ) : (
+                            <span className="text-muted">—</span>
+                          )}
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Content>
+              </Table.ScrollContainer>
+
+              {totalPages > 1 && (
+                <Table.Footer className="justify-center">
+                  <PaginationTableau
+                    onPage={(p) => setPage(p - 1)}
+                    page={page + 1}
+                    total={totalPages}
+                  />
+                </Table.Footer>
+              )}
+            </Table>
           )}
         </div>
       )}
-    </section>
+    </Card>
   );
 }

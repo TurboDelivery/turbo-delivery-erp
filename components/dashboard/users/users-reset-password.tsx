@@ -4,7 +4,9 @@ import IconX from '@/components/icon/icon-x';
 import { reinitialiserMotDePasseUtilisateur } from '@/src/actions/users.actions';
 import { User } from '@/types/models';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
-import { Button, Snippet } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
+
+import { ChampCopiable } from '@/components/commons/ChampCopiable';
 import React, { Fragment, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -100,20 +102,16 @@ const UsersResetPassword = ({
                                 {motDePasse ? (
                                     <div className="grid gap-4 p-5">
                                         <ul className="list-inside list-disc space-y-4">
-                                            <li>
-                                                Nom d&apos;utilisateur :{' '}
-                                                <Snippet symbol="" color="success" size="sm">
-                                                    {user.username}
-                                                </Snippet>
+                                            <li className="flex flex-col gap-1">
+                                                Nom d&apos;utilisateur :
+                                                <ChampCopiable valeur={user.username ?? ''} />
                                             </li>
-                                            <li>
-                                                Mot de passe provisoire :{' '}
-                                                <Snippet symbol="" color="success" size="sm">
-                                                    {motDePasse}
-                                                </Snippet>
+                                            <li className="flex flex-col gap-1">
+                                                Mot de passe provisoire :
+                                                <ChampCopiable valeur={motDePasse} />
                                             </li>
                                         </ul>
-                                        <div className="rounded border border-amber-400/50 bg-amber-50 p-3 text-sm text-amber-800">
+                                        <div className="rounded border border-warning/30 bg-warning/10 p-3 text-sm text-foreground">
                                             <p className="font-medium">
                                                 Ce mot de passe ne sera plus jamais affiché.
                                             </p>
@@ -125,7 +123,7 @@ const UsersResetPassword = ({
                                             </p>
                                         </div>
                                         <div className="mt-4 flex items-center justify-end">
-                                            <Button className="btn btn-primary" color="primary" onClick={fermer}>
+                                            <Button onPress={fermer} variant="primary">
                                                 J&apos;ai noté le mot de passe
                                             </Button>
                                         </div>
@@ -152,19 +150,22 @@ const UsersResetPassword = ({
                                             </p>
                                         </div>
                                         <div className="mt-8 flex items-center justify-end">
-                                            <button
-                                                type="button"
-                                                className="btn btn-outline-danger"
-                                                onClick={fermer}
-                                            >
+                                            {/*
+                                             * « Annuler » etait un `<button className="btn
+                                             * btn-outline-danger">` — la classe du DANGER sur le
+                                             * bouton qui ne fait rien. Et `onClick` sur un Button
+                                             * v3 est ignore EN SILENCE : c'est `onPress`, sans
+                                             * quoi « Reinitialiser » ne reinitialisait plus.
+                                             */}
+                                            <Button onPress={fermer} variant="ghost">
                                                 Annuler
-                                            </button>
+                                            </Button>
                                             <Button
-                                                className="btn btn-primary ltr:ml-4 rtl:mr-4"
-                                                color="primary"
-                                                disabled={enCours}
-                                                isLoading={enCours}
-                                                onClick={reinitialiser}
+                                                className="ltr:ml-4 rtl:mr-4"
+                                                isDisabled={enCours}
+                                                isPending={enCours}
+                                                onPress={reinitialiser}
+                                                variant="danger"
                                             >
                                                 Réinitialiser
                                             </Button>

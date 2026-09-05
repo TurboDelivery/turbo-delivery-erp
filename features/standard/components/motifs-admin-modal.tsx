@@ -1,19 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  Button,
-  Chip,
-  Divider,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Spinner,
-  Switch,
-} from '@/components/heroui';
+import { Button, Card, Chip, Modal, Separator, Switch } from '@heroui-v3/react';
+
+import { ChampMontant, ChampTexte } from '@/components/commons/champs-formulaire';
 import { Plus, Save } from 'lucide-react';
 import EtatErreur from '@/components/commons/EtatErreur';
 import {
@@ -38,37 +28,30 @@ function MotifRow({ motif }: { motif: IIncidentMotif }) {
   const dirty = libelle !== motif.libelle || ordre !== String(motif.ordre ?? 0) || actif !== motif.actif;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-medium border border-default-200 px-3 py-2">
-      <Chip size="sm" variant="flat" className="font-mono">
-        {motif.code}
+    <div className="flex flex-wrap items-end gap-2 rounded-lg border border-separator px-3 py-2">
+      <Chip className="mb-2 font-mono" size="sm" variant="soft">
+        <Chip.Label>{motif.code}</Chip.Label>
       </Chip>
-      <Input
-        aria-label="Libellé"
-        size="sm"
-        value={libelle}
-        onValueChange={setLibelle}
-        className="min-w-40 flex-1"
-      />
-      <Input
-        aria-label="Ordre"
-        size="sm"
-        type="number"
-        min={0}
-        value={ordre}
-        onValueChange={setOrdre}
-        className="w-20"
-      />
-      <Switch size="sm" isSelected={actif} onValueChange={setActif}>
-        <span className="text-xs text-default-500">{actif ? 'Actif' : 'Masqué'}</span>
+      <div className="min-w-40 flex-1">
+        <ChampTexte label="Libellé" onChange={setLibelle} valeur={libelle} />
+      </div>
+      <div className="w-24">
+        <ChampMontant label="Ordre" onChange={(v) => setOrdre(String(v))} valeur={Number(ordre) || 0} />
+      </div>
+      <Switch className="mb-2" isSelected={actif} onChange={setActif} size="sm">
+        <Switch.Content>
+          <Switch.Thumb />
+        </Switch.Content>
+        <span className="ms-2 text-xs text-muted">{actif ? 'Actif' : 'Masqué'}</span>
       </Switch>
       <Button
-        size="sm"
-        color="primary"
-        variant="flat"
-        isIconOnly
-        aria-label="Enregistrer"
+        aria-label="Enregistrer ce motif"
+        className="mb-2"
         isDisabled={!dirty || !libelle.trim()}
-        isLoading={modifier.isPending}
+        isIconOnly
+        isPending={modifier.isPending}
+        size="sm"
+        variant="outline"
         onPress={() =>
           modifier.mutate({
             code: motif.code,
@@ -76,7 +59,7 @@ function MotifRow({ motif }: { motif: IIncidentMotif }) {
           })
         }
       >
-        <Save className="h-4 w-4" />
+        <Save aria-hidden="true" className="size-4" />
       </Button>
     </div>
   );
@@ -107,100 +90,105 @@ export function MotifsAdminModal({ isOpen, onOpenChange }: Props) {
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" scrollBehavior="inside">
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              <span className="text-base font-semibold">Motifs d&apos;incident</span>
-              <span className="text-xs font-normal text-default-400">
-                Liste paramétrable proposée aux livreurs (RG-22). Masquer ne supprime pas l&apos;historique.
-              </span>
-            </ModalHeader>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-2xl">
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col gap-1">
+                <span className="text-base font-semibold">Motifs d&apos;incident</span>
+                <span className="text-xs font-normal text-muted">
+                  Liste paramétrable proposée aux livreurs (RG-22). Masquer ne supprime pas
+                  l&apos;historique.
+                </span>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
 
-            <ModalBody>
+            <Modal.Body className="flex flex-col gap-3">
               {isLoading ? (
-                <div className="flex justify-center py-10">
-                  <Spinner color="primary" label="Chargement des motifs…" />
+                <div className="flex flex-col gap-2 py-4">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div className="h-14 animate-pulse rounded-lg bg-surface-secondary" key={i} />
+                  ))}
                 </div>
               ) : isError ? (
                 // Sans ce cas, une lecture en echec affichait « Aucun motif pour le
                 // moment » : on recreerait des motifs qui existent deja.
                 <EtatErreur
-                  quoi="les motifs d'incident"
-                  onReessayer={() => refetch()}
                   enCours={isFetching}
+                  onReessayer={() => refetch()}
+                  quoi="les motifs d'incident"
                 />
               ) : (
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   {(motifs ?? []).map((m) => (
                     <MotifRow key={m.code} motif={m} />
                   ))}
                   {(motifs ?? []).length === 0 && (
-                    <p className="py-6 text-center text-sm text-default-400">Aucun motif pour le moment.</p>
+                    <p className="py-6 text-center text-sm text-muted">Aucun motif pour le moment.</p>
                   )}
                 </div>
               )}
 
-              <Divider className="my-2" />
+              <Separator className="my-2" />
 
-              <div className="rounded-medium bg-default-50 p-3">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-default-500">Nouveau motif</p>
-                <div className="flex flex-wrap items-end gap-2">
-                  <Input
-                    label="Code"
-                    labelPlacement="outside"
-                    size="sm"
-                    placeholder="EX: PANNE"
-                    value={code}
-                    onValueChange={(v) => setCode(v.toUpperCase())}
-                    className="w-36"
-                  />
-                  <Input
-                    label="Libellé"
-                    labelPlacement="outside"
-                    size="sm"
-                    placeholder="Panne"
-                    value={libelle}
-                    onValueChange={setLibelle}
-                    className="min-w-40 flex-1"
-                  />
-                  <Input
-                    label="Ordre"
-                    labelPlacement="outside"
-                    size="sm"
-                    type="number"
-                    min={0}
-                    placeholder="0"
-                    value={ordre}
-                    onValueChange={setOrdre}
-                    className="w-20"
-                  />
-                  <Button
-                    color="primary"
-                    size="sm"
-                    startContent={<Plus className="h-4 w-4" />}
-                    isDisabled={!peutCreer}
-                    isLoading={creer.isPending}
-                    onPress={ajouter}
-                  >
-                    Ajouter
-                  </Button>
-                </div>
-                <p className="mt-2 text-xs text-default-400">
-                  Le « code » est un identifiant unique en majuscules (ex : PANNE).
-                </p>
-              </div>
-            </ModalBody>
+              <Card>
+                <Card.Content className="gap-2 p-3">
+                  <p className="text-xs font-semibold tracking-wide uppercase text-muted">
+                    Nouveau motif
+                  </p>
+                  <div className="flex flex-wrap items-end gap-2">
+                    <div className="w-36">
+                      <ChampTexte
+                        label="Code"
+                        onChange={(v) => setCode(v.toUpperCase())}
+                        placeholder="EX : PANNE"
+                        valeur={code}
+                      />
+                    </div>
+                    <div className="min-w-40 flex-1">
+                      <ChampTexte
+                        label="Libellé"
+                        onChange={setLibelle}
+                        placeholder="Panne"
+                        valeur={libelle}
+                      />
+                    </div>
+                    <div className="w-24">
+                      <ChampMontant
+                        label="Ordre"
+                        onChange={(v) => setOrdre(String(v))}
+                        valeur={ordre === '' ? undefined : Number(ordre)}
+                      />
+                    </div>
+                    <Button
+                      className="mb-2"
+                      isDisabled={!peutCreer}
+                      isPending={creer.isPending}
+                      onPress={ajouter}
+                      size="sm"
+                      variant="primary"
+                    >
+                      <Plus aria-hidden="true" className="size-4" />
+                      Ajouter
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted">
+                    Le « code » est un identifiant unique en majuscules (ex : PANNE).
+                  </p>
+                </Card.Content>
+              </Card>
+            </Modal.Body>
 
-            <ModalFooter>
-              <Button variant="light" onPress={onClose}>
+            <Modal.Footer>
+              <Button onPress={() => onOpenChange(false)} variant="ghost">
                 Fermer
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

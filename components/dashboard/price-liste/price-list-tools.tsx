@@ -1,8 +1,13 @@
 'use client';
 
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownSection, DropdownTrigger } from '@/components/heroui';
+import { Button, Dropdown } from '@heroui-v3/react';
 import { useState } from 'react';
-import { IconTrash } from '@tabler/icons-react';
+/*
+ * Le declencheur du menu portait une icone de POUBELLE alors qu'il OUVRE un menu :
+ * il annonçait une suppression a chaque ligne, y compris pour qui n'a pas le droit de
+ * supprimer. Les trois points disent ce qu'il fait.
+ */
+import { IconDotsVertical as IconEllipsis } from '@tabler/icons-react';
 import PriceListeDelete from './price-liste-delete';
 import { useAbility } from '@/hooks/use-ability';
 
@@ -15,25 +20,28 @@ const PriceListeTools = ({ id }: { id: string }) => {
   return (
     <>
       <Dropdown>
-        <DropdownTrigger>
-          <Button variant="light" isIconOnly>
-            <IconTrash />
-          </Button>
-        </DropdownTrigger>
-        <DropdownMenu aria-label="Static Actions">
-          <DropdownSection showDivider title="Actions">
+        <Button aria-label="Actions sur cette zone tarifaire" isIconOnly variant="ghost">
+          <IconEllipsis />
+        </Button>
+        <Dropdown.Popover>
+          <Dropdown.Menu aria-label="Actions sur cette zone tarifaire">
             {canEdit ? (
-              <DropdownItem key="edit" onPress={() => setOpen(true)}>
+              <Dropdown.Item id="edit" onAction={() => setOpen(true)} textValue="Annuler">
                 Annuler
-              </DropdownItem>
+              </Dropdown.Item>
             ) : null}
-          </DropdownSection>
-          {canDelete ? (
-            <DropdownItem key="delete" className="text-danger-soft-foreground" color="danger" onPress={() => setOpenDelete(true)}>
-              Suprimer
-            </DropdownItem>
-          ) : null}
-        </DropdownMenu>
+            {canDelete ? (
+              <Dropdown.Item
+                className="text-danger-soft-foreground"
+                id="delete"
+                onAction={() => setOpenDelete(true)}
+                textValue="Supprimer"
+              >
+                Supprimer
+              </Dropdown.Item>
+            ) : null}
+          </Dropdown.Menu>
+        </Dropdown.Popover>
       </Dropdown>
 
       <PriceListeDelete id={id} open={openDelete} setOpen={setOpenDelete} />

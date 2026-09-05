@@ -1,4 +1,4 @@
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -18,13 +18,13 @@ const RetourButton = () => {
   }
 
   return (
-        <Button onClick={handleRetour} variant="light" className="text-red-500">
-            <ArrowLeft size={24} />
-        </Button>
-
-    // <Button variant="light" onClick={handleRetour} >
-    //   Retour
-    // </Button>
+    /*
+     * `onClick` sur un Button v3 est ignore EN SILENCE : c'est `onPress`. Et le retour
+     * en arriere n'est pas un geste dangereux — le `text-red-500` disait le contraire.
+     */
+    <Button aria-label="Revenir à la page précédente" isIconOnly onPress={handleRetour} variant="ghost">
+      <ArrowLeft aria-hidden="true" className="size-5" />
+    </Button>
   );
 };
 

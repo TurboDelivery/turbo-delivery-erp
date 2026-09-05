@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
-import { Button, Spinner } from '@/components/heroui';
+import { Avatar, Button, Card } from '@heroui-v3/react';
 import { PhoneCall, PhoneMissed } from 'lucide-react';
+import { useMemo } from 'react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
 import { IAppelLog, useAppelsQuery } from '@/features/standard';
@@ -25,11 +25,11 @@ export function AppelsManquesPanel() {
   );
 
   return (
-    <section className="rounded-2xl border border-default-200/50 bg-surface dark:bg-content1">
-      <header className="flex items-center justify-between gap-2 border-b border-default-100 px-4 py-3">
-        <h3 className="flex items-center gap-2.5 text-sm font-bold text-default-700">
+    <Card>
+      <Card.Header className="flex-row items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2.5 text-sm font-bold text-foreground">
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-danger/10 text-danger-soft-foreground">
-            <PhoneMissed className="h-5 w-5" />
+            <PhoneMissed aria-hidden="true" className="size-5" />
           </span>
           Appels manqués
         </h3>
@@ -38,50 +38,51 @@ export function AppelsManquesPanel() {
             {manques.length}
           </span>
         )}
-      </header>
+      </Card.Header>
 
       {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Spinner size="sm" color="primary" />
+        <div className="flex flex-col gap-2 px-4 py-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div className="h-14 animate-pulse rounded-lg bg-surface-secondary" key={i} />
+          ))}
         </div>
       ) : isError ? (
         // Le journal est filtre en local : s'il ne se charge pas, la liste des
         // manques est vide et l'ecran annonce que tout a ete decroche.
-        <EtatErreur
-          quoi="les appels manqués"
-          onReessayer={() => refetch()}
-          enCours={isFetching}
-        />
+        <div className="p-4">
+          <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="les appels manqués" />
+        </div>
       ) : manques.length === 0 ? (
-        <p className="px-4 py-8 text-center text-sm text-default-400">
+        <p className="px-4 py-8 text-center text-sm text-muted">
           Aucun appel manqué — tout a été décroché.
         </p>
       ) : (
-        <ul className="divide-y divide-default-100">
+        <ul className="divide-y divide-separator">
           {manques.map((a) => {
             const nom = a.appelantNom || 'Appelant inconnu';
             const rappelPossible = a.appelantType === 'LIVREUR' && !!a.appelantId;
             return (
               <li key={a.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-50 text-sm font-bold text-rose-600">
-                  {initialesDe(nom)}
-                </span>
+                {/* Le rond d'initiales etait peint en `bg-rose-50 text-rose-600` : du rose
+                    de palette, sans variante sombre, pour une simple identite. */}
+                <Avatar className="shrink-0" size="md">
+                  <Avatar.Fallback>{initialesDe(nom)}</Avatar.Fallback>
+                </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-default-800">{nom}</p>
-                  <p className="flex items-center gap-1 text-xs text-default-400">
-                    <PhoneMissed className="h-3 w-3 text-rose-400" />
+                  <p className="truncate text-sm font-semibold text-foreground">{nom}</p>
+                  <p className="flex items-center gap-1 text-xs text-muted">
+                    <PhoneMissed aria-hidden="true" className="size-3 text-danger" />
                     Manqué · {depuisQuand(a.declencheLe)}
                   </p>
                 </div>
                 {rappelPossible && (
                   <Button
-                    size="sm"
-                    color="primary"
-                    variant="flat"
                     isDisabled={enAppel}
-                    startContent={<PhoneCall className="h-4 w-4" />}
                     onPress={() => appelerLivreur(a.appelantId, nom, a.incidentId ?? undefined)}
+                    size="sm"
+                    variant="outline"
                   >
+                    <PhoneCall aria-hidden="true" className="size-4" />
                     Rappeler
                   </Button>
                 )}
@@ -90,6 +91,6 @@ export function AppelsManquesPanel() {
           })}
         </ul>
       )}
-    </section>
+    </Card>
   );
 }

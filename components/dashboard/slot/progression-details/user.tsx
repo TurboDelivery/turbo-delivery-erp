@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-import { Card } from '@/components/heroui';
+import { Card } from '@heroui-v3/react';
 import { LivreurDetail } from '@/types/livreur';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { CreneauID } from '@/types/creneau-byId';
@@ -25,9 +25,13 @@ function User({ user, dataCreneau, exerianceLivreur }: props) {
 
     return (
         <div className="flex gap-4 mb-6 ">
-            <Card className="w-24 h-24 overflow-hidden rounded-md">
-
-                <Image src={createUrlFile(user?.avatarUrl ?? '', "backend")} alt="Photo de profil" layout="fill" objectFit="cover" />
+            <Card className="relative h-24 w-24 overflow-hidden">
+                <Image
+                    alt="Photo de profil"
+                    className="object-cover"
+                    fill
+                    src={createUrlFile(user?.avatarUrl ?? '', 'backend')}
+                />
             </Card>
             <div className="flex justify-between grow">
                 <div className="w-1/3 flex flex-col gap-2 border-r px-6 border-black">

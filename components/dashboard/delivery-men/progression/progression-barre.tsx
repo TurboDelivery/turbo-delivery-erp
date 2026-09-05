@@ -1,4 +1,4 @@
-import { ProgressBar, Label } from '@/components/heroui';
+import { ProgressBar, Label } from '@heroui-v3/react';
 import { Livreur } from "@/types/creneau-turbo";
 
 // :{turboys:Livreur}

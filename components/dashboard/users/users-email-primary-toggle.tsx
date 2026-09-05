@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Switch, Tooltip } from '@/components/heroui';
+import { Switch, Tooltip } from '@heroui-v3/react';
 import { toggleUserEmailPrimary } from '@/src/actions/users.actions';
 import { User } from '@/types/models';
 
@@ -39,23 +39,23 @@ export default function UsersEmailPrimaryToggle({ user }: { user: User }) {
   };
 
   return (
-    <Tooltip
-      content={
-        checked
+    <Tooltip>
+      <Switch
+        aria-label="Destinataire des emails de notification"
+        isDisabled={isPending}
+        isSelected={checked}
+        onChange={handleChange}
+        size="sm"
+      >
+        <Switch.Content>
+          <Switch.Thumb />
+        </Switch.Content>
+      </Switch>
+      <Tooltip.Content>
+        {checked
           ? `${user.nom} ${user.prenoms} reçoit les emails de notification`
-          : `${user.nom} ${user.prenoms} ne reçoit pas les emails (in-app seulement)`
-      }
-    >
-      <span>
-        <Switch
-          isSelected={checked}
-          onValueChange={handleChange}
-          isDisabled={isPending}
-          size="sm"
-          color="success"
-          aria-label="Destinataire des emails de notification"
-        />
-      </span>
+          : `${user.nom} ${user.prenoms} ne reçoit pas les emails (in-app seulement)`}
+      </Tooltip.Content>
     </Tooltip>
   );
 }

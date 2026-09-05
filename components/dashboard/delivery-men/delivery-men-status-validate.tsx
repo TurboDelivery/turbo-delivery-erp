@@ -3,7 +3,7 @@
 import IconX from '@/components/icon/icon-x';
 import { DeliveryMan, LivreurStatutVM } from '@/types/models';
 import { Transition, Dialog, TransitionChild, DialogPanel } from '@headlessui/react';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
 import React, { Fragment } from 'react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -71,20 +71,32 @@ const DeliveryMenStatusValidate = ({
                 <button type="button" onClick={() => setOpen(false)} className="absolute top-4 text-muted outline-hidden hover:text-foreground ltr:right-4 rtl:left-4 dark:hover:text-muted">
                   <IconX />
                 </button>
-                <div className="bg-surface-secondary py-3 text-lg font-medium ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5 text-primary">
+                <div className="bg-surface-secondary py-3 text-lg font-medium text-foreground ltr:pl-5 ltr:pr-[50px] rtl:pl-[50px] rtl:pr-5">
                   {validateBy == 'auth' ? 'Valider' : 'Activer'} le livreur
                 </div>
                 <div className="grid gap-4 p-5">
                   <p className="text-muted">{validateBy == 'auth' ? 'Voulez-vous valider le livreur ?' : 'Voulez-vous activer le livreur ?'}</p>
                   <div className="mt-8 flex items-center justify-end">
-                    <button type="button" className="btn btn-outline-danger" onClick={() => setOpen(false)}>
+                    {/*
+                     * « Annuler » etait un `<button className="btn btn-outline-danger">` :
+                     * la classe du DANGER sur le bouton qui ne fait rien. Et `onClick` sur
+                     * un Button v3 est ignore EN SILENCE — c'est `onPress`, sans quoi la
+                     * validation ne partait plus.
+                     */}
+                    <Button onPress={() => setOpen(false)} variant="ghost">
                       Annuler
-                    </button>
-                    <Button aria-disabled={pending} className="btn btn-primary ltr:ml-4 rtl:mr-4" color="primary" disabled={pending} isLoading={pending} onClick={() => {
-                                            if (pending) return;
-                                            setPending(true);
-                                            void handleSubmit().finally(() => setPending(false));
-                                        }}>
+                    </Button>
+                    <Button
+                      className="ltr:ml-4 rtl:mr-4"
+                      isDisabled={pending}
+                      isPending={pending}
+                      onPress={() => {
+                        if (pending) return;
+                        setPending(true);
+                        void handleSubmit().finally(() => setPending(false));
+                      }}
+                      variant="primary"
+                    >
                       {validateBy == 'auth' ? 'Valider' : 'Activer'}
                     </Button>
                   </div>

@@ -3,7 +3,7 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { signOut } from '@/src/actions/users.actions';
-import { Avatar } from '@/components/heroui';
+import { Avatar } from '@heroui-v3/react';
 import { User } from '@/types/models';
 import { useRouter } from 'next/navigation';
 
@@ -20,7 +20,12 @@ export const DashboardUserDropdown = ({ profile }: { profile: User }) => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
-            <Avatar size="sm" src={profile.image ?? ''} alt="Logo Restaurant" />
+            <Avatar size="sm">
+              <Avatar.Image alt="" src={profile.image ?? ''} />
+              <Avatar.Fallback>
+                {(profile.username ?? '?').slice(0, 2).toUpperCase()}
+              </Avatar.Fallback>
+            </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

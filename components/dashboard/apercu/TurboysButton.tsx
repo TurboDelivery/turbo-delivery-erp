@@ -1,5 +1,6 @@
-import { Button, Link } from '@/components/heroui';
 import { ChevronRight } from 'lucide-react';
+
+import { LienBouton } from '@/components/commons/LienBouton';
 import { TurboyType } from '@/features/turboys/types/turboys.types';
 
 /**
@@ -13,15 +14,16 @@ import { TurboyType } from '@/features/turboys/types/turboys.types';
 export function TurboysButton({ name, param, value=0 }: { name: string; param: TurboyType; value?: number }) {
   const tab = TYPE_TO_TAB[param];
   return (
-    <Button
-      variant="light"
-      as={Link}
-      className="text-muted-foreground text-xs font-medium"
+    /* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3. */
+    <LienBouton
+      className="text-xs font-medium"
       href={`/delivery-men/men?typeLivreur=${param}&tab=${tab}`}
+      taille="sm"
+      variante="ghost"
     >
       {name} ({value})
-      <ChevronRight className="inline-block ml-1" size={14} />
-    </Button>
+      <ChevronRight aria-hidden="true" className="size-3.5" />
+    </LienBouton>
   );
 }
 

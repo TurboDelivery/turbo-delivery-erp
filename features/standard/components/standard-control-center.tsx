@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Skeleton, Tab, Tabs } from '@/components/heroui';
+import { Button, Chip, Skeleton, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -56,8 +56,8 @@ function Section({ titre, sousTitre, point, total, children, nouveaux, onAcquitt
     <section className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className={`h-2.5 w-2.5 rounded-full ${point}`} />
-        <h2 className="text-sm font-bold uppercase tracking-wide text-default-600">{titre}</h2>
-        <span className="inline-flex items-center rounded-full bg-default-100 px-2 py-0.5 text-[11px] font-bold text-default-600">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-foreground">{titre}</h2>
+        <span className="inline-flex items-center rounded-full bg-surface-secondary px-2 py-0.5 text-[11px] font-bold text-foreground">
           {total}
         </span>
         {!!nouveaux && nouveaux > 0 && (
@@ -70,7 +70,7 @@ function Section({ titre, sousTitre, point, total, children, nouveaux, onAcquitt
             +{nouveaux} nouveau{nouveaux > 1 ? 'x' : ''}
           </button>
         )}
-        <span className="text-xs text-default-400">· {sousTitre}</span>
+        <span className="text-xs text-muted">· {sousTitre}</span>
       </div>
       {children}
     </section>
@@ -101,12 +101,12 @@ function Vide({ message, ton = 'ok' }: { message: string; ton?: 'ok' | 'neutre' 
     <div className="flex items-center gap-3 rounded-2xl border border-dashed border-default-200 bg-surface px-4 py-6 dark:bg-content1">
       <span
         className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-          ton === 'ok' ? 'bg-success/10 text-success-soft-foreground' : 'bg-default-200/60 text-default-400'
+          ton === 'ok' ? 'bg-success/10 text-success-soft-foreground' : 'bg-surface-secondary text-muted'
         }`}
       >
         <CheckCircle2 className="h-5 w-5" />
       </span>
-      <p className="text-sm text-default-500">{message}</p>
+      <p className="text-sm text-muted">{message}</p>
     </div>
   );
 }
@@ -129,6 +129,7 @@ export function StandardControlCenter() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [motifsOpen, setMotifsOpen] = useState(false);
   const [appelOpen, setAppelOpen] = useState(false);
+  const [onglet, setOnglet] = useState('incidents');
   const [configAppelOpen, setConfigAppelOpen] = useState(false);
   const [rechargeManuelle, setRechargeManuelle] = useState(false);
 
@@ -210,7 +211,7 @@ export function StandardControlCenter() {
 
   if (!canRead) {
     return (
-      <div className="flex w-full flex-col items-center justify-center gap-2 py-24 text-default-400">
+      <div className="flex w-full flex-col items-center justify-center gap-2 py-24 text-muted">
         <AlertTriangle className="h-8 w-8" />
         <p>Vous n&apos;avez pas accès au centre de contrôle STANDARD.</p>
       </div>
@@ -238,42 +239,30 @@ export function StandardControlCenter() {
               </span>
             )}
           </h1>
-          <p className="mt-1 max-w-3xl text-sm text-default-500">
+          <p className="mt-1 max-w-3xl text-sm text-muted">
             Incidents signalés par les livreurs et appels du standard (CDC RG-24). Écran trié par
             urgence, rafraîchi automatiquement toutes les 30 secondes.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            className="bg-success font-semibold text-white"
-            startContent={<Phone className="h-4 w-4" />}
-            onPress={() => setAppelOpen(true)}
-          >
+          {/* Le geste principal de l'ecran : un seul bouton plein. */}
+          <Button onPress={() => setAppelOpen(true)} variant="primary">
+            <Phone aria-hidden="true" className="size-4" />
             Appeler un livreur
           </Button>
-          <Button
-            variant="flat"
-            startContent={<RefreshCw className="h-4 w-4" />}
-            isLoading={rechargeManuelle}
-            onPress={rafraichir}
-          >
+          <Button isPending={rechargeManuelle} onPress={rafraichir} variant="outline">
+            <RefreshCw aria-hidden="true" className="size-4" />
             Actualiser
           </Button>
           {canUpdate && (
-            <Button
-              variant="flat"
-              startContent={<SlidersHorizontal className="h-4 w-4" />}
-              onPress={() => setMotifsOpen(true)}
-            >
+            <Button onPress={() => setMotifsOpen(true)} variant="outline">
+              <SlidersHorizontal aria-hidden="true" className="size-4" />
               Motifs
             </Button>
           )}
           {canUpdate && (
-            <Button
-              variant="flat"
-              startContent={<PhoneIncoming className="h-4 w-4" />}
-              onPress={() => setConfigAppelOpen(true)}
-            >
+            <Button onPress={() => setConfigAppelOpen(true)} variant="outline">
+              <PhoneIncoming aria-hidden="true" className="size-4" />
               Répondants
             </Button>
           )}
@@ -301,21 +290,31 @@ export function StandardControlCenter() {
         />
       )}
 
-      <Tabs aria-label="Sections du centre STANDARD" color="primary" variant="underlined" size="lg">
-        <Tab
-          key="incidents"
-          title={
-            <span className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Incidents
-              {totalRecus > 0 && (
-                <span className="inline-flex items-center rounded-full bg-danger px-1.5 py-0.5 text-[11px] font-bold text-white">
-                  {totalRecus}
-                </span>
-              )}
-            </span>
-          }
-        >
+      {/*
+       * `ToggleButtonGroup` et non `Tabs` : `Tabs.Indicator` de la v3 fait tomber la page,
+       * et sans lui les onglets ne distinguent l'actif que par une nuance de gris.
+       */}
+      <ToggleButtonGroup
+        onSelectionChange={(sel) => setOnglet(String(Array.from(sel)[0] ?? 'incidents'))}
+        selectedKeys={new Set([onglet])}
+        selectionMode="single"
+      >
+        <ToggleButton id="incidents">
+          <AlertTriangle aria-hidden="true" className="size-4" />
+          Incidents
+          {totalRecus > 0 && (
+            <Chip color="danger" size="sm" variant="soft">
+              <Chip.Label>{totalRecus}</Chip.Label>
+            </Chip>
+          )}
+        </ToggleButton>
+        <ToggleButton id="appels">
+          <Phone aria-hidden="true" className="size-4" />
+          Appels
+        </ToggleButton>
+      </ToggleButtonGroup>
+
+      <div hidden={onglet !== 'incidents'}>
           <div className="space-y-6 pt-3">
             {/* 1 — Personne ne s'en occupe encore : le seul bloc qui doit crier. */}
             <Section
@@ -353,7 +352,7 @@ export function StandardControlCenter() {
                     ))}
                   </div>
                   {totalRecus > listeRecus.length && (
-                    <p className="text-xs text-default-400">
+                    <p className="text-xs text-muted">
                       {listeRecus.length} affichés sur {totalRecus} — traitez-les pour voir les
                       suivants.
                     </p>
@@ -397,24 +396,15 @@ export function StandardControlCenter() {
             {/* 3 — Réglé : plié. */}
             <IncidentsHistorique onOuvrir={ouvrirDetail} />
           </div>
-        </Tab>
+      </div>
 
-        <Tab
-          key="appels"
-          title={
-            <span className="flex items-center gap-2">
-              <Phone className="h-4 w-4" />
-              Appels
-            </span>
-          }
-        >
-          {/* Journal STANDARD — appels tel: + audio in-app LUNION (colonne « Écouter » pour les EN_COURS) */}
-          <div className="space-y-4 pt-3">
-            <AppelsManquesPanel />
-            <AppelHistoriqueTable />
-          </div>
-        </Tab>
-      </Tabs>
+      {/* Journal STANDARD — appels tel: + audio in-app LUNION (colonne « Écouter » pour les EN_COURS) */}
+      <div hidden={onglet !== 'appels'}>
+        <div className="flex flex-col gap-4 pt-3">
+          <AppelsManquesPanel />
+          <AppelHistoriqueTable />
+        </div>
+      </div>
 
       <IncidentDetailModal
         incident={selected}

@@ -1,16 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import {
-  Avatar,
-  Button,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalHeader,
-  Spinner,
-} from '@/components/heroui';
+import { Avatar, Button, InputGroup, Modal, TextField } from '@heroui-v3/react';
 import { Phone, Search } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
@@ -60,66 +51,72 @@ export function AppelRapideModal({ isOpen, onOpenChange }: AppelRapideModalProps
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="lg" scrollBehavior="inside">
-      <ModalContent>
-        {() => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              <span className="text-primary">Appeler un livreur</span>
-              <span className="text-sm font-normal text-default-500">
-                Recherchez un livreur et lancez un appel audio in-app.
-              </span>
-            </ModalHeader>
-            <ModalBody className="pb-5">
-              <Input
-                autoFocus
-                placeholder="Nom, téléphone ou matricule…"
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-lg">
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col gap-1">
+                <span>Appeler un livreur</span>
+                <span className="text-sm font-normal text-muted">
+                  Recherchez un livreur et lancez un appel audio in-app.
+                </span>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body className="flex flex-col gap-3 pb-5">
+              <TextField
+                aria-label="Rechercher un livreur"
+                onChange={setRecherche}
                 value={recherche}
-                onValueChange={setRecherche}
-                startContent={<Search className="h-4 w-4 text-default-400" />}
-                isClearable
-                onClear={() => setRecherche('')}
-              />
+              >
+                <InputGroup>
+                  <InputGroup.Prefix>
+                    <Search aria-hidden="true" className="size-4" />
+                  </InputGroup.Prefix>
+                  <InputGroup.Input
+                    autoFocus
+                    placeholder="Nom, téléphone ou matricule…"
+                  />
+                </InputGroup>
+              </TextField>
 
               {isLoading ? (
-                <div className="flex justify-center py-10">
-                  <Spinner color="primary" label="Chargement des livreurs…" />
+                <div className="flex flex-col gap-2 py-4">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div className="h-12 animate-pulse rounded-lg bg-surface-secondary" key={i} />
+                  ))}
                 </div>
               ) : isError ? (
                 // « Aucun livreur trouvé » sur une panne laisserait croire que la
                 // recherche a abouti : le standard renoncerait a appeler.
-                <EtatErreur
-                  quoi="les livreurs"
-                  onReessayer={() => refetch()}
-                  enCours={isFetching}
-                />
+                <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="les livreurs" />
               ) : livreurs.length === 0 ? (
-                <p className="py-10 text-center text-default-400">Aucun livreur trouvé.</p>
+                <p className="py-10 text-center text-muted">Aucun livreur trouvé.</p>
               ) : (
-                <div className="flex max-h-[50vh] flex-col divide-y divide-default-100 overflow-y-auto">
+                <div className="flex max-h-[50vh] flex-col divide-y divide-separator overflow-y-auto">
                   {livreurs.map((l) => (
-                    <div key={l.id} className="flex items-center gap-3 py-2">
-                      <Avatar
-                        src={l.avatarUrl ?? undefined}
-                        name={nomLivreur(l)}
-                        size="sm"
-                        className="shrink-0"
-                      />
+                    <div className="flex items-center gap-3 py-2" key={l.id}>
+                      <Avatar className="shrink-0" size="sm">
+                        <Avatar.Image alt="" src={l.avatarUrl ?? undefined} />
+                        <Avatar.Fallback>
+                          {nomLivreur(l).slice(0, 2).toUpperCase()}
+                        </Avatar.Fallback>
+                      </Avatar>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{nomLivreur(l)}</p>
-                        <p className="truncate text-xs text-default-400">
+                        <p className="truncate font-medium text-foreground">{nomLivreur(l)}</p>
+                        <p className="truncate text-xs text-muted">
                           {l.telephone || '—'}
                           {l.matricule ? ` · ${l.matricule}` : ''}
                         </p>
                       </div>
                       <Button
-                        color="success"
-                        variant="flat"
-                        size="sm"
                         isDisabled={enAppel}
-                        startContent={<Phone className="h-4 w-4" />}
                         onPress={() => lancer(l)}
+                        size="sm"
+                        variant="outline"
                       >
+                        <Phone aria-hidden="true" className="size-4" />
                         Appeler
                       </Button>
                     </div>
@@ -131,10 +128,10 @@ export function AppelRapideModal({ isOpen, onOpenChange }: AppelRapideModalProps
                   Un appel est déjà en cours.
                 </p>
               )}
-            </ModalBody>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Body>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }

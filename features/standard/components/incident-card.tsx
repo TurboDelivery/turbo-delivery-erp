@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Avatar, Button } from '@/components/heroui';
+import { Avatar, Button } from '@heroui-v3/react';
 import { AlertTriangle, ArrowRight, Camera, FileText, MapPin, Phone } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
@@ -105,40 +105,42 @@ export function IncidentCard({ incident, livreur, estNouveau, canUpdate, onOuvri
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-default-400">
+          <p className="mt-0.5 text-xs text-muted">
             {attenteLisible(incident.signaleLe)} · {heureIncident(incident.signaleLe)}
           </p>
         </div>
 
         {incident.livreurId && (
           <Button
-            size="sm"
-            className="shrink-0 bg-success/10 font-semibold text-success-soft-foreground"
-            startContent={<Phone className="h-4 w-4" />}
+            className="shrink-0"
             isDisabled={enAppel}
             onPress={() => appelerLivreur(incident.livreurId, nom, incident.id)}
+            size="sm"
+            variant="outline"
           >
+            <Phone aria-hidden="true" className="size-4" />
             Appeler
           </Button>
         )}
       </div>
 
       {/* Qui a signalé : photo, nom, numéro cliquable, et son état de service réel. */}
-      <div className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl bg-default-50 px-3 py-2 dark:bg-default-100/40">
-        <Avatar
-          size="sm"
-          name={nom}
-          src={livreur?.avatarUrl ? createUrlFile(livreur.avatarUrl, 'backend') : undefined}
-          className="shrink-0"
-        />
+      <div className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl bg-surface-secondary px-3 py-2">
+        <Avatar className="shrink-0" size="sm">
+          <Avatar.Image
+            alt=""
+            src={livreur?.avatarUrl ? createUrlFile(livreur.avatarUrl, 'backend') : undefined}
+          />
+          <Avatar.Fallback>{nom.slice(0, 2).toUpperCase()}</Avatar.Fallback>
+        </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-default-700">{nom}</p>
+          <p className="truncate text-sm font-semibold text-foreground">{nom}</p>
           {hrefTel ? (
             <a href={hrefTel} className="text-xs font-medium text-primary hover:underline">
               {telephone}
             </a>
           ) : (
-            <span className="text-xs text-default-400">Numéro inconnu</span>
+            <span className="text-xs text-muted">Numéro inconnu</span>
           )}
         </div>
         {livreur && (
@@ -205,29 +207,31 @@ export function IncidentCard({ incident, livreur, estNouveau, canUpdate, onOuvri
         </div>
 
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="light" onPress={() => onOuvrir(incident)}>
+          <Button onPress={() => onOuvrir(incident)} size="sm" variant="ghost">
             Détails
           </Button>
           {canUpdate && suite && (
             <>
               {confirmationAttendue && (
-                <Button size="sm" variant="light" onPress={() => setConfirmationAttendue(false)}>
+                <Button onPress={() => setConfirmationAttendue(false)} size="sm" variant="ghost">
                   Annuler
                 </Button>
               )}
+              {/*
+               * L'etat au repos etait `bg-surface-secondary text-white` : du BLANC sur une
+               * surface CLAIRE — le libelle de l'action principale de la carte etait donc
+               * illisible. La confirmation, elle, garde son rouge : c'est le geste qui
+               * engage.
+               */}
               <Button
-                size="sm"
-                className={
-                  confirmationAttendue
-                    ? 'bg-danger font-semibold text-white'
-                    : 'bg-surface-secondary font-semibold text-white'
-                }
-                endContent={confirmationAttendue ? undefined : <ArrowRight className="h-4 w-4" />}
-                isLoading={changerStatut.isPending}
                 isDisabled={!userId}
+                isPending={changerStatut.isPending}
                 onPress={avancer}
+                size="sm"
+                variant={confirmationAttendue ? 'danger' : 'primary'}
               >
                 {confirmationAttendue ? `Confirmer : ${suite.libelle.toLowerCase()}` : suite.libelle}
+                {!confirmationAttendue && <ArrowRight aria-hidden="true" className="size-4" />}
               </Button>
             </>
           )}
