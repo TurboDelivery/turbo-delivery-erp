@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import EtatErreur from '@/components/commons/EtatErreur';
-import { ChampListe } from '@/components/personnel/common/champs-personnel';
+import { ChampListe } from '@/components/commons/champs-formulaire';
 import { useAbility } from '@/hooks/use-ability';
 import { normalizeRole } from '@/lib/casl/ability';
 import { obtenirMasseSalariale } from '@/features/personnel/apis/personnel-historisation.api';

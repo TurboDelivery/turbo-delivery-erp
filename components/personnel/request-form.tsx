@@ -4,7 +4,7 @@ import { Button, Modal, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react
 import { CheckCircle2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { ChampListe, ChampTexte } from '@/components/personnel/common/champs-personnel';
+import { ChampListe, ChampTexte } from '@/components/commons/champs-formulaire';
 import { IEmployee, LeaveRequest } from '@/features/personnel/types/types';
 
 const TYPES_CONGE = [

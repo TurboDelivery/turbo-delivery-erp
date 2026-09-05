@@ -6,7 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
+
+import { LienBouton } from '@/components/commons/LienBouton';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import {
   updateRestaurantSchema,
@@ -18,13 +20,13 @@ import { IRestaurant } from '@/features/restaurants/types/restaurant.type';
 import { createUrlFile } from '@/utils/createUrlFile';
 import { geocodeAddressServer } from '@/lib/googlemaps-server';
 import { CoverBanner } from './_sections/CoverBanner';
-import { InfoGenerales } from './_sections/InfoGenerales';
-import { CommissionSection } from './_sections/CommissionSection';
+import { InfoGeneralesSection } from '../../_sections/info-generales-section';
+import { CommissionSection } from '../../_sections/commission-section';
 import { CommissionHistorySection } from './_sections/CommissionHistorySection';
-import { CompteSection } from './_sections/CompteSection';
+import { CompteSection } from '../../_sections/compte-partenaire-section';
 import { PhotosSection } from './_sections/PhotosSection';
-import { HorairesSection, type Horaire } from './_sections/HorairesSection';
-import { AutresDocumentsSection } from './_sections/AutresDocumentsSection';
+import { HorairesSection, type Horaire } from '../../_sections/horaires-section';
+import { AutresDocumentsSection } from '../../_sections/autres-documents-section';
 import { compresserImage, compresserImages } from '@/lib/compresser-image';
 
 const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'] as const;
@@ -190,12 +192,15 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
     <div className="pb-24">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Link href="/restaurants" className="text-muted hover:text-primary transition-colors">
+          <Link className="text-muted transition-colors hover:text-foreground" href="/restaurants">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <span className="text-xl font-bold text-primary capitalize">{restaurant.nomEtablissement}</span>
+          <span className="text-xl font-bold capitalize text-foreground">
+            {restaurant.nomEtablissement}
+          </span>
         </div>
-        <Button type="button" variant="bordered" size="sm" startContent={<Pencil className="w-3.5 h-3.5" />} onPress={() => logoRef.current?.click()}>
+        <Button onPress={() => logoRef.current?.click()} size="sm" type="button" variant="outline">
+          <Pencil aria-hidden="true" className="size-3.5" />
           Modifier
         </Button>
       </div>
@@ -214,7 +219,7 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
           />
           <div className="mt-10" />
 
-          <InfoGenerales
+          <InfoGeneralesSection
             control={control}
             errors={errors}
             contacts={contacts}
@@ -248,19 +253,29 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
             }}
           />
 
-          <HorairesSection horaires={horaires} setHoraires={setHoraires} />
+          <HorairesSection
+            horaires={horaires}
+            onUpdate={(index, cle, valeur) =>
+              setHoraires((prev) =>
+                prev.map((h, i) => (i === index ? { ...h, [cle]: valeur } : h)),
+              )
+            }
+          />
 
           <AutresDocumentsSection
-            autreDocType={autreDocType}
-            setAutreDocType={setAutreDocType}
             autreDocFile={autreDocFile}
-            setAutreDocFile={setAutreDocFile}
             autreDocRef={autreDocRef}
+            autreDocType={autreDocType}
+            onFileChange={setAutreDocFile}
+            onTypeChange={setAutreDocType}
           />
 
           <div className="fixed bottom-[calc(52px+env(safe-area-inset-bottom))] left-0 right-0 lg:bottom-0 bg-surface border-t border-separator px-6 py-4 flex justify-end gap-3 z-10">
-            <Button type="button" variant="flat" as={Link} href="/restaurants">Annuler</Button>
-            <Button type="submit" color="primary" isLoading={isSubmitting}>Enregistrer</Button>
+            {/* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3. */}
+            <LienBouton href="/restaurants" variante="ghost">
+              Annuler
+            </LienBouton>
+            <Button isPending={isSubmitting} type="submit" variant="primary">Enregistrer</Button>
           </div>
 
         </form>

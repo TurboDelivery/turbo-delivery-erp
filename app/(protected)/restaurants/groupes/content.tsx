@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangle, Plus, RefreshCw } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -49,8 +49,8 @@ export default function GroupesPartenairesContent() {
 
   if (!peutLire) {
     return (
-      <div className="flex flex-col items-center justify-center gap-2 py-24 text-default-400">
-        <AlertTriangle className="h-8 w-8" />
+      <div className="flex flex-col items-center justify-center gap-2 py-24 text-muted">
+        <AlertTriangle aria-hidden="true" className="size-8" />
         <p>Vous n&apos;avez pas accès à l&apos;administration des groupes de partenaires.</p>
       </div>
     );
@@ -60,8 +60,8 @@ export default function GroupesPartenairesContent() {
     <div className="space-y-4 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Groupes de partenaires</h1>
-          <p className="mt-1 max-w-3xl text-sm text-default-500">
+          <h1 className="text-2xl font-bold text-foreground">Groupes de partenaires</h1>
+          <p className="mt-1 max-w-3xl text-sm text-muted">
             Réunir plusieurs établissements sous un même groupe et désigner le compte qui les administre. Les
             comptes des établissements groupés conservent l&apos;accès qu&apos;ils ont aujourd&apos;hui : chaque
             opération montre, compte par compte, ce qu&apos;elle change avant d&apos;être validée.
@@ -69,20 +69,16 @@ export default function GroupesPartenairesContent() {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            size="sm"
-            variant="flat"
-            startContent={<RefreshCw className="h-4 w-4" />}
             onPress={() => queryClient.invalidateQueries({ queryKey: groupesPartenairesKeys.all })}
+            size="sm"
+            variant="outline"
           >
+            <RefreshCw aria-hidden="true" className="size-4" />
             Actualiser
           </Button>
           {peutAdministrer && !groupeOuvert && (
-            <Button
-              size="sm"
-              color="primary"
-              startContent={<Plus className="h-4 w-4" />}
-              onPress={() => setConstituer(true)}
-            >
+            <Button onPress={() => setConstituer(true)} size="sm" variant="primary">
+              <Plus aria-hidden="true" className="size-4" />
               Constituer un groupe
             </Button>
           )}

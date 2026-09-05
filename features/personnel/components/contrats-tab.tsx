@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
-import { ChampListe } from '@/components/personnel/common/champs-personnel';
+import { ChampListe } from '@/components/commons/champs-formulaire';
 
 import {
   EtatDeclaration,

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
-import { ChampListe } from '@/components/personnel/common/champs-personnel';
+import { ChampListe } from '@/components/commons/champs-formulaire';
 
 import { useEffectifQuery } from '@/features/personnel/queries/personnel-historisation.query';
 import {

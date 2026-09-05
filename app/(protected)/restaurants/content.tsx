@@ -1,29 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
-import Link from 'next/link';
+import { Button, Card, InputGroup, Table, TextField } from '@heroui-v3/react';
 import { flexRender } from '@tanstack/react-table';
-import {
-  Button,
-  Input,
-  Pagination,
-  Select,
-  SelectItem,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-} from '@/components/heroui';
 import { ChevronDown, ChevronUp, Download, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import React, { useState } from 'react';
+
+import EtatErreur from '@/components/commons/EtatErreur';
+import { LienBouton } from '@/components/commons/LienBouton';
+import { ChampListe, ChampTexte } from '@/components/commons/champs-formulaire';
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
+import { RestaurantMobileCard, RestaurantMobileCardList } from '@/components/restaurants/restaurant-mobile-card';
+import { ActionsMenu, StatusChip } from '@/components/restaurants/table/restaurant-table-columns';
+import { StatCard } from '@/features/men/components/stat-card';
 import { useRestaurantTable } from '@/features/restaurants/hooks/use-restaurant-table';
 import { useRestaurantStatusCountsQuery } from '@/features/restaurants/queries/restaurant-list.query';
-import { StatCard } from '@/features/men/components/stat-card';
-import { RestaurantMobileCard, RestaurantMobileCardList } from '@/components/restaurants/restaurant-mobile-card';
-import { StatusChip, ActionsMenu } from '@/components/restaurants/table/restaurant-table-columns';
-import EtatErreur from '@/components/commons/EtatErreur';
 
 const RECOUVREMENT_LABELS: Record<string, string> = {
   MENSUEL: 'Mensuel',
@@ -46,7 +36,7 @@ type VueStatut = '' | 'valides' | 'partiels' | 'nouveaux' | 'inactifs';
 export default function Content() {
   const { table, isLoading, isFetching, isError, refetch, pagination, filters, setSearch, setFilters, handleExport, isExporting } = useRestaurantTable();
   const { data: counts } = useRestaurantStatusCountsQuery();
-  const colsCount = table.getAllColumns().length;
+  const enTetes = table.getFlatHeaders();
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const vue = (filters.statut ?? '') as VueStatut;
@@ -57,16 +47,20 @@ export default function Content() {
       {/* ── Header ── */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-primary">Partenaires ({counts?.total ?? '…'})</h1>
+          <h1 className="text-2xl font-bold text-foreground">Partenaires ({counts?.total ?? '…'})</h1>
           <p className="text-sm text-muted mt-0.5">Gérez tous vos partenaires en un seul endroit</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="bordered" startContent={<Download className="w-4 h-4" />} size="sm" onPress={handleExport} isLoading={isExporting}>
+          <Button isPending={isExporting} onPress={handleExport} size="sm" variant="outline">
+            <Download aria-hidden="true" className="size-4" />
             Exporter
           </Button>
-          <Button color="primary" startContent={<Plus className="w-4 h-4" />} size="sm" as={Link} href="/restaurants/create">
+          {/* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3 :
+              le bouton ne naviguait plus. C'est un lien, il porte un `href`. */}
+          <LienBouton href="/restaurants/create" taille="sm" variante="primary">
+            <Plus aria-hidden="true" className="size-4" />
             Créer un profil
-          </Button>
+          </LienBouton>
         </div>
       </div>
 
@@ -108,72 +102,68 @@ export default function Content() {
       {/* ── Search + filter ── */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center gap-3">
-          <Input
+          <TextField
+            aria-label="Rechercher un partenaire par nom"
             className="flex-1"
-            startContent={<Search className="text-muted w-4 h-4 shrink-0" />}
-            placeholder="Rechercher par nom..."
+            onChange={setSearch}
             value={filters.search ?? ''}
-            onChange={(e) => setSearch(e.target.value)}
-            variant="bordered"
-            size="sm"
-          />
-          <Button
-            variant="bordered"
-            size="sm"
-            className="shrink-0 gap-1.5"
-            onPress={() => setShowAdvanced((v) => !v)}
-            startContent={<SlidersHorizontal className="w-4 h-4 text-muted" />}
-            endContent={showAdvanced ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           >
+            <InputGroup>
+              <InputGroup.Prefix>
+                <Search aria-hidden="true" className="size-4" />
+              </InputGroup.Prefix>
+              <InputGroup.Input placeholder="Rechercher par nom…" />
+            </InputGroup>
+          </TextField>
+          <Button
+            className="shrink-0"
+            onPress={() => setShowAdvanced((v) => !v)}
+            size="sm"
+            variant="outline"
+          >
+            <SlidersHorizontal aria-hidden="true" className="size-4" />
             Filtres
+            {showAdvanced ? (
+              <ChevronUp aria-hidden="true" className="size-3" />
+            ) : (
+              <ChevronDown aria-hidden="true" className="size-3" />
+            )}
           </Button>
         </div>
 
         {showAdvanced && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 p-4 bg-surface-secondary rounded-xl border border-separator">
-            <Input
+          <div className="grid grid-cols-1 gap-3 rounded-xl border border-separator bg-surface-secondary p-4 sm:grid-cols-3 lg:grid-cols-5">
+            <ChampTexte
               label="Localisation"
-              size="sm"
-              variant="bordered"
-              value={filters.localisation ?? ''}
-              onChange={(e) => setFilters((prev) => ({ ...prev, localisation: e.target.value, page: 0 }))}
+              onChange={(v) => setFilters((prev) => ({ ...prev, localisation: v, page: 0 }))}
+              valeur={filters.localisation ?? ''}
             />
-            <Input
+            <ChampTexte
               label="Email"
-              size="sm"
-              variant="bordered"
-              value={filters.email ?? ''}
-              onChange={(e) => setFilters((prev) => ({ ...prev, email: e.target.value, page: 0 }))}
+              onChange={(v) => setFilters((prev) => ({ ...prev, email: v, page: 0 }))}
+              type="email"
+              valeur={filters.email ?? ''}
             />
-            <Input
+            <ChampTexte
               label="Téléphone"
-              size="sm"
-              variant="bordered"
-              value={filters.telephone ?? ''}
-              onChange={(e) => setFilters((prev) => ({ ...prev, telephone: e.target.value, page: 0 }))}
+              onChange={(v) => setFilters((prev) => ({ ...prev, page: 0, telephone: v }))}
+              type="tel"
+              valeur={filters.telephone ?? ''}
             />
-            <Input
+            <ChampTexte
               label="Commune"
-              size="sm"
-              variant="bordered"
-              value={filters.commune ?? ''}
-              onChange={(e) => setFilters((prev) => ({ ...prev, commune: e.target.value, page: 0 }))}
+              onChange={(v) => setFilters((prev) => ({ ...prev, commune: v, page: 0 }))}
+              valeur={filters.commune ?? ''}
             />
-            <Select
+            <ChampListe
               label="Méthode de recouvrement"
-              size="sm"
-              variant="bordered"
-              selectedKeys={filters.methodRecouvrement ? [filters.methodRecouvrement] : ['']}
-              onSelectionChange={(keys) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  methodRecouvrement: Array.from(keys as Set<string>)[0] === '' ? '' : Array.from(keys as Set<string>)[0],
-                  page: 0,
-                }))
+              onChange={(v) =>
+                setFilters((prev) => ({ ...prev, methodRecouvrement: v, page: 0 }))
               }
-            >
-              {TYPE_OPTIONS.map((opt) => <SelectItem key={opt.value}>{opt.label}</SelectItem>)}
-            </Select>
+              options={TYPE_OPTIONS}
+              placeholder="Tous les types"
+              valeur={filters.methodRecouvrement ?? ''}
+            />
           </div>
         )}
       </div>
@@ -184,72 +174,89 @@ export default function Content() {
           cela, l'ecran afficherait l'erreur ET « aucune donnee », ce qui revient
           a se contredire. */}
       {isError && (
-        <EtatErreur quoi="les partenaires" onReessayer={() => refetch()} enCours={isFetching} />
+        <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="les partenaires" />
       )}
 
-      <div className="hidden md:block relative rounded-xl border border-separator bg-surface shadow-xs overflow-hidden">
-        {(isLoading || isFetching) && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-surface/60">
-            <Spinner color="primary" />
-          </div>
-        )}
-        <Table
-          aria-label="Liste des partenaires"
-          removeWrapper
-          classNames={{
-            th: 'bg-surface-secondary text-xs font-semibold text-muted uppercase tracking-wide',
-            td: 'py-3',
-          }}
-          bottomContent={
-            pagination && pagination.pageCount > 1 ? (
-              <div className="flex justify-center py-3 border-t border-separator">
-                <Pagination
-                  total={pagination.pageCount}
+      <Card className="hidden md:block">
+        <Card.Content className="p-0">
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Liste des partenaires" className="min-w-[64rem]">
+                <Table.Header>
+                  {enTetes.map((header) => (
+                    <Table.Column
+                      allowsSorting={header.column.getCanSort()}
+                      id={header.id}
+                      isRowHeader={header.id === 'nomEtablissement'}
+                      key={header.id}
+                    >
+                      {({ sortDirection }) =>
+                        header.column.getCanSort() ? (
+                          <Table.SortableColumnHeader sortDirection={sortDirection}>
+                            {header.isPlaceholder
+                              ? ''
+                              : flexRender(header.column.columnDef.header, header.getContext())}
+                          </Table.SortableColumnHeader>
+                        ) : (
+                          <>
+                            {header.isPlaceholder
+                              ? ''
+                              : flexRender(header.column.columnDef.header, header.getContext())}
+                          </>
+                        )
+                      }
+                    </Table.Column>
+                  ))}
+                </Table.Header>
+                <Table.Body
+                  renderEmptyState={() =>
+                    isLoading || isError ? null : (
+                      <p className="py-8 text-center text-sm text-muted">Aucun partenaire trouvé.</p>
+                    )
+                  }
+                >
+                  {/*
+                   * Le squelette compte ses cellules sur les MEMES en-tetes que les lignes.
+                   * Il remplace aussi le voile opaque plein ecran qui recouvrait le tableau
+                   * a chaque rafraichissement : on ne voyait plus rien pendant la lecture.
+                   */}
+                  {isLoading
+                    ? Array.from({ length: 8 }).map((_, i) => (
+                        <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                          {enTetes.map((h) => (
+                            <Table.Cell key={`sq-${i}-${h.id}`}>
+                              <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                            </Table.Cell>
+                          ))}
+                        </Table.Row>
+                      ))
+                    : null}
+
+                  {(isLoading || isError ? [] : table.getRowModel().rows).map((row) => (
+                    <Table.Row id={row.id} key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <Table.Cell className={isFetching ? 'opacity-70' : undefined} key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </Table.Cell>
+                      ))}
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+
+            {pagination && pagination.pageCount > 1 && (
+              <Table.Footer className="justify-center">
+                <PaginationTableau
+                  onPage={(p) => pagination.handlePageChange(p)}
                   page={pagination.page + 1}
-                  onChange={pagination.handlePageChange}
-                  isDisabled={isLoading}
-                  showControls
-                  color="primary"
-                  variant="bordered"
+                  total={pagination.pageCount}
                 />
-              </div>
-            ) : null
-          }
-        >
-          <TableHeader>
-            {table.getFlatHeaders().map((header) => (
-              <TableColumn
-                key={header.id}
-                allowsSorting={header.column.getCanSort()}
-                onClick={header.column.getToggleSortingHandler()}
-              >
-                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-              </TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody emptyContent={isLoading || isError ? ' ' : 'Aucun partenaire trouvé.'}>
-            {isLoading
-              ? Array.from({ length: 8 }).map((_, i) => (
-                  <TableRow key={`sk-${i}`}>
-                    {Array.from({ length: colsCount }).map((_, j) => (
-                      <TableCell key={`sk-c-${j}`}>
-                        <div className="h-4 bg-surface-secondary rounded w-full animate-pulse" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className="hover:bg-surface-secondary transition-colors">
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-      </div>
+              </Table.Footer>
+            )}
+          </Table>
+        </Card.Content>
+      </Card>
 
       {/* ── Cartes (mobile < md) ── */}
       <RestaurantMobileCardList>
@@ -283,14 +290,10 @@ export default function Content() {
         )}
         {pagination && pagination.pageCount > 1 && (
           <div className="flex justify-center pt-2">
-            <Pagination
-              total={pagination.pageCount}
+            <PaginationTableau
+              onPage={(p) => pagination.handlePageChange(p)}
               page={pagination.page + 1}
-              onChange={pagination.handlePageChange}
-              isDisabled={isLoading}
-              showControls
-              color="primary"
-              variant="bordered"
+              total={pagination.pageCount}
             />
           </div>
         )}

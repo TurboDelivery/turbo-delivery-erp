@@ -11,7 +11,7 @@ import {
   ChampMontant,
   ChampTexte,
   ChampZoneTexte,
-} from '@/components/personnel/common/champs-personnel';
+} from '@/components/commons/champs-formulaire';
 import { EmployeeSelect } from '@/components/personnel/common/employee-select';
 import { CreatePretDTO, createPretSchema } from '@/features/personnel/schemas/deduction.schema';
 import { IDeduction } from '@/features/personnel/types/deduction.types';

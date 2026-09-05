@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import { Button, Modal } from '@heroui-v3/react';
 import { toast } from 'sonner';
-import { ChampEnveloppe, ChampTexte, ChampZoneTexte } from '@/components/personnel/common/champs-personnel';
+import { ChampEnveloppe, ChampTexte, ChampZoneTexte } from '@/components/commons/champs-formulaire';
 import { EmployeeSelect } from '@/components/personnel/common/employee-select';
 import { absenceDeductionFormSchema, AbsenceDeductionFormValues, CreateAbsenceDeductionDTO, createAbsenceDeductionSchema } from '@/features/personnel/schemas/deduction.schema';
 import { IDeduction } from '@/features/personnel/types/deduction.types';

@@ -5,7 +5,7 @@ import { flexRender } from '@tanstack/react-table';
 import React, { useState } from 'react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
-import { ChampListe } from '@/components/personnel/common/champs-personnel';
+import { ChampListe } from '@/components/commons/champs-formulaire';
 import {
   ChipStatutPaie,
   formatDateFr,

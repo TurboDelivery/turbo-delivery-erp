@@ -8,7 +8,7 @@ import {
   ChampMontant,
   ChampTexte,
   ChampZoneTexte,
-} from '@/components/personnel/common/champs-personnel';
+} from '@/components/commons/champs-formulaire';
 import {
   ChipStatutDeduction,
   ChipTypeDeduction,

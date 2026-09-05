@@ -9,7 +9,7 @@ import {
   ChampListe,
   ChampMontant,
   ChampTexte,
-} from '@/components/personnel/common/champs-personnel';
+} from '@/components/commons/champs-formulaire';
 import { DEPARTMENTS, POSTES } from '@/features/personnel/constants/employee.constants';
 import { EmployeeCreateDTO, EmployeeCreateSchema } from '@/features/personnel/schemas/employee.schema';
 

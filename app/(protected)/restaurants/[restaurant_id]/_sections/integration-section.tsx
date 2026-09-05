@@ -1,36 +1,23 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
 import {
   Button,
+  Card,
   Chip,
-  Input,
   Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Pagination,
-  Snippet,
   Spinner,
   Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-  Tabs,
-  Tab,
-  Textarea,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
-  useDisclosure,
-} from '@/components/heroui';
+} from '@heroui-v3/react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import {
   ArrowDownLeft,
   ArrowUpRight,
   CheckCircle2,
   Eye,
-  EyeOff,
   KeyRound,
   Pencil,
   Plus,
@@ -39,10 +26,13 @@ import {
   Webhook,
   XCircle,
 } from 'lucide-react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import React, { useMemo, useState } from 'react';
 
+import { ChampCopiable } from '@/components/commons/ChampCopiable';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { ChampTexte, ChampZoneTexte } from '@/components/commons/champs-formulaire';
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
+import type { IIntegrationLog, IWebhook } from '@/features/integrations/apis/integration.api';
 import {
   useCleApiQuery,
   useEnregistrerWebhookMutation,
@@ -51,7 +41,6 @@ import {
   useSupprimerWebhookMutation,
   useWebhooksQuery,
 } from '@/features/integrations/queries/integration.query';
-import type { IIntegrationLog, IWebhook } from '@/features/integrations/apis/integration.api';
 
 const BACKEND_URL = (process.env.NEXT_PUBLIC_API_BACKEND_URL ?? '').replace(/\/$/, '');
 const ENDPOINT_ENTRANT = `${BACKEND_URL}/api/restaurant/course-externe/commande`;
@@ -65,11 +54,19 @@ function fmtDate(iso: string) {
 }
 
 // ─── Bloc titre de sous-section ────────────────────────────────────────────────
-function SubTitle({ icon, children, action }: { icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode }) {
+function SubTitle({
+  action,
+  children,
+  icon,
+}: {
+  action?: React.ReactNode;
+  children: React.ReactNode;
+  icon: React.ReactNode;
+}) {
   return (
-    <div className="flex items-center justify-between mb-3">
+    <div className="mb-3 flex items-center justify-between gap-3">
       <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <span className="text-primary">{icon}</span>
+        <span className="text-muted">{icon}</span>
         {children}
       </div>
       {action}
@@ -77,17 +74,51 @@ function SubTitle({ icon, children, action }: { icon: React.ReactNode; children:
   );
 }
 
+/**
+ * Le SENS d'un appel réseau : entrant ou sortant.
+ *
+ * <p>C'était `color="primary"` et `color="secondary"` — deux couleurs pour une DIRECTION,
+ * dont celle de la marque. La flèche le dit déjà, et sans ambiguïté.</p>
+ */
+function ChipSens({ direction }: { direction: string }) {
+  const entrant = direction === 'ENTRANT';
+  return (
+    <Chip size="sm" variant="soft">
+      {entrant ? (
+        <ArrowDownLeft aria-hidden="true" className="size-3" />
+      ) : (
+        <ArrowUpRight aria-hidden="true" className="size-3" />
+      )}
+      <Chip.Label>{entrant ? 'Entrant' : 'Sortant'}</Chip.Label>
+    </Chip>
+  );
+}
+
+/** Le RÉSULTAT, lui, garde sa couleur : c'est ce qu'on cherche dans ce journal. */
+function ChipResultat({ succes }: { succes: boolean }) {
+  return (
+    <Chip color={succes ? 'success' : 'danger'} size="sm" variant="soft">
+      {succes ? (
+        <CheckCircle2 aria-hidden="true" className="size-3" />
+      ) : (
+        <XCircle aria-hidden="true" className="size-3" />
+      )}
+      <Chip.Label>{succes ? 'Succès' : 'Échec'}</Chip.Label>
+    </Chip>
+  );
+}
+
 // ─── Modale d'ajout / modification d'un webhook ────────────────────────────────
 function WebhookFormModal({
-  restaurantId,
-  webhook,
   isOpen,
   onOpenChange,
+  restaurantId,
+  webhook,
 }: {
-  restaurantId: string;
-  webhook: IWebhook | null;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  restaurantId: string;
+  webhook: IWebhook | null;
 }) {
   const [url, setUrl] = useState('');
   const [description, setDescription] = useState('');
@@ -104,77 +135,88 @@ function WebhookFormModal({
     }
   }, [isOpen, webhook]);
 
-  async function submit(close: () => void) {
+  async function submit() {
     const cleanUrl = url.trim();
     if (!cleanUrl) return;
     try {
       if (isEdit) {
-        await modifier.mutateAsync({ id: webhook!.id, url: cleanUrl, description: description.trim() || undefined });
+        await modifier.mutateAsync({
+          description: description.trim() || undefined,
+          id: webhook!.id,
+          url: cleanUrl,
+        });
       } else {
-        await enregistrer.mutateAsync({ url: cleanUrl, description: description.trim() || undefined });
+        await enregistrer.mutateAsync({
+          description: description.trim() || undefined,
+          url: cleanUrl,
+        });
       }
-      close();
+      onOpenChange(false);
     } catch {
       /* toast géré dans la mutation */
     }
   }
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="center">
-      <ModalContent>
-        {(close) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              {isEdit ? 'Modifier le webhook' : 'Ajouter un webhook'}
-              <span className="text-xs font-normal text-muted">
-                URL appelée par Turbo (POST) à chaque évènement de course de ce partenaire.
-              </span>
-            </ModalHeader>
-            <ModalBody>
-              <Input
-                autoFocus
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog>
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col gap-1">
+                <span>{isEdit ? 'Modifier le webhook' : 'Ajouter un webhook'}</span>
+                <span className="text-xs font-normal text-muted">
+                  URL appelée par Turbo (POST) à chaque évènement de course de ce partenaire.
+                </span>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body className="flex flex-col gap-3">
+              <ChampTexte
                 label="URL du webhook"
+                onChange={setUrl}
                 placeholder="https://api.partenaire.com/turbo/webhook"
-                variant="bordered"
-                value={url}
-                onValueChange={setUrl}
-                isRequired
+                valeur={url}
               />
-              <Textarea
+              <ChampZoneTexte
                 label="Description (optionnel)"
+                lignes={2}
+                onChange={setDescription}
                 placeholder="Ex. : endpoint de suivi des commandes"
-                variant="bordered"
-                value={description}
-                onValueChange={setDescription}
-                minRows={2}
+                valeur={description}
               />
-            </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={close} isDisabled={pending}>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button isDisabled={pending} onPress={() => onOpenChange(false)} variant="ghost">
                 Annuler
               </Button>
-              <Button color="primary" onPress={() => submit(close)} isLoading={pending} isDisabled={!url.trim()}>
+              <Button
+                isDisabled={!url.trim()}
+                isPending={pending}
+                onPress={submit}
+                variant="primary"
+              >
                 {isEdit ? 'Enregistrer' : 'Ajouter'}
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
 
 // ─── Modale de détails d'un appel réseau ───────────────────────────────────────
 function LogDetailsModal({
-  log,
   isOpen,
+  log,
   onOpenChange,
 }: {
-  log: IIntegrationLog | null;
   isOpen: boolean;
+  log: IIntegrationLog | null;
   onOpenChange: (open: boolean) => void;
 }) {
-  const pretty = (raw: string | null) => {
+  const pretty = (raw: null | string) => {
     if (!raw) return '—';
     try {
       return JSON.stringify(JSON.parse(raw), null, 2);
@@ -182,89 +224,110 @@ function LogDetailsModal({
       return raw;
     }
   };
+
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl" placement="center" scrollBehavior="inside">
-      <ModalContent>
-        {() => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              <span className="flex items-center gap-2">
-                {log?.direction === 'ENTRANT' ? (
-                  <Chip size="sm" color="primary" variant="flat" startContent={<ArrowDownLeft className="w-3 h-3" />}>
-                    Entrant
-                  </Chip>
-                ) : (
-                  <Chip size="sm" color="secondary" variant="flat" startContent={<ArrowUpRight className="w-3 h-3" />}>
-                    Sortant
-                  </Chip>
-                )}
-                <span className="text-sm">{log?.evenement}</span>
-              </span>
-              <span className="text-xs font-normal text-muted">{log ? fmtDate(log.createdAt) : ''}</span>
-            </ModalHeader>
-            <ModalBody className="text-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-2xl">
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col gap-1">
+                <span className="flex items-center gap-2">
+                  <ChipSens direction={log?.direction ?? ''} />
+                  <span className="text-sm">{log?.evenement}</span>
+                </span>
+                <span className="text-xs font-normal text-muted">
+                  {log ? fmtDate(log.createdAt) : ''}
+                </span>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
+            <Modal.Body className="flex flex-col gap-3 text-sm">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div>
                   <p className="text-xs text-muted">Méthode</p>
-                  <p className="font-medium">{log?.methode ?? '—'}</p>
+                  <p className="font-medium text-foreground">{log?.methode ?? '—'}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted">Statut HTTP</p>
-                  <p className="font-medium">{log?.reponseStatut ?? '—'}</p>
+                  <p className="font-medium text-foreground">{log?.reponseStatut ?? '—'}</p>
                 </div>
                 <div>
                   <p className="text-xs text-muted">Résultat</p>
-                  <p className="font-medium">{log?.succes ? 'Succès' : 'Échec'}</p>
+                  <p className="font-medium text-foreground">{log?.succes ? 'Succès' : 'Échec'}</p>
                 </div>
               </div>
               <div>
-                <p className="text-xs text-muted mb-1">URL</p>
-                <p className="font-mono text-xs break-all bg-surface-secondary rounded-md p-2 border border-separator">
+                <p className="mb-1 text-xs text-muted">URL</p>
+                <p className="rounded-md border border-separator bg-surface-secondary p-2 font-mono text-xs break-all">
                   {log?.url ?? '—'}
                 </p>
               </div>
               {log?.erreur && (
                 <div>
-                  <p className="text-xs text-muted mb-1">Erreur</p>
-                  <pre className="font-mono text-xs whitespace-pre-wrap break-all bg-red-50 text-red-700 rounded-md p-2 border border-red-100">
+                  <p className="mb-1 text-xs text-muted">Erreur</p>
+                  {/* C'etait `bg-red-50 text-red-700 border-red-100` : trois teintes de
+                      palette sans variante sombre, sur le seul bloc qu'on vient lire. */}
+                  <pre className="rounded-md border border-danger/30 bg-danger/10 p-2 font-mono text-xs break-all whitespace-pre-wrap text-danger-soft-foreground">
                     {log.erreur}
                   </pre>
                 </div>
               )}
               <div>
-                <p className="text-xs text-muted mb-1">Requête</p>
-                <pre className="font-mono text-xs whitespace-pre-wrap break-all bg-surface-secondary rounded-md p-2 border border-separator max-h-60 overflow-auto">
+                <p className="mb-1 text-xs text-muted">Requête</p>
+                <pre className="max-h-60 overflow-auto rounded-md border border-separator bg-surface-secondary p-2 font-mono text-xs break-all whitespace-pre-wrap">
                   {pretty(log?.requete ?? null)}
                 </pre>
               </div>
               <div>
-                <p className="text-xs text-muted mb-1">Réponse</p>
-                <pre className="font-mono text-xs whitespace-pre-wrap break-all bg-surface-secondary rounded-md p-2 border border-separator max-h-60 overflow-auto">
+                <p className="mb-1 text-xs text-muted">Réponse</p>
+                <pre className="max-h-60 overflow-auto rounded-md border border-separator bg-surface-secondary p-2 font-mono text-xs break-all whitespace-pre-wrap">
                   {pretty(log?.reponseCorps ?? null)}
                 </pre>
               </div>
-            </ModalBody>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Body>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
 
+const COLONNES_LOGS = [
+  { id: 'date', libelle: 'Date' },
+  { id: 'sens', libelle: 'Sens' },
+  { id: 'evenement', libelle: 'Évènement' },
+  { id: 'statut', libelle: 'Statut' },
+  { id: 'resultat', libelle: 'Résultat' },
+  { id: 'actions', libelle: '' },
+] as const;
+
+const SENS = [
+  { id: 'TOUS', libelle: 'Tous' },
+  { id: 'ENTRANT', libelle: 'Entrants' },
+  { id: 'SORTANT', libelle: 'Sortants' },
+] as const;
+
+const RESULTATS = [
+  { id: 'TOUS', libelle: 'Tous résultats' },
+  { id: 'OK', libelle: 'Succès' },
+  { id: 'KO', libelle: 'Échecs' },
+] as const;
+
 // ─── Journal des appels réseau ─────────────────────────────────────────────────
 function LogsViewer({ restaurantId }: { restaurantId: string }) {
-  const [direction, setDirection] = useState<'TOUS' | 'ENTRANT' | 'SORTANT'>('TOUS');
-  const [statut, setStatut] = useState<'TOUS' | 'OK' | 'KO'>('TOUS');
+  const [direction, setDirection] = useState<'ENTRANT' | 'SORTANT' | 'TOUS'>('TOUS');
+  const [statut, setStatut] = useState<'KO' | 'OK' | 'TOUS'>('TOUS');
   const [page, setPage] = useState(0);
-  const detail = useDisclosure();
+  const [detailOuvert, setDetailOuvert] = useState(false);
   const [selected, setSelected] = useState<IIntegrationLog | null>(null);
 
-  const { data, isLoading, isFetching, isError, refetch } = useIntegrationLogsQuery({
-    restaurantId,
+  const { data, isError, isFetching, isLoading, refetch } = useIntegrationLogsQuery({
     direction: direction === 'TOUS' ? undefined : direction,
-    succes: statut === 'TOUS' ? undefined : statut === 'OK',
     page,
+    restaurantId,
     size: 10,
+    succes: statut === 'TOUS' ? undefined : statut === 'OK',
   });
 
   const logs = data?.content ?? [];
@@ -272,13 +335,12 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
 
   function openDetail(log: IIntegrationLog) {
     setSelected(log);
-    detail.onOpen();
+    setDetailOuvert(true);
   }
 
   return (
     <div>
       <SubTitle
-        icon={<Radio className="w-4 h-4" />}
         action={
           isFetching ? (
             <span className="flex items-center gap-1.5 text-xs text-muted">
@@ -290,37 +352,47 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
             </span>
           )
         }
+        icon={<Radio aria-hidden="true" className="size-4" />}
       >
         Journal des appels réseau
       </SubTitle>
 
-      <div className="flex flex-wrap items-center gap-3 mb-3">
-        <Tabs
-          size="sm"
-          aria-label="Sens"
-          selectedKey={direction}
-          onSelectionChange={(k) => {
-            setDirection(k as typeof direction);
+      {/*
+       * `ToggleButtonGroup` et non `Tabs` : `Tabs.Indicator` fait tomber la page, et sans
+       * lui les onglets ne distinguent l'actif que par une nuance de gris. Trois options
+       * par groupe : la rangee tient sur une ligne.
+       */}
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <ToggleButtonGroup
+          onSelectionChange={(sel) => {
+            setDirection(String(Array.from(sel)[0] ?? 'TOUS') as typeof direction);
             setPage(0);
           }}
-        >
-          <Tab key="TOUS" title="Tous" />
-          <Tab key="ENTRANT" title="Entrants" />
-          <Tab key="SORTANT" title="Sortants" />
-        </Tabs>
-        <Tabs
+          selectedKeys={new Set([direction])}
+          selectionMode="single"
           size="sm"
-          aria-label="Résultat"
-          selectedKey={statut}
-          onSelectionChange={(k) => {
-            setStatut(k as typeof statut);
+        >
+          {SENS.map((s) => (
+            <ToggleButton id={s.id} key={s.id}>
+              {s.libelle}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+        <ToggleButtonGroup
+          onSelectionChange={(sel) => {
+            setStatut(String(Array.from(sel)[0] ?? 'TOUS') as typeof statut);
             setPage(0);
           }}
+          selectedKeys={new Set([statut])}
+          selectionMode="single"
+          size="sm"
         >
-          <Tab key="TOUS" title="Tous résultats" />
-          <Tab key="OK" title="Succès" />
-          <Tab key="KO" title="Échecs" />
-        </Tabs>
+          {RESULTATS.map((r) => (
+            <ToggleButton id={r.id} key={r.id}>
+              {r.libelle}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
       </div>
 
       {/* On retire le tableau plutot que de le laisser dire "aucun appel
@@ -328,83 +400,89 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
           quand c'est la lecture du journal qui a echoue. */}
       {isError ? (
         <EtatErreur
-          quoi="les appels réseau de ce partenaire"
-          onReessayer={() => refetch()}
           enCours={isFetching}
+          onReessayer={() => refetch()}
+          quoi="les appels réseau de ce partenaire"
         />
       ) : (
-      <Table
-        aria-label="Journal des appels réseau"
-        removeWrapper
-        isStriped
-        bottomContent={
-          totalPages > 1 ? (
-            <div className="flex justify-center">
-              <Pagination
-                showControls
-                size="sm"
-                total={totalPages}
-                page={page + 1}
-                onChange={(p) => setPage(p - 1)}
-              />
-            </div>
-          ) : null
-        }
-      >
-        <TableHeader>
-          <TableColumn>DATE</TableColumn>
-          <TableColumn>SENS</TableColumn>
-          <TableColumn>ÉVÈNEMENT</TableColumn>
-          <TableColumn>STATUT</TableColumn>
-          <TableColumn>RÉSULTAT</TableColumn>
-          <TableColumn> </TableColumn>
-        </TableHeader>
-        <TableBody
-          isLoading={isLoading}
-          loadingContent={<Spinner />}
-          emptyContent="Aucun appel réseau enregistré pour l'instant."
-        >
-          {logs.map((log) => (
-            <TableRow key={log.id}>
-              <TableCell className="whitespace-nowrap text-xs text-muted">{fmtDate(log.createdAt)}</TableCell>
-              <TableCell>
-                {log.direction === 'ENTRANT' ? (
-                  <Chip size="sm" color="primary" variant="flat" startContent={<ArrowDownLeft className="w-3 h-3" />}>
-                    Entrant
-                  </Chip>
-                ) : (
-                  <Chip size="sm" color="secondary" variant="flat" startContent={<ArrowUpRight className="w-3 h-3" />}>
-                    Sortant
-                  </Chip>
-                )}
-              </TableCell>
-              <TableCell className="text-xs font-medium text-foreground">{log.evenement}</TableCell>
-              <TableCell className="text-xs text-muted">{log.reponseStatut ?? '—'}</TableCell>
-              <TableCell>
-                {log.succes ? (
-                  <Chip size="sm" color="success" variant="flat" startContent={<CheckCircle2 className="w-3 h-3" />}>
-                    Succès
-                  </Chip>
-                ) : (
-                  <Chip size="sm" color="danger" variant="flat" startContent={<XCircle className="w-3 h-3" />}>
-                    Échec
-                  </Chip>
-                )}
-              </TableCell>
-              <TableCell>
-                <Tooltip content="Voir le détail (requête / réponse)">
-                  <Button isIconOnly size="sm" variant="light" onPress={() => openDetail(log)}>
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                </Tooltip>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+        <Table>
+          <Table.ScrollContainer>
+            <Table.Content aria-label="Journal des appels réseau" className="min-w-[52rem]">
+              <Table.Header>
+                {COLONNES_LOGS.map((c) => (
+                  <Table.Column id={c.id} isRowHeader={c.id === 'date'} key={c.id}>
+                    {c.libelle}
+                  </Table.Column>
+                ))}
+              </Table.Header>
+              <Table.Body
+                renderEmptyState={() =>
+                  isLoading ? null : (
+                    <p className="py-8 text-center text-sm text-muted">
+                      Aucun appel réseau enregistré pour l&apos;instant.
+                    </p>
+                  )
+                }
+              >
+                {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+                {isLoading
+                  ? Array.from({ length: 5 }).map((_, i) => (
+                      <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                        {COLONNES_LOGS.map((c) => (
+                          <Table.Cell key={`sq-${i}-${c.id}`}>
+                            <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                          </Table.Cell>
+                        ))}
+                      </Table.Row>
+                    ))
+                  : null}
+
+                {(isLoading ? [] : logs).map((log) => (
+                  <Table.Row id={log.id} key={log.id}>
+                    <Table.Cell className="text-xs whitespace-nowrap text-muted">
+                      {fmtDate(log.createdAt)}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <ChipSens direction={log.direction} />
+                    </Table.Cell>
+                    <Table.Cell className="text-xs font-medium text-foreground">
+                      {log.evenement}
+                    </Table.Cell>
+                    <Table.Cell className="text-xs text-muted">
+                      {log.reponseStatut ?? '—'}
+                    </Table.Cell>
+                    <Table.Cell>
+                      <ChipResultat succes={log.succes} />
+                    </Table.Cell>
+                    <Table.Cell>
+                      <Tooltip>
+                        <Button
+                          aria-label="Voir le détail de cet appel"
+                          isIconOnly
+                          onPress={() => openDetail(log)}
+                          size="sm"
+                          variant="ghost"
+                        >
+                          <Eye aria-hidden="true" className="size-4" />
+                        </Button>
+                        <Tooltip.Content>Voir le détail (requête / réponse)</Tooltip.Content>
+                      </Tooltip>
+                    </Table.Cell>
+                  </Table.Row>
+                ))}
+              </Table.Body>
+            </Table.Content>
+          </Table.ScrollContainer>
+
+          {totalPages > 1 && (
+            <Table.Footer className="justify-center">
+              <PaginationTableau onPage={(p) => setPage(p - 1)} page={page + 1} total={totalPages} />
+            </Table.Footer>
+          )}
+        </Table>
       )}
 
-      <LogDetailsModal log={selected} isOpen={detail.isOpen} onOpenChange={detail.onOpenChange} />
+      <LogDetailsModal isOpen={detailOuvert} log={selected} onOpenChange={setDetailOuvert} />
     </div>
   );
 }
@@ -413,178 +491,177 @@ function LogsViewer({ restaurantId }: { restaurantId: string }) {
 export default function IntegrationSection({ restaurantId }: { restaurantId: string }) {
   const {
     data: cleApi,
-    isLoading: cleLoading,
     isError: cleErreur,
     isFetching: cleRelecture,
+    isLoading: cleLoading,
     refetch: relireCle,
   } = useCleApiQuery(restaurantId);
   const {
     data: webhooks,
-    isLoading: webhooksLoading,
     isError: webhooksErreur,
     isFetching: webhooksRelecture,
+    isLoading: webhooksLoading,
     refetch: relireWebhooks,
   } = useWebhooksQuery(restaurantId);
-  const form = useDisclosure();
+  const [formOuvert, setFormOuvert] = useState(false);
   const suppr = useSupprimerWebhookMutation(restaurantId);
   const [editing, setEditing] = useState<IWebhook | null>(null);
 
   const apiKey = cleApi?.apiKey ?? '';
 
-  // La cle etait affichee EN CLAIR des l'ouverture de la fiche : lisible par-dessus
-  // l'epaule, sur un ecran partage, et dans toute capture de la page. Elle est
-  // masquee par defaut, la reveler devient un geste explicite. Le bouton « copier »
-  // du Snippet continue de fonctionner sans rien reveler, puisqu'il lit `codeString`.
-  const [cleVisible, setCleVisible] = useState(false);
-  const cleMasquee = apiKey
-    ? `${apiKey.slice(0, 4)}${'•'.repeat(Math.max(apiKey.length - 8, 8))}${apiKey.slice(-4)}`
-    : '';
-
   function openAdd() {
     setEditing(null);
-    form.onOpen();
+    setFormOuvert(true);
   }
   function openEdit(w: IWebhook) {
     setEditing(w);
-    form.onOpen();
+    setFormOuvert(true);
   }
 
   const webhookList = useMemo(() => webhooks ?? [], [webhooks]);
 
   return (
-    <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
-      <h2 className="text-base font-semibold text-primary mb-1">Intégration</h2>
-      <p className="text-sm text-muted mb-6">
-        Connectez la solution de ce partenaire à Turbo : clé d&apos;accès, endpoint de création de course,
-        webhooks de suivi et journal complet des échanges réseau.
-      </p>
+    <Card>
+      <Card.Content className="gap-8 p-6">
+        <div>
+          <h2 className="mb-1 text-base font-semibold text-foreground">Intégration</h2>
+          <p className="text-sm text-muted">
+            Connectez la solution de ce partenaire à Turbo : clé d&apos;accès, endpoint de
+            création de course, webhooks de suivi et journal complet des échanges réseau.
+          </p>
+        </div>
 
-      {/* ── Clé API ── */}
-      <div className="mb-8">
-        <SubTitle icon={<KeyRound className="w-4 h-4" />}>Clé API</SubTitle>
-        <p className="text-xs text-muted mb-2">
-          Le partenaire l&apos;envoie dans l&apos;en-tête <code className="text-primary">X-API-KEY</code> de chaque
-          requête. À communiquer de façon sécurisée.
-        </p>
-        {cleLoading ? (
-          <Spinner size="sm" />
-        ) : cleErreur ? (
-          // "Aucune cle API" ferait croire que le partenaire n'est pas
-          // integre, et pousserait a lui en generer une nouvelle.
-          <EtatErreur
-            quoi="la clé API de ce partenaire"
-            onReessayer={() => relireCle()}
-            enCours={cleRelecture}
-          />
-        ) : apiKey ? (
-          <div className="flex items-center gap-2">
-            <Snippet symbol="" variant="bordered" className="min-w-0 flex-1" codeString={apiKey}>
-              <span className="font-mono text-xs break-all">{cleVisible ? apiKey : cleMasquee}</span>
-            </Snippet>
-            <Tooltip content={cleVisible ? 'Masquer la clé' : 'Afficher la clé'} size="sm">
-              <Button
-                isIconOnly
-                size="sm"
-                variant="flat"
-                aria-label={cleVisible ? 'Masquer la clé API' : 'Afficher la clé API'}
-                onPress={() => setCleVisible((v) => !v)}
-              >
-                {cleVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        {/* ── Clé API ── */}
+        <div>
+          <SubTitle icon={<KeyRound aria-hidden="true" className="size-4" />}>Clé API</SubTitle>
+          <p className="mb-2 text-xs text-muted">
+            Le partenaire l&apos;envoie dans l&apos;en-tête{' '}
+            <code className="font-mono text-foreground">X-API-KEY</code> de chaque requête. À
+            communiquer de façon sécurisée.
+          </p>
+          {cleLoading ? (
+            <div className="h-10 animate-pulse rounded-lg bg-surface-secondary" />
+          ) : cleErreur ? (
+            // "Aucune cle API" ferait croire que le partenaire n'est pas
+            // integre, et pousserait a lui en generer une nouvelle.
+            <EtatErreur
+              enCours={cleRelecture}
+              onReessayer={() => relireCle()}
+              quoi="la clé API de ce partenaire"
+            />
+          ) : apiKey ? (
+            // La cle etait affichee EN CLAIR des l'ouverture de la fiche : lisible par-dessus
+            // l'epaule, sur un ecran partage, et dans toute capture de la page. Elle reste
+            // masquee par defaut ; « copier » fonctionne sans rien reveler.
+            <ChampCopiable masquable valeur={apiKey} />
+          ) : (
+            <p className="text-xs text-muted">Aucune clé API pour ce partenaire.</p>
+          )}
+        </div>
+
+        {/* ── Endpoint entrant (documentation) ── */}
+        <div>
+          <SubTitle icon={<ArrowDownLeft aria-hidden="true" className="size-4" />}>
+            Endpoint de création de course (entrant)
+          </SubTitle>
+          <p className="mb-2 text-xs text-muted">
+            Le partenaire crée une course en envoyant un <b>POST</b> à cette URL, avec sa clé API
+            en en-tête.
+          </p>
+          <ChampCopiable valeur={ENDPOINT_ENTRANT} />
+        </div>
+
+        {/* ── Webhooks ── */}
+        <div>
+          <SubTitle
+            action={
+              <Button onPress={openAdd} size="sm" variant="outline">
+                <Plus aria-hidden="true" className="size-4" />
+                Ajouter
               </Button>
-            </Tooltip>
-          </div>
-        ) : (
-          <p className="text-xs text-muted">Aucune clé API pour ce partenaire.</p>
-        )}
-      </div>
+            }
+            icon={<Webhook aria-hidden="true" className="size-4" />}
+          >
+            Webhooks (sortant)
+          </SubTitle>
+          <p className="mb-3 text-xs text-muted">
+            À chaque évènement de course (créée, récupérée, en route, livrée, annulée), Turbo
+            envoie une notification <b>POST</b> à ces URL. Sans webhook configuré, aucune
+            notification n&apos;est envoyée.
+          </p>
 
-      {/* ── Endpoint entrant (documentation) ── */}
-      <div className="mb-8">
-        <SubTitle icon={<ArrowDownLeft className="w-4 h-4" />}>Endpoint de création de course (entrant)</SubTitle>
-        <p className="text-xs text-muted mb-2">
-          Le partenaire crée une course en envoyant un <b>POST</b> à cette URL, avec sa clé API en en-tête.
-        </p>
-        <Snippet symbol="POST " variant="bordered" className="w-full" codeString={ENDPOINT_ENTRANT}>
-          <span className="font-mono text-xs break-all">{ENDPOINT_ENTRANT}</span>
-        </Snippet>
-      </div>
-
-      {/* ── Webhooks ── */}
-      <div className="mb-8">
-        <SubTitle
-          icon={<Webhook className="w-4 h-4" />}
-          action={
-            <Button size="sm" color="primary" variant="flat" startContent={<Plus className="w-4 h-4" />} onPress={openAdd}>
-              Ajouter
-            </Button>
-          }
-        >
-          Webhooks (sortant)
-        </SubTitle>
-        <p className="text-xs text-muted mb-3">
-          À chaque évènement de course (créée, récupérée, en route, livrée, annulée), Turbo envoie une notification
-          <b> POST</b> à ces URL. Sans webhook configuré, aucune notification n&apos;est envoyée.
-        </p>
-
-        {webhooksLoading ? (
-          <Spinner size="sm" />
-        ) : webhooksErreur ? (
-          // "Aucun webhook configure" se lit ici comme "le partenaire ne
-          // recoit rien" : sur un echec de lecture, c'est un faux diagnostic.
-          <EtatErreur
-            quoi="les webhooks de ce partenaire"
-            onReessayer={() => relireWebhooks()}
-            enCours={webhooksRelecture}
-          />
-        ) : webhookList.length === 0 ? (
-          <div className="text-xs text-muted border border-dashed border-separator rounded-lg p-4 text-center">
-            Aucun webhook configuré.
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {webhookList.map((w) => (
-              <div
-                key={w.id}
-                className="flex items-center justify-between gap-3 border border-separator rounded-lg px-4 py-2.5 bg-surface-secondary/50"
-              >
-                <div className="min-w-0">
-                  <p className="font-mono text-xs text-foreground truncate">{w.url}</p>
-                  {w.description && <p className="text-xs text-muted truncate">{w.description}</p>}
+          {webhooksLoading ? (
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div className="h-14 animate-pulse rounded-lg bg-surface-secondary" key={i} />
+              ))}
+            </div>
+          ) : webhooksErreur ? (
+            // "Aucun webhook configure" se lit ici comme "le partenaire ne
+            // recoit rien" : sur un echec de lecture, c'est un faux diagnostic.
+            <EtatErreur
+              enCours={webhooksRelecture}
+              onReessayer={() => relireWebhooks()}
+              quoi="les webhooks de ce partenaire"
+            />
+          ) : webhookList.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-separator p-4 text-center text-xs text-muted">
+              Aucun webhook configuré.
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {webhookList.map((w) => (
+                <div
+                  className="flex items-center justify-between gap-3 rounded-lg border border-separator bg-surface-secondary/50 px-4 py-2.5"
+                  key={w.id}
+                >
+                  <div className="min-w-0">
+                    <p className="truncate font-mono text-xs text-foreground">{w.url}</p>
+                    {w.description && <p className="truncate text-xs text-muted">{w.description}</p>}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Tooltip>
+                      <Button
+                        aria-label="Modifier ce webhook"
+                        isIconOnly
+                        onPress={() => openEdit(w)}
+                        size="sm"
+                        variant="ghost"
+                      >
+                        <Pencil aria-hidden="true" className="size-4" />
+                      </Button>
+                      <Tooltip.Content>Modifier</Tooltip.Content>
+                    </Tooltip>
+                    <Tooltip>
+                      <Button
+                        aria-label="Supprimer ce webhook"
+                        isIconOnly
+                        isPending={suppr.isPending && suppr.variables === w.id}
+                        onPress={() => suppr.mutate(w.id)}
+                        size="sm"
+                        variant="danger-soft"
+                      >
+                        <Trash2 aria-hidden="true" className="size-4" />
+                      </Button>
+                      <Tooltip.Content>Supprimer</Tooltip.Content>
+                    </Tooltip>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <Tooltip content="Modifier">
-                    <Button isIconOnly size="sm" variant="light" onPress={() => openEdit(w)}>
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                  </Tooltip>
-                  <Tooltip content="Supprimer" color="danger">
-                    <Button
-                      isIconOnly
-                      size="sm"
-                      variant="light"
-                      color="danger"
-                      isLoading={suppr.isPending && suppr.variables === w.id}
-                      onPress={() => suppr.mutate(w.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </Tooltip>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-      {/* ── Journal ── */}
-      <LogsViewer restaurantId={restaurantId} />
+        {/* ── Journal ── */}
+        <LogsViewer restaurantId={restaurantId} />
 
-      <WebhookFormModal
-        restaurantId={restaurantId}
-        webhook={editing}
-        isOpen={form.isOpen}
-        onOpenChange={form.onOpenChange}
-      />
-    </section>
+        <WebhookFormModal
+          isOpen={formOuvert}
+          onOpenChange={setFormOuvert}
+          restaurantId={restaurantId}
+          webhook={editing}
+        />
+      </Card.Content>
+    </Card>
   );
 }

@@ -7,7 +7,7 @@ import React from 'react';
 import {
   ChampEnveloppe,
   ChampListe,
-} from '@/components/personnel/common/champs-personnel';
+} from '@/components/commons/champs-formulaire';
 import { EmployeeSelect } from '@/components/personnel/common/employee-select';
 
 interface DeductionFiltersProps {

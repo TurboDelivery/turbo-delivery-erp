@@ -13,7 +13,7 @@ export function PhotosSection({ pictureRef, picturePreviews, onPicturesChange, o
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-medium text-foreground">Photos de l'établissement</p>
+        <p className="text-sm font-medium text-foreground">Photos de l&apos;établissement</p>
         <span className="text-xs text-muted">{picturePreviews.length} / 8</span>
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">

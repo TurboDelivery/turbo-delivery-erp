@@ -6,7 +6,9 @@ import { useRouter } from 'next/navigation';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Button } from '@/components/heroui';
+import { Button } from '@heroui-v3/react';
+
+import { LienBouton } from '@/components/commons/LienBouton';
 import { ArrowLeft } from 'lucide-react';
 import {
   createRestaurantSchema,
@@ -15,12 +17,12 @@ import {
 import { createRestaurant } from '@/features/restaurants/actions/create-restaurant.action';
 import { compresserImage, compresserImages } from '@/lib/compresser-image';
 import { CoverLogoSection } from './_sections/CoverLogoSection';
-import { InfoGeneralesSection } from './_sections/InfoGeneralesSection';
-import { CommissionSection } from './_sections/CommissionSection';
-import { ComptePartenaireSection } from './_sections/ComptePartenaireSection';
+import { InfoGeneralesSection } from '../_sections/info-generales-section';
+import { CommissionSection } from '../_sections/commission-section';
+import { ComptePartenaireSection } from '../_sections/compte-partenaire-section';
 import { PhotosSection } from './_sections/PhotosSection';
-import { HorairesSection, type Horaire } from './_sections/HorairesSection';
-import { AutresDocumentsSection } from './_sections/AutresDocumentsSection';
+import { HorairesSection, type Horaire } from '../_sections/horaires-section';
+import { AutresDocumentsSection } from '../_sections/autres-documents-section';
 import { DocumentsPartenaireSection } from './_sections/DocumentsPartenaireSection';
 
 const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'] as const;
@@ -199,10 +201,10 @@ export default function CreateContent() {
   return (
     <div className="pb-24">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/restaurants" className="text-muted hover:text-primary transition-colors">
+        <Link className="text-muted transition-colors hover:text-foreground" href="/restaurants">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <span className="text-xl font-bold text-primary">Créer un restaurant</span>
+        <span className="text-xl font-bold text-foreground">Créer un restaurant</span>
       </div>
 
       <FormProvider {...methods}>
@@ -267,8 +269,14 @@ export default function CreateContent() {
         />
 
         <div className="fixed bottom-[calc(52px+env(safe-area-inset-bottom))] left-0 right-0 lg:bottom-0 bg-surface border-t border-separator px-6 py-4 flex justify-end gap-3 z-10">
-          <Button type="button" variant="flat" as={Link} href="/restaurants">Annuler</Button>
-          <Button type="submit" color="primary" isLoading={isSubmitting}>Enregistrer</Button>
+          {/* `as={Link}` etait une prop de la v2 : sur un Button v3 elle est ignoree EN
+              SILENCE et le bouton ne navigue plus. C'est un lien, il porte un `href`. */}
+          <LienBouton href="/restaurants" variante="ghost">
+            Annuler
+          </LienBouton>
+          <Button isPending={isSubmitting} type="submit" variant="primary">
+            Enregistrer
+          </Button>
         </div>
       </form>
       </FormProvider>

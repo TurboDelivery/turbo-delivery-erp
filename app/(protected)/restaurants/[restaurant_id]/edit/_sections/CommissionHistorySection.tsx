@@ -1,31 +1,17 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import {
-  Button,
-  Chip,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Select,
-  SelectItem,
-  Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableColumn,
-  TableHeader,
-  TableRow,
-  Textarea,
-  Checkbox,
-  useDisclosure,
-} from '@/components/heroui';
+import { Button, Card, Checkbox, Chip, Modal, Table } from '@heroui-v3/react';
 import { History, Pencil } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
+
 import EtatErreur from '@/components/commons/EtatErreur';
+import {
+  ChampListe,
+  ChampMontant,
+  ChampTexte,
+  ChampZoneTexte,
+} from '@/components/commons/champs-formulaire';
 import { formatMontant } from '@/utils/format.utils';
 import {
   useCommissionHistoryQuery,
@@ -36,11 +22,23 @@ import {
   TypeCommissionVersion,
 } from '@/features/restaurants/commissions/commission.types';
 
-const TYPE_OPTIONS: { key: TypeCommissionVersion; label: string }[] = [
-  { key: 'POURCENTAGE', label: 'Pourcentage (%)' },
-  { key: 'MONTANT_FIXE', label: 'Montant fixe (FCFA)' },
-  { key: 'AUCUNE', label: 'Aucune commission' },
+const TYPE_OPTIONS: { label: string; value: TypeCommissionVersion }[] = [
+  { label: 'Pourcentage (%)', value: 'POURCENTAGE' },
+  { label: 'Montant fixe (FCFA)', value: 'MONTANT_FIXE' },
+  { label: 'Aucune commission', value: 'AUCUNE' },
 ];
+
+/** Les colonnes, déclarées une fois : le squelette y compte ses cellules. */
+const COLONNES = [
+  { id: 'type', libelle: 'Type' },
+  { id: 'valeur', libelle: 'Valeur' },
+  { id: 'seuil', libelle: 'Seuil' },
+  { id: 'periode', libelle: "Période d'effet" },
+  { id: 'statut', libelle: 'Statut' },
+  { id: 'origine', libelle: 'Origine' },
+  { id: 'auteur', libelle: 'Auteur' },
+  { id: 'motif', libelle: 'Motif' },
+] as const;
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -63,20 +61,31 @@ function formatDate(iso: string | null): string {
   }
 }
 
+/**
+ * L'origine d'une version de commission.
+ *
+ * <p>« Initiale » était en `primary` — la couleur de MARQUE — pour dire la version issue
+ * de la migration : une provenance, pas un état. Reste l'ambre du RÉTROACTIF, qui, lui,
+ * dit qu'une période déjà passée a été recalculée.</p>
+ */
 function sourceChip(source: string) {
-  const map: Record<string, { label: string; color: 'default' | 'primary' | 'warning' }> = {
-    MANUEL: { label: 'Manuel', color: 'default' },
-    RETROACTIF: { label: 'Rétroactif', color: 'warning' },
-    MIGRATION: { label: 'Initiale', color: 'primary' },
+  const map: Record<string, { label: string; ton: 'default' | 'warning' }> = {
+    MANUEL: { label: 'Manuel', ton: 'default' },
+    MIGRATION: { label: 'Initiale', ton: 'default' },
+    RETROACTIF: { label: 'Rétroactif', ton: 'warning' },
   };
-  const cfg = map[source] ?? { label: source, color: 'default' as const };
-  return <Chip size="sm" variant="flat" color={cfg.color}>{cfg.label}</Chip>;
+  const cfg = map[source] ?? { label: source, ton: 'default' as const };
+  return (
+    <Chip color={cfg.ton} size="sm" variant="soft">
+      <Chip.Label>{cfg.label}</Chip.Label>
+    </Chip>
+  );
 }
 
 export function CommissionHistorySection({ restaurantId }: { restaurantId: string }) {
   const { data: versions, isLoading, isError, isFetching, refetch } = useCommissionHistoryQuery(restaurantId);
   const mutation = useModifierCommissionMutation(restaurantId);
-  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const [ouvert, setOuvert] = useState(false);
 
   const [type, setType] = useState<TypeCommissionVersion>('POURCENTAGE');
   const [valeur, setValeur] = useState<string>('0');
@@ -112,7 +121,7 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
           : '';
       toast.success(`Commission mise à jour${suffix}`);
       resetForm();
-      onClose();
+      setOuvert(false);
     } catch (e: any) {
       toast.error(e?.response?.data?.message || e?.message || 'Erreur lors de la mise à jour de la commission');
     }
@@ -122,202 +131,244 @@ export function CommissionHistorySection({ restaurantId }: { restaurantId: strin
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-4 gap-3">
-        <h2 className="text-base font-semibold text-primary flex items-center gap-2">
-          <History className="w-4 h-4" /> Historique des commissions
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-foreground">
+          <History aria-hidden="true" className="size-4 text-muted" /> Historique des commissions
         </h2>
         <Button
-          type="button"
-          size="sm"
-          color="primary"
-          variant="flat"
-          startContent={<Pencil className="w-3.5 h-3.5" />}
           onPress={() => {
             resetForm();
-            onOpen();
+            setOuvert(true);
           }}
+          size="sm"
+          type="button"
+          variant="outline"
         >
+          <Pencil aria-hidden="true" className="size-3.5" />
           Modifier la commission
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Spinner size="sm" label="Chargement de l'historique…" />
-        </div>
-      ) : isError ? (
+      {isError ? (
         // Les versions datees sont opposables : annoncer "aucune version"
         // sur un echec de lecture ferait poser une commission a l'aveugle.
         <EtatErreur
-          quoi="les versions de commission"
-          onReessayer={() => refetch()}
           enCours={isFetching}
+          onReessayer={() => refetch()}
+          quoi="les versions de commission"
         />
-      ) : list.length === 0 ? (
-        <p className="text-sm text-muted py-4">Aucune version de commission enregistrée.</p>
       ) : (
         <>
           {/* Desktop : tableau */}
-          <div className="hidden md:block">
-            <Table aria-label="Historique des commissions" isStriped removeWrapper>
-              <TableHeader>
-                <TableColumn>TYPE</TableColumn>
-                <TableColumn>VALEUR</TableColumn>
-                <TableColumn>SEUIL</TableColumn>
-                <TableColumn>PÉRIODE D'EFFET</TableColumn>
-                <TableColumn>STATUT</TableColumn>
-                <TableColumn>ORIGINE</TableColumn>
-                <TableColumn>AUTEUR</TableColumn>
-                <TableColumn>MOTIF</TableColumn>
-              </TableHeader>
-              <TableBody>
-                {list.map((v) => (
-                  <TableRow key={v.id}>
-                    <TableCell>{formatType(v.type)}</TableCell>
-                    <TableCell className="font-semibold">{formatValeur(v)}</TableCell>
-                    <TableCell>{v.seuil != null ? `${formatMontant(Number(v.seuil))}` : '—'}</TableCell>
-                    <TableCell>
-                      {formatDate(v.dateDebutEffet)} → {formatDate(v.dateFinEffet)}
-                    </TableCell>
-                    <TableCell>
-                      {v.courante ? (
-                        <Chip size="sm" color="success" variant="flat">Courante</Chip>
-                      ) : (
-                        <Chip size="sm" variant="flat">Historique</Chip>
-                      )}
-                    </TableCell>
-                    <TableCell>{sourceChip(v.source)}</TableCell>
-                    <TableCell className="text-muted">{v.auteurNom ?? '—'}</TableCell>
-                    <TableCell className="max-w-[200px] truncate text-muted">{v.motif ?? '—'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Card className="hidden md:block">
+            <Card.Content className="p-0">
+              <Table>
+                <Table.ScrollContainer>
+                  <Table.Content aria-label="Historique des commissions" className="min-w-[64rem]">
+                    <Table.Header>
+                      {COLONNES.map((c) => (
+                        <Table.Column id={c.id} isRowHeader={c.id === 'type'} key={c.id}>
+                          {c.libelle}
+                        </Table.Column>
+                      ))}
+                    </Table.Header>
+                    <Table.Body
+                      renderEmptyState={() =>
+                        isLoading ? null : (
+                          <p className="py-8 text-center text-sm text-muted">
+                            Aucune version de commission enregistrée.
+                          </p>
+                        )
+                      }
+                    >
+                      {/* Le squelette compte ses cellules sur les MEMES colonnes que les lignes. */}
+                      {isLoading
+                        ? Array.from({ length: 4 }).map((_, i) => (
+                            <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                              {COLONNES.map((c) => (
+                                <Table.Cell key={`sq-${i}-${c.id}`}>
+                                  <div className="h-4 w-full animate-pulse rounded bg-surface-secondary" />
+                                </Table.Cell>
+                              ))}
+                            </Table.Row>
+                          ))
+                        : null}
+
+                      {(isLoading ? [] : list).map((v) => (
+                        <Table.Row id={v.id} key={v.id}>
+                          <Table.Cell>{formatType(v.type)}</Table.Cell>
+                          <Table.Cell className="font-semibold tabular-nums">
+                            {formatValeur(v)}
+                          </Table.Cell>
+                          <Table.Cell className="tabular-nums">
+                            {v.seuil != null ? `${formatMontant(Number(v.seuil))}` : '—'}
+                          </Table.Cell>
+                          <Table.Cell className="whitespace-nowrap">
+                            {formatDate(v.dateDebutEffet)} → {formatDate(v.dateFinEffet)}
+                          </Table.Cell>
+                          <Table.Cell>
+                            <Chip color={v.courante ? 'success' : 'default'} size="sm" variant="soft">
+                              <Chip.Label>{v.courante ? 'Courante' : 'Historique'}</Chip.Label>
+                            </Chip>
+                          </Table.Cell>
+                          <Table.Cell>{sourceChip(v.source)}</Table.Cell>
+                          <Table.Cell className="text-muted">{v.auteurNom ?? '—'}</Table.Cell>
+                          <Table.Cell className="max-w-[200px] truncate text-muted">
+                            {v.motif ?? '—'}
+                          </Table.Cell>
+                        </Table.Row>
+                      ))}
+                    </Table.Body>
+                  </Table.Content>
+                </Table.ScrollContainer>
+              </Table>
+            </Card.Content>
+          </Card>
 
           {/* Mobile : cartes */}
-          <div className="md:hidden space-y-3">
-            {list.map((v) => (
-              <div key={v.id} className="bg-surface border border-separator rounded-xl p-4 shadow-xs space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-xs text-muted">{formatType(v.type)}</p>
-                    <p className="text-sm font-semibold text-primary">{formatValeur(v)}</p>
-                  </div>
-                  {v.courante ? (
-                    <Chip size="sm" color="success" variant="flat">Courante</Chip>
-                  ) : (
-                    sourceChip(v.source)
-                  )}
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs text-muted">Période</span>
-                  <span className="text-sm text-foreground text-right">
-                    {formatDate(v.dateDebutEffet)} → {formatDate(v.dateFinEffet)}
-                  </span>
-                </div>
-                {v.seuil != null && (
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-muted">Seuil</span>
-                    <span className="text-sm text-foreground">{formatMontant(Number(v.seuil))}</span>
-                  </div>
-                )}
-                {v.auteurNom && (
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-muted">Auteur</span>
-                    <span className="text-sm text-foreground text-right">{v.auteurNom}</span>
-                  </div>
-                )}
-                {v.motif && (
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-xs text-muted">Motif</span>
-                    <span className="text-sm text-foreground text-right">{v.motif}</span>
-                  </div>
-                )}
-              </div>
-            ))}
+          <div className="flex flex-col gap-3 md:hidden">
+            {isLoading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <div className="h-32 animate-pulse rounded-xl bg-surface-secondary" key={i} />
+                ))
+              : list.length === 0
+                ? (
+                    <p className="py-4 text-sm text-muted">
+                      Aucune version de commission enregistrée.
+                    </p>
+                  )
+                : list.map((v) => (
+                    <Card key={v.id}>
+                      <Card.Content className="gap-2 p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-xs text-muted">{formatType(v.type)}</p>
+                            <p className="text-sm font-semibold tabular-nums text-foreground">
+                              {formatValeur(v)}
+                            </p>
+                          </div>
+                          {v.courante ? (
+                            <Chip color="success" size="sm" variant="soft">
+                              <Chip.Label>Courante</Chip.Label>
+                            </Chip>
+                          ) : (
+                            sourceChip(v.source)
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-xs text-muted">Période</span>
+                          <span className="text-right text-sm text-foreground">
+                            {formatDate(v.dateDebutEffet)} → {formatDate(v.dateFinEffet)}
+                          </span>
+                        </div>
+                        {v.seuil != null && (
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs text-muted">Seuil</span>
+                            <span className="text-sm tabular-nums text-foreground">
+                              {formatMontant(Number(v.seuil))}
+                            </span>
+                          </div>
+                        )}
+                        {v.auteurNom && (
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs text-muted">Auteur</span>
+                            <span className="text-right text-sm text-foreground">{v.auteurNom}</span>
+                          </div>
+                        )}
+                        {v.motif && (
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs text-muted">Motif</span>
+                            <span className="text-right text-sm text-foreground">{v.motif}</span>
+                          </div>
+                        )}
+                      </Card.Content>
+                    </Card>
+                  ))}
           </div>
         </>
       )}
 
-      {/* Modal Modifier la commission */}
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="lg" scrollBehavior="inside">
-        <ModalContent>
-          {() => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">Modifier la commission</ModalHeader>
-              <ModalBody className="gap-4">
-                <Select
+      {/* Modale — modifier la commission */}
+      <Modal isOpen={ouvert} onOpenChange={setOuvert}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog className="max-w-lg">
+              <Modal.Header>
+                <Modal.Heading>Modifier la commission</Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+              <Modal.Body className="flex flex-col gap-4">
+                <ChampListe
                   label="Type de commission"
-                  selectedKeys={[type]}
-                  onSelectionChange={(keys) =>
-                    setType((Array.from(keys as Set<string>)[0] as TypeCommissionVersion) ?? 'POURCENTAGE')
-                  }
-                  variant="bordered"
-                >
-                  {TYPE_OPTIONS.map((o) => (
-                    <SelectItem key={o.key}>{o.label}</SelectItem>
-                  ))}
-                </Select>
+                  onChange={(v) => setType((v as TypeCommissionVersion) || 'POURCENTAGE')}
+                  options={TYPE_OPTIONS}
+                  placeholder="Choisir un type"
+                  valeur={type}
+                />
 
                 {type !== 'AUCUNE' && (
-                  <Input
+                  <ChampMontant
                     label={type === 'POURCENTAGE' ? 'Taux (%)' : 'Montant fixe (FCFA)'}
-                    type="number"
-                    value={valeur}
-                    onChange={(e) => setValeur(e.target.value)}
-                    variant="bordered"
-                    min={0}
                     max={type === 'POURCENTAGE' ? 100 : undefined}
+                    onChange={(v) => setValeur(String(v))}
+                    valeur={Number(valeur) || 0}
                   />
                 )}
 
                 {type === 'MONTANT_FIXE' && (
-                  <Input
+                  <ChampMontant
+                    aide="Montant minimum de commande sous lequel la commission ne s'applique pas. Une zone peut définir son propre seuil dans la grille tarifaire (prioritaire)."
                     label="Seuil d'application — défaut partenaire (FCFA, optionnel)"
-                    description="Montant minimum de commande sous lequel la commission ne s'applique pas. Une zone peut définir son propre seuil dans la grille tarifaire (prioritaire)."
-                    type="number"
-                    value={seuil}
-                    onChange={(e) => setSeuil(e.target.value)}
-                    variant="bordered"
-                    min={0}
+                    onChange={(v) => setSeuil(String(v))}
+                    valeur={seuil === '' ? undefined : Number(seuil)}
                   />
                 )}
 
-                <Input
+                <ChampTexte
                   label="Date d'effet"
+                  onChange={setDateEffet}
                   type="date"
-                  value={dateEffet}
-                  onChange={(e) => setDateEffet(e.target.value)}
-                  variant="bordered"
+                  valeur={dateEffet}
                 />
 
-                <Textarea
+                <ChampZoneTexte
                   label="Motif (optionnel)"
-                  value={motif}
-                  onChange={(e) => setMotif(e.target.value)}
-                  variant="bordered"
-                  minRows={2}
+                  lignes={2}
+                  onChange={setMotif}
+                  valeur={motif}
                 />
 
                 {isAnterior && (
-                  <Checkbox isSelected={retroactif} onValueChange={setRetroactif} size="sm">
-                    Appliquer à une période antérieure (recalcule les courses{' '}
-                    <span className="font-semibold">non encore recouvrées</span> depuis cette date)
+                  <Checkbox isSelected={retroactif} onChange={setRetroactif}>
+                    <Checkbox.Content className="items-start">
+                      <Checkbox.Control className="mt-0.5">
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <span className="flex-1 text-left text-sm">
+                        Appliquer à une période antérieure (recalcule les courses{' '}
+                        <span className="font-semibold">non encore recouvrées</span> depuis cette
+                        date)
+                      </span>
+                    </Checkbox.Content>
                   </Checkbox>
                 )}
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="flat" onPress={onClose} type="button">
+              </Modal.Body>
+              <Modal.Footer>
+                <Button onPress={() => setOuvert(false)} type="button" variant="ghost">
                   Annuler
                 </Button>
-                <Button color="primary" onPress={onSubmit} isLoading={mutation.isPending} type="button">
+                <Button
+                  isPending={mutation.isPending}
+                  onPress={onSubmit}
+                  type="button"
+                  variant="primary"
+                >
                   Enregistrer
                 </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
       </Modal>
     </section>
   );

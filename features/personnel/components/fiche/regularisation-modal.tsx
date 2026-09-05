@@ -9,7 +9,7 @@ import {
   ChampListe,
   ChampTexte,
   ChampZoneTexte,
-} from '@/components/personnel/common/champs-personnel';
+} from '@/components/commons/champs-formulaire';
 
 import {
   useCreerRegularisationMutation,

@@ -6,7 +6,17 @@ import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Button, Input, Select, SelectItem, Tab, Tabs, Textarea } from '@/components/heroui';
+import { Button, Card, Chip, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
+
+import { LienBouton } from '@/components/commons/LienBouton';
+import { TitreSection } from '@/components/commons/TitreSection';
+import {
+  ChampListe,
+  ChampMontant,
+  ChampMotDePasse,
+  ChampTexte,
+  ChampZoneTexte,
+} from '@/components/commons/champs-formulaire';
 import { Input as AddressInput } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -14,8 +24,6 @@ import {
   Building2,
   CalendarClock,
   ExternalLink,
-  Eye,
-  EyeOff,
   FileImage,
   FileText,
   Map,
@@ -37,10 +45,12 @@ import IntegrationSection from './_sections/integration-section';
 import GrilleTarifaireSection from './_sections/grille-tarifaire-section';
 import AccesPartenaireSection from './_sections/acces-partenaire-section';
 
-// ─── Section title ─────────────────────────────────────────────────────────────
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-base font-semibold text-primary mb-4">{children}</h2>;
-}
+const ONGLETS = [
+  { icone: Building2, id: 'profil', libelle: 'Profil' },
+  { icone: CalendarClock, id: 'horaires', libelle: 'Horaires & documents' },
+  { icone: Map, id: 'grille', libelle: 'Grille tarifaire' },
+  { icone: PlugZap, id: 'integration', libelle: 'Intégration' },
+] as const;
 
 // ─── Document preview card ─────────────────────────────────────────────────────
 function DocPreview({ label, url }: { label: string; url: string }) {
@@ -64,7 +74,7 @@ function DocPreview({ label, url }: { label: string; url: string }) {
             </div>
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center gap-2 w-full h-28 rounded-lg border-2 border-separator bg-surface-secondary hover:border-primary hover:bg-primary/5 transition-colors text-muted hover:text-primary">
+          <div className="flex h-28 w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-separator bg-surface-secondary text-muted transition-colors hover:border-foreground hover:text-foreground">
             {isPdf ? <FileText className="w-8 h-8" /> : <FileImage className="w-8 h-8" />}
             <span className="text-[11px] font-medium text-center px-2 truncate w-full">
               {imgError ? 'Voir le document' : label}
@@ -77,15 +87,6 @@ function DocPreview({ label, url }: { label: string; url: string }) {
 }
 
 // ─── Onglet : libellé avec icône ───────────────────────────────────────────────
-function TabTitle({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-2 whitespace-nowrap">
-      {icon}
-      <span>{children}</span>
-    </div>
-  );
-}
-
 // ─── Main ──────────────────────────────────────────────────────────────────────
 export default function Content({ restaurant }: { restaurant: IRestaurant }) {
   const router = useRouter();
@@ -98,10 +99,10 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
   // Compte partenaire
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
 
   // Statut actif/inactif (status > 0 = actif — même règle que la liste)
   const [isActive, setIsActive] = useState(() => (restaurant.status ?? 1) !== 0);
+  const [onglet, setOnglet] = useState('profil');
 
   const handleLocalisationChange = useCallback(
     async (value: string) => {
@@ -210,69 +211,99 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
       {/* Back link */}
       <Link
         href="/restaurants"
-        className="flex items-center gap-1.5 text-sm text-muted hover:text-primary mb-4 transition-colors"
+        className="mb-4 flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-foreground"
       >
-        <ArrowLeft className="w-4 h-4" />
+        <ArrowLeft aria-hidden="true" className="size-4" />
         Retour à la liste
       </Link>
 
-      <h1 className="text-2xl font-bold text-primary mb-1">Fiche partenaire</h1>
+      <h1 className="mb-1 text-2xl font-bold text-foreground">Fiche partenaire</h1>
       <div className="flex items-center justify-between gap-3 mb-6">
         <p className="text-sm text-muted capitalize truncate">{restaurant.nomEtablissement}</p>
-        <button
-          type="button"
-          onClick={handleToggleStatus}
-          disabled={toggleMutation.isPending}
-          className={`shrink-0 flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold border-2 transition-colors ${
-            isActive
-              ? 'border-green-500 bg-green-50 text-green-700 hover:bg-red-50 hover:border-red-400 hover:text-red-600'
-              : 'border-red-400 bg-red-50 text-red-600 hover:bg-green-50 hover:border-green-500 hover:text-green-700'
-          }`}
-        >
-          <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-green-500' : 'bg-red-400'}`} />
-          {toggleMutation.isPending ? 'En cours...' : isActive ? 'ACTIF' : 'INACTIF'}
-        </button>
+        {/*
+         * C'etait un `<button>` nu peint en SIX teintes de palette — vert au repos, rouge
+         * au survol pour un actif, et l'inverse pour un inactif — qui changeait donc de
+         * couleur SOUS le curseur : l'etat affiche devenait celui qu'on allait poser. On
+         * lit l'etat, et le bouton dit ce qu'il fera.
+         */}
+        <div className="flex shrink-0 items-center gap-3">
+          <Chip color={isActive ? 'success' : 'default'} size="sm" variant="soft">
+            <Chip.Label>{isActive ? 'Actif' : 'Inactif'}</Chip.Label>
+          </Chip>
+          <Button
+            isPending={toggleMutation.isPending}
+            onPress={handleToggleStatus}
+            size="sm"
+            variant={isActive ? 'danger-soft' : 'outline'}
+          >
+            {isActive ? 'Désactiver' : 'Activer'}
+          </Button>
+        </div>
       </div>
 
-      <Tabs
-        aria-label="Sections de la fiche partenaire"
-        variant="underlined"
-        color="primary"
-        destroyInactiveTabPanel={false}
-        classNames={{
-          base: 'w-full',
-          tabList: 'w-full gap-6 rounded-none p-0 border-b border-separator overflow-x-auto',
-          tab: 'max-w-fit px-0 h-11',
-          tabContent: 'text-sm font-medium',
-          panel: 'px-0 pt-6',
-        }}
+      {/*
+       * `ToggleButtonGroup` et non `Tabs` : `Tabs.Indicator` de la v3 fait tomber la page,
+       * et sans lui les onglets ne distinguent l'actif que par une nuance de gris. Quatre
+       * options : la rangee tient sur une ligne, et enroule sur un telephone.
+       */}
+      <ToggleButtonGroup
+        className="flex-wrap"
+        onSelectionChange={(sel) => setOnglet(String(Array.from(sel)[0] ?? 'profil'))}
+        selectedKeys={new Set([onglet])}
+        selectionMode="single"
       >
-        {/* ── Profil (formulaire d'édition) ── */}
-        <Tab key="profil" title={<TabTitle icon={<Building2 className="w-4 h-4" />}>Profil</TabTitle>}>
+        {ONGLETS.map((o) => (
+          <ToggleButton id={o.id} key={o.id}>
+            <o.icone aria-hidden="true" className="size-4" />
+            {o.libelle}
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
+
+      <div className="pt-6" hidden={onglet !== 'profil'}>
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-8">
             {/* ── Informations générales ── */}
-            <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
-              <SectionTitle>Informations générales</SectionTitle>
+            <Card>
+              <Card.Content className="p-6">
+              <TitreSection>Informations générales</TitreSection>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Controller
+                  control={control}
                   name="nomEtablissement"
-                  control={control}
                   render={({ field }) => (
-                    <Input {...field} label="Nom de l'établissement" placeholder="Mon Restaurant" isInvalid={!!errors.nomEtablissement} errorMessage={errors.nomEtablissement?.message} variant="bordered" />
+                    <ChampTexte
+                      erreur={errors.nomEtablissement?.message}
+                      label="Nom de l'établissement"
+                      onChange={field.onChange}
+                      placeholder="Mon Restaurant"
+                      valeur={field.value ?? ''}
+                    />
                   )}
                 />
                 <Controller
+                  control={control}
                   name="email"
-                  control={control}
                   render={({ field }) => (
-                    <Input {...field} type="email" label="Email" placeholder="restaurant@example.com" isInvalid={!!errors.email} errorMessage={errors.email?.message} variant="bordered" />
+                    <ChampTexte
+                      erreur={errors.email?.message}
+                      label="Email"
+                      onChange={field.onChange}
+                      placeholder="restaurant@example.com" type="email"
+                      valeur={field.value ?? ''}
+                    />
                   )}
                 />
                 <Controller
-                  name="telephone"
                   control={control}
+                  name="telephone"
                   render={({ field }) => (
-                    <Input {...field} label="Téléphone" placeholder="+225 0000000000" isInvalid={!!errors.telephone} errorMessage={errors.telephone?.message} variant="bordered" />
+                    <ChampTexte
+                      erreur={errors.telephone?.message}
+                      label="Téléphone"
+                      onChange={field.onChange}
+                      placeholder="+225 0000000000"
+                      valeur={field.value ?? ''}
+                    />
                   )}
                 />
                 <Controller
@@ -329,53 +360,79 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                   )}
                 />
                 <Controller
+                  control={control}
                   name="commune"
-                  control={control}
                   render={({ field }) => (
-                    <Input {...field} label="Commune" placeholder="Cocody" isInvalid={!!errors.commune} errorMessage={errors.commune?.message} variant="bordered" />
+                    <ChampTexte
+                      erreur={errors.commune?.message}
+                      label="Commune"
+                      onChange={field.onChange}
+                      placeholder="Cocody"
+                      valeur={field.value ?? ''}
+                    />
                   )}
                 />
                 <Controller
+                  control={control}
                   name="codePostal"
-                  control={control}
                   render={({ field }) => (
-                    <Input {...field} label="Code postal" placeholder="00225" isInvalid={!!errors.codePostal} errorMessage={errors.codePostal?.message} variant="bordered" />
+                    <ChampTexte
+                      erreur={errors.codePostal?.message}
+                      label="Code postal"
+                      onChange={field.onChange}
+                      placeholder="00225"
+                      valeur={field.value ?? ''}
+                    />
                   )}
                 />
                 <Controller
-                  name="siteWeb"
                   control={control}
+                  name="siteWeb"
                   render={({ field }) => (
-                    <Input {...field} label="Site web" placeholder="https://www.site.com" isInvalid={!!errors.siteWeb} errorMessage={errors.siteWeb?.message} variant="bordered" className="sm:col-span-2" />
+                    <ChampTexte
+                      erreur={errors.siteWeb?.message}
+                      label="Site web"
+                      onChange={field.onChange}
+                      placeholder="https://www.site.com"
+                      valeur={field.value ?? ''}
+                    />
                   )}
                 />
                 <Controller
                   name="description"
                   control={control}
                   render={({ field }) => (
-                    <Textarea {...field} label="Description" placeholder="Décrivez votre établissement..." isInvalid={!!errors.description} errorMessage={errors.description?.message} variant="bordered" className="sm:col-span-2" minRows={3} />
+                    <div className="sm:col-span-2">
+                      <ChampZoneTexte
+                        erreur={errors.description?.message}
+                        label="Description"
+                        onChange={field.onChange}
+                        placeholder="Décrivez votre établissement…"
+                        valeur={field.value ?? ''}
+                      />
+                    </div>
                   )}
                 />
               </div>
-            </section>
+              </Card.Content>
+            </Card>
 
             {/* ── Configuration financière ── */}
-            <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
-              <SectionTitle>Configuration financière</SectionTitle>
+            <Card>
+              <Card.Content className="p-6">
+              <TitreSection>Configuration financière</TitreSection>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Controller
                   name="typeCommission"
                   control={control}
                   render={({ field }) => (
-                    <Select
+                    <ChampListe
                       label="Type de commission"
+                      onChange={field.onChange}
+                      options={TYPE_COMMISSION_OPTIONS}
                       placeholder="Sélectionner un type"
-                      selectedKeys={field.value ? [field.value] : []}
-                      onSelectionChange={(keys) => field.onChange(Array.from(keys as Set<string>)[0] ?? '')}
-                      variant="bordered"
-                    >
-                      {TYPE_COMMISSION_OPTIONS.map((o) => <SelectItem key={o.value}>{o.label}</SelectItem>)}
-                    </Select>
+                      valeur={field.value ?? ''}
+                    />
                   )}
                 />
                 {(typeCommission === 'POURCENTAGE' || typeCommission === 'FIXE') && (
@@ -383,16 +440,15 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                     name="commission"
                     control={control}
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        value={field.value?.toString() ?? '0'}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                        type="number"
-                        label={typeCommission === 'POURCENTAGE' ? 'Commission (%)' : 'Commission (montant fixe)'}
-                        placeholder={typeCommission === 'POURCENTAGE' ? '10' : '5000'}
-                        min={0}
+                      <ChampMontant
+                        label={
+                          typeCommission === 'POURCENTAGE'
+                            ? 'Commission (%)'
+                            : 'Commission (montant fixe)'
+                        }
                         max={typeCommission === 'POURCENTAGE' ? 100 : undefined}
-                        variant="bordered"
+                        onChange={field.onChange}
+                        valeur={Number(field.value ?? 0)}
                       />
                     )}
                   />
@@ -401,64 +457,58 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                   name="methodRecouvrement"
                   control={control}
                   render={({ field }) => (
-                    <Select
+                    <ChampListe
                       label="Cycle de paiement"
+                      onChange={field.onChange}
+                      options={METHOD_RECOUVREMENT_OPTIONS}
                       placeholder="Sélectionner une période"
-                      selectedKeys={field.value ? [field.value] : []}
-                      onSelectionChange={(keys) => field.onChange(Array.from(keys as Set<string>)[0] ?? undefined)}
-                      variant="bordered"
-                    >
-                      {METHOD_RECOUVREMENT_OPTIONS.map((o) => <SelectItem key={o.value}>{o.label}</SelectItem>)}
-                    </Select>
+                      valeur={field.value ?? ''}
+                    />
                   )}
                 />
               </div>
-            </section>
+              </Card.Content>
+            </Card>
 
             {/* ── Compte du partenaire ── */}
-            <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
-              <SectionTitle>Compte du partenaire</SectionTitle>
+            <Card>
+              <Card.Content className="p-6">
+              <TitreSection>Compte du partenaire</TitreSection>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Input
+                <ChampTexte
                   label="Nom utilisateur"
-                  variant="bordered"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={setUsername}
                   placeholder="username_restaurant"
+                  valeur={username}
                 />
-                <Input
+                <ChampMotDePasse
                   label="Nouveau mot de passe"
-                  type={showPassword ? 'text' : 'password'}
-                  variant="bordered"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  endContent={
-                    <button type="button" onClick={() => setShowPassword((v) => !v)} className="text-muted hover:text-foreground">
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  }
+                  onChange={setPassword}
+                  valeur={password}
                 />
               </div>
-            </section>
+              </Card.Content>
+            </Card>
 
             {/* ── Footer actions ── */}
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Button type="button" variant="flat" as={Link} href="/restaurants">
+              {/* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3. */}
+              <LienBouton href="/restaurants" variante="ghost">
                 Annuler
-              </Button>
-              <Button type="submit" color="primary" isLoading={isSubmitting}>
+              </LienBouton>
+              <Button isPending={isSubmitting} type="submit" variant="primary">
                 Enregistrer les modifications
               </Button>
             </div>
           </form>
-        </Tab>
+      </div>
 
-        {/* ── Horaires & documents ── */}
-        <Tab key="horaires" title={<TabTitle icon={<CalendarClock className="w-4 h-4" />}>Horaires &amp; documents</TabTitle>}>
+      {/* ── Horaires & documents ── */}
+      <div className="pt-6" hidden={onglet !== 'horaires'}>
           <div className="flex flex-col gap-8">
-            <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
-              <SectionTitle>Horaires d&apos;ouverture</SectionTitle>
+            <Card>
+              <Card.Content className="p-6">
+              <TitreSection>Horaires d&apos;ouverture</TitreSection>
               {(() => {
                 const JOURS = ['LUNDI', 'MARDI', 'MERCREDI', 'JEUDI', 'VENDREDI', 'SAMEDI', 'DIMANCHE'];
                 const LABELS: Record<string, string> = { LUNDI: 'Lundi', MARDI: 'Mardi', MERCREDI: 'Mercredi', JEUDI: 'Jeudi', VENDREDI: 'Vendredi', SAMEDI: 'Samedi', DIMANCHE: 'Dimanche' };
@@ -470,21 +520,29 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                       return (
                         <div
                           key={jour}
-                          className={`flex items-center justify-between px-4 py-2.5 rounded-lg text-sm border ${
-                            !h ? 'bg-surface-secondary border-separator text-muted'
-                              : h.closed ? 'bg-surface-secondary border-separator text-muted'
-                              : 'bg-green-50 border-green-100 text-foreground'
-                          }`}
+                          /*
+                           * Un jour OUVERT etait peint en `bg-green-50 border-green-100` :
+                           * du vert de palette, sans variante sombre, pour dire l'etat
+                           * ordinaire d'un restaurant. Ce qui se distingue vraiment ici,
+                           * c'est le jour FERME ou NON DEFINI — et la pastille le dit.
+                           */
+                          className="flex items-center justify-between gap-2 rounded-lg border border-separator bg-surface-secondary px-4 py-2.5 text-sm"
                         >
-                          <span className="font-medium w-24">{LABELS[jour]}</span>
+                          <span className="w-24 font-medium text-foreground">{LABELS[jour]}</span>
                           {!h ? (
-                            <span className="text-xs font-medium text-muted bg-surface-secondary px-2 py-0.5 rounded-full">Non défini</span>
+                            <Chip size="sm" variant="soft">
+                              <Chip.Label>Non défini</Chip.Label>
+                            </Chip>
                           ) : h.closed ? (
-                            <span className="text-xs font-medium text-muted bg-surface-secondary px-2 py-0.5 rounded-full">Fermé</span>
+                            <Chip size="sm" variant="soft">
+                              <Chip.Label>Fermé</Chip.Label>
+                            </Chip>
                           ) : (
-                            <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                              {h.openingTime?.slice(0, 5)} – {h.closingTime?.slice(0, 5)}
-                            </span>
+                            <Chip color="success" size="sm" variant="soft">
+                              <Chip.Label className="tabular-nums">
+                                {h.openingTime?.slice(0, 5)} – {h.closingTime?.slice(0, 5)}
+                              </Chip.Label>
+                            </Chip>
                           )}
                         </div>
                       );
@@ -492,10 +550,12 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                   </div>
                 );
               })()}
-            </section>
+              </Card.Content>
+            </Card>
 
-            <section className="bg-surface rounded-xl border border-separator shadow-xs p-6">
-              <SectionTitle>Documents</SectionTitle>
+            <Card>
+              <Card.Content className="p-6">
+              <TitreSection>Documents</TitreSection>
               {hasDocuments ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {logoUrl && <DocPreview label="Logo" url={logoUrl} />}
@@ -510,23 +570,21 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
                   Aucun document fourni pour ce partenaire.
                 </div>
               )}
-            </section>
+              </Card.Content>
+            </Card>
           </div>
-        </Tab>
+      </div>
 
-        {/* ── Grille tarifaire ── */}
-        <Tab key="grille" title={<TabTitle icon={<Map className="w-4 h-4" />}>Grille tarifaire</TabTitle>}>
-          <GrilleTarifaireSection restaurantId={restaurant.id} />
-        </Tab>
+      {/* ── Grille tarifaire ── */}
+      <div className="pt-6" hidden={onglet !== 'grille'}>
+        <GrilleTarifaireSection restaurantId={restaurant.id} />
+      </div>
 
-        {/* ── Intégration ── */}
-        <Tab key="integration" title={<TabTitle icon={<PlugZap className="w-4 h-4" />}>Intégration</TabTitle>}>
-          <div className="flex flex-col gap-8">
-            <IntegrationSection restaurantId={restaurant.id} />
-            <AccesPartenaireSection restaurantId={restaurant.id} />
-          </div>
-        </Tab>
-      </Tabs>
+      {/* ── Intégration ── */}
+      <div className="flex flex-col gap-8 pt-6" hidden={onglet !== 'integration'}>
+        <IntegrationSection restaurantId={restaurant.id} />
+        <AccesPartenaireSection restaurantId={restaurant.id} />
+      </div>
     </div>
   );
 }

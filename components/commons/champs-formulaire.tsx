@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Button,
   ComboBox,
   Description,
   FieldError,
@@ -12,16 +13,16 @@ import {
   TextArea,
   TextField,
 } from '@heroui-v3/react';
+import { Eye, EyeOff } from 'lucide-react';
 import React from 'react';
 
 /**
- * Les champs des fenêtres du module Personnel.
+ * Les champs de formulaire de l'ERP.
  *
  * <h3>Ce qui change</h3>
- * <p>Chaque fenêtre — absence, avance sur salaire, prêt, régularisation, déclaration de
- * contrat — recomposait à la main la même triade : un `<Label>` de shadcn, un `Input` de
- * HeroUI v2 et un `<small className="text-red-500">` pour l'erreur. Trois bibliothèques
- * pour un champ, et une erreur peinte en `red-500` de la palette Tailwind, sans variante
+ * <p>Chaque fenêtre du projet recomposait à la main la même triade : un `<Label>` de
+ * shadcn, un `Input` de HeroUI v2 et un `<small className="text-red-500">` pour l'erreur.
+ * Trois bibliothèques pour un champ, et une erreur peinte dans une palette sans variante
  * sombre, à côté d'un champ dont l'état d'erreur venait, lui, du thème.</p>
  *
  * <p>Ici l'erreur est portée par le champ lui-même : `isInvalid` colore la bordure et
@@ -65,12 +66,14 @@ export function ChampMontant({
   aide,
   erreur,
   label,
+  max,
   onChange,
   valeur,
 }: {
   aide?: string;
   erreur?: string;
   label: string;
+  max?: number;
   onChange: (v: number) => void;
   valeur: number | undefined;
 }) {
@@ -78,6 +81,7 @@ export function ChampMontant({
     <NumberField
       formatOptions={{ maximumFractionDigits: 0 }}
       isInvalid={Boolean(erreur)}
+      maxValue={max}
       minValue={0}
       onChange={onChange}
       value={valeur ?? Number.NaN}
@@ -125,6 +129,55 @@ export function ChampZoneTexte({
       />
       {erreur && <span className="text-xs text-danger">{erreur}</span>}
     </div>
+  );
+}
+
+export function ChampMotDePasse({
+  erreur,
+  label,
+  onChange,
+  placeholder = '••••••••',
+  valeur,
+}: {
+  erreur?: string;
+  label: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  valeur: string;
+}) {
+  const [visible, setVisible] = React.useState(false);
+  return (
+    <TextField
+      isInvalid={Boolean(erreur)}
+      onChange={onChange}
+      type={visible ? 'text' : 'password'}
+      value={valeur ?? ''}
+    >
+      <Label>{label}</Label>
+      <InputGroup>
+        <InputGroup.Input placeholder={placeholder} />
+        {/*
+         * C'etait un `<button type="button">` nu place en `endContent` : sans etat de
+         * focus, sans nom accessible, et sans dire s'il montre ou masque.
+         */}
+        <InputGroup.Suffix>
+          <Button
+            aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+            isIconOnly
+            onPress={() => setVisible((v) => !v)}
+            size="sm"
+            variant="ghost"
+          >
+            {visible ? (
+              <EyeOff aria-hidden="true" className="size-4" />
+            ) : (
+              <Eye aria-hidden="true" className="size-4" />
+            )}
+          </Button>
+        </InputGroup.Suffix>
+      </InputGroup>
+      {erreur && <FieldError>{erreur}</FieldError>}
+    </TextField>
   );
 }
 

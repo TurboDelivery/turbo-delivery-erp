@@ -8,7 +8,7 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import EtatErreur from '@/components/commons/EtatErreur';
-import { ChampListe } from '@/components/personnel/common/champs-personnel';
+import { ChampListe } from '@/components/commons/champs-formulaire';
 
 import { obtenirAnomalies } from '@/features/personnel/apis/personnel-historisation.api';
 import { useAnomaliesQuery } from '@/features/personnel/queries/personnel-historisation.query';
