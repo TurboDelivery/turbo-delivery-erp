@@ -2,18 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableColumn,
-  TableRow,
-  TableCell,
-  Pagination,
-} from '@/components/heroui';
+import { Button, Card, Table, ToggleButton, ToggleButtonGroup } from '@heroui-v3/react';
+
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import { flexRender } from '@tanstack/react-table';
 import { Landmark, Clock, CheckCircle2, FileCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { createCaissierColumns, getCaissierStatutConfig } from './caissier-columns';
 import { FactureMobileCard, MobileCardList } from '@/components/finance/shared/facture-mobile-card';
 import ConfirmerReceptionModal from './confirmer-reception-modal';
@@ -182,84 +175,87 @@ export default function CaissierView() {
         ))}
       </GrilleStats>
 
-      {/* Filtres */}
-      <div className="bg-surface rounded-xl border border-separator p-4 shadow-xs">
-        <div className="flex flex-wrap gap-1.5">
-          {statutChips.map((s) => {
-            const active = s === 'Tous' ? !statut : statut === s;
-            return (
-              <button
-                key={s}
-                onClick={() => handleStatutChip(s)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  active
-                    ? 'bg-indigo-600 border-indigo-600 text-white'
-                    : 'bg-surface border-separator text-muted hover:border-indigo-300 hover:text-indigo-600'
-                }`}
-              >
+      {/*
+       * Les puces de filtre etaient des `<button>` ecrits a la main, peints en
+       * `bg-indigo-600 text-white` a l'etat actif — de l'indigo, qui n'est ni la couleur
+       * de marque ni un jeton du theme. C'est un `ToggleButtonGroup`.
+       */}
+      <Card>
+        <Card.Content>
+          <ToggleButtonGroup
+            className="flex-wrap"
+            onSelectionChange={(sel) => {
+              const v = Array.from(sel)[0];
+              if (v) handleStatutChip(String(v) as StatutChip);
+            }}
+            selectedKeys={new Set([statut || 'Tous'])}
+            selectionMode="single"
+          >
+            {statutChips.map((s) => (
+              <ToggleButton id={s} key={s}>
                 {s}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </Card.Content>
+      </Card>
 
       {/* Table — desktop uniquement (≥ md) */}
-      <div className="hidden md:block bg-surface rounded-xl border border-separator shadow-xs overflow-hidden">
-        <Table
-          isStriped
-          aria-label="Factures caissier"
-          bottomContent={
-            totalPages > 1 ? (
-              <div className="flex justify-center py-3">
-                <Pagination
-                  showControls
-                  page={page + 1}
-                  total={totalPages}
-                  onChange={(p) => setPage(p - 1)}
-                />
-              </div>
-            ) : null
-          }
-          classNames={{
-            wrapper: 'rounded-none shadow-none p-0',
-            th: 'bg-surface-secondary text-muted text-xs uppercase tracking-wide',
-          }}
-        >
-          <TableHeader>
-            {table.getFlatHeaders().map((header) => (
-              <TableColumn key={header.id}>
-                {flexRender(header.column.columnDef.header, header.getContext())}
-              </TableColumn>
-            ))}
-          </TableHeader>
-          <TableBody
-            emptyContent={isError ? String(error) : 'Aucune facture trouvée'}
-            loadingContent={<div className="py-12 text-sm text-muted">Chargement…</div>}
-            isLoading={isLoading}
-          >
-            {isLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {table.getFlatHeaders().map((h) => (
-                      <TableCell key={h.id}>
-                        <div className="h-4 rounded bg-surface-tertiary animate-pulse" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              : table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-      </div>
+      <Card className="hidden md:block">
+        <Card.Content className="p-0">
+          <Table>
+            <Table.ScrollContainer>
+              <Table.Content aria-label="Factures caissier" className="min-w-[52rem]">
+                <Table.Header>
+                  {table.getFlatHeaders().map((header, i) => (
+                    <Table.Column id={header.id} isRowHeader={i === 0} key={header.id}>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </Table.Column>
+                  ))}
+                </Table.Header>
+
+                <Table.Body
+                  renderEmptyState={() =>
+                    isLoading ? null : (
+                      <p className="py-8 text-center text-sm text-muted">
+                        {isError ? String(error) : 'Aucune facture trouvée'}
+                      </p>
+                    )
+                  }
+                >
+                  {isLoading
+                    ? Array.from({ length: 6 }).map((_, i) => (
+                        <Table.Row id={`sq-${i}`} key={`sq-${i}`}>
+                          {table.getFlatHeaders().map((h) => (
+                            <Table.Cell key={`sq-${i}-${h.id}`}>
+                              <div className="h-4 animate-pulse rounded bg-surface-secondary" />
+                            </Table.Cell>
+                          ))}
+                        </Table.Row>
+                      ))
+                    : null}
+
+                  {(isLoading ? [] : table.getRowModel().rows).map((row) => (
+                    <Table.Row id={row.id} key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <Table.Cell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </Table.Cell>
+                      ))}
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Content>
+            </Table.ScrollContainer>
+
+            {totalPages > 1 && (
+              <Table.Footer className="justify-center">
+                <PaginationTableau onPage={(pp) => setPage(pp - 1)} page={page + 1} total={totalPages} />
+              </Table.Footer>
+            )}
+          </Table>
+        </Card.Content>
+      </Card>
 
       {/* Mobile — cartes tactiles (remplace le tableau < md) */}
       <MobileCardList>
@@ -293,18 +289,20 @@ export default function CaissierView() {
                 actions={
                   isFiche ? (
                     <Button
-                      onClick={() => setFactureAConfirmer(f)}
-                      className={`w-full text-white text-sm gap-1.5 ${f.statut === 'Rejeté DGA' ? 'bg-red-600 hover:bg-red-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                      className="w-full gap-1.5 text-sm"
+                      onPress={() => setFactureAConfirmer(f)}
+                      variant={f.statut === 'Rejeté DGA' ? 'danger' : 'primary'}
                     >
                       <Landmark className="w-4 h-4" />
                       {f.statut === 'Rejeté DGA' ? 'Re-soumettre fiche' : 'Enregistrer fiche de paiement'}
                     </Button>
                   ) : isDepot ? (
                     <Button
-                      onClick={() => setFactureDepotBanque(f)}
-                      className="w-full bg-green-600 hover:bg-green-700 text-white text-sm gap-1.5"
+                      className="w-full gap-1.5 text-sm"
+                      onPress={() => setFactureDepotBanque(f)}
+                      variant="primary"
                     >
-                      <Landmark className="w-4 h-4" /> Dépôt en banque
+                      <Landmark aria-hidden="true" className="size-4" /> Dépôt en banque
                     </Button>
                   ) : undefined
                 }
@@ -314,7 +312,7 @@ export default function CaissierView() {
         )}
         {totalPages > 1 && (
           <div className="flex justify-center pt-2">
-            <Pagination showControls page={page + 1} total={totalPages} onChange={(p) => setPage(p - 1)} />
+            <PaginationTableau onPage={(pp) => setPage(pp - 1)} page={page + 1} total={totalPages} />
           </div>
         )}
       </MobileCardList>

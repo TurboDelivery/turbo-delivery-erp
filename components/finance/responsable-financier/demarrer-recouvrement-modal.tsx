@@ -1,31 +1,37 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/heroui';
-import type { IFactureRF } from './responsable-financier-columns';
-import { useAgentsRecouvrementQuery, type IAgentRecouvrement } from '@/features/responsable-financier';
+import { Button, Drawer, Label, Radio, RadioGroup, Skeleton } from '@heroui-v3/react';
+import { useEffect, useState } from 'react';
+
 import EtatErreur from '@/components/commons/EtatErreur';
+import { type IAgentRecouvrement, useAgentsRecouvrementQuery } from '@/features/responsable-financier';
 import { formatMontant } from '@/utils/format.utils';
+
+import type { IFactureRF } from './responsable-financier-columns';
 
 export type IAgent = IAgentRecouvrement;
 
 interface Props {
-  open: boolean;
-  onClose: () => void;
   facture: IFactureRF | null;
+  onClose: () => void;
   onConfirm: (facture: IFactureRF, agent: IAgent) => void;
+  open: boolean;
 }
 
-
-export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onConfirm }: Props) {
-  const { data: agents = [], isLoading, isError, isFetching, refetch } = useAgentsRecouvrementQuery();
+/**
+ * Le panneau d'assignation d'un agent de recouvrement.
+ *
+ * <p>C'était un `Sheet` shadcn peint à la main : `bg-red-600 hover:bg-red-700 text-white`
+ * pour le bouton, `border-red-400 bg-red-50` pour l'agent choisi, `text-red-500` pour le
+ * montant et pour l'astérisque du champ requis — cinq teintes de la palette Tailwind sans
+ * variante sombre. C'est le `Drawer` de la bibliothèque.</p>
+ *
+ * <p>La liste des agents était une pile de `<button>` avec une coche dessinée en SVG à la
+ * main. C'est un choix UNIQUE parmi N : un `RadioGroup` le dit, l'annonce aux lecteurs
+ * d'écran et se parcourt aux flèches.</p>
+ */
+export default function DemarrerRecouvrementDrawer({ facture, onClose, onConfirm, open }: Props) {
+  const { data: agents = [], isError, isFetching, isLoading, refetch } = useAgentsRecouvrementQuery();
   const [selectedAgent, setSelectedAgent] = useState<IAgent | null>(null);
 
   // Reset à chaque ouverture / changement de facture : le COMPTABLE doit
@@ -42,110 +48,104 @@ export default function DemarrerRecouvrementDrawer({ open, onClose, facture, onC
   }
 
   return (
-    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0 gap-0">
-        {/* Header */}
-        <SheetHeader className="px-6 py-5 border-b border-separator">
-          <SheetTitle className="text-base font-semibold text-foreground">
-            Démarrer le recouvrement
-          </SheetTitle>
-        </SheetHeader>
+    <Drawer isOpen={open} onOpenChange={(v) => !v && onClose()}>
+      <Drawer.Backdrop>
+        <Drawer.Content placement="right">
+          <Drawer.Dialog className="w-full sm:max-w-md">
+            <Drawer.Header>
+              <Drawer.Heading>Démarrer le recouvrement</Drawer.Heading>
+              <Drawer.CloseTrigger />
+            </Drawer.Header>
 
-        {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <p className="text-sm text-muted">
-            Assigner un agent recouvrement pour cette facture. L&apos;agent sera responsable de la
-            récupération du paiement auprès du partenaire.
-          </p>
-
-          {/* Détails de la facture */}
-          {facture && (
-            <div className="rounded-xl border border-separator bg-surface-secondary p-4 space-y-3">
-              <p className="text-xs font-semibold text-muted uppercase tracking-wide">
-                Détails de la facture
+            <Drawer.Body className="flex flex-col gap-5">
+              <p className="text-sm text-muted">
+                Assigner un agent recouvrement pour cette facture. L&apos;agent sera responsable de
+                la récupération du paiement auprès du partenaire.
               </p>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-xs text-muted mb-0.5">N° Facture</p>
-                  <p className="font-medium text-foreground">{facture.numero}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted mb-0.5">Partenaire</p>
-                  <p className="font-medium text-foreground">{facture.partenaire}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted mb-0.5">Montant</p>
-                  <p className="font-semibold text-red-500">{formatMontant(facture.montant)}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted mb-0.5">Date d&apos;émission</p>
-                  <p className="font-medium text-foreground">{facture.emission}</p>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {/* Sélection agent */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Sélectionner un agent recouvrement <span className="text-red-500">*</span>
-            </label>
-            <div className="space-y-2">
-              {/* sur echec la liste restait vide : le comptable croyait qu'aucun agent n'existait */}
-              {isLoading
-                ? Array.from({ length: 3 }).map((_, i) => (
-                    <Skeleton key={i} className="h-14 rounded-xl w-full" />
-                  ))
-                : isError
-                ? <EtatErreur quoi="les agents de recouvrement" onReessayer={() => refetch()} enCours={isFetching} />
-                : agents.map((agent) => (
-                <button
-                  key={agent.id}
-                  type="button"
-                  onClick={() => setSelectedAgent(agent)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-colors ${
-                    selectedAgent?.id === agent.id
-                      ? 'border-red-400 bg-red-50'
-                      : 'border-separator bg-surface hover:border-separator'
-                  }`}
-                >
-                  <div className="w-8 h-8 rounded-full bg-surface-tertiary flex items-center justify-center shrink-0 text-xs font-bold text-muted">
-                    {agent.nom.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{agent.nom}</p>
-                    <p className="text-xs text-muted">{agent.role}</p>
-                  </div>
-                  {selectedAgent?.id === agent.id && (
-                    <div className="ml-auto w-4 h-4 rounded-full bg-red-500 flex items-center justify-center shrink-0">
-                      <svg
-                        className="w-2.5 h-2.5 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={3}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
+              {facture && (
+                <div className="flex flex-col gap-3 rounded-xl border border-separator bg-surface-secondary p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Détails de la facture
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="mb-0.5 text-xs text-muted">N° Facture</p>
+                      <p className="font-medium text-foreground">{facture.numero}</p>
                     </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+                    <div>
+                      <p className="mb-0.5 text-xs text-muted">Partenaire</p>
+                      <p className="font-medium text-foreground">{facture.partenaire}</p>
+                    </div>
+                    <div>
+                      <p className="mb-0.5 text-xs text-muted">Montant</p>
+                      <p className="font-semibold tabular-nums text-foreground">
+                        {formatMontant(facture.montant)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-0.5 text-xs text-muted">Date d&apos;émission</p>
+                      <p className="font-medium text-foreground">{facture.emission}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t border-separator">
-          <Button
-            onClick={handleConfirm}
-            disabled={!selectedAgent}
-            className="w-full bg-red-600 hover:bg-red-700 text-white text-sm py-2.5 disabled:opacity-50"
-          >
-            Démarrer le recouvrement
-          </Button>
-        </div>
-      </SheetContent>
-    </Sheet>
+              {/* sur echec la liste restait vide : le comptable croyait qu'aucun agent n'existait */}
+              {isLoading ? (
+                <div className="flex flex-col gap-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton className="h-14 w-full rounded-xl" key={`sq-${i}`} />
+                  ))}
+                </div>
+              ) : isError ? (
+                <EtatErreur
+                  enCours={isFetching}
+                  onReessayer={() => refetch()}
+                  quoi="les agents de recouvrement"
+                />
+              ) : (
+                <RadioGroup
+                  isRequired
+                  onChange={(v) => setSelectedAgent(agents.find((a) => a.id === v) ?? null)}
+                  value={selectedAgent?.id ?? ''}
+                >
+                  <Label>Sélectionner un agent recouvrement</Label>
+                  <div className="flex flex-col gap-2">
+                    {agents.map((agent) => (
+                      <Radio key={agent.id} value={agent.id}>
+                        <Radio.Content className="flex w-full items-center gap-3">
+                          <Radio.Control>
+                            <Radio.Indicator />
+                          </Radio.Control>
+                          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-tertiary text-xs font-bold text-muted">
+                            {agent.nom.charAt(0)}
+                          </span>
+                          <span className="flex flex-col items-start">
+                            <span className="text-sm font-medium text-foreground">{agent.nom}</span>
+                            <span className="text-xs text-muted">{agent.role}</span>
+                          </span>
+                        </Radio.Content>
+                      </Radio>
+                    ))}
+                  </div>
+                </RadioGroup>
+              )}
+            </Drawer.Body>
+
+            <Drawer.Footer>
+              <Button
+                className="w-full"
+                isDisabled={!selectedAgent}
+                onPress={handleConfirm}
+                variant="primary"
+              >
+                Démarrer le recouvrement
+              </Button>
+            </Drawer.Footer>
+          </Drawer.Dialog>
+        </Drawer.Content>
+      </Drawer.Backdrop>
+    </Drawer>
   );
 }

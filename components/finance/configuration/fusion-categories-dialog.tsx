@@ -1,18 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Button,
-  Chip,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Radio,
-  RadioGroup,
-  Spinner,
-} from '@/components/heroui';
+import { Button, Checkbox, Chip, Modal, Radio, RadioGroup, Spinner } from '@heroui-v3/react';
+
+import { cn } from '@/lib/utils';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
@@ -90,74 +81,83 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
   });
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="3xl" scrollBehavior="inside">
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              <span className="flex items-center gap-2 text-primary">
-                <GitMerge className="h-5 w-5" />
-                Fusionner des catégories en doublon
-              </span>
-              <span className="text-xs font-normal text-default-400">
-                Choisis la catégorie à GARDER. Les charges et dépenses des autres y sont
-                réassignées, puis les catégories perdantes sont supprimées (définitif).
-              </span>
-            </ModalHeader>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal.Backdrop>
+        <Modal.Container>
+          <Modal.Dialog className="max-w-3xl">
+            <Modal.Header>
+              <Modal.Heading className="flex flex-col gap-1">
+                <span className="flex items-center gap-2">
+                  <GitMerge aria-hidden="true" className="size-5" />
+                  Fusionner des catégories en doublon
+                </span>
+                <span className="text-xs font-normal text-muted">
+                  Choisis la catégorie à GARDER. Les charges et dépenses des autres y sont
+                  réassignées, puis les catégories perdantes sont supprimées (définitif).
+                </span>
+              </Modal.Heading>
+              <Modal.CloseTrigger />
+            </Modal.Header>
 
-            <ModalBody>
+            <Modal.Body className="flex flex-col gap-3">
               {isLoading ? (
-                <div className="flex justify-center py-10">
-                  <Spinner color="primary" label="Analyse des données rattachées…" />
+                <div className="flex flex-col items-center justify-center gap-2 py-10">
+                  <Spinner />
+                  <p className="text-sm text-muted">Analyse des données rattachées…</p>
                 </div>
               ) : isError ? (
                 <p className="py-6 text-center text-sm text-danger-soft-foreground">
                   Impossible de charger les données rattachées.
                 </p>
               ) : (
-                <RadioGroup value={gardeId} onValueChange={setGardeId}>
+                <RadioGroup onChange={setGardeId} value={gardeId}>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {cats.map((c) => {
                       const estSuggere = c.total === maxTotal && maxTotal > 0;
                       const estGarde = c.id === gardeId;
                       return (
                         <div
+                          className={cn(
+                            'rounded-xl border p-3 transition-colors',
+                            estGarde ? 'border-accent bg-accent-soft/30' : 'border-separator',
+                          )}
                           key={c.id}
-                          className={`rounded-xl border p-3 transition-colors ${
-                            estGarde ? 'border-primary bg-primary-50' : 'border-default-200'
-                          }`}
                         >
-                          <div className="flex items-start gap-3">
-                            <Radio value={c.id} className="mt-1" />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <span className="truncate text-sm font-semibold text-default-800">
-                                  {c.nomCategorie}
+                          <Radio className="w-full items-start" value={c.id}>
+                            <Radio.Content className="flex w-full items-start gap-3">
+                              <Radio.Control className="mt-1">
+                                <Radio.Indicator />
+                              </Radio.Control>
+                              <span className="flex min-w-0 flex-1 flex-col items-start">
+                                <span className="flex flex-wrap items-center gap-1.5">
+                                  <span className="truncate text-sm font-semibold text-foreground">
+                                    {c.nomCategorie}
+                                  </span>
+                                  {estSuggere && (
+                                    <Chip color="success" size="sm" variant="soft">
+                                      <Chip.Label>+ de données</Chip.Label>
+                                    </Chip>
+                                  )}
                                 </span>
-                                {estSuggere && (
-                                  <Chip size="sm" color="success" variant="flat">
-                                    + de données
-                                  </Chip>
+                                {c.description && (
+                                  <span className="truncate text-xs text-muted">{c.description}</span>
                                 )}
-                              </div>
-                              {c.description && (
-                                <p className="truncate text-xs text-default-400">{c.description}</p>
-                              )}
-                            </div>
-                          </div>
+                              </span>
+                            </Radio.Content>
+                          </Radio>
 
-                          <div className="mt-3 space-y-1 border-t border-default-100 pt-2">
+                          <div className="mt-3 flex flex-col gap-1 border-t border-separator pt-2">
                             {METRIQUES.map((m) => (
-                              <div key={m.key} className="flex justify-between text-xs">
-                                <span className="text-default-500">{m.label}</span>
-                                <span className="font-medium tabular-nums text-default-700">
+                              <div className="flex justify-between text-xs" key={m.key}>
+                                <span className="text-muted">{m.label}</span>
+                                <span className="font-medium tabular-nums text-foreground">
                                   {c[m.key] as number}
                                 </span>
                               </div>
                             ))}
-                            <div className="flex justify-between border-t border-default-100 pt-1 text-xs font-semibold">
-                              <span className="text-default-600">Total lignes</span>
-                              <span className="tabular-nums text-primary">{c.total}</span>
+                            <div className="flex justify-between border-t border-separator pt-1 text-xs font-semibold">
+                              <span className="text-muted">Total lignes</span>
+                              <span className="tabular-nums text-foreground">{c.total}</span>
                             </div>
                           </div>
                         </div>
@@ -167,40 +167,57 @@ export function FusionCategoriesDialog({ ids, isOpen, onOpenChange, onDone }: Pr
                 </RadioGroup>
               )}
 
+              {/*
+               * La confirmation etait un `<input type="checkbox">` BRUT dans un `<label>`
+               * peint en `bg-warning-50 text-warning-800` : deux teintes de l'ancienne
+               * palette pour un avertissement qui, lui, dit bien quelque chose.
+               */}
               {!isLoading && !isError && (
-                <label className="mt-2 flex items-start gap-2 rounded-lg bg-warning-50 p-3 text-xs text-warning-800">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning-soft-foreground" />
-                  <span className="flex-1">
-                    Je confirme fusionner les {ids.length} catégories dans celle sélectionnée. Les
-                    autres seront supprimées définitivement.
-                  </span>
-                  <input
-                    type="checkbox"
-                    checked={confirme}
-                    onChange={(e) => setConfirme(e.target.checked)}
-                    className="mt-0.5 h-4 w-4"
+                <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3 text-xs text-foreground">
+                  <AlertTriangle
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-warning-soft-foreground"
                   />
-                </label>
+                  <Checkbox isSelected={confirme} onChange={setConfirme}>
+                    <Checkbox.Content className="items-start">
+                      <Checkbox.Control className="mt-0.5">
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <span className="flex-1 text-left">
+                        Je confirme fusionner les {ids.length} catégories dans celle sélectionnée.
+                        Les autres seront supprimées définitivement.
+                      </span>
+                    </Checkbox.Content>
+                  </Checkbox>
+                </div>
               )}
-            </ModalBody>
+            </Modal.Body>
 
-            <ModalFooter>
-              <Button variant="light" onPress={onClose} isDisabled={fusion.isPending}>
+            <Modal.Footer>
+              <Button
+                isDisabled={fusion.isPending}
+                onPress={() => onOpenChange(false)}
+                variant="ghost"
+              >
                 Annuler
               </Button>
               <Button
-                color="primary"
-                startContent={<GitMerge className="h-4 w-4" />}
-                isLoading={fusion.isPending}
                 isDisabled={!gardeId || !confirme || cats.length < 2 || !userId}
+                isPending={fusion.isPending}
                 onPress={() => fusion.mutate()}
+                variant="primary"
               >
+                {fusion.isPending ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <GitMerge aria-hidden="true" className="size-4" />
+                )}
                 Fusionner dans cette catégorie
               </Button>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
+            </Modal.Footer>
+          </Modal.Dialog>
+        </Modal.Container>
+      </Modal.Backdrop>
     </Modal>
   );
 }
