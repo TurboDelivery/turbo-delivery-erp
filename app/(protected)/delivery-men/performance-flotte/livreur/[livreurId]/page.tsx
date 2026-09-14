@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
+import { BoutonExportFiche } from '@/features/performance/components/bouton-export-fiche';
 import { DetailJournalier } from '@/features/performance/components/detail-journalier';
 import { SelecteurSemaine } from '@/features/performance/components/selecteur-semaine';
 import { lundiDeLaSemaineEnCours } from '@/features/performance/utils/semaine-iso.utils';
@@ -73,9 +74,12 @@ export default async function Page({
                     Retour à la liste
                 </Link>
 
-                <h1 className="text-2xl font-bold text-foreground">
-                    {ligne?.turboy?.nom ?? 'Livreur'}
-                </h1>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <h1 className="text-2xl font-bold text-foreground">
+                        {ligne?.turboy?.nom ?? 'Livreur'}
+                    </h1>
+                    {ligne && creneau && <BoutonExportFiche ligne={ligne} periode={creneau.label} />}
+                </div>
                 <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted">
                     {ligne?.turboy?.code && <span>Code {ligne.turboy.code}</span>}
                     {ligne?.typeLivreur && <span>· {display.label}</span>}

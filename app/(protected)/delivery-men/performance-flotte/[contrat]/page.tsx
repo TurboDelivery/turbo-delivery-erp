@@ -10,6 +10,7 @@ import { SelecteurSemaine } from '@/features/performance/components/selecteur-se
 import { lundiDeLaSemaineEnCours, semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
 import type { TurboyType } from '@/features/turboys/types/turboys.types';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
+import { BoutonExportListe } from '@/features/performance/components/bouton-export-liste';
 import { getPerformanceParContrat } from '@/src/performance/performance-flotte.action';
 import { BandeauFlotte } from '@/features/performance/components/bandeau-flotte';
 import { getCreneauDuLundi, getStatsCreneau } from '@/src/performance/creneau-paie.action';
@@ -71,11 +72,30 @@ export default async function Page({
                     Performance de la flotte
                 </Link>
 
-                <h1 className="text-2xl font-bold text-foreground">{display.labelPlural}</h1>
-                <p className="mt-1 text-sm text-muted">
-                    {lignes.length} livreur{lignes.length > 1 ? 's' : ''} dans cette catégorie,
-                    programmé{lignes.length > 1 ? 's' : ''} ou non.
-                </p>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <h1 className="text-2xl font-bold text-foreground">{display.labelPlural}</h1>
+                        <p className="mt-1 text-sm text-muted">
+                            {lignes.length} livreur{lignes.length > 1 ? 's' : ''} dans cette catégorie,
+                            programmé{lignes.length > 1 ? 's' : ''} ou non.
+                        </p>
+                    </div>
+
+                    <BoutonExportListe
+                        categorie={display.labelPlural}
+                        lignes={lignes.map((l) => ({
+                            nomComplet: l.nomComplet,
+                            nbTickets: l.nbTickets ?? 0,
+                            commission: l.commission ?? 0,
+                            prime: l.prime ?? 0,
+                            performance: l.performance ?? 0,
+                            // NUL et non zero : un livreur sans emploi du temps n'a pas
+                            // « zero jour programme », il n'a pas ete programme du tout.
+                            joursProgrammes: l.creneau ? (l.etats?.length ?? 0) : null,
+                        }))}
+                        periode={creneau?.label ?? (lundi ?? 'semaine en cours')}
+                    />
+                </div>
             </div>
 
             <SelecteurSemaine semaine={lundi} />
