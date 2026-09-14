@@ -26,6 +26,14 @@ interface Creneau {
     etats: Etat[];         
     performance: number;   
     commission: number;    
-    prime: number;         
+    prime: number;
+    /**
+     * Nombre de courses terminées sur la période.
+     *
+     * <p>L'indicateur d'activité principal du cahier des charges « Performance de la
+     * Flotte ». Servi par le backend depuis le 14/09/2026 ; optionnel dans le type pour
+     * qu'une réponse mise en cache avant cette date ne fasse pas tomber l'écran.</p>
+     */
+    nbTickets?: number;
   }
   

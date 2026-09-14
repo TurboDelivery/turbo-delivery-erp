@@ -23,7 +23,7 @@
  * ce module est desormais dans le graphe SERVEUR.</p>
  */
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconShieldLock, IconUser, IconUsers } from '@tabler/icons-react';
-import { AlertTriangle, BarChart, Bell, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Wallet } from 'lucide-react';
+import { AlertTriangle, BarChart, Bell, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
 import type { AppAbility, AppActions, AppSubjects } from '@/lib/casl/ability';
@@ -167,6 +167,13 @@ const menuData: IMenuData[] = [
       // { icon: IconMotorbike, title: 'Liste', path: '/delivery-men', can: { action: 'read', subject: 'Livreur' } },
       { icon: IconMotorbike, title: 'Coursiers', path: '/delivery-men/men', can: { action: 'read', subject: 'Livreur' } },
       { icon: TrendingUp, title: 'Performance', path: '/delivery-men/performance', can: { action: 'read', subject: 'Performance' } },
+      // Le module « Performance de la Flotte » (CDC du 10/09/2026). Il lit l'axe du
+      // CONTRAT (journalier / independant / superviseur), la ou l'entree ci-dessus lit
+      // celui de l'ASSIGNATION (bird / assigne). Deux axes, deux ecrans, pas un remplacement.
+      //
+      // Le sujet CASL est celui de l'entree voisine, a dessein : un sujet dedie fermerait
+      // la page a TOUT LE MONDE tant qu'aucun role ne l'aurait recu.
+      { icon: Users, title: 'Performance flotte', path: '/delivery-men/performance-flotte', can: { action: 'read', subject: 'Performance' } },
       { icon: History, title: 'Reporting & historisation', path: '/reporting', can: { action: 'read', subject: 'Reporting' } },
     ],
   },
