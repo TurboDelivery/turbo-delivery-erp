@@ -87,7 +87,12 @@ export default async function Page({
             {lignes.length === 0 ? (
                 <EmptyDataTable title="Aucun livreur dans cette catégorie" />
             ) : (
-                <UserListPerformanceBird data={lignes} />
+                <UserListPerformanceBird
+                    data={lignes}
+                    lienFiche={(id) =>
+                        `/delivery-men/performance-flotte/livreur/${id}?retour=${contrat}${lundi ? `&semaine=${lundi}` : ''}`
+                    }
+                />
             )}
         </div>
     );

@@ -1,5 +1,7 @@
 'use client';
 
+import { ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 
 import DropDownActionPerformance from './drop-down-action-performance';
@@ -26,13 +28,21 @@ const MOIS: Record<string, string> = {
 
 interface Props {
     data: LivreurPerformanceBirdEndTorubo[];
+    /**
+     * Le lien vers la fiche d'un livreur, quand l'ecran en a une.
+     *
+     * <p>Optionnel A DESSEIN. Les deux onglets historiques n'en ont pas et gardent leur
+     * menu de ligne ; le module « Performance de la Flotte » en a une et la lie. Rendre le
+     * lien obligatoire aurait force les anciens ecrans a en inventer un.</p>
+     */
+    lienFiche?: (livreurId: string) => string;
 }
 
 /** La cle du groupe des livreurs sans emploi du temps sur la periode. */
 const SANS_CRENEAU = 'sans-creneau';
 const LIBELLE_SANS_CRENEAU = 'Aucun créneau créé';
 
-export default function UserListPerformanceBird({ data }: Props) {
+export default function UserListPerformanceBird({ data, lienFiche }: Props) {
     /** Un libellé de semaine lisible, à partir des deux bornes du créneau. */
     const libelle = (debut: string, fin: string) => {
         const jd = debut?.slice(8, 10);
@@ -116,7 +126,19 @@ export default function UserListPerformanceBird({ data }: Props) {
             libelleSemaine={active.cle === SANS_CRENEAU ? active.libelle : `Semaine du ${active.libelle}`}
             lignes={active.lignes}
             onSemaine={setSemaineActive}
-            rendreActions={(l) => <DropDownActionPerformance id={l.id} />}
+            rendreActions={(l) =>
+                lienFiche ? (
+                    <Link
+                        className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+                        href={lienFiche(l.id)}
+                    >
+                        Fiche
+                        <ChevronRight aria-hidden="true" className="size-3.5" />
+                    </Link>
+                ) : (
+                    <DropDownActionPerformance id={l.id} />
+                )
+            }
             semaineActive={active.cle}
             semaines={semaines.map((s) => ({
                 cle: s.cle,
