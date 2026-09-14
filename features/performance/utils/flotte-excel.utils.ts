@@ -20,7 +20,15 @@ export interface LigneFlotteExport {
   nbTickets: number;
   commission: number;
   prime: number;
-  performance: number;
+  /**
+   * Note sur cent, NULLE quand elle n'est pas applicable.
+   *
+   * <p>Elle se calcule sur les jours travaillés d'un emploi du temps : sans emploi, elle
+   * n'existe pas. Le type la déclarait `number`, donc l'écran écrivait `?? 0` pour le
+   * satisfaire, et le classeur imprimait « 0,0 % » pour les indépendants — exactement le
+   * mensonge que l'écran venait d'arrêter de dire. Une cellule VIDE se lit « non mesuré ».</p>
+   */
+  performance: number | null;
   /** Nombre de jours programmés. Nul quand aucun emploi du temps n'existe. */
   joursProgrammes: number | null;
 }

@@ -88,7 +88,11 @@ export default async function Page({
                             nbTickets: l.nbTickets ?? 0,
                             commission: l.commission ?? 0,
                             prime: l.prime ?? 0,
-                            performance: l.performance ?? 0,
+                            // NULLE et non zero : la note se calcule sur les jours
+                            // travailles d'un emploi du temps. Le `?? 0` imprimait
+                            // « 0,0 % » dans le fichier pour les independants, alors que
+                            // l'ecran, lui, rend un tiret.
+                            performance: l.performance ?? null,
                             // NUL et non zero : un livreur sans emploi du temps n'a pas
                             // « zero jour programme », il n'a pas ete programme du tout.
                             joursProgrammes: l.creneau ? (l.etats?.length ?? 0) : null,
