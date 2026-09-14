@@ -2,9 +2,11 @@ import { Metadata } from 'next';
 
 import { CartesContrat, type SyntheseContrat } from '@/features/performance/components/cartes-contrat';
 import { SelecteurSemaine } from '@/features/performance/components/selecteur-semaine';
-import { semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
+import { lundiDeLaSemaineEnCours, semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
 import type { TurboyType } from '@/features/turboys/types/turboys.types';
 import { getPerformanceParContrat } from '@/src/performance/performance-flotte.action';
+import { BandeauFlotte } from '@/features/performance/components/bandeau-flotte';
+import { getCreneauDuLundi, getStatsCreneau } from '@/src/performance/creneau-paie.action';
 
 export const metadata: Metadata = {
     title: 'PERFORMANCE DE LA FLOTTE',
@@ -35,6 +37,19 @@ export default async function Page({
     const { semaine: lundi } = await searchParams;
     const iso = lundi ? semaineIsoDepuisLundi(lundi) : undefined;
 
+    /*
+     * La synthese de la flotte vient de la GRILLE DE PAIE du creneau, pas d'un recalcul :
+     * c'est ce que le cahier des charges demande au §4.1, et l'arbitrage de l'owner du
+     * 14/09 fait de la paie la reference. Le rapprochement se fait sur la date de debut,
+     * seule donnee commune entre un creneau de paie et une semaine ISO - deux objets
+     * differents qui portent tous deux le mot « semaine ».
+     *
+     * Les deux lectures s'ENCHAINENT par necessite : les totaux se lisent par identifiant
+     * de creneau, qu'il faut donc avoir trouve d'abord.
+     */
+    const creneau = await getCreneauDuLundi(lundi ?? lundiDeLaSemaineEnCours());
+    const stats = creneau ? await getStatsCreneau(creneau.id) : null;
+
     const reponses = await Promise.all(
         CONTRATS.map((c) => getPerformanceParContrat(c, iso?.annee, iso?.semaine)),
     );
@@ -64,6 +79,8 @@ export default async function Page({
             </div>
 
             <SelecteurSemaine semaine={lundi} />
+
+            <BandeauFlotte creneau={creneau} stats={stats} />
 
             <CartesContrat semaine={lundi} syntheses={syntheses} />
 

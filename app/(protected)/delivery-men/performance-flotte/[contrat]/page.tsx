@@ -7,10 +7,12 @@ import { AvertissementListeTronquee } from '@/components/commons/AvertissementLi
 import UserListPerformanceBird from '@/components/dashboard/delivery-men/performance/user-list-performance-bird';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
 import { SelecteurSemaine } from '@/features/performance/components/selecteur-semaine';
-import { semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
+import { lundiDeLaSemaineEnCours, semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
 import type { TurboyType } from '@/features/turboys/types/turboys.types';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { getPerformanceParContrat } from '@/src/performance/performance-flotte.action';
+import { BandeauFlotte } from '@/features/performance/components/bandeau-flotte';
+import { getCreneauDuLundi, getStatsCreneau } from '@/src/performance/creneau-paie.action';
 
 export const metadata: Metadata = {
     title: 'PERFORMANCE PAR CATÉGORIE',
@@ -41,6 +43,19 @@ export default async function Page({
     const iso = lundi ? semaineIsoDepuisLundi(lundi) : undefined;
     const reponse = await getPerformanceParContrat(contrat, iso?.annee, iso?.semaine);
 
+    /*
+     * La synthese de la flotte vient de la GRILLE DE PAIE du creneau, pas d'un recalcul :
+     * c'est ce que le cahier des charges demande au §4.1, et l'arbitrage de l'owner du
+     * 14/09 fait de la paie la reference. Le rapprochement se fait sur la date de debut,
+     * seule donnee commune entre un creneau de paie et une semaine ISO - deux objets
+     * differents qui portent tous deux le mot « semaine ».
+     *
+     * Les deux lectures s'ENCHAINENT par necessite : les totaux se lisent par identifiant
+     * de creneau, qu'il faut donc avoir trouve d'abord.
+     */
+    const creneau = await getCreneauDuLundi(lundi ?? lundiDeLaSemaineEnCours());
+    const stats = creneau ? await getStatsCreneau(creneau.id) : null;
+
     const lignes = reponse?.content ?? [];
     const display = getTurboyTypeDisplay(contrat);
     const requete = lundi ? `?semaine=${lundi}` : '';
@@ -64,6 +79,8 @@ export default async function Page({
             </div>
 
             <SelecteurSemaine semaine={lundi} />
+
+            <BandeauFlotte creneau={creneau} stats={stats} />
 
             <AvertissementListeTronquee rendus={lignes.length} total={reponse?.totalElements} />
 
