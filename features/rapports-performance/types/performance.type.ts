@@ -99,6 +99,18 @@ export interface IDashboardData {
    * `[]` l'affiche avec sa raison.</p>
    */
   parStore?: IStorePerformance[] | null;
+  /**
+   * Le recouvrement des factures de la période.
+   *
+   * <p>⚠ NUL en vue GLOBALE, où aucun partenaire n'est choisi : la liste serait alors toutes
+   * les factures du mois de tous les partenaires, ce qui n'est plus un détail de rapport mais
+   * l'écran Responsable Financier. Et la vue globale est l'état d'ARRIVÉE de l'écran, pas un
+   * cas rare : tant qu'aucun partenaire n'est sélectionné, le rapport y est. Le bloc doit donc
+   * dire pourquoi il manque, pas disparaître en silence.</p>
+   *
+   * <p>Présent en unitaire, multi et groupe.</p>
+   */
+  recouvrements?: IRecouvrementPeriode | null;
 }
 /**
  * Ce sur quoi le rapport a REELLEMENT ete calcule, tel que le serveur l'arbitre.
@@ -154,4 +166,75 @@ export interface IStorePerformance {
   deliveryFeesCollected: number;
   turboDeliveryServiceFees: number;
   totalFacture: number;
+}
+
+/**
+ * Une facture de la période, avec ce qui en a été recouvré.
+ *
+ * <p>⚠ `recouvre` est ce qui a été porté au crédit de la facture À CE JOUR, pas ce qui est
+ * rentré pendant la période du rapport : aucune colonne ne date un encaissement. Et ce n'est
+ * pas non plus « ce que l'agent recouvreur a déclaré recevoir » — la validation d'une facture
+ * consomme les acomptes du restaurant et décrémente le restant sans qu'aucun agent n'ait rien
+ * déclaré.</p>
+ */
+export interface IRecouvrementFacture {
+  restaurantId: string;
+  /** NUL sur une sélection unitaire : l'établissement est déjà le titre du rapport. */
+  etablissement: string | null;
+  /** La référence maison, du type `F20260811-AGHA-04217`. NULLE sur une vieille ligne. */
+  code: string | null;
+  /** GLOBALE, FRAIS ou COMMISSION : une même période peut porter deux factures. */
+  composante: string | null;
+  periodeDebut: string;
+  periodeFin: string;
+  montant: number;
+  recouvre: number;
+  restant: number;
+  statut: string | null;
+}
+
+/**
+ * Le bloc « Recouvrement des factures de la période ».
+ *
+ * <p>⚠ Les totaux NE SE DÉDUISENT PAS de `lignes` : la liste est plafonnée côté serveur, les
+ * totaux portent sur toutes les factures, et `nombreFactures` dit combien il y en avait. C'est
+ * ce qui permet à l'écran d'annoncer la troncature au lieu de la subir.</p>
+ *
+ * <p>⚠ Ces totaux ne se soustraient pas de « Facture totale à régler » : ce montant-là vient
+ * des COURSES, celui-ci des FACTURES, et les deux règles diffèrent sur les tickets écartés
+ * pour fraude et sur les périodes de désactivation.</p>
+ */
+/**
+ * Un mouvement d'argent sur une facture : une somme, un jour, une personne.
+ *
+ * <p>Deux evenements portent un montant, et ce sont les deux moments qui comptent : quand
+ * l'agent de recouvrement a encaisse chez le partenaire (« Acompte reçu », « Facture soldée »),
+ * et quand l'argent a ete remis au caissier (« Versement au caissier effectué »).</p>
+ *
+ * <p>⚠ Cette chronologie est PURGEABLE : réinitialiser une facture l'efface. Une facture peut
+ * donc porter un montant recouvré sans aucun mouvement, et ce n'est pas une anomalie de
+ * lecture. L'écran le dit plutôt que de laisser croire que rien n'a été encaissé.</p>
+ */
+export interface IMouvementRecouvrement {
+  /** La référence de la facture concernée. NULLE sur une vieille ligne sans code. */
+  factureCode: string | null;
+  date: string | null;
+  libelle: string;
+  montant: number;
+  /** Le nom de la personne. NUL quand l'employé n'est plus retrouvable. */
+  par: string | null;
+}
+
+export interface IRecouvrementPeriode {
+  lignes: IRecouvrementFacture[];
+  /** Le nombre RÉEL de factures de la période, avant plafond. */
+  nombreFactures: number;
+  totalMontant: number;
+  totalRecouvre: number;
+  totalRestant: number;
+  /**
+   * La chronologie des encaissements, toutes factures confondues, du plus ancien au plus
+   * récent. VIDE quand aucun mouvement n'est tracé.
+   */
+  mouvements: IMouvementRecouvrement[];
 }

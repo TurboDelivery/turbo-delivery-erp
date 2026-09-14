@@ -14,11 +14,16 @@ const queryClient = getQueryClient();
 export const performanceQueryOption = (params: IPerformanceParams) => {
   return {
     queryKey: performanceKeyQuery('dashboard', params),
-    queryFn: async () => {
-        const data = await performanceAPI.obtenirPerformance(params);
-        console.log('Données de performance obtenues:', data);
-        return data;
-    },
+    /*
+     * ⚠ Un `console.log` imprimait ICI la reponse ENTIERE dans la console du navigateur.
+     *
+     * Il datait d'avant ce lot et ne portait que des agregats. Depuis que la reponse porte le
+     * bloc de recouvrement, il imprime la liste des factures d'un partenaire, leurs references,
+     * leurs montants, ce qui reste du, et le nom des personnes qui ont encaisse. Ce n'est plus
+     * une trace de mise au point, c'est un releve de facturation dans la console d'un poste
+     * partage.
+     */
+    queryFn: () => performanceAPI.obtenirPerformance(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
   };
 };

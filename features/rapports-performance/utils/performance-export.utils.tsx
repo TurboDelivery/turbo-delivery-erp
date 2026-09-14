@@ -3,10 +3,24 @@ import { Document, Page, View, Text, StyleSheet, pdf } from '@react-pdf/renderer
 import {
   IFinancialDetails,
   IMainKPIs,
+  IMouvementRecouvrement,
+  IRecouvrementFacture,
+  IRecouvrementPeriode,
   ISecondaryKPIs,
   IStorePerformance,
 } from '../types/performance.type';
 import { libellePourFichier } from './selection.utils';
+import {
+  COLONNES_MOUVEMENT,
+  NOTE_ECART_FACTURE,
+  NOTE_MOUVEMENTS,
+  NOTE_RECOUVREMENT,
+  avecColonneEtablissement,
+  colonnesRecouvrement,
+  libelleTotalFactures,
+  texteCellule,
+  texteMouvement,
+} from '@/features/rapports-performance/components/recouvrement/recouvrement-table-columns';
 
 export interface ExportParams {
   mainKPIs?: IMainKPIs;
@@ -28,6 +42,12 @@ export interface ExportParams {
    * document ne porte alors aucune page de detail, exactement comme l'ecran.
    */
   parStore?: IStorePerformance[] | null;
+  /**
+   * Le recouvrement des factures de la periode. NUL en vue globale, ou aucun partenaire n'est
+   * choisi : le document ne porte alors aucune page de recouvrement, exactement comme l'ecran
+   * n'y porte qu'une explication.
+   */
+  recouvrements?: IRecouvrementPeriode | null;
   debut?: Date;
   fin?: Date;
 }
@@ -120,7 +140,69 @@ const s = StyleSheet.create({
   storeCellFacture: { width: 70, fontSize: 8, textAlign: 'right' },
   storeTh: { fontFamily: 'Helvetica-Bold' },
   storeTotalText: { fontFamily: 'Helvetica-Bold', color: '#065f46' },
+
+  /*
+   * Le recouvrement : huit colonnes au plus, a largeur FIXE en points.
+   *
+   * Sept colonnes en selection unitaire (535 pt), huit avec l'etablissement quand la
+   * selection en porte plusieurs. La somme utile d'une A4 moins les marges de 30 pt du
+   * gabarit fait 535 pt : en mode consolide, les colonnes de texte cedent la place a
+   * l'etablissement plutot que de deborder en silence.
+   */
+  recHeader: { flexDirection: 'row', backgroundColor: '#fed7aa', paddingVertical: 5, paddingHorizontal: 4, borderBottom: '1pt solid #e5e7eb' },
+  recRow: { flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 4, borderBottom: '1pt solid #f3f4f6' },
+  recRowAlt: { flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 4, borderBottom: '1pt solid #f3f4f6', backgroundColor: '#f9fafb' },
+  recRowTotal: { flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 4, borderTop: '1.5pt solid #9ca3af', backgroundColor: '#ecfdf5' },
+  recCellTexte: { fontSize: 7.5, paddingRight: 3 },
+  recCellNombre: { fontSize: 7.5, textAlign: 'right', paddingRight: 4 },
+  recTh: { fontFamily: 'Helvetica-Bold' },
+  recTotalText: { fontFamily: 'Helvetica-Bold', color: '#065f46' },
+  recNote: { fontSize: 7, color: '#6b7280', marginTop: 10 },
+  recSousTitre: { fontSize: 11, fontFamily: 'Helvetica-Bold', color: '#1f2937', marginTop: 18, marginBottom: 8 },
 });
+
+/**
+ * La largeur en POINTS de chaque colonne du recouvrement.
+ *
+ * <p>Deux jeux, parce que la colonne « Etablissement » n'apparait qu'en consolide.</p>
+ *
+ * <p>⚠ LE BUDGET N'EST PAS 535 pt, IL EST DE 527. Une A4 fait 595,3 pt, le gabarit pose 30 pt
+ * de marge de chaque cote, ce qui laisse 535,3 pt - mais la rangee elle-meme porte
+ * {@code paddingHorizontal: 4}, soit 8 pt de plus. La boite de contenu reelle ne fait donc que
+ * 527,3 pt, et un jeu a 535 debordait de 7,7 pt. react-pdf ne signale AUCUN debordement, il
+ * coupe : la derniere colonne perdait ses derniers caracteres sans un mot.</p>
+ */
+const LARGEURS_REC: Record<string, { unitaire: number; consolide: number }> = {
+  etablissement: { unitaire: 0, consolide: 70 },
+  code: { unitaire: 90, consolide: 87 },
+  composante: { unitaire: 70, consolide: 57 },
+  periode: { unitaire: 107, consolide: 99 },
+  montant: { unitaire: 57, consolide: 49 },
+  recouvre: { unitaire: 59, consolide: 51 },
+  restant: { unitaire: 55, consolide: 48 },
+  statut: { unitaire: 89, consolide: 66 },
+};
+
+/** La largeur de contenu reellement disponible : A4 moins les marges du gabarit ET le padding de rangee. */
+const LARGEUR_UTILE_PDF = 527;
+
+/** Les largeurs de la chronologie, meme budget de 527 pt. */
+const LARGEURS_MOUVEMENT: Record<string, number> = {
+  date: 60,
+  factureCode: 105,
+  libelle: 185,
+  montant: 70,
+  par: 107,
+};
+
+/** Les intitules abreges de la chronologie dans le PDF. */
+const ENTETES_PDF_MOUVEMENT: Record<string, string> = {
+  date: 'Date',
+  factureCode: 'Facture',
+  libelle: 'Événement',
+  montant: 'Montant',
+  par: 'Par',
+};
 
 /** N'importe quel style de cette feuille : `object` n'est pas accepte par react-pdf. */
 type StylePdf = (typeof s)[keyof typeof s];
@@ -156,6 +238,59 @@ function LigneStore({
   );
 }
 
+/**
+ * Les intitules ABREGES du PDF, et seulement du PDF.
+ *
+ * <p>Chaque colonne fait entre 49 et 105 points : « Reste a recouvrer (FCFA) » y tiendrait sur
+ * quatre lignes et ferait sauter la hauteur de l'en-tete. L'ecran et le tableur, eux, les
+ * ecrivent en entier. L'unite reste portee par l'intitule, une seule fois.</p>
+ */
+const ENTETES_PDF_REC: Record<string, string> = {
+  etablissement: 'Établissement',
+  code: 'Facture',
+  composante: 'Objet',
+  periode: 'Période facturée',
+  montant: 'Montant',
+  recouvre: 'Recouvré',
+  restant: 'Reste',
+  statut: 'État',
+};
+
+/**
+ * Le texte d'une cellule de recouvrement DANS LE PDF.
+ *
+ * <h3>⚠ Pourquoi le PDF ne peut pas reutiliser `texteCellule` tel quel</h3>
+ * <p>`texteCellule` formate ses montants avec {@code Intl.NumberFormat('fr-FR')}, qui separe
+ * les milliers par une espace fine INSECABLE (U+202F). Les polices integrees de react-pdf sont
+ * encodees en WinAnsi, qui ne la connait pas : le lecteur voit « 2/578/600 ». Constate au
+ * rendu, sur ce document meme, avant livraison.</p>
+ *
+ * <p>Ce qui reste PARTAGE avec l'ecran et le tableur est l'essentiel : la liste de colonnes,
+ * leur ordre, et les libelles d'objet, d'etat et de periode. Seule la mise en forme des
+ * nombres differe, parce que le support l'impose.</p>
+ */
+function texteCelluleRecPdf(ligne: IRecouvrementFacture, id: string): string {
+  if (id === 'montant') return fmtMontantColonne(ligne.montant);
+  if (id === 'recouvre') return fmtMontantColonne(ligne.recouvre);
+  if (id === 'restant') return fmtMontantColonne(ligne.restant);
+  return texteCellule(ligne, id as Parameters<typeof texteCellule>[1]);
+}
+
+/** La largeur en points d'une colonne, selon que la selection porte un etablissement ou plusieurs. */
+function largeurRec(id: string, consolide: boolean): number {
+  const l = LARGEURS_REC[id];
+  if (!l) return 60;
+  return consolide ? l.consolide : l.unitaire;
+}
+
+/** Le total du SERVEUR pour une colonne totalisable. Jamais la somme des lignes imprimees. */
+function totalRecDe(bloc: IRecouvrementPeriode, id: string): number | null {
+  if (id === 'montant') return bloc.totalMontant;
+  if (id === 'recouvre') return bloc.totalRecouvre;
+  if (id === 'restant') return bloc.totalRestant;
+  return null;
+}
+
 function PerformancePdfDocument({
   consolide = false,
   mainKPIs,
@@ -163,10 +298,22 @@ function PerformancePdfDocument({
   financialDetails,
   libelleSelection,
   parStore,
+  recouvrements,
   debut,
   fin,
 }: ExportParams) {
   const now = fmtNow();
+
+  /*
+   * Les MEMES colonnes que l'ecran et que le tableur, par la MEME fonction. Le detail par
+   * store, lui, reecrit ses sept colonnes a la main juste en dessous : c'est precisement ce
+   * qu'on ne refait pas ici, parce qu'une liste recopiee finit par ne plus s'accorder avec
+   * celle de l'ecran, et que personne ne le voit avant d'ouvrir les deux documents.
+   */
+  const colonnesRec = colonnesRecouvrement(
+    avecColonneEtablissement(recouvrements?.lignes ?? []),
+  );
+  const avecEtab = colonnesRec.some((c) => c.id === 'etablissement');
 
   /*
    * Le total du detail est REFAIT depuis les lignes imprimees, et non recopie du bloc
@@ -180,7 +327,7 @@ function PerformancePdfDocument({
   const totalStores = (parStore ?? []).reduce(
     (t, l) => ({
       restaurantId: 'total',
-      nom: `Total - ${(parStore ?? []).length} etablissements`,
+      nom: `Total - ${(parStore ?? []).length} établissement${(parStore ?? []).length > 1 ? 's' : ''}`,
       totalDeliveries: t.totalDeliveries + (l.totalDeliveries ?? 0),
       totalOrderValue: t.totalOrderValue + (l.totalOrderValue ?? 0),
       successRate: null,
@@ -190,7 +337,7 @@ function PerformancePdfDocument({
     }),
     {
       restaurantId: 'total',
-      nom: `Total - ${(parStore ?? []).length} etablissements`,
+      nom: `Total - ${(parStore ?? []).length} établissement${(parStore ?? []).length > 1 ? 's' : ''}`,
       totalDeliveries: 0,
       totalOrderValue: 0,
       successRate: null,
@@ -205,11 +352,11 @@ function PerformancePdfDocument({
       <Page size="A4" style={s.page}>
         <Text style={s.title}>Rapport de Performance</Text>
         {/* « Restaurant : X » devenait faux des que X etait « 4 partenaires ». */}
-        <Text style={s.subtitle}>Selection : {libelleSelection}</Text>
+        <Text style={s.subtitle}>Sélection : {libelleSelection}</Text>
 
         <View style={s.metaBox}>
           <View style={s.metaRow}>
-            <Text style={s.metaLabel}>Periode :</Text>
+            <Text style={s.metaLabel}>Période :</Text>
             <Text>{fmtDate(debut)} - {fmtDate(fin)}</Text>
           </View>
           <View style={s.metaRow}>
@@ -233,7 +380,7 @@ function PerformancePdfDocument({
           * - « CA (Chiffre d'Affaires) » affichait financialDetails.totalOrderAmount,
           *   exactement le meme nombre que la carte voisine, sous un troisieme nom.
           */}
-        <Text style={s.sectionTitle}>Indicateurs Cles de Performance</Text>
+        <Text style={s.sectionTitle}>Indicateurs clés de performance</Text>
         <View style={s.kpiRow}>
           <View style={s.kpiCard}>
             <Text style={s.kpiLabel}>Nombre de Livraisons</Text>
@@ -254,17 +401,17 @@ function PerformancePdfDocument({
             ) : null}
           </View>
           <View style={s.kpiCard}>
-            <Text style={s.kpiLabel}>Montant de commandes genere par les courses TURBO</Text>
+            <Text style={s.kpiLabel}>Montant de commandes généré par les courses TURBO</Text>
             <Text style={s.kpiValue}>{fmtPdf(mainKPIs?.totalOrderValue)}</Text>
           </View>
           <View style={s.kpiCard}>
-            <Text style={s.kpiLabel}>Taux de Succes</Text>
+            <Text style={s.kpiLabel}>Taux de succès</Text>
             <Text style={s.kpiValue}>{mainKPIs?.successRate != null ? `${mainKPIs.successRate.toFixed(1)}%` : '-'}</Text>
           </View>
         </View>
 
         {/* KPIs secondaires */}
-        <Text style={s.sectionTitle}>Metriques Operationnelles</Text>
+        <Text style={s.sectionTitle}>Métriques opérationnelles</Text>
         <View style={s.kpiRow}>
           <View style={s.kpiCard}>
             <Text style={s.kpiLabel}>Temps Moyen de Livraison</Text>
@@ -281,9 +428,9 @@ function PerformancePdfDocument({
         </View>
 
         {/* Détails financiers */}
-        <Text style={s.sectionTitle}>Details Financiers</Text>
+        <Text style={s.sectionTitle}>Détails financiers</Text>
         <View style={s.tableHeader}>
-          <Text style={[s.colLabel, s.thText]}>Libelle</Text>
+          <Text style={[s.colLabel, s.thText]}>Libellé</Text>
           <Text style={[s.colValue, s.thText]}>Montant</Text>
         </View>
         <View style={s.tableRow}>
@@ -291,13 +438,13 @@ function PerformancePdfDocument({
               le montant additionne quatre etablissements ou un groupe entier. */}
           <Text style={s.colLabel}>
             {consolide
-              ? 'Grace a nos livraisons, les partenaires ont vendu'
-              : 'Grace a nos livraisons, le partenaire a vendu'}
+              ? 'Grâce à nos livraisons, les partenaires ont vendu'
+              : 'Grâce à nos livraisons, le partenaire a vendu'}
           </Text>
           <Text style={s.colValue}>{fmtPdf(financialDetails?.totalOrderAmount)}</Text>
         </View>
         <View style={s.tableRowAlt}>
-          <Text style={s.colLabel}>Frais de livraison generes sur l&apos;ensemble des courses</Text>
+          <Text style={s.colLabel}>Frais de livraison générés sur l&apos;ensemble des courses</Text>
           <Text style={s.colValue}>{fmtPdf(financialDetails?.deliveryFeesCollected)}</Text>
         </View>
         <View style={s.tableRow}>
@@ -308,12 +455,12 @@ function PerformancePdfDocument({
           {/* « au compte du mois en cours » : la periode vient d'un selecteur de dates, et
               le document imprime deja ses bornes exactes dans son encadre de tete. */}
           <Text style={[s.colLabel, s.totalText]}>
-            Facture totale a regler sur la periode
+            Facture totale à régler sur la période
           </Text>
           <Text style={[s.colValue, s.totalText]}>{fmtPdf(financialDetails?.totalFacture)}</Text>
         </View>
 
-        <Text style={s.footer}>Genere par Turbo Delivery ERP - {now}</Text>
+        <Text style={s.footer}>Généré par Turbo Delivery ERP - {now}</Text>
       </Page>
 
       {/*
@@ -329,9 +476,9 @@ function PerformancePdfDocument({
        */}
       {parStore && parStore.length > 0 ? (
         <Page size="A4" style={s.page}>
-          <Text style={s.title}>Detail par store</Text>
+          <Text style={s.title}>Détail par store</Text>
           <Text style={s.subtitle}>
-            {libelleSelection} - {fmtDate(debut)} a {fmtDate(fin)}
+            {libelleSelection} - {fmtDate(debut)} au {fmtDate(fin)}
           </Text>
 
           {/*
@@ -346,7 +493,7 @@ function PerformancePdfDocument({
            * cinq lignes. L'ecran, lui, les ecrit en entier.
            */}
           <View fixed style={s.storeHeader}>
-            <Text style={[s.storeCellNom, s.storeTh]}>Etablissement</Text>
+            <Text style={[s.storeCellNom, s.storeTh]}>Établissement</Text>
             <Text style={[s.storeCellLivraisons, s.storeTh]}>Livraisons</Text>
             <Text style={[s.storeCellValeur, s.storeTh]}>Valeur cmd. (FCFA)</Text>
             <Text style={[s.storeCellTaux, s.storeTh]}>Taux</Text>
@@ -365,7 +512,172 @@ function PerformancePdfDocument({
 
           <LigneStore ligne={totalStores} style={s.storeRowTotal} texte={s.storeTotalText} />
 
-          <Text style={s.footer}>Genere par Turbo Delivery ERP - {now}</Text>
+          <Text style={s.footer}>Généré par Turbo Delivery ERP - {now}</Text>
+        </Page>
+      ) : null}
+
+      {/*
+       * LA PAGE DE RECOUVREMENT n'existe QUE si le serveur a servi le bloc ET qu'il porte des
+       * factures. En vue globale il est nul, et une page a en-tetes sans une seule ligne se
+       * lirait comme une perte de donnee, alors que l'ecran, lui, explique la raison.
+       *
+       * Sa PROPRE page, et non une section ajoutee sous les details financiers : trente
+       * factures ne tiennent pas sous une table de quatre lignes, et react-pdf ne signale
+       * aucun debordement, il coupe.
+       */}
+      {recouvrements ? (
+        <Page size="A4" style={s.page}>
+          <Text style={s.title}>Recouvrement des factures de la période</Text>
+          <Text style={s.subtitle}>
+            {libelleSelection} - {fmtDate(debut)} au {fmtDate(fin)} - montants en FCFA
+          </Text>
+
+          {/*
+           * ⚠ La page existe des que le serveur a SERVI le bloc, meme sans une seule facture.
+           * Elle etait conditionnee a `nombreFactures > 0` et disparaissait alors du document,
+           * la ou l'ecran affiche la section avec sa phrase. Une page absente se lit « la
+           * fonctionnalite n'existe pas » ; une page qui dit « aucune facture emise » se lit
+           * pour ce qu'elle est, et c'est une information : la facturation n'a peut-etre pas
+           * encore tourne sur la periode.
+           */}
+          {recouvrements.nombreFactures === 0 && (
+            <Text style={s.recNote}>
+              Aucune facture n&apos;a été émise sur cette période pour cette sélection. Ce
+              n&apos;est pas forcément une anomalie : la facturation peut ne pas encore avoir
+              tourné sur la période.
+            </Text>
+          )}
+
+          {/*
+           * `fixed` REPETE cette ligne en tete de chaque page. Un mois de facturation
+           * quotidienne deborde sur une seconde page, et sans cela elle commencerait par huit
+           * colonnes sans un seul intitule.
+           */}
+          {recouvrements.nombreFactures > 0 && (
+          <>
+          <View fixed style={s.recHeader}>
+            {colonnesRec.map((colonne) => (
+              <Text
+                key={colonne.id}
+                style={[
+                  colonne.numerique ? s.recCellNombre : s.recCellTexte,
+                  s.recTh,
+                  { width: largeurRec(colonne.id, avecEtab) },
+                ]}
+              >
+                {ENTETES_PDF_REC[colonne.id] ?? colonne.entete}
+              </Text>
+            ))}
+          </View>
+
+          {recouvrements.lignes.map((ligne: IRecouvrementFacture, index: number) => (
+            <View
+              key={`${ligne.code ?? ligne.restaurantId}-${ligne.composante ?? ''}-${ligne.periodeDebut}-${index}`}
+              style={index % 2 === 1 ? s.recRowAlt : s.recRow}
+            >
+              {colonnesRec.map((colonne) => (
+                <Text
+                  key={colonne.id}
+                  style={[
+                    colonne.numerique ? s.recCellNombre : s.recCellTexte,
+                    { width: largeurRec(colonne.id, avecEtab) },
+                  ]}
+                >
+                  {texteCelluleRecPdf(ligne, colonne.id)}
+                </Text>
+              ))}
+            </View>
+          ))}
+
+          {/*
+           * Le total porte sur TOUTES les factures, pas sur les lignes imprimees : la liste
+           * est plafonnee cote serveur. Le refaire depuis les lignes donnerait un total
+           * inferieur au vrai sans que rien ne le dise.
+           */}
+          <View style={s.recRowTotal}>
+            {colonnesRec.map((colonne, index) => (
+              <Text
+                key={colonne.id}
+                style={[
+                  colonne.numerique ? s.recCellNombre : s.recCellTexte,
+                  s.recTotalText,
+                  { width: largeurRec(colonne.id, avecEtab) },
+                ]}
+              >
+                {index === 0
+                  ? libelleTotalFactures(recouvrements.nombreFactures)
+                  : colonne.totalisable
+                    ? fmtMontantColonne(totalRecDe(recouvrements, colonne.id))
+                    : ''}
+              </Text>
+            ))}
+          </View>
+          </>
+          )}
+
+          {recouvrements.lignes.length < recouvrements.nombreFactures ? (
+            <Text style={s.recNote}>
+              {recouvrements.lignes.length} lignes imprimées sur {recouvrements.nombreFactures}.
+              Les totaux ci-dessus portent sur la totalité des factures.
+            </Text>
+          ) : null}
+
+          <Text style={s.recNote}>{NOTE_RECOUVREMENT}</Text>
+          <Text style={s.recNote}>{NOTE_ECART_FACTURE}</Text>
+
+          {/*
+           * LA CHRONOLOGIE, en bas de la meme page, comme a l'ecran et dans le tableur : on lit
+           * un solde de facture PUIS les mouvements qui l'ont produit. Elle deborde sur une
+           * page suivante quand il y en a beaucoup, et son en-tete se repete.
+           */}
+          <Text style={s.recSousTitre}>Détail des encaissements</Text>
+
+          {(recouvrements.mouvements ?? []).length === 0 ? (
+            <Text style={s.recNote}>
+              {recouvrements.totalRecouvre > 0
+                ? "Aucun mouvement n'est tracé pour ces factures, alors qu'une partie est recouvrée. La chronologie a probablement été effacée par une réinitialisation de facture."
+                : "Aucun encaissement n'a encore été enregistré sur ces factures."}
+            </Text>
+          ) : (
+            <>
+              <View fixed style={s.recHeader}>
+                {COLONNES_MOUVEMENT.map((colonne) => (
+                  <Text
+                    key={colonne.id}
+                    style={[
+                      colonne.numerique ? s.recCellNombre : s.recCellTexte,
+                      s.recTh,
+                      { width: LARGEURS_MOUVEMENT[colonne.id] },
+                    ]}
+                  >
+                    {ENTETES_PDF_MOUVEMENT[colonne.id] ?? colonne.entete}
+                  </Text>
+                ))}
+              </View>
+
+              {(recouvrements.mouvements ?? []).map((m: IMouvementRecouvrement, index: number) => (
+                <View key={`mv-${index}`} style={index % 2 === 1 ? s.recRowAlt : s.recRow}>
+                  {COLONNES_MOUVEMENT.map((colonne) => (
+                    <Text
+                      key={colonne.id}
+                      style={[
+                        colonne.numerique ? s.recCellNombre : s.recCellTexte,
+                        { width: LARGEURS_MOUVEMENT[colonne.id] },
+                      ]}
+                    >
+                      {colonne.id === 'montant'
+                        ? fmtMontantColonne(m.montant)
+                        : texteMouvement(m, colonne.id)}
+                    </Text>
+                  ))}
+                </View>
+              ))}
+            </>
+          )}
+
+          <Text style={s.recNote}>{NOTE_MOUVEMENTS}</Text>
+
+          <Text style={s.footer}>Généré par Turbo Delivery ERP - {now}</Text>
         </Page>
       ) : null}
     </Document>

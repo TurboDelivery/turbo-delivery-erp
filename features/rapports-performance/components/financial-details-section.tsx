@@ -95,7 +95,7 @@ export function FinancialDetailsSection({
     {
       label: consolide
         ? 'Grâce à nos livraisons, les partenaires ont vendu'
-        : 'Grace a nos livraisons, le partenaire a vendu',
+        : 'Grâce à nos livraisons, le partenaire a vendu',
       value: financialDetails?.totalOrderAmount,
       withBorder: true,
     },

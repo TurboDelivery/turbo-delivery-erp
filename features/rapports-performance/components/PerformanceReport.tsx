@@ -21,6 +21,7 @@ import { PerformanceHeader } from './performance-header';
 import { PerformanceSummarySection } from './performance-summary-section';
 import { SelecteurSelection } from './selecteur-selection';
 import { TopStatsSection } from './top-stats-section';
+import { RecouvrementSection } from '@/features/rapports-performance/components/recouvrement/recouvrement-section';
 
 export default function PerformanceReport() {
   const { data, isError, isLoading, isFetching, refetch } = usePerformanceStats();
@@ -71,6 +72,14 @@ export default function PerformanceReport() {
    */
   const parStore = data?.parStore ?? null;
 
+  /*
+   * ⚠ `?? null` et non `?? undefined` : le serveur rend NUL en vue globale, ou aucun
+   * partenaire n'est choisi, et c'est cette nullite qui pilote l'affichage du bloc. La vue
+   * globale est l'etat d'ARRIVEE de l'ecran - tant qu'aucun partenaire n'est selectionne, le
+   * rapport y est - donc le bloc manquant doit DIRE pourquoi, pas disparaitre en silence.
+   */
+  const recouvrements = data?.recouvrements ?? null;
+
   const selection = React.useMemo(
     () =>
       decrireSelection(
@@ -103,6 +112,7 @@ export default function PerformanceReport() {
     libelleSelection: selection.libelle,
     consolide: selection.consolide,
     parStore,
+    recouvrements,
     debut: filters.debut,
     fin: filters.fin,
   };
@@ -184,6 +194,13 @@ export default function PerformanceReport() {
               raisonVide={selection.avertissement}
             />
           )}
+
+          {/*
+           * Le recouvrement se lit APRES le detail financier et le detail par store : on a vu
+           * ce qui a ete facture, on regarde ensuite ce qui est rentre. La section rend
+           * elle-meme sa raison quand le serveur ne sert pas le bloc.
+           */}
+          <RecouvrementSection bloc={recouvrements} enChargement={isLoading} />
 
           <PerformanceSummarySection
             mainKPIs={mainKPIs}

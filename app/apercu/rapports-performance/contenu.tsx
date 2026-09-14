@@ -5,6 +5,7 @@ import React from 'react';
 
 import { ChartsSection } from '@/features/rapports-performance/components/charts-section';
 import { DetailParStoreSection } from '@/features/rapports-performance/components/detail-par-store/detail-par-store-section';
+import { RecouvrementSection } from '@/features/rapports-performance/components/recouvrement/recouvrement-section';
 import { FinancialDetailsSection } from '@/features/rapports-performance/components/financial-details-section';
 import { MiddleStatsSection } from '@/features/rapports-performance/components/middle-stats-section';
 import { PerformanceHeader } from '@/features/rapports-performance/components/performance-header';
@@ -17,6 +18,9 @@ import type {
     IDashboardData,
     IGeographicLocation,
     ISelectionAnalytics,
+    IMouvementRecouvrement,
+    IRecouvrementFacture,
+    IRecouvrementPeriode,
     IStorePerformance,
     IWeeklyActivity,
 } from '@/features/rapports-performance/types/performance.type';
@@ -143,6 +147,42 @@ function selectionUnitaire(restaurantId: string): ISelectionAnalytics {
     };
 }
 
+/**
+ * Des factures d'exemple et leur chronologie, pour que le bloc de recouvrement se REGARDE.
+ *
+ * <p>Quatre factures hebdomadaires, dont une partiellement recouvree et une en brouillon a
+ * cheval sur le mois precedent : ce sont les trois cas que l'ecran doit savoir montrer, et le
+ * dernier est celui que la production porte reellement.</p>
+ */
+function fabriquerRecouvrement(graine: number): IRecouvrementPeriode {
+    const suivant = alea(graine);
+    const lignes: IRecouvrementFacture[] = [
+        { restaurantId: 'r1', etablissement: null, code: 'F20260817-AGHA-45547', composante: 'GLOBALE', periodeDebut: '2026-08-01', periodeFin: '2026-08-07', montant: 2578600, recouvre: 2578600, restant: 0, statut: 'VALIDATED' },
+        { restaurantId: 'r1', etablissement: null, code: 'F20260817-AGHA-14549', composante: 'GLOBALE', periodeDebut: '2026-08-08', periodeFin: '2026-08-14', montant: 2448100, recouvre: 2448100, restant: 0, statut: 'VALIDATED' },
+        { restaurantId: 'r1', etablissement: null, code: 'F20260827-AGHA-00669', composante: 'GLOBALE', periodeDebut: '2026-08-15', periodeFin: '2026-08-21', montant: 2136400, recouvre: 2136400, restant: 0, statut: 'VALIDATED' },
+        { restaurantId: 'r1', etablissement: null, code: 'F20260903-AGHA-08191', composante: 'GLOBALE', periodeDebut: '2026-08-22', periodeFin: '2026-08-31', montant: 3613100, recouvre: 2622800, restant: 990300, statut: 'VALIDATED' },
+        { restaurantId: 'r1', etablissement: null, code: null, composante: 'FRAIS', periodeDebut: '2026-07-28', periodeFin: '2026-08-03', montant: 500000, recouvre: 0, restant: 500000, statut: 'DRAFT' },
+    ];
+    const mouvements: IMouvementRecouvrement[] = [
+        { factureCode: 'F20260817-AGHA-45547', date: '2026-08-21', libelle: 'Facture soldée', montant: 2578600, par: 'Médard Koffi' },
+        { factureCode: 'F20260817-AGHA-45547', date: '2026-08-21', libelle: 'Versement au caissier effectué', montant: 2578600, par: 'Koné Brahima' },
+        { factureCode: 'F20260817-AGHA-14549', date: '2026-08-21', libelle: 'Facture soldée', montant: 2448100, par: 'Médard Koffi' },
+        { factureCode: 'F20260817-AGHA-14549', date: '2026-08-21', libelle: 'Versement au caissier effectué', montant: 2448100, par: 'Koné Brahima' },
+        { factureCode: 'F20260827-AGHA-00669', date: '2026-09-04', libelle: 'Facture soldée', montant: 2136400, par: 'Médard Koffi' },
+        { factureCode: 'F20260827-AGHA-00669', date: '2026-09-04', libelle: 'Versement au caissier effectué', montant: 2136400, par: 'Koné Brahima' },
+        { factureCode: 'F20260903-AGHA-08191', date: '2026-09-04', libelle: 'Acompte reçu', montant: 2622800, par: 'Médard Koffi' },
+        { factureCode: 'F20260903-AGHA-08191', date: '2026-09-04', libelle: 'Versement partiel au caissier effectué', montant: 2622800, par: suivant() > 0.5 ? 'Koné Brahima' : null },
+    ];
+    return {
+        lignes,
+        mouvements,
+        nombreFactures: lignes.length,
+        totalMontant: lignes.reduce((n, l) => n + l.montant, 0),
+        totalRecouvre: lignes.reduce((n, l) => n + l.recouvre, 0),
+        totalRestant: lignes.reduce((n, l) => n + l.restant, 0),
+    };
+}
+
 function fabriquer(graine: number, nbZones: number): IDashboardData {
     const suivant = alea(graine);
     const zones = fabriquerZones(graine, nbZones);
@@ -169,6 +209,7 @@ function fabriquer(graine: number, nbZones: number): IDashboardData {
         // En unitaire, le serveur rend NULL - et non un tableau vide, qui se lirait
         // « aucun store ». Le bloc de detail ne doit pas apparaitre sur ces jeux.
         parStore: null,
+        recouvrements: fabriquerRecouvrement(graine),
         secondaryKPIs: {
             // Les deux valeurs que la production ne mesure pas : la page doit rendre un
             // tiret, jamais « 0 min » ni « 1 article ». Le banc les laisse donc a zero.
@@ -581,6 +622,17 @@ export default function ApercuRapportsPerformance() {
                                 raisonVide={selection.avertissement}
                             />
                         )}
+
+                        {/*
+                          * Le bloc de recouvrement, sur des donnees d'exemple. Le banc est le
+                          * SEUL endroit ou cette section se regarde sans session : la page reelle
+                          * est derriere une authentification, et le serveur de developpement est
+                          * interdit sur ce poste.
+                          */}
+                        <RecouvrementSection
+                            bloc={donnees.recouvrements ?? null}
+                            enChargement={enChargement}
+                        />
 
                         <PerformanceSummarySection
                             mainKPIs={donnees.mainKPIs}

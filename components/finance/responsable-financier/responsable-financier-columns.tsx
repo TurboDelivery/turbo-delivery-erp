@@ -132,6 +132,37 @@ export function createResponsableFinancierColumns(
             header: 'Recouvré',
         },
         {
+            /*
+             * LE RESTE A RECOUVRER, en toutes lettres.
+             *
+             * L'ecran donnait le montant recouvre et un POURCENTAGE, et laissait faire la
+             * soustraction de tete : sur une facture de 3 613 100 F recouvree a 72,59 %, il
+             * fallait calculer pour savoir qu'il manque 990 300 F - c'est-a-dire le seul
+             * chiffre qu'on vient chercher quand on relance un partenaire.
+             *
+             * ⚠ Borne a zero, comme `getMontantRecouvre` cote serveur : un trop-percu
+             * donnerait sinon un reste NEGATIF, qui se lirait comme une dette de TURBO.
+             */
+            cell: ({ row }) => {
+                const { montant, montantRecouvre } = row.original;
+                const reste = Math.max(0, (montant ?? 0) - (montantRecouvre ?? 0));
+                if (reste === 0) {
+                    return (
+                        <span className="text-sm text-muted" title="Facture soldée">
+                            —
+                        </span>
+                    );
+                }
+                return (
+                    <span className="text-sm font-medium tabular-nums whitespace-nowrap text-foreground">
+                        {formatMontant(reste)}
+                    </span>
+                );
+            },
+            header: 'Reste à recouvrer',
+            id: 'resteARecouvrer',
+        },
+        {
             accessorKey: 'cycle',
             cell: ({ row }) => <span className="text-sm">{row.original.cycle}</span>,
             header: 'Cycle',

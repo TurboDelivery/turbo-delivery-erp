@@ -5,6 +5,18 @@ import type { IStorePerformance } from '@/features/rapports-performance/types/pe
 
 import type { ExportParams } from './performance-export.utils';
 import { libellePourFichier } from './selection.utils';
+import {
+  COLONNES_MOUVEMENT,
+  NOTE_ECART_FACTURE,
+  NOTE_MOUVEMENTS,
+  NOTE_RECOUVREMENT,
+  avecColonneEtablissement,
+  colonnesRecouvrement,
+  libelleTotalFactures,
+  texteCellule,
+  texteMouvement,
+} from '@/features/rapports-performance/components/recouvrement/recouvrement-table-columns';
+import type { IRecouvrementPeriode } from '@/features/rapports-performance/types/performance.type';
 
 /*
  * Le rapport en tableur.
@@ -210,6 +222,127 @@ function feuilleDetailParStore(lignes: IStorePerformance[]): XLSX.WorkSheet {
   return feuille;
 }
 
+/**
+ * La feuille « Recouvrement » : une ligne par facture de la periode.
+ *
+ * <p>Les MEMES colonnes que l'ecran, dans le meme ordre, par la meme liste. Deux sorties qui
+ * recalculeraient leurs colonnes chacune de leur cote finiraient par ne plus s'accorder, et
+ * c'est precisement ce que le retour de recette reprochait - « les stats doivent etre
+ * pareils ».</p>
+ *
+ * <p>⚠ Les trois colonnes de montants sortent en NOMBRES, pas en texte : c'est un tableur, on
+ * y trie et on y somme. Le texte formate de l'ecran ne servirait a rien ici. Les autres
+ * colonnes passent par {@code texteCellule}, la meme fonction que l'ecran et le PDF.</p>
+ *
+ * <p>⚠ La ligne de TOTAL porte les totaux du SERVEUR, pas la somme des lignes exportees : la
+ * liste est plafonnee, la refaire depuis les lignes donnerait un total inferieur au vrai sans
+ * que rien ne le dise. La feuille porte aussi le nombre reel de factures.</p>
+ */
+function feuilleRecouvrement(bloc: IRecouvrementPeriode): XLSX.WorkSheet {
+  const colonnes = colonnesRecouvrement(avecColonneEtablissement(bloc.lignes));
+
+  const corps = bloc.lignes.map((ligne) =>
+    colonnes.map((colonne) => {
+      if (colonne.id === 'montant') return ligne.montant;
+      if (colonne.id === 'recouvre') return ligne.recouvre;
+      if (colonne.id === 'restant') return ligne.restant;
+      return texteCellule(ligne, colonne.id);
+    }),
+  );
+
+  const total = colonnes.map((colonne, index) => {
+    if (index === 0) return libelleTotalFactures(bloc.nombreFactures);
+    if (colonne.id === 'montant') return bloc.totalMontant;
+    if (colonne.id === 'recouvre') return bloc.totalRecouvre;
+    if (colonne.id === 'restant') return bloc.totalRestant;
+    return null;
+  });
+
+  const tout: (string | number | null)[][] = [
+    colonnes.map((c) => c.entete),
+    ...corps,
+    total,
+  ];
+
+  if (bloc.lignes.length < bloc.nombreFactures) {
+    tout.push([]);
+    tout.push([
+      `${bloc.lignes.length} lignes sur ${bloc.nombreFactures}. Les totaux ci-dessus portent sur la totalité des factures.`,
+    ]);
+  }
+
+  tout.push([]);
+  tout.push([NOTE_RECOUVREMENT]);
+  tout.push([NOTE_ECART_FACTURE]);
+
+  /*
+   * LA CHRONOLOGIE, sous le tableau, dans la MEME feuille.
+   *
+   * Pas un second onglet : on lit un solde de facture PUIS les mouvements qui l'ont produit,
+   * et separer les deux obligerait a basculer d'onglet pour verifier une ligne. Les colonnes
+   * de la chronologie sont les MEMES que celles de l'ecran, par la meme liste.
+   */
+  const mouvements = bloc.mouvements ?? [];
+  const premiereLigneMouvements = tout.length + 2;
+
+  tout.push([]);
+  tout.push(['DÉTAIL DES ENCAISSEMENTS']);
+  if (mouvements.length === 0) {
+    tout.push([
+      bloc.totalRecouvre > 0
+        ? "Aucun mouvement n'est tracé pour ces factures, alors qu'une partie est recouvrée. La chronologie a probablement été effacée par une réinitialisation de facture."
+        : "Aucun encaissement n'a encore été enregistré sur ces factures.",
+    ]);
+  } else {
+    tout.push(COLONNES_MOUVEMENT.map((c) => c.entete));
+    for (const m of mouvements) {
+      tout.push(
+        COLONNES_MOUVEMENT.map((c) => (c.id === 'montant' ? m.montant : texteMouvement(m, c.id))),
+      );
+    }
+  }
+  tout.push([]);
+  tout.push([NOTE_MOUVEMENTS]);
+
+  const feuille = XLSX.utils.aoa_to_sheet(tout);
+
+  // Le format FCFA sur la colonne de montant de la chronologie.
+  if (mouvements.length > 0) {
+    const colonneMontant = COLONNES_MOUVEMENT.findIndex((c) => c.id === 'montant');
+    for (let r = premiereLigneMouvements; r < premiereLigneMouvements + mouvements.length; r++) {
+      const cellule = feuille[XLSX.utils.encode_cell({ c: colonneMontant, r })];
+      if (cellule && typeof cellule.v === 'number') cellule.z = FCFA;
+    }
+  }
+
+  // Le format FCFA sur les seules colonnes de montants, de la premiere ligne de corps
+  // jusqu'a la ligne de total incluse.
+  colonnes.forEach((colonne, c) => {
+    if (!colonne.totalisable) return;
+    for (let r = 1; r <= corps.length + 1; r++) {
+      const cellule = feuille[XLSX.utils.encode_cell({ c, r })];
+      if (cellule && typeof cellule.v === 'number') cellule.z = FCFA;
+    }
+  });
+
+  /*
+   * Les largeurs sur le CONTENU, pas seulement sur l'intitule.
+   *
+   * Calculees sur le seul en-tete, « Période facturée » donnait 18 caracteres alors que sa
+   * valeur en fait 27 (« du 01/08/2026 au 07/08/2026 ») : la colonne s'ouvrait trop etroite et
+   * le tableur affichait des dieses a la place des dates.
+   */
+  feuille['!cols'] = colonnes.map((c, i) => {
+    const plusLong = corps.reduce((n, ligne) => {
+      const v = ligne[i];
+      return Math.max(n, v == null ? 0 : String(v).length);
+    }, c.entete.length);
+    return { wch: Math.min(40, plusLong + 2) };
+  });
+
+  return feuille;
+}
+
 export function construireRapportExcel(params: ExportParams): ArrayBuffer {
   const classeur = XLSX.utils.book_new();
 
@@ -234,6 +367,27 @@ export function construireRapportExcel(params: ExportParams): ArrayBuffer {
    */
   if (params.parStore && params.parStore.length > 0) {
     XLSX.utils.book_append_sheet(classeur, feuilleDetailParStore(params.parStore), 'Détail par store');
+  }
+
+  /*
+   * L'onglet de recouvrement n'existe QUE si le serveur a servi le bloc ET qu'il porte des
+   * factures. En vue globale il est nul, et une feuille a en-tetes sans une seule ligne se
+   * lirait comme une perte de donnee, alors que l'ecran, lui, explique la raison.
+   */
+  /*
+   * L'onglet existe des que le serveur a SERVI le bloc, meme sans une seule facture.
+   *
+   * Premiere version : il etait conditionne a `nombreFactures > 0`, donc il disparaissait
+   * quand la periode n'en portait aucune - alors que l'ecran, lui, affiche la section avec sa
+   * phrase d'explication. Un onglet absent se lit « la fonctionnalite n'existe pas » ; un
+   * onglet qui dit « aucune facture emise sur cette periode » se lit pour ce qu'il est, et
+   * c'est une information : la facturation n'a peut-etre pas encore tourne.
+   *
+   * NUL, en revanche, reste NUL : en vue globale le serveur ne sert pas le bloc, et le
+   * document n'a alors rien a en dire.
+   */
+  if (params.recouvrements) {
+    XLSX.utils.book_append_sheet(classeur, feuilleRecouvrement(params.recouvrements), 'Recouvrement');
   }
 
   return XLSX.write(classeur, { bookType: 'xlsx', type: 'array' });
