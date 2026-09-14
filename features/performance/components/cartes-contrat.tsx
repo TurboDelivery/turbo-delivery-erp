@@ -5,14 +5,22 @@ import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-disp
 import { formatMontant } from '@/utils/format.utils';
 import { formatNumber } from '@/utils/formatNumber';
 import type { TurboyType } from '@/features/turboys/types/turboys.types';
+import type { ParametresPeriode } from '@/features/performance/utils/periode.utils';
 
 /** Ce qu'une carte compte, déjà agrégé par l'appelant. */
 export interface SyntheseContrat {
   contrat: TurboyType;
   /** Livreurs du contrat, programmés ou non. */
   livreurs: number;
-  /** Ceux qui ont un emploi du temps sur la semaine lue. */
-  programmes: number;
+  /**
+   * Ceux qui ont un emploi du temps sur la semaine lue, ou NULL sur une période plus large.
+   *
+   * <p>Un emploi du temps est hebdomadaire. Sur un mois, la question « combien sont
+   * programmés » n'a pas de réponse unique, et le serveur ne rend plus de créneau : compter
+   * les lignes qui en portent un donnerait ZÉRO, ce qui se lirait « personne n'a été
+   * programmé de tout le mois ». Le tiret dit l'absence de mesure, pas l'absence.</p>
+   */
+  programmes: number | null;
   nbTickets: number;
   commission: number;
   prime: number;
@@ -44,14 +52,24 @@ export interface SyntheseContrat {
  * qui permet de comparer deux catégories côte à côte.</p>
  */
 export function CartesContrat({
-  semaine,
+  parametres,
   syntheses,
 }: {
-  /** Le lundi de la semaine lue, tel qu'il est dans l'URL. Absent = semaine en cours. */
-  semaine?: string;
+  /**
+   * La periode lue, telle qu'elle est dans l'URL. Vide = semaine en cours.
+   *
+   * <p>Ce sont les parametres BRUTS et non la periode resolue : la carte les recopie tels
+   * quels dans son lien, pour que la liste lise exactement ce que cet ecran a lu. Recopier
+   * une periode resolue transformerait « septembre 2026 » en une plage de dates, et le
+   * selecteur de la page suivante ne saurait plus quel mode afficher.</p>
+   */
+  parametres?: ParametresPeriode;
   syntheses: SyntheseContrat[];
 }) {
-  const requete = semaine ? `?semaine=${semaine}` : '';
+  const query = new URLSearchParams(
+    Object.entries(parametres ?? {}).filter(([, v]) => Boolean(v)) as [string, string][],
+  ).toString();
+  const requete = query ? `?${query}` : '';
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -95,9 +113,18 @@ export function CartesContrat({
                  * se lit comme une categorie qui travaille mal, alors que c'est peut-etre
                  * une categorie qu'on n'a pas planifiee.
                  */}
-                <dt className="text-default-500">Programmés cette semaine</dt>
-                <dd className="font-medium tabular-nums text-foreground">
-                  {formatNumber(s.programmes)}
+                <dt className="text-default-500">
+                  {s.programmes == null ? 'Programmés' : 'Programmés cette semaine'}
+                </dt>
+                <dd
+                  className="font-medium tabular-nums text-foreground"
+                  title={
+                    s.programmes == null
+                      ? 'Non applicable : un emploi du temps couvre une semaine'
+                      : undefined
+                  }
+                >
+                  {s.programmes == null ? '—' : formatNumber(s.programmes)}
                 </dd>
               </div>
               <div className="flex items-baseline justify-between gap-2 border-t border-default-200 pt-1.5">

@@ -254,7 +254,7 @@ function DocumentListe({
         {sansNote > 0 && (
           <Text style={s.note}>
             {sansEspacesFines(
-              `${formatNumber(sansNote)} livreur${sansNote > 1 ? 's portent' : ' porte'} un tiret en performance : la note se calcule sur les jours travaillés d'un emploi du temps, et ${sansNote > 1 ? "ils n'en ont" : "il n'en a"} pas sur cette semaine. Ce n'est pas une note de zéro.`,
+              `${formatNumber(sansNote)} livreur${sansNote > 1 ? 's portent' : ' porte'} un tiret en performance : la note se calcule sur les jours travaillés d'un emploi du temps, et ${sansNote > 1 ? "ils n'en ont" : "il n'en a"} pas sur cette période. Ce n'est pas une note de zéro.`,
             )}
           </Text>
         )}

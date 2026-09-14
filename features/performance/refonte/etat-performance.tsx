@@ -327,8 +327,8 @@ export function EtatPerformance({
                                             ) : isLoading ? null : (
                                                 <p className="text-sm text-muted">
                                                     {recherche.trim()
-                                                        ? 'Aucun livreur ne porte ce nom sur cette semaine.'
-                                                        : 'Aucun livreur sur cette semaine.'}
+                                                        ? 'Aucun livreur ne porte ce nom sur cette période.'
+                                                        : 'Aucun livreur sur cette période.'}
                                                 </p>
                                             )}
                                         </div>
@@ -404,7 +404,7 @@ export function EtatPerformance({
                                                 {l.performance == null ? (
                                                     <span
                                                         className="block text-right text-muted"
-                                                        title="Non applicable : aucun emploi du temps sur cette semaine"
+                                                        title="Non applicable : la note se calcule sur les jours travaillés d'un emploi du temps"
                                                     >
                                                         —
                                                     </span>
@@ -496,7 +496,7 @@ export function EtatPerformance({
                     ))
                 ) : visibles.length === 0 ? (
                     <p className="py-10 text-center text-sm text-muted">
-                        {recherche.trim() ? 'Aucun livreur ne porte ce nom.' : 'Aucun livreur sur cette semaine.'}
+                        {recherche.trim() ? 'Aucun livreur ne porte ce nom.' : 'Aucun livreur sur cette période.'}
                     </p>
                 ) : (
                     visibles.map((l) => (

@@ -6,8 +6,10 @@ import { notFound } from 'next/navigation';
 import { AvertissementListeTronquee } from '@/components/commons/AvertissementListeTronquee';
 import UserListPerformanceBird from '@/components/dashboard/delivery-men/performance/user-list-performance-bird';
 import EmptyDataTable from '@/components/commons/EmptyDataTable';
-import { SelecteurSemaine } from '@/features/performance/components/selecteur-semaine';
-import { lundiDeLaSemaineEnCours, semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
+import { SelecteurPeriode } from '@/features/performance/components/selecteur-periode';
+import { BandeauPeriode } from '@/features/performance/components/bandeau-periode';
+import { lirePeriode, requetePeriode, type ParametresPeriode } from '@/features/performance/utils/periode.utils';
+import { semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
 import type { TurboyType } from '@/features/turboys/types/turboys.types';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { BoutonExportListe } from '@/features/performance/components/bouton-export-liste';
@@ -34,15 +36,29 @@ export default async function Page({
     searchParams,
 }: {
     params: Promise<{ contrat: string }>;
-    searchParams: Promise<{ semaine?: string }>;
+    searchParams: Promise<ParametresPeriode>;
 }) {
     const { contrat } = await params;
-    const { semaine: lundi } = await searchParams;
+    const parametres = await searchParams;
 
     if (!CONTRATS.includes(contrat as TurboyType)) notFound();
 
-    const iso = lundi ? semaineIsoDepuisLundi(lundi) : undefined;
-    const reponse = await getPerformanceParContrat(contrat, iso?.annee, iso?.semaine);
+    /*
+     * Les quatre granularites de l'exigence 2.3 se ramenent a deux choses : un couple
+     * (annee, semaine) quand la periode EST une semaine, une paire de bornes sinon. La
+     * resolution est la meme que celle du serveur, et dans le meme ordre de priorite.
+     */
+    const periode = lirePeriode(parametres);
+    const iso = periode.estUneSemaine ? semaineIsoDepuisLundi(periode.lundi) : null;
+
+    const reponse = await getPerformanceParContrat(
+        contrat,
+        iso?.annee,
+        iso?.semaine,
+        200,
+        periode.debut,
+        periode.fin,
+    );
 
     /*
      * La synthese de la flotte vient de la GRILLE DE PAIE du creneau, pas d'un recalcul :
@@ -53,13 +69,26 @@ export default async function Page({
      *
      * Les deux lectures s'ENCHAINENT par necessite : les totaux se lisent par identifiant
      * de creneau, qu'il faut donc avoir trouve d'abord.
+     *
+     * ⚠ La grille de paie n'est lue QUE sur une semaine. Un creneau de paie couvre sept
+     * jours ; sur un mois il y en a quatre ou cinq, et montrer les totaux de l'un d'eux
+     * serait faux. Sur une periode plus large, c'est `BandeauPeriode` qui prend le relais
+     * en additionnant les lignes affichees - une autre grandeur, et il le dit.
      */
-    const creneau = await getCreneauDuLundi(lundi ?? lundiDeLaSemaineEnCours());
+    const creneau = periode.estUneSemaine ? await getCreneauDuLundi(periode.lundi) : null;
     const stats = creneau ? await getStatsCreneau(creneau.id) : null;
 
     const lignes = reponse?.content ?? [];
     const display = getTurboyTypeDisplay(contrat);
-    const requete = lundi ? `?semaine=${lundi}` : '';
+    /*
+     * Le lien de retour garde la periode ENTIERE, pas seulement la semaine. Ne reporter que
+     * `?semaine` ramenait sur l'ecran d'entree en semaine courante apres avoir consulte un
+     * mois : on perdait son filtre en remontant d'un niveau.
+     */
+    const requeteRetour = new URLSearchParams(
+        Object.entries(parametres).filter(([, v]) => Boolean(v)) as [string, string][],
+    ).toString();
+    const requete = requeteRetour ? `?${requeteRetour}` : '';
 
     return (
         <div className="space-y-4">
@@ -97,14 +126,18 @@ export default async function Page({
                             // « zero jour programme », il n'a pas ete programme du tout.
                             joursProgrammes: l.creneau ? (l.etats?.length ?? 0) : null,
                         }))}
-                        periode={creneau?.label ?? (lundi ?? 'semaine en cours')}
+                        periode={creneau?.label ?? periode.libelle}
                     />
                 </div>
             </div>
 
-            <SelecteurSemaine semaine={lundi} />
+            <SelecteurPeriode parametres={parametres} />
 
-            <BandeauFlotte creneau={creneau} stats={stats} />
+            {periode.estUneSemaine ? (
+                <BandeauFlotte creneau={creneau} stats={stats} />
+            ) : (
+                <BandeauPeriode libelle={periode.libelle} lignes={lignes} />
+            )}
 
             <AvertissementListeTronquee rendus={lignes.length} total={reponse?.totalElements} />
 
@@ -114,7 +147,7 @@ export default async function Page({
                 <UserListPerformanceBird
                     data={lignes}
                     lienFiche={(id) =>
-                        `/delivery-men/performance-flotte/livreur/${id}?retour=${contrat}${lundi ? `&semaine=${lundi}` : ''}`
+                        `/delivery-men/performance-flotte/livreur/${id}${requetePeriode(parametres, { retour: contrat } as ParametresPeriode)}`
                     }
                 />
             )}

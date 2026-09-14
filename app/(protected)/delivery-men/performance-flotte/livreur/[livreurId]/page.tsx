@@ -5,8 +5,14 @@ import Link from 'next/link';
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import { BoutonExportFiche } from '@/features/performance/components/bouton-export-fiche';
 import { DetailJournalier } from '@/features/performance/components/detail-journalier';
-import { SelecteurSemaine } from '@/features/performance/components/selecteur-semaine';
-import { lundiDeLaSemaineEnCours } from '@/features/performance/utils/semaine-iso.utils';
+import { SelecteurPeriode } from '@/features/performance/components/selecteur-periode';
+import { SemainesDeLaPeriode } from '@/features/performance/components/semaines-de-la-periode';
+import {
+    lirePeriode,
+    lundisDeLaPeriode,
+    requetePeriode,
+    type ParametresPeriode,
+} from '@/features/performance/utils/periode.utils';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { getCreneauDuLundi } from '@/src/performance/creneau-paie.action';
 import { getLignePaieLivreur } from '@/src/performance/fiche-livreur.action';
@@ -48,15 +54,48 @@ export default async function Page({
     searchParams,
 }: {
     params: Promise<{ livreurId: string }>;
-    searchParams: Promise<{ semaine?: string; retour?: string }>;
+    searchParams: Promise<ParametresPeriode & { retour?: string }>;
 }) {
     const { livreurId } = await params;
-    const { semaine: lundi, retour } = await searchParams;
+    const parametres = await searchParams;
+    const { retour } = parametres;
 
-    const creneau = await getCreneauDuLundi(lundi ?? lundiDeLaSemaineEnCours());
+    /*
+     * La periode filtre les semaines PROPOSEES, elle ne les additionne pas.
+     *
+     * Les indicateurs de cette fiche viennent de la grille de paie, qui couvre un creneau,
+     * c'est-a-dire une semaine. Les sommer sur un mois donnerait un taux moyen applique a
+     * aucune semaine, une eligibilite a la prime valable pour aucune, et un « net a payer »
+     * ne correspondant a aucun virement reel - sur le document meme qui justifie un virement.
+     */
+    const periode = lirePeriode(parametres);
+    const lundis = lundisDeLaPeriode(periode);
+
+    /*
+     * ⚠ `?semaine` sert ici de SEMAINE ACTIVE dans la periode, et non de mode : `lirePeriode`
+     * donne la priorite a `mois`, `annee` et aux bornes, donc le mode reste celui choisi. Une
+     * semaine hors de la periode - un lien ancien, une URL bricolee - retombe sur la premiere.
+     */
+    const lundi = parametres.semaine && lundis.includes(parametres.semaine)
+        ? parametres.semaine
+        : lundis[0];
+
+    const creneau = await getCreneauDuLundi(lundi);
     const ligne = creneau ? await getLignePaieLivreur(creneau.id, livreurId) : null;
 
-    const requete = lundi ? `?semaine=${lundi}` : '';
+    /*
+     * SEULS les parametres de periode se reportent sur le lien de retour. `retour`, lui, dit
+     * d'ou l'on vient et n'a aucun sens sur la liste : l'y recopier laisserait une trace
+     * inerte dans l'adresse.
+     */
+    const periodeSeule: ParametresPeriode = {
+        semaine: parametres.semaine,
+        mois: parametres.mois,
+        annee: parametres.annee,
+        debut: parametres.debut,
+        fin: parametres.fin,
+    };
+    const requete = requetePeriode(periodeSeule);
     const cheminRetour = retour
         ? `/delivery-men/performance-flotte/${retour}${requete}`
         : `/delivery-men/performance-flotte${requete}`;
@@ -88,7 +127,15 @@ export default async function Page({
                 </p>
             </div>
 
-            <SelecteurSemaine semaine={lundi} />
+            <SelecteurPeriode parametres={periodeSeule} />
+
+            <SemainesDeLaPeriode
+                actif={lundi}
+                chemin={`/delivery-men/performance-flotte/livreur/${livreurId}`}
+                libellePeriode={periode.libelle}
+                lundis={lundis}
+                parametres={{ ...periodeSeule, ...(retour ? { retour } : {}) } as ParametresPeriode}
+            />
 
             {!creneau ? (
                 <p className="rounded-lg bg-surface-secondary px-4 py-3 text-sm text-muted">

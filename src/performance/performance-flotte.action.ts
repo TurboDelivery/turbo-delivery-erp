@@ -25,6 +25,8 @@ export async function getPerformanceParContrat(
   annee?: number,
   semaine?: number,
   size: number = 200,
+  debut?: string | null,
+  fin?: string | null,
 ): Promise<PaginatedResponse<LivreurPerformanceBirdEndTorubo> | null> {
   return apiClientHttp.request<PaginatedResponse<LivreurPerformanceBirdEndTorubo> | null>({
     endpoint: `${BASE_URL}/contrat/${contrat}`,
@@ -33,11 +35,18 @@ export async function getPerformanceParContrat(
     params: {
       page: '0',
       size: String(size),
-      // Omis quand la semaine n'est pas précisée : le serveur retombe alors sur la
-      // semaine en cours.
-      ...(annee != null && semaine != null
-        ? { annee: String(annee), semaine: String(semaine) }
-        : {}),
+      /*
+       * `debut`/`fin` l'emportent sur `annee`/`semaine`, exactement comme cote serveur
+       * (`PeriodeLectureRecord.resoudre`). Deux ordres de priorite differents donneraient
+       * un ecran qui affiche un libelle de periode et des chiffres qui ne s'y rapportent pas.
+       *
+       * Omis quand rien n'est precise : le serveur retombe alors sur la semaine en cours.
+       */
+      ...(debut && fin
+        ? { debut, fin }
+        : annee != null && semaine != null
+          ? { annee: String(annee), semaine: String(semaine) }
+          : {}),
     },
   });
   // Aucun catch : une panne de lecture doit remonter. Avalée, elle deviendrait une liste

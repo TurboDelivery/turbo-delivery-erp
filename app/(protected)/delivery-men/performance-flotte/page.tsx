@@ -3,8 +3,10 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 import { CartesContrat, type SyntheseContrat } from '@/features/performance/components/cartes-contrat';
-import { SelecteurSemaine } from '@/features/performance/components/selecteur-semaine';
-import { lundiDeLaSemaineEnCours, semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
+import { SelecteurPeriode } from '@/features/performance/components/selecteur-periode';
+import { BandeauPeriode } from '@/features/performance/components/bandeau-periode';
+import { lirePeriode, type ParametresPeriode } from '@/features/performance/utils/periode.utils';
+import { semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
 import type { TurboyType } from '@/features/turboys/types/turboys.types';
 import { getPerformanceParContrat } from '@/src/performance/performance-flotte.action';
 import { AvertissementListeTronquee } from '@/components/commons/AvertissementListeTronquee';
@@ -35,10 +37,19 @@ const CONTRATS: TurboyType[] = ['JOURNALIER', 'INDEPENDANT', 'SUPERVISEUR_LIVREU
 export default async function Page({
     searchParams,
 }: {
-    searchParams: Promise<{ semaine?: string }>;
+    searchParams: Promise<ParametresPeriode>;
 }) {
-    const { semaine: lundi } = await searchParams;
-    const iso = lundi ? semaineIsoDepuisLundi(lundi) : undefined;
+    const parametres = await searchParams;
+
+    /*
+     * Les quatre granularites de l'exigence 2.3, resolues exactement comme cote serveur :
+     * une plage l'emporte sur un mois, qui l'emporte sur une annee, qui l'emporte sur une
+     * semaine. Deux ordres differents afficheraient un libelle et des chiffres qui ne s'y
+     * rapporteraient pas.
+     */
+    const periode = lirePeriode(parametres);
+    const iso = periode.estUneSemaine ? semaineIsoDepuisLundi(periode.lundi) : null;
+    const lundi = parametres.semaine;
 
     /*
      * La synthese de la flotte vient de la GRILLE DE PAIE du creneau, pas d'un recalcul :
@@ -50,11 +61,13 @@ export default async function Page({
      * Les deux lectures s'ENCHAINENT par necessite : les totaux se lisent par identifiant
      * de creneau, qu'il faut donc avoir trouve d'abord.
      */
-    const creneau = await getCreneauDuLundi(lundi ?? lundiDeLaSemaineEnCours());
+    const creneau = periode.estUneSemaine ? await getCreneauDuLundi(periode.lundi) : null;
     const stats = creneau ? await getStatsCreneau(creneau.id) : null;
 
     const reponses = await Promise.all(
-        CONTRATS.map((c) => getPerformanceParContrat(c, iso?.annee, iso?.semaine)),
+        CONTRATS.map((c) =>
+            getPerformanceParContrat(c, iso?.annee, iso?.semaine, 200, periode.debut, periode.fin),
+        ),
     );
 
     const syntheses: SyntheseContrat[] = CONTRATS.map((contrat, i) => {
@@ -63,9 +76,15 @@ export default async function Page({
         return {
             contrat,
             livreurs: lignes.length,
-            // `creneau` est NUL quand aucun emploi du temps n'existe pour la semaine lue :
-            // c'est la marque d'un livreur non programmé, pas d'une absence de donnée.
-            programmes: lignes.filter((l) => l.creneau != null).length,
+            /*
+             * `creneau` est NUL quand aucun emploi du temps n'existe pour la semaine lue :
+             * c'est la marque d'un livreur non programmé, pas d'une absence de donnée.
+             *
+             * ⚠ Sur une période de PLUSIEURS semaines, le serveur ne rend plus de créneau du
+             * tout - un créneau est une semaine. Compter les lignes qui en portent un
+             * donnerait zéro, et la carte annoncerait « Programmés : 0 » sur un mois entier.
+             */
+            programmes: periode.estUneSemaine ? lignes.filter((l) => l.creneau != null).length : null,
             nbTickets: lignes.reduce((n, l) => n + (l.nbTickets ?? 0), 0),
             commission: lignes.reduce((n, l) => n + (l.commission ?? 0), 0),
             prime: lignes.reduce((n, l) => n + (l.prime ?? 0), 0),
@@ -89,6 +108,12 @@ export default async function Page({
                      */}
                     <Link
                         className="inline-flex items-center gap-1.5 rounded-medium border border-default-200 px-3 py-2 text-sm font-medium text-foreground hover:border-default-400"
+                        /*
+                         * ⚠ Seule la SEMAINE se reporte sur le classement, pas le mois ni la
+                         * plage : le classement compare a la semaine PRECEDENTE pour donner sa
+                         * colonne d'evolution, il est hebdomadaire par construction. Lui
+                         * passer un mois donnerait un classement muet sur son propre critere.
+                         */
                         href={`/delivery-men/performance-flotte/classement${lundi ? `?semaine=${lundi}` : ''}`}
                     >
                         <ListOrdered aria-hidden="true" className="size-4" />
@@ -97,9 +122,16 @@ export default async function Page({
                 </div>
             </div>
 
-            <SelecteurSemaine semaine={lundi} />
+            <SelecteurPeriode parametres={parametres} />
 
-            <BandeauFlotte creneau={creneau} stats={stats} />
+            {periode.estUneSemaine ? (
+                <BandeauFlotte creneau={creneau} stats={stats} />
+            ) : (
+                <BandeauPeriode
+                    libelle={periode.libelle}
+                    lignes={reponses.flatMap((r) => r?.content ?? [])}
+                />
+            )}
 
             {/*
               * Les cartes somment les lignes RECUES, une page de 200. La page de categorie
@@ -113,7 +145,7 @@ export default async function Page({
                 total={reponses.reduce((n, r) => n + (r?.totalElements ?? 0), 0)}
             />
 
-            <CartesContrat semaine={lundi} syntheses={syntheses} />
+            <CartesContrat parametres={parametres} syntheses={syntheses} />
 
             {/*
              * CE QUE LE MODULE NE MONTRE PAS, ET POURQUOI.
