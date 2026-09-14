@@ -6,6 +6,7 @@ import React from 'react';
 
 import { cn } from '@/lib/utils';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
+import { formatNumber } from '@/utils/formatNumber';
 
 /**
  * L'état de performance hebdomadaire, refondu.
@@ -49,12 +50,21 @@ export interface LignePerformance {
     nomComplet: string;
     avatarUrl?: string;
     etats: EtatJour[];
+    /**
+     * Nombre de courses livrees sur la semaine.
+     *
+     * <p>L'indicateur d'activite que le cahier des charges « Performance de la Flotte »
+     * nomme en PREMIER, et le seul qui se compare d'un livreur a l'autre. Il manquait au
+     * tableau, qui montrait une note et deux montants sans jamais dire combien de courses
+     * les avaient produits.</p>
+     */
+    nbTickets: number;
     performance: number;
     commission: number;
     prime: number;
 }
 
-type Colonne = 'nom' | 'performance' | 'commission' | 'prime';
+type Colonne = 'nom' | 'livraisons' | 'performance' | 'commission' | 'prime';
 
 interface EtatPerformanceProps {
     lignes: LignePerformance[];
@@ -71,7 +81,12 @@ interface EtatPerformanceProps {
 }
 
 /** Largeurs des barres du squelette, colonne par colonne. */
-const COLONNES_SQUELETTE = ['w-40', 'w-32', 'w-16', 'w-20', 'w-20', 'w-8'];
+/*
+ * ⚠ UNE ENTREE PAR COLONNE, exactement. React Aria leve « Cell count must match
+ * column count » et la PAGE ENTIERE tombe en 500. Ajouter une colonne sans ajouter
+ * sa largeur ici casse l'ecran au chargement, pas a la compilation.
+ */
+const COLONNES_SQUELETTE = ['w-40', 'w-32', 'w-12', 'w-16', 'w-20', 'w-20', 'w-8'];
 
 /*
  * Des JETONS du theme, pas des couleurs de la palette Tailwind : `bg-green-500` ne suit
@@ -128,6 +143,7 @@ export function EtatPerformance({
         const colonne = tri.column as Colonne;
         return [...filtrees].sort((a, b) => {
             if (colonne === 'nom') return signe * a.nomComplet.localeCompare(b.nomComplet, 'fr');
+            if (colonne === 'livraisons') return signe * (a.nbTickets - b.nbTickets);
             return signe * ((a[colonne] ?? 0) - (b[colonne] ?? 0));
         });
     }, [lignes, recherche, tri]);
@@ -248,6 +264,13 @@ export function EtatPerformance({
                                         )}
                                     </Table.Column>
                                     <Table.Column id="jours">Jours pointés</Table.Column>
+                                    <Table.Column allowsSorting id="livraisons">
+                                        {({ sortDirection }) => (
+                                            <Table.SortableColumnHeader sortDirection={sortDirection}>
+                                                Livraisons
+                                            </Table.SortableColumnHeader>
+                                        )}
+                                    </Table.Column>
                                     <Table.Column allowsSorting id="performance">
                                         {({ sortDirection }) => (
                                             <Table.SortableColumnHeader sortDirection={sortDirection}>
@@ -347,6 +370,14 @@ export function EtatPerformance({
                                                         </Tooltip>
                                                     ))}
                                                 </div>
+                                            </Table.Cell>
+
+                                            <Table.Cell>
+                                                {/* Un nombre se lit a droite, en chasse tabulaire : c'est
+                                                    ce qui permet de comparer deux lignes d'un coup d'oeil. */}
+                                                <span className="block text-right tabular-nums">
+                                                    {formatNumber(l.nbTickets)}
+                                                </span>
                                             </Table.Cell>
 
                                             <Table.Cell>

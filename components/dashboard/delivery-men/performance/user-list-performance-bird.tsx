@@ -69,6 +69,9 @@ export default function UserListPerformanceBird({ data }: Props) {
                 nomComplet: l.nomComplet,
                 avatarUrl: l.avatarUrl,
                 etats: l.etats,
+                // Absent d'une reponse mise en cache avant le 14/09 : zero plutot
+                // qu'une ligne qui tombe.
+                nbTickets: l.nbTickets ?? 0,
                 performance: l.performance,
                 commission: l.commission,
                 prime: l.prime,

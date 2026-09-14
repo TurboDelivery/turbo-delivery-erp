@@ -35,8 +35,15 @@ function fabriquer(graine: number, decimales: boolean): LignePerformance[] {
         const valides = etats.filter((x) => x.statut === 'VALIDE').length;
         const perf = Math.round((valides / 7) * 100);
         const base = 8000 + Math.round(suivant() * 45000);
+        /*
+         * Le nombre de livraisons est CORRELE aux jours valides : un livreur absent
+         * quatre jours ne peut pas afficher quarante courses. Un banc qui tire les deux
+         * au hasard montre des lignes impossibles, et on cesse de le croire.
+         */
+        const nbTickets = valides === 0 ? 0 : valides * (3 + Math.round(suivant() * 9));
         return {
             id: `p${i}`,
+            nbTickets,
             nomComplet: nom,
             etats,
             performance: perf,
