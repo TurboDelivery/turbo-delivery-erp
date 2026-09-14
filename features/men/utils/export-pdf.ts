@@ -27,7 +27,20 @@ function filterLabel(typeLivreur?: string): string {
   if (!typeLivreur) return 'Tous';
   return getTurboyTypeDisplay(typeLivreur).labelPlural;
 }
-function truncate(text: string, maxChars: number): string {
+/**
+ * Tronque une valeur de cellule, MEME ABSENTE.
+ *
+ * <p>⚠ Elle recevait `string` et faisait `text.length` sans garde. Deux colonnes sur huit
+ * — « Nom » et « Prénoms » — passaient leur valeur BRUTE, sans le `?? '—'` que portent les
+ * six autres. Mesure du 14/09/2026 en production : 12 livreurs sur 191 ont ces deux champs
+ * nuls, tous indépendants.</p>
+ *
+ * <p>Consequence : l'export « Journaliers » passait, puisque aucun journalier n'est
+ * concerné, et l'export « Tous » levait une TypeError des la premiere de ces 12 lignes.
+ * Le PDF ne se produisait pas, et rien ne le disait.</p>
+ */
+function truncate(text: string | null | undefined, maxChars: number): string {
+  if (text == null || text === '') return '—';
   return text.length > maxChars ? text.slice(0, maxChars - 1) + '…' : text;
 }
 
@@ -47,12 +60,12 @@ async function loadLogoBase64(): Promise<string | null> {
 }
 
 // ── Columns ───────────────────────────────────────────────────────────────────
-interface Col { header: string; w: number; maxChars: number; value: (t: ITurboy) => string; }
+interface Col { header: string; w: number; maxChars: number; value: (t: ITurboy) => string | null; }
 
 const COLS: Col[] = [
   { header: 'Matricule',  w: 26, maxChars: 12, value: (t) => t.matricule ?? '—' },
-  { header: 'Nom',        w: 30, maxChars: 16, value: (t) => t.nom },
-  { header: 'Prénoms',    w: 38, maxChars: 20, value: (t) => t.prenoms },
+  { header: 'Nom',        w: 30, maxChars: 16, value: (t) => t.nom ?? '—' },
+  { header: 'Prénoms',    w: 38, maxChars: 20, value: (t) => t.prenoms ?? '—' },
   { header: 'Téléphone',  w: 30, maxChars: 16, value: (t) => t.telephone ?? '—' },
   { header: 'Email',      w: 58, maxChars: 32, value: (t) => t.email ?? '—' },
   { header: 'Type',       w: 26, maxChars: 14, value: (t) => typeLabel(t.typeLivreur) },

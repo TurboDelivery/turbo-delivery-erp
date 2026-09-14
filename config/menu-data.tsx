@@ -173,7 +173,17 @@ const menuData: IMenuData[] = [
       //
       // Le sujet CASL est celui de l'entree voisine, a dessein : un sujet dedie fermerait
       // la page a TOUT LE MONDE tant qu'aucun role ne l'aurait recu.
-      { icon: Users, title: 'Performance flotte', path: '/delivery-men/performance-flotte', can: { action: 'read', subject: 'Performance' } },
+      // ⚠ SUJET « GrillePaiement », et non « Performance ».
+      //
+      // Ces ecrans lisent /api/creneaux/{id}/grille-paiement, exactement l'endpoint que
+      // l'ecran Tickets & paie garde avec `read GrillePaiement`. Les avoir gardes avec
+      // `Performance` ouvrait la grille de paie de TOUTES les semaines au role AGENT_V1,
+      // qui possede `manage Performance` mais a qui l'historique de paie a ete ferme
+      // DELIBEREMENT - le commentaire de `lib/casl/ability.ts` le dit par ecrit.
+      //
+      // Un module de lecture ne doit pas etre une porte derobee vers ce qu'un autre ecran
+      // protege.
+      { icon: Users, title: 'Performance flotte', path: '/delivery-men/performance-flotte', can: { action: 'read', subject: 'GrillePaiement' } },
       { icon: History, title: 'Reporting & historisation', path: '/reporting', can: { action: 'read', subject: 'Reporting' } },
     ],
   },

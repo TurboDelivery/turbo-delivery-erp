@@ -35,7 +35,7 @@ export function createUrlFile(path: string, service: 'restaurant' | 'erp' | 'del
   return url;
 }
 
-export function getInitials(nomPrenom?: string): string {
+export function getInitials(nomPrenom?: string | null): string {
   if (!nomPrenom || nomPrenom.trim() === '' || nomPrenom.toLowerCase().trim() === 'null' || nomPrenom.toLowerCase().trim() === 'null null') {
     return '?';
   }

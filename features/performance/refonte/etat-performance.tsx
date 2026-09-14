@@ -59,7 +59,14 @@ export interface LignePerformance {
      * les avaient produits.</p>
      */
     nbTickets: number;
-    performance: number;
+    /**
+     * La note hebdomadaire, ou `null` quand elle n'est pas applicable.
+     *
+     * <p>Elle se calcule sur les jours travaillés d'un emploi du temps. Sans emploi elle
+     * n'existe pas — elle ne vaut pas zéro. Afficher « 0 % Faible » en rouge pour un
+     * indépendant qui a fait 66 courses affirmait le contraire de la réalité.</p>
+     */
+    performance: number | null;
     commission: number;
     prime: number;
 }
@@ -144,6 +151,14 @@ export function EtatPerformance({
         return [...filtrees].sort((a, b) => {
             if (colonne === 'nom') return signe * a.nomComplet.localeCompare(b.nomComplet, 'fr');
             if (colonne === 'livraisons') return signe * (a.nbTickets - b.nbTickets);
+            if (colonne === 'performance') {
+                // Les notes non applicables restent en FIN, quel que soit le sens : une
+                // absence de mesure ne doit jamais passer pour la meilleure ni la pire.
+                if (a.performance == null && b.performance == null) return 0;
+                if (a.performance == null) return 1;
+                if (b.performance == null) return -1;
+                return signe * (a.performance - b.performance);
+            }
             return signe * ((a[colonne] ?? 0) - (b[colonne] ?? 0));
         });
     }, [lignes, recherche, tri]);
@@ -381,14 +396,28 @@ export function EtatPerformance({
                                             </Table.Cell>
 
                                             <Table.Cell>
-                                                <span className="block text-right">
-                                                    <span className={cn('font-semibold tabular-nums', tonPerformance(l.performance))}>
-                                                        {l.performance}%
+                                                {/*
+                                                  * Un TIRET quand la note n'est pas applicable.
+                                                  * « 0 % Faible » en rouge se lisait comme un
+                                                  * jugement sur un livreur qui a pourtant roule.
+                                                  */}
+                                                {l.performance == null ? (
+                                                    <span
+                                                        className="block text-right text-muted"
+                                                        title="Non applicable : aucun emploi du temps sur cette semaine"
+                                                    >
+                                                        —
                                                     </span>
-                                                    <span className="ms-2 text-xs text-muted">
-                                                        {libellePerformance(l.performance)}
+                                                ) : (
+                                                    <span className="block text-right">
+                                                        <span className={cn('font-semibold tabular-nums', tonPerformance(l.performance))}>
+                                                            {l.performance}%
+                                                        </span>
+                                                        <span className="ms-2 text-xs text-muted">
+                                                            {libellePerformance(l.performance)}
+                                                        </span>
                                                     </span>
-                                                </span>
+                                                )}
                                             </Table.Cell>
 
                                             {/* Les montants a DROITE, en chasse tabulaire : c'est ce
@@ -475,9 +504,13 @@ export function EtatPerformance({
                             <Card.Content className="gap-2">
                                 <div className="flex items-start justify-between gap-2">
                                     <span className="truncate text-sm font-semibold text-foreground">{l.nomComplet}</span>
-                                    <span className={cn('shrink-0 text-sm font-semibold tabular-nums', tonPerformance(l.performance))}>
-                                        {l.performance}%
-                                    </span>
+                                    {l.performance == null ? (
+                                        <span className="shrink-0 text-sm text-muted">—</span>
+                                    ) : (
+                                        <span className={cn('shrink-0 text-sm font-semibold tabular-nums', tonPerformance(l.performance))}>
+                                            {l.performance}%
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="flex gap-1">

@@ -5,6 +5,7 @@ import { LienBouton } from '@/components/commons/LienBouton';
 import { Button, Dropdown, Spinner } from '@heroui-v3/react';
 import Link from 'next/link';
 import { ChevronDown, Download, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 import { type DemandeAssignationVM, type Restaurant } from '@/types/models';
 import { useTurboyFilters, type ActiveTab } from '@/features/turboys/hooks/use-turboy-filters';
 import { type TurboyType } from '@/features/turboys/types/turboys.types';
@@ -68,6 +69,19 @@ export default function Content({
         const turboys = await fetchAllTurboys(type);
         await exportTurboysPdf(turboys, type);
       }
+    } catch (erreur) {
+      /*
+       * SANS CE CATCH, un export qui echoue ne disait RIEN : le sablier s'arretait, aucun
+       * fichier n'arrivait, et l'erreur partait dans la console du navigateur. L'operateur
+       * cliquait a nouveau, sans plus de resultat ni d'explication.
+       */
+      console.error('Export PDF des coursiers :', erreur);
+      toast.error("L'export PDF n'a pas abouti", {
+        description:
+          erreur instanceof Error
+            ? erreur.message
+            : "Le fichier n'a pas pu être produit.",
+      });
     } finally {
       setIsExporting(null);
     }

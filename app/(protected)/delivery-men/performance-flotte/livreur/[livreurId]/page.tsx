@@ -100,10 +100,29 @@ export default async function Page({
                  * un FAIT, pas une panne, et la fiche doit le dire au lieu d'afficher des
                  * zeros qui se liraient comme une mesure.
                  */
-                <p className="rounded-lg bg-surface-secondary px-4 py-3 text-sm text-muted">
-                    Ce livreur n&apos;a aucune ligne de paie sur le créneau «&nbsp;{creneau.label}&nbsp;» :
-                    il n&apos;a pas été payé cette semaine-là.
-                </p>
+                /*
+                 * ⚠ FORMULATION PRUDENTE. La version precedente affirmait « il n'a pas ete
+                 * paye cette semaine-la ». C'etait une affirmation sur la PAIE, tiree d'une
+                 * simple absence de ligne dans la grille - et elle pouvait contredire l'ecran
+                 * d'ou l'on venait : sur la semaine 37, un livreur credite de 17 livraisons
+                 * dans la liste voyait sa fiche nier toute activite. 132 fiches sur 183
+                 * s'ouvraient ainsi.
+                 *
+                 * L'ecran dit maintenant ce qu'il SAIT : la grille ne porte pas ce livreur.
+                 * Pourquoi, il l'ignore.
+                 */
+                <div className="space-y-2 rounded-lg bg-surface-secondary px-4 py-3 text-sm text-muted">
+                    <p>
+                        La grille de paie du créneau «&nbsp;{creneau.label}&nbsp;» ne porte aucune
+                        ligne pour ce livreur. Ses montants et le détail de ses courses ne sont
+                        donc pas consultables ici.
+                    </p>
+                    <p className="text-xs">
+                        Cela n&apos;indique pas qu&apos;il n&apos;a rien fait : une course peut
+                        avoir été rattachée à un autre créneau, ou attendre sa validation.
+                        L&apos;écran de la catégorie affiche, lui, ses livraisons de la semaine.
+                    </p>
+                </div>
             ) : (
                 <>
                     <GrilleStats className="xl:grid-cols-4" colonnes={2}>
@@ -119,11 +138,18 @@ export default async function Page({
                             ton="neutre"
                             valeur={formatMontant(ligne.brut)}
                         />
+                        {/*
+                          * ⚠ `bonus` est un BOOLEEN d'eligibilite, pas un montant : l'additionner
+                          * a la prime ajoutait 1 FCFA. Et `bonusEligibilite` est un OBJET : le
+                          * passer en `note`, qui attend du texte, faisait tomber la fiche entiere
+                          * sur « Objects are not valid as a React child ». Seul son libelle, deja
+                          * mis en forme par le serveur, est lisible ici.
+                          */}
                         <CarteStat
-                            libelle="Prime et bonus"
-                            note={ligne.bonusEligibilite ?? undefined}
+                            libelle="Prime"
+                            note={ligne.bonusEligibilite?.tauxFinalLabel ?? undefined}
                             ton="neutre"
-                            valeur={formatMontant((ligne.prime ?? 0) + (ligne.bonus ?? 0))}
+                            valeur={formatMontant(ligne.prime ?? 0)}
                         />
                         {/* Le net est ce qui sort en argent : c'est lui qui appelle un geste. */}
                         <CarteStat

@@ -82,7 +82,8 @@ export default function UserListPerformanceBird({ data, lienFiche }: Props) {
                 // Absent d'une reponse mise en cache avant le 14/09 : zero plutot
                 // qu'une ligne qui tombe.
                 nbTickets: l.nbTickets ?? 0,
-                performance: l.performance,
+                // NULL, et non zero : la note n'est pas applicable sans emploi du temps.
+                performance: l.performance ?? null,
                 commission: l.commission,
                 prime: l.prime,
             });

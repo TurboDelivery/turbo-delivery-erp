@@ -24,7 +24,7 @@ interface Creneau {
      */
     creneau: Creneau | null;
     etats: Etat[];         
-    performance: number;   
+    performance: number | null;
     commission: number;    
     prime: number;
     /**

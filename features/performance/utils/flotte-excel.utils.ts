@@ -25,10 +25,27 @@ export interface LigneFlotteExport {
   joursProgrammes: number | null;
 }
 
+/**
+ * Pose un format de cellule sur une colonne.
+ *
+ * <p>⚠ Il faut accepter les cellules DATE, pas seulement les nombres. La garde ne testait
+ * que `typeof v === 'number'` ; or `aoa_to_sheet(..., { cellDates: true })` place un objet
+ * `Date` dans `v` et marque la cellule `t: 'd'`. Les deux appels qui posaient « Date » et
+ * « Heure » sur l'onglet des courses ne faisaient donc RIEN, et SheetJS gardait son format
+ * par defaut `m/d/yy` : la colonne Heure recopiait la date, et le 8 septembre se lisait
+ * « 9/8/26 », soit le 9 aout pour un lecteur francophone — sur le document qui justifie
+ * une paie.</p>
+ *
+ * <p>Le defaut avait echappe a la verification du commit precedent, qui ne controlait que
+ * les montants : eux etaient bien numeriques et bien formates.</p>
+ */
 function poserFormat(feuille: XLSX.WorkSheet, colonne: number, premiere: number, derniere: number, format: string) {
   for (let ligne = premiere; ligne <= derniere; ligne += 1) {
     const cellule = feuille[XLSX.utils.encode_cell({ c: colonne, r: ligne })];
-    if (cellule && typeof cellule.v === 'number') cellule.z = format;
+    if (!cellule) continue;
+    if (typeof cellule.v === 'number' || cellule.t === 'd' || cellule.v instanceof Date) {
+      cellule.z = format;
+    }
   }
 }
 
@@ -119,8 +136,13 @@ export function exporterListeFlotteExcel({
 /**
  * La fiche d'un livreur, en tableur : ses totaux, puis ses courses une par une.
  *
- * <p>Deux onglets, pour deux usages : le premier se lit, le second se trie et se somme. Les
- * deux viennent de la ligne de paie, donc le total du premier est la somme du second.</p>
+ * <p>Deux onglets, pour deux usages : le premier se lit, le second se trie et se somme.</p>
+ *
+ * <p>⚠ Les deux viennent de la meme ligne de paie, mais leurs totaux ne sont PAS garantis
+ * egaux. Sur un creneau verrouille, le total de la fiche est le montant FIGE au verrouillage,
+ * tandis que le detail des courses est relu vivant : supprimer un ticket apres coup laisse
+ * les deux onglets en desaccord. Une version precedente de ce commentaire affirmait
+ * l'egalite ; c'etait faux.</p>
  */
 export function exporterFicheLivreurExcel({
   ligne,
@@ -143,7 +165,9 @@ export function exporterFicheLivreurExcel({
     ['Frais de livraison générés', ligne.totalFraisLivraison ?? null],
     ['Montant brut', ligne.brut],
     ['Taux appliqué', ligne.taux ?? null],
-    ['Bonus', ligne.bonus ?? null],
+    // `bonus` est un BOOLEEN d'eligibilite. Ecrit tel quel, il sortait « VRAI » dans
+    // une ligne de montant, et le format FCFA ne s'y appliquait pas.
+    ['Éligible à la prime', ligne.bonus === true ? 'Oui' : 'Non'],
     ['Prime', ligne.prime ?? null],
     ['Déductions', ligne.deductions ?? null],
     ['Net à payer', ligne.netAPayer],
@@ -154,7 +178,7 @@ export function exporterFicheLivreurExcel({
 
   const f1 = XLSX.utils.aoa_to_sheet(fiche);
   const FORMATS: Record<number, string> = {
-    7: ENTIER, 8: FCFA, 9: FCFA, 10: POURCENT, 11: FCFA, 12: FCFA, 13: FCFA, 14: FCFA,
+    7: ENTIER, 8: FCFA, 9: FCFA, 10: POURCENT, 12: FCFA, 13: FCFA, 14: FCFA,
   };
   for (const [r, fmt] of Object.entries(FORMATS)) {
     const cellule = f1[XLSX.utils.encode_cell({ c: 1, r: Number(r) })];
@@ -193,4 +217,82 @@ export function exporterFicheLivreurExcel({
 
   const nom = (ligne.turboy?.nom ?? 'livreur').replace(/[^\w]+/g, '-').toLowerCase();
   ecrire(classeur, `fiche-${nom}-${periode.replace(/[^\w-]/g, '')}.xlsx`);
+}
+
+/** Une ligne du classement, telle que l'écran la montre. */
+export interface LigneClassementExport {
+  rang: number;
+  nom: string;
+  contrat: string;
+  nbTickets: number;
+  gain: number;
+  joursTravailles: number | null;
+  tendance: string | null;
+}
+
+/**
+ * Le classement en tableur, troisième niveau d'export de l'exigence 6.
+ *
+ * <p>Le RANG y figure tel quel, ex æquo compris : trois livreurs à égalité portent le même
+ * numéro et le suivant saute. Le fichier doit dire la même chose que l'écran, y compris ses
+ * égalités — sinon on croirait à une erreur de tri en le relisant.</p>
+ */
+export function exporterClassementExcel({
+  lignes,
+  periode,
+  tri,
+}: {
+  lignes: LigneClassementExport[];
+  periode: string;
+  tri: string;
+}): void {
+  const classeur = XLSX.utils.book_new();
+
+  const enTete: (string | number | null)[][] = [
+    ['CLASSEMENT DES LIVREURS'],
+    [],
+    ['Période', periode],
+    ['Classé par', tri],
+    ['Livreurs classés', lignes.length],
+    [],
+  ];
+
+  const titres = ['Rang', 'Livreur', 'Contrat', 'Livraisons', 'Gain', 'Jours travaillés', 'Évolution'];
+  const corps = lignes.map((l) => [
+    l.rang,
+    l.nom,
+    l.contrat,
+    l.nbTickets,
+    l.gain,
+    l.joursTravailles,
+    l.tendance,
+  ]);
+
+  // Ni le rang ni l'évolution ne s'additionnent : aucun total sous ces colonnes.
+  const total = [
+    null,
+    `Total — ${lignes.length} livreur${lignes.length > 1 ? 's' : ''}`,
+    null,
+    lignes.reduce((n, l) => n + l.nbTickets, 0),
+    lignes.reduce((n, l) => n + l.gain, 0),
+    null,
+    null,
+  ];
+
+  const tout = [...enTete, titres, ...corps, total];
+  const feuille = XLSX.utils.aoa_to_sheet(tout);
+
+  const premiere = enTete.length + 1;
+  const derniere = tout.length - 1;
+  poserFormat(feuille, 0, premiere, derniere, ENTIER);
+  poserFormat(feuille, 3, premiere, derniere, ENTIER);
+  poserFormat(feuille, 4, premiere, derniere, FCFA);
+  poserFormat(feuille, 5, premiere, derniere, ENTIER);
+
+  feuille['!cols'] = [
+    { wch: 7 }, { wch: 32 }, { wch: 18 }, { wch: 13 }, { wch: 16 }, { wch: 17 }, { wch: 12 },
+  ];
+  XLSX.utils.book_append_sheet(classeur, feuille, 'Classement');
+
+  ecrire(classeur, `classement-livreurs-${periode.replace(/[^\w-]/g, '')}.xlsx`);
 }

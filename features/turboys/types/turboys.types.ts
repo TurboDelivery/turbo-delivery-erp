@@ -9,8 +9,16 @@ export type TurboyType = 'INDEPENDANT' | 'JOURNALIER' | 'SUPERVISEUR_LIVREUR';
 export interface ITurboy {
   id: string;
  
-  nom: string;
-  prenoms: string;
+  /**
+   * NULS pour 12 des 191 livreurs de la production (mesure du 14/09/2026), tous
+   * indépendants.
+   *
+   * <p>Le type les déclarait non nullables, ce qui a laissé l'export PDF lire `t.nom`
+   * sans garde : l'export « Tous » levait une TypeError dès la première de ces lignes,
+   * et rien ne le disait. Le type ment moins cher que l'écran ne tombe.</p>
+   */
+  nom: string | null;
+  prenoms: string | null;
   telephone: string | null;
   avatarUrl: string | null;
   salaire?: number;

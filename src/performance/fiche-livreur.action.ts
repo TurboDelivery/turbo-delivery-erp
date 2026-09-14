@@ -27,8 +27,28 @@ export interface LignePaieLivreur {
   brut: number;
   taux: number | null;
   tauxManuel: boolean | null;
-  bonus: number | null;
-  bonusEligibilite: string | null;
+  /**
+   * ⚠ Un BOOLEEN, pas un montant : « true = éligible à la prime hebdomadaire »
+   * (GrillePaiementVm.java:124). Le déclarer `number` a produit deux défauts : l'écran
+   * faisait `prime + bonus` et coerçait `true` en 1 FCFA, et l'export Excel écrivait VRAI
+   * dans une ligne de montant.
+   */
+  bonus: boolean | null;
+  /**
+   * ⚠ Un OBJET, pas une chaîne. Le déclarer `string` a fait passer `tsc` au vert sur un
+   * code qui le rendait directement comme enfant React : « Objects are not valid as a
+   * React child », erreur #31, et la fiche ENTIÈRE tombait pour tout livreur payé.
+   *
+   * <p>C'est le même incident que celui documenté sur `CarteStat` (écran Tickets, 26/08).
+   * Le type mentait, donc rien ne le signalait avant l'exécution.</p>
+   */
+  bonusEligibilite: {
+    eligible: boolean;
+    tauxFinal: number | null;
+    tauxFinalLabel: string | null;
+    tauxFinalDetail: string | null;
+    criteres: { libelle?: string; atteint?: boolean; detail?: string }[] | null;
+  } | null;
   prime: number | null;
   deductions: number | null;
   netAPayer: number;

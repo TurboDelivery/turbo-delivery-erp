@@ -69,13 +69,26 @@ export function BandeauFlotte({
           valeur={formatMontant(stats.totalBrut)}
         />
 
-        {/* Le net est ce qui sort en argent : c'est lui qui appelle un geste. */}
+        {/*
+         * ⚠ `totalAPayer`, et NON `totalNet`.
+         *
+         * Le backend distingue les deux sans ambiguite : `totalNet` est « toutes lignes
+         * confondues, incluant Independants, Journaliers et Superviseurs », destine au
+         * controle de fiabilite ; `totalAPayer` est « le seul montant qui doit partir au
+         * paiement Wave ». Mesure du 14/09 sur la semaine 37 : 848 150 F contre 689 150 F,
+         * soit 159 000 F d'ecart, et 869 350 F sur la semaine 36.
+         *
+         * Afficher le premier sous le libelle « Net a payer » annoncait donc, a la Direction
+         * et sur l'ecran meme dont la premisse est « la paie fait reference », un montant
+         * superieur au virement reel. Le reste de l'ERP lit `totalAPayer ?? totalNet` et
+         * etiquette `totalNet` « Total Net verifie - tous ».
+         */}
         <CarteStat
           icone={Wallet}
           libelle="Net à payer"
-          note={`Dont ${formatMontant(stats.dontIndependants)} aux indépendants`}
+          note={`Sur ${formatMontant(stats.totalNet)} de net total, journaliers et superviseurs compris`}
           ton="attention"
-          valeur={formatMontant(stats.totalNet)}
+          valeur={formatMontant(stats.totalAPayer ?? stats.totalNet)}
         />
 
         {/*

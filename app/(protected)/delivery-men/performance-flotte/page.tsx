@@ -1,10 +1,13 @@
+import { ListOrdered } from 'lucide-react';
 import { Metadata } from 'next';
+import Link from 'next/link';
 
 import { CartesContrat, type SyntheseContrat } from '@/features/performance/components/cartes-contrat';
 import { SelecteurSemaine } from '@/features/performance/components/selecteur-semaine';
 import { lundiDeLaSemaineEnCours, semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
 import type { TurboyType } from '@/features/turboys/types/turboys.types';
 import { getPerformanceParContrat } from '@/src/performance/performance-flotte.action';
+import { AvertissementListeTronquee } from '@/components/commons/AvertissementListeTronquee';
 import { BandeauFlotte } from '@/features/performance/components/bandeau-flotte';
 import { getCreneauDuLundi, getStatsCreneau } from '@/src/performance/creneau-paie.action';
 
@@ -72,15 +75,43 @@ export default async function Page({
     return (
         <div className="space-y-4">
             <div>
-                <h1 className="text-2xl font-bold text-foreground">Performance de la flotte</h1>
-                <p className="mt-1 text-sm text-muted">
-                    Trois catégories de contrat. Cliquez sur une carte pour ouvrir sa liste.
-                </p>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <h1 className="text-2xl font-bold text-foreground">Performance de la flotte</h1>
+                        <p className="mt-1 text-sm text-muted">
+                            Trois catégories de contrat. Cliquez sur une carte pour ouvrir sa liste.
+                        </p>
+                    </div>
+
+                    {/*
+                     * Un LIEN, pas un bouton : la semaine est deja dans l'URL, il suffit de la
+                     * recopier pour que le classement arrive filtre comme cet ecran.
+                     */}
+                    <Link
+                        className="inline-flex items-center gap-1.5 rounded-medium border border-default-200 px-3 py-2 text-sm font-medium text-foreground hover:border-default-400"
+                        href={`/delivery-men/performance-flotte/classement${lundi ? `?semaine=${lundi}` : ''}`}
+                    >
+                        <ListOrdered aria-hidden="true" className="size-4" />
+                        Classement des livreurs
+                    </Link>
+                </div>
             </div>
 
             <SelecteurSemaine semaine={lundi} />
 
             <BandeauFlotte creneau={creneau} stats={stats} />
+
+            {/*
+              * Les cartes somment les lignes RECUES, une page de 200. La page de categorie
+              * voisine porte deja ce garde-fou ; sans lui ici, une categorie qui depasserait
+              * 200 livreurs afficherait un total ampute SANS un mot, alors que l'ecran d'a
+              * cote, lui, le dirait. Deux ecrans du meme module ne peuvent pas traiter le
+              * meme risque de deux facons opposees.
+              */}
+            <AvertissementListeTronquee
+                rendus={syntheses.reduce((n, s) => n + s.livreurs, 0)}
+                total={reponses.reduce((n, r) => n + (r?.totalElements ?? 0), 0)}
+            />
 
             <CartesContrat semaine={lundi} syntheses={syntheses} />
 

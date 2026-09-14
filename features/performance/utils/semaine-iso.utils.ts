@@ -39,13 +39,31 @@ export function semaineIsoDeDate(date: Date): SemaineIso {
 }
 
 /**
- * Le nom canonique d'une semaine désignée par son lundi, au format `AAAA-MM-JJ`.
+ * Le nom canonique d'une semaine désignée par son lundi, ou `null` si la valeur reçue n'en
+ * est pas un.
  *
- * <p>C'est la forme dont se sert le sélecteur de période : les options de semaine sont
- * identifiées par leur lundi, le backend attend un couple (année, semaine).</p>
+ * <h3>Pourquoi elle peut rendre `null`</h3>
+ * <p>Elle lit un paramètre d'URL, donc une valeur que N'IMPORTE QUI peut écrire. Elle
+ * construisait un `Date` sans le valider : sur une valeur non conforme la date était
+ * invalide, `getUTCDay()` rendait `NaN`, et le calcul rendait `{annee: NaN, semaine: NaN}`.
+ * `NaN` n'est pas `null`, donc il franchissait la garde de l'action, partait dans l'URL
+ * d'appel, et le backend répondait <b>400</b> : « Paramètre 'annee' invalide : NaN ». La
+ * page entière tombait sur l'écran d'erreur au lieu de se replier sur la semaine en cours.</p>
+ *
+ * <p>⚠ Le cas n'est pas théorique : `?semaine=2026-9-7` — un lundi écrit sans zéro, ce que
+ * l'on tape naturellement à la main — suffit à le déclencher.</p>
  */
-export function semaineIsoDepuisLundi(lundi: string): SemaineIso {
-  return semaineIsoDeDate(new Date(`${lundi}T00:00:00`));
+export function semaineIsoDepuisLundi(lundi: string): SemaineIso | null {
+  // Format strict : quatre chiffres, deux, deux. `new Date` accepte bien trop de choses.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(lundi)) return null;
+
+  const date = new Date(`${lundi}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const iso = semaineIsoDeDate(date);
+  if (!Number.isFinite(iso.annee) || !Number.isFinite(iso.semaine)) return null;
+
+  return iso;
 }
 
 /** Le lundi de la semaine en cours, au format `AAAA-MM-JJ`. */
