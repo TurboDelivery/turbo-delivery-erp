@@ -39,7 +39,13 @@ const creneauEndpoints = {
 };
 
 
-export async function getAllPerformaneTurbo(page: number = 0, size: number = 10): Promise<PaginatedResponse<LivreurPerformanceBirdEndTorubo> | null> {
+export async function getAllPerformaneTurbo(
+    page: number = 0,
+    size: number = 10,
+    /** Semaine lue. Absents = semaine en cours, cote serveur. Exigence 2.3 du CDC Flotte. */
+    annee?: number,
+    semaine?: number,
+): Promise<PaginatedResponse<LivreurPerformanceBirdEndTorubo> | null> {
     try {
         const data = await apiClientHttp.request<PaginatedResponse<LivreurPerformanceBirdEndTorubo>>({
             endpoint: creneauEndpoints.getAllPerformaneTurbo.endpoint,
@@ -48,6 +54,11 @@ export async function getAllPerformaneTurbo(page: number = 0, size: number = 10)
             params: {
                 page: String(page),
                 size: String(size),
+                // Omis quand la semaine n'est pas precisee : le serveur retombe alors sur
+                // la semaine en cours, ce qui est exactement le comportement d'avant.
+                ...(annee != null && semaine != null
+                    ? { annee: String(annee), semaine: String(semaine) }
+                    : {}),
             },
         });
 
@@ -60,7 +71,13 @@ export async function getAllPerformaneTurbo(page: number = 0, size: number = 10)
 }
 
 
-export async function getAllPerformanceBird(page: number = 0, size: number = 10): Promise<PaginatedResponse<LivreurPerformanceBirdEndTorubo> | null> {
+export async function getAllPerformanceBird(
+    page: number = 0,
+    size: number = 10,
+    /** Semaine lue. Absents = semaine en cours, cote serveur. Exigence 2.3 du CDC Flotte. */
+    annee?: number,
+    semaine?: number,
+): Promise<PaginatedResponse<LivreurPerformanceBirdEndTorubo> | null> {
     try {
         const data = await apiClientHttp.request<PaginatedResponse<LivreurPerformanceBirdEndTorubo> | null>({
             endpoint: creneauEndpoints.getAllPerformanceBird.endpoint,
@@ -76,6 +93,11 @@ export async function getAllPerformanceBird(page: number = 0, size: number = 10)
             params: {
                 page: String(page),
                 size: String(size),
+                // Omis quand la semaine n'est pas precisee : le serveur retombe alors sur
+                // la semaine en cours, ce qui est exactement le comportement d'avant.
+                ...(annee != null && semaine != null
+                    ? { annee: String(annee), semaine: String(semaine) }
+                    : {}),
             },
         });
 
