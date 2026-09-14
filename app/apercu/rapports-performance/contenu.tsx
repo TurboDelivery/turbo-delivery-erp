@@ -164,14 +164,14 @@ function fabriquerRecouvrement(graine: number): IRecouvrementPeriode {
         { restaurantId: 'r1', etablissement: null, code: null, composante: 'FRAIS', periodeDebut: '2026-07-28', periodeFin: '2026-08-03', montant: 500000, recouvre: 0, restant: 500000, statut: 'DRAFT' },
     ];
     const mouvements: IMouvementRecouvrement[] = [
-        { factureCode: 'F20260817-AGHA-45547', date: '2026-08-21', libelle: 'Facture soldée', montant: 2578600, par: 'Médard Koffi' },
-        { factureCode: 'F20260817-AGHA-45547', date: '2026-08-21', libelle: 'Versement au caissier effectué', montant: 2578600, par: 'Koné Brahima' },
-        { factureCode: 'F20260817-AGHA-14549', date: '2026-08-21', libelle: 'Facture soldée', montant: 2448100, par: 'Médard Koffi' },
-        { factureCode: 'F20260817-AGHA-14549', date: '2026-08-21', libelle: 'Versement au caissier effectué', montant: 2448100, par: 'Koné Brahima' },
-        { factureCode: 'F20260827-AGHA-00669', date: '2026-09-04', libelle: 'Facture soldée', montant: 2136400, par: 'Médard Koffi' },
-        { factureCode: 'F20260827-AGHA-00669', date: '2026-09-04', libelle: 'Versement au caissier effectué', montant: 2136400, par: 'Koné Brahima' },
-        { factureCode: 'F20260903-AGHA-08191', date: '2026-09-04', libelle: 'Acompte reçu', montant: 2622800, par: 'Médard Koffi' },
-        { factureCode: 'F20260903-AGHA-08191', date: '2026-09-04', libelle: 'Versement partiel au caissier effectué', montant: 2622800, par: suivant() > 0.5 ? 'Koné Brahima' : null },
+        { factureCode: 'F20260817-AGHA-45547', heure: '08:14', date: '2026-08-21', libelle: 'Facture soldée', montant: 2578600, par: 'Médard Koffi' },
+        { factureCode: 'F20260817-AGHA-45547', heure: '09:02', date: '2026-08-21', libelle: 'Versement au caissier effectué', montant: 2578600, par: 'Koné Brahima' },
+        { factureCode: 'F20260817-AGHA-14549', heure: '11:37', date: '2026-08-21', libelle: 'Facture soldée', montant: 2448100, par: 'Médard Koffi' },
+        { factureCode: 'F20260817-AGHA-14549', heure: '14:20', date: '2026-08-21', libelle: 'Versement au caissier effectué', montant: 2448100, par: 'Koné Brahima' },
+        { factureCode: 'F20260827-AGHA-00669', heure: '10:05', date: '2026-09-04', libelle: 'Facture soldée', montant: 2136400, par: 'Médard Koffi' },
+        { factureCode: 'F20260827-AGHA-00669', heure: '16:48', date: '2026-09-04', libelle: 'Versement au caissier effectué', montant: 2136400, par: 'Koné Brahima' },
+        { factureCode: 'F20260903-AGHA-08191', heure: '09:31', date: '2026-09-04', libelle: 'Acompte reçu', montant: 2622800, par: 'Médard Koffi' },
+        { factureCode: 'F20260903-AGHA-08191', heure: '17:12', date: '2026-09-04', libelle: 'Versement partiel au caissier effectué', montant: 2622800, par: suivant() > 0.5 ? 'Koné Brahima' : null },
     ];
     return {
         lignes,

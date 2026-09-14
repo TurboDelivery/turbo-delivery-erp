@@ -132,7 +132,7 @@ export function RecouvrementSection({
           <p className="mt-1 text-sm text-muted">
             {bloc.nombreFactures === 0
               ? "Aucune facture n'a été émise sur cette période pour cette sélection."
-              : `${bloc.nombreFactures} facture${bloc.nombreFactures > 1 ? 's' : ''} · ${formatMontantRecouvrement(bloc.totalRecouvre)} FCFA recouvrés sur ${formatMontantRecouvrement(bloc.totalMontant)} FCFA`}
+              : `${bloc.nombreFactures} facture${bloc.nombreFactures > 1 ? 's' : ''} · ${formatMontantRecouvrement(bloc.totalRecouvre)} recouvrés sur ${formatMontantRecouvrement(bloc.totalMontant)} · montants en FCFA`}
           </p>
         </div>
 

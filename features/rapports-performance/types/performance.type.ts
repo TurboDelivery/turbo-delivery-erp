@@ -219,8 +219,14 @@ export interface IMouvementRecouvrement {
   /** La référence de la facture concernée. NULLE sur une vieille ligne sans code. */
   factureCode: string | null;
   date: string | null;
+  /** L'heure, `HH:mm`. Séparée du jour : on trie par jour sans perdre l'heure. */
+  heure: string | null;
   libelle: string;
-  montant: number;
+  /**
+   * NUL sur une CONFIRMATION DE RÉCEPTION : c'est un accusé de réception, pas un transfert,
+   * l'argent a déjà bougé à la ligne précédente. La colonne rend alors un tiret.
+   */
+  montant: number | null;
   /** Le nom de la personne. NUL quand l'employé n'est plus retrouvable. */
   par: string | null;
 }

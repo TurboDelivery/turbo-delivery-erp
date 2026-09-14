@@ -51,10 +51,10 @@ export function colonnesRecouvrement(avecEtablissement: boolean): DefinitionColo
   const colonnes: DefinitionColonneRecouvrement[] = [
     { id: 'code', entete: 'Facture', numerique: false, totalisable: false, classeLargeur: 'min-w-[9.5rem]' },
     { id: 'composante', entete: 'Objet', numerique: false, totalisable: false, classeLargeur: 'min-w-[5rem]' },
-    { id: 'periode', entete: 'Période facturée', numerique: false, totalisable: false, classeLargeur: 'min-w-[7rem]' },
-    { id: 'montant', entete: 'Montant facturé (FCFA)', numerique: true, totalisable: true, classeLargeur: 'min-w-[5.5rem]' },
-    { id: 'recouvre', entete: 'Recouvré (FCFA)', numerique: true, totalisable: true, classeLargeur: 'min-w-[5.5rem]' },
-    { id: 'restant', entete: 'Reste à recouvrer (FCFA)', numerique: true, totalisable: true, classeLargeur: 'min-w-[5rem]' },
+    { id: 'periode', entete: 'Période', numerique: false, totalisable: false, classeLargeur: 'min-w-[7rem]' },
+    { id: 'montant', entete: 'Montant', numerique: true, totalisable: true, classeLargeur: 'min-w-[5.5rem]' },
+    { id: 'recouvre', entete: 'Recouvré', numerique: true, totalisable: true, classeLargeur: 'min-w-[5.5rem]' },
+    { id: 'restant', entete: 'Reste', numerique: true, totalisable: true, classeLargeur: 'min-w-[5rem]' },
     { id: 'statut', entete: 'État', numerique: false, totalisable: false, classeLargeur: 'min-w-[5rem]' },
   ];
 
@@ -221,7 +221,13 @@ export const NOTE_ECART_FACTURE =
 // La chronologie des encaissements
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type CleColonneMouvement = 'date' | 'factureCode' | 'libelle' | 'montant' | 'par';
+export type CleColonneMouvement =
+  | 'date'
+  | 'heure'
+  | 'factureCode'
+  | 'libelle'
+  | 'montant'
+  | 'par';
 
 /**
  * Les colonnes de la chronologie, pour l'écran, le tableur ET le PDF.
@@ -239,11 +245,19 @@ export const COLONNES_MOUVEMENT: {
   numerique: boolean;
   classeLargeur: string;
 }[] = [
-  { id: 'date', entete: 'Date', numerique: false, classeLargeur: 'min-w-[5.5rem]' },
+  { id: 'date', entete: 'Date', numerique: false, classeLargeur: 'min-w-[5rem]' },
+  /*
+   * L'HEURE dans sa propre colonne, et non collée au jour.
+   *
+   * On trie par jour sans perdre l'heure, et on filtre sur un jour sans manipuler des
+   * horodatages. C'est la règle déjà appliquée à l'export de la fiche livreur, où une colonne
+   * unique faisait relire le 8 septembre « 9/8/26 » sur le document qui justifie une paie.
+   */
+  { id: 'heure', entete: 'Heure', numerique: false, classeLargeur: 'min-w-[3.5rem]' },
   { id: 'factureCode', entete: 'Facture', numerique: false, classeLargeur: 'min-w-[9.5rem]' },
-  { id: 'libelle', entete: 'Événement', numerique: false, classeLargeur: 'min-w-[14rem]' },
-  { id: 'montant', entete: 'Montant (FCFA)', numerique: true, classeLargeur: 'min-w-[6rem]' },
-  { id: 'par', entete: 'Par', numerique: false, classeLargeur: 'min-w-[9rem]' },
+  { id: 'libelle', entete: 'Événement', numerique: false, classeLargeur: 'min-w-[13rem]' },
+  { id: 'montant', entete: 'Montant', numerique: true, classeLargeur: 'min-w-[5.5rem]' },
+  { id: 'par', entete: 'Par', numerique: false, classeLargeur: 'min-w-[8rem]' },
 ];
 
 /** Le texte d'une cellule de chronologie, partagé par l'écran, le tableur et le PDF. */
@@ -251,6 +265,9 @@ export function texteMouvement(m: IMouvementRecouvrement, id: CleColonneMouvemen
   switch (id) {
     case 'date':
       return jourFr(m.date);
+    case 'heure':
+      // Un tiret, et non une case blanche : l'heure peut manquer sur une vieille ligne.
+      return m.heure ?? '—';
     case 'factureCode':
       return m.factureCode ?? '—';
     case 'libelle':

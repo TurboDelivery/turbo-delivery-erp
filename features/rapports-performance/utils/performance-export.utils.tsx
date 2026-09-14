@@ -188,16 +188,18 @@ const LARGEUR_UTILE_PDF = 527;
 
 /** Les largeurs de la chronologie, meme budget de 527 pt. */
 const LARGEURS_MOUVEMENT: Record<string, number> = {
-  date: 60,
-  factureCode: 105,
-  libelle: 185,
-  montant: 70,
-  par: 107,
+  date: 52,
+  heure: 34,
+  factureCode: 100,
+  libelle: 165,
+  montant: 66,
+  par: 110,
 };
 
 /** Les intitules abreges de la chronologie dans le PDF. */
 const ENTETES_PDF_MOUVEMENT: Record<string, string> = {
   date: 'Date',
+  heure: 'Heure',
   factureCode: 'Facture',
   libelle: 'Événement',
   montant: 'Montant',
@@ -249,7 +251,7 @@ const ENTETES_PDF_REC: Record<string, string> = {
   etablissement: 'Établissement',
   code: 'Facture',
   composante: 'Objet',
-  periode: 'Période facturée',
+  periode: 'Période',
   montant: 'Montant',
   recouvre: 'Recouvré',
   restant: 'Reste',
@@ -666,7 +668,7 @@ function PerformancePdfDocument({
                       ]}
                     >
                       {colonne.id === 'montant'
-                        ? fmtMontantColonne(m.montant)
+                        ? (m.montant == null ? '-' : fmtMontantColonne(m.montant))
                         : texteMouvement(m, colonne.id)}
                     </Text>
                   ))}
