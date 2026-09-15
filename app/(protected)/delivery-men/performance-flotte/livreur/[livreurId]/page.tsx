@@ -18,6 +18,12 @@ import { getCreneauDuLundi } from '@/src/performance/creneau-paie.action';
 import { getLignePaieLivreur } from '@/src/performance/fiche-livreur.action';
 import { formatMontant } from '@/utils/format.utils';
 import { formatNumber } from '@/utils/formatNumber';
+import {
+    AnnonceFiltre,
+    ContenuFiltre,
+    ZoneFiltre,
+} from '@/features/performance/components/zone-filtre';
+import { SignalLien } from '@/features/performance/components/zone-filtre';
 
 export const metadata: Metadata = {
     title: 'FICHE DE PERFORMANCE',
@@ -103,13 +109,13 @@ export default async function Page({
     const display = getTurboyTypeDisplay(ligne?.typeLivreur);
 
     return (
-        <div className="space-y-4">
+        <ZoneFiltre className="space-y-4">
             <div>
                 <Link
                     className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground"
                     href={cheminRetour}
                 >
-                    <ArrowLeft aria-hidden="true" className="size-4" />
+                    <SignalLien><ArrowLeft aria-hidden="true" className="size-4" /></SignalLien>
                     Retour à la liste
                 </Link>
 
@@ -117,7 +123,15 @@ export default async function Page({
                     <h1 className="text-2xl font-bold text-foreground">
                         {ligne?.turboy?.nom ?? 'Livreur'}
                     </h1>
-                    {ligne && creneau && <BoutonExportFiche ligne={ligne} periode={creneau.label} />}
+                    {/*
+                      * Le `h1` reste en pleine lumiere : il nomme la personne regardee, il ne
+                      * change pas avec la periode, et l'estomper laisserait croire qu'on
+                      * change de livreur. L'export, lui, porte les chiffres de la semaine
+                      * qu'on quitte.
+                      */}
+                    <ContenuFiltre>
+                        {ligne && creneau && <BoutonExportFiche ligne={ligne} periode={creneau.label} />}
+                    </ContenuFiltre>
                 </div>
                 <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-sm text-muted">
                     {ligne?.turboy?.code && <span>Code {ligne.turboy.code}</span>}
@@ -127,8 +141,11 @@ export default async function Page({
                 </p>
             </div>
 
+            <AnnonceFiltre />
+
             <SelecteurPeriode parametres={periodeSeule} />
 
+            <ContenuFiltre className="space-y-4">
             <SemainesDeLaPeriode
                 actif={lundi}
                 chemin={`/delivery-men/performance-flotte/livreur/${livreurId}`}
@@ -241,6 +258,7 @@ export default async function Page({
                     </p>
                 </>
             )}
-        </div>
+            </ContenuFiltre>
+        </ZoneFiltre>
     );
 }

@@ -12,6 +12,12 @@ import { getPerformanceParContrat } from '@/src/performance/performance-flotte.a
 import { AvertissementListeTronquee } from '@/components/commons/AvertissementListeTronquee';
 import { BandeauFlotte } from '@/features/performance/components/bandeau-flotte';
 import { getCreneauDuLundi, getStatsCreneau } from '@/src/performance/creneau-paie.action';
+import {
+    AnnonceFiltre,
+    ContenuFiltre,
+    ZoneFiltre,
+} from '@/features/performance/components/zone-filtre';
+import { SignalLien } from '@/features/performance/components/zone-filtre';
 
 export const metadata: Metadata = {
     title: 'PERFORMANCE DE LA FLOTTE',
@@ -61,14 +67,30 @@ export default async function Page({
      * Les deux lectures s'ENCHAINENT par necessite : les totaux se lisent par identifiant
      * de creneau, qu'il faut donc avoir trouve d'abord.
      */
-    const creneau = periode.estUneSemaine ? await getCreneauDuLundi(periode.lundi) : null;
-    const stats = creneau ? await getStatsCreneau(creneau.id) : null;
+    /*
+     * LES DEUX FAMILLES DE LECTURE PARTENT ENSEMBLE.
+     *
+     * <p>La grille de paie et la performance des livreurs ne dependent pas l'une de l'autre :
+     * rien dans la seconde n'a besoin de l'identifiant du creneau. Les enchainer ajoutait
+     * pourtant leurs attentes bout a bout. Mesure du 15/09 en production : `/api/creneaux`
+     * coute 2,2 a 2,5 s a lui seul - 18 lignes, mais chacune porte ses agregats - et les
+     * lectures de performance 0,5 a 1,0 s chacune. En serie, l'ecran attendait la somme.</p>
+     *
+     * <p>Seul le couple creneau puis grille reste enchaine, par necessite : les totaux se
+     * lisent par identifiant de creneau, qu'il faut donc avoir trouve d'abord.</p>
+     */
+    const lecturePaie = (async () => {
+        const c = periode.estUneSemaine ? await getCreneauDuLundi(periode.lundi) : null;
+        return { creneau: c, stats: c ? await getStatsCreneau(c.id) : null };
+    })();
 
-    const reponses = await Promise.all(
+    const lecturePerformance = Promise.all(
         CONTRATS.map((c) =>
             getPerformanceParContrat(c, iso?.annee, iso?.semaine, 200, periode.debut, periode.fin),
         ),
     );
+
+    const [{ creneau, stats }, reponses] = await Promise.all([lecturePaie, lecturePerformance]);
 
     const syntheses: SyntheseContrat[] = CONTRATS.map((contrat, i) => {
         const lignes = reponses[i]?.content ?? [];
@@ -92,7 +114,7 @@ export default async function Page({
     });
 
     return (
-        <div className="space-y-4">
+        <ZoneFiltre className="space-y-4">
             <div>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -116,14 +138,17 @@ export default async function Page({
                          */
                         href={`/delivery-men/performance-flotte/classement${lundi ? `?semaine=${lundi}` : ''}`}
                     >
-                        <ListOrdered aria-hidden="true" className="size-4" />
+                        <SignalLien><ListOrdered aria-hidden="true" className="size-4" /></SignalLien>
                         Classement des livreurs
                     </Link>
                 </div>
             </div>
 
+            <AnnonceFiltre />
+
             <SelecteurPeriode parametres={parametres} />
 
+            <ContenuFiltre className="space-y-4">
             {periode.estUneSemaine ? (
                 <BandeauFlotte creneau={creneau} stats={stats} />
             ) : (
@@ -163,6 +188,7 @@ export default async function Page({
                 cette information n&apos;est enregistrée ni sur la course ni sur le ticket. Elle
                 attend une décision sur son enregistrement.
             </p>
-        </div>
+            </ContenuFiltre>
+        </ZoneFiltre>
     );
 }

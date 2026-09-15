@@ -16,6 +16,12 @@ import { BoutonExportListe } from '@/features/performance/components/bouton-expo
 import { getPerformanceParContrat } from '@/src/performance/performance-flotte.action';
 import { BandeauFlotte } from '@/features/performance/components/bandeau-flotte';
 import { getCreneauDuLundi, getStatsCreneau } from '@/src/performance/creneau-paie.action';
+import {
+    AnnonceFiltre,
+    ContenuFiltre,
+    ZoneFiltre,
+} from '@/features/performance/components/zone-filtre';
+import { SignalLien } from '@/features/performance/components/zone-filtre';
 
 export const metadata: Metadata = {
     title: 'PERFORMANCE PAR CATÉGORIE',
@@ -51,7 +57,7 @@ export default async function Page({
     const periode = lirePeriode(parametres);
     const iso = periode.estUneSemaine ? semaineIsoDepuisLundi(periode.lundi) : null;
 
-    const reponse = await getPerformanceParContrat(
+    const lecturePerformance = getPerformanceParContrat(
         contrat,
         iso?.annee,
         iso?.semaine,
@@ -67,15 +73,21 @@ export default async function Page({
      * seule donnee commune entre un creneau de paie et une semaine ISO - deux objets
      * differents qui portent tous deux le mot « semaine ».
      *
-     * Les deux lectures s'ENCHAINENT par necessite : les totaux se lisent par identifiant
-     * de creneau, qu'il faut donc avoir trouve d'abord.
+     * Seul le couple creneau puis grille s'ENCHAINE, par necessite : les totaux se lisent
+     * par identifiant de creneau, qu'il faut donc avoir trouve d'abord. La performance, elle,
+     * ne depend d'aucun des deux : les trois attentes etaient additionnees bout a bout alors
+     * que deux d'entre elles pouvaient courir ensemble. Mesure du 15/09 en production :
+     * `/api/creneaux` coute 2,2 a 2,5 s, la performance d'une categorie 0,5 a 1,0 s.
      *
      * ⚠ La grille de paie n'est lue QUE sur une semaine. Un creneau de paie couvre sept
      * jours ; sur un mois il y en a quatre ou cinq, et montrer les totaux de l'un d'eux
      * serait faux. Sur une periode plus large, c'est `BandeauPeriode` qui prend le relais
      * en additionnant les lignes affichees - une autre grandeur, et il le dit.
      */
-    const creneau = periode.estUneSemaine ? await getCreneauDuLundi(periode.lundi) : null;
+    const [reponse, creneau] = await Promise.all([
+        lecturePerformance,
+        periode.estUneSemaine ? getCreneauDuLundi(periode.lundi) : null,
+    ]);
     const stats = creneau ? await getStatsCreneau(creneau.id) : null;
 
     const lignes = reponse?.content ?? [];
@@ -91,25 +103,34 @@ export default async function Page({
     const requete = requeteRetour ? `?${requeteRetour}` : '';
 
     return (
-        <div className="space-y-4">
+        <ZoneFiltre className="space-y-4">
             <div>
                 <Link
                     className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground"
                     href={`/delivery-men/performance-flotte${requete}`}
                 >
-                    <ArrowLeft aria-hidden="true" className="size-4" />
+                    <SignalLien><ArrowLeft aria-hidden="true" className="size-4" /></SignalLien>
                     Performance de la flotte
                 </Link>
 
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">{display.labelPlural}</h1>
-                        <p className="mt-1 text-sm text-muted">
-                            {lignes.length} livreur{lignes.length > 1 ? 's' : ''} dans cette catégorie,
-                            programmé{lignes.length > 1 ? 's' : ''} ou non.
-                        </p>
+                    {/*
+                      * Ces deux fragments sortent de la lecture, donc ils sont perimes eux
+                      * aussi pendant qu'une autre arrive. Les estomper avec le reste les rend
+                      * inertes : sans cela, on exporte en tableur la periode qu'on vient de
+                      * quitter, et rien a l'ecran ne l'avait signale.
+                      */}
+                        <ContenuFiltre>
+                            <p className="mt-1 text-sm text-muted">
+                                {lignes.length} livreur{lignes.length > 1 ? 's' : ''} dans cette catégorie,
+                                programmé{lignes.length > 1 ? 's' : ''} ou non.
+                            </p>
+                        </ContenuFiltre>
                     </div>
 
+                    <ContenuFiltre>
                     <BoutonExportListe
                         categorie={display.labelPlural}
                         lignes={lignes.map((l) => ({
@@ -128,11 +149,15 @@ export default async function Page({
                         }))}
                         periode={creneau?.label ?? periode.libelle}
                     />
+                    </ContenuFiltre>
                 </div>
             </div>
 
+            <AnnonceFiltre />
+
             <SelecteurPeriode parametres={parametres} />
 
+            <ContenuFiltre className="space-y-4">
             {periode.estUneSemaine ? (
                 <BandeauFlotte creneau={creneau} stats={stats} />
             ) : (
@@ -150,6 +175,7 @@ export default async function Page({
                     lienFicheRequete={requetePeriode(parametres, { retour: contrat } as ParametresPeriode)}
                 />
             )}
-        </div>
+            </ContenuFiltre>
+        </ZoneFiltre>
     );
 }

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { jourCourt, requetePeriode, type ParametresPeriode } from '@/features/performance/utils/periode.utils';
+import { SignalLien } from '@/features/performance/components/zone-filtre';
 
 /**
  * Les semaines d'une période, sur la fiche individuelle.
@@ -59,6 +60,13 @@ export function SemainesDeLaPeriode({
               key={lundi}
             >
               {jourCourt(lundi)}
+              {/*
+                * Sans enfant : il ne dessine rien et ne change pas la largeur de l'onglet.
+                * Il declare seulement l'attente, ce qui estompe le contenu et allume
+                * l'indicateur de la barre de filtres, quelques pixels au-dessus. Changer de
+                * semaine par un onglet est le meme geste que par le selecteur.
+                */}
+              <SignalLien />
             </Link>
           );
         })}

@@ -222,11 +222,14 @@ export function ChampMotDePasse({
  */
 export function ChampDate({
   erreur,
+  estDesactive,
   label,
   onChange,
   valeur,
 }: {
   erreur?: string;
+  /** Le champ ne peut pas encore etre saisi : une dependance manque, ou une lecture est en cours. */
+  estDesactive?: boolean;
   label: string;
   onChange: (v: string) => void;
   valeur?: string;
@@ -240,6 +243,7 @@ export function ChampDate({
 
   return (
     <DatePicker
+      isDisabled={estDesactive}
       isInvalid={Boolean(erreur)}
       onChange={(d: DateValue | null) => onChange(d ? d.toString() : '')}
       value={calendaire}

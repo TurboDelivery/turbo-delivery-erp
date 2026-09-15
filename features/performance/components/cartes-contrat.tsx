@@ -6,6 +6,7 @@ import { formatMontant } from '@/utils/format.utils';
 import { formatNumber } from '@/utils/formatNumber';
 import type { TurboyType } from '@/features/turboys/types/turboys.types';
 import type { ParametresPeriode } from '@/features/performance/utils/periode.utils';
+import { SignalLien } from '@/features/performance/components/zone-filtre';
 
 /** Ce qu'une carte compte, déjà agrégé par l'appelant. */
 export interface SyntheseContrat {
@@ -86,10 +87,22 @@ export function CartesContrat({
               <p className="text-[11px] font-medium uppercase tracking-wide text-default-500">
                 {display.labelPlural}
               </p>
-              <ChevronRight
-                aria-hidden="true"
-                className="size-4 shrink-0 text-default-400 transition-transform group-hover:translate-x-0.5"
-              />
+              {/*
+                * Le chevron cede sa place au sablier pendant la navigation, dans la meme
+                * boite de 16 px, donc sans decalage. C'est le geste le plus frequent de cet
+                * ecran et le seul qui ne produisait AUCUN signal : le clic ne passe par la
+                * transition d'aucun selecteur.
+                *
+                * ⚠ On passe un ELEMENT, jamais le type `ChevronRight`. Une icone lucide est
+                * un objet forwardRef, donc une fonction : la passer en prop depuis un
+                * composant serveur fait tomber la page, build vert compris.
+                */}
+              <SignalLien>
+                <ChevronRight
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-default-400 transition-transform group-hover:translate-x-0.5"
+                />
+              </SignalLien>
             </div>
 
             {/* Le volume de livraisons : le chiffre qui se compare d'une categorie a l'autre. */}

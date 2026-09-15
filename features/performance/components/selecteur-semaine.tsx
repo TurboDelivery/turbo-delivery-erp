@@ -1,9 +1,10 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useTransition } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
 
 import { ChampListe } from '@/components/commons/champs-formulaire';
+import { IndicateurFiltre, useFiltre } from '@/features/performance/components/zone-filtre';
 import { generateAllWeeks } from '@/features/creneaux/utils/semaine.utils';
 import { lundiDeLaSemaineEnCours } from '@/features/performance/utils/semaine-iso.utils';
 
@@ -23,15 +24,20 @@ import { lundiDeLaSemaineEnCours } from '@/features/performance/utils/semaine-is
  * un composant serveur, de relire les données : sans paramètre d'URL, elle n'aurait aucun
  * moyen de savoir quoi demander.</p>
  *
+ * <h3>Pourquoi l'attente ne lui appartient plus</h3>
+ * <p>La transition qui porte la navigation vit dans {@link ZoneFiltre}, un cran au-dessus,
+ * partagée avec le CONTENU rendu côté serveur. C'est ce qui permet d'estomper le classement
+ * périmé pendant la lecture de la nouvelle semaine. Enfermé ici, cet état ne savait dire que
+ * « la liste est désactivée », ce qui se lit comme une panne.</p>
+ *
  * <h3>Une ComboBox, pas un Select</h3>
  * <p>La liste couvre toutes les semaines depuis décembre 2024, soit près de quatre-vingt-dix
  * entrées. Une liste déroulante simple obligerait à faire défiler ; celle-ci se cherche au
  * clavier. C'est la règle du projet pour tout ce qui se filtre.</p>
  */
 export function SelecteurSemaine({ semaine }: { semaine?: string }) {
-  const router = useRouter();
   const params = useSearchParams();
-  const [enCours, demarrer] = useTransition();
+  const { enCours, naviguerVers } = useFiltre();
 
   /*
    * Les semaines sont identifiées par leur LUNDI, au format `AAAA-MM-JJ`. La conversion
@@ -60,20 +66,24 @@ export function SelecteurSemaine({ semaine }: { semaine?: string }) {
       suivants.set('semaine', lundi);
     }
 
-    const requete = suivants.toString();
-    demarrer(() => router.push(requete ? `?${requete}` : '?', { scroll: false }));
+    naviguerVers(suivants.toString());
   };
 
   return (
-    <div className="mb-4 max-w-sm">
-      <ChampListe
-        estDesactive={enCours}
-        label="Semaine"
-        onChange={choisir}
-        options={options}
-        placeholder="Choisir une semaine"
-        valeur={valeur}
-      />
+    <div className="mb-4 flex flex-wrap items-end gap-3">
+      <div className="max-w-sm flex-1 basis-72">
+        <ChampListe
+          estDesactive={enCours}
+          label="Semaine"
+          onChange={choisir}
+          options={options}
+          placeholder="Choisir une semaine"
+          valeur={valeur}
+        />
+      </div>
+
+      {/* Garde sa place en permanence : apparaitre ferait sauter la ligne. */}
+      <IndicateurFiltre />
     </div>
   );
 }

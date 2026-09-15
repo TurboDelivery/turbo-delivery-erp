@@ -11,6 +11,12 @@ import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-disp
 import { getClassementLivreurs } from '@/src/performance/classement-livreurs.action';
 import { formatMontant } from '@/utils/format.utils';
 import { formatNumber } from '@/utils/formatNumber';
+import {
+    AnnonceFiltre,
+    ContenuFiltre,
+    ZoneFiltre,
+} from '@/features/performance/components/zone-filtre';
+import { SignalLien } from '@/features/performance/components/zone-filtre';
 
 export const metadata: Metadata = {
     title: 'CLASSEMENT DES LIVREURS',
@@ -57,26 +63,35 @@ export default async function Page({
     const periode = classement ? `Semaine ${classement.semaine} — ${classement.debut} au ${classement.fin}` : '';
 
     return (
-        <div className="space-y-4">
+        <ZoneFiltre className="space-y-4">
             <div>
                 <Link
                     className="mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-foreground"
                     href={`/delivery-men/performance-flotte${requete}`}
                 >
-                    <ArrowLeft aria-hidden="true" className="size-4" />
+                    <SignalLien><ArrowLeft aria-hidden="true" className="size-4" /></SignalLien>
                     Performance de la flotte
                 </Link>
 
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                         <h1 className="text-2xl font-bold text-foreground">Classement des livreurs</h1>
+                    {/*
+                      * Ces deux fragments sortent de la lecture, donc ils sont perimes eux
+                      * aussi pendant qu'une autre arrive. Les estomper avec le reste les rend
+                      * inertes : sans cela, on exporte en tableur la periode qu'on vient de
+                      * quitter, et rien a l'ecran ne l'avait signale.
+                      */}
+                        <ContenuFiltre>
                         <p className="mt-1 text-sm text-muted">
                             {classement
                                 ? `${periode} · classé par ${LIBELLE_TRI[classement.tri] ?? classement.tri.toLowerCase()}${classement.contrat ? ` · ${getTurboyTypeDisplay(classement.contrat).labelPlural.toLowerCase()}` : ''}`
                                 : 'Classement indisponible'}
                         </p>
+                        </ContenuFiltre>
                     </div>
 
+                    <ContenuFiltre>
                     <BoutonExportClassement
                         lignes={lignes.map((l) => ({
                             rang: l.rang,
@@ -90,11 +105,15 @@ export default async function Page({
                         periode={periode}
                         tri={LIBELLE_TRI[classement?.tri ?? ''] ?? (classement?.tri ?? '')}
                     />
+                    </ContenuFiltre>
                 </div>
             </div>
 
+            <AnnonceFiltre />
+
             <SelecteurSemaine semaine={lundi} />
 
+            <ContenuFiltre className="space-y-4">
             {/*
              * Les parametres ECARTES par le serveur, dits a l'ecran. Un lien ancien peut
              * porter un critere qui n'existe plus : le serveur tranche au lieu de rendre 400,
@@ -149,6 +168,7 @@ export default async function Page({
                 suivant saute d&apos;autant. Un tiret dans «&nbsp;Jours travaillés&nbsp;» signale un
                 livreur sans emploi du temps : il n&apos;est pas classé sur ce critère.
             </p>
-        </div>
+            </ContenuFiltre>
+        </ZoneFiltre>
     );
 }

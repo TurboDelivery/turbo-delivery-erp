@@ -1,9 +1,10 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useTransition } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
 
 import { ChampDate, ChampListe } from '@/components/commons/champs-formulaire';
+import { IndicateurFiltre, useFiltre } from '@/features/performance/components/zone-filtre';
 import { generateAllWeeks } from '@/features/creneaux/utils/semaine.utils';
 import {
   MOIS_FR,
@@ -28,6 +29,13 @@ import { lundiDeLaSemaineEnCours } from '@/features/performance/utils/semaine-is
  * faire défiler ; celles-ci se cherchent au clavier. C'est la règle du projet pour tout ce
  * qui se filtre.</p>
  *
+ * <h3>Pourquoi l'attente ne lui appartient plus</h3>
+ * <p>La transition qui porte la navigation vit désormais dans {@link ZoneFiltre}, un cran
+ * au-dessus. Elle y est partagée avec le CONTENU, que la page rend côté serveur : c'est ce
+ * qui permet d'estomper les chiffres périmés pendant la lecture. Tant que cet état restait
+ * enfermé ici, il ne pouvait rien dire d'autre que « la liste est désactivée », ce qui se
+ * lit comme une panne.</p>
+ *
  * <h3>Ce que le changement de mode efface</h3>
  * <p>Passer d'un mode à l'autre RETIRE les paramètres des autres modes. Sans cela, une URL
  * porterait `?mois=2026-09&semaine=2026-09-07` et l'écran lirait l'un pendant que le
@@ -35,9 +43,8 @@ import { lundiDeLaSemaineEnCours } from '@/features/performance/utils/semaine-is
  * que rien ne le dise.</p>
  */
 export function SelecteurPeriode({ parametres }: { parametres: ParametresPeriode }) {
-  const router = useRouter();
   const params = useSearchParams();
-  const [enCours, demarrer] = useTransition();
+  const { enCours, naviguerVers } = useFiltre();
 
   const periode = lirePeriode(parametres);
   const semaineCourante = lundiDeLaSemaineEnCours();
@@ -80,8 +87,7 @@ export function SelecteurPeriode({ parametres }: { parametres: ParametresPeriode
       if (valeur) suivants.set(cle, valeur);
     }
 
-    const requete = suivants.toString();
-    demarrer(() => router.push(requete ? `?${requete}` : '?', { scroll: false }));
+    naviguerVers(suivants.toString());
   }
 
   function changerMode(mode: string) {
@@ -167,6 +173,7 @@ export function SelecteurPeriode({ parametres }: { parametres: ParametresPeriode
         <>
           <div className="w-44">
             <ChampDate
+              estDesactive={enCours}
               label="Du"
               onChange={(valeur) => naviguer({ debut: valeur, fin: parametres.fin })}
               valeur={parametres.debut}
@@ -179,6 +186,7 @@ export function SelecteurPeriode({ parametres }: { parametres: ParametresPeriode
                   ? 'La fin précède le début'
                   : undefined
               }
+              estDesactive={enCours}
               label="Au"
               onChange={(valeur) => naviguer({ debut: parametres.debut, fin: valeur })}
               valeur={parametres.fin}
@@ -186,6 +194,13 @@ export function SelecteurPeriode({ parametres }: { parametres: ParametresPeriode
           </div>
         </>
       )}
+
+      {/*
+       * L'indicateur ferme la ligne, à droite des champs. Il garde sa place quand rien ne
+       * charge : le faire apparaître décalerait la ligne au moment où l'on vient de
+       * cliquer dedans.
+       */}
+      <IndicateurFiltre />
     </div>
   );
 }
