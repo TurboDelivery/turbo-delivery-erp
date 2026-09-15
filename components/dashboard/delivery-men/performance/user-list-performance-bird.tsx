@@ -35,14 +35,27 @@ interface Props {
      * menu de ligne ; le module « Performance de la Flotte » en a une et la lie. Rendre le
      * lien obligatoire aurait force les anciens ecrans a en inventer un.</p>
      */
-    lienFiche?: (livreurId: string) => string;
+    /**
+     * Le lien vers la fiche d'un livreur, en DEUX MORCEAUX et non en fonction.
+     *
+     * <p>⚠ Une FONCTION ne traverse pas la frontière serveur/client. Ce composant est un
+     * composant client, la page qui l'appelle est un composant serveur : lui passer
+     * `lienFiche={(id) => ...}` fait lever « Functions cannot be passed directly to Client
+     * Components » et emporte la PAGE ENTIÈRE sur son écran d'erreur. Constaté en production
+     * le 15/09/2026, et invisible pour `tsc` comme pour `pnpm build`.</p>
+     *
+     * <p>Deux chaînes suffisent : le chemin de base et la requête à recopier. Le composant
+     * assemble `base/identifiant + requête` lui-même.</p>
+     */
+    lienFicheBase?: string;
+    lienFicheRequete?: string;
 }
 
 /** La cle du groupe des livreurs sans emploi du temps sur la periode. */
 const SANS_CRENEAU = 'sans-creneau';
 const LIBELLE_SANS_CRENEAU = 'Aucun créneau créé';
 
-export default function UserListPerformanceBird({ data, lienFiche }: Props) {
+export default function UserListPerformanceBird({ data, lienFicheBase, lienFicheRequete }: Props) {
     /** Un libellé de semaine lisible, à partir des deux bornes du créneau. */
     const libelle = (debut: string, fin: string) => {
         const jd = debut?.slice(8, 10);
@@ -128,10 +141,10 @@ export default function UserListPerformanceBird({ data, lienFiche }: Props) {
             lignes={active.lignes}
             onSemaine={setSemaineActive}
             rendreActions={(l) =>
-                lienFiche ? (
+                lienFicheBase ? (
                     <Link
                         className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-                        href={lienFiche(l.id)}
+                        href={`${lienFicheBase}/${l.id}${lienFicheRequete ?? ''}`}
                     >
                         Fiche
                         <ChevronRight aria-hidden="true" className="size-3.5" />

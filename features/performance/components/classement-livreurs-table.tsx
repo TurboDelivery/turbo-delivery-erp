@@ -24,10 +24,24 @@ import { cn } from '@/lib/utils';
  */
 export function ClassementLivreursTable({
   lignes,
-  lienFiche,
+  lienFicheBase,
+  lienFicheRequete,
 }: {
   lignes: LigneClassementLivreur[];
-  lienFiche: (livreurId: string) => string;
+  /**
+   * Le lien vers la fiche d'un livreur, en DEUX MORCEAUX et non en fonction.
+   *
+   * <p>⚠ Une FONCTION ne traverse pas la frontière serveur/client. Ce composant est un
+   * composant client, la page qui l'appelle est un composant serveur : lui passer
+   * `lienFiche={(id) => ...}` fait lever « Functions cannot be passed directly to Client
+   * Components » et emporte la PAGE ENTIÈRE sur son écran d'erreur. Constaté en production
+   * le 15/09/2026, et invisible pour `tsc` comme pour `pnpm build`.</p>
+   *
+   * <p>Deux chaînes suffisent : le chemin de base et la requête à recopier. Le composant
+   * assemble `base/identifiant + requête` lui-même.</p>
+   */
+  lienFicheBase: string;
+  lienFicheRequete?: string;
 }) {
   return (
     <Table>
@@ -72,7 +86,7 @@ export function ClassementLivreursTable({
                 <Table.Cell>
                   <a
                     className="block max-w-[18rem] truncate font-medium text-foreground hover:underline"
-                    href={lienFiche(l.livreurId)}
+                    href={`${lienFicheBase}/${l.livreurId}${lienFicheRequete ?? ''}`}
                   >
                     {l.nom ?? l.livreurId}
                   </a>

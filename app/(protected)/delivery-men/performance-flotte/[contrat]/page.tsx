@@ -146,9 +146,8 @@ export default async function Page({
             ) : (
                 <UserListPerformanceBird
                     data={lignes}
-                    lienFiche={(id) =>
-                        `/delivery-men/performance-flotte/livreur/${id}${requetePeriode(parametres, { retour: contrat } as ParametresPeriode)}`
-                    }
+                    lienFicheBase="/delivery-men/performance-flotte/livreur"
+                    lienFicheRequete={requetePeriode(parametres, { retour: contrat } as ParametresPeriode)}
                 />
             )}
         </div>

@@ -1,3 +1,23 @@
+'use client';
+
+/*
+ * ⚠ COMPOSANT CLIENT, ET CE N'EST PAS UN DETAIL DE PERFORMANCE.
+ *
+ * `CarteStat` est un composant CLIENT, et ce bandeau lui passe ses icones sous la forme
+ * `icone={Users}` - c'est-a-dire l'objet `forwardRef` de lucide, `{$$typeof, render,
+ * displayName}`. Une fonction ne TRAVERSE PAS la frontiere serveur/client : React leve
+ * « Functions cannot be passed directly to Client Components » et la PAGE ENTIERE tombe sur
+ * son ecran d'erreur.
+ *
+ * Constate le 15/09/2026 en production : l'ecran « Performance flotte » affichait « Les
+ * livreurs n'a pas pu s'afficher », avec exactement cinq erreurs au journal du serveur -
+ * une par carte. Les deux pages du module etaient touchees, celle-ci etant importee par
+ * deux composants SERVEUR.
+ *
+ * ⚠ `tsc` et `pnpm build` passent au VERT sur ce defaut : il n'apparait qu'au rendu. Les
+ * vingt autres appelants de `CarteStat` dans l'ERP sont tous des composants client ; ces
+ * deux bandeaux etaient les seuls a ne pas l'etre.
+ */
 import { AlertTriangle, Package, Receipt, Users, Wallet } from 'lucide-react';
 
 import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';

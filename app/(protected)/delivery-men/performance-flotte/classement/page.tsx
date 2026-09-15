@@ -139,9 +139,8 @@ export default async function Page({
             )}
 
             <ClassementLivreursTable
-                lienFiche={(id) =>
-                    `/delivery-men/performance-flotte/livreur/${id}${lundi ? `?semaine=${lundi}` : ''}`
-                }
+                lienFicheBase="/delivery-men/performance-flotte/livreur"
+                lienFicheRequete={lundi ? `?semaine=${lundi}` : ''}
                 lignes={lignes}
             />
 
