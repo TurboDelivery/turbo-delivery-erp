@@ -19,6 +19,7 @@ import { Check, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import React from 'react';
 
 import { cn } from '@/lib/utils';
+import { dateSaisissable, dernierJourSaisissable, premierJourSaisissable } from '@/features/tickets/utils/date-saisie.utils';
 
 /**
  * Le plan de saisie : l'etabli, separe de l'archive.
@@ -174,7 +175,11 @@ export function PlanSaisie({
                     </ComboBox>
 
                     <DatePicker
-                        onChange={(d: DateValue | null) => etat.setDate(d ? d.toString() : '')}
+                        /* Bornes de saisie : sans elles, « 26 » tape dans le segment de l'annee
+                           pose l'an 26, et le serveur marque le ticket Tardif. */
+                        maxValue={dernierJourSaisissable()}
+                        minValue={premierJourSaisissable()}
+                        onChange={(d: DateValue | null) => etat.setDate(dateSaisissable(d) ? d!.toString() : '')}
                         value={etat.date ? enDateCalendaire(etat.date) : null}
                     >
                         <Label>Date</Label>

@@ -41,13 +41,24 @@ export const ticketsInfiniteQueryOption = (ticketsParamsDTO: ITicketParams) => {
 
 //2- Hook pour récupérer les actualités
 export const useTicketsInfiniteQuery = (ticketsParamsDTO: ITicketParams) => {
-  if (ticketsParamsDTO.search?.trim()) {
-    ticketsParamsDTO.restaurantId = '';
-    ticketsParamsDTO.livreurId = '';
-    ticketsParamsDTO.debut = undefined;
-    ticketsParamsDTO.fin = undefined;
-  }
-  const query = useInfiniteQuery(ticketsInfiniteQueryOption(ticketsParamsDTO));
+  /*
+   * UN CODE CHECK LEVE LA PERIODE, ET RIEN D'AUTRE.
+   *
+   * <p>Un code est unique et se cherche dans toute l'archive : l'enfermer dans la semaine
+   * affichee le rendrait introuvable. Le livreur et le partenaire, eux, ne font que
+   * restreindre, et ils RESTENT. Les effacer avait deux consequences que personne ne voyait :
+   * le filtre « Livreur » s'affichait toujours actif alors qu'il ne partait plus, et les
+   * cartes de statistiques comme le fichier exporte, qui lisent les memes filtres sans les
+   * effacer, decrivaient un autre ensemble que le tableau.</p>
+   *
+   * <p>⚠ Et on COPIE. L'objet recu est le `useMemo` de l'appelant : le muter corrompait
+   * l'etat de filtre partage par l'ecran entier, au premier rendu, en silence.</p>
+   */
+  const params: ITicketParams = ticketsParamsDTO.search?.trim()
+    ? { ...ticketsParamsDTO, debut: undefined, fin: undefined }
+    : ticketsParamsDTO;
+
+  const query = useInfiniteQuery(ticketsInfiniteQueryOption(params));
 
   // Gestion des erreurs dans le hook
   React.useEffect(() => {

@@ -3,7 +3,7 @@
 import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Ticket } from '@/types/bon-livraison.model';
-import { formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
+import { dateImpossible, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { formatMontant } from '@/utils/format.utils';
 import {
   Button,
@@ -22,11 +22,12 @@ import {
 } from '@heroui-v3/react';
 import { CalendarDate, Time } from '@internationalized/date';
 import type { DateValue } from '@internationalized/date';
-import { Check, ChevronLeft, ChevronRight, Pen, ShieldCheck, Trash2, X } from 'lucide-react';
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Pen, ShieldCheck, Trash2, X } from 'lucide-react';
 import { SelecteurZone } from '@/features/tickets/components/selecteur-zone';
 import { commissionAffichee } from '@/features/tickets/utils/commission.utils';
 import { StatutTicket } from './statut-ticket';
 import { StatutControle } from '@/types/statut-controle.enum';
+import { dateSaisissable, dernierJourSaisissable, premierJourSaisissable } from '@/features/tickets/utils/date-saisie.utils';
 
 /** « 2026-09-04 » vers une date calendaire, sans heure ni fuseau. */
 const enCalendaire = (iso: string): CalendarDate | null => {
@@ -333,7 +334,11 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
       if (isEditing(ticket, meta)) {
         return (
           <DatePicker
-            onChange={(d: DateValue | null) => meta.onTicketChange(ticket.id, 'date', d ? d.toString() : '')}
+              /* Bornes de saisie : sans elles, « 26 » tape dans le segment de l'annee
+                 pose l'an 26, et le serveur marque le ticket Tardif. */
+              maxValue={dernierJourSaisissable()}
+              minValue={premierJourSaisissable()}
+            onChange={(d: DateValue | null) => meta.onTicketChange(ticket.id, 'date', dateSaisissable(d) ? d!.toString() : '')}
             value={enCalendaire(ticket.date)}
           >
             <DateField.Group>
@@ -366,6 +371,23 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
               </Calendar>
             </DatePicker.Popover>
           </DatePicker>
+        );
+      }
+      /*
+       * Une date impossible se SIGNALE, elle ne se cache pas et elle ne se corrige pas
+       * toute seule : la ligne existe, son montant compte. Le 16/09/2026, 68 tickets
+       * portaient l'annee 0026 et personne ne pouvait le voir, l'ecran affichant
+       * « 14/09/26 ».
+       */
+      if (dateImpossible(ticket.date)) {
+        return (
+          <span
+            className="inline-flex items-center gap-1 text-xs text-danger-soft-foreground"
+            title="Année impossible : ce ticket a été enregistré avec une date erronée. Il est compté hors créneau, donc marqué Tardif."
+          >
+            <AlertTriangle aria-hidden="true" className="size-3 shrink-0" />
+            {formatDateFR(ticket.date)}
+          </span>
         );
       }
       return <span className="text-xs">{formatDateFR(ticket.date)}</span>;

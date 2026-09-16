@@ -57,13 +57,45 @@ export function formatCFA(value?: number | string) {
   return formatMontant(Number.isFinite(nombre) ? nombre : 0);
 }
 
+/**
+ * `15/09/2026`. L'ANNEE SUR QUATRE CHIFFRES, toujours.
+ *
+ * <h3>Ce que le format precedent cachait</h3>
+ * <p>Il demandait `year: 'numeric'`, ce qui rend l'annee sans la completer : l'an 26 s'ecrit
+ * « 26 ». Un ticket enregistre par megarde a l'annee 26 — le champ de date accepte deux
+ * chiffres dans son segment d'annee — s'affichait donc « 15/09/26 » et se lisait 2026.</p>
+ *
+ * <p>Ce n'est pas une hypothese : le 16/09/2026, SOIXANTE-HUIT des soixante-dix tickets en
+ * regularisation portaient l'annee 0026. Ils etaient marques « Tardif » a juste titre — l'an
+ * 26 n'est dans aucun creneau — introuvables par le filtre de periode, et l'ecran les
+ * presentait comme des bons du 14 et du 15 septembre. Personne ne pouvait voir l'erreur.</p>
+ *
+ * <p>Une date impossible doit maintenant se voir : « 15/09/0026 » ne se confond avec rien.</p>
+ */
 export function formatDateFR(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString('fr-FR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  });
+  if (Number.isNaN(date.getTime())) return dateString ?? '';
+
+  const jour = String(date.getDate()).padStart(2, '0');
+  const mois = String(date.getMonth() + 1).padStart(2, '0');
+  // `padStart` et non `toLocaleDateString` : c'est le seul moyen de garder les zeros de
+  // tete d'une annee aberrante, que toutes les options d'`Intl` suppriment.
+  const annee = String(date.getFullYear()).padStart(4, '0');
+  return `${jour}/${mois}/${annee}`;
+}
+
+/**
+ * Une date qu'aucun ticket ne peut porter.
+ *
+ * <p>Sert a SIGNALER, pas a corriger : la ligne existe, son montant compte, et l'effacer de
+ * l'ecran serait pire. On la montre, et on dit qu'elle est impossible.</p>
+ */
+export function dateImpossible(dateString: string | null | undefined): boolean {
+  if (!dateString) return false;
+  const date = new Date(dateString);
+  if (Number.isNaN(date.getTime())) return true;
+  const annee = date.getFullYear();
+  return annee < 2000 || annee > new Date().getFullYear() + 1;
 }
 
 export function formatHoursMinutes(time: string): string {

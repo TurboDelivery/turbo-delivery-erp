@@ -110,7 +110,14 @@ export function TicketTableFilters({
                     </SearchField.Group>
                 </SearchField>
 
+                {/*
+                  * Une recherche qui ne correspond a rien REFERMAIT la liste, sans un mot.
+                  * « ce nom ne s'ecrit pas comme ca » se lisait alors « le filtre est casse ».
+                  * Le composant precedent affichait un message quand rien ne correspondait ;
+                  * la refonte v3 l'a remplace, et le message a disparu avec lui.
+                  */}
                 <ComboBox
+                    allowsEmptyCollection
                     onSelectionChange={(c) => onFilterChange('livreurId', c === TOUS ? '' : String(c ?? ''))}
                     selectedKey={livreurId || TOUS}
                 >
@@ -120,7 +127,12 @@ export function TicketTableFilters({
                         <ComboBox.Trigger />
                     </ComboBox.InputGroup>
                     <ComboBox.Popover>
-                        <ListBox items={livreurs}>
+                        <ListBox
+                            items={livreurs}
+                            renderEmptyState={() => (
+                                <p className="px-3 py-2 text-sm text-muted">Aucun livreur ne correspond</p>
+                            )}
+                        >
                             {(o: Option) => (
                                 <ListBox.Item id={o.value} textValue={o.label}>
                                     {o.label}
@@ -132,6 +144,7 @@ export function TicketTableFilters({
                 </ComboBox>
 
                 <ComboBox
+                    allowsEmptyCollection
                     onSelectionChange={(c) => onFilterChange('restaurantId', c === TOUS ? '' : String(c ?? ''))}
                     selectedKey={restaurantId || TOUS}
                 >
@@ -141,7 +154,12 @@ export function TicketTableFilters({
                         <ComboBox.Trigger />
                     </ComboBox.InputGroup>
                     <ComboBox.Popover>
-                        <ListBox items={restaurants}>
+                        <ListBox
+                            items={restaurants}
+                            renderEmptyState={() => (
+                                <p className="px-3 py-2 text-sm text-muted">Aucun partenaire ne correspond</p>
+                            )}
+                        >
                             {(o: Option) => (
                                 <ListBox.Item id={o.value} textValue={o.label}>
                                     {o.label}

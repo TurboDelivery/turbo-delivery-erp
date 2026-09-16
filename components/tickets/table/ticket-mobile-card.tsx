@@ -30,6 +30,7 @@ import { StatutControle } from '@/types/statut-controle.enum';
 
 import { StatutTicket } from './statut-ticket';
 import type { TicketColumnMeta } from './ticket-table-columns';
+import { dateSaisissable, dernierJourSaisissable, premierJourSaisissable } from '@/features/tickets/utils/date-saisie.utils';
 
 /**
  * La carte d'un ticket au telephone, en remplacement du tableau dense sous `md`.
@@ -291,7 +292,11 @@ export function TicketMobileCard({
 
             {enEdition ? (
                 <DatePicker
-                    onChange={(d: DateValue | null) => meta.onTicketChange(ticket.id, 'date', d ? d.toString() : '')}
+                    /* Bornes de saisie : sans elles, « 26 » tape dans le segment de l'annee
+                       pose l'an 26, et le serveur marque le ticket Tardif. */
+                    maxValue={dernierJourSaisissable()}
+                    minValue={premierJourSaisissable()}
+                    onChange={(d: DateValue | null) => meta.onTicketChange(ticket.id, 'date', dateSaisissable(d) ? d!.toString() : '')}
                     value={enCalendaire(ticket.date)}
                 >
                     <Label>Date</Label>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { nomComplet } from '@/utils/nom.utils';
 import { Restaurant } from '@/types/models';
 import { TicketTable } from '@/components/tickets/table';
 import { LignesPreparees, ligneComplete } from '@/features/tickets/components/lignes-preparees';
@@ -41,8 +42,30 @@ export function TicketPageClient({ restaurants }: TicketPageClientProps) {
     isPending: isCreatingBonLivraison,
   } = useCreateBonLivraison();
 
-  const validLivreurs = useMemo(() => livreurs.filter((l) => l.prenoms && l.nom), [livreurs]);
-  const livreurOptions = useMemo(() => validLivreurs.map((l) => ({ value: l.id, label: `${l.prenoms} ${l.nom}` })), [validLivreurs]);
+  /*
+   * ⚠ Le libelle suit l'ordre du SERVEUR, nom puis prenoms, via `nomComplet`.
+   *
+   * <p>Il etait compose ici en « prenoms nom » alors que la colonne « Livreur » de la ligne
+   * affiche une chaine deja assemblee par le serveur, dans l'autre ordre. L'operateur lisait
+   * « ote azo » dans le tableau et tapait « ote » dans le filtre : le ComboBox cherche par
+   * sous-chaine sur SON libelle, « azo ote », et ne proposait rien.</p>
+   *
+   * <p>Le filtre retenait aussi les seuls livreurs portant un nom ET des prenoms. Celui qui
+   * n'a que l'un des deux voyait ses tickets dans le tableau, mais restait introuvable dans
+   * le filtre : il etait infiltrable par construction. On garde desormais tout livreur
+   * identifiable, comme le fait deja l'ecran de validation.</p>
+   *
+   * <p>Et la liste est TRIEE : 222 livreurs dans l'ordre du serveur ne se parcourent pas a
+   * l'oeil, ce qui oblige a taper, donc a connaitre l'ordre exact du libelle.</p>
+   */
+  const validLivreurs = useMemo(() => livreurs.filter((l) => l.id && (l.nom || l.prenoms)), [livreurs]);
+  const livreurOptions = useMemo(
+    () =>
+      validLivreurs
+        .map((l) => ({ value: l.id, label: nomComplet(l) }))
+        .sort((a, b) => a.label.localeCompare(b.label, 'fr')),
+    [validLivreurs],
+  );
   const restaurantOptions = useMemo(() => restaurants.map((r) => ({ value: r.id, label: r.nomEtablissement })), [restaurants]);
 
   const {
