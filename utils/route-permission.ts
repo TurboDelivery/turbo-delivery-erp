@@ -141,8 +141,25 @@ const findRuleForPrefix = (menus: IMenuData[], path: string): Candidat => {
  * doit donc declarer son `can` dans le menu, ou etre ajoutee a
  * `REGLES_HORS_MENU`.</p>
  */
-export const canAccessRoute = (ability: AppAbility, path: string): boolean => {
+export const canAccessRoute = (
+  ability: AppAbility,
+  path: string,
+  /**
+   * Les derogations d'affichage du role courant, indexees par chemin.
+   *
+   * <p>Une derogation posee sur le chemin l'emporte sur la matrice du code : c'est tout
+   * l'objet de l'ecran des privileges, regler qui voit quoi sans redeployer. Absente, on
+   * retombe sur la regle d'origine.</p>
+   */
+  derogations: Record<string, boolean> = {},
+): boolean => {
   if (ALWAYS_ALLOWED_PATHS.includes(path)) return true;
+
+  // La derogation EXACTE prime sur tout le reste, y compris l'heritage par segment :
+  // elle a ete posee a la main sur CE chemin, elle est donc plus precise que toute
+  // regle deduite.
+  const derogation = derogations[path];
+  if (derogation !== undefined) return derogation;
 
   // 1. Correspondance EXACTE : une regle posee sur la route elle-meme prime toujours.
   const exactRule = findRuleForPath(menuData, path);

@@ -107,7 +107,9 @@ export function AppelConfigModal({ isOpen, onOpenChange }: Props) {
       </div>
       <Switch isDisabled={desactive} isSelected={actif} onChange={onChange} size="sm">
         <Switch.Content>
-          <Switch.Thumb />
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
         </Switch.Content>
       </Switch>
     </div>

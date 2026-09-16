@@ -48,7 +48,9 @@ export default function UsersEmailPrimaryToggle({ user }: { user: User }) {
         size="sm"
       >
         <Switch.Content>
-          <Switch.Thumb />
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
         </Switch.Content>
       </Switch>
       <Tooltip.Content>

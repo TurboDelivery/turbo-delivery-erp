@@ -221,7 +221,9 @@ export function DepenseForm<T extends FieldValues>({
             ne bascule rien quand on le clique. */}
         <Switch isSelected={estRecurrente} onChange={onEstRecurrenteChange}>
           <Switch.Content>
-            <Switch.Thumb />
+            <Switch.Control>
+              <Switch.Thumb />
+            </Switch.Control>
             <span className="ms-2 text-sm text-foreground">Dépense récurrente (fixe)</span>
           </Switch.Content>
         </Switch>

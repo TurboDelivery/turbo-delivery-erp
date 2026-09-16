@@ -3,10 +3,14 @@
 import { LayoutDashboard, Map, Menu, Ticket, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 
+import { useAbility } from '@/hooks/use-ability';
+import { useDerogations } from '@/lib/casl/ability-context';
 import { cn } from '@/lib/utils';
 import { toggleSidebar } from '@/store/themeConfigSlice';
+import { canAccessRoute } from '@/utils/route-permission';
 
 /**
  * Navigation basse, sur mobile uniquement.
@@ -30,6 +34,13 @@ import { toggleSidebar } from '@/store/themeConfigSlice';
  *
  * <p>Elle ne porte que des destinations de PREMIER niveau : une barre basse qui ouvre des
  * sous-navigations perd sa raison d'etre, qui est d'etre un point fixe.</p>
+ *
+ * <h3>Les quatre destinations ne sont pas les memes pour tout le monde</h3>
+ * <p>Elles etaient ecrites en dur et rendues telles quelles : un comptable, qui n'a droit
+ * ni au trafic ni aux commandes, voyait quand meme les quatre et tombait sur un 403. Elles
+ * passent desormais par la meme regle que la barre laterale, derogations d'affichage
+ * comprises — sans quoi fermer un ecran depuis l'ecran des privileges l'aurait laisse
+ * visible sur telephone.</p>
  */
 
 const ENTREES = [
@@ -42,6 +53,13 @@ const ENTREES = [
 export function BarreBasse() {
     const pathname = usePathname();
     const dispatch = useDispatch();
+    const ability = useAbility();
+    const derogations = useDerogations();
+
+    const entreesAutorisees = useMemo(
+        () => ENTREES.filter(({ href }) => canAccessRoute(ability, href, derogations)),
+        [ability, derogations],
+    );
 
     return (
         <nav
@@ -53,7 +71,7 @@ export function BarreBasse() {
             )}
         >
             <ul className="flex items-stretch">
-                {ENTREES.map(({ href, libelle, Icone }) => {
+                {entreesAutorisees.map(({ href, libelle, Icone }) => {
                     // Le plus long chemin qui correspond gagne : `/trafic` ne doit pas
                     // s'allumer quand on est sur `/trafic/standard`.
                     const actif = pathname === href || pathname.startsWith(`${href}/`);

@@ -306,13 +306,34 @@ export default menuData;
  * mais `App.tsx` lit ce reglage dans `localStorage` : la valeur « horizontal » est
  * atteignable, et le menu y listait alors des entrees interdites au role.</p>
  */
-export const filterMenuByAbility = (menu: IMenuData[], ability: AppAbility): IMenuData[] => {
+export const filterMenuByAbility = (
+  menu: IMenuData[],
+  ability: AppAbility,
+  /** Derogations du role courant, par chemin. Une entree deroguee suit la derogation. */
+  derogations: Record<string, boolean> = {},
+): IMenuData[] => {
   return menu.reduce<IMenuData[]>((acc, item) => {
-    const children = item.children ? filterMenuByAbility(item.children, ability) : undefined;
-    const allowedBySelf = item.can ? ability.can(item.can.action, item.can.subject) : false;
+    const children = item.children ? filterMenuByAbility(item.children, ability, derogations) : undefined;
+
+    /*
+     * La derogation posee sur le CHEMIN de l'entree l'emporte sur la regle du code : c'est
+     * l'objet meme de l'ecran des privileges. Sans chemin — les groupes n'en ont pas — il
+     * n'y a rien a deroger, et le groupe suit ses enfants comme avant.
+     */
+    const derogation = item.path ? derogations[item.path] : undefined;
+    const allowedBySelf =
+      derogation !== undefined
+        ? derogation
+        : item.can
+          ? ability.can(item.can.action, item.can.subject)
+          : false;
     const allowedByChild = !!children && children.length > 0;
 
-    if (!item.can && !item.children) return acc;
+    // Une entree sans regle et sans enfant n'a rien a montrer — sauf si une derogation a
+    // ete posee dessus a la main, auquel cas c'est elle qui decide. Aucune entree du menu
+    // n'est dans ce cas aujourd'hui (les 54 chemins declarent tous leur `can`) ; la garde
+    // est ecrite ainsi pour qu'une entree future ne rende pas son interrupteur inerte.
+    if (!item.can && !item.children && derogation === undefined) return acc;
     if (!allowedBySelf && !allowedByChild) return acc;
 
     acc.push(children !== undefined ? { ...item, children } : item);

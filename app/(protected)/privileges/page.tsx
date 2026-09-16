@@ -1,33 +1,29 @@
-import { Check } from 'lucide-react';
+import { PrivilegesEcran } from '@/components/privileges/privileges-ecran';
+import { getDerogations } from '@/src/privileges/privileges.action';
 
-import { PrivilegesMatrix } from '@/components/privileges/privileges-matrix';
+/**
+ * L'ecran doit lire les derogations EN VIGUEUR a chaque ouverture : une valeur mise en
+ * cache montrerait l'etat d'avant le dernier enregistrement, sur l'ecran meme qui sert a
+ * le faire.
+ */
+export const dynamic = 'force-dynamic';
 
-export default function PrivilegesPage() {
+export default async function PrivilegesPage() {
+  const derogations = await getDerogations();
+
   return (
     <div className="space-y-4 p-4">
       <div>
         <h1 className="text-2xl font-bold text-primary">Privilèges par rôle</h1>
-        <p className="max-w-3xl text-sm text-default-500">
-          Vue lecture seule : quel rôle peut accéder à quel menu / page. Les permissions
-          sont définies dans le code (<code className="rounded bg-default-100 px-1">lib/casl/ability.ts</code>,
-          matrice <code className="rounded bg-default-100 px-1">ROLE_RULES</code>). Pour les modifier,
-          éditer la matrice et redéployer.
+        <p className="max-w-3xl text-sm text-muted">
+          Ce que chaque rôle voit dans le menu et peut ouvrir. Les réglages faits ici
+          s&apos;appliquent à la connexion suivante de la personne concernée, sans
+          redéploiement. Ce qui n&apos;est pas réglé à la main suit la matrice du code
+          (<code className="rounded bg-surface-secondary px-1">lib/casl/ability.ts</code>).
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-xs text-default-500">
-        <span className="flex items-center gap-1">
-          <Check className="h-4 w-4 text-success-600" /> Autorisé
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="text-default-300">·</span> Non autorisé
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="text-default-200">—</span> Groupe (pas de contrôle propre)
-        </span>
-      </div>
-
-      <PrivilegesMatrix />
+      <PrivilegesEcran derogationsInitiales={derogations} />
     </div>
   );
 }

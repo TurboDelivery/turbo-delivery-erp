@@ -4,42 +4,22 @@ import { Table } from '@heroui-v3/react';
 import { Check, Minus, X } from 'lucide-react';
 import React from 'react';
 
-import menuData, { IMenuData } from '@/config/menu-data';
-import { APP_ROLES, AppRole, defineAbilityFor } from '@/lib/casl/ability';
+import { getTranslation } from '@/i18n';
 
-interface FlatRow {
-  can?: IMenuData['can'];
-  isParent: boolean;
-  key: string;
-  title: string;
-}
-
-/** Aplatit l'arbre du menu : parents (groupe) puis leurs enfants indentés. */
-function flatten(items: IMenuData[]): FlatRow[] {
-  const rows: FlatRow[] = [];
-  for (const it of items) {
-    if (it.children?.length) {
-      rows.push({ can: it.can, isParent: true, key: it.title, title: it.title });
-      for (const c of it.children) {
-        rows.push({ can: c.can, isParent: false, key: `${it.title}>${c.title}`, title: c.title });
-      }
-    } else {
-      rows.push({ can: it.can, isParent: false, key: it.title, title: it.title });
-    }
-  }
-  return rows;
-}
-
-// Abilities pré-calculées une fois par rôle (fonctions pures).
-const ABILITIES: Record<string, ReturnType<typeof defineAbilityFor>> = Object.fromEntries(
-  APP_ROLES.map((r) => [r, defineAbilityFor(r as AppRole)]),
-);
+import {
+  aplatirMenu,
+  cleDerogation,
+  etatEffectif,
+  regleDuCode,
+  ROLES_TRIES,
+  type EtatDerogations,
+} from '@/features/privileges/utils/privileges.utils';
 
 // Colonnes : "Menu / Page" + un rôle par colonne. Un seul tableau mappé
 // (pattern React-Aria du codebase).
 const COLONNES = [
   { key: '__item', label: 'Menu / Page' },
-  ...APP_ROLES.map((r) => ({ key: r, label: r })),
+  ...ROLES_TRIES.map((r) => ({ key: r, label: r })),
 ];
 
 /**
@@ -54,36 +34,68 @@ const COLONNES = [
  *
  * <p>Aucune des trois marques n'avait de texte : au lecteur d'écran, la matrice entière
  * était une grille de cellules vides. Chacune porte maintenant son sens.</p>
+ *
+ * <h3>Ce qui a été réglé à la main</h3>
+ * <p>La case montre l'état RÉEL — la dérogation quand il y en a une, la règle du code
+ * sinon. Sans marque, rien ne distinguerait un droit hérité du code d'un droit posé à la
+ * main sur cet écran, et la vue d'ensemble ne dirait plus d'où vient ce qu'elle affiche.
+ * La pastille ambrée porte donc ce seul sens : cette case s'écarte du code, et un humain
+ * l'a voulu.</p>
  */
-function Marque({ etat, role, titre }: { etat: boolean | null; role: string; titre: string }) {
-  if (etat === null) {
-    return (
-      <span className="inline-flex" title={`${titre} : aucune règle définie`}>
-        <Minus aria-hidden="true" className="size-4 text-muted/50" />
-        <span className="sr-only">{`${titre} — ${role} : aucune règle définie`}</span>
-      </span>
-    );
-  }
-  if (etat) {
-    return (
-      <span className="inline-flex" title={`${titre} : autorisé`}>
-        <Check aria-hidden="true" className="size-4 text-success" />
-        <span className="sr-only">{`${titre} — ${role} : autorisé`}</span>
-      </span>
-    );
-  }
+function Marque({
+  defaut,
+  etat,
+  reglee,
+  role,
+  titre,
+}: {
+  defaut: boolean | null;
+  etat: boolean | null;
+  reglee: boolean;
+  role: string;
+  titre: string;
+}) {
+  const sens = etat === null ? 'aucune règle définie' : etat ? 'autorisé' : 'refusé';
+  const origine = reglee
+    ? ` (réglé à la main, ${defaut === null ? 'aucune règle dans le code' : `par défaut ${defaut ? 'autorisé' : 'refusé'}`})`
+    : '';
+
+  const Icone = etat === null ? Minus : etat ? Check : X;
+  /*
+   * La coche etait BLANCHE en theme sombre, et pas par choix : `--success` y portait encore
+   * un triplet HSL brut herite de shadcn, pose sur le `<body>` lui-meme, ce qui rendait
+   * `color: var(--success)` invalide. Le correctif est dans `styles/tailwind.css`, ou il
+   * profite a tout l'ERP ; la mesure apres correction donne oklch(0.7329 0.1935 150.81),
+   * un vert franc dans les deux themes.
+   */
+  const teinte = etat === null ? 'text-muted/50' : etat ? 'text-success' : 'text-muted';
+
   return (
-    <span className="inline-flex" title={`${titre} : refusé`}>
+    <span
+      className={
+        reglee
+          ? 'inline-flex rounded-md bg-warning-soft p-0.5 ring-1 ring-warning'
+          : 'inline-flex p-0.5'
+      }
+      title={`${titre} : ${sens}${origine}`}
+    >
       {/* Un refus est la regle NORMALE d'une matrice de droits, pas une anomalie :
           il se lit, il ne s'alarme pas. */}
-      <X aria-hidden="true" className="size-4 text-muted" />
-      <span className="sr-only">{`${titre} — ${role} : refusé`}</span>
+      <Icone aria-hidden="true" className={`size-4 ${teinte}`} />
+      <span className="sr-only">{`${titre} — ${role} : ${sens}${origine}`}</span>
     </span>
   );
 }
 
-export function PrivilegesMatrix() {
-  const rows = React.useMemo(() => flatten(menuData), []);
+/**
+ * La matrice role x ecran, en LECTURE.
+ *
+ * <p>Elle montre l'etat effectif, derogations en attente d'enregistrement comprises : les
+ * deux onglets de l'ecran lisent le meme etat, et ne peuvent donc pas se contredire.</p>
+ */
+export function PrivilegesMatrix({ derogations = {} }: { derogations?: EtatDerogations }) {
+  const { t } = getTranslation();
+  const rows = React.useMemo(() => aplatirMenu(), []);
 
   return (
     <Table>
@@ -108,18 +120,18 @@ export function PrivilegesMatrix() {
           <Table.Body>
             {rows.map((row) => (
               <Table.Row
-                className={row.isParent ? 'bg-surface-secondary' : undefined}
-                id={row.key}
-                key={row.key}
+                className={row.estGroupe ? 'bg-surface-secondary' : undefined}
+                id={row.cle}
+                key={row.cle}
               >
                 {COLONNES.map((c) => {
                   if (c.key === '__item') {
                     return (
                       <Table.Cell className="sticky left-0 z-10 bg-inherit" key={c.key}>
-                        {row.isParent ? (
-                          <span className="font-semibold text-foreground">{row.title}</span>
+                        {row.estGroupe ? (
+                          <span className="font-semibold text-foreground">{t(row.titre)}</span>
                         ) : (
-                          <span className="pl-4 text-muted">{row.title}</span>
+                          <span className="pl-4 text-muted">{t(row.titre)}</span>
                         )}
                       </Table.Cell>
                     );
@@ -138,19 +150,27 @@ export function PrivilegesMatrix() {
                    * <p>Une ligne de groupe sans regle est un INTITULE. Ses cases restent
                    * vides, et le lecteur d'ecran l'entend comme tel.</p>
                    */
-                  if (row.isParent && !row.can) {
+                  if (row.estGroupe && !row.can) {
                     return (
                       <Table.Cell className="text-center" key={c.key}>
-                        <span className="sr-only">{`${row.title} : intitulé de groupe`}</span>
+                        <span className="sr-only">{`${t(row.titre)} : intitulé de groupe`}</span>
                       </Table.Cell>
                     );
                   }
-                  const allowed = row.can
-                    ? ABILITIES[c.key].can(row.can.action, row.can.subject)
-                    : null;
+
+                  const reglee =
+                    Boolean(row.chemin) &&
+                    derogations[cleDerogation(c.key, row.chemin!)] !== undefined;
+
                   return (
                     <Table.Cell className="text-center" key={c.key}>
-                      <Marque etat={allowed} role={c.label} titre={row.title} />
+                      <Marque
+                        defaut={regleDuCode(c.key, row)}
+                        etat={etatEffectif(c.key, row, derogations)}
+                        reglee={reglee}
+                        role={c.label}
+                        titre={t(row.titre)}
+                      />
                     </Table.Cell>
                   );
                 })}

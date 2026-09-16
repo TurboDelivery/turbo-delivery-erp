@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toggleSidebar } from '@/store/themeConfigSlice';
 import menuData, { IMenuData, filterMenuByAbility, trouverCheminActif, trouverTitreActif } from '@/config/menu-data';
 import { useAbility } from '@/hooks/use-ability';
+import { useDerogations } from '@/lib/casl/ability-context';
 import IconCaretDown from '@/components/icon/icon-caret-down';
 import Notifications from '../dashboard/notifications/notifications';
 import { BasculeTheme } from './bascule-theme';
@@ -35,6 +36,7 @@ const Header = ({ profile }: { profile: User }) => {
   };
 
   const ability = useAbility();
+  const derogations = useDerogations();
 
   /**
    * Le menu horizontal rendait `menuData` BRUT : aucun filtrage CASL, contrairement
@@ -42,7 +44,7 @@ const Header = ({ profile }: { profile: User }) => {
    * (le defaut), mais `App.tsx` lit ce reglage dans `localStorage`, donc la valeur
    * « horizontal » reste atteignable et listait alors des entrees interdites.
    */
-  const filteredMenu = useMemo(() => filterMenuByAbility(menuData, ability), [ability]);
+  const filteredMenu = useMemo(() => filterMenuByAbility(menuData, ability, derogations), [ability, derogations]);
 
   // Repere de position, derive du menu deja filtre par les droits.
   const { titre, section } = useMemo(() => trouverTitreActif(filteredMenu, pathname), [filteredMenu, pathname]);

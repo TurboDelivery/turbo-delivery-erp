@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import menuData, { IMenuData, filterMenuByAbility, trouverCheminActif, trouverGroupeParent } from '@/config/menu-data';
 import { useAbility } from '@/hooks/use-ability';
+import { useDerogations } from '@/lib/casl/ability-context';
 import { getTranslation } from '@/i18n';
 import { cn } from '@/lib/utils';
 import { IRootState } from '@/store';
@@ -49,12 +50,13 @@ const Sidebar = () => {
   const themeConfig = useSelector((state: IRootState) => state.themeConfig);
   const semidark = themeConfig.semidark;
   const ability = useAbility();
+  const derogations = useDerogations();
 
   const toggleMenu = (value: string) => {
     setCurrentMenu((oldValue) => (oldValue === value ? '' : value));
   };
 
-  const filteredMenu = useMemo(() => filterMenuByAbility(menuData, ability), [ability]);
+  const filteredMenu = useMemo(() => filterMenuByAbility(menuData, ability, derogations), [ability, derogations]);
 
   /**
    * Entrée de menu active. Le plus long chemin qui correspond gagne, sinon les paires

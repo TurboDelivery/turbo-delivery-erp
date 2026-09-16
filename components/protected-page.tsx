@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { Home, ArrowLeft } from 'lucide-react';
 import { useAbility } from '@/hooks/use-ability';
+import { useDerogations } from '@/lib/casl/ability-context';
 import { canAccessRoute } from '@/utils/route-permission';
 
 interface ProtectedPageProps {
@@ -22,7 +23,14 @@ const ProtectedPage = ({ profile: _profile, children }: ProtectedPageProps) => {
     const router = useRouter();
     const pathname = usePathname();
     const ability = useAbility();
-    const hasAccess = useMemo(() => canAccessRoute(ability, pathname), [ability, pathname]);
+    // Le filet CLIENT doit suivre la meme regle que la garde serveur, derogations
+    // comprises : sinon une navigation douce afficherait un 403 sur un ecran que le
+    // serveur vient d'ouvrir a la main.
+    const derogations = useDerogations();
+    const hasAccess = useMemo(
+        () => canAccessRoute(ability, pathname, derogations),
+        [ability, derogations, pathname],
+    );
 
     if (!hasAccess) {
         return (

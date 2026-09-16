@@ -1414,10 +1414,6 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
         --ring: 348 77% 58%;
         --danger: 0 84% 60%;
         --danger-foreground: 0 0% 98%;
-        --info: 21 93% 53%;
-        --info-foreground: 0 0% 100%;
-        --success: 142 76% 36%;
-        --success-foreground: 0 0% 100%;
         --warning: 36 100% 50%;
         --warning-foreground: 0 0% 100%;
         --black: 0 0% 0%;
@@ -1456,12 +1452,31 @@ hover:text-primary hover:before:bg-primary! ltr:before:mr-2 rtl:before:ml-2 dark
         --border: 0 0% 14.9%;
         --input: 0 0% 14.9%;
         --ring: 348 77% 58%;
-        --info: 21 93% 53%;
-        --info-foreground: 0 0% 100%;
+
+        /* ────────────────────────────────────────────────────────────────────
+         * `--success` et `--info` ne sont PLUS declares ici, et c'est un correctif.
+         *
+         * Ces quatre lignes portaient des triplets HSL bruts herites de shadcn
+         * (`142 76% 36%`). HeroUI v3, lui, attend une COULEUR complete dans ces
+         * memes noms : `.text-success` vaut `color: var(--success)`, et
+         * `--success-soft-foreground` vaut `color-mix(in oklab, var(--success) ...)`.
+         * Un triplet nu n'est pas une couleur : la declaration devient invalide et
+         * l'element retombe sur la couleur heritee.
+         *
+         * L'element touche est le `<body>`, qui porte la classe `dark` lui aussi.
+         * La regle ci-dessus le visait donc directement et l'emportait sur la valeur
+         * heritee de `:root`, ou HeroUI pose ses oklch. Resultat mesure le 16/09 :
+         * en theme SOMBRE, toute coche `text-success` s'affichait en BLANC, et
+         * `bg-success` ne peignait rien. `--danger` et `--warning` echappaient au
+         * piege parce que la v3 les redeclare, elle, dans son propre bloc sombre.
+         *
+         * Rien ne consomme ces noms en `hsl(var(--x))` : `tailwind.config.js` le fait
+         * encore, mais ce fichier n'est plus charge (Tailwind 4 sans `@config`), et le
+         * CSS construit ne contient AUCUN `hsl(var(--success`. Les retirer rend donc
+         * simplement la main aux valeurs v3.
+         * ──────────────────────────────────────────────────────────────────── */
         --danger: 0 84% 60%;
         --danger-foreground: 0 0% 98%;
-        --success: 142 76% 36%;
-        --success-foreground: 0 0% 100%;
         --warning: 36 100% 50%;
         --warning-foreground: 0 0% 100%;
         --black: 0 0% 0%;

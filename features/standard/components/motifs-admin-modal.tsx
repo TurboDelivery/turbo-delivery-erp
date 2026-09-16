@@ -40,7 +40,9 @@ function MotifRow({ motif }: { motif: IIncidentMotif }) {
       </div>
       <Switch className="mb-2" isSelected={actif} onChange={setActif} size="sm">
         <Switch.Content>
-          <Switch.Thumb />
+          <Switch.Control>
+            <Switch.Thumb />
+          </Switch.Control>
         </Switch.Content>
         <span className="ms-2 text-xs text-muted">{actif ? 'Actif' : 'Masqué'}</span>
       </Switch>

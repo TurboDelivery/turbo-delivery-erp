@@ -23,9 +23,20 @@ import AccesRefuse from '@/components/acces-refuse';
 import ServiceIndisponible from '@/components/service-indisponible';
 import { canAccessRoute } from '@/utils/route-permission';
 import { defineAbilityFor, normalizeRole } from '@/lib/casl/ability';
+import { indexerDerogations } from '@/lib/casl/derogations';
+import { getDerogations } from '@/src/privileges/privileges.action';
 import { EN_TETE_CHEMIN } from '@/utils/en-tetes';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  /*
+   * Les derogations d'affichage, lues EN MEME TEMPS que le profil. Ce layout est
+   * `force-dynamic` : il s'execute a chaque navigation, et un second aller-retour mis
+   * bout a bout avec le premier ajouterait sa latence a chaque page. Les deux lectures
+   * sont independantes, elles partent donc ensemble. `getDerogations` ne jette jamais —
+   * sur echec elle rend une liste vide, et l'ERP retombe sur la matrice du code.
+   */
+  const lectureDerogations = getDerogations();
+
   /**
    * `getProfile` relance desormais toute erreur qui n'est ni 401 ni 403, pour qu'une
    * panne de lecture cesse d'etre maquillee en « deconnecte ». C'est le bon choix
@@ -61,7 +72,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
    * navigations douces qui ne repassent pas par le serveur.</p>
    */
   const chemin = (await headers()).get(EN_TETE_CHEMIN) ?? '';
-  const ability = defineAbilityFor(normalizeRole(profile.role?.libelle ?? null));
+  const role = normalizeRole(profile.role?.libelle ?? null);
+  const ability = defineAbilityFor(role);
+
+  const derogations = await lectureDerogations;
+  const derogationsDuRole = indexerDerogations(derogations, role);
 
   // Sans le chemin, la garde ne peut rien decider et laisse passer — le filet
   // client prend alors le relais. Mais un mecanisme casse doit SE VOIR : sans
@@ -74,7 +89,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     );
   }
 
-  const accesAutorise = chemin ? canAccessRoute(ability, chemin) : true;
+  const accesAutorise = chemin ? canAccessRoute(ability, chemin, derogationsDuRole) : true;
 
   if (!accesAutorise) {
     return (
@@ -94,7 +109,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           monté hors de ProtectedPage pour continuer à remonter la présence même
           sur un écran interdit à l'utilisateur. */}
       <SessionSupervisionProvider />
-      <AbilityProvider role={profile?.role?.libelle ?? null}>
+      <AbilityProvider derogations={derogations} role={profile?.role?.libelle ?? null}>
       <NotificationSocketProvider>
       <AppelProvider>
       <ProtectedPage profile={profile!}>

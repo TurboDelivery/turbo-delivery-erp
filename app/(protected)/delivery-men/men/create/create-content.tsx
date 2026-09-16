@@ -361,9 +361,16 @@ export default function CreateContent() {
                     <p className="text-xs text-muted">Le livreur détient-il un permis valide ?</p>
                   </div>
                   <Switch isSelected={field.value ?? false} onChange={field.onChange}>
-                    <Switch.Control>
-                      <Switch.Thumb />
-                    </Switch.Control>
+                    {/*
+                     * Sans `Switch.Content`, la v3 rend un `<div>` inerte : ni `<label>`,
+                     * ni case a cocher, ni role. L'interrupteur etait donc VISIBLE et
+                     * inoperable — aucun clic, aucun clavier ne le faisait basculer.
+                     */}
+                    <Switch.Content>
+                      <Switch.Control>
+                        <Switch.Thumb />
+                      </Switch.Control>
+                    </Switch.Content>
                   </Switch>
                 </div>
               )}
