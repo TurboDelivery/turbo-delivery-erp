@@ -2,7 +2,7 @@
 
 import { Button, Card, InputGroup, Table, TextField } from '@heroui-v3/react';
 import { flexRender } from '@tanstack/react-table';
-import { ChevronDown, ChevronUp, Download, Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, ChevronUp, FileSpreadsheet, Plus, Search, SlidersHorizontal } from 'lucide-react';
 import React, { useState } from 'react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
@@ -14,13 +14,7 @@ import { ActionsMenu, StatusChip } from '@/components/restaurants/table/restaura
 import { StatCard } from '@/features/men/components/stat-card';
 import { useRestaurantTable } from '@/features/restaurants/hooks/use-restaurant-table';
 import { useRestaurantStatusCountsQuery } from '@/features/restaurants/queries/restaurant-list.query';
-
-const RECOUVREMENT_LABELS: Record<string, string> = {
-  MENSUEL: 'Mensuel',
-  QUOTIDIEN: 'Quotidien',
-  HEBDOMADAIRE: 'Hebdomadaire',
-  QUINZAINE: 'Quinzaine',
-};
+import { libelleRecouvrement } from '@/features/restaurants/utils/restaurant-filtrage.utils';
 
 const TYPE_OPTIONS = [
   { label: 'Tous les types', value: '' },
@@ -51,9 +45,10 @@ export default function Content() {
           <p className="text-sm text-muted mt-0.5">Gérez tous vos partenaires en un seul endroit</p>
         </div>
         <div className="flex items-center gap-3">
-          <Button isPending={isExporting} onPress={handleExport} size="sm" variant="outline">
-            <Download aria-hidden="true" className="size-4" />
-            Exporter
+          {/* Le bouton dit ce qu'il produit : on sait avant de cliquer ce qui va s'ouvrir. */}
+          <Button isDisabled={isLoading} isPending={isExporting} onPress={handleExport} size="sm" variant="outline">
+            <FileSpreadsheet aria-hidden="true" className="size-4" />
+            Exporter en Excel
           </Button>
           {/* `as={Link}` etait une prop de la v2, ignoree en silence par le Button v3 :
               le bouton ne naviguait plus. C'est un lien, il porte un `href`. */}
@@ -281,7 +276,7 @@ export default function Content() {
                   { label: 'Email', value: r.email || '-' },
                   { label: 'Téléphone', value: r.telephone || '-' },
                   { label: 'Localisation', value: r.localisation || r.commune || '-' },
-                  { label: 'Cycle de paiement', value: RECOUVREMENT_LABELS[r.methodRecouvrement] ?? r.methodRecouvrement ?? '-' },
+                  { label: 'Cycle de paiement', value: libelleRecouvrement(r.methodRecouvrement) || '-' },
                 ]}
                 actions={<ActionsMenu id={r.id} name={r.nomEtablissement} status={r.status} />}
               />

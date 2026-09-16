@@ -5,8 +5,8 @@ import { getCoreRowModel, SortingState, useReactTable } from '@tanstack/react-ta
 import { restaurantColumns } from '@/components/restaurants/table/restaurant-table-columns';
 import { useRestaurantsListQuery } from '@/features/restaurants/queries/restaurant-list.query';
 import { useRestaurantFilters } from '@/features/restaurants/hooks/use-restaurant-filters';
-import { exportRestaurantsPDF } from '@/features/restaurants/actions/restaurant.actions';
-import { saveAsPDFFile } from '@/utils/reporting-file';
+import { chargerPartenairesPourExport } from '@/features/restaurants/actions/restaurant.actions';
+import { exporterRestaurantsExcel } from '@/features/restaurants/utils/restaurants-export.utils';
 import { toast } from 'sonner';
 
 const DEBOUNCE_MS = 350;
@@ -132,25 +132,69 @@ export const useRestaurantTable = () => {
     }));
   };
 
+  /**
+   * Le fichier des partenaires.
+   *
+   * <h3>Les filtres viennent de `currentSearchParams`, et de nulle part ailleurs</h3>
+   * <p>C'est le memo qui alimente DEJA le tableau. L'ancienne version lisait `filters.*`
+   * directement : elle prenait donc le texte brut, non amorti, et divergeait du tableau
+   * pendant les 350 ms du debounce. Surtout, elle ne transmettait PAS la vue `statut` :
+   * exporter depuis la carte « Inactifs », qui affiche 2 lignes, aurait rendu les 71.</p>
+   *
+   * <h3>Trois issues, trois messages</h3>
+   * <p>Un echec dit sa cause, une population vide le dit aussi, et une reussite nomme le
+   * fichier produit. L'ancien `catch {}` ravalait tout dans un « Erreur lors de
+   * l'exportation » qui n'a jamais permis a personne de comprendre que l'endpoint appele
+   * n'existait pas.</p>
+   */
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      const buffer = await exportRestaurantsPDF({
-        search: filters.search || undefined,
-        nomEtablissement: filters.search || undefined,
-        localisation: filters.localisation || undefined,
-        email: filters.email || undefined,
-        telephone: filters.telephone || undefined,
-        commune: filters.commune || undefined,
-        methodRecouvrement: filters.methodRecouvrement || undefined,
+      const resultat = await chargerPartenairesPourExport({
+        search: currentSearchParams.search,
+        localisation: currentSearchParams.localisation,
+        email: currentSearchParams.email,
+        telephone: currentSearchParams.telephone,
+        commune: currentSearchParams.commune,
+        methodRecouvrement: currentSearchParams.methodRecouvrement,
+        statut: currentSearchParams.statut,
+        orderBy: currentSearchParams.orderBy,
+        orderDirection: currentSearchParams.orderDirection,
       });
-      if (buffer) {
-        saveAsPDFFile(new Uint8Array(buffer), 'restaurants');
-      } else {
-        toast.error("Erreur lors de l'exportation");
+
+      if (!resultat.ok) {
+        toast.error("L'export n'a pas abouti", { description: resultat.motif });
+        return;
       }
-    } catch {
-      toast.error("Erreur lors de l'exportation");
+
+      if (resultat.lignes.length === 0) {
+        toast.warning('Rien à exporter', {
+          description: 'Aucun partenaire ne correspond aux filtres en cours.',
+        });
+        return;
+      }
+
+      const nomFichier = exporterRestaurantsExcel(resultat.lignes, {
+        commune: currentSearchParams.commune,
+        email: currentSearchParams.email,
+        localisation: currentSearchParams.localisation,
+        methodRecouvrement: currentSearchParams.methodRecouvrement,
+        orderBy: currentSearchParams.orderBy,
+        orderDirection: currentSearchParams.orderDirection,
+        recherche: currentSearchParams.search,
+        telephone: currentSearchParams.telephone,
+        vue: currentSearchParams.statut ?? '',
+      });
+
+      toast.success('Export terminé', {
+        description: `${resultat.lignes.length} partenaires dans ${nomFichier}`,
+      });
+    } catch (erreur) {
+      console.error('[export partenaires]', erreur);
+      toast.error("L'export n'a pas abouti", {
+        description:
+          erreur instanceof Error ? erreur.message : 'Cause inconnue, voir la console du navigateur.',
+      });
     } finally {
       setIsExporting(false);
     }

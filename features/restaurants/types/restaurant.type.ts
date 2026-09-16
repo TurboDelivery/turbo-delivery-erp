@@ -15,6 +15,14 @@ export interface IOpeningHour {
 export type MethodRecouvrementType = 'QUOTIDIEN' | 'HEBDOMADAIRE' | 'QUINZAINE' | 'MENSUEL';
 
 export interface IRestaurant {
+  /*
+   * ⚠ NE SONT PAS SERVIS par /restaurant/get/all, qui rend un RestaurantVm :
+   * `dateCreation`, `dateEdition`, `deleted`, `logo`, `logo_Url`, `documentUrl`, `cni`,
+   * `pictures`, `openingHours`, `position`. Ils sont declares ici de longue date et
+   * TypeScript compile sans broncher ; les lire donne `undefined` sur les 71 partenaires.
+   * La date reellement disponible est `createdAt`. Mesure du 16/09/2026 sur la charge utile
+   * de production.
+   */
   id: string;
   status: number;
   deleted: boolean;
@@ -47,7 +55,29 @@ export interface IRestaurant {
   methodRecouvrement: MethodRecouvrementType;
   /** Date de création (ISO) — renvoyée par /restaurant/get/all, sert à la vue « Nouveaux ». */
   createdAt?: string;
+  /** Groupe de partenaires. Servi par la VM, mais VIDE sur les 71 partenaires (mesuré). */
+  groupePartenaire?: string | null;
+  /** Établissement ouvert. Servi par la VM, défaut backend TRUE. */
+  isOpen?: boolean | null;
+  /** Inscription non finalisée. Servi par la VM, défaut backend FALSE. */
+  inscriptionEnAttente?: boolean | null;
 }
+
+/**
+ * Le resultat d un chargement destine a l export.
+ *
+ * <p>Un booleen explicite plutot qu une valeur sentinelle. L ancienne action rendait `null`
+ * en cas d echec, et l ecran en tirait un « Erreur lors de l exportation » qui ne disait
+ * jamais POURQUOI : l endpoint appele n existait pas, et personne ne pouvait le savoir
+ * depuis l interface. Le motif voyage maintenant jusqu au message.</p>
+ *
+ * <p>Pourquoi une valeur de retour et non une exception : une Server Action qui leve en
+ * production rend au navigateur un message caviarde et un `digest`. Le motif reel ne
+ * survivrait pas a la frontiere.</p>
+ */
+export type ResultatExportPartenaires =
+  | { ok: true; lignes: IRestaurant[] }
+  | { ok: false; motif: string };
 
 export interface IRestaurantStatsParams {
   search?: string;

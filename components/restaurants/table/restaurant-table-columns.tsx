@@ -8,6 +8,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ConfirmModal from '@/components/ui/confirm-modal';
 import { useDeleteRestaurantMutation, useToggleRestaurantMutation } from '@/features/restaurants/queries/restaurant-list.query';
+import { libelleRecouvrement, libelleStatutPartenaire } from '@/features/restaurants/utils/restaurant-filtrage.utils';
 import { toast } from 'sonner';
 
 /**
@@ -53,14 +54,19 @@ export function StatusChip({
   status: number | null | undefined;
   typeCommission?: string;
 }) {
-  const statut =
+  // Le LIBELLE vient de l'utilitaire partage : la pastille de l'ecran et la colonne du
+  // fichier exporte disent forcement la meme chose. Seul le TON reste ici, il n'a de sens
+  // qu'a l'ecran.
+  const libelle = libelleStatutPartenaire(status) || '—';
+  const ton =
     status === 0
-      ? { libelle: 'Inactif', ton: 'danger' as const }
+      ? ('danger' as const)
       : status === 2
-        ? { libelle: 'Partiellement validé', ton: 'warning' as const }
+        ? ('warning' as const)
         : status != null && status >= 1
-          ? { libelle: 'Validé', ton: 'success' as const }
-          : { libelle: '—', ton: 'default' as const };
+          ? ('success' as const)
+          : ('default' as const);
+  const statut = { libelle, ton };
 
   return (
     <div className="flex flex-wrap items-center gap-1">
@@ -77,13 +83,6 @@ export function StatusChip({
 }
 
 // ── Cycle de paiement ────────────────────────────────────────────────────────
-const RECOUVREMENT_LABELS: Record<string, string> = {
-  MENSUEL: 'Mensuel',
-  QUOTIDIEN: 'Quotidien',
-  HEBDOMADAIRE: 'Hebdomadaire',
-  QUINZAINE: 'Quinzaine',
-};
-
 // ── Actions dropdown ─────────────────────────────────────────────────────────
 export function ActionsMenu({ id, name, status }: { id: string; name: string; status: number }) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -312,7 +311,7 @@ export const restaurantColumns: ColumnDef<IRestaurant>[] = [
     header: 'Cycle de paiement',
     cell: ({ row }) => (
       <span className="text-sm text-muted">
-        {RECOUVREMENT_LABELS[row.original.methodRecouvrement] ?? row.original.methodRecouvrement ?? '-'}
+        {libelleRecouvrement(row.original.methodRecouvrement) || '-'}
       </span>
     ),
     enableSorting: true,

@@ -1,48 +1,17 @@
 'use server';
 
 import { apiClientHttp } from '@/lib/api-client-http';
-import { IRestaurant, IRestaurantParams, IRestaurantStatsParams, IRestaurantStatsResponse, IRestaurantStatusCounts } from '@/features/restaurants/types/restaurant.type';
+import { IRestaurant, IRestaurantParams, IRestaurantStatsParams, IRestaurantStatsResponse, IRestaurantStatusCounts, ResultatExportPartenaires } from '@/features/restaurants/types/restaurant.type';
+import { compterParStatut, filtrerEtTrierRestaurants } from '@/features/restaurants/utils/restaurant-filtrage.utils';
 import { PaginatedResponse } from '@/types/general';
 import axios from 'axios';
-import { auth } from '@/auth';
 
 // Base URL pour la pagination des restaurants
 const RESTAURANT_PAGINATION_ENDPOINT = '/api/V1/turbo/restaurant/pagination';
 const RESTAURANT_GET_ALL_ENDPOINT = '/api/V1/turbo/restaurant/get/all';
-const RESTAURANT_EXPORT_ENDPOINT = '/api/V1/turbo/restaurant/export';
 const RESTAURANT_DETAIL_ENDPOINT = '/api/V1/turbo/restaurant';
 const RESTAURANT_STATS_ENDPOINT = '/api/V1/turbo/restaurant/stats';
 const RESTAURANT_DELETE_ENDPOINT = '/api/V1/turbo/restaurant';
-
-/**
- * Vues par état du compte. Codes backend (RestaurantTable.status) : 0 = désactivé,
- * 2 = partiellement validé (état legacy intermédiaire), 1/3 = compte actif normal
- * (1 = valeur par défaut à la création et après réactivation). En données réelles,
- * quasiment tout est à 1 → « Validés » = status ≥ 1, et « Nouveaux » est défini par
- * la date de création (30 derniers jours), pas par un code.
- */
-const TRENTE_JOURS_MS = 30 * 24 * 60 * 60 * 1000;
-
-function estNouveau(createdAt?: string | null): boolean {
-  if (!createdAt) return false;
-  const t = Date.parse(createdAt);
-  return Number.isFinite(t) && Date.now() - t <= TRENTE_JOURS_MS;
-}
-
-function statutMatch(vue: string, r: IRestaurant): boolean {
-  switch (vue) {
-    case 'valides':
-      return (r.status ?? 0) >= 1;
-    case 'partiels':
-      return r.status === 2;
-    case 'nouveaux':
-      return estNouveau(r.createdAt);
-    case 'inactifs':
-      return r.status === 0;
-    default:
-      return true;
-  }
-}
 
 /**
  * Récupère la liste paginée des restaurants.
@@ -63,41 +32,11 @@ export async function getRestaurantsPaginated(params: IRestaurantParams): Promis
       service: 'restaurant',
     });
 
-    // 2- filtre en mémoire selon les params
-    const norm = (s?: string | null) => (s ?? '').toLowerCase().trim();
-    const search = norm(params.nomEtablissement || params.search);
-    const localisation = norm(params.localisation);
-    const email = norm(params.email);
-    const telephone = norm(params.telephone);
-    const commune = norm(params.commune);
-    const method = norm(params.methodRecouvrement);
+    // 2- filtre et tri, par la MEME fonction que l'export : l'ecran et le fichier doivent
+    //    montrer la meme population, sans quoi le fichier ment sans qu'on s'en apercoive.
+    const filtered = filtrerEtTrierRestaurants(all ?? [], params);
 
-    let filtered = (all ?? []).filter((r) => {
-      if (search && !norm(r.nomEtablissement).includes(search)) return false;
-      if (localisation && !norm(r.localisation).includes(localisation)) return false;
-      if (email && !norm(r.email).includes(email)) return false;
-      if (telephone && !norm(r.telephone).includes(telephone)) return false;
-      if (commune && !norm(r.commune).includes(commune)) return false;
-      if (method && norm(r.methodRecouvrement) !== method) return false;
-      if (params.statut && !statutMatch(params.statut, r)) return false;
-      return true;
-    });
-
-    // 3- tri optionnel
-    if (params.orderBy) {
-      const key = params.orderBy as keyof IRestaurant;
-      const dir = params.orderDirection === 'desc' ? -1 : 1;
-      filtered = [...filtered].sort((a, b) => {
-        const av = a?.[key];
-        const bv = b?.[key];
-        if (av == null && bv == null) return 0;
-        if (av == null) return 1 * dir;
-        if (bv == null) return -1 * dir;
-        return String(av).localeCompare(String(bv)) * dir;
-      });
-    }
-
-    // 4- pagination
+    // 3- pagination
     const page = Math.max(0, params.page ?? 0);
     const limit = Math.max(1, params.limit ?? 10);
     const totalElements = filtered.length;
@@ -156,44 +95,47 @@ export async function getRestaurantById(id: string): Promise<IRestaurant> {
 }
 
 /**
- * Exporte la liste des restaurants filtrés en PDF (ArrayBuffer)
+ * Décrit un échec d'appel en une phrase qu'on peut lire dans un message d'interface.
+ *
+ * <p>« Erreur lors de l'exportation » n'apprenait rien. Pendant des mois, la cause réelle
+ * était un 405 sur un endpoint qui n'existe pas, et rien à l'écran ne pouvait le dire.</p>
  */
-export async function exportRestaurantsPDF(params: Omit<IRestaurantParams, 'page' | 'limit' | 'orderBy' | 'orderDirection'>): Promise<ArrayBuffer | null> {
+function decrireEchec(erreur: unknown): string {
+  if (axios.isAxiosError(erreur)) {
+    const cible = `${erreur.config?.baseURL ?? ''}${erreur.config?.url ?? RESTAURANT_GET_ALL_ENDPOINT}`;
+    return erreur.response?.status
+      ? `HTTP ${erreur.response.status} sur GET ${cible}`
+      : `${erreur.code ?? 'Erreur réseau'} sur GET ${cible}`;
+  }
+  return erreur instanceof Error ? erreur.message : String(erreur);
+}
+
+/**
+ * Charge TOUS les partenaires qui correspondent aux filtres, pour le fichier exporté.
+ *
+ * <h3>Ce que cette fonction remplace</h3>
+ * <p>Un appel à {@code GET /api/V1/turbo/restaurant/export}, un endpoint qui n'a jamais
+ * existé : ce chemin tombe sur la route {@code DELETE /restaurant/&#123;id&#125;}, qui avale
+ * « export » comme identifiant et répond 405. Le bouton n'a donc jamais rien exporté depuis
+ * sa mise en ligne. Il n'y a pas d'endpoint à créer : la liste entière est déjà servie par
+ * {@code /restaurant/get/all}, c'est ce que fait l'écran lui-même à chaque affichage.</p>
+ *
+ * <p>Pas de {@code page} ni de {@code limit} dans la signature, et c'est volontaire : on ne
+ * peut pas exporter dix lignes par accident, même dans six mois.</p>
+ */
+export async function chargerPartenairesPourExport(
+  params: Omit<IRestaurantParams, 'page' | 'limit'>,
+): Promise<ResultatExportPartenaires> {
   try {
-    const session = await auth();
-    const token = session?.user?.token;
-
-    const queryParams: Record<string, string> = {};
-    if (params.nomEtablissement || params.search) queryParams.nomEtablissement = params.nomEtablissement ?? params.search ?? '';
-    if (params.localisation) queryParams.localisation = params.localisation;
-    if (params.email) queryParams.email = params.email;
-    if (params.telephone) queryParams.telephone = params.telephone;
-    if (params.commune) queryParams.commune = params.commune;
-    if (params.methodRecouvrement) queryParams.methodRecouvrement = params.methodRecouvrement;
-
-    const qs = new URLSearchParams(queryParams).toString();
-    // Note : la variable NEXT_PUBLIC_API_RESTAURANT_URL (avec RESTAURANT) n'a
-    // jamais existé dans le .env — c'est un typo legacy. On utilise
-    // NEXT_PUBLIC_API_RESTO_URL qui pointe sur backend-prod (post-fusion).
-    // L'endpoint /restaurant/export n'existe pas encore côté main-backend,
-    // donc l'export retournera 404 jusqu'à ce que l'endpoint soit ajouté
-    // (TODO backend) — au moins ça ne crash plus avec `undefined/...`.
-    const url = `${process.env.NEXT_PUBLIC_API_RESTO_URL ?? ''}${RESTAURANT_EXPORT_ENDPOINT}${qs ? `?${qs}` : ''}`;
-
-    const response = await axios.get(url, {
-      responseType: 'arraybuffer',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+    const all = await apiClientHttp.request<IRestaurant[]>({
+      endpoint: RESTAURANT_GET_ALL_ENDPOINT,
+      method: 'GET',
+      service: 'restaurant',
     });
-
-    return response.data;
-  } catch (error) {
-    console.error('Error exporting restaurants PDF:', error);
-    // Pas de relance ici: null est une valeur sentinelle que le seul appelant
-    // TESTE (handleExport dans use-restaurant-table.ts) pour afficher un toast
-    // d erreur, et qui ravale de toute facon les exceptions dans le meme toast.
-    return null;
+    return { ok: true, lignes: filtrerEtTrierRestaurants(all ?? [], params) };
+  } catch (erreur) {
+    console.error('[export partenaires] echec du chargement', erreur);
+    return { ok: false, motif: decrireEchec(erreur) };
   }
 }
 
@@ -263,14 +205,6 @@ export async function getRestaurantStatusCounts(): Promise<IRestaurantStatusCoun
     service: 'restaurant',
   });
   // Vues non exclusives : un partenaire récemment créé est aussi compté dans « Validés ».
-  const counts: IRestaurantStatusCounts = { total: 0, valides: 0, partiels: 0, nouveaux: 0, inactifs: 0 };
-  for (const r of all ?? []) {
-    counts.total += 1;
-    if ((r.status ?? 0) >= 1) counts.valides += 1;
-    if (r.status === 2) counts.partiels += 1;
-    if (estNouveau(r.createdAt)) counts.nouveaux += 1;
-    if (r.status === 0) counts.inactifs += 1;
-  }
-  return counts;
+  return compterParStatut(all ?? []);
 }
 
