@@ -12,7 +12,7 @@ import { supervisionAPI } from '../apis/supervision.api';
 import { useForcerDeconnexionMutation, useSessionsEnLigneQuery } from '../queries/supervision.queries';
 import { ExporteurOnglet, ISessionErp, STATUT_ACTIVITE_COULEURS, STATUT_ACTIVITE_LABELS } from '../types';
 import { exporterSessions } from '../utils/supervision-export.utils';
-import { dureeSessionVivante, formatDuree, formatHeure, initiales, libellePage } from '../utils/supervision-format.utils';
+import { dureeSessionVivante, formatDuree, formatInstant, initiales, libellePage } from '../utils/supervision-format.utils';
 
 /**
  * Horloge locale (1 s) : elle ne rafraîchit AUCUNE donnée, elle ne sert qu'à
@@ -198,7 +198,7 @@ export function SessionsEnLignePanel({ userId, peutForcerDeconnexion, enregistre
                       </div>
                     </Table.Cell>
                     <Table.Cell className="text-foreground">{libellePage(session)}</Table.Cell>
-                    <Table.Cell className="whitespace-nowrap tabular-nums text-muted">{formatHeure(session.loginAt, false)}</Table.Cell>
+                    <Table.Cell className="whitespace-nowrap tabular-nums text-muted">{formatInstant(session.loginAt)}</Table.Cell>
                     <Table.Cell className="whitespace-nowrap tabular-nums text-muted">{formatDuree(dureeSessionVivante(session, maintenant))}</Table.Cell>
                     <Table.Cell>
                       <Chip color={STATUT_ACTIVITE_COULEURS[session.statutActivite] ?? 'default'} size="sm" variant="soft">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Chip, InputGroup, Label, Table, TextField, Tooltip } from '@heroui-v3/react';
+import { Chip, InputGroup, Label, Table, TextField } from '@heroui-v3/react';
 
 import { ChampListe, ChampTexte } from '@/components/commons/champs-formulaire';
 import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
@@ -13,14 +13,15 @@ import { useAuditActionsQuery, useModulesAuditQuery } from '../queries/supervisi
 import { useRechercheDifferee } from '../hooks/use-recherche-differee';
 import { ExporteurOnglet, IActionsFiltre, TYPE_ACTION_COULEURS, TYPE_ACTION_LABELS, TYPES_ACTION } from '../types';
 import { exporterActions, messageTroncature } from '../utils/supervision-export.utils';
-import { formatHeure, formatInstant, libelleObjet } from '../utils/supervision-format.utils';
+import { formatInstant, libelleObjet, referenceObjet } from '../utils/supervision-format.utils';
 import { DiffValeurs } from './diff-valeurs';
+import { TiroirActionAudit } from './tiroir-action-audit';
 
 const TAILLE_PAGE = 25;
 
 /** Les colonnes, déclarées une fois : le squelette y compte ses cellules. */
 const COLONNES = [
-  { id: 'heure', libelle: 'Heure' },
+  { id: 'heure', libelle: 'Date et heure' },
   { id: 'utilisateur', libelle: 'Utilisateur' },
   { id: 'module', libelle: 'Module' },
   { id: 'action', libelle: 'Action' },
@@ -47,6 +48,12 @@ export function ActiviteModulesPanel({ userId, enregistrerExport }: Props) {
   const [jusqua, setJusqua] = useState('');
   const [page, setPage] = useState(0);
   const [saisie, setSaisie, recherche] = useRechercheDifferee();
+  /*
+   * L'action dont on a demande le detail complet. Le tiroir ne lit rien en reseau : la
+   * ligne du journal porte deja tous les champs, l'ecran se contentait de n'en montrer
+   * que trois.
+   */
+  const [actionOuverte, setActionOuverte] = useState<(typeof lignes)[number] | null>(null);
 
   // Toute modification de critère ramène à la première page — sinon on
   // atterrit sur une page 7 qui n'existe plus dans le nouveau jeu.
@@ -161,11 +168,15 @@ export function ActiviteModulesPanel({ userId, enregistrerExport }: Props) {
 
                 {(isLoading ? [] : lignes).map((action) => (
                   <Table.Row id={action.id} key={action.id}>
+                    {/*
+                      * La date ET l'heure, a la seconde. La colonne ne rendait que l'heure :
+                      * sur un journal qui remonte plusieurs jours, « 21:49:28 » ne dit pas
+                      * QUAND, et deux lignes de deux jours differents se lisaient comme deux
+                      * lignes du meme jour. L'info-bulle qui portait la date complete a
+                      * disparu avec le probleme : elle repetait desormais la cellule.
+                      */}
                     <Table.Cell className="whitespace-nowrap font-mono text-xs tabular-nums text-muted">
-                      <Tooltip>
-                        <span>{formatHeure(action.occurredAt)}</span>
-                        <Tooltip.Content>{formatInstant(action.occurredAt)}</Tooltip.Content>
-                      </Tooltip>
+                      {formatInstant(action.occurredAt, true)}
                     </Table.Cell>
                     <Table.Cell>
                       <p className="text-sm font-medium">{action.utilisateur ?? 'Système'}</p>
@@ -183,14 +194,23 @@ export function ActiviteModulesPanel({ userId, enregistrerExport }: Props) {
                     </Table.Cell>
                     <Table.Cell>
                       <p className="text-sm font-medium">{libelleObjet(action)}</p>
+                      {/*
+                        * L'identifiant RACCOURCI. L'UUID entier fait 36 caracteres et
+                        * repoussait la colonne « Detail » hors de l'ecran sur une fenetre
+                        * de 1000 px. L'entier reste en info-bulle, et en clair dans le tiroir.
+                        */}
                       {action.entiteId && (
                         <p className="truncate text-xs text-muted" title={action.entiteId}>
-                          {action.entiteId}
+                          {referenceObjet(action)}
                         </p>
                       )}
                     </Table.Cell>
-                    <Table.Cell className="max-w-sm">
-                      <DiffValeurs action={action} />
+                    <Table.Cell>
+                      {/* La borne de largeur vit sur un div : sur une cellule de tableau en
+                          disposition automatique, un max-width ne borne rien. */}
+                      <div className="max-w-[22rem]">
+                        <DiffValeurs action={action} onVoirTout={() => setActionOuverte(action)} />
+                      </div>
                     </Table.Cell>
                   </Table.Row>
                 ))}
@@ -206,8 +226,17 @@ export function ActiviteModulesPanel({ userId, enregistrerExport }: Props) {
         </Table>
       )}
 
+      <TiroirActionAudit
+        action={actionOuverte}
+        onFermer={() => setActionOuverte(null)}
+        ouvert={actionOuverte !== null}
+      />
+
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-        <span>{isError ? '—' : `${total} action${total > 1 ? 's' : ''} pour ces critères`}</span>
+        <span>
+          {isError ? '—' : `${total} action${total > 1 ? 's' : ''} pour ces critères`}
+          {!isError && total > 0 && ', de la plus récente à la plus ancienne'}
+        </span>
         <span>Audit central — toute écriture, dans tout module, est journalisée · lecture seule · rétention 24 mois</span>
       </div>
     </div>

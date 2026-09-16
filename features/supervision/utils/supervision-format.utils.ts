@@ -2,9 +2,24 @@
 // Pur, sans dépendance React — réutilisé tel quel par l'export CSV.
 
 import { IAuditAction, ISessionErp } from '../types';
+import {
+  estVide,
+  formatValeurChamp,
+  libelleChampLisible,
+  rangChamp,
+  type FamilleChamp,
+  familleChamp,
+} from './supervision-champs.utils';
 
-/** `31/07/2026 09:42` — horodatage complet, pour les journaux. */
-export function formatInstant(iso: string | null | undefined): string {
+/**
+ * `31/07/2026 09:42` — horodatage complet, pour les journaux.
+ *
+ * <p>`avecSecondes` rend `31/07/2026 09:42:07`. Le journal d'audit en a besoin : une seule
+ * action metier y ecrit PLUSIEURS lignes dans la meme seconde (trois lignes a 21:49:50 sur la
+ * capture du 16/09/2026). A la minute, ces lignes paraissent interchangeables, et l'ordre du
+ * journal devient illisible alors qu'il est juste.</p>
+ */
+export function formatInstant(iso: string | null | undefined, avecSecondes = false): string {
   if (!iso) return '—';
   try {
     return new Date(iso).toLocaleString('fr-FR', {
@@ -13,6 +28,7 @@ export function formatInstant(iso: string | null | undefined): string {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      ...(avecSecondes ? { second: '2-digit' } : {}),
     });
   } catch {
     return iso;
@@ -117,29 +133,67 @@ export function libelleChamp(champ: string): string {
 
 export interface IChangement {
   champ: string;
+  /** Libellé lisible : `creneauId` devient « Créneau ». */
+  libelle: string;
+  famille: FamilleChamp;
   avant: string;
   apres: string;
+  /** Valeurs d'origine, pour les info-bulles (l'UUID entier) et les tests. */
+  avantBrut: unknown;
+  apresBrut: unknown;
+  /** Les deux côtés sont vides : la ligne n'apprend rien, elle ne prend pas de place. */
+  vide: boolean;
 }
 
 /**
- * Différentiel d'une action : union des champs présents avant/après.
- * Le backend ne stocke que les champs réellement modifiés, la liste reste donc
- * courte — pas de troncature ici, c'est l'affichage qui décide quoi montrer.
+ * Différentiel d'une action, TRIÉ par utilité.
+ *
+ * <h3>Pourquoi l'ordre compte autant que le contenu</h3>
+ * <p>Sur une MODIFICATION, le journal ne retient que les champs réellement modifiés : la
+ * liste est courte et son ordre importe peu. Sur une CRÉATION, il retient TOUS les champs de
+ * l'entité, y compris ceux restés nuls, et Hibernate les fournit dans l'ordre ALPHABÉTIQUE
+ * de ses propriétés. L'écran en montrait trois : sur une course partenaire à quarante champs,
+ * c'étaient donc `clientId`, `commission`, `commissionFixe`, pendant que le montant, le
+ * statut et le numéro dormaient derrière « + 37 autres champs ».</p>
+ *
+ * <p>Le tri est stable : à rang égal, l'ordre d'origine est conservé, donc deux lectures du
+ * même journal donnent la même liste.</p>
  */
 export function changements(action: IAuditAction): IChangement[] {
   const avant = action.valeursAvant ?? {};
   const apres = action.valeursApres ?? {};
   const champs = Array.from(new Set([...Object.keys(avant), ...Object.keys(apres)]));
-  return champs.map((champ) => ({
-    champ,
-    avant: formatValeur(avant[champ]),
-    apres: formatValeur(apres[champ]),
-  }));
+
+  return champs
+    .map((champ, ordreDOrigine) => {
+      const avantBrut = avant[champ];
+      const apresBrut = apres[champ];
+      return {
+        champ,
+        libelle: libelleChampLisible(champ),
+        famille: familleChamp(champ, estVide(apresBrut) ? avantBrut : apresBrut),
+        avant: formatValeurChamp(champ, avantBrut),
+        apres: formatValeurChamp(champ, apresBrut),
+        avantBrut,
+        apresBrut,
+        vide: estVide(avantBrut) && estVide(apresBrut),
+        rang: rangChamp(champ, avantBrut, apresBrut),
+        ordreDOrigine,
+      };
+    })
+    .sort((a, b) => a.rang - b.rang || a.ordreDOrigine - b.ordreDOrigine)
+    .map(({ ordreDOrigine, rang, ...ligne }) => ligne);
 }
 
-/** Détail d'une action en une ligne de texte — utilisé par l'export CSV. */
+/**
+ * Détail d'une action en une ligne de texte — utilisé par l'export CSV.
+ *
+ * <p>Il hérite du tri et de la mise en forme de {@link changements} : le fichier et l'écran
+ * disent la même chose, dans le même ordre. Sans cela, on lirait « 864700 » dans le tableur
+ * et « 864 700 FCFA » à l'écran, pour la même ligne.</p>
+ */
 export function detailTexte(action: IAuditAction): string {
-  const lignes = changements(action).map((c) => `${libelleChamp(c.champ)} : ${c.avant} → ${c.apres}`);
+  const lignes = changements(action).map((c) => `${c.libelle} : ${c.avant} → ${c.apres}`);
   if (lignes.length > 0) return lignes.join(' | ');
   if (!action.succes && action.erreur) return `Échec : ${action.erreur}`;
   return '';
