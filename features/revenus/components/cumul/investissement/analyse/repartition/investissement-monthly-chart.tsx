@@ -3,10 +3,11 @@
 import { Card } from '@heroui-v3/react';
 import { format, getMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 import { ChampListe } from '@/components/commons/champs-formulaire';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { formatMontantCompact } from '@/utils/format.utils';
 import {
   type ChartConfig,
   ChartContainer,
@@ -86,6 +87,15 @@ export function InvestissementMonthlyChart() {
   // Générer les données complètes avec tous les mois jusqu'au mois actuel
   const chartData = generateCompleteMonthlyData(data || [], year);
 
+  /*
+   * `generateCompleteMonthlyData` fabrique douze mois a zero quand le service ne rend rien.
+   * Dessiner ce graphe plat laisse croire a une mesure : on a compte, et c'est zero partout.
+   * Or ce n'est pas la meme chose que « aucun mouvement enregistre sur cette annee ».
+   */
+  const aucunMouvement = chartData.every(
+    (m) => !m.montantInvestissement && !m.montantRembourse,
+  );
+
   if (isLoading) {
     return (
       <Card>
@@ -123,6 +133,16 @@ export function InvestissementMonthlyChart() {
             onReessayer={() => refetch()}
             quoi="la répartition mensuelle"
           />
+        ) : aucunMouvement ? (
+          <div className="flex h-[300px] flex-col items-center justify-center gap-1 text-center">
+            <p className="text-sm font-medium text-foreground">
+              Aucun mouvement enregistré en {year}
+            </p>
+            <p className="text-sm text-muted">
+              Ni apport, ni remboursement. Choisissez une autre année pour consulter
+              l&apos;historique.
+            </p>
+          </div>
         ) : (
           <ChartContainer config={chartConfig}>
             <BarChart accessibilityLayer data={chartData}>
@@ -134,19 +154,42 @@ export function InvestissementMonthlyChart() {
                 tickLine={false}
                 tickMargin={10}
               />
-              <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+              {/*
+                * L'axe des montants manquait : sans lui une barre n'a pas de valeur, on ne
+                * lit qu'une hauteur relative. C'est ce qui rendait le graphe muet sur la
+                * capture du 15/09, ou deux barres de plusieurs millions cotoyaient quatre
+                * compteurs a zero sans que rien ne permette de les chiffrer.
+                */}
+              <YAxis
+                axisLine={false}
+                tickFormatter={(v: number) => (v === 0 ? '0' : formatMontantCompact(v))}
+                tickLine={false}
+                width={56}
+              />
+              {/*
+                * Le curseur par defaut de recharts est un pave gris pleine hauteur, que l'on
+                * prend pour une barre de donnee : sur la capture, le mois survole paraissait
+                * porter le plus gros montant de l'annee alors qu'il etait vide.
+                */}
+              <ChartTooltip
+                content={<ChartTooltipContent hideLabel />}
+                cursor={{ fill: 'currentColor', fillOpacity: 0.06 }}
+              />
               <ChartLegend content={<ChartLegendContent />} />
+              {/*
+                * Plus d'empilement : un apport et son remboursement sont des flux OPPOSES.
+                * Empiles, leur somme ne designe aucune grandeur reelle, et la hauteur totale
+                * d'un mois ou l'on aurait recu 1 M et rembourse 1 M vaudrait 2 M.
+                */}
               <Bar
                 dataKey="montantInvestissement"
                 fill="var(--color-montantInvestissement)"
-                radius={[0, 0, 4, 4]}
-                stackId="a"
+                radius={[4, 4, 0, 0]}
               />
               <Bar
                 dataKey="montantRembourse"
                 fill="var(--color-montantRembourse)"
                 radius={[4, 4, 0, 0]}
-                stackId="a"
               />
             </BarChart>
           </ChartContainer>

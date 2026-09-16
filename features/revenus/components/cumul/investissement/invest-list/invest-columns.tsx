@@ -32,6 +32,24 @@ export const getDeadlineColor = (deadline: string): string => {
   return 'text-foreground';
 };
 
+/**
+ * Le delai jusqu'a l'echeance, ECRIT.
+ *
+ * <p>La colonne ne portait qu'une date, teintee. Une teinte se perd a l'impression, ne se
+ * lit pas par un lecteur d'ecran, et ne se voit pas d'un daltonien : le seul fait utile de
+ * la ligne, « c'est en retard », reposait entierement dessus. Le mot le dit, la couleur le
+ * redouble.</p>
+ */
+export function delaiEnMots(deadline: string): string {
+  const jours = differenceInDays(new Date(deadline), new Date());
+
+  if (Number.isNaN(jours)) return '';
+  if (jours < 0) return `En retard de ${Math.abs(jours)} jour${Math.abs(jours) > 1 ? 's' : ''}`;
+  if (jours === 0) return "Aujourd'hui";
+  if (jours === 1) return 'Demain';
+  return `Dans ${jours} jours`;
+}
+
 type Geste = 'details' | 'modifier' | 'supprimer';
 
 /**
@@ -130,7 +148,14 @@ export const investissementColumns: ColumnDef<IInvestissement>[] = [
     accessorKey: 'deadline',
     cell: (info) => {
       const deadline = info.getValue() as string;
-      return <span className={`tabular-nums ${getDeadlineColor(deadline)}`}>{formatDateFR(deadline)}</span>;
+      return (
+        <div className="flex flex-col">
+          <span className={`tabular-nums ${getDeadlineColor(deadline)}`}>
+            {formatDateFR(deadline)}
+          </span>
+          <span className={`text-xs ${getDeadlineColor(deadline)}`}>{delaiEnMots(deadline)}</span>
+        </div>
+      );
     },
     header: 'Échéance',
   },

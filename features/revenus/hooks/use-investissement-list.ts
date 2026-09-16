@@ -2,7 +2,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { IInvestissementParams } from '../types/revenus.types';
 import { useInvestissementListQuery } from '../queries/investissement/investissement-list.query';
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { endOfYear } from 'date-fns';
 
 export interface InvestissementFilters {
   nomInvestisseur: string;
@@ -12,10 +12,24 @@ export interface InvestissementFilters {
   limit: number;
 }
 
+/**
+ * L'application demarre en 2024 : c'est la borne basse de tout cumul dans cet ERP.
+ *
+ * <p>La liste s'ouvrait sur le MOIS EN COURS. Un apport se rembourse sur des mois ou des
+ * annees, donc l'echeancier d'un mois ou il ne s'est rien passe est vide : le 16/09/2026,
+ * l'ecran annoncait « Aucun investissement » juste sous « Reste du : 6 200 000 FCFA ». La
+ * liste s'ouvre desormais sur toute l'histoire, et la periode reste disponible pour la
+ * restreindre.</p>
+ *
+ * <p>La borne haute va jusqu'a la fin de l'annee en cours : les echeances deja enregistrees
+ * sur les mois a venir sont precisement ce qu'on vient chercher ici.</p>
+ */
+const DEBUT_HISTORIQUE = new Date(2024, 0, 1);
+
 const initialFilters: InvestissementFilters = {
   nomInvestisseur: '',
-  debut: startOfMonth(new Date()),
-  fin: endOfMonth(new Date()),
+  debut: DEBUT_HISTORIQUE,
+  fin: endOfYear(new Date()),
   page: 0,
   limit: 10,
 };
