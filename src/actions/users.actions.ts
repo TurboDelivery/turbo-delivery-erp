@@ -471,9 +471,33 @@ export async function disableEnableUser(id: string, status: number): Promise<Act
  */
 export async function reinitialiserMotDePasseUtilisateur(
     id: string
-): Promise<ActionResult<{ newPassword: string; message?: string }>> {
+): Promise<ActionResult<{
+    newPassword: string;
+    message?: string;
+    /**
+     * Present quand l'identifiant est porte par PLUSIEURS comptes actifs.
+     *
+     * La connexion ne peut en retenir qu'un, le plus ancien. `resetEffectif` dit si le
+     * compte qu'on vient de reinitialiser est CELUI-LA : quand il vaut `false`, le mot de
+     * passe affiche ne permettra jamais de se connecter, et il faut le dire avant que
+     * l'administrateur ne le transmette.
+     */
+    doublon?: { identifiant: string; comptesActifs: number; resetEffectif: boolean; message: string };
+}>> {
     try {
-        const data = await apiClientHttp.request<{ newPassword: string; message?: string }>({
+        const data = await apiClientHttp.request<{
+    newPassword: string;
+    message?: string;
+    /**
+     * Present quand l'identifiant est porte par PLUSIEURS comptes actifs.
+     *
+     * La connexion ne peut en retenir qu'un, le plus ancien. `resetEffectif` dit si le
+     * compte qu'on vient de reinitialiser est CELUI-LA : quand il vaut `false`, le mot de
+     * passe affiche ne permettra jamais de se connecter, et il faut le dire avant que
+     * l'administrateur ne le transmette.
+     */
+    doublon?: { identifiant: string; comptesActifs: number; resetEffectif: boolean; message: string };
+}>({
             endpoint: usersEndpoints.reinitialiserMotDePasse.endpoint(id),
             method: usersEndpoints.reinitialiserMotDePasse.method,
             service: 'erp',

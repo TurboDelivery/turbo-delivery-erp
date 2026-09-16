@@ -33,12 +33,20 @@ const UsersResetPassword = ({
     const router = useRouter();
     const [enCours, setEnCours] = useState(false);
     const [motDePasse, setMotDePasse] = useState<string | null>(null);
+    /*
+     * Le serveur signale quand l'identifiant est porté par PLUSIEURS comptes actifs. C'est
+     * le seul moment où l'administrateur peut l'apprendre, et c'est le moment où ça compte :
+     * s'il réinitialise le compte que la connexion n'utilise pas, le mot de passe qu'il vient
+     * de transmettre ne marchera jamais.
+     */
+    const [doublon, setDoublon] = useState<{ message: string; resetEffectif: boolean } | null>(null);
 
     useEffect(() => {
         // Le mot de passe ne doit jamais survivre à la fermeture : rouvrir la fenêtre sur
         // un AUTRE utilisateur afficherait sinon l'accès du précédent.
         if (!open) {
             setMotDePasse(null);
+            setDoublon(null);
             setEnCours(false);
         }
     }, [open]);
@@ -50,6 +58,7 @@ const UsersResetPassword = ({
 
         if (resultat.status === 'success' && resultat.data?.newPassword) {
             setMotDePasse(resultat.data.newPassword);
+            setDoublon(resultat.data.doublon ?? null);
             toast.success(resultat.message || 'Mot de passe réinitialisé');
             router.refresh();
         } else {
@@ -82,6 +91,25 @@ const UsersResetPassword = ({
                         <span className="text-sm text-muted">Mot de passe provisoire</span>
                         <ChampCopiable valeur={motDePasse} />
                     </div>
+                    {/*
+                      * Un identifiant porté par deux comptes actifs rend la connexion
+                      * ambiguë : le serveur en retient UN seul, le plus ancien. Si ce n'est
+                      * pas celui qu'on vient de réinitialiser, le mot de passe transmis est
+                      * inutile, et la personne se bloquera au bout de trois essais.
+                      */}
+                    {doublon && (
+                        <Alert status={doublon.resetEffectif ? 'warning' : 'danger'}>
+                            <Alert.Indicator />
+                            <Alert.Content>
+                                <Alert.Title>
+                                    {doublon.resetEffectif
+                                        ? 'Cet identifiant est porté par plusieurs comptes'
+                                        : 'Ce mot de passe ne permettra pas de se connecter'}
+                                </Alert.Title>
+                                <Alert.Description>{doublon.message}</Alert.Description>
+                            </Alert.Content>
+                        </Alert>
+                    )}
                     <Alert status="warning">
                         <Alert.Indicator />
                         <Alert.Content>
