@@ -6,7 +6,9 @@ import CarteStat, { GrilleStats } from '@/components/commons/CarteStat';
 import { BoutonExportClassement } from '@/features/performance/components/bouton-export-classement';
 import { ClassementLivreursTable } from '@/features/performance/components/classement-livreurs-table';
 import { SelecteurSemaine } from '@/features/performance/components/selecteur-semaine';
-import { semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
+import { lundiDeLaSemaineEnCours, semaineIsoDepuisLundi } from '@/features/performance/utils/semaine-iso.utils';
+import { BandeauFlotte } from '@/features/performance/components/bandeau-flotte';
+import { getCreneauDuLundi, getStatsCreneau } from '@/src/performance/creneau-paie.action';
 import { getTurboyTypeDisplay } from '@/features/turboys/utils/type-livreur-display';
 import { getClassementLivreurs } from '@/src/performance/classement-livreurs.action';
 import { formatMontant } from '@/utils/format.utils';
@@ -49,13 +51,37 @@ export default async function Page({
     const { semaine: lundi, tri, sens, contrat } = await searchParams;
     const iso = lundi ? semaineIsoDepuisLundi(lundi) : undefined;
 
-    const classement = await getClassementLivreurs({
-        annee: iso?.annee,
-        semaine: iso?.semaine,
-        tri,
-        sens,
-        contrat,
-    });
+    /*
+     * LA SYNTHESE VIENT DE LA GRILLE DE PAIE, comme sur les deux autres ecrans du module.
+     *
+     * <p>Le bandeau affichait jusqu'ici les totaux RECALCULES du classement. Ils sont justes,
+     * mais ils bougent : un ticket enregistre ou retire apres la cloture du creneau les
+     * change. La grille de paie, elle, fige ses chiffres a la cloture — c'est ce qui en fait
+     * la reference, et c'est l'arbitrage de l'owner du 14/09.</p>
+     *
+     * <p>Sans semaine dans l'URL, l'ecran lit la semaine EN COURS : c'est deja ce que fait le
+     * serveur pour le classement, et les deux blocs doivent regarder la meme semaine.</p>
+     *
+     * <p>Les deux lectures ne dependent pas l'une de l'autre et partent ensemble. Seul le
+     * couple creneau puis grille s'enchaine : les totaux se lisent par identifiant de creneau.</p>
+     */
+    const lundiEffectif = lundi || lundiDeLaSemaineEnCours();
+
+    const lecturePaie = (async () => {
+        const c = await getCreneauDuLundi(lundiEffectif);
+        return { creneau: c, stats: c ? await getStatsCreneau(c.id) : null };
+    })();
+
+    const [classement, { creneau, stats }] = await Promise.all([
+        getClassementLivreurs({
+            annee: iso?.annee,
+            semaine: iso?.semaine,
+            tri,
+            sens,
+            contrat,
+        }),
+        lecturePaie,
+    ]);
 
     const requete = lundi ? `?semaine=${lundi}` : '';
     const lignes = classement?.lignes ?? [];
@@ -127,23 +153,33 @@ export default async function Page({
                 </p>
             )}
 
+            {/*
+              * La grille de paie du creneau : les memes chiffres que les deux autres ecrans
+              * du module, figes a la cloture.
+              */}
+            <BandeauFlotte creneau={creneau} stats={stats} />
+
+            {/*
+              * CE QUE COMPTE LE CLASSEMENT CI-DESSOUS, et qui n'est pas la meme chose.
+              *
+              * Ces totaux etaient presentes en cartes, a la place de la grille de paie : ils
+              * paraissaient donc etre LA synthese de la semaine, alors qu'ils comptent une
+              * autre population, par date de course et non par ticket valide du creneau, et
+              * qu'ils bougent apres la cloture. Ils restent — aucun chiffre ne disparait —
+              * mais a leur place, sous le bandeau qui fait reference, et nommes.
+              */}
             {totaux && (
-                <GrilleStats className="xl:grid-cols-4" colonnes={2}>
-                    <CarteStat
-                        libelle="Livreurs classés"
-                        note={`${formatNumber(totaux.nbAyantRoule)} ont roulé cette semaine`}
-                        ton="neutre"
-                        valeur={formatNumber(totaux.nbLivreurs)}
-                    />
-                    <CarteStat libelle="Livraisons" ton="danger" valeur={formatNumber(totaux.nbTickets)} />
-                    <CarteStat libelle="Commission" ton="neutre" valeur={formatMontant(totaux.commission)} />
-                    <CarteStat
-                        libelle="Gain total"
-                        note="Commission et prime cumulées"
-                        ton="attention"
-                        valeur={formatMontant(totaux.gain)}
-                    />
-                </GrilleStats>
+                <p className="text-xs text-muted">
+                    Le classement ci-dessous porte sur{' '}
+                    <strong className="font-semibold text-foreground">
+                        {formatNumber(totaux.nbLivreurs)} livreurs
+                    </strong>
+                    , dont {formatNumber(totaux.nbAyantRoule)} ont roulé cette semaine :{' '}
+                    {formatNumber(totaux.nbTickets)} livraisons, {formatMontant(totaux.commission)} de
+                    commission et {formatMontant(totaux.prime)} de prime, soit{' '}
+                    {formatMontant(totaux.gain)} de gain cumulé. Ces totaux sont comptés par date
+                    de course et se recalculent à chaque lecture, contrairement à ceux du bandeau.
+                </p>
             )}
 
             {/*

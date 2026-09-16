@@ -32,6 +32,13 @@ const usersEndpoints = {
         endpoint: (id: string) => `${BASE_URL}/generate/password/${id}`,
         method: 'GET',
     },
+    // 2026-09-16 — Un administrateur pose un mot de passe CHOISI. Distinct de la
+    // reinitialisation, qui en tire un au hasard : le besoin est le meme, rendre un acces,
+    // mais un mot de passe convenu se transmet de vive voix sans faute de saisie.
+    definirMotDePasse: {
+        endpoint: (id: string) => `${BASE_URL}/${id}/mot-de-passe`,
+        method: 'POST',
+    },
     // 2026-05 — Bascule du flag notification_email_primary (UI admin).
     // Limite le volume d'emails de workflow sous le quota Hostinger 50/h.
     toggleEmailPrimary: { endpoint: (id: string) => `${BASE_URL}/${id}/toggle-email-primary`, method: 'POST' },
@@ -239,6 +246,51 @@ export async function changePassword(formData: FormData): Promise<ActionResult<a
         return {
             status: 'error',
             message: error?.response?.data?.message || error?.response?.data || 'Erreur lors du changement de mot de passe',
+        };
+    }
+}
+
+
+/**
+ * Pose un mot de passe CHOISI sur le compte d'un utilisateur, a la demande d'un administrateur.
+ *
+ * <p>Le serveur le hache, le verse a l'historique du compte — il ne pourra donc pas y etre
+ * repose plus tard — et remet le drapeau qui FORCE un changement a la prochaine connexion.
+ * L'administrateur ouvre un acces, il ne s'en approprie pas un : des que la personne choisit
+ * le sien, celui-ci cesse de fonctionner. Le compte est aussi deverrouille, pour la meme
+ * raison que la reinitialisation : on vient ici apres des essais infructueux.</p>
+ *
+ * <p>⚠ Le mot de passe ne doit JAMAIS etre journalise. Le catch ne retient que le statut et
+ * le message : une erreur Axios transporte `config.data`, donc le corps de la requete.</p>
+ */
+export async function definirMotDePasseUtilisateur(
+    id: string,
+    motDePasse: string,
+): Promise<ActionResult<{ message?: string }>> {
+    try {
+        const data = await apiClientHttp.request<{ message?: string }>({
+            endpoint: usersEndpoints.definirMotDePasse.endpoint(id),
+            method: usersEndpoints.definirMotDePasse.method,
+            data: { motDePasse },
+            service: 'erp',
+        });
+        return {
+            status: 'success',
+            data,
+            message: data?.message || 'Mot de passe défini',
+        };
+    } catch (error: any) {
+        console.error(
+            'Echec de la definition du mot de passe',
+            error?.response?.status ?? '',
+            error?.response?.data?.message ?? error?.message ?? '',
+        );
+        return {
+            status: 'error',
+            message:
+                error?.response?.data?.message ||
+                error?.response?.data ||
+                'Erreur lors de la définition du mot de passe',
         };
     }
 }

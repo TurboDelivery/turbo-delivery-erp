@@ -8,6 +8,7 @@ import { IconDotsVertical } from '@tabler/icons-react';
 import UsersDeleteRestaure from './users-delete-restaure';
 import UsersDisableEnable from './users-disable-enable';
 import UsersResetPassword from './users-reset-password';
+import UsersDefinirMotDePasse from './users-definir-mot-de-passe';
 import { useAbility } from '@/hooks/use-ability';
 
 const UsersTools = ({ user, value }: { user: User; value: 'list' | 'grid' }) => {
@@ -15,6 +16,7 @@ const UsersTools = ({ user, value }: { user: User; value: 'list' | 'grid' }) => 
     const [openDelete, setOpenDelete] = useState<boolean>(false);
     const [openDisableEnable, setOpenDisableEnable] = useState<boolean>(false);
     const [openResetPassword, setOpenResetPassword] = useState<boolean>(false);
+    const [openDefinirMdp, setOpenDefinirMdp] = useState<boolean>(false);
     const ability = useAbility();
     const canUpdate = ability.can('update', 'Utilisateur');
     const canDelete = ability.can('delete', 'Utilisateur');
@@ -50,6 +52,21 @@ const UsersTools = ({ user, value }: { user: User; value: 'list' | 'grid' }) => 
                                     textValue="Réinitialiser le mot de passe"
                                 >
                                     Réinitialiser le mot de passe
+                                </Dropdown.Item>
+                            ) : null}
+                            {/*
+                              * Les deux gestes de mot de passe se suivent : « Definir » pour
+                              * un mot de passe convenu, « Reinitialiser » pour un mot de passe
+                              * tire au hasard. Dans les deux cas la personne devra choisir le
+                              * sien a sa prochaine connexion.
+                              */}
+                            {canUpdate ? (
+                                <Dropdown.Item
+                                    id="definirMdp"
+                                    onAction={() => setOpenDefinirMdp(true)}
+                                    textValue="Définir un mot de passe"
+                                >
+                                    Définir un mot de passe
                                 </Dropdown.Item>
                             ) : null}
                             {canUpdate ? (
@@ -121,6 +138,7 @@ const UsersTools = ({ user, value }: { user: User; value: 'list' | 'grid' }) => 
             <UsersDeleteRestaure open={openDelete} setOpen={setOpenDelete} user={user} />
             <UsersDisableEnable open={openDisableEnable} setOpen={setOpenDisableEnable} user={user} />
             <UsersResetPassword open={openResetPassword} setOpen={setOpenResetPassword} user={user} />
+            <UsersDefinirMotDePasse open={openDefinirMdp} setOpen={setOpenDefinirMdp} user={user} />
         </>
     );
 };
