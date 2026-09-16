@@ -23,7 +23,7 @@
  * ce module est desormais dans le graphe SERVEUR.</p>
  */
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconShieldLock, IconUser, IconUsers } from '@tabler/icons-react';
-import { AlertTriangle, BarChart, Bell, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
+import { PlusCircle, AlertTriangle, BarChart, Bell, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
 import type { AppAbility, AppActions, AppSubjects } from '@/lib/casl/ability';
@@ -214,6 +214,12 @@ const menuData: IMenuData[] = [
     children: [
       { icon: IconLayoutDashboard, title: 'Tableau de bord', path: '/finance/dashboard', can: { action: 'read', subject: 'Finance' } },
       { icon: Receipt, title: 'Facturation partenaire', path: '/finance/facturation-plage', can: { action: 'read', subject: 'Finance' } },
+      /*
+       * Les prestations hors livraison entrent DEJA dans le chiffre d'affaires, mais leur
+       * ecran n'etait joignable que par un petit tableau du tableau de bord financier :
+       * pour verifier si une prestation a ete encaissee, il fallait savoir ou cliquer.
+       */
+      { icon: PlusCircle, title: 'Autres composantes du CA', path: '/finance/entrees-caisse', can: { action: 'read', subject: 'Finance' } },
       // « Validation » seul ne disait pas de quoi, a cote de « Validation DGA » et de
       // « Validation des tickets ». Le sujet CASL de l'ecran est ChargeFixe.
       { icon: CheckCircle, title: 'Validation des charges', path: '/finance/validation', can: { action: 'read', subject: 'ChargeFixe' } },

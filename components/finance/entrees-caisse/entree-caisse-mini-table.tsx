@@ -17,13 +17,13 @@ export function EntreeCaisseMiniTable() {
   const derniers5 = (entries || []).slice(0, 5);
 
   // meme bloc pour les deux rendus (tableau desktop, cartes mobiles) : un seul est visible a la fois
-  const zoneErreur = <EtatErreur quoi="les entrées caisse" onReessayer={() => refetch()} enCours={isFetching} />;
+  const zoneErreur = <EtatErreur quoi="les autres composantes du CA" onReessayer={() => refetch()} enCours={isFetching} />;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">
-          5 dernières entrées caisse
+          5 dernières composantes du CA
         </h3>
         {/* Ce tableau vit dans « Dashboard Performance », ouvert a OPS_MANAGER et
             RESPONSABLE_VA — mais `/finance/entrees-caisse` demande `read Finance`,
@@ -43,7 +43,7 @@ export function EntreeCaisseMiniTable() {
         <Card.Content className="p-0">
           <Table>
             <Table.ScrollContainer>
-              <Table.Content aria-label="5 dernières entrées caisse">
+              <Table.Content aria-label="5 dernières composantes du CA">
                 <Table.Header>
                   <Table.Column id="libelle" isRowHeader>
                     Libellé
@@ -60,7 +60,7 @@ export function EntreeCaisseMiniTable() {
                     isLoading ? null : isError ? (
                       <div className="py-4">{zoneErreur}</div>
                     ) : (
-                      <p className="py-8 text-center text-sm text-muted">Aucune entrée caisse</p>
+                      <p className="py-8 text-center text-sm text-muted">Aucune composante</p>
                     )
                   }
                 >
@@ -110,7 +110,7 @@ export function EntreeCaisseMiniTable() {
         ) : isError ? (
           zoneErreur
         ) : derniers5.length === 0 ? (
-          <p className="text-sm text-muted text-center py-6">Aucune entrée caisse</p>
+          <p className="text-sm text-muted text-center py-6">Aucune composante</p>
         ) : (
           derniers5.map((entry) => (
             <Card key={entry.id}>

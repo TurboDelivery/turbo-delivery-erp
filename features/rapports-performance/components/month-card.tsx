@@ -37,7 +37,7 @@ const MONTANTS: {
   libelle: string;
 }[] = [
   { cle: 'ca', icone: TrendingUp, libelle: 'CA' },
-  { cle: 'autresEntrees', icone: PlusCircle, libelle: 'Autres entrées' },
+  { cle: 'autresEntrees', icone: PlusCircle, libelle: 'Autres composantes' },
   // L'intitule annoncait « % Depenses » sur une valeur qui est un MONTANT en francs,
   // jamais un pourcentage : l'intitule mentait sur ce qu'on lisait.
   { cle: 'expenses', libelle: 'Dépenses' },

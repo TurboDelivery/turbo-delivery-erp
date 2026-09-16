@@ -1,150 +1,178 @@
 import * as XLSX from 'xlsx';
+
+import type { IEntreeCaisse } from '@/features/entrees-caisse/types/entree-caisse.types';
+
 import { UseCAExportParams } from '../hooks/use-ca-export';
 
-export function generateCAExcelTemplate(
-  data: any, // Changé pour accepter les données de l'API factures
-  params: UseCAExportParams
-): ArrayBuffer {
-  // Créer le classeur Excel
-  const wb = XLSX.utils.book_new();
+/**
+ * Le détail du chiffre d'affaires, en tableur.
+ *
+ * <h3>Ce que le fichier taisait</h3>
+ * <p>Le chiffre d'affaires du tableau de bord vaut frais de livraison, plus commissions,
+ * plus les prestations hors livraison. Le fichier téléchargé, lui, ne listait que les
+ * partenaires : les prestations comptées dans le total affiché à l'écran n'y figuraient
+ * nulle part, et le TOTAL du fichier était donc inférieur au chiffre annoncé, sans qu'aucune
+ * ligne ne dise pourquoi.</p>
+ *
+ * <p>Le fichier porte désormais les trois composantes, et une ligne de CONTRÔLE qui nomme
+ * l'écart restant plutôt que de le laisser deviner.</p>
+ *
+ * <h3>Des nombres, et tout dans le tableau</h3>
+ * <p>Les montants s'écrivent en nombres et la mise en forme est portée par le format de
+ * cellule : un montant écrit « 1 000 000 FCFA » en texte ne s'additionne pas.</p>
+ *
+ * <p>⚠ Tout est construit AVANT `aoa_to_sheet`. Une cellule posée après, sans étendre
+ * `!ref`, n'arrive jamais dans le fichier : c'était le sort du bloc « RÉSUMÉ » que ce
+ * fichier croyait écrire depuis l'origine, et que personne n'a jamais vu. Les styles `.s`
+ * ont été retirés pour la même raison, la version communautaire de `xlsx` ne les écrit
+ * pas.</p>
+ */
 
-  // Utiliser directement les données retournées par l'API factures
-  const facturesData = data.content;
+/** Un montant en francs, lisible par un humain et sommable par le tableur. */
+const FORMAT_FCFA = '#,##0" FCFA"';
 
-  // Feuille principale avec les données des factures
-  if (facturesData && facturesData.length > 0) {
-    // Ajouter la période en haut du fichier
-    const periodeData = [
-      ['PÉRIODE SÉLECTIONNÉE'],
-      [],
-      ['Du', params.debut?.toISOString().split('T')[0] || 'Début'],
-      ['Au', params.fin?.toISOString().split('T')[0] || 'Fin'],
-      [],
-      []
-    ];
-    
-    // En-têtes selon les données de l'API factures (sans Total Commande)
-    const headers = [
-      'Nom Restaurant',
-      'Total Frais Livraisons', 
-      'Total Commission',
-      'Total'
-    ];
-
-    // Préparer les données avec les champs de l'API factures
-    const tableData = facturesData.map((item: any) => {
-      const totalCA = (item.totalFraisLivraisons || 0) + (item.totalCommission || 0);
-      
-      return [
-        item.nomRestaurant || '',
-        item.totalFraisLivraisons || 0,
-        item.totalCommission || 0,
-        totalCA
-      ];
-    });
-
-    // Calculer les totaux pour chaque colonne
-    const tableTotals = facturesData.reduce((acc: any, item: any) => {
-      const totalCA = (item.totalFraisLivraisons || 0) + (item.totalCommission || 0);
-      return {
-        totalFraisLivraisons: acc.totalFraisLivraisons + (item.totalFraisLivraisons || 0),
-        totalCommission: acc.totalCommission + (item.totalCommission || 0),
-        totalCA: acc.totalCA + totalCA
-      };
-    }, { totalFraisLivraisons: 0, totalCommission: 0, totalCA: 0 });
-
-    // Ajouter la ligne des totaux
-    const totalRow = [
-      'TOTAL',
-      tableTotals.totalFraisLivraisons,
-      tableTotals.totalCommission,
-      tableTotals.totalCA
-    ];
-
-    // Combiner en-têtes, données et ligne de totaux (avec la période en haut)
-    const fullData = [...periodeData, headers, ...tableData, totalRow];
-    const wsTable = XLSX.utils.aoa_to_sheet(fullData);
-
-    // Mettre en gras la période et les en-têtes
-    // Mettre en gras "PÉRIODE SÉLECTIONNÉE"
-    const periodeCellAddress = XLSX.utils.encode_cell({ r: 0, c: 0 });
-    if (!wsTable[periodeCellAddress]) wsTable[periodeCellAddress] = {};
-    wsTable[periodeCellAddress].s = {
-      font: { bold: true },
-      fill: { fgColor: { rgb: "FFD3D3D3" } } // Fond gris clair
-    };
-
-    // Mettre en gras les en-têtes du tableau
-    const headerRowIndex = periodeData.length;
-    for (let col = 0; col < 4; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: headerRowIndex, c: col });
-      if (!wsTable[cellAddress]) wsTable[cellAddress] = {};
-      wsTable[cellAddress].s = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: "FFE6F3" } } // Fond bleu très clair
-      };
-    }
-
-    // Mettre en gras la ligne TOTAL (dernière ligne)
-    const totalRowIndex = fullData.length - 1;
-    for (let col = 0; col < 4; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: totalRowIndex, c: col });
-      if (!wsTable[cellAddress]) wsTable[cellAddress] = {};
-      wsTable[cellAddress].s = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: "FFE6E6FA" } } // Fond violet clair
-      };
-    }
-
-    // Ajuster la largeur des colonnes
-    const colWidths = [
-      { wch: 35 }, // Nom Restaurant
-      { wch: 25 }, // Total Frais Livraisons
-      { wch: 20 }, // Total Commission
-      { wch: 25 }, // Total CA
-    ];
-    wsTable['!cols'] = colWidths;
-
-    XLSX.utils.book_append_sheet(wb, wsTable, 'Détails Factures');
-
-    // Ajouter le résumé directement sur la même feuille
-    const summaryStartRow = fullData.length + 3; // Laisser 2 lignes vides après les données
-    
-    // Données de résumé
-    const summaryData = [
-      ['RÉSUMÉ'],
-      [],
-      ['Période', `${params.debut?.toISOString().split('T')[0] || 'Début'} au ${params.fin?.toISOString().split('T')[0] || 'Fin'}`],
-      ['Nombre de restaurants', facturesData.length],
-      [],
-      ['Total Frais Livraisons', tableTotals.totalFraisLivraisons + ' FCFA'],
-      ['Total Commissions', tableTotals.totalCommission + ' FCFA'],
-      ['TOTAL', tableTotals.totalCA + ' FCFA'],
-      [],
-      ['% Frais Livraison / Total', tableTotals.totalCA > 0 ? ((tableTotals.totalFraisLivraisons / tableTotals.totalCA) * 100).toFixed(2) + '%' : '0%'],
-      ['% Commission / Total', tableTotals.totalCA > 0 ? ((tableTotals.totalCommission / tableTotals.totalCA) * 100).toFixed(2) + '%' : '0%'],
-    ];
-
-    // Ajouter le résumé à la feuille existante
-    summaryData.forEach((row, index) => {
-      const rowIndex = summaryStartRow + index;
-      row.forEach((cell, colIndex) => {
-        const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
-        if (!wsTable[cellAddress]) wsTable[cellAddress] = {};
-        wsTable[cellAddress].v = cell;
-        
-        // Mettre en gras les en-têtes du résumé
-        if (index === 0 || (index >= 4 && index <= 6)) {
-          if (!wsTable[cellAddress].s) wsTable[cellAddress].s = {};
-          wsTable[cellAddress].s.font = { bold: true };
-          wsTable[cellAddress].s.fill = { fgColor: { rgb: "FF90EE90" } }; // Fond vert clair
-        }
-      });
-    });
-  }
-
-
-  // Générer le fichier Excel
-  return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+/**
+ * Deux decimales, pas dix-sept.
+ *
+ * <p>Les montants du serveur portent des decimales, et la somme flottante de deux cents
+ * partenaires produit « 233686140.10000002 ». Le format de cellule masquerait la trainee,
+ * mais elle resterait dans la valeur, donc dans toute formule ecrite par le lecteur du
+ * fichier, et dans tout rapprochement fait a l'unite pres.</p>
+ */
+function arrondi(n: number): number {
+  return Math.round(n * 100) / 100;
 }
 
+type LigneFeuille = (Date | number | string | null)[];
+
+function jourCourt(iso?: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  const jour = String(d.getDate()).padStart(2, '0');
+  const mois = String(d.getMonth() + 1).padStart(2, '0');
+  return `${jour}/${mois}/${String(d.getFullYear()).padStart(4, '0')}`;
+}
+
+function bornes(params: UseCAExportParams): { debut: string; fin: string } {
+  return {
+    debut: params.debut ? params.debut.toISOString().split('T')[0] : 'Début',
+    fin: params.fin ? params.fin.toISOString().split('T')[0] : 'Fin',
+  };
+}
+
+export function generateCAExcelTemplate(
+  data: { content?: Record<string, unknown>[] } | null | undefined,
+  params: UseCAExportParams,
+  /**
+   * Les prestations hors livraison de la MEME période. Absentes, le fichier se construit
+   * comme avant : la section n'apparaît pas et le total ne change pas.
+   */
+  entreesCaisse: IEntreeCaisse[] = [],
+): ArrayBuffer {
+  const classeur = XLSX.utils.book_new();
+  const partenaires = data?.content ?? [];
+  const { debut, fin } = bornes(params);
+
+  const lignes: LigneFeuille[] = [
+    ['DÉTAIL DU CHIFFRE D’AFFAIRES'],
+    [],
+    ['Du', debut],
+    ['Au', fin],
+    [],
+    [],
+    ['Nom Restaurant', 'Total Frais Livraisons', 'Total Commission', 'Total'],
+  ];
+
+  const premiereLignePartenaire = lignes.length;
+
+  let totalFrais = 0;
+  let totalCommission = 0;
+  for (const item of partenaires) {
+    const frais = Number(item.totalFraisLivraisons) || 0;
+    const commission = Number(item.totalCommission) || 0;
+    totalFrais += frais;
+    totalCommission += commission;
+    lignes.push([String(item.nomRestaurant ?? ''), frais, commission, frais + commission]);
+  }
+
+  totalFrais = arrondi(totalFrais);
+  totalCommission = arrondi(totalCommission);
+  const totalPartenaires = arrondi(totalFrais + totalCommission);
+  lignes.push(['Sous-total partenaires', totalFrais, totalCommission, totalPartenaires]);
+
+  /*
+   * La section des prestations. Les colonnes B et C restent VIDES, pas a zero : un zero se
+   * somme et fait mentir toute colonne recalculee par le lecteur du fichier. Une prestation
+   * n'est ni un frais de livraison ni une commission.
+   */
+  const lignesPrestations: number[] = [];
+  let totalPrestations = 0;
+  if (entreesCaisse.length > 0) {
+    lignes.push([]);
+    lignes.push(['AUTRES COMPOSANTES DU CA']);
+    lignes.push(['Libellé', 'Date', 'État', 'Montant']);
+    for (const e of entreesCaisse) {
+      const montant = Number(e.montant) || 0;
+      totalPrestations += montant;
+      lignesPrestations.push(lignes.length);
+      lignes.push([e.libelle ?? '', jourCourt(e.dateEntree), e.paye ? 'Encaissée' : 'À encaisser', montant]);
+    }
+    totalPrestations = arrondi(totalPrestations);
+    lignes.push(['Sous-total autres composantes', null, null, totalPrestations]);
+  }
+
+  const lignesSousTotalPrestations = entreesCaisse.length > 0 ? lignes.length - 1 : -1;
+
+  lignes.push([]);
+  const ligneTotal = lignes.length;
+  const totalGeneral = arrondi(totalPartenaires + totalPrestations);
+  lignes.push(['TOTAL', totalFrais, totalCommission, totalGeneral]);
+
+  /*
+   * Le pied de controle. Il existe parce que le fichier et l'ecran ne lisent pas la meme
+   * source : l'ecran somme les courses de TOUS les partenaires sur la periode, le fichier
+   * n'agrege que les partenaires ouverts. Plutot que de laisser l'ecart se decouvrir en
+   * comparant deux nombres de memoire, le fichier dit de quoi il est fait.
+   */
+  lignes.push([]);
+  lignes.push(['CONTRÔLE']);
+  lignes.push(['Partenaires (frais + commissions)', null, null, totalPartenaires]);
+  lignes.push([
+    `Autres composantes du CA (${entreesCaisse.length} ligne${entreesCaisse.length > 1 ? 's' : ''})`,
+    null,
+    null,
+    totalPrestations,
+  ]);
+  lignes.push(['Total du fichier', null, null, totalGeneral]);
+  lignes.push([
+    'Note',
+    "Ce total doit égaler le chiffre d'affaires affiché sur la même période. Un écart vient des partenaires désactivés, absents de l'agrégation par partenaire.",
+  ]);
+
+  const feuille = XLSX.utils.aoa_to_sheet(lignes);
+
+  // Le format monetaire se pose sur les CELLULES : le tableur affiche « 1 000 000 FCFA » et
+  // calcule quand meme sur 1000000.
+  const poser = (ligne: number, colonnes: number[]) => {
+    for (const c of colonnes) {
+      const adresse = XLSX.utils.encode_cell({ c, r: ligne });
+      const cellule = feuille[adresse];
+      if (cellule && typeof cellule.v === 'number') cellule.z = FORMAT_FCFA;
+    }
+  };
+
+  for (let l = premiereLignePartenaire; l < premiereLignePartenaire + partenaires.length + 1; l += 1) {
+    poser(l, [1, 2, 3]);
+  }
+  for (const l of lignesPrestations) poser(l, [3]);
+  if (lignesSousTotalPrestations >= 0) poser(lignesSousTotalPrestations, [3]);
+  poser(ligneTotal, [1, 2, 3]);
+  for (let l = ligneTotal + 2; l < lignes.length; l += 1) poser(l, [3]);
+
+  feuille['!cols'] = [{ wch: 38 }, { wch: 24 }, { wch: 20 }, { wch: 22 }];
+
+  XLSX.utils.book_append_sheet(classeur, feuille, 'Détail du CA');
+
+  return XLSX.write(classeur, { bookType: 'xlsx', type: 'array' });
+}

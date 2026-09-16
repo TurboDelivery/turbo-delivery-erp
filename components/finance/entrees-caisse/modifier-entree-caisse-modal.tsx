@@ -37,7 +37,7 @@ export function ModifierEntreeCaisseModal({ entreeCaisse }: ModifierEntreeCaisse
   return (
     <>
       <Button
-        aria-label={`Modifier l'entrée ${entreeCaisse.libelle}`}
+        aria-label={`Modifier la composante ${entreeCaisse.libelle}`}
         isIconOnly
         onPress={() => setOpen(true)}
         size="sm"
@@ -52,7 +52,7 @@ export function ModifierEntreeCaisseModal({ entreeCaisse }: ModifierEntreeCaisse
         onAction={() => soumission.current?.()}
         onFermer={() => setOpen(false)}
         ouvert={open}
-        titre="Modifier l'entrée caisse"
+        titre="Modifier la composante"
       >
         <EntreeCaisseForm
           defaultValues={{

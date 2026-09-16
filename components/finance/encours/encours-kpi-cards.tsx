@@ -84,7 +84,18 @@ function Figure({
  * payer, dont il est la reference - et une seule fois : il etait ecrit DEUX fois dans ce
  * bandeau, a 45 px d'ecart.</p>
  */
-export function EncoursKpiCards({ releve }: { releve: IEncoursReleve }) {
+export function EncoursKpiCards({
+  prestations,
+  releve,
+}: {
+  /**
+   * Les autres composantes du CA de la periode. Absentes (filtre partenaire pose, ou
+   * lecture en echec), la ligne n'apparait pas : mieux vaut ne rien dire que d'annoncer
+   * zero pour une valeur qu'on n'a pas lue.
+   */
+  prestations?: { montantAEncaisser: number; nbAEncaisser: number };
+  releve: IEncoursReleve;
+}) {
   const { facture, reste, deductions, recouvre, taux } = computeKpis(releve);
   const retard = calculerRetard(releve);
 
@@ -126,6 +137,16 @@ export function EncoursKpiCards({ releve }: { releve: IEncoursReleve }) {
   const genere = formatDateGeneration(releve.dateGeneration);
   if (genere) contexte.push(`Relevé du ${genere}`);
 
+  /*
+   * Les autres composantes du CA (prestations hors livraison) comptent dans le chiffre
+   * d'affaires, donc dans la carte « Encours » du tableau de bord, sans jamais apparaitre
+   * sur cet ecran. Elles ne sont PAS versees dans « Reste a payer » ni dans le taux de
+   * recouvrement : ces deux chiffres parlent des factures partenaires, et les y melanger
+   * deplacerait deux indicateurs que l'operateur lit deja. Elles se disent a cote, et le
+   * total des deux est ecrit en clair.
+   */
+  const aEncaisser = prestations?.montantAEncaisser ?? 0;
+
   return (
     <div className="rounded-large border border-separator bg-surface px-4 py-3">
       {/*
@@ -164,6 +185,22 @@ export function EncoursKpiCards({ releve }: { releve: IEncoursReleve }) {
        * et n'appellent aucun geste ; une carte de la taille des trois autres leur donnait
        * un poids qu'ils n'ont pas.
        */}
+      {prestations && (
+        <p className="mt-2.5 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-separator pt-2 text-xs tabular-nums">
+          <span className="text-muted">Autres composantes du CA à encaisser</span>
+          <span className="font-semibold text-foreground">{formatFcfa(aEncaisser)}</span>
+          <span className="text-muted">
+            ({formatNombre(prestations.nbAEncaisser)} ligne
+            {prestations.nbAEncaisser > 1 ? 's' : ''})
+          </span>
+          <span aria-hidden="true" className="text-muted">
+            ·
+          </span>
+          <span className="text-muted">Total encours</span>
+          <span className="font-semibold text-foreground">{formatFcfa(reste + aEncaisser)}</span>
+        </p>
+      )}
+
       <p className="mt-2.5 border-t border-separator pt-2 text-[11px] leading-snug tabular-nums text-muted">
         {contexte.join(' · ')}
       </p>

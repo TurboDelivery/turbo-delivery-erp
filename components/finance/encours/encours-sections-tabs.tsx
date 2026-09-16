@@ -1,9 +1,10 @@
 'use client';
 
-import { Tabs } from '@heroui-v3/react';
+import { Chip, Table, Tabs } from '@heroui-v3/react';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
-import { IEncoursReleve, formatCompact, formatNombre } from '@/features/encours';
+import { IEncoursReleve, formatCompact, formatFcfa, formatNombre } from '@/features/encours';
+import type { IEntreeCaisse } from '@/features/entrees-caisse/types/entree-caisse.types';
 
 import { EncoursCharts, TOP_PARTENAIRES } from './encours-charts';
 import { EncoursDeductionsTable } from './encours-deductions-table';
@@ -59,7 +60,7 @@ const MARQUE_ACTIVE =
  * selectionne, donc sans aucun panneau a l'ecran. `clearOnDefault` evite d'ecrire un
  * parametre pour la section qui s'ouvre de toute facon.</p>
  */
-const SECTIONS = ['releve', 'repartition', 'deductions'] as const;
+const SECTIONS = ['releve', 'repartition', 'deductions', 'composantes'] as const;
 
 const parseurSection = parseAsStringLiteral(SECTIONS)
   .withDefault('releve')
@@ -85,13 +86,120 @@ function Annonce({ texte }: { texte: string }) {
   return <span className="ms-1.5 text-xs font-normal tabular-nums text-muted">{texte}</span>;
 }
 
+/**
+ * Les autres composantes du CA de la periode.
+ *
+ * <p>Ce ne sont pas des factures : elles n'ont ni partenaire, ni echeance, ni point de
+ * vente. Elles vivent donc dans leur propre section, avec leurs propres totaux, et rien
+ * n'est verse dans « Reste a payer » ni dans le taux de recouvrement.</p>
+ *
+ * <p>Pas d'etat « en retard » : aucune echeance n'existe en base, et peindre en rouge un
+ * retard qu'on ne sait pas calculer serait une couleur qui ne dit rien.</p>
+ */
+/** `05/04/2026`. L'annee sur QUATRE chiffres : une annee aberrante doit se voir. */
+function formatJour(iso?: string | null): string {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return [
+    String(d.getDate()).padStart(2, '0'),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getFullYear()).padStart(4, '0'),
+  ].join('/');
+}
+
+function TableauComposantes({
+  horsFiltre,
+  lignes,
+  lues,
+}: {
+  horsFiltre: boolean;
+  lignes: IEntreeCaisse[];
+  lues: boolean;
+}) {
+  if (horsFiltre) {
+    return (
+      <p className="py-8 text-center text-sm text-muted">
+        Un filtre partenaire, cycle ou point de vente est posé. Les autres composantes du CA
+        ne sont rattachées à aucun partenaire : elles ne tiennent pas dans ce périmètre.
+      </p>
+    );
+  }
+  if (!lues) {
+    return <p className="py-8 text-center text-sm text-muted">Lecture des autres composantes en cours…</p>;
+  }
+  if (lignes.length === 0) {
+    return (
+      <p className="py-8 text-center text-sm text-muted">
+        Aucune autre composante du CA sur cette période.
+      </p>
+    );
+  }
+
+  const total = lignes.reduce((t, l) => t + (Number(l.montant) || 0), 0);
+  const aEncaisser = lignes.filter((l) => !l.paye).reduce((t, l) => t + (Number(l.montant) || 0), 0);
+
+  return (
+    <Table>
+      <Table.ScrollContainer className="rounded-xl border border-separator">
+        <Table.Content aria-label="Autres composantes du CA" className="min-w-[40rem]">
+          <Table.Header>
+            <Table.Column id="libelle" isRowHeader>
+              Libellé
+            </Table.Column>
+            <Table.Column id="date">Date</Table.Column>
+            <Table.Column className="text-end" id="montant">
+              Montant
+            </Table.Column>
+            <Table.Column id="etat">État</Table.Column>
+            <Table.Column id="commentaire">Commentaire</Table.Column>
+          </Table.Header>
+          <Table.Body>
+            {lignes.map((l) => (
+              <Table.Row id={l.id} key={l.id}>
+                <Table.Cell>{l.libelle}</Table.Cell>
+                <Table.Cell className="tabular-nums">{formatJour(l.dateEntree)}</Table.Cell>
+                <Table.Cell className="text-end tabular-nums">{formatFcfa(Number(l.montant) || 0)}</Table.Cell>
+                <Table.Cell>
+                  <Chip color={l.paye ? 'success' : 'default'} size="sm" variant="soft">
+                    <Chip.Label>{l.paye ? 'Encaissée' : 'À encaisser'}</Chip.Label>
+                  </Chip>
+                </Table.Cell>
+                <Table.Cell className="text-muted">{l.commentaire || '—'}</Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Content>
+      </Table.ScrollContainer>
+      <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs tabular-nums text-muted">
+        <span>
+          Total de la période <span className="font-semibold text-foreground">{formatFcfa(total)}</span>
+        </span>
+        <span>
+          Reste à encaisser <span className="font-semibold text-foreground">{formatFcfa(aEncaisser)}</span>
+        </span>
+      </p>
+    </Table>
+  );
+}
+
 export function EncoursSectionsTabs({
   hauteur,
+  prestations,
+  prestationsHorsFiltre,
   releve,
   zoneReleve,
 }: {
   /** Hauteur MESUREE du cadre de defilement du releve. */
   hauteur?: number;
+  /** Les autres composantes du CA de la periode, ou `undefined` si la lecture a echoue. */
+  prestations?: IEntreeCaisse[];
+  /**
+   * Un filtre partenaire, cycle ou point de vente est pose. Une prestation n'etant
+   * rattachee a aucun partenaire, la liste ne tient pas dans ce perimetre : on le DIT au
+   * lieu d'afficher un total qui ne correspond a rien.
+   */
+  prestationsHorsFiltre?: boolean;
   /** Absent tant que la lecture reseau n'a pas repondu : les onglets sont deja montes. */
   releve?: IEncoursReleve;
   /**
@@ -121,6 +229,15 @@ export function EncoursSectionsTabs({
     ? `${formatNombre(deductions.length)} ligne${deductions.length > 1 ? 's' : ''} · ${formatCompact(releve.totalDeductions)} FCFA`
     : '';
 
+  const lignesPrestations = prestations ?? [];
+  const aEncaisser = lignesPrestations.filter((l) => !l.paye);
+  const montantAEncaisser = aEncaisser.reduce((t, l) => t + (Number(l.montant) || 0), 0);
+  const annonceComposantes = prestationsHorsFiltre
+    ? 'hors filtre'
+    : prestations
+      ? `${formatNombre(aEncaisser.length)} à encaisser · ${formatCompact(montantAEncaisser)} FCFA`
+      : '';
+
   return (
     <Tabs
       className="w-full"
@@ -143,6 +260,12 @@ export function EncoursSectionsTabs({
           <Tabs.Tab className={MARQUE_ACTIVE} id="deductions">
             <span className="text-sm">Déductions &amp; avances</span>
             <Annonce texte={annonceDeductions} />
+          </Tabs.Tab>
+          {/* Ecrit EN CLAIR comme les trois autres : un composant maison enveloppant
+              `Tabs.Tab` casse la collection react-aria et l'onglet disparait. */}
+          <Tabs.Tab className={MARQUE_ACTIVE} id="composantes">
+            <span className="text-sm">Autres composantes</span>
+            <Annonce texte={annonceComposantes} />
           </Tabs.Tab>
         </Tabs.List>
       </Tabs.ListContainer>
@@ -181,6 +304,14 @@ export function EncoursSectionsTabs({
         {releve ? (
           <EncoursDeductionsTable deductions={deductions} total={releve.totalDeductions} />
         ) : null}
+      </Tabs.Panel>
+
+      <Tabs.Panel className="pt-2.5" id="composantes">
+        <TableauComposantes
+          horsFiltre={Boolean(prestationsHorsFiltre)}
+          lignes={lignesPrestations}
+          lues={Boolean(prestations)}
+        />
       </Tabs.Panel>
     </Tabs>
   );

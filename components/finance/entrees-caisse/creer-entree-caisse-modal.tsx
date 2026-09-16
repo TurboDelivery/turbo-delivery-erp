@@ -33,7 +33,7 @@ export function CreerEntreeCaisseModal() {
     <>
       <Button onPress={() => setOpen(true)} size="sm" variant="primary">
         <Plus aria-hidden="true" className="size-4" />
-        Nouvelle entrée
+        Nouvelle composante
       </Button>
 
       <FenetreAction
@@ -42,7 +42,7 @@ export function CreerEntreeCaisseModal() {
         onAction={() => soumission.current?.()}
         onFermer={() => setOpen(false)}
         ouvert={open}
-        titre="Nouvelle entrée caisse"
+        titre="Nouvelle composante du CA"
       >
         <EntreeCaisseForm onSubmit={onSubmit} soumission={soumission} />
       </FenetreAction>

@@ -1,6 +1,7 @@
 ﻿import { useMutation } from '@tanstack/react-query';
 import { IRestaurantRecouvrementSearchParams } from '@/features/recouvrements/types/restaurant-recouvrement.types';
 import { obtenirRestaurantRecouvrementsRequest } from '@/features/recouvrements/requests/recouvrements.request';
+import { entreeCaisseAPI } from '@/features/entrees-caisse/apis/entree-caisse.api';
 import { generateCAExcelTemplate } from '@/features/finance-dashboard/utils/ca-export.utils';
 import { startOfMonth } from 'date-fns';
 
@@ -38,7 +39,6 @@ export function useCAExport() {
 
       try {
         // Utiliser le nouvel endpoint API factures
-        console.log('🔍 CA Export - Plage de dates:', params.debut, 'à', params.fin);
         
         // Construire l'URL pour l'API locale (proxy)
         const baseUrl = '/api/factures/pagination';
@@ -56,7 +56,6 @@ export function useCAExport() {
         searchParams.append('size', '1000');
         
         const apiUrl = `${baseUrl}?${searchParams.toString()}`;
-        console.log('🔍 CA Export - URL appelée:', apiUrl);
         
         // Récupérer la première page
         const response = await fetch(apiUrl);
@@ -65,14 +64,12 @@ export function useCAExport() {
         }
         
         const firstResult = await response.json();
-        console.log('📊 CA Export - Première page:', firstResult.totalPages, 'pages totales');
         
         // Récupérer toutes les pages si nécessaire
         let allData = [...firstResult.content];
         const totalPages = firstResult.totalPages;
         
         if (totalPages > 1) {
-          console.log(`🔄 CA Export - Récupération des ${totalPages} pages...`);
           
           for (let page = 1; page < totalPages; page++) {
             const pageSearchParams = new URLSearchParams(searchParams.toString());
@@ -84,7 +81,6 @@ export function useCAExport() {
               const pageResult = await pageResponse.json();
               if (pageResult.content) {
                 allData = [...allData, ...pageResult.content];
-                console.log(`📊 CA Export - Page ${page + 1}/${totalPages} récupérée`);
               }
             }
           }
@@ -96,12 +92,33 @@ export function useCAExport() {
           content: allData,
           totalElements: allData.length
         };
-        
-        console.log('📊 CA Export - Données combinées:', combinedData);
-        console.log('📋 CA Export - Total restaurants:', combinedData.content.length);
+
+        /*
+         * Les prestations hors livraison de la MEME periode. Elles comptent deja dans le
+         * chiffre d'affaires affiche a l'ecran ; sans elles ici, le TOTAL du fichier reste
+         * inferieur au chiffre annonce sans qu'aucune ligne ne l'explique.
+         *
+         * Les deux bornes sont obligatoires : la lecture passe par un `between` qui ne
+         * tolere pas de borne nulle, alors que la somme du CA, elle, la tolere. Une plage a
+         * demi bornee rendrait zero pendant que le CA compte.
+         *
+         * Un echec de cette lecture ne doit PAS emporter l'export : le fichier se construit
+         * alors comme avant, sans la section, et la console dit pourquoi.
+         */
+        let entreesCaisse: Awaited<ReturnType<typeof entreeCaisseAPI.lister>> = [];
+        if (params.debut && params.fin) {
+          try {
+            entreesCaisse = await entreeCaisseAPI.lister({
+              debut: params.debut.toISOString().split('T')[0],
+              fin: params.fin.toISOString().split('T')[0],
+            });
+          } catch (erreur) {
+            console.error('[export CA] autres composantes illisibles, section omise', erreur);
+          }
+        }
 
         // Générer le fichier Excel avec les données exactes du tableau
-        const xlsxData = generateCAExcelTemplate(combinedData, params);
+        const xlsxData = generateCAExcelTemplate(combinedData, params, entreesCaisse ?? []);
         
         // Créer le blob et télécharger
         const blob = new Blob([xlsxData], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

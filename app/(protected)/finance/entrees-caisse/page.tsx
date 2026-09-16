@@ -43,8 +43,8 @@ export default function EntreesCaissePage() {
            * portait `text-muted-foreground`, un jeton shadcn. Un titre de page nomme une
            * categorie : il ne demande aucun geste, donc il ne prend pas l'accent.
            */}
-          <h1 className="text-2xl font-bold text-foreground">Entrées Caisse</h1>
-          <p className="text-sm text-muted">Gestion et historique des entrées caisse</p>
+          <h1 className="text-2xl font-bold text-foreground">Autres composantes du CA</h1>
+          <p className="text-sm text-muted">Prestations hors livraison déjà comprises dans le chiffre d&apos;affaires</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <DateFilterInput filters={filters} handleDateChange={handleDateChange} />
@@ -53,7 +53,7 @@ export default function EntreesCaissePage() {
       </div>
 
       {isError ? (
-        <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="les entrées caisse" />
+        <EtatErreur enCours={isFetching} onReessayer={() => refetch()} quoi="les autres composantes du CA" />
       ) : (
         <EntreeCaisseTable
           isFetching={isFetching}

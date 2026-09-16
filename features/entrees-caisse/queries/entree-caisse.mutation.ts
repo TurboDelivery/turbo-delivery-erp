@@ -16,7 +16,7 @@ export const useCreerEntreeCaisseMutation = () => {
     mutationFn: (data: EntreeCaisseCreateDTO) => entreeCaisseAPI.creer(data),
     onSuccess: async () => {
       await invalidate();
-      toast.success('Entrée caisse créée avec succès');
+      toast.success('Composante du CA créée');
     },
     onError: (error) => {
       toast.error('Erreur lors de la création', {
@@ -34,7 +34,7 @@ export const useModifierEntreeCaisseMutation = () => {
       entreeCaisseAPI.modifier(id, data),
     onSuccess: async () => {
       await invalidate();
-      toast.success('Entrée caisse modifiée avec succès');
+      toast.success('Composante du CA modifiée');
     },
     onError: (error) => {
       toast.error('Erreur lors de la modification', {
@@ -51,7 +51,7 @@ export const useSupprimerEntreeCaisseMutation = () => {
     mutationFn: (id: string) => entreeCaisseAPI.supprimer(id),
     onSuccess: async () => {
       await invalidate();
-      toast.success('Entrée caisse supprimée avec succès');
+      toast.success('Composante du CA supprimée');
     },
     onError: (error) => {
       toast.error('Erreur lors de la suppression', {

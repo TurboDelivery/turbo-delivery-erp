@@ -33,7 +33,7 @@ export function SupprimerEntreeCaisseModal({ entreeCaisse }: SupprimerEntreeCais
   return (
     <>
       <Button
-        aria-label={`Supprimer l'entrée ${entreeCaisse.libelle}`}
+        aria-label={`Supprimer la composante ${entreeCaisse.libelle}`}
         isIconOnly
         onPress={() => setOpen(true)}
         size="sm"
@@ -51,7 +51,7 @@ export function SupprimerEntreeCaisseModal({ entreeCaisse }: SupprimerEntreeCais
         }
         onFermer={() => setOpen(false)}
         ouvert={open}
-        titre="Supprimer l'entrée caisse"
+        titre="Supprimer la composante"
       >
         <p className="text-sm text-muted">
           Supprimer «&nbsp;{entreeCaisse.libelle}&nbsp;» ? Cette action est irréversible.

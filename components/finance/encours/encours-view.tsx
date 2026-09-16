@@ -11,6 +11,8 @@ import {
   IEncoursReleve,
 } from '@/features/encours';
 
+import { usePrestationsEncours, resumerPrestations } from '@/features/encours/hooks/use-prestations-encours';
+
 import { EncoursKpiCards } from './encours-kpi-cards';
 import { EncoursFiltres } from './encours-filtres';
 import { EncoursSectionsTabs } from './encours-sections-tabs';
@@ -51,6 +53,21 @@ export function EncoursView() {
 
   const { data: releve, isError, isFetching, isLoading, refetch } = useEncoursQuery(params);
   const { data: groupes } = useEncoursGroupesQuery();
+
+  /*
+   * Les autres composantes du CA de la meme periode. Elles comptent deja dans le chiffre
+   * d'affaires, donc dans la carte « Encours » du tableau de bord ; cet ecran, fait pour
+   * verifier ce qui reste a encaisser, ne les voyait pas.
+   *
+   * ⚠ Une prestation n'est rattachee a AUCUN partenaire. Des qu'un filtre partenaire,
+   * cycle ou point de vente est pose, la section n'a plus de perimetre : elle le dit au
+   * lieu d'afficher un total qui ne correspond a rien.
+   */
+  const prestationsHorsFiltre = Boolean(
+    filters.partenaire || filters.cycle || (filters.stores ?? []).length > 0,
+  );
+  const { data: prestations } = usePrestationsEncours(filters.annee, params.mois);
+  const resume = resumerPrestations(prestations);
 
   /*
    * Le releve precedent reste a l'ecran pendant qu'on en charge un autre.
@@ -145,14 +162,25 @@ export function EncoursView() {
         </Alert>
       )}
 
-      {affiche && <EncoursKpiCards releve={affiche} />}
+      {affiche && (
+        <EncoursKpiCards
+          prestations={prestationsHorsFiltre || !prestations ? undefined : resume}
+          releve={affiche}
+        />
+      )}
 
       {/*
        * Les trois sections. La barre d'onglets est montee meme sans releve : c'est elle
        * qui porte l'enveloppe mesuree du cadre de defilement, et cette enveloppe doit
        * exister au premier rendu (voir `encours-sections-tabs`).
        */}
-      <EncoursSectionsTabs hauteur={hauteurReleve} releve={affiche} zoneReleve={zoneReleve} />
+      <EncoursSectionsTabs
+        hauteur={hauteurReleve}
+        prestations={prestations}
+        prestationsHorsFiltre={prestationsHorsFiltre}
+        releve={affiche}
+        zoneReleve={zoneReleve}
+      />
     </div>
   );
 }
