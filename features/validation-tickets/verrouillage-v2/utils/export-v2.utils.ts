@@ -1,5 +1,6 @@
 import { TicketControleV2 } from '../types/tickets-v2.type';
 import { formatCFA, formatDateFR, formatHoursMinutes, formatNumberFR } from '@/src/actions/bonLivraison.mapper';
+import { nomComplet } from '@/utils/nom.utils';
 
 export function generatePdfTemplateV2(tickets: TicketControleV2[]): string {
   const totalCommande = tickets.reduce((sum, t) => sum + (t.coutCommande ?? 0), 0);
@@ -8,7 +9,7 @@ export function generatePdfTemplateV2(tickets: TicketControleV2[]): string {
 
   const rows = tickets
     .map((t) => {
-      const agentV1 = t.v1Agent ? `${t.v1Agent.prenoms} ${t.v1Agent.nom}` : '—';
+      const agentV1 = t.v1Agent ? nomComplet(t.v1Agent) : '—';
       const dateV1 = t.v1ValideAt ? formatDateFR(t.v1ValideAt.split('T')[0]) : '—';
       const heureV1 = t.v1ValideAt ? formatHoursMinutes(t.v1ValideAt.split('T')[1]?.substring(0, 5) ?? '') : '—';
 

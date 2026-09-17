@@ -5,6 +5,7 @@ import { AlertCircle, Clock, ShieldCheck, X } from 'lucide-react';
 import { Button, Chip, Label, Spinner, TextArea } from '@heroui-v3/react';
 import { BonLivraisonTerminee } from '@/types/bon-livraison.model';
 import { formatMontant } from '@/utils/format.utils';
+import { nomComplet } from '@/utils/nom.utils';
 
 interface Props {
   ticket: BonLivraisonTerminee;
@@ -54,7 +55,7 @@ export default function RegularisationDetail({ ticket, isApproving, isRejecting,
             <div>
               <dt className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-muted">Créé par</dt>
               <dd className="text-sm font-bold text-foreground">
-                {ticket.createdByUser.prenoms} {ticket.createdByUser.nom}
+                {nomComplet(ticket.createdByUser)}
               </dd>
             </div>
           )}

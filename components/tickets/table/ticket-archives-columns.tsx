@@ -9,6 +9,7 @@ import { fr } from 'date-fns/locale';
 
 import { formatCFA, formatDateFR, formatHoursMinutes } from '@/src/actions/bonLivraison.mapper';
 import { IArchiveBonLivraisonVm } from '@/features/tickets/types/tickets.type';
+import { nomComplet } from '@/utils/nom.utils';
 
 export interface TicketArchivesColumnMeta {
   onRestoreRow: (commandeId: string) => void;
@@ -35,7 +36,7 @@ function AgentCell({ agent, date }: AgentCellProps) {
   const formatted = formatDateTime(date);
   return (
     <div className="flex flex-col leading-tight">
-      <span className="font-medium text-foreground">{`${agent.prenoms} ${agent.nom}`}</span>
+      <span className="font-medium text-foreground">{nomComplet(agent)}</span>
       {formatted && <span className="text-[11px] text-muted">{formatted}</span>}
     </div>
   );

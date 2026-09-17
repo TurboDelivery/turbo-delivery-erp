@@ -27,6 +27,7 @@ import { IArchiveBonLivraisonVm } from '@/features/tickets/types/tickets.type';
 import { ticketArchivesColumns, TicketArchivesColumnMeta } from './ticket-archives-columns';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { useHauteurDisponible } from '@/hooks/use-hauteur-disponible';
+import { nomComplet } from '@/utils/nom.utils';
 
 interface TicketArchivesTableProps {
   restaurantOptions: { value: string; label: string }[];
@@ -351,7 +352,7 @@ export function TicketArchivesTable({ restaurantOptions, livreurOptions }: Ticke
         ) : (
           table.getRowModel().rows.map((row) => {
             const a = row.original;
-            const deletedBy = a.deletedByUser ? `${a.deletedByUser.prenoms} ${a.deletedByUser.nom}` : '—';
+            const deletedBy = a.deletedByUser ? nomComplet(a.deletedByUser) : '—';
             return (
               <div key={row.id} className={`space-y-2 rounded-xl border bg-surface p-4 shadow-xs ${row.getIsSelected() ? 'border-accent bg-accent-soft/40' : 'border-separator'}`}>
                 <div className="flex items-start justify-between gap-2">

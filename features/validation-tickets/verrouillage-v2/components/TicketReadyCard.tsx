@@ -5,6 +5,7 @@ import { Button, Chip } from '@heroui-v3/react';
 
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { TicketControleV2 } from '../types/tickets-v2.type';
+import { nomComplet } from '@/utils/nom.utils';
 
 interface Props {
   ticket: TicketControleV2;
@@ -84,7 +85,7 @@ export default function TicketReadyCard({ ticket, onLock, onReject }: Props) {
         <div className="flex items-center gap-1 text-xs text-muted">
           <span>Créé par</span>
           <span className="font-medium">
-            {ticket.createdByUser.prenoms} {ticket.createdByUser.nom}
+            {nomComplet(ticket.createdByUser)}
           </span>
         </div>
       )}

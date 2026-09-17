@@ -8,6 +8,7 @@ import { TicketControleV2 } from '@/features/validation-tickets/verrouillage-v2/
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { nomComplet } from '@/utils/nom.utils';
 
 export function formatDate(dateStr: string) {
   try {
@@ -37,7 +38,7 @@ export function AgentCell({ agent, date }: AgentCellProps) {
   const formatted = formatDateTime(date);
   return (
     <div className="flex flex-col leading-tight">
-      <span className="text-foreground font-medium">{`${agent.prenoms} ${agent.nom}`}</span>
+      <span className="text-foreground font-medium">{nomComplet(agent)}</span>
       {formatted && <span className="text-[11px] text-muted">{formatted}</span>}
     </div>
   );

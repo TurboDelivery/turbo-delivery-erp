@@ -31,6 +31,7 @@ import { StatutControle } from '@/types/statut-controle.enum';
 import { StatutTicket } from './statut-ticket';
 import type { TicketColumnMeta } from './ticket-table-columns';
 import { dateSaisissable, dernierJourSaisissable, premierJourSaisissable } from '@/features/tickets/utils/date-saisie.utils';
+import { nomComplet } from '@/utils/nom.utils';
 
 /**
  * La carte d'un ticket au telephone, en remplacement du tableau dense sous `md`.
@@ -363,7 +364,7 @@ export function TicketMobileCard({
             {!enEdition && (
                 <Champ libelle="Créé par">
                     {rowTicket.createdByUser
-                        ? `${rowTicket.createdByUser.prenoms} ${rowTicket.createdByUser.nom}`
+                        ? nomComplet(rowTicket.createdByUser)
                         : '—'}
                 </Champ>
             )}

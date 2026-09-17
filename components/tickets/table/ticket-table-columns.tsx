@@ -28,6 +28,7 @@ import { commissionAffichee } from '@/features/tickets/utils/commission.utils';
 import { StatutTicket } from './statut-ticket';
 import { StatutControle } from '@/types/statut-controle.enum';
 import { dateSaisissable, dernierJourSaisissable, premierJourSaisissable } from '@/features/tickets/utils/date-saisie.utils';
+import { nomComplet } from '@/utils/nom.utils';
 
 /** « 2026-09-04 » vers une date calendaire, sans heure ni fuseau. */
 const enCalendaire = (iso: string): CalendarDate | null => {
@@ -463,7 +464,7 @@ export const createTicketColumns = (): ColumnDef<Ticket>[] => [
     enableSorting: false,
     cell: ({ row }) => {
       const u = row.original.createdByUser;
-      return <span className="text-xs">{u ? `${u.prenoms} ${u.nom}` : '—'}</span>;
+      return <span className="text-xs">{u ? nomComplet(u) : '—'}</span>;
     },
   },
   {

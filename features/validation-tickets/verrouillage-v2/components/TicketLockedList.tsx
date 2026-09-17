@@ -13,6 +13,7 @@ import EtatErreur from '@/components/commons/EtatErreur';
 import { formatCFA } from '@/src/actions/bonLivraison.mapper';
 
 import { TicketControleV2 } from '../types/tickets-v2.type';
+import { nomComplet } from '@/utils/nom.utils';
 
 interface Props {
   isError?: boolean;
@@ -92,7 +93,7 @@ export default function TicketLockedList({ tickets, total, hasNextPage, isFetchi
                 <div className="flex items-center gap-1 text-xs text-muted">
                   <span>Créé par</span>
                   <span className="font-medium text-muted">
-                    {ticket.createdByUser.prenoms} {ticket.createdByUser.nom}
+                    {nomComplet(ticket.createdByUser)}
                   </span>
                 </div>
               )}
