@@ -234,6 +234,7 @@ export default function EditContent({ restaurant }: { restaurant: IRestaurant })
           <CommissionHistorySection restaurantId={restaurant.id} />
 
           <CompteSection
+            compteExistant={restaurant.compteConnexionExistant}
             username={username}
             password={password}
             onUsernameChange={setUsername}

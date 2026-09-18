@@ -20,11 +20,11 @@ import {
 } from '@heroui-v3/react';
 
 import { LienBouton } from '@/components/commons/LienBouton';
+import { ComptePartenaireSection } from '@/app/(protected)/restaurants/_sections/compte-partenaire-section';
 import { TitreSection } from '@/components/commons/TitreSection';
 import {
   ChampListe,
   ChampMontant,
-  ChampMotDePasse,
   ChampTexte,
   ChampZoneTexte,
 } from '@/components/commons/champs-formulaire';
@@ -497,23 +497,21 @@ export default function Content({ restaurant }: { restaurant: IRestaurant }) {
               </Card.Content>
             </Card>
 
-            {/* ── Compte du partenaire ── */}
+            {/* ── Compte du partenaire ──
+                Cette section était recopiée ici à la main, alors que le composant partagé
+                existait déjà et portait le raisonnement. Trois exemplaires du même bloc,
+                et c'est celui-ci, le seul non partagé, qui affichait encore « Nom
+                utilisateur » et laissait le navigateur y verser les identifiants de
+                l'opérateur. */}
             <Card>
               <Card.Content className="p-6">
-              <TitreSection>Compte du partenaire</TitreSection>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <ChampTexte
-                  label="Nom utilisateur"
-                  onChange={setUsername}
-                  placeholder="username_restaurant"
-                  valeur={username}
+                <ComptePartenaireSection
+                  compteExistant={restaurant.compteConnexionExistant}
+                  onPasswordChange={setPassword}
+                  onUsernameChange={setUsername}
+                  password={password}
+                  username={username}
                 />
-                <ChampMotDePasse
-                  label="Nouveau mot de passe"
-                  onChange={setPassword}
-                  valeur={password}
-                />
-              </div>
               </Card.Content>
             </Card>
 

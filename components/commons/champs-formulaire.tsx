@@ -41,6 +41,7 @@ import React from 'react';
 
 export function ChampTexte({
   aide,
+  autoComplete,
   erreur,
   label,
   onChange,
@@ -49,6 +50,15 @@ export function ChampTexte({
   valeur,
 }: {
   aide?: string;
+  /**
+   * `off` quand le champ ne doit PAS être rempli par le navigateur.
+   *
+   * <p>Un champ texte suivi d'un champ mot de passe ressemble à un formulaire de connexion,
+   * et Chrome y verse les identifiants enregistrés de la personne connectée. Sur la fiche
+   * partenaire, ces valeurs partent au serveur à l'enregistrement : l'opérateur donnait
+   * ainsi son propre identifiant au partenaire sans le voir.</p>
+   */
+  autoComplete?: 'off';
   erreur?: string;
   label: string;
   onChange: (v: string) => void;
@@ -60,7 +70,7 @@ export function ChampTexte({
     <TextField isInvalid={Boolean(erreur)} onChange={onChange} value={valeur ?? ''}>
       <Label>{label}</Label>
       <InputGroup>
-        <InputGroup.Input placeholder={placeholder} type={type} />
+        <InputGroup.Input autoComplete={autoComplete} placeholder={placeholder} type={type} />
       </InputGroup>
       {aide && !erreur && <Description>{aide}</Description>}
       {erreur && <FieldError>{erreur}</FieldError>}
@@ -146,6 +156,7 @@ export function ChampZoneTexte({
  * `FormData` : là, le champ reste libre et c'est `name` qui porte sa valeur.</p>
  */
 export function ChampMotDePasse({
+  aide,
   autoComplete,
   erreur,
   estRequis,
@@ -155,6 +166,7 @@ export function ChampMotDePasse({
   placeholder = '••••••••',
   valeur,
 }: {
+  aide?: string;
   /** Sans lui, aucun gestionnaire de mots de passe ne remplit ni ne propose d'enregistrer. */
   autoComplete?: 'current-password' | 'new-password';
   erreur?: string;
@@ -204,6 +216,7 @@ export function ChampMotDePasse({
           </Button>
         </InputGroup.Suffix>
       </InputGroup>
+      {aide && !erreur && <Description>{aide}</Description>}
       {erreur && <FieldError>{erreur}</FieldError>}
     </TextField>
   );

@@ -61,6 +61,17 @@ export interface IRestaurant {
   isOpen?: boolean | null;
   /** Inscription non finalisée. Servi par la VM, défaut backend FALSE. */
   inscriptionEnAttente?: boolean | null;
+  /**
+   * Ce partenaire a-t-il un compte de connexion au portail ?
+   *
+   * ⚠ Servi UNIQUEMENT par la fiche `/restaurant/info/{id}`, `undefined` dans la liste :
+   * la liste rend 71 partenaires et une lecture par partenaire y ferait 71 requêtes.
+   *
+   * C'est un booléen et non l'identifiant : la route qui sert la fiche est ouverte sans
+   * jeton, et publier les identifiants donnerait de quoi verrouiller les comptes
+   * partenaires, qui se bloquent au bout de trois tentatives.
+   */
+  compteConnexionExistant?: boolean | null;
 }
 
 /**
