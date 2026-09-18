@@ -4,6 +4,7 @@ import {
   ChangerStatutPieceDTO,
   CleActivationVm,
   CoteVm,
+  EffacementCode,
   EmissionCle,
   LivreurEvenementVm,
   ValiderCompteDTO,
@@ -36,6 +37,19 @@ export const compteLivreurAPI = {
       endpoint: `/api/erp/livreur/${id}/cle/emettre`,
       method: 'POST',
       data: { motif: motif ?? null },
+    });
+  },
+
+  /**
+   * Efface le code d'accès du livreur : il en repose un depuis l'application.
+   *
+   * L'ERP ne CHOISIT pas le nouveau code. Un code dicté au téléphone serait connu d'un
+   * autre que son titulaire, et celui-ci n'aurait aucun moyen de savoir qui le connaît.
+   */
+  async effacerCode(id: string): Promise<EffacementCode> {
+    return await apiClientHttp.request<EffacementCode>({
+      endpoint: `/api/erp/livreur/${id}/reinitialiser-code`,
+      method: 'POST',
     });
   },
 

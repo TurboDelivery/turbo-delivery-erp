@@ -41,6 +41,18 @@ export interface ValidationCompteVm {
 }
 
 /** Vue ERP d'une clé (historique) — jamais le code en clair. */
+/**
+ * Retour de l'effacement du code d'accès d'un livreur.
+ *
+ * `reinitialise` vaut `false` quand le serveur n'a rien effacé : l'écran doit alors
+ * annoncer un échec, sans quoi l'agent raccroche en croyant le compte débloqué.
+ */
+export interface EffacementCode {
+  reinitialise: boolean;
+  telephone: string | null;
+  message: string;
+}
+
 export interface CleActivationVm {
   id: string;
   codeApercu: string | null;

@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { turboyKeys } from '@/features/turboys/queries/turboy-list.query';
 import {
   changerStatutPieceAction,
+  effacerCodeAction,
   emettreCleAction,
   listerClesAction,
   listerCoteAction,
@@ -13,6 +14,7 @@ import {
 } from '@/features/turboys/actions/compte-livreur.actions';
 import {
   ChangerStatutPieceDTO,
+  EffacementCode,
   EmissionCle,
   ValiderCompteDTO,
   ValidationCompteVm,
@@ -84,6 +86,41 @@ export const useChangerStatutPieceMutation = (id: string, onDone?: () => void) =
       onDone?.();
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : 'Erreur lors de la mise à jour'),
+  });
+};
+
+/**
+ * Efface le code d'accès du livreur.
+ *
+ * Le serveur répond 200 avec `reinitialise: false` quand il n'a rien effacé. Traiter ce
+ * cas comme un succès ferait raccrocher l'agent en croyant le compte débloqué : on lève.
+ *
+ * L'historique du compte est invalidé, pas seulement la fiche : c'est là que le geste se
+ * relit après coup.
+ */
+export const useEffacerCodeMutation = (id: string, onDone?: (r: EffacementCode) => void) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const result = await effacerCodeAction(id);
+      if (!result.success) throw new Error(result.error || 'Erreur lors de l’effacement du code');
+      if (result.data?.reinitialise === false) {
+        throw new Error(result.data.message || 'Le code n’a pas été effacé.');
+      }
+      return result.data!;
+    },
+    onSuccess: async (resultat) => {
+      await queryClient.invalidateQueries({ queryKey: turboyKeys.detail(id) });
+      await queryClient.invalidateQueries({ queryKey: compteLivreurKeys.evenements(id) });
+      toast.success(
+        resultat.telephone
+          ? `Code effacé. Le coursier en repose un depuis le ${resultat.telephone}.`
+          : resultat.message || 'Code effacé.',
+      );
+      onDone?.(resultat);
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : 'Erreur lors de l’effacement du code'),
   });
 };
 

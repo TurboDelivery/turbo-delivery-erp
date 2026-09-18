@@ -6,6 +6,7 @@ import {
   ChangerStatutPieceDTO,
   CleActivationVm,
   CoteVm,
+  EffacementCode,
   EmissionCle,
   LivreurEvenementVm,
   ValiderCompteDTO,
@@ -51,6 +52,16 @@ export async function emettreCleAction(id: string, motif?: string): Promise<Acti
   } catch (error) {
     console.error('❌ Erreur émission clé:', error);
     return messageErreur(error, 'Erreur lors de l’émission de la clé');
+  }
+}
+
+export async function effacerCodeAction(id: string): Promise<ActionResponse<EffacementCode>> {
+  try {
+    const data = await compteLivreurAPI.effacerCode(id);
+    return { success: true, data, message: data.message };
+  } catch (error) {
+    console.error('❌ Erreur effacement du code:', error);
+    return messageErreur(error, 'Erreur lors de l’effacement du code');
   }
 }
 

@@ -8,11 +8,13 @@ import { ChampCopiable } from '@/components/commons/ChampCopiable';
 import { ChampListe, ChampTexte } from '@/components/commons/champs-formulaire';
 import EtatErreur from '@/components/commons/EtatErreur';
 import { useTurboyQuery } from '@/features/turboys/queries/turboy-list.query';
+import { nomComplet } from '@/utils/nom.utils';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
 import {
   useChangerStatutPieceMutation,
   useClesQuery,
   useCoteQuery,
+  useEffacerCodeMutation,
   useEmettreCleMutation,
   useEvenementsQuery,
   useValiderCompteMutation,
@@ -154,6 +156,9 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
   const valider = useValiderCompteMutation(driverId, (vm) => setCodeEmis(vm.code));
   const emettre = useEmettreCleMutation(driverId, (cle) => setCodeEmis(cle.code));
 
+  const [confirmationCode, setConfirmationCode] = useState(false);
+  const effacer = useEffacerCodeMutation(driverId, () => setConfirmationCode(false));
+
   if (isLoading) {
     return (
       <section className={`${sectionClass} flex flex-col gap-3`}>
@@ -181,6 +186,8 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
   const toutConforme = cni === 'CONFORME' && fiche === 'CONFORME' && contrat === 'CONFORME';
   const siteManquant = rattachement === 'SITE_PARTNER' && !sitePartnerId.trim();
   const dejaValide = (turboy.status ?? 0) >= 4;
+  // NOM puis PRENOMS, l'ordre du serveur, par la fonction partagee.
+  const nomLisible = nomComplet(turboy);
 
   const score = cote.data?.cote ?? turboy.cote ?? null;
   const coteColor: 'success' | 'warning' | 'danger' | 'default' =
@@ -399,6 +406,70 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
           </div>
         ) : (
           <p className="text-sm text-muted">Aucune clé émise.</p>
+        )}
+      </section>
+
+      {/*
+        Code oublié (RG-06).
+
+        Ce geste EXISTAIT côté serveur et côté ERP, mais sur `/delivery-men/profil/[id]`,
+        une fiche coursier que le menu n'ouvre jamais : le listing Turboys mène ici. Trois
+        fiches coursier coexistent dans ce dépôt, et l'agent ne voyait pas le seul recours
+        dont il dispose. Il est donc là, à côté de la clé d'activation, l'autre geste de
+        déblocage.
+
+        C'est aujourd'hui le SEUL déblocage qui fonctionne : la réinitialisation depuis
+        l'application passe par un code WhatsApp, et le compte Twilio répond 20003.
+      */}
+      <section className={sectionClass}>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h2 className="text-base font-semibold text-foreground">Code oublié</h2>
+          <Button
+            isPending={effacer.isPending}
+            onPress={() => setConfirmationCode(true)}
+            size="sm"
+            variant="danger-soft"
+          >
+            Effacer le code
+          </Button>
+        </div>
+        <p className="text-xs text-muted">
+          Le code est effacé, et le coursier en repose un depuis l’écran de connexion de
+          l’application. L’ERP n’en choisit pas un à sa place : un code dicté au téléphone
+          serait connu d’un autre que son titulaire, et celui-ci n’aurait aucun moyen de
+          savoir qui le connaît.
+        </p>
+
+        {confirmationCode && (
+          /*
+           * La confirmation est ici, et non dans un toast : l'effacement laisse le coursier
+           * hors de l'application jusqu'à ce qu'il repose un code, et ne se défait pas.
+           */
+          <Alert className="mt-4" status="warning">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>Effacer le code d’accès ?</Alert.Title>
+              <p className="mt-1 text-sm">
+                {nomLisible} ne pourra plus ouvrir l’application tant qu’il n’aura pas posé
+                un nouveau code. L’appareil lié est délié au passage, sans quoi il buterait
+                sur le barrage appareil juste après. Le geste est immédiat et ne se défait
+                pas.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  isPending={effacer.isPending}
+                  onPress={() => effacer.mutate()}
+                  size="sm"
+                  variant="danger"
+                >
+                  Effacer le code
+                </Button>
+                <Button onPress={() => setConfirmationCode(false)} size="sm" variant="ghost">
+                  Annuler
+                </Button>
+              </div>
+            </Alert.Content>
+          </Alert>
         )}
       </section>
 
