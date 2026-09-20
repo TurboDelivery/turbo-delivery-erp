@@ -179,6 +179,7 @@ export default function AccesPartenaireSection({ restaurantId }: { restaurantId:
                   valeur={email}
                 />
                 <ChampMotDePasse
+                  autoComplete="new-password"
                   erreur={
                     password.length > 0 && !passwordValid ? '8 caractères minimum' : undefined
                   }

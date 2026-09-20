@@ -110,6 +110,7 @@ const UsersDefinirMotDePasse = ({
                         caracteres speciaux acceptes. */}
                     <div>
                         <ChampMotDePasse
+                            autoComplete="new-password"
                             estRequis
                             label="Nouveau mot de passe"
                             onChange={setMotDePasse}
@@ -118,6 +119,7 @@ const UsersDefinirMotDePasse = ({
                         <ExigencesMotDePasse valeur={motDePasse} />
                     </div>
                     <ChampMotDePasse
+                        autoComplete="new-password"
                         erreur={discordance ? 'Les deux saisies diffèrent' : undefined}
                         estRequis
                         label="Confirmer"

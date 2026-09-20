@@ -510,6 +510,7 @@ export default function CreateContent() {
               control={control}
               render={({ field }) => (
                 <ChampMotDePasse
+                  autoComplete="new-password"
                   erreur={errors.password?.message}
                   label="Mot de passe"
                   onChange={field.onChange}

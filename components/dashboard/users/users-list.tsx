@@ -152,8 +152,16 @@ const UsersList = ({ users }: { users: PaginatedResponse<User> | null }) => {
           <SearchField onChange={handleSearch} value={search}>
             <SearchField.Group>
               <SearchField.SearchIcon />
+              {/*
+               * `autoComplete="off"` : la fenetre « Definir un mot de passe » de cette page
+               * fait apparaitre un champ de mot de passe, et Chrome cherche alors un champ
+               * texte ou verser l'identifiant enregistre. Il tombait sur CELUI-CI. La liste
+               * se filtrait toute seule sur « ADMIN » et ne gardait qu'une ligne, sans que
+               * rien n'explique pourquoi.
+               */}
               <SearchField.Input
                 aria-label="Rechercher des utilisateurs"
+                autoComplete="off"
                 placeholder="Rechercher des utilisateurs"
               />
               <SearchField.ClearButton />

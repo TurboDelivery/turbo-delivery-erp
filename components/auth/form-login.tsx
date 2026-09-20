@@ -1,9 +1,9 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 
 import { Button, FieldError, Input, Label, Spinner, TextField } from '@heroui-v3/react';
-import { IconLock, IconUser } from '@tabler/icons-react';
+import { IconEye, IconEyeOff, IconLock, IconUser } from '@tabler/icons-react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -24,9 +24,20 @@ import { FormChangePassword } from './form-change-password';
  * l'echec a l'endroit ou il s'est produit, et `Button` gere son propre etat d'envoi. Les
  * icones passent par `InputGroup`-like : elles restent en absolu faute d'equivalent v3,
  * mais le champ reserve leur place par son padding plutot que de les superposer au texte.</p>
+ *
+ * <h3>L'oeil</h3>
+ * <p>Tous les autres champs de mot de passe de l'ERP en ont un, par `ChampMotDePasse` :
+ * celui-ci, le premier que l'on rencontre, n'en avait pas. On tapait a l'aveugle un mot de
+ * passe provisoire du genre « uL9_imA8 », et une faute de frappe ne se distinguait pas
+ * d'un mauvais mot de passe — au troisieme essai le compte se verrouille.</p>
+ *
+ * <p>Le bouton porte un nom qui dit ce qu'il VA faire, et le champ lui reserve sa place a
+ * droite par son padding, comme le cadenas a gauche. Le type du champ bascule, si bien que
+ * le gestionnaire de mots de passe continue de reconnaitre le champ dans les deux etats.</p>
  */
 export function FormLogin() {
     const router = useRouter();
+    const [motDePasseVisible, setMotDePasseVisible] = useState(false);
     const [state, formAction, enCours] = useActionState(
         async (_: any, formData: FormData) => {
             const result = await loginUser(formData);
@@ -87,14 +98,43 @@ export function FormLogin() {
                 </div>
             </TextField>
 
-            <TextField isRequired fullWidth name="password" type="password" isInvalid={echec}>
+            <TextField
+                fullWidth
+                isInvalid={echec}
+                isRequired
+                name="password"
+                type={motDePasseVisible ? 'text' : 'password'}
+            >
                 <Label>Mot de passe</Label>
                 <div className="relative">
                     <IconLock
                         aria-hidden="true"
                         className="pointer-events-none absolute left-3 top-1/2 size-5 -translate-y-1/2 text-muted"
                     />
-                    <Input autoComplete="current-password" className="w-full pl-10" placeholder="Votre mot de passe" />
+                    <Input
+                        autoComplete="current-password"
+                        className="w-full pl-10 pr-11"
+                        placeholder="Votre mot de passe"
+                    />
+                    {/* Le nom dit ce que le bouton VA faire, pas l'etat courant : un lecteur
+                        d'ecran annonce « Afficher le mot de passe », on l'active, il annonce
+                        « Masquer ». `type="button"` est implicite sur `Button` de la v3, mais
+                        ce bouton vit DANS un formulaire : sans lui il le soumettrait. */}
+                    <Button
+                        aria-label={motDePasseVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                        className="absolute right-1 top-1/2 -translate-y-1/2"
+                        isIconOnly
+                        onPress={() => setMotDePasseVisible((v) => !v)}
+                        size="sm"
+                        type="button"
+                        variant="ghost"
+                    >
+                        {motDePasseVisible ? (
+                            <IconEyeOff aria-hidden="true" className="size-5" />
+                        ) : (
+                            <IconEye aria-hidden="true" className="size-5" />
+                        )}
+                    </Button>
                 </div>
                 {/* L'echec s'affiche ICI, rattache au champ, et non plus seulement dans un
                     toast qui s'efface avant que l'operateur ait fini de lire. */}
