@@ -7,10 +7,18 @@ import { toast } from 'sonner';
 
 import { ChampMotDePasse } from '@/components/commons/champs-formulaire';
 import { FenetreAction } from '@/components/commons/FenetreAction';
+import { ExigencesMotDePasse } from '@/components/commons/ExigencesMotDePasse';
 import { definirMotDePasseUtilisateur } from '@/src/actions/users.actions';
+import { motDePasseValide } from '@/utils/mot-de-passe.utils';
 import { User } from '@/types/models';
 
-/** La règle du serveur, écrite ici pour que l'échec se voie AVANT l'aller-retour. */
+/**
+ * La règle du serveur, écrite ici pour que l'échec se voie AVANT l'aller-retour.
+ *
+ * <p>Elle était ÉNONCÉE en entier et seule la longueur était vérifiée : on pouvait poser
+ * « motdepasse », le bouton s'activait, et le serveur refusait. La règle complète est
+ * maintenant tenue, et sa source est partagée avec le changement obligatoire.</p>
+ */
 const LONGUEUR_MINIMALE = 8;
 
 /**
@@ -55,9 +63,8 @@ const UsersDefinirMotDePasse = ({
 
     const nom = [user.prenoms, user.nom].filter(Boolean).join(' ') || user.username;
 
-    const tropCourt = motDePasse.length > 0 && motDePasse.length < LONGUEUR_MINIMALE;
     const discordance = confirmation.length > 0 && confirmation !== motDePasse;
-    const peutValider = motDePasse.length >= LONGUEUR_MINIMALE && confirmation === motDePasse;
+    const peutValider = motDePasseValide(motDePasse) && confirmation === motDePasse;
 
     const definir = async () => {
         if (!peutValider) return;
@@ -98,19 +105,18 @@ const UsersDefinirMotDePasse = ({
                 </Alert>
             ) : (
                 <>
-                    {/* La regle du serveur, dite AVANT la saisie : la decouvrir sur un refus
-                        oblige a tout retaper. */}
-                    <p className="text-sm text-muted">
-                        {LONGUEUR_MINIMALE} caractères au minimum, dont une majuscule, une
-                        minuscule, un chiffre et un caractère spécial.
-                    </p>
-                    <ChampMotDePasse
-                        erreur={tropCourt ? `${LONGUEUR_MINIMALE} caractères au minimum` : undefined}
-                        estRequis
-                        label="Nouveau mot de passe"
-                        onChange={setMotDePasse}
-                        valeur={motDePasse}
-                    />
+                    {/* La regle, dite AVANT la saisie et cochee a la frappe : la decouvrir
+                        sur un refus oblige a tout retaper, et le refus ne nommait pas les
+                        caracteres speciaux acceptes. */}
+                    <div>
+                        <ChampMotDePasse
+                            estRequis
+                            label="Nouveau mot de passe"
+                            onChange={setMotDePasse}
+                            valeur={motDePasse}
+                        />
+                        <ExigencesMotDePasse valeur={motDePasse} />
+                    </div>
                     <ChampMotDePasse
                         erreur={discordance ? 'Les deux saisies diffèrent' : undefined}
                         estRequis

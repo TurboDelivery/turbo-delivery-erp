@@ -2,10 +2,11 @@
 
 import { Modal } from '@heroui-v3/react';
 import { useRouter } from 'next/navigation';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { toast } from 'sonner';
 
 import { ChampMotDePasse } from '@/components/commons/champs-formulaire';
+import { ExigencesMotDePasse } from '@/components/commons/ExigencesMotDePasse';
 import { SubmitButton } from '@/components/ui/form-ui/submit-button';
 import { changePassword } from '@/src/actions/users.actions';
 
@@ -26,14 +27,24 @@ import { changePassword } from '@/src/actions/users.actions';
  * pouvaient ni remplir l'ancien, ni proposer d'enregistrer le nouveau. Ils le peuvent.</p>
  *
  * <p>`isRequired required` était posé deux fois sur chaque champ : l'attribut HTML brut
- * à côté de la propriété du composant, qui le pose déjà. Le doublon est retiré. La
- * validation reste celle du navigateur — vérifié dans le DOM, `required` est bien là :
- * ce formulaire n'a pas de contrôleur côté client, c'est le serveur qui juge, et la
- * seule règle qu'on peut tenir ici sans la dédoubler est « non vide ».</p>
+ * à côté de la propriété du composant, qui le pose déjà. Le doublon est retiré.</p>
+ *
+ * <h3>La règle s'apprenait par refus</h3>
+ * <p>Cet écran n'annonçait aucune règle. On tapait un mot de passe, le serveur le
+ * refusait, et le message disait « il faut un caractère spécial » à quelqu'un qui venait
+ * d'en taper un : le serveur n'en acceptait que trois, `@`, `#` et `_`, sans le dire. On
+ * relisait, on constatait avoir suivi la règle, et on recommençait.</p>
+ *
+ * <p>Le serveur accepte maintenant tout caractère non alphanumérique, et la règle est
+ * affichée ici, cochée à la frappe. Le serveur reste le juge : ces cases ne remplacent
+ * pas sa validation, elles évitent qu'il en soit le seul endroit où on l'apprenne.</p>
  */
 
 export function FormChangePassword({ userName }: { userName: string }) {
   const router = useRouter();
+  // Le champ devient piloté pour que les cases suivent la frappe. Il garde son `name` :
+  // c'est `FormData` qui porte la valeur jusqu'à l'action serveur, comme avant.
+  const [nouveauMotDePasse, setNouveauMotDePasse] = useState('');
   const [state, formAction] = useActionState(
     async (_: any, formData: FormData) => {
       formData.set('username', userName);
@@ -76,13 +87,18 @@ export function FormChangePassword({ userName }: { userName: string }) {
                   label="Mot de passe actuel"
                   name="oldPassword"
                 />
-                <ChampMotDePasse
-                  autoComplete="new-password"
-                  erreur={state?.errors?.password}
-                  estRequis
-                  label="Nouveau mot de passe"
-                  name="newPassword"
-                />
+                <div>
+                  <ChampMotDePasse
+                    autoComplete="new-password"
+                    erreur={state?.errors?.password}
+                    estRequis
+                    label="Nouveau mot de passe"
+                    name="newPassword"
+                    onChange={setNouveauMotDePasse}
+                    valeur={nouveauMotDePasse}
+                  />
+                  <ExigencesMotDePasse valeur={nouveauMotDePasse} />
+                </div>
                 <ChampMotDePasse
                   autoComplete="new-password"
                   erreur={state?.errors?.confirm_password}
