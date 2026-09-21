@@ -59,6 +59,49 @@ export interface VueFileAttenteProps {
   rafraichir: () => Promise<unknown>;
 }
 
+/**
+ * Une grille de cartes de poste.
+ *
+ * <p>Extraite parce que l'écran en rend maintenant DEUX, séparées par une bande :
+ * les postes où l'on attend, puis ceux où personne n'attend.</p>
+ *
+ * <p>`items-start` : sans lui, la carte d'un poste déserté s'étirerait à la
+ * hauteur de la file la plus longue de sa rangée — un grand vide blanc là où il
+ * faut au contraire un signal court et net.</p>
+ */
+function GrillePostes({ maintenant, postes }: { maintenant: number; postes: PosteFileVue[] }) {
+  return (
+    <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 2xl:grid-cols-3">
+      {postes.map((poste) => (
+        <PosteFileCard key={poste.restaurantId} maintenant={maintenant} poste={poste} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * La bande qui sépare les postes pourvus des postes déserts.
+ *
+ * <p>Elle ne décore pas : elle dit où commence l'autre moitié de l'écran, et
+ * combien elle compte. Sans elle, quatorze cartes rouges à la suite d'une verte
+ * se lisent comme une seule masse — c'est exactement ce que l'ordre seul ne
+ * réglait pas.</p>
+ *
+ * <p>Elle n'apparaît que lorsque les DEUX groupes existent : une bande qui ne
+ * sépare rien est du bruit.</p>
+ */
+function BandeSeparation({ nombre }: { nombre: number }) {
+  return (
+    <div className="flex items-center gap-3 pt-2">
+      <span aria-hidden="true" className="flex-1 border-t border-separator" />
+      <span className="text-[11px] font-medium uppercase tracking-wide text-muted">
+        {nombre} {pluriel(nombre, 'poste')} sans livreur
+      </span>
+      <span aria-hidden="true" className="flex-1 border-t border-separator" />
+    </div>
+  );
+}
+
 export function VueFileAttente({
   postes,
   kpis,
@@ -94,6 +137,10 @@ export function VueFileAttente({
       return poste.file.some((ligne) => ligne.nomComplet.toLowerCase().includes(terme));
     });
   }, [postes, recherche, seulementDeserts]);
+
+  /** Les deux moitiés de l'écran : on attend quelque part, ou nulle part. */
+  const postesPourvus = useMemo(() => postesFiltres.filter((p) => !p.desert), [postesFiltres]);
+  const postesDeserts = useMemo(() => postesFiltres.filter((p) => p.desert), [postesFiltres]);
 
   return (
     <div className="flex w-full flex-col gap-4">
@@ -210,17 +257,20 @@ export function VueFileAttente({
         <div className="flex flex-col gap-2">
           <p className="text-[11px] text-muted">
             {postesFiltres.length} {pluriel(postesFiltres.length, 'poste')}{' '}
-            {pluriel(postesFiltres.length, 'affiché')} — les postes où des Turboys attendent
-            sont présentés en premier, file la plus longue en tête.
+            {pluriel(postesFiltres.length, 'affiché')}
+            {postesPourvus.length > 0
+              ? ' — les postes où des Turboys attendent sont présentés en premier, file la plus longue en tête.'
+              : '.'}
           </p>
-          {/* `items-start` : sans lui, la carte d'un poste déserté s'étirerait à
-              la hauteur de la file la plus longue de sa rangée — un grand vide
-              blanc là où il faut au contraire un signal court et net. */}
-          <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 2xl:grid-cols-3">
-            {postesFiltres.map((poste) => (
-              <PosteFileCard key={poste.restaurantId} maintenant={maintenant} poste={poste} />
-            ))}
-          </div>
+          {postesPourvus.length > 0 && (
+            <GrillePostes maintenant={maintenant} postes={postesPourvus} />
+          )}
+          {postesPourvus.length > 0 && postesDeserts.length > 0 && (
+            <BandeSeparation nombre={postesDeserts.length} />
+          )}
+          {postesDeserts.length > 0 && (
+            <GrillePostes maintenant={maintenant} postes={postesDeserts} />
+          )}
         </div>
       )}
     </div>
