@@ -210,8 +210,8 @@ export function VueFileAttente({
         <div className="flex flex-col gap-2">
           <p className="text-[11px] text-muted">
             {postesFiltres.length} {pluriel(postesFiltres.length, 'poste')}{' '}
-            {pluriel(postesFiltres.length, 'affiché')} — les postes sans livreur sont présentés en
-            premier.
+            {pluriel(postesFiltres.length, 'affiché')} — les postes où des Turboys attendent
+            sont présentés en premier, file la plus longue en tête.
           </p>
           {/* `items-start` : sans lui, la carte d'un poste déserté s'étirerait à
               la hauteur de la file la plus longue de sa rangée — un grand vide

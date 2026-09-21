@@ -145,10 +145,26 @@ export function useFileAttenteVue() {
       });
     }
 
-    // 3. Les postes en difficulté d'abord — un poste déserté est le seul
-    //    élément de cet écran sur lequel on peut encore agir.
+    // 3. Les postes OÙ QUELQU'UN ATTEND d'abord, du plus fourni au plus mince,
+    //    puis les postes déserts.
+    //
+    //    L'ordre était l'inverse : « les postes en difficulté d'abord, un poste
+    //    déserté est le seul élément sur lequel on peut encore agir ». Le
+    //    raisonnement se tenait, le résultat non. En production, quatorze postes
+    //    sur quinze sont déserts : l'écran s'ouvrait sur quatorze cartes rouges
+    //    rigoureusement identiques, et la seule information vivante — le poste
+    //    où un Turboy attend, avec son rang et son heure d'entrée — se trouvait
+    //    tout en bas, après un défilement. Un signal répété quatorze fois n'est
+    //    plus un signal.
+    //
+    //    Et le désert a déjà son chemin : la puce « Sans livreur » le donne en un
+    //    clic, avec son compte. Le trier en tête EN PLUS revenait à répondre deux
+    //    fois à la même question, au prix de la seule qu'on ne pouvait plus voir.
     return Array.from(parRestaurant.values()).sort((a, b) => {
-      if (a.desert !== b.desert) return a.desert ? -1 : 1;
+      if (a.desert !== b.desert) return a.desert ? 1 : -1;
+      // Entre deux postes pourvus, le plus fourni d'abord : c'est là que la
+      // prochaine course part, et là qu'une file qui s'allonge se remarque.
+      if (a.file.length !== b.file.length) return b.file.length - a.file.length;
       return a.restaurant.localeCompare(b.restaurant, 'fr');
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
