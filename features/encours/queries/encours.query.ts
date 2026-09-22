@@ -12,6 +12,8 @@ export const encoursKeys = {
   stores: (partenaire: string) => [...encoursKeys.all, 'stores', partenaire] as const,
   deductions: (annee: number) => [...encoursKeys.all, 'deductions', annee] as const,
   pertes: () => [...encoursKeys.all, 'pertes'] as const,
+  statsPertes: (debut: string, fin: string) =>
+    [...encoursKeys.all, 'pertes', 'stats', debut, fin] as const,
   categoriesPerte: () => [...encoursKeys.all, 'categories-perte'] as const,
 };
 
@@ -44,6 +46,15 @@ export const usePertesVolsQuery = () =>
   useQuery({
     queryKey: encoursKeys.pertes(),
     queryFn: () => encoursAPI.listerPertes(),
+    staleTime: 60 * 1000,
+  });
+
+/** Le tableau de bord des pertes sur une fenêtre choisie. */
+export const useStatistiquesPertesQuery = (debut: string, fin: string) =>
+  useQuery({
+    queryKey: encoursKeys.statsPertes(debut, fin),
+    queryFn: () => encoursAPI.statistiquesPertes(debut, fin),
+    enabled: Boolean(debut && fin),
     staleTime: 60 * 1000,
   });
 

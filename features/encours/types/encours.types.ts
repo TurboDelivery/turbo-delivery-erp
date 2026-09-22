@@ -161,3 +161,19 @@ export interface ICreerPerte {
   precision?: string;
   commentaire?: string;
 }
+
+/** Une ligne de répartition : de quoi tracer une barre et l'étiqueter. */
+export interface ILignePerteStat {
+  cle: string;
+  libelle: string;
+  montant: number;
+  nb: number;
+}
+
+export interface IPerteStatistiques {
+  total: number;
+  nbLignes: number;
+  parCategorie: ILignePerteStat[];
+  parPartenaire: ILignePerteStat[];
+  parMois: ILignePerteStat[];
+}

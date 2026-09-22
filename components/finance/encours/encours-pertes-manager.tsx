@@ -21,7 +21,9 @@ import {
   useCategoriesPerteQuery,
   useCreerPerteMutation,
   usePertesVolsQuery,
+  useStatistiquesPertesQuery,
   type IEncoursReleve,
+  type ILignePerteStat,
   type IPerteVol,
 } from '@/features/encours';
 
@@ -50,8 +52,66 @@ interface FactureChoisissable {
  * <p>⚠ Aucune suppression. Une perte est un abandon de créance, elle engage : on
  * l'annule, et l'annulation garde son auteur, sa date et son motif.</p>
  */
+/**
+ * Une barre etiquetee : la part de chaque motif, de chaque partenaire.
+ *
+ * <p>La barre n'est pas un ornement. Un tableau de montants oblige a comparer des
+ * chiffres de tete ; une barre donne l'ordre de grandeur d'un coup d'oeil, ce qui est
+ * exactement ce qu'on cherche dans une repartition.</p>
+ */
+function Barre({ ligne, maximum }: { ligne: ILignePerteStat; maximum: number }) {
+  const part = maximum > 0 ? Math.max(2, Math.round((ligne.montant / maximum) * 100)) : 0;
+  return (
+    <li className="flex flex-col gap-1">
+      <div className="flex items-baseline justify-between gap-3 text-xs">
+        <span className="truncate text-foreground">{ligne.libelle}</span>
+        <span className="shrink-0 tabular-nums text-muted">
+          {formatFcfa(ligne.montant)} · {ligne.nb}
+        </span>
+      </div>
+      <div className="h-1.5 w-full rounded-full bg-surface-secondary">
+        <div
+          className="h-1.5 rounded-full bg-danger"
+          style={{ width: `${part}%` }}
+        />
+      </div>
+    </li>
+  );
+}
+
+/** Une colonne de repartition, ou la phrase qui dit qu'il n'y a rien a repartir. */
+function Repartition({ lignes, titre }: { lignes: ILignePerteStat[]; titre: string }) {
+  const maximum = Math.max(0, ...lignes.map((l) => l.montant));
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted">{titre}</p>
+      {lignes.length === 0 ? (
+        <p className="text-xs text-muted">Rien sur cette période.</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {lignes.slice(0, 5).map((l) => (
+            <Barre key={l.cle} ligne={l} maximum={maximum} />
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
+  /*
+   * La fenêtre par défaut : l'année en cours ET la précédente.
+   *
+   * <p>Le cahier des charges demande une comparaison à l'année précédente. La donner
+   * d'emblée évite un second réglage pour obtenir la seule lecture qui a du sens sur
+   * une évolution — un mois isolé ne se compare à rien.</p>
+   */
+  const anneeCourante = new Date().getFullYear();
+  const debut = `${anneeCourante - 1}-01-01`;
+  const fin = `${anneeCourante}-12-31`;
+
   const { data: pertes, isError, isFetching, refetch } = usePertesVolsQuery();
+  const { data: stats } = useStatistiquesPertesQuery(debut, fin);
   const { data: categories } = useCategoriesPerteQuery();
   const creer = useCreerPerteMutation();
   const annuler = useAnnulerPerteMutation();
@@ -170,6 +230,27 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
           Enregistrer une perte
         </Button>
       </div>
+
+      {stats && stats.nbLignes > 0 ? (
+        <div className="rounded-large border border-separator bg-surface px-4 py-3">
+          <div className="mb-3 flex items-baseline justify-between gap-3">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-muted">
+              {anneeCourante - 1} et {anneeCourante}
+            </span>
+            <span className="text-sm">
+              <span className="font-bold tabular-nums text-danger-soft-foreground">
+                {formatFcfa(stats.total)}
+              </span>
+              <span className="text-muted"> sur {stats.nbLignes} ligne{stats.nbLignes > 1 ? 's' : ''}</span>
+            </span>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Repartition lignes={stats.parCategorie} titre="Par motif" />
+            <Repartition lignes={stats.parPartenaire} titre="Partenaires les plus concernés" />
+            <Repartition lignes={stats.parMois} titre="Mois par mois" />
+          </div>
+        </div>
+      ) : null}
 
       {isFetching && lignes.length === 0 ? (
         <div className="flex justify-center py-8">

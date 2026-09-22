@@ -4,6 +4,7 @@ import {
   ICategoriePerte,
   ICreerPerte,
   IEncoursGlobal,
+  IPerteStatistiques,
   IPerteVol,
   IEncoursReleve,
   IEncoursParams,
@@ -44,6 +45,15 @@ export const encoursAPI = {
     return api.request<ICategoriePerte[]>({
       endpoint: 'finance/pertes-vols/categories',
       method: 'GET',
+    });
+  },
+
+  /** Les deux bornes sont obligatoires : sans elles, le serveur rendrait zéro. */
+  statistiquesPertes(debut: string, fin: string): Promise<IPerteStatistiques> {
+    return api.request<IPerteStatistiques>({
+      endpoint: 'finance/pertes-vols/statistiques',
+      method: 'GET',
+      searchParams: { debut, fin } as SearchParams,
     });
   },
 
