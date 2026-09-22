@@ -114,6 +114,8 @@ export interface IEncoursGlobal {
   totalFacture: number;
   totalRestant: number;
   totalRetard: number;
+  /** Déductions RÉELLEMENT appliquées, plafonnées au dû de chaque groupe. */
+  totalDeductions: number;
   nbFacturesRetard: number;
   nbStoresRetard: number;
 }

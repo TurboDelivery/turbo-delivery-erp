@@ -91,6 +91,7 @@ function Figure({
  * bandeau, a 45 px d'ecart.</p>
  */
 export function EncoursKpiCards({
+  autresComposantesGlobales,
   global,
   prestations,
   releve,
@@ -104,6 +105,16 @@ export function EncoursKpiCards({
    * qu'un bandeau vide.</p>
    */
   global?: IEncoursGlobal;
+  /**
+   * Les autres composantes du CA à encaisser, TOUTES périodes confondues.
+   *
+   * <p>Elles entrent dans le « Reste à payer » global, comme le demande le cahier
+   * des charges : ce que l'entreprise attend, c'est la somme des deux. Mais elles
+   * n'entrent PAS dans le taux, qui mesure le recouvrement des FACTURES — une
+   * prestation n'est pas une facture, et les mélanger ferait bouger un taux pour
+   * une raison qui n'est pas le recouvrement.</p>
+   */
+  autresComposantesGlobales?: number;
   /**
    * Les autres composantes du CA de la periode. Absentes (filtre partenaire pose, ou
    * lecture en echec), la ligne n'apparait pas : mieux vaut ne rien dire que d'annoncer
@@ -130,9 +141,32 @@ export function EncoursKpiCards({
    */
   const vueGlobale = Boolean(global);
   const facture = global ? global.totalFacture : duReleve.facture;
-  const reste = global ? global.totalRestant : duReleve.reste;
-  const recouvre = facture - reste;
+  const resteFactures = global ? global.totalRestant : duReleve.reste;
+  const autresComposantes = vueGlobale ? (autresComposantesGlobales ?? 0) : 0;
+  const reste = resteFactures + autresComposantes;
+  /*
+   * DEUX taux, parce qu'ils ne disent pas la même chose.
+   *
+   * <p>Une déduction réduit le solde d'une facture sans qu'un franc soit entré en
+   * caisse. Les compter comme du recouvrement laissait croire à un encaissement qui
+   * n'a jamais eu lieu — c'est le constat qui ouvre le cahier des charges.</p>
+   *
+   * <p>Le <b>taux de recouvrement</b> ne compte que le CASH. C'est lui qu'on affiche
+   * en grand : c'est la seule trésorerie réellement rentrée.</p>
+   *
+   * <p>Le <b>taux de résorption</b> ajoute les déductions. Il mesure la réduction de
+   * l'exposition, ce qui est utile, mais il ne dit rien de la caisse. Il se lit sous
+   * le chiffre, jamais à sa place.</p>
+   *
+   * <p>⚠ `resteFactures` est DÉJÀ net de déductions côté serveur : `facture − reste`
+   * vaut donc cash + déductions. Le cash s'obtient en retirant les déductions une
+   * fois, pas deux.</p>
+   */
+  const deductionsAppliquees = global ? global.totalDeductions : 0;
+  const resorbe = facture - resteFactures;
+  const recouvre = resorbe - deductionsAppliquees;
   const taux = facture > 0 ? Math.round((recouvre / facture) * 100) : 0;
+  const tauxResorption = facture > 0 ? Math.round((resorbe / facture) * 100) : 0;
   const deductions = duReleve.deductions;
   const retard = global
     ? {
@@ -163,8 +197,8 @@ export function EncoursKpiCards({
         : 'text-warning-soft-foreground';
   const noteTaux =
     facture > 0 && taux < SEUIL_ALERTE
-      ? `${formatFcfa(recouvre)} recouvrés · sous ${SEUIL_ALERTE} %`
-      : `${formatFcfa(recouvre)} recouvrés`;
+      ? `${formatFcfa(recouvre)} encaissés · sous ${SEUIL_ALERTE} %`
+      : `${formatFcfa(recouvre)} encaissés`;
 
   // Le total facture se lit deja sous « Reste a payer », qui le prend pour reference :
   // l'ecrire une seconde fois 45 px plus bas, c'est la phrase repetee du retour.
@@ -214,7 +248,11 @@ export function EncoursKpiCards({
         <Figure
           icone={Wallet}
           libelle="Reste à payer"
-          note={`sur ${formatFcfa(facture)} facturé`}
+          note={
+            autresComposantes > 0
+              ? `${formatFcfa(resteFactures)} de factures + ${formatFcfa(autresComposantes)} d'autres composantes`
+              : `sur ${formatFcfa(facture)} facturé`
+          }
           valeur={formatFcfa(reste)}
         />
         <Figure
@@ -232,7 +270,13 @@ export function EncoursKpiCards({
           couleur={couleurTaux}
           icone={TrendingUp}
           libelle="Taux de recouvrement"
-          note={noteTaux}
+          note={
+            deductionsAppliquees > 0
+              ? `${noteTaux} · résorption ${tauxResorption} % avec les déductions`
+              : autresComposantes > 0
+                ? `${noteTaux} · sur les factures`
+                : noteTaux
+          }
           valeur={`${taux} %`}
         />
       </div>

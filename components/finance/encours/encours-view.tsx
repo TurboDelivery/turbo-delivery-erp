@@ -12,7 +12,11 @@ import {
   IEncoursReleve,
 } from '@/features/encours';
 
-import { usePrestationsEncours, resumerPrestations } from '@/features/encours/hooks/use-prestations-encours';
+import {
+  usePrestationsEncours,
+  usePrestationsGlobales,
+  resumerPrestations,
+} from '@/features/encours/hooks/use-prestations-encours';
 
 import { EncoursKpiCards } from './encours-kpi-cards';
 import { EncoursFiltres } from './encours-filtres';
@@ -61,6 +65,15 @@ export function EncoursView() {
    * c'est ce qui faisait tomber le bandeau à zéro dès qu'on filtrait un mois calme.
    */
   const { data: encoursGlobal } = useEncoursGlobalQuery();
+
+  /*
+   * Les autres composantes du CA, TOUTES périodes confondues, pour le bandeau global.
+   * Distinctes de `prestations` ci-dessous, qui suit les bornes du relevé : verser un
+   * montant filtré dans un total global fabriquerait un nombre dont une moitié serait
+   * filtrée et l'autre non.
+   */
+  const { data: prestationsGlobales } = usePrestationsGlobales();
+  const resumeGlobal = resumerPrestations(prestationsGlobales);
 
   /*
    * Les autres composantes du CA de la meme periode. Elles comptent deja dans le chiffre
@@ -172,6 +185,7 @@ export function EncoursView() {
 
       {affiche && (
         <EncoursKpiCards
+          autresComposantesGlobales={resumeGlobal.montantAEncaisser}
           global={encoursGlobal}
           prestations={prestationsHorsFiltre || !prestations ? undefined : resume}
           releve={affiche}

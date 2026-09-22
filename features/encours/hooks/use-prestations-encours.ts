@@ -37,6 +37,37 @@ export function usePrestationsEncours(annee: number, mois: number | null) {
   });
 }
 
+/**
+ * Début de l'historique exploitable.
+ *
+ * <p>Les bornes larges sont EXPLICITES et non omises : sur cette famille
+ * d'endpoints, une borne absente ne veut pas dire « tout », elle rend zéro. Le
+ * même écueil avait été rencontré sur les statistiques d'investissements.</p>
+ */
+const DEBUT_HISTORIQUE = '2024-01-01';
+
+/**
+ * Les autres composantes du CA, TOUTES périodes confondues.
+ *
+ * <p>Le bandeau de tête est une vue globale : y verser des prestations bornées
+ * à l'année et au mois du filtre fabriquerait un total dont une moitié serait
+ * filtrée et l'autre non. Celles-ci ne le sont pas.</p>
+ *
+ * <p>Fenêtre large côté client plutôt qu'un agrégat serveur : la table compte
+ * onze lignes en production, mesurées le 22/09/2026. Le jour où elle en
+ * comptera des milliers, ce choix devra être revu — c'est écrit ici pour qu'on
+ * s'en souvienne.</p>
+ */
+export function usePrestationsGlobales() {
+  const fin = `${new Date().getFullYear()}-12-31`;
+
+  return useQuery<IEntreeCaisse[]>({
+    queryKey: ['encours', 'prestations', 'global', DEBUT_HISTORIQUE, fin],
+    queryFn: () => entreeCaisseAPI.lister({ debut: DEBUT_HISTORIQUE, fin }),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 /** Ce que le bandeau et l'onglet annoncent, calcule une seule fois. */
 export function resumerPrestations(lignes: IEntreeCaisse[] | undefined) {
   const toutes = lignes ?? [];

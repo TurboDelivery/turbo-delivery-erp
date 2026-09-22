@@ -81,7 +81,17 @@ export function EncoursDeductionsTable({
                     {d.motif || <span className="text-muted">Motif non renseigné</span>}
                   </Table.Cell>
                   <Table.Cell className="whitespace-nowrap text-right align-top tabular-nums">
-                    {formatFcfa(d.montant)}
+                    <span className="block">{formatFcfa(d.montant)}</span>
+                    {/*
+                        « Non-encaissé », à côté du montant et non dans une note de bas de
+                        tableau. Une déduction réduit le solde d'une facture sans qu'un
+                        franc soit entré en caisse : lue seule, la ligne se rapproche
+                        naturellement d'un paiement reçu. Le mot est ce qui empêche ce
+                        rapprochement.
+                    */}
+                    <span className="block text-[10px] font-medium uppercase tracking-wide text-muted">
+                      Non-encaissé
+                    </span>
                   </Table.Cell>
                 </Table.Row>
               ))}
@@ -91,7 +101,9 @@ export function EncoursDeductionsTable({
 
         {/* Le total etait une LIGNE du tableau : c'est un pied, et le composant en a un. */}
         <Table.Footer className="justify-between text-sm">
-          <span className="font-semibold text-foreground">Total du registre</span>
+          <span className="font-semibold text-foreground">
+            Total du registre <span className="font-normal text-muted">· non encaissé</span>
+          </span>
           <span className="font-bold tabular-nums text-foreground">{formatFcfa(total)}</span>
         </Table.Footer>
       </Table>
