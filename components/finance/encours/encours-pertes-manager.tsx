@@ -12,7 +12,7 @@ import {
   Table,
   TextField,
 } from '@heroui-v3/react';
-import { Download, Lock, Plus, Undo2 } from 'lucide-react';
+import { Download, Lock, Pencil, Plus, Trash2, Undo2 } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
 import {
@@ -25,8 +25,10 @@ import {
   useAnnulerPerteMutation,
   useCategoriesPerteQuery,
   useCreerPerteMutation,
+  useModifierPerteMutation,
   usePertesVolsQuery,
   useStatistiquesPertesQuery,
+  useSupprimerPerteMutation,
   type IEncoursReleve,
   type ILignePerteStat,
   type IPerteVol,
@@ -54,8 +56,11 @@ interface FactureChoisissable {
  * aller-retour inutile, jamais pour les remplacer : un formulaire qui s'autorise lui-même
  * n'est pas une garde.</p>
  *
- * <p>⚠ Aucune suppression. Une perte est un abandon de créance, elle engage : on
- * l'annule, et l'annulation garde son auteur, sa date et son motif.</p>
+ * <p>Deux voies remettent un montant dans les encours, et elles ne disent pas la même
+ * chose. L'ANNULATION garde la ligne à l'écran avec son auteur, sa date et son motif :
+ * c'est la voie d'un arbitrage. La SUPPRESSION la retire de l'écran, et ne survit que
+ * dans le journal d'audit, qui fige son contenu complet : c'est la voie d'une erreur de
+ * saisie. L'écran dit laquelle choisir au moment de choisir.</p>
  */
 /**
  * Une barre etiquetee : la part de chaque motif, de chaque partenaire.
@@ -120,8 +125,14 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
   const { data: categories } = useCategoriesPerteQuery();
   const creer = useCreerPerteMutation();
   const annuler = useAnnulerPerteMutation();
+  const modifier = useModifierPerteMutation();
+  const supprimer = useSupprimerPerteMutation();
 
   const [saisieOuverte, setSaisieOuverte] = useState(false);
+  /* Non nul = le formulaire corrige cette ligne au lieu d'en créer une. */
+  const [enEdition, setEnEdition] = useState<IPerteVol | null>(null);
+  const [aSupprimer, setASupprimer] = useState<IPerteVol | null>(null);
+  const [codeSuppression, setCodeSuppression] = useState('');
   const [factureId, setFactureId] = useState('');
   const [montant, setMontant] = useState('');
   const [categorieCode, setCategorieCode] = useState('');
@@ -166,7 +177,17 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
   const montantNombre = Number(montant.replace(/\s/g, '')) || 0;
 
   const precisionManquante = Boolean(categorie?.exigePrecision) && !precision.trim();
-  const depasse = Boolean(factureChoisie) && montantNombre > (factureChoisie?.solde ?? 0);
+  /*
+   * Le plafond n'est vérifié ici qu'à la CRÉATION.
+   *
+   * <p>En correction, le solde affiché dans le relevé est déjà net de cette perte :
+   * le comparer au nouveau montant refuserait des corrections que le serveur, lui,
+   * accepte — il réinjecte le montant de la ligne dans le disponible. Un écran qui
+   * refuse plus que le serveur est un écran qui ment. Le plafond reste tenu côté
+   * serveur, qui renvoie le disponible exact en cas de dépassement.</p>
+   */
+  const depasse =
+    !enEdition && Boolean(factureChoisie) && montantNombre > (factureChoisie?.solde ?? 0);
   const saisieValide =
     Boolean(factureId) &&
     montantNombre > 0 &&
@@ -177,6 +198,7 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
 
   const fermerSaisie = () => {
     setSaisieOuverte(false);
+    setEnEdition(null);
     setFactureId('');
     setMontant('');
     setCategorieCode('');
@@ -185,20 +207,45 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
     setCode('');
   };
 
+  const ouvrirEdition = (l: IPerteVol) => {
+    setEnEdition(l);
+    setFactureId(l.factureId);
+    setMontant(String(Math.round(Number(l.montant) || 0)));
+    setCategorieCode(l.categorieCode);
+    setPrecision(l.precisionLibre ?? '');
+    setCommentaire(l.commentaire ?? '');
+    setCode('');
+  };
+
   const enregistrer = () => {
     if (!saisieValide) return;
-    creer.mutate(
-      {
-        codeSecret: code,
-        data: {
-          categorieCode,
-          commentaire: commentaire.trim() || undefined,
-          factureId,
-          montant: montantNombre,
-          precision: precision.trim() || undefined,
-        },
-      },
-      { onSuccess: fermerSaisie },
+    const data = {
+      categorieCode,
+      commentaire: commentaire.trim() || undefined,
+      factureId,
+      montant: montantNombre,
+      precision: precision.trim() || undefined,
+    };
+    if (enEdition) {
+      modifier.mutate(
+        { codeSecret: code, data, id: enEdition.id },
+        { onSuccess: fermerSaisie },
+      );
+      return;
+    }
+    creer.mutate({ codeSecret: code, data }, { onSuccess: fermerSaisie });
+  };
+
+  const fermerSuppression = () => {
+    setASupprimer(null);
+    setCodeSuppression('');
+  };
+
+  const confirmerSuppression = () => {
+    if (!aSupprimer || codeSuppression.length !== 4) return;
+    supprimer.mutate(
+      { codeSecret: codeSuppression, id: aSupprimer.id },
+      { onSuccess: fermerSuppression },
     );
   };
 
@@ -309,7 +356,7 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
                 <Table.Column className="w-40 text-right" id="montant">
                   Montant perdu
                 </Table.Column>
-                <Table.Column className="w-28" id="action">
+                <Table.Column className="w-48" id="action">
                   {' '}
                 </Table.Column>
               </Table.Header>
@@ -331,11 +378,40 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
                     <Table.Cell className="whitespace-nowrap text-right align-top tabular-nums">
                       {formatFcfa(l.montant)}
                     </Table.Cell>
+                    {/*
+                      Trois actions, et deux d'entre elles remettent le montant dans les
+                      encours. « Annuler » garde le libellé parce que c'est la bonne :
+                      elle laisse la ligne, son auteur et son motif à l'écran. Supprimer
+                      vide la ligne — l'icône est seule, en rouge, à l'écart.
+                    */}
                     <Table.Cell className="align-top">
-                      <Button onPress={() => setAAnnuler(l)} size="sm" variant="ghost">
-                        <Undo2 aria-hidden="true" className="size-4" />
-                        Annuler
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          aria-label={`Corriger cette perte de ${formatFcfa(l.montant)}`}
+                          isIconOnly
+                          onPress={() => ouvrirEdition(l)}
+                          size="sm"
+                          variant="ghost"
+                        >
+                          <Pencil aria-hidden="true" className="size-4" />
+                        </Button>
+                        <Button onPress={() => setAAnnuler(l)} size="sm" variant="ghost">
+                          <Undo2 aria-hidden="true" className="size-4" />
+                          Annuler
+                        </Button>
+                        <Button
+                          aria-label={`Supprimer cette perte de ${formatFcfa(l.montant)}`}
+                          isIconOnly
+                          onPress={() => {
+                            setCodeSuppression('');
+                            setASupprimer(l);
+                          }}
+                          size="sm"
+                          variant="danger-soft"
+                        >
+                          <Trash2 aria-hidden="true" className="size-4" />
+                        </Button>
+                      </div>
                     </Table.Cell>
                   </Table.Row>
                 ))}
@@ -350,16 +426,38 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
         </Table>
       )}
 
-      <Modal isOpen={saisieOuverte} onOpenChange={(o) => (o ? null : fermerSaisie())}>
+      <Modal
+        isOpen={saisieOuverte || Boolean(enEdition)}
+        onOpenChange={(o) => (o ? null : fermerSaisie())}
+      >
         <Modal.Backdrop>
           <Modal.Container>
             <Modal.Dialog>
               <Modal.Header>
-                <Modal.Heading>Enregistrer une perte</Modal.Heading>
+                <Modal.Heading>
+                  {enEdition ? 'Corriger cette perte' : 'Enregistrer une perte'}
+                </Modal.Heading>
                 <Modal.CloseTrigger />
               </Modal.Header>
 
               <Modal.Body className="flex flex-col gap-3">
+                {/*
+                  En correction, la facture n'est pas re-choisissable : la déplacer
+                  changerait deux soldes à la fois et échapperait au plafond cumulé.
+                  Et elle n'est pas toujours dans le relevé affiché, donc une liste
+                  déroulante vide mentirait sur ce à quoi la ligne est rattachée.
+                */}
+                {enEdition ? (
+                  <div className="rounded-medium border border-separator bg-surface-2 px-3 py-2">
+                    <p className="text-[11px] uppercase tracking-wide text-muted">
+                      Facture de référence
+                    </p>
+                    <p className="text-sm text-foreground">
+                      {factures.find((f) => f.id === enEdition.factureId)?.libelle ??
+                        'Inchangée — pour changer de facture, supprime cette ligne et ressaisis-la.'}
+                    </p>
+                  </div>
+                ) : (
                 <ComboBox
                   allowsEmptyCollection
                   onSelectionChange={(c) => setFactureId(String(c ?? ''))}
@@ -389,6 +487,7 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
                     </ListBox>
                   </ComboBox.Popover>
                 </ComboBox>
+                )}
 
                 <TextField
                   onChange={(v) => setMontant(v.replace(/\D/g, ''))}
@@ -397,7 +496,15 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
                   <Label>Montant en perte</Label>
                   <Input inputMode="numeric" placeholder="0" />
                 </TextField>
-                {factureChoisie ? (
+                {/*
+                  En correction, le champ porte un montant DÉJÀ décidé, souvent à sept
+                  chiffres : « 1180000 » ne se relit pas. On le rend en clair dessous,
+                  puisqu'il n'y a ici ni solde ni plafond à annoncer.
+                */}
+                {enEdition && montantNombre > 0 ? (
+                  <p className="text-xs tabular-nums text-muted">{formatFcfa(montantNombre)}</p>
+                ) : null}
+                {factureChoisie && !enEdition ? (
                   <p
                     className={`text-xs ${depasse ? 'text-danger-soft-foreground' : 'text-muted'}`}
                   >
@@ -455,22 +562,24 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
                 </TextField>
                 <p className="flex items-center gap-1.5 text-xs text-muted">
                   <Lock aria-hidden="true" className="size-3.5" />
-                  Ce montant sortira définitivement des encours à recouvrer.
+                  {enEdition
+                    ? "L'écart entre l'ancien et le nouveau montant se reporte sur les encours à recouvrer."
+                    : 'Ce montant sortira définitivement des encours à recouvrer.'}
                 </p>
               </Modal.Body>
 
               <Modal.Footer>
                 <Button onPress={fermerSaisie} variant="ghost">
-                  Annuler
+                  Fermer
                 </Button>
                 <Button
                   isDisabled={!saisieValide}
-                  isPending={creer.isPending}
+                  isPending={creer.isPending || modifier.isPending}
                   onPress={enregistrer}
                   variant="primary"
                 >
-                  {creer.isPending ? <Spinner size="sm" /> : null}
-                  Enregistrer
+                  {creer.isPending || modifier.isPending ? <Spinner size="sm" /> : null}
+                  {enEdition ? 'Corriger' : 'Enregistrer'}
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>
@@ -537,6 +646,61 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
                 >
                   {annuler.isPending ? <Spinner size="sm" /> : null}
                   Annuler la perte
+                </Button>
+              </Modal.Footer>
+            </Modal.Dialog>
+          </Modal.Container>
+        </Modal.Backdrop>
+      </Modal>
+
+      <Modal isOpen={Boolean(aSupprimer)} onOpenChange={(o) => (o ? null : fermerSuppression())}>
+        <Modal.Backdrop>
+          <Modal.Container>
+            <Modal.Dialog>
+              <Modal.Header>
+                <Modal.Heading className="flex items-center gap-2">
+                  <Trash2 aria-hidden="true" className="size-4 text-danger-soft-foreground" />
+                  Supprimer cette ligne
+                </Modal.Heading>
+                <Modal.CloseTrigger />
+              </Modal.Header>
+
+              <Modal.Body className="flex flex-col gap-3">
+                <p className="text-sm text-muted">
+                  {formatFcfa(aSupprimer?.montant ?? 0)} reviendront dans les encours à
+                  recouvrer, et la ligne quittera cet écran.
+                </p>
+                {/*
+                  Dire où la trace survit, et donc quand chacune des deux voies est la
+                  bonne. Sans cette phrase, « Annuler » et « Supprimer » se ressemblent.
+                */}
+                <p className="rounded-medium border border-separator bg-surface-2 px-3 py-2 text-xs text-muted">
+                  Pour revenir sur une décision en gardant sa trace à l&apos;écran, utilise
+                  plutôt <span className="font-medium text-foreground">Annuler</span> : la
+                  ligne reste, avec son auteur et son motif. La suppression est faite pour
+                  une erreur de saisie. Elle reste consultable dans le journal d&apos;audit.
+                </p>
+                <TextField
+                  onChange={(v) => setCodeSuppression(v.replace(/\D/g, '').slice(0, 4))}
+                  value={codeSuppression}
+                >
+                  <Label>Code de validation (4 chiffres)</Label>
+                  <Input inputMode="numeric" maxLength={4} type="password" />
+                </TextField>
+              </Modal.Body>
+
+              <Modal.Footer>
+                <Button onPress={fermerSuppression} variant="ghost">
+                  Fermer
+                </Button>
+                <Button
+                  isDisabled={codeSuppression.length !== 4}
+                  isPending={supprimer.isPending}
+                  onPress={confirmerSuppression}
+                  variant="danger"
+                >
+                  {supprimer.isPending ? <Spinner size="sm" /> : null}
+                  Supprimer
                 </Button>
               </Modal.Footer>
             </Modal.Dialog>

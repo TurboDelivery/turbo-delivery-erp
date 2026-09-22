@@ -9,12 +9,19 @@ import {
   useModifierDeductionMutation,
   useSupprimerDeductionMutation,
   formatFcfa,
+  usePeutDeciderEncours,
   IDeductionPartenaire,
 } from '@/features/encours';
 import EtatErreur from '@/components/commons/EtatErreur';
 
 /** Gestion (CRUD) des déductions / avances par partenaire pour une année (§6). */
 export function EncoursDeductionsManager({ annee }: { annee: number }) {
+  /*
+   * Corriger ou supprimer une déduction change ce qu'un partenaire doit.
+   * Ces deux gestes sont réservés à ADMIN, DG et DGA, comme les pertes et vols.
+   * ⚠ Ceci masque des boutons : la porte, côté serveur, reste le code de validation.
+   */
+  const peutDecider = usePeutDeciderEncours();
   const [isOpen, setIsOpen] = useState(false);
   const { data: deductions, isError, isFetching, refetch } = useDeductionsQuery(annee);
   const creer = useCreerDeductionMutation();
@@ -140,27 +147,31 @@ export function EncoursDeductionsManager({ annee }: { annee: number }) {
                         <span className="font-semibold tabular-nums text-foreground">
                           {formatFcfa(d.montant)}
                         </span>
-                        <Button
-                          aria-label={`Modifier la déduction ${d.groupePartenaire}`}
-                          isIconOnly
-                          onPress={() => startEdit(d)}
-                          size="sm"
-                          variant="ghost"
-                        >
-                          <Pencil aria-hidden="true" className="size-4" />
-                        </Button>
-                        <Button
-                          aria-label={`Supprimer la déduction ${d.groupePartenaire}`}
-                          isIconOnly
-                          onPress={() => {
-                            setCodeSecret('');
-                            setSuppression(d);
-                          }}
-                          size="sm"
-                          variant="danger-soft"
-                        >
-                          <Trash2 aria-hidden="true" className="size-4" />
-                        </Button>
+                        {peutDecider ? (
+                          <>
+                            <Button
+                              aria-label={`Modifier la déduction ${d.groupePartenaire}`}
+                              isIconOnly
+                              onPress={() => startEdit(d)}
+                              size="sm"
+                              variant="ghost"
+                            >
+                              <Pencil aria-hidden="true" className="size-4" />
+                            </Button>
+                            <Button
+                              aria-label={`Supprimer la déduction ${d.groupePartenaire}`}
+                              isIconOnly
+                              onPress={() => {
+                                setCodeSecret('');
+                                setSuppression(d);
+                              }}
+                              size="sm"
+                              variant="danger-soft"
+                            >
+                              <Trash2 aria-hidden="true" className="size-4" />
+                            </Button>
+                          </>
+                        ) : null}
                       </div>
                     </div>
                   ))}

@@ -4,3 +4,4 @@ export * from './queries/encours.query';
 export * from './queries/encours.mutation';
 export * from './filters/encours.filter';
 export * from './utils/encours-format.utils';
+export * from './hooks/use-profil-direction';

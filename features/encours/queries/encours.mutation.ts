@@ -91,3 +91,36 @@ export const useAnnulerPerteMutation = () => {
     },
   });
 };
+
+/** Correction d'une ligne existante : montant, catégorie, précision, commentaire. */
+export const useModifierPerteMutation = () => {
+  const invalidate = useInvalidateEncours();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+      codeSecret,
+    }: {
+      id: string;
+      data: ICreerPerte;
+      codeSecret: string;
+    }) => encoursAPI.modifierPerte(id, data, codeSecret),
+    onSuccess: () => {
+      invalidate();
+      toast.success('Perte corrigée.');
+    },
+  });
+};
+
+/** Suppression définitive. La ligne quitte l'écran, le journal d'audit la garde. */
+export const useSupprimerPerteMutation = () => {
+  const invalidate = useInvalidateEncours();
+  return useMutation({
+    mutationFn: ({ id, codeSecret }: { id: string; codeSecret: string }) =>
+      encoursAPI.supprimerPerte(id, codeSecret),
+    onSuccess: () => {
+      invalidate();
+      toast.success('Ligne supprimée.');
+    },
+  });
+};

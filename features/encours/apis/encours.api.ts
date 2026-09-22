@@ -74,12 +74,34 @@ export const encoursAPI = {
     });
   },
 
-  /** Annulation TRACÉE — pas une suppression. Le motif est obligatoire. */
+  /** Annulation TRACÉE : la ligne reste à l'écran, barrée. Le motif est obligatoire. */
   annulerPerte(id: string, motif: string, codeSecret: string): Promise<IPerteVol> {
     return api.request<IPerteVol>({
       endpoint: `finance/pertes-vols/${id}/annuler`,
       method: 'POST',
       data: { motif },
+      config: { headers: { 'X-Code-Secret': codeSecret } },
+    });
+  },
+
+  /**
+   * Correction d'une ligne. La facture de rattachement n'en fait pas partie :
+   * déplacer une perte d'une facture à une autre change deux soldes à la fois.
+   */
+  modifierPerte(id: string, data: ICreerPerte, codeSecret: string): Promise<IPerteVol> {
+    return api.request<IPerteVol>({
+      endpoint: `finance/pertes-vols/${id}`,
+      method: 'PUT',
+      data,
+      config: { headers: { 'X-Code-Secret': codeSecret } },
+    });
+  },
+
+  /** Suppression DÉFINITIVE. La ligne quitte l'écran ; le journal d'audit la garde. */
+  supprimerPerte(id: string, codeSecret: string): Promise<void> {
+    return api.request<void>({
+      endpoint: `finance/pertes-vols/${id}`,
+      method: 'DELETE',
       config: { headers: { 'X-Code-Secret': codeSecret } },
     });
   },

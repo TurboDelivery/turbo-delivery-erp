@@ -1,11 +1,16 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
 
 import { Chip, Table, Tabs } from '@heroui-v3/react';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
-import { IEncoursReleve, formatCompact, formatFcfa, formatNombre } from '@/features/encours';
+import {
+  IEncoursReleve,
+  formatCompact,
+  formatFcfa,
+  formatNombre,
+  usePeutDeciderEncours,
+} from '@/features/encours';
 import type { IEntreeCaisse } from '@/features/entrees-caisse/types/entree-caisse.types';
 
 import { EncoursCharts, TOP_PARTENAIRES } from './encours-charts';
@@ -201,8 +206,6 @@ function TableauComposantes({
  *
  * <p>⚠ MASQUAGE, pas protection. Voir le commentaire de l'onglet plus bas.</p>
  */
-const PROFILS_PERTES = ['ADMIN', 'DGA', 'DG'];
-
 export function EncoursSectionsTabs({
   hauteur,
   prestations,
@@ -228,16 +231,7 @@ export function EncoursSectionsTabs({
    */
   zoneReleve: (noeud: HTMLDivElement | null) => void;
 }) {
-  const { data: session } = useSession();
-  const role = (() => {
-    const brut = session?.user?.role as unknown;
-    if (typeof brut === 'string') return brut.toUpperCase();
-    if (brut && typeof brut === 'object' && 'libelle' in brut) {
-      return String((brut as { libelle?: string }).libelle ?? '').toUpperCase();
-    }
-    return '';
-  })();
-  const peutVoirPertes = PROFILS_PERTES.includes(role);
+  const peutVoirPertes = usePeutDeciderEncours();
 
   const [section, setSection] = useQueryState('enSection', parseurSection);
 
