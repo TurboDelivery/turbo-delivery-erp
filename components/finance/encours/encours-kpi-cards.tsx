@@ -4,7 +4,13 @@ import { AlarmClock, TrendingUp, Wallet } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { IEncoursReleve, computeKpis, formatFcfa, formatNombre } from '@/features/encours';
+import {
+  IEncoursGlobal,
+  IEncoursReleve,
+  computeKpis,
+  formatFcfa,
+  formatNombre,
+} from '@/features/encours';
 
 import { calculerRetard } from './encours-derive';
 
@@ -85,9 +91,19 @@ function Figure({
  * bandeau, a 45 px d'ecart.</p>
  */
 export function EncoursKpiCards({
+  global,
   prestations,
   releve,
 }: {
+  /**
+   * L'exposition GLOBALE, tous exercices et tous filtres confondus.
+   *
+   * <p>Quand elle est là, ce sont SES chiffres que les trois cartes affichent, et le
+   * bandeau porte un repère qui le dit. Absente — lecture en échec, backend d'une
+   * version antérieure — on retombe sur le relevé filtré : un bandeau muet vaut mieux
+   * qu'un bandeau vide.</p>
+   */
+  global?: IEncoursGlobal;
   /**
    * Les autres composantes du CA de la periode. Absentes (filtre partenaire pose, ou
    * lecture en echec), la ligne n'apparait pas : mieux vaut ne rien dire que d'annoncer
@@ -96,8 +112,35 @@ export function EncoursKpiCards({
   prestations?: { montantAEncaisser: number; nbAEncaisser: number };
   releve: IEncoursReleve;
 }) {
-  const { facture, reste, deductions, recouvre, taux } = computeKpis(releve);
-  const retard = calculerRetard(releve);
+  const duReleve = computeKpis(releve);
+  const retardReleve = calculerRetard(releve);
+
+  /*
+   * Trois STOCKS, et un stock ne se borne pas a une periode.
+   *
+   * <p>« Reste a payer », « En retard » et « Taux de recouvrement » decrivent un etat a
+   * un instant, pas ce qui s'est passe pendant un mois. Les recalculer avec le filtre
+   * les mettait a ZERO des qu'on choisissait un mois calme — et un zero se lit comme une
+   * mesure, pas comme une absence. Le meme defaut avait affiche « Montant restant :
+   * 0 FCFA » sur l'ecran des investissements alors que 6,2 M etaient reellement dus.</p>
+   *
+   * <p>⚠ Le bandeau et le tableau du dessous parlent donc de deux perimetres. C'est
+   * voulu, et c'est dangereux tant qu'on ne le dit pas : le repere ci-dessous n'est pas
+   * decoratif, il est ce qui rend la chose honnete.</p>
+   */
+  const vueGlobale = Boolean(global);
+  const facture = global ? global.totalFacture : duReleve.facture;
+  const reste = global ? global.totalRestant : duReleve.reste;
+  const recouvre = facture - reste;
+  const taux = facture > 0 ? Math.round((recouvre / facture) * 100) : 0;
+  const deductions = duReleve.deductions;
+  const retard = global
+    ? {
+        montant: global.totalRetard,
+        nbFactures: global.nbFacturesRetard,
+        nbPartenaires: global.nbStoresRetard,
+      }
+    : retardReleve;
 
   /*
    * TROIS paliers, comme avant, mais deux teintes seulement.
@@ -125,7 +168,11 @@ export function EncoursKpiCards({
 
   // Le total facture se lit deja sous « Reste a payer », qui le prend pour reference :
   // l'ecrire une seconde fois 45 px plus bas, c'est la phrase repetee du retour.
+  // ⚠ Cette ligne decrit le RELEVE FILTRE, pas les cartes au-dessus. Depuis que les
+  // trois chiffres sont globaux, les deux blocs ne parlent plus du meme ensemble : sans
+  // ce premier mot, « 12 partenaires » se lirait comme le perimetre des cartes.
   const contexte: string[] = [
+    ...(vueGlobale ? ['Relevé filtré ci-dessous :'] : []),
     `Avances & déductions ${formatFcfa(deductions)} (registre ${releve.annee})`,
     `${formatNombre(releve.nbPartenaires)} partenaire${releve.nbPartenaires > 1 ? 's' : ''}`,
     `${formatNombre(releve.nbStores)} point${releve.nbStores > 1 ? 's' : ''} de vente`,
@@ -149,6 +196,16 @@ export function EncoursKpiCards({
 
   return (
     <div className="rounded-large border border-separator bg-surface px-4 py-3">
+      {/*
+       * Le repere. Il ne decore pas : il est la condition pour que des cartes globales
+       * au-dessus d'un tableau filtre ne mentent pas. Elargir la portee des chiffres sans
+       * le dire ne supprime pas l'ambiguite, il la deplace.
+       */}
+      {vueGlobale && (
+        <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted">
+          Vue globale — tous exercices, tous filtres confondus
+        </p>
+      )}
       {/*
        * `md:` et non `lg:` : la fenetre reelle des postes fait 1000 px de large, le seuil
        * `lg` (1024) ne s'y ouvre jamais et les trois chiffres retombaient sur deux lignes.

@@ -7,6 +7,7 @@ import { IEncoursParams } from '../types/encours.types';
 export const encoursKeys = {
   all: ['encours'] as const,
   releve: (params: IEncoursParams) => [...encoursKeys.all, 'releve', params] as const,
+  global: () => [...encoursKeys.all, 'global'] as const,
   groupes: () => [...encoursKeys.all, 'groupes'] as const,
   stores: (partenaire: string) => [...encoursKeys.all, 'stores', partenaire] as const,
   deductions: (annee: number) => [...encoursKeys.all, 'deductions', annee] as const,
@@ -18,6 +19,21 @@ export const useEncoursQuery = (params: IEncoursParams) =>
     queryKey: encoursKeys.releve(params),
     queryFn: () => encoursAPI.getReleve(params),
     enabled: !!params.annee,
+    staleTime: 5 * 60 * 1000,
+  });
+
+/**
+ * Exposition globale : le bandeau de tête.
+ *
+ * <p>Requête SÉPARÉE du relevé, sans aucun paramètre. Les deux répondent à
+ * deux questions : le relevé dit « ce que je regarde », celle-ci dit « où en
+ * est l'entreprise ». Les mélanger, c'est ce qui faisait tomber le bandeau à
+ * zéro dès qu'on filtrait sur un mois calme.</p>
+ */
+export const useEncoursGlobalQuery = () =>
+  useQuery({
+    queryKey: encoursKeys.global(),
+    queryFn: () => encoursAPI.getGlobal(),
     staleTime: 5 * 60 * 1000,
   });
 

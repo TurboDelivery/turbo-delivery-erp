@@ -7,6 +7,7 @@ import { Alert, Button, Spinner } from '@heroui-v3/react';
 import {
   encoursFilters,
   useEncoursQuery,
+  useEncoursGlobalQuery,
   useEncoursGroupesQuery,
   IEncoursReleve,
 } from '@/features/encours';
@@ -53,6 +54,13 @@ export function EncoursView() {
 
   const { data: releve, isError, isFetching, isLoading, refetch } = useEncoursQuery(params);
   const { data: groupes } = useEncoursGroupesQuery();
+
+  /*
+   * L'exposition GLOBALE, sans aucun filtre. Requête séparée, volontairement : le relevé
+   * dit « ce que je regarde », celle-ci dit « où en est l'entreprise ». Les mélanger,
+   * c'est ce qui faisait tomber le bandeau à zéro dès qu'on filtrait un mois calme.
+   */
+  const { data: encoursGlobal } = useEncoursGlobalQuery();
 
   /*
    * Les autres composantes du CA de la meme periode. Elles comptent deja dans le chiffre
@@ -164,6 +172,7 @@ export function EncoursView() {
 
       {affiche && (
         <EncoursKpiCards
+          global={encoursGlobal}
           prestations={prestationsHorsFiltre || !prestations ? undefined : resume}
           releve={affiche}
         />

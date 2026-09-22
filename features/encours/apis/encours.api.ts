@@ -1,6 +1,7 @@
 import { api } from '@/lib/api';
 import { SearchParams } from 'ak-api-http';
 import {
+  IEncoursGlobal,
   IEncoursReleve,
   IEncoursParams,
   IStoreOption,
@@ -24,6 +25,14 @@ export const encoursAPI = {
       endpoint: 'finance/encours',
       method: 'GET',
       searchParams: searchParamsFromFilters(params) as SearchParams,
+    });
+  },
+
+  /** Exposition globale, tous exercices — aucun filtre n'y entre, volontairement. */
+  getGlobal(): Promise<IEncoursGlobal> {
+    return api.request<IEncoursGlobal>({
+      endpoint: 'finance/encours/global',
+      method: 'GET',
     });
   },
 

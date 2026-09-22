@@ -102,3 +102,18 @@ export interface ICreateDeductionPartenaire {
   annee: number;
   dateDeduction?: string | null;
 }
+
+/**
+ * L'exposition GLOBALE sur les encours — ce que le bandeau de tête affiche.
+ *
+ * <p>Ces chiffres ne bougent avec AUCUN filtre, et c'est leur raison d'être :
+ * un reste dû, un retard et un taux sont des STOCKS. Borner un stock sur une
+ * période sans mouvement le met à zéro, et un zéro se lit comme une mesure.</p>
+ */
+export interface IEncoursGlobal {
+  totalFacture: number;
+  totalRestant: number;
+  totalRetard: number;
+  nbFacturesRetard: number;
+  nbStoresRetard: number;
+}
