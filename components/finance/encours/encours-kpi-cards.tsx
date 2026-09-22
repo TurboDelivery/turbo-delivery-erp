@@ -236,7 +236,7 @@ export function EncoursKpiCards({
        * le dire ne supprime pas l'ambiguite, il la deplace.
        */}
       {vueGlobale && (
-        <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted">
+        <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted">
           Vue globale — tous exercices, tous filtres confondus
         </p>
       )}
@@ -286,23 +286,29 @@ export function EncoursKpiCards({
        * et n'appellent aucun geste ; une carte de la taille des trois autres leur donnait
        * un poids qu'ils n'ont pas.
        */}
-      {prestations && (
-        <p className="mt-2.5 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-separator pt-2 text-xs tabular-nums">
-          <span className="text-muted">Autres composantes du CA à encaisser</span>
-          <span className="font-semibold text-foreground">{formatFcfa(aEncaisser)}</span>
+      {/*
+       * ⚠ Plus de « Total encours » ici, et ce n'est pas un allègement : c'était FAUX.
+       *
+       * <p>Cette ligne annonçait `reste + aEncaisser`. Depuis que les autres composantes
+       * sont versées dans le « Reste à payer » du bandeau, elles y étaient comptées une
+       * SECONDE fois : l'écran affichait 13 989 545 là où la vérité est 13 359 545, soit
+       * 630 000 de dette inventée. Le total, c'est la carte ; cette ligne ne fait plus
+       * que dire de quoi elle est composée.</p>
+       */}
+      {prestations && autresComposantes > 0 ? (
+        <p className="mt-2 flex flex-wrap items-baseline gap-x-2 border-t border-separator pt-1.5 text-xs tabular-nums">
+          <span className="text-muted">dont autres composantes du CA</span>
+          <span className="font-semibold text-foreground">{formatFcfa(autresComposantes)}</span>
           <span className="text-muted">
             ({formatNombre(prestations.nbAEncaisser)} ligne
             {prestations.nbAEncaisser > 1 ? 's' : ''})
           </span>
-          <span aria-hidden="true" className="text-muted">
-            ·
-          </span>
-          <span className="text-muted">Total encours</span>
-          <span className="font-semibold text-foreground">{formatFcfa(reste + aEncaisser)}</span>
         </p>
-      )}
+      ) : null}
 
-      <p className="mt-2.5 border-t border-separator pt-2 text-[11px] leading-snug tabular-nums text-muted">
+      {/* Resserre : sur la fenetre reelle des postes (563 px de haut), chaque ligne prise
+          ici est une ligne de moins pour le tableau, qui est l'objet de l'ecran. */}
+      <p className="mt-2 border-t border-separator pt-1.5 text-[11px] leading-snug tabular-nums text-muted">
         {contexte.join(' · ')}
       </p>
     </div>

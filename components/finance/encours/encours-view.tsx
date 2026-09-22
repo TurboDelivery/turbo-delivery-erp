@@ -150,9 +150,15 @@ export function EncoursView() {
         </div>
       </div>
 
-      <p className="-mt-1 text-xs text-muted">
-        Factures éditées non encore recouvrées, détail par facture (mois / quinzaine / semaine)
-      </p>
+      {/*
+       * La phrase descriptive sous le titre est retirée.
+       *
+       * <p>Elle disait « Factures éditées non encore recouvrées, détail par facture
+       * (mois / quinzaine / semaine) ». Le titre dit déjà « Encours, restes à payer », et
+       * la colonne PÉRIODE FACTURÉE montre « Quinzaine 1 – Janvier 2026 » à chaque ligne :
+       * la phrase répétait ce que l'écran montre. Sur la fenêtre réelle des postes, elle
+       * coûtait une ligne au tableau.</p>
+       */}
 
       <EncoursFiltres groupes={groupes ?? []} onChange={setFilters} valeurs={filters} />
 

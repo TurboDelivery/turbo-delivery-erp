@@ -44,8 +44,18 @@ import { EncoursTable } from './encours-table';
  * colorie pas une categorie, il dit ou l'on est. Meme modele que
  * `components/finance/recouvrements/recouvrement-content-tabs.tsx`.</p>
  */
+/**
+ * ⚠ `whitespace-nowrap` n'est pas cosmetique : il rend une RANGEE a l'ecran.
+ *
+ * <p>Chaque onglet porte son libelle et son annonce cote a cote. Sans cette regle,
+ * l'annonce passait a la ligne A L'INTERIEUR de l'onglet, et la bande entiere occupait
+ * deux rangees au lieu d'une. Sur la fenetre reelle des postes — 563 px de haut — c'est
+ * une rangee prise au tableau, qui est l'objet de l'ecran. Le conteneur sait deja
+ * defiler horizontalement et sortir ses chevrons : c'est a lui de gerer la largeur,
+ * pas au texte de se replier.</p>
+ */
 const MARQUE_ACTIVE =
-  'border-b-2 border-transparent data-[selected=true]:border-accent data-[selected=true]:font-semibold';
+  'whitespace-nowrap border-b-2 border-transparent data-[selected=true]:border-accent data-[selected=true]:font-semibold';
 
 /**
  * La section ouverte vit dans l'URL, comme le reste de l'etat de cet ecran.
