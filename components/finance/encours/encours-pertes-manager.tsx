@@ -12,9 +12,14 @@ import {
   Table,
   TextField,
 } from '@heroui-v3/react';
-import { Lock, Plus, Undo2 } from 'lucide-react';
+import { Download, Lock, Plus, Undo2 } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
+import {
+  construirePertesCsv,
+  construirePertesPdf,
+  telecharger,
+} from './encours-pertes-export';
 import {
   formatFcfa,
   useAnnulerPerteMutation,
@@ -225,10 +230,42 @@ export function EncoursPertesManager({ releve }: { releve?: IEncoursReleve }) {
           Ces montants sont sortis du stock des encours : ils ne comptent plus ni dans le
           reste à payer, ni dans le retard.
         </p>
-        <Button onPress={() => setSaisieOuverte(true)} size="sm" variant="primary">
-          <Plus aria-hidden="true" className="size-4" />
-          Enregistrer une perte
-        </Button>
+        <div className="flex shrink-0 items-center gap-2">
+          {lignes.length > 0 ? (
+            <>
+              <Button
+                onPress={() =>
+                  telecharger(
+                    construirePertesPdf(lignes, categories ?? []),
+                    `pertes-et-vols-${new Date().toISOString().slice(0, 10)}.pdf`,
+                  )
+                }
+                size="sm"
+                variant="ghost"
+              >
+                <Download aria-hidden="true" className="size-4" />
+                PDF
+              </Button>
+              <Button
+                onPress={() =>
+                  telecharger(
+                    construirePertesCsv(lignes, categories ?? []),
+                    `pertes-et-vols-${new Date().toISOString().slice(0, 10)}.csv`,
+                  )
+                }
+                size="sm"
+                variant="ghost"
+              >
+                <Download aria-hidden="true" className="size-4" />
+                Excel
+              </Button>
+            </>
+          ) : null}
+          <Button onPress={() => setSaisieOuverte(true)} size="sm" variant="primary">
+            <Plus aria-hidden="true" className="size-4" />
+            Enregistrer une perte
+          </Button>
+        </div>
       </div>
 
       {stats && stats.nbLignes > 0 ? (
