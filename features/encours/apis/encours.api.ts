@@ -1,7 +1,10 @@
 import { api } from '@/lib/api';
 import { SearchParams } from 'ak-api-http';
 import {
+  ICategoriePerte,
+  ICreerPerte,
   IEncoursGlobal,
+  IPerteVol,
   IEncoursReleve,
   IEncoursParams,
   IStoreOption,
@@ -33,6 +36,41 @@ export const encoursAPI = {
     return api.request<IEncoursGlobal>({
       endpoint: 'finance/encours/global',
       method: 'GET',
+    });
+  },
+
+  /** Les motifs de perte actifs, dans leur ordre d'affichage. */
+  categoriesPerte(): Promise<ICategoriePerte[]> {
+    return api.request<ICategoriePerte[]>({
+      endpoint: 'finance/pertes-vols/categories',
+      method: 'GET',
+    });
+  },
+
+  listerPertes(): Promise<IPerteVol[]> {
+    return api.request<IPerteVol[]>({ endpoint: 'finance/pertes-vols', method: 'GET' });
+  },
+
+  /**
+   * Le code transite par l'en-tête, JAMAIS par l'URL : un paramètre de requête
+   * finit dans les journaux d'accès du serveur.
+   */
+  creerPerte(data: ICreerPerte, codeSecret: string): Promise<IPerteVol> {
+    return api.request<IPerteVol>({
+      endpoint: 'finance/pertes-vols',
+      method: 'POST',
+      data,
+      config: { headers: { 'X-Code-Secret': codeSecret } },
+    });
+  },
+
+  /** Annulation TRACÉE — pas une suppression. Le motif est obligatoire. */
+  annulerPerte(id: string, motif: string, codeSecret: string): Promise<IPerteVol> {
+    return api.request<IPerteVol>({
+      endpoint: `finance/pertes-vols/${id}/annuler`,
+      method: 'POST',
+      data: { motif },
+      config: { headers: { 'X-Code-Secret': codeSecret } },
     });
   },
 

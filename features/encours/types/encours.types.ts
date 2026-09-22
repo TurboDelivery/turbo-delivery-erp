@@ -4,6 +4,8 @@ export type CycleRecouvrement = 'QUINZAINE' | 'HEBDOMADAIRE' | 'MENSUEL';
 
 /** Une facture éditée (ligne de détail). */
 export interface IEncoursFacture {
+  /** Identifiant de la facture — ce à quoi une perte se rattache. */
+  id?: string;
   mois: number; // 1-12
   periode: string; // libellé mois, ex. « Avril »
   libelle: string; // « Mois » | « Quinzaine 1/2 » | « Semaine N (dd–dd) » | plage réelle | « — »
@@ -118,4 +120,44 @@ export interface IEncoursGlobal {
   totalDeductions: number;
   nbFacturesRetard: number;
   nbStoresRetard: number;
+}
+
+/** Un motif de perte, paramétrable côté serveur. */
+export interface ICategoriePerte {
+  code: string;
+  libelle: string;
+  exigePrecision: boolean;
+  actif: boolean;
+  ordre: number;
+}
+
+/**
+ * Un montant qui ne sera jamais recouvré, rattaché à sa facture d'origine.
+ *
+ * <p>Une ligne n'est jamais supprimée : `annule` porte la trace de l'annulation,
+ * avec son auteur, sa date et son motif. Une perte est un abandon de créance,
+ * elle engage.</p>
+ */
+export interface IPerteVol {
+  id: string;
+  factureId: string;
+  restaurantId: string;
+  montant: number;
+  categorieCode: string;
+  precisionLibre?: string | null;
+  commentaire?: string | null;
+  creePar?: string | null;
+  annule: boolean;
+  annulePar?: string | null;
+  annuleAt?: string | null;
+  annuleMotif?: string | null;
+  createdAt?: string;
+}
+
+export interface ICreerPerte {
+  factureId: string;
+  montant: number;
+  categorieCode: string;
+  precision?: string;
+  commentaire?: string;
 }

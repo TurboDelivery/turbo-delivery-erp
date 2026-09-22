@@ -11,6 +11,8 @@ export const encoursKeys = {
   groupes: () => [...encoursKeys.all, 'groupes'] as const,
   stores: (partenaire: string) => [...encoursKeys.all, 'stores', partenaire] as const,
   deductions: (annee: number) => [...encoursKeys.all, 'deductions', annee] as const,
+  pertes: () => [...encoursKeys.all, 'pertes'] as const,
+  categoriesPerte: () => [...encoursKeys.all, 'categories-perte'] as const,
 };
 
 /** Relevé des restes à payer (cascade Partenaire → Store + déductions). */
@@ -35,6 +37,22 @@ export const useEncoursGlobalQuery = () =>
     queryKey: encoursKeys.global(),
     queryFn: () => encoursAPI.getGlobal(),
     staleTime: 5 * 60 * 1000,
+  });
+
+/** Les lignes de perte encore vivantes. Une ligne annulée ne compte plus nulle part. */
+export const usePertesVolsQuery = () =>
+  useQuery({
+    queryKey: encoursKeys.pertes(),
+    queryFn: () => encoursAPI.listerPertes(),
+    staleTime: 60 * 1000,
+  });
+
+/** Les motifs de perte, paramétrables côté serveur — pas un enum figé dans l'écran. */
+export const useCategoriesPerteQuery = () =>
+  useQuery({
+    queryKey: encoursKeys.categoriesPerte(),
+    queryFn: () => encoursAPI.categoriesPerte(),
+    staleTime: 30 * 60 * 1000,
   });
 
 /** Liste des groupes partenaires (pour le filtre). */

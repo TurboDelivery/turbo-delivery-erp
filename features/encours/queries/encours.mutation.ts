@@ -3,7 +3,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { encoursAPI } from '../apis/encours.api';
-import { ICreateDeductionPartenaire } from '../types/encours.types';
+import { ICreateDeductionPartenaire, ICreerPerte } from '../types/encours.types';
 import { useInvalidateEncours } from './encours.query';
 
 export const useCreerDeductionMutation = () => {
@@ -57,6 +57,37 @@ export const useSupprimerDeductionMutation = () => {
             : error instanceof Error ? error.message : 'Erreur inconnue',
         },
       );
+    },
+  });
+};
+
+/**
+ * Enregistre une perte. Le code de validation est exigé par le serveur, qui
+ * refuse en 403 s'il est faux — l'écran ne décide rien.
+ */
+export const useCreerPerteMutation = () => {
+  const invalidate = useInvalidateEncours();
+  return useMutation({
+    mutationFn: ({ data, codeSecret }: { data: ICreerPerte; codeSecret: string }) =>
+      encoursAPI.creerPerte(data, codeSecret),
+    onSuccess: () => {
+      // Tout l'écran est invalidé, pas seulement la liste : une perte SORT du stock
+      // des encours, donc le bandeau global change aussi.
+      invalidate();
+      toast.success('Perte enregistrée.');
+    },
+  });
+};
+
+/** Annulation TRACÉE. Le montant revient dans les encours. */
+export const useAnnulerPerteMutation = () => {
+  const invalidate = useInvalidateEncours();
+  return useMutation({
+    mutationFn: ({ id, motif, codeSecret }: { id: string; motif: string; codeSecret: string }) =>
+      encoursAPI.annulerPerte(id, motif, codeSecret),
+    onSuccess: () => {
+      invalidate();
+      toast.success('Perte annulée — le montant revient dans les encours.');
     },
   });
 };

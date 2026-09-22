@@ -1,5 +1,7 @@
 'use client';
 
+import { useSession } from 'next-auth/react';
+
 import { Chip, Table, Tabs } from '@heroui-v3/react';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
 
@@ -9,6 +11,7 @@ import type { IEntreeCaisse } from '@/features/entrees-caisse/types/entree-caiss
 import { EncoursCharts, TOP_PARTENAIRES } from './encours-charts';
 import { EncoursDeductionsTable } from './encours-deductions-table';
 import { EncoursMobileCards } from './encours-mobile-cards';
+import { EncoursPertesManager } from './encours-pertes-manager';
 import { EncoursTable } from './encours-table';
 
 /**
@@ -60,7 +63,7 @@ const MARQUE_ACTIVE =
  * selectionne, donc sans aucun panneau a l'ecran. `clearOnDefault` evite d'ecrire un
  * parametre pour la section qui s'ouvre de toute facon.</p>
  */
-const SECTIONS = ['releve', 'repartition', 'deductions', 'composantes'] as const;
+const SECTIONS = ['releve', 'repartition', 'deductions', 'composantes', 'pertes'] as const;
 
 const parseurSection = parseAsStringLiteral(SECTIONS)
   .withDefault('releve')
@@ -183,6 +186,13 @@ function TableauComposantes({
   );
 }
 
+/**
+ * Les profils autorises a voir les pertes et vols (cahier des charges, bloc 9).
+ *
+ * <p>⚠ MASQUAGE, pas protection. Voir le commentaire de l'onglet plus bas.</p>
+ */
+const PROFILS_PERTES = ['ADMIN', 'DGA', 'DG'];
+
 export function EncoursSectionsTabs({
   hauteur,
   prestations,
@@ -208,6 +218,17 @@ export function EncoursSectionsTabs({
    */
   zoneReleve: (noeud: HTMLDivElement | null) => void;
 }) {
+  const { data: session } = useSession();
+  const role = (() => {
+    const brut = session?.user?.role as unknown;
+    if (typeof brut === 'string') return brut.toUpperCase();
+    if (brut && typeof brut === 'object' && 'libelle' in brut) {
+      return String((brut as { libelle?: string }).libelle ?? '').toUpperCase();
+    }
+    return '';
+  })();
+  const peutVoirPertes = PROFILS_PERTES.includes(role);
+
   const [section, setSection] = useQueryState('enSection', parseurSection);
 
   // UNE seule regle : l'annonce compte les BARRES que la section trace. Le graphe mensuel
@@ -267,6 +288,21 @@ export function EncoursSectionsTabs({
             <span className="text-sm">Autres composantes</span>
             <Annonce texte={annonceComposantes} />
           </Tabs.Tab>
+          {/*
+           * ⚠ Cet onglet est MASQUÉ aux autres profils, il n'est pas PROTÉGÉ.
+           *
+           * Le cahier des charges demande de le réserver à ADMIN, DGA et DG, y compris
+           * en lecture. Un masquage d'affichage n'y suffit pas : l'intercepteur de rôles
+           * est commenté côté serveur, toutes les annotations `@RequiresRole` sont donc
+           * inertes, et `/api/finance/**` répond sans jeton. Quiconque appelle l'endpoint
+           * voit les montants. La fermeture réelle demande de rebrancher le RBAC — c'est
+           * signalé à l'owner, et il ne faut pas croire cet onglet fermé entre-temps.
+           */}
+          {peutVoirPertes ? (
+            <Tabs.Tab className={MARQUE_ACTIVE} id="pertes">
+              <span className="text-sm">Pertes &amp; vols</span>
+            </Tabs.Tab>
+          ) : null}
         </Tabs.List>
       </Tabs.ListContainer>
 
@@ -295,6 +331,12 @@ export function EncoursSectionsTabs({
           ) : null}
         </div>
       </Tabs.Panel>
+
+      {peutVoirPertes ? (
+        <Tabs.Panel className="pt-2.5" id="pertes">
+          <EncoursPertesManager releve={releve} />
+        </Tabs.Panel>
+      ) : null}
 
       <Tabs.Panel className="pt-2.5" id="repartition">
         {releve ? <EncoursCharts releve={releve} /> : null}
