@@ -247,7 +247,7 @@ export function EncoursKpiCards({
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-0 md:divide-x md:divide-separator">
         <Figure
           icone={Wallet}
-          libelle="Reste à payer"
+          libelle="Reste à payer (toutes les factures)"
           note={
             autresComposantes > 0
               ? `${formatFcfa(resteFactures)} de factures + ${formatFcfa(autresComposantes)} d'autres composantes`
@@ -258,7 +258,7 @@ export function EncoursKpiCards({
         <Figure
           couleur={retard.montant > 0 ? 'text-danger-soft-foreground' : undefined}
           icone={AlarmClock}
-          libelle="En retard"
+          libelle="Reste à payer (Livraisons, frais de service)"
           note={
             retard.nbFactures > 0
               ? `${formatNombre(retard.nbFactures)} facture${retard.nbFactures > 1 ? 's' : ''} chez ${formatNombre(retard.nbPartenaires)} partenaire${retard.nbPartenaires > 1 ? 's' : ''}`
