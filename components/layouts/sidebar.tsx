@@ -93,9 +93,11 @@ const Sidebar = () => {
               les deux filets se rejoignent. Le bouton de repli reste dans l'en-tête de page,
               où vivent les actions. */}
           <div className="flex h-16 shrink-0 items-center border-b border-separator px-4">
-            <Link className="flex items-center gap-2.5" href="/">
-              <Logo className="w-11" />
-              <span className="text-[15px] font-semibold leading-tight text-foreground">Turbo Delivery</span>
+            <Link className="flex items-center" href="/">
+              {/* Le logo porte deja « TURBO DELIVERY » : le mot a cote ferait redite.
+                  Dimensions passees au ratio reel du fichier (paysage) + object-contain,
+                  sinon next/image l'etire dans un carre. */}
+              <Logo width={140} height={97} className="h-11 w-auto object-contain" />
             </Link>
           </div>
 
