@@ -30,10 +30,12 @@ export function useBddClientsFilters() {
     filtres.segment !== '' ||
     filtres.consentement !== '' ||
     filtres.capturesMin !== null ||
+    filtres.capturesMax !== null ||
     filtres.partenairesMin !== null;
 
   const vider = () =>
     setFiltres({
+      capturesMax: null,
       capturesMin: null,
       consentement: '',
       debut: '',

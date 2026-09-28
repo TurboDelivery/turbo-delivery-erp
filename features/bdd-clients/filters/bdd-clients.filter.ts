@@ -18,6 +18,7 @@ import {
  */
 export const bddClientsFilters = {
   filter: {
+    capturesMax: parseAsInteger,
     capturesMin: parseAsInteger,
     consentement: parseAsString.withDefault(''),
     debut: parseAsString.withDefault(''),
@@ -37,6 +38,7 @@ export const bddClientsFilters = {
     // caractère, ni déclencher une lecture par caractère.
     throttleMs: 400,
     urlKeys: {
+      capturesMax: 'bcCapturesMax',
       capturesMin: 'bcCaptures',
       consentement: 'bcConsent',
       debut: 'bcDebut',

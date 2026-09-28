@@ -70,6 +70,7 @@ function parametres(f: IFiltresClients): Record<string, unknown> {
   if (f.segment) p.segment = f.segment;
   if (f.consentement) p.consentement = f.consentement;
   if (f.capturesMin !== null) p.capturesMin = f.capturesMin;
+  if (f.capturesMax !== null) p.capturesMax = f.capturesMax;
   if (f.partenairesMin !== null) p.partenairesMin = f.partenairesMin;
   return p;
 }

@@ -27,6 +27,7 @@ import {
 
 /** Les valeurs par défaut de `useQueryStates` : la clé du cache doit tomber juste. */
 const FILTRES_PAR_DEFAUT: IFiltresClients = {
+  capturesMax: null,
   capturesMin: null,
   consentement: '',
   debut: '',

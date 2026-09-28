@@ -77,7 +77,10 @@ export function ClientsFiltres() {
     <div className="flex flex-col gap-2 rounded-xl border border-separator bg-surface px-3 py-2.5">
       <div className="flex flex-wrap items-end gap-3">
         <TextField
-          className="min-w-[18rem] flex-1"
+          /* ⚠ 14rem, pas 18 : le raccourci « 1 seule » a fait passer la barre a TROIS
+             rangees, et chaque rangee prise ici est une rangee de liste en moins sur une
+             fenetre de 563 pixels. Le champ garde flex-1 et s'etale des qu'il y a la place. */
+          className="min-w-[14rem] flex-1"
           onChange={(v) => poser({ recherche: v })}
           value={filtres.recherche}
         >
@@ -102,10 +105,35 @@ export function ClientsFiltres() {
         <div className="flex flex-col gap-1">
           <span className="text-sm text-foreground">Captures</span>
           <div className="flex items-center gap-1">
+            {/*
+              « 1 seule » est l'envers exact des trois autres, et c'est une cible
+              commerciale a part entiere : ceux qui sont venus UNE fois et ne sont pas
+              revenus. Il pose un maximum la ou les autres posent un minimum, et les deux
+              s'excluent — cumuler « 5+ » et « 1 seule » ne rendrait jamais personne.
+            */}
+            <Button
+              onPress={() =>
+                poser(
+                  filtres.capturesMax === 1
+                    ? { capturesMax: null }
+                    : { capturesMax: 1, capturesMin: null },
+                )
+              }
+              size="sm"
+              variant={filtres.capturesMax === 1 ? 'secondary' : 'ghost'}
+            >
+              1 seule
+            </Button>
             {[2, 3, 5].map((n) => (
               <Button
                 key={n}
-                onPress={() => poser({ capturesMin: filtres.capturesMin === n ? null : n })}
+                onPress={() =>
+                  poser(
+                    filtres.capturesMin === n
+                      ? { capturesMin: null }
+                      : { capturesMax: null, capturesMin: n },
+                  )
+                }
                 size="sm"
                 variant={filtres.capturesMin === n ? 'secondary' : 'ghost'}
               >

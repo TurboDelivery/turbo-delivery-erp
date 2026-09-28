@@ -138,6 +138,7 @@ export interface IFiltresClients {
   statut: string;
   segment: string;
   consentement: string;
+  capturesMax: number | null;
   capturesMin: number | null;
   partenairesMin: number | null;
   page: number;
