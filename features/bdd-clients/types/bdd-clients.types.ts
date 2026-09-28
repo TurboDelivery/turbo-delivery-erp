@@ -365,3 +365,35 @@ export interface IBilanListeNoire {
   captures: number;
   message: string;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Statistiques par partenaire
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Ce qu'un partenaire représente dans la base, sur une période.
+ *
+ * <p>⚠ `nbExclusifs` se calcule SUR LA PÉRIODE demandée, pas sur toute la vie du
+ * contact : un client vu chez deux enseignes en août et chez une seule en septembre est
+ * exclusif de celle-là pour septembre.</p>
+ */
+export interface IStatPartenaire {
+  partenaireId: string;
+  partenaire: string;
+  nbClients: number;
+  nbCommandes: number;
+  montant: number;
+  /** Nul quand aucune commande ne porte de montant : zéro serait un panier. */
+  panierMoyen: number | null;
+  nbExclusifs: number;
+  nbPartages: number;
+  /** Entre 0 et 1. */
+  partExclusifs: number;
+}
+
+/** Un partenaire avec qui celui qu'on regarde partage des clients. */
+export interface IVoisinPartenaire {
+  partenaireId: string;
+  partenaire: string;
+  nbClients: number;
+}

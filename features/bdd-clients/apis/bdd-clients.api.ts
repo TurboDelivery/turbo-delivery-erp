@@ -8,6 +8,8 @@ import {
   ILigneJournalFusion,
   ILigneListeNoire,
   IModificationFiche,
+  IStatPartenaire,
+  IVoisinPartenaire,
   IFicheClient,
   IFiltresClients,
   IKpisBase,
@@ -219,6 +221,26 @@ export const bddClientsAPI = {
     return appeler<IBilanEdition>(`/${clientId}`, {
       body: JSON.stringify(modification),
       method: 'PATCH',
+    });
+  },
+
+  /** Ce que chaque partenaire représente dans la base, sur une période. */
+  statsPartenaires(debut: string, fin: string): Promise<IStatPartenaire[]> {
+    return appeler<IStatPartenaire[]>(`/stats-partenaires`, {
+      method: 'GET',
+      params: { debut: debut || undefined, fin: fin || undefined },
+    });
+  },
+
+  /** Avec qui ce partenaire partage son audience. */
+  voisinsPartenaire(
+    partenaireId: string,
+    debut: string,
+    fin: string,
+  ): Promise<IVoisinPartenaire[]> {
+    return appeler<IVoisinPartenaire[]>(`/stats-partenaires/${partenaireId}/voisins`, {
+      method: 'GET',
+      params: { debut: debut || undefined, fin: fin || undefined },
     });
   },
 

@@ -23,7 +23,7 @@
  * ce module est desormais dans le graphe SERVEUR.</p>
  */
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconShieldLock, IconUser, IconUsers } from '@tabler/icons-react';
-import { PlusCircle, AlertTriangle, BarChart, Bell, BookUser, CheckCircle, FileText, History, Layers, List, Lock, Merge, Receipt, ShieldBan, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
+import { PlusCircle, AlertTriangle, BarChart, Bell, BookUser, CheckCircle, FileText, History, Layers, List, Lock, Merge, Receipt, ShieldBan, ShoppingCartIcon, Store, SquareUser, Ticket, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
 import type { AppAbility, AppActions, AppSubjects } from '@/lib/casl/ability';
@@ -283,6 +283,9 @@ const menuData: IMenuData[] = [
       // Gate sur 'fusionner' et non sur 'manage' : le Marketing gere la base sans avoir
       // le droit de fusionner, et le backend le lui refuse. Une entree qu'il verrait le
       // menerait a un 403.
+      // Lecture seule : le tableau ne change rien, il repond a « qui nous apporte quoi ».
+      // Meme garde que la liste, donc ouvert a l'Ops Manager comme au Marketing.
+      { icon: Store, title: 'Par restaurant', path: '/bdd-clients/partenaires', can: { action: 'read', subject: 'PageBddClients' } },
       { icon: Merge, title: 'Doublons', path: '/bdd-clients/doublons', can: { action: 'fusionner', subject: 'PageBddClients' } },
       // Meme garde que les doublons : exclure un numero retire de la base tout ce qui a
       // ete saisi sous lui, et le backend le reserve aux superviseurs.

@@ -22,6 +22,10 @@ export const bddClientsKeys = {
   doublons: () => [...bddClientsKeys.all, 'doublons'] as const,
   journalFusions: () => [...bddClientsKeys.all, 'journal-fusions'] as const,
   listeNoire: () => [...bddClientsKeys.all, 'liste-noire'] as const,
+  statsPartenaires: (debut: string, fin: string) =>
+    [...bddClientsKeys.all, 'stats-partenaires', debut, fin] as const,
+  voisinsPartenaire: (id: string, debut: string, fin: string) =>
+    [...bddClientsKeys.all, 'voisins', id, debut, fin] as const,
 };
 
 /**
@@ -273,3 +277,31 @@ export const useRetirerListeNoireMutation = () => {
     onError: (erreur: Error) => toast.error(erreur.message),
   });
 };
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Statistiques par partenaire
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Le tableau des partenaires.
+ *
+ * <p>La clé porte la période : c'est ce qui change le résultat, et deux périodes ne
+ * doivent pas se recouvrir en cache. Une minute de fraîcheur suffit — ces chiffres
+ * bougent au rythme des lots, pas des clics.</p>
+ */
+export const useStatsPartenairesQuery = (debut: string, fin: string) =>
+  useQuery({
+    queryKey: bddClientsKeys.statsPartenaires(debut, fin),
+    queryFn: () => bddClientsAPI.statsPartenaires(debut, fin),
+    placeholderData: (precedent) => precedent,
+    staleTime: 60_000,
+  });
+
+/** Avec qui un partenaire partage son audience. Lu à l'ouverture du détail, pas avant. */
+export const useVoisinsPartenaireQuery = (id: string | null, debut: string, fin: string) =>
+  useQuery({
+    queryKey: bddClientsKeys.voisinsPartenaire(id ?? '', debut, fin),
+    queryFn: () => bddClientsAPI.voisinsPartenaire(id as string, debut, fin),
+    enabled: Boolean(id),
+    staleTime: 60_000,
+  });
