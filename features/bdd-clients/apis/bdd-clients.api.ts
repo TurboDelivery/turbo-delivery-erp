@@ -1,6 +1,9 @@
 import {
+  IBilanFusion,
+  IDoublon,
   IEnregistrerLot,
   IAppelSaisi,
+  ILigneJournalFusion,
   IFicheClient,
   IFiltresClients,
   IKpisBase,
@@ -173,6 +176,37 @@ export const bddClientsAPI = {
   qualifier(clientId: string, appel: IAppelSaisi): Promise<IResultatAppel> {
     return appeler<IResultatAppel>(`/${clientId}/qualifier`, {
       body: JSON.stringify(appel),
+      method: 'POST',
+    });
+  },
+
+  /** Les groupes de fiches vivantes portant le même nom. Le serveur propose, on arbitre. */
+  doublons(limite = 50): Promise<IDoublon[]> {
+    return appeler<IDoublon[]>(`/doublons`, { method: 'GET', params: { limite } });
+  },
+
+  /**
+   * Absorbe une fiche dans une autre.
+   *
+   * <p>Réservé à la Direction et aux superviseurs côté serveur. Réversible, et le
+   * numéro absorbé continue de désigner la fiche conservée.</p>
+   */
+  fusionner(sourceId: string, cibleId: string): Promise<IBilanFusion> {
+    return appeler<IBilanFusion>(`/fusionner`, {
+      body: JSON.stringify({ cibleId, sourceId }),
+      method: 'POST',
+    });
+  },
+
+  /** Le journal des fusions : c'est par lui qu'une fusion se retrouve pour être annulée. */
+  journalFusions(limite = 50): Promise<ILigneJournalFusion[]> {
+    return appeler<ILigneJournalFusion[]>(`/fusions`, { method: 'GET', params: { limite } });
+  },
+
+  /** Défait une fusion, à l'identique. Le motif est obligatoire côté serveur. */
+  annulerFusion(fusionId: string, motif: string): Promise<IBilanFusion> {
+    return appeler<IBilanFusion>(`/fusions/${fusionId}/annuler`, {
+      body: JSON.stringify({ motif }),
       method: 'POST',
     });
   },

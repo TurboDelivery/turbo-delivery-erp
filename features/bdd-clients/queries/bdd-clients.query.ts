@@ -18,6 +18,8 @@ export const bddClientsKeys = {
   liste: (f: IFiltresClients) => [...bddClientsKeys.all, 'liste', f] as const,
   kpis: (f: IFiltresClients) => [...bddClientsKeys.all, 'kpis', f] as const,
   fiche: (id: string) => [...bddClientsKeys.all, 'fiche', id] as const,
+  doublons: () => [...bddClientsKeys.all, 'doublons'] as const,
+  journalFusions: () => [...bddClientsKeys.all, 'journal-fusions'] as const,
 };
 
 /**
@@ -131,5 +133,65 @@ export const useEnregistrerLotMutation = () => {
       }
       toast.success(detail);
     },
+  });
+};
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Fusion de doublons
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Les doublons probables.
+ *
+ * <p>Sans mise en cache longue : la liste change dès qu'une fusion aboutit, et une
+ * liste périmée proposerait de fusionner une fiche qui vient de l'être.</p>
+ */
+export const useDoublonsQuery = (actif = true) =>
+  useQuery({
+    queryKey: bddClientsKeys.doublons(),
+    queryFn: () => bddClientsAPI.doublons(),
+    enabled: actif,
+    staleTime: 0,
+  });
+
+/** Le journal des fusions : c'est par lui qu'on retrouve une fusion pour l'annuler. */
+export const useJournalFusionsQuery = (actif = true) =>
+  useQuery({
+    queryKey: bddClientsKeys.journalFusions(),
+    queryFn: () => bddClientsAPI.journalFusions(),
+    enabled: actif,
+    staleTime: 0,
+  });
+
+/**
+ * Fusionne deux fiches.
+ *
+ * <p>Tout est invalidé : une fusion change les compteurs des deux fiches, la liste, les
+ * cartes et le journal. Invalider finement laisserait un écran qui contredit l'autre.</p>
+ */
+export const useFusionnerMutation = () => {
+  const invalidate = useInvalidateBddClients();
+  return useMutation({
+    mutationFn: ({ sourceId, cibleId }: { sourceId: string; cibleId: string }) =>
+      bddClientsAPI.fusionner(sourceId, cibleId),
+    onSuccess: (bilan) => {
+      invalidate();
+      toast.success(bilan.message);
+    },
+    onError: (erreur: Error) => toast.error(erreur.message),
+  });
+};
+
+/** Défait une fusion. Le motif est obligatoire, le serveur le refuse vide. */
+export const useAnnulerFusionMutation = () => {
+  const invalidate = useInvalidateBddClients();
+  return useMutation({
+    mutationFn: ({ fusionId, motif }: { fusionId: string; motif: string }) =>
+      bddClientsAPI.annulerFusion(fusionId, motif),
+    onSuccess: (bilan) => {
+      invalidate();
+      toast.success(bilan.message);
+    },
+    onError: (erreur: Error) => toast.error(erreur.message),
   });
 };

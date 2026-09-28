@@ -250,3 +250,64 @@ export interface IResultatAppel {
   alerteQualite: boolean;
   message: string;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Fusion de doublons
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/** Une fiche d'un groupe de doublons, telle qu'on la compare avant d'arbitrer. */
+export interface ICandidatFusion {
+  id: string;
+  /** Masqué par le serveur. Choisir laquelle garder ne demande pas le numéro entier. */
+  telephone: string;
+  nom: string | null;
+  prenom: string | null;
+  statut: string;
+  nbCaptures: number;
+  premiere: string | null;
+  derniere: string | null;
+}
+
+/**
+ * Un groupe de fiches vivantes portant le même nom.
+ *
+ * <p>Deux fiches ne peuvent pas partager un numéro : un doublon est toujours la même
+ * personne sur deux numéros, et le nom saisi est le seul indice. Le serveur PROPOSE,
+ * un superviseur arbitre.</p>
+ */
+export interface IDoublon {
+  nom: string;
+  nb: number;
+  fiches: ICandidatFusion[];
+}
+
+/** Ce que le serveur rend après une fusion ou son annulation. */
+export interface IBilanFusion {
+  fusionId: string;
+  sourceId: string;
+  cibleId: string;
+  capturesDeplacees: number;
+  appelsDeplaces: number;
+  champsRemplis: string[];
+  aliasAjoutes: string[];
+  message: string;
+}
+
+/** Une ligne du journal des fusions : ce par quoi une fusion se retrouve pour l'annuler. */
+export interface ILigneJournalFusion {
+  id: string;
+  sourceId: string;
+  sourceNom: string | null;
+  sourceTelephone: string | null;
+  cibleId: string;
+  cibleNom: string | null;
+  cibleTelephone: string | null;
+  capturesDeplacees: number;
+  appelsDeplaces: number;
+  fusionnePar: string | null;
+  fusionneAt: string;
+  annulee: boolean;
+  annulePar: string | null;
+  annuleAt: string | null;
+  annuleMotif: string | null;
+}

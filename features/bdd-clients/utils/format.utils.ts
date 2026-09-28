@@ -69,3 +69,15 @@ export const LIBELLES_CANAL: Record<string, string> = {
   SMS: 'SMS',
   WHATSAPP: 'WhatsApp',
 };
+
+/**
+ * Le nom d'une personne : NOM puis PRÉNOMS, dans l'ordre du serveur.
+ *
+ * <p>C'est l'ordre dans lequel cet ERP écrit les noms partout ailleurs. Rendu nul quand
+ * les deux sont vides, pour que l'appelant décide quoi afficher à la place : une chaîne
+ * vide passerait inaperçue dans une phrase.</p>
+ */
+export function nomComplet(nom?: string | null, prenom?: string | null): string | null {
+  const complet = `${nom ?? ''} ${prenom ?? ''}`.trim();
+  return complet === '' ? null : complet;
+}

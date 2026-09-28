@@ -1,6 +1,9 @@
 import { AbilityBuilder, createMongoAbility, type ExtractSubjectType, type InferSubjects, type MongoAbility } from '@casl/ability';
 
-export type AppActions = 'manage' | 'create' | 'read' | 'update' | 'delete' | 'access' | 'valider' | 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser' | 'authentifier' | 'update-inclusion';
+// 'fusionner' : le seul geste de la base clients que le Marketing n'a PAS. Il existe
+// parce que 'manage' couvrirait tout, y compris ce que le serveur lui refuse — et un
+// menu qui mene a un refus est un bouton mort.
+export type AppActions = 'manage' | 'create' | 'read' | 'update' | 'delete' | 'access' | 'valider' | 'valider-dga' | 'approuver-dg' | 'rejeter-dga' | 'rejeter-dg' | 'decaisser' | 'authentifier' | 'update-inclusion' | 'fusionner';
 
 export type AppSubjects =
   | 'ChargeFixe'
@@ -205,6 +208,9 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
   ],
   DGA: [
     { action: 'read', subject: 'all' },
+    // La garde du backend range le DGA parmi les superviseurs de la base clients :
+    // sans cette ligne, il aurait le droit de fusionner sans voir l'ecran qui le fait.
+    { action: 'fusionner', subject: 'PageBddClients' },
     { action: 'update', subject: 'Incident' },
     { action: 'create', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
     { action: 'update', subject: ['ChargeFixe', 'ChargeVariable', 'Depense'] },
@@ -413,7 +419,11 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
   MARKETING: [
     // Qualifie les fiches par appel, pose tags et segments, voit les numeros en
     // clair — chaque affichage complet devant etre trace cote serveur.
-    { action: 'manage', subject: 'PageBddClients' },
+    //
+    // ⚠ PAS 'manage'. La garde du backend reserve la fusion a la Direction et aux
+    // superviseurs ; 'manage' couvrirait 'fusionner' et afficherait au Marketing une
+    // entree de menu que le serveur refuse en 403. Les actions sont donc enumerees.
+    { action: ['read', 'create', 'update'], subject: 'PageBddClients' },
     { action: 'read', subject: 'Restaurant' },
     { action: 'access', subject: ['Menu', 'Route'] },
     { effect: 'cannot', action: 'access', subject: 'Analytics' },
