@@ -298,10 +298,11 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
   ],
   STANDARD: [
     { action: 'manage', subject: 'Trafic' },
-    // « Agent de saisie - Standard » : il saisit les lots de la base clients et
-    // relit LES SIENS. Il ne consulte pas la base consolidee, et le serveur ne
-    // lui rend que des numeros masques.
-    { action: ['read', 'create'], subject: 'PageBddClients' },
+    // « Agent de saisie - Standard » : il SAISIT, il ne consulte pas.
+    // ⚠ Il avait 'read' en plus de 'create', ce qui lui ouvrait la base consolidee
+    // entiere — l'inverse de ce que ce commentaire disait vouloir. L'ecran de
+    // relecture de ses propres lots aura son action a lui.
+    { action: 'create', subject: 'PageBddClients' },
     { action: ['read', 'update'], subject: 'Incident' },
     { action: ['read', 'create', 'update'], subject: 'Ticket' },
     { action: 'manage', subject: 'Creneau' },

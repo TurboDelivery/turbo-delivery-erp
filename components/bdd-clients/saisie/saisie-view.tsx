@@ -41,6 +41,28 @@ function grilleDe(nb: number): LigneGrille[] {
   return Array.from({ length: nb }, () => ligneVide());
 }
 
+/**
+ * Amener la grille a `nb` lignes SANS perdre ce qui est saisi.
+ *
+ * <p>⚠ Ces boutons remplacaient la grille entiere. Un agent qui avait rempli douze lignes
+ * et cliquait « 20 » pour en ajouter perdait les douze, sans avertissement et sans retour
+ * possible. On complete par des lignes vides, et l'on ne retire QUE des lignes vides par
+ * la fin : reduire n'efface jamais une saisie.</p>
+ */
+function ajuster(grille: LigneGrille[], nb: number): LigneGrille[] {
+  if (nb > grille.length) {
+    return [...grille, ...grilleDe(nb - grille.length)];
+  }
+  const resultat = [...grille];
+  while (resultat.length > nb) {
+    const derniere = resultat[resultat.length - 1];
+    const vide = Object.values(derniere).every((v) => v.trim() === '');
+    if (!vide) break;
+    resultat.pop();
+  }
+  return resultat;
+}
+
 export function SaisieView({ maximumLignes = 50 }: { maximumLignes?: number }) {
   const [partenaireId, setPartenaireId] = React.useState('');
   const [dateReference, setDateReference] = React.useState(
@@ -123,6 +145,12 @@ export function SaisieView({ maximumLignes = 50 }: { maximumLignes?: number }) {
       {
         onSuccess: (resultat) => {
           setSynthese(resultat);
+          // Les refus du SERVEUR reviennent dans la grille : ils portent le meme index
+          // que les lignes. Sans cela, « 2 en erreur » etait un compte sans coupables, et
+          // l'agent devait deviner lesquelles corriger.
+          if (resultat.erreurs.length > 0) {
+            setVerdicts(new Map(resultat.erreurs.map((v) => [v.index, v])));
+          }
           setLotId(resultat.statut === 'VALIDE' ? null : resultat.lotId);
           if (resultat.statut === 'VALIDE') {
             setGrille(grilleDe(10));
@@ -179,7 +207,7 @@ export function SaisieView({ maximumLignes = 50 }: { maximumLignes?: number }) {
             {RACCOURCIS_LIGNES.map((n) => (
               <Button
                 key={n}
-                onPress={() => setGrille(grilleDe(n))}
+                onPress={() => setGrille((g) => ajuster(g, n))}
                 size="sm"
                 variant={grille.length === n ? 'secondary' : 'ghost'}
               >

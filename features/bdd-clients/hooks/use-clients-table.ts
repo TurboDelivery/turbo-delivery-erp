@@ -18,7 +18,7 @@ import { useBddClientsFilters } from './use-bdd-clients-filters';
  * dans le navigateur trierait vingt-cinq lignes au lieu de la base.</p>
  */
 export function useClientsTable(onOuvrir: (id: string) => void) {
-  const { filtres, poser } = useBddClientsFilters();
+  const { filtres, setFiltres } = useBddClientsFilters();
   const { data, isError, isFetching, isLoading, refetch } = useClientsQuery(filtres);
 
   const table = useReactTable({
@@ -32,7 +32,10 @@ export function useClientsTable(onOuvrir: (id: string) => void) {
   });
 
   return {
-    allerA: (page: number) => poser({ page }),
+    // ⚠ setFiltres, PAS poser : poser remet la page a zero, c'est son role quand un
+    // filtre change. L'utiliser ici rendait la pagination inerte — cliquer « page
+    // suivante » ecrivait page 1 puis 0 dans le meme geste, et l'on restait page 1 sur 52.
+    allerA: (page: number) => setFiltres({ page }),
     isError,
     isFetching,
     isLoading,

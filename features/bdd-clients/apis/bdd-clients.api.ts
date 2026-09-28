@@ -1,5 +1,3 @@
-import { apiClientHttp } from '@/lib/api-client-http';
-
 import {
   IEnregistrerLot,
   IFicheClient,
@@ -19,6 +17,36 @@ import {
  * <p>Une valeur vide est OMISE plutôt qu'envoyée vide : côté serveur, un filtre absent ne
  * pose aucun critère, alors qu'une chaîne vide en poserait un qui ne trouverait rien.</p>
  */
+/** Le relais, en même origine. Le chemin qui suit est celui du backend. */
+const RELAIS = '/api/bdd';
+
+async function appeler<T>(chemin: string, init?: RequestInit & { params?: Record<string, unknown> }): Promise<T> {
+  const url = new URL(`${RELAIS}${chemin}`, window.location.origin);
+  Object.entries(init?.params ?? {}).forEach(([cle, valeur]) => {
+    if (valeur === undefined || valeur === null) return;
+    if (Array.isArray(valeur)) valeur.forEach((v) => url.searchParams.append(cle, String(v)));
+    else url.searchParams.set(cle, String(valeur));
+  });
+
+  const reponse = await fetch(url, {
+    ...init,
+    headers: { 'Content-Type': 'application/json', ...(init?.headers ?? {}) },
+  });
+  const texte = await reponse.text();
+  if (!reponse.ok) {
+    // Le message du serveur d'abord : il dit souvent exactement ce qui manque.
+    let message = `La lecture a échoué (${reponse.status}).`;
+    try {
+      const corps = JSON.parse(texte);
+      if (corps?.message) message = corps.message;
+    } catch {
+      /* le corps n'est pas du JSON : on garde le message générique */
+    }
+    throw new Error(message);
+  }
+  return texte ? (JSON.parse(texte) as T) : (undefined as T);
+}
+
 function parametres(f: IFiltresClients): Record<string, unknown> {
   const p: Record<string, unknown> = {};
   if (f.recherche.trim()) p.recherche = f.recherche.trim();
@@ -38,7 +66,26 @@ function parametres(f: IFiltresClients): Record<string, unknown> {
 }
 
 /**
- * Le module passe par `apiClientHttp`, et NON par `lib/api`.
+ * Le module passe par le RELAIS `/api/bdd`, et non directement par main-backend.
+ *
+ * <p>Mesuré le 28/09 : l'écran recevait 401 sur toutes ses lectures. La cause n'est pas
+ * un jeton manquant mais une impossibilité — `api-client-http.tsx` contient
+ * `if (service !== 'backend')` et n'envoie DÉLIBÉRÉMENT aucun en-tête `Authorization`
+ * vers main-backend, parce que son filtre JWT valide des jetons de livreur signés avec un
+ * autre secret que celui d'erp-backend. Tous les appels ERP qui fonctionnent aujourd'hui
+ * passent par un préfixe ouvert en `permitAll` ; celui-ci est le premier à ne pas l'être,
+ * et il ne doit pas l'être : il sert les numéros de tous les clients finaux.</p>
+ *
+ * <p>Les appels partent donc vers `/api/bdd/...`, en MÊME ORIGINE. Un gestionnaire de
+ * route Next.js les reçoit côté serveur, vérifie la session, et rejoue vers main-backend
+ * avec une clé de service que le navigateur ne voit jamais.</p>
+ *
+ * <p>⚠ Ne pas « simplifier » en rappelant `apiClientHttp` avec `service: 'backend'` : cela
+ * remet le 401. Et ne pas ouvrir le préfixe côté backend pour s'en passer.</p>
+ */
+
+/**
+ * Note historique — pourquoi pas `lib/api`.
  *
  * <p>Ce n'est pas une préférence de style. `lib/api` n'injecte aucun jeton : son bloc
  * d'authentification est commenté. Or `/api/bdd-clients/**` n'est pas dans la liste des
@@ -59,30 +106,24 @@ export const bddClientsAPI = {
    * allers-retours de session. Cinquante appels ne tiendraient pas les trois secondes.</p>
    */
   verifier(partenaireId: string, lignes: ILigneAVerifier[]): Promise<IVerdictLigne[]> {
-    return apiClientHttp.request<IVerdictLigne[]>({
-      endpoint: '/api/bdd-clients/lots/verifier',
+    return appeler<IVerdictLigne[]>(`/lots/verifier`, {
+      body: JSON.stringify({ partenaireId, lignes }),
       method: 'POST',
-      service: 'backend',
-      data: { partenaireId, lignes },
     });
   },
 
   /** Enregistre le lot, en brouillon ou validé, et rend la synthèse. */
   enregistrer(dto: IEnregistrerLot): Promise<ISyntheseLot> {
-    return apiClientHttp.request<ISyntheseLot>({
-      endpoint: '/api/bdd-clients/lots',
+    return appeler<ISyntheseLot>(`/lots`, {
       method: 'POST',
-      service: 'backend',
-      data: dto,
+      body: JSON.stringify(dto),
     });
   },
 
   /** Les lots de l'agent connecté. Le serveur ne rend que les siens. */
   mesLots(): Promise<ILotResume[]> {
-    return apiClientHttp.request<ILotResume[]>({
-      endpoint: '/api/bdd-clients/lots',
+    return appeler<ILotResume[]>(`/lots`, {
       method: 'GET',
-      service: 'backend',
     });
   },
 
@@ -94,29 +135,23 @@ export const bddClientsAPI = {
    * droit et où l'opérateur en a besoin.</p>
    */
   rouvrir(lotId: string, enClair = false): Promise<ILotDetail> {
-    return apiClientHttp.request<ILotDetail>({
-      endpoint: `/api/bdd-clients/lots/${lotId}`,
+    return appeler<ILotDetail>(`/lots/${lotId}`, {
       method: 'GET',
-      service: 'backend',
       params: { enClair },
     });
   },
   /** La base consolidée, filtrée et paginée. Le serveur masque les numéros. */
   lister(filtres: IFiltresClients, taille = 25): Promise<IPageClients> {
-    return apiClientHttp.request<IPageClients>({
-      endpoint: '/api/bdd-clients',
+    return appeler<IPageClients>(``, {
       method: 'GET',
-      service: 'backend',
       params: { ...parametres(filtres), page: filtres.page, taille },
     });
   },
 
   /** Les quatre cartes de tête. Elles suivent les mêmes filtres que la liste. */
   kpis(filtres: IFiltresClients): Promise<IKpisBase> {
-    return apiClientHttp.request<IKpisBase>({
-      endpoint: '/api/bdd-clients/kpis',
+    return appeler<IKpisBase>(`/kpis`, {
       method: 'GET',
-      service: 'backend',
       params: parametres(filtres),
     });
   },
@@ -127,10 +162,8 @@ export const bddClientsAPI = {
    * explicite, réservé aux profils qui y ont droit.</p>
    */
   fiche(id: string, enClair = false): Promise<IFicheClient> {
-    return apiClientHttp.request<IFicheClient>({
-      endpoint: `/api/bdd-clients/${id}`,
+    return appeler<IFicheClient>(`/${id}`, {
       method: 'GET',
-      service: 'backend',
       params: { enClair },
     });
   },

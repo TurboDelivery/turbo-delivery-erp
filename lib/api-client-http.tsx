@@ -70,7 +70,18 @@ export class ApiClientHttp {
     this.axiosInstance.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        if (error.response?.status === 401) {
+        // ⚠ Un 401 ne veut dire « session expiree » QUE si l'on avait presente le jeton
+        // de la session. Le service `backend` n'en recoit jamais (voir getHeaders, qui
+        // l'exclut deliberement) : un 401 y signifie « cette route exige une
+        // authentification que nous n'avons pas », pas « votre session est morte ».
+        //
+        // Sans cette distinction, ouvrir un ecran servi par une route fermee de
+        // main-backend DECONNECTAIT l'operateur de tout l'ERP. Constate le 28/09/2026 sur
+        // la base clients : chaque chargement partait en /api/auth/logout, et l'URL
+        // retombait sur localhost:3000 dans le navigateur, d'ou les ERR_CONNECTION_REFUSED
+        // en console.
+        const serviceAppele = (error.config as { __service?: string } | undefined)?.__service;
+        if (error.response?.status === 401 && serviceAppele !== 'backend') {
           oublierSession();
           try {
             const base = process.env.NEXT_PUBLIC_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
@@ -251,6 +262,11 @@ export class ApiClientHttp {
       const userRoles = headers.get('X-User-Roles');
       config = {
         ...config,
+        // Le service voyage avec la requete : l'intercepteur en a besoin pour savoir si
+        // un 401 concerne notre session ou seulement une route fermee. Axios recopie les
+        // cles inconnues dans error.config, ce qui est exactement ce qu'on veut ici ; le
+        // cast est necessaire parce que AxiosRequestConfig est ferme.
+        ...({ __service: service } as Record<string, unknown>),
         baseURL: baseUrl,
         headers: {
           'Content-Type': 'application/json',
