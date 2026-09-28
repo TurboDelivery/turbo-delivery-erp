@@ -8,9 +8,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 pnpm dev          # Start dev server (http://localhost:3000)
 pnpm build        # Production build
 pnpm lint         # ESLint via next lint
+pnpm test         # Vitest, une passe
+pnpm test:watch   # Vitest en continu
 ```
 
-No test runner is configured.
+### Tests
+
+Vitest, posé le 28/09/2026. Ce dépôt n'avait **aucun** lanceur : toute sa logique front
+reposait sur une relecture humaine, et le défaut le plus coûteux du module base clients
+était de cette nature — un point décimal lu comme un séparateur de milliers, qui
+enregistrait un ticket de 12 500 en 12,5.
+
+Les tests vivent **à côté de ce qu'ils testent** (`grille.utils.ts` →
+`grille.utils.test.ts`), en environnement **node** : ce qu'on teste est du calcul pur,
+et monter un DOM coûterait des secondes sans rien prouver de plus. Le jour où un
+composant devra être rendu, ajouter un projet jsdom à côté plutôt qu'alourdir celui-ci.
+
+⚠ **Écrire les espaces spéciales en échappement** (`'\u00A0'`), jamais collées : une
+espace insécable dans un source est invisible à la relecture, et une assertion qui
+échoue affiche alors deux chaînes strictement identiques.
 
 ## Environment Variables
 

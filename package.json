@@ -8,7 +8,9 @@
     "build": "NODE_OPTIONS=--max-old-space-size=4096 next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:all": "next lint --dir app --dir components --dir features --dir hooks --dir lib --dir src --dir utils --dir providers"
+    "lint:all": "next lint --dir app --dir components --dir features --dir hooks --dir lib --dir src --dir utils --dir providers",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@casl/ability": "^6.8.0",
@@ -128,7 +130,8 @@
     "postcss": "^8.5.9",
     "prettier": "^3.8.2",
     "prettier-plugin-tailwindcss": "^0.8.1",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "vitest": "^3.2.7"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
