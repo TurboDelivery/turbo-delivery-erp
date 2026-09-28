@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@heroui-v3/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 import { CarburantRapideModal } from '@/components/turboys/programmes/carburant-rapide-modal';
@@ -10,6 +11,7 @@ import { ProgrammeApercuModal } from '@/components/turboys/programmes/programme-
 import { HistoriqueProgramme } from '@/components/turboys/programmes/programme-historique-modal';
 import { WeeklyJoursEditor, defaultJours } from '@/components/turboys/programmes/weekly-jours-editor';
 import { SemaineProgrammes } from '@/features/programmes/refonte/semaine-programmes';
+import { programmeKeys } from '@/features/turboys/queries/programme.query';
 import type { IAuditAction } from '@/features/supervision/types';
 import type {
     IAutosuffisanceJour,
@@ -181,28 +183,61 @@ function BancCarburantRapide({ programmes }: { programmes: IProgramme[] }) {
     );
 }
 
-/** La duplication d'une semaine : la cible vide, puis la cible déjà servie. */
+/**
+ * La duplication d'une semaine, avec choix de la source ET de la cible.
+ *
+ * <p>La fenetre lit desormais le contenu des deux semaines pour dire, AVANT le clic, ce
+ * que chacune porte. Le banc pre-remplit donc le cache plutot que de passer un compte en
+ * propriete : sans cela il appellerait le reseau, et un banc qui appelle le reseau ne
+ * montre plus rien quand le reseau tombe.</p>
+ *
+ * <p>Semaine 39 : 29 programmes (la source). Semaine 40 : vide. Semaine 41 : 14
+ * programmes, pour voir le refus.</p>
+ */
 function BancDuplication() {
-    const [etat, setEtat] = React.useState<'ferme' | 'vide' | 'occupee'>('ferme');
+    const [ouvert, setOuvert] = React.useState(false);
+
+    const client = React.useMemo(() => {
+        // ⚠ `staleTime` ne suffit PAS : le hook impose le sien (30 s), et au-dela la
+        // donnee semee est jugee perimee, la requete repart vers le reseau et le banc
+        // affiche 0 la ou il avait seme 14. Ce sont les `refetchOn*` qu'il faut couper,
+        // eux ne sont pas redefinis par le hook.
+        const c = new QueryClient({
+            defaultOptions: {
+                queries: {
+                    gcTime: Infinity,
+                    refetchOnMount: false,
+                    refetchOnReconnect: false,
+                    refetchOnWindowFocus: false,
+                    retry: false,
+                },
+            },
+        });
+        const faux = (n: number) => Array.from({ length: n }, (_, i) => ({ id: `p${i}` }));
+        c.setQueryData(programmeKeys.semaine(2026, 39), faux(29));
+        c.setQueryData(programmeKeys.semaine(2026, 40), []);
+        c.setQueryData(programmeKeys.semaine(2026, 41), faux(14));
+        return c;
+    }, []);
+
     return (
         <section className="mt-6 rounded-lg border border-separator p-4">
-            <h2 className="mb-3 text-sm font-semibold">Dupliquer la semaine précédente</h2>
-            <div className="flex flex-wrap gap-2">
-                <Button onPress={() => setEtat('vide')} size="sm" variant="outline">
-                    Semaine cible vide
-                </Button>
-                <Button onPress={() => setEtat('occupee')} size="sm" variant="outline">
-                    Semaine cible déjà servie
-                </Button>
-            </div>
-            <DuplicationSemaineDialog
-                nbDejaLa={etat === 'occupee' ? 14 : 0}
-                onDupliquer={() => setEtat('ferme')}
-                onFermer={() => setEtat('ferme')}
-                ouvert={etat !== 'ferme'}
-                semaineCible={{ annee: 2026, semaine: 35 }}
-                semaineSource={{ annee: 2026, semaine: 34 }}
-            />
+            <h2 className="mb-3 text-sm font-semibold">Dupliquer une semaine</h2>
+            <p className="mb-3 text-xs text-muted">
+                Cache pre-rempli : semaine 39 = 29 programmes, 40 = vide, 41 = 14 programmes.
+                Passer la cible de 40 a 41 doit faire apparaitre le refus.
+            </p>
+            <Button onPress={() => setOuvert(true)} size="sm" variant="outline">
+                Ouvrir la duplication
+            </Button>
+            <QueryClientProvider client={client}>
+                <DuplicationSemaineDialog
+                    onDupliquer={() => setOuvert(false)}
+                    onFermer={() => setOuvert(false)}
+                    ouvert={ouvert}
+                    semaineAffichee={{ annee: 2026, semaine: 39 }}
+                />
+            </QueryClientProvider>
         </section>
     );
 }

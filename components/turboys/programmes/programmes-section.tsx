@@ -200,7 +200,6 @@ export default function ProgrammesSection() {
   const [importing, setImporting] = React.useState(false);
   const [dupliquerOuvert, setDupliquerOuvert] = React.useState(false);
   const dupliquer = useDupliquerSemaineMutation(() => setDupliquerOuvert(false));
-  const nbDejaLa = Array.isArray(data) ? data.length : 0;
 
   // Import par fichier (.xlsx/.csv) : correspondance livreur par matricule puis
   // téléphone, création de brouillons pour la semaine affichée.
@@ -381,19 +380,17 @@ export default function ProgrammesSection() {
       />
       <DuplicationSemaineDialog
         enAttente={dupliquer.isPending}
-        nbDejaLa={nbDejaLa}
-        onDupliquer={() =>
+        onDupliquer={(source, cible) =>
           dupliquer.mutate({
-            annee,
-            depuisAnnee: precedente.annee,
-            depuisSemaine: precedente.semaine,
-            semaine,
+            annee: cible.annee,
+            depuisAnnee: source.annee,
+            depuisSemaine: source.semaine,
+            semaine: cible.semaine,
           })
         }
         onFermer={() => setDupliquerOuvert(false)}
         ouvert={dupliquerOuvert}
-        semaineCible={{ annee, semaine }}
-        semaineSource={precedente}
+        semaineAffichee={{ annee, semaine }}
       />
     </>
   );

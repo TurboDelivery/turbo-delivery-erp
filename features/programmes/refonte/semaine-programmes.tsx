@@ -89,7 +89,13 @@ export interface SemaineProgrammesProps {
   /** Publier d'un coup les programmes cochés. */
   onPublierLot: (ids: string[]) => void;
 
-  /** Dupliquer la semaine précédente entière vers celle-ci, en brouillon. */
+  /**
+   * Ouvrir la duplication d'une semaine entière vers une autre, en brouillon.
+   *
+   * <p>Le nom garde « Precedente » pour ne pas casser les appelants, mais le geste ne
+   * l'est plus : la fenetre laisse choisir la semaine source ET la semaine cible. Par
+   * defaut, elle part de la semaine affichee vers la suivante.</p>
+   */
   onDupliquerSemainePrecedente: () => void;
   onImporterFichier: () => void;
   onTelechargerModele: () => void;
@@ -526,7 +532,7 @@ export function SemaineProgrammes({
                   if (k === 'modele') onTelechargerModele();
                 }}
               >
-                <Dropdown.Item id="dupliquer">Dupliquer la semaine précédente</Dropdown.Item>
+                <Dropdown.Item id="dupliquer">Dupliquer une semaine…</Dropdown.Item>
                 <Dropdown.Item id="fichier">Importer un fichier (.xlsx, .csv)</Dropdown.Item>
                 <Dropdown.Item id="modele">Télécharger le modèle</Dropdown.Item>
               </Dropdown.Menu>
