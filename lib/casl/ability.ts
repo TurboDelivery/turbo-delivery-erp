@@ -39,6 +39,13 @@ export type AppSubjects =
   // 'read' = consulter les groupes ; 'manage' = constituer, detacher, changer le
   // compte principal. DG l'a via 'manage all', DGA en lecture via 'read all'.
   | 'GroupePartenaire'
+  // 2026-09-28 — Module BASE DE DONNEES CLIENTS. Sujet DEDIE et non 'Finance' :
+  // il ne s'agit pas d'argent mais de donnees personnelles de clients finaux,
+  // l'actif le plus sensible de l'ERP. Le confondre avec 'Finance' ouvrirait la
+  // base de numeros a tous les profils comptables.
+  // 'read' = consulter la base ; 'create' = saisir un lot ; 'manage' = corriger,
+  // fusionner, exporter.
+  | 'PageBddClients'
   | 'Utilisateur'
   | 'Finance'
   // 2026-05 — Sous-menus dédiés du module Comptabilité pour contrôle granulaire
@@ -107,7 +114,7 @@ export type AppSubjects =
 
 export type AppAbility = MongoAbility<[AppActions, AppSubjects]>;
 
-export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS','AUTHENTIFICATION_VERIFICATION','AGENT_V1','RESPONSABLE_AUTH_COUPONS','ASSISTANT_COMPTABLE'] as const;
+export const APP_ROLES = ['TRESORIER', 'STANDARD', 'OPS_MANAGER', 'COMPTABLE', 'DGA', 'DG', 'BUSINESS_DEVELOPER', 'RESPONSABLE_VA','RECOUVREUR','CAISSIER','DIRECTEUR_OPERATIONS','AUTHENTIFICATION_VERIFICATION','AGENT_V1','RESPONSABLE_AUTH_COUPONS','ASSISTANT_COMPTABLE','MARKETING','SUPERVISEUR_OPS'] as const;
 export type AppRole = (typeof APP_ROLES)[number];
 
 const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
@@ -126,6 +133,17 @@ const SESSION_ROLE_ALIASES: Record<string, AppRole> = {
   'RESPONSABLE AUTH COUPONS': 'RESPONSABLE_AUTH_COUPONS',
   ASSISTANT_COMPTABLE: 'ASSISTANT_COMPTABLE',
   'ASSISTANT COMPTABLE': 'ASSISTANT_COMPTABLE',
+  // 2026-09-28 — Profils du module BASE DE DONNEES CLIENTS.
+  // ⚠ Un libelle absent de cette table ferme TOUT l'ERP au compte : le role n'est
+  // pas reconnu, aucune regle ne s'applique, et le module Privileges ne peut rien
+  // rouvrir puisqu'il n'indexe que des roles normalises. Les variantes d'ecriture
+  // rencontrees en base doivent donc TOUTES figurer ici.
+  MARKETING: 'MARKETING',
+  'CHARGE MARKETING': 'MARKETING',
+  'CHARGE DE MARKETING': 'MARKETING',
+  SUPERVISEUR_OPS: 'SUPERVISEUR_OPS',
+  'SUPERVISEUR OPS': 'SUPERVISEUR_OPS',
+  'SUPERVISEUR OPERATIONS': 'SUPERVISEUR_OPS',
   DGA: 'DGA',
   DG: 'DG',
   ADMIN: 'DG',
@@ -239,6 +257,9 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
     { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
   ],
   OPS_MANAGER: [
+    // Destinataire des alertes qualite (avis « Non » ou note <= 2) du module
+    // base clients : sans lecture, l'alerte pointerait un ecran qui lui est ferme.
+    { action: 'read', subject: 'PageBddClients' },
     { action: 'read', subject: 'Reporting' },
     // SPEC-ERP-TURBO-AUDIT-v2.0 : l'Ops Manager est le pilote Audit & Controle de
     // gestion — c'est le destinataire premier de l'ecran de supervision.
@@ -277,6 +298,10 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
   ],
   STANDARD: [
     { action: 'manage', subject: 'Trafic' },
+    // « Agent de saisie - Standard » : il saisit les lots de la base clients et
+    // relit LES SIENS. Il ne consulte pas la base consolidee, et le serveur ne
+    // lui rend que des numeros masques.
+    { action: ['read', 'create'], subject: 'PageBddClients' },
     { action: ['read', 'update'], subject: 'Incident' },
     { action: ['read', 'create', 'update'], subject: 'Ticket' },
     { action: 'manage', subject: 'Creneau' },
@@ -375,6 +400,29 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
     { action: 'read', subject: 'PageCaissier' },
     { action: 'read', subject: 'Livreur' },
     { action: 'read', subject: 'Restaurant' },
+    { action: 'access', subject: ['Menu', 'Route'] },
+    { effect: 'cannot', action: 'access', subject: 'Analytics' },
+  ],
+  // 2026-09-28 — Profils du module BASE DE DONNEES CLIENTS.
+  //
+  // Ils n'existaient nulle part : ni dans ce fichier, ni cote backend, ni dans la
+  // table des roles. Les creer coute un deploiement du front ET un INSERT a la
+  // main en production ; les deux sont necessaires, l'un sans l'autre ferme
+  // l'ERP entier au compte concerne.
+  MARKETING: [
+    // Qualifie les fiches par appel, pose tags et segments, voit les numeros en
+    // clair — chaque affichage complet devant etre trace cote serveur.
+    { action: 'manage', subject: 'PageBddClients' },
+    { action: 'read', subject: 'Restaurant' },
+    { action: 'access', subject: ['Menu', 'Route'] },
+    { effect: 'cannot', action: 'access', subject: 'Analytics' },
+  ],
+  SUPERVISEUR_OPS: [
+    // Fusionne les doublons et arbitre les alertes qualite. Il lit la base et les
+    // lots de tous les agents, sans acceder aux ecrans financiers.
+    { action: 'manage', subject: 'PageBddClients' },
+    { action: 'read', subject: ['Livreur', 'Restaurant', 'Reporting'] },
+    { action: 'manage', subject: 'Trafic' },
     { action: 'access', subject: ['Menu', 'Route'] },
     { effect: 'cannot', action: 'access', subject: 'Analytics' },
   ],

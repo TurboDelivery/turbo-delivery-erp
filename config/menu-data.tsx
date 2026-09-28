@@ -23,7 +23,7 @@
  * ce module est desormais dans le graphe SERVEUR.</p>
  */
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconShieldLock, IconUser, IconUsers } from '@tabler/icons-react';
-import { PlusCircle, AlertTriangle, BarChart, Bell, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, Users, Wallet } from 'lucide-react';
+import { PlusCircle, AlertTriangle, BarChart, Bell, BookUser, CheckCircle, FileText, History, Layers, List, Lock, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
 import type { AppAbility, AppActions, AppSubjects } from '@/lib/casl/ability';
@@ -257,6 +257,26 @@ const menuData: IMenuData[] = [
       { icon: CheckCircle, title: 'Vérification dépôts', path: '/finance/comptabilite/verification-depots', can: { action: 'read', subject: 'VerificationDepots' } },
       // ENCOURS : releve des restes a payer (factures editees non recouvrees), par mois/an.
       { icon: TrendingUp, title: 'Encours', path: '/finance/comptabilite/encours', can: { action: 'read', subject: 'PageEncours' } },
+    ],
+  },
+
+  /**
+   * BASE DE DONNEES CLIENTS.
+   *
+   * <p>Menu racine, et non un sous-menu de Comptabilite : ce module ne touche pas au
+   * chiffre d'affaires. Aucune donnee saisie ici n'entre dans une facture, un encours ou
+   * un rapport de performance, et le ranger sous Finance laisserait croire l'inverse au
+   * premier operateur qui le lirait.</p>
+   *
+   * <p>⚠ Chaque entree porte son `can`. Sans lui, l'ecran est refuse a TOUT LE MONDE,
+   * DG compris : la garde de `app/(protected)/layout.tsx` ferme par defaut.</p>
+   */
+  {
+    icon: BookUser,
+    title: 'Base de données',
+    children: [
+      { icon: UserPlus, title: 'Saisie en lot', path: '/bdd-clients/saisie', can: { action: 'create', subject: 'PageBddClients' } },
+      { icon: BookUser, title: 'Clients', path: '/bdd-clients', can: { action: 'read', subject: 'PageBddClients' } },
     ],
   },
 
