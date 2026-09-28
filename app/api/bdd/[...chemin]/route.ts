@@ -38,7 +38,7 @@ const BASE = process.env.NEXT_PUBLIC_API_BACKEND_URL ?? '';
 const CLE = process.env.BDD_CLIENTS_SERVICE_KEY ?? '';
 
 /** Les méthodes que ce relais accepte. Tout le reste est refusé, pas relayé. */
-const METHODES = new Set(['GET', 'POST', 'PUT', 'DELETE']);
+const METHODES = new Set(['GET', 'POST', 'PATCH', 'PUT', 'DELETE']);
 
 async function relayer(requete: NextRequest, chemin: string[]) {
   if (!METHODES.has(requete.method)) {
@@ -122,6 +122,10 @@ export async function POST(requete: NextRequest, ctx: { params: Promise<{ chemin
 }
 
 export async function PUT(requete: NextRequest, ctx: { params: Promise<{ chemin: string[] }> }) {
+  return relayer(requete, (await ctx.params).chemin);
+}
+
+export async function PATCH(requete: NextRequest, ctx: { params: Promise<{ chemin: string[] }> }) {
   return relayer(requete, (await ctx.params).chemin);
 }
 

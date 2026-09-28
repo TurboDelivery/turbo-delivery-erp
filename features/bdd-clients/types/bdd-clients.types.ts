@@ -311,3 +311,56 @@ export interface ILigneJournalFusion {
   annuleAt: string | null;
   annuleMotif: string | null;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Correction d'une fiche
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Ce que l'écran envoie pour corriger une fiche.
+ *
+ * <p>⚠ `null` veut dire « ne touche pas à ce champ », une chaîne vide ou une liste vide
+ * veut dire « efface-le ». Envoyer l'objet entier à chaque fois effacerait ce que
+ * l'écran n'affiche pas.</p>
+ */
+export interface IModificationFiche {
+  nom?: string | null;
+  prenom?: string | null;
+  alias?: string[] | null;
+  tags?: string[] | null;
+  note?: string | null;
+  /** Le poser VERROUILLE la fiche contre le recalcul de nuit ; le vider l'y rend. */
+  segmentCode?: string | null;
+  typeClient?: string | null;
+  zonePrincipaleId?: string | null;
+}
+
+export interface IBilanEdition {
+  clientId: string;
+  champsModifies: string[];
+  message: string;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Liste noire
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/** Un numéro qui n'est pas un client : un standard, un livreur, un numéro de test. */
+export interface ILigneListeNoire {
+  telephone: string;
+  telephoneMasque: string;
+  libelle: string;
+  motif: string | null;
+  creePar: string | null;
+  createdAt: string;
+  /** La fiche retirée en même temps, s'il y en avait une. */
+  ficheRetireeId: string | null;
+  capturesRetirees: number;
+}
+
+export interface IBilanListeNoire {
+  telephone: string;
+  ficheTouchee: boolean;
+  captures: number;
+  message: string;
+}

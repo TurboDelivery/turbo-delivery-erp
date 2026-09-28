@@ -1,9 +1,13 @@
 import {
+  IBilanEdition,
   IBilanFusion,
+  IBilanListeNoire,
   IDoublon,
   IEnregistrerLot,
   IAppelSaisi,
   ILigneJournalFusion,
+  ILigneListeNoire,
+  IModificationFiche,
   IFicheClient,
   IFiltresClients,
   IKpisBase,
@@ -201,6 +205,44 @@ export const bddClientsAPI = {
   /** Le journal des fusions : c'est par lui qu'une fusion se retrouve pour être annulée. */
   journalFusions(limite = 50): Promise<ILigneJournalFusion[]> {
     return appeler<ILigneJournalFusion[]>(`/fusions`, { method: 'GET', params: { limite } });
+  },
+
+  /**
+   * Corrige une fiche.
+   *
+   * <p>⚠ N'envoyer QUE les champs touchés : `null` veut dire « ne touche pas », une
+   * chaîne vide veut dire « efface ». Envoyer l'objet entier effacerait ce que l'écran
+   * n'affiche pas.</p>
+   */
+  modifier(clientId: string, modification: IModificationFiche): Promise<IBilanEdition> {
+    return appeler<IBilanEdition>(`/${clientId}`, {
+      body: JSON.stringify(modification),
+      method: 'PATCH',
+    });
+  },
+
+  /** Les numéros qui ne sont pas des clients. */
+  listeNoire(): Promise<ILigneListeNoire[]> {
+    return appeler<ILigneListeNoire[]>(`/liste-noire`, { method: 'GET' });
+  },
+
+  /** Inscrit un numéro, et retire la fiche qui le portait. */
+  inscrireEnListeNoire(
+    telephone: string,
+    libelle: string,
+    motif: string | null,
+  ): Promise<IBilanListeNoire> {
+    return appeler<IBilanListeNoire>(`/liste-noire`, {
+      body: JSON.stringify({ libelle, motif, telephone }),
+      method: 'POST',
+    });
+  },
+
+  /** Retire un numéro, et rend la fiche que cette liste avait retirée. */
+  retirerDeLaListeNoire(telephone: string): Promise<IBilanListeNoire> {
+    return appeler<IBilanListeNoire>(`/liste-noire/${encodeURIComponent(telephone)}`, {
+      method: 'DELETE',
+    });
   },
 
   /** Défait une fusion, à l'identique. Le motif est obligatoire côté serveur. */

@@ -23,7 +23,7 @@
  * ce module est desormais dans le graphe SERVEUR.</p>
  */
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconShieldLock, IconUser, IconUsers } from '@tabler/icons-react';
-import { PlusCircle, AlertTriangle, BarChart, Bell, BookUser, CheckCircle, FileText, History, Layers, List, Lock, Merge, Receipt, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
+import { PlusCircle, AlertTriangle, BarChart, Bell, BookUser, CheckCircle, FileText, History, Layers, List, Lock, Merge, Receipt, ShieldBan, ShoppingCartIcon, SquareUser, Ticket, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
 import type { AppAbility, AppActions, AppSubjects } from '@/lib/casl/ability';
@@ -284,6 +284,9 @@ const menuData: IMenuData[] = [
       // le droit de fusionner, et le backend le lui refuse. Une entree qu'il verrait le
       // menerait a un 403.
       { icon: Merge, title: 'Doublons', path: '/bdd-clients/doublons', can: { action: 'fusionner', subject: 'PageBddClients' } },
+      // Meme garde que les doublons : exclure un numero retire de la base tout ce qui a
+      // ete saisi sous lui, et le backend le reserve aux superviseurs.
+      { icon: ShieldBan, title: 'Numéros exclus', path: '/bdd-clients/numeros-exclus', can: { action: 'fusionner', subject: 'PageBddClients' } },
     ],
   },
 

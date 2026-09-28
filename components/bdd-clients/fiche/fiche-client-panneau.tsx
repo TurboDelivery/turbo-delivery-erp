@@ -1,10 +1,12 @@
 'use client';
 
-import { Drawer, Spinner } from '@heroui-v3/react';
-import { PhoneCall, Store } from 'lucide-react';
+import React from 'react';
+import { Button, Drawer, Spinner } from '@heroui-v3/react';
+import { Pencil, PhoneCall, Store, Tag } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
 
+import { FormulaireCorrection } from './formulaire-correction';
 import { FormulaireQualification } from './formulaire-qualification';
 import {
   LIBELLES_CANAL,
@@ -44,13 +46,34 @@ function Nombre({ detail, libelle, valeur }: { detail?: string; libelle: string;
 
 function Corps({ fiche }: { fiche: IFicheClient }) {
   const nom = [fiche.nom, fiche.prenom].filter(Boolean).join(' ').trim();
+  const [correction, setCorrection] = React.useState(false);
 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className={nom ? 'text-lg font-semibold text-foreground' : 'text-lg italic text-muted'}>
-          {nom || 'Sans nom'}
-        </p>
+        <div className="flex items-start justify-between gap-2">
+          <p
+            className={nom ? 'text-lg font-semibold text-foreground' : 'text-lg italic text-muted'}
+          >
+            {nom || 'Sans nom'}
+          </p>
+          {/*
+            La correction est un geste d'appoint : un bouton discret, pas une colonne
+            d'actions. On vient sur cette fiche pour appeler et pour lire, on corrige
+            quand on s'aperçoit que le ticket avait mal orthographié le nom.
+          */}
+          {correction ? null : (
+            <Button
+              aria-label="Corriger cette fiche"
+              isIconOnly
+              onPress={() => setCorrection(true)}
+              size="sm"
+              variant="ghost"
+            >
+              <Pencil aria-hidden="true" className="size-4" />
+            </Button>
+          )}
+        </div>
         <p className="tabular-nums text-foreground">{fiche.telephone}</p>
         {fiche.alias.length > 0 ? (
           <p className="text-xs text-muted">aussi connu comme {fiche.alias.join(' · ')}</p>
@@ -67,6 +90,23 @@ function Corps({ fiche }: { fiche: IFicheClient }) {
             ? ` par ${LIBELLES_CANAL[fiche.canalPrefere] ?? fiche.canalPrefere}`
             : ''}
         </p>
+
+        {/*
+          Les étiquettes se posaient nulle part et ne s'affichaient nulle part : la
+          colonne existait depuis V145 sans que rien ne l'écrive ni ne la lise. Elles
+          restent en gris, comme le reste de l'identité — ce sont des repères, pas des
+          alertes.
+        */}
+        {fiche.tags.length > 0 ? (
+          <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-muted">
+            <Tag aria-hidden="true" className="size-3.5 shrink-0" />
+            {fiche.tags.map((t) => (
+              <span className="rounded-small bg-surface-2 px-1.5 py-0.5" key={t}>
+                {t}
+              </span>
+            ))}
+          </p>
+        ) : null}
       </div>
 
       {/*
@@ -74,7 +114,9 @@ function Corps({ fiche }: { fiche: IFicheClient }) {
         reste est le contexte qu'on lit pendant qu'on compose. Une fiche déjà tranchée —
         rejetée, fusionnée — ne se rappelle pas.
       */}
-      {fiche.statut === 'A_QUALIFIER' || fiche.statut === 'INJOIGNABLE' ? (
+      {correction ? <FormulaireCorrection fiche={fiche} onFermer={() => setCorrection(false)} /> : null}
+
+      {!correction && (fiche.statut === 'A_QUALIFIER' || fiche.statut === 'INJOIGNABLE') ? (
         <FormulaireQualification fiche={fiche} />
       ) : null}
 

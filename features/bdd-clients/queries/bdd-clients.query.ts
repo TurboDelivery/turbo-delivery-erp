@@ -9,6 +9,7 @@ import {
   IEnregistrerLot,
   IFiltresClients,
   ILigneAVerifier,
+  IModificationFiche,
 } from '../types/bdd-clients.types';
 
 export const bddClientsKeys = {
@@ -20,6 +21,7 @@ export const bddClientsKeys = {
   fiche: (id: string) => [...bddClientsKeys.all, 'fiche', id] as const,
   doublons: () => [...bddClientsKeys.all, 'doublons'] as const,
   journalFusions: () => [...bddClientsKeys.all, 'journal-fusions'] as const,
+  listeNoire: () => [...bddClientsKeys.all, 'liste-noire'] as const,
 };
 
 /**
@@ -188,6 +190,82 @@ export const useAnnulerFusionMutation = () => {
   return useMutation({
     mutationFn: ({ fusionId, motif }: { fusionId: string; motif: string }) =>
       bddClientsAPI.annulerFusion(fusionId, motif),
+    onSuccess: (bilan) => {
+      invalidate();
+      toast.success(bilan.message);
+    },
+    onError: (erreur: Error) => toast.error(erreur.message),
+  });
+};
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Correction d'une fiche et liste noire
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Corrige une fiche.
+ *
+ * <p>Tout est invalidé : un nom corrigé change la liste, un segment posé à la main
+ * change les cartes, et le rapprochement des doublons se fait sur le nom. Invalider
+ * finement laisserait un écran qui contredit l'autre.</p>
+ */
+export const useModifierFicheMutation = () => {
+  const invalidate = useInvalidateBddClients();
+  return useMutation({
+    mutationFn: ({
+      clientId,
+      modification,
+    }: {
+      clientId: string;
+      modification: IModificationFiche;
+    }) => bddClientsAPI.modifier(clientId, modification),
+    onSuccess: (bilan) => {
+      invalidate();
+      if (bilan.champsModifies.length === 0) {
+        toast.info(bilan.message);
+        return;
+      }
+      toast.success(bilan.message);
+    },
+    onError: (erreur: Error) => toast.error(erreur.message),
+  });
+};
+
+/** Les numéros qui ne sont pas des clients. */
+export const useListeNoireQuery = (actif = true) =>
+  useQuery({
+    queryKey: bddClientsKeys.listeNoire(),
+    queryFn: () => bddClientsAPI.listeNoire(),
+    enabled: actif,
+    staleTime: 0,
+  });
+
+/** Inscrit un numéro. Le bilan dit combien de commandes sortent des classements. */
+export const useInscrireListeNoireMutation = () => {
+  const invalidate = useInvalidateBddClients();
+  return useMutation({
+    mutationFn: ({
+      telephone,
+      libelle,
+      motif,
+    }: {
+      telephone: string;
+      libelle: string;
+      motif: string | null;
+    }) => bddClientsAPI.inscrireEnListeNoire(telephone, libelle, motif),
+    onSuccess: (bilan) => {
+      invalidate();
+      toast.success(bilan.message);
+    },
+    onError: (erreur: Error) => toast.error(erreur.message),
+  });
+};
+
+/** Retire un numéro, et rend la fiche que cette liste avait retirée. */
+export const useRetirerListeNoireMutation = () => {
+  const invalidate = useInvalidateBddClients();
+  return useMutation({
+    mutationFn: (telephone: string) => bddClientsAPI.retirerDeLaListeNoire(telephone),
     onSuccess: (bilan) => {
       invalidate();
       toast.success(bilan.message);
