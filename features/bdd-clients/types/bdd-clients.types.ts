@@ -421,3 +421,37 @@ export interface IBilanActionGroupee {
   ignorees: number;
   message: string;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Zones
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/** Une zone du référentiel. */
+export interface IZone {
+  id: string;
+  libelle: string;
+}
+
+/**
+ * Un libellé de quartier rencontré sur les tickets, et ce qu'on en a fait.
+ *
+ * <p>⚠ `arbitre` à faux veut dire « jamais tranché ». `arbitre` à vrai avec `zoneId` nul
+ * veut dire « tranché, et ce libellé n'a pas de zone » — « à emporter », par exemple.
+ * Sans cette distinction l'écran reproposerait indéfiniment ce qu'on a écarté.</p>
+ */
+export interface ILibelleZone {
+  libelleNormalise: string;
+  libelleVu: string;
+  nbCaptures: number;
+  zoneId: string | null;
+  zone: string | null;
+  arbitre: boolean;
+}
+
+export interface IBilanRapprochement {
+  libelle: string;
+  zoneId: string | null;
+  capturesTouchees: number;
+  fichesRecalculees: number;
+  message: string;
+}

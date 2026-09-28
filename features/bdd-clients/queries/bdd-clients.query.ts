@@ -23,6 +23,9 @@ export const bddClientsKeys = {
   doublons: () => [...bddClientsKeys.all, 'doublons'] as const,
   journalFusions: () => [...bddClientsKeys.all, 'journal-fusions'] as const,
   listeNoire: () => [...bddClientsKeys.all, 'liste-noire'] as const,
+  zones: () => [...bddClientsKeys.all, 'zones'] as const,
+  partenaires: () => [...bddClientsKeys.all, 'partenaires'] as const,
+  libellesDeZone: () => [...bddClientsKeys.all, 'zones-libelles'] as const,
   statsPartenaires: (debut: string, fin: string) =>
     [...bddClientsKeys.all, 'stats-partenaires', debut, fin] as const,
   voisinsPartenaire: (id: string, debut: string, fin: string) =>
@@ -357,4 +360,64 @@ export const useExporterMutation = () =>
       toast.success(`Export prêt : ${nom}`);
     },
     onError: (erreur: Error) => toast.error(erreur.message),
+  });
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Zones
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Le référentiel des zones.
+ *
+ * <p>Six lignes qui ne bougent pas : une heure de fraîcheur, et la même clé pour tous
+ * les écrans qui en ont besoin — le filtre comme l'écran de rapprochement.</p>
+ */
+export const useZonesQuery = (actif = true) =>
+  useQuery({
+    queryKey: bddClientsKeys.zones(),
+    queryFn: () => bddClientsAPI.zones(),
+    enabled: actif,
+    staleTime: 3_600_000,
+  });
+
+/** Les libellés vus à la saisie, et où en est l'arbitrage. */
+export const useLibellesDeZoneQuery = (actif = true) =>
+  useQuery({
+    queryKey: bddClientsKeys.libellesDeZone(),
+    queryFn: () => bddClientsAPI.libellesDeZone(),
+    enabled: actif,
+    staleTime: 0,
+  });
+
+/**
+ * Pose un rapprochement.
+ *
+ * <p>Tout est invalidé : le rapprochement est rétroactif, donc il change la zone de
+ * fiches déjà affichées ailleurs.</p>
+ */
+export const useRapprocherZoneMutation = () => {
+  const invalidate = useInvalidateBddClients();
+  return useMutation({
+    mutationFn: ({ libelle, zoneId }: { libelle: string; zoneId: string | null }) =>
+      bddClientsAPI.rapprocherZone(libelle, zoneId),
+    onSuccess: (bilan) => {
+      invalidate();
+      toast.success(bilan.message);
+    },
+    onError: (erreur: Error) => toast.error(erreur.message),
+  });
+};
+
+/**
+ * Les partenaires présents dans la base.
+ *
+ * <p>Une heure de fraîcheur : la liste ne change qu'au premier lot d'un nouveau
+ * restaurant.</p>
+ */
+export const usePartenairesQuery = (actif = true) =>
+  useQuery({
+    queryKey: bddClientsKeys.partenaires(),
+    queryFn: () => bddClientsAPI.partenaires(),
+    enabled: actif,
+    staleTime: 3_600_000,
   });

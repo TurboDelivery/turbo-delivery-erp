@@ -23,7 +23,7 @@
  * ce module est desormais dans le graphe SERVEUR.</p>
  */
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconShieldLock, IconUser, IconUsers } from '@tabler/icons-react';
-import { PlusCircle, AlertTriangle, BarChart, Bell, BookUser, CheckCircle, FileText, History, Layers, List, Lock, Merge, Receipt, ShieldBan, ShoppingCartIcon, Store, SquareUser, Ticket, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
+import { PlusCircle, AlertTriangle, BarChart, Bell, BookUser, CheckCircle, FileText, History, Layers, List, Lock, MapPin, Merge, Receipt, ShieldBan, ShoppingCartIcon, Store, SquareUser, Ticket, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
 import type { AppAbility, AppActions, AppSubjects } from '@/lib/casl/ability';
@@ -290,6 +290,8 @@ const menuData: IMenuData[] = [
       // Meme garde que les doublons : exclure un numero retire de la base tout ce qui a
       // ete saisi sous lui, et le backend le reserve aux superviseurs.
       { icon: ShieldBan, title: 'Numéros exclus', path: '/bdd-clients/numeros-exclus', can: { action: 'fusionner', subject: 'PageBddClients' } },
+      // Rapprocher un quartier engage toute la base, retroactivement : garde de superviseur.
+      { icon: MapPin, title: 'Quartiers', path: '/bdd-clients/quartiers', can: { action: 'fusionner', subject: 'PageBddClients' } },
     ],
   },
 

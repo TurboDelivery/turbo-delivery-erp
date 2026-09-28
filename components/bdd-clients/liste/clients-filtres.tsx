@@ -2,13 +2,16 @@
 
 import React from 'react';
 import { Button, Input, Label, ListBox, Select, TextField } from '@heroui-v3/react';
-import { Download, Search, X } from 'lucide-react';
+import { Download, Search, SlidersHorizontal, X } from 'lucide-react';
+
+import { FiltrePartenaires } from './filtre-partenaires';
 
 import {
   LIBELLES_CONSENTEMENT,
   LIBELLES_SEGMENT,
   LIBELLES_STATUT,
   useBddClientsFilters,
+  useZonesQuery,
 } from '@/features/bdd-clients';
 
 /**
@@ -69,6 +72,22 @@ function Liste({
 
 export function ClientsFiltres({ onExporter }: { onExporter: () => void }) {
   const { actifs, filtres, poser, vider } = useBddClientsFilters();
+  const zones = useZonesQuery();
+  const [deployes, setDeployes] = React.useState(false);
+
+  /*
+   * ⚠ DEUX RANGEES, pas trois.
+   *
+   * Neuf filtres ne tiennent pas sur deux rangees a 1000 px, et chaque rangee prise ici
+   * est une rangee de liste en moins sur une fenetre de 563 pixels de haut. Les quatre
+   * gestes quotidiens restent a plat ; les autres se replient derriere un bouton qui
+   * COMPTE ce qui est pose dessous — sans ce compte, un filtre actif mais cache ferait
+   * chercher pourquoi la liste est courte.
+   */
+  const replies =
+    (filtres.partenaires.length > 0 ? 1 : 0) +
+    (filtres.zones.length > 0 ? 1 : 0) +
+    (filtres.partenairesMin !== null ? 1 : 0);
 
   const changerListe = (cle: 'statut' | 'segment' | 'consentement') => (v: string) =>
     poser({ [cle]: v === '__tous' ? '' : v });
@@ -143,21 +162,7 @@ export function ClientsFiltres({ onExporter }: { onExporter: () => void }) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1">
-          <span className="text-sm text-foreground">Restaurants</span>
-          <div className="flex items-center gap-1">
-            {[2, 3].map((n) => (
-              <Button
-                key={n}
-                onPress={() => poser({ partenairesMin: filtres.partenairesMin === n ? null : n })}
-                size="sm"
-                variant={filtres.partenairesMin === n ? 'secondary' : 'ghost'}
-              >
-                {n}+
-              </Button>
-            ))}
-          </div>
-        </div>
+
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
@@ -183,6 +188,17 @@ export function ClientsFiltres({ onExporter }: { onExporter: () => void }) {
           vide="Tous"
         />
 
+        <Button
+          className="mb-1"
+          onPress={() => setDeployes((p) => !p)}
+          size="sm"
+          variant={replies > 0 ? 'secondary' : 'ghost'}
+        >
+          <SlidersHorizontal aria-hidden="true" className="size-4" />
+          Plus de filtres
+          {replies > 0 ? <span className="tabular-nums">{replies}</span> : null}
+        </Button>
+
         {actifs ? (
           <Button className="mb-1" onPress={vider} size="sm" variant="ghost">
             <X aria-hidden="true" className="size-4" />
@@ -205,6 +221,52 @@ export function ClientsFiltres({ onExporter }: { onExporter: () => void }) {
           Exporter
         </Button>
       </div>
+
+      {deployes ? (
+        <div className="flex flex-wrap items-end gap-3 border-t border-separator pt-2">
+        {/*
+          Le choix des restaurants et leur croisement. « Chez tous » est la question
+          commerciale — qui commande a la fois chez X ET chez Y — et l'ecran ne
+          l'atteignait pas : il envoyait toujours « chez l'un ».
+        */}
+        <FiltrePartenaires
+          logique={filtres.logique}
+          onChanger={poser}
+          selection={filtres.partenaires}
+        />
+
+        {/*
+          Le quartier. Il n'est utile que si des libellés ont été rapprochés — sinon
+          aucune fiche ne porte de zone et le filtre rendrait vide. La liste vient du
+          référentiel, donc elle est courte et fermée.
+        */}
+        <Liste
+          choix={Object.fromEntries((zones.data ?? []).map((z) => [z.id, z.libelle]))}
+          etiquette="Quartier"
+          onChange={(v) => poser({ zones: v === '__tous' ? [] : [v] })}
+          valeur={filtres.zones[0] ?? ''}
+          vide="Tous les quartiers"
+        />
+
+          <div className="flex flex-col gap-1">
+            <span className="text-sm text-foreground">Enseignes</span>
+            <div className="flex items-center gap-1">
+              {[2, 3].map((n) => (
+                <Button
+                  key={n}
+                  onPress={() =>
+                    poser({ partenairesMin: filtres.partenairesMin === n ? null : n })
+                  }
+                  size="sm"
+                  variant={filtres.partenairesMin === n ? 'secondary' : 'ghost'}
+                >
+                  {n}+
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

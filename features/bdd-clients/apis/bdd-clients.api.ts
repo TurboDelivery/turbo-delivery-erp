@@ -8,10 +8,13 @@ import {
   IEnregistrerLot,
   IAppelSaisi,
   ILigneJournalFusion,
+  IBilanRapprochement,
+  ILibelleZone,
   ILigneListeNoire,
   IModificationFiche,
   IStatPartenaire,
   IVoisinPartenaire,
+  IZone,
   IFicheClient,
   IFiltresClients,
   IKpisBase,
@@ -297,6 +300,33 @@ export const bddClientsAPI = {
     return appeler<IVoisinPartenaire[]>(`/stats-partenaires/${partenaireId}/voisins`, {
       method: 'GET',
       params: { debut: debut || undefined, fin: fin || undefined },
+    });
+  },
+
+  /** Les partenaires présents dans la base, pour le filtre. */
+  partenaires(): Promise<IZone[]> {
+    return appeler<IZone[]>(`/partenaires`, { method: 'GET' });
+  },
+
+  /** Les zones du référentiel. */
+  zones(): Promise<IZone[]> {
+    return appeler<IZone[]>(`/zones`, { method: 'GET' });
+  },
+
+  /** Ce que la saisie a produit comme libellés de quartier, et où en est l'arbitrage. */
+  libellesDeZone(): Promise<ILibelleZone[]> {
+    return appeler<ILibelleZone[]>(`/zones/libelles`, { method: 'GET' });
+  },
+
+  /**
+   * Rapproche un libellé d'une zone, rétroactivement.
+   *
+   * <p>`zoneId` nul est un arbitrage à part entière : « ce libellé n'a pas de zone ».</p>
+   */
+  rapprocherZone(libelle: string, zoneId: string | null): Promise<IBilanRapprochement> {
+    return appeler<IBilanRapprochement>(`/zones/rapprocher`, {
+      body: JSON.stringify({ libelle, zoneId }),
+      method: 'POST',
     });
   },
 
