@@ -95,3 +95,58 @@ export interface ILotDetail {
   entete: ILotResume;
   lignes: ILigneLot[];
 }
+
+/** Une ligne de la base consolidée : un client, jamais une commande. */
+export interface ILigneClient {
+  id: string;
+  /** Le combien-ième contact capturé. Calculé, pas le rang de séquence. */
+  position: number;
+  /** Déjà masqué par le serveur, sauf demande explicite d'un profil autorisé. */
+  telephone: string;
+  nom: string | null;
+  prenom: string | null;
+  alias: string[];
+  zonePrincipaleId: string | null;
+  statut: string;
+  segment: string | null;
+  consentement: string | null;
+  nbCaptures: number;
+  nbPartenaires: number;
+  montantCumule: number;
+  premiereCaptureAt: string | null;
+  derniereCaptureAt: string | null;
+  partenairePrincipalId: string | null;
+}
+
+export interface IKpisBase {
+  clientsUniques: number;
+  nouveauxClients: number;
+  clientsMultiRestaurants: number;
+  /** Part des fiches qualifiées parmi celles soumises. Les rejetées sont hors dénominateur. */
+  tauxQualification: number;
+  tauxConsentement: number;
+}
+
+/** Les filtres de la liste, tels que l'URL les porte. */
+export interface IFiltresClients {
+  recherche: string;
+  partenaires: string[];
+  logique: 'AU_MOINS_UN' | 'TOUS';
+  debut: string;
+  fin: string;
+  zones: string[];
+  statut: string;
+  segment: string;
+  consentement: string;
+  capturesMin: number | null;
+  partenairesMin: number | null;
+  page: number;
+}
+
+export interface IPageClients {
+  content: ILigneClient[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}

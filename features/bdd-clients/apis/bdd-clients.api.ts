@@ -2,12 +2,39 @@ import { apiClientHttp } from '@/lib/api-client-http';
 
 import {
   IEnregistrerLot,
+  IFiltresClients,
+  IKpisBase,
   ILigneAVerifier,
   ILotDetail,
   ILotResume,
+  IPageClients,
   ISyntheseLot,
   IVerdictLigne,
 } from '../types/bdd-clients.types';
+
+/**
+ * Les filtres deviennent des paramètres d'URL.
+ *
+ * <p>Une valeur vide est OMISE plutôt qu'envoyée vide : côté serveur, un filtre absent ne
+ * pose aucun critère, alors qu'une chaîne vide en poserait un qui ne trouverait rien.</p>
+ */
+function parametres(f: IFiltresClients): Record<string, unknown> {
+  const p: Record<string, unknown> = {};
+  if (f.recherche.trim()) p.recherche = f.recherche.trim();
+  if (f.partenaires.length) {
+    p.partenaires = f.partenaires;
+    p.logique = f.logique;
+  }
+  if (f.debut) p.debut = f.debut;
+  if (f.fin) p.fin = f.fin;
+  if (f.zones.length) p.zones = f.zones;
+  if (f.statut) p.statut = f.statut;
+  if (f.segment) p.segment = f.segment;
+  if (f.consentement) p.consentement = f.consentement;
+  if (f.capturesMin !== null) p.capturesMin = f.capturesMin;
+  if (f.partenairesMin !== null) p.partenairesMin = f.partenairesMin;
+  return p;
+}
 
 /**
  * Le module passe par `apiClientHttp`, et NON par `lib/api`.
@@ -71,6 +98,25 @@ export const bddClientsAPI = {
       method: 'GET',
       service: 'backend',
       params: { enClair },
+    });
+  },
+  /** La base consolidée, filtrée et paginée. Le serveur masque les numéros. */
+  lister(filtres: IFiltresClients, taille = 25): Promise<IPageClients> {
+    return apiClientHttp.request<IPageClients>({
+      endpoint: '/api/bdd-clients',
+      method: 'GET',
+      service: 'backend',
+      params: { ...parametres(filtres), page: filtres.page, taille },
+    });
+  },
+
+  /** Les quatre cartes de tête. Elles suivent les mêmes filtres que la liste. */
+  kpis(filtres: IFiltresClients): Promise<IKpisBase> {
+    return apiClientHttp.request<IKpisBase>({
+      endpoint: '/api/bdd-clients/kpis',
+      method: 'GET',
+      service: 'backend',
+      params: parametres(filtres),
     });
   },
 };

@@ -276,10 +276,10 @@ const menuData: IMenuData[] = [
     title: 'Base de données',
     children: [
       { icon: UserPlus, title: 'Saisie en lot', path: '/bdd-clients/saisie', can: { action: 'create', subject: 'PageBddClients' } },
-      // ⚠ L'entree « Clients » (/bdd-clients) attend son ecran. Elle a ete declaree ici
-      // avant d'etre ecrite, et le menu a donc mene a un 404 en production le 28/09.
-      // Une entree de menu est une PROMESSE : elle se pose quand la page existe, jamais
-      // avant. A remettre avec la liste consolidee.
+      // ⚠ Cette entree a mene a un 404 en production le 28/09 : elle avait ete posee
+      // avant que son ecran n'existe. Une entree de menu est une PROMESSE, elle se pose
+      // quand la page existe. Elle existe depuis.
+      { icon: BookUser, title: 'Clients', path: '/bdd-clients', can: { action: 'read', subject: 'PageBddClients' } },
     ],
   },
 
