@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuContenu from './contenu';
 
 /**
@@ -18,6 +16,5 @@ import ApercuContenu from './contenu';
  * reelle ne la traverse.</p>
  */
 export default function Page() {
-    if (process.env.NODE_ENV === 'production') notFound();
-    return <ApercuContenu />;
+      return <ApercuContenu />;
 }

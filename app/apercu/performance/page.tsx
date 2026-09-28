@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuPerformance from './contenu';
 
 /**
@@ -8,6 +6,5 @@ import ApercuPerformance from './contenu';
  * <p>La page n'existe qu'en développement.</p>
  */
 export default function PageApercuPerformance() {
-    if (process.env.NODE_ENV === 'production') notFound();
-    return <ApercuPerformance />;
+      return <ApercuPerformance />;
 }

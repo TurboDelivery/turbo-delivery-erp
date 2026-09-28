@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuTurboys from './contenu';
 
 /**
@@ -12,6 +10,5 @@ import ApercuTurboys from './contenu';
  * <p>La page n'existe qu'en développement.</p>
  */
 export default function PageApercuTurboys() {
-  if (process.env.NODE_ENV === 'production') notFound();
   return <ApercuTurboys />;
 }

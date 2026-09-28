@@ -12,6 +12,21 @@ pnpm test         # Vitest, une passe
 pnpm test:watch   # Vitest en continu
 ```
 
+### Les bancs `/apercu`
+
+Chaque écran refondu a son banc, qui le rend sur données d'exemple, en clair et en
+sombre. **La garde est dans `middleware.ts` et porte sur l'HÔTE**, pas sur `NODE_ENV` :
+le serveur public rend un vrai 404, un poste de développement sert les bancs.
+
+⚠ Le critère ne peut pas être `NODE_ENV`. La vérification de ce projet passe par le build
+local `.next/standalone`, qui tourne en production : une garde sur `NODE_ENV` y fermait
+les bancs, et il fallait la retirer à la main avant chaque relecture puis la remettre —
+ce qui finit toujours par partir en production un jour.
+
+⚠ Et c'est un vrai 404, pas `notFound()`. Mesuré : une route absente rend 404, tandis
+qu'un `notFound()` levé depuis une route EXISTANTE rend **200** dans ce Next. Le contenu
+n'était pas servi, mais une sonde aurait cru la page vivante.
+
 ### Tests
 
 Vitest, posé le 28/09/2026. Ce dépôt n'avait **aucun** lanceur : toute sa logique front

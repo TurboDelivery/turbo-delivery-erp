@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuCoursiers from './contenu';
 
 /**
@@ -8,6 +6,5 @@ import ApercuCoursiers from './contenu';
  * <p>La page n'existe qu'en développement.</p>
  */
 export default function PageApercuCoursiers() {
-    if (process.env.NODE_ENV === 'production') notFound();
-    return <ApercuCoursiers />;
+      return <ApercuCoursiers />;
 }

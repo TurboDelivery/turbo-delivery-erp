@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuParametres from './contenu';
 
 /**
@@ -10,6 +8,5 @@ import ApercuParametres from './contenu';
  * demander une capture. La page n'existe qu'en développement.</p>
  */
 export default function PageApercuParametres() {
-  if (process.env.NODE_ENV === 'production') notFound();
   return <ApercuParametres />;
 }

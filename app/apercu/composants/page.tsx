@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import GalerieComposants from './galerie';
 
 /**
@@ -22,6 +20,5 @@ import GalerieComposants from './galerie';
  * <p>Elle n'existe qu'en developpement. En production, la route n'existe pas.</p>
  */
 export default function PageComposants() {
-    if (process.env.NODE_ENV === 'production') notFound();
-    return <GalerieComposants />;
+      return <GalerieComposants />;
 }

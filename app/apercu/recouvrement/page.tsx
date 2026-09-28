@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuRecouvrement from './contenu';
 
 /**
@@ -8,6 +6,5 @@ import ApercuRecouvrement from './contenu';
  * <p>La page n'existe qu'en développement.</p>
  */
 export default function PageApercuRecouvrement() {
-    if (process.env.NODE_ENV === 'production') notFound();
-    return <ApercuRecouvrement />;
+      return <ApercuRecouvrement />;
 }

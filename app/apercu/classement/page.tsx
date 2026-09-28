@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuClassement from './contenu';
 
 /**
@@ -9,6 +7,5 @@ import ApercuClassement from './contenu';
  * donnee reelle ne la traverse, et aucun appel reseau n'en part.</p>
  */
 export default function PageApercuClassement() {
-  if (process.env.NODE_ENV === 'production') notFound();
   return <ApercuClassement />;
 }

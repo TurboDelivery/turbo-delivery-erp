@@ -3,10 +3,40 @@ import { EN_TETE_CHEMIN } from '@/utils/en-tetes';
 
 // import { auth } from '@/auth';
 
+/**
+ * La requete vient-elle d'un poste de developpement ?
+ *
+ * <p>On lit l'en-tete `host` plutot que `nextUrl.hostname` : derriere nginx, le second
+ * porte l'hote interne et dirait « localhost » pour une requete venue d'Internet.</p>
+ */
+function estUnHoteLocal(request: NextRequest): boolean {
+    const hote = (request.headers.get('host') ?? '').toLowerCase();
+    const sansPort = hote.replace(/:\d+$/, '').replace(/^\[|\]$/g, '');
+    return sansPort === 'localhost' || sansPort === '127.0.0.1' || sansPort === '::1';
+}
+
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     if (pathname === '/') {
         return NextResponse.redirect(new URL('/analystics', request.url));
+    }
+
+    /*
+     * Les bancs n'existent pas sur le SERVEUR PUBLIC.
+     *
+     * ⚠ Le critere est l'HOTE, pas `NODE_ENV`. Chaque page de banc portait
+     * `NODE_ENV === 'production'`, ce qui les fermait aussi dans le build local
+     * `.next/standalone` — or c'est LA le seul endroit ou ce projet verifie ses ecrans,
+     * le serveur de developpement etant proscrit. Consequence vecue : il fallait retirer
+     * la garde a la main avant chaque verification et la remettre apres, ce qui finit
+     * toujours par partir en production un jour.
+     *
+     * ⚠ Et un vrai 404, pas `notFound()`. Mesure : une route absente rend 404, tandis
+     * qu'un `notFound()` leve depuis une route EXISTANTE rend 200 dans ce Next. Une
+     * sonde qui surveillerait /apercu les croirait vivantes.
+     */
+    if (pathname.startsWith('/apercu') && !estUnHoteLocal(request)) {
+        return new NextResponse(null, { status: 404 });
     }
 
     // Un layout Next ne recoit PAS le pathname : il n'a ni `params` complet ni

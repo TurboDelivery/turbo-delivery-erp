@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuCommandes from './contenu';
 
 /**
@@ -11,6 +9,5 @@ import ApercuCommandes from './contenu';
  * developpement.</p>
  */
 export default function PageApercuCommandes() {
-    if (process.env.NODE_ENV === 'production') notFound();
-    return <ApercuCommandes />;
+      return <ApercuCommandes />;
 }

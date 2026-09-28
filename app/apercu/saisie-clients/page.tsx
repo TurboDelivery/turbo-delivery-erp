@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuSaisieClients from './contenu';
 
 /**
@@ -8,6 +6,5 @@ import ApercuSaisieClients from './contenu';
  * <p>La page n'existe qu'en développement.</p>
  */
 export default function PageApercuSaisieClients() {
-  if (process.env.NODE_ENV === 'production') notFound();
   return <ApercuSaisieClients />;
 }

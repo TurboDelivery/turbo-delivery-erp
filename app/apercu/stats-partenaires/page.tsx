@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuStatsPartenaires from './contenu';
 
 /**
@@ -8,6 +6,5 @@ import ApercuStatsPartenaires from './contenu';
  * <p>La page n'existe qu'en développement.</p>
  */
 export default function PageApercuStatsPartenaires() {
-  if (process.env.NODE_ENV === 'production') notFound();
   return <ApercuStatsPartenaires />;
 }

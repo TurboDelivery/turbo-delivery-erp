@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuEncours from './contenu';
 
 /**
@@ -8,6 +6,5 @@ import ApercuEncours from './contenu';
  * <p>La page n'existe qu'en développement.</p>
  */
 export default function PageApercuEncours() {
-    if (process.env.NODE_ENV === 'production') notFound();
-    return <ApercuEncours />;
+      return <ApercuEncours />;
 }

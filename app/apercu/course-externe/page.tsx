@@ -1,5 +1,3 @@
-import { notFound } from 'next/navigation';
-
 import ApercuCourseExterne from './contenu';
 
 /**
@@ -10,6 +8,5 @@ import ApercuCourseExterne from './contenu';
  * hauteur du tiroir ne se verifient pas autrement. La page n'existe qu'en developpement.</p>
  */
 export default function PageApercuCourseExterne() {
-  if (process.env.NODE_ENV === 'production') notFound();
   return <ApercuCourseExterne />;
 }
