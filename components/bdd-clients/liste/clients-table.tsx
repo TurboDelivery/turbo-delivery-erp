@@ -20,9 +20,9 @@ import { NB_COLONNES_CLIENTS } from './clients-table-columns';
  * écrit à la main qui diverge fait lever « Cell count must match column count » à react
  * aria, et la page entière tombe en 500.</p>
  */
-export function ClientsTable() {
+export function ClientsTable({ onOuvrir }: { onOuvrir: (id: string) => void }) {
   const { allerA, isError, isFetching, isLoading, page, refetch, table, total, totalPages } =
-    useClientsTable();
+    useClientsTable(onOuvrir);
 
   if (isError) {
     return <EtatErreur enCours={isFetching} onReessayer={() => void refetch()} quoi="la base clients" />;

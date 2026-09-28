@@ -17,7 +17,7 @@ import { useBddClientsFilters } from './use-bdd-clients-filters';
  * atteindre des dizaines de milliers de fiches, et trier une page de vingt-cinq lignes
  * dans le navigateur trierait vingt-cinq lignes au lieu de la base.</p>
  */
-export function useClientsTable() {
+export function useClientsTable(onOuvrir: (id: string) => void) {
   const { filtres, poser } = useBddClientsFilters();
   const { data, isError, isFetching, isLoading, refetch } = useClientsQuery(filtres);
 
@@ -27,6 +27,7 @@ export function useClientsTable() {
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualSorting: true,
+    meta: { onOuvrir },
     pageCount: data?.totalPages ?? 0,
   });
 

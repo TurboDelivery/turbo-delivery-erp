@@ -1,5 +1,9 @@
 'use client';
 
+import { parseAsString, useQueryState } from 'nuqs';
+
+import { FicheClientPanneau } from '@/components/bdd-clients/fiche/fiche-client-panneau';
+
 import { ClientsFiltres } from './clients-filtres';
 import { ClientsKpiCards } from './clients-kpi-cards';
 import { ClientsTable } from './clients-table';
@@ -19,11 +23,28 @@ import { ClientsTable } from './clients-table';
  * badge des fidèles, qui est l'information commerciale que la base existe pour produire.</p>
  */
 export function ClientsView() {
+  /*
+   * La fiche ouverte vit dans l'URL, mais HORS de l'objet de filtres.
+   *
+   * Dans l'URL parce qu'un lien vers une fiche doit se partager et survivre a un
+   * rechargement. Hors des filtres parce que la cle de cache de la liste EST l'objet de
+   * filtres : y ajouter la fiche ouverte rechargerait toute la liste a chaque ouverture
+   * de panneau.
+   */
+  const [ficheOuverte, setFicheOuverte] = useQueryState(
+    'bcFiche',
+    parseAsString.withDefault('').withOptions({ clearOnDefault: true }),
+  );
+
   return (
     <section className="flex flex-col gap-3">
       <ClientsKpiCards />
       <ClientsFiltres />
-      <ClientsTable />
+      <ClientsTable onOuvrir={(id) => void setFicheOuverte(id)} />
+      <FicheClientPanneau
+        clientId={ficheOuverte || null}
+        onFermer={() => void setFicheOuverte('')}
+      />
     </section>
   );
 }

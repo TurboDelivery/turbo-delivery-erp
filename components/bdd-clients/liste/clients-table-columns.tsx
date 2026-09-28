@@ -1,7 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { Store, Users } from 'lucide-react';
+import { ChevronRight, Store, Users } from 'lucide-react';
 
 import {
   LIBELLES_CONSENTEMENT,
@@ -152,7 +152,35 @@ export const clientsColumns: ColumnDef<ILigneClient>[] = [
     ),
     header: 'Cumulé',
   },
+  {
+    // Un bouton explicite plutot qu'un clic sur la ligne : react-aria donne deja aux
+    // lignes un role de navigation au clavier, et y greffer une action ouvre la fiche
+    // par accident en parcourant la liste aux fleches.
+    cell: ({ row, table }) => (
+      <button
+        aria-label={`Ouvrir la fiche de ${row.original.nom ?? 'ce client'}`}
+        className="rounded-medium p-1 text-muted outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
+        onClick={() => (table.options.meta as MetaClients | undefined)?.onOuvrir(row.original.id)}
+        type="button"
+      >
+        <ChevronRight aria-hidden="true" className="size-4" />
+      </button>
+    ),
+    header: '',
+    id: 'ouvrir',
+  },
 ];
+
+/**
+ * Ce que le tableau sait faire, passe par `meta`.
+ *
+ * <p>Une colonne ne peut pas capturer une fonction du composant sans etre redefinie a
+ * chaque rendu, ce qui reconstruirait la table entiere. `meta` est le passage prevu par
+ * TanStack pour cela.</p>
+ */
+export interface MetaClients {
+  onOuvrir: (id: string) => void;
+}
 
 /** Le compte de colonnes vient de la LISTE, jamais d'un nombre écrit à la main. */
 export const NB_COLONNES_CLIENTS = clientsColumns.length;

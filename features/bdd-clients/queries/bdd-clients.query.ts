@@ -12,7 +12,23 @@ export const bddClientsKeys = {
   lot: (id: string) => [...bddClientsKeys.all, 'lot', id] as const,
   liste: (f: IFiltresClients) => [...bddClientsKeys.all, 'liste', f] as const,
   kpis: (f: IFiltresClients) => [...bddClientsKeys.all, 'kpis', f] as const,
+  fiche: (id: string) => [...bddClientsKeys.all, 'fiche', id] as const,
 };
+
+/**
+ * La fiche d'un client.
+ *
+ * <p>Sa clé ne contient PAS les filtres : la fiche d'un client est la même quel que soit
+ * le filtre depuis lequel on l'a ouverte. L'y mettre rechargerait le panneau à chaque
+ * changement de filtre derrière lui.</p>
+ */
+export const useFicheClientQuery = (id: string | null) =>
+  useQuery({
+    queryKey: bddClientsKeys.fiche(id ?? ''),
+    queryFn: () => bddClientsAPI.fiche(id as string),
+    enabled: Boolean(id),
+    staleTime: 30_000,
+  });
 
 /**
  * La liste et les cartes sont DEUX lectures.

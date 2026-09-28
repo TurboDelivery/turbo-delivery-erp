@@ -5,7 +5,12 @@ import { Button } from '@heroui-v3/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { ClientsView } from '@/components/bdd-clients/liste/clients-view';
-import { bddClientsKeys, type IFiltresClients, type ILigneClient } from '@/features/bdd-clients';
+import {
+  bddClientsKeys,
+  type IFicheClient,
+  type IFiltresClients,
+  type ILigneClient,
+} from '@/features/bdd-clients';
 
 /**
  * Le banc de la BASE CLIENTS.
@@ -78,6 +83,49 @@ const LIGNES: ILigneClient[] = [
   ligne(7, 'CISSE', '07 •• •• 55 55', 3, 1, 'REJETE', 'OCCASIONNEL', null, 45_000),
 ];
 
+/** La fiche de KOFFI, pour le panneau lateral. */
+const FICHE: IFicheClient = {
+  alias: ['MR KOFFI ABOU'],
+  appels: [
+    { action: 'QUALIFIER', avisEfficacite: 'OUI', commentaire: 'Livraison rapide, rien a signaler.', consentement: 'OUI', date: '2026-09-20T09:12:00Z', id: 'a3', joignabilite: 'JOIGNABLE', note: 5, partenaireAvisId: 'EM SHERIF DELI', pointsSignales: [], qualifiePar: null, tentative: 3 },
+    { action: 'REPORTER', avisEfficacite: null, commentaire: null, consentement: null, date: '2026-09-18T15:40:00Z', id: 'a2', joignabilite: 'INJOIGNABLE', note: null, partenaireAvisId: null, pointsSignales: [], qualifiePar: null, tentative: 2 },
+    { action: 'REPORTER', avisEfficacite: null, commentaire: 'Messagerie.', consentement: null, date: '2026-09-17T11:05:00Z', id: 'a1', joignabilite: 'INJOIGNABLE', note: null, partenaireAvisId: null, pointsSignales: [], qualifiePar: null, tentative: 1 },
+  ],
+  captures: [
+    { dateCommande: '2026-09-27T20:10:00Z', id: 'x1', montant: 21500, numCheck: '111025', numCommande: '20049', partenaire: 'EM SHERIF DELI', partenaireId: 'p-esd', rangCapture: 12, saisiLe: '2026-09-28T08:00:00Z', saisiPar: null, source: 'LOT', zoneSaisie: 'MARCORY RÉSIDENTIEL' },
+    { dateCommande: '2026-09-14T19:30:00Z', id: 'x2', montant: 18000, numCheck: '110880', numCommande: null, partenaire: 'TSUNAMI', partenaireId: 'p-tsu', rangCapture: 11, saisiLe: '2026-09-15T08:00:00Z', saisiPar: null, source: 'LOT', zoneSaisie: 'MARCORY' },
+    { dateCommande: null, id: 'x3', montant: null, numCheck: null, numCommande: null, partenaire: 'DEBONAIRS', partenaireId: 'p-deb', rangCapture: 10, saisiLe: '2026-09-02T08:00:00Z', saisiPar: null, source: 'DEMANDE_TURBOYS', zoneSaisie: null },
+  ],
+  consentement: 'OUI',
+  consentementDate: '2026-09-20T09:12:00Z',
+  consentementSource: 'APPEL',
+  derniereCaptureAt: '2026-09-27T20:10:00Z',
+  id: 'c1',
+  international: false,
+  montantCumule: 1_284_000,
+  nbCaptures: 12,
+  nbPartenaires: 3,
+  nom: 'KOFFI',
+  note: 'Demande toujours la sauce a part.',
+  panierMoyen: 116_727,
+  parPartenaire: [
+    { derniere: '2026-09-27T20:10:00Z', montant: 820_000, nbCaptures: 7, partenaire: 'EM SHERIF DELI', partenaireId: 'p-esd', premiere: '2026-03-02T19:00:00Z' },
+    { derniere: '2026-09-14T19:30:00Z', montant: 396_000, nbCaptures: 4, partenaire: 'TSUNAMI', partenaireId: 'p-tsu', premiere: '2026-05-11T19:00:00Z' },
+    { derniere: '2026-09-02T08:00:00Z', montant: 68_000, nbCaptures: 1, partenaire: 'DEBONAIRS', partenaireId: 'p-deb', premiere: '2026-09-02T08:00:00Z' },
+  ],
+  partenairePrincipalId: 'EM SHERIF DELI',
+  position: 1,
+  premiereCaptureAt: '2026-03-02T19:00:00Z',
+  prenom: null,
+  segment: 'VIP',
+  segmentForce: false,
+  statut: 'QUALIFIE',
+  tags: ['fidele'],
+  telephone: '07 •• •• 44 01',
+  tentativesAppel: 3,
+  zonePrincipaleId: null,
+};
+
 function useThemeSombre(): [boolean, (v: (p: boolean) => boolean) => void] {
   const [sombre, setSombre] = React.useState(false);
   React.useEffect(() => {
@@ -123,6 +171,7 @@ export default function ApercuBaseClients() {
       tauxConsentement: vide ? 0 : 0.41,
       tauxQualification: vide ? 0 : 0.62,
     });
+    c.setQueryData(bddClientsKeys.fiche('c1'), FICHE);
     return c;
   }, [vide]);
 

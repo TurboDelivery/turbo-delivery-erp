@@ -2,6 +2,7 @@ import { apiClientHttp } from '@/lib/api-client-http';
 
 import {
   IEnregistrerLot,
+  IFicheClient,
   IFiltresClients,
   IKpisBase,
   ILigneAVerifier,
@@ -117,6 +118,20 @@ export const bddClientsAPI = {
       method: 'GET',
       service: 'backend',
       params: parametres(filtres),
+    });
+  },
+  /**
+   * La fiche complète d'un client.
+   *
+   * <p>Le serveur la rend en trois lectures et masque le numéro. `enClair` est un geste
+   * explicite, réservé aux profils qui y ont droit.</p>
+   */
+  fiche(id: string, enClair = false): Promise<IFicheClient> {
+    return apiClientHttp.request<IFicheClient>({
+      endpoint: `/api/bdd-clients/${id}`,
+      method: 'GET',
+      service: 'backend',
+      params: { enClair },
     });
   },
 };

@@ -150,3 +150,77 @@ export interface IPageClients {
   number: number;
   size: number;
 }
+
+/** Une commande dans l'historique d'une fiche. */
+export interface ICapture {
+  id: string;
+  partenaireId: string;
+  /** Le NOM de l'établissement. Résolu par le serveur ; à défaut, l'identifiant. */
+  partenaire: string;
+  source: string;
+  dateCommande: string | null;
+  numCommande: string | null;
+  numCheck: string | null;
+  montant: number | null;
+  zoneSaisie: string | null;
+  rangCapture: number;
+  saisiPar: string | null;
+  saisiLe: string;
+}
+
+/** Ce qu'un client représente CHEZ un partenaire : la ligne qu'un commercial montre. */
+export interface IPartPartenaire {
+  partenaireId: string;
+  /** Le NOM de l'établissement : c'est ce qu'un commercial montre, pas un UUID. */
+  partenaire: string;
+  nbCaptures: number;
+  montant: number;
+  premiere: string;
+  derniere: string;
+}
+
+export interface IAppel {
+  id: string;
+  date: string;
+  action: string;
+  joignabilite: string | null;
+  tentative: number;
+  partenaireAvisId: string | null;
+  avisEfficacite: string | null;
+  note: number | null;
+  pointsSignales: string[];
+  commentaire: string | null;
+  consentement: string | null;
+  qualifiePar: string | null;
+}
+
+export interface IFicheClient {
+  id: string;
+  position: number;
+  telephone: string;
+  international: boolean;
+  nom: string | null;
+  prenom: string | null;
+  alias: string[];
+  zonePrincipaleId: string | null;
+  statut: string;
+  segment: string | null;
+  segmentForce: boolean;
+  consentement: string | null;
+  consentementDate: string | null;
+  consentementSource: string | null;
+  tags: string[];
+  note: string | null;
+  nbCaptures: number;
+  nbPartenaires: number;
+  montantCumule: number;
+  /** Nul quand aucun montant n'est connu : zéro est un panier, pas une absence de mesure. */
+  panierMoyen: number | null;
+  premiereCaptureAt: string | null;
+  derniereCaptureAt: string | null;
+  partenairePrincipalId: string | null;
+  tentativesAppel: number;
+  captures: ICapture[];
+  parPartenaire: IPartPartenaire[];
+  appels: IAppel[];
+}
