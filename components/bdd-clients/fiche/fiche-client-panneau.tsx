@@ -4,7 +4,10 @@ import { Drawer, Spinner } from '@heroui-v3/react';
 import { PhoneCall, Store } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
+
+import { FormulaireQualification } from './formulaire-qualification';
 import {
+  LIBELLES_CANAL,
   LIBELLES_CONSENTEMENT,
   LIBELLES_SEGMENT,
   LIBELLES_STATUT,
@@ -60,8 +63,20 @@ function Corps({ fiche }: { fiche: IFicheClient }) {
           {fiche.consentement
             ? LIBELLES_CONSENTEMENT[fiche.consentement] ?? fiche.consentement
             : LIBELLES_CONSENTEMENT.NON_RENSEIGNE}
+          {fiche.consentement === 'OUI' && fiche.canalPrefere
+            ? ` par ${LIBELLES_CANAL[fiche.canalPrefere] ?? fiche.canalPrefere}`
+            : ''}
         </p>
       </div>
+
+      {/*
+        L'appel vient AVANT l'historique et les chiffres détaillés : c'est le geste, le
+        reste est le contexte qu'on lit pendant qu'on compose. Une fiche déjà tranchée —
+        rejetée, fusionnée — ne se rappelle pas.
+      */}
+      {fiche.statut === 'A_QUALIFIER' || fiche.statut === 'INJOIGNABLE' ? (
+        <FormulaireQualification fiche={fiche} />
+      ) : null}
 
       <div className="grid grid-cols-2 gap-2">
         <Nombre

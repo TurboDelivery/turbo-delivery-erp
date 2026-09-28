@@ -1,5 +1,6 @@
 import {
   IEnregistrerLot,
+  IAppelSaisi,
   IFicheClient,
   IFiltresClients,
   IKpisBase,
@@ -7,6 +8,7 @@ import {
   ILotDetail,
   ILotResume,
   IPageClients,
+  IResultatAppel,
   ISyntheseLot,
   IVerdictLigne,
 } from '../types/bdd-clients.types';
@@ -165,6 +167,13 @@ export const bddClientsAPI = {
     return appeler<IFicheClient>(`/${id}`, {
       method: 'GET',
       params: { enClair },
+    });
+  },
+  /** Enregistre un appel de qualification. Le statut de la fiche en découle. */
+  qualifier(clientId: string, appel: IAppelSaisi): Promise<IResultatAppel> {
+    return appeler<IResultatAppel>(`/${clientId}/qualifier`, {
+      body: JSON.stringify(appel),
+      method: 'POST',
     });
   },
 };

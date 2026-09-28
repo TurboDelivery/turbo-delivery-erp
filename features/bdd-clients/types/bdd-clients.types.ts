@@ -209,6 +209,8 @@ export interface IFicheClient {
   consentement: string | null;
   consentementDate: string | null;
   consentementSource: string | null;
+  /** Par quel canal le rappeler. Renseigne pendant l'appel, quand le client consent. */
+  canalPrefere: string | null;
   tags: string[];
   note: string | null;
   nbCaptures: number;
@@ -223,4 +225,28 @@ export interface IFicheClient {
   captures: ICapture[];
   parPartenaire: IPartPartenaire[];
   appels: IAppel[];
+}
+
+/** L'étape une : le numéro est-il bon ? Tout le reste en découle. */
+export type Joignabilite = 'JOIGNABLE' | 'INJOIGNABLE' | 'PAS_LE_BON_CLIENT' | 'FAUX_NUMERO';
+
+/** Un appel, tel que l'écran l'envoie : les trois étapes, ou celles qui s'appliquent. */
+export interface IAppelSaisi {
+  joignabilite: Joignabilite;
+  partenaireAvisId?: string | null;
+  avisEfficacite?: string | null;
+  note?: number | null;
+  pointsSignales?: string[];
+  commentaire?: string | null;
+  consentement?: string | null;
+  prenom?: string | null;
+  canalPrefere?: string | null;
+}
+
+export interface IResultatAppel {
+  clientId: string;
+  statut: string;
+  tentatives: number;
+  alerteQualite: boolean;
+  message: string;
 }

@@ -96,6 +96,7 @@ const FICHE: IFicheClient = {
     { dateCommande: '2026-09-14T19:30:00Z', id: 'x2', montant: 18000, numCheck: '110880', numCommande: null, partenaire: 'TSUNAMI', partenaireId: 'p-tsu', rangCapture: 11, saisiLe: '2026-09-15T08:00:00Z', saisiPar: null, source: 'LOT', zoneSaisie: 'MARCORY' },
     { dateCommande: null, id: 'x3', montant: null, numCheck: null, numCommande: null, partenaire: 'DEBONAIRS', partenaireId: 'p-deb', rangCapture: 10, saisiLe: '2026-09-02T08:00:00Z', saisiPar: null, source: 'DEMANDE_TURBOYS', zoneSaisie: null },
   ],
+  canalPrefere: 'WHATSAPP',
   consentement: 'OUI',
   consentementDate: '2026-09-20T09:12:00Z',
   consentementSource: 'APPEL',
@@ -172,6 +173,18 @@ export default function ApercuBaseClients() {
       tauxQualification: vide ? 0 : 0.62,
     });
     c.setQueryData(bddClientsKeys.fiche('c1'), FICHE);
+    // Une fiche À QUALIFIER : c'est la seule qui montre le formulaire d'appel.
+    c.setQueryData(bddClientsKeys.fiche('c3'), {
+      ...FICHE,
+      consentement: null,
+      id: 'c3',
+      nom: 'SANNA',
+      position: 3,
+      segment: 'OCCASIONNEL',
+      statut: 'A_QUALIFIER',
+      telephone: '01 •• •• 09 09',
+      tentativesAppel: 2,
+    });
     return c;
   }, [vide]);
 

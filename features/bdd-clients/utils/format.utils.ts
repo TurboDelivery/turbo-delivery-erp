@@ -57,3 +57,15 @@ export const LIBELLES_CONSENTEMENT: Record<string, string> = {
   OUI: 'Oui',
   PAS_DEMANDE: 'Pas demandé',
 };
+
+/**
+ * Par quel canal recontacter le client.
+ *
+ * <p>Il n'a de sens qu'avec un consentement à OUI : afficher un canal sur une fiche qui
+ * a refusé laisserait croire qu'on s'en servira.</p>
+ */
+export const LIBELLES_CANAL: Record<string, string> = {
+  APPEL: 'appel',
+  SMS: 'SMS',
+  WHATSAPP: 'WhatsApp',
+};

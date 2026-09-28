@@ -4,7 +4,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 import { bddClientsAPI } from '../apis/bdd-clients.api';
-import { IEnregistrerLot, IFiltresClients, ILigneAVerifier } from '../types/bdd-clients.types';
+import {
+  IAppelSaisi,
+  IEnregistrerLot,
+  IFiltresClients,
+  ILigneAVerifier,
+} from '../types/bdd-clients.types';
 
 export const bddClientsKeys = {
   all: ['bdd-clients'] as const,
@@ -85,6 +90,30 @@ export const useVerifierLotMutation = () =>
     mutationFn: ({ partenaireId, lignes }: { partenaireId: string; lignes: ILigneAVerifier[] }) =>
       bddClientsAPI.verifier(partenaireId, lignes),
   });
+
+/**
+ * Enregistre un appel.
+ *
+ * <p>Tout est invalidé : un appel change le statut de la fiche, donc la liste, les cartes
+ * et la fiche elle-même. Invalider finement ici laisserait un écran qui contredit
+ * l'autre.</p>
+ */
+export const useQualifierMutation = () => {
+  const invalidate = useInvalidateBddClients();
+  return useMutation({
+    mutationFn: ({ clientId, appel }: { clientId: string; appel: IAppelSaisi }) =>
+      bddClientsAPI.qualifier(clientId, appel),
+    onSuccess: (resultat) => {
+      invalidate();
+      if (resultat.alerteQualite) {
+        toast.warning(resultat.message);
+        return;
+      }
+      toast.success(resultat.message);
+    },
+    onError: (erreur: Error) => toast.error(erreur.message),
+  });
+};
 
 export const useEnregistrerLotMutation = () => {
   const invalidate = useInvalidateBddClients();
