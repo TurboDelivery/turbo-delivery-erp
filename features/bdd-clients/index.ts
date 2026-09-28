@@ -2,6 +2,7 @@ export * from './types/bdd-clients.types';
 export * from './apis/bdd-clients.api';
 export * from './queries/bdd-clients.query';
 export * from './utils/grille.utils';
+export * from './utils/import.utils';
 export * from './utils/format.utils';
 export * from './filters/bdd-clients.filter';
 export * from './hooks/use-bdd-clients-filters';

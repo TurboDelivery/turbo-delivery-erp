@@ -23,7 +23,7 @@
  * ce module est desormais dans le graphe SERVEUR.</p>
  */
 import { IconBuildingSkyscraper, IconLayoutDashboard, IconMap, IconMotorbike, IconSettings2, IconShieldLock, IconUser, IconUsers } from '@tabler/icons-react';
-import { PlusCircle, AlertTriangle, BarChart, Bell, BookUser, CheckCircle, FileText, History, Layers, List, Lock, MapPin, Merge, Receipt, ShieldBan, ShoppingCartIcon, Store, SquareUser, Ticket, TrendingUp, UserPlus, Users, Wallet } from 'lucide-react';
+import { PlusCircle, AlertTriangle, BarChart, Bell, BookUser, CheckCircle, FileText, History, Layers, List, Lock, MapPin, Merge, Receipt, ShieldBan, ShoppingCartIcon, Store, SquareUser, Ticket, TrendingUp, Upload, UserPlus, Users, Wallet } from 'lucide-react';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { TbTruckDelivery } from 'react-icons/tb';
 import type { AppAbility, AppActions, AppSubjects } from '@/lib/casl/ability';
@@ -276,6 +276,8 @@ const menuData: IMenuData[] = [
     title: 'Base de données',
     children: [
       { icon: UserPlus, title: 'Saisie en lot', path: '/bdd-clients/saisie', can: { action: 'create', subject: 'PageBddClients' } },
+      // Meme droit que la saisie : importer un fichier, c'est saisir autrement.
+      { icon: Upload, title: 'Importer un fichier', path: '/bdd-clients/import', can: { action: 'create', subject: 'PageBddClients' } },
       // ⚠ Cette entree a mene a un 404 en production le 28/09 : elle avait ete posee
       // avant que son ecran n'existe. Une entree de menu est une PROMESSE, elle se pose
       // quand la page existe. Elle existe depuis.
