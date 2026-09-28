@@ -1,7 +1,11 @@
 'use client';
 
+import React from 'react';
+
 import { Button, Table } from '@heroui-v3/react';
 import { flexRender } from '@tanstack/react-table';
+
+import { ActionsGroupeesBarre } from './actions-groupees-barre';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
@@ -21,8 +25,31 @@ import { NB_COLONNES_CLIENTS } from './clients-table-columns';
  * aria, et la page entière tombe en 500.</p>
  */
 export function ClientsTable({ onOuvrir }: { onOuvrir: (id: string) => void }) {
-  const { allerA, isError, isFetching, isLoading, page, refetch, table, total, totalPages } =
-    useClientsTable(onOuvrir);
+  const {
+    allerA,
+    isError,
+    isFetching,
+    isLoading,
+    page,
+    refetch,
+    selectionnes,
+    table,
+    total,
+    totalPages,
+    viderLaSelection,
+  } = useClientsTable(onOuvrir);
+
+  /*
+   * ⚠ La barre d'actions se rend ICI, pas dans la vue.
+   *
+   * Premiere version : la selection etait remontee a la vue par deux `useEffect`. Le
+   * tableau des identifiants et la fonction de vidage etaient recrees a chaque rendu,
+   * donc chaque effet en declenchait un autre — React error #185, « Maximum update
+   * depth exceeded », page entiere en 500. Le build etait vert et tsc muet.
+   *
+   * La selection vit dans ce composant : la barre qui la lit y vit aussi. Rien a
+   * remonter, rien a synchroniser.
+   */
 
   if (isError) {
     return <EtatErreur enCours={isFetching} onReessayer={() => void refetch()} quoi="la base clients" />;
@@ -31,7 +58,10 @@ export function ClientsTable({ onOuvrir }: { onOuvrir: (id: string) => void }) {
   const lignes = table.getRowModel().rows;
 
   return (
-    <Table>
+    <div className="flex flex-col gap-3">
+      <ActionsGroupeesBarre onFini={viderLaSelection} selectionnes={selectionnes} />
+
+      <Table>
       <Table.ScrollContainer className="rounded-xl border border-separator">
         <Table.Content aria-label="Base de données clients" className="min-w-[68rem]">
           <Table.Header>
@@ -108,6 +138,7 @@ export function ClientsTable({ onOuvrir }: { onOuvrir: (id: string) => void }) {
           </div>
         ) : null}
       </Table.Footer>
-    </Table>
+      </Table>
+    </div>
   );
 }

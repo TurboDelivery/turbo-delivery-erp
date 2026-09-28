@@ -106,9 +106,30 @@ async function relayer(requete: NextRequest, chemin: string[]) {
     method: requete.method,
   });
 
+  const typeContenu = reponse.headers.get('Content-Type') ?? 'application/json';
+
+  /*
+   * ⚠ Un fichier n'est pas du texte.
+   *
+   * Le relais lisait toujours `await reponse.text()`, ce qui traverse le décodage UTF-8
+   * et corrompt silencieusement tout octet qui n'est pas du texte valide. Un classeur
+   * .xlsx est une archive ZIP : il en serait sorti un fichier que le tableur refuse
+   * d'ouvrir, sans la moindre erreur nulle part.
+   *
+   * On décide sur le type de contenu, et on repasse aussi l'en-tête qui porte le nom du
+   * fichier — sans elle le navigateur enregistre « chemin » sans extension.
+   */
+  if (!typeContenu.includes('json') && !typeContenu.includes('text/')) {
+    const octets = await reponse.arrayBuffer();
+    const entetes: Record<string, string> = { 'Content-Type': typeContenu };
+    const nomFichier = reponse.headers.get('Content-Disposition');
+    if (nomFichier) entetes['Content-Disposition'] = nomFichier;
+    return new NextResponse(octets, { headers: entetes, status: reponse.status });
+  }
+
   const texte = await reponse.text();
   return new NextResponse(texte || null, {
-    headers: { 'Content-Type': reponse.headers.get('Content-Type') ?? 'application/json' },
+    headers: { 'Content-Type': typeContenu },
     status: reponse.status,
   });
 }

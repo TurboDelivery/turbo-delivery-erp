@@ -1,5 +1,6 @@
 'use client';
 
+import { Checkbox } from '@heroui-v3/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ChevronRight, Store, Users } from 'lucide-react';
 
@@ -50,6 +51,48 @@ function Fidelite({ ligne }: { ligne: ILigneClient }) {
 }
 
 export const clientsColumns: ColumnDef<ILigneClient>[] = [
+  {
+    /*
+     * La case de selection, pour les gestes en lot.
+     *
+     * ⚠ `slot={null}` est OBLIGATOIRE : la selection vient de TanStack, pas du Table de
+     * HeroUI. Sans lui la v3 leve « A slot prop is required » et la page entiere tombe.
+     *
+     * L'en-tete ne coche QUE la page affichee, et le dit. Une case « tout selectionner »
+     * qui cocherait les 1 284 fiches du filtre sans les avoir chargees promettrait un
+     * geste que l'ecran ne peut pas tenir.
+     */
+    cell: ({ row }) => (
+      <Checkbox
+        aria-label={`Sélectionner ${row.original.nom ?? 'ce client'}`}
+        isSelected={row.getIsSelected()}
+        onChange={(coche) => row.toggleSelected(coche)}
+        slot={null}
+      >
+        <Checkbox.Content>
+          <Checkbox.Control>
+            <Checkbox.Indicator />
+          </Checkbox.Control>
+        </Checkbox.Content>
+      </Checkbox>
+    ),
+    header: ({ table }) => (
+      <Checkbox
+        aria-label="Sélectionner les fiches de cette page"
+        isIndeterminate={table.getIsSomePageRowsSelected()}
+        isSelected={table.getIsAllPageRowsSelected()}
+        onChange={(coche) => table.toggleAllPageRowsSelected(coche)}
+        slot={null}
+      >
+        <Checkbox.Content>
+          <Checkbox.Control>
+            <Checkbox.Indicator />
+          </Checkbox.Control>
+        </Checkbox.Content>
+      </Checkbox>
+    ),
+    id: 'selection',
+  },
   {
     accessorKey: 'position',
     cell: ({ row }) => (

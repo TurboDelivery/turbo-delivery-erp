@@ -1,4 +1,6 @@
 import {
+  IActionGroupee,
+  IBilanActionGroupee,
   IBilanEdition,
   IBilanFusion,
   IBilanListeNoire,
@@ -222,6 +224,60 @@ export const bddClientsAPI = {
       body: JSON.stringify(modification),
       method: 'PATCH',
     });
+  },
+
+  /**
+   * Pose la même étiquette ou le même segment sur plusieurs fiches.
+   *
+   * <p>Le serveur borne le lot ; l'écran borne la sélection, pour que le refus n'arrive
+   * pas après coup.</p>
+   */
+  actionsGroupees(demande: IActionGroupee): Promise<IBilanActionGroupee> {
+    return appeler<IBilanActionGroupee>(`/actions-groupees`, {
+      body: JSON.stringify(demande),
+      method: 'POST',
+    });
+  },
+
+  /**
+   * L'export du résultat du filtre, fabriqué par le serveur.
+   *
+   * <p>⚠ Passe par `fetch` direct et non par `appeler` : la réponse est un CLASSEUR, pas
+   * du JSON. `appeler` lit le corps en texte, ce qui traverse le décodage UTF-8 et
+   * corromprait l'archive ZIP qu'est un .xlsx.</p>
+   *
+   * <p>Rend le nom de fichier que le serveur a choisi : il porte la date et dit si
+   * l'export contient les numéros complets.</p>
+   */
+  async exporter(
+    filtres: IFiltresClients,
+    enClair = false,
+  ): Promise<{ contenu: Blob; nom: string }> {
+    const url = new URL(`${RELAIS}/export`, window.location.origin);
+    Object.entries({ ...parametres(filtres), enClair }).forEach(([cle, valeur]) => {
+      if (valeur === undefined || valeur === null) return;
+      if (Array.isArray(valeur)) valeur.forEach((v) => url.searchParams.append(cle, String(v)));
+      else url.searchParams.set(cle, String(valeur));
+    });
+
+    const reponse = await fetch(url);
+    if (!reponse.ok) {
+      let message = `L'export a échoué (${reponse.status}).`;
+      try {
+        const corps = JSON.parse(await reponse.text());
+        if (corps?.message) message = corps.message;
+      } catch {
+        /* le corps n'est pas du JSON : on garde le message générique */
+      }
+      throw new Error(message);
+    }
+
+    const disposition = reponse.headers.get('Content-Disposition') ?? '';
+    const trouve = /filename="?([^"]+)"?/.exec(disposition);
+    return {
+      contenu: await reponse.blob(),
+      nom: trouve?.[1] ?? 'base-clients.xlsx',
+    };
   },
 
   /** Ce que chaque partenaire représente dans la base, sur une période. */

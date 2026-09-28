@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Button, Input, Label, ListBox, Select, TextField } from '@heroui-v3/react';
-import { Search, X } from 'lucide-react';
+import { Download, Search, X } from 'lucide-react';
 
 import {
   LIBELLES_CONSENTEMENT,
@@ -67,7 +67,7 @@ function Liste({
   );
 }
 
-export function ClientsFiltres() {
+export function ClientsFiltres({ onExporter }: { onExporter: () => void }) {
   const { actifs, filtres, poser, vider } = useBddClientsFilters();
 
   const changerListe = (cle: 'statut' | 'segment' | 'consentement') => (v: string) =>
@@ -194,6 +194,16 @@ export function ClientsFiltres() {
             Toute la base
           </p>
         )}
+
+        {/*
+          L'export porte tout le RÉSULTAT DU FILTRE, pas la page affichée : c'est pour
+          cela qu'il est ici, à côté des filtres, et non au-dessus du tableau. Les
+          numéros y sont masqués — un fichier circule.
+        */}
+        <Button className="mb-1 ms-auto" onPress={onExporter} size="sm" variant="ghost">
+          <Download aria-hidden="true" className="size-4" />
+          Exporter
+        </Button>
       </div>
     </div>
   );

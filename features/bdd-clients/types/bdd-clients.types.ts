@@ -397,3 +397,27 @@ export interface IVoisinPartenaire {
   partenaire: string;
   nbClients: number;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Actions groupées
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Poser la même chose sur plusieurs fiches.
+ *
+ * <p>`segmentCode` suit la convention de la correction : absent veut dire « ne touche
+ * pas au segment », vide veut dire « rends ces fiches au recalcul de nuit ».</p>
+ */
+export interface IActionGroupee {
+  clientIds: string[];
+  ajouterTags?: string[] | null;
+  retirerTags?: string[] | null;
+  segmentCode?: string | null;
+}
+
+export interface IBilanActionGroupee {
+  demandees: number;
+  touchees: number;
+  ignorees: number;
+  message: string;
+}

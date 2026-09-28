@@ -1,8 +1,11 @@
 'use client';
 
+import React from 'react';
+
 import { parseAsString, useQueryState } from 'nuqs';
 
 import { FicheClientPanneau } from '@/components/bdd-clients/fiche/fiche-client-panneau';
+import { useBddClientsFilters, useExporterMutation } from '@/features/bdd-clients';
 
 import { ClientsFiltres } from './clients-filtres';
 import { ClientsKpiCards } from './clients-kpi-cards';
@@ -23,6 +26,10 @@ import { ClientsTable } from './clients-table';
  * badge des fidèles, qui est l'information commerciale que la base existe pour produire.</p>
  */
 export function ClientsView() {
+  const { filtres } = useBddClientsFilters();
+  const exporterMutation = useExporterMutation();
+  const exporter = () => exporterMutation.mutate({ enClair: false, filtres });
+
   /*
    * La fiche ouverte vit dans l'URL, mais HORS de l'objet de filtres.
    *
@@ -36,10 +43,19 @@ export function ClientsView() {
     parseAsString.withDefault('').withOptions({ clearOnDefault: true }),
   );
 
+  /*
+   * ⚠ La selection N'EST PAS remontee ici.
+   *
+   * Premiere version : deux `useEffect` la faisaient monter du tableau vers cette vue,
+   * qui portait la barre d'actions. Le tableau des identifiants et la fonction de
+   * vidage etaient recrees a chaque rendu, donc chaque effet en declenchait un autre —
+   * React error #185, page entiere en 500, build vert et tsc muet. La barre se rend
+   * desormais la ou la selection vit.
+   */
   return (
     <section className="flex flex-col gap-3">
       <ClientsKpiCards />
-      <ClientsFiltres />
+      <ClientsFiltres onExporter={exporter} />
       <ClientsTable onOuvrir={(id) => void setFicheOuverte(id)} />
       <FicheClientPanneau
         clientId={ficheOuverte || null}

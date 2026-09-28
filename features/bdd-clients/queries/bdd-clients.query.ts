@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { bddClientsAPI } from '../apis/bdd-clients.api';
 import {
+  IActionGroupee,
   IAppelSaisi,
   IEnregistrerLot,
   IFiltresClients,
@@ -304,4 +305,56 @@ export const useVoisinsPartenaireQuery = (id: string | null, debut: string, fin:
     queryFn: () => bddClientsAPI.voisinsPartenaire(id as string, debut, fin),
     enabled: Boolean(id),
     staleTime: 60_000,
+  });
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Actions groupées et export
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Pose la même étiquette ou le même segment sur plusieurs fiches.
+ *
+ * <p>Tout est invalidé : une étiquette posée change la liste, un segment change les
+ * cartes et le recalcul de nuit.</p>
+ */
+export const useActionsGroupeesMutation = () => {
+  const invalidate = useInvalidateBddClients();
+  return useMutation({
+    mutationFn: (demande: IActionGroupee) => bddClientsAPI.actionsGroupees(demande),
+    onSuccess: (bilan) => {
+      invalidate();
+      if (bilan.touchees === 0) {
+        toast.info(bilan.message);
+        return;
+      }
+      toast.success(bilan.message);
+    },
+    onError: (erreur: Error) => toast.error(erreur.message),
+  });
+};
+
+/**
+ * L'export du résultat du filtre.
+ *
+ * <p>Une mutation et non une requête : c'est un GESTE, son résultat est un fichier et
+ * ne se met pas en cache. Le téléchargement est déclenché ici plutôt que dans l'écran,
+ * pour que l'URL temporaire soit révoquée au même endroit qu'elle est créée — sans quoi
+ * chaque export laisse un objet en mémoire jusqu'au rechargement de l'onglet.</p>
+ */
+export const useExporterMutation = () =>
+  useMutation({
+    mutationFn: ({ enClair, filtres }: { enClair: boolean; filtres: IFiltresClients }) =>
+      bddClientsAPI.exporter(filtres, enClair),
+    onSuccess: ({ contenu, nom }) => {
+      const url = URL.createObjectURL(contenu);
+      const lien = document.createElement('a');
+      lien.href = url;
+      lien.download = nom;
+      document.body.appendChild(lien);
+      lien.click();
+      lien.remove();
+      URL.revokeObjectURL(url);
+      toast.success(`Export prêt : ${nom}`);
+    },
+    onError: (erreur: Error) => toast.error(erreur.message),
   });

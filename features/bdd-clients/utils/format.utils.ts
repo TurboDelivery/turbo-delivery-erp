@@ -81,3 +81,11 @@ export function nomComplet(nom?: string | null, prenom?: string | null): string 
   const complet = `${nom ?? ''} ${prenom ?? ''}`.trim();
   return complet === '' ? null : complet;
 }
+
+/**
+ * Le nombre maximum de fiches d'une action groupée.
+ *
+ * <p>Le serveur le borne aussi, et c'est lui qui fait foi. L'écran le répète pour que le
+ * refus n'arrive pas APRÈS avoir coché six cents fiches.</p>
+ */
+export const ActionsGroupeesMaximum = 500;
