@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { auth } from '@/auth';
+import { normalizeRole } from '@/lib/casl/ability';
 
 export const runtime = 'nodejs';
 
@@ -66,10 +67,27 @@ async function relayer(requete: NextRequest, chemin: string[]) {
   const url = new URL(`${BASE}/api/bdd-clients/${chemin.join('/')}`);
   requete.nextUrl.searchParams.forEach((v, k) => url.searchParams.append(k, v));
 
+  /*
+   * ⚠ Le rôle est NORMALISÉ avant d'être relayé, jamais envoyé tel qu'il est écrit.
+   *
+   * La session porte le LIBELLÉ saisi en base : « Agent de saisie », « Chargé
+   * Marketing », « Directeur des opérations ». Le backend en fait
+   * `ROLE_` + majuscules, ce qui donnait `ROLE_AGENT DE SAISIE` là où ses gardes
+   * attendent `ROLE_STANDARD`. Aucune garde n'aurait reconnu personne, et toutes
+   * auraient refusé — le module se serait fermé à tout le monde le jour où la clé de
+   * service serait posée.
+   *
+   * `normalizeRole` est la table d'alias de CASL, donc la MÊME que celle qui décide
+   * de l'affichage. Deux tables finiraient par diverger, et l'écran montrerait alors
+   * ce que le serveur refuse.
+   *
+   * Un libellé inconnu rend `null` : on relaie une chaîne vide, le backend retombe
+   * sur `ROLE_ERP`, et ses gardes refusent. C'est le bon sens du défaut.
+   */
   const role =
-    typeof utilisateur.role === 'string'
-      ? utilisateur.role
-      : String((utilisateur.role as { libelle?: string } | undefined)?.libelle ?? '');
+    normalizeRole(
+      utilisateur.role as string | { libelle?: string } | null | undefined,
+    ) ?? '';
 
   const corps =
     requete.method === 'GET' || requete.method === 'DELETE'
