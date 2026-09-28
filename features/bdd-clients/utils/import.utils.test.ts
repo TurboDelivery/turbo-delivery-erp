@@ -242,6 +242,91 @@ describe('appliquer', () => {
   });
 });
 
+describe('filtrer les lignes', () => {
+  function avecStatut() {
+    return construireTable([
+      ['Tel', 'Statut'],
+      ['0709444401', 'Payé'],
+      ['0501020304', 'ANNULE'],
+      ['2720101010', 'payé'],
+      ['0188776655', ''],
+    ]);
+  }
+
+  /**
+   * ⚠ La casse et les espaces de bord sont ignorés : un fichier de caisse écrit
+   * « Annulé », « ANNULE » et « annulé  » pour la même chose.
+   */
+  it('retire les lignes qui correspondent, sans regarder la casse', () => {
+    const t = avecStatut();
+    const resultat = appliquer(t, [
+      {
+        comparaison: 'contient',
+        garder: false,
+        source: t.colonnes[1].id,
+        type: 'filtrer',
+        valeur: 'annule',
+      },
+    ]);
+    expect(resultat.lignes).toHaveLength(3);
+  });
+
+  it('garde les lignes qui correspondent', () => {
+    const t = avecStatut();
+    const resultat = appliquer(t, [
+      {
+        comparaison: 'egal',
+        garder: true,
+        source: t.colonnes[1].id,
+        type: 'filtrer',
+        valeur: 'payé',
+      },
+    ]);
+    expect(resultat.lignes).toHaveLength(2);
+  });
+
+  it('sait retenir ou écarter les cases vides', () => {
+    const t = avecStatut();
+    const vides = appliquer(t, [
+      { comparaison: 'vide', garder: true, source: t.colonnes[1].id, type: 'filtrer', valeur: '' },
+    ]);
+    expect(vides.lignes).toHaveLength(1);
+
+    const remplies = appliquer(t, [
+      {
+        comparaison: 'nonVide',
+        garder: true,
+        source: t.colonnes[1].id,
+        type: 'filtrer',
+        valeur: '',
+      },
+    ]);
+    expect(remplies.lignes).toHaveLength(3);
+  });
+
+  /**
+   * Une valeur de comparaison vide ne correspond à RIEN : sinon « contient vide »
+   * garderait ou retirerait tout le fichier d'un geste, sans qu'on l'ait demandé.
+   */
+  it('une valeur vide ne fait correspondre aucune ligne', () => {
+    const t = avecStatut();
+    const resultat = appliquer(t, [
+      { comparaison: 'contient', garder: false, source: t.colonnes[1].id, type: 'filtrer', valeur: '' },
+    ]);
+    expect(resultat.lignes).toHaveLength(4);
+  });
+
+  it('un filtre sur une colonne disparue est ignoré', () => {
+    const t = avecStatut();
+    const id = t.colonnes[1].id;
+    const resultat = appliquer(t, [
+      { source: id, type: 'supprimer' },
+      { comparaison: 'vide', garder: false, source: id, type: 'filtrer', valeur: '' },
+    ]);
+    expect(resultat.lignes).toHaveLength(4);
+  });
+});
+
 describe('proposerRattachement', () => {
   it('reconnaît les colonnes usuelles d’un fichier de caisse', () => {
     const t = table();

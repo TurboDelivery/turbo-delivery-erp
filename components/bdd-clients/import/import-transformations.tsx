@@ -1,16 +1,27 @@
 'use client';
 
 import React from 'react';
-import { Button, Input, Label, ListBox, Select, TextField } from '@heroui-v3/react';
-import { Combine, Eraser, Scissors, Trash2, Undo2 } from 'lucide-react';
+import {
+  Button,
+  Input,
+  Label,
+  ListBox,
+  Select,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+} from '@heroui-v3/react';
+import { Combine, Eraser, Filter, Scissors, Trash2, Undo2 } from 'lucide-react';
 
 import {
+  LIBELLES_COMPARAISON,
   LIBELLES_NETTOYAGE,
   formatNombre,
   nouvelIdColonne,
   type IColonneImport,
   type ITableImport,
   type ITransformation,
+  type ComparaisonImport,
   type NettoyageImport,
 } from '@/features/bdd-clients';
 
@@ -49,6 +60,10 @@ function libelleTransformation(t: ITransformation, colonnes: IColonneImport[]): 
       return `Renommer ${nomDe(t.source)} en « ${t.nom} »`;
     case 'supprimer':
       return `Supprimer ${nomDe(t.source)}`;
+    case 'filtrer':
+      return `${t.garder ? 'Garder' : 'Retirer'} les lignes où ${nomDe(t.source)} ${LIBELLES_COMPARAISON[t.comparaison]}${
+        t.comparaison === 'vide' || t.comparaison === 'nonVide' ? '' : ` « ${t.valeur} »`
+      }`;
     default:
       return 'Transformation';
   }
@@ -110,6 +125,12 @@ export function ImportTransformations({
   const [divisionSource, setDivisionSource] = React.useState('');
   const [divisionSeparateur, setDivisionSeparateur] = React.useState(' ');
 
+  const [filtreSource, setFiltreSource] = React.useState('');
+  const [filtreComparaison, setFiltreComparaison] =
+    React.useState<ComparaisonImport>('contient');
+  const [filtreValeur, setFiltreValeur] = React.useState('');
+  const [filtreGarder, setFiltreGarder] = React.useState(false);
+
   const ajouter = (t: ITransformation) => onChanger([...transformations, t]);
   const retirer = (i: number) => onChanger(transformations.filter((_, j) => j !== i));
 
@@ -142,6 +163,21 @@ export function ImportTransformations({
       type: 'diviser',
     });
     setDivisionSource('');
+  };
+
+  const sansValeur = filtreComparaison === 'vide' || filtreComparaison === 'nonVide';
+
+  const filtrer = () => {
+    if (filtreSource === '' || (!sansValeur && filtreValeur.trim() === '')) return;
+    ajouter({
+      comparaison: filtreComparaison,
+      garder: filtreGarder,
+      source: filtreSource,
+      type: 'filtrer',
+      valeur: sansValeur ? '' : filtreValeur,
+    });
+    setFiltreSource('');
+    setFiltreValeur('');
   };
 
   const apercu = table.lignes.slice(0, APERCU);
@@ -239,6 +275,74 @@ export function ImportTransformations({
         >
           Diviser
         </Button>
+      </div>
+
+      {/* Filtrer les lignes */}
+      <div className="flex flex-wrap items-end gap-2 rounded-medium bg-surface-2 p-2">
+        <Filter aria-hidden="true" className="mb-2 size-4 text-muted" />
+        <ToggleButtonGroup
+          aria-label="Garder ou retirer les lignes"
+          className="mb-1"
+          disallowEmptySelection
+          onSelectionChange={(k) => setFiltreGarder([...k][0] === 'garder')}
+          selectedKeys={[filtreGarder ? 'garder' : 'retirer']}
+          selectionMode="single"
+          size="sm"
+        >
+          <ToggleButton id="retirer">Retirer</ToggleButton>
+          <ToggleButton id="garder">
+            <ToggleButtonGroup.Separator />
+            Garder
+          </ToggleButton>
+        </ToggleButtonGroup>
+        <span className="mb-2 text-sm text-foreground">les lignes où</span>
+        <ChoixColonne
+          colonnes={table.colonnes}
+          etiquette="Colonne"
+          onChange={setFiltreSource}
+          valeur={filtreSource}
+        />
+        <Select
+          className="w-40"
+          onSelectionChange={(k) => setFiltreComparaison(String(k) as ComparaisonImport)}
+          selectedKey={filtreComparaison}
+        >
+          <Label>Condition</Label>
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
+          <Select.Popover>
+            <ListBox>
+              {(Object.keys(LIBELLES_COMPARAISON) as ComparaisonImport[]).map((c) => (
+                <ListBox.Item id={c} key={c} textValue={LIBELLES_COMPARAISON[c]}>
+                  {LIBELLES_COMPARAISON[c]}
+                  <ListBox.ItemIndicator />
+                </ListBox.Item>
+              ))}
+            </ListBox>
+          </Select.Popover>
+        </Select>
+        {sansValeur ? null : (
+          <TextField className="w-36" onChange={setFiltreValeur} value={filtreValeur}>
+            <Label>Valeur</Label>
+            <Input placeholder="annulé" />
+          </TextField>
+        )}
+        <Button
+          className="mb-1"
+          isDisabled={filtreSource === '' || (!sansValeur && filtreValeur.trim() === '')}
+          onPress={filtrer}
+          size="sm"
+          variant="secondary"
+        >
+          Filtrer
+        </Button>
+        <span className="mb-2 text-xs text-muted">
+          <span className="tabular-nums">{formatNombre(table.lignes.length)}</span> ligne
+          {table.lignes.length > 1 ? 's' : ''} restante
+          {table.lignes.length > 1 ? 's' : ''}
+        </span>
       </div>
 
       {/* L'aperçu, avec les actions par colonne */}

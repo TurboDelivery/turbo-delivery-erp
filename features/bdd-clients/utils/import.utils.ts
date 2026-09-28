@@ -44,9 +44,28 @@ export type NettoyageImport =
   | 'chiffres'
   | 'sansAccents';
 
+/** Ce qu'une condition compare. */
+export type ComparaisonImport = 'contient' | 'egal' | 'vide' | 'nonVide' | 'commencePar';
+
+export const LIBELLES_COMPARAISON: Record<ComparaisonImport, string> = {
+  commencePar: 'commence par',
+  contient: 'contient',
+  egal: 'vaut exactement',
+  nonVide: "n'est pas vide",
+  vide: 'est vide',
+};
+
 /** Une transformation, telle que l'écran la pose. */
 export type ITransformation =
   | { type: 'fusionner'; sources: string[]; separateur: string; nom: string; id: string }
+  | {
+      type: 'filtrer';
+      source: string;
+      comparaison: ComparaisonImport;
+      valeur: string;
+      /** Vrai : on GARDE les lignes qui correspondent. Faux : on les retire. */
+      garder: boolean;
+    }
   | {
       type: 'diviser';
       source: string;
@@ -98,6 +117,36 @@ export function nettoyer(valeur: string, nettoyage: NettoyageImport): string {
       return valeur.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     default:
       return valeur;
+  }
+}
+
+/**
+ * Une valeur satisfait-elle une condition ?
+ *
+ * <p>La comparaison ignore la casse et les espaces de bord : un fichier de caisse écrit
+ * « Annulé », « ANNULE » et « annulé  » pour la même chose, et demander à l'opérateur de
+ * deviner laquelle il a sous les yeux serait lui demander de relire mille lignes.</p>
+ */
+export function comparer(
+  valeur: string,
+  comparaison: ComparaisonImport,
+  attendue: string,
+): boolean {
+  const v = valeur.trim().toLowerCase();
+  const a = attendue.trim().toLowerCase();
+  switch (comparaison) {
+    case 'vide':
+      return v === '';
+    case 'nonVide':
+      return v !== '';
+    case 'egal':
+      return v === a;
+    case 'commencePar':
+      return a !== '' && v.startsWith(a);
+    case 'contient':
+      return a !== '' && v.includes(a);
+    default:
+      return false;
   }
 }
 
@@ -212,6 +261,14 @@ export function appliquer(
       }
       case 'supprimer': {
         colonnes = colonnes.filter((c) => c.id !== t.source);
+        break;
+      }
+      case 'filtrer': {
+        if (!existe(t.source)) break;
+        lignes = lignes.filter((l) => {
+          const correspond = comparer(l[t.source] ?? '', t.comparaison, t.valeur);
+          return t.garder ? correspond : !correspond;
+        });
         break;
       }
       default:
