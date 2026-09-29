@@ -455,3 +455,18 @@ export interface IBilanRapprochement {
   fichesRecalculees: number;
   message: string;
 }
+
+/**
+ * Les regles qu'un lot doit respecter, telles que le SERVEUR les applique.
+ *
+ * <p>⚠ Ces nombres ne se recopient pas dans l'écran. Le plafond vit dans
+ * `bdd_parametres` et se règle sans redéployer ; un 500 écrit en dur dans le navigateur
+ * face à un 50 en base laissait partir un fichier de deux cents lignes, refusé par le
+ * serveur après tout le travail de recomposition des colonnes.</p>
+ */
+export interface IParametresSaisie {
+  /** Nombre maximum de lignes dans UN lot. Au-delà, l'écran découpe. */
+  lotLignesMax: number;
+  /** Si vrai, une ligne sans montant est refusée. */
+  exigerMontant: boolean;
+}

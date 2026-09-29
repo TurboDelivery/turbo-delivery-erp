@@ -6,6 +6,7 @@ export * from './utils/import.utils';
 export * from './utils/format.utils';
 export * from './utils/modele.utils';
 export * from './utils/filtres.utils';
+export * from './utils/lots.utils';
 export * from './filters/bdd-clients.filter';
 export * from './hooks/use-bdd-clients-filters';
 export * from './hooks/use-clients-table';

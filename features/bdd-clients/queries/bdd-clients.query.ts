@@ -25,6 +25,7 @@ export const bddClientsKeys = {
   listeNoire: () => [...bddClientsKeys.all, 'liste-noire'] as const,
   zones: () => [...bddClientsKeys.all, 'zones'] as const,
   partenaires: () => [...bddClientsKeys.all, 'partenaires'] as const,
+  parametres: () => [...bddClientsKeys.all, 'parametres'] as const,
   libellesDeZone: () => [...bddClientsKeys.all, 'zones-libelles'] as const,
   statsPartenaires: (debut: string, fin: string) =>
     [...bddClientsKeys.all, 'stats-partenaires', debut, fin] as const,
@@ -127,11 +128,19 @@ export const useQualifierMutation = () => {
   });
 };
 
-export const useEnregistrerLotMutation = () => {
+export const useEnregistrerLotMutation = ({ silencieux = false }: { silencieux?: boolean } = {}) => {
   const invalidate = useInvalidateBddClients();
   return useMutation({
     mutationFn: (dto: IEnregistrerLot) => bddClientsAPI.enregistrer(dto),
     onSuccess: (synthese) => {
+      /*
+       * ⚠ Le mode silencieux existe pour l'import, qui envoie un fichier en PLUSIEURS
+       * lots successifs. Annoncer et invalider à chaque lot donnerait vingt-sept
+       * bandeaux et vingt-sept relectures de la liste pour un seul geste de
+       * l'opérateur. L'appelant groupé annonce une fois, à la fin, et invalide une
+       * fois : c'est lui qui connaît le total.
+       */
+      if (silencieux) return;
       invalidate();
       const detail =
         `${synthese.nbEnregistrees} enregistrée${synthese.nbEnregistrees > 1 ? 's' : ''}` +
@@ -407,6 +416,21 @@ export const useRapprocherZoneMutation = () => {
     onError: (erreur: Error) => toast.error(erreur.message),
   });
 };
+
+/**
+ * Les règles qu'un lot doit respecter.
+ *
+ * <p>⚠ L'écran ne doit RIEN proposer d'enregistrer avant de les connaître. Le plafond
+ * est réglable en base ; le deviner, c'est annoncer une règle que le serveur n'applique
+ * pas, et laisser partir un fichier qui sera refusé après tout le travail de colonnes.
+ * Une heure de fraîcheur : ce réglage bouge à la main, pas tout seul.</p>
+ */
+export const useParametresSaisieQuery = () =>
+  useQuery({
+    queryKey: bddClientsKeys.parametres(),
+    queryFn: () => bddClientsAPI.parametres(),
+    staleTime: 3_600_000,
+  });
 
 /**
  * Les partenaires présents dans la base.

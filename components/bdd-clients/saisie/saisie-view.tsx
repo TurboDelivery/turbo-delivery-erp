@@ -9,6 +9,7 @@ import {
   analyserMontant,
   ligneVide,
   useEnregistrerLotMutation,
+  useParametresSaisieQuery,
   useVerifierLotMutation,
   type ILigneSaisie,
   type ISyntheseLot,
@@ -63,7 +64,16 @@ function ajuster(grille: LigneGrille[], nb: number): LigneGrille[] {
   return resultat;
 }
 
-export function SaisieView({ maximumLignes = 50 }: { maximumLignes?: number }) {
+/**
+ * Le repli quand la règle du serveur n'a pas pu être lue.
+ *
+ * <p>C'est le MÊME nombre que le défaut appliqué par le serveur quand la ligne manque
+ * en base. Un repli différent ferait mentir l'écran dans le seul cas où il ne peut pas
+ * vérifier.</p>
+ */
+const PLAFOND_PAR_DEFAUT = 50;
+
+export function SaisieView({ maximumLignes }: { maximumLignes?: number } = {}) {
   const [partenaireId, setPartenaireId] = React.useState('');
   const [dateReference, setDateReference] = React.useState(
     () => new Date().toISOString().slice(0, 10),
@@ -84,6 +94,20 @@ export function SaisieView({ maximumLignes = 50 }: { maximumLignes?: number }) {
    * demandé la deuxième page ». Le choix du partenaire étant la première chose à
    * faire ici, rien n'était saisissable.
    */
+  /*
+   * ⚠ Le plafond vient du SERVEUR, il ne s'écrit pas ici.
+   *
+   * Il vivait en dur à 50 des deux côtés : un accord par coïncidence, pas par
+   * construction. `LOT_LIGNES_MAX` se règle en base sans redéployer, et le jour où il
+   * bouge, une valeur recopiée dans l'écran fait annoncer une règle que le serveur
+   * n'applique pas. C'est exactement ce que l'écran d'import faisait avec son 500.
+   *
+   * Le banc passe la valeur en propriété : il n'a pas de réseau. Et si la lecture
+   * échoue, on retombe sur le MÊME défaut que le serveur applique dans ce cas.
+   */
+  const { data: reglages } = useParametresSaisieQuery();
+  const plafond = maximumLignes ?? reglages?.lotLignesMax ?? PLAFOND_PAR_DEFAUT;
+
   const { data: partenaires, isFetching: chargePartenaires } = useRestaurantsListQuery({
     limit: 300,
     page: 0,
@@ -225,7 +249,7 @@ export function SaisieView({ maximumLignes = 50 }: { maximumLignes?: number }) {
               </Button>
             ))}
             <Button
-              isDisabled={grille.length >= maximumLignes}
+              isDisabled={grille.length >= plafond}
               onPress={() => setGrille((g) => [...g, ligneVide()])}
               size="sm"
               variant="ghost"
@@ -266,7 +290,7 @@ export function SaisieView({ maximumLignes = 50 }: { maximumLignes?: number }) {
       {tronque > 0 ? (
         <p className="rounded-medium border border-separator bg-surface-2 px-3 py-2 text-xs text-muted">
           {tronque} ligne{tronque > 1 ? 's' : ''} du collage {tronque > 1 ? 'ont' : 'a'} été
-          écartée{tronque > 1 ? 's' : ''} : un lot ne peut pas dépasser {maximumLignes} lignes.
+          écartée{tronque > 1 ? 's' : ''} : un lot ne peut pas dépasser {plafond} lignes.
           Enregistre celui-ci, puis colle la suite dans un nouveau lot.
         </p>
       ) : null}
@@ -274,7 +298,7 @@ export function SaisieView({ maximumLignes = 50 }: { maximumLignes?: number }) {
       <div className="min-h-0 flex-1">
         <GrilleSaisie
           grille={grille}
-          maximum={maximumLignes}
+          maximum={plafond}
           onChange={setGrille}
           onTronque={setTronque}
           verdicts={verdicts}

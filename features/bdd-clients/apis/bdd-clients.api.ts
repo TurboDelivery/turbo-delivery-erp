@@ -22,6 +22,7 @@ import {
   ILotDetail,
   ILotResume,
   IPageClients,
+  IParametresSaisie,
   IResultatAppel,
   ISyntheseLot,
   IVerdictLigne,
@@ -301,6 +302,17 @@ export const bddClientsAPI = {
       method: 'GET',
       params: { debut: debut || undefined, fin: fin || undefined },
     });
+  },
+
+  /**
+   * Les règles de composition d'un lot, telles que le serveur les applique.
+   *
+   * <p>⚠ À lire AVANT de proposer d'enregistrer. Le plafond est réglable en base : le
+   * recopier dans l'écran le fait diverger, et l'écran annonce alors une règle que le
+   * serveur n'applique pas.</p>
+   */
+  parametres(): Promise<IParametresSaisie> {
+    return appeler<IParametresSaisie>(`/parametres`, { method: 'GET' });
   },
 
   /** Les partenaires présents dans la base, pour le filtre. */
