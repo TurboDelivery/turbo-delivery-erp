@@ -2,9 +2,13 @@
 
 import React from 'react';
 import { Button } from '@heroui-v3/react';
-import { FileSpreadsheet, Upload } from 'lucide-react';
+import { Download, FileSpreadsheet, Upload } from 'lucide-react';
 
-import { analyserCollage } from '@/features/bdd-clients';
+import {
+  analyserCollage,
+  construireModeleImport,
+  NOM_MODELE_IMPORT,
+} from '@/features/bdd-clients';
 
 /**
  * Charger le fichier, ou le coller.
@@ -27,7 +31,32 @@ export function ImportChargement({
 }) {
   const [erreur, setErreur] = React.useState<string | null>(null);
   const [enCours, setEnCours] = React.useState(false);
+  const [fabriqueLeModele, setFabriqueLeModele] = React.useState(false);
   const champ = React.useRef<HTMLInputElement>(null);
+
+  /*
+   * Le téléchargement passe par une URL d'objet, révoquée aussitôt.
+   *
+   * Sans la révocation, chaque clic laisse le classeur en mémoire pour la durée de
+   * l'onglet. Ce n'est pas anodin ici : l'écran d'import est celui où l'on reste, et
+   * l'opérateur reprend le modèle autant de fois qu'il ouvre de fichiers.
+   */
+  const telechargerLeModele = async () => {
+    setFabriqueLeModele(true);
+    try {
+      const contenu = await construireModeleImport();
+      const url = URL.createObjectURL(contenu);
+      const lien = document.createElement('a');
+      lien.href = url;
+      lien.download = NOM_MODELE_IMPORT;
+      lien.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setErreur("Le modèle n'a pas pu être fabriqué. Réessaie dans un instant.");
+    } finally {
+      setFabriqueLeModele(false);
+    }
+  };
 
   const lireLeFichier = async (fichier: File) => {
     setErreur(null);
@@ -59,7 +88,10 @@ export function ImportChargement({
         .map((l) => (Array.isArray(l) ? l.map((c) => String(c ?? '')) : []))
         .filter((l) => l.some((c) => c.trim() !== ''));
       if (propre.length < 2) {
-        setErreur('Ce fichier ne contient pas de ligne sous son en-tête.');
+        setErreur(
+          'Ce fichier ne contient que son en-tête. Si c’est le modèle, remplis la ' +
+            'feuille « Contacts » : c’est la première qui est lue.',
+        );
         return;
       }
       onCharger(propre, fichier.name);
@@ -107,6 +139,18 @@ export function ImportChargement({
           Choisir un fichier
         </Button>
         <span className="text-xs text-muted">.xlsx, .xls ou .csv</span>
+
+        <div className="ms-auto flex items-center gap-2">
+          <span className="text-xs text-muted">Pas de fichier sous la main ?</span>
+          <Button
+            isPending={fabriqueLeModele}
+            onPress={() => void telechargerLeModele()}
+            variant="ghost"
+          >
+            <Download aria-hidden="true" className="size-4" />
+            Télécharger le modèle
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-1">

@@ -27,6 +27,7 @@ import { NB_COLONNES_CLIENTS } from './clients-table-columns';
 export function ClientsTable({ onOuvrir }: { onOuvrir: (id: string) => void }) {
   const {
     allerA,
+    aUnFiltre,
     isError,
     isFetching,
     isLoading,
@@ -74,9 +75,18 @@ export function ClientsTable({ onOuvrir }: { onOuvrir: (id: string) => void }) {
           <Table.Body
             renderEmptyState={() =>
               isLoading ? null : (
-                <p className="py-10 text-center text-sm text-muted">
-                  Aucun client ne correspond à ces filtres.
-                </p>
+                <div className="flex flex-col items-center gap-1 py-10 text-center">
+                  <p className="text-sm text-foreground">
+                    {aUnFiltre
+                      ? 'Aucun client ne correspond à ces filtres.'
+                      : 'La base ne contient encore aucune fiche.'}
+                  </p>
+                  <p className="text-xs text-muted">
+                    {aUnFiltre
+                      ? 'Élargis la période ou retire un critère.'
+                      : 'Elle se remplit par la saisie en lot et par l’import d’un fichier.'}
+                  </p>
+                </div>
               )
             }
           >

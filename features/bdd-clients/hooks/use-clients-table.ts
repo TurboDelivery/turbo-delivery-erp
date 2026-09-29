@@ -6,6 +6,7 @@ import { RowSelectionState, getCoreRowModel, useReactTable } from '@tanstack/rea
 import { clientsColumns } from '@/components/bdd-clients/liste/clients-table-columns';
 
 import { useClientsQuery } from '../queries/bdd-clients.query';
+import { aUnFiltrePose } from '../utils/filtres.utils';
 import { useBddClientsFilters } from './use-bdd-clients-filters';
 
 /**
@@ -61,6 +62,12 @@ export function useClientsTable(onOuvrir: (id: string) => void) {
     // filtre change. L'utiliser ici rendait la pagination inerte — cliquer « page
     // suivante » ecrivait page 1 puis 0 dans le meme geste, et l'on restait page 1 sur 52.
     allerA: (page: number) => setFiltres({ page }),
+    /*
+     * Une liste vide a deux causes, et le message doit les separer : un filtre trop
+     * etroit, ou une base qui n'a encore rien. Le tableau ne peut pas le deviner de
+     * ses propres lignes — elles sont vides dans les deux cas.
+     */
+    aUnFiltre: aUnFiltrePose(filtres),
     isError,
     isFetching,
     isLoading,

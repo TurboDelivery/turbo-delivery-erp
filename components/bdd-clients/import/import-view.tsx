@@ -72,9 +72,19 @@ export function ImportView() {
   const [synthese, setSynthese] = React.useState<ISyntheseLot | null>(null);
   const [lotId, setLotId] = React.useState<string | null>(null);
 
+  /*
+   * ⚠ La page est indexée à ZÉRO.
+   *
+   * `getRestaurantsPaginated` découpe avec `slice(page * limit, …)` : demander la
+   * page 1 sur une taille de 300 commençait à la 301e enseigne d'un réseau qui en
+   * compte moins de cent. La liste revenait VIDE, et l'écran disait « Aucun
+   * partenaire » — ce qui se lit comme « le réseau est vide » et non comme « tu as
+   * demandé la deuxième page ». Le choix du partenaire étant la première chose à
+   * faire ici, rien n'était saisissable.
+   */
   const { data: partenaires, isFetching: chargePartenaires } = useRestaurantsListQuery({
     limit: 300,
-    page: 1,
+    page: 0,
   });
   const verifier = useVerifierLotMutation();
   const enregistrer = useEnregistrerLotMutation();

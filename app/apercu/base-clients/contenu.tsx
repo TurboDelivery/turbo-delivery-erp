@@ -210,12 +210,25 @@ export default function ApercuBaseClients() {
       </div>
 
       <p className="text-xs text-muted">
-        Cache pré-rempli sur les filtres par défaut. Poser un filtre changera la clé et
-        rendra une liste vide : c&apos;est attendu sur un banc sans réseau.
+        Cache pré-rempli sur les filtres par défaut. Poser un filtre change la clé : la
+        requête part pour de vrai, échoue faute de session, et l&apos;écran montre son état
+        d&apos;erreur. C&apos;est attendu ici, et c&apos;est aussi l&apos;occasion de le regarder.
       </p>
 
       <div style={etroit ? { maxWidth: 1000 } : undefined}>
-        <QueryClientProvider client={client}>
+        {/*
+          ⚠ La `key` REMONTE l'arbre quand le jeu de données change, et ce n'est pas
+          une optimisation : sans elle, le bouton ne fait rien.
+
+          TanStack crée l'observateur d'une requête dans un `useState` initialisé une
+          seule fois, avec le client capturé au PREMIER rendu. Échanger le client du
+          fournisseur ne le réabonne donc pas : l'écran continue de lire l'ancien
+          cache. Mesuré sur ce banc — le bouton affichait « Avec clients », donc l'état
+          vide, et les mille deux cent quatre-vingt-quatre fiches restaient à l'écran.
+          Un banc qui montre le contraire de ce qu'annonce son bouton est pire que pas
+          de banc : il fait valider un état vide qu'on n'a jamais vu.
+        */}
+        <QueryClientProvider client={client} key={vide ? 'vide' : 'plein'}>
           <ClientsView />
         </QueryClientProvider>
       </div>

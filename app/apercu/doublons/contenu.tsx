@@ -185,7 +185,10 @@ export default function ApercuDoublons() {
       </p>
 
       <div style={etroit ? { maxWidth: 1000 } : undefined}>
-        <QueryClientProvider client={client}>
+        {/* ⚠ La `key` remonte l'arbre : sans elle, l'échange de client ne
+            réabonne rien et le bouton est inerte. Voir le banc
+            `base-clients`, qui porte le raisonnement. */}
+          <QueryClientProvider client={client} key={vide ? 'vide' : 'plein'}>
           <DoublonsView />
         </QueryClientProvider>
       </div>

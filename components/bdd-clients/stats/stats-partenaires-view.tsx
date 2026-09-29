@@ -154,8 +154,15 @@ export function StatsPartenairesView() {
                     <div className="flex flex-col items-center gap-2 py-10 text-center">
                       <Store aria-hidden="true" className="size-6 text-muted" />
                       <p className="text-sm text-foreground">
-                        Aucune commande sur cette période.
+                        {periode.debut || periode.fin
+                          ? 'Aucune commande sur cette période.'
+                          : 'Aucune commande n’a encore été saisie.'}
                       </p>
+                      {periode.debut || periode.fin ? null : (
+                        <p className="text-xs text-muted">
+                          Ce tableau se remplit à mesure que les lots sont validés.
+                        </p>
+                      )}
                     </div>
                   )
                 }

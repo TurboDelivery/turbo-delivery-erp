@@ -40,7 +40,27 @@ const CLE = process.env.BDD_CLIENTS_SERVICE_KEY ?? '';
 /** Les méthodes que ce relais accepte. Tout le reste est refusé, pas relayé. */
 const METHODES = new Set(['GET', 'POST', 'PATCH', 'PUT', 'DELETE']);
 
-async function relayer(requete: NextRequest, chemin: string[]) {
+/**
+ * ⚠ Le segment de chemin est FACULTATIF (`[[...chemin]]`), et la jointure ne laisse
+ * jamais de barre finale.
+ *
+ * <p>La liste de la base est servie par `GET /api/bdd-clients` — sans suffixe. Avec une
+ * capture obligatoire (`[...chemin]`), Next ne reconnaissait pas `/api/bdd` et rendait
+ * 404 : l'écran Clients affichait « Impossible de charger la base clients » alors que
+ * ses quatre cartes, elles, répondaient. Un défaut de routage qui se lit comme un défaut
+ * de données.</p>
+ *
+ * <p>Et la barre finale compte : depuis Spring Framework 6, `/api/bdd-clients/` ne
+ * correspond plus à `/api/bdd-clients`. Écrire `${BASE}/api/bdd-clients/${chemin.join('/')}`
+ * sur un chemin vide aurait déplacé le 404 du relais vers le backend, sans rien
+ * corriger.</p>
+ */
+function cible(chemin: string[]): string {
+  const suffixe = chemin.filter((s) => s !== '').join('/');
+  return `${BASE}/api/bdd-clients${suffixe ? `/${suffixe}` : ''}`;
+}
+
+async function relayer(requete: NextRequest, chemin: string[] = []) {
   if (!METHODES.has(requete.method)) {
     return NextResponse.json({ message: 'Méthode non autorisée.' }, { status: 405 });
   }
@@ -64,7 +84,7 @@ async function relayer(requete: NextRequest, chemin: string[]) {
     );
   }
 
-  const url = new URL(`${BASE}/api/bdd-clients/${chemin.join('/')}`);
+  const url = new URL(cible(chemin));
   requete.nextUrl.searchParams.forEach((v, k) => url.searchParams.append(k, v));
 
   /*
@@ -134,22 +154,22 @@ async function relayer(requete: NextRequest, chemin: string[]) {
   });
 }
 
-export async function GET(requete: NextRequest, ctx: { params: Promise<{ chemin: string[] }> }) {
-  return relayer(requete, (await ctx.params).chemin);
+export async function GET(requete: NextRequest, ctx: { params: Promise<{ chemin?: string[] }> }) {
+  return relayer(requete, (await ctx.params).chemin ?? []);
 }
 
-export async function POST(requete: NextRequest, ctx: { params: Promise<{ chemin: string[] }> }) {
-  return relayer(requete, (await ctx.params).chemin);
+export async function POST(requete: NextRequest, ctx: { params: Promise<{ chemin?: string[] }> }) {
+  return relayer(requete, (await ctx.params).chemin ?? []);
 }
 
-export async function PUT(requete: NextRequest, ctx: { params: Promise<{ chemin: string[] }> }) {
-  return relayer(requete, (await ctx.params).chemin);
+export async function PUT(requete: NextRequest, ctx: { params: Promise<{ chemin?: string[] }> }) {
+  return relayer(requete, (await ctx.params).chemin ?? []);
 }
 
-export async function PATCH(requete: NextRequest, ctx: { params: Promise<{ chemin: string[] }> }) {
-  return relayer(requete, (await ctx.params).chemin);
+export async function PATCH(requete: NextRequest, ctx: { params: Promise<{ chemin?: string[] }> }) {
+  return relayer(requete, (await ctx.params).chemin ?? []);
 }
 
-export async function DELETE(requete: NextRequest, ctx: { params: Promise<{ chemin: string[] }> }) {
-  return relayer(requete, (await ctx.params).chemin);
+export async function DELETE(requete: NextRequest, ctx: { params: Promise<{ chemin?: string[] }> }) {
+  return relayer(requete, (await ctx.params).chemin ?? []);
 }
