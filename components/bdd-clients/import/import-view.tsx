@@ -51,10 +51,19 @@ import { ImportTransformations } from './import-transformations';
  * sont. Ce sont deux gestes différents, et les mélanger aurait alourdi celui qu'on fait
  * cent fois par jour.</p>
  *
- * <h3>Le contrôle et l'enregistrement sont les MÊMES</h3>
- * <p>Même contrôle groupé, même enregistrement, mêmes refus. L'import ne s'ouvre pas une
- * porte à lui : il produit des lignes, et ces lignes passent par où passent toutes les
- * autres. Une seconde porte aurait fini par diverger de la première.</p>
+ * <h3>Le contrôle et l'enregistrement sont les MÊMES, à UNE règle près</h3>
+ * <p>Même route, même contrôle groupé, même enregistrement, mêmes refus. L'import ne
+ * s'ouvre pas une porte à lui : il produit des lignes, et ces lignes passent par où
+ * passent toutes les autres. Une seconde porte aurait fini par diverger de la
+ * première.</p>
+ *
+ * <p>⚠ L'unique écart est la RÉPÉTITION d'un numéro dans le lot. À la saisie, deux fois
+ * le même numéro sur cinquante lignes tapées est presque toujours une double frappe, et
+ * le refus protège l'agent. Dans l'historique d'un restaurant, un numéro qui revient est
+ * un client fidèle et chacune de ses lignes est une commande réelle : refuser les
+ * suivantes efface exactement ce que la base de clients existe pour mesurer. Arbitrage
+ * du propriétaire, posé le 29/09/2026. L'unicité du numéro de check, elle, n'est pas
+ * levée : elle protège un index, pas une règle de gestion.</p>
  *
  * <h3>⚠ Le contrôle N'EST PAS automatique ici</h3>
  * <p>Sur la saisie, il se déclenche à la frappe parce qu'on saisit dix lignes. Un import
@@ -183,6 +192,9 @@ export function ImportView() {
         const verdictsTranche = await verifier.mutateAsync({
           lignes: tranches[i],
           partenaireId,
+          // Un client fidèle revient dans son propre historique : chacune de ses lignes
+          // est une commande. Voir `repetitionsAutorisees`.
+          repetitionsAutorisees: true,
         });
         verdictsTranche.forEach((v) => tous.set(v.index, v));
         setProgression({ fait: i + 1, total: tranches.length });
@@ -257,6 +269,7 @@ export function ImportView() {
           // tranche est un lot neuf, et rejouer le même en écraserait les lignes.
           lotId: tranches.length === 1 ? lotId : null,
           partenaireId,
+          repetitionsAutorisees: true,
           valider,
         });
         cumul.nbEnregistrees += resultat.nbEnregistrees;

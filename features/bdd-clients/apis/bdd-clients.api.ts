@@ -123,9 +123,13 @@ export const bddClientsAPI = {
    * quel que soit le nombre de lignes, et chaque appel de l'ERP paie déjà jusqu'à trois
    * allers-retours de session. Cinquante appels ne tiendraient pas les trois secondes.</p>
    */
-  verifier(partenaireId: string, lignes: ILigneAVerifier[]): Promise<IVerdictLigne[]> {
+  verifier(
+    partenaireId: string,
+    lignes: ILigneAVerifier[],
+    repetitionsAutorisees = false,
+  ): Promise<IVerdictLigne[]> {
     return appeler<IVerdictLigne[]>(`/lots/verifier`, {
-      body: JSON.stringify({ partenaireId, lignes }),
+      body: JSON.stringify({ lignes, partenaireId, repetitionsAutorisees }),
       method: 'POST',
     });
   },

@@ -45,6 +45,18 @@ export interface IEnregistrerLot {
   dateReference: string;
   lignes: ILigneSaisie[];
   valider: boolean;
+  /**
+   * Un même numéro peut-il revenir dans ce lot.
+   *
+   * <p>Faux à la saisie : deux fois le même numéro sur cinquante lignes tapées est
+   * presque toujours une double frappe, et le refus protège l'agent. Vrai à l'import :
+   * un numéro qui revient dans l'historique d'un restaurant est un client fidèle, et
+   * chacune de ses lignes est une commande réelle. Arbitrage posé le 29/09/2026.</p>
+   *
+   * <p>⚠ Cela ne lève PAS l'unicité du numéro de check, qui protège un index et non une
+   * règle de gestion.</p>
+   */
+  repetitionsAutorisees?: boolean;
 }
 
 /**

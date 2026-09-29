@@ -100,8 +100,15 @@ export const useInvalidateBddClients = () => {
  */
 export const useVerifierLotMutation = () =>
   useMutation({
-    mutationFn: ({ partenaireId, lignes }: { partenaireId: string; lignes: ILigneAVerifier[] }) =>
-      bddClientsAPI.verifier(partenaireId, lignes),
+    mutationFn: ({
+      partenaireId,
+      lignes,
+      repetitionsAutorisees,
+    }: {
+      partenaireId: string;
+      lignes: ILigneAVerifier[];
+      repetitionsAutorisees?: boolean;
+    }) => bddClientsAPI.verifier(partenaireId, lignes, repetitionsAutorisees ?? false),
   });
 
 /**
