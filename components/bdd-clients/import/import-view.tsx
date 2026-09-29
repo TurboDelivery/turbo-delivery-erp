@@ -19,7 +19,9 @@ import {
   appliquer,
   construireTable,
   decouper,
+  compterDatesIllisibles,
   formatNombre,
+  lireDateFichier,
   nombreDeLots,
   proposerRattachement,
   useEnregistrerLotMutation,
@@ -119,6 +121,17 @@ export function ImportView() {
     [table, rattachement],
   );
 
+  /*
+   * Les dates qu'on n'a pas su lire. Elles ne bloquent aucune ligne, mais se taire
+   * ferait perdre une colonne entière sans que personne ne le voie : un format que la
+   * lecture ignore rend simplement toutes les fiches sans date, et l'écran afficherait
+   * le même « À importer 13 481 » qu'un fichier parfait.
+   */
+  const datesIllisibles = React.useMemo(
+    () => compterDatesIllisibles(lignes.map((l) => l.dateCommande)),
+    [lignes],
+  );
+
   const parLot = reglages?.lotLignesMax ?? 0;
   const nbLots = nombreDeLots(lignes.length, parLot);
   const enCours = progression !== null;
@@ -206,7 +219,16 @@ export function ImportView() {
     if (!pret) return;
     const aEnvoyer: ILigneSaisie[] = lignes.slice(depuis).map((l, i) => ({
       contact: l.contact,
-      dateCommande: l.dateCommande || null,
+      /*
+       * ⚠ La date est CONVERTIE, jamais envoyée telle quelle.
+       *
+       * Le serveur attend un instant ISO ; une caisse écrit « 28/09/2026 15:41 ». La
+       * cellule brute lui arrachait `Text '28/09/2026 15:41' could not be parsed at
+       * index 0`, et treize mille lignes restaient dehors pour une colonne qui n'est
+       * même pas obligatoire. Illisible, la date part à null : elle enrichit la fiche,
+       * elle ne l'identifie pas, et l'écran dit combien de cellules n'ont pas été lues.
+       */
+      dateCommande: lireDateFichier(l.dateCommande),
       index: depuis + i,
       montant: analyserMontant(l.montant),
       nom: l.nom || null,
@@ -384,6 +406,14 @@ export function ImportView() {
                     Sans numéro{' '}
                     <strong className="tabular-nums text-foreground">
                       {formatNombre(ecartees)}
+                    </strong>
+                  </span>
+                ) : null}
+                {datesIllisibles > 0 ? (
+                  <span className="text-muted">
+                    Dates illisibles{' '}
+                    <strong className="tabular-nums text-foreground">
+                      {formatNombre(datesIllisibles)}
                     </strong>
                   </span>
                 ) : null}
