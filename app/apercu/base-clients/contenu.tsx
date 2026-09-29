@@ -166,6 +166,28 @@ export default function ApercuBaseClients() {
       totalElements: vide ? 0 : 1_284,
       totalPages: vide ? 0 : 52,
     });
+    /*
+     * La DEUXIÈME page, semée elle aussi.
+     *
+     * ⚠ C'est le seul moyen de voir marcher la conversion de rang. La pagination compte
+     * à partir de UN, la base à partir de ZÉRO, et l'écran traduit entre les deux. Une
+     * inversion d'un rang ne se voit pas : elle rend la page voisine, qui a l'air juste.
+     * Avec cette page en cache, cliquer « 2 » doit montrer ces lignes-ci et rien
+     * d'autre.
+     */
+    c.setQueryData(bddClientsKeys.liste({ ...FILTRES_PAR_DEFAUT, page: 1 }), {
+      content: vide
+        ? []
+        : [
+            ligne(26, 'PAGE DEUX', '07 •• •• 26 26', 1, 1, 'A_QUALIFIER', 'NOUVEAU', null, 0),
+            ligne(27, 'PAGE DEUX', '05 •• •• 27 27', 2, 1, 'QUALIFIE', 'OCCASIONNEL', 'OUI', 31_000),
+            ligne(28, 'PAGE DEUX', '01 •• •• 28 28', 9, 3, 'QUALIFIE', 'VIP', 'OUI', 620_000),
+          ],
+      number: 1,
+      size: 25,
+      totalElements: vide ? 0 : 1_284,
+      totalPages: vide ? 0 : 52,
+    });
     c.setQueryData(bddClientsKeys.kpis(FILTRES_PAR_DEFAUT), {
       clientsMultiRestaurants: vide ? 0 : 214,
       clientsUniques: vide ? 0 : 1_284,

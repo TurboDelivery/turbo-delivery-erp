@@ -18,7 +18,18 @@ export const bddClientsKeys = {
   mesLots: () => [...bddClientsKeys.all, 'mes-lots'] as const,
   lot: (id: string) => [...bddClientsKeys.all, 'lot', id] as const,
   liste: (f: IFiltresClients) => [...bddClientsKeys.all, 'liste', f] as const,
-  kpis: (f: IFiltresClients) => [...bddClientsKeys.all, 'kpis', f] as const,
+  /**
+   * ⚠ La clé des cartes ignore la PAGE, contrairement à celle de la liste.
+   *
+   * <p>Les quatre cartes comptent la population du filtre, pas la page qu'on regarde :
+   * la requête n'envoie même pas la page. Avec la page dans la clé, tourner une page
+   * fabriquait une clé neuve et refaisait les quatre agrégats — sur une base de sept
+   * mille fiches et deux cent soixante-quinze pages, autant de fois qu'on clique, pour
+   * le même résultat. Et les cartes repassaient par leur état de chargement à chaque
+   * clic, ce qui donne l'impression que les chiffres bougent.</p>
+   */
+  kpis: ({ page: _page, ...critères }: IFiltresClients) =>
+    [...bddClientsKeys.all, 'kpis', critères] as const,
   fiche: (id: string) => [...bddClientsKeys.all, 'fiche', id] as const,
   doublons: () => [...bddClientsKeys.all, 'doublons'] as const,
   journalFusions: () => [...bddClientsKeys.all, 'journal-fusions'] as const,
