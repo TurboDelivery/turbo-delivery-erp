@@ -19,9 +19,9 @@ import { useBddClientsFilters } from './use-bdd-clients-filters';
  * atteindre des dizaines de milliers de fiches, et trier une page de vingt-cinq lignes
  * dans le navigateur trierait vingt-cinq lignes au lieu de la base.</p>
  */
-export function useClientsTable(onOuvrir: (id: string) => void) {
+export function useClientsTable(onOuvrir: (id: string) => void, enClair = false) {
   const { filtres, setFiltres } = useBddClientsFilters();
-  const { data, isError, isFetching, isLoading, refetch } = useClientsQuery(filtres);
+  const { data, isError, isFetching, isLoading, refetch } = useClientsQuery(filtres, enClair);
 
   const [selection, setSelection] = React.useState<RowSelectionState>({});
 

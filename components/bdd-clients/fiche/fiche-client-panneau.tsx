@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Button, Drawer, Spinner } from '@heroui-v3/react';
-import { Pencil, PhoneCall, Store, Tag } from 'lucide-react';
+import { Eye, EyeOff, Pencil, PhoneCall, Store, Tag } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
 
@@ -17,6 +17,7 @@ import {
   formatJour,
   formatNombre,
   useFicheClientQuery,
+  useMesDroitsQuery,
   type IFicheClient,
 } from '@/features/bdd-clients';
 
@@ -44,7 +45,17 @@ function Nombre({ detail, libelle, valeur }: { detail?: string; libelle: string;
   );
 }
 
-function Corps({ fiche }: { fiche: IFicheClient }) {
+function Corps({
+  enClair,
+  fiche,
+  peutVoirEnClair,
+  surBasculerNumero,
+}: {
+  enClair: boolean;
+  fiche: IFicheClient;
+  peutVoirEnClair: boolean;
+  surBasculerNumero: () => void;
+}) {
   const nom = [fiche.nom, fiche.prenom].filter(Boolean).join(' ').trim();
   const [correction, setCorrection] = React.useState(false);
 
@@ -74,7 +85,28 @@ function Corps({ fiche }: { fiche: IFicheClient }) {
             </Button>
           )}
         </div>
-        <p className="tabular-nums text-foreground">{fiche.telephone}</p>
+        <div className="flex items-center gap-2">
+          <p className="tabular-nums text-foreground">{fiche.telephone}</p>
+          {peutVoirEnClair ? (
+            <Button
+              onPress={surBasculerNumero}
+              size="sm"
+              variant="ghost"
+            >
+              {enClair ? (
+                <EyeOff aria-hidden="true" className="size-4" />
+              ) : (
+                <Eye aria-hidden="true" className="size-4" />
+              )}
+              {enClair ? 'Masquer' : 'Voir le numéro'}
+            </Button>
+          ) : null}
+        </div>
+        {enClair ? (
+          <p className="text-xs text-muted">
+            Cet affichage est inscrit au journal, à votre nom.
+          </p>
+        ) : null}
         {fiche.alias.length > 0 ? (
           <p className="text-xs text-muted">aussi connu comme {fiche.alias.join(' · ')}</p>
         ) : null}
@@ -248,7 +280,21 @@ export function FicheClientPanneau({
   clientId: string | null;
   onFermer: () => void;
 }) {
-  const { data, isError, isFetching, refetch } = useFicheClientQuery(clientId);
+  /*
+   * ⚠ Le numéro se dévoile ICI, client par client, et cela laisse une trace.
+   *
+   * L'écran de qualification sert à APPELER : on ne compose pas « 07 •• •• 44 01 ».
+   * Le serveur ne rend le numéro complet qu'à la Direction, aux superviseurs et au
+   * Marketing, et inscrit au journal qui l'a demandé et pour quelle fiche.
+   *
+   * Le dévoilement se referme en changeant de client, sans quoi une fiche ouverte le
+   * matin dévoilerait toutes les suivantes sans qu'on l'ait redemandé une seule fois.
+   */
+  const [enClair, setEnClair] = React.useState(false);
+  React.useEffect(() => setEnClair(false), [clientId]);
+  const { data: droits } = useMesDroitsQuery();
+
+  const { data, isError, isFetching, refetch } = useFicheClientQuery(clientId, enClair);
 
   return (
     <Drawer.Backdrop isOpen={Boolean(clientId)} onOpenChange={(o) => (o ? null : onFermer())}>
@@ -273,7 +319,12 @@ export function FicheClientPanneau({
                 <Spinner size="sm" />
               </div>
             ) : (
-              <Corps fiche={data} />
+              <Corps
+                enClair={enClair}
+                fiche={data}
+                peutVoirEnClair={Boolean(droits?.peutVoirEnClair)}
+                surBasculerNumero={() => setEnClair((p) => !p)}
+              />
             )}
           </Drawer.Body>
         </Drawer.Dialog>

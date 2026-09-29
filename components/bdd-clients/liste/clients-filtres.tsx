@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Button, Input, Label, ListBox, Select, TextField } from '@heroui-v3/react';
-import { Download, Search, SlidersHorizontal, X } from 'lucide-react';
+import { Download, Eye, EyeOff, Search, SlidersHorizontal, X } from 'lucide-react';
 
 import { FiltrePartenaires } from './filtre-partenaires';
 
@@ -70,7 +70,17 @@ function Liste({
   );
 }
 
-export function ClientsFiltres({ onExporter }: { onExporter: () => void }) {
+export function ClientsFiltres({
+  enClair,
+  onBasculerNumeros,
+  onExporter,
+  peutVoirEnClair,
+}: {
+  enClair: boolean;
+  onBasculerNumeros: () => void;
+  onExporter: () => void;
+  peutVoirEnClair: boolean;
+}) {
   const { actifs, filtres, poser, vider } = useBddClientsFilters();
   const zones = useZonesQuery();
   const [deployes, setDeployes] = React.useState(false);
@@ -211,15 +221,39 @@ export function ClientsFiltres({ onExporter }: { onExporter: () => void }) {
           </p>
         )}
 
-        {/*
-          L'export porte tout le RÉSULTAT DU FILTRE, pas la page affichée : c'est pour
-          cela qu'il est ici, à côté des filtres, et non au-dessus du tableau. Les
-          numéros y sont masqués — un fichier circule.
-        */}
-        <Button className="mb-1 ms-auto" onPress={onExporter} size="sm" variant="ghost">
-          <Download aria-hidden="true" className="size-4" />
-          Exporter
-        </Button>
+        <div className="mb-1 ms-auto flex items-center gap-1">
+          {/*
+            ⚠ Dévoiler la page entière est la divulgation la plus large de cet écran :
+            vingt-cinq numéros d'un coup. Elle est réservée à la Direction, aux
+            superviseurs et au Marketing, le serveur la refuse aux autres, et chaque
+            page dévoilée est inscrite au journal au nom du demandeur.
+
+            Le bouton n'apparaît pas du tout aux profils qui n'y ont pas droit : un
+            bouton qui refuse est pire qu'un bouton absent, il fait chercher une
+            permission là où il n'y a qu'une règle.
+          */}
+          {peutVoirEnClair ? (
+            <Button onPress={onBasculerNumeros} size="sm" variant="ghost">
+              {enClair ? (
+                <EyeOff aria-hidden="true" className="size-4" />
+              ) : (
+                <Eye aria-hidden="true" className="size-4" />
+              )}
+              {enClair ? 'Masquer les numéros' : 'Afficher les numéros'}
+            </Button>
+          ) : null}
+
+          {/*
+            L'export porte tout le RÉSULTAT DU FILTRE, pas la page affichée : c'est pour
+            cela qu'il est ici, à côté des filtres, et non au-dessus du tableau. Il
+            demande confirmation, parce qu'un fichier de plusieurs milliers de numéros
+            sort de l'entreprise et ne revient pas.
+          */}
+          <Button onPress={onExporter} size="sm" variant="ghost">
+            <Download aria-hidden="true" className="size-4" />
+            Exporter
+          </Button>
+        </div>
       </div>
 
       {deployes ? (

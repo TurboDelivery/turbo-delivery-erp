@@ -482,3 +482,18 @@ export interface IParametresSaisie {
   /** Si vrai, une ligne sans montant est refusée. */
   exigerMontant: boolean;
 }
+
+/**
+ * Ce que le profil connecté a le droit de faire sur la base.
+ *
+ * <p>⚠ Rendu par le SERVEUR. L'écran ne recopie pas la liste des rôles habilités : deux
+ * listes finissent par diverger, et l'écart proposerait « voir le numéro » à quelqu'un à
+ * qui le serveur le refuse, ou le cacherait à quelqu'un qui y a droit et qui conclurait
+ * que la fonction n'existe pas.</p>
+ */
+export interface IMesDroits {
+  /** Peut demander un numéro COMPLET. Chaque affichage accordé laisse une trace. */
+  peutVoirEnClair: boolean;
+  peutEditer: boolean;
+  estSuperviseur: boolean;
+}

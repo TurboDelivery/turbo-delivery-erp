@@ -4,8 +4,15 @@ import React from 'react';
 
 import { parseAsString, useQueryState } from 'nuqs';
 
+import { Checkbox } from '@heroui-v3/react';
+
+import { FenetreAction } from '@/components/commons/FenetreAction';
 import { FicheClientPanneau } from '@/components/bdd-clients/fiche/fiche-client-panneau';
-import { useBddClientsFilters, useExporterMutation } from '@/features/bdd-clients';
+import {
+  useBddClientsFilters,
+  useExporterMutation,
+  useMesDroitsQuery,
+} from '@/features/bdd-clients';
 
 import { ClientsFiltres } from './clients-filtres';
 import { ClientsKpiCards } from './clients-kpi-cards';
@@ -28,7 +35,33 @@ import { ClientsTable } from './clients-table';
 export function ClientsView() {
   const { filtres } = useBddClientsFilters();
   const exporterMutation = useExporterMutation();
-  const exporter = () => exporterMutation.mutate({ enClair: false, filtres });
+  const { data: droits } = useMesDroitsQuery();
+
+  /*
+   * ⚠ Deux dévoilements SÉPARÉS, et c'est voulu.
+   *
+   * Afficher les numéros à l'écran est un geste de travail : on enchaîne des appels.
+   * Les mettre dans un fichier est un geste de diffusion : le fichier sort, circule, et
+   * ne revient pas. Les coupler ferait exporter en clair par accident, parce qu'on
+   * avait dévoilé l'écran une heure plus tôt pour une autre raison.
+   */
+  const [numerosVisibles, setNumerosVisibles] = React.useState(false);
+  const [exportOuvert, setExportOuvert] = React.useState(false);
+  const [exportEnClair, setExportEnClair] = React.useState(false);
+
+  const lancerExport = () => {
+    exporterMutation.mutate(
+      { enClair: exportEnClair && Boolean(droits?.peutVoirEnClair), filtres },
+      {
+        onSettled: () => {
+          setExportOuvert(false);
+          // ⚠ La case se REDÉCOCHE. Laissée cochée, le prochain export partirait en
+          // clair sans que personne ne l'ait redemandé.
+          setExportEnClair(false);
+        },
+      },
+    );
+  };
 
   /*
    * La fiche ouverte vit dans l'URL, mais HORS de l'objet de filtres.
@@ -55,12 +88,56 @@ export function ClientsView() {
   return (
     <section className="flex flex-col gap-3">
       <ClientsKpiCards />
-      <ClientsFiltres onExporter={exporter} />
-      <ClientsTable onOuvrir={(id) => void setFicheOuverte(id)} />
+      <ClientsFiltres
+        enClair={numerosVisibles}
+        onBasculerNumeros={() => setNumerosVisibles((p) => !p)}
+        onExporter={() => setExportOuvert(true)}
+        peutVoirEnClair={Boolean(droits?.peutVoirEnClair)}
+      />
+      <ClientsTable
+        enClair={numerosVisibles}
+        onOuvrir={(id) => void setFicheOuverte(id)}
+      />
       <FicheClientPanneau
         clientId={ficheOuverte || null}
         onFermer={() => void setFicheOuverte('')}
       />
+
+      <FenetreAction
+        enAttente={exporterMutation.isPending}
+        libelleAction="Exporter"
+        onAction={lancerExport}
+        onFermer={() => setExportOuvert(false)}
+        ouvert={exportOuvert}
+        titre="Exporter la base clients"
+      >
+        <p className="text-sm text-foreground">
+          Le fichier porte tout le résultat du filtre, pas seulement la page affichée.
+        </p>
+        {droits?.peutVoirEnClair ? (
+          <div className="flex flex-col gap-1 rounded-medium border border-separator bg-surface-secondary p-3">
+            <Checkbox isSelected={exportEnClair} onChange={setExportEnClair}>
+              <Checkbox.Content>
+                <Checkbox.Control>
+                  <Checkbox.Indicator />
+                </Checkbox.Control>
+                <span className="text-sm">Numéros de téléphone complets</span>
+              </Checkbox.Content>
+            </Checkbox>
+            <p className="text-xs text-muted">
+              Sans cette case, les numéros sortent masqués et le fichier ne sert pas à
+              appeler. Avec, il porte les numéros de tous les clients du filtre : il sort
+              de l&apos;entreprise et ne revient pas. L&apos;export est inscrit au journal
+              à votre nom, et le nom du fichier dit ce qu&apos;il contient.
+            </p>
+          </div>
+        ) : (
+          <p className="text-xs text-muted">
+            Les numéros sortiront masqués : votre profil n&apos;est pas habilité à les
+            voir en clair.
+          </p>
+        )}
+      </FenetreAction>
     </section>
   );
 }

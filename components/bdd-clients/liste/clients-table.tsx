@@ -24,7 +24,13 @@ import { NB_COLONNES_CLIENTS } from './clients-table-columns';
  * écrit à la main qui diverge fait lever « Cell count must match column count » à react
  * aria, et la page entière tombe en 500.</p>
  */
-export function ClientsTable({ onOuvrir }: { onOuvrir: (id: string) => void }) {
+export function ClientsTable({
+  enClair,
+  onOuvrir,
+}: {
+  enClair: boolean;
+  onOuvrir: (id: string) => void;
+}) {
   const {
     allerA,
     aUnFiltre,
@@ -38,7 +44,7 @@ export function ClientsTable({ onOuvrir }: { onOuvrir: (id: string) => void }) {
     total,
     totalPages,
     viderLaSelection,
-  } = useClientsTable(onOuvrir);
+  } = useClientsTable(onOuvrir, enClair);
 
   /*
    * ⚠ La barre d'actions se rend ICI, pas dans la vue.

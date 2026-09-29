@@ -18,6 +18,7 @@ import {
   IFicheClient,
   IFiltresClients,
   IKpisBase,
+  IMesDroits,
   ILigneAVerifier,
   ILotDetail,
   ILotResume,
@@ -163,10 +164,10 @@ export const bddClientsAPI = {
     });
   },
   /** La base consolidée, filtrée et paginée. Le serveur masque les numéros. */
-  lister(filtres: IFiltresClients, taille = 25): Promise<IPageClients> {
+  lister(filtres: IFiltresClients, taille = 25, enClair = false): Promise<IPageClients> {
     return appeler<IPageClients>(``, {
       method: 'GET',
-      params: { ...parametres(filtres), page: filtres.page, taille },
+      params: { ...parametres(filtres), enClair, page: filtres.page, taille },
     });
   },
 
@@ -306,6 +307,14 @@ export const bddClientsAPI = {
       method: 'GET',
       params: { debut: debut || undefined, fin: fin || undefined },
     });
+  },
+
+  /**
+   * Ce que ce profil a le droit de voir. Il décide de ce que l'écran PROPOSE, jamais de
+   * ce qu'il obtient : le serveur masque de toute façon s'il n'y a pas droit.
+   */
+  mesDroits(): Promise<IMesDroits> {
+    return appeler<IMesDroits>(`/mes-droits`, { method: 'GET' });
   },
 
   /**

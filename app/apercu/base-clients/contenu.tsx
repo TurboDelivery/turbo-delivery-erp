@@ -144,6 +144,7 @@ function useThemeSombre(): [boolean, (v: (p: boolean) => boolean) => void] {
 export default function ApercuBaseClients() {
   const [sombre, setSombre] = useThemeSombre();
   const [vide, setVide] = React.useState(false);
+  const [habilite, setHabilite] = React.useState(true);
   const [etroit, setEtroit] = React.useState(true);
 
   const client = React.useMemo(() => {
@@ -159,6 +160,40 @@ export default function ApercuBaseClients() {
       },
     });
     const lignes = vide ? [] : LIGNES;
+    /*
+     * Les droits du profil, semés eux aussi.
+     *
+     * ⚠ C'est ce qui décide si l'écran PROPOSE « Afficher les numéros » et la case de
+     * l'export. Le bouton ne doit pas apparaître à un profil non habilité : un bouton
+     * qui refuse fait chercher une permission là où il n'y a qu'une règle. La bascule
+     * permet de voir les deux écrans, celui du DG et celui du chargé d'opérations.
+     */
+    c.setQueryData(bddClientsKeys.mesDroits(), {
+      estSuperviseur: habilite,
+      peutEditer: true,
+      peutVoirEnClair: habilite,
+    });
+
+    /*
+     * La MÊME page, en clair. Sans elle, cliquer « Afficher les numéros » sur ce banc
+     * changerait la clé, partirait pour de vrai et échouerait : on ne verrait jamais ce
+     * que le geste produit, qui est tout l'objet du bouton.
+     */
+    c.setQueryData(bddClientsKeys.liste(FILTRES_PAR_DEFAUT, true), {
+      content: vide
+        ? []
+        : LIGNES.map((l, i) => ({
+            ...l,
+            telephone: ['+2250709444401', '+2250501020304', '+2250102030405',
+              '+2250788776655', '+2250522110099', '+2252720101010',
+              '+2250755555555'][i] ?? l.telephone,
+          })),
+      number: 0,
+      size: 25,
+      totalElements: vide ? 0 : 1_284,
+      totalPages: vide ? 0 : 52,
+    });
+
     c.setQueryData(bddClientsKeys.liste(FILTRES_PAR_DEFAUT), {
       content: lignes,
       number: 0,
@@ -196,6 +231,15 @@ export default function ApercuBaseClients() {
       tauxQualification: vide ? 0 : 0.62,
     });
     c.setQueryData(bddClientsKeys.fiche('c1'), FICHE);
+    /*
+     * La même fiche, numéro dévoilé. Sans elle, « Voir le numéro » changerait la clé et
+     * partirait pour de vrai : on ne verrait jamais ce que le bouton produit, ni la
+     * phrase qui prévient que l'affichage est inscrit au journal.
+     */
+    c.setQueryData(bddClientsKeys.fiche('c1', true), {
+      ...FICHE,
+      telephone: '+2250709444401',
+    });
     // Une fiche À QUALIFIER : c'est la seule qui montre le formulaire d'appel.
     c.setQueryData(bddClientsKeys.fiche('c3'), {
       ...FICHE,
@@ -209,7 +253,7 @@ export default function ApercuBaseClients() {
       tentativesAppel: 2,
     });
     return c;
-  }, [vide]);
+  }, [habilite, vide]);
 
   return (
     <main className="flex flex-col gap-4 p-6">
@@ -224,6 +268,9 @@ export default function ApercuBaseClients() {
           </Button>
           <Button onPress={() => setVide((p) => !p)} size="sm" variant="ghost">
             {vide ? 'Avec clients' : 'Base vide'}
+          </Button>
+          <Button onPress={() => setHabilite((p) => !p)} size="sm" variant="ghost">
+            {habilite ? 'Profil non habilité' : 'Profil habilité'}
           </Button>
           <Button onPress={() => setEtroit((p) => !p)} size="sm" variant="ghost">
             {etroit ? '1000 px' : 'Pleine largeur'}
@@ -250,7 +297,7 @@ export default function ApercuBaseClients() {
           Un banc qui montre le contraire de ce qu'annonce son bouton est pire que pas
           de banc : il fait valider un état vide qu'on n'a jamais vu.
         */}
-        <QueryClientProvider client={client} key={vide ? 'vide' : 'plein'}>
+        <QueryClientProvider client={client} key={`${vide ? 'vide' : 'plein'}-${habilite ? 'habilite' : 'simple'}`}>
           <ClientsView />
         </QueryClientProvider>
       </div>

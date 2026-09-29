@@ -17,7 +17,16 @@ export const bddClientsKeys = {
   all: ['bdd-clients'] as const,
   mesLots: () => [...bddClientsKeys.all, 'mes-lots'] as const,
   lot: (id: string) => [...bddClientsKeys.all, 'lot', id] as const,
-  liste: (f: IFiltresClients) => [...bddClientsKeys.all, 'liste', f] as const,
+  /**
+   * ⚠ Le masquage fait PARTIE de la clé.
+   *
+   * <p>Sans lui, la page masquée et la même page en clair partageraient une entrée :
+   * demander les numéros rendrait l'ancienne réponse masquée, et les remasquer rendrait
+   * celle en clair, qui resterait dans la mémoire du navigateur bien après qu'on a
+   * cessé de la vouloir.</p>
+   */
+  liste: (f: IFiltresClients, enClair = false) =>
+    [...bddClientsKeys.all, 'liste', f, enClair ? 'clair' : 'masque'] as const,
   /**
    * ⚠ La clé des cartes ignore la PAGE, contrairement à celle de la liste.
    *
@@ -30,13 +39,16 @@ export const bddClientsKeys = {
    */
   kpis: ({ page: _page, ...critères }: IFiltresClients) =>
     [...bddClientsKeys.all, 'kpis', critères] as const,
-  fiche: (id: string) => [...bddClientsKeys.all, 'fiche', id] as const,
+  /** ⚠ Le masquage fait partie de la clé, pour la même raison que la liste. */
+  fiche: (id: string, enClair = false) =>
+    [...bddClientsKeys.all, 'fiche', id, enClair ? 'clair' : 'masque'] as const,
   doublons: () => [...bddClientsKeys.all, 'doublons'] as const,
   journalFusions: () => [...bddClientsKeys.all, 'journal-fusions'] as const,
   listeNoire: () => [...bddClientsKeys.all, 'liste-noire'] as const,
   zones: () => [...bddClientsKeys.all, 'zones'] as const,
   partenaires: () => [...bddClientsKeys.all, 'partenaires'] as const,
   parametres: () => [...bddClientsKeys.all, 'parametres'] as const,
+  mesDroits: () => [...bddClientsKeys.all, 'mes-droits'] as const,
   libellesDeZone: () => [...bddClientsKeys.all, 'zones-libelles'] as const,
   statsPartenaires: (debut: string, fin: string) =>
     [...bddClientsKeys.all, 'stats-partenaires', debut, fin] as const,
@@ -51,10 +63,10 @@ export const bddClientsKeys = {
  * le filtre depuis lequel on l'a ouverte. L'y mettre rechargerait le panneau à chaque
  * changement de filtre derrière lui.</p>
  */
-export const useFicheClientQuery = (id: string | null) =>
+export const useFicheClientQuery = (id: string | null, enClair = false) =>
   useQuery({
-    queryKey: bddClientsKeys.fiche(id ?? ''),
-    queryFn: () => bddClientsAPI.fiche(id as string),
+    queryKey: bddClientsKeys.fiche(id ?? '', enClair),
+    queryFn: () => bddClientsAPI.fiche(id as string, enClair),
     enabled: Boolean(id),
     staleTime: 30_000,
   });
@@ -67,10 +79,10 @@ export const useFicheClientQuery = (id: string | null) =>
  * lignes. Séparées, la page se pagine et les cartes se mettent en cache à part — changer
  * de page ne les recalcule pas.</p>
  */
-export const useClientsQuery = (filtres: IFiltresClients) =>
+export const useClientsQuery = (filtres: IFiltresClients, enClair = false) =>
   useQuery({
-    queryKey: bddClientsKeys.liste(filtres),
-    queryFn: () => bddClientsAPI.lister(filtres),
+    queryKey: bddClientsKeys.liste(filtres, enClair),
+    queryFn: () => bddClientsAPI.lister(filtres, 25, enClair),
     placeholderData: (precedent) => precedent,
     staleTime: 30_000,
   });
@@ -434,6 +446,18 @@ export const useRapprocherZoneMutation = () => {
     onError: (erreur: Error) => toast.error(erreur.message),
   });
 };
+
+/**
+ * Ce que ce profil a le droit de faire. Une heure de fraîcheur : un rôle ne change pas
+ * pendant qu'on regarde un écran, et s'il change, la session est refaite.
+ */
+export const useMesDroitsQuery = () =>
+  useQuery({
+    queryKey: bddClientsKeys.mesDroits(),
+    queryFn: () => bddClientsAPI.mesDroits(),
+    retry: false,
+    staleTime: 3_600_000,
+  });
 
 /**
  * Les règles qu'un lot doit respecter.
