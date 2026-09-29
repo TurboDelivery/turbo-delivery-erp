@@ -57,8 +57,20 @@ const CelluleMontant = ({ epais, montant }: { epais?: boolean; montant: number }
  * boite en `flex` occupant toute la cellule : `ml-auto` y pousse le libelle du cote des
  * chiffres. Sans lui, l'intitule reste a gauche pendant que la colonne se lit a droite,
  * et l'oeil ne sait plus quel nombre appartient a quel titre.</p>
+ *
+ * <p>⚠ La fonction rendue porte un NOM, et ce n'est pas une politesse envers l'outil.
+ * `flexRender` appelle cet en-tete comme un composant : anonyme, il apparaissait sous
+ * « Anonymous » quatre fois de suite dans l'inspecteur React, et l'on ne savait pas
+ * laquelle des quatre colonnes d'argent on regardait. Le nom porte le libelle, donc
+ * chaque colonne se reconnait. C'etait aussi la SEULE erreur de `pnpm lint` : tant
+ * qu'elle etait la, la commande sortait en echec et plus personne ne lisait les
+ * avertissements.</p>
  */
-const enTeteNombre = (libelle: string) => () => <span className="ml-auto text-right">{libelle}</span>;
+const enTeteNombre = (libelle: string) => {
+  const EnTeteNombre = () => <span className="ml-auto text-right">{libelle}</span>;
+  EnTeteNombre.displayName = `EnTeteNombre(${libelle})`;
+  return EnTeteNombre;
+};
 
 type TonPaie = 'danger' | 'default' | 'success';
 
