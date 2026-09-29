@@ -115,10 +115,20 @@ export function analyserMontant(texte: string | null | undefined): number | null
 }
 
 /** Les colonnes de la grille, dans l'ordre où Excel les collera. */
+/**
+ * L'ordre des colonnes de la grille.
+ *
+ * <p>⚠ Il commande DEUX choses : ce que l'écran affiche, et la colonne sur laquelle
+ * tombe chaque cellule d'un collage venu d'Excel. Les deux doivent rester d'accord, donc
+ * il n'y a qu'une liste.</p>
+ *
+ * <p>Le nom et le prénom sont VOISINS. Le contact les séparait, et l'œil devait
+ * traverser un numéro de téléphone pour relier deux morceaux du même nom.</p>
+ */
 export const COLONNES_GRILLE = [
   'nom',
-  'contact',
   'prenom',
+  'contact',
   'zoneSaisie',
   'numCheck',
   'montant',

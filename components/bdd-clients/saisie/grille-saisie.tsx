@@ -1,11 +1,12 @@
 'use client';
 
-import { Check, CircleAlert, RotateCcw } from 'lucide-react';
+import { Check, CircleAlert, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import React from 'react';
 
 import {
   COLONNES_GRILLE,
   appliquerCollage,
+  ligneVide,
   type ColonneGrille,
   type IVerdictLigne,
   type LigneGrille,
@@ -44,15 +45,22 @@ const ENTETES: Record<ColonneGrille, string> = {
   articles: 'Commentaire',
 };
 
-/** Le contact est le seul champ bloquant : il est le plus large et vient en second. */
+/**
+ * Les largeurs, dans l'ordre d'affichage.
+ *
+ * <p>Le nom et le prénom se suivent et prennent la même place : ce sont deux moitiés
+ * d'une même chose, et les afficher de largeurs différentes ferait croire à une
+ * hiérarchie qui n'existe pas. Le contact vient après, un peu plus large parce qu'un
+ * numéro ne se coupe pas.</p>
+ */
 const LARGEURS: Record<ColonneGrille, string> = {
-  nom: 'w-[18%]',
+  nom: 'w-[15%]',
+  prenom: 'w-[15%]',
   contact: 'w-[16%]',
-  prenom: 'w-[12%]',
-  zoneSaisie: 'w-[14%]',
-  numCheck: 'w-[11%]',
-  montant: 'w-[11%]',
-  articles: 'w-[18%]',
+  zoneSaisie: 'w-[13%]',
+  numCheck: 'w-[10%]',
+  montant: 'w-[10%]',
+  articles: 'w-[17%]',
 };
 
 function Etat({ verdict }: { verdict?: IVerdictLigne }) {
@@ -95,6 +103,7 @@ export function GrilleSaisie({
   grille,
   maximum,
   onChange,
+  onStructure,
   onTronque,
   verdicts,
 }: {
@@ -102,12 +111,43 @@ export function GrilleSaisie({
   /** Le serveur refuse le lot entier au-delà : la grille s'arrête avant. */
   maximum: number;
   onChange: (grille: LigneGrille[]) => void;
+  /**
+   * Prévient que le NOMBRE de lignes a changé, pas seulement leur contenu.
+   *
+   * <p>⚠ Les verdicts sont indexés par POSITION. Retirer la ligne 3 décale tout ce qui
+   * suit : sans cet avertissement, le refus de l'ancienne ligne 7 peindrait en rouge la
+   * ligne 6, qui n'a rien. Le parent les vide, et le contrôle repart de lui-même.</p>
+   */
+  onStructure: () => void;
   onTronque: (nb: number) => void;
   verdicts: Map<number, IVerdictLigne>;
 }) {
   const modifier = (ligne: number, colonne: ColonneGrille, valeur: string) => {
     const suivante = grille.map((l, i) => (i === ligne ? { ...l, [colonne]: valeur } : l));
     onChange(suivante);
+  };
+
+  /**
+   * Insérer une ligne JUSTE SOUS celle-ci, et non à la fin.
+   *
+   * <p>On s'en sert quand on découvre un ticket oublié au milieu de la pile. L'ajouter
+   * en bas obligerait à le retrouver plus tard pour le remettre dans l'ordre, ou à
+   * renoncer à l'ordre.</p>
+   */
+  const inserer = (index: number) => {
+    if (grille.length >= maximum) return;
+    const suivante = [...grille];
+    suivante.splice(index + 1, 0, ligneVide());
+    onChange(suivante);
+    onStructure();
+  };
+
+  /** Retirer cette ligne. La dernière ne se retire pas : elle se vide. */
+  const retirer = (index: number) => {
+    const suivante =
+      grille.length <= 1 ? [ligneVide()] : grille.filter((_, i) => i !== index);
+    onChange(suivante);
+    onStructure();
   };
 
   /**
@@ -174,6 +214,9 @@ export function GrilleSaisie({
                 ) : null}
               </th>
             ))}
+            <th className="w-16 px-2 py-2 text-right text-[11px] font-medium uppercase tracking-wide text-muted" scope="col">
+              <span className="sr-only">Ajouter ou retirer une ligne</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -214,6 +257,40 @@ export function GrilleSaisie({
                     />
                   </td>
                 ))}
+                {/*
+                  Les deux gestes de structure, au bout de la ligne.
+
+                  ⚠ Ils restent dans l'ordre de tabulation, contrairement à la tentation
+                  de les en sortir. La navigation que le cahier des charges demande est
+                  ENTRÉE, qui descend dans la colonne : elle ne les rencontre jamais. Les
+                  retirer de la tabulation les rendrait inatteignables au clavier pour
+                  gagner deux frappes sur un chemin que l'agent n'emprunte pas.
+                */}
+                <td className="whitespace-nowrap px-2 py-1 text-right align-middle">
+                  <button
+                    aria-label={`Insérer une ligne sous la ligne ${index + 1}`}
+                    className="rounded-medium p-1 text-muted outline-none hover:bg-surface-secondary hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent disabled:opacity-40"
+                    disabled={grille.length >= maximum}
+                    onClick={() => inserer(index)}
+                    title={
+                      grille.length >= maximum
+                        ? `Un lot ne peut pas dépasser ${maximum} lignes.`
+                        : 'Insérer une ligne en dessous'
+                    }
+                    type="button"
+                  >
+                    <Plus aria-hidden="true" className="size-3.5" />
+                  </button>
+                  <button
+                    aria-label={`Retirer la ligne ${index + 1}`}
+                    className="rounded-medium p-1 text-muted outline-none hover:bg-danger-soft hover:text-danger-soft-foreground focus-visible:ring-2 focus-visible:ring-accent"
+                    onClick={() => retirer(index)}
+                    title={grille.length <= 1 ? 'Vider la ligne' : 'Retirer la ligne'}
+                    type="button"
+                  >
+                    <Trash2 aria-hidden="true" className="size-3.5" />
+                  </button>
+                </td>
               </tr>
             );
           })}

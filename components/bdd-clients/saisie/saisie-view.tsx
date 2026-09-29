@@ -300,6 +300,7 @@ export function SaisieView({ maximumLignes }: { maximumLignes?: number } = {}) {
           grille={grille}
           maximum={plafond}
           onChange={setGrille}
+          onStructure={() => setVerdicts(new Map())}
           onTronque={setTronque}
           verdicts={verdicts}
         />

@@ -2,13 +2,13 @@
 
 import React from 'react';
 
-import { Button, Table } from '@heroui-v3/react';
+import { Table } from '@heroui-v3/react';
 import { flexRender } from '@tanstack/react-table';
 
 import { ActionsGroupeesBarre } from './actions-groupees-barre';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 import EtatErreur from '@/components/commons/EtatErreur';
+import { PaginationTableau } from '@/components/finance/recouvrements/common/pagination-tableau';
 import { formatNombre, useClientsTable } from '@/features/bdd-clients';
 
 import { NB_COLONNES_CLIENTS } from './clients-table-columns';
@@ -120,33 +120,21 @@ export function ClientsTable({ onOuvrir }: { onOuvrir: (id: string) => void }) {
           <span className="font-semibold tabular-nums text-foreground">{formatNombre(total)}</span>{' '}
           client{total > 1 ? 's' : ''}
         </span>
-        {totalPages > 1 ? (
-          <div className="flex items-center gap-2">
-            <Button
-              isDisabled={page <= 0 || isFetching}
-              isIconOnly
-              aria-label="Page précédente"
-              onPress={() => allerA(page - 1)}
-              size="sm"
-              variant="ghost"
-            >
-              <ChevronLeft aria-hidden="true" className="size-4" />
-            </Button>
-            <span className="tabular-nums text-muted">
-              {page + 1} / {totalPages}
-            </span>
-            <Button
-              isDisabled={page + 1 >= totalPages || isFetching}
-              isIconOnly
-              aria-label="Page suivante"
-              onPress={() => allerA(page + 1)}
-              size="sm"
-              variant="ghost"
-            >
-              <ChevronRight aria-hidden="true" className="size-4" />
-            </Button>
-          </div>
-        ) : null}
+        {/*
+          La pagination de l'ERP, celle des tableaux de recouvrement et des tickets.
+
+          ⚠ Elle était refaite à la main ici : deux chevrons et « 3 / 274 ». Sur une base
+          de sept mille fiches, atteindre la page 40 demandait trente-sept clics, et rien
+          ne disait où l'on était sans lire le compteur. Le composant partagé numérote,
+          replie les longues séries, et marque la page courante d'une pastille pleine.
+
+          ⚠ Il compte à partir de UN, la base à partir de ZÉRO.
+        */}
+        <PaginationTableau
+          onPage={(p) => allerA(p - 1)}
+          page={page + 1}
+          total={totalPages}
+        />
       </Table.Footer>
       </Table>
     </div>

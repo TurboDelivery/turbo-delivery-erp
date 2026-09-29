@@ -103,6 +103,14 @@ export default function ApercuSaisieClients() {
           grille={grille}
           maximum={50}
           onChange={setGrille}
+          /*
+            Le banc reproduit ce que fait l'écran : les verdicts sont indexés par
+            POSITION, donc ajouter ou retirer une ligne les rend faux et l'écran les
+            vide. Ici ils sont fabriqués, et la bascule les éteint — sans quoi le banc
+            montrerait un refus peint sur la mauvaise ligne, qui est justement le défaut
+            qu'on évite.
+          */
+          onStructure={() => setAvecVerdicts(false)}
           onTronque={setTronque}
           verdicts={verdicts}
         />
