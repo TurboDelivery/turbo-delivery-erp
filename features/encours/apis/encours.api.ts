@@ -9,6 +9,9 @@ import {
   IEncoursReleve,
   IEncoursParams,
   IStoreOption,
+  ICreerEngagement,
+  IEncoursEngagement,
+  IEngagementPaiement,
   IDeductionPartenaire,
   ICreateDeductionPartenaire,
 } from '../types/encours.types';
@@ -37,6 +40,37 @@ export const encoursAPI = {
     return api.request<IEncoursGlobal>({
       endpoint: 'finance/encours/global',
       method: 'GET',
+    });
+  },
+
+  /** Les engagements VIVANTS, la plus proche échéance d'abord. */
+  listerEngagements(): Promise<IEngagementPaiement[]> {
+    return api.request<IEngagementPaiement[]>({
+      endpoint: 'finance/engagements-paiement',
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Noter ce qu'un partenaire a promis.
+   *
+   * <p>⚠ Pas de code de sécurité, contrairement aux pertes : un engagement ne déplace
+   * aucun argent. L'exiger le rendrait inutilisable par celui qui reçoit l'appel.</p>
+   */
+  creerEngagement(dto: ICreerEngagement): Promise<IEncoursEngagement> {
+    return api.request<IEncoursEngagement>({
+      endpoint: 'finance/engagements-paiement',
+      method: 'POST',
+      data: dto,
+    });
+  },
+
+  /** Clore un engagement : tenu, caduc, ou noté par erreur. Il n'est jamais supprimé. */
+  cloreEngagement(id: string, motif: string): Promise<IEncoursEngagement> {
+    return api.request<IEncoursEngagement>({
+      endpoint: `finance/engagements-paiement/${id}/clore`,
+      method: 'POST',
+      data: { motif },
     });
   },
 

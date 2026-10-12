@@ -25,6 +25,21 @@ export function formatFcfa(n?: number | null): string {
   return `${formatNombre(n)} FCFA`;
 }
 
+/**
+ * Un jour, court : « 13 oct. ». Pour une échéance promise, dans une puce.
+ *
+ * <p>⚠ Découpé à la main, jamais par `new Date(chaine)`. Le serveur rend une date nue
+ * (`2026-10-13`) ; la passer au constructeur la lit en UTC puis la rend dans le fuseau
+ * du poste, ce qui recule d'un jour toute date du matin dès qu'un poste est à l'ouest.
+ * Sur une échéance de paiement, un jour de décalage dit « hier » pour « aujourd'hui ».</p>
+ */
+export function formatJourCourt(jour?: string | null): string {
+  if (!jour) return '—';
+  const [a, m, j] = jour.slice(0, 10).split('-').map(Number);
+  if (!a || !m || !j) return '—';
+  return `${j} ${(MOIS_COURTS[m] ?? '').toLowerCase()}`;
+}
+
 /** Montant compact pour les cartes/axes : « 7,2 M », « 845 k ». */
 export function formatCompact(n?: number | null): string {
   if (n === null || n === undefined) return '—';

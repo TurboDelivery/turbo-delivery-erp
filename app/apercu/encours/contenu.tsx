@@ -106,9 +106,30 @@ function fabriquer(graine: number, nbGroupes: number): IEncoursReleve {
         });
         const sousTotalFacture = stores.reduce((n, s) => n + s.totalFacture, 0);
         const deduction = suivant() < 0.4 ? Math.round(sousTotalFacture * 0.05) : 0;
+        /*
+         * Un engagement sur deux partenaires, dont un DÉPASSÉ.
+         *
+         * C'est la réponse à « règlement en cours, ça veut dire quoi ? » : le banc doit
+         * montrer les deux états, la promesse à venir et celle qui n'a pas été tenue,
+         * sans quoi on ne voit jamais que la seconde se peint différemment.
+         */
+        const jour = (ecart: number) => {
+            const d = new Date();
+            d.setDate(d.getDate() + ecart);
+            return d.toISOString().slice(0, 10);
+        };
+        const engagement =
+            gi % 3 === 0
+                ? { datePromise: jour(4), depasse: false, id: `eng-${gi}`,
+                    commentaire: 'Confirmé au téléphone avec le gérant.', montantAnnonce: 250000 }
+                : gi % 3 === 1
+                  ? { datePromise: jour(-5), depasse: true, id: `eng-${gi}`,
+                      commentaire: 'Annoncé pour vendredi dernier.', montantAnnonce: null }
+                  : null;
         return {
             cycle: cycle as IEncoursReleve['partenaires'][number]['cycle'],
             deduction,
+            engagement,
             groupe: GROUPES[gi % GROUPES.length],
             sousTotalFacture,
             sousTotalReste: stores.reduce((n, s) => n + s.reste, 0) - deduction,

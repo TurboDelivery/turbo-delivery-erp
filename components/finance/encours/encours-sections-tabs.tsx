@@ -16,6 +16,7 @@ import type { IEntreeCaisse } from '@/features/entrees-caisse/types/entree-caiss
 import { EncoursCharts, TOP_PARTENAIRES } from './encours-charts';
 import { EncoursDeductionsTable } from './encours-deductions-table';
 import { EncoursMobileCards } from './encours-mobile-cards';
+import { EncoursEngagementsManager } from './encours-engagements-manager';
 import { EncoursPertesManager } from './encours-pertes-manager';
 import { EncoursTable } from './encours-table';
 
@@ -288,6 +289,16 @@ export function EncoursSectionsTabs({
           </Tabs.Tab>
           {/* Ecrit EN CLAIR comme les trois autres : un composant maison enveloppant
               `Tabs.Tab` casse la collection react-aria et l'onglet disparait. */}
+          {/*
+            ⚠ Cet onglet n'est PAS masqué par profil, contrairement aux pertes.
+            Un engagement ne déplace aucun argent : c'est une note que prend celui qui
+            reçoit l'appel du partenaire. Le réserver à la Direction le rendrait
+            inutilisable par la seule personne qui tient l'information, et la note
+            repartirait dans la conversation d'où elle vient.
+          */}
+          <Tabs.Tab className={MARQUE_ACTIVE} id="engagements">
+            <span className="text-sm">Engagements</span>
+          </Tabs.Tab>
           <Tabs.Tab className={MARQUE_ACTIVE} id="composantes">
             <span className="text-sm">Autres composantes</span>
             <Annonce texte={annonceComposantes} />
@@ -341,6 +352,10 @@ export function EncoursSectionsTabs({
           <EncoursPertesManager releve={releve} />
         </Tabs.Panel>
       ) : null}
+
+      <Tabs.Panel className="pt-2.5" id="engagements">
+        <EncoursEngagementsManager releve={releve} />
+      </Tabs.Panel>
 
       <Tabs.Panel className="pt-2.5" id="repartition">
         {releve ? <EncoursCharts releve={releve} /> : null}

@@ -54,6 +54,50 @@ export interface IEncoursPartenaire {
   sousTotalFacture: number;
   deduction: number;
   sousTotalReste: number;
+  /**
+   * Ce que ce partenaire a PROMIS, s'il a promis quelque chose.
+   *
+   * <p>⚠ N'entre dans aucun total. Une promesse n'est pas un encaissement : tant que
+   * l'argent n'est pas rentré, la créance est due et le relevé la réclame.</p>
+   */
+  engagement?: IEncoursEngagement | null;
+}
+
+/**
+ * Une promesse de paiement : qui, quoi, pour quand.
+ *
+ * <p>Née de la question posée par la Direction devant une ligne annotée « règlement en
+ * cours » : est-ce qu'ils ont payé, ou est-ce qu'ils paient lundi ? L'ERP n'avait aucun
+ * endroit pour répondre.</p>
+ */
+export interface IEncoursEngagement {
+  id: string;
+  datePromise: string;
+  /** Peut être nul : un partenaire s'engage souvent sans chiffrer. */
+  montantAnnonce?: number | null;
+  commentaire?: string | null;
+  /** Dérivé : la date est passée et il reste quelque chose à payer. */
+  depasse: boolean;
+}
+
+/** Un engagement tel que le serveur le stocke, pour l'écran de gestion. */
+export interface IEngagementPaiement {
+  id: string;
+  groupePartenaire: string;
+  datePromise: string;
+  montantAnnonce?: number | null;
+  commentaire?: string | null;
+  creePar?: string | null;
+  clos: boolean;
+  createdAt?: string;
+}
+
+/** Ce que l'écran envoie pour noter un engagement. */
+export interface ICreerEngagement {
+  groupePartenaire: string;
+  datePromise: string;
+  montantAnnonce?: number | null;
+  commentaire?: string | null;
 }
 
 /** Point de vente (store) d'un partenaire — pour le filtre multi-sélection (§4). */

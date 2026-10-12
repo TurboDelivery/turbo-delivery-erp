@@ -15,6 +15,7 @@ export const encoursKeys = {
   statsPertes: (debut: string, fin: string) =>
     [...encoursKeys.all, 'pertes', 'stats', debut, fin] as const,
   categoriesPerte: () => [...encoursKeys.all, 'categories-perte'] as const,
+  engagements: () => [...encoursKeys.all, 'engagements'] as const,
 };
 
 /** Relevé des restes à payer (cascade Partenaire → Store + déductions). */
@@ -90,6 +91,14 @@ export const useDeductionsQuery = (annee: number) =>
     queryFn: () => encoursAPI.listerDeductions(annee),
     enabled: !!annee,
     staleTime: 5 * 60 * 1000,
+  });
+
+/** Les engagements vivants, pour l'écran de gestion. */
+export const useEngagementsQuery = () =>
+  useQuery({
+    queryKey: encoursKeys.engagements(),
+    queryFn: () => encoursAPI.listerEngagements(),
+    staleTime: 60 * 1000,
   });
 
 /** Invalide tout l'ENCOURS (relevé + déductions) après une mutation. */

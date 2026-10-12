@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 import { Chip, Table } from '@heroui-v3/react';
 
 import { cn } from '@/lib/utils';
-import { IEncoursFacture, IEncoursReleve, cycleLabel, formatFcfa, formatNombre } from '@/features/encours';
+import { IEncoursFacture, IEncoursReleve, cycleLabel, formatFcfa, formatJourCourt, formatNombre } from '@/features/encours';
 import { formatPeriodeFacturee, formatPeriodeFactureeEncours } from '@/lib/finance/periode-facturee';
 
 import { STATUT_EN_RETARD, estAVenir, facturesDuPartenaire, sommeAcomptes } from './encours-derive';
@@ -188,7 +188,33 @@ export function EncoursTable({
           cn: numCn,
         },
         { node: <span className="font-bold text-foreground">{formatFcfa(p.sousTotalReste)}</span>, cn: numCn },
-        { node: '' },
+        {
+          /*
+            L'engagement du partenaire, dans la colonne Statut de SA ligne.
+            
+            C'est la réponse à « règlement en cours, ça veut dire quoi ? » : la ligne
+            porte désormais une date, et l'ambiguïté disparaît. Il se lit au niveau du
+            partenaire parce que c'est à lui qu'on a parlé, pas à une facture.
+
+            ⚠ Rouge quand la date est passée et qu'il reste quelque chose : une promesse
+            non tenue est la seule information de cette colonne qui appelle un geste.
+          */
+          node: p.engagement ? (
+            <Chip
+              color={p.engagement.depasse ? 'danger' : 'default'}
+              size="sm"
+              variant="soft"
+            >
+              <Chip.Label>
+                {p.engagement.depasse ? 'Promis le ' : 'Paie le '}
+                {formatJourCourt(p.engagement.datePromise)}
+              </Chip.Label>
+            </Chip>
+          ) : (
+            ''
+          ),
+          cn: 'text-center whitespace-nowrap',
+        },
       ],
     });
 

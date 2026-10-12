@@ -3,7 +3,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { encoursAPI } from '../apis/encours.api';
-import { ICreateDeductionPartenaire, ICreerPerte } from '../types/encours.types';
+import {
+  ICreerEngagement, ICreateDeductionPartenaire, ICreerPerte } from '../types/encours.types';
 import { useInvalidateEncours } from './encours.query';
 
 export const useCreerDeductionMutation = () => {
@@ -65,6 +66,36 @@ export const useSupprimerDeductionMutation = () => {
  * Enregistre une perte. Le code de validation est exigé par le serveur, qui
  * refuse en 403 s'il est faux — l'écran ne décide rien.
  */
+/**
+ * Noter ce qu'un partenaire a promis.
+ *
+ * <p>⚠ Tout l'écran est invalidé, même si aucun montant ne bouge : la promesse
+ * s'affiche sur la ligne du partenaire, qui vient du relevé.</p>
+ */
+export const useCreerEngagementMutation = () => {
+  const invalidate = useInvalidateEncours();
+  return useMutation({
+    mutationFn: (dto: ICreerEngagement) => encoursAPI.creerEngagement(dto),
+    onSuccess: () => {
+      invalidate();
+      toast.success('Engagement noté.');
+    },
+  });
+};
+
+/** Clore un engagement : tenu, caduc, ou noté par erreur. Il n'est jamais supprimé. */
+export const useCloreEngagementMutation = () => {
+  const invalidate = useInvalidateEncours();
+  return useMutation({
+    mutationFn: ({ id, motif }: { id: string; motif: string }) =>
+      encoursAPI.cloreEngagement(id, motif),
+    onSuccess: () => {
+      invalidate();
+      toast.success('Engagement clos.');
+    },
+  });
+};
+
 export const useCreerPerteMutation = () => {
   const invalidate = useInvalidateEncours();
   return useMutation({
