@@ -29,6 +29,14 @@ export interface IEncoursFacture {
   totalAPayer: number | null;
   acompte: number | null; // déjà recouvré
   solde: number | null; // reste à payer
+  /**
+   * Ce qui a été passé en PERTE ET VOL sur cette facture.
+   *
+   * <p>⚠ Une valeur à part, jamais fondue dans l'acompte. Un acompte est de l'argent
+   * reçu ; une perte est de l'argent dont on a décidé qu'il ne rentrerait jamais. Les
+   * additionner ferait lire « recouvré » sur une créance abandonnée.</p>
+   */
+  perte?: number | null;
   statut: string; // Payé | Partiel | En retard | En cours | À venir
 }
 

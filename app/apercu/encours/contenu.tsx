@@ -36,7 +36,14 @@ import type { IEncoursDeduction, IEncoursReleve } from '@/features/encours';
 
 const GROUPES = ['PIZZA ROMA', 'CHICKEN NATION', 'LE BISTROT', 'KFC ABIDJAN'];
 const STORES = ['Cocody', 'Plateau', 'Marcory', 'Riviera'];
-const STATUTS = ['Payé', 'Partiel', 'En retard', 'En cours', 'À venir'];
+/*
+ * ⚠ « Passé en perte et vol » fait partie du jeu.
+ *
+ * Sans lui, le banc ne montrait jamais la ligne d'une créance abandonnée, et c'est
+ * précisément celle que la Direction a trouvée fausse : elle affichait le solde brut et
+ * un « En retard » sur une somme qu'on avait renoncé à percevoir.
+ */
+const STATUTS = ['Payé', 'Partiel', 'En retard', 'En cours', 'Perte et vol', 'À venir'];
 const CYCLES = ['MENSUEL', 'QUINZAINE', 'HEBDOMADAIRE'];
 
 const MOTIFS = [
@@ -62,8 +69,13 @@ function fabriquer(graine: number, nbGroupes: number): IEncoursReleve {
             const factures = Array.from({ length: 1 + Math.floor(suivant() * 4) }).map((___, fi) => {
                 const statut = STATUTS[(gi + si + fi) % STATUTS.length];
                 const aVenir = statut === 'À venir';
+                const abandonnee = statut === 'Perte et vol';
                 const total = aVenir ? null : 120000 + Math.round(suivant() * 900000);
-                const acompte = !aVenir && suivant() < 0.4 ? Math.round((total ?? 0) * suivant()) : 0;
+                const acompte = !aVenir && !abandonnee && suivant() < 0.4
+                    ? Math.round((total ?? 0) * suivant())
+                    : 0;
+                // Une créance abandonnée : le solde tombe à zéro, et la perte le dit.
+                const perte = abandonnee ? (total ?? 0) - acompte : 0;
                 const mois = 1 + ((gi + si + fi) % 12);
                 return {
                     acompte: aVenir ? null : acompte,
@@ -78,7 +90,8 @@ function fabriquer(graine: number, nbGroupes: number): IEncoursReleve {
                     // Une periode a venir n'est pas encore facturee : elle n'a pas de bornes.
                     periodeDebut: aVenir ? null : `2026-0${1 + (mois % 9)}-01`,
                     periodeFin: aVenir ? null : `2026-0${1 + (mois % 9)}-15`,
-                    solde: aVenir ? null : (total ?? 0) - acompte,
+                    perte,
+                    solde: aVenir ? null : (total ?? 0) - acompte - perte,
                     statut,
                     totalAPayer: total,
                 };

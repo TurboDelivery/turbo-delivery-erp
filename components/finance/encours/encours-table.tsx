@@ -15,6 +15,14 @@ type Line = { key: string; cn?: string; cells: Cell[] };
 const STATUT_COLOR: Record<string, 'danger' | 'default' | 'success' | 'warning'> = {
   'En cours': 'default',
   'En retard': 'danger',
+  /*
+   * ⚠ NEUTRE, ni vert ni rouge.
+   *
+   * Vert dirait « c'est réglé » : l'argent n'est jamais rentré. Rouge dirait « il faut
+   * agir » : la Direction a justement décidé qu'on n'agirait plus. Une créance
+   * abandonnée est un fait comptable, pas une alerte et pas une bonne nouvelle.
+   */
+  'Perte et vol': 'default',
   Partiel: 'warning',
   Payé: 'success',
 };
@@ -102,7 +110,7 @@ export function EncoursTable({
     { key: 'solde', label: 'Solde', cn: 'text-right' },
     // Largeur fixe : sans elle la colonne se faisait ecraser par les montants et la puce
     // « En cours » se repliait sur deux lignes, ce qui epaississait toutes les rangees.
-    { key: 'statut', label: 'Statut', cn: 'w-28 text-center whitespace-nowrap' },
+    { key: 'statut', label: 'Statut', cn: 'w-32 text-center whitespace-nowrap' },
   ];
 
   const partenaires = releve.partenaires ?? [];
@@ -241,9 +249,24 @@ export function EncoursTable({
               // Le solde d'une facture en retard est ce qu'on va reclamer : c'est la seule
               // valeur du tableau qui appelle un geste, et la puce de statut le dit deja.
               node: (
-                <span className={cn('font-semibold', enRetard ? 'text-danger-soft-foreground' : 'text-foreground')}>
-                  {formatFcfa(f.solde)}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className={cn('font-semibold', enRetard ? 'text-danger-soft-foreground' : 'text-foreground')}>
+                    {formatFcfa(f.solde)}
+                  </span>
+                  {/*
+                    Le montant abandonné se lit SOUS le solde, là où l'œil vient chercher
+                    « combien doit-il ». Sans lui, la ligne passe de 16 500 à 0 sans
+                    expliquer où sont partis les 16 500, et la puce seule ne dit pas
+                    combien. Il n'a pas sa propre colonne : le tableau en a déjà six et
+                    la septième repousse « Statut » hors de la fenêtre, ce que cet écran
+                    a déjà corrigé une fois.
+                  */}
+                  {f.perte ? (
+                    <span className="text-[11px] font-normal text-muted">
+                      {formatFcfa(f.perte)} passés en perte et vol
+                    </span>
+                  ) : null}
+                </div>
               ),
               cn: numCn,
             },
