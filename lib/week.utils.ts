@@ -15,16 +15,47 @@ export interface WeekEntry {
   label: string;
 }
 
+const capitaliser = (mot: string) => mot.charAt(0).toUpperCase() + mot.slice(1);
+
+const moisLong = (d: Date) => capitaliser(d.toLocaleDateString('fr-FR', { month: 'long' }));
+const moisCourt = (d: Date) => capitaliser(d.toLocaleDateString('fr-FR', { month: 'short' }));
+
 /**
- * Builds a French label for a week: "Semaine du <D> au <D> <Mois> <YYYY>".
+ * Le libelle francais d'une semaine.
+ *
+ * ⚠ UNE SEMAINE NE TIENT PAS TOUJOURS DANS UN MOIS, et ce libelle l'oubliait. Il ne lisait
+ * que le mois et l'annee du LUNDI, puis collait la date du dimanche derriere. La semaine
+ * 44 de 2026 (26 octobre au 1er novembre) s'affichait donc « Semaine du 26 au 1 Octobre
+ * 2026 » dans le selecteur, pendant que le titre de la page, lui, annoncait correctement
+ * « 26 Oct. au 1 Nov. ». Le meme ecran se contredisait, et c'est le selecteur qui avait
+ * tort. Au passage d'une annee le defaut etait pire : du 29 decembre 2025 au 4 janvier
+ * 2026 se lisait « du 29 au 4 Decembre 2025 ».
+ *
+ * Trois formes, parce qu'il y a trois cas et qu'ecrire le mois deux fois quand il ne change
+ * pas alourdit une liste deroulante qu'on parcourt a l'oeil :
+ *   meme mois   : « Semaine du 26 au 31 Octobre 2026 »
+ *   mois differents : « Semaine du 26 Oct. au 1 Nov. 2026 »
+ *   annees differentes : « Semaine du 29 Dec. 2025 au 4 Jan. 2026 »
  */
 function buildLabel(debut: string, fin: string): string {
   const debutDate = new Date(`${debut}T00:00:00`);
   const finDate = new Date(`${fin}T00:00:00`);
-  const mois = debutDate.toLocaleDateString('fr-FR', { month: 'long' });
-  const annee = debutDate.getFullYear();
-  return `Semaine du ${debutDate.getDate()} au ${finDate.getDate()} ${mois.charAt(0).toUpperCase() + mois.slice(1)} ${annee}`;
+
+  if (debutDate.getFullYear() !== finDate.getFullYear()) {
+    return `Semaine du ${debutDate.getDate()} ${moisCourt(debutDate)} ${debutDate.getFullYear()}`
+      + ` au ${finDate.getDate()} ${moisCourt(finDate)} ${finDate.getFullYear()}`;
+  }
+
+  if (debutDate.getMonth() !== finDate.getMonth()) {
+    return `Semaine du ${debutDate.getDate()} ${moisCourt(debutDate)}`
+      + ` au ${finDate.getDate()} ${moisCourt(finDate)} ${finDate.getFullYear()}`;
+  }
+
+  return `Semaine du ${debutDate.getDate()} au ${finDate.getDate()}`
+    + ` ${moisLong(debutDate)} ${debutDate.getFullYear()}`;
 }
+
+export { buildLabel as formatSemaineLabel };
 
 /**
  * Generates all Monday→Sunday weeks from `startDate` up to today,

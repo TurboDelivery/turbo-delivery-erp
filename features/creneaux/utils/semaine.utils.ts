@@ -1,4 +1,4 @@
-import { generateWeeks } from '@/lib/week.utils';
+import { formatSemaineLabel, generateWeeks } from '@/lib/week.utils';
 
 const JOURS_SEMAINE = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'] as const;
 const JOURS_SEMAINE_COURT = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as const;
@@ -14,13 +14,15 @@ export const getJourCourtLabel = (jour: string): string => {
   return index >= 0 ? JOURS_SEMAINE_COURT[index] : jour;
 };
 
-export const formatSemaineLabel = (debut: string, fin: string): string => {
-  const debutDate = new Date(`${debut}T00:00:00`);
-  const finDate = new Date(`${fin}T00:00:00`);
-  const mois = debutDate.toLocaleDateString('fr-FR', { month: 'long' });
-  const annee = debutDate.getFullYear();
-  return `Semaine du ${debutDate.getDate()} au ${finDate.getDate()} ${mois.charAt(0).toUpperCase() + mois.slice(1)} ${annee}`;
-};
+/*
+ * Le libelle vit dans `lib/week.utils` et nulle part ailleurs.
+ *
+ * Il en existait ici une SECONDE copie, ligne pour ligne identique, et elle portait le meme
+ * defaut sur les semaines a cheval sur deux mois. Deux copies, c'est la garantie qu'un jour
+ * on en corrige une seule : le selecteur et la liste des creneaux auraient alors annonce
+ * deux libelles differents pour la meme semaine.
+ */
+export { formatSemaineLabel };
 
 export interface SemaineOption {
   value: string;
