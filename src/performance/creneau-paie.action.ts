@@ -20,6 +20,27 @@ export interface CreneauPaie {
  * de base au bandeau de statistiques globales décrit en section 3.1, en le rendant dynamique
  * et filtrable au lieu d'un export figé par créneau ».</p>
  */
+/**
+ * Ce qu'une catégorie de contrat pèse dans le créneau, vu par la GRILLE DE PAIE.
+ *
+ * <p>Les trois cartes de l'écran d'entrée lisaient `/api/erp/performance/contrat/{X}`, qui
+ * recompte les courses par date, en direct. Leurs chiffres bougeaient donc après la clôture
+ * alors que le bandeau juste au-dessus, lui, tenait : supprimer un ticket d'une semaine
+ * verrouillée faisait baisser les cartes et pas le bandeau. Une seule source désormais,
+ * celle de la paie.</p>
+ */
+export interface SyntheseContratPaie {
+  /** `JOURNALIER`, `INDEPENDANT`, `SUPERVISEUR_LIVREUR` ou `A_CATEGORISER`. */
+  contrat: string;
+  livreurs: number;
+  programmes: number;
+  tickets: number;
+  brut: number;
+  commission: number;
+  prime: number;
+  net: number;
+}
+
 export interface StatsCreneau {
   totalLivreurs: number;
   totalTickets: number;
@@ -35,6 +56,8 @@ export interface StatsCreneau {
   dontIndependants: number;
   dontSuperviseurs: number;
   dontACategoriser: number;
+  /** Absent d'un backend qui ne le rend pas encore : les cartes retombent alors sur le calcul vivant. */
+  parContrat?: SyntheseContratPaie[] | null;
 }
 
 /**
@@ -54,19 +77,34 @@ export async function getCreneauDuLundi(lundi: string): Promise<CreneauPaie | nu
     endpoint: '/api/creneaux',
     method: 'GET',
     service: 'backend',
-    params: { page: '0', size: '60' },
+    /*
+     * `debut` fait trancher le SERVEUR, et c'est la moitie de la lenteur de cet ecran :
+     * chaque ligne de cette liste porte ses agregats (lots, lignes de lot, tickets), 2,2 a
+     * 2,5 s pour l'ensemble, et on en jetait toutes sauf une.
+     *
+     * ⚠ `size` reste large et le `find` ci-dessous est CONSERVE. Un backend qui ne connait
+     * pas encore `debut` ignore le parametre en silence et rend sa premiere page : demander
+     * `size=1` rendrait alors le creneau le plus RECENT, et toute semaine passee se lirait
+     * « aucun creneau ». L'ecran doit survivre a l'ordre de deploiement, pas le supposer.
+     */
+    params: { page: '0', size: '60', debut: lundi },
   });
 
   return page?.content?.find((c) => c.dateDebut === lundi) ?? null;
 }
 
-/** Les totaux d'un créneau. `null` quand la lecture échoue : le bandeau se tait. */
+/**
+ * Les totaux d'un créneau. `null` quand la lecture échoue : le bandeau se tait.
+ *
+ * <p>⚠ Lire la grille ENTIÈRE pour n'en garder que `stats` coûtait tout le reste pour rien :
+ * le serveur construit alors une ligne par livreur, avec le détail de chacun de ses tickets
+ * et la résolution du partenaire de chaque ticket, puis le front jetait le tout. Le serveur
+ * expose `/grille-paiement/stats`, qui appelle exactement le même `getStats`.</p>
+ */
 export async function getStatsCreneau(creneauId: string): Promise<StatsCreneau | null> {
-  const grille = await apiClientHttp.request<{ stats: StatsCreneau } | null>({
-    endpoint: `/api/creneaux/${creneauId}/grille-paiement`,
+  return apiClientHttp.request<StatsCreneau | null>({
+    endpoint: `/api/creneaux/${creneauId}/grille-paiement/stats`,
     method: 'GET',
     service: 'backend',
   });
-
-  return grille?.stats ?? null;
 }

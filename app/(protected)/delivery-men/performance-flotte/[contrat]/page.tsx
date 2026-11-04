@@ -90,7 +90,22 @@ export default async function Page({
     ]);
     const stats = creneau ? await getStatsCreneau(creneau.id) : null;
 
-    const lignes = reponse?.content ?? [];
+    const toutes = reponse?.content ?? [];
+
+    /*
+     * SEULS LES LIVREURS QUI ONT ROULE SUR LA PERIODE.
+     *
+     * La requete rend toute la categorie, programmee ou non : sur les 159 independants de la
+     * production, une quinzaine seulement roulent une semaine donnee. Les autres arrivaient
+     * dans la liste ET dans le fichier Excel avec des zeros partout, ce qui noyait ceux qu'on
+     * venait lire et faussait toute somme faite dans le tableur.
+     *
+     * Le compte des ecartes est affiche juste en dessous : un filtre muet se lit comme une
+     * categorie qui s'est videe.
+     */
+    const lignes = toutes.filter((l) => (l.nbTickets ?? 0) > 0);
+    const ecartes = toutes.length - lignes.length;
+
     const display = getTurboyTypeDisplay(contrat);
     /*
      * Le lien de retour garde la periode ENTIERE, pas seulement la semaine. Ne reporter que
@@ -124,8 +139,11 @@ export default async function Page({
                       */}
                         <ContenuFiltre>
                             <p className="mt-1 text-sm text-muted">
-                                {lignes.length} livreur{lignes.length > 1 ? 's' : ''} dans cette catégorie,
-                                programmé{lignes.length > 1 ? 's' : ''} ou non.
+                                {lignes.length} livreur{lignes.length > 1 ? 's' : ''} {lignes.length > 1 ? 'ont' : 'a'}{' '}
+                                roulé sur {creneau ? `le créneau « ${creneau.label} »` : 'la période'}.
+                                {ecartes > 0
+                                    ? ` ${ecartes} autre${ecartes > 1 ? 's' : ''} de cette catégorie ${ecartes > 1 ? 'sont restés' : 'est resté'} sans aucune livraison et ${ecartes > 1 ? "n'apparaissent" : "n'apparaît"} ni ici ni dans l'export.`
+                                    : ''}
                             </p>
                         </ContenuFiltre>
                     </div>
@@ -164,10 +182,17 @@ export default async function Page({
                 <BandeauPeriode libelle={periode.libelle} lignes={lignes} />
             )}
 
-            <AvertissementListeTronquee rendus={lignes.length} total={reponse?.totalElements} />
+            {/* La troncature porte sur ce que le SERVEUR a rendu, avant le filtre d'activite. */}
+            <AvertissementListeTronquee rendus={toutes.length} total={reponse?.totalElements} />
 
             {lignes.length === 0 ? (
-                <EmptyDataTable title="Aucun livreur dans cette catégorie" />
+                <EmptyDataTable
+                    title={
+                        toutes.length > 0
+                            ? `Aucun livreur de cette catégorie n'a roulé sur cette période (${toutes.length} inscrit${toutes.length > 1 ? 's' : ''})`
+                            : 'Aucun livreur dans cette catégorie'
+                    }
+                />
             ) : (
                 <UserListPerformanceBird
                     data={lignes}

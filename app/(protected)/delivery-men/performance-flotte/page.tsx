@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 import { CartesContrat, type SyntheseContrat } from '@/features/performance/components/cartes-contrat';
+import { formatMontant } from '@/utils/format.utils';
 import { SelecteurPeriode } from '@/features/performance/components/selecteur-periode';
 import { BandeauPeriode } from '@/features/performance/components/bandeau-periode';
 import { lirePeriode, type ParametresPeriode } from '@/features/performance/utils/periode.utils';
@@ -92,7 +93,36 @@ export default async function Page({
 
     const [{ creneau, stats }, reponses] = await Promise.all([lecturePaie, lecturePerformance]);
 
+    /*
+     * LES CARTES LISENT LA GRILLE DE PAIE, PAS UN RECALCUL.
+     *
+     * C'est le meme principe que le bandeau juste au-dessus, et il a manque ici. Les cartes
+     * sommaient les lignes de `/api/erp/performance/contrat/{X}`, qui compte les courses PAR
+     * DATE, en direct : supprimer ou modifier un ticket d'une semaine deja cloturee faisait
+     * bouger les cartes pendant que le bandeau, lui, tenait. Le meme ecran affichait deux
+     * verites sur la meme semaine, et c'etaient les cartes qui avaient tort - une paie
+     * verrouillee ne se recalcule pas.
+     *
+     * Le repli sur le calcul vivant reste, et il sert deux cas qui ne sont pas des pannes :
+     * une periode de PLUSIEURS semaines, ou un creneau de paie n'a pas de sens, et une
+     * semaine sans creneau. Il couvre aussi un backend qui ne rendrait pas encore
+     * `parContrat`, pour que l'ecran survive a l'ordre de deploiement.
+     */
+    const parContrat = stats?.parContrat ?? null;
+
     const syntheses: SyntheseContrat[] = CONTRATS.map((contrat, i) => {
+        const figee = parContrat?.find((p) => p.contrat === contrat);
+        if (figee) {
+            return {
+                contrat,
+                livreurs: figee.livreurs,
+                programmes: figee.programmes,
+                nbTickets: figee.tickets,
+                commission: figee.commission,
+                prime: figee.prime,
+            };
+        }
+
         const lignes = reponses[i]?.content ?? [];
 
         return {
@@ -112,6 +142,13 @@ export default async function Page({
             prime: lignes.reduce((n, l) => n + (l.prime ?? 0), 0),
         };
     });
+
+    /*
+     * Les livreurs SANS type de contrat en base. Ils ne rentrent dans aucune des trois
+     * cartes : sans cette ligne, les trois cartes ne sommeraient pas au bandeau et rien ne
+     * dirait pourquoi. Muette tant qu'il n'y en a aucun, ce qui est le cas courant.
+     */
+    const aCategoriser = parContrat?.find((p) => p.contrat === 'A_CATEGORISER') ?? null;
 
     return (
         <ZoneFiltre className="space-y-4">
@@ -165,12 +202,36 @@ export default async function Page({
               * cote, lui, le dirait. Deux ecrans du meme module ne peuvent pas traiter le
               * meme risque de deux facons opposees.
               */}
-            <AvertissementListeTronquee
-                rendus={syntheses.reduce((n, s) => n + s.livreurs, 0)}
-                total={reponses.reduce((n, r) => n + (r?.totalElements ?? 0), 0)}
-            />
+            {/*
+              * ⚠ Ce garde-fou ne vaut QUE pour le calcul vivant, qui lit une page de 200
+              * livreurs. Les chiffres figes de la grille de paie, eux, ne sont pas pagines :
+              * comparer leur total a celui de l'autre requete rapprocherait deux grandeurs
+              * differentes et declencherait une alerte de troncature sur une liste complete.
+              */}
+            {parContrat ? null : (
+                <AvertissementListeTronquee
+                    rendus={syntheses.reduce((n, s) => n + s.livreurs, 0)}
+                    total={reponses.reduce((n, r) => n + (r?.totalElements ?? 0), 0)}
+                />
+            )}
 
             <CartesContrat parametres={parametres} syntheses={syntheses} />
+
+            {/*
+              * Sans cette ligne, les trois cartes ne sommeraient pas au bandeau et l'ecart
+              * serait muet. Un livreur « a categoriser » n'est pas une quatrieme categorie :
+              * c'est un type manquant en base, et c'est a la RH de le poser.
+              */}
+            {aCategoriser && aCategoriser.livreurs > 0 ? (
+                <p className="rounded-lg bg-warning-50 px-4 py-3 text-xs text-warning-700 dark:bg-warning-100/10">
+                    {aCategoriser.livreurs} livreur{aCategoriser.livreurs > 1 ? 's' : ''} de ce créneau
+                    {aCategoriser.livreurs > 1 ? ' ne portent' : ' ne porte'} aucun type de contrat en base
+                    et {aCategoriser.livreurs > 1 ? 'ne figurent' : 'ne figure'} donc dans aucune des trois
+                    cartes, pour {formatMontant(aCategoriser.commission + aCategoriser.prime)} et{' '}
+                    {aCategoriser.tickets} livraison{aCategoriser.tickets > 1 ? 's' : ''}. Le type se pose
+                    sur la fiche du livreur.
+                </p>
+            ) : null}
 
             {/*
              * CE QUE LE MODULE NE MONTRE PAS, ET POURQUOI.
