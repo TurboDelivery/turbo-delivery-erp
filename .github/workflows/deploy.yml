@@ -143,6 +143,20 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
+      # Le sshd du serveur n'écoute plus que sur son adresse de tailnet depuis le
+      # 04/11/2026 ; le port public répond RST. Le runner y entre comme nœud éphémère
+      # le temps du job. Le raisonnement complet est dans le workflow de main-backend.
+      #
+      # ⚠ Prérequis hors de ce dépôt : client OAuth Tailscale de portée auth_keys
+      # autorisé à poser tag:ci, et règle ACL ouvrant tag:ci vers 100.105.54.26:2222.
+      - name: Rejoindre le tailnet
+        uses: tailscale/github-action@v4.4.0
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          version: 1.104.4
+
       - name: Deploy
         run: |
           IMAGE_NAME=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
