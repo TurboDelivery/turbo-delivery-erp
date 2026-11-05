@@ -16,6 +16,7 @@ import { StatutControle } from '@/types/statut-controle.enum';
 import useTickets from '@/features/tickets/hooks/use-tickets';
 import { useAbility } from '@/hooks/use-ability';
 import { useTicketAuthentication } from '@/features/tickets/hooks/use-ticket-authentication';
+import { useInvalidateTicketsQuery } from '@/features/tickets/queries/index.query';
 import StatsSection from '@/components/tickets/stats-section';
 import { TicketArchivesTable } from './ticket-archives-table';
 import { TicketTableFilters } from './ticket-table-filters';
@@ -63,7 +64,8 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
 
   const ability = useAbility();
 
-  const { authenticatedIds, handleAuthentifier } = useTicketAuthentication();
+  const { authenticatedIds, handleAuthentifier, authentifierEnLot } = useTicketAuthentication();
+  const invalidateTicketsQuery = useInvalidateTicketsQuery();
 
   const permissions = useMemo(() => ({
     canCreate: ability.can('create', 'Ticket'),
@@ -76,6 +78,8 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
   }), [ability]);
 
   const [ticketsToDelete, setTicketsToDelete] = useState<string[] | null>(null);
+  const [ticketsAAuthentifier, setTicketsAAuthentifier] = useState<string[] | null>(null);
+  const [authentificationEnCours, setAuthentificationEnCours] = useState(false);
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
 
   const activeTab = filters.tab;
@@ -231,6 +235,34 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
     [table, rowSelection, newTicketIds],
   );
 
+  /*
+   * La selection ELIGIBLE A L'AUTHENTIFICATION n'est pas celle de la suppression.
+   *
+   * <p>Le serveur ne fait passer a AUTHENTIFIE que depuis PENDING et TARDIF. Un
+   * REJETE_FRAUDE est supprimable mais pas authentifiable, et un ticket deja
+   * authentifie non plus. Compter les lignes deja franchies dans le bouton
+   * annoncerait « Authentifier 40 tickets » pour en changer 12, et les 28 autres
+   * reviendraient en refus — c'est exactement ce qui a fait croire a une panne sur
+   * la validation V1 en aout.</p>
+   */
+  const AUTHENTIFIABLE_STATUTS = new Set<string>([StatutControle.PENDING, StatutControle.TARDIF]);
+
+  const selectedRowIdsAAuthentifier = useMemo(
+    () =>
+      table
+        .getFilteredSelectedRowModel()
+        .rows
+        .filter((r) => {
+          if (newTicketIds.has(r.id)) return false;
+          if (authenticatedIds.has(r.id)) return false;
+          const statut = r.original.statutControle;
+          return !!statut && AUTHENTIFIABLE_STATUTS.has(statut);
+        })
+        .map((r) => r.id),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [table, rowSelection, newTicketIds, authenticatedIds],
+  );
+
   const colsCount = table.getAllColumns().length;
 
   /*
@@ -270,6 +302,48 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
     if (selectedRowIds.length === 0) { toast.warning('Aucune ligne sélectionnée'); return; }
     setTicketsToDelete(Array.from(selectedRowIds));
   }, [selectedRowIds]);
+
+  /*
+   * L'authentification groupee, sur le meme modele que la suppression groupee.
+   *
+   * <p>Une boucle sequentielle, un compte, et UN seul message a la fin. Le parallele
+   * serait plus rapide et ne vaut pas son prix : ces appels ecrivent le statut de
+   * controle, et quarante ecritures simultanees sur la meme table pour gagner
+   * quelques secondes n'est pas un echange raisonnable sur une production qui porte
+   * la paie.</p>
+   *
+   * <p>La fenetre reste ouverte pendant l'operation : elle porte l'attente. La fermer
+   * avant donnerait l'apparence du travail fait, defaut deja corrige sur la
+   * suppression.</p>
+   */
+  const handleConfirmAuthentifier = useCallback(async () => {
+    if (!ticketsAAuthentifier || ticketsAAuthentifier.length === 0) return;
+    setAuthentificationEnCours(true);
+    let reussis = 0;
+    for (const id of ticketsAAuthentifier) {
+      if (await authentifierEnLot(id)) reussis += 1;
+    }
+    const echoues = ticketsAAuthentifier.length - reussis;
+    if (echoues === 0) {
+      toast.success(`${reussis} ticket${reussis > 1 ? 's' : ''} authentifié${reussis > 1 ? 's' : ''}.`);
+    } else if (reussis > 0) {
+      toast.warning(`${reussis} authentifié${reussis > 1 ? 's' : ''}, ${echoues} en échec.`);
+    } else {
+      toast.error(`Aucun ticket authentifié : ${echoues} en échec.`);
+    }
+    await invalidateTicketsQuery();
+    setRowSelection({});
+    setTicketsAAuthentifier(null);
+    setAuthentificationEnCours(false);
+  }, [ticketsAAuthentifier, authentifierEnLot, invalidateTicketsQuery]);
+
+  const handleAuthentifierRows = useCallback(() => {
+    if (selectedRowIdsAAuthentifier.length === 0) {
+      toast.warning('Aucune ligne sélectionnée ne peut être authentifiée');
+      return;
+    }
+    setTicketsAAuthentifier(Array.from(selectedRowIdsAAuthentifier));
+  }, [selectedRowIdsAAuthentifier]);
 
   return (
     <div className="p-2">
@@ -497,6 +571,9 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
           permissions={permissions}
           isDeletingBonLivraison={isDeletingBonLivraison}
           onDeleteRows={handleDeleteRows}
+          selectedRowsAAuthentifier={selectedRowIdsAAuthentifier}
+          isAuthentifying={authentificationEnCours}
+          onAuthentifierRows={handleAuthentifierRows}
         />
       )}
 
@@ -510,6 +587,24 @@ export function TicketTable({ restaurants, newTickets, newTicketIds, livreurOpti
         {ticketsToDelete?.length === 1
           ? 'Confirmez-vous la suppression définitive de ce ticket ? Cette action est irréversible.'
           : `Confirmez-vous la suppression de ${ticketsToDelete?.length ?? 0} ticket(s) ? Cette action est irréversible.`}
+      </ConfirmModal>
+
+      <ConfirmModal
+        isOpen={ticketsAAuthentifier !== null}
+        onClose={() => { if (!authentificationEnCours) setTicketsAAuthentifier(null); }}
+        title={
+          ticketsAAuthentifier?.length === 1
+            ? 'Authentifier le ticket'
+            : `Authentifier ${ticketsAAuthentifier?.length ?? 0} tickets`
+        }
+        isLoading={authentificationEnCours}
+        actions={[{ label: 'Authentifier', onPress: handleConfirmAuthentifier, variante: 'primary' }]}
+      >
+        {/* Ce que l'authentification ENGAGE est dit ici : c'est la premiere marche de
+            la chaine de controle, et elle ouvre la V1. */}
+        {ticketsAAuthentifier?.length === 1
+          ? 'Ce ticket passera en AUTHENTIFIÉ et deviendra éligible à la validation V1.'
+          : `Ces ${ticketsAAuthentifier?.length ?? 0} tickets passeront en AUTHENTIFIÉ et deviendront éligibles à la validation V1.`}
       </ConfirmModal>
     </div>
   );

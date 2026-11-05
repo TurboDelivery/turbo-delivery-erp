@@ -150,19 +150,58 @@ export const useRestaurerArchives = (
   });
 };
 
+/**
+ * Le ticket est-il DEJA au-dela de l'authentification ?
+ *
+ * <p>Le serveur refuse par « Ticket non eligible a authentification (statut=X) ». Du
+ * point de vue de l'operateur ce n'est pas un echec : l'etat qu'il demandait est
+ * atteint. Le montrer en rouge lui fait croire que son action a rate alors qu'elle a
+ * reussi, il reclique, obtient un nouveau refus. Ce symptome a ete remonte en
+ * production le 03/08/2026 sur la validation V1, meme cause.</p>
+ *
+ * <p>La reconnaissance est VOLONTAIREMENT etroite : seuls les statuts qui prouvent que
+ * l'etape est franchie sont absorbes. Un REJETE_FRAUDE doit continuer a echouer
+ * bruyamment — l'avaler masquerait une fraude signalee.</p>
+ */
+function dejaAuthentifie(message: string): boolean {
+  const statut = /statut\s*=\s*([A-Z0-9_]+)/i.exec(message)?.[1]?.toUpperCase();
+  return statut === 'AUTHENTIFIE' || statut === 'V1_VALIDE' || statut === 'V2_VALIDE';
+}
+
+export type IssueAuthentification = 'authentifie' | 'deja-authentifie';
+
+/**
+ * `enLot` vaut vrai quand l'appel fait partie d'une authentification groupee.
+ *
+ * <p>La mutation n'affiche alors aucun message et ne rafraichit pas la liste :
+ * l'appelant le fera UNE fois a la fin. Rafraichir apres chaque ticket relancerait la
+ * requete paginee a chaque tour de boucle, et les pages se decaleraient sous la boucle
+ * puisque la liste est filtrable par statut. Sans compter un message de reussite par
+ * ticket, soit quarante bulles pour un lot de quarante.</p>
+ */
 export const useAuthentifierTicket = () => {
   const invalidateTicketsQuery = useInvalidateTicketsQuery();
 
-  return useMutation({
-    mutationFn: async (ticketId: string) => {
+  return useMutation<IssueAuthentification, Error, string | { ticketId: string; enLot?: boolean }>({
+    mutationFn: async (variables) => {
+      const ticketId = typeof variables === 'string' ? variables : variables.ticketId;
       const result = await authentifierTicket(ticketId);
-      if (!result.success) throw new Error(result.error);
+      if (result.success) return 'authentifie';
+      const message = String(result.error ?? '');
+      if (dejaAuthentifie(message)) return 'deja-authentifie';
+      throw new Error(message || 'Erreur inconnue');
     },
-    onSuccess: async () => {
+    onSuccess: async (issue, variables) => {
+      if (typeof variables !== 'string' && variables.enLot) return;
       await invalidateTicketsQuery();
-      toast.success('Ticket authentifié avec succès.');
+      toast.success(
+        issue === 'deja-authentifie'
+          ? 'Ce ticket était déjà authentifié.'
+          : 'Ticket authentifié avec succès.',
+      );
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      if (typeof variables !== 'string' && variables.enLot) return;
       const message = error instanceof Error ? error.message : 'Erreur inconnue';
       toast.error(`Erreur lors de l'authentification: ${message}`);
     },
