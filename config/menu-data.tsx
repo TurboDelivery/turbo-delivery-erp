@@ -262,6 +262,10 @@ const menuData: IMenuData[] = [
       // SPEC-RECOUV-002, aval du visa : orientation des fonds (DG/DGA) + verification des depots.
       { icon: Wallet, title: 'Orientation des fonds', path: '/finance/comptabilite/orientation-fonds', can: { action: 'read', subject: 'OrientationFonds' } },
       { icon: CheckCircle, title: 'Vérification dépôts', path: '/finance/comptabilite/verification-depots', can: { action: 'read', subject: 'VerificationDepots' } },
+      // VIREMENTS : l'argent REELLEMENT recu en banque. Place dans Recouvrement et non
+      // dans Finance : c'est le dernier maillon avant le releve de compte, et c'est la
+      // qu'un agent le cherche. Sujet dedie, le RECOUVREUR et le CAISSIER n'y entrent pas.
+      { icon: Wallet, title: 'Virements reçus', path: '/finance/recouvrement/virements', can: { action: 'read', subject: 'Virement' } },
       // ENCOURS : releve des restes a payer (factures editees non recouvrees), par mois/an.
       { icon: TrendingUp, title: 'Encours', path: '/finance/comptabilite/encours', can: { action: 'read', subject: 'PageEncours' } },
     ],

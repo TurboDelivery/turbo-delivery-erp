@@ -78,6 +78,14 @@ export type AppSubjects =
   // PageFinanceConfig : configuration globale du module FINANCES (§4.1).
   // Réservé DG (manage all) + DGA (read all, propose le seuil). « Admin » = DG côté front.
   | 'PageFinanceConfig'
+  // 2026-11-05 — Virements reçus et paramètres de règlement (/finance/recouvrement/virements).
+  // Sujet DÉDIÉ et non 'Finance' : ces lignes deviennent le « montant réglé » des relevés
+  // de compte envoyés aux partenaires. Les ranger sous 'Finance' les ouvrirait au
+  // RECOUVREUR et au CAISSIER, que la section 8 de la spécification exclut explicitement
+  // de la saisie — un virement inventé fausse un document qui engage l'entreprise.
+  // 'read' = consulter le journal ; 'create' = saisir et annuler ; 'manage' = modifier
+  // en plus le taux de retenue.
+  | 'Virement'
   | 'Notification'
   | 'Creneau'
   | 'Performance'
@@ -227,6 +235,8 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
     { action: 'manage', subject: 'VerificationV1' },
     { action: 'manage', subject: 'VerrouillageV2' },
     { action: 'manage', subject: 'GrillePaiement' },
+    // Section 8 : saisie des virements OUI, taux de retenue MODIFIABLE.
+    { action: 'manage', subject: 'Virement' },
     { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
   ],
   COMPTABLE: [
@@ -247,6 +257,9 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
     { action: 'manage', subject: 'Personnel' },
     { action: 'read', subject: 'Finance' },
     { action: 'read', subject: ['PageResponsableFinancier', 'PageCaissier', 'PageEncours'] },
+    // Section 8 : saisie des virements OUI, taux de retenue en LECTURE seule — d'où
+    // `read` + `create` et non `manage`.
+    { action: ['read', 'create'], subject: 'Virement' },
     { action: 'read', subject: 'VerificationDepots' },
     { action: 'manage', subject: 'Trafic' },
     { action: 'manage', subject: 'Livreur' },
@@ -288,6 +301,9 @@ export const ROLE_RULES: Record<AppRole, PermissionRule[]> = {
     { action: 'manage', subject: 'ValidationTicket' },
     { action: 'manage', subject: 'VerificationV1' },
     { action: 'manage', subject: 'GrillePaiement' },
+    // Section 8 : l'Ops Manager CONSULTE les virements (contrôle de gestion) mais n'en
+    // saisit pas. `read` seul, jamais `create`.
+    { action: 'read', subject: 'Virement' },
     { action: 'access', subject: ['Menu', 'Route', 'Parametre', 'Notification'] },
   ],
   BUSINESS_DEVELOPER: [
