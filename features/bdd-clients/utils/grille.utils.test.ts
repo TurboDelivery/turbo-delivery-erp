@@ -30,6 +30,24 @@ describe('analyserMontant', () => {
     expect(analyserMontant('1.284.000')).toBe(1284000);
   });
 
+  /*
+   * Excel pose le format Nombre a deux decimales des qu'on clique le bouton decimales,
+   * et SheetJS (`raw: false`) rend alors « 1500.50 » ou « 1,500.50 ». Retirer tous les
+   * points sans regarder leur position multipliait le montant par cent.
+   */
+  it('lit un point suivi de moins de trois chiffres comme une décimale', () => {
+    expect(analyserMontant('1500.50')).toBe(1500.5);
+    expect(analyserMontant('12.5')).toBe(12.5);
+    expect(analyserMontant('1.284.000.25')).toBe(1284000.25);
+  });
+
+  it('lit les deux séparateurs ensemble : le dernier est la décimale', () => {
+    expect(analyserMontant('1,500.50')).toBe(1500.5);
+    expect(analyserMontant('1.500,50')).toBe(1500.5);
+    expect(analyserMontant('1,234,567.89')).toBe(1234567.89);
+    expect(analyserMontant('1.234.567,89')).toBe(1234567.89);
+  });
+
   it('accepte la virgule comme décimale, une seule fois', () => {
     expect(analyserMontant('12500,50')).toBe(12500.5);
     // Deux virgules ne veulent rien dire : on refuse plutôt que de deviner.

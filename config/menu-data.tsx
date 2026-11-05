@@ -134,6 +134,13 @@ const menuData: IMenuData[] = [
     title: 'Tickets & paie',
     children: [
       { icon: Ticket, title: 'Saisie des tickets', path: '/tickets', can: { action: 'read', subject: 'Ticket' } },
+      /*
+       * L'import en lot. Sujet « Ticket » et action « create », et non « read » comme
+       * l'entree voisine : lire les tickets et en CREER deux mille ne sont pas le meme
+       * droit. Un sujet dedie fermerait l'ecran a tout le monde tant qu'aucun role ne
+       * l'aurait recu ; `create Ticket` est deja porte par les roles qui saisissent.
+       */
+      { icon: Upload, title: 'Import de tickets', path: '/tickets/import', can: { action: 'create', subject: 'Ticket' } },
       { icon: Lock, title: 'Régularisation', path: '/validation-tickets/regularisation', can: { action: 'read', subject: 'ValidationTicket' } },
       { icon: Lock, title: 'Vérification V1', path: '/validation-tickets/verification-v1', can: { action: 'read', subject: 'VerificationV1' } },
       { icon: Lock, title: 'Verrouillage V2', path: '/validation-tickets/verrouillage-v2', can: { action: 'read', subject: 'VerrouillageV2' } },

@@ -8,6 +8,14 @@
  */
 
 /**
+ * `analyserMontant` vit désormais dans {@code lib/tableur/lecture-valeurs.ts}, partagé
+ * avec l'import de tickets. Réexporté ici pour que tout ce qui l'importait déjà par ce
+ * chemin ou par le baril continue de fonctionner.
+ */
+export { analyserMontant } from '@/lib/tableur/lecture-valeurs';
+import { analyserMontant } from '@/lib/tableur/lecture-valeurs';
+
+/**
  * Découpe le presse-papiers d'Excel en matrice de cellules.
  *
  * <p>Excel met du TSV dans le presse-papiers : tabulation entre les colonnes, saut de
@@ -73,46 +81,6 @@ export function analyserCollage(texte: string): string[][] {
     .filter((l) => l.some((v) => v !== ''));
 }
 
-/**
- * Le montant tel qu'un tableur l'écrit, rendu en nombre.
- *
- * <p>⚠ Les espaces de groupement d'Excel ne sont pas des espaces ordinaires : c'est
- * U+00A0 (insécable) ou U+202F (fine insécable). Ce projet a déjà payé cette confusion,
- * sur les PDF, où `toLocaleString('fr-FR')` imprimait « 20/000 ». Les retirer par
- * `replace(/ /g,'')` n'en enlèverait aucun.</p>
- *
- * <p>La virgule décimale française est acceptée. Un texte qui ne contient aucun chiffre
- * rend `null` et non zéro : zéro est un montant, l'absence n'en est pas un.</p>
- */
-export function analyserMontant(texte: string | null | undefined): number | null {
-  if (texte === null || texte === undefined) return null;
-
-  const sansEspaces = String(texte).replace(/[\s\u00A0\u202F\u2009]/g, '');
-
-  // Le signe se lit AVANT d'etre retire. Un montant negatif n'est pas un ticket, c'est
-  // une faute de frappe ; le depouiller de son signe rendrait 500 la ou l'agent a tape
-  // -500, ce qui est pire que de refuser.
-  if (/^-/.test(sansEspaces)) return null;
-
-  const chiffresEtSeparateurs = sansEspaces.replace(/[^\d,.]/g, '');
-  if (chiffresEtSeparateurs === '' || !/\d/.test(chiffresEtSeparateurs)) return null;
-
-  /*
-   * LE POINT EST UN SEPARATEUR DE MILLIERS, PAS UNE DECIMALE.
-   *
-   * Un tableur francais ecrit « 12.500 » pour douze mille cinq cents. Le lire comme un
-   * decimal enregistrait 12,5 : un ticket divise par mille, sans que rien ne le signale,
-   * et un panier moyen faux pour toujours. Seule la VIRGULE est decimale ici.
-   */
-  const sansMilliers = chiffresEtSeparateurs.replace(/\./g, '');
-
-  // Deux virgules ne sont pas un nombre : on rend null plutot qu'un resultat invente.
-  if ((sansMilliers.match(/,/g) ?? []).length > 1) return null;
-
-  const valeur = Number(sansMilliers.replace(',', '.'));
-  // Un montant negatif n'est pas un ticket, c'est une faute de frappe.
-  return Number.isFinite(valeur) && valeur >= 0 ? valeur : null;
-}
 
 /** Les colonnes de la grille, dans l'ordre où Excel les collera. */
 /**
