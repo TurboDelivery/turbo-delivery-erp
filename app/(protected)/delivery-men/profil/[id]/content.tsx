@@ -5,6 +5,8 @@ import { Camera, ImageOff, KeyRound, Smartphone } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React from 'react';
+
+import { useReouvertureAcces } from '@/features/turboys/hooks/use-reouverture-acces';
 import { toast } from 'sonner';
 
 import { ChampDate, ChampListe, ChampTexte } from '@/components/commons/champs-formulaire';
@@ -404,6 +406,11 @@ export default function Content({ user }: { user: LivreurDetail }) {
             setEmissionEnCours(false);
         }
     }
+
+    // ⚠ Le MEME hook que la fiche Turboys. Trois fiches coursier coexistent dans ce
+    // depot, et la precedente a mis des mois a voir arriver un recours qui existait deja
+    // ailleurs. Deux copies de cette logique divergeraient de la meme facon.
+    const reouverture = useReouvertureAcces(user.id);
 
     const [enregistrement, setEnregistrement] = React.useState(false);
 
@@ -837,6 +844,73 @@ export default function Content({ user }: { user: LivreurDetail }) {
                                 </Alert>
                             )}
 
+                            {reouverture.motDePasse && (
+                                <Alert>
+                                    <Alert.Indicator />
+                                    <Alert.Content>
+                                        <Alert.Title>Mot de passe temporaire</Alert.Title>
+                                        <Alert.Description>
+                                            À dicter au coursier. Il ne sera plus affiché.
+                                        </Alert.Description>
+                                        {/*
+                                         * Dix signes dans une colonne d'environ 215 px :
+                                         * `break-all` et un interlettrage court, comme pour la
+                                         * clé. Il se dicte, donc il doit tenir en entier.
+                                         */}
+                                        <p className="my-2 font-mono text-2xl font-bold break-all tracking-[0.15em]">
+                                            {reouverture.motDePasse.motDePasse}
+                                        </p>
+                                        <p className="text-xs">
+                                            Valable jusqu’au{' '}
+                                            <span className="tabular-nums">
+                                                {reouverture.expirationLisible}
+                                            </span>
+                                            . Le coursier le saisit dans le champ «&nbsp;mot de passe
+                                            actuel&nbsp;» de l’écran du code, puis choisit son code à
+                                            4 chiffres. Il ne sert pas à se connecter.
+                                        </p>
+                                        <Button
+                                            className="mt-3 w-fit"
+                                            onPress={reouverture.effacer}
+                                            size="sm"
+                                            variant="ghost"
+                                        >
+                                            J’ai noté le mot de passe
+                                        </Button>
+                                    </Alert.Content>
+                                </Alert>
+                            )}
+
+                            {/*
+                             * CE BLOC EST LE PREMIER DES TROIS, et c'est voulu : c'est le seul
+                             * qui débloque un coursier qui ne peut pas entrer du tout. Les deux
+                             * autres traitent des situations plus rares — changer de téléphone,
+                             * oublier un code qu'on avait.
+                             */}
+                            <div>
+                                <p className="text-sm font-medium text-foreground">
+                                    Le coursier ne peut pas choisir son code
+                                </p>
+                                <p className="mt-1 text-xs text-muted">
+                                    Un compte ouvert depuis l’ERP n’a ni code ni mot de passe, et
+                                    l’application ne peut plus vérifier son numéro par SMS. Ce geste
+                                    lui pose un mot de passe valable deux heures, à dicter : il
+                                    l’utilise une fois pour choisir son code, et le mot de passe
+                                    disparaît.
+                                </p>
+                                <Button
+                                    className="mt-3 h-auto py-2 text-left whitespace-normal"
+                                    isPending={reouverture.enCours}
+                                    onPress={reouverture.rouvrir}
+                                    variant="outline"
+                                >
+                                    <KeyRound aria-hidden="true" className="size-4" />
+                                    Poser un mot de passe temporaire
+                                </Button>
+                            </div>
+
+                            <Separator />
+
                             <div>
                                 <p className="text-sm font-medium text-foreground">
                                     Changement de téléphone
@@ -873,9 +947,21 @@ export default function Content({ user }: { user: LivreurDetail }) {
                                     Code oublié
                                 </p>
                                 <p className="mt-1 text-xs text-muted">
-                                    Le code est effacé, et le coursier en repose un depuis
-                                    l’application. L’ERP n’en choisit pas un à sa place : un code dicté
-                                    au téléphone serait connu d’un autre que son titulaire.
+                                    Le code est effacé. L’ERP n’en choisit pas un à sa place : un code
+                                    dicté au téléphone serait connu d’un autre que son titulaire.
+                                </p>
+                                {/*
+                                 * ⚠ CETTE PHRASE A ETE CORRIGEE LE 06/11/2026. Elle promettait que
+                                 * « le coursier en repose un depuis l'application » — ce que le
+                                 * serveur refuse, puisque poser un code exige une preuve et que
+                                 * l'OTP ne part plus. Des agents ont cliqué ici en croyant
+                                 * débloquer, et ont enfermé dehors des coursiers qui pouvaient
+                                 * encore entrer avec leur mot de passe. Une promesse fausse à
+                                 * l'écran coûte plus cher qu'un bouton manquant.
+                                 */}
+                                <p className="mt-2 text-xs text-warning-soft-foreground">
+                                    Après l’effacement, le coursier ne pourra pas choisir un nouveau
+                                    code tout seul : posez-lui un mot de passe temporaire, ci-dessus.
                                 </p>
                                 <Button
                                     className="mt-3"

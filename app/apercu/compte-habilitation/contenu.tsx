@@ -19,7 +19,15 @@ import { turboyKeys } from '@/features/turboys/queries/turboy-list.query';
  * rend en entier, sections comprises.</p>
  *
  * <p>Ce qu'on vient vérifier : la section « Code oublié », qui existait côté serveur et sur
- * une autre fiche coursier, mais pas sur celle que le menu Turboys ouvre.</p>
+ * une autre fiche coursier, mais pas sur celle que le menu Turboys ouvre. Et depuis le
+ * 06/11/2026, la section « Le coursier ne peut pas choisir son code », le seul geste qui
+ * débloque un compte sans code ni mot de passe.</p>
+ *
+ * <p>⚠ Le banc RÉPOND à l'appel réseau du mot de passe temporaire, au lieu de le laisser
+ * échouer. Sans cela on ne verrait jamais le panneau de résultat : il faudrait une session
+ * ERP, une clé de service et un coursier réellement bloqué. Or c'est précisément ce
+ * panneau qu'il faut regarder — il porte un mot de passe que l'agent va dicter au
+ * téléphone, et dix signes qui débordent de leur colonne ne se dictent pas.</p>
  */
 const IDENTIFIANT = '00000000-0000-0000-0000-000000000001';
 
@@ -70,6 +78,27 @@ function clientPreRempli(deviceLie: boolean) {
 export default function ApercuCompteHabilitation() {
   // Créés une fois : un client neuf à chaque rendu reperdrait le cache pré-rempli.
   const avecAppareil = React.useMemo(() => clientPreRempli(true), []);
+
+  // Le relais du mot de passe temporaire répond ici, sans réseau ni session.
+  React.useEffect(() => {
+    const vrai = window.fetch;
+    window.fetch = (async (entree: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof entree === 'string' ? entree : entree.toString();
+      if (url.includes('/api/acces-livreur/')) {
+        return new Response(
+          JSON.stringify({
+            expireLe: '2026-11-06T20:07:00.000Z',
+            motDePasse: 'DRCFH2MXAY',
+          }),
+          { headers: { 'Content-Type': 'application/json' }, status: 200 },
+        );
+      }
+      return vrai(entree, init);
+    }) as typeof window.fetch;
+    return () => {
+      window.fetch = vrai;
+    };
+  }, []);
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-8">

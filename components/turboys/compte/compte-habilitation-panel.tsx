@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ChampCopiable } from '@/components/commons/ChampCopiable';
 import { ChampListe, ChampTexte } from '@/components/commons/champs-formulaire';
 import EtatErreur from '@/components/commons/EtatErreur';
+import { useReouvertureAcces } from '@/features/turboys/hooks/use-reouverture-acces';
 import { useTurboyQuery } from '@/features/turboys/queries/turboy-list.query';
 import { nomComplet } from '@/utils/nom.utils';
 import { getAllRestaurants } from '@/src/restaurants/restaurants.actions';
@@ -138,6 +139,7 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
   const cles = useClesQuery(driverId);
   const evenements = useEvenementsQuery(driverId);
   const cote = useCoteQuery(driverId);
+  const reouverture = useReouvertureAcces(driverId);
   const restaurantsQuery = useQuery({
     queryKey: ['restaurants', 'all', 'habilitation'],
     queryFn: getAllRestaurants,
@@ -410,6 +412,74 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
       </section>
 
       {/*
+        Rouvrir l'accès — et c'est le geste qui manquait aux deux autres.
+
+        La clé d'activation délie un appareil ; « Effacer le code » efface. Aucun des deux
+        ne permet à un coursier SANS code et SANS mot de passe d'en choisir un : le serveur
+        exige pour cela une preuve qu'il détient son numéro, et cette preuve arrive par
+        SMS. Twilio étant révoqué, plus aucun compte dans cet état ne pouvait entrer —
+        c'est-à-dire tout compte ouvert depuis l'ERP, et tout compte dont on venait
+        d'effacer le code.
+
+        Il est placé AVANT « Code oublié » parce qu'il est le recours le plus fréquent, et
+        parce que l'autre bouton fabrique précisément la situation qu'il répare.
+      */}
+      <section className={sectionClass}>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h2 className="text-base font-semibold text-foreground">
+            Le coursier ne peut pas choisir son code
+          </h2>
+          <Button
+            isPending={reouverture.enCours}
+            onPress={reouverture.rouvrir}
+            size="sm"
+            variant="outline"
+          >
+            Poser un mot de passe temporaire
+          </Button>
+        </div>
+        <p className="text-xs text-muted">
+          Un compte ouvert depuis l’ERP n’a ni code ni mot de passe, et l’application ne peut
+          plus vérifier son numéro par SMS. Ce geste lui pose un mot de passe valable deux
+          heures : il l’utilise une seule fois pour choisir son code, et le mot de passe
+          disparaît aussitôt.
+        </p>
+
+        {reouverture.motDePasse && (
+          <Alert className="mt-4">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>
+                Mot de passe temporaire — à communiquer une seule fois au coursier
+              </Alert.Title>
+              {/*
+                `break-all` : dix signes à cet interlettrage débordent de la colonne sur la
+                fenêtre réelle du poste. Il se dicte, donc il doit tenir en entier.
+              */}
+              <p className="my-2 font-mono text-2xl font-bold break-all tracking-[0.15em]">
+                {reouverture.motDePasse.motDePasse}
+              </p>
+              <Alert.Description>
+                Valable jusqu’au{' '}
+                <span className="tabular-nums">{reouverture.expirationLisible}</span>. Le
+                coursier le saisit dans le champ «&nbsp;mot de passe actuel&nbsp;» de l’écran
+                du code, puis choisit ses 4 chiffres. ⚠ Il ne sert pas à se connecter : la
+                connexion le refusera.
+              </Alert.Description>
+              <Button
+                className="mt-3 w-fit"
+                onPress={reouverture.effacer}
+                size="sm"
+                variant="ghost"
+              >
+                J’ai noté le mot de passe
+              </Button>
+            </Alert.Content>
+          </Alert>
+        )}
+      </section>
+
+      {/*
         Code oublié (RG-06).
 
         Ce geste EXISTAIT côté serveur et côté ERP, mais sur `/delivery-men/profil/[id]`,
@@ -434,10 +504,20 @@ export default function CompteHabilitationPanel({ driverId }: { driverId: string
           </Button>
         </div>
         <p className="text-xs text-muted">
-          Le code est effacé, et le coursier en repose un depuis l’écran de connexion de
-          l’application. L’ERP n’en choisit pas un à sa place : un code dicté au téléphone
-          serait connu d’un autre que son titulaire, et celui-ci n’aurait aucun moyen de
-          savoir qui le connaît.
+          Le code est effacé. L’ERP n’en choisit pas un à sa place : un code dicté au
+          téléphone serait connu d’un autre que son titulaire, et celui-ci n’aurait aucun
+          moyen de savoir qui le connaît.
+        </p>
+        {/*
+          ⚠ PHRASE CORRIGÉE LE 06/11/2026. Elle promettait que « le coursier en repose un
+          depuis l'écran de connexion » — ce que le serveur refuse, puisque poser un code
+          exige une preuve et que l'OTP ne part plus. Des agents ont cliqué ici en croyant
+          débloquer, et ont enfermé dehors des coursiers qui pouvaient encore entrer. Une
+          promesse fausse à l'écran coûte plus cher qu'un bouton manquant.
+        */}
+        <p className="mt-2 text-xs text-warning-soft-foreground">
+          Après l’effacement, le coursier ne pourra pas choisir un nouveau code seul :
+          posez-lui un mot de passe temporaire, section ci-dessus.
         </p>
 
         {confirmationCode && (
